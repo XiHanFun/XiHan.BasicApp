@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { DataTableColumn, DropdownOption } from 'naive-ui'
+import type { ApiId } from '~/types/contracts'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
-import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip } from 'naive-ui'
+import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -36,6 +37,8 @@ const emit = defineEmits<{
 }>()
 
 const { hasPermission } = usePermission()
+const dialog = useDialog()
+const message = useMessage()
 
 const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
@@ -197,6 +200,45 @@ function onBatchAction(key: string) {
 
 function clearSelection() {
   checkedKeys.value = []
+}
+
+/** 内置批量删除：依赖 resource.remove + schema.batchRemovable */
+const canBatchRemove = computed(() => !!props.schema.batchRemovable && !!props.schema.resource.remove)
+const batchRemoving = ref(false)
+
+function handleBatchRemove() {
+  const targets = selectedRows.value
+  const removeFn = props.schema.resource.remove
+  if (targets.length === 0 || !removeFn) {
+    return
+  }
+  const rowKey = props.schema.rowKey ?? 'basicId'
+  dialog.warning({
+    title: '批量删除',
+    content: `确定删除选中的 ${targets.length} 条记录？此操作不可恢复。`,
+    positiveText: '确认删除',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      batchRemoving.value = true
+      try {
+        const results = await Promise.allSettled(
+          targets.map(row => removeFn((row as Record<string, unknown>)[rowKey] as ApiId)),
+        )
+        const failed = results.filter(r => r.status === 'rejected').length
+        if (failed === 0) {
+          message.success(`已删除 ${targets.length} 条`)
+        }
+        else {
+          message.warning(`删除完成：成功 ${targets.length - failed} 条，失败 ${failed} 条`)
+        }
+        clearSelection()
+        await table.load()
+      }
+      finally {
+        batchRemoving.value = false
+      }
+    },
+  })
 }
 
 function reload() {
@@ -373,6 +415,15 @@ defineExpose({
             清空选择
           </NButton>
           <NButton
+            v-if="canBatchRemove"
+            size="small"
+            type="error"
+            :loading="batchRemoving"
+            @click="handleBatchRemove"
+          >
+            批量删除
+          </NButton>
+          <NButton
             v-for="action in batchActions"
             :key="action.key"
             size="small"
@@ -394,7 +445,7 @@ defineExpose({
           :page-size="pageSize"
           :row-key="schema.rowKey ?? 'basicId'"
           :scroll-x="schema.scrollX"
-          :selectable="batchActions.length > 0"
+          :selectable="batchActions.length > 0 || canBatchRemove"
           :total="total"
           :tree="!!schema.tree"
           :children-key="schema.tree?.childrenKey ?? 'children'"
