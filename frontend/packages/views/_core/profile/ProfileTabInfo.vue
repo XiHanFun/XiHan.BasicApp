@@ -455,15 +455,16 @@ function cancelChange() {
 <template>
   <div class="pf-tab-body">
     <!-- 头像 -->
+    <!-- 账户资料：头像 + 账户标识 + 联系方式 合并为一卡 -->
     <section class="pf-section">
       <div class="pf-section__head">
         <div class="pf-section__heading">
           <div class="pf-section__title">
-            <Icon icon="lucide:image" width="16" />
-            <span>头像</span>
+            <Icon icon="lucide:id-card" width="16" />
+            <span>账户资料</span>
           </div>
           <div class="pf-section__desc">
-            支持 JPG、PNG，不超过 2MB
+            头像、账户标识与联系方式
           </div>
         </div>
       </div>
@@ -480,7 +481,7 @@ function cancelChange() {
                 个人头像
               </div>
               <div class="pf-setting-row__desc">
-                点击上传更换，建议使用正方形图片
+                支持 JPG、PNG，不超过 2MB，建议正方形图片
               </div>
             </div>
           </div>
@@ -511,21 +512,14 @@ function cancelChange() {
             </NButton>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- 账户标识 -->
-    <section class="pf-section">
-      <div class="pf-section__head">
-        <div class="pf-section__heading">
-          <div class="pf-section__title">
-            <Icon icon="lucide:user-round" width="16" />
-            <span>账户标识</span>
-          </div>
-        </div>
-      </div>
-      <div class="pf-section__body">
-        <div class="pf-setting-list">
+        <!-- 账户标识 + 联系方式 两列 -->
+        <div class="pf-cols-2">
+          <div class="pf-subgroup">
+            <div class="pf-subgroup__title">
+              账户标识
+            </div>
+            <div class="pf-setting-list">
           <!-- 用户名 -->
           <div class="pf-setting-row">
             <div class="pf-setting-row__main">
@@ -570,25 +564,14 @@ function cancelChange() {
               <NInput v-model:value="profileForm.nickName" placeholder="您的昵称" class="pf-field" />
             </div>
           </div>
-        </div>
-      </div>
-    </section>
+            </div>
+          </div>
 
-    <!-- 联系方式 -->
-    <section class="pf-section">
-      <div class="pf-section__head">
-        <div class="pf-section__heading">
-          <div class="pf-section__title">
-            <Icon icon="lucide:mail" width="16" />
-            <span>联系方式</span>
-          </div>
-          <div class="pf-section__desc">
-            用于登录验证、安全通知与找回账号
-          </div>
-        </div>
-      </div>
-      <div class="pf-section__body">
-        <div class="pf-setting-list">
+          <div class="pf-subgroup">
+            <div class="pf-subgroup__title">
+              联系方式
+            </div>
+            <div class="pf-setting-list">
           <!-- 电子邮箱 -->
           <div class="pf-setting-row pf-setting-row--wrap">
             <div class="pf-setting-row__main">
@@ -674,6 +657,8 @@ function cancelChange() {
               <NButton quaternary @click="cancelVerify">
                 取消
               </NButton>
+            </div>
+          </div>
             </div>
           </div>
         </div>
