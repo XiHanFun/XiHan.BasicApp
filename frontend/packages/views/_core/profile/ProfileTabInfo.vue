@@ -100,6 +100,39 @@ function handleChangeUserName() {
   })
 }
 
+// ==================== 表单 ====================
+
+const profileSaving = ref(false)
+
+const profileForm = ref({
+  nickName: '',
+  realName: '',
+  gender: 0 as number,
+  birthday: null as null | number,
+  country: '',
+  remark: '',
+  language: 'zh-CN',
+  timeZone: '',
+})
+
+const genderOptions = [
+  { label: '未设置', value: 0 },
+  { label: '男', value: 1 },
+  { label: '女', value: 2 },
+]
+const languageOptions = [
+  { label: '简体中文', value: 'zh-CN' },
+  { label: 'English', value: 'en-US' },
+]
+const timezoneOptions = [
+  { label: 'UTC+8 北京时间', value: 'Asia/Shanghai' },
+  { label: 'UTC+9 东京时间', value: 'Asia/Tokyo' },
+  { label: 'UTC+0 格林尼治时间', value: 'UTC' },
+  { label: 'UTC-5 美东时间', value: 'America/New_York' },
+  { label: 'UTC-8 美西时间', value: 'America/Los_Angeles' },
+  { label: 'UTC+1 中欧时间', value: 'Europe/Berlin' },
+]
+
 // ==================== 头像上传 / 删除 ====================
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
@@ -192,39 +225,6 @@ function handleAvatarRemove() {
     },
   })
 }
-
-// ==================== 表单 ====================
-
-const profileSaving = ref(false)
-
-const profileForm = ref({
-  nickName: '',
-  realName: '',
-  gender: 0 as number,
-  birthday: null as null | number,
-  country: '',
-  remark: '',
-  language: 'zh-CN',
-  timeZone: '',
-})
-
-const genderOptions = [
-  { label: '未设置', value: 0 },
-  { label: '男', value: 1 },
-  { label: '女', value: 2 },
-]
-const languageOptions = [
-  { label: '简体中文', value: 'zh-CN' },
-  { label: 'English', value: 'en-US' },
-]
-const timezoneOptions = [
-  { label: 'UTC+8 北京时间', value: 'Asia/Shanghai' },
-  { label: 'UTC+9 东京时间', value: 'Asia/Tokyo' },
-  { label: 'UTC+0 格林尼治时间', value: 'UTC' },
-  { label: 'UTC-5 美东时间', value: 'America/New_York' },
-  { label: 'UTC-8 美西时间', value: 'America/Los_Angeles' },
-  { label: 'UTC+1 中欧时间', value: 'Europe/Berlin' },
-]
 
 function syncProfileForm() {
   if (!props.profile)
@@ -454,7 +454,6 @@ function cancelChange() {
 
 <template>
   <div class="pf-tab-body">
-    <!-- 头像 -->
     <!-- 账户资料：头像 + 账户标识 + 联系方式 合并为一卡 -->
     <section class="pf-section">
       <div class="pf-section__head">
@@ -520,50 +519,50 @@ function cancelChange() {
               账户标识
             </div>
             <div class="pf-setting-list">
-          <!-- 用户名 -->
-          <div class="pf-setting-row">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                用户名
-                <NTag v-if="profile?.isSystemAccount" type="info" size="tiny" :bordered="false">
-                  系统账号
-                </NTag>
-                <NTag v-else-if="!profile?.canChangeUserName && usernameHint" type="warning" size="tiny" :bordered="false">
-                  {{ usernameHint }}
-                </NTag>
+              <!-- 用户名 -->
+              <div class="pf-setting-row">
+                <div class="pf-setting-row__main">
+                  <div class="pf-setting-row__label">
+                    用户名
+                    <NTag v-if="profile?.isSystemAccount" type="info" size="tiny" :bordered="false">
+                      系统账号
+                    </NTag>
+                    <NTag v-else-if="!profile?.canChangeUserName && usernameHint" type="warning" size="tiny" :bordered="false">
+                      {{ usernameHint }}
+                    </NTag>
+                  </div>
+                  <div class="pf-setting-row__desc">
+                    @{{ profile?.userName || '---' }}
+                  </div>
+                </div>
+                <div class="pf-setting-row__control">
+                  <NButton
+                    v-if="profile?.canChangeUserName"
+                    size="small"
+                    ghost
+                    type="primary"
+                    :loading="usernameChangeLoading"
+                    @click="handleChangeUserName"
+                  >
+                    修改
+                  </NButton>
+                </div>
               </div>
-              <div class="pf-setting-row__desc">
-                @{{ profile?.userName || '---' }}
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NButton
-                v-if="profile?.canChangeUserName"
-                size="small"
-                ghost
-                type="primary"
-                :loading="usernameChangeLoading"
-                @click="handleChangeUserName"
-              >
-                修改
-              </NButton>
-            </div>
-          </div>
 
-          <!-- 显示名称 -->
-          <div class="pf-setting-row">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                显示名称
+              <!-- 显示名称 -->
+              <div class="pf-setting-row">
+                <div class="pf-setting-row__main">
+                  <div class="pf-setting-row__label">
+                    显示名称
+                  </div>
+                  <div class="pf-setting-row__desc">
+                    展示在系统中的昵称
+                  </div>
+                </div>
+                <div class="pf-setting-row__control">
+                  <NInput v-model:value="profileForm.nickName" placeholder="您的昵称" class="pf-field" />
+                </div>
               </div>
-              <div class="pf-setting-row__desc">
-                展示在系统中的昵称
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NInput v-model:value="profileForm.nickName" placeholder="您的昵称" class="pf-field" />
-            </div>
-          </div>
             </div>
           </div>
 
@@ -572,93 +571,93 @@ function cancelChange() {
               联系方式
             </div>
             <div class="pf-setting-list">
-          <!-- 电子邮箱 -->
-          <div class="pf-setting-row pf-setting-row--wrap">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                电子邮箱
-                <NTag v-if="profile?.emailVerified" type="success" size="tiny" :bordered="false">
-                  已验证
-                </NTag>
-                <NTag v-else-if="profile?.email" type="warning" size="tiny" :bordered="false">
-                  未验证
-                </NTag>
+              <!-- 电子邮箱 -->
+              <div class="pf-setting-row pf-setting-row--wrap">
+                <div class="pf-setting-row__main">
+                  <div class="pf-setting-row__label">
+                    电子邮箱
+                    <NTag v-if="profile?.emailVerified" type="success" size="tiny" :bordered="false">
+                      已验证
+                    </NTag>
+                    <NTag v-else-if="profile?.email" type="warning" size="tiny" :bordered="false">
+                      未验证
+                    </NTag>
+                  </div>
+                  <div class="pf-setting-row__desc">
+                    {{ profile?.email || '未设置' }}
+                  </div>
+                </div>
+                <div class="pf-setting-row__control">
+                  <NButton size="small" ghost type="primary" @click="openChangeDialog('email')">
+                    {{ profile?.email ? '修改' : '绑定' }}
+                  </NButton>
+                  <NButton
+                    v-if="profile?.email && !profile?.emailVerified"
+                    size="small"
+                    quaternary
+                    :loading="verifyLoading && verifyTarget === 'email'"
+                    @click="sendVerifyCode('email')"
+                  >
+                    验证
+                  </NButton>
+                </div>
+                <div v-if="verifyTarget === 'email'" class="pf-inline-form">
+                  <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" class="pf-field" />
+                  <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                    确认
+                  </NButton>
+                  <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('email')">
+                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
+                  </NButton>
+                  <NButton quaternary @click="cancelVerify">
+                    取消
+                  </NButton>
+                </div>
               </div>
-              <div class="pf-setting-row__desc">
-                {{ profile?.email || '未设置' }}
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NButton size="small" ghost type="primary" @click="openChangeDialog('email')">
-                {{ profile?.email ? '修改' : '绑定' }}
-              </NButton>
-              <NButton
-                v-if="profile?.email && !profile?.emailVerified"
-                size="small"
-                quaternary
-                :loading="verifyLoading && verifyTarget === 'email'"
-                @click="sendVerifyCode('email')"
-              >
-                验证
-              </NButton>
-            </div>
-            <div v-if="verifyTarget === 'email'" class="pf-inline-form">
-              <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" class="pf-field" />
-              <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
-                确认
-              </NButton>
-              <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('email')">
-                {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
-              </NButton>
-              <NButton quaternary @click="cancelVerify">
-                取消
-              </NButton>
-            </div>
-          </div>
 
-          <!-- 手机号码 -->
-          <div class="pf-setting-row pf-setting-row--wrap">
-            <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">
-                手机号码
-                <NTag v-if="profile?.phoneVerified" type="success" size="tiny" :bordered="false">
-                  已验证
-                </NTag>
-                <NTag v-else-if="profile?.phone" type="warning" size="tiny" :bordered="false">
-                  未验证
-                </NTag>
+              <!-- 手机号码 -->
+              <div class="pf-setting-row pf-setting-row--wrap">
+                <div class="pf-setting-row__main">
+                  <div class="pf-setting-row__label">
+                    手机号码
+                    <NTag v-if="profile?.phoneVerified" type="success" size="tiny" :bordered="false">
+                      已验证
+                    </NTag>
+                    <NTag v-else-if="profile?.phone" type="warning" size="tiny" :bordered="false">
+                      未验证
+                    </NTag>
+                  </div>
+                  <div class="pf-setting-row__desc">
+                    {{ profile?.phone || '未设置' }}
+                  </div>
+                </div>
+                <div class="pf-setting-row__control">
+                  <NButton size="small" ghost type="primary" @click="openChangeDialog('phone')">
+                    {{ profile?.phone ? '修改' : '绑定' }}
+                  </NButton>
+                  <NButton
+                    v-if="profile?.phone && !profile?.phoneVerified"
+                    size="small"
+                    quaternary
+                    :loading="verifyLoading && verifyTarget === 'phone'"
+                    @click="sendVerifyCode('phone')"
+                  >
+                    验证
+                  </NButton>
+                </div>
+                <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
+                  <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" class="pf-field" />
+                  <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                    确认
+                  </NButton>
+                  <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('phone')">
+                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
+                  </NButton>
+                  <NButton quaternary @click="cancelVerify">
+                    取消
+                  </NButton>
+                </div>
               </div>
-              <div class="pf-setting-row__desc">
-                {{ profile?.phone || '未设置' }}
-              </div>
-            </div>
-            <div class="pf-setting-row__control">
-              <NButton size="small" ghost type="primary" @click="openChangeDialog('phone')">
-                {{ profile?.phone ? '修改' : '绑定' }}
-              </NButton>
-              <NButton
-                v-if="profile?.phone && !profile?.phoneVerified"
-                size="small"
-                quaternary
-                :loading="verifyLoading && verifyTarget === 'phone'"
-                @click="sendVerifyCode('phone')"
-              >
-                验证
-              </NButton>
-            </div>
-            <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
-              <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" class="pf-field" />
-              <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
-                确认
-              </NButton>
-              <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('phone')">
-                {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
-              </NButton>
-              <NButton quaternary @click="cancelVerify">
-                取消
-              </NButton>
-            </div>
-          </div>
             </div>
           </div>
         </div>
