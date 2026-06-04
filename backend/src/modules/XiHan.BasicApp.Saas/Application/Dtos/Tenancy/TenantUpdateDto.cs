@@ -55,7 +55,7 @@ public sealed class TenantUpdateDto : BasicAppUDto
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset? ExpireTime { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 用户数限制

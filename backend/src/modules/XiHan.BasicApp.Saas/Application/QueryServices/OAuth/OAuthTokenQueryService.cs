@@ -199,7 +199,7 @@ public sealed class OAuthTokenQueryService
         if (input.IsAccessTokenExpired.HasValue)
         {
             request.Conditions.AddFilter(
-                (SysOAuthToken token) => token.AccessTokenExpiresTime,
+                (SysOAuthToken token) => token.AccessTokenExpirationTime,
                 now,
                 input.IsAccessTokenExpired.Value ? QueryOperator.LessThanOrEqual : QueryOperator.GreaterThan);
         }
@@ -207,33 +207,33 @@ public sealed class OAuthTokenQueryService
         if (input.IsRefreshTokenExpired.HasValue)
         {
             request.Conditions.AddFilter(
-                (SysOAuthToken token) => token.RefreshTokenExpiresTime,
+                (SysOAuthToken token) => token.RefreshTokenExpirationTime,
                 now,
                 input.IsRefreshTokenExpired.Value ? QueryOperator.LessThanOrEqual : QueryOperator.GreaterThan);
         }
 
-        if (input.AccessTokenExpiresTimeStart.HasValue)
+        if (input.AccessTokenExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysOAuthToken token) => token.AccessTokenExpiresTime, input.AccessTokenExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.AccessTokenExpirationTime, input.AccessTokenExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.AccessTokenExpiresTimeEnd.HasValue)
+        if (input.AccessTokenExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysOAuthToken token) => token.AccessTokenExpiresTime, input.AccessTokenExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.AccessTokenExpirationTime, input.AccessTokenExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        if (input.RefreshTokenExpiresTimeStart.HasValue)
+        if (input.RefreshTokenExpirationTimeStart.HasValue)
         {
-            request.Conditions.AddFilter((SysOAuthToken token) => token.RefreshTokenExpiresTime, input.RefreshTokenExpiresTimeStart.Value, QueryOperator.GreaterThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.RefreshTokenExpirationTime, input.RefreshTokenExpirationTimeStart.Value, QueryOperator.GreaterThanOrEqual);
         }
 
-        if (input.RefreshTokenExpiresTimeEnd.HasValue)
+        if (input.RefreshTokenExpirationTimeEnd.HasValue)
         {
-            request.Conditions.AddFilter((SysOAuthToken token) => token.RefreshTokenExpiresTime, input.RefreshTokenExpiresTimeEnd.Value, QueryOperator.LessThanOrEqual);
+            request.Conditions.AddFilter((SysOAuthToken token) => token.RefreshTokenExpirationTime, input.RefreshTokenExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
         request.Conditions.AddSort((SysOAuthToken token) => token.IsRevoked, SortDirection.Ascending, 0);
-        request.Conditions.AddSort((SysOAuthToken token) => token.AccessTokenExpiresTime, SortDirection.Descending, 1);
+        request.Conditions.AddSort((SysOAuthToken token) => token.AccessTokenExpirationTime, SortDirection.Descending, 1);
         request.Conditions.AddSort((SysOAuthToken token) => token.CreatedTime, SortDirection.Descending, 2);
         return request;
     }
@@ -257,8 +257,8 @@ public sealed class OAuthTokenQueryService
             ValidateEnum(input.Status.Value, nameof(input.Status));
         }
 
-        ValidateRange(input.AccessTokenExpiresTimeStart, input.AccessTokenExpiresTimeEnd, nameof(input.AccessTokenExpiresTimeStart), "访问令牌过期开始时间不能晚于结束时间。");
-        ValidateRange(input.RefreshTokenExpiresTimeStart, input.RefreshTokenExpiresTimeEnd, nameof(input.RefreshTokenExpiresTimeStart), "刷新令牌过期开始时间不能晚于结束时间。");
+        ValidateRange(input.AccessTokenExpirationTimeStart, input.AccessTokenExpirationTimeEnd, nameof(input.AccessTokenExpirationTimeStart), "访问令牌过期开始时间不能晚于结束时间。");
+        ValidateRange(input.RefreshTokenExpirationTimeStart, input.RefreshTokenExpirationTimeEnd, nameof(input.RefreshTokenExpirationTimeStart), "刷新令牌过期开始时间不能晚于结束时间。");
     }
 
     /// <summary>

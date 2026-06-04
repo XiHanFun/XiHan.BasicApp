@@ -48,7 +48,7 @@ public sealed class NotificationDomainService
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateNotificationInput(command.NotificationType, command.TargetType, command.Title, command.Icon, command.Link, command.BusinessType, command.BusinessId, command.SendTime, command.ExpireTime, command.Remark);
+        ValidateNotificationInput(command.NotificationType, command.TargetType, command.Title, command.Icon, command.Link, command.BusinessType, command.BusinessId, command.SendTime, command.ExpirationTime, command.Remark);
         var targetUserIds = command.TargetType == NotificationTargetType.All ? Array.Empty<long>() : NormalizeUserIds(command.UserIds);
         var notification = new SysNotification
         {
@@ -61,7 +61,7 @@ public sealed class NotificationDomainService
             BusinessType = Optional(command.BusinessType, 100, nameof(command.BusinessType), "业务类型不能超过 100 个字符。"),
             BusinessId = command.BusinessId,
             SendTime = command.SendTime ?? DateTimeOffset.UtcNow,
-            ExpireTime = command.ExpireTime,
+            ExpirationTime = command.ExpirationTime,
             TargetType = command.TargetType,
             TargetValue = command.TargetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(targetUserIds),
             NeedConfirm = command.NeedConfirm,
@@ -118,7 +118,7 @@ public sealed class NotificationDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         EnsureId(command.BasicId, "系统通知主键必须大于 0。");
-        ValidateNotificationInput(command.NotificationType, command.TargetType, command.Title, command.Icon, command.Link, command.BusinessType, command.BusinessId, command.SendTime, command.ExpireTime, command.Remark);
+        ValidateNotificationInput(command.NotificationType, command.TargetType, command.Title, command.Icon, command.Link, command.BusinessType, command.BusinessId, command.SendTime, command.ExpirationTime, command.Remark);
         var targetUserIds = command.TargetType == NotificationTargetType.All ? Array.Empty<long>() : NormalizeUserIds(command.UserIds);
 
         var notification = await GetNotificationOrThrowAsync(command.BasicId, cancellationToken);
@@ -135,7 +135,7 @@ public sealed class NotificationDomainService
         notification.BusinessType = Optional(command.BusinessType, 100, nameof(command.BusinessType), "业务类型不能超过 100 个字符。");
         notification.BusinessId = command.BusinessId;
         notification.SendTime = command.SendTime ?? notification.SendTime;
-        notification.ExpireTime = command.ExpireTime;
+        notification.ExpirationTime = command.ExpirationTime;
         notification.TargetType = command.TargetType;
         notification.TargetValue = command.TargetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(targetUserIds);
         notification.NeedConfirm = command.NeedConfirm;

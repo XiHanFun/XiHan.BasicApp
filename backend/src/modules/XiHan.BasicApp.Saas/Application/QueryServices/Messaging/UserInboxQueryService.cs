@@ -82,7 +82,7 @@ public sealed class UserInboxQueryService
         var notifications = await _notificationRepository.GetListAsync(
             item => SqlFunc.ContainsArray(notificationIds, item.BasicId) &&
                     item.IsPublished &&
-                    SqlFunc.IsNull(item.ExpireTime, expireFallback) > now,
+                    SqlFunc.IsNull(item.ExpirationTime, expireFallback) > now,
             cancellationToken);
         var notificationMap = notifications.ToDictionary(item => item.BasicId);
 

@@ -105,7 +105,7 @@ public class FileListItemDto : BasicAppDto
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否临时文件

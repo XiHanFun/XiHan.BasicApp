@@ -63,7 +63,7 @@ public sealed class TenantDomainService
             Domain = domain,
             EditionId = command.EditionId,
             IsolationMode = command.IsolationMode,
-            ExpireTime = command.ExpireTime,
+            ExpirationTime = command.ExpirationTime,
             UserLimit = command.UserLimit,
             StorageLimit = command.StorageLimit,
             TenantStatus = TenantStatus.Normal,
@@ -106,7 +106,7 @@ public sealed class TenantDomainService
         tenant.Domain = domain;
         tenant.EditionId = command.EditionId;
         tenant.IsolationMode = command.IsolationMode;
-        tenant.ExpireTime = command.ExpireTime;
+        tenant.ExpirationTime = command.ExpirationTime;
         tenant.UserLimit = command.UserLimit;
         tenant.StorageLimit = command.StorageLimit;
         tenant.Sort = command.Sort;

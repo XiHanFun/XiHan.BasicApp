@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - 初次入队 EmailStatus=Pending；调度器按队列发送
 /// - 发送成功 → Sent + SendTime 落地；失败 → Failed + 记录重试次数
-/// - 敏感正文（如密码重置链接）应设置合理 ExpiresAt
+/// - 敏感正文（如密码重置链接）应设置合理 ExpirationTime
 ///
 /// 查询：
 /// - 待发队列：WHERE EmailStatus=Pending ORDER BY CreatedTime

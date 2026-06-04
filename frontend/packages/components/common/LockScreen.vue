@@ -3,6 +3,7 @@ import { NIcon, NInput } from 'naive-ui'
 import { useLockScreen } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
+import UserAvatar from './UserAvatar.vue'
 
 defineOptions({ name: 'LockScreen' })
 
@@ -25,14 +26,12 @@ const {
     <div v-if="lockMode !== 'off'" class="lock-screen-mask">
       <div class="lock-screen-card">
         <!-- 用户信息 -->
-        <img
+        <UserAvatar
           class="lock-screen-avatar"
-          :src="
-            userStore.avatar
-              || `https://api.dicebear.com/9.x/initials/svg?seed=${userStore.nickname}`
-          "
-          :alt="userStore.nickname"
-        >
+          :size="72"
+          :avatar="userStore.avatar"
+          :name="userStore.nickname || userStore.username"
+        />
         <div class="lock-screen-name">
           {{ userStore.nickname || userStore.username }}
         </div>

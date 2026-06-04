@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 public partial class SysUserSession : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -113,8 +113,8 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     /// 状态判定建议：
     /// - 新建登录会话：Active
     /// - 正常登出 / 心跳超时：Offline（配合 LogoutTime）
-    /// - 强制下线 / 安全撤销：Revoked（配合 RevokedAt、RevokedReason）
-    /// - 超过 ExpiresAt：Expired（定时任务扫描置位）
+    /// - 强制下线 / 安全撤销：Revoked（配合 RevokedTime、RevokedReason）
+    /// - 超过 ExpirationTime：Expired（定时任务扫描置位）
     /// 鉴权"会话有效"判定：Status == Active 且未软删。
     /// </remarks>
     [SugarColumn(ColumnDescription = "会话状态")]
@@ -124,7 +124,7 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     /// 撤销时间
     /// </summary>
     [SugarColumn(ColumnDescription = "撤销时间", IsNullable = true)]
-    public virtual DateTimeOffset? RevokedAt { get; set; }
+    public virtual DateTimeOffset? RevokedTime { get; set; }
 
     /// <summary>
     /// 撤销原因
@@ -142,7 +142,7 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     /// 会话过期时间（绝对超时，如 24 小时强制重登；为空表示不限）
     /// </summary>
     [SugarColumn(ColumnDescription = "会话过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpiresAt { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 备注

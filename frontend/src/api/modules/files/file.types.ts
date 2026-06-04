@@ -52,8 +52,8 @@ export enum FileStorageType {
 
 export interface FilePageQueryDto extends PageRequest {
   accessLevel?: ResourceAccessLevel | null
-  expiresAtEnd?: DateTimeString | null
-  expiresAtStart?: DateTimeString | null
+  expirationTimeEnd?: DateTimeString | null
+  expirationTimeStart?: DateTimeString | null
   fileExtension?: string | null
   fileType?: FileType | null
   isEncrypted?: boolean | null
@@ -73,8 +73,8 @@ export interface FileStoragePageQueryDto extends PageRequest {
   keyword?: string | null
   status?: FileStorageStatus | null
   storageType?: FileStorageType | null
-  uploadedAtEnd?: DateTimeString | null
-  uploadedAtStart?: DateTimeString | null
+  uploadedTimeEnd?: DateTimeString | null
+  uploadedTimeStart?: DateTimeString | null
 }
 
 export interface FileListItemDto extends BasicDto {
@@ -82,7 +82,7 @@ export interface FileListItemDto extends BasicDto {
   createdTime: DateTimeString
   downloadCount: number
   duration?: number | null
-  expiresAt?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   fileExtension?: string | null
   fileName: string
   fileSize: number
@@ -130,19 +130,19 @@ export interface FileStorageListItemDto extends BasicDto {
   isPrimary: boolean
   isSynced: boolean
   isVerified: boolean
-  lastVerifiedAt?: DateTimeString | null
+  lastVerifiedTime?: DateTimeString | null
   modifiedTime?: DateTimeString | null
   retryCount: number
-  sortOrder: number
+  sort: number
   status: FileStorageStatus
   storageClass?: string | null
   storageProvider?: string | null
   storageRegion?: string | null
   storageType: FileStorageType
   syncSourceId?: ApiId | null
-  syncedAt?: DateTimeString | null
+  syncedTime?: DateTimeString | null
   uploadDuration?: number | null
-  uploadedAt?: DateTimeString | null
+  uploadedTime?: DateTimeString | null
 }
 
 export interface FileStorageDetailDto extends FileStorageListItemDto {
@@ -171,7 +171,7 @@ export interface FileUploadInput {
   directory?: string | null
   duration?: number | null
   encryptionKeyId?: string | null
-  expiresAt?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   extendData?: string | null
   file: File
   height?: number | null
@@ -190,7 +190,7 @@ export interface FileUploadInput {
 export interface FileFastUploadDto {
   accessLevel?: ResourceAccessLevel | null
   accessPermissions?: string | null
-  expiresAt?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   extendData?: string | null
   fileExtension?: string | null
   fileHash: string
@@ -208,7 +208,7 @@ export interface FileMetadataUpdateDto extends BasicDto {
   accessPermissions?: string | null
   duration?: number | null
   encryptionKeyId?: string | null
-  expiresAt?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   extendData?: string | null
   height?: number | null
   isEncrypted: boolean

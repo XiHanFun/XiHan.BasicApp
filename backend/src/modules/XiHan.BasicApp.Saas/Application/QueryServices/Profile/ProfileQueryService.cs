@@ -28,7 +28,8 @@ public sealed class ProfileQueryService
 {
     private const int UserNameChangeIntervalDays = 90;
 
-    private const int ActivityTrendDays = 7;
+    // 热力图展示窗口：默认近一年（53 周 ≈ 371 天），与前端日历方格一致
+    private const int ActivityTrendDays = 371;
 
     private readonly IExternalLoginRepository _externalLoginRepository;
 
@@ -93,36 +94,67 @@ public sealed class ProfileQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var stats = await _userStatisticsRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
+        var client = _clientResolver.GetCurrentClient();
         var result = new ProfileActivityDto();
-        if (stats.Count == 0)
+
+        // 周期摘要与最后行为时间取自预聚合的用户统计快照（由定时任务按周期写入；缺失则保持默认 0）
+        var stats = await _userStatisticsRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
+        if (stats.Count > 0)
         {
-            return result;
+            result.Today = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.Today));
+            result.ThisWeek = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisWeek));
+            result.ThisMonth = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisMonth));
+
+            result.LastLoginTime = stats.Where(item => item.LastLoginTime.HasValue).Max(item => item.LastLoginTime);
+            result.LastAccessTime = stats.Where(item => item.LastAccessTime.HasValue).Max(item => item.LastAccessTime);
+            result.LastOperationTime = stats.Where(item => item.LastOperationTime.HasValue).Max(item => item.LastOperationTime);
         }
 
-        // 各周期取最新统计日期的快照（由定时任务按周期预聚合写入）
-        result.Today = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.Today));
-        result.ThisWeek = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisWeek));
-        result.ThisMonth = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisMonth));
+        // 趋势热力图：直接按天聚合原始操作/访问日志（近一年窗口），不依赖统计快照定时任务，
+        // 保证热力图反映真实活跃。仅投影日期列到实体类型（走实体映射，规避标量 DateTimeOffset 物化的转换异常）。
+        var startDate = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddDays(-(ActivityTrendDays - 1));
+        var since = new DateTimeOffset(startDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
 
-        // 最后行为时间：跨全部周期取最大值
-        result.LastLoginTime = stats.Where(item => item.LastLoginTime.HasValue).Max(item => item.LastLoginTime);
-        result.LastAccessTime = stats.Where(item => item.LastAccessTime.HasValue).Max(item => item.LastAccessTime);
-        result.LastOperationTime = stats.Where(item => item.LastOperationTime.HasValue).Max(item => item.LastOperationTime);
+        var operationRows = await client.Queryable<SysOperationLog>()
+            .Where(log => log.UserId == userId && log.OperationTime >= since)
+            .SplitTable()
+            .Select(log => new SysOperationLog { OperationTime = log.OperationTime })
+            .ToListAsync(cancellationToken);
 
-        // 趋势：取最近 N 天的「今日」粒度日快照，按日期升序
-        var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddDays(-(ActivityTrendDays - 1));
-        result.Trend = [.. stats
-            .Where(item => item.Period == StatisticsPeriod.Today && item.StatisticsDate >= fromDate)
-            .GroupBy(item => item.StatisticsDate)
-            .OrderBy(group => group.Key)
-            .Select(group => new ProfileActivityTrendPointDto
+        var accessRows = await client.Queryable<SysAccessLog>()
+            .Where(log => log.UserId == userId && log.AccessTime >= since)
+            .SplitTable()
+            .Select(log => new SysAccessLog { AccessTime = log.AccessTime })
+            .ToListAsync(cancellationToken);
+
+        var operationByDate = operationRows
+            .GroupBy(item => DateOnly.FromDateTime(item.OperationTime.UtcDateTime))
+            .ToDictionary(group => group.Key, group => group.Count());
+        var accessByDate = accessRows
+            .GroupBy(item => DateOnly.FromDateTime(item.AccessTime.UtcDateTime))
+            .ToDictionary(group => group.Key, group => group.Count());
+
+        // 仅返回有活跃记录的日期（稀疏），前端日历自行补齐空白格
+        result.Trend = [.. operationByDate.Keys
+            .Union(accessByDate.Keys)
+            .OrderBy(date => date)
+            .Select(date => new ProfileActivityTrendPointDto
             {
-                Date = group.Key,
-                AccessCount = group.Sum(item => item.AccessCount),
-                OperationCount = group.Sum(item => item.OperationCount),
-                OnlineMinutes = group.Sum(item => item.OnlineTime) / 60
+                Date = date,
+                OperationCount = operationByDate.GetValueOrDefault(date),
+                AccessCount = accessByDate.GetValueOrDefault(date),
+                OnlineMinutes = 0
             })];
+
+        // 统计快照缺失时，用原始日志兜底最后行为时间，避免概要全为空
+        if (result.LastOperationTime is null && operationRows.Count > 0)
+        {
+            result.LastOperationTime = operationRows.Max(item => item.OperationTime);
+        }
+        if (result.LastAccessTime is null && accessRows.Count > 0)
+        {
+            result.LastAccessTime = accessRows.Max(item => item.AccessTime);
+        }
 
         return result;
     }
@@ -208,7 +240,7 @@ public sealed class ProfileQueryService
         var sessions = await _userSessionRepository.GetListAsync(
             session => session.UserId == userId &&
                        session.Status != SessionStatus.Revoked &&
-                       SqlFunc.IsNull(session.ExpiresAt, expireFallback) > now,
+                       SqlFunc.IsNull(session.ExpirationTime, expireFallback) > now,
             cancellationToken);
 
         return [.. sessions

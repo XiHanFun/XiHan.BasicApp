@@ -92,7 +92,7 @@ public sealed class LoginSessionDomainService
             LoginTime = now,
             LastActivityTime = now,
             Status = SessionStatus.Active,
-            ExpiresAt = ToDateTimeOffset(tokenResult.ExpiresAt)
+            ExpirationTime = ToDateTimeOffset(tokenResult.ExpiresAt)
         };
 
         session = await _userSessionRepository.AddAsync(session, cancellationToken);
@@ -109,8 +109,8 @@ public sealed class LoginSessionDomainService
             GrantType = GrantType.Password,
             Scopes = "basicapp",
             Status = EnableStatus.Enabled,
-            AccessTokenExpiresTime = ToDateTimeOffset(tokenResult.ExpiresAt),
-            RefreshTokenExpiresTime = now.AddDays(7),
+            AccessTokenExpirationTime = ToDateTimeOffset(tokenResult.ExpiresAt),
+            RefreshTokenExpirationTime = now.AddDays(7),
             IsRevoked = false
         };
 
@@ -159,7 +159,7 @@ public sealed class LoginSessionDomainService
         }
 
         session.Status = SessionStatus.Revoked;
-        session.RevokedAt = now;
+        session.RevokedTime = now;
         session.RevokedReason = "用户主动退出";
         session.LogoutTime = now;
         _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);

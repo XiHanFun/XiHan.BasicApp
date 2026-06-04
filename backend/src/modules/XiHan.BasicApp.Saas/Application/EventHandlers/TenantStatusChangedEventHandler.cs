@@ -84,12 +84,12 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
         foreach (var session in activeSessions)
         {
             session.Status = SessionStatus.Revoked;
-            session.RevokedAt = now;
+            session.RevokedTime = now;
             session.RevokedReason = reason ?? "Tenant status changed";
         }
 
         await db.Updateable(activeSessions)
-            .UpdateColumns(s => new { s.Status, s.RevokedAt, s.RevokedReason })
+            .UpdateColumns(s => new { s.Status, s.RevokedTime, s.RevokedReason })
             .ExecuteCommandAsync();
 
         _logger.LogWarning(

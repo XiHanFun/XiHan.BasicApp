@@ -56,8 +56,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_RoId", nameof(RoleId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 public partial class SysUserRole : BasicAppCreationEntity
 {
     /// <summary>

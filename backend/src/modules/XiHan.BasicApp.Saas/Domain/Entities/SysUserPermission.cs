@@ -33,8 +33,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_UsId_PeId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserPermission : BasicAppCreationEntity
 {

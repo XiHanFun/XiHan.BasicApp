@@ -27,14 +27,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - Code 全局唯一（UX_Co），使用高强度随机串
-/// - ExpiresTime 必须短（建议 60s~10min），过期立即作废
+/// - ExpirationTime 必须短（建议 60s~10min），过期立即作废
 /// - 必须绑定 RedirectUri（颁发时记录，换 Token 时严格匹配）
 /// - 支持 PKCE：若请求方传入 CodeChallenge 则必须记录，换 Token 时校验 CodeVerifier
 ///
 /// 查询：
 /// - 换 Token 入口：按 Code 精确定位 + 有效期校验
 /// - 按客户端/用户审计：IX_ClId / IX_UsId
-/// - 清理过期：IX_ExTi，筛选早于当前时间的 ExpiresTime
+/// - 清理过期：IX_ExTi，筛选早于当前时间的 ExpirationTime
 ///
 /// 删除：
 /// - 使用后立即硬删（或标记已使用）防止重放
@@ -50,7 +50,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_Co", nameof(Code), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExTi", nameof(ExpiresTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 public partial class SysOAuthCode : BasicAppCreationEntity
 {
     /// <summary>
@@ -107,7 +107,7 @@ public partial class SysOAuthCode : BasicAppCreationEntity
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间")]
-    public virtual DateTimeOffset ExpiresTime { get; set; }
+    public virtual DateTimeOffset ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已使用
@@ -119,5 +119,5 @@ public partial class SysOAuthCode : BasicAppCreationEntity
     /// 使用时间
     /// </summary>
     [SugarColumn(ColumnDescription = "使用时间", IsNullable = true)]
-    public virtual DateTimeOffset? UsedAt { get; set; }
+    public virtual DateTimeOffset? UsedTime { get; set; }
 }

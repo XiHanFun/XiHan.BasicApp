@@ -70,10 +70,10 @@ public sealed class FileStoragePageQueryDto : BasicAppPRDto
     /// <summary>
     /// 上传时间起始
     /// </summary>
-    public DateTimeOffset? UploadedAtStart { get; set; }
+    public DateTimeOffset? UploadedTimeStart { get; set; }
 
     /// <summary>
     /// 上传时间结束
     /// </summary>
-    public DateTimeOffset? UploadedAtEnd { get; set; }
+    public DateTimeOffset? UploadedTimeEnd { get; set; }
 }

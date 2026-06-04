@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - 初次入队 SmsStatus=Pending；调度器批量提交至运营商网关
 /// - 发送成功 → Sent；失败 → Failed（保留 ErrorMessage 便于排查）
-/// - 验证码类短信应设短 ExpiresAt（一般 5 分钟），防止盗用
+/// - 验证码类短信应设短 ExpirationTime（一般 5 分钟），防止盗用
 ///
 /// 查询：
 /// - 待发队列：WHERE SmsStatus=Pending ORDER BY CreatedTime

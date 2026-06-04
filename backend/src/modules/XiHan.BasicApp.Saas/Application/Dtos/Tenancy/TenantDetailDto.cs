@@ -70,7 +70,7 @@ public sealed class TenantDetailDto : BasicAppDto
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset? ExpireTime { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已过期

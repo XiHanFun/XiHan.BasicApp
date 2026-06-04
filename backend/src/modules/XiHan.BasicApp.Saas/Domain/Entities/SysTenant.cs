@@ -36,7 +36,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeNa", nameof(TenantName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeSt", nameof(TenantStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExTi", nameof(ExpireTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_EdId", nameof(EditionId), OrderByType.Asc)]
 public partial class SysTenant : BasicAppAggregateRoot
 {
@@ -142,7 +142,7 @@ public partial class SysTenant : BasicAppAggregateRoot
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpireTime { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 用户数限制（租户级覆盖值，为空时取 SysTenantEdition 的默认值）

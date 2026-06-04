@@ -71,7 +71,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_MeTy", nameof(MemberType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_InSt", nameof(InviteStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 public partial class SysTenantUser : BasicAppFullAuditedEntity
 {
     /// <summary>

@@ -34,7 +34,7 @@ public sealed class FileUploadDto
     public string? AccessPermissions { get; set; }
     public bool IsEncrypted { get; set; }
     public string? EncryptionKeyId { get; set; }
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
     public bool IsTemporary { get; set; }
     public int RetentionDays { get; set; }
     public string? Tags { get; set; }
@@ -55,7 +55,7 @@ public sealed class FileFastUploadDto
     public string? FileExtension { get; set; }
     public ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
     public string? AccessPermissions { get; set; }
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
     public bool IsTemporary { get; set; }
     public int RetentionDays { get; set; }
     public string? Tags { get; set; }
@@ -73,7 +73,7 @@ public sealed class FileMetadataUpdateDto : BasicAppUDto
     public string? AccessPermissions { get; set; }
     public bool IsEncrypted { get; set; }
     public string? EncryptionKeyId { get; set; }
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
     public bool IsTemporary { get; set; }
     public int RetentionDays { get; set; }
     public string? Tags { get; set; }
