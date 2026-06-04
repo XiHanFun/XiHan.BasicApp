@@ -11,6 +11,7 @@ import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
 import { toColumns } from './selectors'
+import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaTable } from './useSchemaTable'
 import { useSearchSettings } from './useSearchSettings'
 import { useTableSettings } from './useTableSettings'
@@ -41,9 +42,25 @@ const checkedKeys = ref<Array<string | number>>([])
 const table = useSchemaTable<Row>(props.schema)
 const { loading, rows, total, page, pageSize, filters, sortField, sortOrder, search, reset, changePage, changePageSize, changeSort, remove } = table
 
+/**
+ * 字典/枚举异步取值：按字段 dictionaryCode 拉取元数据并注入 field.options，
+ * 使单元格按值映射 label、搜索区自动渲染为下拉。静态 options 优先。
+ */
+const dictionaries = useSchemaDictionaries(() => props.schema.fields)
+const resolvedFields = computed<ListFieldSchema[]>(() =>
+  props.schema.fields.map((field) => {
+    if (field.options?.length || !field.dictionaryCode) {
+      return field
+    }
+    const options = dictionaries.optionsMap.value[field.dictionaryCode]
+    return options?.length ? { ...field, options } : field
+  }),
+)
+const resolvedSchema = computed<PageSchema<Row>>(() => ({ ...props.schema, fields: resolvedFields.value }))
+
 /** 搜索字段池：所有 searchable 或 advancedSearch 且有权限的字段（保持 schema order） */
 const searchPool = computed<ListFieldSchema[]>(() =>
-  [...props.schema.fields]
+  [...resolvedFields.value]
     .filter(f => (f.searchable || f.advancedSearch) && (!f.permission || hasPermission(f.permission)))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
 )
@@ -55,7 +72,7 @@ const advancedFields = searchSettings.advancedFields
 
 /** 表格可选列字段（可见 + 有权限），作为列设置来源 */
 const columnFields = computed<ListFieldSchema[]>(() =>
-  props.schema.fields.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
+  resolvedFields.value.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
 
 /** 列设置（显隐/顺序/固定/密度，按 pageCode 持久化） */
@@ -121,7 +138,7 @@ const selectedRows = computed(() => {
 
 /** 列：schema 派生列（应用列设置：显隐/顺序/固定）+ 行操作列 */
 const columns = computed<DataTableColumn<Row>[]>(() => {
-  const base = toColumns(props.schema, hasPermission, {
+  const base = toColumns(resolvedSchema.value, hasPermission, {
     visibleKeys: settings.visibleKeys.value,
     columnOrder: settings.columnOrder.value,
     fixedMap: settings.fixedMap.value,
@@ -186,6 +203,7 @@ function reload() {
 }
 
 onMounted(async () => {
+  void dictionaries.resolve()
   await table.load()
   firstLoaded.value = true
 })
