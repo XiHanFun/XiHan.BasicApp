@@ -32,6 +32,9 @@ export type {
 export { useSchemaDictionaries } from './useSchemaDictionaries'
 export type { UseSchemaDictionaries } from './useSchemaDictionaries'
 
+export { downloadText, toCsv, useSchemaExport } from './useSchemaExport'
+export type { UseSchemaExportOptions } from './useSchemaExport'
+
 export { useSchemaTable } from './useSchemaTable'
 export type { UseSchemaTableOptions } from './useSchemaTable'
 
