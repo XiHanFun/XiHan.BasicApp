@@ -10,8 +10,9 @@ import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import { toColumns } from './selectors'
+import { toColumns, toExportFields } from './selectors'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
+import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
 import { useSearchSettings } from './useSearchSettings'
 import { useTableSettings } from './useTableSettings'
@@ -202,6 +203,62 @@ function reload() {
   return table.load()
 }
 
+/** 导出字段（exportable + 权限） */
+const exportFields = computed(() => toExportFields(resolvedSchema.value, hasPermission))
+
+/** 取导出行：列表模式翻页拉全集（受安全上限约束）；树形模式展平当前树 */
+async function fetchExportRows(): Promise<Row[]> {
+  const childrenKey = props.schema.tree?.childrenKey ?? 'children'
+  if (table.isTree) {
+    const flat: Row[] = []
+    const walk = (nodes: Row[]) => {
+      for (const node of nodes) {
+        flat.push(node)
+        const children = (node as Record<string, unknown>)[childrenKey] as Row[] | undefined
+        if (children?.length) {
+          walk(children)
+        }
+      }
+    }
+    walk(rows.value)
+    return flat
+  }
+  const pageFn = props.schema.resource.page
+  if (!pageFn) {
+    return [...rows.value]
+  }
+  const size = pageSize.value
+  const cap = 5000
+  const target = Math.min(total.value || cap, cap)
+  const collected: Row[] = []
+  let current = 1
+  while (collected.length < target) {
+    const result = await pageFn({
+      page: current,
+      pageSize: size,
+      sortField: sortField.value,
+      sortOrder: sortOrder.value,
+      filters: { ...filters },
+    })
+    const items = result.items ?? []
+    if (items.length === 0) {
+      break
+    }
+    collected.push(...items)
+    if (items.length < size) {
+      break
+    }
+    current += 1
+  }
+  return collected
+}
+
+const { exporting, exportCsv } = useSchemaExport<Row>({
+  fields: () => exportFields.value,
+  fileName: () => props.schema.pageCode,
+  fetchRows: fetchExportRows,
+})
+
 onMounted(async () => {
   void dictionaries.resolve()
   await table.load()
@@ -267,6 +324,16 @@ defineExpose({
               </NButton>
             </template>
             刷新
+          </NTooltip>
+          <NTooltip v-if="exportFields.length">
+            <template #trigger>
+              <NButton circle quaternary size="small" aria-label="导出" :loading="exporting" @click="exportCsv">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:download" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            导出（CSV）
           </NTooltip>
           <SchemaTableSettings
             :columns="settings.columns.value"
