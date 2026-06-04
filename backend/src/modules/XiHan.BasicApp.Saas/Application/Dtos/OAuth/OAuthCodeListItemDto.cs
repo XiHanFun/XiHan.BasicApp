@@ -69,7 +69,7 @@ public class OAuthCodeListItemDto : BasicAppDto
     /// <summary>
     /// 过期时间
     /// </summary>
-    public DateTimeOffset ExpiresTime { get; set; }
+    public DateTimeOffset ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已过期
@@ -84,7 +84,7 @@ public class OAuthCodeListItemDto : BasicAppDto
     /// <summary>
     /// 使用时间
     /// </summary>
-    public DateTimeOffset? UsedAt { get; set; }
+    public DateTimeOffset? UsedTime { get; set; }
 
     /// <summary>
     /// 创建时间

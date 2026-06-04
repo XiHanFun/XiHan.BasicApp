@@ -185,7 +185,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 上传时间
     /// </summary>
     [SugarColumn(ColumnDescription = "上传时间", IsNullable = true)]
-    public virtual DateTimeOffset? UploadedAt { get; set; }
+    public virtual DateTimeOffset? UploadedTime { get; set; }
 
     /// <summary>
     /// 上传耗时（毫秒）
@@ -209,7 +209,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 最后验证时间
     /// </summary>
     [SugarColumn(ColumnDescription = "最后验证时间", IsNullable = true)]
-    public virtual DateTimeOffset? LastVerifiedAt { get; set; }
+    public virtual DateTimeOffset? LastVerifiedTime { get; set; }
 
     /// <summary>
     /// 验证状态（文件完整性）
@@ -231,7 +231,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 同步时间
     /// </summary>
     [SugarColumn(ColumnDescription = "同步时间", IsNullable = true)]
-    public virtual DateTimeOffset? SyncedAt { get; set; }
+    public virtual DateTimeOffset? SyncedTime { get; set; }
 
     /// <summary>
     /// 同步源存储ID
@@ -269,7 +269,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 排序号（用于多存储优先级）
     /// </summary>
     [SugarColumn(ColumnDescription = "排序号")]
-    public virtual int SortOrder { get; set; } = 0;
+    public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注

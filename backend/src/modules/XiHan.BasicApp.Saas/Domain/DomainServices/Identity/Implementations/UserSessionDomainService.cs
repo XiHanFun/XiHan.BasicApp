@@ -31,7 +31,7 @@ public sealed class UserSessionDomainService : IUserSessionDomainService
             return false;
         }
 
-        if (session.ExpiresAt.HasValue && session.ExpiresAt.Value <= now)
+        if (session.ExpirationTime.HasValue && session.ExpirationTime.Value <= now)
         {
             return false;
         }

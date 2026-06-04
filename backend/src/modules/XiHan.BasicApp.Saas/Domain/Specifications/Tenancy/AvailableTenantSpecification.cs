@@ -28,6 +28,6 @@ public sealed class AvailableTenantSpecification(DateTimeOffset now) : Specifica
     {
         return tenant => !tenant.IsDeleted
                          && tenant.TenantStatus == TenantStatus.Normal
-                         && (!tenant.ExpireTime.HasValue || tenant.ExpireTime.Value > now);
+                         && (!tenant.ExpirationTime.HasValue || tenant.ExpirationTime.Value > now);
     }
 }

@@ -153,7 +153,7 @@ public sealed class FileTransferService
                 input.AccessPermissions,
                 input.IsEncrypted,
                 input.EncryptionKeyId,
-                input.ExpiresAt,
+                input.ExpirationTime,
                 input.IsTemporary,
                 input.RetentionDays,
                 input.Tags,

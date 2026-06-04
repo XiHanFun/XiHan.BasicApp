@@ -57,7 +57,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_TaCo", nameof(TenantId), OrderByType.Asc, nameof(TaskCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_RuTaSt", nameof(RunTaskStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TrTy", nameof(TriggerType), OrderByType.Asc)]
-[SugarIndex("IX_{table}_NeRuTi", nameof(NextRunTime), OrderByType.Asc)]
+[SugarIndex("IX_{table}_NeRuTi", nameof(NextRunTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysTask : BasicAppAggregateRoot
 {

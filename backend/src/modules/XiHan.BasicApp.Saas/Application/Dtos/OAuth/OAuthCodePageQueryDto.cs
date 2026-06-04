@@ -44,12 +44,12 @@ public sealed class OAuthCodePageQueryDto : BasicAppPRDto
     /// <summary>
     /// 过期开始时间
     /// </summary>
-    public DateTimeOffset? ExpiresTimeStart { get; set; }
+    public DateTimeOffset? ExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 过期结束时间
     /// </summary>
-    public DateTimeOffset? ExpiresTimeEnd { get; set; }
+    public DateTimeOffset? ExpirationTimeEnd { get; set; }
 
     /// <summary>
     /// 创建开始时间

@@ -45,10 +45,10 @@ public sealed class TenantPageQueryDto : BasicAppPRDto
     /// <summary>
     /// 到期开始时间
     /// </summary>
-    public DateTimeOffset? ExpireTimeStart { get; set; }
+    public DateTimeOffset? ExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 到期结束时间
     /// </summary>
-    public DateTimeOffset? ExpireTimeEnd { get; set; }
+    public DateTimeOffset? ExpirationTimeEnd { get; set; }
 }

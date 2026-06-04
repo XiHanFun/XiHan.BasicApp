@@ -30,7 +30,7 @@ public sealed class NotificationCreateDto
     public string? BusinessType { get; set; }
     public long? BusinessId { get; set; }
     public DateTimeOffset? SendTime { get; set; }
-    public DateTimeOffset? ExpireTime { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
     public NotificationTargetType TargetType { get; set; } = NotificationTargetType.User;
     public bool NeedConfirm { get; set; }
     public IReadOnlyList<long> UserIds { get; set; } = [];
@@ -48,7 +48,7 @@ public sealed class NotificationUpdateDto : BasicAppUDto
     public string? BusinessType { get; set; }
     public long? BusinessId { get; set; }
     public DateTimeOffset? SendTime { get; set; }
-    public DateTimeOffset? ExpireTime { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
     public NotificationTargetType TargetType { get; set; } = NotificationTargetType.User;
     public bool NeedConfirm { get; set; }
     public IReadOnlyList<long> UserIds { get; set; } = [];

@@ -4,7 +4,6 @@ import type { LoginLogItem, UserProfile } from '~/types'
 import {
   NAlert,
   NButton,
-  NEmpty,
   NForm,
   NFormItem,
   NIcon,
@@ -78,6 +77,17 @@ const pwdStrength = computed(() => {
   const colors = ['', 'var(--color-error)', 'var(--color-warning)', 'var(--color-info)', 'var(--color-success)']
   const labels = ['', '弱', '一般', '较强', '强']
   return { score: s, color: colors[s] || '', label: labels[s] || '' }
+})
+
+/** 新密码要求清单（实时校验，填充表单右侧而非留白） */
+const pwdReqs = computed(() => {
+  const p = pwdForm.value.newPassword
+  return [
+    { label: '至少 6 个字符', ok: p.length >= 6 },
+    { label: '包含大写字母', ok: /[A-Z]/.test(p) },
+    { label: '包含数字与符号', ok: /\d/.test(p) && /[^a-z\d]/i.test(p) },
+    { label: '两次输入一致', ok: !!p && p === pwdForm.value.confirmPassword },
+  ]
 })
 
 async function changePassword() {
@@ -504,30 +514,44 @@ onMounted(() => {
         </div>
       </div>
       <div class="pf-section__body">
-        <NForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" class="pf-pwd-form">
-          <NFormItem path="oldPassword" :show-label="false">
-            <NInput v-model:value="pwdForm.oldPassword" type="password" placeholder="当前密码" show-password-on="click" />
-          </NFormItem>
-          <NFormItem path="newPassword" :show-label="false">
-            <div class="pf-full">
+        <div class="pf-pwd">
+          <NForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" class="pf-pwd__form">
+            <NFormItem path="oldPassword" :show-label="false">
+              <NInput v-model:value="pwdForm.oldPassword" type="password" placeholder="当前密码" show-password-on="click" />
+            </NFormItem>
+            <NFormItem path="newPassword" :show-label="false">
               <NInput v-model:value="pwdForm.newPassword" type="password" placeholder="新密码" show-password-on="click" />
-              <div v-if="pwdForm.newPassword" class="pf-strength">
-                <div class="pf-strength-bars">
-                  <div v-for="i in 4" :key="i" class="pf-strength-bar" :style="{ background: i <= pwdStrength.score ? pwdStrength.color : 'var(--border-color)' }" />
-                </div>
-                <span class="pf-strength-label" :style="{ color: pwdStrength.color }">{{ pwdStrength.label }}</span>
+            </NFormItem>
+            <NFormItem path="confirmPassword" :show-label="false">
+              <NInput v-model:value="pwdForm.confirmPassword" type="password" placeholder="确认新密码" show-password-on="click" />
+            </NFormItem>
+            <NButton class="pf-pwd__submit" type="primary" :loading="pwdSaving" @click="changePassword">
+              更新密码
+            </NButton>
+          </NForm>
+
+          <aside class="pf-pwd__aside">
+            <div class="pf-pwd__meter">
+              <div class="pf-strength-bars">
+                <div
+                  v-for="i in 4"
+                  :key="i"
+                  class="pf-strength-bar"
+                  :style="{ background: pwdForm.newPassword && i <= pwdStrength.score ? pwdStrength.color : 'var(--border-color)' }"
+                />
               </div>
+              <span class="pf-pwd__meter-label" :style="{ color: pwdForm.newPassword ? pwdStrength.color : 'var(--text-secondary)' }">
+                {{ pwdForm.newPassword ? (pwdStrength.label || '弱') : '密码强度' }}
+              </span>
             </div>
-          </NFormItem>
-          <NFormItem path="confirmPassword" :show-label="false">
-            <NInput v-model:value="pwdForm.confirmPassword" type="password" placeholder="确认新密码" show-password-on="click" />
-          </NFormItem>
-        </NForm>
-      </div>
-      <div class="pf-section__actions">
-        <NButton type="primary" :loading="pwdSaving" @click="changePassword">
-          更新密码
-        </NButton>
+            <ul class="pf-reqs">
+              <li v-for="r in pwdReqs" :key="r.label" class="pf-req" :class="{ 'is-ok': r.ok }">
+                <Icon :icon="r.ok ? 'lucide:check-circle-2' : 'lucide:circle'" width="15" />
+                <span>{{ r.label }}</span>
+              </li>
+            </ul>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -551,10 +575,10 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <!-- TOTP 方式 -->
-        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method">
+        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method" :class="{ 'is-on': hasTotpEnabled }">
+          <span class="pf-2fa-icon"><Icon icon="lucide:smartphone" width="18" /></span>
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
-              <Icon icon="lucide:smartphone" width="16" />
               <span>Authenticator App (TOTP)</span>
               <NTag v-if="hasTotpEnabled" type="success" size="tiny" :bordered="false">
                 已启用
@@ -636,10 +660,10 @@ onMounted(() => {
         </div>
 
         <!-- 邮箱方式 -->
-        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method">
+        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method" :class="{ 'is-on': hasEmailEnabled }">
+          <span class="pf-2fa-icon"><Icon icon="lucide:mail" width="18" /></span>
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
-              <Icon icon="lucide:mail" width="16" />
               <span>邮箱验证码</span>
               <NTag v-if="hasEmailEnabled" type="success" size="tiny" :bordered="false">
                 已启用
@@ -713,10 +737,10 @@ onMounted(() => {
         </div>
 
         <!-- 手机方式 -->
-        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method">
+        <div class="pf-setting-row pf-setting-row--wrap pf-2fa-method" :class="{ 'is-on': hasPhoneEnabled }">
+          <span class="pf-2fa-icon"><Icon icon="lucide:phone" width="18" /></span>
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
-              <Icon icon="lucide:phone" width="16" />
               <span>手机短信验证码</span>
               <NTag v-if="hasPhoneEnabled" type="success" size="tiny" :bordered="false">
                 已启用
@@ -806,8 +830,9 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <NSpin :show="loginLogLoading">
-          <div v-if="loginLogs.length === 0 && !loginLogLoading" style="padding: 20px 0">
-            <NEmpty description="暂无登录记录" />
+          <div v-if="loginLogs.length === 0 && !loginLogLoading" class="pf-empty">
+            <span class="pf-empty__icon"><Icon icon="lucide:inbox" width="16" /></span>
+            <span>暂无登录记录</span>
           </div>
           <div v-else class="pf-list">
             <div v-for="(log, idx) in loginLogs" :key="idx" class="pf-list-item">
@@ -957,12 +982,36 @@ onMounted(() => {
 <style scoped>
 /* 两步验证：每种方式独立卡片（覆盖设置行默认底边线，改卡片间距） */
 .pf-2fa-method {
+  gap: 14px;
   padding: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   background: var(--bg-surface);
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pf-2fa-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: hsl(var(--muted));
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+
+.pf-2fa-method.is-on {
+  border-color: hsl(var(--primary) / 30%);
+  background: hsl(var(--primary) / 4%);
+}
+
+.pf-2fa-method.is-on .pf-2fa-icon {
+  background: hsl(var(--primary) / 14%);
+  color: hsl(var(--primary));
 }
 
 /* 覆盖 .pf-setting-row 的底边线与首尾 padding 特例 */
@@ -982,15 +1031,45 @@ onMounted(() => {
   border-color: hsl(var(--primary) / 28%);
 }
 
-.pf-pwd-form {
-  max-width: 420px;
+/* 修改密码：左表单 + 右实时要求清单（消除大面积留白） */
+.pf-pwd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 32px;
+  align-items: start;
 }
 
-.pf-strength {
+.pf-pwd__form {
+  display: flex;
+  flex-direction: column;
+  max-width: 360px;
+}
+
+.pf-pwd__submit {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.pf-pwd__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: hsl(var(--accent));
+}
+
+.pf-pwd__meter {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 10px;
+}
+
+.pf-pwd__meter-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
 .pf-strength-bars {
@@ -1006,9 +1085,26 @@ onMounted(() => {
   transition: background 0.2s;
 }
 
-.pf-strength-label {
-  font-size: 12px;
-  flex-shrink: 0;
+.pf-reqs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-req {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.pf-req.is-ok {
+  color: hsl(var(--primary));
 }
 
 .pf-2fa-setup {
@@ -1063,6 +1159,15 @@ onMounted(() => {
 @media (max-width: 900px) {
   .pf-2fa-setup {
     flex-direction: column;
+  }
+
+  .pf-pwd {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .pf-pwd__form {
+    max-width: none;
   }
 }
 </style>

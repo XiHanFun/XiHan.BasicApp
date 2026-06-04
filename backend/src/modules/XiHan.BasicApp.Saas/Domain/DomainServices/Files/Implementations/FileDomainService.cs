@@ -80,7 +80,7 @@ public sealed class FileDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var fileHash = Required(command.FileHash, 100, nameof(command.FileHash), "文件哈希不能超过 100 个字符。");
-        _fileStorageDomainService.EnsureUploadMetadata(command.FileSize, command.IsTemporary, command.ExpiresAt, command.RetentionDays);
+        _fileStorageDomainService.EnsureUploadMetadata(command.FileSize, command.IsTemporary, command.ExpirationTime, command.RetentionDays);
 
         var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken)
             ?? throw new InvalidOperationException("文件不存在，无法秒传。");
@@ -133,7 +133,7 @@ public sealed class FileDomainService
 
         EnsureId(command.BasicId, "系统文件主键必须大于 0。");
         ValidateMutableMetadata(command.AccessLevel, command.RetentionDays, command.Width, command.Height, command.Duration, command.ThumbnailFileId);
-        _fileStorageDomainService.EnsureUploadMetadata(1, command.IsTemporary, command.ExpiresAt, command.RetentionDays);
+        _fileStorageDomainService.EnsureUploadMetadata(1, command.IsTemporary, command.ExpirationTime, command.RetentionDays);
 
         var file = await GetFileOrThrowAsync(command.BasicId, cancellationToken);
         ApplyMutableMetadata(file, command);
@@ -178,7 +178,7 @@ public sealed class FileDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidateMutableMetadata(command.AccessLevel, command.RetentionDays, command.Width, command.Height, command.Duration, command.ThumbnailFileId);
-        _fileStorageDomainService.EnsureUploadMetadata(command.FileSize, command.IsTemporary, command.ExpiresAt, command.RetentionDays);
+        _fileStorageDomainService.EnsureUploadMetadata(command.FileSize, command.IsTemporary, command.ExpirationTime, command.RetentionDays);
 
         var file = new SysFile
         {
@@ -200,7 +200,7 @@ public sealed class FileDomainService
             AccessPermissions = Optional(command.AccessPermissions, 500, nameof(command.AccessPermissions), "访问权限不能超过 500 个字符。"),
             IsEncrypted = command.IsEncrypted,
             EncryptionKeyId = Optional(command.EncryptionKeyId, 100, nameof(command.EncryptionKeyId), "加密密钥主键不能超过 100 个字符。"),
-            ExpiresAt = command.ExpiresAt,
+            ExpirationTime = command.ExpirationTime,
             IsTemporary = command.IsTemporary,
             RetentionDays = command.RetentionDays,
             Status = FileStatus.Uploading,
@@ -248,15 +248,15 @@ public sealed class FileDomainService
             IsPrimary = true,
             IsBackup = false,
             Status = FileStorageStatus.Normal,
-            UploadedAt = command.UploadedAt,
+            UploadedTime = command.UploadedTime,
             UploadDuration = command.UploadDuration,
-            LastVerifiedAt = command.UploadedAt,
+            LastVerifiedTime = command.UploadedTime,
             IsVerified = true,
             IsSynced = true,
-            SyncedAt = command.UploadedAt,
+            SyncedTime = command.UploadedTime,
             AccessControl = Required(command.AccessControl, 50, nameof(command.AccessControl), "访问控制不能超过 50 个字符。"),
             CacheControl = Optional(command.CacheControl, 100, nameof(command.CacheControl), "缓存控制不能超过 100 个字符。"),
-            SortOrder = 0,
+            Sort = 0,
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
 
@@ -275,7 +275,7 @@ public sealed class FileDomainService
         var file = await GetFileOrThrowAsync(storage.FileId, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
-        storage.LastVerifiedAt = now;
+        storage.LastVerifiedTime = now;
         storage.IsVerified = command.Exists;
         storage.Status = command.Exists ? FileStorageStatus.Normal : FileStorageStatus.VerificationFailed;
         storage.UploadFailureReason = command.Exists ? null : "对象存储文件不存在。";
@@ -307,7 +307,7 @@ public sealed class FileDomainService
         file.MimeType = Optional(command.MimeType, 100, nameof(command.MimeType), "MIME 类型不能超过 100 个字符。") ?? file.MimeType;
         file.AccessLevel = command.AccessLevel;
         file.AccessPermissions = Optional(command.AccessPermissions, 500, nameof(command.AccessPermissions), "访问权限不能超过 500 个字符。");
-        file.ExpiresAt = command.ExpiresAt;
+        file.ExpirationTime = command.ExpirationTime;
         file.IsTemporary = command.IsTemporary;
         file.RetentionDays = command.RetentionDays;
         file.Tags = Optional(command.Tags, 500, nameof(command.Tags), "文件标签不能超过 500 个字符。") ?? file.Tags;
@@ -325,7 +325,7 @@ public sealed class FileDomainService
         file.AccessPermissions = Optional(command.AccessPermissions, 500, nameof(command.AccessPermissions), "访问权限不能超过 500 个字符。");
         file.IsEncrypted = command.IsEncrypted;
         file.EncryptionKeyId = Optional(command.EncryptionKeyId, 100, nameof(command.EncryptionKeyId), "加密密钥主键不能超过 100 个字符。");
-        file.ExpiresAt = command.ExpiresAt;
+        file.ExpirationTime = command.ExpirationTime;
         file.IsTemporary = command.IsTemporary;
         file.RetentionDays = command.RetentionDays;
         file.Tags = Optional(command.Tags, 500, nameof(command.Tags), "文件标签不能超过 500 个字符。");

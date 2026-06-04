@@ -181,12 +181,12 @@ const fields: ListFieldSchema[] = [
   { key: 'userLimit', title: '用户上限', dataType: 'number', minWidth: 100, order: 10 },
   { key: 'storageLimit', title: '存储上限', dataType: 'number', minWidth: 120, order: 11 },
   { key: 'sort', title: '排序', dataType: 'number', sortable: true, minWidth: 80, order: 12 },
-  { key: 'expireTime', title: '到期时间', dataType: 'datetime', minWidth: 170, order: 13 },
+  { key: 'expirationTime', title: '到期时间', dataType: 'datetime', minWidth: 170, order: 13 },
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
   // 仅高级搜索(不作为列)
   { key: 'editionIdFilter', title: '版本 ID', dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: '版本 ID', order: 20 },
-  { key: 'expireTimeStart', title: '到期开始', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期开始', order: 21 },
-  { key: 'expireTimeEnd', title: '到期结束', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期结束', order: 22 },
+  { key: 'expirationTimeStart', title: '到期开始', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期开始', order: 21 },
+  { key: 'expirationTimeEnd', title: '到期结束', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期结束', order: 22 },
 ]
 
 /** 过滤值辅助:trim 字符串 / 时间戳转 yyyy-MM-dd */
@@ -218,8 +218,8 @@ const schema: PageSchema = {
         tenantStatus: (f.tenantStatus as TenantStatus | undefined) ?? undefined,
         configStatus: (f.configStatus as TenantConfigStatus | undefined) ?? undefined,
         editionId: toStr(f.editionIdFilter) ?? null,
-        expireTimeStart: toDate(f.expireTimeStart),
-        expireTimeEnd: toDate(f.expireTimeEnd),
+        expirationTimeStart: toDate(f.expirationTimeStart),
+        expirationTimeEnd: toDate(f.expirationTimeEnd),
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
   },
@@ -254,7 +254,7 @@ function createDefaultForm(): TenantFormModel {
   return {
     domain: null,
     editionId: null,
-    expireTime: null,
+    expirationTime: null,
     isolationMode: TenantIsolationMode.Field,
     logo: null,
     remark: null,
@@ -300,7 +300,7 @@ function handleEdit(row: TenantListItemDto) {
     basicId: row.basicId,
     domain: row.domain ?? null,
     editionId: row.editionId ?? null,
-    expireTime: row.expireTime ?? null,
+    expirationTime: row.expirationTime ?? null,
     isolationMode: row.isolationMode,
     logo: row.logo ?? null,
     remark: null,
@@ -462,7 +462,7 @@ async function handleSubmit() {
         basicId: tenantForm.value.basicId,
         domain: normalizeNullable(tenantForm.value.domain),
         editionId: tenantForm.value.editionId ?? null,
-        expireTime: tenantForm.value.expireTime,
+        expirationTime: tenantForm.value.expirationTime,
         isolationMode: tenantForm.value.isolationMode,
         logo: normalizeNullable(tenantForm.value.logo),
         remark: normalizeNullable(tenantForm.value.remark),
@@ -487,7 +487,7 @@ async function handleSubmit() {
       const createInput: TenantCreateDto = {
         domain: normalizeNullable(tenantForm.value.domain),
         editionId: tenantForm.value.editionId ?? null,
-        expireTime: tenantForm.value.expireTime,
+        expirationTime: tenantForm.value.expirationTime,
         isolationMode: tenantForm.value.isolationMode,
         logo: normalizeNullable(tenantForm.value.logo),
         remark: normalizeNullable(tenantForm.value.remark),
@@ -574,7 +574,7 @@ async function handleSubmit() {
                     {{ formatBoolean(currentDetail.isExpired) }}
                   </NDescriptionsItem>
                   <NDescriptionsItem label="到期时间">
-                    {{ formatNullableDate(currentDetail.expireTime) }}
+                    {{ formatNullableDate(currentDetail.expirationTime) }}
                   </NDescriptionsItem>
                   <NDescriptionsItem label="创建时间">
                     {{ formatNullableDate(currentDetail.createdTime) }}
@@ -711,9 +711,9 @@ async function handleSubmit() {
         <NFormItem v-if="tenantForm.basicId" label="租户状态" path="tenantStatus">
           <NSelect v-model:value="tenantForm.tenantStatus" :options="tenantStatusOptions" />
         </NFormItem>
-        <NFormItem label="到期时间" path="expireTime">
+        <NFormItem label="到期时间" path="expirationTime">
           <NDatePicker
-            v-model:formatted-value="tenantForm.expireTime"
+            v-model:formatted-value="tenantForm.expirationTime"
             clearable
             style="width: 100%"
             type="datetime"

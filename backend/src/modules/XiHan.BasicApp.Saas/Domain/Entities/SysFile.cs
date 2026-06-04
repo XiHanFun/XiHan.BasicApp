@@ -30,13 +30,13 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + FileHash 组合用于租户内去重（IX_TeId_FiHa），上传前先查同 hash 实现"秒传"
-/// - IsTemporary=true 的文件应设置 ExpiresAt，后台定时清理
+/// - IsTemporary=true 的文件应设置 ExpirationTime，后台定时清理
 /// - Status 变更需同步更新统计（引用计数等）
 ///
 /// 查询：
 /// - 按业务关联查文件：BusinessType/BusinessId 过滤
 /// - 按类型/状态分页：IX_FiTy / IX_TeId_St
-/// - 过期临时文件扫描：IX_ExAt
+/// - 过期临时文件扫描：IX_ExTi
 ///
 /// 删除：
 /// - 仅软删；物理删除由独立清理任务按策略批量执行（同时删除 SysFileStorage 物理文件）
@@ -56,7 +56,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_FiNa", nameof(FileName), OrderByType.Asc)]
 [SugarIndex("IX_{table}_FiTy", nameof(FileType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsTe", nameof(IsTemporary), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysFile : BasicAppFullAuditedEntity
@@ -222,7 +222,7 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// 过期时间（用于临时文件）
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpiresAt { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否为临时文件

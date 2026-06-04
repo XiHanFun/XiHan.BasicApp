@@ -60,7 +60,7 @@ public static class UserSecurityApplicationMapper
             RealName = user?.RealName,
             NickName = user?.NickName,
             LastPasswordChangeTime = security.LastPasswordChangeTime,
-            PasswordExpiryTime = security.PasswordExpiryTime,
+            PasswordExpirationTime = security.PasswordExpirationTime,
             IsPasswordExpired = IsPasswordExpired(security, now),
             FailedLoginAttempts = security.FailedLoginAttempts,
             IsLocked = security.IsLocked,
@@ -83,7 +83,7 @@ public static class UserSecurityApplicationMapper
     public static UserPasswordResetCommand ToPasswordResetCommand(UserPasswordResetDto input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpiryTime, input.Remark);
+        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpirationTime, input.Remark);
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ public static class UserSecurityApplicationMapper
             RealName = user.RealName,
             NickName = user.NickName,
             LastPasswordChangeTime = security.LastPasswordChangeTime,
-            PasswordExpiryTime = security.PasswordExpiryTime,
+            PasswordExpirationTime = security.PasswordExpirationTime,
             IsPasswordExpired = IsPasswordExpired(security, now),
             FailedLoginAttempts = security.FailedLoginAttempts,
             LastFailedLoginTime = security.LastFailedLoginTime,
@@ -136,6 +136,6 @@ public static class UserSecurityApplicationMapper
     /// </summary>
     private static bool IsPasswordExpired(SysUserSecurity security, DateTimeOffset now)
     {
-        return security.PasswordExpiryTime.HasValue && security.PasswordExpiryTime.Value <= now;
+        return security.PasswordExpirationTime.HasValue && security.PasswordExpirationTime.Value <= now;
     }
 }

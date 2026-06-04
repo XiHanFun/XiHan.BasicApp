@@ -6,7 +6,7 @@ import { useAppContext } from '~/stores/app-context'
  * 头像 URL 解析。
  *
  * user.avatar 的语义为「文件主键(fileId)」。但出于兼容考虑，avatar 也可能是：
- * - 空值 → 返回空字符串，交由 <NAvatar fallback-src> 兜底
+ * - 空值 → 返回空字符串，由消费方（如 XUserAvatar）以首字母兜底
  * - http(s):// 或 / 开头（旧数据 / 外链 / dicebear 等）→ 原样返回
  * - 其它 → 视为 fileId，调用预签名 URL 端点换取临时可显示 URL
  *
@@ -60,7 +60,7 @@ export async function resolveAvatarUrl(avatar: null | string | undefined): Promi
     return await pending
   }
   catch {
-    // 换取失败时回退为空，交由 <NAvatar fallback-src> 兜底
+    // 换取失败时回退为空，由消费方（如 XUserAvatar）以首字母兜底
     return ''
   }
 }

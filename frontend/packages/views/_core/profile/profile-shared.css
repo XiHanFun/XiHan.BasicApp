@@ -19,7 +19,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 24px 0;
+  padding: 20px 24px 0;
 }
 
 .pf-section__heading {
@@ -161,6 +161,21 @@
 
 .pf-form-span2 {
   grid-column: 1 / -1;
+}
+
+/* ===== 合并卡片：卡内分组（小标题 + 两列），减少卡片数量 ===== */
+.pf-cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 36px;
+  margin-top: 18px;
+}
+
+.pf-subgroup__title {
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* ===== 状态网格（安全状态） ===== */
@@ -401,9 +416,34 @@
   width: 100%;
 }
 
+/* 紧凑空状态（替代大面积留白的 NEmpty） */
+.pf-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.pf-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: hsl(var(--muted));
+  color: var(--text-secondary);
+}
+
 /* ===== 响应式（统一断点 1023 / 768） ===== */
 @media (max-width: 1023px) {
-  .pf-form-grid {
+  .pf-form-grid,
+  .pf-cols-2 {
     grid-template-columns: 1fr;
   }
 }

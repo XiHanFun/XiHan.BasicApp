@@ -2,10 +2,10 @@
 import type { Component } from 'vue'
 import type { UserProfile } from '~/types'
 import { NSpin, useMessage } from 'naive-ui'
-import { computed, markRaw, onMounted, ref } from 'vue'
+import { computed, markRaw, nextTick, onMounted, ref } from 'vue'
+import { XUserAvatar } from '~/components'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
-import ProfileBanner from './ProfileBanner.vue'
+import { useAppContext, useUserStore } from '~/stores'
 import ProfileTabBinding from './ProfileTabBinding.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabDevices from './ProfileTabDevices.vue'
@@ -26,10 +26,13 @@ interface ProfileNavItem {
 
 const message = useMessage()
 const { apis } = useAppContext()
+const userStore = useUserStore()
+
 const activeTab = ref('profile')
 const profileLoading = ref(false)
 const profile = ref<UserProfile | null>(null)
 const devicesRef = ref<InstanceType<typeof ProfileTabDevices> | null>(null)
+const bodyRef = ref<HTMLElement | null>(null)
 
 const navItems: ProfileNavItem[] = [
   { key: 'profile', label: '个人资料', desc: '头像、昵称与联系方式', icon: 'lucide:contact' },
@@ -55,6 +58,24 @@ const tabComponents: Record<string, Component> = {
 }
 
 const activeComponent = computed(() => tabComponents[activeTab.value] ?? tabComponents.profile)
+const activeNav = computed(() => navItems.find(item => item.key === activeTab.value) ?? navItems[0]!)
+
+const displayName = computed(() => profile.value?.nickName || profile.value?.userName || userStore.nickname || '—')
+const userName = computed(() => profile.value?.userName || userStore.username || '—')
+const avatarSource = computed(() => profile.value?.avatar || userStore.avatar)
+
+/** 切换分区：仅替换右侧内容并把内容区滚动复位，框架不动 → 无页面跳动 */
+function selectTab(key: string) {
+  if (key === activeTab.value) {
+    return
+  }
+  activeTab.value = key
+  void nextTick(() => {
+    if (bodyRef.value) {
+      bodyRef.value.scrollTop = 0
+    }
+  })
+}
 
 async function loadProfile() {
   profileLoading.value = true
@@ -70,239 +91,296 @@ async function loadProfile() {
   }
 }
 
-onMounted(() => {
-  loadProfile()
-})
+onMounted(loadProfile)
 </script>
 
 <template>
-  <div class="pf-page">
-    <NSpin :show="profileLoading && !profile">
-      <div class="pf-layout">
-        <!-- 左侧：用户信息卡 + 导航 -->
-        <aside class="pf-aside">
-          <ProfileBanner
-            :profile="profile"
-            :sessions-count="devicesRef?.sessions?.length ?? 0"
-            :sessions-loaded="devicesRef?.sessionsLoaded ?? false"
-          />
-          <nav class="pf-nav">
+  <div class="pc">
+    <div class="pc__shell">
+      <!-- 左侧栏：身份 + 导航 -->
+      <aside class="pc__rail">
+        <div class="pc__me">
+          <XUserAvatar :size="42" :avatar="avatarSource" :name="displayName" />
+          <div class="pc__me-text">
+            <div class="pc__me-name">
+              {{ displayName }}
+            </div>
+            <div class="pc__me-sub">
+              @{{ userName }}
+            </div>
+          </div>
+        </div>
+
+        <div class="pc__rail-label">
+          账户设置
+        </div>
+        <nav class="pc__nav">
           <button
             v-for="item in navItems"
             :key="item.key"
-            class="pf-nav-item"
-            :class="{ 'is-active': activeTab === item.key }"
             type="button"
-            @click="activeTab = item.key"
+            class="pc__nav-item"
+            :class="{ 'is-active': activeTab === item.key }"
+            @click="selectTab(item.key)"
           >
-            <span class="pf-nav-icon">
-              <Icon :icon="item.icon" width="18" />
+            <span class="pc__nav-icon">
+              <Icon :icon="item.icon" width="17" />
             </span>
-            <span class="pf-nav-text">
-              <span class="pf-nav-label">{{ item.label }}</span>
-              <span class="pf-nav-desc">{{ item.desc }}</span>
-            </span>
-            <Icon class="pf-nav-arrow" icon="lucide:chevron-right" width="16" />
+            <span class="pc__nav-label">{{ item.label }}</span>
           </button>
-          </nav>
-        </aside>
+        </nav>
+      </aside>
 
-        <!-- 右侧内容 -->
-        <section class="pf-content">
-          <KeepAlive>
-            <component
-              :is="activeComponent"
-              v-bind="activeTab === 'profile' || activeTab === 'security' ? { profile } : {}"
-              :ref="activeTab === 'devices' ? (el: any) => (devicesRef = el) : undefined"
-              @saved="loadProfile"
-              @updated="loadProfile"
-            />
-          </KeepAlive>
-        </section>
-      </div>
-    </NSpin>
+      <!-- 右侧：分区标题栏 + 可滚动内容 -->
+      <main class="pc__main">
+        <header class="pc__bar">
+          <div class="pc__bar-title">
+            <Icon :icon="activeNav.icon" width="18" />
+            <span>{{ activeNav.label }}</span>
+          </div>
+          <div class="pc__bar-desc">
+            {{ activeNav.desc }}
+          </div>
+        </header>
+
+        <div ref="bodyRef" class="pc__body">
+          <NSpin :show="profileLoading && !profile">
+            <KeepAlive>
+              <component
+                :is="activeComponent"
+                v-bind="activeTab === 'profile' || activeTab === 'security' ? { profile } : {}"
+                :ref="activeTab === 'devices' ? (el: any) => (devicesRef = el) : undefined"
+                @saved="loadProfile"
+                @updated="loadProfile"
+              />
+            </KeepAlive>
+          </NSpin>
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.pf-page {
-  width: 80%;
-  max-width: 1280px;
-  margin: 0 auto;
+/* 整页填满内容区高度，自身不产生页面级滚动 → 切换分区时框架零位移 */
+.pc {
+  height: 100%;
+  padding: 16px;
 }
 
-.pf-layout {
+.pc__shell {
   display: grid;
   grid-template-columns: 264px 1fr;
-  gap: 28px;
-  align-items: start;
-  /* 切换 Tab 时撑住最小高度，避免内容高度跳变导致滚动条出现/消失引起的页面抖动 */
-  min-height: calc(100vh - 160px);
-}
-
-/* 左侧栏：用户卡 + 导航，整体 sticky */
-.pf-aside {
-  position: sticky;
-  top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* 导航 */
-.pf-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-  border-radius: var(--radius-lg);
+  height: 100%;
+  overflow: hidden;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
 }
 
-.pf-nav-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  border: none;
-  border-radius: var(--radius);
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.18s, color 0.18s;
-  color: var(--text-secondary);
-}
-
-.pf-nav-item:hover {
-  background: hsl(var(--accent));
-  color: var(--text-primary);
-}
-
-.pf-nav-item.is-active {
-  background: hsl(var(--primary) / 12%);
-  color: hsl(var(--primary));
-}
-
-.pf-nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 9px;
-  background: hsl(var(--primary) / 10%);
-  color: hsl(var(--primary));
-  transition: background 0.18s;
-}
-
-.pf-nav-item.is-active .pf-nav-icon {
-  background: hsl(var(--primary) / 18%);
-}
-
-.pf-nav-text {
+/* ===== 左侧栏 ===== */
+.pc__rail {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 16px 12px;
+  background: hsl(var(--muted) / 0.5);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+}
+
+.pc__me {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 6px 8px 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pc__me-text {
   min-width: 0;
-  flex: 1;
 }
 
-.pf-nav-label {
+.pc__me-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.3;
-}
-
-.pf-nav-item.is-active .pf-nav-label {
-  color: hsl(var(--primary));
-}
-
-.pf-nav-desc {
-  font-size: 12px;
-  color: var(--text-secondary);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pf-nav-arrow {
-  flex-shrink: 0;
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.18s, transform 0.18s;
+.pc__me-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pf-nav-item.is-active .pf-nav-arrow {
-  opacity: 1;
-  transform: translateX(0);
+.pc__rail-label {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.pc__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pc__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.16s, color 0.16s;
+}
+
+.pc__nav-item:hover {
+  background: hsl(var(--accent));
+  color: var(--text-primary);
+}
+
+.pc__nav-item.is-active {
+  background: hsl(var(--primary) / 11%);
   color: hsl(var(--primary));
 }
 
-/* 右侧内容 */
-.pf-content {
+.pc__nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: hsl(var(--muted));
+  color: var(--text-secondary);
+  transition: background 0.16s, color 0.16s;
+}
+
+.pc__nav-item:hover .pc__nav-icon {
+  color: var(--text-primary);
+}
+
+.pc__nav-item.is-active .pc__nav-icon {
+  background: hsl(var(--primary) / 16%);
+  color: hsl(var(--primary));
+}
+
+.pc__nav-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===== 右侧 ===== */
+.pc__main {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  overflow: hidden;
 }
 
-/* 平板：左栏收窄、隐藏副说明 */
+.pc__bar {
+  flex-shrink: 0;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pc__bar-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.pc__bar-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+.pc__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px 32px;
+  scrollbar-gutter: stable;
+}
+
+/* ===== 响应式 ===== */
 @media (max-width: 1023px) {
-  .pf-layout {
-    grid-template-columns: 200px 1fr;
-    gap: 20px;
+  .pc__shell {
+    grid-template-columns: 220px 1fr;
   }
 
-  .pf-nav-desc,
-  .pf-nav-arrow {
-    display: none;
+  .pc__bar,
+  .pc__body {
+    padding-left: 20px;
+    padding-right: 20px;
   }
 }
 
-/* 手机：左栏转顶部、导航横向滚动 Tab 条 */
+/* 手机：取消固定高度，转为自然页面滚动；导航变顶部横向 Tab 条 */
 @media (max-width: 768px) {
-  .pf-layout {
+  .pc {
+    height: auto;
+    padding: 12px;
+  }
+
+  .pc__shell {
     grid-template-columns: 1fr;
-    gap: 16px;
+    height: auto;
   }
 
-  .pf-aside {
-    position: static;
-    gap: 12px;
-  }
-
-  .pf-nav {
-    flex-direction: row;
+  .pc__rail {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
     overflow-x: auto;
-    padding: 6px;
-    scrollbar-width: none;
   }
 
-  .pf-nav::-webkit-scrollbar {
+  .pc__me,
+  .pc__rail-label {
     display: none;
   }
 
-  .pf-nav-item {
+  .pc__nav {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .pc__nav-item {
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    min-width: 76px;
-    padding: 10px 8px;
+    gap: 5px;
+    min-width: 74px;
+    padding: 9px 8px;
     text-align: center;
   }
 
-  /* 激活态底部主色条 */
-  .pf-nav-item.is-active::after {
-    content: "";
-    position: absolute;
-    left: 18%;
-    right: 18%;
-    bottom: 2px;
-    height: 2px;
-    border-radius: 2px;
-    background: hsl(var(--primary));
+  .pc__main {
+    overflow: visible;
+  }
+
+  .pc__body {
+    overflow: visible;
+    padding: 18px 16px 24px;
   }
 }
 </style>

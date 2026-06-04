@@ -293,7 +293,7 @@ public sealed class SaasDomainEventHandler
     private static void RevokeSession(SysUserSession session, DateTimeOffset now, string reason)
     {
         session.Status = SessionStatus.Revoked;
-        session.RevokedAt = now;
+        session.RevokedTime = now;
         session.RevokedReason = reason;
         session.LogoutTime ??= now;
         session.LastActivityTime = now;
@@ -530,7 +530,7 @@ public sealed class SaasDomainEventHandler
         foreach (var sessionRole in sessionRoles)
         {
             sessionRole.Status = SessionRoleStatus.Inactive;
-            sessionRole.DeactivatedAt = now;
+            sessionRole.DeactivatedTime = now;
             sessionRole.Reason = NormalizeText(reason, 500);
         }
 

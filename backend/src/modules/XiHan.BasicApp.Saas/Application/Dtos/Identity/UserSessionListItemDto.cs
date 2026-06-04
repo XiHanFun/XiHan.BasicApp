@@ -95,7 +95,7 @@ public class UserSessionListItemDto : BasicAppDto
     /// <summary>
     /// 撤销时间
     /// </summary>
-    public DateTimeOffset? RevokedAt { get; set; }
+    public DateTimeOffset? RevokedTime { get; set; }
 
     /// <summary>
     /// 登出时间
@@ -105,7 +105,7 @@ public class UserSessionListItemDto : BasicAppDto
     /// <summary>
     /// 会话过期时间
     /// </summary>
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已过期

@@ -66,20 +66,20 @@ public sealed class OAuthTokenPageQueryDto : BasicAppPRDto
     /// <summary>
     /// 访问令牌过期开始时间
     /// </summary>
-    public DateTimeOffset? AccessTokenExpiresTimeStart { get; set; }
+    public DateTimeOffset? AccessTokenExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 访问令牌过期结束时间
     /// </summary>
-    public DateTimeOffset? AccessTokenExpiresTimeEnd { get; set; }
+    public DateTimeOffset? AccessTokenExpirationTimeEnd { get; set; }
 
     /// <summary>
     /// 刷新令牌过期开始时间
     /// </summary>
-    public DateTimeOffset? RefreshTokenExpiresTimeStart { get; set; }
+    public DateTimeOffset? RefreshTokenExpirationTimeStart { get; set; }
 
     /// <summary>
     /// 刷新令牌过期结束时间
     /// </summary>
-    public DateTimeOffset? RefreshTokenExpiresTimeEnd { get; set; }
+    public DateTimeOffset? RefreshTokenExpirationTimeEnd { get; set; }
 }

@@ -7,8 +7,8 @@ export { NotificationStatus, NotificationTargetType, NotificationType }
 export interface NotificationPageQueryDto extends PageRequest {
   businessId?: ApiId | null
   businessType?: string | null
-  expireTimeEnd?: DateTimeString | null
-  expireTimeStart?: DateTimeString | null
+  expirationTimeEnd?: DateTimeString | null
+  expirationTimeStart?: DateTimeString | null
   isPublished?: boolean | null
   keyword?: string | null
   needConfirm?: boolean | null
@@ -24,7 +24,7 @@ export interface NotificationListItemDto extends BasicDto {
   businessType?: string | null
   content?: string | null
   createdTime: DateTimeString
-  expireTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   icon?: string | null
   isPublished: boolean
   link?: string | null
