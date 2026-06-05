@@ -261,6 +261,15 @@ function createShellApis() {
         return requestClient.post<{ pageCode: string, payload?: null | string }>('/PagePreference/Save', input)
       },
     },
+    fieldSecurityApi: {
+      getMine(resourceCode: string) {
+        return getWithFallback<Array<{ fieldName: string, isReadable: boolean, maskStrategy: number, maskPattern?: null | string }>>(
+          '/MyFieldSecurity/GetMine',
+          [],
+          { params: { resourceCode } },
+        )
+      },
+    },
     operationLogApi: {
       page(input: { page?: number, pageSize?: number }) {
         return getWithFallback<AppPageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))

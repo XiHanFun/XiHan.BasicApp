@@ -38,6 +38,9 @@ export type { UseSchemaExportOptions } from './useSchemaExport'
 export { usePagePreferenceSync } from './usePagePreferenceSync'
 export type { PagePreferenceSync } from './usePagePreferenceSync'
 
+export { useFieldSecurity } from './useFieldSecurity'
+export type { FieldSecurityRule, UseFieldSecurity } from './useFieldSecurity'
+
 export { useSchemaTable } from './useSchemaTable'
 export type { UseSchemaTableOptions } from './useSchemaTable'
 
