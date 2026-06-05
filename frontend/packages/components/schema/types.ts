@@ -200,6 +200,8 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   pageName: string
   /** 页面级权限码 */
   permissions?: string[]
+  /** 对应后端资源码（用于字段脱敏 FLS 规则匹配；缺省则不拉取脱敏规则） */
+  resourceCode?: string
   /** 数据资源 */
   resource: SchemaResource<TRow>
   /** 字段单一事实源 */
