@@ -249,6 +249,18 @@ function createShellApis() {
         return getWithFallback<AppEnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
       },
     },
+    pagePreferenceApi: {
+      get(pageCode: string) {
+        return getWithFallback<{ pageCode: string, payload?: null | string }>(
+          '/PagePreference/Get',
+          { pageCode, payload: null },
+          { params: { pageCode } },
+        )
+      },
+      save(input: { pageCode: string, payload?: null | string }) {
+        return requestClient.post<{ pageCode: string, payload?: null | string }>('/PagePreference/Save', input)
+      },
+    },
     operationLogApi: {
       page(input: { page?: number, pageSize?: number }) {
         return getWithFallback<AppPageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))
