@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { storage } from '~/utils'
+import { usePagePreferenceSync } from './usePagePreferenceSync'
 
 /**
  * 视图快照 —— 捕获一套可复用的列表状态。
@@ -39,12 +40,22 @@ const STORAGE_PREFIX = 'xh:views:'
  */
 export function useViewManager(pageCode: string) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
+  const sync = usePagePreferenceSync(pageCode)
 
   const views = ref<PersonalView[]>(storage.get<PersonalView[]>(storageKey) ?? [])
   const activeCode = ref<string | undefined>(views.value.find(v => v.isDefault)?.code)
 
+  // 后端跨端同步：远端视图就绪则覆盖本地（尽力而为，端点未就绪时静默回退 localStorage）
+  void sync.hydrate<PersonalView[]>('views').then((remote) => {
+    if (Array.isArray(remote) && remote.length > 0) {
+      views.value = remote
+      activeCode.value = remote.find(v => v.isDefault)?.code
+    }
+  })
+
   function persist() {
     storage.set(storageKey, views.value)
+    sync.save('views', views.value)
   }
 
   /** 生成视图码（基于已有数量，避免依赖随机数） */

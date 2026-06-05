@@ -3,6 +3,7 @@ import type { ListFieldSchema } from './types'
 import { ref, watch } from 'vue'
 import { computed } from 'vue'
 import { storage } from '~/utils'
+import { usePagePreferenceSync } from './usePagePreferenceSync'
 
 /**
  * 单列设置项（显隐 / 固定）
@@ -45,6 +46,7 @@ export function useTableSettings(
   fields: Ref<ListFieldSchema[]>,
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
+  const sync = usePagePreferenceSync(pageCode)
 
   /** 由 schema 字段生成的默认列设置 */
   function buildDefault(): ColumnSetting[] {
@@ -59,13 +61,8 @@ export function useTableSettings(
   const columns = ref<ColumnSetting[]>(buildDefault())
   const density = ref<TableDensity>('small')
 
-  /** 从 localStorage 恢复（按 key 合并，丢弃已不存在的列、追加新列） */
-  function restore() {
-    const persisted = storage.get<PersistedTableSettings>(storageKey)
-    if (!persisted) {
-      columns.value = buildDefault()
-      return
-    }
+  /** 应用一份持久化设置（按 key 合并，丢弃已不存在的列、追加新列） */
+  function applyPersisted(persisted: PersistedTableSettings) {
     const defaults = buildDefault()
     const defaultMap = new Map(defaults.map(c => [c.key, c]))
     const ordered: ColumnSetting[] = []
@@ -87,6 +84,23 @@ export function useTableSettings(
     density.value = persisted.density ?? 'small'
   }
 
+  /** 从 localStorage 恢复 */
+  function restore() {
+    const persisted = storage.get<PersistedTableSettings>(storageKey)
+    if (!persisted) {
+      columns.value = buildDefault()
+      return
+    }
+    applyPersisted(persisted)
+  }
+
+  // 后端跨端同步：远端列设置就绪则覆盖本地（尽力而为，端点未就绪时静默回退 localStorage）
+  void sync.hydrate<PersistedTableSettings>('table').then((remote) => {
+    if (remote && Array.isArray(remote.columns) && remote.columns.length > 0) {
+      applyPersisted(remote)
+    }
+  })
+
   /** 持久化当前设置 */
   function persist() {
     const data: PersistedTableSettings = {
@@ -94,6 +108,7 @@ export function useTableSettings(
       density: density.value,
     }
     storage.set(storageKey, data)
+    sync.save('table', data)
   }
 
   /** 可见列键（按当前顺序） */

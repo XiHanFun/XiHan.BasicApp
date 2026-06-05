@@ -35,6 +35,9 @@ export type { UseSchemaDictionaries } from './useSchemaDictionaries'
 export { downloadText, toCsv, useSchemaExport } from './useSchemaExport'
 export type { UseSchemaExportOptions } from './useSchemaExport'
 
+export { usePagePreferenceSync } from './usePagePreferenceSync'
+export type { PagePreferenceSync } from './usePagePreferenceSync'
+
 export { useSchemaTable } from './useSchemaTable'
 export type { UseSchemaTableOptions } from './useSchemaTable'
 

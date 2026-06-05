@@ -111,6 +111,11 @@ export interface AppContextApis extends Record<string, unknown> {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
   }
+  /** 页面偏好（按用户 × pageCode 跨端同步列设置/视图，载荷为 JSON 字符串） */
+  pagePreferenceApi: {
+    get: (pageCode: string) => Promise<{ pageCode: string, payload?: null | string }>
+    save: (input: { pageCode: string, payload?: null | string }) => Promise<{ pageCode: string, payload?: null | string }>
+  }
   getActivityApi: () => Promise<UserActivity>
   getNotificationPreferenceApi: () => Promise<NotificationPreference>
   updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>
