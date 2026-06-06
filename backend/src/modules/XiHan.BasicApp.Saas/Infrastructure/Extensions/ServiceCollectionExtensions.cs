@@ -103,6 +103,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthContextQueryService, AuthContextQueryService>();
         services.AddScoped<IAuthorizationSnapshotQueryService, AuthorizationSnapshotQueryService>();
         services.AddScoped<IMenuRouteQueryService, MenuRouteQueryService>();
+        services.AddScoped<IUserDataScopeFilterService, UserDataScopeFilterService>();
         services.AddScoped<IFileRecordQueryService, FileRecordQueryService>();
         services.AddScoped<ITaskSchedulerQueryService, TaskSchedulerQueryService>();
         services.AddScoped<IMessageRecordQueryService, MessageRecordQueryService>();

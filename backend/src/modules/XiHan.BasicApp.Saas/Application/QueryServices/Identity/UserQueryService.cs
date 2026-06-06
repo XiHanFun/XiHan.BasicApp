@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -74,6 +75,11 @@ public sealed class UserQueryService
     private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
+    /// 用户数据范围过滤（按角色/用户数据范围 + 部门归属裁决可见用户集）
+    /// </summary>
+    private readonly IUserDataScopeFilterService _userDataScopeFilter;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserQueryService(
@@ -83,7 +89,8 @@ public sealed class UserQueryService
         IUserDepartmentRepository userDepartmentRepository,
         IDepartmentRepository departmentRepository,
         IUserSecurityRepository userSecurityRepository,
-        IFieldSecurityService fieldSecurityService)
+        IFieldSecurityService fieldSecurityService,
+        IUserDataScopeFilterService userDataScopeFilter)
     {
         _userRepository = userRepository;
         _userRoleRepository = userRoleRepository;
@@ -92,6 +99,7 @@ public sealed class UserQueryService
         _departmentRepository = departmentRepository;
         _userSecurityRepository = userSecurityRepository;
         _fieldSecurity = fieldSecurityService;
+        _userDataScopeFilter = userDataScopeFilter;
     }
 
     /// <summary>
@@ -107,6 +115,14 @@ public sealed class UserQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildUserPageRequest(input);
+
+        // 数据范围过滤：将列表收敛到当前用户可见的用户主键集合（超管/全部范围不限制）
+        var dataScope = await _userDataScopeFilter.ResolveAccessibleUsersAsync(DateTimeOffset.UtcNow, cancellationToken);
+        if (!dataScope.Unrestricted)
+        {
+            request.Conditions.AddFilterIn<SysUser, long>(user => user.BasicId, dataScope.UserIds.Cast<object>());
+        }
+
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
 
         if (users.Items.Count == 0)
