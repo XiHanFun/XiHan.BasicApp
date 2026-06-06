@@ -133,6 +133,42 @@ public sealed class PermissionRequestAppService
     }
 
     /// <summary>
+    /// 审批通过权限申请（自动授予角色/权限）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Status)]
+    public async Task<PermissionRequestDetailDto> ApprovePermissionRequestAsync(PermissionRequestApprovalDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _permissionRequestDomainService.ApprovePermissionRequestAsync(
+            PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
+            cancellationToken);
+
+        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
+            ?? throw new InvalidOperationException("权限申请不存在。");
+    }
+
+    /// <summary>
+    /// 驳回权限申请
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Status)]
+    public async Task<PermissionRequestDetailDto> RejectPermissionRequestAsync(PermissionRequestApprovalDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _permissionRequestDomainService.RejectPermissionRequestAsync(
+            PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
+            cancellationToken);
+
+        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
+            ?? throw new InvalidOperationException("权限申请不存在。");
+    }
+
+    /// <summary>
     /// 获取当前用户主键
     /// </summary>
     private long GetCurrentUserIdOrThrow()

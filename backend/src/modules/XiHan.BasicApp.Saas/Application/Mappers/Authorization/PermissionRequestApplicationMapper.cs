@@ -144,6 +144,19 @@ public static class PermissionRequestApplicationMapper
     }
 
     /// <summary>
+    /// 映射权限申请审批命令（通过 / 驳回）
+    /// </summary>
+    public static PermissionRequestApprovalCommand ToApprovalCommand(PermissionRequestApprovalDto input, long operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new PermissionRequestApprovalCommand(
+            input.BasicId,
+            operatorUserId,
+            input.Remark);
+    }
+
+    /// <summary>
     /// 映射权限申请更新命令
     /// </summary>
     public static PermissionRequestUpdateCommand ToUpdateCommand(PermissionRequestUpdateDto input, long requestUserId)

@@ -253,16 +253,18 @@ const requestSchema: PageSchema = {
 
 async function reviewRequest(row: PermissionRequestListItemDto, approved: boolean) {
   try {
-    await permissionRequestApi.updateStatus({
-      basicId: row.basicId,
-      requestStatus: approved ? PermissionRequestStatus.Approved : PermissionRequestStatus.Rejected,
-      remark: approved ? '前端审批通过' : '前端审批驳回',
-    })
-    message.success(approved ? '已通过' : '已驳回')
+    if (approved) {
+      // 审批通过：后端走审批流并自动为申请人授予角色/权限
+      await permissionRequestApi.approve({ basicId: row.basicId, remark: '审批通过' })
+    }
+    else {
+      await permissionRequestApi.reject({ basicId: row.basicId, remark: '审批驳回' })
+    }
+    message.success(approved ? '已通过并授权' : '已驳回')
     reloadRequest()
   }
-  catch {
-    message.error('操作失败')
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '操作失败')
   }
 }
 

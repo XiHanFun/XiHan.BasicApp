@@ -29,7 +29,18 @@ const permissionRequestBaseCommandApi = createCommandApi<
   PermissionRequestDetailDto
 >('PermissionRequest', 'PermissionRequest')
 
+export interface PermissionRequestApprovalDto {
+  basicId: ApiId
+  remark?: string | null
+}
+
 export const permissionRequestApi = {
+  approve(input: PermissionRequestApprovalDto) {
+    return permissionRequestCommandApi.post<PermissionRequestDetailDto, PermissionRequestApprovalDto>(
+      'ApprovePermissionRequest',
+      input,
+    )
+  },
   create(input: PermissionRequestCreateDto) {
     return permissionRequestBaseCommandApi.create(input)
   },
@@ -43,6 +54,12 @@ export const permissionRequestApi = {
     return permissionRequestQueryApi.get<PageResult<PermissionRequestListItemDto>>(
       'PermissionRequestPage',
       toPermissionRequestPageParams(input),
+    )
+  },
+  reject(input: PermissionRequestApprovalDto) {
+    return permissionRequestCommandApi.post<PermissionRequestDetailDto, PermissionRequestApprovalDto>(
+      'RejectPermissionRequest',
+      input,
     )
   },
   update(input: PermissionRequestUpdateDto) {
