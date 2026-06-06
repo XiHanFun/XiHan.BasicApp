@@ -155,6 +155,38 @@ public sealed class FieldSecurityService : IFieldSecurityService
         }
     }
 
+    /// <inheritdoc />
+    public async Task EnsureUpdatableAsync<TInput, TCurrent>(string resourceCode, TInput input, TCurrent current, CancellationToken cancellationToken = default)
+        where TInput : class
+        where TCurrent : class
+    {
+        var rules = await ResolveAsync(resourceCode, cancellationToken);
+        if (rules.Count == 0)
+        {
+            return;
+        }
+
+        var inputType = typeof(TInput);
+        var currentType = typeof(TCurrent);
+        foreach (var (fieldName, rule) in rules)
+        {
+            if (rule.IsEditable)
+            {
+                continue;
+            }
+            var inputProperty = inputType.GetProperty(fieldName, BindingFlags.Public | BindingFlags.Instance);
+            var currentProperty = currentType.GetProperty(fieldName, BindingFlags.Public | BindingFlags.Instance);
+            if (inputProperty is null || currentProperty is null)
+            {
+                continue;
+            }
+            if (!Equals(inputProperty.GetValue(input), currentProperty.GetValue(current)))
+            {
+                throw new InvalidOperationException($"字段「{fieldName}」当前用户无修改权限。");
+            }
+        }
+    }
+
     private static void MaskInstance<T>(T item, IReadOnlyDictionary<string, EffectiveFieldRule> rules)
         where T : class
     {

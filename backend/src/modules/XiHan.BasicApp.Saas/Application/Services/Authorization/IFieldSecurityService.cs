@@ -62,4 +62,11 @@ public interface IFieldSecurityService
     /// 校验本次更新涉及的字段均可编辑；命中不可编辑字段则抛出异常。
     /// </summary>
     Task EnsureEditableAsync(string resourceCode, IEnumerable<string> changingFields, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 写校验：对比更新入参与当前实体（按同名属性），命中不可编辑字段被实际修改则抛出异常。
+    /// </summary>
+    Task EnsureUpdatableAsync<TInput, TCurrent>(string resourceCode, TInput input, TCurrent current, CancellationToken cancellationToken = default)
+        where TInput : class
+        where TCurrent : class;
 }
