@@ -116,9 +116,9 @@ export interface AppContextApis extends Record<string, unknown> {
     get: (pageCode: string) => Promise<{ pageCode: string, payload?: null | string }>
     save: (input: { pageCode: string, payload?: null | string }) => Promise<{ pageCode: string, payload?: null | string }>
   }
-  /** 字段脱敏（按资源下发当前用户的有效 FLS 规则） */
+  /** 字段权限（按资源下发当前用户的有效 FLS 规则：可读/可编辑/脱敏策略） */
   fieldSecurityApi: {
-    getMine: (resourceCode: string) => Promise<Array<{ fieldName: string, isReadable: boolean, maskStrategy: number, maskPattern?: null | string }>>
+    getMine: (resourceCode: string) => Promise<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>
   }
   getActivityApi: () => Promise<UserActivity>
   getNotificationPreferenceApi: () => Promise<NotificationPreference>

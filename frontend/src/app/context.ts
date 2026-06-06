@@ -263,7 +263,7 @@ function createShellApis() {
     },
     fieldSecurityApi: {
       getMine(resourceCode: string) {
-        return getWithFallback<Array<{ fieldName: string, isReadable: boolean, maskStrategy: number, maskPattern?: null | string }>>(
+        return getWithFallback<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>(
           '/MyFieldSecurity/GetMine',
           [],
           { params: { resourceCode } },

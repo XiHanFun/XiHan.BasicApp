@@ -3,22 +3,27 @@ import { useAppContext } from '~/stores'
 import { ref, toValue } from 'vue'
 
 /**
- * 字段脱敏（对接后端 FLS）。
+ * 字段权限（FLS）前端读取。
  *
- * 按页面 resourceCode 拉取当前用户的有效脱敏规则，转成 `fls:*` formatter 注入字段，
- * 复用渲染器既有脱敏管线。无规则 / 端点未就绪时静默不脱敏（安全降级）。
+ * 字段脱敏已由服务端在响应里落地（前端不再二次打码）；此 hook 供页面表单按 `isEditable`
+ * 置只读，或展示「不可见 / 已脱敏」标识。按页面 resourceCode 拉取当前用户的有效字段规则。
  */
 export interface FieldSecurityRule {
   fieldName: string
   isReadable: boolean
+  isEditable: boolean
   maskStrategy: number
   maskPattern?: null | string
 }
 
 export interface UseFieldSecurity {
-  /** 字段对应的脱敏 formatter（注入 field.formatter；无规则返回 undefined） */
-  formatterFor: (fieldKey: string) => string | undefined
-  /** 拉取并缓存当前用户在该资源上的脱敏规则 */
+  /** 取字段规则（无规则返回 undefined） */
+  ruleFor: (fieldKey: string) => FieldSecurityRule | undefined
+  /** 字段是否可读（默认 true） */
+  isReadable: (fieldKey: string) => boolean
+  /** 字段是否可编辑（默认 true；用于表单只读 / 提交校验） */
+  isEditable: (fieldKey: string) => boolean
+  /** 拉取并缓存当前用户在该资源上的字段规则 */
   resolve: () => Promise<void>
 }
 
@@ -40,26 +45,13 @@ export function useFieldSecurity(resourceCode: MaybeRefOrGetter<string | undefin
       rules.value = map
     }
     catch {
-      // 端点未就绪 / 无规则 → 不脱敏
+      // 端点未就绪 / 无规则
     }
   }
 
-  function formatterFor(fieldKey: string): string | undefined {
-    const rule = rules.value[fieldKey]
-    if (!rule) {
-      return undefined
-    }
-    if (!rule.isReadable) {
-      return 'fls:hide'
-    }
-    if (rule.maskStrategy === 2) {
-      return 'fls:full'
-    }
-    if (rule.maskStrategy !== 0) {
-      return 'fls:partial'
-    }
-    return undefined
-  }
+  const ruleFor = (fieldKey: string): FieldSecurityRule | undefined => rules.value[fieldKey]
+  const isReadable = (fieldKey: string): boolean => rules.value[fieldKey]?.isReadable ?? true
+  const isEditable = (fieldKey: string): boolean => rules.value[fieldKey]?.isEditable ?? true
 
-  return { formatterFor, resolve }
+  return { ruleFor, isReadable, isEditable, resolve }
 }

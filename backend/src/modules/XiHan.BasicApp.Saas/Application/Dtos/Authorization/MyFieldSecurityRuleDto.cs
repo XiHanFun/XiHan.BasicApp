@@ -30,6 +30,11 @@ public sealed class MyFieldSecurityRuleDto
     public bool IsReadable { get; set; } = true;
 
     /// <summary>
+    /// 是否可编辑（false 表示表单只读 / 后端拒绝修改）
+    /// </summary>
+    public bool IsEditable { get; set; } = true;
+
+    /// <summary>
     /// 脱敏策略（对应后端 FieldMaskStrategy：0 不脱敏 / 2 全掩码 / 3 部分掩码 / 99 自定义）
     /// </summary>
     public int MaskStrategy { get; set; }

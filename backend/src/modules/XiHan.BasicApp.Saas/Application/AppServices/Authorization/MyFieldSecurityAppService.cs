@@ -15,45 +15,30 @@
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
-using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
 /// <summary>
-/// 当前用户字段脱敏规则下发服务。
-/// 按 (用户 + 有效角色) 解析指定资源的有效 FLS 规则；前端据此对字段做脱敏渲染。
-/// 无规则即不脱敏（安全降级）；同字段去重：用户级优先于角色级，其次取高 Priority。
+/// 当前用户字段权限下发服务。
+/// 复用 <see cref="IFieldSecurityService"/> 的 deny-overrides 解析，向前端下发字段「可读/可编辑/脱敏」信息。
+/// 脱敏已由服务端在响应里落地，此处主要供前端表单据 IsEditable 置只读、必要时展示脱敏标识。
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "字段安全")]
 public sealed class MyFieldSecurityAppService
     : SaasApplicationService, IMyFieldSecurityAppService
 {
-    private readonly ICurrentUser _currentUser;
-
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-
-    private readonly IResourceRepository _resourceRepository;
-
-    private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public MyFieldSecurityAppService(
-        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
-        IResourceRepository resourceRepository,
-        IUserRoleRepository userRoleRepository,
-        ICurrentUser currentUser)
+    public MyFieldSecurityAppService(IFieldSecurityService fieldSecurity)
     {
-        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
-        _resourceRepository = resourceRepository;
-        _userRoleRepository = userRoleRepository;
-        _currentUser = currentUser;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <inheritdoc />
@@ -64,40 +49,16 @@ public sealed class MyFieldSecurityAppService
             return [];
         }
 
-        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
-
-        var resource = await _resourceRepository.GetByCodeAsync(resourceCode, cancellationToken);
-        if (resource is null)
-        {
-            return [];
-        }
-
-        var roleIds = (await _userRoleRepository.GetValidByUserIdAsync(userId, DateTimeOffset.UtcNow, cancellationToken))
-            .Select(userRole => userRole.RoleId)
-            .ToHashSet();
-
-        // 先在库内按资源+启用状态收敛（小集合），再于内存判定目标归属，规避复杂表达式翻译
-        var rules = await _fieldLevelSecurityRepository.GetListAsync(
-            rule => rule.ResourceId == resource.BasicId && rule.Status == EnableStatus.Enabled,
-            cancellationToken);
-
-        var applicable = rules.Where(rule =>
-            (rule.TargetType == FieldSecurityTargetType.User && rule.TargetId == userId)
-            || (rule.TargetType == FieldSecurityTargetType.Role && roleIds.Contains(rule.TargetId)));
-
+        var rules = await _fieldSecurity.ResolveAsync(resourceCode, cancellationToken);
         return
         [
-            .. applicable
-                .GroupBy(rule => rule.FieldName)
-                .Select(group => group
-                    .OrderByDescending(rule => rule.TargetType == FieldSecurityTargetType.User ? 1 : 0)
-                    .ThenByDescending(rule => rule.Priority)
-                    .First())
-                .Where(rule => !rule.IsReadable || rule.MaskStrategy != FieldMaskStrategy.None)
+            .. rules.Values
+                .Where(rule => !rule.IsReadable || !rule.IsEditable || rule.MaskStrategy != FieldMaskStrategy.None)
                 .Select(rule => new MyFieldSecurityRuleDto
                 {
                     FieldName = rule.FieldName,
                     IsReadable = rule.IsReadable,
+                    IsEditable = rule.IsEditable,
                     MaskStrategy = (int)rule.MaskStrategy,
                     MaskPattern = rule.MaskPattern,
                 }),

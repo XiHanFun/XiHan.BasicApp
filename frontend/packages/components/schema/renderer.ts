@@ -33,23 +33,6 @@ const maskers: Record<string, (value: string) => string> = {
 }
 
 /**
- * 后端 FLS 脱敏（formatter 形如 `fls:hide` / `fls:full` / `fls:partial`，由 useFieldSecurity 注入）。
- */
-function applyFlsMask(value: string, code: string): string {
-  if (code === 'fls:hide') {
-    return '******'
-  }
-  if (code === 'fls:full') {
-    return value.length > 0 ? '*'.repeat(value.length) : '******'
-  }
-  // 部分掩码：保留首尾，中间打码
-  if (value.length <= 2) {
-    return '*'.repeat(value.length || 1)
-  }
-  return `${value[0]}${'*'.repeat(Math.max(1, value.length - 2))}${value[value.length - 1]}`
-}
-
-/**
  * 解析格式化文本值（不含富渲染，供导出/详情复用）。
  */
 export function formatFieldText<TRow extends object>(
@@ -57,10 +40,6 @@ export function formatFieldText<TRow extends object>(
   row: TRow,
 ): string {
   const raw = readField(row, field.key)
-
-  if (field.formatter?.startsWith('fls:') && raw != null) {
-    return applyFlsMask(String(raw), field.formatter)
-  }
 
   const masker = field.formatter ? maskers[field.formatter] : undefined
   if (masker && raw != null) {
