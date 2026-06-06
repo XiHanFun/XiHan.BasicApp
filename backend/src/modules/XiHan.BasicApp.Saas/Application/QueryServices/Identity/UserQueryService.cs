@@ -17,6 +17,7 @@ using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -68,6 +69,11 @@ public sealed class UserQueryService
     private readonly IUserSecurityRepository _userSecurityRepository;
 
     /// <summary>
+    /// 字段级安全（读脱敏 / 写校验）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserQueryService(
@@ -76,7 +82,8 @@ public sealed class UserQueryService
         IRoleRepository roleRepository,
         IUserDepartmentRepository userDepartmentRepository,
         IDepartmentRepository departmentRepository,
-        IUserSecurityRepository userSecurityRepository)
+        IUserSecurityRepository userSecurityRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _userRepository = userRepository;
         _userRoleRepository = userRoleRepository;
@@ -84,6 +91,7 @@ public sealed class UserQueryService
         _userDepartmentRepository = userDepartmentRepository;
         _departmentRepository = departmentRepository;
         _userSecurityRepository = userSecurityRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -126,6 +134,9 @@ public sealed class UserQueryService
                 security.TwoFactorEnabled);
         }).ToList();
 
+        // 服务端字段脱敏：按当前用户在 SysUser 资源上的有效 FLS 规则就地脱敏
+        await _fieldSecurity.ApplyAsync("SysUser", items, cancellationToken);
+
         return new PageResultDtoBase<UserListItemDto>(items, users.Page)
         {
             ExtendDatas = users.ExtendDatas
@@ -149,7 +160,15 @@ public sealed class UserQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var user = await _userRepository.GetByIdAsync(id, cancellationToken);
-        return user is null ? null : UserApplicationMapper.ToDetailDto(user);
+        if (user is null)
+        {
+            return null;
+        }
+
+        var detail = UserApplicationMapper.ToDetailDto(user);
+        // 服务端字段脱敏：详情同样按有效 FLS 规则就地脱敏
+        await _fieldSecurity.ApplyAsync("SysUser", detail, cancellationToken);
+        return detail;
     }
 
     /// <summary>

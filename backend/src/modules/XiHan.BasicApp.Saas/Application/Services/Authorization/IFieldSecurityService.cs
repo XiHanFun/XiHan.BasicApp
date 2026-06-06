@@ -1,0 +1,65 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:IFieldSecurityService
+// Guid:f5b6789c-3547-4384-b012-a1c562193bf1
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/06/05 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.Saas.Domain.Entities;
+
+namespace XiHan.BasicApp.Saas.Application.Services;
+
+/// <summary>
+/// 合并后的有效字段规则（按当前用户 + 角色，deny-overrides）
+/// </summary>
+public sealed class EffectiveFieldRule
+{
+    /// <summary>字段名（对应实体/DTO 属性名）</summary>
+    public required string FieldName { get; init; }
+
+    /// <summary>是否可读（任一命中规则不可读即不可读）</summary>
+    public bool IsReadable { get; init; } = true;
+
+    /// <summary>是否可编辑（任一命中规则不可编辑即不可编辑）</summary>
+    public bool IsEditable { get; init; } = true;
+
+    /// <summary>脱敏策略（取最严）</summary>
+    public FieldMaskStrategy MaskStrategy { get; init; }
+
+    /// <summary>脱敏规则描述</summary>
+    public string? MaskPattern { get; init; }
+}
+
+/// <summary>
+/// 字段级安全（FLS）服务端落地：读脱敏 + 写校验。
+/// 解析当前用户在某资源上的有效规则（deny-overrides），对返回 DTO 反射脱敏，并校验更新字段可编辑性。
+/// </summary>
+public interface IFieldSecurityService
+{
+    /// <summary>
+    /// 解析当前用户在指定资源上的有效字段规则（字段名 → 规则）。无登录/无资源/无规则返回空。
+    /// </summary>
+    Task<IReadOnlyDictionary<string, EffectiveFieldRule>> ResolveAsync(string resourceCode, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 对单个返回对象按有效规则就地脱敏。
+    /// </summary>
+    Task ApplyAsync<T>(string resourceCode, T? item, CancellationToken cancellationToken = default) where T : class;
+
+    /// <summary>
+    /// 对返回对象集合按有效规则就地脱敏。
+    /// </summary>
+    Task ApplyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default) where T : class;
+
+    /// <summary>
+    /// 校验本次更新涉及的字段均可编辑；命中不可编辑字段则抛出异常。
+    /// </summary>
+    Task EnsureEditableAsync(string resourceCode, IEnumerable<string> changingFields, CancellationToken cancellationToken = default);
+}
