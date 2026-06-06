@@ -3,25 +3,32 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/compone
 import type {
   ApiId,
   PageResult,
+  PermissionListItemDto,
   RoleSelectItemDto,
   UserCreateDto,
   UserListItemDto,
   UserManagementDetailDto,
   UserUpdateDto,
 } from '@/api'
+import type { UserPermissionListItemDto } from '@/api/modules/authorization/user-permission.types'
+import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
-import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import {
   NButton,
+  NCheckbox,
   NConfigProvider,
   NDatePicker,
+  NDrawer,
+  NDrawerContent,
+  NEmpty,
   NFormItem,
   NInput,
   NInputNumber,
   NModal,
   NSelect,
   NSpace,
+  NSpin,
   NSwitch,
   NTabPane,
   NTabs,
@@ -32,6 +39,8 @@ import { computed, h, onMounted, ref } from 'vue'
 import {
   createPageRequest,
   EnableStatus,
+  PermissionAction,
+  permissionApi,
   roleApi,
   StatisticsPeriod,
   TenantMemberInviteStatus,
@@ -496,6 +505,7 @@ const schema: PageSchema = {
     { key: 'create', title: '新建用户', scope: 'page', type: 'primary', icon: 'tabler:plus' },
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
+    { key: 'grant', title: '权限直授', scope: 'row', icon: 'lucide:key-round' },
     { key: 'lock', title: '锁定/解锁', scope: 'row', icon: 'lucide:lock' },
     { key: 'logout', title: '强制下线', scope: 'row', icon: 'lucide:log-out' },
     {
@@ -521,6 +531,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'edit':
       if (row)
         void openEdit(row.basicId)
+      break
+    case 'grant':
+      if (row)
+        void openGrantDrawer(row)
       break
     case 'lock':
       if (row)
@@ -794,6 +808,155 @@ async function forceLogout(row: UserListItemDto) {
   }
   catch {
     message.error('强制下线失败')
+  }
+}
+
+// ── 权限直授抽屉（角色直授 + 权限直授 Grant/Deny） ──────────────
+const grantVisible = ref(false)
+const grantUser = ref<UserListItemDto | null>(null)
+const grantTab = ref('role')
+const grantLoading = ref(false)
+const grantRoleList = ref<UserRoleListItemDto[]>([])
+const grantPermList = ref<UserPermissionListItemDto[]>([])
+const permCatalog = ref<PermissionListItemDto[]>([])
+const grantKeyword = ref('')
+const grantBusyId = ref<ApiId | null>(null)
+
+/** roleId → 用户角色授权记录 */
+const grantRoleByRoleId = computed(() => {
+  const map = new Map<ApiId, UserRoleListItemDto>()
+  for (const item of grantRoleList.value) {
+    map.set(item.roleId, item)
+  }
+  return map
+})
+
+/** permissionId → 用户权限直授记录 */
+const grantPermByPermId = computed(() => {
+  const map = new Map<ApiId, UserPermissionListItemDto>()
+  for (const item of grantPermList.value) {
+    map.set(item.permissionId, item)
+  }
+  return map
+})
+
+const grantPermFiltered = computed(() => {
+  const kw = grantKeyword.value.trim().toLowerCase()
+  if (!kw) {
+    return permCatalog.value
+  }
+  return permCatalog.value.filter(p =>
+    (p.permissionName ?? '').toLowerCase().includes(kw)
+    || (p.permissionCode ?? '').toLowerCase().includes(kw),
+  )
+})
+
+const grantPermGroups = computed(() => {
+  const map = new Map<string, PermissionListItemDto[]>()
+  for (const p of grantPermFiltered.value) {
+    const key = p.moduleCode || '其它'
+    const arr = map.get(key) ?? []
+    arr.push(p)
+    map.set(key, arr)
+  }
+  return [...map.entries()].map(([name, items]) => ({ name, items }))
+})
+
+async function loadPermCatalog() {
+  if (permCatalog.value.length) {
+    return
+  }
+  const all: PermissionListItemDto[] = []
+  let pageIndex = 1
+  for (;;) {
+    const result = await permissionApi.page(createPageRequest({ page: { pageIndex, pageSize: 100 } }))
+    all.push(...result.items)
+    if (result.items.length === 0 || pageIndex * 100 >= result.page.totalCount) {
+      break
+    }
+    pageIndex += 1
+  }
+  permCatalog.value = all
+}
+
+async function openGrantDrawer(row: UserListItemDto) {
+  grantUser.value = row
+  grantVisible.value = true
+  grantTab.value = 'role'
+  grantKeyword.value = ''
+  grantLoading.value = true
+  try {
+    const [roles, perms] = await Promise.all([
+      userManagementApi.roles.list(row.basicId),
+      userManagementApi.permissions.list(row.basicId),
+    ])
+    grantRoleList.value = roles
+    grantPermList.value = perms
+    await loadPermCatalog()
+  }
+  catch {
+    message.error('加载直授信息失败')
+  }
+  finally {
+    grantLoading.value = false
+  }
+}
+
+async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
+  if (!grantUser.value || grantBusyId.value != null) {
+    return
+  }
+  grantBusyId.value = role.basicId
+  try {
+    if (checked) {
+      await userManagementApi.roles.grant({ userId: grantUser.value.basicId, roleId: role.basicId })
+      message.success(`已授角色：${role.roleName}`)
+    }
+    else {
+      const bound = grantRoleByRoleId.value.get(role.basicId)
+      if (bound) {
+        await userManagementApi.roles.revoke(bound.basicId)
+        message.success(`已撤角色：${role.roleName}`)
+      }
+    }
+    grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
+  }
+  catch {
+    message.error('操作失败')
+  }
+  finally {
+    grantBusyId.value = null
+  }
+}
+
+async function setPermGrant(permission: PermissionListItemDto, action: PermissionAction) {
+  if (!grantUser.value || grantBusyId.value != null) {
+    return
+  }
+  grantBusyId.value = permission.basicId
+  try {
+    const existing = grantPermByPermId.value.get(permission.basicId)
+    if (existing && existing.permissionAction === action) {
+      // 再次点击当前态 → 撤销直授
+      await userManagementApi.permissions.revoke(existing.basicId)
+    }
+    else {
+      if (existing) {
+        await userManagementApi.permissions.revoke(existing.basicId)
+      }
+      await userManagementApi.permissions.grant({
+        userId: grantUser.value.basicId,
+        permissionId: permission.basicId,
+        permissionAction: action,
+      })
+    }
+    grantPermList.value = await userManagementApi.permissions.list(grantUser.value.basicId)
+  }
+  catch {
+    message.error('操作失败')
+  }
+  finally {
+    grantBusyId.value = null
   }
 }
 
@@ -1178,6 +1341,80 @@ async function confirmDelete() {
         </NSpace>
       </template>
     </NModal>
+
+    <!-- 权限直授抽屉 -->
+    <NDrawer v-model:show="grantVisible" :width="720">
+      <NDrawerContent closable :title="`权限直授 · ${grantUser?.userName ?? ''}`">
+        <NSpin :show="grantLoading">
+          <NTabs v-model:value="grantTab" animated type="line">
+            <NTabPane name="role" tab="角色直授">
+              <p class="grant-desc">勾选即把角色直接授予该用户（绕过分组）。</p>
+              <div class="grant-role-grid">
+                <label
+                  v-for="r in roleOptions"
+                  :key="r.basicId"
+                  class="grant-role-chip"
+                >
+                  <NCheckbox
+                    :checked="grantRoleByRoleId.has(r.basicId)"
+                    :disabled="grantBusyId === r.basicId"
+                    @update:checked="(checked: boolean) => toggleGrantRole(r, checked)"
+                  />
+                  <span>{{ r.roleName }}</span>
+                </label>
+              </div>
+            </NTabPane>
+            <NTabPane name="perm" tab="权限直授">
+              <div class="grant-toolbar">
+                <NInput v-model:value="grantKeyword" clearable placeholder="搜索权限名称 / 编码" style="width: 240px" />
+                <NTag :bordered="false" round type="success">
+                  已直授 {{ grantPermList.length }} 项
+                </NTag>
+              </div>
+              <NEmpty v-if="grantPermGroups.length === 0" class="grant-empty" description="无匹配权限" />
+              <div v-else class="grant-perm-groups">
+                <section v-for="group in grantPermGroups" :key="group.name" class="grant-perm-group">
+                  <div class="grant-perm-head">
+                    <span>{{ group.name }}</span>
+                    <span class="grant-perm-count">{{ group.items.length }}</span>
+                  </div>
+                  <div class="grant-perm-list">
+                    <div
+                      v-for="permission in group.items"
+                      :key="String(permission.basicId)"
+                      class="grant-perm-item"
+                    >
+                      <span class="grant-perm-text">
+                        <span class="grant-perm-name">{{ permission.permissionName }}</span>
+                        <span class="grant-perm-code">{{ permission.permissionCode }}</span>
+                      </span>
+                      <NSpace :size="6">
+                        <NButton
+                          :disabled="grantBusyId === permission.basicId"
+                          size="tiny"
+                          :type="grantPermByPermId.get(permission.basicId)?.permissionAction === PermissionAction.Grant ? 'success' : 'default'"
+                          @click="setPermGrant(permission, PermissionAction.Grant)"
+                        >
+                          授予
+                        </NButton>
+                        <NButton
+                          :disabled="grantBusyId === permission.basicId"
+                          size="tiny"
+                          :type="grantPermByPermId.get(permission.basicId)?.permissionAction === PermissionAction.Deny ? 'error' : 'default'"
+                          @click="setPermGrant(permission, PermissionAction.Deny)"
+                        >
+                          拒绝
+                        </NButton>
+                      </NSpace>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </NTabPane>
+          </NTabs>
+        </NSpin>
+      </NDrawerContent>
+    </NDrawer>
   </SchemaPage>
 </template>
 
@@ -1609,5 +1846,110 @@ async function confirmDelete() {
 
 .del-title .name {
   color: var(--n-error-color);
+}
+
+/* 权限直授抽屉 */
+.grant-desc {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--n-text-color-3);
+}
+
+.grant-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+}
+
+.grant-role-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.grant-role-chip:hover {
+  background: rgb(0 0 0 / 0.03);
+}
+
+.grant-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.grant-empty {
+  padding: 40px 0;
+}
+
+.grant-perm-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grant-perm-group {
+  border: 1px solid var(--n-border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.grant-perm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--n-merged-th-color, rgb(0 0 0 / 0.02));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.grant-perm-count {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+.grant-perm-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.grant-perm-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--n-border-color);
+}
+
+.grant-perm-item:first-child {
+  border-top: none;
+}
+
+.grant-perm-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.grant-perm-name {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grant-perm-code {
+  font-size: 11.5px;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
