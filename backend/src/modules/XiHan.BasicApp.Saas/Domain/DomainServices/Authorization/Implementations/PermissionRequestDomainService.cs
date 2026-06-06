@@ -24,11 +24,16 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class PermissionRequestDomainService
     : IPermissionRequestDomainService
 {
+    private const string PermissionRequestReviewType = "PermissionRequest";
+
     private readonly IPermissionRepository _permissionRepository;
     private readonly IPermissionRequestRepository _permissionRequestRepository;
     private readonly IReviewRepository _reviewRepository;
+    private readonly IReviewDomainService _reviewDomainService;
     private readonly IRoleRepository _roleRepository;
     private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly IUserPermissionRepository _userPermissionRepository;
+    private readonly IUserRoleRepository _userRoleRepository;
 
     /// <summary>
     /// 构造函数
@@ -38,13 +43,19 @@ public sealed class PermissionRequestDomainService
         ITenantUserRepository tenantUserRepository,
         IPermissionRepository permissionRepository,
         IRoleRepository roleRepository,
-        IReviewRepository reviewRepository)
+        IReviewRepository reviewRepository,
+        IReviewDomainService reviewDomainService,
+        IUserRoleRepository userRoleRepository,
+        IUserPermissionRepository userPermissionRepository)
     {
         _permissionRequestRepository = permissionRequestRepository;
         _tenantUserRepository = tenantUserRepository;
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
         _reviewRepository = reviewRepository;
+        _reviewDomainService = reviewDomainService;
+        _userRoleRepository = userRoleRepository;
+        _userPermissionRepository = userPermissionRepository;
     }
 
     /// <inheritdoc />
@@ -80,6 +91,149 @@ public sealed class PermissionRequestDomainService
         };
 
         var savedRequest = await _permissionRequestRepository.AddAsync(permissionRequest, cancellationToken);
+
+        // 同步创建审批单（审批流入口），并回填 ReviewId：用户申请 → 审批 → 自动授权
+        var review = new SysReview
+        {
+            ReviewCode = $"PR-{savedRequest.BasicId}",
+            ReviewTitle = BuildReviewTitle(command.PermissionId, command.RoleId),
+            ReviewType = PermissionRequestReviewType,
+            EntityType = nameof(SysPermissionRequest),
+            EntityId = savedRequest.BasicId.ToString(),
+            ReviewStatus = AuditStatus.Pending,
+            Priority = 0,
+            SubmitUserId = command.RequestUserId,
+            SubmitTime = now,
+            ReviewLevel = 1,
+            CurrentLevel = 1,
+            Status = EnableStatus.Enabled
+        };
+        var savedReview = await _reviewRepository.AddAsync(review, cancellationToken);
+
+        savedRequest.ReviewId = savedReview.BasicId;
+        savedRequest = await _permissionRequestRepository.UpdateAsync(savedRequest, cancellationToken);
+
+        return new PermissionRequestCommandResult(savedRequest.BasicId);
+    }
+
+    /// <inheritdoc />
+    public async Task<PermissionRequestCommandResult> ApprovePermissionRequestAsync(PermissionRequestApprovalCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "权限申请主键必须大于 0。");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        _ = await GetAvailableTenantMemberForRequestOrThrowAsync(command.OperatorUserId, now, cancellationToken);
+        var request = await GetPermissionRequestOrThrowAsync(command.BasicId, cancellationToken);
+        if (request.RequestStatus != PermissionRequestStatus.Pending)
+        {
+            throw new InvalidOperationException("只有待审批权限申请可以审批。");
+        }
+
+        // 重新校验申请对象仍可用（防止审批时权限/角色已被停用）
+        _ = await GetRequestablePermissionOrDefaultAsync(request.PermissionId, cancellationToken);
+        _ = await GetRequestableRoleOrDefaultAsync(request.RoleId, cancellationToken);
+
+        // 自动授权：为申请人创建角色 / 权限直授（沿用申请的期望有效期）
+        var grantReason = $"权限申请[{request.BasicId}]审批通过自动授权";
+        if (request.RoleId is > 0)
+        {
+            await _userRoleRepository.AddAsync(new SysUserRole
+            {
+                UserId = request.RequestUserId,
+                RoleId = request.RoleId.Value,
+                EffectiveTime = request.ExpectedEffectiveTime,
+                ExpirationTime = request.ExpectedExpirationTime,
+                Status = ValidityStatus.Valid,
+                GrantReason = grantReason
+            }, cancellationToken);
+        }
+
+        if (request.PermissionId is > 0)
+        {
+            await _userPermissionRepository.AddAsync(new SysUserPermission
+            {
+                UserId = request.RequestUserId,
+                PermissionId = request.PermissionId.Value,
+                PermissionAction = PermissionAction.Grant,
+                EffectiveTime = request.ExpectedEffectiveTime,
+                ExpirationTime = request.ExpectedExpirationTime,
+                Status = ValidityStatus.Valid,
+                GrantReason = grantReason
+            }, cancellationToken);
+        }
+
+        // 审批单留痕（通过）；单级审批 → Approved
+        if (request.ReviewId is > 0)
+        {
+            await _reviewDomainService.AuditReviewAsync(
+                new ReviewAuditCommand(
+                    request.ReviewId.Value,
+                    AuditResult.Pass,
+                    command.OperatorUserId,
+                    null,
+                    command.Remark,
+                    "Approve",
+                    now,
+                    null,
+                    null,
+                    command.Remark,
+                    command.OperatorUserId),
+                cancellationToken);
+        }
+
+        request.RequestStatus = PermissionRequestStatus.Approved;
+        request.Remark = NormalizeNullable(command.Remark) ?? request.Remark;
+        var savedRequest = await _permissionRequestRepository.UpdateAsync(request, cancellationToken);
+        return new PermissionRequestCommandResult(savedRequest.BasicId);
+    }
+
+    /// <inheritdoc />
+    public async Task<PermissionRequestCommandResult> RejectPermissionRequestAsync(PermissionRequestApprovalCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.BasicId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "权限申请主键必须大于 0。");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        _ = await GetAvailableTenantMemberForRequestOrThrowAsync(command.OperatorUserId, now, cancellationToken);
+        var request = await GetPermissionRequestOrThrowAsync(command.BasicId, cancellationToken);
+        if (request.RequestStatus != PermissionRequestStatus.Pending)
+        {
+            throw new InvalidOperationException("只有待审批权限申请可以审批。");
+        }
+
+        // 审批单留痕（驳回）
+        if (request.ReviewId is > 0)
+        {
+            await _reviewDomainService.AuditReviewAsync(
+                new ReviewAuditCommand(
+                    request.ReviewId.Value,
+                    AuditResult.Reject,
+                    command.OperatorUserId,
+                    null,
+                    command.Remark,
+                    "Reject",
+                    now,
+                    null,
+                    null,
+                    command.Remark,
+                    command.OperatorUserId),
+                cancellationToken);
+        }
+
+        request.RequestStatus = PermissionRequestStatus.Rejected;
+        request.Remark = NormalizeNullable(command.Remark) ?? request.Remark;
+        var savedRequest = await _permissionRequestRepository.UpdateAsync(request, cancellationToken);
         return new PermissionRequestCommandResult(savedRequest.BasicId);
     }
 
@@ -194,6 +348,21 @@ public sealed class PermissionRequestDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static string BuildReviewTitle(long? permissionId, long? roleId)
+    {
+        if (roleId is > 0 && permissionId is > 0)
+        {
+            return "权限申请：角色 + 权限";
+        }
+
+        if (roleId is > 0)
+        {
+            return "权限申请：角色授予";
+        }
+
+        return "权限申请：权限授予";
     }
 
     private static void ValidateEnum<TEnum>(TEnum value, string paramName)

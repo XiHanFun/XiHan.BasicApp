@@ -38,4 +38,14 @@ public interface IPermissionRequestDomainService
     /// 更新权限申请状态
     /// </summary>
     Task<PermissionRequestCommandResult> UpdatePermissionRequestStatusAsync(PermissionRequestStatusCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 审批通过权限申请：审批单留痕通过 + 为申请人自动授予角色/权限 + 申请置为已通过。
+    /// </summary>
+    Task<PermissionRequestCommandResult> ApprovePermissionRequestAsync(PermissionRequestApprovalCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 驳回权限申请：审批单留痕驳回 + 申请置为已驳回。
+    /// </summary>
+    Task<PermissionRequestCommandResult> RejectPermissionRequestAsync(PermissionRequestApprovalCommand command, CancellationToken cancellationToken = default);
 }
