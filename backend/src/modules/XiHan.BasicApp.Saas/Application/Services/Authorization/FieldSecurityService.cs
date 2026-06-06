@@ -22,7 +22,7 @@ using XiHan.Framework.Security.Users;
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
-/// 字段级安全（FLS）服务端落地实现。
+/// 字段级安全（FLS）服务端。
 /// </summary>
 public sealed class FieldSecurityService : IFieldSecurityService
 {

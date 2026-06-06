@@ -21,19 +21,29 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// </summary>
 public sealed class EffectiveFieldRule
 {
-    /// <summary>字段名（对应实体/DTO 属性名）</summary>
-    public required string FieldName { get; init; }
+    /// <summary>
+    /// 字段名（对应实体/DTO 属性名）
+    /// </summary>
+    public string FieldName { get; init; } = string.Empty;
 
-    /// <summary>是否可读（任一命中规则不可读即不可读）</summary>
+    /// <summary>
+    /// 是否可读（任一命中规则不可读即不可读）
+    /// </summary>
     public bool IsReadable { get; init; } = true;
 
-    /// <summary>是否可编辑（任一命中规则不可编辑即不可编辑）</summary>
+    /// <summary>
+    /// 是否可编辑（任一命中规则不可编辑即不可编辑）
+    /// </summary>
     public bool IsEditable { get; init; } = true;
 
-    /// <summary>脱敏策略（取最严）</summary>
+    /// <summary>
+    /// 脱敏策略（取最严）
+    /// </summary>
     public FieldMaskStrategy MaskStrategy { get; init; }
 
-    /// <summary>脱敏规则描述</summary>
+    /// <summary>
+    /// 脱敏规则描述
+    /// </summary>
     public string? MaskPattern { get; init; }
 }
 
