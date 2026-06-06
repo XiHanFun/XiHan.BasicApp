@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
 import { computed, ref, watch } from 'vue'
 import { storage } from '~/utils'
+import { usePagePreferenceSync } from './usePagePreferenceSync'
 
 /**
  * 单个搜索字段设置项
@@ -40,6 +41,7 @@ export function useSearchSettings(
   fields: Ref<ListFieldSchema[]>,
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
+  const sync = usePagePreferenceSync(pageCode)
 
   /** 由 schema 字段生成的默认设置（保持 schema order） */
   function buildDefault(): SearchFieldSetting[] {
@@ -64,13 +66,8 @@ export function useSearchSettings(
     return map
   })
 
-  /** 从 localStorage 恢复（按 key 合并，丢弃已不存在字段、追加新字段） */
-  function restore() {
-    const persisted = storage.get<PersistedSearchSettings>(storageKey)
-    if (!persisted) {
-      settings.value = buildDefault()
-      return
-    }
+  /** 应用一份持久化设置（按 key 合并，丢弃已不存在字段、追加新字段） */
+  function applyPersisted(persisted: PersistedSearchSettings) {
     const defaults = buildDefault()
     const defaultMap = new Map(defaults.map(s => [s.key, s]))
     const ordered: SearchFieldSetting[] = []
@@ -90,11 +87,29 @@ export function useSearchSettings(
     settings.value = ordered
   }
 
+  /** 从 localStorage 恢复 */
+  function restore() {
+    const persisted = storage.get<PersistedSearchSettings>(storageKey)
+    if (!persisted) {
+      settings.value = buildDefault()
+      return
+    }
+    applyPersisted(persisted)
+  }
+
+  // 后端跨端同步：远端搜索设置就绪则覆盖本地（尽力而为，端点未就绪静默回退 localStorage）
+  void sync.hydrate<PersistedSearchSettings>('search').then((remote) => {
+    if (remote && Array.isArray(remote.fields) && remote.fields.length > 0) {
+      applyPersisted(remote)
+    }
+  })
+
   function persist() {
     const data: PersistedSearchSettings = {
       fields: settings.value.map(s => ({ key: s.key, pinned: s.pinned, visible: s.visible })),
     }
     storage.set(storageKey, data)
+    sync.save('search', data)
   }
 
   /** 常用搜索字段（可见 + pinned，按当前顺序，取回完整 schema） */
