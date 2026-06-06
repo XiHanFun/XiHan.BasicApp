@@ -6,6 +6,7 @@ import { coreRoutes } from '~/router/routes/core'
 const AboutPage = () => import('~/views/_core/about/index.vue')
 const EditorDemoPage = () => import('~/views/_core/editor-demo/index.vue')
 const ProfilePage = () => import('~/views/_core/profile/index.vue')
+const PermissionCenterPage = () => import('@/views/system/permission-center/index.vue')
 
 export const staticRoutes: RouteRecordRaw[] = [
   {
@@ -23,6 +24,15 @@ export const staticRoutes: RouteRecordRaw[] = [
           title: 'menu.profile',
           icon: 'lucide:user',
           hidden: true,
+        },
+      },
+      {
+        path: '/system/permission-center',
+        name: 'PermissionCenter',
+        component: PermissionCenterPage,
+        meta: {
+          title: '权限中心',
+          icon: 'lucide:shield-check',
         },
       },
       {
