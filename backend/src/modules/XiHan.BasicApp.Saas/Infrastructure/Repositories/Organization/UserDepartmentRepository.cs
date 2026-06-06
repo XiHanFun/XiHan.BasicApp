@@ -35,4 +35,23 @@ public sealed class UserDepartmentRepository(ISqlSugarClientResolver clientResol
             .Where(department => department.Status == ValidityStatus.Valid)
             .ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<long>> GetUserIdsByDepartmentIdsAsync(IEnumerable<long> departmentIds, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var ids = departmentIds.Where(id => id > 0).Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        return await CreateQueryable()
+            .Where(department => ids.Contains(department.DepartmentId))
+            .Where(department => department.Status == ValidityStatus.Valid)
+            .Select(department => department.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
 }

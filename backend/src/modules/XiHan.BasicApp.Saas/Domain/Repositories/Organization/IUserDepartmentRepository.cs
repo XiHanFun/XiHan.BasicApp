@@ -25,4 +25,9 @@ public interface IUserDepartmentRepository : ISaasRepository<SysUserDepartment>
     /// 获取用户有效部门归属
     /// </summary>
     Task<IReadOnlyList<SysUserDepartment>> GetValidByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取归属指定部门集合的有效用户主键集合（用于数据范围过滤）
+    /// </summary>
+    Task<IReadOnlyList<long>> GetUserIdsByDepartmentIdsAsync(IEnumerable<long> departmentIds, CancellationToken cancellationToken = default);
 }
