@@ -12,7 +12,6 @@ import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
 import { toColumns, toExportFields } from './selectors'
-import { useFieldSecurity } from './useFieldSecurity'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
@@ -52,23 +51,14 @@ const { loading, rows, total, page, pageSize, filters, sortField, sortOrder, sea
  * 使单元格按值映射 label、搜索区自动渲染为下拉。静态 options 优先。
  */
 const dictionaries = useSchemaDictionaries(() => props.schema.fields)
-const fieldSecurity = useFieldSecurity(() => props.schema.resourceCode)
 const resolvedFields = computed<ListFieldSchema[]>(() =>
   props.schema.fields.map((field) => {
-    let next = field
-    // 字典/枚举选项注入
-    if (!field.options?.length && field.dictionaryCode) {
-      const options = dictionaries.optionsMap.value[field.dictionaryCode]
-      if (options?.length) {
-        next = { ...next, options }
-      }
+    // 字典/枚举选项注入（字段脱敏已由服务端在响应里落地，前端不再二次打码）
+    if (field.options?.length || !field.dictionaryCode) {
+      return field
     }
-    // 字段脱敏注入（安全优先，覆盖字段声明的 formatter）
-    const flsFormatter = fieldSecurity.formatterFor(field.key)
-    if (flsFormatter) {
-      next = { ...next, formatter: flsFormatter }
-    }
-    return next
+    const options = dictionaries.optionsMap.value[field.dictionaryCode]
+    return options?.length ? { ...field, options } : field
   }),
 )
 const resolvedSchema = computed<PageSchema<Row>>(() => ({ ...props.schema, fields: resolvedFields.value }))
@@ -314,7 +304,6 @@ const { exporting, exportCsv } = useSchemaExport<Row>({
 
 onMounted(async () => {
   void dictionaries.resolve()
-  void fieldSecurity.resolve()
   await table.load()
   firstLoaded.value = true
 })
