@@ -36,6 +36,8 @@ public sealed class AuthorizationSnapshotQueryService
 
     private readonly IPermissionRepository _permissionRepository;
 
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -44,13 +46,15 @@ public sealed class AuthorizationSnapshotQueryService
         IRoleRepository roleRepository,
         IRolePermissionRepository rolePermissionRepository,
         IUserPermissionRepository userPermissionRepository,
-        IPermissionRepository permissionRepository)
+        IPermissionRepository permissionRepository,
+        IPermissionDelegationRepository permissionDelegationRepository)
     {
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
         _rolePermissionRepository = rolePermissionRepository;
         _userPermissionRepository = userPermissionRepository;
         _permissionRepository = permissionRepository;
+        _permissionDelegationRepository = permissionDelegationRepository;
     }
 
     /// <inheritdoc />
@@ -113,6 +117,17 @@ public sealed class AuthorizationSnapshotQueryService
         finalPermissionIds.UnionWith(userGrantIds);
         finalPermissionIds.ExceptWith(userDenyIds);
 
+        // 叠加当前有效的权限委托（被委托人 = 当前用户）：
+        // - 直接委托权限（PermissionId）→ 直接并入
+        // - 委托角色（RoleId）→ 展开为该角色当前有效的 Grant 权限（扣除该角色 Deny）
+        // 用户显式 Deny 仍然优先（最后再扣除一次）。
+        var delegatedGrantIds = await ResolveDelegatedPermissionIdsAsync(userId, now, cancellationToken);
+        if (delegatedGrantIds.Count > 0)
+        {
+            finalPermissionIds.UnionWith(delegatedGrantIds);
+            finalPermissionIds.ExceptWith(userDenyIds);
+        }
+
         var permissions = await _permissionRepository.GetByIdsAsync(finalPermissionIds, cancellationToken);
         var permissionCodes = permissions
             .Where(permission => permission.Status == EnableStatus.Enabled)
@@ -123,5 +138,49 @@ public sealed class AuthorizationSnapshotQueryService
             .ToList();
 
         return new AuthorizationSnapshot(roleCodes, permissionCodes, finalPermissionIds);
+    }
+
+    /// <summary>
+    /// 解析当前用户作为被委托人、当前有效的委托所赋予的权限 ID 集合。
+    /// </summary>
+    private async Task<HashSet<long>> ResolveDelegatedPermissionIdsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var delegations = await _permissionDelegationRepository.GetActiveByDelegateeIdAsync(userId, now, cancellationToken);
+        if (delegations.Count == 0)
+        {
+            return [];
+        }
+
+        var grantIds = new HashSet<long>();
+        var roleIds = new HashSet<long>();
+        foreach (var delegation in delegations)
+        {
+            if (delegation.PermissionId is > 0)
+            {
+                grantIds.Add(delegation.PermissionId.Value);
+            }
+
+            if (delegation.RoleId is > 0)
+            {
+                roleIds.Add(delegation.RoleId.Value);
+            }
+        }
+
+        if (roleIds.Count > 0)
+        {
+            var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(roleIds, now, cancellationToken);
+            var roleGrantIds = rolePermissions
+                .Where(permission => permission.PermissionAction == PermissionAction.Grant)
+                .Select(permission => permission.PermissionId)
+                .ToHashSet();
+            var roleDenyIds = rolePermissions
+                .Where(permission => permission.PermissionAction == PermissionAction.Deny)
+                .Select(permission => permission.PermissionId)
+                .ToHashSet();
+            roleGrantIds.ExceptWith(roleDenyIds);
+            grantIds.UnionWith(roleGrantIds);
+        }
+
+        return grantIds;
     }
 }
