@@ -16,8 +16,10 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Security.Users;
@@ -37,14 +39,22 @@ public sealed class UserAppService
 
     private readonly IUserDomainService _userDomainService;
 
+    private readonly IUserRepository _userRepository;
+
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public UserAppService(
         IUserDomainService userDomainService,
+        IUserRepository userRepository,
+        IFieldSecurityService fieldSecurity,
         ICurrentUser currentUser)
     {
         _userDomainService = userDomainService;
+        _userRepository = userRepository;
+        _fieldSecurity = fieldSecurity;
         _currentUser = currentUser;
     }
 
@@ -86,6 +96,13 @@ public sealed class UserAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 写校验：FLS 不可编辑字段不得被修改（防绕过前端只读直接调 API）
+        var current = await _userRepository.GetByIdAsync(input.BasicId, cancellationToken);
+        if (current is not null)
+        {
+            await _fieldSecurity.EnsureUpdatableAsync("SysUser", input, current, cancellationToken);
+        }
 
         var result = await _userDomainService.UpdateUserAsync(UserApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
