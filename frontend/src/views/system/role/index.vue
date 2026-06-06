@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
+  ApiId,
   PageResult,
+  PermissionListItemDto,
   RoleCreateDto,
   RoleListItemDto,
   RoleManagementDetailDto,
+  RolePermissionListItemDto,
   RoleUpdateDto,
   ValidityStatus,
 } from '@/api'
 import {
   NButton,
+  NCheckbox,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -35,7 +39,10 @@ import {
   createPageRequest,
   DataPermissionScope,
   EnableStatus,
+  PermissionAction,
+  permissionApi,
   roleManagementApi,
+  rolePermissionApi,
   RoleType,
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
@@ -183,6 +190,7 @@ const schema: PageSchema = {
     { key: 'create', title: '新增角色', scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: '查看详情', scope: 'row' },
     { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'assignPermission', title: '权限分配', scope: 'row' },
     { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
   ],
@@ -215,6 +223,123 @@ function onAction(payload: SchemaActionPayload) {
         void handleDelete(row)
       }
       break
+    case 'assignPermission':
+      if (row) {
+        void openPermissionDrawer(row)
+      }
+      break
+  }
+}
+
+// ── 权限分配抽屉 ────────────────────────────────────────────────
+const permissionVisible = ref(false)
+const permissionRole = ref<RoleListItemDto | null>(null)
+const permCatalog = ref<PermissionListItemDto[]>([])
+const permGrants = ref<RolePermissionListItemDto[]>([])
+const permLoading = ref(false)
+const permKeyword = ref('')
+const permTogglingId = ref<ApiId | null>(null)
+
+/** permissionId → 授权记录（收权时取记录主键） */
+const permGrantByPermissionId = computed(() => {
+  const map = new Map<ApiId, RolePermissionListItemDto>()
+  for (const grant of permGrants.value) {
+    map.set(grant.permissionId, grant)
+  }
+  return map
+})
+
+const permFiltered = computed(() => {
+  const kw = permKeyword.value.trim().toLowerCase()
+  if (!kw) {
+    return permCatalog.value
+  }
+  return permCatalog.value.filter(p =>
+    p.permissionName.toLowerCase().includes(kw) || p.permissionCode.toLowerCase().includes(kw),
+  )
+})
+
+/** 按资源（其次模块）分组 */
+const permGroups = computed(() => {
+  const map = new Map<string, PermissionListItemDto[]>()
+  for (const permission of permFiltered.value) {
+    const group = permission.resourceName || permission.moduleCode || '其他'
+    const list = map.get(group)
+    if (list) {
+      list.push(permission)
+    }
+    else {
+      map.set(group, [permission])
+    }
+  }
+  return [...map.entries()].map(([name, items]) => ({ name, items }))
+})
+
+/** 权限目录翻页拉全集（后端 pageSize 受夹紧，按页计数停止） */
+async function loadPermCatalog() {
+  if (permCatalog.value.length > 0) {
+    return
+  }
+  const all: PermissionListItemDto[] = []
+  for (let page = 1; page <= 50; page++) {
+    const result = await permissionApi.page(createPageRequest({ page: { pageIndex: page, pageSize: 100 } }))
+    const items = result.items ?? []
+    if (items.length === 0) {
+      break
+    }
+    all.push(...items)
+    if (all.length >= (result.page?.totalCount ?? all.length)) {
+      break
+    }
+  }
+  permCatalog.value = all
+}
+
+async function openPermissionDrawer(row: RoleListItemDto) {
+  permissionRole.value = row
+  permissionVisible.value = true
+  permKeyword.value = ''
+  permLoading.value = true
+  try {
+    const [, grantsResult] = await Promise.all([loadPermCatalog(), rolePermissionApi.list(row.basicId)])
+    permGrants.value = grantsResult
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '加载权限失败')
+  }
+  finally {
+    permLoading.value = false
+  }
+}
+
+async function togglePermission(permission: PermissionListItemDto, checked: boolean) {
+  if (!permissionRole.value || permTogglingId.value != null) {
+    return
+  }
+  permTogglingId.value = permission.basicId
+  try {
+    if (checked) {
+      await rolePermissionApi.grant({
+        roleId: permissionRole.value.basicId,
+        permissionId: permission.basicId,
+        permissionAction: PermissionAction.Grant,
+      })
+      message.success(`已授权：${permission.permissionName}`)
+    }
+    else {
+      const grant = permGrantByPermissionId.value.get(permission.basicId)
+      if (grant) {
+        await rolePermissionApi.revoke(grant.basicId)
+        message.success(`已收回：${permission.permissionName}`)
+      }
+    }
+    permGrants.value = await rolePermissionApi.list(permissionRole.value.basicId)
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '操作失败')
+  }
+  finally {
+    permTogglingId.value = null
   }
 }
 
@@ -638,6 +763,45 @@ async function handleToggleStatus(row: RoleListItemDto) {
         </NSpace>
       </template>
     </NModal>
+
+    <NDrawer v-model:show="permissionVisible" :width="760">
+      <NDrawerContent closable :title="`权限分配 · ${permissionRole?.roleName ?? ''}`">
+        <div class="perm-toolbar">
+          <NInput v-model:value="permKeyword" clearable placeholder="搜索权限名称 / 编码" style="width: 240px" />
+          <NTag round type="success" :bordered="false">
+            已授权 {{ permGrants.length }} 项
+          </NTag>
+        </div>
+        <NSpin :show="permLoading">
+          <NEmpty v-if="permGroups.length === 0 && !permLoading" class="perm-empty" description="无匹配权限" />
+          <div v-else class="perm-groups">
+            <section v-for="group in permGroups" :key="group.name" class="perm-group">
+              <div class="perm-group-head">
+                <span>{{ group.name }}</span>
+                <span class="perm-group-count">{{ group.items.length }}</span>
+              </div>
+              <div class="perm-list">
+                <label
+                  v-for="permission in group.items"
+                  :key="String(permission.basicId)"
+                  class="perm-item"
+                >
+                  <NCheckbox
+                    :checked="permGrantByPermissionId.has(permission.basicId)"
+                    :disabled="permTogglingId === permission.basicId"
+                    @update:checked="(checked: boolean) => togglePermission(permission, checked)"
+                  />
+                  <span class="perm-text">
+                    <span class="perm-name">{{ permission.permissionName }}</span>
+                    <span class="perm-code">{{ permission.permissionCode }}</span>
+                  </span>
+                </label>
+              </div>
+            </section>
+          </div>
+        </NSpin>
+      </NDrawerContent>
+    </NDrawer>
   </SchemaPage>
 </template>
 
@@ -663,5 +827,86 @@ async function handleToggleStatus(row: RoleListItemDto) {
 .xh-detail-table th {
   background: var(--n-merged-th-color);
   font-weight: 500;
+}
+
+/* 权限分配抽屉 */
+.perm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.perm-empty {
+  padding: 48px 0;
+}
+
+.perm-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.perm-group {
+  border: 1px solid var(--n-border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.perm-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--n-merged-th-color, rgb(0 0 0 / 0.02));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.perm-group-count {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.55;
+}
+
+.perm-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 2px 12px;
+  padding: 10px 12px;
+}
+
+.perm-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.perm-item:hover {
+  background: rgb(0 0 0 / 0.03);
+}
+
+.perm-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.perm-name {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.perm-code {
+  font-size: 11.5px;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
