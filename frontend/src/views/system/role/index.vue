@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { TreeSelectOption } from 'naive-ui'
 import type {
   ApiId,
+  DepartmentTreeNodeDto,
+  MenuListItemDto,
   PageResult,
   PermissionListItemDto,
   RoleCreateDto,
+  RoleDataScopeListItemDto,
   RoleListItemDto,
   RoleManagementDetailDto,
   RolePermissionListItemDto,
@@ -29,18 +33,24 @@ import {
   NSelect,
   NSpace,
   NSpin,
+  NSwitch,
   NTabPane,
   NTabs,
   NTag,
+  NTree,
+  NTreeSelect,
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import {
   createPageRequest,
   DataPermissionScope,
+  departmentApi,
   EnableStatus,
+  menuApi,
   PermissionAction,
   permissionApi,
+  roleDataScopeApi,
   roleManagementApi,
   rolePermissionApi,
   RoleType,
@@ -191,6 +201,8 @@ const schema: PageSchema = {
     { key: 'view', title: '查看详情', scope: 'row' },
     { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'assignPermission', title: '权限分配', scope: 'row' },
+    { key: 'assignMenu', title: '菜单授权', scope: 'row' },
+    { key: 'assignDataScope', title: '数据范围', scope: 'row' },
     { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
   ],
@@ -226,6 +238,16 @@ function onAction(payload: SchemaActionPayload) {
     case 'assignPermission':
       if (row) {
         void openPermissionDrawer(row)
+      }
+      break
+    case 'assignMenu':
+      if (row) {
+        void openMenuDrawer(row)
+      }
+      break
+    case 'assignDataScope':
+      if (row) {
+        void openScopeDrawer(row)
       }
       break
   }
@@ -340,6 +362,247 @@ async function togglePermission(permission: PermissionListItemDto, checked: bool
   }
   finally {
     permTogglingId.value = null
+  }
+}
+
+// ── 菜单授权抽屉（菜单关联权限，勾选即授予该权限） ───────────────
+interface MenuNode {
+  basicId: ApiId
+  menuName: string
+  permissionId?: ApiId | null
+  children: MenuNode[]
+}
+
+const menuVisible = ref(false)
+const menuRole = ref<RoleListItemDto | null>(null)
+const menuTreeData = ref<MenuNode[]>([])
+const menuGrants = ref<RolePermissionListItemDto[]>([])
+const menuCheckedKeys = ref<ApiId[]>([])
+const menuLoading = ref(false)
+
+/** 菜单 → 关联权限 ID（仅含已配置权限的菜单） */
+const menuPermIdById = computed(() => {
+  const map = new Map<ApiId, ApiId>()
+  const walk = (nodes: MenuNode[]) => {
+    for (const node of nodes) {
+      if (node.permissionId != null) {
+        map.set(node.basicId, node.permissionId)
+      }
+      walk(node.children)
+    }
+  }
+  walk(menuTreeData.value)
+  return map
+})
+
+/** permissionId → 授权记录（收权时取记录主键） */
+const menuGrantByPermId = computed(() => {
+  const map = new Map<ApiId, RolePermissionListItemDto>()
+  for (const grant of menuGrants.value) {
+    map.set(grant.permissionId, grant)
+  }
+  return map
+})
+
+/** 已授权权限对应的菜单节点设为勾选 */
+function deriveMenuChecked() {
+  const granted = new Set(menuGrants.value.map(grant => grant.permissionId))
+  const checked: ApiId[] = []
+  for (const [menuId, permId] of menuPermIdById.value) {
+    if (granted.has(permId)) {
+      checked.push(menuId)
+    }
+  }
+  menuCheckedKeys.value = checked
+}
+
+function buildMenuTree(flat: MenuListItemDto[]): MenuNode[] {
+  const byId = new Map<ApiId, MenuNode>()
+  const roots: MenuNode[] = []
+  const sorted = [...flat].sort((a, b) => a.sort - b.sort)
+  for (const item of sorted) {
+    byId.set(item.basicId, {
+      basicId: item.basicId,
+      menuName: item.menuName,
+      permissionId: item.permissionId,
+      children: [],
+    })
+  }
+  for (const item of sorted) {
+    const node = byId.get(item.basicId)!
+    const parent = item.parentId != null ? byId.get(item.parentId) : undefined
+    if (parent) {
+      parent.children.push(node)
+    }
+    else {
+      roots.push(node)
+    }
+  }
+  return roots
+}
+
+async function loadAllMenus(): Promise<MenuListItemDto[]> {
+  const all: MenuListItemDto[] = []
+  let pageIndex = 1
+  for (;;) {
+    const result = await menuApi.page(createPageRequest({ page: { pageIndex, pageSize: 100 } }))
+    all.push(...result.items)
+    const loaded = pageIndex * 100
+    if (result.items.length === 0 || loaded >= result.page.totalCount) {
+      break
+    }
+    pageIndex += 1
+  }
+  return all
+}
+
+async function openMenuDrawer(row: RoleListItemDto) {
+  menuRole.value = row
+  menuVisible.value = true
+  menuLoading.value = true
+  try {
+    const [flat, grants] = await Promise.all([
+      loadAllMenus(),
+      rolePermissionApi.list(row.basicId),
+    ])
+    menuTreeData.value = buildMenuTree(flat)
+    menuGrants.value = grants
+    deriveMenuChecked()
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '加载菜单失败')
+  }
+  finally {
+    menuLoading.value = false
+  }
+}
+
+async function onMenuCheck(keys: Array<string | number>) {
+  if (!menuRole.value || menuLoading.value) {
+    return
+  }
+  const nextKeys = keys.map(String)
+  const prevKeys = menuCheckedKeys.value.map(String)
+  const added = nextKeys.filter(key => !prevKeys.includes(key))
+  const removed = prevKeys.filter(key => !nextKeys.includes(key))
+  const changedKey = added[0] ?? removed[0]
+  if (changedKey == null) {
+    return
+  }
+  let permId: ApiId | undefined
+  for (const [menuId, pid] of menuPermIdById.value) {
+    if (String(menuId) === changedKey) {
+      permId = pid
+      break
+    }
+  }
+  if (permId == null) {
+    message.warning('该菜单未关联权限，无法授权')
+    return
+  }
+  menuLoading.value = true
+  try {
+    if (added.length > 0) {
+      await rolePermissionApi.grant({
+        roleId: menuRole.value.basicId,
+        permissionId: permId,
+        permissionAction: PermissionAction.Grant,
+      })
+      message.success('已授权')
+    }
+    else {
+      const grant = menuGrantByPermId.value.get(permId)
+      if (grant) {
+        await rolePermissionApi.revoke(grant.basicId)
+        message.success('已收回')
+      }
+    }
+    menuGrants.value = await rolePermissionApi.list(menuRole.value.basicId)
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '操作失败')
+  }
+  finally {
+    deriveMenuChecked()
+    menuLoading.value = false
+  }
+}
+
+// ── 数据范围抽屉（按部门授予角色数据范围） ──────────────────────
+const scopeVisible = ref(false)
+const scopeRole = ref<RoleListItemDto | null>(null)
+const scopeGrants = ref<RoleDataScopeListItemDto[]>([])
+const scopeDeptOptions = ref<TreeSelectOption[]>([])
+const scopeSelectedDept = ref<ApiId | null>(null)
+const scopeIncludeChildren = ref(true)
+const scopeLoading = ref(false)
+const scopeSubmitting = ref(false)
+
+function toDeptOptions(nodes: DepartmentTreeNodeDto[]): TreeSelectOption[] {
+  return nodes.map(node => ({
+    key: node.basicId,
+    label: node.departmentName,
+    children: node.children?.length ? toDeptOptions(node.children) : undefined,
+  }))
+}
+
+async function openScopeDrawer(row: RoleListItemDto) {
+  scopeRole.value = row
+  scopeVisible.value = true
+  scopeSelectedDept.value = null
+  scopeIncludeChildren.value = true
+  scopeLoading.value = true
+  try {
+    const [tree, grants] = await Promise.all([
+      departmentApi.tree({ limit: 1000 }),
+      roleDataScopeApi.list(row.basicId),
+    ])
+    scopeDeptOptions.value = toDeptOptions(tree)
+    scopeGrants.value = grants
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '加载数据范围失败')
+  }
+  finally {
+    scopeLoading.value = false
+  }
+}
+
+async function addScope() {
+  if (!scopeRole.value || scopeSelectedDept.value == null) {
+    message.warning('请先选择部门')
+    return
+  }
+  scopeSubmitting.value = true
+  try {
+    await roleDataScopeApi.grant({
+      roleId: scopeRole.value.basicId,
+      departmentId: scopeSelectedDept.value,
+      includeChildren: scopeIncludeChildren.value,
+    })
+    message.success('已添加数据范围')
+    scopeSelectedDept.value = null
+    scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '添加失败')
+  }
+  finally {
+    scopeSubmitting.value = false
+  }
+}
+
+async function removeScope(grant: RoleDataScopeListItemDto) {
+  if (!scopeRole.value) {
+    return
+  }
+  try {
+    await roleDataScopeApi.revoke(grant.basicId)
+    message.success('已移除')
+    scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '移除失败')
   }
 }
 
@@ -802,6 +1065,68 @@ async function handleToggleStatus(row: RoleListItemDto) {
         </NSpin>
       </NDrawerContent>
     </NDrawer>
+
+    <NDrawer v-model:show="menuVisible" :width="520">
+      <NDrawerContent closable :title="`菜单授权 · ${menuRole?.roleName ?? ''}`">
+        <NSpin :show="menuLoading">
+          <NEmpty v-if="menuTreeData.length === 0 && !menuLoading" class="perm-empty" description="暂无菜单" />
+          <NTree
+            v-else
+            block-line
+            checkable
+            :cascade="false"
+            :checked-keys="menuCheckedKeys"
+            children-field="children"
+            :data="menuTreeData"
+            :default-expand-all="true"
+            key-field="basicId"
+            label-field="menuName"
+            :selectable="false"
+            @update:checked-keys="onMenuCheck"
+          />
+        </NSpin>
+        <p class="perm-tip">勾选菜单即授予其关联权限；未关联权限的菜单不可授权。</p>
+      </NDrawerContent>
+    </NDrawer>
+
+    <NDrawer v-model:show="scopeVisible" :width="560">
+      <NDrawerContent closable :title="`数据范围 · ${scopeRole?.roleName ?? ''}`">
+        <div class="scope-add">
+          <NTreeSelect
+            v-model:value="scopeSelectedDept"
+            clearable
+            :options="scopeDeptOptions"
+            placeholder="选择部门"
+            style="flex: 1"
+          />
+          <NSwitch v-model:value="scopeIncludeChildren">
+            <template #checked>
+              含子部门
+            </template>
+            <template #unchecked>
+              仅本部门
+            </template>
+          </NSwitch>
+          <NButton :loading="scopeSubmitting" type="primary" @click="addScope">
+            添加
+          </NButton>
+        </div>
+        <NSpin :show="scopeLoading">
+          <NEmpty v-if="scopeGrants.length === 0 && !scopeLoading" class="perm-empty" description="未配置数据范围" />
+          <div v-else class="scope-list">
+            <div v-for="grant in scopeGrants" :key="String(grant.basicId)" class="scope-row">
+              <span class="scope-dept">{{ grant.departmentName || grant.departmentId }}</span>
+              <NTag :bordered="false" size="small" :type="grant.includeChildren ? 'info' : 'default'">
+                {{ grant.includeChildren ? '含子部门' : '仅本部门' }}
+              </NTag>
+              <NButton quaternary size="small" type="error" @click="removeScope(grant)">
+                移除
+              </NButton>
+            </div>
+          </div>
+        </NSpin>
+      </NDrawerContent>
+    </NDrawer>
   </SchemaPage>
 </template>
 
@@ -905,6 +1230,44 @@ async function handleToggleStatus(row: RoleListItemDto) {
 .perm-code {
   font-size: 11.5px;
   opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 菜单授权提示 */
+.perm-tip {
+  margin: 14px 0 0;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* 数据范围抽屉 */
+.scope-add {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.scope-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scope-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--n-border-color);
+  border-radius: 8px;
+}
+
+.scope-dept {
+  flex: 1;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
