@@ -1144,7 +1144,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             :checked-keys="menuCheckedKeys"
             children-field="children"
             :data="menuTreeData"
-            :default-expand-all="true"
+            :default-expand-all="false"
             key-field="basicId"
             label-field="menuName"
             :selectable="false"
