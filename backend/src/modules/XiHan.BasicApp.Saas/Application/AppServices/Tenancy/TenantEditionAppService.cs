@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class TenantEditionAppService
 {
     private readonly ITenantEditionDomainService _tenantEditionDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public TenantEditionAppService(ITenantEditionDomainService tenantEditionDomainService)
+    public TenantEditionAppService(ITenantEditionDomainService tenantEditionDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _tenantEditionDomainService = tenantEditionDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -53,6 +57,10 @@ public sealed class TenantEditionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantEditionDomainService.CreateTenantEditionAsync(TenantEditionApplicationMapper.ToCreateCommand(input), cancellationToken);
+
+        // 版本变更影响已启用版本列表缓存，统一失效
+        await _cacheInvalidator.InvalidateTenantEditionAsync(cancellationToken);
+
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
 
@@ -69,6 +77,10 @@ public sealed class TenantEditionAppService
         var result = await _tenantEditionDomainService.UpdateDefaultTenantEditionAsync(
             TenantEditionApplicationMapper.ToDefaultCommand(input),
             cancellationToken);
+
+        // 默认版本变更影响已启用版本列表排序，统一失效
+        await _cacheInvalidator.InvalidateTenantEditionAsync(cancellationToken);
+
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
 
@@ -83,6 +95,10 @@ public sealed class TenantEditionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantEditionDomainService.UpdateTenantEditionAsync(TenantEditionApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 版本变更影响已启用版本列表缓存，统一失效
+        await _cacheInvalidator.InvalidateTenantEditionAsync(cancellationToken);
+
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
 
@@ -99,6 +115,10 @@ public sealed class TenantEditionAppService
         var result = await _tenantEditionDomainService.UpdateTenantEditionStatusAsync(
             TenantEditionApplicationMapper.ToStatusCommand(input),
             cancellationToken);
+
+        // 版本启停直接影响已启用版本列表，统一失效
+        await _cacheInvalidator.InvalidateTenantEditionAsync(cancellationToken);
+
         return TenantEditionApplicationMapper.ToDetailDto(result.Edition);
     }
 

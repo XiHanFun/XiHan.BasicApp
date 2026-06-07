@@ -13,7 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
@@ -24,6 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
@@ -44,11 +47,19 @@ public sealed class TenantEditionQueryService
     private readonly ITenantEditionRepository _tenantEditionRepository;
 
     /// <summary>
+    /// 已启用租户版本列表缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasEnabledEditionsCacheItem, string> _enabledEditionsCache;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public TenantEditionQueryService(ITenantEditionRepository tenantEditionRepository)
+    public TenantEditionQueryService(
+        ITenantEditionRepository tenantEditionRepository,
+        IDistributedCache<SaasEnabledEditionsCacheItem, string> enabledEditionsCache)
     {
         _tenantEditionRepository = tenantEditionRepository;
+        _enabledEditionsCache = enabledEditionsCache;
     }
 
     /// <summary>
@@ -99,6 +110,37 @@ public sealed class TenantEditionQueryService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 分布式缓存：版本是平台级低频数据，全平台共享单键缓存（TTL 30min）。
+        // 失效由 TenantEditionAppService 的版本增删改启停触发 InvalidateTenantEditionAsync。
+        var item = await _enabledEditionsCache.GetOrAddAsync(
+            SaasCacheKeys.EnabledTenantEditions(),
+            async () => new SaasEnabledEditionsCacheItem
+            {
+                Items = [.. await QueryEnabledTenantEditionsAsync(cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await QueryEnabledTenantEditionsAsync(cancellationToken)
+            : item.Items;
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+        };
+    }
+
+    /// <summary>
+    /// 实时查询已启用租户版本列表（缓存未命中时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<TenantEditionListItemDto>> QueryEnabledTenantEditionsAsync(CancellationToken cancellationToken)
+    {
         var editions = await _tenantEditionRepository.GetListAsync(
             edition => edition.Status == EnableStatus.Enabled,
             edition => edition.Sort,
