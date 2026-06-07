@@ -436,10 +436,10 @@ public static class PageRegistry
             "/log",
             "Log",
             null,
-            null,
+            "setting",
             null,
             "lucide:file-search",
-            800,
+            765,
             "/log/access"),
         new(
             "log.access",
