@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -43,14 +44,21 @@ public sealed class OperationAppService
     private readonly IPermissionCatalogDomainService _permissionCatalogDomainService;
 
     /// <summary>
+    /// 缓存失效器
+    /// </summary>
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public OperationAppService(
         IPermissionCatalogDomainService permissionCatalogDomainService,
-        IOperationQueryService operationQueryService)
+        IOperationQueryService operationQueryService,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _permissionCatalogDomainService = permissionCatalogDomainService;
         _operationQueryService = operationQueryService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     #region Operation
@@ -67,6 +75,9 @@ public sealed class OperationAppService
 
         var result = await _permissionCatalogDomainService.CreateOperationAsync(OperationApplicationMapper.ToCreateCommand(input), cancellationToken);
 
+        // 操作定义变更影响可选操作选择项缓存
+        await _cacheInvalidator.InvalidateOperationDefinitionAsync(cancellationToken);
+
         return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");
     }
@@ -81,6 +92,9 @@ public sealed class OperationAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         await _permissionCatalogDomainService.DeleteOperationAsync(id, cancellationToken);
+
+        // 操作定义删除影响可选操作选择项缓存
+        await _cacheInvalidator.InvalidateOperationDefinitionAsync(cancellationToken);
     }
 
     /// <summary>
@@ -94,6 +108,9 @@ public sealed class OperationAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionCatalogDomainService.UpdateOperationAsync(OperationApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 操作定义变更影响可选操作选择项缓存
+        await _cacheInvalidator.InvalidateOperationDefinitionAsync(cancellationToken);
 
         return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");
@@ -110,6 +127,9 @@ public sealed class OperationAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionCatalogDomainService.UpdateOperationStatusAsync(OperationApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 操作定义启停影响可选操作选择项缓存
+        await _cacheInvalidator.InvalidateOperationDefinitionAsync(cancellationToken);
 
         return await _operationQueryService.GetOperationDetailAsync(result.OperationId, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");

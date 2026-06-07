@@ -13,7 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
@@ -24,6 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
@@ -44,11 +47,19 @@ public sealed class ResourceQueryService
     private readonly IResourceRepository _resourceRepository;
 
     /// <summary>
+    /// 可选资源选择项缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasResourceSelectCacheItem, string> _resourceSelectCache;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public ResourceQueryService(IResourceRepository resourceRepository)
+    public ResourceQueryService(
+        IResourceRepository resourceRepository,
+        IDistributedCache<SaasResourceSelectCacheItem, string> resourceSelectCache)
     {
         _resourceRepository = resourceRepository;
+        _resourceSelectCache = resourceSelectCache;
     }
 
     /// <summary>
@@ -101,6 +112,43 @@ public sealed class ResourceQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 带关键字的搜索命中率低，直接查库；仅缓存无关键字的（类型/上限）筛选组合。
+        // 失效由资源定义写路径触发——ResourceAppService 增删改启停调 InvalidateResourceDefinitionAsync。
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            return await QueryAvailableGlobalResourcesAsync(input, cancellationToken);
+        }
+
+        var cacheKey = SaasCacheKeys.ResourceSelect((int?)input.ResourceType, input.Limit);
+        var item = await _resourceSelectCache.GetOrAddAsync(
+            cacheKey,
+            async () => new SaasResourceSelectCacheItem
+            {
+                Items = [.. await QueryAvailableGlobalResourcesAsync(input, cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await QueryAvailableGlobalResourcesAsync(input, cancellationToken)
+            : item.Items;
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
+    /// <summary>
+    /// 实时查询可选全局资源列表（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<ResourceSelectItemDto>> QueryAvailableGlobalResourcesAsync(ResourceSelectQueryDto input, CancellationToken cancellationToken)
+    {
         var request = BuildResourceSelectRequest(input);
         var resources = await _resourceRepository.GetPagedAsync(request, cancellationToken);
 

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -43,14 +44,21 @@ public sealed class ResourceAppService
     private readonly IResourceQueryService _resourceQueryService;
 
     /// <summary>
+    /// 缓存失效器
+    /// </summary>
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ResourceAppService(
         IPermissionCatalogDomainService permissionCatalogDomainService,
-        IResourceQueryService resourceQueryService)
+        IResourceQueryService resourceQueryService,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _permissionCatalogDomainService = permissionCatalogDomainService;
         _resourceQueryService = resourceQueryService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     #region Resource
@@ -67,6 +75,9 @@ public sealed class ResourceAppService
 
         var result = await _permissionCatalogDomainService.CreateResourceAsync(ResourceApplicationMapper.ToCreateCommand(input), cancellationToken);
 
+        // 资源定义变更影响可选资源选择项缓存
+        await _cacheInvalidator.InvalidateResourceDefinitionAsync(cancellationToken);
+
         return await _resourceQueryService.GetResourceDetailAsync(result.ResourceId, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");
     }
@@ -81,6 +92,9 @@ public sealed class ResourceAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         await _permissionCatalogDomainService.DeleteResourceAsync(id, cancellationToken);
+
+        // 资源定义删除影响可选资源选择项缓存
+        await _cacheInvalidator.InvalidateResourceDefinitionAsync(cancellationToken);
     }
 
     /// <summary>
@@ -94,6 +108,9 @@ public sealed class ResourceAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionCatalogDomainService.UpdateResourceAsync(ResourceApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 资源定义变更影响可选资源选择项缓存
+        await _cacheInvalidator.InvalidateResourceDefinitionAsync(cancellationToken);
 
         return await _resourceQueryService.GetResourceDetailAsync(result.ResourceId, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");
@@ -110,6 +127,9 @@ public sealed class ResourceAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionCatalogDomainService.UpdateResourceStatusAsync(ResourceApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 资源定义启停影响可选资源选择项缓存
+        await _cacheInvalidator.InvalidateResourceDefinitionAsync(cancellationToken);
 
         return await _resourceQueryService.GetResourceDetailAsync(result.ResourceId, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");

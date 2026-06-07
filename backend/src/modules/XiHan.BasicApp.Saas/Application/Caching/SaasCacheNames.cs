@@ -48,4 +48,14 @@ public static class SaasCacheNames
     /// 已启用租户版本列表缓存。
     /// </summary>
     public const string TenantEditions = "basicapp:saas:tenancy:editions";
+
+    /// <summary>
+    /// 可选全局资源选择项缓存。
+    /// </summary>
+    public const string ResourceSelect = "basicapp:saas:resource:select";
+
+    /// <summary>
+    /// 可选全局操作选择项缓存。
+    /// </summary>
+    public const string OperationSelect = "basicapp:saas:operation:select";
 }
