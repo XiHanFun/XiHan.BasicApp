@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -43,14 +44,21 @@ public sealed class PermissionAppService
     private readonly IPermissionQueryService _permissionQueryService;
 
     /// <summary>
+    /// 缓存失效器
+    /// </summary>
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionAppService(
         IPermissionCatalogDomainService permissionCatalogDomainService,
-        IPermissionQueryService permissionQueryService)
+        IPermissionQueryService permissionQueryService,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _permissionCatalogDomainService = permissionCatalogDomainService;
         _permissionQueryService = permissionQueryService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -68,6 +76,10 @@ public sealed class PermissionAppService
 
         var result = await _permissionCatalogDomainService.CreatePermissionAsync(PermissionApplicationMapper.ToCreateCommand(input), cancellationToken);
 
+        // 权限新增影响授权快照与菜单可见性，统一全失效
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
+
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
     }
@@ -84,6 +96,10 @@ public sealed class PermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         await _permissionCatalogDomainService.DeletePermissionAsync(id, cancellationToken);
+
+        // 权限删除影响授权快照与菜单可见性，统一全失效
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
     }
 
     /// <summary>
@@ -100,6 +116,10 @@ public sealed class PermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionCatalogDomainService.UpdatePermissionAsync(PermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 权限更新影响授权快照与菜单可见性，统一全失效
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
@@ -119,6 +139,10 @@ public sealed class PermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _permissionCatalogDomainService.UpdatePermissionStatusAsync(PermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 权限启停影响授权快照与菜单可见性，统一全失效
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");

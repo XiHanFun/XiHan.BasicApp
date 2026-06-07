@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class UserPermissionAppService
 {
     private readonly IUserDomainService _userDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public UserPermissionAppService(IUserDomainService userDomainService)
+    public UserPermissionAppService(IUserDomainService userDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _userDomainService = userDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     #region 用户直授权限
@@ -55,6 +59,7 @@ public sealed class UserPermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _userDomainService.CreateUserPermissionAsync(UserPermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
@@ -67,6 +72,7 @@ public sealed class UserPermissionAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _userDomainService.DeleteUserPermissionAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -80,6 +86,7 @@ public sealed class UserPermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _userDomainService.UpdateUserPermissionAsync(UserPermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
@@ -94,6 +101,7 @@ public sealed class UserPermissionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _userDomainService.UpdateUserPermissionStatusAsync(UserPermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
     }
 
