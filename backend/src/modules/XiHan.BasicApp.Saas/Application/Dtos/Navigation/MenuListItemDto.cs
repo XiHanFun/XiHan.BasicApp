@@ -109,6 +109,21 @@ public sealed class MenuListItemDto : BasicAppDto
     public bool IsAffix { get; set; }
 
     /// <summary>
+    /// 标签内容（如 "New"、"3"）
+    /// </summary>
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 标签类型（default/info/success/warning/error）
+    /// </summary>
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否仅显示标签圆点
+    /// </summary>
+    public bool BadgeDot { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public EnableStatus Status { get; set; }

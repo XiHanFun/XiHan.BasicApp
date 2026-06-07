@@ -20,6 +20,9 @@ export interface MenuPageQueryDto extends PageRequest {
 }
 
 export interface MenuListItemDto extends BasicDto {
+  badge?: string | null
+  badgeDot: boolean
+  badgeType?: string | null
   component?: string | null
   createdTime: DateTimeString
   icon?: string | null
@@ -43,9 +46,6 @@ export interface MenuListItemDto extends BasicDto {
 }
 
 export interface MenuDetailDto extends MenuListItemDto {
-  badge?: string | null
-  badgeDot: boolean
-  badgeType?: string | null
   createdBy?: string | null
   createdId?: ApiId | null
   externalUrl?: string | null
@@ -113,9 +113,11 @@ export interface MenuStatusUpdateDto extends BasicUpdateDto {
 }
 
 export interface MenuTreeQueryDto {
+  includeButtons?: boolean | null
   keyword?: string | null
   limit: number
   onlyEnabled: boolean
+  onlyVisible?: boolean | null
 }
 
 export interface MenuTreeNodeDto extends BasicDto {

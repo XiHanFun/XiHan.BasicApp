@@ -49,6 +49,21 @@ public sealed record PageDescriptor(
     bool IsAffix = false);
 
 /// <summary>
+/// 按钮描述符（页面内操作按钮，菜单种子据此生成 MenuType.Button 节点）
+/// </summary>
+/// <param name="Code">按钮唯一码（建议 {页面码}.{动作}）</param>
+/// <param name="Title">按钮标题</param>
+/// <param name="ParentCode">所属页面码（对应 PageDescriptor.Code）</param>
+/// <param name="PermissionCode">关联权限码</param>
+/// <param name="Sort">同页面内排序值</param>
+public sealed record ButtonDescriptor(
+    string Code,
+    string Title,
+    string ParentCode,
+    string PermissionCode,
+    int Sort);
+
+/// <summary>
 /// 页面登记表 — 系统页面的单一事实源，菜单种子数据从此处生成
 /// </summary>
 public static class PageRegistry
@@ -142,5 +157,115 @@ public static class PageRegistry
 
         // [9] 关于系统
         new("about","关于系统",MenuType.Menu,"/about","About","/about/index",null,SaasPermissionCodes.Version.Read,"lucide:info",770),
+    ];
+
+    /// <summary>
+    /// 所有已登记按钮（ParentCode 必须对应 <see cref="All"/> 中的页面码，种子据此生成按钮节点）
+    /// </summary>
+    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } =
+    [
+        // [2.1] 用户管理
+        new("identity.user.create","新增","identity.user",SaasPermissionCodes.User.Create,1),
+        new("identity.user.update","编辑","identity.user",SaasPermissionCodes.User.Update,2),
+        new("identity.user.delete","删除","identity.user",SaasPermissionCodes.User.Delete,3),
+        new("identity.user.status","启停","identity.user",SaasPermissionCodes.User.Status,4),
+        new("identity.user.reset-password","重置密码","identity.user",SaasPermissionCodes.UserSecurity.ResetPassword,5),
+
+        // [2.2] 角色管理
+        new("identity.role.create","新增","identity.role",SaasPermissionCodes.Role.Create,1),
+        new("identity.role.update","编辑","identity.role",SaasPermissionCodes.Role.Update,2),
+        new("identity.role.delete","删除","identity.role",SaasPermissionCodes.Role.Delete,3),
+        new("identity.role.status","启停","identity.role",SaasPermissionCodes.Role.Status,4),
+        new("identity.role.grant-permission","分配权限","identity.role",SaasPermissionCodes.RolePermission.Grant,5),
+
+        // [2.3] 组织机构
+        new("identity.org.create","新增","identity.org",SaasPermissionCodes.Department.Create,1),
+        new("identity.org.update","编辑","identity.org",SaasPermissionCodes.Department.Update,2),
+        new("identity.org.delete","删除","identity.org",SaasPermissionCodes.Department.Delete,3),
+        new("identity.org.status","启停","identity.org",SaasPermissionCodes.Department.Status,4),
+
+        // [2.4] 权限管理
+        new("identity.permission.create","新增","identity.permission",SaasPermissionCodes.Permission.Create,1),
+        new("identity.permission.update","编辑","identity.permission",SaasPermissionCodes.Permission.Update,2),
+        new("identity.permission.delete","删除","identity.permission",SaasPermissionCodes.Permission.Delete,3),
+        new("identity.permission.status","启停","identity.permission",SaasPermissionCodes.Permission.Status,4),
+
+        // [2.5] 授权申请
+        new("identity.authorization.create","发起申请","identity.authorization",SaasPermissionCodes.PermissionRequest.Create,1),
+        new("identity.authorization.audit","审批","identity.authorization",SaasPermissionCodes.PermissionRequest.Status,2),
+        new("identity.authorization.withdraw","撤回","identity.authorization",SaasPermissionCodes.PermissionRequest.Withdraw,3),
+
+        // [3.1] 租户列表
+        new("tenant.list.create","新增","tenant.list",SaasPermissionCodes.Tenant.Create,1),
+        new("tenant.list.update","编辑","tenant.list",SaasPermissionCodes.Tenant.Update,2),
+        new("tenant.list.status","启停","tenant.list",SaasPermissionCodes.Tenant.Status,3),
+
+        // [3.2] 版本套餐
+        new("tenant.edition.create","新增","tenant.edition",SaasPermissionCodes.TenantEdition.Create,1),
+        new("tenant.edition.update","编辑","tenant.edition",SaasPermissionCodes.TenantEdition.Update,2),
+        new("tenant.edition.status","启停","tenant.edition",SaasPermissionCodes.TenantEdition.Status,3),
+        new("tenant.edition.default","设为默认","tenant.edition",SaasPermissionCodes.TenantEdition.Default,4),
+
+        // [4.1] 通知管理
+        new("message.notification.create","新增","message.notification",SaasPermissionCodes.Message.Create,1),
+        new("message.notification.update","编辑","message.notification",SaasPermissionCodes.Message.Update,2),
+        new("message.notification.publish","发布","message.notification",SaasPermissionCodes.Message.Publish,3),
+        new("message.notification.delete","删除","message.notification",SaasPermissionCodes.Message.Delete,4),
+
+        // [4.2] 邮件短信
+        new("message.record.delete","删除","message.record",SaasPermissionCodes.Message.Delete,1),
+
+        // [5.1] 审批中心
+        new("approval.review.audit","审核","approval.review",SaasPermissionCodes.Review.Audit,1),
+        new("approval.review.withdraw","撤回","approval.review",SaasPermissionCodes.Review.Withdraw,2),
+        new("approval.review.delete","删除","approval.review",SaasPermissionCodes.Review.Delete,3),
+
+        // [5.2] 约束规则
+        new("approval.constraint.create","新增","approval.constraint",SaasPermissionCodes.ConstraintRule.Create,1),
+        new("approval.constraint.update","编辑","approval.constraint",SaasPermissionCodes.ConstraintRule.Update,2),
+        new("approval.constraint.delete","删除","approval.constraint",SaasPermissionCodes.ConstraintRule.Delete,3),
+        new("approval.constraint.status","启停","approval.constraint",SaasPermissionCodes.ConstraintRule.Status,4),
+
+        // [6.1] 文件管理
+        new("file.library.create","上传","file.library",SaasPermissionCodes.File.Create,1),
+        new("file.library.update","编辑","file.library",SaasPermissionCodes.File.Update,2),
+        new("file.library.delete","删除","file.library",SaasPermissionCodes.File.Delete,3),
+
+        // [6.2] 存储配置
+        new("file.storage.create","新增","file.storage",SaasPermissionCodes.Config.Create,1),
+        new("file.storage.update","编辑","file.storage",SaasPermissionCodes.Config.Update,2),
+        new("file.storage.delete","删除","file.storage",SaasPermissionCodes.Config.Delete,3),
+
+        // [7.1] 应用管理
+        new("openapi.app.create","新增","openapi.app",SaasPermissionCodes.OAuthApp.Create,1),
+        new("openapi.app.update","编辑","openapi.app",SaasPermissionCodes.OAuthApp.Update,2),
+        new("openapi.app.delete","删除","openapi.app",SaasPermissionCodes.OAuthApp.Delete,3),
+        new("openapi.app.status","启停","openapi.app",SaasPermissionCodes.OAuthApp.Status,4),
+        new("openapi.app.secret","重置密钥","openapi.app",SaasPermissionCodes.OAuthApp.Secret,5),
+
+        // [8.1] 菜单管理
+        new("setting.menu.create","新增","setting.menu",SaasPermissionCodes.Menu.Create,1),
+        new("setting.menu.update","编辑","setting.menu",SaasPermissionCodes.Menu.Update,2),
+        new("setting.menu.delete","删除","setting.menu",SaasPermissionCodes.Menu.Delete,3),
+        new("setting.menu.status","启停","setting.menu",SaasPermissionCodes.Menu.Status,4),
+
+        // [8.2] 字典管理
+        new("setting.dict.create","新增","setting.dict",SaasPermissionCodes.Dict.Create,1),
+        new("setting.dict.update","编辑","setting.dict",SaasPermissionCodes.Dict.Update,2),
+        new("setting.dict.delete","删除","setting.dict",SaasPermissionCodes.Dict.Delete,3),
+        new("setting.dict.status","启停","setting.dict",SaasPermissionCodes.Dict.Status,4),
+
+        // [8.3] 参数配置
+        new("setting.config.create","新增","setting.config",SaasPermissionCodes.Config.Create,1),
+        new("setting.config.update","编辑","setting.config",SaasPermissionCodes.Config.Update,2),
+        new("setting.config.delete","删除","setting.config",SaasPermissionCodes.Config.Delete,3),
+        new("setting.config.status","启停","setting.config",SaasPermissionCodes.Config.Status,4),
+
+        // [8.4] 任务调度
+        new("setting.job.create","新增","setting.job",SaasPermissionCodes.Task.Create,1),
+        new("setting.job.update","编辑","setting.job",SaasPermissionCodes.Task.Update,2),
+        new("setting.job.delete","删除","setting.job",SaasPermissionCodes.Task.Delete,3),
+        new("setting.job.status","启停","setting.job",SaasPermissionCodes.Task.Status,4),
+        new("setting.job.run","执行","setting.job",SaasPermissionCodes.Task.RunStatus,5),
     ];
 }
