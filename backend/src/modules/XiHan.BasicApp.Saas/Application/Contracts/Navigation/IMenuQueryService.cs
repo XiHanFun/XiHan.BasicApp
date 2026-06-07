@@ -32,6 +32,14 @@ public interface IMenuQueryService : IApplicationService
     Task<PageResultDtoBase<MenuListItemDto>> GetMenuPageAsync(MenuPageQueryDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取菜单列表（不分页，返回全部匹配项）
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>菜单列表</returns>
+    Task<IReadOnlyList<MenuListItemDto>> GetMenuListAsync(MenuListQueryDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取菜单详情
     /// </summary>
     /// <param name="id">菜单主键</param>

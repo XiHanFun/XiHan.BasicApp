@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from 'naive-ui'
 import type {
   ApiId,
@@ -15,6 +14,7 @@ import type {
   RoleUpdateDto,
   ValidityStatus,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NCheckbox,
@@ -370,7 +370,8 @@ interface MenuNode {
   basicId: ApiId
   menuName: string
   permissionId?: ApiId | null
-  children: MenuNode[]
+  // 叶子节点省略 children（undefined），NTree 据此判定为末节点、不显示展开箭头
+  children?: MenuNode[]
 }
 
 const menuVisible = ref(false)
@@ -390,7 +391,7 @@ const menuPermIdById = computed(() => {
       if (node.permissionId != null) {
         map.set(node.basicId, node.permissionId)
       }
-      walk(node.children)
+      walk(node.children ?? [])
     }
   }
   walk(menuTreeData.value)
@@ -413,7 +414,7 @@ function deriveMenuChecked() {
         allGranted = false
       }
     }
-    for (const child of node.children) {
+    for (const child of node.children ?? []) {
       const result = visit(child)
       if (result.hasGrantable) {
         hasGrantable = true
@@ -439,7 +440,7 @@ function collectSubtreeMenuIds(menuKey: string): ApiId[] {
   const ids: ApiId[] = []
   function collect(node: MenuNode) {
     ids.push(node.basicId)
-    for (const child of node.children) {
+    for (const child of node.children ?? []) {
       collect(child)
     }
   }
@@ -449,7 +450,7 @@ function collectSubtreeMenuIds(menuKey: string): ApiId[] {
         collect(node)
         return true
       }
-      if (locate(node.children)) {
+      if (locate(node.children ?? [])) {
         return true
       }
     }
@@ -475,28 +476,29 @@ function buildMenuTree(flat: MenuListItemDto[]): MenuNode[] {
     const node = byId.get(item.basicId)!
     const parent = item.parentId != null ? byId.get(item.parentId) : undefined
     if (parent) {
-      parent.children.push(node)
+      (parent.children ??= []).push(node)
     }
     else {
       roots.push(node)
     }
   }
+  // 末节点的 children 置为 undefined（而非空数组），使 NTree 视其为叶子、不显示展开箭头
+  const prune = (nodes: MenuNode[]) => {
+    for (const node of nodes) {
+      if (node.children && node.children.length > 0) {
+        prune(node.children)
+      }
+      else {
+        node.children = undefined
+      }
+    }
+  }
+  prune(roots)
   return roots
 }
 
 async function loadAllMenus(): Promise<MenuListItemDto[]> {
-  const all: MenuListItemDto[] = []
-  let pageIndex = 1
-  for (;;) {
-    const result = await menuApi.page(createPageRequest({ page: { pageIndex, pageSize: 100 } }))
-    all.push(...result.items)
-    const loaded = pageIndex * 100
-    if (result.items.length === 0 || loaded >= result.page.totalCount) {
-      break
-    }
-    pageIndex += 1
-  }
-  return all
+  return [...await menuApi.list()]
 }
 
 async function openMenuDrawer(row: RoleListItemDto) {

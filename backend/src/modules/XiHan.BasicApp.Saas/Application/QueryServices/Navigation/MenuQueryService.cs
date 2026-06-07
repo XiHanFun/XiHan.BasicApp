@@ -93,6 +93,29 @@ public sealed class MenuQueryService
     }
 
     /// <summary>
+    /// 获取菜单列表（不分页，返回全部匹配项）
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>菜单列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Menu.Read)]
+    public async Task<IReadOnlyList<MenuListItemDto>> GetMenuListAsync(MenuListQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = BuildMenuListRequest(input);
+        var menus = await _menuRepository.GetListAsync(request, cancellationToken);
+        if (menus.Count == 0)
+        {
+            return [];
+        }
+
+        var permissionMap = await BuildPermissionMapAsync(menus.Select(menu => menu.PermissionId), cancellationToken);
+        return [.. menus.Select(menu => MenuApplicationMapper.ToListItemDto(menu, TryGetMapValue(permissionMap, menu.PermissionId)))];
+    }
+
+    /// <summary>
     /// 获取菜单详情
     /// </summary>
     /// <param name="id">菜单主键</param>
@@ -162,6 +185,32 @@ public sealed class MenuQueryService
         {
             Page = input.Page,
             Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+
+        ApplyCommonMenuFilters(
+            request,
+            input.Keyword,
+            input.ParentId,
+            input.PermissionId,
+            input.MenuType,
+            input.IsExternal,
+            input.IsVisible,
+            input.IsGlobal,
+            input.Status);
+        ApplyMenuSorts(request);
+        return request;
+    }
+
+    /// <summary>
+    /// 构建菜单列表请求（不分页）
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <returns>菜单列表请求</returns>
+    private static BasicAppPRDto BuildMenuListRequest(MenuListQueryDto input)
+    {
+        var request = new BasicAppPRDto
+        {
             Conditions = new QueryConditions()
         };
 
