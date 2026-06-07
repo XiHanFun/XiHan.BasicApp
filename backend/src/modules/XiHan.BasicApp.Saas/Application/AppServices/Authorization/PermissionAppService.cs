@@ -79,6 +79,7 @@ public sealed class PermissionAppService
         // 权限新增影响授权快照与菜单可见性，统一全失效
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
+        await _cacheInvalidator.InvalidatePermissionDefinitionAsync(cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
@@ -100,6 +101,7 @@ public sealed class PermissionAppService
         // 权限删除影响授权快照与菜单可见性，统一全失效
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
+        await _cacheInvalidator.InvalidatePermissionDefinitionAsync(cancellationToken);
     }
 
     /// <summary>
@@ -120,6 +122,7 @@ public sealed class PermissionAppService
         // 权限更新影响授权快照与菜单可见性，统一全失效
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
+        await _cacheInvalidator.InvalidatePermissionDefinitionAsync(cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
@@ -143,6 +146,7 @@ public sealed class PermissionAppService
         // 权限启停影响授权快照与菜单可见性，统一全失效
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
+        await _cacheInvalidator.InvalidatePermissionDefinitionAsync(cancellationToken);
 
         return await _permissionQueryService.GetPermissionDetailAsync(result.PermissionId, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");

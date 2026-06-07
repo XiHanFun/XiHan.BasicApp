@@ -13,7 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
@@ -24,6 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
@@ -54,16 +57,23 @@ public sealed class PermissionQueryService
     private readonly IOperationRepository _operationRepository;
 
     /// <summary>
+    /// 可选权限选择项缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasPermissionSelectCacheItem, string> _permissionSelectCache;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionQueryService(
         IPermissionRepository permissionRepository,
         IResourceRepository resourceRepository,
-        IOperationRepository operationRepository)
+        IOperationRepository operationRepository,
+        IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache)
     {
         _permissionRepository = permissionRepository;
         _resourceRepository = resourceRepository;
         _operationRepository = operationRepository;
+        _permissionSelectCache = permissionSelectCache;
     }
 
     /// <summary>
@@ -147,6 +157,43 @@ public sealed class PermissionQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 带关键字的搜索命中率低，直接查库；仅缓存无关键字的（模块/类型/上限）筛选组合。
+        // 失效由权限定义写路径触发——PermissionAppService 增删改启停调 InvalidatePermissionDefinitionAsync。
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            return await QueryAvailableGlobalPermissionsAsync(input, cancellationToken);
+        }
+
+        var cacheKey = SaasCacheKeys.PermissionSelect(input.ModuleCode, (int?)input.PermissionType, input.Limit);
+        var item = await _permissionSelectCache.GetOrAddAsync(
+            cacheKey,
+            async () => new SaasPermissionSelectCacheItem
+            {
+                Items = [.. await QueryAvailableGlobalPermissionsAsync(input, cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await QueryAvailableGlobalPermissionsAsync(input, cancellationToken)
+            : item.Items;
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
+    /// <summary>
+    /// 实时查询可选全局权限列表（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<PermissionSelectItemDto>> QueryAvailableGlobalPermissionsAsync(PermissionSelectQueryDto input, CancellationToken cancellationToken)
+    {
         var request = BuildPermissionSelectRequest(input);
         var permissions = await _permissionRepository.GetPagedAsync(request, cancellationToken);
 

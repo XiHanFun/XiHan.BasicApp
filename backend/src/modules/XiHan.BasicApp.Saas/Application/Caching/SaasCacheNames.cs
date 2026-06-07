@@ -33,4 +33,14 @@ public static class SaasCacheNames
     /// 菜单路由缓存。
     /// </summary>
     public const string MenuRoutes = "basicapp:saas:navigation:routes";
+
+    /// <summary>
+    /// 可选全局权限选择项缓存。
+    /// </summary>
+    public const string PermissionSelect = "basicapp:saas:permission:select";
+
+    /// <summary>
+    /// 已启用角色选择项缓存。
+    /// </summary>
+    public const string RoleSelect = "basicapp:saas:role:select";
 }
