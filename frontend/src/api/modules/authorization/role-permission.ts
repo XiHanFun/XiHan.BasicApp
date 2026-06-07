@@ -1,6 +1,7 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
+  RolePermissionBatchUpdateDto,
   RolePermissionDetailDto,
   RolePermissionGrantDto,
   RolePermissionListItemDto,
@@ -20,6 +21,9 @@ export const rolePermissionApi = {
   },
   grant(input: RolePermissionGrantDto) {
     return rolePermissionCommandApi.post<RolePermissionDetailDto, RolePermissionGrantDto>('RolePermission', input)
+  },
+  batchUpdate(input: RolePermissionBatchUpdateDto) {
+    return rolePermissionCommandApi.post<void, RolePermissionBatchUpdateDto>('BatchUpdateRolePermissions', input)
   },
   list(roleId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}

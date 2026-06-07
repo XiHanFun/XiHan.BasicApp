@@ -44,6 +44,13 @@ export interface RolePermissionGrantDto {
   roleId: ApiId
 }
 
+/** 批量变更角色权限（一次性提交授予与撤销） */
+export interface RolePermissionBatchUpdateDto {
+  grantPermissionIds: ApiId[]
+  revokeRolePermissionIds: ApiId[]
+  roleId: ApiId
+}
+
 export interface RolePermissionUpdateDto extends BasicUpdateDto {
   effectiveTime?: DateTimeString | null
   expirationTime?: DateTimeString | null
