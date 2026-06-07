@@ -103,6 +103,15 @@ public static class SaasCacheKeys
         return $"role-select:{Hash(source)}";
     }
 
+    /// <summary>
+    /// 已启用租户版本列表缓存键（平台级，全平台共享单键）。
+    /// </summary>
+    /// <returns>业务缓存键。</returns>
+    public static string EnabledTenantEditions()
+    {
+        return "editions:enabled";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

@@ -43,4 +43,9 @@ public interface ISaasCacheInvalidator
     /// 失效角色定义（已启用角色选择项）缓存。
     /// </summary>
     Task InvalidateRoleDefinitionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效已启用租户版本列表缓存。
+    /// </summary>
+    Task InvalidateTenantEditionAsync(CancellationToken cancellationToken = default);
 }

@@ -32,6 +32,8 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasRoleSelectCacheItem, string> _roleSelectCache;
 
+    private readonly IDistributedCache<SaasEnabledEditionsCacheItem, string> _tenantEditionCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -40,13 +42,15 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> authorizationSnapshotCache,
         IDistributedCache<SaasMenuRoutesCacheItem, string> menuRoutesCache,
         IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
-        IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache)
+        IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache,
+        IDistributedCache<SaasEnabledEditionsCacheItem, string> tenantEditionCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
         _menuRoutesCache = menuRoutesCache;
         _permissionSelectCache = permissionSelectCache;
         _roleSelectCache = roleSelectCache;
+        _tenantEditionCache = tenantEditionCache;
     }
     /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
@@ -81,5 +85,11 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateRoleDefinitionAsync(CancellationToken cancellationToken = default)
     {
         return _roleSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateTenantEditionAsync(CancellationToken cancellationToken = default)
+    {
+        return _tenantEditionCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

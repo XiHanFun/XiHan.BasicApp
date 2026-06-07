@@ -43,4 +43,9 @@ public static class SaasCacheNames
     /// 已启用角色选择项缓存。
     /// </summary>
     public const string RoleSelect = "basicapp:saas:role:select";
+
+    /// <summary>
+    /// 已启用租户版本列表缓存。
+    /// </summary>
+    public const string TenantEditions = "basicapp:saas:tenancy:editions";
 }
