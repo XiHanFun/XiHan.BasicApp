@@ -12,7 +12,6 @@ import type {
   RoleManagementDetailDto,
   RolePermissionListItemDto,
   RoleUpdateDto,
-  ValidityStatus,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
@@ -54,6 +53,7 @@ import {
   roleManagementApi,
   rolePermissionApi,
   RoleType,
+  ValidityStatus,
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import {
@@ -400,7 +400,12 @@ const menuPermIdById = computed(() => {
 
 /** 已授权权限对应的菜单节点设为勾选；目录在其所有可授权后代均已授权时一并勾选 */
 function deriveMenuChecked() {
-  const granted = new Set(menuGrants.value.map(grant => grant.permissionId))
+  // 仅「有效」的授权才算已勾选（撤销为软删除 Status=Invalid，需排除，否则撤销后仍显示勾选）
+  const granted = new Set(
+    menuGrants.value
+      .filter(grant => grant.status === ValidityStatus.Valid)
+      .map(grant => grant.permissionId),
+  )
   const checked: ApiId[] = []
   function visit(node: MenuNode): { hasGrantable: boolean, allGranted: boolean } {
     let hasGrantable = false
@@ -565,9 +570,11 @@ async function saveMenuGrants() {
       targetPermIds.add(permId)
     }
   }
-  const grantedPermIds = new Set(menuGrants.value.map(grant => grant.permissionId))
+  // 仅基于「有效」授权计算差异：已生效的才算已授权，撤销也只撤有效项
+  const validGrants = menuGrants.value.filter(grant => grant.status === ValidityStatus.Valid)
+  const grantedPermIds = new Set(validGrants.map(grant => grant.permissionId))
   const toGrant = [...targetPermIds].filter(permId => !grantedPermIds.has(permId))
-  const toRevoke = menuGrants.value.filter(grant => !targetPermIds.has(grant.permissionId))
+  const toRevoke = validGrants.filter(grant => !targetPermIds.has(grant.permissionId))
   if (toGrant.length === 0 && toRevoke.length === 0) {
     message.info('授权无变化')
     menuDirty.value = false
@@ -575,14 +582,12 @@ async function saveMenuGrants() {
   }
   menuLoading.value = true
   try {
-    await Promise.all([
-      ...toGrant.map(permId => rolePermissionApi.grant({
-        roleId: role.basicId,
-        permissionId: permId,
-        permissionAction: PermissionAction.Grant,
-      })),
-      ...toRevoke.map(grant => rolePermissionApi.revoke(grant.basicId)),
-    ])
+    // 一次性提交本次授权改动（单请求、后端单事务）
+    await rolePermissionApi.batchUpdate({
+      roleId: role.basicId,
+      grantPermissionIds: toGrant,
+      revokeRolePermissionIds: toRevoke.map(grant => grant.basicId),
+    })
     menuGrants.value = await rolePermissionApi.list(role.basicId)
     deriveMenuChecked()
     menuDirty.value = false

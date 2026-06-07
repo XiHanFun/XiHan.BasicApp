@@ -64,6 +64,13 @@ public interface IRoleAppService : IApplicationService
     Task<RolePermissionDetailDto> CreateRolePermissionAsync(RolePermissionGrantDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量变更角色权限（一次性提交授予与撤销，单事务）
+    /// </summary>
+    /// <param name="input">批量变更参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新角色权限
     /// </summary>
     /// <param name="input">更新参数</param>

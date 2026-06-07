@@ -62,6 +62,14 @@ public sealed record RolePermissionGrantCommand(
     string? Remark);
 
 /// <summary>
+/// 角色权限批量变更命令（一次性提交授予与撤销）
+/// </summary>
+public sealed record RolePermissionBatchUpdateCommand(
+    long RoleId,
+    IReadOnlyList<long> GrantPermissionIds,
+    IReadOnlyList<long> RevokeRolePermissionIds);
+
+/// <summary>
 /// 角色权限更新命令
 /// </summary>
 public sealed record RolePermissionUpdateCommand(

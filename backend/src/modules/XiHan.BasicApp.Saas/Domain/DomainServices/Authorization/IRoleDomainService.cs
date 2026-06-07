@@ -45,6 +45,11 @@ public interface IRoleDomainService
     Task<RolePermissionCommandResult> CreateRolePermissionAsync(RolePermissionGrantCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量变更角色权限（批量撤销 + 批量授予，底层走 UpdateRange/AddRange 单次提交）
+    /// </summary>
+    Task BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新角色权限
     /// </summary>
     Task<RolePermissionCommandResult> UpdateRolePermissionAsync(RolePermissionUpdateCommand command, CancellationToken cancellationToken = default);

@@ -108,6 +108,23 @@ public sealed class RoleAppService
     }
 
     /// <summary>
+    /// 批量变更角色权限（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Grant)]
+    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Revoke)]
+    public async Task BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _roleDomainService.BatchUpdateRolePermissionsAsync(
+            new RolePermissionBatchUpdateCommand(input.RoleId, input.GrantPermissionIds, input.RevokeRolePermissionIds),
+            cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
     /// 删除角色
     /// </summary>
     [UnitOfWork(true)]
