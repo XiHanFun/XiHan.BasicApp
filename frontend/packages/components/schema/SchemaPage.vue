@@ -80,8 +80,57 @@ const columnFields = computed<ListFieldSchema[]>(() =>
   resolvedFields.value.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
 
-/** 列设置（显隐/顺序/固定/密度，按 pageCode 持久化） */
-const settings = useTableSettings(props.schema.pageCode, columnFields)
+/** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */
+const autoSelectable = (props.schema.actions ?? []).some(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission)))
+  || (!!props.schema.batchRemovable && !!props.schema.resource.remove)
+
+/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化） */
+const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: autoSelectable })
+
+/**
+ * 表格重挂载令牌：拖拽列宽会写入 Naive 内部缓存（覆盖 column.width），
+ * 当通过「列宽输入框 / 恢复默认」改宽度时需重建表格清掉该缓存，新值才生效。
+ */
+const tableRemountKey = ref(0)
+/** 本会话被拖拽过的列（其宽度由 Naive 内部缓存接管，需重挂载才能被输入框覆盖） */
+const draggedColumnKeys = new Set<string>()
+
+function remountTable() {
+  tableRemountKey.value += 1
+  draggedColumnKeys.clear()
+}
+
+/** 拖拽列宽 → 即时写入列设置（待「保存」落库）；记录该列已被拖拽 */
+function onColumnResize(key: string, width: number) {
+  draggedColumnKeys.add(key)
+  settings.setWidth(key, width)
+}
+
+/** 输入框改列宽 → 写入列设置；若该列曾被拖拽，重建表格以让新值覆盖 Naive 缓存 */
+function onColumnWidthInput(key: string, width: number | undefined) {
+  settings.setWidth(key, width)
+  if (draggedColumnKeys.has(key)) {
+    remountTable()
+  }
+}
+
+/** 恢复默认：重置设置并重建表格，清掉 Naive 的列宽拖拽缓存 */
+function onResetTableSettings() {
+  settings.resetDefault()
+  remountTable()
+}
+
+/** 表格设置：调整即时生效，点击「保存」才落库（本地 + 后端） */
+function onSaveTableSettings() {
+  settings.save()
+  message.success('表格设置已保存')
+}
+
+/** 搜索设置：调整即时生效，点击「保存」才落库（本地 + 后端） */
+function onSaveSearchSettings() {
+  searchSettings.save()
+  message.success('搜索设置已保存')
+}
 
 /** 局部全屏 */
 const isFullscreen = ref(false)
@@ -147,6 +196,7 @@ const columns = computed<DataTableColumn<Row>[]>(() => {
     visibleKeys: settings.visibleKeys.value,
     columnOrder: settings.columnOrder.value,
     fixedMap: settings.fixedMap.value,
+    widthMap: settings.widthMap.value,
   })
   if (rowActions.value.length === 0) {
     return base
@@ -346,6 +396,7 @@ defineExpose({
             @reset="searchSettings.resetDefault"
             @toggle-pin="searchSettings.togglePin"
             @toggle-visible="searchSettings.toggleVisible"
+            @save="onSaveSearchSettings"
           />
         </template>
       </SchemaSearchPanel>
@@ -381,11 +432,19 @@ defineExpose({
           <SchemaTableSettings
             :columns="settings.columns.value"
             :density="settings.density.value"
+            :table-style="settings.style.value"
+            :selectable="settings.selectable.value"
+            :show-index="settings.showIndex.value"
             @move="settings.move"
-            @reset="settings.resetDefault"
+            @reset="onResetTableSettings"
             @set-density="settings.setDensity"
             @set-fixed="settings.setFixed"
+            @set-width="onColumnWidthInput"
+            @set-style="settings.setStyle"
+            @set-selectable="settings.setSelectable"
+            @set-show-index="settings.setShowIndex"
             @toggle-visible="settings.toggleVisible"
+            @save="onSaveTableSettings"
           />
           <NTooltip>
             <template #trigger>
@@ -441,19 +500,25 @@ defineExpose({
           :columns="columns"
           :data="rows"
           :density="settings.density.value"
+          :striped="settings.style.value.striped"
+          :bordered="settings.style.value.bordered"
+          :single-line="settings.style.value.singleLine"
+          :show-index="settings.showIndex.value"
           :loading="loading"
           :page="page"
           :page-size="pageSize"
           :row-key="schema.rowKey ?? 'basicId'"
           :scroll-x="schema.scrollX"
-          :selectable="batchActions.length > 0 || canBatchRemove"
+          :selectable="settings.selectable.value"
           :total="total"
           :tree="!!schema.tree"
           :children-key="schema.tree?.childrenKey ?? 'children'"
           :default-expand-all="schema.tree?.defaultExpandAll ?? true"
+          :remount-key="tableRemountKey"
           @sort="changeSort"
           @update:page="changePage"
           @update:page-size="changePageSize"
+          @resize-column="onColumnResize"
         />
       </template>
     </NCard>

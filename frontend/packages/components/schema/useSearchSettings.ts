@@ -104,7 +104,8 @@ export function useSearchSettings(
     }
   })
 
-  function persist() {
+  /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
+  function save() {
     const data: PersistedSearchSettings = {
       fields: settings.value.map(s => ({ key: s.key, pinned: s.pinned, visible: s.visible })),
     }
@@ -160,8 +161,6 @@ export function useSearchSettings(
 
   // 字段池变化（权限变更等）时重建并尝试恢复
   watch(fields, () => restore(), { immediate: false })
-  // 设置变化即持久化
-  watch(settings, () => persist(), { deep: true })
 
   restore()
 
@@ -174,5 +173,6 @@ export function useSearchSettings(
     move,
     resetDefault,
     restore,
+    save,
   }
 }

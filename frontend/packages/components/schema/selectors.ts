@@ -53,6 +53,7 @@ export function toExportFields<TRow extends object>(
  * @param options.visibleKeys 覆盖的可见列；未提供则用 schema 默认
  * @param options.columnOrder 覆盖的列顺序
  * @param options.fixedMap 覆盖的列固定方向（key → left/right/undefined）
+ * @param options.widthMap 覆盖的列宽（key → px；undefined 表示沿用 schema 宽度）
  */
 export function toColumns<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -61,6 +62,7 @@ export function toColumns<TRow extends object>(
     visibleKeys?: string[]
     columnOrder?: string[]
     fixedMap?: Record<string, 'left' | 'right' | undefined>
+    widthMap?: Record<string, number | undefined>
   },
 ): DataTableColumn<TRow>[] {
   let fields = schema.fields.filter(f => f.visible !== false && isFieldPermitted(f, can))
@@ -92,7 +94,12 @@ export function toColumns<TRow extends object>(
     if (field.treeColumn) {
       column.tree = true
     }
-    if (field.width !== undefined) {
+    // 列宽：列设置覆盖优先，否则用字段默认 width
+    const overriddenWidth = options?.widthMap?.[field.key]
+    if (overriddenWidth !== undefined) {
+      column.width = overriddenWidth
+    }
+    else if (field.width !== undefined) {
       column.width = field.width
     }
     if (field.minWidth !== undefined) {
@@ -105,13 +112,18 @@ export function toColumns<TRow extends object>(
     if (overriddenFixed !== undefined) {
       column.fixed = overriddenFixed
       // Naive UI 固定列必须有确定 width；仅声明 minWidth/无宽度的列回退一个宽度，否则固定会错位失效
-      if (field.width === undefined) {
+      if (column.width === undefined) {
         column.width = field.minWidth ?? 120
       }
     }
     if (field.sortable) {
       // 服务端排序：仅声明可排序，排序事件由表格上抛
       column.sorter = false
+    }
+    // 列宽可拖拽调整（拖动表头右边框）；缺省 minWidth 给一个下限，避免拖到过窄
+    column.resizable = true
+    if (column.minWidth === undefined) {
+      column.minWidth = 80
     }
     return column as unknown as DataTableColumn<TRow>
   })

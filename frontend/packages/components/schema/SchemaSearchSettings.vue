@@ -13,10 +13,11 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'togglePin': [key: string, value: boolean]
-  'toggleVisible': [key: string, value: boolean]
-  'move': [fromIndex: number, toIndex: number]
-  'reset': []
+  togglePin: [key: string, value: boolean]
+  toggleVisible: [key: string, value: boolean]
+  move: [fromIndex: number, toIndex: number]
+  reset: []
+  save: []
 }>()
 
 // ── 拖拽排序（sortablejs，仅手柄可拖） ──────────────────────────
@@ -79,9 +80,14 @@ onBeforeUnmount(() => {
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <span class="text-base font-semibold text-foreground">搜索设置</span>
-        <NButton size="small" type="primary" secondary @click="emit('reset')">
-          恢复默认
-        </NButton>
+        <div class="flex gap-2">
+          <NButton size="small" secondary @click="emit('reset')">
+            恢复默认
+          </NButton>
+          <NButton size="small" type="primary" @click="emit('save')">
+            保存
+          </NButton>
+        </div>
       </div>
 
       <NDivider class="!my-1" />

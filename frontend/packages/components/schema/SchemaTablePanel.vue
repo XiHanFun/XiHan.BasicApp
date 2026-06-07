@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="TRow extends object">
-import type { DataTableColumn, DataTableSortState } from 'naive-ui'
+import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'naive-ui'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
 import { toSortParams } from './selectors'
@@ -27,16 +27,26 @@ const props = withDefaults(defineProps<{
   pageSizes?: number[]
   /** 是否启用多选 */
   selectable?: boolean
+  /** 是否显示序号列 */
+  showIndex?: boolean
   /** 已选行主键 */
   checkedKeys?: Array<string | number>
   /** 密度（映射 NDataTable size） */
   density?: 'small' | 'medium' | 'large'
+  /** 斑马纹（条纹） */
+  striped?: boolean
+  /** 边框 */
+  bordered?: boolean
+  /** 单线（关闭时显示纵向分隔线） */
+  singleLine?: boolean
   /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
   tree?: boolean
   /** 子节点字段名（默认 children） */
   childrenKey?: string
   /** 默认展开全部（默认 true） */
   defaultExpandAll?: boolean
+  /** 重挂载令牌：变化即重建表格（用于清空 Naive 内部列宽拖拽缓存，如「恢复默认」） */
+  remountKey?: number
 }>(), {
   loading: false,
   rowKey: 'basicId',
@@ -46,11 +56,16 @@ const props = withDefaults(defineProps<{
   scrollX: undefined,
   pageSizes: () => [10, 20, 50, 100],
   selectable: false,
+  showIndex: false,
   checkedKeys: () => [],
   density: 'small',
+  striped: true,
+  bordered: true,
+  singleLine: true,
   tree: false,
   childrenKey: 'children',
   defaultExpandAll: true,
+  remountKey: 0,
 })
 
 const emit = defineEmits<{
@@ -58,6 +73,7 @@ const emit = defineEmits<{
   'update:pageSize': [value: number]
   'update:checkedKeys': [keys: Array<string | number>]
   'sort': [field: string | undefined, order: 'asc' | 'desc' | undefined]
+  'resizeColumn': [key: string, width: number]
 }>()
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
@@ -66,12 +82,57 @@ function rowKeyGetter(row: TRow) {
   return (row as Record<string, unknown>)[props.rowKey] as string | number
 }
 
-/** 选择列：仅 selectable 时插入到列首 */
+/**
+ * 树形序号映射：按层级生成大纲式编号（key → 如 "1" / "1.1" / "1.2.3"）。
+ * Naive 在树形模式下 render 的 rowIndex 是「根级祖先下标」而非展开后的位置，
+ * 故需自行按层级路径编号。
+ */
+const treeIndexMap = computed(() => {
+  const map = new Map<string | number, string>()
+  if (!props.tree) {
+    return map
+  }
+  const walk = (nodes: TRow[], prefix: string) => {
+    nodes.forEach((node, i) => {
+      const label = prefix ? `${prefix}.${i + 1}` : `${i + 1}`
+      map.set(rowKeyGetter(node), label)
+      const children = (node as Record<string, unknown>)[props.childrenKey] as TRow[] | undefined
+      if (children?.length) {
+        walk(children, label)
+      }
+    })
+  }
+  walk(props.data, '')
+  return map
+})
+
+/** 序号：列表模式按全局位置（含翻页），树形模式按层级大纲编号（1 / 1.1 / 1.2） */
+function indexLabel(row: TRow, rowIndex: number): string | number {
+  if (props.tree) {
+    return treeIndexMap.value.get(rowKeyGetter(row)) ?? rowIndex + 1
+  }
+  return (props.page - 1) * props.pageSize + rowIndex + 1
+}
+
+/** 列首前缀：多选列、序号列（按需依次插入到数据列之前） */
 const resolvedColumns = computed<DataTableColumn<TRow>[]>(() => {
-  if (!props.selectable) {
+  const prefix: DataTableColumn<TRow>[] = []
+  if (props.selectable) {
+    prefix.push({ type: 'selection' } as unknown as DataTableColumn<TRow>)
+  }
+  if (props.showIndex) {
+    prefix.push({
+      key: '__index__',
+      title: '序号',
+      width: props.tree ? 90 : 60,
+      align: props.tree ? 'left' : 'center',
+      render: (row: TRow, rowIndex: number) => indexLabel(row, rowIndex),
+    } as unknown as DataTableColumn<TRow>)
+  }
+  if (prefix.length === 0) {
     return props.columns
   }
-  return [{ type: 'selection' } as unknown as DataTableColumn<TRow>, ...props.columns]
+  return [...prefix, ...props.columns]
 })
 
 function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
@@ -79,12 +140,18 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
   const { sortField, sortOrder } = toSortParams(single)
   emit('sort', sortField, sortOrder)
 }
+
+/** 列宽拖拽：Naive 在拖动中持续回调，取 clamp 后的宽度回写列设置（即时生效、待「保存」落库） */
+function onColumnResize(_resizedWidth: number, limitedWidth: number, column: DataTableBaseColumn) {
+  emit('resizeColumn', String(column.key), Math.round(limitedWidth))
+}
 </script>
 
 <template>
   <!-- 定高 flex 列：表格占满中段并在内部滚动，分页栏固定底部，整体不撑破父容器 -->
   <div class="xh-table-panel">
     <NDataTable
+      :key="remountKey"
       class="xh-table-panel__grid"
       flex-height
       :checked-row-keys="checkedKeys"
@@ -97,7 +164,10 @@ function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
       :size="density"
       :children-key="childrenKey"
       :default-expand-all="tree && defaultExpandAll"
-      striped
+      :striped="striped"
+      :bordered="bordered"
+      :single-line="singleLine"
+      :on-unstable-column-resize="onColumnResize"
       @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
       @update:sorter="onSort"
     />
