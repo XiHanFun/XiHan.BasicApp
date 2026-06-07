@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class ConfigAppService
 {
     private readonly IConfigDomainService _configDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ConfigAppService(IConfigDomainService configDomainService)
+    public ConfigAppService(IConfigDomainService configDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _configDomainService = configDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
     /// <summary>
     /// 创建系统配置
@@ -52,6 +56,10 @@ public sealed class ConfigAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _configDomainService.CreateConfigAsync(ConfigApplicationMapper.ToCreateCommand(input), cancellationToken);
+
+        // 配置变更影响运行时配置值缓存，统一全失效（修复此前 InvalidateConfiguration 无调用点的失效空转）
+        await _cacheInvalidator.InvalidateConfigurationAsync(cancellationToken: cancellationToken);
+
         return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 
@@ -64,6 +72,9 @@ public sealed class ConfigAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _configDomainService.DeleteConfigAsync(id, cancellationToken);
+
+        // 配置删除影响运行时配置值缓存，统一全失效
+        await _cacheInvalidator.InvalidateConfigurationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -77,6 +88,10 @@ public sealed class ConfigAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _configDomainService.UpdateConfigAsync(ConfigApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 配置变更影响运行时配置值缓存，统一全失效
+        await _cacheInvalidator.InvalidateConfigurationAsync(cancellationToken: cancellationToken);
+
         return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 
@@ -91,6 +106,10 @@ public sealed class ConfigAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _configDomainService.UpdateConfigStatusAsync(ConfigApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 配置启停影响运行时配置值缓存，统一全失效
+        await _cacheInvalidator.InvalidateConfigurationAsync(cancellationToken: cancellationToken);
+
         return ConfigApplicationMapper.ToDetailDto(result.Config);
     }
 }
