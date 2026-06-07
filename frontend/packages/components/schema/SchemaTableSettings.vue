@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import type { DragEndEvent } from '@dnd-kit/vue'
 import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
+import { DragDropProvider } from '@dnd-kit/vue'
 import { NButton, NCheckbox, NDivider, NIcon, NInputNumber, NPopover, NTooltip } from 'naive-ui'
-import Sortable from 'sortablejs'
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
+import { resolveSortMove } from '../common/sortable'
+import SortableItem from '../common/SortableItem.vue'
 
 defineOptions({ name: 'SchemaTableSettings' })
 
-defineProps<{
+const props = defineProps<{
   /** 列设置（来自 useTableSettings.columns） */
   columns: ColumnSetting[]
   /** 当前密度 */
@@ -67,51 +69,17 @@ function fixedLabel(fixed?: 'left' | 'right'): string {
   return '－'
 }
 
-// ── 拖拽排序（sortablejs，仅手柄可拖） ──────────────────────────
-const listRef = ref<HTMLElement | null>(null)
-const popoverShow = ref(false)
-let sortable: Sortable | null = null
-
-function initSortable() {
-  if (!listRef.value || sortable) {
-    return
+// ── 拖拽排序（@dnd-kit/vue，仅手柄可拖） ──────────────────────────
+function onDragEnd(event: DragEndEvent) {
+  const move = resolveSortMove(event, props.columns.map(c => c.key))
+  if (move) {
+    emit('move', move.from, move.to)
   }
-  sortable = Sortable.create(listRef.value, {
-    handle: '.xh-set-drag-handle',
-    animation: 150,
-    ghostClass: 'xh-set-drag-ghost',
-    onEnd(evt) {
-      const { oldIndex, newIndex } = evt
-      if (oldIndex == null || newIndex == null || oldIndex === newIndex) {
-        return
-      }
-      // 撤销 Sortable 对真实 DOM 的移动，交回 Vue 以数据驱动重渲染（避免 DOM 与 vdom 不一致）
-      const parent = evt.from
-      const movedNode = evt.item
-      movedNode.remove()
-      const reference = parent.children[oldIndex] ?? null
-      parent.insertBefore(movedNode, reference)
-      emit('move', oldIndex, newIndex)
-    },
-  })
 }
-
-// 首次展开 Popover 时初始化拖拽（内容延迟挂载，需等 DOM 就绪）
-watch(popoverShow, async (visible) => {
-  if (visible) {
-    await nextTick()
-    initSortable()
-  }
-})
-
-onBeforeUnmount(() => {
-  sortable?.destroy()
-  sortable = null
-})
 </script>
 
 <template>
-  <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="340" display-directive="show">
+  <NPopover trigger="click" placement="bottom-end" :width="340" display-directive="show">
     <template #trigger>
       <NTooltip>
         <template #trigger>
@@ -203,49 +171,54 @@ onBeforeUnmount(() => {
         <span class="xh-set-head__col">固定</span>
       </div>
 
-      <div ref="listRef" class="flex flex-col max-h-72 overflow-auto">
-        <div
-          v-for="col in columns"
-          :key="col.key"
-          class="xh-set-row flex gap-2 items-center"
-        >
-          <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
-            <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
-          </span>
-          <NCheckbox
-            :checked="col.visible"
-            class="flex-1 min-w-0"
-            @update:checked="(value) => emit('toggleVisible', col.key, value)"
+      <DragDropProvider @drag-end="onDragEnd">
+        <div class="flex flex-col max-h-72 overflow-auto">
+          <SortableItem
+            v-for="(col, index) in columns"
+            :id="col.key"
+            :key="col.key"
+            :index="index"
+            handle=".xh-set-drag-handle"
+            class="xh-set-row flex gap-2 items-center"
           >
-            {{ col.title }}
-          </NCheckbox>
-          <span class="xh-set-row__width">
-            <NInputNumber
-              :value="col.width ?? null"
-              size="tiny"
-              :show-button="false"
-              :update-value-on-input="false"
-              :min="60"
-              :max="800"
-              placeholder="自动"
-              @update:value="(value: number | null) => emit('setWidth', col.key, value ?? undefined)"
-            />
-          </span>
-          <span class="xh-set-row__fixed">
-            <NButton
-              size="tiny"
-              quaternary
-              :title="`固定：${fixedLabel(col.fixed)}`"
-              @click="emit('setFixed', col.key, nextFixed(col.fixed))"
+            <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
+              <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
+            </span>
+            <NCheckbox
+              :checked="col.visible"
+              class="flex-1 min-w-0"
+              @update:checked="(value) => emit('toggleVisible', col.key, value)"
             >
-              <template #icon>
-                <NIcon><Icon icon="lucide:pin" /></NIcon>
-              </template>
-              {{ fixedLabel(col.fixed) }}
-            </NButton>
-          </span>
+              {{ col.title }}
+            </NCheckbox>
+            <span class="xh-set-row__width">
+              <NInputNumber
+                :value="col.width ?? null"
+                size="tiny"
+                :show-button="false"
+                :update-value-on-input="false"
+                :min="60"
+                :max="800"
+                placeholder="自动"
+                @update:value="(value: number | null) => emit('setWidth', col.key, value ?? undefined)"
+              />
+            </span>
+            <span class="xh-set-row__fixed">
+              <NButton
+                size="tiny"
+                quaternary
+                :title="`固定：${fixedLabel(col.fixed)}`"
+                @click="emit('setFixed', col.key, nextFixed(col.fixed))"
+              >
+                <template #icon>
+                  <NIcon><Icon icon="lucide:pin" /></NIcon>
+                </template>
+                {{ fixedLabel(col.fixed) }}
+              </NButton>
+            </span>
+          </SortableItem>
         </div>
-      </div>
+      </DragDropProvider>
 
       <NDivider class="!my-1" />
       <span class="text-xs text-foreground/40">勾选=显示该列；列宽可在此输入或拖动表头右边框调整（留空为自动）；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序</span>
@@ -312,7 +285,8 @@ onBeforeUnmount(() => {
   cursor: grabbing;
 }
 
-.xh-set-drag-ghost {
+/* 拖拽中的行（dnd-kit 通过 SortableItem 写入 data-dragging） */
+.xh-set-row[data-dragging] {
   opacity: 0.5;
   background: rgb(var(--primary) / 0.08);
 }

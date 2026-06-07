@@ -51,6 +51,8 @@
     "rebuild:dev": "pnpm run clean && pnpm run build:dev"
   },
   "dependencies": {
+    "@dnd-kit/geometry": "^0.4.0",
+    "@dnd-kit/vue": "^0.4.0",
     "@iconify/vue": "^4.3.0",
     "@microsoft/signalr": "^10.0.0",
     "@tiptap/extension-color": "^3.22.5",
@@ -72,7 +74,6 @@
     "naive-ui": "^2.44.1",
     "pinia": "^2.3.1",
     "pinia-plugin-persistedstate": "^3.2.3",
-    "sortablejs": "^1.15.7",
     "vue": "^3.5.33",
     "vue-i18n": "^11.4.0",
     "vue-router": "^4.6.4",
@@ -88,7 +89,6 @@
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/tabler": "^1.2.33",
     "@types/node": "^25.6.0",
-    "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitejs/plugin-vue-jsx": "^4.2.0",
     "autoprefixer": "^10.5.0",

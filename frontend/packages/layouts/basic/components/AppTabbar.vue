@@ -1,12 +1,14 @@
 <script lang="ts" setup>
+import type { DragEndEvent } from '@dnd-kit/vue'
 import type { DropdownOption } from 'naive-ui'
 import type { TabItem } from '~/types'
+import { DragDropProvider } from '@dnd-kit/vue'
 import { useDebounceFn } from '@vueuse/core'
 import { NButton, NDropdown, NIcon } from 'naive-ui'
-import Sortable from 'sortablejs'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { resolveSortMove } from '~/components/common/sortable'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
@@ -48,7 +50,6 @@ const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
 const tabsContainerRef = ref<HTMLElement | null>(null)
 const scrollViewportRef = ref<HTMLElement | null>(null)
-const sortableInstance = ref<null | Sortable>(null)
 
 // ---- 溢出滚动按钮 ----
 const showScrollBtn = ref(false)
@@ -236,90 +237,22 @@ function onTabLeaveCancelled(el: Element) {
   clearTabTransition(el as HTMLElement)
 }
 
-function destroySortable() {
-  sortableInstance.value?.destroy()
-  sortableInstance.value = null
-}
-
-function findTabElement(element: HTMLElement | null) {
-  if (!element) {
-    return null
-  }
-  if (element.classList.contains('group') || element.classList.contains('flat-tab')) {
-    return element
-  }
-  return (element.closest('.group') || element.closest('.flat-tab')) as HTMLElement | null
-}
-
-async function initSortable() {
-  destroySortable()
-  await nextTick()
-
-  const el = tabsContainerRef.value
-  if (!el) {
+// 拖拽结束：按路径提交新顺序。固定标签（pinned）在 TabbarTabItem 中已被禁用拖拽，
+// 此处再以数据校验「固定 / 非固定不互换」，保证最终顺序不破坏约束。
+function onTabDragEnd(event: DragEndEvent) {
+  const tabs = localizedTabs.value
+  const move = resolveSortMove(event, tabs.map(tab => tab.path))
+  if (!move) {
     return
   }
-
-  function resetElState() {
-    el!.style.cursor = ''
-    el!.querySelector('.draggable')?.classList.remove('dragging')
+  if (Boolean(tabs[move.from]?.pinned) !== Boolean(tabs[move.to]?.pinned)) {
+    return
   }
-
-  const isChromeStyle = appStore.tabbarStyle === 'chrome'
-
-  sortableInstance.value = Sortable.create(el, {
-    animation: 380,
-    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    ghostClass: isChromeStyle ? 'chrome-tab--ghost' : 'flat-tab--ghost',
-    chosenClass: isChromeStyle ? 'chrome-tab--chosen' : 'flat-tab--chosen',
-    dragClass: isChromeStyle ? 'chrome-tab--dragging' : 'flat-tab--dragging',
-    draggable: isChromeStyle ? '.chrome-tab.draggable' : '.flat-tab.draggable',
-    onMove: (evt) => {
-      if (!tabbarPreferences.tabbarDraggable.value) {
-        return false
-      }
-      const dragged = findTabElement(evt.dragged as HTMLElement)
-      const related = findTabElement(evt.related as HTMLElement)
-      if (!dragged || !related) {
-        return false
-      }
-      // 固定标签和非固定标签不允许跨区交换
-      const draggedPinned = dragged.classList.contains('affix-tab')
-      const relatedPinned = related.classList.contains('affix-tab')
-      return draggedPinned === relatedPinned
-    },
-    onStart: (evt) => {
-      el.style.cursor = 'grabbing'
-      ;(evt.item as HTMLElement).classList.add('dragging')
-    },
-    onEnd: (evt) => {
-      const { newIndex, oldIndex, item } = evt
-      resetElState()
-
-      if (!tabbarPreferences.tabbarDraggable.value) {
-        return
-      }
-
-      const srcParent = findTabElement(item as HTMLElement)
-      if (!srcParent || !srcParent.classList.contains('draggable')) {
-        return
-      }
-
-      if (
-        oldIndex !== undefined
-        && newIndex !== undefined
-        && !Number.isNaN(oldIndex)
-        && !Number.isNaN(newIndex)
-        && oldIndex !== newIndex
-      ) {
-        const from = localizedTabs.value[oldIndex]
-        const to = localizedTabs.value[newIndex]
-        if (from && to && from.path !== to.path) {
-          tabbarStore.moveTab(from.path, to.path)
-        }
-      }
-    },
-  })
+  const from = tabs[move.from]
+  const to = tabs[move.to]
+  if (from && to && from.path !== to.path) {
+    tabbarStore.moveTab(from.path, to.path)
+  }
 }
 
 function handleMoreTabSelect(path: string) {
@@ -409,7 +342,6 @@ function initScrollObservers() {
 }
 
 onMounted(async () => {
-  initSortable()
   await nextTick()
   initScrollObservers()
   scrollViewportRef.value?.addEventListener('scroll', debouncedEdge, { passive: true })
@@ -417,20 +349,14 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  destroySortable()
   resizeObserver?.disconnect()
   mutationObserver?.disconnect()
   scrollViewportRef.value?.removeEventListener('scroll', debouncedEdge)
   scrollViewportRef.value?.removeEventListener('wheel', handleTabsWheel)
 })
 
-watch(() => tabbarPreferences.tabbarDraggable.value, () => {
-  initSortable()
-})
-
 watch(() => appStore.tabbarStyle, () => {
   nextTick(() => {
-    initSortable()
     initScrollObservers()
   })
 })
@@ -480,35 +406,37 @@ watch(() => route.fullPath, () => {
             ? 'flex h-full min-w-max items-end'
             : 'flex h-full min-w-max items-stretch'"
         >
-          <TransitionGroup
-            name="tabs-slide"
-            :css="false"
-            @before-enter="onTabBeforeEnter"
-            @enter="onTabEnter"
-            @before-leave="onTabBeforeLeave"
-            @leave="onTabLeave"
-            @enter-cancelled="onTabEnterCancelled"
-            @leave-cancelled="onTabLeaveCancelled"
-          >
-            <TabbarTabItem
-              v-for="(item, index) in localizedTabs"
-              :key="item.key"
-              :item="item"
-              :index="index"
-              :active="route.fullPath === item.path"
-              :is-last="index === localizedTabs.length - 1"
-              :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
-              :show-icon="appStore.tabbarShowIcon"
-              :middle-close-enabled="appStore.tabbarMiddleClickClose"
-              :style-type="appStore.tabbarStyle"
-              data-tab-item="true"
-              @jump="handleJump"
-              @contextmenu="openContextMenu"
-              @close="handleClose"
-              @toggle-pin="tabbarStore.togglePin"
-              @middle-close="handleMiddleClose"
-            />
-          </TransitionGroup>
+          <DragDropProvider @drag-end="onTabDragEnd">
+            <TransitionGroup
+              name="tabs-slide"
+              :css="false"
+              @before-enter="onTabBeforeEnter"
+              @enter="onTabEnter"
+              @before-leave="onTabBeforeLeave"
+              @leave="onTabLeave"
+              @enter-cancelled="onTabEnterCancelled"
+              @leave-cancelled="onTabLeaveCancelled"
+            >
+              <TabbarTabItem
+                v-for="(item, index) in localizedTabs"
+                :key="item.key"
+                :item="item"
+                :index="index"
+                :active="route.fullPath === item.path"
+                :is-last="index === localizedTabs.length - 1"
+                :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
+                :show-icon="appStore.tabbarShowIcon"
+                :middle-close-enabled="appStore.tabbarMiddleClickClose"
+                :style-type="appStore.tabbarStyle"
+                data-tab-item="true"
+                @jump="handleJump"
+                @contextmenu="openContextMenu"
+                @close="handleClose"
+                @toggle-pin="tabbarStore.togglePin"
+                @middle-close="handleMiddleClose"
+              />
+            </TransitionGroup>
+          </DragDropProvider>
         </div>
       </div>
     </div>
@@ -610,20 +538,5 @@ watch(() => route.fullPath, () => {
 
 .tabbar-viewport::-webkit-scrollbar {
   display: none;
-}
-
-:deep(.chrome-tab--chosen),
-:deep(.flat-tab--chosen) {
-  cursor: grabbing;
-}
-
-:deep(.chrome-tab--ghost),
-:deep(.flat-tab--ghost) {
-  opacity: 0.4;
-}
-
-:deep(.chrome-tab--dragging),
-:deep(.flat-tab--dragging) {
-  transform: scale(0.98);
 }
 </style>
