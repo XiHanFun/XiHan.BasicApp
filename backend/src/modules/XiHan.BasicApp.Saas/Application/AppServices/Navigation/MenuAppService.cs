@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class MenuAppService
 {
     private readonly IMenuDomainService _menuDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public MenuAppService(IMenuDomainService menuDomainService)
+    public MenuAppService(IMenuDomainService menuDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _menuDomainService = menuDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -56,6 +60,7 @@ public sealed class MenuAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _menuDomainService.CreateAsync(MenuApplicationMapper.ToCreateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
     }
 
@@ -70,6 +75,7 @@ public sealed class MenuAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _menuDomainService.DeleteAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
     }
 
     /// <summary>
@@ -86,6 +92,7 @@ public sealed class MenuAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _menuDomainService.UpdateAsync(MenuApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
     }
 
@@ -103,6 +110,7 @@ public sealed class MenuAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _menuDomainService.UpdateStatusAsync(MenuApplicationMapper.ToStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
         return MenuApplicationMapper.ToDetailDto(result.Menu, result.Permission);
     }
 }

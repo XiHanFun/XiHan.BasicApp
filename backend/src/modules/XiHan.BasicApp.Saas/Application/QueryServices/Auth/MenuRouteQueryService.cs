@@ -12,10 +12,13 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Caching.Distributed;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -29,15 +32,19 @@ public sealed class MenuRouteQueryService
 
     private readonly IPermissionRepository _permissionRepository;
 
+    private readonly IDistributedCache<SaasMenuRoutesCacheItem, string> _menuRoutesCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public MenuRouteQueryService(
         IMenuRepository menuRepository,
-        IPermissionRepository permissionRepository)
+        IPermissionRepository permissionRepository,
+        IDistributedCache<SaasMenuRoutesCacheItem, string> menuRoutesCache)
     {
         _menuRepository = menuRepository;
         _permissionRepository = permissionRepository;
+        _menuRoutesCache = menuRoutesCache;
     }
 
     /// <inheritdoc />
@@ -47,6 +54,38 @@ public sealed class MenuRouteQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var hasAllPermissions = snapshot.Permissions.Contains("*", StringComparer.OrdinalIgnoreCase);
+        // 分布式缓存：按权限集缓存菜单路由（同权限集的用户共享）。失效由领域事件触发——
+        // 菜单/授权/角色层级变更时对应 EventHandler 调 InvalidateNavigationAsync（considerUow，事务提交后失效）。
+        var cacheKey = SaasCacheKeys.MenuRoutes(snapshot.PermissionIds, hasAllPermissions);
+        var item = await _menuRoutesCache.GetOrAddAsync(
+            cacheKey,
+            async () => new SaasMenuRoutesCacheItem
+            {
+                Routes = await BuildRoutesAsync(snapshot, hasAllPermissions, cancellationToken),
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await BuildRoutesAsync(snapshot, hasAllPermissions, cancellationToken)
+            : item.Routes;
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+        };
+    }
+
+    /// <summary>
+    /// 构建菜单路由树（缓存未命中时执行，含空目录剪枝）。
+    /// </summary>
+    private async Task<List<MenuRouteDto>> BuildRoutesAsync(AuthorizationSnapshot snapshot, bool hasAllPermissions, CancellationToken cancellationToken)
+    {
         var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
         var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
         var menus = await _menuRepository.GetListAsync(
