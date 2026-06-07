@@ -42,6 +42,8 @@ export const menuApi = {
       OnlyEnabled: input.onlyEnabled,
     }
     appendDynamicApiParam(params, 'Keyword', input.keyword)
+    appendDynamicApiParam(params, 'IncludeButtons', input.includeButtons)
+    appendDynamicApiParam(params, 'OnlyVisible', input.onlyVisible)
     return menuQueryApi.get<MenuTreeNodeDto[]>('MenuTree', params)
   },
   update(input: MenuUpdateDto) {

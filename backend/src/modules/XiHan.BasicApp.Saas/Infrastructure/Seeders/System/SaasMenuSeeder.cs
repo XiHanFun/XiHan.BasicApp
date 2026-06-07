@@ -215,9 +215,12 @@ public sealed class SaasMenuSeeder(
     /// <summary>
     /// 从 PageRegistry 映射出菜单种子定义列表（单一事实源）
     /// </summary>
+    /// <remarks>
+    /// 页面（目录/菜单）排在前，按钮排在后：种子按顺序解析 ParentId，按钮的父页面必先于其入库。
+    /// </remarks>
     private static IReadOnlyList<MenuSeedDefinition> BuildDefinitions()
     {
-        return PageRegistry.All
+        var pages = PageRegistry.All
             .Select(page => new MenuSeedDefinition(
                 page.Code,
                 page.Title,
@@ -232,20 +235,35 @@ public sealed class SaasMenuSeeder(
                 page.Sort,
                 page.Redirect,
                 page.IsCache,
-                page.IsAffix))
-            .ToList();
+                page.IsAffix));
+
+        var buttons = PageRegistry.Buttons
+            .Select(button => new MenuSeedDefinition(
+                button.Code,
+                button.Title,
+                MenuType.Button,
+                Path: null,
+                RouteName: null,
+                Component: null,
+                button.ParentCode,
+                button.PermissionCode,
+                Icon: null,
+                button.Title,
+                button.Sort));
+
+        return pages.Concat(buttons).ToList();
     }
 
     private sealed record MenuSeedDefinition(
         string MenuCode,
         string MenuName,
         MenuType MenuType,
-        string Path,
-        string RouteName,
+        string? Path,
+        string? RouteName,
         string? Component,
         string? ParentCode,
         string? PermissionCode,
-        string Icon,
+        string? Icon,
         string Title,
         int Sort,
         string? Redirect = null,

@@ -31,7 +31,7 @@ import {
   menuManagementApi,
   MenuType,
 } from '@/api'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, IconPicker, SchemaPage } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
@@ -56,6 +56,34 @@ const menuTypeOptions = [
   { label: '菜单', value: MenuType.Menu },
   { label: '按钮', value: MenuType.Button },
 ]
+
+const badgeTypeOptions = [
+  { label: '默认', value: 'default' },
+  { label: '主要', value: 'primary' },
+  { label: '信息', value: 'info' },
+  { label: '成功', value: 'success' },
+  { label: '警告', value: 'warning' },
+  { label: '错误', value: 'error' },
+]
+
+type BadgeTagType = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
+
+const badgeDotColorMap: Record<string, string> = {
+  default: '#909399',
+  primary: '#2080f0',
+  info: '#2080f0',
+  success: '#18a058',
+  warning: '#f0a020',
+  error: '#d03050',
+}
+
+function badgeTagType(value?: string | null): BadgeTagType {
+  return (value && badgeTypeOptions.some(o => o.value === value) ? value : 'default') as BadgeTagType
+}
+
+function badgeDotColor(value?: string | null) {
+  return (value && badgeDotColorMap[value]) || badgeDotColorMap.default
+}
 
 // 上级菜单树（NTreeSelect 选项来源，独立 ref，增删改后与表格一起 reload）
 const treeNodes = ref<MenuTreeNodeDto[]>([])
@@ -137,7 +165,7 @@ const treeSelectOptions = computed(() => buildTreeSelectOptions(treeNodes.value)
 
 async function loadTree() {
   try {
-    treeNodes.value = await menuManagementApi.tree({ keyword: null, limit: 3000, onlyEnabled: false })
+    treeNodes.value = await menuManagementApi.tree({ includeButtons: false, keyword: null, limit: 3000, onlyEnabled: false })
   }
   catch {
     treeNodes.value = []
@@ -197,6 +225,15 @@ const schema: PageSchema = {
       searchPlaceholder: '搜索菜单名称/编码/路径',
       minWidth: 200,
       order: 0,
+      render: (row) => {
+        const item = row as unknown as MenuListItemDto
+        return h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+          item.icon
+            ? h(Icon, { icon: item.icon, width: 16 })
+            : h('span', { style: 'display:inline-block;width:16px' }),
+          h('span', item.menuName),
+        ])
+      },
     },
     {
       key: 'menuCode',
@@ -228,16 +265,50 @@ const schema: PageSchema = {
       key: 'icon',
       title: '图标',
       dataType: 'string',
-      minWidth: 150,
+      minWidth: 170,
       order: 4,
-      render: row => formatNullable((row as unknown as MenuListItemDto).icon),
+      render: (row) => {
+        const item = row as unknown as MenuListItemDto
+        if (!item.icon) {
+          return '-'
+        }
+        return h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+          h(Icon, { icon: item.icon, width: 16 }),
+          h('span', item.icon),
+        ])
+      },
+    },
+    {
+      key: 'badge',
+      title: '标签',
+      dataType: 'string',
+      width: 110,
+      order: 5,
+      render: (row) => {
+        const item = row as unknown as MenuListItemDto
+        if (item.badgeDot) {
+          return h('span', {
+            style: {
+              display: 'inline-block',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: badgeDotColor(item.badgeType),
+            },
+          })
+        }
+        if (item.badge) {
+          return h(NTag, { size: 'small', round: true, bordered: false, type: badgeTagType(item.badgeType) }, () => item.badge)
+        }
+        return '-'
+      },
     },
     {
       key: 'isVisible',
       title: '可见',
       dataType: 'boolean',
       width: 80,
-      order: 5,
+      order: 6,
       render: row =>
         h(NTag, { size: 'small', round: true, type: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'default' }, () => ((row as unknown as MenuListItemDto).isVisible ? '是' : '否')),
     },
@@ -249,7 +320,7 @@ const schema: PageSchema = {
       searchable: true,
       searchPlaceholder: '状态',
       width: 90,
-      order: 6,
+      order: 7,
       render: row =>
         h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusOptions, (row as unknown as MenuListItemDto).status)),
     },
@@ -258,14 +329,14 @@ const schema: PageSchema = {
       title: '排序',
       dataType: 'number',
       width: 80,
-      order: 7,
+      order: 8,
     },
     {
       key: 'createdTime',
       title: '创建时间',
       dataType: 'datetime',
       minWidth: 170,
-      order: 8,
+      order: 9,
       render: row => formatDate((row as unknown as MenuListItemDto).createdTime),
     },
   ],
@@ -394,16 +465,28 @@ async function removeRow(row: MenuListItemDto) {
 }
 
 function validateForm() {
-  if (!menuForm.value.menuName.trim()) {
+  const form = menuForm.value
+  if (!form.menuName.trim()) {
     message.warning('请输入菜单名称')
     return false
   }
-  if (!menuForm.value.basicId && !menuForm.value.menuCode.trim()) {
+  if (!form.basicId && !form.menuCode.trim()) {
     message.warning('请输入菜单编码')
     return false
   }
-  if (!menuForm.value.path.trim()) {
+  // 按钮无路由，目录/菜单需要路由路径
+  if (form.menuType !== MenuType.Button && !form.path.trim()) {
     message.warning('请输入路由路径')
+    return false
+  }
+  // 非外链菜单需要组件路径（与后端校验一致）
+  if (form.menuType === MenuType.Menu && !form.isExternal && !form.component?.trim()) {
+    message.warning('请输入组件路径')
+    return false
+  }
+  // 外链菜单需要外链地址
+  if (form.isExternal && !form.externalUrl?.trim()) {
+    message.warning('请输入外链地址')
     return false
   }
   return true
@@ -579,13 +662,30 @@ onMounted(() => {
               {{ formatNullable(currentDetail.routeName) }}
             </NDescriptionsItem>
             <NDescriptionsItem label="图标">
-              {{ formatNullable(currentDetail.icon) }}
+              <span v-if="currentDetail.icon" style="display: inline-flex; align-items: center; gap: 6px">
+                <Icon :icon="currentDetail.icon" width="16" />
+                <span>{{ currentDetail.icon }}</span>
+              </span>
+              <span v-else>-</span>
             </NDescriptionsItem>
             <NDescriptionsItem label="标题">
               {{ formatNullable(currentDetail.title) }}
             </NDescriptionsItem>
+            <NDescriptionsItem label="标签">
+              <NTag v-if="currentDetail.badge" size="small" round :bordered="false" :type="badgeTagType(currentDetail.badgeType)">
+                {{ currentDetail.badge }}
+              </NTag>
+              <span
+                v-else-if="currentDetail.badgeDot"
+                :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"
+              />
+              <span v-else>-</span>
+            </NDescriptionsItem>
             <NDescriptionsItem label="是否外链">
               {{ formatBoolean(currentDetail.isExternal) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem v-if="currentDetail.isExternal" label="外链地址" :span="2">
+              {{ formatNullable(currentDetail.externalUrl) }}
             </NDescriptionsItem>
             <NDescriptionsItem label="是否缓存">
               {{ formatBoolean(currentDetail.isCache) }}
@@ -689,13 +789,25 @@ onMounted(() => {
             <NInput v-model:value="menuForm.redirect" clearable placeholder="目录类型填入默认子路由" />
           </NFormItem>
           <NFormItem label="图标" path="icon">
-            <NInput v-model:value="menuForm.icon" clearable placeholder="如: lucide:users" />
+            <IconPicker v-model="menuForm.icon" placeholder="点击选择图标" />
           </NFormItem>
           <NFormItem label="标题" path="title">
             <NInput v-model:value="menuForm.title" clearable placeholder="显示标题" />
           </NFormItem>
           <NFormItem label="排序" path="sort">
             <NInputNumber v-model:value="menuForm.sort" :min="0" style="width: 100%" />
+          </NFormItem>
+          <NFormItem label="标签内容" path="badge">
+            <NInput v-model:value="menuForm.badge" clearable placeholder="如: New / 3（显示在菜单项右侧）" />
+          </NFormItem>
+          <NFormItem label="标签类型" path="badgeType">
+            <NSelect v-model:value="menuForm.badgeType" :options="badgeTypeOptions" clearable placeholder="标签颜色" />
+          </NFormItem>
+          <NFormItem label="标签圆点">
+            <NSwitch v-model:value="menuForm.badgeDot" />
+          </NFormItem>
+          <NFormItem v-if="!menuForm.basicId" label="状态" path="status">
+            <NSelect v-model:value="menuForm.status" :options="statusOptions" />
           </NFormItem>
           <NFormItem label="可见">
             <NSwitch v-model:value="menuForm.isVisible" />
@@ -705,6 +817,12 @@ onMounted(() => {
           </NFormItem>
           <NFormItem label="固定标签">
             <NSwitch v-model:value="menuForm.isAffix" />
+          </NFormItem>
+          <NFormItem label="外链">
+            <NSwitch v-model:value="menuForm.isExternal" />
+          </NFormItem>
+          <NFormItem v-if="menuForm.isExternal" label="外链地址" path="externalUrl">
+            <NInput v-model:value="menuForm.externalUrl" clearable placeholder="https://..." />
           </NFormItem>
           <NFormItem label="备注" path="remark">
             <NInput v-model:value="menuForm.remark" clearable placeholder="请输入备注" :rows="3" type="textarea" />

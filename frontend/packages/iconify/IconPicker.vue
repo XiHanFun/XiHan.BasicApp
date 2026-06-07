@@ -27,7 +27,7 @@ const emit = defineEmits<{
 }>()
 
 interface Props {
-  modelValue?: string
+  modelValue?: string | null
   placeholder?: string
 }
 
