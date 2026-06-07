@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -49,16 +50,23 @@ public sealed class PermissionRequestAppService
     private readonly IPermissionRequestQueryService _permissionRequestQueryService;
 
     /// <summary>
+    /// SaaS 缓存失效器
+    /// </summary>
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionRequestAppService(
         IPermissionRequestDomainService permissionRequestDomainService,
         IPermissionRequestQueryService permissionRequestQueryService,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _permissionRequestDomainService = permissionRequestDomainService;
         _permissionRequestQueryService = permissionRequestQueryService;
         _currentUser = currentUser;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     #region PermissionRequest
@@ -78,6 +86,9 @@ public sealed class PermissionRequestAppService
             PermissionRequestApplicationMapper.ToCreateCommand(input, requestUserId),
             cancellationToken);
 
+        // 保守失效授权快照：避免自动审批等场景下创建即授权造成脏权限
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
             ?? throw new InvalidOperationException("权限申请不存在。");
     }
@@ -93,6 +104,9 @@ public sealed class PermissionRequestAppService
 
         var requestUserId = GetCurrentUserIdOrThrow();
         await _permissionRequestDomainService.WithdrawPermissionRequestAsync(id, requestUserId, cancellationToken);
+
+        // 保守失效授权快照：撤回可能回收已生效权限，需重建快照
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -109,6 +123,9 @@ public sealed class PermissionRequestAppService
         var result = await _permissionRequestDomainService.UpdatePermissionRequestAsync(
             PermissionRequestApplicationMapper.ToUpdateCommand(input, requestUserId),
             cancellationToken);
+
+        // 保守失效授权快照：更新可能调整申请的目标角色/权限范围，影响最终授权
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
 
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
             ?? throw new InvalidOperationException("权限申请不存在。");
@@ -128,6 +145,9 @@ public sealed class PermissionRequestAppService
             PermissionRequestApplicationMapper.ToStatusCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
 
+        // 失效授权快照：状态流转可能进入已批准并授权，必须重建快照
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
             ?? throw new InvalidOperationException("权限申请不存在。");
     }
@@ -146,6 +166,9 @@ public sealed class PermissionRequestAppService
             PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
 
+        // 失效授权快照：审批通过会自动授予角色/权限，必须重建快照避免脏权限
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
             ?? throw new InvalidOperationException("权限申请不存在。");
     }
@@ -163,6 +186,9 @@ public sealed class PermissionRequestAppService
         var result = await _permissionRequestDomainService.RejectPermissionRequestAsync(
             PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
+
+        // 保守失效授权快照：驳回理论上不授权，但状态变更可能撤销先前临时授权，多失效无害
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
 
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
             ?? throw new InvalidOperationException("权限申请不存在。");

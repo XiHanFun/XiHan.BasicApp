@@ -54,8 +54,9 @@ public sealed class MenuRouteQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var hasAllPermissions = snapshot.Permissions.Contains("*", StringComparer.OrdinalIgnoreCase);
-        // 分布式缓存：按权限集缓存菜单路由（同权限集的用户共享）。失效由领域事件触发——
-        // 菜单/授权/角色层级变更时对应 EventHandler 调 InvalidateNavigationAsync（considerUow，事务提交后失效）。
+        // 分布式缓存：按权限集缓存菜单路由（同权限集的用户共享）。失效由写路径直接触发——
+        // 菜单增删改时 MenuAppService、权限定义启停删时 PermissionAppService 调 InvalidateNavigationAsync
+        //（considerUow，事务提交后失效）；用户授权变更则因权限集实时变化使缓存键自动改变。
         var cacheKey = SaasCacheKeys.MenuRoutes(snapshot.PermissionIds, hasAllPermissions);
         var item = await _menuRoutesCache.GetOrAddAsync(
             cacheKey,

@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class RoleAppService
 {
     private readonly IRoleDomainService _roleDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RoleAppService(IRoleDomainService roleDomainService)
+    public RoleAppService(IRoleDomainService roleDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _roleDomainService = roleDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -53,6 +57,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.CreateRoleAsync(RoleApplicationMapper.ToCreateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
@@ -67,6 +72,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.CreateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToGrantCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
@@ -81,6 +87,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.CreateRoleHierarchyAsync(RoleHierarchyApplicationMapper.ToCreateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleHierarchyApplicationMapper.ToDetailDto(result.Hierarchy, result.Ancestor, result.Descendant);
     }
 
@@ -95,6 +102,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.CreateRolePermissionAsync(RolePermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -107,6 +115,7 @@ public sealed class RoleAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _roleDomainService.DeleteRoleAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -118,6 +127,7 @@ public sealed class RoleAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _roleDomainService.DeleteRoleDataScopeAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -129,6 +139,7 @@ public sealed class RoleAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _roleDomainService.DeleteRoleHierarchyAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -140,6 +151,7 @@ public sealed class RoleAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _roleDomainService.DeleteRolePermissionAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -153,6 +165,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.UpdateRoleAsync(RoleApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 
@@ -167,6 +180,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.UpdateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
@@ -181,6 +195,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.UpdateRoleDataScopeStatusAsync(RoleDataScopeApplicationMapper.ToStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
@@ -195,6 +210,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.UpdateRolePermissionAsync(RolePermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -209,6 +225,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.UpdateRolePermissionStatusAsync(RolePermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -223,6 +240,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _roleDomainService.UpdateRoleStatusAsync(RoleApplicationMapper.ToStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
 

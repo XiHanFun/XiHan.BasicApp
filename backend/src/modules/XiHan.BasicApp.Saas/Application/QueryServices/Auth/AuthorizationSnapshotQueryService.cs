@@ -12,9 +12,12 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Caching.Distributed;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -38,6 +41,8 @@ public sealed class AuthorizationSnapshotQueryService
 
     private readonly IPermissionDelegationRepository _permissionDelegationRepository;
 
+    private readonly IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> _snapshotCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -47,7 +52,8 @@ public sealed class AuthorizationSnapshotQueryService
         IRolePermissionRepository rolePermissionRepository,
         IUserPermissionRepository userPermissionRepository,
         IPermissionRepository permissionRepository,
-        IPermissionDelegationRepository permissionDelegationRepository)
+        IPermissionDelegationRepository permissionDelegationRepository,
+        IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> snapshotCache)
     {
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
@@ -55,6 +61,7 @@ public sealed class AuthorizationSnapshotQueryService
         _userPermissionRepository = userPermissionRepository;
         _permissionRepository = permissionRepository;
         _permissionDelegationRepository = permissionDelegationRepository;
+        _snapshotCache = snapshotCache;
     }
 
     /// <inheritdoc />
@@ -67,6 +74,45 @@ public sealed class AuthorizationSnapshotQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 分布式缓存：按用户缓存授权快照。失效由授权写路径触发——角色/角色权限/用户角色/用户权限/
+        // 权限委托/权限定义启停删等变更时，对应 AppService 调 InvalidateAuthorizationAsync（considerUow，事务提交后失效）。
+        var cacheKey = SaasCacheKeys.AuthorizationSnapshot(userId);
+        var item = await _snapshotCache.GetOrAddAsync(
+            cacheKey,
+            async () =>
+            {
+                var built = await BuildSnapshotAsync(userId, now, cancellationToken);
+                return new SaasAuthorizationSnapshotCacheItem
+                {
+                    UserId = userId,
+                    Roles = built.Roles,
+                    Permissions = built.Permissions,
+                    PermissionIds = [.. built.PermissionIds],
+                    CachedAt = DateTimeOffset.UtcNow
+                };
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await BuildSnapshotAsync(userId, now, cancellationToken)
+            : new AuthorizationSnapshot(item.Roles, item.Permissions, [.. item.PermissionIds]);
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
+    /// <summary>
+    /// 实时构建用户授权快照（缓存未命中时执行）。
+    /// </summary>
+    private async Task<AuthorizationSnapshot> BuildSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
         var userRoles = await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
         var roles = await _roleRepository.GetEnabledByIdsAsync(userRoles.Select(item => item.RoleId), cancellationToken);
         var roleCodes = roles
