@@ -7,5 +7,7 @@ export { default as XJsonViewer } from './JsonViewer.vue'
 export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
 export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'))
 
+export { resolveSortMove } from './sortable'
+export { default as XSortableItem } from './SortableItem.vue'
 export { default as XSystemQueryPanel } from './SystemQueryPanel.vue'
 export { default as XUserAvatar } from './UserAvatar.vue'
