@@ -137,6 +137,19 @@ public static class SaasCacheKeys
         return $"operation-select:{Hash(source)}";
     }
 
+    /// <summary>
+    /// 部门树缓存键（仅无关键字时缓存，按租户隔离 + 是否仅启用/上限区分）。
+    /// </summary>
+    /// <param name="tenantId">租户标识。</param>
+    /// <param name="onlyEnabled">是否仅含启用部门。</param>
+    /// <param name="limit">数量上限。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string DepartmentTree(long? tenantId, bool onlyEnabled, int limit)
+    {
+        var tenantSegment = tenantId.HasValue && tenantId.Value > 0 ? tenantId.Value.ToString() : "platform";
+        return $"tenant:{tenantSegment}:dept-tree:{Hash($"{onlyEnabled}|{limit}")}";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
