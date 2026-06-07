@@ -80,7 +80,42 @@ public sealed class MenuRouteQueryService
             }
         }
 
+        // 剪掉无可见子菜单的目录：目录本身不关联权限（对所有人可见），但若其下无任何已授权的子菜单，
+        // 显示一个点不进去的空目录没有意义，应隐藏（叶子菜单已按权限过滤，目录可见性派生自子菜单）。
+        var directoryIds = visibleMenus
+            .Where(menu => menu.MenuType == MenuType.Directory)
+            .Select(menu => menu.BasicId.ToString())
+            .ToHashSet();
+        roots = PruneEmptyDirectories(roots, directoryIds);
+
         return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
+    }
+
+    /// <summary>
+    /// 递归剪掉无可见子菜单的目录（自底向上：先剪子目录，父目录随之可能变空再剪）
+    /// </summary>
+    private static List<MenuRouteDto> PruneEmptyDirectories(List<MenuRouteDto> nodes, HashSet<string> directoryIds)
+    {
+        var result = new List<MenuRouteDto>();
+        foreach (var node in nodes)
+        {
+            if (node.Children is { Count: > 0 })
+            {
+                node.Children = PruneEmptyDirectories(node.Children, directoryIds);
+            }
+
+            var isDirectory = node.BasicId != null && directoryIds.Contains(node.BasicId);
+            var hasChildren = node.Children is { Count: > 0 };
+            // 目录且剪枝后无子节点 → 丢弃；叶子菜单（含外链）一律保留
+            if (isDirectory && !hasChildren)
+            {
+                continue;
+            }
+
+            result.Add(node);
+        }
+
+        return result;
     }
 
     private static MenuRouteDto ToMenuRoute(SysMenu menu, IReadOnlyDictionary<long, string> permissionCodeMap)
