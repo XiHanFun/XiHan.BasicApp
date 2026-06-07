@@ -25,8 +25,6 @@ import {
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
 import {
-  createDefaultQueryBehavior,
-  createPageRequest,
   EnableStatus,
   menuManagementApi,
   MenuType,
@@ -202,16 +200,12 @@ const schema: PageSchema = {
   tree: { childrenKey: 'children', defaultExpandAll: false },
   resource: {
     tree: (params: SchemaQueryParams) => {
-      const result = menuManagementApi.page({
-        ...createPageRequest({
-          behavior: createDefaultQueryBehavior({ disablePaging: true }),
-          page: { pageIndex: 1, pageSize: 5000 },
-        }),
+      const result = menuManagementApi.list({
         keyword: toStr(params.filters.keyword as string | undefined),
         menuType: (params.filters.menuType as MenuType | undefined) || undefined,
         status: (params.filters.status as EnableStatus | undefined) || undefined,
       })
-      return result.then(res => buildTree(res.items)) as unknown as Promise<Record<string, unknown>[]>
+      return result.then(items => buildTree(items)) as unknown as Promise<Record<string, unknown>[]>
     },
     remove: (id: ApiId) => menuManagementApi.delete(id),
   },

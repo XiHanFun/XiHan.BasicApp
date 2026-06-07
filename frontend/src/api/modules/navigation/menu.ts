@@ -4,6 +4,7 @@ import type {
   MenuCreateDto,
   MenuDetailDto,
   MenuListItemDto,
+  MenuListQueryDto,
   MenuPageQueryDto,
   MenuStatusUpdateDto,
   MenuTreeNodeDto,
@@ -35,6 +36,18 @@ export const menuApi = {
   },
   page(input: MenuPageQueryDto) {
     return menuQueryApi.get<PageResult<MenuListItemDto>>('MenuPage', toMenuPageParams(input))
+  },
+  list(input: MenuListQueryDto = {}) {
+    const params: DynamicApiParams = {}
+    appendDynamicApiParam(params, 'Keyword', input.keyword)
+    appendDynamicApiParam(params, 'ParentId', input.parentId)
+    appendDynamicApiParam(params, 'PermissionId', input.permissionId)
+    appendDynamicApiParam(params, 'MenuType', input.menuType)
+    appendDynamicApiParam(params, 'IsExternal', input.isExternal)
+    appendDynamicApiParam(params, 'IsVisible', input.isVisible)
+    appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
+    appendDynamicApiParam(params, 'Status', input.status)
+    return menuQueryApi.get<MenuListItemDto[]>('MenuList', params)
   },
   tree(input: MenuTreeQueryDto) {
     const params: DynamicApiParams = {

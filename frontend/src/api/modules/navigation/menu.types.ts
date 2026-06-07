@@ -19,6 +19,18 @@ export interface MenuPageQueryDto extends PageRequest {
   status?: EnableStatus | null
 }
 
+/** 菜单列表查询（不分页，返回全部匹配项） */
+export interface MenuListQueryDto {
+  isExternal?: boolean | null
+  isGlobal?: boolean | null
+  isVisible?: boolean | null
+  keyword?: string | null
+  menuType?: MenuType | null
+  parentId?: ApiId | null
+  permissionId?: ApiId | null
+  status?: EnableStatus | null
+}
+
 export interface MenuListItemDto extends BasicDto {
   badge?: string | null
   badgeDot: boolean
