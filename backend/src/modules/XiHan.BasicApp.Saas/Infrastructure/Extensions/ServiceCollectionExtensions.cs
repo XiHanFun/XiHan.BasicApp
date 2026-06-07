@@ -29,6 +29,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.Messaging.Abstractions;
@@ -102,6 +103,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAuthContextQueryService, AuthContextQueryService>();
         services.AddScoped<IAuthorizationSnapshotQueryService, AuthorizationSnapshotQueryService>();
+        // 请求期鉴权改用授权快照（替换框架内存版 DefaultPermissionChecker），使授权变更无需重新登录即生效
+        services.Replace(ServiceDescriptor.Scoped<IPermissionChecker, SaasPermissionChecker>());
         services.AddScoped<IMenuRouteQueryService, MenuRouteQueryService>();
         services.AddScoped<IUserDataScopeFilterService, UserDataScopeFilterService>();
         services.AddScoped<IFileRecordQueryService, FileRecordQueryService>();
