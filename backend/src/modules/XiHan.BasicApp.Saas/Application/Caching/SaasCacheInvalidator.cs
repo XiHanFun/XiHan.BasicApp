@@ -34,6 +34,10 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasEnabledEditionsCacheItem, string> _tenantEditionCache;
 
+    private readonly IDistributedCache<SaasResourceSelectCacheItem, string> _resourceSelectCache;
+
+    private readonly IDistributedCache<SaasOperationSelectCacheItem, string> _operationSelectCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -43,7 +47,9 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasMenuRoutesCacheItem, string> menuRoutesCache,
         IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
         IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache,
-        IDistributedCache<SaasEnabledEditionsCacheItem, string> tenantEditionCache)
+        IDistributedCache<SaasEnabledEditionsCacheItem, string> tenantEditionCache,
+        IDistributedCache<SaasResourceSelectCacheItem, string> resourceSelectCache,
+        IDistributedCache<SaasOperationSelectCacheItem, string> operationSelectCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
@@ -51,6 +57,8 @@ public sealed class SaasCacheInvalidator
         _permissionSelectCache = permissionSelectCache;
         _roleSelectCache = roleSelectCache;
         _tenantEditionCache = tenantEditionCache;
+        _resourceSelectCache = resourceSelectCache;
+        _operationSelectCache = operationSelectCache;
     }
     /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
@@ -91,5 +99,17 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateTenantEditionAsync(CancellationToken cancellationToken = default)
     {
         return _tenantEditionCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateResourceDefinitionAsync(CancellationToken cancellationToken = default)
+    {
+        return _resourceSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateOperationDefinitionAsync(CancellationToken cancellationToken = default)
+    {
+        return _operationSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

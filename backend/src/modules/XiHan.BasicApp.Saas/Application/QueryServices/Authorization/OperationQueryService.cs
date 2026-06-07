@@ -13,7 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
@@ -24,6 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
@@ -44,11 +47,19 @@ public sealed class OperationQueryService
     private readonly IOperationRepository _operationRepository;
 
     /// <summary>
+    /// 可选操作选择项缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasOperationSelectCacheItem, string> _operationSelectCache;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public OperationQueryService(IOperationRepository operationRepository)
+    public OperationQueryService(
+        IOperationRepository operationRepository,
+        IDistributedCache<SaasOperationSelectCacheItem, string> operationSelectCache)
     {
         _operationRepository = operationRepository;
+        _operationSelectCache = operationSelectCache;
     }
 
     /// <summary>
@@ -101,6 +112,43 @@ public sealed class OperationQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 带关键字的搜索命中率低，直接查库；仅缓存无关键字的（类型/分类/上限）筛选组合。
+        // 失效由操作定义写路径触发——OperationAppService 增删改启停调 InvalidateOperationDefinitionAsync。
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            return await QueryAvailableGlobalOperationsAsync(input, cancellationToken);
+        }
+
+        var cacheKey = SaasCacheKeys.OperationSelect((int?)input.OperationTypeCode, (int?)input.Category, input.Limit);
+        var item = await _operationSelectCache.GetOrAddAsync(
+            cacheKey,
+            async () => new SaasOperationSelectCacheItem
+            {
+                Items = [.. await QueryAvailableGlobalOperationsAsync(input, cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await QueryAvailableGlobalOperationsAsync(input, cancellationToken)
+            : item.Items;
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
+    /// <summary>
+    /// 实时查询可选全局操作列表（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<OperationSelectItemDto>> QueryAvailableGlobalOperationsAsync(OperationSelectQueryDto input, CancellationToken cancellationToken)
+    {
         var request = BuildOperationSelectRequest(input);
         var operations = await _operationRepository.GetPagedAsync(request, cancellationToken);
 

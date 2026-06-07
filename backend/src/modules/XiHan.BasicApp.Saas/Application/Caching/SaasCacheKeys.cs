@@ -112,6 +112,31 @@ public static class SaasCacheKeys
         return "editions:enabled";
     }
 
+    /// <summary>
+    /// 可选全局资源选择项缓存键（仅无关键字时缓存，按类型/上限区分）。
+    /// </summary>
+    /// <param name="resourceType">资源类型枚举值。</param>
+    /// <param name="limit">数量上限。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string ResourceSelect(int? resourceType, int limit)
+    {
+        var source = $"{(resourceType?.ToString() ?? "all")}|{limit}";
+        return $"resource-select:{Hash(source)}";
+    }
+
+    /// <summary>
+    /// 可选全局操作选择项缓存键（仅无关键字时缓存，按类型/分类/上限区分）。
+    /// </summary>
+    /// <param name="operationTypeCode">操作类型编码枚举值。</param>
+    /// <param name="category">操作分类枚举值。</param>
+    /// <param name="limit">数量上限。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string OperationSelect(int? operationTypeCode, int? category, int limit)
+    {
+        var source = $"{(operationTypeCode?.ToString() ?? "all")}|{(category?.ToString() ?? "all")}|{limit}";
+        return $"operation-select:{Hash(source)}";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

@@ -48,4 +48,14 @@ public interface ISaasCacheInvalidator
     /// 失效已启用租户版本列表缓存。
     /// </summary>
     Task InvalidateTenantEditionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效资源定义（可选资源选择项）缓存。
+    /// </summary>
+    Task InvalidateResourceDefinitionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效操作定义（可选操作选择项）缓存。
+    /// </summary>
+    Task InvalidateOperationDefinitionAsync(CancellationToken cancellationToken = default);
 }
