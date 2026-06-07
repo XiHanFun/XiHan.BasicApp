@@ -33,8 +33,8 @@ export interface TableStyle {
   singleLine: boolean
 }
 
-/** 表格风格默认值（与 NDataTable 默认渲染保持一致，避免视觉回归） */
-const DEFAULT_STYLE: TableStyle = { striped: true, bordered: true, singleLine: true }
+/** 表格风格默认值（默认显示竖线：single-line=false） */
+const DEFAULT_STYLE: TableStyle = { striped: true, bordered: true, singleLine: false }
 
 /**
  * 持久化结构（localStorage）

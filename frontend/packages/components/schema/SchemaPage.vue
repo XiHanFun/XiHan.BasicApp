@@ -468,32 +468,6 @@ defineExpose({
     >
       <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
       <template v-else>
-        <!-- 批量浮条 -->
-        <div v-if="checkedKeys.length" class="xh-batch-toolbar">
-          <span class="text-sm">已选择 {{ checkedKeys.length }} 条</span>
-          <NButton quaternary size="small" @click="clearSelection">
-            清空选择
-          </NButton>
-          <NButton
-            v-if="canBatchRemove"
-            size="small"
-            type="error"
-            :loading="batchRemoving"
-            @click="handleBatchRemove"
-          >
-            批量删除
-          </NButton>
-          <NButton
-            v-for="action in batchActions"
-            :key="action.key"
-            size="small"
-            :type="action.type ?? 'default'"
-            @click="onBatchAction(action.key)"
-          >
-            {{ action.title }}
-          </NButton>
-        </div>
-
         <!-- 表格：列表/树形两种模式（树形不分页、按 childrenKey 展开） -->
         <SchemaTablePanel
           v-model:checked-keys="checkedKeys"
@@ -519,7 +493,35 @@ defineExpose({
           @update:page="changePage"
           @update:page-size="changePageSize"
           @resize-column="onColumnResize"
-        />
+        >
+          <!-- 批量浮条：放在页脚，选中后不挤压表格空间 -->
+          <template v-if="checkedKeys.length" #footer-actions>
+            <div class="xh-batch-bar">
+              <span class="xh-batch-bar__count">已选择 <strong>{{ checkedKeys.length }}</strong> 条</span>
+              <NButton quaternary size="small" @click="clearSelection">
+                清空选择
+              </NButton>
+              <NButton
+                v-if="canBatchRemove"
+                size="small"
+                type="error"
+                :loading="batchRemoving"
+                @click="handleBatchRemove"
+              >
+                批量删除
+              </NButton>
+              <NButton
+                v-for="action in batchActions"
+                :key="action.key"
+                size="small"
+                :type="action.type ?? 'default'"
+                @click="onBatchAction(action.key)"
+              >
+                {{ action.title }}
+              </NButton>
+            </div>
+          </template>
+        </SchemaTablePanel>
       </template>
     </NCard>
 
@@ -529,15 +531,21 @@ defineExpose({
 </template>
 
 <style scoped>
-.xh-batch-toolbar {
+.xh-batch-bar {
   display: flex;
-  flex-shrink: 0;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  background: rgb(var(--primary) / 0.08);
+}
+
+.xh-batch-bar__count {
+  font-size: 13px;
+  color: var(--n-text-color);
+  white-space: nowrap;
+}
+
+.xh-batch-bar__count strong {
+  font-weight: 600;
+  color: var(--n-text-color);
 }
 
 .xh-schema-fullscreen {
