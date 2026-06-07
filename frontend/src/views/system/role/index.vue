@@ -379,13 +379,21 @@ const menuTreeData = ref<MenuNode[]>([])
 const menuGrants = ref<RolePermissionListItemDto[]>([])
 const menuCheckedKeys = ref<ApiId[]>([])
 const menuLoading = ref(false)
+/** 是否有未保存的勾选改动（统一保存模式） */
+const menuDirty = ref(false)
 
-/** permissionId → 授权记录（收权时取记录主键） */
-const menuGrantByPermId = computed(() => {
-  const map = new Map<ApiId, RolePermissionListItemDto>()
-  for (const grant of menuGrants.value) {
-    map.set(grant.permissionId, grant)
+/** 菜单 ID → 关联权限 ID（仅含已配置权限的菜单，保存时按勾选计算目标权限集） */
+const menuPermIdById = computed(() => {
+  const map = new Map<ApiId, ApiId>()
+  const walk = (nodes: MenuNode[]) => {
+    for (const node of nodes) {
+      if (node.permissionId != null) {
+        map.set(node.basicId, node.permissionId)
+      }
+      walk(node.children)
+    }
   }
+  walk(menuTreeData.value)
   return map
 })
 
@@ -426,13 +434,11 @@ function deriveMenuChecked() {
   menuCheckedKeys.value = checked
 }
 
-/** 收集指定菜单节点（含自身）子树内所有已关联的权限 ID（目录授权时级联其下子菜单） */
-function collectGrantablePermIds(menuKey: string): ApiId[] {
-  const permIds: ApiId[] = []
+/** 收集指定菜单节点（含自身）子树内所有节点 ID（目录勾选时级联其下全部子节点） */
+function collectSubtreeMenuIds(menuKey: string): ApiId[] {
+  const ids: ApiId[] = []
   function collect(node: MenuNode) {
-    if (node.permissionId != null) {
-      permIds.push(node.permissionId)
-    }
+    ids.push(node.basicId)
     for (const child of node.children) {
       collect(child)
     }
@@ -450,7 +456,7 @@ function collectGrantablePermIds(menuKey: string): ApiId[] {
     return false
   }
   locate(menuTreeData.value)
-  return permIds
+  return ids
 }
 
 function buildMenuTree(flat: MenuListItemDto[]): MenuNode[] {
@@ -505,6 +511,7 @@ async function openMenuDrawer(row: RoleListItemDto) {
     menuTreeData.value = buildMenuTree(flat)
     menuGrants.value = grants
     deriveMenuChecked()
+    menuDirty.value = false
   }
   catch (e: unknown) {
     message.error((e as Error)?.message || '加载菜单失败')
@@ -514,9 +521,9 @@ async function openMenuDrawer(row: RoleListItemDto) {
   }
 }
 
-async function onMenuCheck(keys: Array<string | number>) {
-  const role = menuRole.value
-  if (!role || menuLoading.value) {
+/** 勾选变更仅更新本地状态（目录级联其整个子树），点「保存授权」后统一提交差异 */
+function onMenuCheck(keys: Array<string | number>) {
+  if (menuLoading.value) {
     return
   }
   const nextKeys = keys.map(String)
@@ -527,40 +534,62 @@ async function onMenuCheck(keys: Array<string | number>) {
   if (changedKey == null) {
     return
   }
-  const isAdd = added.length > 0
-  // 勾选目录=级联授权其下所有有权限的子菜单；勾选叶子=授权自身
-  const permIds = collectGrantablePermIds(changedKey)
-  if (permIds.length === 0) {
-    message.warning('该菜单及其子菜单均未关联权限，无法授权')
-    deriveMenuChecked()
+  const subtreeIds = collectSubtreeMenuIds(changedKey).map(String)
+  const set = new Set(prevKeys)
+  if (added.length > 0) {
+    for (const id of subtreeIds) {
+      set.add(id)
+    }
+  }
+  else {
+    for (const id of subtreeIds) {
+      set.delete(id)
+    }
+  }
+  menuCheckedKeys.value = [...set]
+  menuDirty.value = true
+}
+
+/** 统一保存：按当前勾选计算目标权限集，与已授权对比，批量授权新增、收回移除 */
+async function saveMenuGrants() {
+  const role = menuRole.value
+  if (!role || menuLoading.value) {
+    return
+  }
+  const checkedSet = new Set(menuCheckedKeys.value.map(String))
+  const targetPermIds = new Set<ApiId>()
+  for (const [menuId, permId] of menuPermIdById.value) {
+    if (checkedSet.has(String(menuId))) {
+      targetPermIds.add(permId)
+    }
+  }
+  const grantedPermIds = new Set(menuGrants.value.map(grant => grant.permissionId))
+  const toGrant = [...targetPermIds].filter(permId => !grantedPermIds.has(permId))
+  const toRevoke = menuGrants.value.filter(grant => !targetPermIds.has(grant.permissionId))
+  if (toGrant.length === 0 && toRevoke.length === 0) {
+    message.info('授权无变化')
+    menuDirty.value = false
     return
   }
   menuLoading.value = true
   try {
-    if (isAdd) {
-      const granted = new Set(menuGrants.value.map(grant => grant.permissionId))
-      const toGrant = permIds.filter(permId => !granted.has(permId))
-      await Promise.all(toGrant.map(permId => rolePermissionApi.grant({
+    await Promise.all([
+      ...toGrant.map(permId => rolePermissionApi.grant({
         roleId: role.basicId,
         permissionId: permId,
         permissionAction: PermissionAction.Grant,
-      })))
-      message.success(toGrant.length > 1 ? `已授权 ${toGrant.length} 项` : '已授权')
-    }
-    else {
-      const toRevoke = permIds
-        .map(permId => menuGrantByPermId.value.get(permId))
-        .filter((grant): grant is RolePermissionListItemDto => !!grant)
-      await Promise.all(toRevoke.map(grant => rolePermissionApi.revoke(grant.basicId)))
-      message.success(toRevoke.length > 1 ? `已收回 ${toRevoke.length} 项` : '已收回')
-    }
+      })),
+      ...toRevoke.map(grant => rolePermissionApi.revoke(grant.basicId)),
+    ])
     menuGrants.value = await rolePermissionApi.list(role.basicId)
+    deriveMenuChecked()
+    menuDirty.value = false
+    message.success(`已保存（授权 ${toGrant.length} 项，收回 ${toRevoke.length} 项）`)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '操作失败')
+    message.error((e as Error)?.message || '保存失败')
   }
   finally {
-    deriveMenuChecked()
     menuLoading.value = false
   }
 }
@@ -1122,7 +1151,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
             @update:checked-keys="onMenuCheck"
           />
         </NSpin>
-        <p class="perm-tip">勾选菜单授予其关联权限；勾选目录将级联授权其下所有有权限的子菜单。</p>
+        <p class="perm-tip">勾选菜单授予其关联权限；勾选目录级联其下子菜单。改动需点「保存授权」统一提交。</p>
+        <template #footer>
+          <NButton @click="menuVisible = false">
+            取消
+          </NButton>
+          <NButton type="primary" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
+            保存授权
+          </NButton>
+        </template>
       </NDrawerContent>
     </NDrawer>
 
