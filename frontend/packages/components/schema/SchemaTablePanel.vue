@@ -172,14 +172,17 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
       @update:sorter="onSort"
     />
     <div class="xh-table-panel__footer">
-      <!-- 底部左侧：数据量与页码提示（树形不分页，仅显示总数） -->
-      <div class="xh-table__count">
-        <template v-if="tree">
-          共 <strong>{{ total }}</strong> 条
-        </template>
-        <template v-else>
-          共 <strong>{{ total }}</strong> 条，第 <strong>{{ page }}</strong> / {{ pageCount }} 页
-        </template>
+      <!-- 底部左侧：数据量/页码提示 + 批量操作浮条（选中后在此展示，避免挤压表格） -->
+      <div class="xh-table-panel__footer-left">
+        <div class="xh-table__count">
+          <template v-if="tree">
+            共 <strong>{{ total }}</strong> 条
+          </template>
+          <template v-else>
+            共 <strong>{{ total }}</strong> 条，第 <strong>{{ page }}</strong> / {{ pageCount }} 页
+          </template>
+        </div>
+        <slot name="footer-actions" />
       </div>
       <NPagination
         v-if="!tree"
@@ -215,10 +218,19 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
 .xh-table-panel__footer {
   display: flex;
   flex-shrink: 0;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   align-items: center;
   justify-content: space-between;
   padding-top: 12px;
+}
+
+/* 左侧：统计 + 批量浮条 */
+.xh-table-panel__footer-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
 }
 
 .xh-table__count {

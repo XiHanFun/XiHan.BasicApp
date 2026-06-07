@@ -39,10 +39,11 @@ const densityOptions: Array<{ label: string, value: TableDensity }> = [
   { label: '宽松', value: 'large' },
 ]
 
-const styleOptions: Array<{ label: string, key: keyof TableStyle }> = [
+const styleOptions: Array<{ label: string, key: keyof TableStyle, invert?: boolean }> = [
   { label: '斑马纹', key: 'striped' },
   { label: '边框', key: 'bordered' },
-  { label: '单线', key: 'singleLine' },
+  // Naive single-line=true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
+  { label: '单线', key: 'singleLine', invert: true },
 ]
 
 /** 固定循环切换：无 → 左 → 右 → 无 */
@@ -163,7 +164,7 @@ onBeforeUnmount(() => {
             v-for="opt in styleOptions"
             :key="opt.key"
             size="tiny"
-            :type="tableStyle[opt.key] ? 'primary' : 'default'"
+            :type="(opt.invert ? !tableStyle[opt.key] : tableStyle[opt.key]) ? 'primary' : 'default'"
             @click="emit('setStyle', opt.key, !tableStyle[opt.key])"
           >
             {{ opt.label }}
