@@ -58,4 +58,9 @@ public static class SaasCacheNames
     /// 可选全局操作选择项缓存。
     /// </summary>
     public const string OperationSelect = "basicapp:saas:operation:select";
+
+    /// <summary>
+    /// 部门树缓存。
+    /// </summary>
+    public const string DepartmentTree = "basicapp:saas:organization:dept-tree";
 }

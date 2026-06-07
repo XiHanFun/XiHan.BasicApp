@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class DepartmentAppService
 {
     private readonly IDepartmentDomainService _departmentDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DepartmentAppService(IDepartmentDomainService departmentDomainService)
+    public DepartmentAppService(IDepartmentDomainService departmentDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _departmentDomainService = departmentDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -53,6 +57,10 @@ public sealed class DepartmentAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _departmentDomainService.CreateAsync(DepartmentApplicationMapper.ToCreateCommand(input), cancellationToken);
+
+        // 部门结构变更影响部门树缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
+
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
     }
 
@@ -65,6 +73,9 @@ public sealed class DepartmentAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _departmentDomainService.DeleteAsync(id, cancellationToken);
+
+        // 部门删除影响部门树缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
     }
 
     /// <summary>
@@ -78,6 +89,10 @@ public sealed class DepartmentAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _departmentDomainService.UpdateAsync(DepartmentApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 部门结构变更影响部门树缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
+
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
     }
 
@@ -92,6 +107,10 @@ public sealed class DepartmentAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _departmentDomainService.UpdateStatusAsync(DepartmentApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 部门启停影响部门树缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
+
         return DepartmentApplicationMapper.ToDetailDto(result.Department);
     }
 }

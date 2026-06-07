@@ -58,4 +58,9 @@ public interface ISaasCacheInvalidator
     /// 失效操作定义（可选操作选择项）缓存。
     /// </summary>
     Task InvalidateOperationDefinitionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效组织结构（部门树）缓存。
+    /// </summary>
+    Task InvalidateOrganizationAsync(CancellationToken cancellationToken = default);
 }
