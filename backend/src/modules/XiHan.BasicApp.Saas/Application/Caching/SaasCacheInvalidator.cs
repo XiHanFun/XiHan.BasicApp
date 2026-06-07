@@ -28,17 +28,25 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasMenuRoutesCacheItem, string> _menuRoutesCache;
 
+    private readonly IDistributedCache<SaasPermissionSelectCacheItem, string> _permissionSelectCache;
+
+    private readonly IDistributedCache<SaasRoleSelectCacheItem, string> _roleSelectCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public SaasCacheInvalidator(
         IDistributedCache<SaasConfigValueCacheItem, string> configValueCache,
         IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> authorizationSnapshotCache,
-        IDistributedCache<SaasMenuRoutesCacheItem, string> menuRoutesCache)
+        IDistributedCache<SaasMenuRoutesCacheItem, string> menuRoutesCache,
+        IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
+        IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
         _menuRoutesCache = menuRoutesCache;
+        _permissionSelectCache = permissionSelectCache;
+        _roleSelectCache = roleSelectCache;
     }
     /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
@@ -61,5 +69,17 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateNavigationAsync(CancellationToken cancellationToken = default)
     {
         return _menuRoutesCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidatePermissionDefinitionAsync(CancellationToken cancellationToken = default)
+    {
+        return _permissionSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateRoleDefinitionAsync(CancellationToken cancellationToken = default)
+    {
+        return _roleSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

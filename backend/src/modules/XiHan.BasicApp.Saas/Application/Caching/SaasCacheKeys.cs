@@ -77,6 +77,32 @@ public static class SaasCacheKeys
         return $"permission-set:{Hash(source)}";
     }
 
+    /// <summary>
+    /// 可选全局权限选择项缓存键（仅无关键字时缓存，按模块/类型/上限区分）。
+    /// </summary>
+    /// <param name="moduleCode">模块编码。</param>
+    /// <param name="permissionType">权限类型枚举值。</param>
+    /// <param name="limit">数量上限。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string PermissionSelect(string? moduleCode, int? permissionType, int limit)
+    {
+        var source = $"{(string.IsNullOrWhiteSpace(moduleCode) ? "all" : moduleCode.Trim())}|{(permissionType?.ToString() ?? "all")}|{limit}";
+        return $"permission-select:{Hash(source)}";
+    }
+
+    /// <summary>
+    /// 已启用角色选择项缓存键（仅无关键字时缓存，按类型/是否全局/上限区分）。
+    /// </summary>
+    /// <param name="roleType">角色类型枚举值。</param>
+    /// <param name="isGlobal">是否全局。</param>
+    /// <param name="limit">数量上限。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string RoleSelect(int? roleType, bool? isGlobal, int limit)
+    {
+        var source = $"{(roleType?.ToString() ?? "all")}|{(isGlobal?.ToString() ?? "all")}|{limit}";
+        return $"role-select:{Hash(source)}";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

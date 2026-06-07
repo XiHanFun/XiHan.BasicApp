@@ -13,7 +13,9 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
@@ -24,6 +26,7 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
@@ -44,11 +47,19 @@ public sealed class RoleQueryService
     private readonly IRoleRepository _roleRepository;
 
     /// <summary>
+    /// 已启用角色选择项缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasRoleSelectCacheItem, string> _roleSelectCache;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public RoleQueryService(IRoleRepository roleRepository)
+    public RoleQueryService(
+        IRoleRepository roleRepository,
+        IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache)
     {
         _roleRepository = roleRepository;
+        _roleSelectCache = roleSelectCache;
     }
 
     /// <summary>
@@ -101,6 +112,43 @@ public sealed class RoleQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 带关键字的搜索命中率低，直接查库；仅缓存无关键字的（类型/是否全局/上限）筛选组合。
+        // 失效由角色定义写路径触发——RoleAppService 增删改启停调 InvalidateRoleDefinitionAsync。
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            return await QueryEnabledRolesAsync(input, cancellationToken);
+        }
+
+        var cacheKey = SaasCacheKeys.RoleSelect((int?)input.RoleType, input.IsGlobal, input.Limit);
+        var item = await _roleSelectCache.GetOrAddAsync(
+            cacheKey,
+            async () => new SaasRoleSelectCacheItem
+            {
+                Items = [.. await QueryEnabledRolesAsync(input, cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item is null
+            ? await QueryEnabledRolesAsync(input, cancellationToken)
+            : item.Items;
+    }
+
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
+    /// <summary>
+    /// 实时查询已启用角色选择项（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<RoleSelectItemDto>> QueryEnabledRolesAsync(RoleSelectQueryDto input, CancellationToken cancellationToken)
+    {
         var request = BuildRoleSelectRequest(input);
         var roles = await _roleRepository.GetPagedAsync(request, cancellationToken);
 
