@@ -30,16 +30,14 @@ public sealed class EnumMetadataQueryService
     private static readonly Assembly DomainAssembly = typeof(SysUser).Assembly;
     private static readonly Lazy<XDocument?> XmlDocCache = new(LoadXmlDocumentation, LazyThreadSafetyMode.ExecutionAndPublication);
 
+    // 进程内 Lazy 缓存：枚举元数据来自编译期程序集（反射 GetTypes + 构建），仅随发版变化，
+    // 进程生命周期内恒定。无需分布式缓存与失效（跨实例共享反引入序列化开销），进程重启自然刷新。
+    private static readonly Lazy<List<EnumMetadataDto>> AllEnumsCache = new(BuildAllEnums, LazyThreadSafetyMode.ExecutionAndPublication);
+
     /// <inheritdoc />
     public Task<List<EnumMetadataDto>> GetAllEnumsAsync()
     {
-        var enumTypes = DomainAssembly.GetTypes()
-            .Where(static type => type.IsEnum && string.Equals(type.Namespace, TargetNamespace, StringComparison.Ordinal))
-            .OrderBy(static type => type.Name, StringComparer.Ordinal)
-            .ToList();
-
-        var result = enumTypes.ConvertAll(BuildEnumMetadata);
-        return Task.FromResult(result);
+        return Task.FromResult(AllEnumsCache.Value);
     }
 
     /// <inheritdoc />
@@ -47,18 +45,24 @@ public sealed class EnumMetadataQueryService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(enumTypeName);
 
-        var enumType = DomainAssembly.GetTypes()
-            .FirstOrDefault(type =>
-                type.IsEnum &&
-                string.Equals(type.Namespace, TargetNamespace, StringComparison.Ordinal) &&
-                string.Equals(type.Name, enumTypeName, StringComparison.Ordinal));
+        var metadata = AllEnumsCache.Value
+            .FirstOrDefault(item => string.Equals(item.EnumTypeName, enumTypeName, StringComparison.Ordinal))
+            ?? throw new InvalidOperationException($"枚举类型 '{enumTypeName}' 不存在。");
 
-        if (enumType is null)
-        {
-            throw new InvalidOperationException($"枚举类型 '{enumTypeName}' 不存在。");
-        }
+        return Task.FromResult(metadata);
+    }
 
-        return Task.FromResult(BuildEnumMetadata(enumType));
+    /// <summary>
+    /// 构建全部枚举元数据（Lazy 首次访问时执行一次）。
+    /// </summary>
+    private static List<EnumMetadataDto> BuildAllEnums()
+    {
+        var enumTypes = DomainAssembly.GetTypes()
+            .Where(static type => type.IsEnum && string.Equals(type.Namespace, TargetNamespace, StringComparison.Ordinal))
+            .OrderBy(static type => type.Name, StringComparer.Ordinal)
+            .ToList();
+
+        return enumTypes.ConvertAll(BuildEnumMetadata);
     }
 
     private static EnumItemDto BuildEnumItem(Type enumType, object value)
