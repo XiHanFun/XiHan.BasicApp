@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnSetting, TableDensity } from './useTableSettings'
-import { NButton, NCheckbox, NDivider, NIcon, NPopover, NTooltip } from 'naive-ui'
+import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
+import { NButton, NCheckbox, NDivider, NIcon, NInputNumber, NPopover, NTooltip } from 'naive-ui'
 import Sortable from 'sortablejs'
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
@@ -12,20 +12,37 @@ defineProps<{
   columns: ColumnSetting[]
   /** 当前密度 */
   density: TableDensity
+  /** 表格风格 */
+  tableStyle: TableStyle
+  /** 是否允许多选 */
+  selectable: boolean
+  /** 是否显示序号列 */
+  showIndex: boolean
 }>()
 
 const emit = defineEmits<{
-  'toggleVisible': [key: string, value: boolean]
-  'setFixed': [key: string, fixed: 'left' | 'right' | undefined]
-  'move': [fromIndex: number, toIndex: number]
-  'setDensity': [value: TableDensity]
-  'reset': []
+  toggleVisible: [key: string, value: boolean]
+  setFixed: [key: string, fixed: 'left' | 'right' | undefined]
+  setWidth: [key: string, width: number | undefined]
+  move: [fromIndex: number, toIndex: number]
+  setDensity: [value: TableDensity]
+  setStyle: [key: keyof TableStyle, value: boolean]
+  setSelectable: [value: boolean]
+  setShowIndex: [value: boolean]
+  reset: []
+  save: []
 }>()
 
 const densityOptions: Array<{ label: string, value: TableDensity }> = [
   { label: '紧凑', value: 'small' },
   { label: '默认', value: 'medium' },
   { label: '宽松', value: 'large' },
+]
+
+const styleOptions: Array<{ label: string, key: keyof TableStyle }> = [
+  { label: '斑马纹', key: 'striped' },
+  { label: '边框', key: 'bordered' },
+  { label: '单线', key: 'singleLine' },
 ]
 
 /** 固定循环切换：无 → 左 → 右 → 无 */
@@ -93,26 +110,31 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="300" display-directive="show">
+  <NPopover v-model:show="popoverShow" trigger="click" placement="bottom-end" :width="340" display-directive="show">
     <template #trigger>
       <NTooltip>
         <template #trigger>
-          <NButton circle quaternary size="small" aria-label="列设置">
+          <NButton circle quaternary size="small" aria-label="表格设置">
             <template #icon>
               <NIcon><Icon icon="lucide:settings-2" /></NIcon>
             </template>
           </NButton>
         </template>
-        列设置
+        表格设置
       </NTooltip>
     </template>
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-base font-semibold text-foreground">列设置</span>
-        <NButton size="small" type="primary" secondary @click="emit('reset')">
-          恢复默认
-        </NButton>
+        <span class="text-base font-semibold text-foreground">表格设置</span>
+        <div class="flex gap-2">
+          <NButton size="small" secondary @click="emit('reset')">
+            恢复默认
+          </NButton>
+          <NButton size="small" type="primary" @click="emit('save')">
+            保存
+          </NButton>
+        </div>
       </div>
 
       <NDivider class="!my-1" />
@@ -133,12 +155,50 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <!-- 表格风格 -->
+      <div class="flex gap-2 items-center justify-between">
+        <span class="text-xs text-foreground/60">表格风格</span>
+        <div class="flex gap-1">
+          <NButton
+            v-for="opt in styleOptions"
+            :key="opt.key"
+            size="tiny"
+            :type="tableStyle[opt.key] ? 'primary' : 'default'"
+            @click="emit('setStyle', opt.key, !tableStyle[opt.key])"
+          >
+            {{ opt.label }}
+          </NButton>
+        </div>
+      </div>
+
+      <!-- 功能 -->
+      <div class="flex gap-2 items-center justify-between">
+        <span class="text-xs text-foreground/60">功能</span>
+        <div class="flex gap-1">
+          <NButton
+            size="tiny"
+            :type="selectable ? 'primary' : 'default'"
+            @click="emit('setSelectable', !selectable)"
+          >
+            多选
+          </NButton>
+          <NButton
+            size="tiny"
+            :type="showIndex ? 'primary' : 'default'"
+            @click="emit('setShowIndex', !showIndex)"
+          >
+            序号
+          </NButton>
+        </div>
+      </div>
+
       <NDivider class="!my-1" />
 
       <!-- 表头 -->
       <div class="xh-set-head flex gap-2 items-center">
         <span class="xh-set-head__handle" />
         <span class="flex-1">列名</span>
+        <span class="xh-set-head__width">列宽</span>
         <span class="xh-set-head__col">固定</span>
       </div>
 
@@ -153,11 +213,23 @@ onBeforeUnmount(() => {
           </span>
           <NCheckbox
             :checked="col.visible"
-            class="flex-1"
+            class="flex-1 min-w-0"
             @update:checked="(value) => emit('toggleVisible', col.key, value)"
           >
             {{ col.title }}
           </NCheckbox>
+          <span class="xh-set-row__width">
+            <NInputNumber
+              :value="col.width ?? null"
+              size="tiny"
+              :show-button="false"
+              :update-value-on-input="false"
+              :min="60"
+              :max="800"
+              placeholder="自动"
+              @update:value="(value: number | null) => emit('setWidth', col.key, value ?? undefined)"
+            />
+          </span>
           <span class="xh-set-row__fixed">
             <NButton
               size="tiny"
@@ -175,7 +247,7 @@ onBeforeUnmount(() => {
       </div>
 
       <NDivider class="!my-1" />
-      <span class="text-xs text-foreground/40">勾选=显示该列；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序</span>
+      <span class="text-xs text-foreground/40">勾选=显示该列；列宽可在此输入或拖动表头右边框调整（留空为自动）；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序</span>
     </div>
   </NPopover>
 </template>
@@ -194,9 +266,21 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
+.xh-set-head__width {
+  width: 72px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .xh-set-head__col {
   width: 56px;
   text-align: center;
+  flex-shrink: 0;
+}
+
+/* 列宽输入：与表头「列宽」列等宽 */
+.xh-set-row__width {
+  width: 72px;
   flex-shrink: 0;
 }
 

@@ -1,12 +1,11 @@
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
-import { ref, watch } from 'vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { storage } from '~/utils'
 import { usePagePreferenceSync } from './usePagePreferenceSync'
 
 /**
- * 单列设置项（显隐 / 固定）
+ * 单列设置项（显隐 / 固定 / 列宽）
  */
 export interface ColumnSetting {
   /** 列字段键 */
@@ -17,19 +16,40 @@ export interface ColumnSetting {
   visible: boolean
   /** 固定方向 */
   fixed?: 'left' | 'right'
+  /** 列宽覆盖（px）；为空表示自动（沿用 schema 的 width/minWidth） */
+  width?: number
 }
 
 /** 表格密度 */
 export type TableDensity = 'small' | 'medium' | 'large'
+
+/** 表格风格 */
+export interface TableStyle {
+  /** 斑马纹（条纹） */
+  striped: boolean
+  /** 边框 */
+  bordered: boolean
+  /** 单线（关闭时显示纵向分隔线） */
+  singleLine: boolean
+}
+
+/** 表格风格默认值（与 NDataTable 默认渲染保持一致，避免视觉回归） */
+const DEFAULT_STYLE: TableStyle = { striped: true, bordered: true, singleLine: true }
 
 /**
  * 持久化结构（localStorage）
  */
 interface PersistedTableSettings {
   /** 按顺序的列设置 */
-  columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right' }>
+  columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number }>
   /** 密度 */
   density: TableDensity
+  /** 表格风格 */
+  style?: TableStyle
+  /** 是否允许多选 */
+  selectable?: boolean
+  /** 是否显示序号列 */
+  showIndex?: boolean
 }
 
 const STORAGE_PREFIX = 'xh:table-settings:'
@@ -44,9 +64,14 @@ const STORAGE_PREFIX = 'xh:table-settings:'
 export function useTableSettings(
   pageCode: string,
   fields: Ref<ListFieldSchema[]>,
+  options?: {
+    /** 多选默认值（通常取「存在批量操作」），用户未显式设置时生效 */
+    defaultSelectable?: boolean
+  },
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
   const sync = usePagePreferenceSync(pageCode)
+  const defaultSelectable = options?.defaultSelectable ?? false
 
   /** 由 schema 字段生成的默认列设置 */
   function buildDefault(): ColumnSetting[] {
@@ -55,11 +80,15 @@ export function useTableSettings(
       title: f.title,
       visible: f.visible !== false,
       fixed: f.fixed,
+      width: f.width,
     }))
   }
 
   const columns = ref<ColumnSetting[]>(buildDefault())
   const density = ref<TableDensity>('small')
+  const style = ref<TableStyle>({ ...DEFAULT_STYLE })
+  const selectable = ref<boolean>(defaultSelectable)
+  const showIndex = ref<boolean>(false)
 
   /** 应用一份持久化设置（按 key 合并，丢弃已不存在的列、追加新列） */
   function applyPersisted(persisted: PersistedTableSettings) {
@@ -70,7 +99,7 @@ export function useTableSettings(
     for (const p of persisted.columns) {
       const def = defaultMap.get(p.key)
       if (def) {
-        ordered.push({ key: p.key, title: def.title, visible: p.visible, fixed: p.fixed })
+        ordered.push({ key: p.key, title: def.title, visible: p.visible, fixed: p.fixed, width: p.width ?? def.width })
         defaultMap.delete(p.key)
       }
     }
@@ -82,6 +111,9 @@ export function useTableSettings(
     }
     columns.value = ordered
     density.value = persisted.density ?? 'small'
+    style.value = { ...DEFAULT_STYLE, ...persisted.style }
+    selectable.value = persisted.selectable ?? defaultSelectable
+    showIndex.value = persisted.showIndex ?? false
   }
 
   /** 从 localStorage 恢复 */
@@ -101,11 +133,14 @@ export function useTableSettings(
     }
   })
 
-  /** 持久化当前设置 */
-  function persist() {
+  /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
+  function save() {
     const data: PersistedTableSettings = {
-      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed })),
+      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width })),
       density: density.value,
+      style: { ...style.value },
+      selectable: selectable.value,
+      showIndex: showIndex.value,
     }
     storage.set(storageKey, data)
     sync.save('table', data)
@@ -123,6 +158,14 @@ export function useTableSettings(
     }
     return map
   })
+  /** 列宽映射（key → 覆盖宽度，undefined 表示自动） */
+  const widthMap = computed(() => {
+    const map: Record<string, number | undefined> = {}
+    for (const c of columns.value) {
+      map[c.key] = c.width
+    }
+    return map
+  })
 
   function toggleVisible(key: string, value: boolean) {
     const target = columns.value.find(c => c.key === key)
@@ -136,6 +179,25 @@ export function useTableSettings(
     if (target) {
       target.fixed = fixed
     }
+  }
+
+  function setWidth(key: string, width?: number) {
+    const target = columns.value.find(c => c.key === key)
+    if (target) {
+      target.width = width && width > 0 ? width : undefined
+    }
+  }
+
+  function setStyle(key: keyof TableStyle, value: boolean) {
+    style.value = { ...style.value, [key]: value }
+  }
+
+  function setSelectable(value: boolean) {
+    selectable.value = value
+  }
+
+  function setShowIndex(value: boolean) {
+    showIndex.value = value
   }
 
   function move(fromIndex: number, toIndex: number) {
@@ -157,27 +219,36 @@ export function useTableSettings(
   function resetDefault() {
     columns.value = buildDefault()
     density.value = 'small'
+    style.value = { ...DEFAULT_STYLE }
+    selectable.value = defaultSelectable
+    showIndex.value = false
   }
 
   // 字段变化（如权限变更导致列增减）时重建并尝试恢复
   watch(fields, () => restore(), { immediate: false })
-
-  // 设置变化即持久化
-  watch([columns, density], () => persist(), { deep: true })
 
   restore()
 
   return {
     columns,
     density,
+    style,
+    selectable,
+    showIndex,
     visibleKeys,
     columnOrder,
     fixedMap,
+    widthMap,
     toggleVisible,
     setFixed,
+    setWidth,
+    setStyle,
+    setSelectable,
+    setShowIndex,
     move,
     setDensity,
     resetDefault,
     restore,
+    save,
   }
 }

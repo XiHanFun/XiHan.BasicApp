@@ -48,7 +48,7 @@ export { useSearchSettings } from './useSearchSettings'
 export type { SearchFieldSetting } from './useSearchSettings'
 
 export { useTableSettings } from './useTableSettings'
-export type { ColumnSetting, TableDensity } from './useTableSettings'
+export type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
 
 export { useViewManager } from './useViewManager'
 export type { PersonalView, ViewSnapshot } from './useViewManager'
