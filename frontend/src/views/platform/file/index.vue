@@ -44,8 +44,8 @@ import {
 } from '@/api'
 import { Icon, SchemaPage, XMdEditor } from '~/components'
 import { downloadBlob, formatDate, formatFileSize, getOptionLabel } from '~/utils'
-import '@vue-office/docx/lib/index.css'
-import '@vue-office/excel/lib/index.css'
+import '@vue-office/docx/lib/v3/index.css'
+import '@vue-office/excel/lib/v3/index.css'
 
 defineOptions({ name: 'PlatformFilePage' })
 
@@ -55,9 +55,17 @@ type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 const message = useMessage()
 
 // Office 预览组件懒加载（重型库，按需加载 + vite vendor-office 分包）
-const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx'))
-const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel'))
-const VueOfficePptx = defineAsyncComponent(() => import('@vue-office/pptx'))
+const VueOfficeDocx = defineAsyncComponent(
+  () => import('@vue-office/docx/lib/v3/index.js'),
+)
+
+const VueOfficeExcel = defineAsyncComponent(
+  () => import('@vue-office/excel/lib/v3/index.js'),
+)
+
+const VueOfficePptx = defineAsyncComponent(
+  () => import('@vue-office/pptx/lib/v3/index.js'),
+)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
