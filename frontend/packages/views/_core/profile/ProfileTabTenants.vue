@@ -1,19 +1,28 @@
 <script lang="ts" setup>
 import type { TenantSwitcherDto } from '@/api'
 import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { tenantApi, TenantMemberType } from '@/api'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
+import { useAccessStore, useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabTenants' })
 
 const message = useMessage()
+const accessStore = useAccessStore()
+const userStore = useUserStore()
 
 const loading = ref(false)
 const loaded = ref(false)
+const switching = ref(false)
 const tenants = ref<TenantSwitcherDto[]>([])
+
+/** 是否可进入平台运维态（超管 / 平台管理员） */
+const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?? false)
+/** 当前是否处于平台运维态 */
+const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
 
 async function loadTenants() {
   loading.value = true
@@ -26,6 +35,26 @@ async function loadTenants() {
   }
   finally {
     loading.value = false
+  }
+}
+
+/** 切换租户 / 进入平台运维态：重签发令牌后重载应用以加载新上下文 */
+async function switchTo(tenantId: null | string, label: string) {
+  if (switching.value) {
+    return
+  }
+  switching.value = true
+  try {
+    const token = await tenantApi.switchTenant({ tenantId })
+    accessStore.setAccessToken(token.accessToken)
+    accessStore.setRefreshToken(token.refreshToken)
+    message.success(`已切换到「${label}」`)
+    // 新上下文的权限/菜单需重新引导，直接重载以确保一致
+    window.location.reload()
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '切换失败')
+    switching.value = false
   }
 }
 
@@ -72,8 +101,31 @@ onMounted(loadTenants)
       </div>
       <div class="pf-section__body">
         <NSpin :show="loading">
-          <NEmpty v-if="tenants.length === 0 && loaded" description="暂无可访问的租户" />
-          <div v-else class="pf-list">
+          <div class="pf-list">
+            <div
+              v-if="canAccessPlatform"
+              class="pf-list-item"
+              :class="{ 'pf-list-item--active': isPlatform }"
+            >
+              <div class="pf-list-icon" :class="{ 'pf-list-icon--active': isPlatform }">
+                <Icon icon="lucide:shield-check" width="18" />
+              </div>
+              <div class="pf-list-body">
+                <div class="pf-list-title">
+                  平台运维
+                  <NTag v-if="isPlatform" type="success" size="tiny" :bordered="false">
+                    当前
+                  </NTag>
+                </div>
+                <div class="pf-list-desc">
+                  维护平台级全局菜单 / 权限 / 角色 / 版本
+                </div>
+              </div>
+              <NButton v-if="!isPlatform" size="small" secondary :loading="switching" @click="switchTo(null, '平台运维')">
+                进入
+              </NButton>
+            </div>
+            <NEmpty v-if="tenants.length === 0 && loaded && !canAccessPlatform" description="暂无可访问的租户" />
             <div
               v-for="t in tenants"
               :key="t.membershipId"
@@ -113,9 +165,20 @@ onMounted(loadTenants)
                   </template>
                 </div>
               </div>
-              <NTag :type="memberTagType(t.memberType)" size="small" round :bordered="false">
-                {{ getOptionLabel(MEMBER_TYPE_OPTIONS, t.memberType) }}
-              </NTag>
+              <div class="pf-tenant-actions">
+                <NTag :type="memberTagType(t.memberType)" size="small" round :bordered="false">
+                  {{ getOptionLabel(MEMBER_TYPE_OPTIONS, t.memberType) }}
+                </NTag>
+                <NButton
+                  v-if="!t.isCurrent"
+                  size="small"
+                  secondary
+                  :loading="switching"
+                  @click="switchTo(String(t.tenantId), t.tenantName)"
+                >
+                  切换
+                </NButton>
+              </div>
             </div>
           </div>
         </NSpin>
@@ -142,5 +205,12 @@ onMounted(loadTenants)
   font-size: 12px;
   font-weight: 400;
   color: var(--text-secondary);
+}
+
+.pf-tenant-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  align-items: center;
 }
 </style>

@@ -1,3 +1,4 @@
+import type { LoginToken, SwitchTenantParams } from '~/types'
 import type { PageResult } from '../../types'
 import type {
   TenantCreateDto,
@@ -18,6 +19,7 @@ import {
 
 const tenantQueryApi = createDynamicApiClient('TenantQuery')
 const tenantCommandApi = createDynamicApiClient('Tenant')
+const authCommandApi = createDynamicApiClient('Auth')
 const tenantReadApi = createReadApi<TenantListItemDto, TenantDetailDto, TenantPageQueryDto>('TenantQuery', 'Tenant')
 const tenantBaseCommandApi = createCommandApi<TenantCreateDto, TenantUpdateDto, TenantDetailDto>('Tenant', 'Tenant')
 
@@ -30,6 +32,9 @@ export const tenantApi = {
   },
   myAvailableTenants() {
     return tenantQueryApi.get<TenantSwitcherDto[]>('MyAvailableTenants')
+  },
+  switchTenant(input: SwitchTenantParams) {
+    return authCommandApi.post<LoginToken, SwitchTenantParams>('SwitchTenant', input)
   },
   page(input: TenantPageQueryDto) {
     return tenantQueryApi.get<PageResult<TenantListItemDto>>('TenantPage', toTenantPageParams(input))

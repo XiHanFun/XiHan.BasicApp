@@ -12,8 +12,20 @@ export interface UserInfo {
   email?: string
   phone?: string
   tenantId?: null | string
+  /** 是否处于平台运维态（无租户上下文） */
+  isPlatform?: boolean
+  /** 是否可进入平台运维态（超管 / 平台管理员） */
+  canAccessPlatform?: boolean
   roles: string[]
   permissions: string[]
+}
+
+/** 切换租户 / 进入平台运维态参数 */
+export interface SwitchTenantParams {
+  /** 目标租户标识；为空表示切换到平台运维态 */
+  tenantId?: null | string
+  /** 设备标识 */
+  deviceId?: string
 }
 
 export interface OAuthProviderItem {
