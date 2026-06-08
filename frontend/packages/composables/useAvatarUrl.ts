@@ -1,15 +1,18 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import { ref, toValue, watchEffect } from 'vue'
 import { useAppContext } from '~/stores/app-context'
+import { toAbsoluteFileUrl } from '~/utils'
 
 /**
  * 头像 URL 解析。
  *
  * user.avatar 的语义为「文件主键(fileId)」。但出于兼容考虑，avatar 也可能是：
  * - 空值 → 返回空字符串，由消费方（如 XUserAvatar）以首字母兜底
- * - http(s):// 或 / 开头（旧数据 / 外链 / dicebear 等）→ 原样返回
+ * - http(s):// / data: / blob: / 开头（旧数据 / 外链 / dicebear 等）→ 不走预签名，直接显示
  * - 其它 → 视为 fileId，调用预签名 URL 端点换取临时可显示 URL
  *
+ * 直链与换取结果统一经 utils/toAbsoluteFileUrl 解析：后端根相对路径（/uploads/...）
+ * 会拼上后端源（生产环境前后端跨源），绝对 URL 原样返回。
  * 预签名 URL 会过期，因此仅做内存缓存（同一 fileId 不重复请求），不持久化。
  */
 
@@ -31,7 +34,7 @@ export async function resolveAvatarUrl(avatar: null | string | undefined): Promi
     return ''
   }
   if (isDirectUrl(raw)) {
-    return raw
+    return toAbsoluteFileUrl(raw)
   }
 
   const cached = presignedCache.get(raw)
@@ -45,10 +48,11 @@ export async function resolveAvatarUrl(avatar: null | string | undefined): Promi
     pending = apis
       .getFilePresignedUrlApi(raw)
       .then((url) => {
-        if (url) {
-          presignedCache.set(raw, url)
+        const absolute = toAbsoluteFileUrl(url ?? '')
+        if (absolute) {
+          presignedCache.set(raw, absolute)
         }
-        return url ?? ''
+        return absolute
       })
       .finally(() => {
         inflight.delete(raw)
@@ -81,7 +85,7 @@ export function useAvatarUrl(source: MaybeRefOrGetter<null | string | undefined>
       return
     }
     if (isDirectUrl(trimmed)) {
-      url.value = trimmed
+      url.value = toAbsoluteFileUrl(trimmed)
       return
     }
     const cached = presignedCache.get(trimmed)
