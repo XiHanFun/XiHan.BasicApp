@@ -42,4 +42,13 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// 检查当前租户下用户名是否存在
     /// </summary>
     Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 忽略租户过滤，按主键获取用户（平台运维 / 跨租户切换场景使用，需上层做权限校验）
+    /// </summary>
+    /// <remarks>
+    /// 多租户成员切换时，用户当前 token 的活动租户可能与 SysUser.TenantId（归属租户）不一致，
+    /// 经全局租户过滤会查不到用户，故此处显式忽略租户过滤按主键定位。
+    /// </remarks>
+    Task<SysUser?> GetByIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default);
 }

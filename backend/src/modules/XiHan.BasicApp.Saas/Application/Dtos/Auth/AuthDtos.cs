@@ -213,6 +213,22 @@ public sealed class VerificationCodeResultDto
 }
 
 /// <summary>
+/// 切换租户请求 DTO
+/// </summary>
+public sealed class SwitchTenantRequestDto
+{
+    /// <summary>
+    /// 目标租户标识；为空或 0 表示切换到平台运维态（无租户上下文）
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 设备标识
+    /// </summary>
+    public string? DeviceId { get; set; }
+}
+
+/// <summary>
 /// 刷新令牌请求 DTO
 /// </summary>
 public sealed class RefreshTokenRequestDto
@@ -274,9 +290,19 @@ public sealed class UserInfoDto
     public string? Phone { get; set; }
 
     /// <summary>
-    /// 当前租户
+    /// 当前租户（为空表示处于平台运维态）
     /// </summary>
     public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 是否处于平台运维态（无租户上下文）
+    /// </summary>
+    public bool IsPlatform { get; set; }
+
+    /// <summary>
+    /// 是否可进入平台运维态（超管 / 平台管理员）
+    /// </summary>
+    public bool CanAccessPlatform { get; set; }
 
     /// <summary>
     /// 角色编码
