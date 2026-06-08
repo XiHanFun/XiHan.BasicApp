@@ -66,6 +66,14 @@ public sealed class SaasIdentitySeeder(
         Logger.LogInformation("SaaS 基础身份数据已就绪，默认登录账号 {UserName}", SuperAdminUserName);
     }
 
+    /// <summary>
+    /// 应用超级管理员角色字段（全局 System 角色，TenantId=0）。
+    /// </summary>
+    /// <remarks>
+    /// 超管的"全部权限"由运行时特判承载：授权快照 <c>AuthorizationSnapshotQueryService</c> 检测到 super_admin 角色时
+    /// 注入通配 "*"，故本角色不落具体 RolePermission 行；版本(Edition)门控亦对 "*" 放行。
+    /// 如需改为显式权限绑定，应同时移除快照中的 "*" 特判，避免双轨。
+    /// </remarks>
     private static bool ApplySuperAdminRole(SysRole role)
     {
         var changed = false;
