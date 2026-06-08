@@ -1,8 +1,9 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { DropdownOption } from 'naive-ui'
 import type { ActionSchema } from './types'
-import { NButton, NDropdown, NIcon } from 'naive-ui'
+import { NButton, NDropdown, NIcon, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
+import { useIsMobile } from '~/composables'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 
@@ -22,6 +23,14 @@ const emit = defineEmits<{
 }>()
 
 const { hasPermission } = usePermission()
+
+/** 小屏断点（max-width:767px） */
+const { isMobile } = useIsMobile()
+
+/** 小屏且按钮含图标时转为圆形纯图标按钮（无图标的按钮兜底保留文字） */
+function isIconOnly(action: ActionSchema<TRow>): boolean {
+  return isMobile.value && !!action.icon
+}
 
 /** 有权限的页面操作 */
 const permitted = computed(() =>
@@ -45,24 +54,37 @@ function onMoreSelect(key: string) {
 
 <template>
   <div class="flex flex-wrap gap-2 items-center">
-    <NButton
+    <NTooltip
       v-for="action in primaryActions"
       :key="action.key"
-      size="small"
-      :type="action.type ?? 'default'"
-      @click="emit('action', action.key)"
+      :disabled="!isIconOnly(action)"
     >
-      <template v-if="action.icon" #icon>
-        <NIcon><Icon :icon="action.icon" /></NIcon>
+      <template #trigger>
+        <NButton
+          size="small"
+          :circle="isIconOnly(action)"
+          :type="action.type ?? 'default'"
+          :aria-label="action.title"
+          @click="emit('action', action.key)"
+        >
+          <template v-if="action.icon" #icon>
+            <NIcon><Icon :icon="action.icon" /></NIcon>
+          </template>
+          <template v-if="!isIconOnly(action)">
+            {{ action.title }}
+          </template>
+        </NButton>
       </template>
       {{ action.title }}
-    </NButton>
+    </NTooltip>
 
     <NDropdown v-if="moreOptions.length" :options="moreOptions" trigger="click" @select="onMoreSelect">
-      <NButton size="small">
-        更多
+      <NButton size="small" :circle="isMobile" aria-label="更多">
         <template #icon>
-          <NIcon><Icon icon="lucide:chevron-down" /></NIcon>
+          <NIcon><Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" /></NIcon>
+        </template>
+        <template v-if="!isMobile">
+          更多
         </template>
       </NButton>
     </NDropdown>
