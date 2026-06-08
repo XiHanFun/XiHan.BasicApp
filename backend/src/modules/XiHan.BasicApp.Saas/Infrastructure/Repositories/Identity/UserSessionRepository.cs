@@ -36,6 +36,22 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
     }
 
     /// <inheritdoc />
+    public async Task<SysUserSession?> GetByUserSessionIdAsync(string userSessionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(userSessionId))
+        {
+            return null;
+        }
+
+        // 会话业务标识全局唯一，跨租户查询（请求期会话有效性校验不依赖当前租户上下文）
+        return await CreateNoTenantQueryable()
+            .Where(session => session.UserSessionId == userSessionId)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

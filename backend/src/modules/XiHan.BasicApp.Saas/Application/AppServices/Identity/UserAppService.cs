@@ -19,6 +19,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -46,6 +47,8 @@ public sealed class UserAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IUserSessionRepository _userSessionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -54,13 +57,15 @@ public sealed class UserAppService
         IUserRepository userRepository,
         IFieldSecurityService fieldSecurity,
         ICurrentUser currentUser,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IUserSessionRepository userSessionRepository)
     {
         _userDomainService = userDomainService;
         _userRepository = userRepository;
         _fieldSecurity = fieldSecurity;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
+        _userSessionRepository = userSessionRepository;
     }
 
     #region 用户核心
@@ -90,7 +95,8 @@ public sealed class UserAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _userDomainService.DeleteUserAsync(id, cancellationToken);
-        // 删除用户后失效其授权快照，避免旧 token 凭缓存继续放行
+        // 删除用户后：吊销其全部会话（请求期会话校验随即拒绝）+ 失效授权快照
+        await _userSessionRepository.RevokeByUserIdAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(id, cancellationToken);
     }
 
@@ -126,7 +132,12 @@ public sealed class UserAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _userDomainService.UpdateUserStatusAsync(UserApplicationMapper.ToStatusCommand(input), cancellationToken);
-        // 禁用/启用用户后失效其授权快照，使禁用即时生效（重建快照将判定为禁用→空权限）
+        // 禁用时吊销其全部会话，使禁用即时生效（请求期会话校验随即拒绝；禁用用户重新启用后需重新登录）
+        if (input.Status == EnableStatus.Disabled)
+        {
+            await _userSessionRepository.RevokeByUserIdAsync(input.BasicId, cancellationToken);
+        }
+
         await _cacheInvalidator.InvalidateAuthorizationAsync(input.BasicId, cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
     }
