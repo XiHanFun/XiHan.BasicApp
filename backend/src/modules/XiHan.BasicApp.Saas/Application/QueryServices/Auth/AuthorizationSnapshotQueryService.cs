@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Distributed.Abstracts;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -43,6 +44,12 @@ public sealed class AuthorizationSnapshotQueryService
 
     private readonly IPermissionDelegationRepository _permissionDelegationRepository;
 
+    private readonly ITenantRepository _tenantRepository;
+
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
+
+    private readonly ICurrentTenant _currentTenant;
+
     private readonly IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> _snapshotCache;
 
     /// <summary>
@@ -56,6 +63,9 @@ public sealed class AuthorizationSnapshotQueryService
         IUserPermissionRepository userPermissionRepository,
         IPermissionRepository permissionRepository,
         IPermissionDelegationRepository permissionDelegationRepository,
+        ITenantRepository tenantRepository,
+        ITenantEditionPermissionRepository tenantEditionPermissionRepository,
+        ICurrentTenant currentTenant,
         IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> snapshotCache)
     {
         _userRoleRepository = userRoleRepository;
@@ -65,6 +75,9 @@ public sealed class AuthorizationSnapshotQueryService
         _userPermissionRepository = userPermissionRepository;
         _permissionRepository = permissionRepository;
         _permissionDelegationRepository = permissionDelegationRepository;
+        _tenantRepository = tenantRepository;
+        _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
+        _currentTenant = currentTenant;
         _snapshotCache = snapshotCache;
     }
 
@@ -99,9 +112,74 @@ public sealed class AuthorizationSnapshotQueryService
             hideErrors: true,
             token: cancellationToken);
 
-        return item is null
+        var snapshot = item is null
             ? await BuildSnapshotAsync(userId, now, cancellationToken)
             : new AuthorizationSnapshot(item.Roles, item.Permissions, [.. item.PermissionIds]);
+
+        // 套餐(Edition)运行时门控：在 per-user 缓存之外按当前租户上下文叠加，避免切换租户后缓存串味
+        return await ApplyEditionGatingAsync(snapshot, cancellationToken);
+    }
+
+    /// <summary>
+    /// 按当前租户版本(Edition)的权限白名单收窄有效权限。
+    /// </summary>
+    /// <remarks>
+    /// 例外（不门控）：超管通配 *、平台运维态（无租户）、租户未绑定版本、版本未配置白名单（避免误锁）。
+    /// 门控在缓存外叠加：原始快照仍按 userId 缓存，版本变更（升降级）即时生效，无需失效用户快照缓存。
+    /// 性能：命中门控时按当前实现每次拉取版本白名单；后续可对"版本→白名单"做独立缓存优化（见方案 REQ-5.3）。
+    /// </remarks>
+    private async Task<AuthorizationSnapshot> ApplyEditionGatingAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken)
+    {
+        // 超管通配 * 不受门控
+        if (snapshot.Permissions.Contains("*"))
+        {
+            return snapshot;
+        }
+
+        // 平台运维态（无租户上下文）不门控
+        var tenantId = _currentTenant.Id;
+        if (tenantId is not > 0)
+        {
+            return snapshot;
+        }
+
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken);
+        if (tenant?.EditionId is not > 0)
+        {
+            return snapshot;
+        }
+
+        var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(tenant.EditionId.Value, cancellationToken);
+        var allowedIds = whitelist
+            .Where(item => item.Status == ValidityStatus.Valid)
+            .Select(item => item.PermissionId)
+            .ToHashSet();
+
+        // 版本未配置白名单：视为未启用门控，保持原快照（避免把租户锁死）
+        if (allowedIds.Count == 0)
+        {
+            return snapshot;
+        }
+
+        var gatedIds = new HashSet<long>(snapshot.PermissionIds);
+        gatedIds.IntersectWith(allowedIds);
+
+        // 全部已在白名单内，无需变更
+        if (gatedIds.Count == snapshot.PermissionIds.Count)
+        {
+            return snapshot;
+        }
+
+        var gatedPermissions = await _permissionRepository.GetByIdsAsync(gatedIds, cancellationToken);
+        var gatedCodes = gatedPermissions
+            .Where(permission => permission.Status == EnableStatus.Enabled)
+            .Select(permission => permission.PermissionCode)
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return snapshot with { Permissions = gatedCodes, PermissionIds = gatedIds };
     }
 
     private static DistributedCacheEntryOptions CreateCacheOptions()
