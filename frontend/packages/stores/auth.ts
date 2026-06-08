@@ -16,6 +16,7 @@ import { mapMenuToRoutes } from '~/router/dynamic'
 import { CORE_ROUTE_NAMES } from '~/router/routes/core'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { useAppContext } from './app-context'
+import { hydratePreferencesFromBackend, resetPreferenceBackendSync } from './helpers'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()
@@ -65,6 +66,9 @@ export const useAuthStore = defineStore('auth', () => {
         router.addRoute('RootLayout', route)
       }
     }
+
+    // 跨端同步：登录后拉取后端偏好并应用（覆盖本地），在进入应用前完成以避免闪烁
+    await hydratePreferencesFromBackend()
 
     const homePath = accessStore.homePath || HOME_PATH
     if (redirect) {
@@ -190,6 +194,7 @@ export const useAuthStore = defineStore('auth', () => {
     userStore.$reset()
     tabbarStore.closeAll()
     sessionStorage.clear()
+    resetPreferenceBackendSync()
 
     try {
       await router.replace(LOGIN_PATH)

@@ -3,7 +3,7 @@ import type { PermissionInfo } from '~/types'
 import { createDiscreteApi } from 'naive-ui'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
-import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { hydratePreferencesFromBackend, useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
 import { mapMenuToRoutes } from './dynamic'
 import { filterRoutesByPermission, isStaticRouteMode } from './static'
@@ -121,6 +121,8 @@ export function setupRouterGuard(router: Router) {
           accessStore.setAccessRoutes(dynamicMenus)
           installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
         }
+        // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁
+        await hydratePreferencesFromBackend()
         return next({ path: to.fullPath, replace: true })
       }
       catch {
