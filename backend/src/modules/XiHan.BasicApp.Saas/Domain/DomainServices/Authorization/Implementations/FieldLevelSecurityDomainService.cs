@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -33,7 +34,8 @@ public sealed class FieldLevelSecurityDomainService
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        ICurrentTenant currentTenant)
     {
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
         _resourceRepository = resourceRepository;
@@ -41,8 +43,10 @@ public sealed class FieldLevelSecurityDomainService
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
         _tenantUserRepository = tenantUserRepository;
+        _currentTenant = currentTenant;
     }
 
+    private readonly ICurrentTenant _currentTenant;
     private readonly IDepartmentRepository _departmentRepository;
     private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
     private readonly IPermissionRepository _permissionRepository;
@@ -339,9 +343,9 @@ public sealed class FieldLevelSecurityDomainService
             throw new InvalidOperationException("停用角色不能配置字段级安全策略。");
         }
 
-        if (role.IsGlobal || role.RoleType == RoleType.System)
+        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台全局角色或系统角色字段级安全必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台全局角色或系统角色字段级安全仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return (role.RoleCode, role.RoleName);
@@ -384,9 +388,9 @@ public sealed class FieldLevelSecurityDomainService
             throw new InvalidOperationException("无效租户成员不能配置字段级安全策略。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台管理员成员字段级安全必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台管理员成员字段级安全仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)

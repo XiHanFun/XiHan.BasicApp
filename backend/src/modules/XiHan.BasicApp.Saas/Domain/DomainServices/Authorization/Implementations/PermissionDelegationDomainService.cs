@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -28,6 +29,7 @@ public sealed class PermissionDelegationDomainService
     private readonly IPermissionRepository _permissionRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
     /// 构造函数
@@ -36,12 +38,14 @@ public sealed class PermissionDelegationDomainService
         IPermissionDelegationRepository permissionDelegationRepository,
         ITenantUserRepository tenantUserRepository,
         IPermissionRepository permissionRepository,
-        IRoleRepository roleRepository)
+        IRoleRepository roleRepository,
+        ICurrentTenant currentTenant)
     {
         _permissionDelegationRepository = permissionDelegationRepository;
         _tenantUserRepository = tenantUserRepository;
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <inheritdoc />
@@ -330,9 +334,9 @@ public sealed class PermissionDelegationDomainService
             throw new InvalidOperationException("停用角色不能参与权限委托。");
         }
 
-        if (role.IsGlobal || role.RoleType == RoleType.System)
+        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台全局角色或系统角色权限委托必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台全局角色或系统角色权限委托仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return role;
@@ -353,9 +357,9 @@ public sealed class PermissionDelegationDomainService
             throw new InvalidOperationException($"无效{subjectName}不能参与权限委托。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台管理员成员权限委托必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台管理员成员权限委托仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)

@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -38,6 +39,8 @@ public sealed class RoleDomainService
 
     private readonly IDepartmentRepository _departmentRepository;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -48,7 +51,8 @@ public sealed class RoleDomainService
         IRoleHierarchyRepository roleHierarchyRepository,
         IRoleDataScopeRepository roleDataScopeRepository,
         IPermissionRepository permissionRepository,
-        IDepartmentRepository departmentRepository)
+        IDepartmentRepository departmentRepository,
+        ICurrentTenant currentTenant)
     {
         _roleRepository = roleRepository;
         _userRoleRepository = userRoleRepository;
@@ -57,6 +61,7 @@ public sealed class RoleDomainService
         _roleDataScopeRepository = roleDataScopeRepository;
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <inheritdoc />
@@ -600,11 +605,11 @@ public sealed class RoleDomainService
         }
     }
 
-    private static void EnsureRoleCanBeMaintained(SysRole role)
+    private void EnsureRoleCanBeMaintained(SysRole role)
     {
-        if (role.IsGlobal || role.RoleType == RoleType.System)
+        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台全局角色或系统角色必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护，请切换到平台运维后操作。");
         }
     }
 
@@ -678,11 +683,11 @@ public sealed class RoleDomainService
         }
     }
 
-    private static void EnsureDescendantCanBeMaintainedForHierarchy(SysRole descendant)
+    private void EnsureDescendantCanBeMaintainedForHierarchy(SysRole descendant)
     {
-        if (descendant.IsGlobal || descendant.RoleType == RoleType.System)
+        if ((descendant.IsGlobal || descendant.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台全局角色或系统角色必须通过平台运维流程维护继承关系。");
+            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护继承关系，请切换到平台运维后操作。");
         }
     }
 
@@ -906,9 +911,9 @@ public sealed class RoleDomainService
             throw new InvalidOperationException("停用角色不能维护数据范围。");
         }
 
-        if (role.IsGlobal || role.RoleType == RoleType.System)
+        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台全局角色或系统角色必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         if (role.DataScope != DataPermissionScope.Custom)
