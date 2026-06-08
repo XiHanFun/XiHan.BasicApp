@@ -5,6 +5,7 @@ export enum SetupStoreId {
   Auth = 'auth',
   User = 'user',
   Tabbar = 'tabbar',
+  Favorites = 'favorites',
   LayoutState = 'layout-state',
   LayoutBridge = 'layout-bridge',
   LayoutPreferences = 'layout-preferences',
