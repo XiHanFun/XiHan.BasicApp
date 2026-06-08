@@ -30,6 +30,22 @@ public interface IAuthAppService : IApplicationService
     Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 注册账号（自助注册，落到默认租户）
+    /// </summary>
+    /// <param name="input">注册参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>注册结果</returns>
+    Task<RegisterResultDto> RegisterAsync(RegisterRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 申请找回密码（重置为临时密码）
+    /// </summary>
+    /// <param name="input">找回密码参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>受理结果</returns>
+    Task<PasswordResetResultDto> RequestPasswordResetAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 密码登录
     /// </summary>
     /// <param name="input">登录参数</param>

@@ -79,10 +79,17 @@ public sealed class AuthAppService
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
+    private readonly IUserDomainService _userDomainService;
+
     /// <summary>
     /// 超级管理员角色编码（与种子/授权快照约定一致，运行时特判 *）
     /// </summary>
     private const string SuperAdminRoleCode = "super_admin";
+
+    /// <summary>
+    /// 默认租户标识：自助注册 / 找回密码在缺省范围时落到该租户（与基础身份种子约定一致）
+    /// </summary>
+    private const long DefaultRegistrationTenantId = 1;
 
     /// <summary>
     /// 构造函数
@@ -105,7 +112,8 @@ public sealed class AuthAppService
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor,
         IUserRepository userRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        IUserDomainService userDomainService)
     {
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
@@ -125,6 +133,7 @@ public sealed class AuthAppService
         _httpContextAccessor = httpContextAccessor;
         _userRepository = userRepository;
         _tenantUserRepository = tenantUserRepository;
+        _userDomainService = userDomainService;
     }
 
     /// <inheritdoc />
@@ -133,6 +142,160 @@ public sealed class AuthAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         return await _saasConfigurationService.GetLoginConfigAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [AllowAnonymous]
+    [UnitOfWork(true)]
+    public async Task<RegisterResultDto> RegisterAsync(RegisterRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userName = NormalizeRequired(input.Username, "用户名不能为空。", 50, "用户名不能超过 50 个字符。");
+        var password = NormalizeRequired(input.Password, "密码不能为空。", 200, "密码不能超过 200 个字符。");
+        var nickName = string.IsNullOrWhiteSpace(input.NickName) ? userName : input.NickName.Trim();
+        var email = string.IsNullOrWhiteSpace(input.Email) ? null : input.Email.Trim();
+
+        // 自助注册统一落到默认租户，注册即成为普通成员（不分配角色，权限由管理员后续授权）
+        using var tenantScope = _currentTenant.Change(DefaultRegistrationTenantId, DefaultRegistrationTenantId.ToString());
+
+        var command = new UserCreateCommand(
+            UserName: userName,
+            InitialPassword: password,
+            RealName: null,
+            NickName: nickName,
+            Avatar: null,
+            Email: email,
+            Phone: null,
+            Gender: UserGender.Unknown,
+            Birthday: null,
+            Status: EnableStatus.Enabled,
+            TimeZone: null,
+            Language: "zh-CN",
+            Country: null,
+            MemberType: TenantMemberType.Member,
+            EffectiveTime: null,
+            ExpirationTime: null,
+            DisplayName: nickName,
+            InviteRemark: null,
+            Remark: "自助注册账号",
+            OperatorUserId: null);
+
+        var result = await _userDomainService.CreateUserAsync(command, cancellationToken);
+        return new RegisterResultDto
+        {
+            UserId = result.User.BasicId,
+            UserName = result.User.UserName
+        };
+    }
+
+    /// <inheritdoc />
+    [AllowAnonymous]
+    [UnitOfWork(true)]
+    public async Task<PasswordResetResultDto> RequestPasswordResetAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
+        var tenantId = ParseScopeTenantId(input.ScopeId);
+        using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
+
+        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
+        // 防用户枚举：邮箱不存在时同样返回受理，不暴露账号是否存在
+        if (user is null)
+        {
+            return new PasswordResetResultDto { Accepted = true };
+        }
+
+        var temporaryPassword = GenerateTemporaryPassword();
+        await _userDomainService.ResetUserPasswordAsync(
+            new UserPasswordResetCommand(user.BasicId, temporaryPassword, PasswordExpirationTime: null, Remark: "找回密码-临时密码"),
+            cancellationToken);
+
+        // 已配置真实 SMTP：通过消息投递管道发送临时密码邮件，响应不回显；未配置（本地联调）：回显临时密码便于测试
+        if (_emailSenderOptions.CurrentValue.IsConfigured)
+        {
+            await SendPasswordResetEmailAsync(email, user.BasicId, temporaryPassword, cancellationToken);
+            return new PasswordResetResultDto { Accepted = true };
+        }
+
+        return new PasswordResetResultDto
+        {
+            Accepted = true,
+            TemporaryPassword = temporaryPassword
+        };
+    }
+
+    /// <summary>
+    /// 解析找回密码范围标识为租户标识，缺省回退到默认租户
+    /// </summary>
+    private static long ParseScopeTenantId(string? scopeId)
+    {
+        return long.TryParse(scopeId, out var parsed) && parsed > 0 ? parsed : DefaultRegistrationTenantId;
+    }
+
+    /// <summary>
+    /// 生成满足默认密码策略（含大小写/数字/特殊字符，长度 12）的临时密码
+    /// </summary>
+    private static string GenerateTemporaryPassword()
+    {
+        return "Kx9@" + Guid.NewGuid().ToString("N")[..8];
+    }
+
+    /// <summary>
+    /// 发送临时密码邮件（复用消息投递管道）
+    /// </summary>
+    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string temporaryPassword, CancellationToken cancellationToken)
+    {
+        var emailOptions = _emailSenderOptions.CurrentValue;
+        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        await _messageDeliveryService.CreateEmailAsync(
+            new EmailCreateCommand(
+                SendUserId: null,
+                ReceiveUserId: receiveUserId,
+                EmailType: EmailType.Verification,
+                FromEmail: emailOptions.FromEmail,
+                FromName: emailOptions.FromName,
+                ToEmail: email,
+                CcEmail: null,
+                BccEmail: null,
+                Subject: $"【{brand}】临时登录密码",
+                Content: BuildPasswordResetHtml(temporaryPassword, brand),
+                IsHtml: true,
+                Attachments: null,
+                TemplateId: null,
+                TemplateParams: null,
+                ScheduledTime: null,
+                MaxRetryCount: 3,
+                BusinessType: "auth.password-reset",
+                BusinessId: receiveUserId,
+                Remark: null),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// 构建临时密码邮件的 HTML 正文（全内联样式，兼容主流邮件客户端）
+    /// </summary>
+    private static string BuildPasswordResetHtml(string temporaryPassword, string brand)
+    {
+        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
+  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
+    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
+      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
+    </div>
+    <div style='padding:32px;'>
+      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>临时登录密码</h1>
+      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您申请了找回密码，请使用以下临时密码登录，并尽快在个人中心修改为新密码：</p>
+      <div style='margin:0 0 24px;padding:18px 0;text-align:center;background:#f3f6ff;border:1px solid #e3e9ff;border-radius:12px;'>
+        <span style='font-size:24px;font-weight:700;letter-spacing:4px;color:#3b5bdb;'>{temporaryPassword}</span>
+      </div>
+      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件并立即联系管理员。</p>
+    </div>
+    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
+  </div>
+</div>";
     }
 
     /// <inheritdoc />
