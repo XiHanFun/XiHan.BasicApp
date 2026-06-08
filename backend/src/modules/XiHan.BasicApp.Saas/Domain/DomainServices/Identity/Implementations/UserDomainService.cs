@@ -17,6 +17,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Password;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -106,6 +107,11 @@ public sealed class UserDomainService
     private readonly IUserSessionRepository _userSessionRepository;
 
     /// <summary>
+    /// 当前租户
+    /// </summary>
+    private readonly ICurrentTenant _currentTenant;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserDomainService(
@@ -121,7 +127,8 @@ public sealed class UserDomainService
         IUserDataScopeRepository userDataScopeRepository,
         IDepartmentRepository departmentRepository,
         IUserDepartmentRepository userDepartmentRepository,
-        IUserSessionRepository userSessionRepository)
+        IUserSessionRepository userSessionRepository,
+        ICurrentTenant currentTenant)
     {
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
@@ -136,6 +143,7 @@ public sealed class UserDomainService
         _departmentRepository = departmentRepository;
         _userDepartmentRepository = userDepartmentRepository;
         _userSessionRepository = userSessionRepository;
+        _currentTenant = currentTenant;
     }
 
     // ================================================================
@@ -1645,9 +1653,9 @@ public sealed class UserDomainService
             throw new InvalidOperationException("停用角色不能分配给用户。");
         }
 
-        if (role.RoleType == RoleType.System)
+        if (role.RoleType == RoleType.System && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("系统角色必须通过平台运维流程分配。");
+            throw new InvalidOperationException("系统角色仅平台运维态可分配，请切换到平台运维后操作。");
         }
 
         return role;
@@ -1874,7 +1882,7 @@ public sealed class UserDomainService
             throw new InvalidOperationException($"无效租户成员不能{operationContext}。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
         {
             throw new InvalidOperationException(platformAdminMessage);
         }

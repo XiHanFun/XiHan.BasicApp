@@ -33,7 +33,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - TenantId + MenuCode 租户内唯一（UX_TeId_MeCo）
-/// - TenantId = 0（即派生属性 IsGlobal=true）作为平台菜单模板，新租户初始化时克隆
+/// - TenantId = 0（即派生属性 IsGlobal=true）为平台全局菜单，所有租户共享读取（Model A：查询合并 TenantId IN(0,current)）；
+///   租户可叠加 TenantId&gt;0 的私有菜单。全局菜单仅平台运维态可维护，不按租户克隆
 /// - 树结构写入必须做环路检测（禁止 A→B→A）
 ///
 /// 查询：

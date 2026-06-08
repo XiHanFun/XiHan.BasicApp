@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -29,14 +30,17 @@ public sealed class TenantDomainService
     /// </summary>
     public TenantDomainService(
         ITenantRepository tenantRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        ICurrentTenant currentTenant)
     {
         _tenantRepository = tenantRepository;
         _tenantUserRepository = tenantUserRepository;
+        _currentTenant = currentTenant;
     }
 
     private readonly ITenantRepository _tenantRepository;
     private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly ICurrentTenant _currentTenant;
 
     /// <inheritdoc />
     public async Task<TenantCommandResult> CreateTenantAsync(TenantCreateCommand command, CancellationToken cancellationToken = default)
@@ -277,11 +281,11 @@ public sealed class TenantDomainService
         }
     }
 
-    private static void EnsurePlatformAdminNotAssigned(TenantMemberType memberType)
+    private void EnsurePlatformAdminNotAssigned(TenantMemberType memberType)
     {
-        if (memberType == TenantMemberType.PlatformAdmin)
+        if (memberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台管理员成员身份必须通过平台运维流程分配。");
+            throw new InvalidOperationException("平台管理员成员身份仅平台运维态可分配，请切换到平台运维后操作。");
         }
     }
 

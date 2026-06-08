@@ -16,6 +16,7 @@ using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -29,15 +30,19 @@ public sealed class MenuDomainService
 
     private readonly IPermissionRepository _permissionRepository;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public MenuDomainService(
         IMenuRepository menuRepository,
-        IPermissionRepository permissionRepository)
+        IPermissionRepository permissionRepository,
+        ICurrentTenant currentTenant)
     {
         _menuRepository = menuRepository;
         _permissionRepository = permissionRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <inheritdoc />
@@ -345,9 +350,9 @@ public sealed class MenuDomainService
         var menu = await _menuRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("菜单不存在。");
 
-        if (menu.IsGlobal)
+        if (menu.IsGlobal && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台级全局菜单必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台级全局菜单仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return menu;

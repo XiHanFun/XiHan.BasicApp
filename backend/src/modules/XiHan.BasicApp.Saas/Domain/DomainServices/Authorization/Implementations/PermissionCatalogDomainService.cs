@@ -16,6 +16,7 @@ using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -38,7 +39,8 @@ public sealed class PermissionCatalogDomainService
         IMenuRepository menuRepository,
         IPermissionDelegationRepository permissionDelegationRepository,
         IPermissionRequestRepository permissionRequestRepository,
-        IFieldLevelSecurityRepository fieldLevelSecurityRepository)
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
+        ICurrentTenant currentTenant)
     {
         _permissionRepository = permissionRepository;
         _resourceRepository = resourceRepository;
@@ -50,8 +52,10 @@ public sealed class PermissionCatalogDomainService
         _permissionDelegationRepository = permissionDelegationRepository;
         _permissionRequestRepository = permissionRequestRepository;
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
+        _currentTenant = currentTenant;
     }
 
+    private readonly ICurrentTenant _currentTenant;
     private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
     private readonly IMenuRepository _menuRepository;
     private readonly IOperationRepository _operationRepository;
@@ -723,9 +727,9 @@ public sealed class PermissionCatalogDomainService
         var operation = await _operationRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("操作定义不存在。");
 
-        if (operation.IsGlobal)
+        if (operation.IsGlobal && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台级全局操作必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台级全局操作仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return operation;
@@ -741,9 +745,9 @@ public sealed class PermissionCatalogDomainService
         var permission = await _permissionRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("权限定义不存在。");
 
-        if (permission.IsGlobal)
+        if (permission.IsGlobal && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台级全局权限必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台级全局权限仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return permission;
@@ -759,9 +763,9 @@ public sealed class PermissionCatalogDomainService
         var resource = await _resourceRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("资源定义不存在。");
 
-        if (resource.IsGlobal)
+        if (resource.IsGlobal && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台级全局资源必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台级全局资源仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return resource;

@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -34,6 +35,7 @@ public sealed class PermissionConditionDomainService
     private readonly IRoleRepository _roleRepository;
     private readonly ITenantUserRepository _tenantUserRepository;
     private readonly IUserPermissionRepository _userPermissionRepository;
+    private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
     /// 构造函数
@@ -44,7 +46,8 @@ public sealed class PermissionConditionDomainService
         IUserPermissionRepository userPermissionRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        ICurrentTenant currentTenant)
     {
         _permissionConditionRepository = permissionConditionRepository;
         _rolePermissionRepository = rolePermissionRepository;
@@ -52,6 +55,7 @@ public sealed class PermissionConditionDomainService
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _tenantUserRepository = tenantUserRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <inheritdoc />
@@ -419,9 +423,9 @@ public sealed class PermissionConditionDomainService
             throw new InvalidOperationException("无效租户成员不能配置 ABAC 条件。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台管理员成员 ABAC 条件必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台管理员成员 ABAC 条件仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)

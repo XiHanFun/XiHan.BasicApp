@@ -16,6 +16,7 @@ using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -33,15 +34,18 @@ public sealed class ConstraintRuleDomainService
         IConstraintRuleItemRepository constraintRuleItemRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        ICurrentTenant currentTenant)
     {
         _constraintRuleRepository = constraintRuleRepository;
         _constraintRuleItemRepository = constraintRuleItemRepository;
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _tenantUserRepository = tenantUserRepository;
+        _currentTenant = currentTenant;
     }
 
+    private readonly ICurrentTenant _currentTenant;
     private readonly IConstraintRuleItemRepository _constraintRuleItemRepository;
     private readonly IConstraintRuleRepository _constraintRuleRepository;
     private readonly IPermissionRepository _permissionRepository;
@@ -155,11 +159,11 @@ public sealed class ConstraintRuleDomainService
         return new ConstraintRuleCommandResult(savedRule.BasicId);
     }
 
-    private static void EnsureRuleCanBeMaintained(SysConstraintRule rule)
+    private void EnsureRuleCanBeMaintained(SysConstraintRule rule)
     {
-        if (rule.IsGlobal)
+        if (rule.IsGlobal && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台级全局约束规则必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台级全局约束规则仅平台运维态可维护，请切换到平台运维后操作。");
         }
     }
 
@@ -404,9 +408,9 @@ public sealed class ConstraintRuleDomainService
             throw new InvalidOperationException("停用角色不能配置约束规则。");
         }
 
-        if (role.IsGlobal || role.RoleType == RoleType.System)
+        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台全局角色或系统角色约束规则必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台全局角色或系统角色约束规则仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         return (role.RoleCode, role.RoleName);
@@ -442,9 +446,9 @@ public sealed class ConstraintRuleDomainService
             throw new InvalidOperationException("无效租户成员不能配置约束规则。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin)
+        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("平台管理员成员约束规则必须通过平台运维流程维护。");
+            throw new InvalidOperationException("平台管理员成员约束规则仅平台运维态可维护，请切换到平台运维后操作。");
         }
 
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
