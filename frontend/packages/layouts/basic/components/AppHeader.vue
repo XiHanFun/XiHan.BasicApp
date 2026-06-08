@@ -4,12 +4,12 @@ import type { VNodeChild } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { NotificationStatus } from '~/types/enums'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
-import { useLayoutMenuDomain } from '../composables'
+import { NotificationStatus } from '~/types/enums'
+import { useLayoutMenuDomain, usePreferenceEntry } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
@@ -43,6 +43,9 @@ const {
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
 } = useLayoutMenuDomain()
+
+// 偏好设置入口可见性：头部按钮与悬浮 FAB 互斥（auto 模式窄屏走 FAB，头部按钮隐藏）
+const { showHeaderButton: showPreferencesInHeader } = usePreferenceEntry()
 
 const hasBack = ref(false)
 const hasForward = ref(false)
@@ -483,7 +486,7 @@ watch(() => route.fullPath, () => {
     :user-store="userStore"
     :is-dark="isDark"
     :is-fullscreen="isFullscreen"
-    :show-preferences-in-header="appStore.widgetPreferencePosition !== 'fixed'"
+    :show-preferences-in-header="showPreferencesInHeader"
     :timezone-options="timezoneOptions"
     :locale-options="localeOptions"
     :user-options="userOptions"

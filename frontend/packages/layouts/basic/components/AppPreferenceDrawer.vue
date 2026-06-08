@@ -19,9 +19,10 @@ import {
   TOKEN_KEY,
   USER_INFO_KEY,
 } from '~/constants'
-import { useContentMaximize, useTheme } from '~/hooks'
+import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
+import { usePreferenceEntry } from '../composables'
 import PreferenceAppearanceTab from './preference/PreferenceAppearanceTab.vue'
 import PreferenceFab from './preference/PreferenceFab.vue'
 import PreferenceGeneralTab from './preference/PreferenceGeneralTab.vue'
@@ -35,26 +36,9 @@ const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const message = useMessage()
 const { t } = useI18n()
-const { contentIsMaximize: contentMaximized } = useContentMaximize()
 const visible = ref(false)
-const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
-const isNarrowScreen = computed(() => viewportWidth.value < 960)
-// full 布局模式下 header 被隐藏（通过 v-if 逻辑控制），但 appStore.headerShow 不变
-// 需单独判断 full 布局以便显示悬浮 FAB
-const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
-const showFloatingFab = computed(() => {
-  const position = appStore.widgetPreferencePosition
-  if (position === 'header')
-    return false
-  if (position === 'fixed')
-    return true
-  return (
-    isNarrowScreen.value
-    || contentMaximized.value
-    || !appStore.headerShow
-    || isFullContentLayout.value
-  )
-})
+// 偏好设置入口：头部按钮与悬浮 FAB 互斥，统一由 usePreferenceEntry 判定（auto 模式窄屏走 FAB）
+const { showFab: showFloatingFab } = usePreferenceEntry()
 const { animateThemeTransition } = useTheme()
 
 const themeMode = computed(() => appStore.themeMode)
@@ -159,18 +143,11 @@ function handleContentModeChange(value: 'fixed' | 'fluid') {
   contentMode.value = value
 }
 
-function handleViewportResize() {
-  viewportWidth.value = window.innerWidth
-}
-
 onMounted(() => {
-  handleViewportResize()
-  window.addEventListener('resize', handleViewportResize)
   window.addEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleViewportResize)
   window.removeEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
 })
 
