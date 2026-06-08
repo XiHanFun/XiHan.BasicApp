@@ -53,6 +53,8 @@ const allPresetColors = ALL_THEME_COLORS
 const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
 
 const transitionItems = computed(() => [
+  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
+  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
   { value: 'slide-left', label: t('preference.general.animation.slide_left') },
   { value: 'slide-right', label: t('preference.general.animation.slide_right') },
   { value: 'slide-up', label: t('preference.general.animation.slide_up') },
@@ -61,8 +63,6 @@ const transitionItems = computed(() => [
   { value: 'fade', label: t('preference.general.animation.fade') },
   { value: 'zoom-fade', label: t('preference.general.animation.zoom_fade') },
   { value: 'blur-fade', label: t('preference.general.animation.blur_fade') },
-  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
-  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
   { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
   { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
 ])
