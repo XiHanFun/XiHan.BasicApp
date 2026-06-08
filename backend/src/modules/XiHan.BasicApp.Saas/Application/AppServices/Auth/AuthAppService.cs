@@ -27,6 +27,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Otp;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
@@ -182,7 +183,17 @@ public sealed class AuthAppService
             Remark: "自助注册账号",
             OperatorUserId: null);
 
-        var result = await _userDomainService.CreateUserAsync(command, cancellationToken);
+        UserCommandResult result;
+        try
+        {
+            result = await _userDomainService.CreateUserAsync(command, cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // 领域校验失败（用户名已存在 / 密码不符合策略 等）转为用户友好提示（400），避免被框架兜底为 500
+            throw new UserFriendlyException(ex.Message, innerException: ex);
+        }
+
         return new RegisterResultDto
         {
             UserId = result.User.BasicId,
@@ -193,7 +204,7 @@ public sealed class AuthAppService
     /// <inheritdoc />
     [AllowAnonymous]
     [UnitOfWork(true)]
-    public async Task<PasswordResetResultDto> RequestPasswordResetAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default)
+    public async Task<PasswordResetResultDto> PasswordResetRequestAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -210,9 +221,16 @@ public sealed class AuthAppService
         }
 
         var temporaryPassword = GenerateTemporaryPassword();
-        await _userDomainService.ResetUserPasswordAsync(
-            new UserPasswordResetCommand(user.BasicId, temporaryPassword, PasswordExpirationTime: null, Remark: "找回密码-临时密码"),
-            cancellationToken);
+        try
+        {
+            await _userDomainService.ResetUserPasswordAsync(
+                new UserPasswordResetCommand(user.BasicId, temporaryPassword, PasswordExpirationTime: null, Remark: "找回密码-临时密码"),
+                cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new UserFriendlyException(ex.Message, innerException: ex);
+        }
 
         // 已配置真实 SMTP：通过消息投递管道发送临时密码邮件，响应不回显；未配置（本地联调）：回显临时密码便于测试
         if (_emailSenderOptions.CurrentValue.IsConfigured)
@@ -237,11 +255,23 @@ public sealed class AuthAppService
     }
 
     /// <summary>
-    /// 生成满足默认密码策略（含大小写/数字/特殊字符，长度 12）的临时密码
+    /// 生成满足默认密码策略的临时密码：含大小写/数字/特殊字符，
+    /// 字母数字之间以特殊字符分隔，确保不出现连续序列或重复字符
     /// </summary>
     private static string GenerateTemporaryPassword()
     {
-        return "Kx9@" + Guid.NewGuid().ToString("N")[..8];
+        const string uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";  // 去除易混 I/O
+        const string lowers = "abcdefghijkmnpqrstuvwxyz";  // 去除易混 l/o
+        const string digits = "23456789";                  // 去除易混 0/1
+        var bytes = Guid.NewGuid().ToByteArray();
+        char Pick(string set, int i) => set[bytes[i] % set.Length];
+        return string.Concat(
+            Pick(uppers, 0), '@',
+            Pick(lowers, 1), '#',
+            Pick(digits, 2), '$',
+            Pick(uppers, 3), '%',
+            Pick(lowers, 4), '&',
+            Pick(digits, 5));
     }
 
     /// <summary>
