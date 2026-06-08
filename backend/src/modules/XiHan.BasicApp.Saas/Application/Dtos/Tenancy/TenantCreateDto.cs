@@ -53,6 +53,16 @@ public sealed class TenantCreateDto : BasicAppCDto
     public long? EditionId { get; set; }
 
     /// <summary>
+    /// 租户管理员用户名（与 AdminPassword 同时提供时，开通后自动创建管理员 + Owner 角色 + 按版本授权）
+    /// </summary>
+    public string? AdminUserName { get; set; }
+
+    /// <summary>
+    /// 租户管理员初始密码（与 AdminUserName 同时提供时生效）
+    /// </summary>
+    public string? AdminPassword { get; set; }
+
+    /// <summary>
     /// 隔离模式
     /// </summary>
     public TenantIsolationMode IsolationMode { get; set; } = TenantIsolationMode.Field;
