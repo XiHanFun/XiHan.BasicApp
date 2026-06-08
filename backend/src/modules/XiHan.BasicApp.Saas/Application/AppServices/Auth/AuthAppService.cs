@@ -24,6 +24,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
@@ -51,6 +52,8 @@ public sealed class AuthAppService
     private readonly IAuthEmailLoginCodeService _emailLoginCodeService;
 
     private readonly IMessageDeliveryService _messageDeliveryService;
+
+    private readonly IOtpService _otpService;
 
     private readonly IOptionsMonitor<EmailSenderOptions> _emailSenderOptions;
 
@@ -83,6 +86,7 @@ public sealed class AuthAppService
         IAuthTokenIssueService authTokenIssueService,
         IAuthEmailLoginCodeService emailLoginCodeService,
         IMessageDeliveryService messageDeliveryService,
+        IOtpService otpService,
         IOptionsMonitor<EmailSenderOptions> emailSenderOptions,
         ILocalEventBus localEventBus,
         ICurrentTenant currentTenant,
@@ -99,6 +103,7 @@ public sealed class AuthAppService
         _authTokenIssueService = authTokenIssueService;
         _emailLoginCodeService = emailLoginCodeService;
         _messageDeliveryService = messageDeliveryService;
+        _otpService = otpService;
         _emailSenderOptions = emailSenderOptions;
         _localEventBus = localEventBus;
         _currentTenant = currentTenant;
@@ -172,7 +177,25 @@ public sealed class AuthAppService
 
         if (authResult.RequiresTwoFactor)
         {
-            return BuildTwoFactorChallenge(authResult.Security ?? throw new InvalidOperationException("用户双因素配置不存在。"));
+            var security = authResult.Security ?? throw new InvalidOperationException("用户双因素配置不存在。");
+            var twoFactorUser = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
+            var availableMethods = ResolveTwoFactorMethods(security.TwoFactorMethod);
+
+            // 尚未提交验证码：进入方式选择 / 验证码下发阶段（不签发令牌）
+            if (string.IsNullOrWhiteSpace(input.TwoFactorCode))
+            {
+                return await BuildTwoFactorChallengeAsync(twoFactorUser, availableMethods, input.TwoFactorMethod, effectiveTenantId, cancellationToken);
+            }
+
+            // 已提交验证码：按所选方式校验，未通过抛出（记录失败事件）；通过则继续往下签发令牌
+            await VerifyTwoFactorCodeOrThrowAsync(twoFactorUser, security, availableMethods, input.TwoFactorMethod, input.TwoFactorCode, effectiveTenantId, now, userName, cancellationToken);
+
+            var twoFactorToken = await IssueLoginTokenAsync(twoFactorUser, security, effectiveTenantId, userName, input.DeviceId, now, cancellationToken);
+            return new LoginResponseDto
+            {
+                RequiresTwoFactor = false,
+                Token = twoFactorToken
+            };
         }
 
         if (!authResult.Succeeded)
@@ -223,7 +246,22 @@ public sealed class AuthAppService
             throw new InvalidOperationException(authResult.ErrorMessage ?? "邮箱不可用。");
         }
 
-        var code = _emailLoginCodeService.IssueCode(effectiveTenantId, email);
+        var code = await IssueAndSendEmailLoginCodeAsync(email, authResult.User?.BasicId, effectiveTenantId, cancellationToken);
+
+        return new VerificationCodeResultDto
+        {
+            ExpiresInSeconds = _emailLoginCodeService.ExpiresInSeconds,
+            // 已配置真实 SMTP 时不回显验证码；未配置（本地联调）时回显以便测试
+            DebugCode = _emailSenderOptions.CurrentValue.IsConfigured ? null : code
+        };
+    }
+
+    /// <summary>
+    /// 为指定邮箱生成登录验证码并在已配置 SMTP 时发送邮件，返回生成的验证码（供本地联调回显）
+    /// </summary>
+    private async Task<string> IssueAndSendEmailLoginCodeAsync(string email, long? receiveUserId, long? tenantId, CancellationToken cancellationToken)
+    {
+        var code = _emailLoginCodeService.IssueCode(tenantId, email);
         var emailOptions = _emailSenderOptions.CurrentValue;
 
         // 已配置真实 SMTP：通过消息投递管道发送验证码邮件（失败会抛出，避免静默丢码）
@@ -234,7 +272,7 @@ public sealed class AuthAppService
             await _messageDeliveryService.CreateEmailAsync(
                 new EmailCreateCommand(
                     SendUserId: null,
-                    ReceiveUserId: authResult.User?.BasicId,
+                    ReceiveUserId: receiveUserId,
                     EmailType: EmailType.Verification,
                     FromEmail: emailOptions.FromEmail,
                     FromName: emailOptions.FromName,
@@ -250,17 +288,12 @@ public sealed class AuthAppService
                     ScheduledTime: null,
                     MaxRetryCount: 3,
                     BusinessType: "auth.email-login",
-                    BusinessId: authResult.User?.BasicId,
+                    BusinessId: receiveUserId,
                     Remark: null),
                 cancellationToken);
         }
 
-        return new VerificationCodeResultDto
-        {
-            ExpiresInSeconds = _emailLoginCodeService.ExpiresInSeconds,
-            // 已配置真实 SMTP 时不回显验证码；未配置（本地联调）时回显以便测试
-            DebugCode = emailOptions.IsConfigured ? null : code
-        };
+        return code;
     }
 
     /// <inheritdoc />
@@ -421,17 +454,128 @@ public sealed class AuthAppService
         return Task.FromResult(_authTokenIssueService.RefreshAccessToken(input.AccessToken, input.RefreshToken));
     }
 
-    private static LoginResponseDto BuildTwoFactorChallenge(SysUserSecurity security)
+    /// <summary>
+    /// 构建双因素验证挑战响应：解析当前应使用的方式，邮箱方式在进入验证码输入前先下发验证码
+    /// </summary>
+    private async Task<LoginResponseDto> BuildTwoFactorChallengeAsync(
+        SysUser user,
+        List<string> availableMethods,
+        string? requestedMethod,
+        long? tenantId,
+        CancellationToken cancellationToken)
     {
-        var methods = ResolveTwoFactorMethods(security.TwoFactorMethod);
+        // 用户已明确选择某方式则采用其选择；否则仅在唯一方式时自动选中，多方式时交由前端展示选择
+        var selected = NormalizeTwoFactorMethod(requestedMethod);
+        var resolvedMethod = selected is not null && availableMethods.Contains(selected)
+            ? selected
+            : availableMethods.Count == 1 ? availableMethods[0] : null;
+
+        // 邮箱方式需要在进入验证码输入前先下发验证码（TOTP 由认证器本地生成，无需下发）
+        var codeSent = false;
+        if (resolvedMethod == "email")
+        {
+            await SendEmailTwoFactorCodeAsync(user, tenantId, cancellationToken);
+            codeSent = true;
+        }
+
         return new LoginResponseDto
         {
             RequiresTwoFactor = true,
-            AvailableTwoFactorMethods = methods,
-            TwoFactorMethod = methods.Count == 1 ? methods[0] : null,
-            CodeSent = false,
+            AvailableTwoFactorMethods = availableMethods,
+            TwoFactorMethod = resolvedMethod,
+            CodeSent = codeSent,
             Token = null
         };
+    }
+
+    /// <summary>
+    /// 校验已提交的双因素验证码，未通过时记录失败事件并抛出异常
+    /// </summary>
+    private async Task VerifyTwoFactorCodeOrThrowAsync(
+        SysUser user,
+        SysUserSecurity security,
+        List<string> availableMethods,
+        string? requestedMethod,
+        string code,
+        long? tenantId,
+        DateTimeOffset now,
+        string userName,
+        CancellationToken cancellationToken)
+    {
+        // 解析待校验方式：优先使用前端提交的方式，缺省时回退到唯一可用方式
+        var method = NormalizeTwoFactorMethod(requestedMethod);
+        if (method is null || !availableMethods.Contains(method))
+        {
+            method = availableMethods.Count == 1 ? availableMethods[0] : null;
+        }
+
+        if (method is null)
+        {
+            throw new InvalidOperationException("请选择双因素验证方式。");
+        }
+
+        var trimmedCode = code.Trim();
+        var verified = method switch
+        {
+            "totp" => VerifyTotpCode(security, trimmedCode),
+            "email" => _emailLoginCodeService.TryConsume(tenantId, RequireUserEmail(user), trimmedCode),
+            _ => throw new InvalidOperationException("不支持的双因素验证方式。")
+        };
+
+        if (verified)
+        {
+            return;
+        }
+
+        var client = _clientInfoProvider.GetCurrent();
+        await _localEventBus.PublishAsync(
+            new AuthLoginFailedDomainEvent(
+                tenantId,
+                user.BasicId,
+                userName,
+                LoginResult.RequiresTwoFactor,
+                "双因素验证码无效。",
+                now,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent));
+        throw new InvalidOperationException("双因素验证码无效或已过期。");
+    }
+
+    /// <summary>
+    /// 校验 TOTP 认证器验证码
+    /// </summary>
+    private bool VerifyTotpCode(SysUserSecurity security, string code)
+    {
+        if (string.IsNullOrWhiteSpace(security.TwoFactorSecret))
+        {
+            throw new InvalidOperationException("账号尚未完成认证器初始化，无法使用认证器验证。");
+        }
+
+        return _otpService.VerifyTotpCode(security.TwoFactorSecret, code);
+    }
+
+    /// <summary>
+    /// 向用户邮箱下发双因素登录验证码（复用邮箱登录验证码通道）
+    /// </summary>
+    private Task SendEmailTwoFactorCodeAsync(SysUser user, long? tenantId, CancellationToken cancellationToken)
+    {
+        return IssueAndSendEmailLoginCodeAsync(RequireUserEmail(user), user.BasicId, tenantId, cancellationToken);
+    }
+
+    private static string RequireUserEmail(SysUser user)
+    {
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new InvalidOperationException("账号未绑定邮箱，无法使用邮箱验证码。");
+        }
+
+        return user.Email.Trim();
+    }
+
+    private static string? NormalizeTwoFactorMethod(string? method)
+    {
+        return string.IsNullOrWhiteSpace(method) ? null : method.Trim().ToLowerInvariant();
     }
 
     private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
