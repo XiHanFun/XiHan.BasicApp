@@ -19,6 +19,7 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NModal,
   NPopconfirm,
   NSelect,
   NSpace,
@@ -148,6 +149,41 @@ function getFileStatusTagType(status: FileStatus): TagType {
   return 'default'
 }
 
+// ── 文件预览类型判定（仅浏览器可直接渲染的简单类型）─────────────
+type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'text'
+
+const PREVIEW_TEXT_EXTENSIONS = new Set([
+  'txt', 'md', 'markdown', 'json', 'xml', 'yaml', 'yml',
+  'csv', 'log', 'ini', 'conf', 'html', 'htm', 'css', 'js', 'ts', 'sql',
+])
+
+/** 仅当文件为浏览器可直接渲染的简单类型时返回其预览种类，否则返回 null */
+function getPreviewKind(row: FileListItemDto): PreviewKind | null {
+  const mime = (row.mimeType ?? '').toLowerCase()
+  const ext = (row.fileExtension ?? '').replace(/^\./, '').toLowerCase()
+  if (mime.startsWith('image/') || row.fileType === FileType.Image) {
+    return 'image'
+  }
+  if (mime.startsWith('video/') || row.fileType === FileType.Video) {
+    return 'video'
+  }
+  if (mime.startsWith('audio/') || row.fileType === FileType.Audio) {
+    return 'audio'
+  }
+  if (mime === 'application/pdf' || ext === 'pdf') {
+    return 'pdf'
+  }
+  if (mime.startsWith('text/') || PREVIEW_TEXT_EXTENSIONS.has(ext)) {
+    return 'text'
+  }
+  return null
+}
+
+/** 文件正常且可预览时才显示预览入口 */
+function canPreview(row: FileListItemDto): boolean {
+  return row.status === FileStatus.Normal && getPreviewKind(row) !== null
+}
+
 // ── 字段单一事实源 ──────────────────────────────────────────────
 // 后端 FilePageQueryDto 支持：keyword/fileType/status/accessLevel/isTemporary/isEncrypted/fileExtension/mimeType
 const fields: ListFieldSchema[] = [
@@ -253,6 +289,7 @@ const schema: PageSchema = {
   },
   actions: [
     { key: 'upload', title: '上传文件', scope: 'page', type: 'primary', icon: 'lucide:upload' },
+    { key: 'preview', title: '预览', scope: 'row', visible: row => canPreview(row as unknown as FileListItemDto) },
     { key: 'view', title: '查看详情', scope: 'row' },
     { key: 'metadata', title: '编辑元数据', scope: 'row' },
     { key: 'storages', title: '存储副本', scope: 'row' },
@@ -267,6 +304,11 @@ function onAction(payload: SchemaActionPayload) {
   switch (payload.key) {
     case 'upload':
       openUploadDrawer()
+      break
+    case 'preview':
+      if (row) {
+        void handlePreview(row)
+      }
       break
     case 'view':
       if (row) {
@@ -473,6 +515,32 @@ async function handleFileDetail(row: FileListItemDto) {
   }
   finally {
     detailLoading.value = false
+  }
+}
+
+// ── 文件预览 ────────────────────────────────────────────────────
+const previewVisible = ref(false)
+const previewLoading = ref(false)
+const previewUrl = ref<string>('')
+const previewKind = ref<PreviewKind | null>(null)
+const previewName = ref<string>('')
+
+/** 生成签名 URL 并按文件种类在弹窗中预览 */
+async function handlePreview(row: FileListItemDto) {
+  previewKind.value = getPreviewKind(row)
+  previewName.value = row.originalName
+  previewUrl.value = ''
+  previewVisible.value = true
+  previewLoading.value = true
+  try {
+    previewUrl.value = await fileManagementApi.generatePresignedUrl(row.basicId)
+  }
+  catch {
+    previewUrl.value = ''
+    message.error('获取预览地址失败')
+  }
+  finally {
+    previewLoading.value = false
   }
 }
 
@@ -955,6 +1023,48 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         </NSpace>
       </NDrawerContent>
     </NDrawer>
+
+    <!-- 文件预览弹窗：仅对浏览器可直接渲染的简单类型开放（图片/音视频/PDF/文本）-->
+    <NModal
+      v-model:show="previewVisible"
+      preset="card"
+      :title="`预览 - ${previewName}`"
+      :bordered="false"
+      style="width: 80vw; max-width: 960px;"
+    >
+      <div class="file-preview-body">
+        <div v-if="previewLoading" class="text-gray-400">
+          加载中...
+        </div>
+        <div v-else-if="!previewUrl" class="text-gray-400">
+          无法获取预览地址
+        </div>
+        <img
+          v-else-if="previewKind === 'image'"
+          :src="previewUrl"
+          :alt="previewName"
+          class="file-preview-image"
+        >
+        <video
+          v-else-if="previewKind === 'video'"
+          :src="previewUrl"
+          controls
+          class="file-preview-media"
+        />
+        <audio
+          v-else-if="previewKind === 'audio'"
+          :src="previewUrl"
+          controls
+          class="file-preview-audio"
+        />
+        <iframe
+          v-else-if="previewKind === 'pdf' || previewKind === 'text'"
+          :src="previewUrl"
+          class="file-preview-frame"
+          title="文件预览"
+        />
+      </div>
+    </NModal>
   </SchemaPage>
 </template>
 
@@ -968,5 +1078,31 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.file-preview-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.file-preview-image,
+.file-preview-media {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.file-preview-audio {
+  width: 100%;
+}
+
+.file-preview-frame {
+  width: 100%;
+  height: 70vh;
+  border: none;
 }
 </style>
