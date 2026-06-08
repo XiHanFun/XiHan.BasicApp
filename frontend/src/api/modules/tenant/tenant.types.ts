@@ -43,6 +43,10 @@ export interface TenantDetailDto extends TenantListItemDto {
 }
 
 export interface TenantCreateDto extends BasicCreateDto {
+  /** 租户管理员用户名（与 adminPassword 同时提供时一站式开通管理员/角色/授权） */
+  adminUserName?: string | null
+  /** 租户管理员初始密码 */
+  adminPassword?: string | null
   domain?: string | null
   editionId?: ApiId | null
   expirationTime?: DateTimeString | null
