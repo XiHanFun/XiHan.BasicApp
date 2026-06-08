@@ -104,11 +104,7 @@ onBeforeUnmount(() => {
           title="收藏夹"
           aria-label="收藏夹"
         >
-          <Icon
-            :icon="favoritesStore.count > 0 ? 'lucide:star' : 'lucide:star-off'"
-            width="18"
-            height="18"
-          />
+          <Icon icon="lucide:star" width="18" height="18" />
           <span v-if="favoritesStore.count > 0" class="fav-btn__badge">{{ favoritesStore.count }}</span>
         </button>
       </span>
