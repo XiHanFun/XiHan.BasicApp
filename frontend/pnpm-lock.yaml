@@ -53,15 +53,6 @@ importers:
       '@tiptap/vue-3':
         specifier: ^3.26.0
         version: 3.26.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.26.0(@tiptap/pm@3.26.0))(@tiptap/pm@3.26.0)(vue@3.5.35(typescript@5.9.3))
-      '@vue-office/docx':
-        specifier: ^1.6.3
-        version: 1.6.3(vue-demi@0.14.10(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))
-      '@vue-office/excel':
-        specifier: ^1.7.14
-        version: 1.7.14(vue-demi@0.14.10(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))
-      '@vue-office/pptx':
-        specifier: ^1.0.1
-        version: 1.0.1(vue-demi@0.14.10(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))
       '@vueuse/core':
         specifier: ^11.3.0
         version: 11.3.0(vue@3.5.35(typescript@5.9.3))
@@ -1826,36 +1817,6 @@ packages:
 
   '@volar/typescript@2.4.15':
     resolution: {integrity: sha512-2aZ8i0cqPGjXb4BhkMsPYDkkuc2ZQ6yOpqwAuNwUoncELqoy5fRgOQtLR9gB0g902iS0NAkvpIzs27geVyVdPg==}
-
-  '@vue-office/docx@1.6.3':
-    resolution: {integrity: sha512-Cs+3CAaRBOWOiW4XAhTwwxJ0dy8cPIf6DqfNvYcD3YACiLwO4kuawLF2IAXxyijhbuOeoFsfvoVbOc16A/4bZA==}
-    peerDependencies:
-      '@vue/composition-api': ^1.7.1
-      vue: ^2.0.0 || >=3.0.0
-      vue-demi: ^0.14.6
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
-  '@vue-office/excel@1.7.14':
-    resolution: {integrity: sha512-pVUgt+emDQUnW7q22CfnQ+jl43mM/7IFwYzOg7lwOwPEbiVB4K4qEQf+y/bc4xGXz75w1/e3Kz3G6wAafmFBFg==}
-    peerDependencies:
-      '@vue/composition-api': ^1.7.1
-      vue: ^2.0.0 || >=3.0.0
-      vue-demi: ^0.14.6
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
-  '@vue-office/pptx@1.0.1':
-    resolution: {integrity: sha512-+V7Kctzl6f6+Yk4NaD/wQGRIkqLWcowe0jEhPexWQb8Oilbzt1OyhWRWcMsxNDTdrgm6aMLP+0/tmw27cxddMg==}
-    peerDependencies:
-      '@vue/composition-api': ^1.7.1
-      vue: ^2.0.0 || >=3.0.0
-      vue-demi: ^0.14.6
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
 
   '@vue/babel-helper-vue-transform-on@1.5.0':
     resolution: {integrity: sha512-0dAYkerNhhHutHZ34JtTl2czVQHUNWv6xEbkdF5W+Yrv5pCWsqjeORdOgbtW2I9gWlt+wBmVn+ttqN9ZxR5tzA==}
@@ -5442,8 +5403,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.57.0(typescript@5.9.3)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.57.0(typescript@5.9.3)
-      '@typescript-eslint/types': 8.57.0
+      '@typescript-eslint/tsconfig-utils': 8.60.1(typescript@5.9.3)
+      '@typescript-eslint/types': 8.60.1
       debug: 4.4.3
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -5610,21 +5571,6 @@ snapshots:
       '@volar/language-core': 2.4.15
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
-
-  '@vue-office/docx@1.6.3(vue-demi@0.14.10(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.35(typescript@5.9.3)
-      vue-demi: 0.14.10(vue@3.5.35(typescript@5.9.3))
-
-  '@vue-office/excel@1.7.14(vue-demi@0.14.10(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.35(typescript@5.9.3)
-      vue-demi: 0.14.10(vue@3.5.35(typescript@5.9.3))
-
-  '@vue-office/pptx@1.0.1(vue-demi@0.14.10(vue@3.5.35(typescript@5.9.3)))(vue@3.5.35(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.35(typescript@5.9.3)
-      vue-demi: 0.14.10(vue@3.5.35(typescript@5.9.3))
 
   '@vue/babel-helper-vue-transform-on@1.5.0': {}
 

@@ -32,7 +32,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import Papa from 'papaparse'
-import { computed, defineAsyncComponent, h, nextTick, reactive, ref, watch } from 'vue'
+import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 import {
   createPageRequest,
   fileManagementApi,
@@ -44,8 +44,6 @@ import {
 } from '@/api'
 import { Icon, SchemaPage, XMdEditor } from '~/components'
 import { downloadBlob, formatDate, formatFileSize, getOptionLabel } from '~/utils'
-import '@vue-office/docx/lib/v3/index.css'
-import '@vue-office/excel/lib/v3/index.css'
 
 defineOptions({ name: 'PlatformFilePage' })
 
@@ -53,19 +51,6 @@ type DetailKind = 'file' | 'storage'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 const message = useMessage()
-
-// Office 预览组件懒加载（重型库，按需加载 + vite vendor-office 分包）
-const VueOfficeDocx = defineAsyncComponent(
-  () => import('@vue-office/docx/lib/v3/index.js'),
-)
-
-const VueOfficeExcel = defineAsyncComponent(
-  () => import('@vue-office/excel/lib/v3/index.js'),
-)
-
-const VueOfficePptx = defineAsyncComponent(
-  () => import('@vue-office/pptx/lib/v3/index.js'),
-)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -168,19 +153,12 @@ function getFileStatusTagType(status: FileStatus): TagType {
 }
 
 // ── 文件预览类型判定（仅零依赖、浏览器可直接渲染的类型）─────────
-type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'markdown' | 'text' | 'docx' | 'xlsx' | 'pptx' | 'csv'
+type PreviewKind = 'image' | 'video' | 'audio' | 'markdown' | 'text' | 'csv'
 
 const PREVIEW_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'])
 const PREVIEW_VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogv'])
 const PREVIEW_AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg'])
 const PREVIEW_MARKDOWN_EXTENSIONS = new Set(['md', 'markdown'])
-
-/** Office 扩展名 → 预览种类（旧版 doc/xls/ppt 不支持，仅下载） */
-const PREVIEW_OFFICE_EXTENSIONS: Record<string, 'docx' | 'xlsx' | 'pptx'> = {
-  docx: 'docx',
-  xlsx: 'xlsx',
-  pptx: 'pptx',
-}
 
 /** 文本/源码/配置/数据交换扩展名 → highlight.js 语言名（空串表示自动识别） */
 const PREVIEW_TEXT_LANG: Record<string, string> = {
@@ -229,17 +207,11 @@ function getPreviewKind(row: FileListItemDto): PreviewKind | null {
   if (mime.startsWith('audio/') || PREVIEW_AUDIO_EXTENSIONS.has(ext) || row.fileType === FileType.Audio) {
     return 'audio'
   }
-  if (mime === 'application/pdf' || ext === 'pdf') {
-    return 'pdf'
-  }
   if (PREVIEW_MARKDOWN_EXTENSIONS.has(ext)) {
     return 'markdown'
   }
   if (ext === 'csv') {
     return 'csv'
-  }
-  if (PREVIEW_OFFICE_EXTENSIONS[ext]) {
-    return PREVIEW_OFFICE_EXTENSIONS[ext]
   }
   if (mime.startsWith('text/') || PREVIEW_TEXT_LANG[ext] !== undefined) {
     return 'text'
@@ -604,16 +576,15 @@ const previewName = ref<string>('')
 const previewText = ref<string>('')
 const previewLang = ref<string>('')
 const previewTextError = ref<string>('')
-const previewOfficeSrc = ref<ArrayBuffer | null>(null)
 const csvColumns = ref<DataTableColumns>([])
 const csvData = ref<Record<string, string>[]>([])
 
 /** 媒体 blob 的对象 URL，需在切换/关闭时手动释放，避免内存泄漏 */
 let previewObjectUrl = ''
 
-/** 非媒体类型（文本/代码/Office/CSV）用块级流布局，媒体类型用居中 */
+/** 非媒体类型（文本/代码/CSV）用块级流布局，媒体类型用居中 */
 const isBlockPreview = computed(() =>
-  !!previewKind.value && !['image', 'video', 'audio', 'pdf'].includes(previewKind.value),
+  !!previewKind.value && !['image', 'video', 'audio'].includes(previewKind.value),
 )
 
 /** 复制当前预览的原始文本到剪贴板 */
@@ -644,7 +615,6 @@ async function handlePreview(row: FileListItemDto) {
   previewUrl.value = ''
   previewText.value = ''
   previewTextError.value = ''
-  previewOfficeSrc.value = null
   csvColumns.value = []
   csvData.value = []
   previewVisible.value = true
@@ -661,14 +631,10 @@ async function handlePreview(row: FileListItemDto) {
     else if (kind === 'csv') {
       parseCsv(await blob.text())
     }
-    else if (kind === 'docx' || kind === 'xlsx' || kind === 'pptx') {
-      previewOfficeSrc.value = await blob.arrayBuffer()
-    }
     else {
-      // 后端下载流为 application/octet-stream，会让 PDF 在 iframe 中触发下载而非内联预览；
-      // 用文件真实 MIME 重建 blob（PDF 兜底 application/pdf），媒体类型按内容解码不受影响。
-      const mime = row.mimeType || (kind === 'pdf' ? 'application/pdf' : '')
-      const typedBlob = mime ? new Blob([blob], { type: mime }) : blob
+      // 媒体（图片/音视频）：后端下载流为 application/octet-stream，用文件真实 MIME 重建
+      // blob 后生成对象 URL（媒体亦按内容解码，重建仅为标注正确类型）。
+      const typedBlob = row.mimeType ? new Blob([blob], { type: row.mimeType }) : blob
       previewObjectUrl = URL.createObjectURL(typedBlob)
       previewUrl.value = previewObjectUrl
     }
@@ -1202,7 +1168,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
       </NDrawerContent>
     </NDrawer>
 
-    <!-- 文件预览弹窗：仅零依赖、浏览器可直接渲染的类型（图片/音视频/PDF/Markdown/文本与源码高亮） -->
+    <!-- 文件预览弹窗：仅零依赖、浏览器可直接渲染的类型（图片/音视频/Markdown/文本与源码高亮/CSV） -->
     <NModal
       v-model:show="previewVisible"
       preset="card"
@@ -1239,21 +1205,6 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
             />
           </div>
         </div>
-        <VueOfficeDocx
-          v-else-if="previewKind === 'docx'"
-          :src="previewOfficeSrc"
-          class="file-preview-office"
-        />
-        <VueOfficeExcel
-          v-else-if="previewKind === 'xlsx'"
-          :src="previewOfficeSrc"
-          class="file-preview-excel"
-        />
-        <VueOfficePptx
-          v-else-if="previewKind === 'pptx'"
-          :src="previewOfficeSrc"
-          class="file-preview-office"
-        />
         <NDataTable
           v-else-if="previewKind === 'csv'"
           :columns="csvColumns"
@@ -1283,12 +1234,6 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           :src="previewUrl"
           controls
           class="file-preview-audio"
-        />
-        <iframe
-          v-else-if="previewKind === 'pdf'"
-          :src="previewUrl"
-          class="file-preview-frame"
-          title="文件预览"
         />
       </div>
     </NModal>
@@ -1333,27 +1278,8 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   width: 100%;
 }
 
-.file-preview-frame {
-  width: 100%;
-  height: 70vh;
-  border: none;
-}
-
 .file-preview-md {
   width: 100%;
-}
-
-/* Office 预览容器统一固定高度：excel canvas / pptx 缩放都依赖明确尺寸，docx 文档流为统一也固定。
-   docx/pptx 共用 .file-preview-office（容器滚动）；excel 仅覆盖 overflow（内部 x-spreadsheet 自带滚动，避免双滚动条） */
-.file-preview-office,
-.file-preview-excel {
-  width: 100%;
-  height: 68vh;
-  overflow: auto;
-}
-
-.file-preview-excel {
-  overflow: hidden;
 }
 
 .file-preview-csv {
