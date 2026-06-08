@@ -40,7 +40,7 @@ import {
   ResourceAccessLevel,
 } from '@/api'
 import { Icon, SchemaPage, XMdEditor } from '~/components'
-import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
+import { downloadBlob, formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformFilePage' })
 
@@ -328,6 +328,7 @@ const schema: PageSchema = {
   actions: [
     { key: 'upload', title: '上传文件', scope: 'page', type: 'primary', icon: 'lucide:upload' },
     { key: 'preview', title: '预览', scope: 'row', visible: row => canPreview(row as unknown as FileListItemDto) },
+    { key: 'download', title: '下载', scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
     { key: 'view', title: '查看详情', scope: 'row' },
     { key: 'metadata', title: '编辑元数据', scope: 'row' },
     { key: 'storages', title: '存储副本', scope: 'row' },
@@ -346,6 +347,11 @@ function onAction(payload: SchemaActionPayload) {
     case 'preview':
       if (row) {
         void handlePreview(row)
+      }
+      break
+    case 'download':
+      if (row) {
+        void handleDownload(row)
       }
       break
     case 'view':
@@ -613,11 +619,12 @@ async function handlePreview(row: FileListItemDto) {
       previewUrl.value = previewObjectUrl
     }
   }
-  catch {
+  catch (error) {
+    const reason = (error as Error).message || '加载预览失败'
     if (kind === 'markdown' || kind === 'text') {
-      previewTextError.value = '加载预览失败，请下载查看'
+      previewTextError.value = reason
     }
-    message.error('加载预览失败')
+    message.error(reason)
   }
   finally {
     previewLoading.value = false
@@ -629,6 +636,17 @@ watch(previewVisible, (visible) => {
     revokePreviewObjectUrl()
   }
 })
+
+/** 经鉴权下载接口取文件流，交由通用下载器触发浏览器下载 */
+async function handleDownload(row: FileListItemDto) {
+  try {
+    const blob = await fileManagementApi.download(row.basicId)
+    downloadBlob(blob, row.originalName)
+  }
+  catch (error) {
+    message.error((error as Error).message || '下载失败')
+  }
+}
 
 // ── 存储副本列表抽屉 ────────────────────────────────────────────
 const storageListVisible = ref(false)
