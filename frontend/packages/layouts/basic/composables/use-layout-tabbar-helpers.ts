@@ -38,11 +38,13 @@ export function buildTabContextOptions(params: {
   path: string
   closable: boolean
   pinned: boolean
+  favorited: boolean
+  favoritesEnabled: boolean
   tabs: TabItem[]
   isContentMaximized: boolean
   t: (key: string) => string
 }) {
-  const { path, closable, pinned, tabs, isContentMaximized, t } = params
+  const { path, closable, pinned, favorited, favoritesEnabled, tabs, isContentMaximized, t } = params
   const {
     closeAllDisabled,
     closeCurrentDisabled,
@@ -55,6 +57,13 @@ export function buildTabContextOptions(params: {
   return [
     { key: 'reload', label: t('tabbar.reload'), icon: createDropdownIcon('lucide:refresh-cw') },
     { key: 'open', label: t('tabbar.open'), icon: createDropdownIcon('lucide:external-link') },
+    ...(favoritesEnabled
+      ? [{
+          key: 'favorite',
+          label: favorited ? t('tabbar.unfavorite') : t('tabbar.favorite'),
+          icon: createDropdownIcon(favorited ? 'lucide:star-off' : 'lucide:star'),
+        }]
+      : []),
     {
       key: 'pin',
       label: pinned ? t('tabbar.unpin') : t('tabbar.pin'),

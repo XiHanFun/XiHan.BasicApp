@@ -11,10 +11,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import { useAppStore, useFavoritesStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
   createDropdownIcon,
+  flyToFavorites,
   getTabByPath,
   openTabInNewWindow,
 } from '../composables'
@@ -29,6 +30,7 @@ const { t, te } = useI18n()
 const appStore = useAppStore()
 const tabbarPreferences = useTabbarPreferences()
 const tabbarStore = useTabbarStore()
+const favoritesStore = useFavoritesStore()
 
 const visibleTabs = computed(() => tabbarStore.tabs)
 const localizedTabs = computed(() => {
@@ -48,6 +50,8 @@ const contextMenuY = ref(0)
 const contextTabPath = ref('')
 const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
+// 收藏「飞入」动画的起点矩形（右键时捕获被点中标签的 DOM 位置）
+const contextTabRect = ref<DOMRect | null>(null)
 const tabsContainerRef = ref<HTMLElement | null>(null)
 const scrollViewportRef = ref<HTMLElement | null>(null)
 
@@ -77,6 +81,8 @@ const contextMenuOptions = computed(() => {
     path: contextTabPath.value,
     closable: contextTabClosable.value,
     pinned: contextTabPinned.value,
+    favorited: favoritesStore.has(contextTabPath.value),
+    favoritesEnabled: appStore.widgetFavorites,
     tabs: visibleTabs.value,
     isContentMaximized: isContentMaximized.value,
     t,
@@ -141,6 +147,26 @@ function handleContextMenuSelect(key: string, tabPath: string) {
     case 'open':
       openTabInNewWindow(tabPath)
       break
+    case 'favorite': {
+      const target = getTabByPath(visibleTabs.value, tabPath)
+      if (!target) {
+        break
+      }
+      const wasFavorited = favoritesStore.has(tabPath)
+      favoritesStore.toggle({
+        key: tabPath,
+        path: tabPath,
+        title: target.title,
+        icon: target.meta?.icon as string | undefined,
+      })
+      // 仅「新增收藏」时播放飞入动画（取消收藏不播）
+      if (!wasFavorited) {
+        flyToFavorites(contextTabRect.value, {
+          label: te(target.title) ? t(target.title) : target.title,
+        })
+      }
+      break
+    }
   }
 }
 
@@ -149,6 +175,9 @@ function openContextMenu(e: MouseEvent, tab: TabItem) {
   contextTabPath.value = tab.path
   contextTabClosable.value = tab.closable
   contextTabPinned.value = Boolean(tab.pinned)
+  // 捕获被右键的标签 DOM 矩形，作为「飞入收藏夹」动画起点
+  const tabEl = (e.target as HTMLElement | null)?.closest('[data-tab-item]') as HTMLElement | null
+  contextTabRect.value = tabEl?.getBoundingClientRect() ?? null
   contextMenuX.value = e.clientX
   contextMenuY.value = e.clientY
   contextMenuVisible.value = true

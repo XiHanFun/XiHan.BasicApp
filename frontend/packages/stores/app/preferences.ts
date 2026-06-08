@@ -19,6 +19,7 @@ import {
   SHORTCUT_LOCK_KEY,
   SHORTCUT_LOGOUT_KEY,
   SHORTCUT_SEARCH_KEY,
+  WIDGET_FAVORITES_KEY,
   WIDGET_FULLSCREEN_KEY,
   WIDGET_LANGUAGE_TOGGLE_KEY,
   WIDGET_LOCKSCREEN_KEY,
@@ -55,6 +56,7 @@ export function createPreferencesSlice() {
     LocalStorage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true,
   )
   const widgetRefresh = ref<boolean>(LocalStorage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
+  const widgetFavorites = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FAVORITES_KEY) ?? true)
   const widgetPreferencePosition = ref<string>(
     LocalStorage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
@@ -94,6 +96,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGET_LOCKSCREEN_KEY, widgetLockScreen)
   bindPersist(WIDGET_SIDEBAR_TOGGLE_KEY, widgetSidebarToggle)
   bindPersist(WIDGET_REFRESH_KEY, widgetRefresh)
+  bindPersist(WIDGET_FAVORITES_KEY, widgetFavorites)
   bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition)
   bindPersist(FOOTER_ENABLE_KEY, footerEnable)
   bindPersist(FOOTER_FIXED_KEY, footerFixed)
@@ -148,6 +151,9 @@ export function createPreferencesSlice() {
   }
   function setWidgetRefresh(v: boolean) {
     save(WIDGET_REFRESH_KEY, widgetRefresh, v)
+  }
+  function setWidgetFavorites(v: boolean) {
+    save(WIDGET_FAVORITES_KEY, widgetFavorites, v)
   }
   function setWidgetPreferencePosition(v: string) {
     save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
@@ -206,6 +212,7 @@ export function createPreferencesSlice() {
     widgetLockScreen,
     widgetSidebarToggle,
     widgetRefresh,
+    widgetFavorites,
     widgetPreferencePosition,
     footerEnable,
     footerFixed,
@@ -233,6 +240,7 @@ export function createPreferencesSlice() {
     setWidgetLockScreen,
     setWidgetSidebarToggle,
     setWidgetRefresh,
+    setWidgetFavorites,
     setWidgetPreferencePosition,
     setFooterEnable,
     setFooterFixed,

@@ -58,6 +58,7 @@ export const WIDGET_NOTIFICATION_KEY = `${STORAGE_PREFIX}widget_notification`
 export const WIDGET_LOCKSCREEN_KEY = `${STORAGE_PREFIX}widget_lockscreen`
 export const WIDGET_SIDEBAR_TOGGLE_KEY = `${STORAGE_PREFIX}widget_sidebar_toggle`
 export const WIDGET_REFRESH_KEY = `${STORAGE_PREFIX}widget_refresh`
+export const WIDGET_FAVORITES_KEY = `${STORAGE_PREFIX}widget_favorites`
 export const FOOTER_ENABLE_KEY = `${STORAGE_PREFIX}footer_enable`
 export const FOOTER_FIXED_KEY = `${STORAGE_PREFIX}footer_fixed`
 export const COPYRIGHT_ENABLE_KEY = `${STORAGE_PREFIX}copyright_enable`
