@@ -63,4 +63,14 @@ public sealed class UserRepository(
 
         return await query.AnyAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<SysUser?> GetByIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(user => user.BasicId == userId)
+            .FirstAsync(cancellationToken);
+    }
 }

@@ -21,7 +21,9 @@ using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Otp;
@@ -73,6 +75,15 @@ public sealed class AuthAppService
 
     private readonly ISaasConfigurationService _saasConfigurationService;
 
+    private readonly IUserRepository _userRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    /// <summary>
+    /// 超级管理员角色编码（与种子/授权快照约定一致，运行时特判 *）
+    /// </summary>
+    private const string SuperAdminRoleCode = "super_admin";
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -92,7 +103,9 @@ public sealed class AuthAppService
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IUserRepository userRepository,
+        ITenantUserRepository tenantUserRepository)
     {
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
@@ -110,6 +123,8 @@ public sealed class AuthAppService
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
+        _userRepository = userRepository;
+        _tenantUserRepository = tenantUserRepository;
     }
 
     /// <inheritdoc />
@@ -397,6 +412,56 @@ public sealed class AuthAppService
                 client.DeviceName));
 
         return tokenIssue.Token;
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<LoginTokenDto> SwitchTenantAsync(SwitchTenantRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+        var now = DateTimeOffset.UtcNow;
+
+        // 归一目标租户：null 或 <=0 视为平台运维态（无租户上下文）
+        var targetTenantId = input.TenantId is > 0 ? input.TenantId : null;
+        var isSuperAdmin = _currentUser.IsInRole(SuperAdminRoleCode);
+
+        // 跨租户读取当前用户的有效成员关系（忽略租户过滤）
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(userId, now, cancellationToken);
+
+        string? targetTenantName = null;
+        if (targetTenantId is null)
+        {
+            // 平台运维态：仅超管或拥有平台管理员成员身份可进入
+            var canEnterPlatform = isSuperAdmin || memberships.Any(member => member.MemberType == TenantMemberType.PlatformAdmin);
+            if (!canEnterPlatform)
+            {
+                throw new InvalidOperationException("当前账号无权进入平台运维态。");
+            }
+        }
+        else
+        {
+            // 切换到具体租户：超管可进入任意租户；否则必须是该租户的有效成员
+            var isMember = memberships.Any(member => member.TenantId == targetTenantId.Value);
+            if (!isMember && !isSuperAdmin)
+            {
+                throw new InvalidOperationException("当前账号不是目标租户的有效成员，无法切换。");
+            }
+
+            var tenant = await _authContextQueryService.GetLoginTenantOrThrowAsync(targetTenantId, now, cancellationToken)
+                ?? throw new InvalidOperationException("目标租户不存在或不可用。");
+            targetTenantId = tenant.TenantId;
+            targetTenantName = tenant.TenantName;
+        }
+
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前用户不存在。");
+
+        // 在目标上下文内重建授权快照并签发新令牌（平台态不带 TenantId claim）
+        using var tenantScope = _currentTenant.Change(targetTenantId, targetTenantName);
+        return await IssueLoginTokenAsync(user, security: null, targetTenantId, user.UserName, input.DeviceId, now, cancellationToken);
     }
 
     /// <inheritdoc />

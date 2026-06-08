@@ -76,6 +76,14 @@ public interface IAuthAppService : IApplicationService
     Task<PermissionInfoDto> GetPermissionsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 切换租户 / 进入平台运维态，重新签发访问令牌
+    /// </summary>
+    /// <param name="input">切换参数（目标租户，空表示平台态）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新的登录令牌</returns>
+    Task<LoginTokenDto> SwitchTenantAsync(SwitchTenantRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 退出登录
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>

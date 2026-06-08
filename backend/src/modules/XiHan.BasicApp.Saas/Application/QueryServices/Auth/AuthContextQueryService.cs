@@ -24,6 +24,11 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class AuthContextQueryService
     : IAuthContextQueryService
 {
+    /// <summary>
+    /// 超级管理员角色编码（与种子/授权快照约定一致）
+    /// </summary>
+    private const string SuperAdminRoleCode = "super_admin";
+
     private readonly IUserRepository _userRepository;
 
     private readonly ITenantRepository _tenantRepository;
@@ -84,8 +89,10 @@ public sealed class AuthContextQueryService
         ArgumentNullException.ThrowIfNull(roles);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("当前用户不存在。");
+
+        var roleList = roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
         return new UserInfoDto
         {
@@ -96,7 +103,9 @@ public sealed class AuthContextQueryService
             Email = user.Email,
             Phone = user.Phone,
             TenantId = tenantId,
-            Roles = [.. roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase)]
+            IsPlatform = !tenantId.HasValue,
+            CanAccessPlatform = roleList.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase),
+            Roles = roleList
         };
     }
 }
