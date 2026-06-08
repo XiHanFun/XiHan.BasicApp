@@ -3,12 +3,10 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { ListFieldSchema } from './types'
 import { NButton, NDatePicker, NIcon, NInput, NSelect, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
+import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaSearchPanel' })
-
-/** 主题变量：高级浮层背景/边框/文字随明暗主题切换（避免硬编码白底导致暗色模式露白） */
-const themeVars = useThemeVars()
 
 const props = defineProps<{
   /** 常用搜索字段（始终展示） */
@@ -24,10 +22,22 @@ const emit = defineEmits<{
   reset: []
 }>()
 
+/** 主题变量：高级浮层背景/边框/文字随明暗主题切换（避免硬编码白底导致暗色模式露白） */
+const themeVars = useThemeVars()
+
 /** 高级条件展开状态 */
 const expanded = ref(false)
 
-const hasAdvanced = computed(() => props.advancedFields.length > 0)
+/** 小屏断点（max-width:767px，与组件内媒体查询一致） */
+const { isMobile } = useIsMobile()
+
+// 小屏：常用区清空，所有搜索条件收入高级区（仅保留操作按钮行，点「高级搜索」展开）
+const effectiveCommonFields = computed(() => isMobile.value ? [] : props.commonFields)
+const effectiveAdvancedFields = computed(() =>
+  isMobile.value ? [...props.commonFields, ...props.advancedFields] : props.advancedFields,
+)
+
+const hasAdvanced = computed(() => effectiveAdvancedFields.value.length > 0)
 
 function toggleExpand() {
   expanded.value = !expanded.value
@@ -52,7 +62,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
     <!-- 常用条件 + 操作按钮：同一 flex-wrap 流，按钮组随条件自适应流动并在所在行靠右 -->
     <div class="xh-search__bar">
       <div
-        v-for="field in commonFields"
+        v-for="field in effectiveCommonFields"
         :key="field.key"
         class="xh-search__item"
       >
@@ -125,7 +135,7 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
     <Transition name="xh-search-expand">
       <div v-if="expanded && hasAdvanced" class="xh-search__advanced">
         <div
-          v-for="field in advancedFields"
+          v-for="field in effectiveAdvancedFields"
           :key="field.key"
           class="xh-search__item"
         >
@@ -221,7 +231,9 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
 /* 展开/收起动画 */
 .xh-search-expand-enter-active,
 .xh-search-expand-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .xh-search-expand-enter-from,
