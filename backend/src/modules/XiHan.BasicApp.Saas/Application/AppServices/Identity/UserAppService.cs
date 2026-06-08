@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -43,6 +44,8 @@ public sealed class UserAppService
 
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -50,12 +53,14 @@ public sealed class UserAppService
         IUserDomainService userDomainService,
         IUserRepository userRepository,
         IFieldSecurityService fieldSecurity,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _userDomainService = userDomainService;
         _userRepository = userRepository;
         _fieldSecurity = fieldSecurity;
         _currentUser = currentUser;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     #region 用户核心
@@ -85,6 +90,8 @@ public sealed class UserAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _userDomainService.DeleteUserAsync(id, cancellationToken);
+        // 删除用户后失效其授权快照，避免旧 token 凭缓存继续放行
+        await _cacheInvalidator.InvalidateAuthorizationAsync(id, cancellationToken);
     }
 
     /// <summary>
@@ -119,6 +126,8 @@ public sealed class UserAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _userDomainService.UpdateUserStatusAsync(UserApplicationMapper.ToStatusCommand(input), cancellationToken);
+        // 禁用/启用用户后失效其授权快照，使禁用即时生效（重建快照将判定为禁用→空权限）
+        await _cacheInvalidator.InvalidateAuthorizationAsync(input.BasicId, cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
     }
 

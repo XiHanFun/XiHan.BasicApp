@@ -35,6 +35,8 @@ public sealed class AuthorizationSnapshotQueryService
 
     private readonly IRolePermissionRepository _rolePermissionRepository;
 
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
     private readonly IUserPermissionRepository _userPermissionRepository;
 
     private readonly IPermissionRepository _permissionRepository;
@@ -50,6 +52,7 @@ public sealed class AuthorizationSnapshotQueryService
         IUserRoleRepository userRoleRepository,
         IRoleRepository roleRepository,
         IRolePermissionRepository rolePermissionRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
         IUserPermissionRepository userPermissionRepository,
         IPermissionRepository permissionRepository,
         IPermissionDelegationRepository permissionDelegationRepository,
@@ -58,6 +61,7 @@ public sealed class AuthorizationSnapshotQueryService
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
         _rolePermissionRepository = rolePermissionRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
         _userPermissionRepository = userPermissionRepository;
         _permissionRepository = permissionRepository;
         _permissionDelegationRepository = permissionDelegationRepository;
@@ -137,17 +141,8 @@ public sealed class AuthorizationSnapshotQueryService
             return new AuthorizationSnapshot(roleCodes, superAdminPermissionCodes, permissionIds);
         }
 
-        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
-        var roleGrantIds = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-        var roleDenyIds = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-
-        roleGrantIds.ExceptWith(roleDenyIds);
+        // 角色权限（含角色继承展开：后代继承祖先 Grant，Deny 覆盖）
+        var roleGrantIds = await ResolveRoleGrantIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
 
         var userPermissions = await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
         var userGrantIds = userPermissions
@@ -214,19 +209,49 @@ public sealed class AuthorizationSnapshotQueryService
 
         if (roleIds.Count > 0)
         {
-            var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(roleIds, now, cancellationToken);
-            var roleGrantIds = rolePermissions
-                .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-                .Select(permission => permission.PermissionId)
-                .ToHashSet();
-            var roleDenyIds = rolePermissions
-                .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-                .Select(permission => permission.PermissionId)
-                .ToHashSet();
-            roleGrantIds.ExceptWith(roleDenyIds);
-            grantIds.UnionWith(roleGrantIds);
+            grantIds.UnionWith(await ResolveRoleGrantIdsAsync(roleIds, now, cancellationToken));
         }
 
+        return grantIds;
+    }
+
+    /// <summary>
+    /// 解析给定角色（含其继承链上的祖先角色）当前有效的 Grant 权限 ID 集合（Deny 覆盖）。
+    /// </summary>
+    /// <remarks>
+    /// 角色继承语义：后代自动获得祖先的 Grant 权限，Deny 覆盖；继承链上仅启用角色参与。
+    /// 无继承关系时展开结果即为角色自身，等价于不展开的原行为。
+    /// </remarks>
+    private async Task<HashSet<long>> ResolveRoleGrantIdsAsync(IEnumerable<long> roleIds, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var directRoleIds = roleIds.Where(id => id > 0).Distinct().ToList();
+        if (directRoleIds.Count == 0)
+        {
+            return [];
+        }
+
+        // 角色自身始终参与；再沿闭包表叠加其祖先角色（Depth>0），后代继承祖先权限。
+        // 不依赖闭包表的自身行(Depth=0)：未配置继承关系时祖先集为空，展开结果即为角色自身（等价于原行为）。
+        var expandedRoleIds = new HashSet<long>(directRoleIds);
+        var ancestorIds = await _roleHierarchyRepository.GetAncestorIdsAsync(directRoleIds, includeSelf: false, cancellationToken);
+        expandedRoleIds.UnionWith(ancestorIds);
+        // 继承链上仅启用角色参与（停用角色不贡献权限）
+        var enabledRoles = await _roleRepository.GetEnabledByIdsAsync(expandedRoleIds, cancellationToken);
+        if (enabledRoles.Count == 0)
+        {
+            return [];
+        }
+
+        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(enabledRoles.Select(role => role.BasicId), now, cancellationToken);
+        var grantIds = rolePermissions
+            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
+            .Select(permission => permission.PermissionId)
+            .ToHashSet();
+        var denyIds = rolePermissions
+            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
+            .Select(permission => permission.PermissionId)
+            .ToHashSet();
+        grantIds.ExceptWith(denyIds);
         return grantIds;
     }
 }

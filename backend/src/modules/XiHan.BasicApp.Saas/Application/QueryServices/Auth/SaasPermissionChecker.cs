@@ -30,6 +30,9 @@ public sealed class SaasPermissionChecker : IPermissionChecker
 
     private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
 
+    // 请求级（Scoped 实例生命周期=单次请求）记忆化：一个请求内多次鉴权只构建/取一次快照，省掉重复的分布式缓存往返
+    private readonly Dictionary<long, AuthorizationSnapshot> _requestSnapshots = [];
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -92,9 +95,16 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         return Task.FromResult(!string.IsNullOrWhiteSpace(permissionName));
     }
 
-    private Task<AuthorizationSnapshot> BuildSnapshotAsync(long userId, CancellationToken cancellationToken)
+    private async Task<AuthorizationSnapshot> BuildSnapshotAsync(long userId, CancellationToken cancellationToken)
     {
-        return _authorizationSnapshotQueryService.BuildAsync(userId, DateTimeOffset.UtcNow, cancellationToken);
+        if (_requestSnapshots.TryGetValue(userId, out var cached))
+        {
+            return cached;
+        }
+
+        var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, DateTimeOffset.UtcNow, cancellationToken);
+        _requestSnapshots[userId] = snapshot;
+        return snapshot;
     }
 
     private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)
