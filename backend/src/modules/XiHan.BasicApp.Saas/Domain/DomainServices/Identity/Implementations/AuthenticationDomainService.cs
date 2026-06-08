@@ -74,6 +74,13 @@ public sealed class AuthenticationDomainService
             ?? throw new InvalidOperationException("认证用户不存在。");
         var security = await _userSecurityRepository.GetByUserIdAsync(userId, cancellationToken);
 
+        // 先做账号可用性校验：避免被禁用/过期/非当前租户成员的账号仍能进入双因素验证环节并最终拿到令牌
+        var access = await ValidateUserAccessAsync(user, security, tenantId, now, cancellationToken);
+        if (access is not null)
+        {
+            return access;
+        }
+
         if (authResult.RequiresTwoFactor && security is not null && security.TwoFactorMethod != TwoFactorMethod.None)
         {
             return LoginAuthenticationResult.TwoFactorRequired(user, security);
@@ -84,8 +91,7 @@ public sealed class AuthenticationDomainService
             return LoginAuthenticationResult.Failed(LoginResult.RequiresTwoFactor, "用户双因素配置不存在。");
         }
 
-        var access = await ValidateUserAccessAsync(user, security, tenantId, now, cancellationToken);
-        return access ?? LoginAuthenticationResult.Success(user, security);
+        return LoginAuthenticationResult.Success(user, security);
     }
 
     /// <inheritdoc />
