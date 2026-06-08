@@ -43,7 +43,7 @@ public interface IAuthAppService : IApplicationService
     /// <param name="input">找回密码参数</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>受理结果</returns>
-    Task<PasswordResetResultDto> RequestPasswordResetAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default);
+    Task<PasswordResetResultDto> PasswordResetRequestAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 密码登录
