@@ -28,6 +28,14 @@ export const fileApi = {
   detail(id: ApiId) {
     return fileQueryApi.get<FileDetailDto | null>(`FileDetail/${formatDynamicApiRouteValue(id)}`)
   },
+  download(fileId: ApiId) {
+    // 后端 DownloadFileAsync：Download 前缀不在动词约定表，默认 POST；fileId（简单类型）在 POST 下绑定 Query。
+    // 走鉴权下载接口（File.Read），axios 自动带 token，规避静态 URL 的匿名/未知 MIME 访问限制。
+    return fileCommandApi.post<Blob>('DownloadFile', undefined, {
+      params: { fileId },
+      responseType: 'blob',
+    })
+  },
   fastUpload(input: FileFastUploadDto) {
     return fileCommandApi.post<FileDetailDto, FileFastUploadDto>('FastUploadFile', input)
   },
