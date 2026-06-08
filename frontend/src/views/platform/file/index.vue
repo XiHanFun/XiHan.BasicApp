@@ -657,7 +657,11 @@ async function handlePreview(row: FileListItemDto) {
       previewOfficeSrc.value = await blob.arrayBuffer()
     }
     else {
-      previewObjectUrl = URL.createObjectURL(blob)
+      // 后端下载流为 application/octet-stream，会让 PDF 在 iframe 中触发下载而非内联预览；
+      // 用文件真实 MIME 重建 blob（PDF 兜底 application/pdf），媒体类型按内容解码不受影响。
+      const mime = row.mimeType || (kind === 'pdf' ? 'application/pdf' : '')
+      const typedBlob = mime ? new Blob([blob], { type: mime }) : blob
+      previewObjectUrl = URL.createObjectURL(typedBlob)
       previewUrl.value = previewObjectUrl
     }
   }
@@ -1235,7 +1239,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         <VueOfficeExcel
           v-else-if="previewKind === 'xlsx'"
           :src="previewOfficeSrc"
-          class="file-preview-office"
+          class="file-preview-excel"
         />
         <VueOfficePptx
           v-else-if="previewKind === 'pptx'"
@@ -1331,7 +1335,19 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   width: 100%;
 }
 
+/* Office 预览容器统一固定高度：excel canvas / pptx 缩放都依赖明确尺寸，docx 文档流为统一也固定。
+   docx/pptx 共用 .file-preview-office（容器滚动）；excel 仅覆盖 overflow（内部 x-spreadsheet 自带滚动，避免双滚动条） */
 .file-preview-office,
+.file-preview-excel {
+  width: 100%;
+  height: 68vh;
+  overflow: auto;
+}
+
+.file-preview-excel {
+  overflow: hidden;
+}
+
 .file-preview-csv {
   width: 100%;
 }
