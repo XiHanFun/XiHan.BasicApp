@@ -58,6 +58,52 @@ export function bindLogoutHook(hook: () => void) {
   _logoutHook = hook
 }
 
+/** HTTP 状态码 → 明确中文提示（按状态码统一化，区分权限/资源/服务端等） */
+const HTTP_ERROR_MESSAGES: Record<number, string> = {
+  400: '请求参数有误',
+  401: '登录已过期，请重新登录',
+  403: '没有操作权限',
+  404: '请求的资源不存在',
+  408: '请求超时，请稍后重试',
+  409: '请求冲突，请刷新后重试',
+  422: '请求参数校验失败',
+  429: '请求过于频繁，请稍后再试',
+  500: '服务器内部错误',
+  502: '网关错误',
+  503: '服务暂时不可用',
+  504: '网关超时',
+}
+
+/** 从响应体提取后端业务错误消息（非二进制响应时优先采用） */
+function extractBackendMessage(data: unknown): string | undefined {
+  if (data && typeof data === 'object' && !(data instanceof Blob)) {
+    const message = (data as Record<string, unknown>).message
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim()
+    }
+  }
+  return undefined
+}
+
+/** 将请求错误归一为明确提示：区分网络错误/超时/取消与各 HTTP 状态码 */
+function resolveRequestErrorMessage(error: unknown): string {
+  const err = error as { code?: string, message?: string, response?: { status: number, data?: unknown } }
+  if (!err?.response) {
+    if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message ?? '')) {
+      return '请求超时，请稍后重试'
+    }
+    if (err?.code === 'ERR_CANCELED') {
+      return '请求已取消'
+    }
+    return '网络连接失败，请检查网络后重试'
+  }
+  const backendMessage = extractBackendMessage(err.response.data)
+  if (backendMessage) {
+    return backendMessage
+  }
+  return HTTP_ERROR_MESSAGES[err.response.status] ?? `请求失败（${err.response.status}）`
+}
+
 export class RequestClient {
   private instance: AxiosInstance
   private apiPrefix: string
@@ -215,6 +261,11 @@ export class RequestClient {
             message: payload.message ?? error?.message ?? '请求失败',
             traceId: payload.traceId,
           })
+        }
+
+        // 统一化错误提示：覆盖 axios 默认英文消息，业务 catch 可直接用 error.message
+        if (error) {
+          error.message = resolveRequestErrorMessage(error)
         }
 
         if (error.response) {
