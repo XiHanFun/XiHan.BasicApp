@@ -20,6 +20,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 
@@ -35,15 +36,21 @@ public sealed class TenantAppService
 {
     private readonly ICurrentUser _currentUser;
     private readonly ITenantDomainService _tenantDomainService;
+    private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
+    private readonly IPasswordHasher _passwordHasher;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public TenantAppService(
         ITenantDomainService tenantDomainService,
+        ITenantProvisionDomainService tenantProvisionDomainService,
+        IPasswordHasher passwordHasher,
         ICurrentUser currentUser)
     {
         _tenantDomainService = tenantDomainService;
+        _tenantProvisionDomainService = tenantProvisionDomainService;
+        _passwordHasher = passwordHasher;
         _currentUser = currentUser;
     }
 
@@ -58,6 +65,18 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
+
+        // 同时提供管理员账号密码时，一站式开通：管理员 + Owner 角色 + 按版本白名单授权
+        if (!string.IsNullOrWhiteSpace(input.AdminUserName) && !string.IsNullOrWhiteSpace(input.AdminPassword))
+        {
+            var passwordHash = _passwordHasher.HashPassword(input.AdminPassword.Trim());
+            _ = await _tenantProvisionDomainService.ProvisionTenantAdminAsync(
+                result.Tenant,
+                input.AdminUserName.Trim(),
+                passwordHash,
+                cancellationToken);
+        }
+
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
 
