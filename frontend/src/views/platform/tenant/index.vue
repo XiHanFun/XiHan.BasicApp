@@ -252,6 +252,8 @@ function onAction(payload: SchemaActionPayload) {
 
 function createDefaultForm(): TenantFormModel {
   return {
+    adminPassword: null,
+    adminUserName: null,
     domain: null,
     editionId: null,
     expirationTime: null,
@@ -485,6 +487,8 @@ async function handleSubmit() {
     }
     else {
       const createInput: TenantCreateDto = {
+        adminPassword: normalizeNullable(tenantForm.value.adminPassword),
+        adminUserName: normalizeNullable(tenantForm.value.adminUserName),
         domain: normalizeNullable(tenantForm.value.domain),
         editionId: tenantForm.value.editionId ?? null,
         expirationTime: tenantForm.value.expirationTime,
@@ -698,6 +702,18 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem label="版本 ID" path="editionId">
           <NInput v-model:value="tenantForm.editionId" clearable style="width: 100%" />
+        </NFormItem>
+        <NFormItem v-if="!tenantForm.basicId" label="管理员账号" path="adminUserName">
+          <NInput v-model:value="tenantForm.adminUserName" clearable placeholder="选填，填写后开通时自动创建管理员" />
+        </NFormItem>
+        <NFormItem v-if="!tenantForm.basicId" label="管理员密码" path="adminPassword">
+          <NInput
+            v-model:value="tenantForm.adminPassword"
+            clearable
+            placeholder="与管理员账号同时填写生效"
+            show-password-on="click"
+            type="password"
+          />
         </NFormItem>
         <NFormItem label="用户上限" path="userLimit">
           <NInputNumber v-model:value="tenantForm.userLimit" :min="0" clearable style="width: 100%" />

@@ -30,9 +30,21 @@ import {
   MenuType,
 } from '@/api'
 import { Icon, IconPicker, SchemaPage } from '~/components'
+import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
+
+const userStore = useUserStore()
+
+/**
+ * 全局菜单(TenantId=0)仅平台运维态可维护；非平台态隐藏编辑/启停/删除入口，
+ * 避免点击后撞后端「平台级全局菜单仅平台运维态可维护」错误。
+ */
+function canMaintainMenu(row: unknown): boolean {
+  const menu = row as MenuListItemDto
+  return !menu.isGlobal || (userStore.userInfo?.isPlatform ?? false)
+}
 
 interface MenuFormModel extends MenuCreateDto {
   basicId?: ApiId
@@ -338,9 +350,9 @@ const schema: PageSchema = {
     { key: 'create', title: '新增菜单', scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'addChild', title: '新增子项', scope: 'row', icon: 'lucide:plus', visible: row => (row as unknown as MenuListItemDto).menuType !== MenuType.Button },
     { key: 'view', title: '详情', scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pen' },
-    { key: 'toggle', title: '启停', scope: 'row', icon: 'lucide:power' },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: '确认删除该菜单？' },
+    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pen', visible: canMaintainMenu },
+    { key: 'toggle', title: '启停', scope: 'row', icon: 'lucide:power', visible: canMaintainMenu },
+    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: '确认删除该菜单？', visible: canMaintainMenu },
   ],
 }
 
