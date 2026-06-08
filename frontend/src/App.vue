@@ -2,6 +2,7 @@
 import { darkTheme, dateZhCN, NConfigProvider, NDialogProvider, NGlobalStyle, NLoadingBarProvider, NMessageProvider, NNotificationProvider, zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
+import AppWatermark from '~/components/common/AppWatermark.vue'
 import LockScreen from '~/components/common/LockScreen.vue'
 import { useGlobalShortcuts, useHtmlStyle } from '~/composables'
 import { useTheme } from '~/hooks'
@@ -33,6 +34,7 @@ onMounted(() => {
           <NMessageProvider>
             <RouterView />
             <LockScreen />
+            <AppWatermark />
           </NMessageProvider>
         </NNotificationProvider>
       </NDialogProvider>
