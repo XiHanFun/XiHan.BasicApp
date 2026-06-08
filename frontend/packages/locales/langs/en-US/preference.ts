@@ -202,6 +202,7 @@ export default {
       lock_screen: 'Lock Screen',
       sidebar_toggle: 'Sidebar Toggle',
       refresh: 'Refresh',
+      favorites: 'Favorites',
       preference_position: 'Preference Position',
       preference_position_auto: 'Auto',
       preference_position_header: 'Header',

@@ -1,6 +1,8 @@
 export default {
   reload: '重新加载',
   open: '新窗口打开',
+  favorite: '收藏',
+  unfavorite: '取消收藏',
   pin: '固定',
   unpin: '取消固定',
   maximize: '最大化',

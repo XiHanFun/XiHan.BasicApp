@@ -1,6 +1,8 @@
 export default {
   reload: 'Reload',
   open: 'Open in New Window',
+  favorite: 'Add to Favorites',
+  unfavorite: 'Remove from Favorites',
   pin: 'Pin',
   unpin: 'Unpin',
   maximize: 'Maximize',

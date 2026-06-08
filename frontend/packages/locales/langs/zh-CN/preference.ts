@@ -194,6 +194,7 @@ export default {
       lock_screen: '启用锁屏',
       sidebar_toggle: '启用侧栏切换',
       refresh: '启用刷新',
+      favorites: '启用收藏夹',
       preference_position: '偏好设置位置',
       preference_position_auto: '自动',
       preference_position_header: '顶栏',

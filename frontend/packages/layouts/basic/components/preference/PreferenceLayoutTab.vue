@@ -472,6 +472,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <NSwitch v-model:value="appStore.widgetRefresh" />
       </div>
       <div class="pref-row">
+        <span>{{ t('preference.layout.widget.favorites') }}</span>
+        <NSwitch v-model:value="appStore.widgetFavorites" />
+      </div>
+      <div class="pref-row">
         <span>{{ t('preference.layout.widget.sidebar_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetSidebarToggle" />
       </div>

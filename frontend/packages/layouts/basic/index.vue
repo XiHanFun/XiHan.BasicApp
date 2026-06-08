@@ -3,6 +3,7 @@ import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed } from 'vue'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
+import AppFavorites from './components/AppFavorites.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
@@ -124,6 +125,9 @@ const sidebarEnableState = computed(
           >
             <Icon :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" width="18" height="18" />
           </XihanIconButton>
+
+          <!-- 收藏夹（收藏常用菜单，跨端同步；可在偏好设置中开关） -->
+          <AppFavorites v-if="shell.appStore.widgetFavorites" />
 
           <!-- Header content (flex-1 fills remaining header space) -->
           <NConfigProvider

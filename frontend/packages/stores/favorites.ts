@@ -41,7 +41,9 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     saveTimer = setTimeout(() => {
       const payload = JSON.stringify({ [FAVORITES_SECTION]: favorites.value })
       void useAppContext()
-        .apis.pagePreferenceApi.save({ pageCode: FAVORITES_PAGE_CODE, payload })
+        .apis
+        .pagePreferenceApi
+        .save({ pageCode: FAVORITES_PAGE_CODE, payload })
         .catch(() => {})
     }, 600)
   }
