@@ -11,13 +11,13 @@ export const coreRoutes: RouteRecordRaw[] = [
     name: 'Authentication',
     component: () => import('~/views/_core/authentication/AuthLayout.vue'),
     redirect: LOGIN_PATH,
-    meta: { title: 'page.auth.login', hidden: true },
+    meta: { title: 'page.login.title', hidden: true },
     children: [
       {
         path: 'login',
         name: 'Login',
         component: () => import('~/views/_core/authentication/login.vue'),
-        meta: { title: 'page.auth.login', hidden: true },
+        meta: { title: 'page.login.title', hidden: true },
       },
       {
         path: 'code-login',
@@ -41,19 +41,19 @@ export const coreRoutes: RouteRecordRaw[] = [
         path: 'forget-password',
         name: 'ForgetPassword',
         component: () => import('~/views/_core/authentication/forget-password.vue'),
-        meta: { title: 'page.auth.forget_password', hidden: true },
+        meta: { title: 'page.auth.forget_password_title', hidden: true },
       },
       {
         path: 'register',
         name: 'Register',
         component: () => import('~/views/_core/authentication/register.vue'),
-        meta: { title: 'page.auth.register', hidden: true },
+        meta: { title: 'page.auth.create_account_title', hidden: true },
       },
       {
         path: 'oauth-callback',
         name: 'OAuthCallback',
         component: () => import('~/views/_core/authentication/oauth-callback.vue'),
-        meta: { title: 'OAuth Callback', hidden: true },
+        meta: { title: 'page.auth.oauth_callback_title', hidden: true },
       },
     ],
   },
@@ -61,25 +61,25 @@ export const coreRoutes: RouteRecordRaw[] = [
     path: FORBIDDEN_PATH,
     name: 'Forbidden',
     component: () => import('~/views/_core/fallback/forbidden.vue'),
-    meta: { title: 'error.403', hidden: true },
+    meta: { title: 'error.forbidden', hidden: true },
   },
   {
     path: SERVER_ERROR_PATH,
     name: 'ServerError',
     component: () => import('~/views/_core/fallback/server-error.vue'),
-    meta: { title: 'error.500', hidden: true },
+    meta: { title: 'error.server_error', hidden: true },
   },
   {
     path: NOT_FOUND_PATH,
     name: 'NotFound',
     component: () => import('~/views/_core/fallback/not-found.vue'),
-    meta: { title: 'error.404', hidden: true },
+    meta: { title: 'error.not_found', hidden: true },
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFoundCatchAll',
     component: () => import('~/views/_core/fallback/not-found.vue'),
-    meta: { title: 'error.404', hidden: true },
+    meta: { title: 'error.not_found', hidden: true },
   },
 ]
 

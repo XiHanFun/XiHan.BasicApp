@@ -39,7 +39,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'EditorDemo',
         component: EditorDemoPage,
         meta: {
-          title: 'Editor Demo',
+          title: 'menu.editor_demo',
           icon: 'lucide:file-pen-line',
         },
       },
