@@ -245,6 +245,80 @@ public sealed class RefreshTokenRequestDto
 }
 
 /// <summary>
+/// 注册请求 DTO
+/// </summary>
+public sealed class RegisterRequestDto
+{
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 密码
+    /// </summary>
+    public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 昵称（缺省时取用户名）
+    /// </summary>
+    public string? NickName { get; set; }
+
+    /// <summary>
+    /// 邮箱（可选）
+    /// </summary>
+    public string? Email { get; set; }
+}
+
+/// <summary>
+/// 注册结果 DTO
+/// </summary>
+public sealed class RegisterResultDto
+{
+    /// <summary>
+    /// 新建用户主键
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 新建用户名
+    /// </summary>
+    public string UserName { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 密码重置请求 DTO
+/// </summary>
+public sealed class PasswordResetRequestDto
+{
+    /// <summary>
+    /// 注册邮箱
+    /// </summary>
+    public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 范围标识（租户标识，缺省取默认租户）
+    /// </summary>
+    public string? ScopeId { get; set; }
+}
+
+/// <summary>
+/// 密码重置结果 DTO
+/// </summary>
+public sealed class PasswordResetResultDto
+{
+    /// <summary>
+    /// 请求是否已受理（为防用户枚举，邮箱不存在也返回受理）
+    /// </summary>
+    public bool Accepted { get; set; }
+
+    /// <summary>
+    /// 临时密码，仅在未接入真实邮件通道时回显，便于本地联调；生产接入真实通道后应置空
+    /// </summary>
+    public string? TemporaryPassword { get; set; }
+}
+
+/// <summary>
 /// 当前用户信息 DTO
 /// </summary>
 public sealed class UserInfoDto
