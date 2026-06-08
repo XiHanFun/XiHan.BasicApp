@@ -9,8 +9,10 @@ import type {
 } from '@/api'
 
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import hljs from 'highlight.js/lib/common'
 import {
   NButton,
+  NCode,
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
@@ -29,7 +31,8 @@ import {
   NUpload,
   useMessage,
 } from 'naive-ui'
-import { computed, h, nextTick, reactive, ref, watch } from 'vue'
+import Papa from 'papaparse'
+import { computed, defineAsyncComponent, h, nextTick, reactive, ref, watch } from 'vue'
 import {
   createPageRequest,
   fileManagementApi,
@@ -41,6 +44,8 @@ import {
 } from '@/api'
 import { Icon, SchemaPage, XMdEditor } from '~/components'
 import { downloadBlob, formatDate, formatFileSize, getOptionLabel } from '~/utils'
+import '@vue-office/docx/lib/index.css'
+import '@vue-office/excel/lib/index.css'
 
 defineOptions({ name: 'PlatformFilePage' })
 
@@ -48,6 +53,11 @@ type DetailKind = 'file' | 'storage'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 const message = useMessage()
+
+// Office 预览组件懒加载（重型库，按需加载 + vite vendor-office 分包）
+const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx'))
+const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel'))
+const VueOfficePptx = defineAsyncComponent(() => import('@vue-office/pptx'))
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -150,18 +160,24 @@ function getFileStatusTagType(status: FileStatus): TagType {
 }
 
 // ── 文件预览类型判定（仅零依赖、浏览器可直接渲染的类型）─────────
-type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'markdown' | 'text'
+type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'markdown' | 'text' | 'docx' | 'xlsx' | 'pptx' | 'csv'
 
 const PREVIEW_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'])
 const PREVIEW_VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogv'])
 const PREVIEW_AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg'])
 const PREVIEW_MARKDOWN_EXTENSIONS = new Set(['md', 'markdown'])
 
-/** 文本/源码/配置/数据交换扩展名 → md-editor 代码块语言（空串表示不指定语言） */
+/** Office 扩展名 → 预览种类（旧版 doc/xls/ppt 不支持，仅下载） */
+const PREVIEW_OFFICE_EXTENSIONS: Record<string, 'docx' | 'xlsx' | 'pptx'> = {
+  docx: 'docx',
+  xlsx: 'xlsx',
+  pptx: 'pptx',
+}
+
+/** 文本/源码/配置/数据交换扩展名 → highlight.js 语言名（空串表示自动识别） */
 const PREVIEW_TEXT_LANG: Record<string, string> = {
   txt: '',
   log: '',
-  csv: '',
   json: 'json',
   xml: 'xml',
   yaml: 'yaml',
@@ -210,6 +226,12 @@ function getPreviewKind(row: FileListItemDto): PreviewKind | null {
   }
   if (PREVIEW_MARKDOWN_EXTENSIONS.has(ext)) {
     return 'markdown'
+  }
+  if (ext === 'csv') {
+    return 'csv'
+  }
+  if (PREVIEW_OFFICE_EXTENSIONS[ext]) {
+    return PREVIEW_OFFICE_EXTENSIONS[ext]
   }
   if (mime.startsWith('text/') || PREVIEW_TEXT_LANG[ext] !== undefined) {
     return 'text'
@@ -574,17 +596,28 @@ const previewName = ref<string>('')
 const previewText = ref<string>('')
 const previewLang = ref<string>('')
 const previewTextError = ref<string>('')
+const previewOfficeSrc = ref<ArrayBuffer | null>(null)
+const csvColumns = ref<DataTableColumns>([])
+const csvData = ref<Record<string, string>[]>([])
 
 /** 媒体 blob 的对象 URL，需在切换/关闭时手动释放，避免内存泄漏 */
 let previewObjectUrl = ''
 
-/** Markdown 原文直接渲染；其余文本按语言包成代码块复用 md-editor 高亮 */
-const previewMarkdown = computed(() => {
-  if (previewKind.value === 'markdown') {
-    return previewText.value
+/** 非媒体类型（文本/代码/Office/CSV）用块级流布局，媒体类型用居中 */
+const isBlockPreview = computed(() =>
+  !!previewKind.value && !['image', 'video', 'audio', 'pdf'].includes(previewKind.value),
+)
+
+/** 复制当前预览的原始文本到剪贴板 */
+async function copyPreviewText() {
+  try {
+    await navigator.clipboard.writeText(previewText.value)
+    message.success('已复制到剪贴板')
   }
-  return `~~~${previewLang.value}\n${previewText.value}\n~~~`
-})
+  catch {
+    message.error('复制失败')
+  }
+}
 
 function revokePreviewObjectUrl() {
   if (previewObjectUrl) {
@@ -603,6 +636,9 @@ async function handlePreview(row: FileListItemDto) {
   previewUrl.value = ''
   previewText.value = ''
   previewTextError.value = ''
+  previewOfficeSrc.value = null
+  csvColumns.value = []
+  csvData.value = []
   previewVisible.value = true
   previewLoading.value = true
   try {
@@ -613,6 +649,12 @@ async function handlePreview(row: FileListItemDto) {
     const blob = await fileManagementApi.download(row.basicId)
     if (kind === 'markdown' || kind === 'text') {
       previewText.value = await blob.text()
+    }
+    else if (kind === 'csv') {
+      parseCsv(await blob.text())
+    }
+    else if (kind === 'docx' || kind === 'xlsx' || kind === 'pptx') {
+      previewOfficeSrc.value = await blob.arrayBuffer()
     }
     else {
       previewObjectUrl = URL.createObjectURL(blob)
@@ -629,6 +671,26 @@ async function handlePreview(row: FileListItemDto) {
   finally {
     previewLoading.value = false
   }
+}
+
+/** 解析 CSV 文本为 NDataTable 的列与行（首行作表头） */
+function parseCsv(text: string) {
+  const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true })
+  const rows = parsed.data
+  if (!rows.length) {
+    return
+  }
+  const header = rows[0] ?? []
+  csvColumns.value = header.map((title, index) => ({
+    title: title || `列${index + 1}`,
+    key: String(index),
+    resizable: true,
+    ellipsis: { tooltip: true },
+    minWidth: 100,
+  }))
+  csvData.value = rows.slice(1).map(row =>
+    Object.fromEntries(header.map((_, index) => [String(index), row[index] ?? ''])),
+  )
 }
 
 watch(previewVisible, (visible) => {
@@ -1134,11 +1196,11 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
       preset="card"
       :title="`预览 - ${previewName}`"
       :bordered="false"
-      style="width: 80vw; max-width: 960px;"
+      style="width: 80vw;"
     >
       <div
         class="file-preview-body"
-        :class="{ 'is-text': previewKind === 'markdown' || previewKind === 'text' }"
+        :class="{ 'is-text': isBlockPreview }"
       >
         <div v-if="previewLoading" class="text-gray-400">
           加载中...
@@ -1147,10 +1209,47 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           {{ previewTextError }}
         </div>
         <XMdEditor
-          v-else-if="previewKind === 'markdown' || previewKind === 'text'"
+          v-else-if="previewKind === 'markdown'"
           preview-only
-          :model-value="previewMarkdown"
+          :model-value="previewText"
           class="file-preview-md"
+        />
+        <div v-else-if="previewKind === 'text'" class="file-preview-code-wrap">
+          <button type="button" class="file-preview-copy" @click="copyPreviewText">
+            复制代码
+          </button>
+          <div class="file-preview-code-scroll">
+            <NCode
+              :code="previewText"
+              :language="previewLang || undefined"
+              :hljs="hljs"
+              show-line-numbers
+            />
+          </div>
+        </div>
+        <VueOfficeDocx
+          v-else-if="previewKind === 'docx'"
+          :src="previewOfficeSrc"
+          class="file-preview-office"
+        />
+        <VueOfficeExcel
+          v-else-if="previewKind === 'xlsx'"
+          :src="previewOfficeSrc"
+          class="file-preview-office"
+        />
+        <VueOfficePptx
+          v-else-if="previewKind === 'pptx'"
+          :src="previewOfficeSrc"
+          class="file-preview-office"
+        />
+        <NDataTable
+          v-else-if="previewKind === 'csv'"
+          :columns="csvColumns"
+          :data="csvData"
+          :scroll-x="Math.max(csvColumns.length * 120, 600)"
+          max-height="66vh"
+          size="small"
+          class="file-preview-csv"
         />
         <div v-else-if="!previewUrl" class="text-gray-400">
           无法获取预览内容
@@ -1205,9 +1304,10 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   overflow: auto;
 }
 
+/* 文本/Markdown/代码：用块级流 + 滚动，避免 flex 居中布局压塌内容 */
 .file-preview-body.is-text {
-  align-items: stretch;
-  justify-content: stretch;
+  display: block;
+  text-align: left;
 }
 
 .file-preview-image,
@@ -1229,5 +1329,42 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
 .file-preview-md {
   width: 100%;
+}
+
+.file-preview-office,
+.file-preview-csv {
+  width: 100%;
+}
+
+.file-preview-code-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.file-preview-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.file-preview-copy:hover {
+  background: #f3f4f6;
+}
+
+.file-preview-code-scroll {
+  max-height: 70vh;
+  padding: 12px 16px;
+  overflow: auto;
+  font-size: 13px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 6px;
 }
 </style>
