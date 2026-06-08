@@ -323,6 +323,9 @@ public sealed class AuthAppService
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
 
+        // 具体权限码以服务端实时快照为准，token 不再冻结具体权限（避免变更后失效不及时与权限清单泄露）；
+        // 仅保留通配 * 作为超管快路径
+        IReadOnlyCollection<string> tokenPermissions = authSnapshot.Permissions.Contains("*") ? ["*"] : [];
         var tokenIssue = _authTokenIssueService.IssueAccessToken(
             new AuthAccessTokenIssueCommand(
                 user,
@@ -330,7 +333,7 @@ public sealed class AuthAppService
                 sessionBusinessId,
                 accessTokenJti,
                 authSnapshot.Roles,
-                authSnapshot.Permissions,
+                tokenPermissions,
                 deviceId));
         var sessionResult = await _loginSessionDomainService.IssuePasswordLoginAsync(
             user,
