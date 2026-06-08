@@ -1,2 +1,8 @@
 packages:
   - 'packages/*'
+
+onlyBuiltDependencies:
+  - '@vue-office/docx'
+  - '@vue-office/excel'
+  - '@vue-office/pptx'
+  - vue-demi

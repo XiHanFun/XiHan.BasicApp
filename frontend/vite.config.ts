@@ -132,6 +132,21 @@ function createManualChunks(id: string) {
     return 'vendor-realtime'
   }
 
+  if (
+    normalizedId.includes('/@vue-office/')
+    || normalizedId.includes('/vue-demi/')
+    || normalizedId.includes('/docx-preview/')
+    || normalizedId.includes('/exceljs/')
+    || normalizedId.includes('/pptxjs/')
+    || normalizedId.includes('/jszip/')
+  ) {
+    return 'vendor-office'
+  }
+
+  if (normalizedId.includes('/papaparse/')) {
+    return 'vendor-csv'
+  }
+
   return undefined
 }
 
