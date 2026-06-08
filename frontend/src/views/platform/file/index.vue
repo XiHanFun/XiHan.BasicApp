@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { UploadCustomRequestOptions } from 'naive-ui'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { DataTableColumns } from 'naive-ui'
+import type { DataTableColumns, UploadCustomRequestOptions } from 'naive-ui'
 import type {
   FileDetailDto,
   FileListItemDto,
@@ -9,6 +7,8 @@ import type {
   FileStorageListItemDto,
   PageResult,
 } from '@/api'
+
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDataTable,
@@ -29,7 +29,7 @@ import {
   NUpload,
   useMessage,
 } from 'naive-ui'
-import { computed, h, nextTick, reactive, ref } from 'vue'
+import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 import {
   createPageRequest,
   fileManagementApi,
@@ -39,7 +39,7 @@ import {
   FileType,
   ResourceAccessLevel,
 } from '@/api'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XMdEditor } from '~/components'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformFilePage' })
@@ -149,31 +149,69 @@ function getFileStatusTagType(status: FileStatus): TagType {
   return 'default'
 }
 
-// ── 文件预览类型判定（仅浏览器可直接渲染的简单类型）─────────────
-type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'text'
+// ── 文件预览类型判定（仅零依赖、浏览器可直接渲染的类型）─────────
+type PreviewKind = 'image' | 'video' | 'audio' | 'pdf' | 'markdown' | 'text'
 
-const PREVIEW_TEXT_EXTENSIONS = new Set([
-  'txt', 'md', 'markdown', 'json', 'xml', 'yaml', 'yml',
-  'csv', 'log', 'ini', 'conf', 'html', 'htm', 'css', 'js', 'ts', 'sql',
-])
+const PREVIEW_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'])
+const PREVIEW_VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogv'])
+const PREVIEW_AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg'])
+const PREVIEW_MARKDOWN_EXTENSIONS = new Set(['md', 'markdown'])
 
-/** 仅当文件为浏览器可直接渲染的简单类型时返回其预览种类，否则返回 null */
+/** 文本/源码/配置/数据交换扩展名 → md-editor 代码块语言（空串表示不指定语言） */
+const PREVIEW_TEXT_LANG: Record<string, string> = {
+  txt: '',
+  log: '',
+  csv: '',
+  json: 'json',
+  xml: 'xml',
+  yaml: 'yaml',
+  yml: 'yaml',
+  toml: 'ini',
+  ini: 'ini',
+  conf: 'ini',
+  env: 'ini',
+  html: 'html',
+  htm: 'html',
+  css: 'css',
+  js: 'javascript',
+  mjs: 'javascript',
+  cjs: 'javascript',
+  jsx: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  vue: 'html',
+  cs: 'csharp',
+  java: 'java',
+  go: 'go',
+  py: 'python',
+  php: 'php',
+  sql: 'sql',
+}
+
+function getFileExt(row: FileListItemDto): string {
+  return (row.fileExtension ?? '').replace(/^\./, '').toLowerCase()
+}
+
+/** 仅当文件为本轮零依赖可渲染类型时返回其预览种类，否则返回 null */
 function getPreviewKind(row: FileListItemDto): PreviewKind | null {
   const mime = (row.mimeType ?? '').toLowerCase()
-  const ext = (row.fileExtension ?? '').replace(/^\./, '').toLowerCase()
-  if (mime.startsWith('image/') || row.fileType === FileType.Image) {
+  const ext = getFileExt(row)
+  if (mime.startsWith('image/') || PREVIEW_IMAGE_EXTENSIONS.has(ext) || row.fileType === FileType.Image) {
     return 'image'
   }
-  if (mime.startsWith('video/') || row.fileType === FileType.Video) {
+  if (mime.startsWith('video/') || PREVIEW_VIDEO_EXTENSIONS.has(ext) || row.fileType === FileType.Video) {
     return 'video'
   }
-  if (mime.startsWith('audio/') || row.fileType === FileType.Audio) {
+  if (mime.startsWith('audio/') || PREVIEW_AUDIO_EXTENSIONS.has(ext) || row.fileType === FileType.Audio) {
     return 'audio'
   }
   if (mime === 'application/pdf' || ext === 'pdf') {
     return 'pdf'
   }
-  if (mime.startsWith('text/') || PREVIEW_TEXT_EXTENSIONS.has(ext)) {
+  if (PREVIEW_MARKDOWN_EXTENSIONS.has(ext)) {
+    return 'markdown'
+  }
+  if (mime.startsWith('text/') || PREVIEW_TEXT_LANG[ext] !== undefined) {
     return 'text'
   }
   return null
@@ -519,30 +557,78 @@ async function handleFileDetail(row: FileListItemDto) {
 }
 
 // ── 文件预览 ────────────────────────────────────────────────────
+/** 文本预览上限 2MB，超出仅提示下载，避免大文件拖垮浏览器 */
+const PREVIEW_TEXT_MAX_BYTES = 2 * 1024 * 1024
+
 const previewVisible = ref(false)
 const previewLoading = ref(false)
 const previewUrl = ref<string>('')
 const previewKind = ref<PreviewKind | null>(null)
 const previewName = ref<string>('')
+const previewText = ref<string>('')
+const previewLang = ref<string>('')
+const previewTextError = ref<string>('')
 
-/** 生成签名 URL 并按文件种类在弹窗中预览 */
+/** 媒体 blob 的对象 URL，需在切换/关闭时手动释放，避免内存泄漏 */
+let previewObjectUrl = ''
+
+/** Markdown 原文直接渲染；其余文本按语言包成代码块复用 md-editor 高亮 */
+const previewMarkdown = computed(() => {
+  if (previewKind.value === 'markdown') {
+    return previewText.value
+  }
+  return `~~~${previewLang.value}\n${previewText.value}\n~~~`
+})
+
+function revokePreviewObjectUrl() {
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl)
+    previewObjectUrl = ''
+  }
+}
+
+/** 经鉴权下载接口取文件内容（axios 自动带 token），按种类在弹窗中预览 */
 async function handlePreview(row: FileListItemDto) {
-  previewKind.value = getPreviewKind(row)
+  const kind = getPreviewKind(row)
+  previewKind.value = kind
   previewName.value = row.originalName
+  previewLang.value = PREVIEW_TEXT_LANG[getFileExt(row)] ?? ''
+  revokePreviewObjectUrl()
   previewUrl.value = ''
+  previewText.value = ''
+  previewTextError.value = ''
   previewVisible.value = true
   previewLoading.value = true
   try {
-    previewUrl.value = await fileManagementApi.generatePresignedUrl(row.basicId)
+    if ((kind === 'markdown' || kind === 'text') && row.fileSize > PREVIEW_TEXT_MAX_BYTES) {
+      previewTextError.value = '文件较大，暂不支持在线文本预览，请下载查看'
+      return
+    }
+    const blob = await fileManagementApi.download(row.basicId)
+    if (kind === 'markdown' || kind === 'text') {
+      previewText.value = await blob.text()
+    }
+    else {
+      previewObjectUrl = URL.createObjectURL(blob)
+      previewUrl.value = previewObjectUrl
+    }
   }
   catch {
-    previewUrl.value = ''
-    message.error('获取预览地址失败')
+    if (kind === 'markdown' || kind === 'text') {
+      previewTextError.value = '加载预览失败，请下载查看'
+    }
+    message.error('加载预览失败')
   }
   finally {
     previewLoading.value = false
   }
 }
+
+watch(previewVisible, (visible) => {
+  if (!visible) {
+    revokePreviewObjectUrl()
+  }
+})
 
 // ── 存储副本列表抽屉 ────────────────────────────────────────────
 const storageListVisible = ref(false)
@@ -1024,7 +1110,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
       </NDrawerContent>
     </NDrawer>
 
-    <!-- 文件预览弹窗：仅对浏览器可直接渲染的简单类型开放（图片/音视频/PDF/文本）-->
+    <!-- 文件预览弹窗：仅零依赖、浏览器可直接渲染的类型（图片/音视频/PDF/Markdown/文本与源码高亮） -->
     <NModal
       v-model:show="previewVisible"
       preset="card"
@@ -1032,12 +1118,24 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
       :bordered="false"
       style="width: 80vw; max-width: 960px;"
     >
-      <div class="file-preview-body">
+      <div
+        class="file-preview-body"
+        :class="{ 'is-text': previewKind === 'markdown' || previewKind === 'text' }"
+      >
         <div v-if="previewLoading" class="text-gray-400">
           加载中...
         </div>
+        <div v-else-if="previewTextError" class="text-gray-400">
+          {{ previewTextError }}
+        </div>
+        <XMdEditor
+          v-else-if="previewKind === 'markdown' || previewKind === 'text'"
+          preview-only
+          :model-value="previewMarkdown"
+          class="file-preview-md"
+        />
         <div v-else-if="!previewUrl" class="text-gray-400">
-          无法获取预览地址
+          无法获取预览内容
         </div>
         <img
           v-else-if="previewKind === 'image'"
@@ -1058,7 +1156,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           class="file-preview-audio"
         />
         <iframe
-          v-else-if="previewKind === 'pdf' || previewKind === 'text'"
+          v-else-if="previewKind === 'pdf'"
           :src="previewUrl"
           class="file-preview-frame"
           title="文件预览"
@@ -1089,6 +1187,11 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   overflow: auto;
 }
 
+.file-preview-body.is-text {
+  align-items: stretch;
+  justify-content: stretch;
+}
+
 .file-preview-image,
 .file-preview-media {
   max-width: 100%;
@@ -1104,5 +1207,9 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   width: 100%;
   height: 70vh;
   border: none;
+}
+
+.file-preview-md {
+  width: 100%;
 }
 </style>
