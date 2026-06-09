@@ -476,13 +476,6 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <NSwitch v-model:value="appStore.widgetFavorites" />
       </div>
       <div class="pref-row">
-        <div class="flex items-center gap-1">
-          <span>{{ t('preference.layout.widget.dynamic_island') }}</span>
-          <PrefTip :content="t('preference.layout.widget.dynamic_island_tip')" />
-        </div>
-        <NSwitch v-model:value="appStore.widgetDynamicIsland" />
-      </div>
-      <div class="pref-row">
         <span>{{ t('preference.layout.widget.sidebar_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetSidebarToggle" />
       </div>

@@ -42,6 +42,13 @@ const localeOptions = [
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.dynamic_island') }}</span>
+          <PrefTip :content="t('preference.general.dynamic_island_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.widgetDynamicIsland" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.frosted_glass') }}</span>
           <PrefTip :content="t('preference.general.frosted_glass_tip')" />
         </div>
