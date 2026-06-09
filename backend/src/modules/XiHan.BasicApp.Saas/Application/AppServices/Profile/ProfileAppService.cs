@@ -1,0 +1,251 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:ProfileAppService
+// Guid:d74d16af-1221-45b8-8d0d-b0ab6cc144cc
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/05/04 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Contracts;
+using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow.Attributes;
+
+namespace XiHan.BasicApp.Saas.Application.AppServices;
+
+/// <summary>
+/// 当前用户个人中心应用服务（账号资料关注点）。
+/// 其余关注点见 <c>ProfileAppService.Security.cs</c> / <c>ProfileAppService.Verification.cs</c> / <c>ProfileAppService.Session.cs</c>。
+/// </summary>
+[Authorize]
+[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "个人中心")]
+public sealed partial class ProfileAppService
+    : SaasApplicationService, IProfileAppService
+{
+    private readonly ICurrentUser _currentUser;
+
+    private readonly ILocalEventBus _localEventBus;
+
+    private readonly IUserNotificationDispatchService _notificationDispatchService;
+
+    private readonly IProfileDomainService _profileDomainService;
+
+    private readonly IProfileQueryService _profileQueryService;
+
+    private readonly IProfileVerificationService _profileVerificationService;
+
+    private readonly IUserPreferenceRepository _userPreferenceRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public ProfileAppService(
+        IProfileDomainService profileDomainService,
+        IProfileQueryService profileQueryService,
+        IProfileVerificationService profileVerificationService,
+        ILocalEventBus localEventBus,
+        IUserNotificationDispatchService notificationDispatchService,
+        IUserPreferenceRepository userPreferenceRepository,
+        ICurrentUser currentUser)
+    {
+        _profileDomainService = profileDomainService;
+        _profileQueryService = profileQueryService;
+        _profileVerificationService = profileVerificationService;
+        _localEventBus = localEventBus;
+        _notificationDispatchService = notificationDispatchService;
+        _userPreferenceRepository = userPreferenceRepository;
+        _currentUser = currentUser;
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(CancellationToken cancellationToken = default)
+    {
+        return await _profileQueryService.GetNotificationPreferenceAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<ProfileNotificationPreferenceDto> UpdateNotificationPreferenceAsync(ProfileNotificationPreferenceDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userId = GetCurrentUserIdOrThrow();
+        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        if (preference is null)
+        {
+            // 惰性创建
+            preference = new SysUserPreference { UserId = userId };
+            ApplyPreference(preference, input);
+            await _userPreferenceRepository.AddAsync(preference, cancellationToken);
+        }
+        else
+        {
+            ApplyPreference(preference, input);
+            await _userPreferenceRepository.UpdateAsync(preference, cancellationToken);
+        }
+
+        return ProfileQueryService.ToPreferenceDto(preference);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task ChangeUserNameAsync(ProfileChangeUserNameDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = GetCurrentUserIdOrThrow();
+        var result = await _profileDomainService.ChangeUserNameAsync(
+            ProfileApplicationMapper.ToChangeUserNameCommand(input, currentUserId),
+            cancellationToken);
+
+        await _notificationDispatchService.DispatchToUserAsync(
+            result.User.BasicId,
+            "用户名已修改",
+            $"您的账号用户名已修改为 {result.User.UserName}。",
+            NotificationType.User,
+            "profile.username.changed",
+            result.User.BasicId,
+            cancellationToken: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task DeactivateAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = GetCurrentUserIdOrThrow();
+        var result = await _profileDomainService.DeactivateAccountAsync(
+            ProfileApplicationMapper.ToPasswordConfirmCommand(input, currentUserId, _currentUser.UserId),
+            cancellationToken);
+        await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = GetCurrentUserIdOrThrow();
+        var result = await _profileDomainService.DeleteAccountAsync(
+            ProfileApplicationMapper.ToPasswordConfirmCommand(input, currentUserId, _currentUser.UserId),
+            cancellationToken);
+        await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<ProfileActivityDto> GetActivityAsync(CancellationToken cancellationToken = default)
+    {
+        return await _profileQueryService.GetActivityAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _profileQueryService.GetLinkedAccountsAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserProfileDto> GetProfileAsync(CancellationToken cancellationToken = default)
+    {
+        return await _profileQueryService.GetProfileAsync(GetCurrentUserIdOrThrow(), _currentUser.TenantId, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task UnlinkAccountAsync(ProfileUnlinkAccountDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _profileDomainService.UnlinkAccountAsync(
+            ProfileApplicationMapper.ToUnlinkAccountCommand(input, GetCurrentUserIdOrThrow()),
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<UserProfileDto> UpdateProfileAsync(ProfileUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userId = GetCurrentUserIdOrThrow();
+        await _profileDomainService.UpdateProfileAsync(
+            ProfileApplicationMapper.ToUpdateCommand(input, userId),
+            cancellationToken);
+
+        return await _profileQueryService.GetProfileAsync(userId, _currentUser.TenantId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 将 DTO 写入偏好实体
+    /// </summary>
+    private static void ApplyPreference(SysUserPreference preference, ProfileNotificationPreferenceDto input)
+    {
+        preference.ChannelInApp = input.ChannelInApp;
+        preference.ChannelEmail = input.ChannelEmail;
+        preference.ChannelSms = input.ChannelSms;
+        preference.ChannelPush = input.ChannelPush;
+        preference.TypeAnnouncement = input.TypeAnnouncement;
+        preference.TypeTask = input.TypeTask;
+        preference.TypeApproval = input.TypeApproval;
+        preference.TypeSecurity = input.TypeSecurity;
+        preference.TypeMarketing = input.TypeMarketing;
+    }
+
+    private static TwoFactorMethod ToTwoFactorMethod(int method)
+    {
+        return method switch
+        {
+            (int)TwoFactorMethod.Totp => TwoFactorMethod.Totp,
+            (int)TwoFactorMethod.Email => TwoFactorMethod.Email,
+            (int)TwoFactorMethod.Phone => TwoFactorMethod.Phone,
+            _ => throw new ArgumentOutOfRangeException(nameof(method), "双因素方式无效。")
+        };
+    }
+
+    private string? GetCurrentSessionId()
+    {
+        return _currentUser.FindClaim(XiHanClaimTypes.SessionId)?.Value;
+    }
+
+    private long GetCurrentUserIdOrThrow()
+    {
+        return _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+    }
+
+    private async Task PublishSessionRevokedEventsAsync(
+        IReadOnlyList<UserSessionRevokedDomainEvent> domainEvents,
+        CancellationToken cancellationToken)
+    {
+        foreach (var domainEvent in domainEvents)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await _localEventBus.PublishAsync(domainEvent);
+        }
+    }
+}

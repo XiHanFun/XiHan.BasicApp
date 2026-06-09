@@ -10,17 +10,14 @@ import {
   NIcon,
   NInput,
   NInputOtp,
-  NRadioButton,
-  NRadioGroup,
   useMessage,
 } from 'naive-ui'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { getLoginConfigApi } from '@/api'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAuthStore } from '~/stores'
+import { useAppContext, useAuthStore } from '~/stores'
 
 defineOptions({ name: 'LoginPage' })
 
@@ -29,6 +26,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { apis } = useAppContext()
 const message = useMessage()
 const formRef = ref<FormInst | null>(null)
 const rememberMe = ref(true)
@@ -50,7 +48,7 @@ const codeSent = ref(false)
 const sendingCode = ref(false)
 
 const methodLabels: Record<string, string> = {
-  totp: 'Authenticator App',
+  totp: '认证器（Authenticator）',
   email: '邮箱验证码',
   phone: '手机短信验证码',
 }
@@ -89,14 +87,13 @@ const rules: FormRules = {
 }
 
 const redirect = computed(() => {
-  const r = route.query.redirect as string
-  return r ? decodeURIComponent(r) : undefined
+  return (route.query.redirect as string) || undefined
 })
 
 const oauthProviderIcons: Record<string, string> = {
-  github: 'mdi:github',
-  google: 'logos:google-icon',
-  qq: 'ri:qq-fill',
+  github: 'lucide:github',
+  google: 'lucide:globe',
+  qq: 'lucide:message-circle',
 }
 
 const oauthProviders = computed(() => loginConfig.value.oauthProviders ?? [])
@@ -106,26 +103,32 @@ function getOauthProviderIcon(name: string) {
 }
 
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
-  const parsedTenantId = Number(formData.value.tenantId)
-  const tenantId = loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId) ? parsedTenantId : undefined
-  authStore.startOAuthLogin(provider, tenantId)
+  authStore.startOAuthLogin(provider, resolveTenantId())
 }
 
 async function loadLoginConfig() {
-  loginConfig.value = await getLoginConfigApi()
+  loginConfig.value = await apis.getLoginConfigApi()
+}
+
+const cachedDeviceId = ref('')
+
+onMounted(async () => {
+  const { generateDeviceFingerprint } = await import('~/utils/device-fingerprint')
+  cachedDeviceId.value = await generateDeviceFingerprint()
+})
+
+function resolveTenantId() {
+  return loginConfig.value.tenantEnabled ? formData.value.tenantId.trim() || undefined : undefined
 }
 
 function buildLoginParams() {
-  const parsedTenantId = Number(formData.value.tenantId)
   return {
     username: formData.value.username,
     password: formData.value.password,
-    tenantId:
-      loginConfig.value.tenantEnabled && Number.isFinite(parsedTenantId)
-        ? parsedTenantId
-        : undefined,
+    tenantId: resolveTenantId(),
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
+    deviceId: cachedDeviceId.value || undefined,
   }
 }
 
@@ -157,8 +160,8 @@ async function handleLogin() {
       selectedMethod.value = availableMethods.value[0]!
       await handleSelectMethod()
     }
-    else {
-      // 多种方式可选
+    else if (availableMethods.value.length > 1) {
+      // 配置了多种双因素方式：全部列出，由用户任选一种进行验证
       tfStage.value = 'method-select'
       selectedMethod.value = availableMethods.value[0] ?? ''
     }
@@ -233,14 +236,7 @@ function handleOtpComplete(codes: string[]) {
   nextTick(() => handleLogin())
 }
 
-function handleBackToCredentials() {
-  tfStage.value = 'credentials'
-  twoFactorCode.value = []
-  selectedMethod.value = ''
-  availableMethods.value = []
-  codeSent.value = false
-}
-
+/** 返回双因素方式选择（多种方式时可换一种验证） */
 function handleBackToMethodSelect() {
   tfStage.value = 'method-select'
   twoFactorCode.value = []
@@ -269,7 +265,7 @@ onMounted(async () => {
 <template>
   <div class="py-1">
     <Transition name="fade-slide" mode="out-in">
-      <!-- 阶段3：输入验证码 -->
+      <!-- 阶段2：输入验证码 -->
       <div v-if="tfStage === 'code-input'" key="code-input">
         <div class="mb-8">
           <div class="flex items-center gap-3 mb-3">
@@ -347,22 +343,9 @@ onMounted(async () => {
             换种方式
           </NButton>
         </div>
-
-        <NButton
-          class="mt-2 !h-11 w-full !rounded-xl"
-          quaternary
-          @click="handleBackToCredentials"
-        >
-          <template #icon>
-            <NIcon :size="16">
-              <Icon icon="lucide:arrow-left" />
-            </NIcon>
-          </template>
-          {{ t('page.auth.back_to_login') }}
-        </NButton>
       </div>
 
-      <!-- 阶段2：选择 2FA 方式 -->
+      <!-- 阶段2：选择双因素验证方式（配置多种时全部列出，任选其一） -->
       <div v-else-if="tfStage === 'method-select'" key="method-select">
         <div class="mb-8">
           <div class="flex items-center gap-3 mb-3">
@@ -386,21 +369,28 @@ onMounted(async () => {
           </p>
         </div>
 
-        <NRadioGroup v-model:value="selectedMethod" class="!w-full !flex !flex-col !gap-3 !mb-6">
-          <NRadioButton
+        <div class="flex flex-col gap-3 mb-6">
+          <button
             v-for="m in availableMethods"
             :key="m"
-            :value="m"
-            class="!rounded-xl !h-14 !flex !items-center !px-4 !w-full"
+            type="button"
+            class="flex items-center gap-3 px-4 w-full h-14 rounded-xl border transition-colors"
+            :class="selectedMethod === m
+              ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)]'
+              : isDark ? 'border-white/10 hover:border-white/25' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)]'"
+            @click="selectedMethod = m"
           >
-            <div class="flex items-center gap-3">
-              <NIcon :size="20">
-                <Icon :icon="methodIcons[m] || 'lucide:shield-check'" />
-              </NIcon>
-              <span class="text-[15px]">{{ methodLabels[m] || m }}</span>
-            </div>
-          </NRadioButton>
-        </NRadioGroup>
+            <NIcon
+              :size="20"
+              :class="selectedMethod === m
+                ? 'text-[hsl(var(--primary))]'
+                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+            >
+              <Icon :icon="methodIcons[m] || 'lucide:shield-check'" />
+            </NIcon>
+            <span class="text-[15px]">{{ methodLabels[m] || m }}</span>
+          </button>
+        </div>
 
         <NButton
           type="primary"
@@ -410,19 +400,6 @@ onMounted(async () => {
           @click="handleSelectMethod"
         >
           继续
-        </NButton>
-
-        <NButton
-          class="mt-3 !h-11 w-full !rounded-xl"
-          quaternary
-          @click="handleBackToCredentials"
-        >
-          <template #icon>
-            <NIcon :size="16">
-              <Icon icon="lucide:arrow-left" />
-            </NIcon>
-          </template>
-          {{ t('page.auth.back_to_login') }}
         </NButton>
       </div>
 

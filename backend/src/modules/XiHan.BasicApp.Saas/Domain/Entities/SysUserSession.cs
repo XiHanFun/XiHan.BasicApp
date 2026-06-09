@@ -14,7 +14,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -23,13 +22,16 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 职责：登录状态、多端控制、在线状态、会话撤销、设备管理。
 /// 不存储完整 Token/RefreshToken，仅通过 AccessTokenJti 与 Token 表关联，便于黑名单与撤销。
 /// </summary>
-[SugarTable("Sys_User_Session", "系统用户会话表")]
-[SugarIndex("IX_SysUserSession_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_UsSeId", nameof(UserSessionId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserSession_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserSession_IsOn_IsRe", nameof(IsOnline), OrderByType.Asc, nameof(IsRevoked), OrderByType.Asc)]
-public partial class SysUserSession : BasicAppAggregateRoot
+[SugarTable("SysUserSession", "系统用户会话表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_UsSeId", nameof(TenantId), OrderByType.Asc, nameof(UserSessionId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_AcJti", nameof(CurrentAccessTokenJti), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+public partial class SysUserSession : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 用户ID
@@ -44,7 +46,8 @@ public partial class SysUserSession : BasicAppAggregateRoot
     public virtual string? CurrentAccessTokenJti { get; set; }
 
     /// <summary>
-    /// 会话标识（用于区分不同设备/端，业务侧唯一）
+    /// 会话标识（用于区分不同设备/端，在同一租户上下文内唯一）
+    /// 同一自然人在不同租户同时登录时允许复用同一业务 SessionId，但会落成不同 TenantId 的独立会话记录
     /// </summary>
     [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = false)]
     public virtual string UserSessionId { get; set; } = string.Empty;
@@ -95,31 +98,33 @@ public partial class SysUserSession : BasicAppAggregateRoot
     /// 登录时间
     /// </summary>
     [SugarColumn(ColumnDescription = "登录时间")]
-    public virtual DateTimeOffset LoginTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset LoginTime { get; set; }
 
     /// <summary>
     /// 最后活动时间
     /// </summary>
     [SugarColumn(ColumnDescription = "最后活动时间")]
-    public virtual DateTimeOffset LastActivityTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset LastActivityTime { get; set; }
 
     /// <summary>
-    /// 是否在线
+    /// 会话状态（Active=活跃 / Offline=离线 / Revoked=已撤销 / Expired=已过期；统一替代原 IsOnline + IsRevoked 布尔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否在线")]
-    public virtual bool IsOnline { get; set; } = true;
-
-    /// <summary>
-    /// 是否已撤销
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否已撤销")]
-    public virtual bool IsRevoked { get; set; } = false;
+    /// <remarks>
+    /// 状态判定建议：
+    /// - 新建登录会话：Active
+    /// - 正常登出 / 心跳超时：Offline（配合 LogoutTime）
+    /// - 强制下线 / 安全撤销：Revoked（配合 RevokedTime、RevokedReason）
+    /// - 超过 ExpirationTime：Expired（定时任务扫描置位）
+    /// 鉴权"会话有效"判定：Status == Active 且未软删。
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "会话状态")]
+    public virtual SessionStatus Status { get; set; } = SessionStatus.Active;
 
     /// <summary>
     /// 撤销时间
     /// </summary>
     [SugarColumn(ColumnDescription = "撤销时间", IsNullable = true)]
-    public virtual DateTimeOffset? RevokedAt { get; set; }
+    public virtual DateTimeOffset? RevokedTime { get; set; }
 
     /// <summary>
     /// 撤销原因
@@ -132,6 +137,12 @@ public partial class SysUserSession : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "登出时间", IsNullable = true)]
     public virtual DateTimeOffset? LogoutTime { get; set; }
+
+    /// <summary>
+    /// 会话过期时间（绝对超时，如 24 小时强制重登；为空表示不限）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话过期时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 备注

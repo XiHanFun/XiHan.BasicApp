@@ -20,15 +20,42 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统操作实体
-/// 定义可对资源执行的操作类型（增删改查、审批、导入导出等）
+/// 权限体系中的"动作"（Action）：定义可对资源执行的操作，与 SysResource 组合形成 SysPermission
 /// </summary>
-[SugarTable("Sys_Operation", "系统操作表")]
-[SugarIndex("UX_SysOperation_TeId_OpCo", nameof(TenantId), OrderByType.Asc, nameof(OperationCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOperation_OpCo", nameof(OperationCode), OrderByType.Asc)]
-[SugarIndex("IX_SysOperation_Ca", nameof(Category), OrderByType.Asc)]
-[SugarIndex("IX_SysOperation_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysOperation_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
-[SugarIndex("IX_SysOperation_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+/// <remarks>
+/// 关联：
+/// - 反向：SysPermission.OperationId
+///
+/// 写入：
+/// - TenantId + OperationCode 租户内唯一（UX_TeId_OpCo）
+/// - OperationCode 规范：小写英文（create/read/update/delete/approve/export）
+/// - TenantId = 0（即派生属性 IsGlobal=true）时作为平台动作模板（CRUD/Approve/Export 等通用操作）
+/// - IsDangerous=true 的操作前端应弹二次确认；IsRequireAudit=true 的操作必须写 SysDiffLog
+///
+/// 查询：
+/// - 按 Category/OperationTypeCode 过滤用于前端操作面板分组
+/// - 全局+私有合并查询优先使用：WHERE TenantId IN (0, ?)
+///   平台记录以 TenantId=0 唯一约束；IsGlobal 为派生只读属性（= TenantId==0）
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无权限引用（SysPermission.OperationId）
+///
+/// 状态：
+/// - Status: Yes/No 启停
+///
+/// 场景：
+/// - 与 SysResource 笛卡尔积生成权限点
+/// - 按 Category 分组渲染前端权限矩阵
+/// - HttpMethod 字段用于 API 类资源的接口 Method 匹配
+/// </remarks>
+[SugarTable("SysOperation", "系统操作表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_OpCo", nameof(TenantId), OrderByType.Asc, nameof(OperationCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_Ca", nameof(Category), OrderByType.Asc)]
+[SugarIndex("IX_{table}_OpTyCo", nameof(OperationTypeCode), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysOperation : BasicAppAggregateRoot
 {
     /// <summary>
@@ -86,7 +113,7 @@ public partial class SysOperation : BasicAppAggregateRoot
     public virtual bool IsDangerous { get; set; } = false;
 
     /// <summary>
-    /// 是否需要审计日志
+    /// 是否需要差异日志
     /// </summary>
     [SugarColumn(ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
@@ -95,7 +122,7 @@ public partial class SysOperation : BasicAppAggregateRoot
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序

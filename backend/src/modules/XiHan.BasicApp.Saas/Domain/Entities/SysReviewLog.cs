@@ -14,43 +14,53 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统审查日志实体
+/// SysReview 每步审批动作的不可变记录：谁在什么时候做了什么决定，构成完整审批链路
 /// </summary>
-[SugarTable("Sys_Review_Log_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysReviewLog_ReId", nameof(ReviewId), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReRe", nameof(ReviewResult), OrderByType.Asc)]
-[SugarIndex("IX_SysReviewLog_ReTi", nameof(ReviewTime), OrderByType.Desc)]
-public partial class SysReviewLog : BasicAppCreationEntity
+/// <remarks>
+/// 职责边界：
+/// - 本表记录"审批决策动作"（同意/拒绝/退回/加签/转办），是业务审批的合规证据
+/// - 与 SysDiffLog（数据库实体变更审计）职责分离：数据变更由 SysDiffLog 自动捕获，本表只记录审批人的决策行为
+/// - 设备/浏览器等请求上下文通过 TraceId 关联 SysAccessLog 查询，本表不冗余
+///
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - ReviewId → SysReview；ReviewUserId → SysUser（执行审查动作的人）
+///
+/// 写入：
+/// - 每次审批流转（同意/拒绝/退回/加签/转办）追加一条
+/// - 与 SysReview.ReviewStatus 变更同事务写入，保证一致性
+/// - ReviewComment 记录本步审批意见；ReviewResult 枚举具体动作
+///
+/// 查询：
+/// - 审批链路还原：IX_ReId + ORDER BY ReviewTime ASC
+/// - 某用户的审查历史：IX_ReUsId
+/// - 审查结果统计：IX_ReRe
+///
+/// 删除：
+/// - 禁止业务删除；审查记录是合规证据
+/// </remarks>
+[SugarTable("SysReviewLog_{year}{month}{day}", "系统审查日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReId", nameof(ReviewId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReRe", nameof(ReviewResult), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ReTi", nameof(ReviewTime), OrderByType.Desc)]
+public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
 {
     /// <summary>
     /// 审查ID
     /// </summary>
     [SugarColumn(ColumnDescription = "审查ID")]
     public virtual long ReviewId { get; set; }
-
-    /// <summary>
-    /// 审查编码
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查编码", Length = 100, IsNullable = true)]
-    public virtual string? ReviewCode { get; set; }
-
-    /// <summary>
-    /// 审查标题
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查标题", Length = 200, IsNullable = true)]
-    public virtual string? ReviewTitle { get; set; }
-
-    /// <summary>
-    /// 审查类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查类型", Length = 50, IsNullable = true)]
-    public virtual string? ReviewType { get; set; }
 
     /// <summary>
     /// 审查级别
@@ -63,18 +73,6 @@ public partial class SysReviewLog : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "审查人ID", IsNullable = true)]
     public virtual long? ReviewUserId { get; set; }
-
-    /// <summary>
-    /// 审查人名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查人名称", Length = 50, IsNullable = true)]
-    public virtual string? ReviewUserName { get; set; }
-
-    /// <summary>
-    /// 审查人部门
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查人部门", Length = 100, IsNullable = true)]
-    public virtual string? ReviewUserDepartment { get; set; }
 
     /// <summary>
     /// 原审查状态
@@ -101,76 +99,28 @@ public partial class SysReviewLog : BasicAppCreationEntity
     public virtual string? ReviewComment { get; set; }
 
     /// <summary>
-    /// 审查动作
+    /// 审查动作（Approve/Reject/Return/Countersign/Transfer 等）
     /// </summary>
     [SugarColumn(ColumnDescription = "审查动作", Length = 50, IsNullable = true)]
     public virtual string? ReviewAction { get; set; }
 
     /// <summary>
-    /// 审查前数据（JSON格式）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查前数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? BeforeData { get; set; }
-
-    /// <summary>
-    /// 审查后数据（JSON格式）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查后数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? AfterData { get; set; }
-
-    /// <summary>
-    /// 数据变更内容（JSON格式）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "数据变更内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? ChangeContent { get; set; }
-
-    /// <summary>
-    /// 附件信息（JSON格式）
+    /// 附件信息（JSON格式，本步审批附带的附件）
     /// </summary>
     [SugarColumn(ColumnDescription = "附件信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Attachments { get; set; }
 
     /// <summary>
-    /// 审查IP
+    /// 操作IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
     public virtual string? ReviewIp { get; set; }
-
-    /// <summary>
-    /// 审查地址
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查地址", Length = 200, IsNullable = true)]
-    public virtual string? ReviewLocation { get; set; }
-
-    /// <summary>
-    /// 浏览器类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
-    public virtual string? Browser { get; set; }
-
-    /// <summary>
-    /// 操作系统
-    /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
-    public virtual string? Os { get; set; }
-
-    /// <summary>
-    /// 设备类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "设备类型", Length = 50, IsNullable = true)]
-    public virtual string? Device { get; set; }
 
     /// <summary>
     /// 审查时间
     /// </summary>
     [SugarColumn(ColumnDescription = "审查时间")]
-    public virtual DateTimeOffset ReviewTime { get; set; } = DateTimeOffset.Now;
-
-    /// <summary>
-    /// 审查耗时（毫秒）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "审查耗时（毫秒）")]
-    public virtual long ReviewDuration { get; set; } = 0;
+    public virtual DateTimeOffset ReviewTime { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）

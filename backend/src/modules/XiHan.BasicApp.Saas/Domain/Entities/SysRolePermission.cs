@@ -21,13 +21,26 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统角色权限关联实体
 /// </summary>
-[SugarTable("Sys_Role_Permission", "系统角色权限关联表")]
-[SugarIndex("UX_SysRolePermission_RoId_PeId", nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysRolePermission_RoId", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("IX_SysRolePermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+/// <remarks>
+/// 权限合并优先级（从高到低）：
+/// 1. 用户直授（SysUserPermission）的 Deny → 最终拒绝，不可被任何角色 Grant 覆盖
+/// 2. 用户直授（SysUserPermission）的 Grant → 最终授予，即使所有角色 Deny
+/// 3. 角色级 Deny（本表）→ 仅作用于当前角色的继承链，不影响其他独立角色
+/// 4. 角色级 Grant（本表）→ 当前角色的权限授予
+///
+/// 角色级 Deny 语义：若角色 B 继承角色 A，B 对权限 P 标记 Deny，
+/// 则通过 B 不会获得 P；但用户若同时直接持有角色 A，仍可通过 A 获得 P。
+/// </remarks>
+[SugarTable("SysRolePermission", "系统角色权限关联表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_RoId_PeId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeAc", nameof(PermissionAction), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 public partial class SysRolePermission : BasicAppCreationEntity
 {
     /// <summary>
@@ -43,10 +56,34 @@ public partial class SysRolePermission : BasicAppCreationEntity
     public virtual long PermissionId { get; set; }
 
     /// <summary>
+    /// 权限操作（授予/禁用，支持角色继承时覆盖父角色权限）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "权限操作")]
+    public virtual PermissionAction PermissionAction { get; set; } = PermissionAction.Grant;
+
+    /// <summary>
+    /// 生效时间（为空表示立即生效）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    public virtual DateTimeOffset? EffectiveTime { get; set; }
+
+    /// <summary>
+    /// 失效时间（为空表示永不过期）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
+
+    /// <summary>
+    /// 授权原因（关联审批单号、工单号等，用于审计追溯）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "授权原因", Length = 500, IsNullable = true)]
+    public virtual string? GrantReason { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注

@@ -1,18 +1,19 @@
 <script lang="ts" setup>
-import type { DropdownOption } from 'naive-ui'
+import type { DragEndEvent } from '@dnd-kit/vue'
 import type { TabItem } from '~/types'
-import { Icon } from '~/iconify'
+import { DragDropProvider } from '@dnd-kit/vue'
 import { useDebounceFn } from '@vueuse/core'
-import { NButton, NDropdown, NIcon } from 'naive-ui'
-import Sortable from 'sortablejs'
+import { NButton, NIcon } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { resolveSortMove } from '~/components/common/sortable'
 import { useContentMaximize, useRefresh } from '~/hooks'
-import { useAppStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import { Icon } from '~/iconify'
+import { useAppStore, useFavoritesStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
-  createDropdownIcon,
+  flyToFavorites,
   getTabByPath,
   openTabInNewWindow,
 } from '../composables'
@@ -27,6 +28,7 @@ const { t, te } = useI18n()
 const appStore = useAppStore()
 const tabbarPreferences = useTabbarPreferences()
 const tabbarStore = useTabbarStore()
+const favoritesStore = useFavoritesStore()
 
 const visibleTabs = computed(() => tabbarStore.tabs)
 const localizedTabs = computed(() => {
@@ -46,9 +48,10 @@ const contextMenuY = ref(0)
 const contextTabPath = ref('')
 const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
+// 收藏「飞入」动画的起点矩形（右键时捕获被点中标签的 DOM 位置）
+const contextTabRect = ref<DOMRect | null>(null)
 const tabsContainerRef = ref<HTMLElement | null>(null)
 const scrollViewportRef = ref<HTMLElement | null>(null)
-const sortableInstance = ref<null | Sortable>(null)
 
 // ---- 溢出滚动按钮 ----
 const showScrollBtn = ref(false)
@@ -64,18 +67,13 @@ const tabThemeVars = computed(() => {
     '--tab-active-bg': `color-mix(in srgb, ${color} 18%, hsl(var(--background)))`,
   }
 })
-const moreTabOptions = computed<DropdownOption[]>(() =>
-  localizedTabs.value.map(item => ({
-    key: item.path,
-    label: item.displayTitle,
-    icon: createDropdownIcon(item.pinned ? 'lucide:pin' : 'lucide:file'),
-  })),
-)
 const contextMenuOptions = computed(() => {
   return buildTabContextOptions({
     path: contextTabPath.value,
     closable: contextTabClosable.value,
     pinned: contextTabPinned.value,
+    favorited: favoritesStore.has(contextTabPath.value),
+    favoritesEnabled: appStore.widgetFavorites,
     tabs: visibleTabs.value,
     isContentMaximized: isContentMaximized.value,
     t,
@@ -140,6 +138,26 @@ function handleContextMenuSelect(key: string, tabPath: string) {
     case 'open':
       openTabInNewWindow(tabPath)
       break
+    case 'favorite': {
+      const target = getTabByPath(visibleTabs.value, tabPath)
+      if (!target) {
+        break
+      }
+      const wasFavorited = favoritesStore.has(tabPath)
+      favoritesStore.toggle({
+        key: tabPath,
+        path: tabPath,
+        title: target.title,
+        icon: target.meta?.icon as string | undefined,
+      })
+      // 仅「新增收藏」时播放飞入动画（取消收藏不播）
+      if (!wasFavorited) {
+        flyToFavorites(contextTabRect.value, {
+          label: te(target.title) ? t(target.title) : target.title,
+        })
+      }
+      break
+    }
   }
 }
 
@@ -148,8 +166,28 @@ function openContextMenu(e: MouseEvent, tab: TabItem) {
   contextTabPath.value = tab.path
   contextTabClosable.value = tab.closable
   contextTabPinned.value = Boolean(tab.pinned)
+  // 捕获被右键的标签 DOM 矩形，作为「飞入收藏夹」动画起点
+  const tabEl = (e.target as HTMLElement | null)?.closest('[data-tab-item]') as HTMLElement | null
+  contextTabRect.value = tabEl?.getBoundingClientRect() ?? null
   contextMenuX.value = e.clientX
   contextMenuY.value = e.clientY
+  contextMenuVisible.value = true
+}
+
+// 工具栏「网格」按钮：打开当前选中标签的上下文菜单（与右键标签一致），而非罗列已打开标签
+function openActiveTabMenu(e: MouseEvent) {
+  const activeTab = getTabByPath(visibleTabs.value, route.fullPath)
+  if (!activeTab) {
+    return
+  }
+  contextTabPath.value = activeTab.path
+  contextTabClosable.value = activeTab.closable
+  contextTabPinned.value = Boolean(activeTab.pinned)
+  // 菜单与收藏「飞入」动画都以按钮自身矩形为锚点
+  const btnRect = (e.currentTarget as HTMLElement | null)?.getBoundingClientRect() ?? null
+  contextTabRect.value = btnRect
+  contextMenuX.value = btnRect ? btnRect.right : e.clientX
+  contextMenuY.value = btnRect ? btnRect.bottom + 4 : e.clientY
   contextMenuVisible.value = true
 }
 
@@ -236,94 +274,22 @@ function onTabLeaveCancelled(el: Element) {
   clearTabTransition(el as HTMLElement)
 }
 
-function destroySortable() {
-  sortableInstance.value?.destroy()
-  sortableInstance.value = null
-}
-
-function findTabElement(element: HTMLElement | null) {
-  if (!element) {
-    return null
-  }
-  if (element.classList.contains('group') || element.classList.contains('flat-tab')) {
-    return element
-  }
-  return (element.closest('.group') || element.closest('.flat-tab')) as HTMLElement | null
-}
-
-async function initSortable() {
-  destroySortable()
-  await nextTick()
-
-  const el = tabsContainerRef.value
-  if (!el) {
+// 拖拽结束：按路径提交新顺序。固定标签（pinned）在 TabbarTabItem 中已被禁用拖拽，
+// 此处再以数据校验「固定 / 非固定不互换」，保证最终顺序不破坏约束。
+function onTabDragEnd(event: DragEndEvent) {
+  const tabs = localizedTabs.value
+  const move = resolveSortMove(event, tabs.map(tab => tab.path))
+  if (!move) {
     return
   }
-
-  function resetElState() {
-    el!.style.cursor = ''
-    el!.querySelector('.draggable')?.classList.remove('dragging')
+  if (Boolean(tabs[move.from]?.pinned) !== Boolean(tabs[move.to]?.pinned)) {
+    return
   }
-
-  const isChromeStyle = appStore.tabbarStyle === 'chrome'
-
-  sortableInstance.value = Sortable.create(el, {
-    animation: 380,
-    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    ghostClass: isChromeStyle ? 'chrome-tab--ghost' : 'flat-tab--ghost',
-    chosenClass: isChromeStyle ? 'chrome-tab--chosen' : 'flat-tab--chosen',
-    dragClass: isChromeStyle ? 'chrome-tab--dragging' : 'flat-tab--dragging',
-    draggable: isChromeStyle ? '.chrome-tab.draggable' : '.flat-tab.draggable',
-    onMove: (evt) => {
-      if (!tabbarPreferences.tabbarDraggable.value) {
-        return false
-      }
-      const dragged = findTabElement(evt.dragged as HTMLElement)
-      const related = findTabElement(evt.related as HTMLElement)
-      if (!dragged || !related) {
-        return false
-      }
-      // 固定标签和非固定标签不允许跨区交换
-      const draggedPinned = dragged.classList.contains('affix-tab')
-      const relatedPinned = related.classList.contains('affix-tab')
-      return draggedPinned === relatedPinned
-    },
-    onStart: (evt) => {
-      el.style.cursor = 'grabbing'
-      ;(evt.item as HTMLElement).classList.add('dragging')
-    },
-    onEnd: (evt) => {
-      const { newIndex, oldIndex, item } = evt
-      resetElState()
-
-      if (!tabbarPreferences.tabbarDraggable.value) {
-        return
-      }
-
-      const srcParent = findTabElement(item as HTMLElement)
-      if (!srcParent || !srcParent.classList.contains('draggable')) {
-        return
-      }
-
-      if (
-        oldIndex !== undefined
-        && newIndex !== undefined
-        && !Number.isNaN(oldIndex)
-        && !Number.isNaN(newIndex)
-        && oldIndex !== newIndex
-      ) {
-        const from = localizedTabs.value[oldIndex]
-        const to = localizedTabs.value[newIndex]
-        if (from && to && from.path !== to.path) {
-          tabbarStore.moveTab(from.path, to.path)
-        }
-      }
-    },
-  })
-}
-
-function handleMoreTabSelect(path: string) {
-  handleJump(path)
+  const from = tabs[move.from]
+  const to = tabs[move.to]
+  if (from && to && from.path !== to.path) {
+    tabbarStore.moveTab(from.path, to.path)
+  }
 }
 
 // ---- 滚动按钮逻辑 ----
@@ -409,7 +375,6 @@ function initScrollObservers() {
 }
 
 onMounted(async () => {
-  initSortable()
   await nextTick()
   initScrollObservers()
   scrollViewportRef.value?.addEventListener('scroll', debouncedEdge, { passive: true })
@@ -417,20 +382,14 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  destroySortable()
   resizeObserver?.disconnect()
   mutationObserver?.disconnect()
   scrollViewportRef.value?.removeEventListener('scroll', debouncedEdge)
   scrollViewportRef.value?.removeEventListener('wheel', handleTabsWheel)
 })
 
-watch(() => tabbarPreferences.tabbarDraggable.value, () => {
-  initSortable()
-})
-
 watch(() => appStore.tabbarStyle, () => {
   nextTick(() => {
-    initSortable()
     initScrollObservers()
   })
 })
@@ -480,35 +439,37 @@ watch(() => route.fullPath, () => {
             ? 'flex h-full min-w-max items-end'
             : 'flex h-full min-w-max items-stretch'"
         >
-          <TransitionGroup
-            name="tabs-slide"
-            :css="false"
-            @before-enter="onTabBeforeEnter"
-            @enter="onTabEnter"
-            @before-leave="onTabBeforeLeave"
-            @leave="onTabLeave"
-            @enter-cancelled="onTabEnterCancelled"
-            @leave-cancelled="onTabLeaveCancelled"
-          >
-            <TabbarTabItem
-              v-for="(item, index) in localizedTabs"
-              :key="item.key"
-              :item="item"
-              :index="index"
-              :active="route.fullPath === item.path"
-              :is-last="index === localizedTabs.length - 1"
-              :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
-              :show-icon="appStore.tabbarShowIcon"
-              :middle-close-enabled="appStore.tabbarMiddleClickClose"
-              :style-type="appStore.tabbarStyle"
-              data-tab-item="true"
-              @jump="handleJump"
-              @contextmenu="openContextMenu"
-              @close="handleClose"
-              @toggle-pin="tabbarStore.togglePin"
-              @middle-close="handleMiddleClose"
-            />
-          </TransitionGroup>
+          <DragDropProvider @drag-end="onTabDragEnd">
+            <TransitionGroup
+              name="tabs-slide"
+              :css="false"
+              @before-enter="onTabBeforeEnter"
+              @enter="onTabEnter"
+              @before-leave="onTabBeforeLeave"
+              @leave="onTabLeave"
+              @enter-cancelled="onTabEnterCancelled"
+              @leave-cancelled="onTabLeaveCancelled"
+            >
+              <TabbarTabItem
+                v-for="(item, index) in localizedTabs"
+                :key="item.key"
+                :item="item"
+                :index="index"
+                :active="route.fullPath === item.path"
+                :is-last="index === localizedTabs.length - 1"
+                :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
+                :show-icon="appStore.tabbarShowIcon"
+                :middle-close-enabled="appStore.tabbarMiddleClickClose"
+                :style-type="appStore.tabbarStyle"
+                data-tab-item="true"
+                @jump="handleJump"
+                @contextmenu="openContextMenu"
+                @close="handleClose"
+                @toggle-pin="tabbarStore.togglePin"
+                @middle-close="handleMiddleClose"
+              />
+            </TransitionGroup>
+          </DragDropProvider>
         </div>
       </div>
     </div>
@@ -539,19 +500,18 @@ watch(() => route.fullPath, () => {
       @select="handleDropdownSelect"
     />
     <span class="tab-divider" />
-    <NDropdown
+    <NButton
       v-if="tabbarPreferences.tabbarShowMore.value"
-      :options="moreTabOptions"
-      @select="(key) => handleMoreTabSelect(String(key))"
+      quaternary
+      size="tiny"
+      @click="openActiveTabMenu"
     >
-      <NButton quaternary size="tiny">
-        <template #icon>
-          <NIcon>
-            <Icon icon="lucide:layout-grid" width="14" />
-          </NIcon>
-        </template>
-      </NButton>
-    </NDropdown>
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:layout-grid" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
     <span
       v-if="tabbarPreferences.tabbarShowMore.value && (appStore.widgetRefresh || tabbarPreferences.tabbarShowMaximize.value)"
       class="tab-divider"
@@ -578,7 +538,7 @@ watch(() => route.fullPath, () => {
       <template #icon>
         <NIcon>
           <Icon
-            :icon="isContentMaximized ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+            :icon="isContentMaximized ? 'lucide:minimize' : 'lucide:maximize'"
             width="14"
           />
         </NIcon>
@@ -610,20 +570,5 @@ watch(() => route.fullPath, () => {
 
 .tabbar-viewport::-webkit-scrollbar {
   display: none;
-}
-
-:deep(.chrome-tab--chosen),
-:deep(.flat-tab--chosen) {
-  cursor: grabbing;
-}
-
-:deep(.chrome-tab--ghost),
-:deep(.flat-tab--ghost) {
-  opacity: 0.4;
-}
-
-:deep(.chrome-tab--dragging),
-:deep(.flat-tab--dragging) {
-  transform: scale(0.98);
 }
 </style>

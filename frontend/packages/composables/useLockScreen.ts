@@ -37,7 +37,8 @@ export function useLockScreen() {
     if (lockPwdNew.value) {
       sessionStorage.setItem(LOCK_PWD_SESS_KEY, btoa(lockPwdNew.value))
       hasLockPwd.value = true
-    } else {
+    }
+    else {
       sessionStorage.removeItem(LOCK_PWD_SESS_KEY)
       hasLockPwd.value = false
     }
@@ -58,7 +59,7 @@ export function useLockScreen() {
       unlockPwd.value = ''
       if (lockAttempts.value >= MAX_LOCK_ATTEMPTS) {
         releaseLock()
-        authStore.logout()
+        void authStore.logout()
         return
       }
       unlockError.value = `密码错误，还可尝试 ${MAX_LOCK_ATTEMPTS - lockAttempts.value} 次`
@@ -79,7 +80,8 @@ export function useLockScreen() {
 
   function handleEscUnlock(e: KeyboardEvent) {
     if (e.key === 'Escape' && lockMode.value === 'locked') {
-      if (!sessionStorage.getItem(LOCK_PWD_SESS_KEY)) releaseLock()
+      if (!sessionStorage.getItem(LOCK_PWD_SESS_KEY))
+        releaseLock()
     }
   }
 

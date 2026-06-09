@@ -1,11 +1,23 @@
-import type { LoginParams, LoginResponse, LoginToken, OAuthProviderItem, PhoneLoginParams } from '~/types'
+import type {
+  EmailLoginParams,
+  LoginParams,
+  LoginResponse,
+  LoginToken,
+  OAuthProviderItem,
+  PermissionInfo,
+  PhoneLoginParams,
+  UserInfo,
+} from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getPermissionsApi, getUserInfoApi, loginApi, logoutApi, phoneLoginApi } from '@/api'
 import { useSignalR } from '~/composables'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { mapMenuToRoutes } from '~/router/dynamic'
+import { CORE_ROUTE_NAMES } from '~/router/routes/core'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { useAppContext } from './app-context'
+import { hydratePreferencesFromBackend, resetPreferenceBackendSync } from './helpers'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()
@@ -16,22 +28,25 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false)
 
   async function afterLogin(result: LoginToken, redirect?: string) {
-    const { router } = await import('@/router')
+    const loginTask = islandStart('auth:login', '正在登录…')
+    const ctx = useAppContext()
+    const router = await ctx.getRouter()
 
     accessStore.setAccessToken(result.accessToken)
     accessStore.setRefreshToken(result.refreshToken)
 
-    let userInfo: Awaited<ReturnType<typeof getUserInfoApi>>
-    let permissionInfo: Awaited<ReturnType<typeof getPermissionsApi>>
+    let userInfo: UserInfo
+    let permissionInfo: PermissionInfo
     try {
       ;[userInfo, permissionInfo] = await Promise.all([
-        getUserInfoApi(),
-        getPermissionsApi(),
+        ctx.apis.getUserInfoApi(),
+        ctx.apis.getPermissionsApi(),
       ])
     }
     catch (error) {
       accessStore.$reset()
       userStore.$reset()
+      loginTask.error('登录失败')
       throw error
     }
 
@@ -49,28 +64,38 @@ export const useAuthStore = defineStore('auth', () => {
 
     for (const route of mapMenuToRoutes(permissionInfo.menus)) {
       const routeName = route.name ? String(route.name) : ''
-      if (routeName && !router.hasRoute(routeName)) {
+      const routePathExists = router.getRoutes().some(item => item.path === route.path)
+      if (!routePathExists && routeName && !router.hasRoute(routeName)) {
         router.addRoute('RootLayout', route)
       }
     }
+
+    // 跨端同步：登录后拉取后端偏好并应用（覆盖本地），在进入应用前完成以避免闪烁
+    // showIsland:false — 同步过程由登录灵动岛统一覆盖，避免重复提示
+    await hydratePreferencesFromBackend({ showIsland: false })
 
     const homePath = accessStore.homePath || HOME_PATH
     if (redirect) {
       const target = decodeURIComponent(redirect)
       const resolved = router.resolve(target)
-      const isValid = resolved.matched.length > 0 && resolved.name !== 'NotFound'
+      const isValid
+        = resolved.matched.length > 0
+          && resolved.name !== 'NotFound'
+          && resolved.name !== 'NotFoundCatchAll'
       await router.replace(isValid ? target : homePath)
     }
     else {
       await router.replace(homePath)
     }
+
+    loginTask.success('登录成功')
   }
 
-  /** 返回 LoginResponse 以便调用方获取可用 2FA 方式信息；null 表示登录完成 */
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
     loginLoading.value = true
     try {
-      const response = await loginApi(params)
+      const ctx = useAppContext()
+      const response = await ctx.apis.loginApi(params)
       if (response.requiresTwoFactor) {
         return response
       }
@@ -87,7 +112,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string) {
     loginLoading.value = true
     try {
-      const result = await phoneLoginApi(params)
+      const ctx = useAppContext()
+      const result = await ctx.apis.phoneLoginApi(params)
       await afterLogin(result, redirect)
     }
     finally {
@@ -95,22 +121,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 发起第三方登录（跳转到后端 OAuth 端点）
-   */
-  function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | number) {
+  async function loginByEmailCode(params: EmailLoginParams, redirect?: string) {
+    loginLoading.value = true
+    try {
+      const ctx = useAppContext()
+      const result = await ctx.apis.emailLoginApi(params)
+      await afterLogin(result, redirect)
+    }
+    finally {
+      loginLoading.value = false
+    }
+  }
+
+  function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | string) {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
     const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
     let url = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider.name)}`
-    if (tenantId && tenantId > 0) {
+    if (tenantId) {
       url += `&tenantId=${tenantId}`
     }
     window.location.href = url
   }
 
-  /**
-   * 处理 OAuth 回调（前端 callback 页面调用）
-   */
   async function handleOAuthCallback(token: LoginToken, redirect?: string) {
     loginLoading.value = true
     try {
@@ -121,56 +153,75 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // 从 coreRoutes 自动派生，新增认证/错误路由时无需手动维护
   const STATIC_ROUTE_NAMES = new Set([
     'RootLayout',
-    'DashboardWorkspace',
     'Profile',
-    'About',
-    'Authentication',
-    'Login',
-    'CodeLogin',
-    'QrCodeLogin',
-    'ForgetPassword',
-    'Register',
-    'OAuthCallback',
-    'Forbidden',
-    'ServerError',
-    'NotFound',
+    'EditorDemo',
+    ...CORE_ROUTE_NAMES,
   ])
 
   async function logout() {
-    const { router } = await import('@/router')
-
-    // 断开 SignalR 连接
-    const signalR = useSignalR()
-    await signalR.destroy()
+    const ctx = useAppContext()
+    const router = await ctx.getRouter()
+    try {
+      const signalR = useSignalR()
+      await signalR.destroy()
+    }
+    catch {
+      // ignore signalr destroy error
+    }
 
     try {
-      await logoutApi()
+      await ctx.apis.logoutApi()
     }
     catch {
       // ignore logout api error
     }
 
-    const allRoutes = router.getRoutes()
-    for (const route of allRoutes) {
-      if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
-        router.removeRoute(route.name)
+    try {
+      const allRoutes = router.getRoutes()
+      for (const route of allRoutes) {
+        if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
+          try {
+            router.removeRoute(route.name)
+          }
+          catch {
+            // ignore remove route error
+          }
+        }
       }
+    }
+    catch {
+      // ignore dynamic route clear error
     }
 
     accessStore.$reset()
     userStore.$reset()
     tabbarStore.closeAll()
     sessionStorage.clear()
+    resetPreferenceBackendSync()
 
-    await router.replace(LOGIN_PATH)
+    try {
+      await router.replace(LOGIN_PATH)
+    }
+    catch {
+      const base = import.meta.env.VITE_BASE || '/'
+      const normalizedBase = base.endsWith('/') ? base : `${base}/`
+      if (import.meta.env.VITE_ROUTER_HISTORY === 'history') {
+        window.location.href = LOGIN_PATH
+      }
+      else {
+        window.location.href = `${normalizedBase}#${LOGIN_PATH}`
+      }
+    }
   }
 
   return {
     loginLoading,
     login,
     loginByPhoneCode,
+    loginByEmailCode,
     startOAuthLogin,
     handleOAuthCallback,
     logout,

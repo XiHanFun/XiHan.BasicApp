@@ -14,25 +14,52 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统文件实体
+/// 文件元数据聚合根：承载文件身份、业务关联、统计信息；物理存储位置由 SysFileStorage 记录
 /// </summary>
 /// <remarks>
-/// 文件元数据的聚合根，负责管理文件的基本信息、业务关联和统计信息
-/// 一个文件可以对应多个存储位置（主存储、备份、CDN等）
+/// 职责边界：
+/// - 本表只存"逻辑文件"（Hash/原始名/业务归属等）；"实际存在哪几个位置"由 SysFileStorage 一对多承载
+///
+/// 关联：
+/// - 反向：SysFileStorage.FileId（一文件多副本：主存储/备份/CDN）
+///
+/// 写入：
+/// - TenantId + FileHash 组合用于租户内去重（IX_TeId_FiHa），上传前先查同 hash 实现"秒传"
+/// - IsTemporary=true 的文件应设置 ExpirationTime，后台定时清理
+/// - Status 变更需同步更新统计（引用计数等）
+///
+/// 查询：
+/// - 按业务关联查文件：BusinessType/BusinessId 过滤
+/// - 按类型/状态分页：IX_FiTy / IX_TeId_St
+/// - 过期临时文件扫描：IX_ExTi
+///
+/// 删除：
+/// - 仅软删；物理删除由独立清理任务按策略批量执行（同时删除 SysFileStorage 物理文件）
+///
+/// 状态：
+/// - Status: 正常/已删除/已损坏/已过期等
+///
+/// 场景：
+/// - 文件上传（秒传、断点续传）
+/// - 业务附件绑定（订单附件、审批附件）
+/// - 存量文件管理与清理
 /// </remarks>
-[SugarTable("Sys_File", "系统文件表")]
-[SugarIndex("IX_SysFile_FiHa", nameof(FileHash), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FiNa", nameof(FileName), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_FiTy", nameof(FileType), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_IsTe", nameof(IsTemporary), OrderByType.Asc)]
-[SugarIndex("IX_SysFile_ExAt", nameof(ExpiresAt), OrderByType.Asc)]
-public partial class SysFile : BasicAppAggregateRoot
+[SugarTable("SysFile", "系统文件表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_FiNa", nameof(FileName), OrderByType.Asc)]
+[SugarIndex("IX_{table}_FiTy", nameof(FileType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsTe", nameof(IsTemporary), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+public partial class SysFile : BasicAppFullAuditedEntity
 {
     #region 基本信息
 
@@ -164,16 +191,10 @@ public partial class SysFile : BasicAppAggregateRoot
     #region 安全与权限
 
     /// <summary>
-    /// 是否公开访问
+    /// 文件访问级别（替代原 IsPublic+RequireAuth 布尔组合，消除无效组合）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否公开访问")]
-    public virtual bool IsPublic { get; set; } = true;
-
-    /// <summary>
-    /// 是否需要授权访问
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要授权访问")]
-    public virtual bool RequireAuth { get; set; } = false;
+    [SugarColumn(ColumnDescription = "访问级别")]
+    public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
     /// 访问权限（角色、用户等）
@@ -201,7 +222,7 @@ public partial class SysFile : BasicAppAggregateRoot
     /// 过期时间（用于临时文件）
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpiresAt { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否为临时文件

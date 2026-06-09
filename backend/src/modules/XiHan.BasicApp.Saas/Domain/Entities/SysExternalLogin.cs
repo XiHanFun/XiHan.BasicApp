@@ -19,10 +19,36 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统第三方登录绑定实体
+/// 本地用户与外部身份提供商（WeChat/DingTalk/Google/GitHub 等）的绑定关系
 /// </summary>
-[SugarTable("Sys_External_Login", "系统第三方登录绑定表")]
-[SugarIndex("UX_SysExternalLogin_Pr_PrKe_TeId", nameof(Provider), OrderByType.Asc, nameof(ProviderKey), OrderByType.Asc, nameof(TenantId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysExternalLogin_UsId", nameof(UserId), OrderByType.Asc)]
+/// <remarks>
+/// 关联：
+/// - UserId → SysUser
+///
+/// 写入：
+/// - Provider + ProviderKey + TenantId 唯一（UX_Pr_PrKe_TeId），保证同租户内一个第三方身份只绑一人
+/// - ProviderKey 是第三方系统中的用户唯一标识（OpenId/UnionId 等）
+/// - 同一用户可绑定多个 Provider（微信 + 钉钉 + 邮箱）
+/// - 敏感的第三方 AccessToken/RefreshToken 须加密存储
+///
+/// 查询：
+/// - 第三方回调登录：按 (Provider, ProviderKey, TenantId) 精确定位本地用户
+/// - 用户已绑定账号列表：IX_UsId
+///
+/// 删除：
+/// - 仅软删；解绑时应同步吊销第三方 Token
+///
+/// 场景：
+/// - 单点登录（SSO）：企业微信 / 钉钉 / 飞书扫码
+/// - 社交登录：微信 / 支付宝 / GitHub / Google
+/// - 账号找回：通过已绑定邮箱/手机号辅助登录
+/// </remarks>
+[SugarTable("SysExternalLogin", "系统第三方登录绑定表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_Pr_PrKe_TeId", nameof(Provider), OrderByType.Asc, nameof(ProviderKey), OrderByType.Asc, nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 public partial class SysExternalLogin : BasicAppFullAuditedEntity
 {
     /// <summary>

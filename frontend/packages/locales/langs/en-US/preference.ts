@@ -3,10 +3,10 @@ export default {
     title: 'Preferences',
     copy: 'Copy Preferences',
     reset: 'Reset Preferences',
-    clear_cache: 'Clear Cache',
+    clear_cache: 'Clear Cache & Logout',
     copy_success: 'Preferences copied',
     copy_failed: 'Copy failed',
-    reset_success: 'Preferences reset, refreshing...',
+    reset_success: 'Preferences reset to defaults',
     tab: {
       appearance: 'Appearance',
       layout: 'Layout',
@@ -26,6 +26,8 @@ export default {
       default_or_custom: 'Default or Custom',
       default: 'Default',
       custom: 'Custom',
+      dynamic: 'Material You',
+      dynamic_tip: 'Derive a full harmonious palette from the brand color; turn off to change only the primary',
       family: {
         red: 'Red',
         orange: 'Orange',
@@ -202,10 +204,11 @@ export default {
       lock_screen: 'Lock Screen',
       sidebar_toggle: 'Sidebar Toggle',
       refresh: 'Refresh',
+      favorites: 'Favorites',
       preference_position: 'Preference Position',
       preference_position_auto: 'Auto',
       preference_position_header: 'Header',
-      preference_position_fixed: 'Fixed',
+      preference_position_floating: 'Floating',
     },
     footer: {
       title: 'Footer',
@@ -232,6 +235,8 @@ export default {
     watermark_content: 'Content',
     watermark_text: 'Watermark Text',
     check_updates: 'Auto Check Updates',
+    check_updates_interval: 'Check Interval',
+    check_updates_interval_unit: 'sec',
     dynamic_title_tip:
       'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',

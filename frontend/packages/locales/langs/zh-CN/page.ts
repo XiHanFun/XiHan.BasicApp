@@ -20,12 +20,15 @@ export default {
     login_subtitle: '请输入您的账号密码以登录管理系统',
     select_account: '选择演示账号',
     mobile_login: '手机登录',
+    email_login: '邮箱登录',
     qrcode_login: '扫码登录',
     third_party_login: '第三方登录',
     no_account: '还没有账号?',
     back_to_login: '返回登录',
     // 手机登录
     code_login_subtitle: '输入手机号获取验证码进行登录',
+    // 邮箱登录
+    email_login_subtitle: '输入邮箱获取验证码进行登录',
     phone_placeholder: '请输入手机号',
     phone_invalid: '请输入正确的11位手机号',
     code_placeholder: '请输入验证码',

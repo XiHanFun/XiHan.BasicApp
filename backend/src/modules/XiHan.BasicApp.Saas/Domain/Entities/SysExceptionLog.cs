@@ -14,22 +14,52 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统异常日志实体
+/// 集中记录应用运行时异常（堆栈/请求上下文/严重级别），是技术排障与稳定性改进的数据源
 /// </summary>
-[SugarTable("Sys_Exception_Log_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysExceptionLog_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_ExTy", nameof(ExceptionType), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
-[SugarIndex("IX_SysExceptionLog_IsHa", nameof(IsHandled), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_ExTi", nameof(ExceptionTime), OrderByType.Desc)]
-[SugarIndex("IX_SysExceptionLog_StCo", nameof(StatusCode), OrderByType.Asc)]
-[SugarIndex("IX_SysExceptionLog_BuMo", nameof(BusinessModule), OrderByType.Asc)]
-public partial class SysExceptionLog : BasicAppCreationEntity
+/// <remarks>
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - UserId → SysUser（可空，匿名请求时无）；TraceId 串联请求链
+///
+/// 写入：
+/// - 由全局异常过滤器/中间件统一写入，业务代码不应手工写
+/// - 堆栈 StackTrace 可较长，建议限制总长度（如 32KB）或截断
+/// - IsHandled=false 表示未被代码捕获/处理；IsHandled=true 表示已妥善处理仅记录
+/// - SeverityLevel 由异常类型映射（Warn/Error/Critical）
+///
+/// 查询：
+/// - 按严重级别排序：IX_SeLe + ORDER BY SeverityLevel DESC
+/// - 未处理异常清单：IX_IsHa + WHERE IsHandled=false
+/// - 按业务模块统计：IX_BuMo
+/// - 按类型聚类：IX_ExTy
+///
+/// 删除：
+/// - 不支持业务删除；按保留策略清理
+///
+/// 场景：
+/// - 生产环境问题排查
+/// - 异常趋势分析 → 稳定性改进
+/// - 关联 Sentry/AppInsights 告警
+/// </remarks>
+[SugarTable("SysExceptionLog_{year}{month}{day}", "系统异常日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_ExTy", nameof(ExceptionType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_SeLe", nameof(SeverityLevel), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_IsHa", nameof(IsHandled), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_StCo", nameof(StatusCode), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TeId_ExTi", nameof(TenantId), OrderByType.Asc, nameof(ExceptionTime), OrderByType.Desc)]
+public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
@@ -44,16 +74,22 @@ public partial class SysExceptionLog : BasicAppCreationEntity
     public virtual string? UserName { get; set; }
 
     /// <summary>
+    /// 会话ID
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    public virtual string? SessionId { get; set; }
+
+    /// <summary>
     /// 请求ID
     /// </summary>
     [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
     public virtual string? RequestId { get; set; }
 
     /// <summary>
-    /// 会话ID
+    /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
-    public virtual string? SessionId { get; set; }
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 异常类型
@@ -68,28 +104,10 @@ public partial class SysExceptionLog : BasicAppCreationEntity
     public virtual string ExceptionMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// 异常堆栈
+    /// 异常堆栈（含内部异常堆栈）
     /// </summary>
     [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
-
-    /// <summary>
-    /// 内部异常类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内部异常类型", Length = 200, IsNullable = true)]
-    public virtual string? InnerExceptionType { get; set; }
-
-    /// <summary>
-    /// 内部异常消息
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内部异常消息", Length = 2000, IsNullable = true)]
-    public virtual string? InnerExceptionMessage { get; set; }
-
-    /// <summary>
-    /// 内部异常堆栈
-    /// </summary>
-    [SugarColumn(ColumnDescription = "内部异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? InnerExceptionStackTrace { get; set; }
 
     /// <summary>
     /// 异常源
@@ -239,7 +257,7 @@ public partial class SysExceptionLog : BasicAppCreationEntity
     /// 异常时间
     /// </summary>
     [SugarColumn(ColumnDescription = "异常时间")]
-    public virtual DateTimeOffset ExceptionTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset ExceptionTime { get; set; }
 
     /// <summary>
     /// 是否已处理
@@ -260,34 +278,10 @@ public partial class SysExceptionLog : BasicAppCreationEntity
     public virtual long? HandledBy { get; set; }
 
     /// <summary>
-    /// 处理人名称
-    /// </summary>
-    [SugarColumn(ColumnDescription = "处理人名称", Length = 50, IsNullable = true)]
-    public virtual string? HandledByName { get; set; }
-
-    /// <summary>
     /// 处理备注
     /// </summary>
     [SugarColumn(ColumnDescription = "处理备注", Length = 1000, IsNullable = true)]
     public virtual string? HandledRemark { get; set; }
-
-    /// <summary>
-    /// 业务模块
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务模块", Length = 100, IsNullable = true)]
-    public virtual string? BusinessModule { get; set; }
-
-    /// <summary>
-    /// 业务ID
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务ID", Length = 100, IsNullable = true)]
-    public virtual string? BusinessId { get; set; }
-
-    /// <summary>
-    /// 业务类型
-    /// </summary>
-    [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
-    public virtual string? BusinessType { get; set; }
 
     /// <summary>
     /// 错误代码

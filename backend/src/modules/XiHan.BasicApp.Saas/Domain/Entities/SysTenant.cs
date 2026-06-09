@@ -14,20 +14,30 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统租户实体
 /// </summary>
-[SugarTable("Sys_Tenant", "系统租户表")]
-[SugarIndex("IX_SysTenant_TeCo", nameof(TenantCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysTenant_TeNa", nameof(TenantName), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_TeSt", nameof(TenantStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysTenant_ExTi", nameof(ExpireTime), OrderByType.Asc)]
+/// <remarks>
+/// 租户生命周期由 TenantStatus 唯一控制：
+/// - Normal：正常运营
+/// - Suspended：管理员手动暂停（如违规）
+/// - Expired：订阅到期，自动或手动标记
+/// - Disabled：已停用/归档，等效于逻辑删除
+/// 服务层判断"租户是否可用"只需：TenantStatus == Normal
+/// </remarks>
+[SugarTable("SysTenant", "系统租户表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeCo", nameof(TenantCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_TeNa", nameof(TenantName), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeSt", nameof(TenantStatus), OrderByType.Asc)]
+[SugarIndex("IX_{table}_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_EdId", nameof(EditionId), OrderByType.Asc)]
 public partial class SysTenant : BasicAppAggregateRoot
 {
     /// <summary>
@@ -35,6 +45,12 @@ public partial class SysTenant : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "租户编码", Length = 50, IsNullable = false)]
     public virtual string TenantCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 版本/套餐ID（关联 SysTenantEdition 表，控制租户可用功能范围；null 表示使用 IsDefault=true 的默认版本）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "版本ID", IsNullable = true)]
+    public virtual long? EditionId { get; set; }
 
     /// <summary>
     /// 租户名称
@@ -111,6 +127,12 @@ public partial class SysTenant : BasicAppAggregateRoot
     public virtual string? ConnectionString { get; set; }
 
     /// <summary>
+    /// 连接字符串是否已加密（用于密钥轮换和加密状态审计）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "连接字符串是否已加密")]
+    public virtual bool IsConnectionStringEncrypted { get; set; } = false;
+
+    /// <summary>
     /// 配置状态
     /// </summary>
     [SugarColumn(ColumnDescription = "配置状态")]
@@ -120,16 +142,16 @@ public partial class SysTenant : BasicAppAggregateRoot
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpireTime { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
-    /// 用户数限制
+    /// 用户数限制（租户级覆盖值，为空时取 SysTenantEdition 的默认值）
     /// </summary>
     [SugarColumn(ColumnDescription = "用户数限制", IsNullable = true)]
     public virtual int? UserLimit { get; set; }
 
     /// <summary>
-    /// 存储空间限制(MB)
+    /// 存储空间限制(MB)（租户级覆盖值，为空时取 SysTenantEdition 的默认值）
     /// </summary>
     [SugarColumn(ColumnDescription = "存储空间限制(MB)", IsNullable = true)]
     public virtual long? StorageLimit { get; set; }
@@ -139,12 +161,6 @@ public partial class SysTenant : BasicAppAggregateRoot
     /// </summary>
     [SugarColumn(ColumnDescription = "租户状态")]
     public virtual TenantStatus TenantStatus { get; set; } = TenantStatus.Normal;
-
-    /// <summary>
-    /// 状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
 
     /// <summary>
     /// 排序

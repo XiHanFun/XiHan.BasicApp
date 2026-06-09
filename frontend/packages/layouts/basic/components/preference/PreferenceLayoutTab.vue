@@ -50,7 +50,7 @@ const tabbarStyleOptions = computed(() => [
 const preferencePositionOptions = computed(() => [
   { label: t('preference.layout.widget.preference_position_auto'), value: 'auto' },
   { label: t('preference.layout.widget.preference_position_header'), value: 'header' },
-  { label: t('preference.layout.widget.preference_position_fixed'), value: 'fixed' },
+  { label: t('preference.layout.widget.preference_position_floating'), value: 'floating' },
 ])
 
 const layout = computed(() => appStore.layoutMode)
@@ -60,7 +60,6 @@ const isMixedNav = computed(() => layout.value === 'mix')
 
 const sidebarDisabled = computed(() => isNoSidebar.value)
 const sidebarItemDisabled = computed(() => sidebarDisabled.value || !appStore.sidebarShow)
-const sidebarCollapsedDisabled = computed(() => sidebarItemDisabled.value)
 const sidebarExpandOnHoverDisabled = computed(
   () => sidebarItemDisabled.value || !appStore.sidebarCollapsed,
 )
@@ -471,6 +470,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.refresh') }}</span>
         <NSwitch v-model:value="appStore.widgetRefresh" />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.layout.widget.favorites') }}</span>
+        <NSwitch v-model:value="appStore.widgetFavorites" />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.sidebar_toggle') }}</span>

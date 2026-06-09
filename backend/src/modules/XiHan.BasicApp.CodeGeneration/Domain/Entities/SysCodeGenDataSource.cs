@@ -21,11 +21,39 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
 /// <summary>
 /// 系统代码生成数据源实体
+/// 代码生成器的外部数据库连接配置：供扫描目标库元信息并生成对应实体/DTO 代码
 /// </summary>
-[SugarTable("Sys_Code_Gen_Data_Source", "系统代码生成数据源表")]
-[SugarIndex("IX_SysCodeGenDataSource_SoNa", nameof(SourceName), OrderByType.Asc, true)]
-[SugarIndex("IX_SysCodeGenDataSource_DaTy", nameof(DatabaseType), OrderByType.Asc)]
-[SugarIndex("IX_SysCodeGenDataSource_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+/// <remarks>
+/// 关联：
+/// - 反向：SysCodeGenTable.DataSourceId（可选；为空时使用主库元数据）
+///
+/// 写入：
+/// - SourceName 全局唯一（UX_SoNa）
+/// - ConnectionString 必须加密存储（含密码），服务层读写走加密适配器
+/// - DatabaseType 决定元信息扫描 SQL 方言（MySQL/PostgreSQL/SqlServer/SQLite/Oracle 等）
+/// - 测试连接必须通过方可保存
+///
+/// 查询：
+/// - 数据源列表：IX_TeId_St
+/// - 按数据库类型筛选：IX_DaTy
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无 SysCodeGenTable 引用
+///
+/// 状态：
+/// - Status: Yes/No（停用后该数据源不可用于生成）
+///
+/// 场景：
+/// - 多库代码生成（主库 + 报表库 + 业务库）
+/// - 逆向工程（已有数据库 → 生成代码）
+/// </remarks>
+[SugarTable("SysCodeGenDataSource", "系统代码生成数据源表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_SoNa", nameof(SourceName), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_DaTy", nameof(DatabaseType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysCodeGenDataSource : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -122,7 +150,7 @@ public partial class SysCodeGenDataSource : BasicAppFullAuditedEntity
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序

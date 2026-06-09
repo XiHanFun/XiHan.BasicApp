@@ -1,16 +1,20 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
+import type { PermissionInfo } from '~/types'
 import { createDiscreteApi } from 'naive-ui'
-import { getPermissionsApi, getUserInfoApi } from '@/api'
-import { AUTH_PATH, HOME_PATH, LOGIN_PATH } from '~/constants'
+import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
-import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { hydratePreferencesFromBackend, useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { useAppContext } from '~/stores/app-context'
 import { mapMenuToRoutes } from './dynamic'
+import { filterRoutesByPermission, isStaticRouteMode } from './static'
 
 const { loadingBar } = createDiscreteApi(['loadingBar'])
 
-const WHITE_LIST = ['/403', '/404', '/500']
+const WHITE_LIST = [FORBIDDEN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH]
 
 export function setupRouterGuard(router: Router) {
+  const ctx = useAppContext()
+
   const installDynamicRoutes = (routes: RouteRecordRaw[]) => {
     for (const route of routes) {
       const routeName = route.name ? String(route.name) : ''
@@ -29,7 +33,7 @@ export function setupRouterGuard(router: Router) {
     const appStore = useAppStore()
     const userStore = useUserStore()
     const tabbarStore = useTabbarStore()
-    let permissionInfo: null | Awaited<ReturnType<typeof getPermissionsApi>> = null
+    let permissionInfo: null | PermissionInfo = null
 
     if (appStore.transitionProgress) {
       loadingBar.start()
@@ -48,7 +52,7 @@ export function setupRouterGuard(router: Router) {
       }
       return next({
         path: LOGIN_PATH,
-        query: { redirect: encodeURIComponent(to.fullPath) },
+        query: { redirect: to.fullPath },
         replace: true,
       })
     }
@@ -58,12 +62,12 @@ export function setupRouterGuard(router: Router) {
       return next({ path: accessStore.homePath || HOME_PATH, replace: true })
     }
 
-    // 已登录但无用户信息，尝试获取
-    if (!userStore.isLoggedIn) {
+    // 已登录但用户上下文无效，重新拉取当前用户
+    if (!userStore.isLoggedIn || !userStore.userInfo?.basicId) {
       try {
         const [userInfo, authPermission] = await Promise.all([
-          getUserInfoApi(),
-          getPermissionsApi(),
+          ctx.apis.getUserInfoApi(),
+          ctx.apis.getPermissionsApi(),
         ])
         permissionInfo = authPermission
         userStore.setUserInfo({
@@ -78,7 +82,7 @@ export function setupRouterGuard(router: Router) {
         userStore.$reset()
         return next({
           path: LOGIN_PATH,
-          query: { redirect: encodeURIComponent(to.fullPath) },
+          query: { redirect: to.fullPath },
           replace: true,
         })
       }
@@ -87,7 +91,7 @@ export function setupRouterGuard(router: Router) {
     if (!accessStore.isRoutesLoaded) {
       try {
         if (!permissionInfo) {
-          permissionInfo = await getPermissionsApi()
+          permissionInfo = await ctx.apis.getPermissionsApi()
           accessStore.setAccessCodes(permissionInfo.permissions)
           if (userStore.userInfo) {
             userStore.setUserInfo({
@@ -98,9 +102,27 @@ export function setupRouterGuard(router: Router) {
           }
         }
 
-        const dynamicMenus = permissionInfo.menus
-        accessStore.setAccessRoutes(dynamicMenus)
-        installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
+        if (isStaticRouteMode()) {
+          // 静态模式：基于前端路由定义 + 用户权限过滤
+          const staticRoutes = ctx.getStaticRoutes()
+          const rootRoute = staticRoutes.find(r => r.path === '/')
+          const children = rootRoute?.children ?? []
+          const filtered = filterRoutesByPermission(
+            children,
+            permissionInfo.roles,
+            permissionInfo.permissions,
+          )
+          installDynamicRoutes(filtered)
+          accessStore.setAccessRoutes([])
+        }
+        else {
+          // 动态模式：后端菜单驱动
+          const dynamicMenus = permissionInfo.menus
+          accessStore.setAccessRoutes(dynamicMenus)
+          installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
+        }
+        // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁
+        await hydratePreferencesFromBackend()
         return next({ path: to.fullPath, replace: true })
       }
       catch {
@@ -112,12 +134,14 @@ export function setupRouterGuard(router: Router) {
     if (to.path === '/') {
       return next({ path: resolvedHomePath, replace: true })
     }
-    if (
-      to.path === HOME_PATH
-      && resolvedHomePath !== HOME_PATH
-      && (to.name === 'NotFound' || to.matched.length === 0)
-    ) {
+    const isNotFoundRoute = to.name === 'NotFound'
+      || to.name === 'NotFoundCatchAll'
+      || to.matched.length === 0
+    if (to.path === HOME_PATH && resolvedHomePath !== HOME_PATH && isNotFoundRoute) {
       return next({ path: resolvedHomePath, replace: true })
+    }
+    if (isNotFoundRoute && to.path !== NOT_FOUND_PATH) {
+      return next({ path: NOT_FOUND_PATH, replace: true })
     }
 
     // 权限检查
@@ -131,7 +155,7 @@ export function setupRouterGuard(router: Router) {
         || permissions?.some(p => userStore.hasPermission(p))
 
       if (!hasAccess) {
-        return next({ path: '/403', replace: true })
+        return next({ path: FORBIDDEN_PATH, replace: true })
       }
     }
 

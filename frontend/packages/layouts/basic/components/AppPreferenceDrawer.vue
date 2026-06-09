@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '~/iconify'
 import {
   NButton,
   NDrawer,
@@ -15,13 +14,11 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER,
-  REFRESH_TOKEN_KEY,
-  STORAGE_PREFIX,
-  TOKEN_KEY,
-  USER_INFO_KEY,
 } from '~/constants'
-import { useContentMaximize, useTheme } from '~/hooks'
+import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
+import { usePreferenceEntry } from '../composables'
 import PreferenceAppearanceTab from './preference/PreferenceAppearanceTab.vue'
 import PreferenceFab from './preference/PreferenceFab.vue'
 import PreferenceGeneralTab from './preference/PreferenceGeneralTab.vue'
@@ -34,31 +31,16 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const message = useMessage()
-const { t } = useI18n()
-const { contentIsMaximize: contentMaximized } = useContentMaximize()
+const { t, locale: i18nLocale } = useI18n()
 const visible = ref(false)
-const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
-const isNarrowScreen = computed(() => viewportWidth.value < 960)
-// full 布局模式下 header 被隐藏（通过 v-if 逻辑控制），但 appStore.headerShow 不变
-// 需单独判断 full 布局以便显示悬浮 FAB
-const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
-const showFloatingFab = computed(() => {
-  const position = appStore.widgetPreferencePosition
-  if (position === 'header') return false
-  if (position === 'fixed') return true
-  return (
-    isNarrowScreen.value ||
-    contentMaximized.value ||
-    !appStore.headerShow ||
-    isFullContentLayout.value
-  )
-})
-const { animateThemeTransition, followSystem } = useTheme()
+// 偏好设置入口：头部按钮与悬浮 FAB 互斥，统一由 usePreferenceEntry 判定（auto 模式窄屏走 FAB）
+const { showFab: showFloatingFab } = usePreferenceEntry()
+const { animateThemeTransition } = useTheme()
 
 const themeMode = computed(() => appStore.themeMode)
 const layoutMode = computed({
   get: () => appStore.layoutMode,
-  set: (v) => appStore.setLayoutMode(v),
+  set: v => appStore.setLayoutMode(v),
 })
 const contentMode = computed({
   get: () => (appStore.contentCompact ? 'fixed' : 'fluid'),
@@ -103,32 +85,29 @@ const layoutPresets = computed(() => [
   },
 ])
 
-function clearAndLogout() {
+async function clearAndLogout() {
   localStorage.clear()
   sessionStorage.clear()
-  authStore.logout()
+  await authStore.logout()
 }
 
 async function copyPreferences() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
     message.success(t('preference.drawer.copy_success'))
-  } catch {
+  }
+  catch {
     message.error(t('preference.drawer.copy_failed'))
   }
 }
 
-const AUTH_KEYS = [TOKEN_KEY, REFRESH_TOKEN_KEY, USER_INFO_KEY]
-
 function resetPreferences() {
-  const keys = Object.keys(localStorage).filter(
-    (key) => key.startsWith(STORAGE_PREFIX) && !AUTH_KEYS.includes(key),
-  )
-  for (const key of keys) {
-    localStorage.removeItem(key)
-  }
+  // 仅重置「偏好设置」为默认值（内存级，经各偏好 watch 落地本地并同步后端）；
+  // 不清理 token / 用户信息 / 收藏 / 标签，也不刷新整页，因此不会登出
+  appStore.resetPreferences()
+  // 语言为「动作型」偏好（vue-i18n 不响应式跟随 store），重置后手动同步当前界面语言
+  i18nLocale.value = appStore.locale
   message.success(t('preference.drawer.reset_success'))
-  window.location.reload()
 }
 
 function openDrawer() {
@@ -144,10 +123,7 @@ function handleOpenPreferenceDrawer() {
 }
 
 function handleThemeModeChange(value: 'light' | 'dark' | 'auto') {
-  if (value === 'auto') {
-    followSystem()
-    return
-  }
+  // 三种模式统一走扩散动画：auto 由 animateThemeTransition 内部按系统主题决定方向并落地为跟随系统
   animateThemeTransition(value)
 }
 
@@ -159,18 +135,11 @@ function handleContentModeChange(value: 'fixed' | 'fluid') {
   contentMode.value = value
 }
 
-function handleViewportResize() {
-  viewportWidth.value = window.innerWidth
-}
-
 onMounted(() => {
-  handleViewportResize()
-  window.addEventListener('resize', handleViewportResize)
   window.addEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleViewportResize)
   window.removeEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
 })
 

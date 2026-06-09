@@ -4,9 +4,10 @@ import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { registerApi } from '@/api'
+import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 
 defineOptions({ name: 'RegisterPage' })
 
@@ -14,6 +15,7 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
 const message = useMessage()
+const { apis } = useAppContext()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const showPassword = ref(false)
@@ -65,7 +67,24 @@ const rules: FormRules = {
   ],
   password: [
     { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
-    { min: 6, message: () => t('page.auth.password_min_length'), trigger: 'blur' },
+    {
+      trigger: 'blur',
+      validator: (_rule, value: string) => {
+        if (!value)
+          return true
+        if (value.length < 8)
+          return new Error('密码长度至少需要 8 个字符')
+        if (!/[a-z]/.test(value))
+          return new Error('密码需包含小写字母')
+        if (!/[A-Z]/.test(value))
+          return new Error('密码需包含大写字母')
+        if (!/\d/.test(value))
+          return new Error('密码需包含数字')
+        if (!/[^a-z0-9]/i.test(value))
+          return new Error('密码需包含特殊字符')
+        return true
+      },
+    },
   ],
   confirmPassword: [
     { required: true, message: () => t('page.auth.confirm_password_placeholder'), trigger: 'blur' },
@@ -89,13 +108,13 @@ async function handleRegister() {
       return
     }
     loading.value = true
-    await registerApi({
+    await apis.registerApi({
       username: formData.value.username,
       password: formData.value.password,
       nickName: formData.value.username,
     })
     message.success(t('page.auth.register_success'))
-    router.push('/auth/login')
+    router.push(LOGIN_PATH)
   }
   catch (err: unknown) {
     const error = err as { message?: string }
@@ -233,7 +252,7 @@ function handleKeydown(e: KeyboardEvent) {
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.already_have_account') }}
-      <span class="cursor-pointer link-primary" @click="router.push('/auth/login')">
+      <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
         {{ t('page.auth.go_to_login') }}
       </span>
     </p>

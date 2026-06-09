@@ -9,20 +9,15 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  accessLogApi,
-  operationLogApi,
-  userApi,
-  userSessionApi,
-} from '@/api'
 import { Icon } from '~/iconify'
-import { useUserStore } from '~/stores'
+import { useAppContext, useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'WorkspacePage' })
 
 const router = useRouter()
 const userStore = useUserStore()
+const { apis } = useAppContext()
 
 const loading = ref(true)
 const userTotal = ref(0)
@@ -51,18 +46,18 @@ const quickLinks = [
   { label: '用户管理', icon: 'lucide:users', to: '/system/user', color: '#18a058' },
   { label: '角色管理', icon: 'lucide:shield', to: '/system/role', color: '#2080f0' },
   { label: '菜单管理', icon: 'lucide:list-tree', to: '/platform/menu', color: '#f0a020' },
-  { label: '部门管理', icon: 'lucide:building-2', to: '/system/department', color: '#8b5cf6' },
-  { label: '操作日志', icon: 'lucide:history', to: '/log/oplog', color: '#d03050' },
+  { label: '机构管理', icon: 'lucide:building-2', to: '/system/org', color: '#8b5cf6' },
+  { label: '操作日志', icon: 'lucide:history', to: '/log/operation', color: '#d03050' },
   { label: '参数配置', icon: 'lucide:sliders-horizontal', to: '/platform/config', color: '#06b6d4' },
 ]
 
 async function fetchDashboardData() {
   try {
     const [users, sessions, operations, accesses] = await Promise.allSettled([
-      userApi.page({ page: 1, pageSize: 1 }),
-      userSessionApi.page({ page: 1, pageSize: 1 }),
-      operationLogApi.page({ page: 1, pageSize: 1 }),
-      accessLogApi.page({ page: 1, pageSize: 1 }),
+      apis.userApi.page({ page: 1, pageSize: 1 }),
+      apis.userSessionApi.page({ page: 1, pageSize: 1 }),
+      apis.operationLogApi.page({ page: 1, pageSize: 1 }),
+      apis.accessLogApi.page({ page: 1, pageSize: 1 }),
     ])
 
     if (users.status === 'fulfilled')
