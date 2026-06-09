@@ -14,6 +14,7 @@ import {
 import { computed, h, ref, watch } from 'vue'
 import { fileApi, ResourceAccessLevel } from '@/api'
 import { XUserAvatar } from '~/components'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 
@@ -181,18 +182,23 @@ async function handleAvatarChange(event: Event) {
     return
   }
   avatarUploading.value = true
+  // 灵动岛实时进度（确定性进度条）
+  const task = islandStart('avatar-upload', '正在上传头像…', { icon: 'lucide:image-up', progress: 0 })
   try {
-    const detail = await fileApi.upload({
-      file,
-      accessLevel: ResourceAccessLevel.Public,
-      directory: 'avatars',
-    })
+    const detail = await fileApi.upload(
+      {
+        file,
+        accessLevel: ResourceAccessLevel.Public,
+        directory: 'avatars',
+      },
+      percent => task.setProgress(percent),
+    )
     // user.avatar 存文件主键(fileId)，显示时再换取预签名 URL
     await persistAvatar(detail.basicId)
-    message.success('头像已更新')
+    task.success('头像已更新')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '头像上传失败')
+    task.error((e as Error)?.message || '头像上传失败')
   }
   finally {
     avatarUploading.value = false

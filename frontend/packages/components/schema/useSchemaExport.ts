@@ -1,6 +1,6 @@
 import type { ListFieldSchema } from './types'
-import { useMessage } from 'naive-ui'
 import { ref } from 'vue'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { formatFieldText } from './renderer'
 
 /** CSV 单元格转义：含逗号/引号/换行时包裹双引号并转义内部引号 */
@@ -16,7 +16,7 @@ export function toCsv<TRow extends object>(fields: ListFieldSchema<TRow>[], rows
   const body = rows
     .map(row => fields.map(f => csvCell(formatFieldText(f, row))).join(','))
     .join('\r\n')
-  return `﻿${header}${body ? `\r\n${body}` : ''}`
+  return `\uFEFF${header}${body ? `\r\n${body}` : ''}`
 }
 
 /** 触发浏览器下载文本文件 */
@@ -46,7 +46,6 @@ export interface UseSchemaExportOptions<TRow extends object> {
 }
 
 export function useSchemaExport<TRow extends object>(options: UseSchemaExportOptions<TRow>) {
-  const message = useMessage()
   const exporting = ref(false)
 
   async function exportCsv(): Promise<void> {
@@ -54,17 +53,29 @@ export function useSchemaExport<TRow extends object>(options: UseSchemaExportOpt
       return
     }
     exporting.value = true
+    // 灵动岛过程提示：拉取为不确定态；完成给出「再次导出」操作，失败给出「重试」
+    const task = islandStart('export', '正在导出数据…', { icon: 'lucide:download' })
     try {
       const rows = await options.fetchRows()
       if (rows.length === 0) {
-        message.warning('无可导出数据')
+        task.info('无可导出数据')
         return
       }
-      downloadText(`${options.fileName()}.csv`, toCsv(options.fields(), rows))
-      message.success(`已导出 ${rows.length} 条`)
+      const fileName = `${options.fileName()}.csv`
+      downloadText(fileName, toCsv(options.fields(), rows))
+      task.success(`已导出 ${rows.length} 条`, {
+        detail: fileName,
+        actions: [
+          { key: 'again', label: '再次导出', icon: 'lucide:rotate-cw', handler: () => void exportCsv() },
+        ],
+      })
     }
     catch {
-      message.error('导出失败')
+      task.error('导出失败', {
+        actions: [
+          { key: 'retry', label: '重试', icon: 'lucide:rotate-cw', tone: 'primary', handler: () => void exportCsv() },
+        ],
+      })
     }
     finally {
       exporting.value = false
