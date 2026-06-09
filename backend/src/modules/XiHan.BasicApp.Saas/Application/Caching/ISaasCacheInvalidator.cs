@@ -63,4 +63,9 @@ public interface ISaasCacheInvalidator
     /// 失效组织结构（部门树）缓存。
     /// </summary>
     Task InvalidateOrganizationAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效指定用户的设置缓存（写后整体失效该用户全部场景）。
+    /// </summary>
+    Task InvalidateUserSettingAsync(long userId, CancellationToken cancellationToken = default);
 }
