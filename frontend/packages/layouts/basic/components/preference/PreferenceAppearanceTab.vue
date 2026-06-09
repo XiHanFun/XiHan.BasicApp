@@ -173,6 +173,13 @@ const transitionItems = computed(() => [
           </div>
         </div>
       </div>
+      <div class="pref-row mt-2">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.appearance.color.dynamic') }}</span>
+          <PrefTip :content="t('preference.appearance.color.dynamic_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.themeDynamicColor" />
+      </div>
     </NCard>
 
     <!-- 圆角 -->

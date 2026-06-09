@@ -184,19 +184,25 @@ export function useTheme() {
    * 同步主色色阶 + Material You 派生色阶到 CSS 变量（明暗自适应）。
    * 内联样式覆盖 :root/.dark，故明暗切换时也需重算重写。
    */
-  function applyThemePalette(hex: string, dark: boolean) {
+  function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
     if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
       return
     const scale = generatePrimaryScale(hex)
     const el = document.documentElement
-    // 主色：保持用户所选精确颜色
+    // 主色：始终保持用户所选精确颜色
     el.style.setProperty('--primary', hexToHslVars(hex))
     el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
     el.style.setProperty('--primary-active', hexToHslVars(scale.active))
     el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
-    // 围绕主色派生：辅色/容器/前景/聚焦环/中性微调
-    for (const [name, value] of Object.entries(deriveMaterialPalette(hex, dark))) {
-      el.style.setProperty(name, value)
+    // 派生色阶：开启 Material You 时写入；关闭则移除内联覆盖，回退到 :root/.dark 静态 token
+    const palette = deriveMaterialPalette(hex, dark)
+    for (const name of Object.keys(palette)) {
+      if (dynamic) {
+        el.style.setProperty(name, palette[name]!)
+      }
+      else {
+        el.style.removeProperty(name)
+      }
     }
   }
 
@@ -208,10 +214,10 @@ export function useTheme() {
   }
 
   watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
-  // 主色或明暗变化都需重算派生色阶（Material You 明暗自适应）
+  // 主色 / 明暗 / 动态取色开关 变化都需重算派生色阶（Material You 明暗自适应）
   watch(
-    [() => appStore.themeColor, isDark],
-    ([hex, dark]) => applyThemePalette(hex, dark),
+    [() => appStore.themeColor, isDark, () => appStore.themeDynamicColor],
+    ([hex, dark, dynamic]) => applyThemePalette(hex, dark, dynamic),
     { immediate: true },
   )
   watch(() => appStore.fontSize, syncFontSize, { immediate: true })

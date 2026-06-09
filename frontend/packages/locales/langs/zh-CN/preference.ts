@@ -26,6 +26,8 @@ export default {
       default_or_custom: '默认或自定义',
       default: '默认',
       custom: '自定义',
+      dynamic: 'Material You 动态取色',
+      dynamic_tip: '从品牌色自动推导整套和谐色阶（辅色 / 容器 / 前景 / 边框等），关闭则仅改主色',
       family: {
         red: '红',
         orange: '橙',

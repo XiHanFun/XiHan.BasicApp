@@ -14,6 +14,7 @@ export const FAVORITES_KEY = `${STORAGE_PREFIX}favorites`
 export const RECENT_ROUTES_KEY = `${STORAGE_PREFIX}recent_routes`
 export const LAYOUT_MODE_KEY = `${STORAGE_PREFIX}layout_mode`
 export const THEME_COLOR_KEY = `${STORAGE_PREFIX}theme_color`
+export const THEME_DYNAMIC_COLOR_KEY = `${STORAGE_PREFIX}theme_dynamic_color`
 export const BRAND_TITLE_KEY = `${STORAGE_PREFIX}brand_title`
 export const BRAND_LOGO_KEY = `${STORAGE_PREFIX}brand_logo`
 export const BREADCRUMB_ENABLED_KEY = `${STORAGE_PREFIX}breadcrumb_enabled`
