@@ -1,4 +1,5 @@
 import { nextTick, watch } from 'vue'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { STORAGE_PREFIX } from '~/constants'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
@@ -63,11 +64,13 @@ function scheduleBackendSync() {
       snapshot[key] = source.value
     })
     const payload = JSON.stringify({ [PREFERENCES_SECTION]: snapshot })
+    const task = islandStart('pref:save', '正在同步偏好设置…')
     void useAppContext()
       .apis
       .pagePreferenceApi
       .save({ pageCode: PREFERENCES_PAGE_CODE, payload })
-      .catch(() => {})
+      .then(() => task.success('偏好设置已同步'))
+      .catch(() => task.error('偏好设置同步失败'))
   }, 800)
 }
 
@@ -95,10 +98,12 @@ export function save<T>(key: string, target: { value: T }, value: T) {
  * - 一次会话仅执行一次；退出登录后由 resetPreferenceBackendSync 重置。
  * - 后端无记录时以当前本地偏好播种后端（首端首次登录即落库）。
  */
-export async function hydratePreferencesFromBackend(): Promise<void> {
+export async function hydratePreferencesFromBackend(options?: { showIsland?: boolean }): Promise<void> {
   if (hydrated)
     return
   hydrated = true
+  // 登录流程由登录灵动岛统一覆盖，此处不重复提示；刷新恢复会话时则独立提示
+  const task = options?.showIsland === false ? null : islandStart('pref:hydrate', '正在同步偏好设置…')
   // 应用远端期间暂停回写，避免把刚拉取的远端值原样回传
   backendSyncEnabled = false
   let needSeed = false
@@ -118,9 +123,11 @@ export async function hydratePreferencesFromBackend(): Promise<void> {
       // 后端无偏好记录：登录后以本地当前偏好播种
       needSeed = true
     }
+    task?.success('偏好设置已同步')
   }
   catch {
     // 静默：保留本地
+    task?.dismiss()
   }
   finally {
     // 等本轮 watch 全部 flush（写本地、跳过回写）后再开启回写
