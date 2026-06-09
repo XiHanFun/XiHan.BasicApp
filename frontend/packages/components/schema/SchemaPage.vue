@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DataTableColumn, DropdownOption } from 'naive-ui'
-import type { ApiId } from '~/types/contracts'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
+import type { ApiId } from '~/types/contracts'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
@@ -21,11 +21,6 @@ import { useViewManager } from './useViewManager'
 
 defineOptions({ name: 'SchemaPage' })
 
-// 行类型在框架边界放宽：页面侧以 PageSchema<ConcreteDto> 定义时保有完整类型安全；
-// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）。
-// eslint-disable-next-line ts/no-explicit-any
-type Row = Record<string, any>
-
 const props = defineProps<{
   /** 页面单一事实源 */
   schema: PageSchema<Row>
@@ -35,6 +30,11 @@ const emit = defineEmits<{
   /** 操作事件（页面级/行级/批量级统一上抛，由页面处理具体逻辑） */
   action: [payload: SchemaActionPayload<Row>]
 }>()
+
+// 行类型在框架边界放宽：页面侧以 PageSchema<ConcreteDto> 定义时保有完整类型安全；
+// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）。
+// eslint-disable-next-line ts/no-explicit-any
+type Row = Record<string, any>
 
 const { hasPermission } = usePermission()
 const dialog = useDialog()
@@ -120,16 +120,14 @@ function onResetTableSettings() {
   remountTable()
 }
 
-/** 表格设置：调整即时生效，点击「保存」才落库（本地 + 后端） */
+/** 表格设置：调整即时生效，点击「保存」才落库（本地 + 后端）；同步反馈由灵动岛统一展示 */
 function onSaveTableSettings() {
   settings.save()
-  message.success('表格设置已保存')
 }
 
-/** 搜索设置：调整即时生效，点击「保存」才落库（本地 + 后端） */
+/** 搜索设置：调整即时生效，点击「保存」才落库（本地 + 后端）；同步反馈由灵动岛统一展示 */
 function onSaveSearchSettings() {
   searchSettings.save()
-  message.success('搜索设置已保存')
 }
 
 /** 局部全屏 */
