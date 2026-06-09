@@ -226,6 +226,11 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   border-radius: v-bind('themeVars.borderRadius');
   background: v-bind('themeVars.cardColor');
   box-shadow: v-bind('themeVars.boxShadow2');
+  /* 限制浮层高度并内部滚动：字段过多时也不会撑出视口、盖住下方列表 */
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 展开/收起动画 */
@@ -251,6 +256,11 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   /* 按钮组保持紧凑右对齐：margin-left:auto 推到右侧，按钮维持圆形不被拉伸 */
   .xh-search__actions {
     margin-left: auto;
+  }
+
+  /* 移动端字段纵向堆叠极易过高：浮层最多占 60% 屏高并内部滚动，下方列表仍可见 */
+  .xh-search__advanced {
+    max-height: 60vh;
   }
 }
 </style>
