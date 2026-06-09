@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
 import { computed, ref, watch } from 'vue'
 import { storage } from '~/utils'
-import { usePagePreferenceSync } from './usePagePreferenceSync'
+import { useUserSettingSync } from './useUserSettingSync'
 
 /**
  * 单个搜索字段设置项
@@ -41,7 +41,7 @@ export function useSearchSettings(
   fields: Ref<ListFieldSchema[]>,
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
-  const sync = usePagePreferenceSync(pageCode)
+  const sync = useUserSettingSync(pageCode)
 
   /** 由 schema 字段生成的默认设置（保持 schema order） */
   function buildDefault(): SearchFieldSetting[] {

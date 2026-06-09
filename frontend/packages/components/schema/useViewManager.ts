@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { storage } from '~/utils'
-import { usePagePreferenceSync } from './usePagePreferenceSync'
+import { useUserSettingSync } from './useUserSettingSync'
 
 /**
  * 视图快照 —— 捕获一套可复用的列表状态。
@@ -40,7 +40,7 @@ const STORAGE_PREFIX = 'xh:views:'
  */
 export function useViewManager(pageCode: string) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
-  const sync = usePagePreferenceSync(pageCode)
+  const sync = useUserSettingSync(pageCode)
 
   const views = ref<PersonalView[]>(storage.get<PersonalView[]>(storageKey) ?? [])
   const activeCode = ref<string | undefined>(views.value.find(v => v.isDefault)?.code)

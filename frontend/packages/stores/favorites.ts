@@ -2,18 +2,10 @@ import type { FavoriteItem } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
-import { FAVORITES_KEY } from '~/constants'
+import { FAVORITES_KEY, FAVORITES_SETTING_KEY, UserSettingScene } from '~/constants'
 import { useAppContext } from '~/stores/app-context'
 import { SetupStoreId } from '~/stores/store-ids'
 import { LocalStorage } from '~/utils'
-
-/**
- * 收藏夹在 PagePreference 中的保留页面码（全局，按当前用户维度，与具体列表页无关）。
- * 后端不解释 Payload 语义，仅按 (UserId, PageCode) 存取，故收藏夹复用此机制即可零后端改动。
- */
-const FAVORITES_PAGE_CODE = '__app:favorites__'
-/** PagePreference 载荷分区名（payload = {"favorites":[...]}） */
-const FAVORITES_SECTION = 'favorites'
 
 /**
  * 收藏夹状态：收藏常用菜单，支持增删、排序，跨端同步。
@@ -40,12 +32,12 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
       clearTimeout(saveTimer)
     }
     saveTimer = setTimeout(() => {
-      const payload = JSON.stringify({ [FAVORITES_SECTION]: favorites.value })
+      const settingValue = JSON.stringify(favorites.value)
       const task = islandStart('favorites:save', '正在同步收藏夹…')
       void useAppContext()
         .apis
-        .pagePreferenceApi
-        .save({ pageCode: FAVORITES_PAGE_CODE, payload })
+        .userSettingApi
+        .save({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY, settingValue })
         .then(() => task.success('收藏夹已同步'))
         .catch(() => task.error('收藏夹同步失败'))
     }, 600)
@@ -121,9 +113,8 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     inflight = (async () => {
       const task = islandStart('favorites:hydrate', '正在同步收藏夹…')
       try {
-        const dto = await useAppContext().apis.pagePreferenceApi.get(FAVORITES_PAGE_CODE)
-        const parsed = dto?.payload ? (JSON.parse(dto.payload) as Record<string, unknown>) : null
-        const remote = parsed ? parsed[FAVORITES_SECTION] : null
+        const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY })
+        const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as unknown) : null
         if (Array.isArray(remote)) {
           const list: FavoriteItem[] = remote
             .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')

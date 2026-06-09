@@ -111,10 +111,10 @@ export interface AppContextApis extends Record<string, unknown> {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
   }
-  /** 页面偏好（按用户 × pageCode 跨端同步列设置/视图，载荷为 JSON 字符串） */
-  pagePreferenceApi: {
-    get: (pageCode: string) => Promise<{ pageCode: string, payload?: null | string }>
-    save: (input: { pageCode: string, payload?: null | string }) => Promise<{ pageCode: string, payload?: null | string }>
+  /** 用户设置（按 用户 × 场景 × 设置键 全场景跨端同步，载荷为 JSON 字符串） */
+  userSettingApi: {
+    get: (input: { scene: number, settingKey: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
+    save: (input: { scene: number, settingKey: string, settingValue?: null | string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
   }
   /** 字段权限（按资源下发当前用户的有效 FLS 规则：可读/可编辑/脱敏策略） */
   fieldSecurityApi: {

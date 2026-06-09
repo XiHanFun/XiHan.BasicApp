@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:UserPreferenceRepository
+// FileName:UserNotificationPreferenceRepository
 // Guid:d8e3b4f5-0c9a-4b2d-a7f6-4a1b9e3d2f58
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -19,13 +19,13 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
 /// <summary>
-/// 用户偏好仓储实现
+/// 用户通知偏好仓储实现
 /// </summary>
-public sealed class UserPreferenceRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysUserPreference>(clientResolver), IUserPreferenceRepository
+public sealed class UserNotificationPreferenceRepository(ISqlSugarClientResolver clientResolver)
+    : SaasRepository<SysUserNotificationPreference>(clientResolver), IUserNotificationPreferenceRepository
 {
     /// <inheritdoc />
-    public async Task<SysUserPreference?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    public async Task<SysUserNotificationPreference?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
