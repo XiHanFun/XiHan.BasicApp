@@ -56,7 +56,10 @@ export function buildTabContextOptions(params: {
 
   return [
     { key: 'reload', label: t('tabbar.reload'), icon: createDropdownIcon('lucide:refresh-cw') },
+    { key: 'divider-open-before', type: 'divider' },
     { key: 'open', label: t('tabbar.open'), icon: createDropdownIcon('lucide:external-link') },
+    { key: 'splitRight', label: t('tabbar.split_right'), icon: createDropdownIcon('lucide:columns-2') },
+    { key: 'divider-open-after', type: 'divider' },
     ...(favoritesEnabled
       ? [{
           key: 'favorite',

@@ -1,6 +1,8 @@
 export default {
   reload: '重新加载',
   open: '新窗口打开',
+  split_right: '右侧分屏打开',
+  split_close: '关闭分屏',
   favorite: '收藏',
   unfavorite: '取消收藏',
   pin: '固定',

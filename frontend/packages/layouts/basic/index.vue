@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 import { darkTheme, NConfigProvider } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useSplitViewStore } from '~/stores'
 import AppFavorites from './components/AppFavorites.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
+import SplitPane from './components/SplitPane.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
 import { useLayoutShellAdapter } from './composables'
@@ -19,12 +22,38 @@ defineOptions({ name: 'BasicLayout' })
 
 const { isDark, themeOverrides } = useTheme()
 const shell = useLayoutShellAdapter()
+const route = useRoute()
+const splitView = useSplitViewStore()
 
-// 初始化 SignalR 连接（实时通知 + 踢下线）
-useSignalRIntegration()
+// 分屏 pane（iframe 内）的「内容-only」模式：只渲染页面内容，跳过外壳与实时连接/更新检查
+const isPaneMode = route.query.__pane === '1'
 
-// 定时检查前端资源更新
-useCheckUpdates()
+if (!isPaneMode) {
+  // 初始化 SignalR 连接（实时通知 + 踢下线）
+  useSignalRIntegration()
+  // 定时检查前端资源更新
+  useCheckUpdates()
+}
+
+// 分屏分隔条拖拽：按住左右拖动调整左右占比
+const splitRowRef = ref<HTMLElement | null>(null)
+const draggingDivider = ref(false)
+function onDividerDown() {
+  const el = splitRowRef.value
+  if (!el) {
+    return
+  }
+  const rect = el.getBoundingClientRect()
+  draggingDivider.value = true
+  const move = (ev: PointerEvent) => splitView.setRatio((ev.clientX - rect.left) / rect.width)
+  const up = () => {
+    draggingDivider.value = false
+    window.removeEventListener('pointermove', move)
+    window.removeEventListener('pointerup', up)
+  }
+  window.addEventListener('pointermove', move)
+  window.addEventListener('pointerup', up)
+}
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
@@ -49,7 +78,12 @@ const sidebarEnableState = computed(
 </script>
 
 <template>
-  <div class="relative flex min-h-full w-full">
+  <!-- 分屏 pane（iframe 内）：仅渲染页面内容，无外壳 -->
+  <div v-if="isPaneMode" class="h-full w-full overflow-auto bg-background">
+    <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+  </div>
+
+  <div v-else class="relative flex min-h-full w-full">
     <!-- ==================== Sidebar ==================== -->
     <NConfigProvider
       v-if="sidebarEnableState"
@@ -149,9 +183,11 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="flex-1 overflow-auto transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
+      <div class="flex-1 overflow-hidden transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
+        <!-- 普通内容 -->
         <div
-          class="h-full"
+          v-if="!splitView.active"
+          class="h-full overflow-auto"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
@@ -160,6 +196,20 @@ const sidebarEnableState = computed(
           "
         >
           <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+        </div>
+        <!-- 分屏对照：左=当前页，右=另一标签（iframe 内容-only） -->
+        <div v-else ref="splitRowRef" class="flex h-full w-full overflow-hidden">
+          <div class="h-full min-w-0 overflow-auto" :style="{ flexBasis: `${splitView.ratio * 100}%` }">
+            <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+          </div>
+          <div
+            class="split-divider"
+            :class="{ 'is-dragging': draggingDivider }"
+            @pointerdown="onDividerDown"
+          />
+          <div class="h-full min-w-0 flex-1">
+            <SplitPane />
+          </div>
         </div>
       </div>
 
@@ -228,6 +278,19 @@ const sidebarEnableState = computed(
 </template>
 
 <style scoped>
+/* 分屏分隔条 */
+.split-divider {
+  flex: 0 0 6px;
+  cursor: col-resize;
+  background: hsl(var(--border));
+  transition: background 0.15s ease;
+}
+
+.split-divider:hover,
+.split-divider.is-dragging {
+  background: hsl(var(--primary) / 50%);
+}
+
 .footer-bar {
   gap: 8px;
 }

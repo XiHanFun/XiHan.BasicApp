@@ -6,6 +6,7 @@ export enum SetupStoreId {
   User = 'user',
   Tabbar = 'tabbar',
   Favorites = 'favorites',
+  SplitView = 'split-view',
   LayoutState = 'layout-state',
   LayoutBridge = 'layout-bridge',
   LayoutPreferences = 'layout-preferences',
