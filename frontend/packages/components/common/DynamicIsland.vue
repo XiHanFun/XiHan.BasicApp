@@ -1,11 +1,16 @@
 <script lang="ts" setup>
 import type { IslandAction, IslandState, IslandTask } from '~/composables/useDynamicIsland'
 import { useOnline } from '@vueuse/core'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { islandStatus, useDynamicIsland } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
+import { useAppStore } from '~/stores'
 
 defineOptions({ name: 'DynamicIsland' })
+
+// 偏好开关：关闭则整体不渲染（可在偏好设置中切换）
+const appStore = useAppStore()
+const enabled = computed(() => appStore.widgetDynamicIsland)
 
 const {
   current,
@@ -105,7 +110,7 @@ onBeforeUnmount(() => {
       <!-- 折叠态：胶囊 -->
       <Transition name="island">
         <button
-          v-if="current && !expanded"
+          v-if="enabled && current && !expanded"
           type="button"
           class="di-pill"
           :class="`is-${current.state}`"
@@ -133,7 +138,7 @@ onBeforeUnmount(() => {
 
       <!-- 展开态：活动面板 -->
       <Transition name="panel">
-        <div v-if="expanded" class="di-panel">
+        <div v-if="enabled && expanded" class="di-panel">
           <div class="di-panel__head">
             <span class="di-panel__title">动态</span>
             <button type="button" class="di-panel__close" aria-label="收起" @click="collapse">

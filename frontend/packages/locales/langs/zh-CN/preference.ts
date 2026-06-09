@@ -197,6 +197,8 @@ export default {
       sidebar_toggle: '启用侧栏切换',
       refresh: '启用刷新',
       favorites: '启用收藏夹',
+      dynamic_island: '启用灵动岛',
+      dynamic_island_tip: '顶部灵动岛：登录 / 同步 / 上传 / 网络状态等过程提示，可点击展开查看活动',
       preference_position: '偏好设置位置',
       preference_position_auto: '自动',
       preference_position_header: '顶栏',
