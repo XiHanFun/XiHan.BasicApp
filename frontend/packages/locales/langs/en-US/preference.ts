@@ -206,7 +206,7 @@ export default {
       preference_position: 'Preference Position',
       preference_position_auto: 'Auto',
       preference_position_header: 'Header',
-      preference_position_fixed: 'Fixed',
+      preference_position_floating: 'Floating',
     },
     footer: {
       title: 'Footer',
