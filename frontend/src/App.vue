@@ -3,6 +3,7 @@ import { darkTheme, dateZhCN, NConfigProvider, NDialogProvider, NGlobalStyle, NL
 import { computed, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import AppWatermark from '~/components/common/AppWatermark.vue'
+import DynamicIsland from '~/components/common/DynamicIsland.vue'
 import LockScreen from '~/components/common/LockScreen.vue'
 import { useGlobalShortcuts, useHtmlStyle } from '~/composables'
 import { useTheme } from '~/hooks'
@@ -35,6 +36,7 @@ onMounted(() => {
             <RouterView />
             <LockScreen />
             <AppWatermark />
+            <DynamicIsland />
           </NMessageProvider>
         </NNotificationProvider>
       </NDialogProvider>

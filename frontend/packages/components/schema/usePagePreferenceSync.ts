@@ -1,4 +1,16 @@
+import { islandStart } from '~/composables/useDynamicIsland'
 import { useAppContext } from '~/stores'
+
+/** 分区 → 中文名（用于灵动岛同步提示） */
+const SECTION_NAMES: Record<string, string> = {
+  table: '表格设置',
+  search: '搜索设置',
+  views: '视图',
+}
+
+function sectionName(section: string): string {
+  return SECTION_NAMES[section] ?? '页面设置'
+}
 
 /**
  * 页面偏好后端同步（跨端）。
@@ -66,7 +78,12 @@ function saveSection(pageCode: string, section: string, value: unknown): void {
   saveTimers.set(
     pageCode,
     setTimeout(() => {
-      void resolveApi().save({ pageCode, payload: JSON.stringify(payload) }).catch(() => {})
+      const name = sectionName(section)
+      const task = islandStart(`page:${pageCode}`, `正在同步${name}…`)
+      void resolveApi()
+        .save({ pageCode, payload: JSON.stringify(payload) })
+        .then(() => task.success(`${name}已同步`))
+        .catch(() => task.error(`${name}同步失败`))
     }, 600),
   )
 }

@@ -11,6 +11,7 @@ import type {
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useSignalR } from '~/composables'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { CORE_ROUTE_NAMES } from '~/router/routes/core'
@@ -27,6 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false)
 
   async function afterLogin(result: LoginToken, redirect?: string) {
+    const loginTask = islandStart('auth:login', '正在登录…')
     const ctx = useAppContext()
     const router = await ctx.getRouter()
 
@@ -44,6 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch (error) {
       accessStore.$reset()
       userStore.$reset()
+      loginTask.error('登录失败')
       throw error
     }
 
@@ -68,7 +71,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 跨端同步：登录后拉取后端偏好并应用（覆盖本地），在进入应用前完成以避免闪烁
-    await hydratePreferencesFromBackend()
+    // showIsland:false — 同步过程由登录灵动岛统一覆盖，避免重复提示
+    await hydratePreferencesFromBackend({ showIsland: false })
 
     const homePath = accessStore.homePath || HOME_PATH
     if (redirect) {
@@ -83,6 +87,8 @@ export const useAuthStore = defineStore('auth', () => {
     else {
       await router.replace(homePath)
     }
+
+    loginTask.success('登录成功')
   }
 
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
