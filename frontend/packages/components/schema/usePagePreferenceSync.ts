@@ -42,6 +42,8 @@ function resolveApi(): PagePreferenceApiShape {
 async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
   let pending = loading.get(pageCode)
   if (!pending) {
+    // 后台读取：灵动岛只在拉取期间显示「同步中」活动态，完成即静默消失（不弹成功提示，避免每次进页面刷屏）
+    const task = islandStart('page-load', '正在同步页面设置…')
     pending = resolveApi()
       .get(pageCode)
       .then((dto) => {
@@ -55,10 +57,12 @@ async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
           }
         }
         cache.set(pageCode, parsed)
+        task.dismiss()
         return parsed
       })
       .catch(() => {
         cache.set(pageCode, {})
+        task.dismiss()
         return {}
       })
     loading.set(pageCode, pending)

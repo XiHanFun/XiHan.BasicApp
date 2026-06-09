@@ -1,6 +1,7 @@
 import type { FavoriteItem } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { FAVORITES_KEY } from '~/constants'
 import { useAppContext } from '~/stores/app-context'
 import { SetupStoreId } from '~/stores/store-ids'
@@ -40,11 +41,13 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     }
     saveTimer = setTimeout(() => {
       const payload = JSON.stringify({ [FAVORITES_SECTION]: favorites.value })
+      const task = islandStart('favorites:save', '正在同步收藏夹…')
       void useAppContext()
         .apis
         .pagePreferenceApi
         .save({ pageCode: FAVORITES_PAGE_CODE, payload })
-        .catch(() => {})
+        .then(() => task.success('收藏夹已同步'))
+        .catch(() => task.error('收藏夹同步失败'))
     }, 600)
   }
 
@@ -116,24 +119,23 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
       return inflight
     }
     inflight = (async () => {
+      const task = islandStart('favorites:hydrate', '正在同步收藏夹…')
       try {
         const dto = await useAppContext().apis.pagePreferenceApi.get(FAVORITES_PAGE_CODE)
-        if (!dto?.payload) {
-          return
+        const parsed = dto?.payload ? (JSON.parse(dto.payload) as Record<string, unknown>) : null
+        const remote = parsed ? parsed[FAVORITES_SECTION] : null
+        if (Array.isArray(remote)) {
+          const list: FavoriteItem[] = remote
+            .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
+            .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
+          favorites.value = list
+          LocalStorage.set(FAVORITES_KEY, list)
         }
-        const parsed = JSON.parse(dto.payload) as Record<string, unknown>
-        const remote = parsed[FAVORITES_SECTION]
-        if (!Array.isArray(remote)) {
-          return
-        }
-        const list: FavoriteItem[] = remote
-          .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
-          .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
-        favorites.value = list
-        LocalStorage.set(FAVORITES_KEY, list)
+        task.success('收藏夹已同步')
       }
       catch {
         // 静默：保留本地
+        task.dismiss()
       }
     })().finally(() => {
       inflight = null
