@@ -205,8 +205,6 @@ export default {
       sidebar_toggle: 'Sidebar Toggle',
       refresh: 'Refresh',
       favorites: 'Favorites',
-      dynamic_island: 'Dynamic Island',
-      dynamic_island_tip: 'Top dynamic island: progress for login / sync / upload / network, click to expand activity',
       preference_position: 'Preference Position',
       preference_position_auto: 'Auto',
       preference_position_header: 'Header',
@@ -233,6 +231,7 @@ export default {
     title: 'General',
     language: 'Language',
     dynamic_title: 'Dynamic Title',
+    dynamic_island: 'Dynamic Island',
     watermark: 'Watermark',
     watermark_content: 'Content',
     watermark_text: 'Watermark Text',
@@ -241,6 +240,8 @@ export default {
     check_updates_interval_unit: 'sec',
     dynamic_title_tip:
       'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
+    dynamic_island_tip:
+      'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
     check_updates_tip:
       'Periodically check for new versions and show a notification when an update is available',

@@ -211,6 +211,63 @@ function makeHandle(id: string): IslandHandle {
   }
 }
 
+// ── 关闭灵动岛时的兜底接管 ──────────────────────────────────────
+// 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由 Naive Message 接管终态。
+type IslandMessageSink = (state: 'success' | 'error' | 'info', content: string) => void
+let enabledResolver: (() => boolean) | null = null
+let messageSink: IslandMessageSink | null = null
+
+/**
+ * 注入灵动岛启用判定与「关闭时」的消息兜底。
+ * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由 Naive Message 接管。
+ */
+export function configureDynamicIsland(options: { isEnabled: () => boolean; message: IslandMessageSink }): void {
+  enabledResolver = options.isEnabled
+  messageSink = options.message
+}
+
+function islandEnabled(): boolean {
+  return enabledResolver ? enabledResolver() : true
+}
+
+/** 关闭灵动岛时的事件兜底句柄：进行中态静默，终态交给 Naive Message，其余为空操作 */
+function fallbackEventHandle(initialLabel: string): IslandHandle {
+  let label = initialLabel
+  const emit = (state: 'success' | 'error' | 'info', next?: string) => {
+    const content = (next ?? label)?.trim()
+    if (content) {
+      messageSink?.(state, content)
+    }
+  }
+  return {
+    update(next) {
+      label = next
+    },
+    patch(p) {
+      if (p.label != null) {
+        label = p.label
+      }
+    },
+    setProgress() {},
+    success(next) {
+      emit('success', next)
+    },
+    error(next) {
+      emit('error', next)
+    },
+    info(next) {
+      emit('info', next)
+    },
+    dismiss() {},
+  }
+}
+
+/** 关闭灵动岛时的常驻状态兜底句柄：整体静默（不把网络等状态指示降级成消息噪音） */
+function silentHandle(): IslandHandle {
+  const noop = () => {}
+  return { update: noop, patch: noop, setProgress: noop, success: noop, error: noop, info: noop, dismiss: noop }
+}
+
 /**
  * 开始一个灵动岛任务（默认进行中态）。返回句柄推进终态。
  * @param id    任务键；同 id 复用同一条
@@ -218,6 +275,10 @@ function makeHandle(id: string): IslandHandle {
  * @param init  可选：detail/icon/state/progress/actions/onClick/persistent
  */
 export function islandStart(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
+  // 灵动岛关闭：不进岛，终态由 Naive Message 接管
+  if (!islandEnabled()) {
+    return fallbackEventHandle(label)
+  }
   clearTimer(id)
   upsert(id, label, { ...init, state: init.state ?? 'loading' }, 'event')
   return makeHandle(id)
@@ -228,6 +289,10 @@ export function islandStart(id: string, label: string, init: IslandTaskInit = {}
  * 通过返回句柄的 success/info/dismiss 收尾。
  */
 export function islandStatus(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
+  // 灵动岛关闭：常驻状态整体静默（不弹消息）
+  if (!islandEnabled()) {
+    return silentHandle()
+  }
   clearTimer(id)
   upsert(id, label, { ...init, state: init.state ?? 'info', persistent: true }, 'status')
   return makeHandle(id)

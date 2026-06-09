@@ -1,16 +1,34 @@
 <script lang="ts" setup>
 import type { IslandAction, IslandState, IslandTask } from '~/composables/useDynamicIsland'
 import { useOnline } from '@vueuse/core'
+import { useMessage } from 'naive-ui'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { islandStatus, useDynamicIsland } from '~/composables/useDynamicIsland'
+import { configureDynamicIsland, islandStatus, useDynamicIsland } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 
 defineOptions({ name: 'DynamicIsland' })
 
-// 偏好开关：关闭则整体不渲染（可在偏好设置中切换）
+// 偏好开关：关闭则灵动岛不呈现（可在偏好设置中切换）
 const appStore = useAppStore()
 const enabled = computed(() => appStore.widgetDynamicIsland)
+
+// 关闭灵动岛时，终态（成功/失败/信息）由 Naive Message 接管；开启时不接管，全程走灵动岛
+const message = useMessage()
+configureDynamicIsland({
+  isEnabled: () => appStore.widgetDynamicIsland,
+  message: (state, content) => {
+    if (state === 'success') {
+      message.success(content)
+    }
+    else if (state === 'error') {
+      message.error(content)
+    }
+    else {
+      message.info(content)
+    }
+  },
+})
 
 const {
   current,
