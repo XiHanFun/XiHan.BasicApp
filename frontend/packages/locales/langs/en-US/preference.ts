@@ -1,4 +1,8 @@
 export default {
+  sync_status: {
+    local: 'Local',
+    local_tip: 'Stored on this device only — sync is off. Enable it in Preferences › General.',
+  },
   drawer: {
     title: 'Preferences',
     save: 'Save',
@@ -231,10 +235,15 @@ export default {
   },
   general: {
     title: 'General',
+    sync_title: 'Sync',
+    update_title: 'Updates',
     language: 'Language',
     dynamic_title: 'Dynamic Title',
     dynamic_island: 'Dynamic Island',
     preference_sync: 'Sync Preferences',
+    favorites_sync: 'Sync Favorites',
+    search_sync: 'Sync Search Settings',
+    table_sync: 'Sync Table Settings',
     watermark: 'Watermark',
     watermark_content: 'Content',
     watermark_text: 'Watermark Text',
@@ -247,6 +256,12 @@ export default {
       'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
     preference_sync_tip:
       'Off by default — preferences are stored on this device only. When on, preference changes sync to your account and override across devices on next sign-in.',
+    favorites_sync_tip:
+      'Off by default — favorites are stored on this device only. When on, favorite changes sync to your account across devices.',
+    search_sync_tip:
+      'Off by default — per-page search settings are stored on this device only. When on, they sync to your account on save.',
+    table_sync_tip:
+      'Off by default — per-page table columns and saved views are stored on this device only. When on, they sync to your account on save.',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
     check_updates_tip:
       'Periodically check for new versions and show a notification when an update is available',

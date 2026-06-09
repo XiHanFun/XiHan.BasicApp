@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { FAVORITES_KEY, FAVORITES_SETTING_KEY, UserSettingScene } from '~/constants'
 import { useAppContext } from '~/stores/app-context'
+import { isFavoritesSyncEnabled } from '~/stores/helpers'
 import { SetupStoreId } from '~/stores/store-ids'
 import { LocalStorage } from '~/utils'
 
@@ -28,6 +29,10 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
   /** 持久化：立即写本地 + 防抖落库（失败静默，不阻塞交互） */
   function persist(): void {
     LocalStorage.set(FAVORITES_KEY, favorites.value)
+    // 未开启收藏夹同步：仅本地存储，不上行后端
+    if (!isFavoritesSyncEnabled()) {
+      return
+    }
     if (saveTimer) {
       clearTimeout(saveTimer)
     }
@@ -107,6 +112,10 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
    * 以 in-flight 去重，允许布局重新挂载（如切换用户）时重新水合。
    */
   function hydrate(): Promise<void> {
+    // 未开启收藏夹同步：不拉取后端，使用本地
+    if (!isFavoritesSyncEnabled()) {
+      return Promise.resolve()
+    }
     if (inflight) {
       return inflight
     }

@@ -12,6 +12,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import {
   LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER,
 } from '~/constants'
@@ -180,7 +181,10 @@ watch(visible, (open, was) => {
     >
       <template #header>
         <div class="drawer-header">
-          <span class="drawer-title">{{ t('preference.drawer.title') }}</span>
+          <div class="flex items-center gap-2">
+            <span class="drawer-title">{{ t('preference.drawer.title') }}</span>
+            <SyncStatusBadge :synced="appStore.preferenceSyncEnabled" />
+          </div>
           <button
             tabindex="-1"
             class="close-btn"
