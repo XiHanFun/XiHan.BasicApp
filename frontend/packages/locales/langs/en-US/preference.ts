@@ -3,10 +3,10 @@ export default {
     title: 'Preferences',
     copy: 'Copy Preferences',
     reset: 'Reset Preferences',
-    clear_cache: 'Clear Cache',
+    clear_cache: 'Clear Cache & Logout',
     copy_success: 'Preferences copied',
     copy_failed: 'Copy failed',
-    reset_success: 'Preferences reset, refreshing...',
+    reset_success: 'Preferences reset to defaults',
     tab: {
       appearance: 'Appearance',
       layout: 'Layout',

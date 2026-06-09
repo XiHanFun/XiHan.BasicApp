@@ -20,6 +20,8 @@ const PREFERENCES_SECTION = 'preferences'
  * 不含 token / 用户信息 / 收藏夹 / 标签等（它们不经 bindPersist），可安全整体上行后端。
  */
 const registry = new Map<string, { value: unknown }>()
+/** 各偏好的默认值 (storageKey → default)，由 bindPersist 第三参登记，供「重置偏好」恢复默认值使用 */
+const defaults = new Map<string, unknown>()
 /** 后端回写开关：仅登录并完成水合后开启，避免登录页 / 离线时产生无谓的失败请求 */
 let backendSyncEnabled = false
 /** 一次会话仅水合一次（登录或刷新后），退出登录时重置 */
@@ -78,11 +80,27 @@ function scheduleBackendSync() {
  * 监听 ref 变化并自动写入 localStorage；同时登记进偏好注册表，
  * 任一偏好变化触发整份快照防抖上行后端（开启回写后）。
  */
-export function bindPersist<T>(key: string, source: { value: T }) {
+export function bindPersist<T>(key: string, source: { value: T }, defaultValue?: T) {
   registry.set(key, source as { value: unknown })
+  if (defaultValue !== undefined) {
+    defaults.set(key, defaultValue)
+  }
   watch(source, (value) => {
     LocalStorage.set(key, value)
     scheduleBackendSync()
+  })
+}
+
+/**
+ * 重置所有「偏好设置」为默认值。
+ * 仅作用于经 bindPersist 登记了默认值的偏好（恰为偏好设置全集），不含 token / 用户信息 / 收藏夹 / 标签。
+ * 直接改写内存 ref → 经各自 watch 同步落地 localStorage 并防抖上行后端；不触发整页刷新，因此不会影响登录态。
+ */
+export function resetRegisteredPreferences(): void {
+  registry.forEach((source, key) => {
+    if (defaults.has(key)) {
+      source.value = defaults.get(key)
+    }
   })
 }
 

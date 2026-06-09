@@ -3,10 +3,10 @@ export default {
     title: '偏好设置',
     copy: '复制偏好设置',
     reset: '重置偏好',
-    clear_cache: '清空缓存',
+    clear_cache: '清除缓存并登出',
     copy_success: '偏好设置已复制',
     copy_failed: '复制失败',
-    reset_success: '偏好设置已重置，正在刷新',
+    reset_success: '偏好设置已恢复默认',
     tab: {
       appearance: '外观',
       layout: '布局',

@@ -14,10 +14,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER,
-  REFRESH_TOKEN_KEY,
-  STORAGE_PREFIX,
-  TOKEN_KEY,
-  USER_INFO_KEY,
 } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -35,7 +31,7 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const message = useMessage()
-const { t } = useI18n()
+const { t, locale: i18nLocale } = useI18n()
 const visible = ref(false)
 // 偏好设置入口：头部按钮与悬浮 FAB 互斥，统一由 usePreferenceEntry 判定（auto 模式窄屏走 FAB）
 const { showFab: showFloatingFab } = usePreferenceEntry()
@@ -105,17 +101,13 @@ async function copyPreferences() {
   }
 }
 
-const AUTH_KEYS = [TOKEN_KEY, REFRESH_TOKEN_KEY, USER_INFO_KEY]
-
 function resetPreferences() {
-  const keys = Object.keys(localStorage).filter(
-    key => key.startsWith(STORAGE_PREFIX) && !AUTH_KEYS.includes(key),
-  )
-  for (const key of keys) {
-    localStorage.removeItem(key)
-  }
+  // 仅重置「偏好设置」为默认值（内存级，经各偏好 watch 落地本地并同步后端）；
+  // 不清理 token / 用户信息 / 收藏 / 标签，也不刷新整页，因此不会登出
+  appStore.resetPreferences()
+  // 语言为「动作型」偏好（vue-i18n 不响应式跟随 store），重置后手动同步当前界面语言
+  i18nLocale.value = appStore.locale
   message.success(t('preference.drawer.reset_success'))
-  window.location.reload()
 }
 
 function openDrawer() {
