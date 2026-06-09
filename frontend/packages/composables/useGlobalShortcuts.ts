@@ -15,22 +15,23 @@ export function useGlobalShortcuts() {
     if (!appStore.shortcutEnable)
       return
 
+    // 用物理键 e.code 判定字母，兼容 Mac：Option(Alt) 会改变 e.key 字符（如 ⌥L→¬）
     // Ctrl/Cmd + K：全局搜索
-    if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && (e.code === 'KeyK' || e.key.toLowerCase() === 'k')) {
       e.preventDefault()
       layoutBridgeStore.requestOpenGlobalSearch()
       return
     }
 
-    // Alt + Q：退出登录
-    if (appStore.shortcutLogout && e.altKey && e.key.toLowerCase() === 'q') {
+    // Alt/Option + Q：退出登录
+    if (appStore.shortcutLogout && e.altKey && (e.code === 'KeyQ' || e.key.toLowerCase() === 'q')) {
       e.preventDefault()
       void authStore.logout()
       return
     }
 
-    // Alt + L：锁屏
-    if (appStore.shortcutLock && e.altKey && e.key.toLowerCase() === 'l') {
+    // Alt/Option + L：锁屏
+    if (appStore.shortcutLock && e.altKey && (e.code === 'KeyL' || e.key.toLowerCase() === 'l')) {
       e.preventDefault()
       if (appStore.widgetLockScreen) {
         layoutBridgeStore.requestLockScreen()
