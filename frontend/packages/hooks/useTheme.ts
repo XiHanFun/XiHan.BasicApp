@@ -78,6 +78,55 @@ function generatePrimaryScale(hex: string) {
   }
 }
 
+/** 计算 hex 的相对亮度（WCAG），用于决定主色上的前景文字取深/浅 */
+function relLuminance(hex: string): number {
+  const channel = (i: number) => {
+    const c = Number.parseInt(hex.slice(i, i + 2), 16) / 255
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  }
+  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
+}
+
+/**
+ * Material You 动态取色：从单个品牌色（seed）推导整套和谐色阶，明暗自适应。
+ *
+ * 设计取舍：`--primary` 保持用户所选的精确颜色；围绕其「同色相」派生
+ * 辅色(secondary)、容器(accent)、各自前景(on-*)、聚焦环(ring) 与「带品牌色相微调的中性色」
+ * (muted/border)，使整套 UI 随品牌色协调，而非只改一个 primary。
+ *
+ * 返回 CSS 变量名 → "H S% L%" 分量串；由 applyThemePalette 内联写到根元素
+ * （内联样式优先级高于 :root / .dark，故须按当前明暗重新计算并覆盖）。
+ */
+function deriveMaterialPalette(hex: string, dark: boolean): Record<string, string> {
+  const [h, s, l] = hexToHsl(hex)
+  // 主色上的前景：主色偏亮用深字，偏暗用浅字（修复如黄色主色上白字看不清）
+  const onPrimary = relLuminance(hex) > 0.55 ? '220 12% 12%' : '0 0% 98%'
+  const cs = (v: number) => Math.max(0, Math.min(100, Math.round(v)))
+
+  if (dark) {
+    return {
+      '--primary-foreground': onPrimary,
+      '--ring': `${h} ${cs(Math.min(s, 80))}% ${cs(Math.max(l, 60))}%`,
+      '--accent': `${h} ${cs(Math.min(s * 0.4, 40))}% 22%`,
+      '--accent-foreground': `${h} 22% 90%`,
+      '--secondary': `${h} ${cs(Math.min(s * 0.3, 28))}% 18%`,
+      '--secondary-foreground': `${h} 16% 92%`,
+      '--muted': `${h} ${cs(Math.min(s * 0.2, 8))}% 16%`,
+      '--border': `${h} ${cs(Math.min(s * 0.22, 12))}% 24%`,
+    }
+  }
+  return {
+    '--primary-foreground': onPrimary,
+    '--ring': `${h} ${cs(Math.min(s, 85))}% ${cs(Math.max(Math.min(l, 55), 40))}%`,
+    '--accent': `${h} ${cs(Math.min(s * 0.5, 45))}% 93%`,
+    '--accent-foreground': `${h} ${cs(Math.min(s, 45))}% 24%`,
+    '--secondary': `${h} ${cs(Math.min(s * 0.35, 30))}% 95%`,
+    '--secondary-foreground': `${h} ${cs(Math.min(s, 35))}% 22%`,
+    '--muted': `${h} ${cs(Math.min(s * 0.15, 8))}% 96%`,
+    '--border': `${h} ${cs(Math.min(s * 0.18, 10))}% 90%`,
+  }
+}
+
 /**
  * 读取 CSS 变量值并转换为 TinyColor 兼容的逗号格式 hsl()。
  * CSS 变量存储格式为 "H S% L%"（CSS Level 4 空格语法），
@@ -131,16 +180,24 @@ export function useTheme() {
     el.style.setProperty('--radius-card', cardRadius)
   }
 
-  /** 同步主色色阶到 CSS 变量 */
-  function syncPrimaryScale(hex: string) {
+  /**
+   * 同步主色色阶 + Material You 派生色阶到 CSS 变量（明暗自适应）。
+   * 内联样式覆盖 :root/.dark，故明暗切换时也需重算重写。
+   */
+  function applyThemePalette(hex: string, dark: boolean) {
     if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
       return
     const scale = generatePrimaryScale(hex)
     const el = document.documentElement
+    // 主色：保持用户所选精确颜色
     el.style.setProperty('--primary', hexToHslVars(hex))
     el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
     el.style.setProperty('--primary-active', hexToHslVars(scale.active))
     el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
+    // 围绕主色派生：辅色/容器/前景/聚焦环/中性微调
+    for (const [name, value] of Object.entries(deriveMaterialPalette(hex, dark))) {
+      el.style.setProperty(name, value)
+    }
   }
 
   /** 同步字号到 CSS 变量 */
@@ -151,7 +208,12 @@ export function useTheme() {
   }
 
   watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
-  watch(() => appStore.themeColor, syncPrimaryScale, { immediate: true })
+  // 主色或明暗变化都需重算派生色阶（Material You 明暗自适应）
+  watch(
+    [() => appStore.themeColor, isDark],
+    ([hex, dark]) => applyThemePalette(hex, dark),
+    { immediate: true },
+  )
   watch(() => appStore.fontSize, syncFontSize, { immediate: true })
 
   const themeOverrides = computed((): GlobalThemeOverrides => {
