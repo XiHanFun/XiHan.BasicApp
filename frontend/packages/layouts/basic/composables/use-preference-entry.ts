@@ -8,7 +8,7 @@ const NARROW_SCREEN_MAX_WIDTH = 960
 /**
  * 偏好设置入口（头部按钮 / 固定悬浮 FAB）的可见性，二者互斥：
  * - position=header：仅头部按钮
- * - position=fixed：仅悬浮 FAB
+ * - position=floating：仅悬浮 FAB（可拖动吸附）
  * - position=auto：窄屏 / 内容最大化 / 头部隐藏 / 全屏内容布局时走 FAB，否则走头部按钮
  *
  * 头部按钮（AppHeader）与悬浮 FAB（AppPreferenceDrawer）分属两个组件，
@@ -41,7 +41,7 @@ export function usePreferenceEntry() {
     if (position === 'header') {
       return false
     }
-    if (position === 'fixed') {
+    if (position === 'floating') {
       return true
     }
     return (

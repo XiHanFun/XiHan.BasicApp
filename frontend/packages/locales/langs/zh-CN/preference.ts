@@ -198,7 +198,7 @@ export default {
       preference_position: '偏好设置位置',
       preference_position_auto: '自动',
       preference_position_header: '顶栏',
-      preference_position_fixed: '固定',
+      preference_position_floating: '悬浮',
     },
     footer: {
       title: '底栏',
