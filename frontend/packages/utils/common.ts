@@ -24,7 +24,7 @@ export function formatFileSize(bytes: number): string {
 /**
  * 防抖函数
  */
-export function debounce<T extends (...args: any[]) => any>(fn: T, delay = 300): T {
+export function debounce<T extends (...args: never[]) => unknown>(fn: T, delay = 300): T {
   let timer: ReturnType<typeof setTimeout> | null = null
   return ((...args: Parameters<T>) => {
     if (timer)
@@ -36,7 +36,7 @@ export function debounce<T extends (...args: any[]) => any>(fn: T, delay = 300):
 /**
  * 节流函数
  */
-export function throttle<T extends (...args: any[]) => any>(fn: T, delay = 300): T {
+export function throttle<T extends (...args: never[]) => unknown>(fn: T, delay = 300): T {
   let lastTime = 0
   return ((...args: Parameters<T>) => {
     const now = Date.now()
@@ -69,7 +69,7 @@ export function deepClone<T>(obj: T): T {
 /**
  * 判断是否为空值
  */
-export function isEmpty(value: any): boolean {
+export function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined)
     return true
   if (typeof value === 'string')

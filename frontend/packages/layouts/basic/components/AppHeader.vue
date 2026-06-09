@@ -1,16 +1,18 @@
 <script lang="ts" setup>
-import type { VNodeChild } from 'vue'
 import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
-import { Icon } from '~/iconify'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale, useRefresh, useTheme } from '~/hooks'
-import { useAppStore, useAuthStore, useLayoutBridgeStore, useUserStore } from '~/stores'
-import { useLayoutMenuDomain } from '../composables'
+import { Icon } from '~/iconify'
+import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
+import { NotificationStatus } from '~/types/enums'
+import { useLayoutMenuDomain, usePreferenceEntry } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
+import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
 import XihanIconButton from './XihanIconButton.vue'
 
 interface Props {
@@ -24,6 +26,8 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
+const notificationStore = useNotificationStore()
+const appContext = useAppContext()
 const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
@@ -35,9 +39,13 @@ const {
   baseMenuSource,
   toLayoutMeta,
   resolveFullPath,
+  resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
 } = useLayoutMenuDomain()
+
+// 偏好设置入口可见性：头部按钮与悬浮 FAB 互斥（auto 模式窄屏走 FAB，头部按钮隐藏）
+const { showHeaderButton: showPreferencesInHeader } = usePreferenceEntry()
 
 const hasBack = ref(false)
 const hasForward = ref(false)
@@ -71,7 +79,8 @@ const isSplitMode = computed(
 const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
 
 function resolveIcon(icon: string) {
-  if (!icon) return icon
+  if (!icon)
+    return icon
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
@@ -85,6 +94,7 @@ function renderTopMenuLabel(option: MenuOption | MenuGroupOption): VNodeChild {
   const children = (option as MenuOption).children
   const hasChildren = Array.isArray(children) && children.length > 0
   const key = (option as MenuOption).key
+  // eslint-disable-next-line ts/no-use-before-define
   const isTopLevel = key != null && topLevelKeys.value.has(key)
   if (!hasChildren || !isTopLevel) {
     return label
@@ -107,9 +117,10 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     keyBy: 'path',
     translate: translateMenuTitle,
     iconRenderer: renderRouteIcon,
+    badgeLabelRenderer: renderHorizontalBadgeLabel,
   })
   if (isSplitMode.value) {
-    return options.map((item) => ({ ...item, children: undefined }))
+    return options.map(item => ({ ...item, children: undefined }))
   }
   return options
 })
@@ -118,34 +129,25 @@ const topLevelKeys = computed(() => new Set(
   topMenuOptions.value.map((opt: MenuOption) => opt.key).filter(Boolean),
 ))
 
-function resolveFirstVisiblePath(routeItem: LayoutRouteRecord, parentPath = ''): string {
-  const fullPath = resolveFullPath(routeItem.path, parentPath)
-  const firstVisibleChild = routeItem.children?.find((child) => !toLayoutMeta(child).hidden)
-  if (!firstVisibleChild) {
-    return fullPath
-  }
-  return resolveFirstVisiblePath(firstVisibleChild, fullPath)
-}
-
 const topMenuActive = computed(() => {
   if (!isSplitMode.value) {
     return String(route.meta?.activePath || route.path || '')
   }
   return (
-    findMatchedRoutePath(topMenuSource.value) ??
-    resolveFullPath(topMenuSource.value.find((item) => !toLayoutMeta(item).hidden)?.path ?? '')
+    findMatchedRoutePath(topMenuSource.value)
+    ?? resolveFullPath(topMenuSource.value.find(item => !toLayoutMeta(item).hidden)?.path ?? '')
   )
 })
 
 const breadcrumbs = computed(() => {
-  const matched = route.matched.filter((item) => item.meta?.title && !item.meta?.hidden)
+  const matched = route.matched.filter(item => item.meta?.title && !item.meta?.hidden)
   if (appStore.breadcrumbHideOnlyOne && matched.length <= 1) {
     return []
   }
   return matched.map((item, index) => {
     const parent = index > 0 ? matched[index - 1] : null
     const siblings = (parent?.children ?? [])
-      .filter((sibling) => sibling.meta?.title && !sibling.meta?.hidden)
+      .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
       .map((sibling) => {
         const siblingTitle = String(sibling.meta?.title ?? '')
         const siblingIcon = sibling.meta?.icon as string | undefined
@@ -228,13 +230,13 @@ const timezoneOptions = computed<DropdownOption[]>(() => [
   { label: t('header.timezone.los_angeles'), key: 'America/Los_Angeles' },
 ])
 
-function handleUserAction(key: string) {
+async function handleUserAction(key: string) {
   if (key === 'logout') {
-    authStore.logout()
+    await authStore.logout()
     return
   }
   if (key === 'profile') {
-    router.push('/profile')
+    router.push('/workbench/profile')
     return
   }
   if (key === 'lock') {
@@ -270,11 +272,11 @@ function handleTopMenuSelect(path: string) {
     router.push(path)
     return
   }
-  const rootMenu = topMenuSource.value.find((item) => resolveFullPath(item.path) === path)
+  const rootMenu = topMenuSource.value.find(item => resolveFullPath(item.path) === path)
   if (!rootMenu) {
     return
   }
-  const targetPath = resolveFirstVisiblePath(rootMenu)
+  const targetPath = resolveFirstNavigablePath(rootMenu)
   if (targetPath && targetPath !== route.path) {
     router.push(targetPath)
   }
@@ -286,6 +288,108 @@ function handleRefreshCurrentTab() {
 
 function openPreferenceDrawer() {
   layoutBridgeStore.requestOpenPreferenceDrawer()
+}
+
+// ===== 通知弹窗 =====
+const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
+let signalRThrottleTimer: ReturnType<typeof setTimeout> | null = null
+
+async function loadNotifications() {
+  const userId = userStore.userInfo?.basicId
+  if (!userId)
+    return
+  notificationStore.loading = true
+  try {
+    const list = await appContext.apis.userInboxApi.list(userId, true, userStore.userInfo?.tenantId)
+    notificationStore.setItems(list.map(n => ({
+      basicId: n.basicId,
+      title: n.title,
+      content: n.content ?? undefined,
+      notificationType: n.notificationType,
+      notificationStatus: n.notificationStatus,
+      sendTime: n.sendTime,
+      readTime: n.readTime ?? undefined,
+      confirmTime: n.confirmTime ?? undefined,
+      isGlobal: n.isGlobal,
+      needConfirm: n.needConfirm,
+      icon: n.icon ?? undefined,
+      link: n.link ?? undefined,
+    })))
+  }
+  catch {
+    // 静默失败，不阻塞主流程
+  }
+  finally {
+    notificationStore.loading = false
+  }
+}
+
+async function handleNotificationMarkRead(id: string) {
+  const userId = userStore.userInfo?.basicId
+  if (!userId)
+    return
+  const prev = notificationStore.items.find(n => n.basicId === id)
+  const prevStatus = prev?.notificationStatus
+  const prevReadTime = prev?.readTime
+  notificationStore.markItemRead(id)
+  try {
+    await appContext.apis.userInboxApi.markRead(id, userId, userStore.userInfo?.tenantId)
+  }
+  catch {
+    if (prev && prevStatus !== undefined) {
+      prev.notificationStatus = prevStatus
+      prev.readTime = prevReadTime
+    }
+  }
+}
+
+async function handleNotificationConfirm(id: string) {
+  const userId = userStore.userInfo?.basicId
+  if (!userId)
+    return
+  notificationStore.markItemConfirmed(id)
+  try {
+    await appContext.apis.userInboxApi.confirm(id, userId, userStore.userInfo?.tenantId)
+  }
+  catch {
+    await loadNotifications()
+  }
+}
+
+async function handleNotificationMarkAllRead() {
+  const userId = userStore.userInfo?.basicId
+  if (!userId)
+    return
+  const snapshot = notificationStore.items
+    .filter(n => n.notificationStatus === NotificationStatus.Unread)
+    .map(n => ({ id: n.basicId, status: n.notificationStatus, readTime: n.readTime }))
+  notificationStore.markAllRead()
+  try {
+    await appContext.apis.userInboxApi.markAllRead(userId, userStore.userInfo?.tenantId)
+  }
+  catch {
+    for (const s of snapshot) {
+      const item = notificationStore.items.find(n => n.basicId === s.id)
+      if (item) {
+        item.notificationStatus = s.status
+        item.readTime = s.readTime
+      }
+    }
+  }
+}
+
+function handleNotificationViewAll() {
+  router.push('/workbench/inbox')
+}
+
+// SignalR 推送节流：2 秒内多次推送只触发一次全量刷新
+function handleSignalRNotification() {
+  if (signalRThrottleTimer)
+    return
+  signalRThrottleTimer = setTimeout(() => {
+    signalRThrottleTimer = null
+    loadNotifications()
+  }, 2000)
 }
 
 function syncFullscreenState() {
@@ -309,11 +413,15 @@ onMounted(() => {
   document.addEventListener('fullscreenchange', syncFullscreenState)
   updateHistoryState()
   window.addEventListener('popstate', updateHistoryState)
+  // 加载通知 & 监听 SignalR 推送
+  loadNotifications()
+  window.addEventListener(NOTIFICATION_RECEIVED_EVENT, handleSignalRNotification)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('fullscreenchange', syncFullscreenState)
   window.removeEventListener('popstate', updateHistoryState)
+  window.removeEventListener(NOTIFICATION_RECEIVED_EVENT, handleSignalRNotification)
 })
 
 watch(() => route.fullPath, () => {
@@ -378,14 +486,24 @@ watch(() => route.fullPath, () => {
     :user-store="userStore"
     :is-dark="isDark"
     :is-fullscreen="isFullscreen"
-    :show-preferences-in-header="appStore.widgetPreferencePosition !== 'fixed'"
+    :show-preferences-in-header="showPreferencesInHeader"
     :timezone-options="timezoneOptions"
     :locale-options="localeOptions"
     :user-options="userOptions"
+    :notification-all-items="notificationStore.allItems"
+    :notification-mentioned-items="notificationStore.mentionedItems"
+    :notification-unread-all="notificationStore.unreadAll"
+    :notification-unread-mentioned="notificationStore.unreadMentioned"
+    :notification-unread-count="notificationStore.unreadCount"
+    :notification-loading="notificationStore.loading"
     @locale-change="handleLocaleChange"
     @timezone-change="handleTimezoneChange"
     @theme-toggle="handleThemeToggle"
-    @notification="message.info(t('header.notification.pending'))"
+    @notification-mark-read="handleNotificationMarkRead"
+    @notification-confirm="handleNotificationConfirm"
+    @notification-mark-all-read="handleNotificationMarkAllRead"
+    @notification-view-all="handleNotificationViewAll"
+    @notification-refresh="loadNotifications"
     @fullscreen-toggle="toggleFullscreen"
     @preferences-open="openPreferenceDrawer"
     @user-action="handleUserAction"
@@ -440,10 +558,7 @@ watch(() => route.fullPath, () => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected {
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
   background-color: transparent;
   border-radius: 6px;
 }
@@ -458,10 +573,7 @@ watch(() => route.fullPath, () => {
   > .n-submenu
   > .n-menu-item
   > .n-menu-item-content.n-menu-item-content--selected::before,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected::before {
+.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
   background-color: hsl(var(--primary) / 0.15) !important;
   border-radius: 6px !important;
   box-shadow: none !important;

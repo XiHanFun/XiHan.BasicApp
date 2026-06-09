@@ -1,23 +1,41 @@
 <script setup lang="ts">
 import type { HeaderToolbarPropsContract } from '../../contracts'
+import type { NotificationItem } from '~/stores'
+import { NDropdown } from 'naive-ui'
+import { XUserAvatar } from '~/components'
+import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
-import { NAvatar, NDropdown } from 'naive-ui'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
+import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
 
-const props = defineProps<HeaderToolbarPropsContract>()
+const props = defineProps<HeaderToolbarPropsContract & {
+  notificationAllItems?: NotificationItem[]
+  notificationMentionedItems?: NotificationItem[]
+  notificationUnreadAll?: NotificationItem[]
+  notificationUnreadMentioned?: NotificationItem[]
+  notificationUnreadCount?: number
+  notificationLoading?: boolean
+}>()
 
 const emit = defineEmits<{
   localeChange: [key: string]
   timezoneChange: [key: string]
   themeToggle: [event: MouseEvent]
-  notification: []
+  notificationMarkRead: [id: string]
+  notificationConfirm: [id: string]
+  notificationMarkAllRead: []
+  notificationViewAll: []
+  notificationRefresh: []
   fullscreenToggle: []
   preferencesOpen: []
   userAction: [key: string]
 }>()
+
+// 小屏（<768）：隐藏次要工具（语言/时区/全屏）与用户名文字，避免头部溢出裁切头像菜单
+const { isMobile } = useIsMobile()
 </script>
 
 <template>
@@ -25,9 +43,9 @@ const emit = defineEmits<{
     <!-- 全局搜索 -->
     <AppGlobalSearch v-if="props.appStore.searchEnabled" class="mr-1" />
 
-    <!-- 语言切换 -->
+    <!-- 语言切换（小屏隐藏） -->
     <NDropdown
-      v-if="props.appStore.widgetLanguageToggle"
+      v-if="props.appStore.widgetLanguageToggle && !isMobile"
       :options="props.localeOptions"
       @select="(key) => emit('localeChange', String(key))"
     >
@@ -36,9 +54,9 @@ const emit = defineEmits<{
       </XihanIconButton>
     </NDropdown>
 
-    <!-- 时区切换 -->
+    <!-- 时区切换（小屏隐藏） -->
     <NDropdown
-      v-if="props.appStore.widgetTimezone"
+      v-if="props.appStore.widgetTimezone && !isMobile"
       :options="props.timezoneOptions"
       @select="(key) => emit('timezoneChange', String(key))"
     >
@@ -62,15 +80,15 @@ const emit = defineEmits<{
       />
     </XihanIconButton>
 
-    <!-- 全屏 -->
+    <!-- 全屏（小屏隐藏） -->
     <XihanIconButton
-      v-if="props.appStore.widgetFullscreen"
+      v-if="props.appStore.widgetFullscreen && !isMobile"
       class="mr-1"
       :tooltip="props.isFullscreen ? '退出全屏' : '全屏'"
       @click="emit('fullscreenToggle')"
     >
       <Icon
-        :icon="props.isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+        :icon="props.isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
         width="16"
         height="16"
       />
@@ -90,15 +108,21 @@ const emit = defineEmits<{
     <!-- 分割线 -->
     <div class="mx-1 h-4 w-px bg-border" />
 
-    <!-- 通知 -->
-    <XihanIconButton
+    <!-- 通知弹窗 -->
+    <NotificationPopover
       v-if="props.appStore.widgetNotification"
-      class="mr-1"
-      tooltip="通知"
-      @click="emit('notification')"
-    >
-      <Icon icon="lucide:bell" width="16" height="16" />
-    </XihanIconButton>
+      :all-items="props.notificationAllItems ?? []"
+      :mentioned-items="props.notificationMentionedItems ?? []"
+      :unread-all="props.notificationUnreadAll ?? []"
+      :unread-mentioned="props.notificationUnreadMentioned ?? []"
+      :unread-count="props.notificationUnreadCount ?? 0"
+      :loading="props.notificationLoading ?? false"
+      @mark-read="(id) => emit('notificationMarkRead', id)"
+      @confirm="(id) => emit('notificationConfirm', id)"
+      @mark-all-read="emit('notificationMarkAllRead')"
+      @view-all="emit('notificationViewAll')"
+      @refresh="emit('notificationRefresh')"
+    />
 
     <!-- 用户菜单 -->
     <NDropdown :options="props.userOptions" @select="(key) => emit('userAction', String(key))">
@@ -106,13 +130,12 @@ const emit = defineEmits<{
         type="button"
         class="user-btn ml-1 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1"
       >
-        <NAvatar
-          round
+        <XUserAvatar
           :size="28"
-          :src="props.userStore.avatar"
-          :fallback-src="`https://api.dicebear.com/9.x/initials/svg?seed=${props.userStore.nickname}`"
+          :avatar="props.userStore.avatar"
+          :name="props.userStore.nickname || props.userStore.username"
         />
-        <span class="hidden max-w-[96px] truncate text-sm text-foreground sm:block">
+        <span class="hidden max-w-[96px] truncate text-sm text-foreground md:block">
           {{ props.userStore.nickname || props.userStore.username }}
         </span>
         <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />

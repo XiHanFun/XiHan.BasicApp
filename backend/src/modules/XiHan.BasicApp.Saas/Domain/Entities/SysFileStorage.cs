@@ -14,22 +14,47 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统文件存储实体
+/// SysFile 的物理副本记录：同一逻辑文件可分布于多个存储（本地/OSS/CDN/备份）
 /// </summary>
 /// <remarks>
-/// 管理文件的物理存储位置信息
-/// 一个文件可以有多个存储位置（主存储、备份存储、CDN等）
+/// 关联：
+/// - FileId → SysFile（多对一）
+///
+/// 写入：
+/// - 同一 FileId 至多一个 IsPrimary=true 的主存储；服务层必须保证互斥
+/// - StorageType 决定访问方式（Local/S3/OSS/CDN 等）
+/// - StorageKey/StoragePath 必须足够唯一，能还原文件位置
+///
+/// 查询：
+/// - 按文件取主存储：IX_FiId_StTy + WHERE IsPrimary=true
+/// - 按存储类型统计：IX_StTy
+/// - 租户文件位置汇总：IX_TeId_FiId
+///
+/// 删除：
+/// - 软删记录；物理删除需由清理任务调用对应存储 SDK 实际释放空间
+/// - 切换主存储时先写入新主 → 验证可访问 → 再 IsPrimary=false 旧主
+///
+/// 状态：
+/// - StorageStatus (FileStorageStatus): Available/Syncing/Failed/Expired
+///
+/// 场景：
+/// - 跨区域容灾：同文件异地多副本
+/// - CDN 回源：主存储 + CDN 缓存记录
+/// - 存储迁移：阿里云 → AWS 平滑切换
 /// </remarks>
-[SugarTable("Sys_File_Storage", "系统文件存储表")]
-[SugarIndex("IX_SysFileStorage_FiId", nameof(FileId), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_StTy", nameof(StorageType), OrderByType.Asc)]
-[SugarIndex("IX_SysFileStorage_IsPr", nameof(IsPrimary), OrderByType.Desc)]
-[SugarIndex("IX_SysFileStorage_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
+[SugarTable("SysFileStorage", "系统文件存储表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_StTy", nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsPr", nameof(IsPrimary), OrderByType.Desc)]
+[SugarIndex("IX_{table}_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_FiId", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]
 public partial class SysFileStorage : BasicAppFullAuditedEntity
 {
     #region 关联信息
@@ -79,11 +104,8 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     public virtual string? BucketName { get; set; }
 
     /// <summary>
-    /// 存储路径（相对路径）
+    /// 存储路径（相对路径，如 uploads/2025/01/10/xxx.jpg）
     /// </summary>
-    /// <remarks>
-    /// 如：uploads/2025/01/10/xxx.jpg
-    /// </remarks>
     [SugarColumn(ColumnDescription = "存储路径", Length = 500, IsNullable = false)]
     public virtual string StoragePath { get; set; } = string.Empty;
 
@@ -92,12 +114,6 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "完整路径", Length = 1000, IsNullable = true)]
     public virtual string? FullPath { get; set; }
-
-    /// <summary>
-    /// 存储目录
-    /// </summary>
-    [SugarColumn(ColumnDescription = "存储目录", Length = 500, IsNullable = true)]
-    public virtual string? StorageDirectory { get; set; }
 
     #endregion
 
@@ -120,30 +136,6 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "CDN访问URL", Length = 1000, IsNullable = true)]
     public virtual string? CdnUrl { get; set; }
-
-    /// <summary>
-    /// 签名访问URL（临时访问链接）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "签名访问URL", Length = 2000, IsNullable = true)]
-    public virtual string? SignedUrl { get; set; }
-
-    /// <summary>
-    /// 签名URL过期时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "签名URL过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? SignedUrlExpiresAt { get; set; }
-
-    /// <summary>
-    /// 访问端点（Endpoint）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "访问端点", Length = 200, IsNullable = true)]
-    public virtual string? Endpoint { get; set; }
-
-    /// <summary>
-    /// 自定义域名
-    /// </summary>
-    [SugarColumn(ColumnDescription = "自定义域名", Length = 200, IsNullable = true)]
-    public virtual string? CustomDomain { get; set; }
 
     #endregion
 
@@ -193,7 +185,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 上传时间
     /// </summary>
     [SugarColumn(ColumnDescription = "上传时间", IsNullable = true)]
-    public virtual DateTimeOffset? UploadedAt { get; set; }
+    public virtual DateTimeOffset? UploadedTime { get; set; }
 
     /// <summary>
     /// 上传耗时（毫秒）
@@ -217,7 +209,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 最后验证时间
     /// </summary>
     [SugarColumn(ColumnDescription = "最后验证时间", IsNullable = true)]
-    public virtual DateTimeOffset? LastVerifiedAt { get; set; }
+    public virtual DateTimeOffset? LastVerifiedTime { get; set; }
 
     /// <summary>
     /// 验证状态（文件完整性）
@@ -239,7 +231,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 同步时间
     /// </summary>
     [SugarColumn(ColumnDescription = "同步时间", IsNullable = true)]
-    public virtual DateTimeOffset? SyncedAt { get; set; }
+    public virtual DateTimeOffset? SyncedTime { get; set; }
 
     /// <summary>
     /// 同步源存储ID
@@ -277,7 +269,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// 排序号（用于多存储优先级）
     /// </summary>
     [SugarColumn(ColumnDescription = "排序号")]
-    public virtual int SortOrder { get; set; } = 0;
+    public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注

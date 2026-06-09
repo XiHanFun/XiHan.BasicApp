@@ -3,7 +3,7 @@ import type { MenuRoute } from './menu'
 // ==================== 认证 & 用户类型 ====================
 
 export interface UserInfo {
-  basicId: number
+  basicId: string
   userName: string
   nickName?: string
   appTitle?: string
@@ -11,9 +11,21 @@ export interface UserInfo {
   avatar?: string
   email?: string
   phone?: string
-  tenantId?: null | number
+  tenantId?: null | string
+  /** 是否处于平台运维态（无租户上下文） */
+  isPlatform?: boolean
+  /** 是否可进入平台运维态（超管 / 平台管理员） */
+  canAccessPlatform?: boolean
   roles: string[]
   permissions: string[]
+}
+
+/** 切换租户 / 进入平台运维态参数 */
+export interface SwitchTenantParams {
+  /** 目标租户标识；为空表示切换到平台运维态 */
+  tenantId?: null | string
+  /** 设备标识 */
+  deviceId?: string
 }
 
 export interface OAuthProviderItem {
@@ -30,11 +42,13 @@ export interface LoginConfig {
 export interface LoginParams {
   username: string
   password: string
-  tenantId?: null | number
+  tenantId?: null | string
   /** 双因素验证码（开启 2FA 时必填） */
   twoFactorCode?: string
   /** 用户选择的双因素方式（totp/email/phone） */
   twoFactorMethod?: string
+  /** 设备唯一标识（设备指纹） */
+  deviceId?: string
 }
 
 export interface RegisterParams {
@@ -43,13 +57,19 @@ export interface RegisterParams {
   nickName?: string
   email?: string
   phone?: string
-  tenantId?: null | number
+  tenantId?: null | string
 }
 
 export interface PhoneLoginParams {
   phone: string
   code: string
-  tenantId?: null | number
+  tenantId?: null | string
+}
+
+export interface EmailLoginParams {
+  email: string
+  code: string
+  tenantId?: null | string
 }
 
 export interface VerificationCodeResult {
@@ -89,4 +109,3 @@ export interface PermissionInfo {
   permissions: string[]
   menus: MenuRoute[]
 }
-

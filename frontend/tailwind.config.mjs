@@ -2,6 +2,8 @@
 export default {
   content: [
     './index.html',
+    '!./node_modules/**/*',
+    '!./dist/**/*',
     './src/**/*.{vue,js,ts,jsx,tsx}',
     './packages/**/*.{vue,js,ts,jsx,tsx}',
   ],

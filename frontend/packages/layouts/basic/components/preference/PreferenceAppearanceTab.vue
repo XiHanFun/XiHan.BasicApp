@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { Icon } from '~/iconify'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
@@ -31,7 +31,8 @@ const headerDarkDisabled = computed(() => isDark.value)
 watch(
   () => appStore.sidebarDark,
   (val) => {
-    if (!val) appStore.sidebarSubDark = false
+    if (!val)
+      appStore.sidebarSubDark = false
   },
 )
 
@@ -49,9 +50,11 @@ const themeModes = [
 const themeColorGroups = THEME_COLOR_GROUPS
 const allPresetColors = ALL_THEME_COLORS
 
-const localizedModes = computed(() => themeModes.map((m) => ({ ...m, label: t(m.labelKey) })))
+const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
 
 const transitionItems = computed(() => [
+  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
+  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
   { value: 'slide-left', label: t('preference.general.animation.slide_left') },
   { value: 'slide-right', label: t('preference.general.animation.slide_right') },
   { value: 'slide-up', label: t('preference.general.animation.slide_up') },
@@ -60,8 +63,6 @@ const transitionItems = computed(() => [
   { value: 'fade', label: t('preference.general.animation.fade') },
   { value: 'zoom-fade', label: t('preference.general.animation.zoom_fade') },
   { value: 'blur-fade', label: t('preference.general.animation.blur_fade') },
-  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
-  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
   { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
   { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
 ])
@@ -87,7 +88,7 @@ const transitionItems = computed(() => [
               class="sr-only"
               :checked="props.themeMode === mode.value"
               @change="emit('themeModeChange', mode.value)"
-            />
+            >
             <div class="theme-mode-card" :class="{ 'is-active': props.themeMode === mode.value }">
               <NIcon size="20">
                 <Icon :icon="mode.icon" />
@@ -133,18 +134,20 @@ const transitionItems = computed(() => [
                     <Icon icon="lucide:pipette" />
                   </NIcon>
                 </div>
-                <NColorPicker
-                  :value="appStore.themeColor"
-                  :modes="['hex']"
-                  :show-alpha="false"
-                  :actions="['confirm']"
-                  class="custom-color-overlay"
-                  @update:value="(value) => appStore.setThemeColor(value)"
-                >
-                  <template #label>
-                    <span />
-                  </template>
-                </NColorPicker>
+                <!-- 包裹 div 承载定位 class：NColorPicker 根为 VBinder(teleport)，class 无法直接挂载 -->
+                <div class="custom-color-overlay">
+                  <NColorPicker
+                    :value="appStore.themeColor"
+                    :modes="['hex']"
+                    :show-alpha="false"
+                    :actions="['confirm']"
+                    @update:value="(value) => appStore.setThemeColor(value)"
+                  >
+                    <template #label>
+                      <span />
+                    </template>
+                  </NColorPicker>
+                </div>
               </div>
               <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
             </div>
@@ -169,6 +172,13 @@ const transitionItems = computed(() => [
             </div>
           </div>
         </div>
+      </div>
+      <div class="pref-row mt-2">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.appearance.color.dynamic') }}</span>
+          <PrefTip :content="t('preference.appearance.color.dynamic_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.themeDynamicColor" />
       </div>
     </NCard>
 
@@ -484,11 +494,20 @@ const transitionItems = computed(() => [
 }
 
 /* NColorPicker 透明遮罩：绝对覆盖整张卡片，点击即弹出取色器 */
+/* 透明触发层：绝对覆盖整卡（包裹 div，class 挂在此处而非 NColorPicker 上） */
 .custom-color-overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   opacity: 0;
   cursor: pointer;
+}
+
+/* 内部 NColorPicker 触发块充满整层，确保任意位置点击都能弹出取色器 */
+.custom-color-overlay :deep(.n-color-picker),
+.custom-color-overlay :deep(.n-color-picker__fill) {
+  width: 100%;
+  height: 100%;
 }
 
 /* 圆角按钮 */

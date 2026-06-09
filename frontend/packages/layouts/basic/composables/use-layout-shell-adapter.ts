@@ -72,10 +72,7 @@ export function useLayoutShellAdapter() {
   const sidebarWidth = computed(() => appStore.sidebarWidth)
 
   const getSideCollapseWidth = computed(() => {
-    if (appStore.sidebarCollapsedShowTitle || isDualColumnMode.value) {
-      return SIDEBAR_MIXED_WIDTH
-    }
-    return SIDEBAR_COLLAPSE_WIDTH
+    return SIDEBAR_MIXED_WIDTH
   })
 
   const sidebarEnableState = computed(() => {
@@ -126,7 +123,7 @@ export function useLayoutShellAdapter() {
 
   const mainStyle = computed(() => {
     let width = '100%'
-    let sidebarAndExtraWidth = 'unset'
+    let sidebarAndExtraWidth = '0'
 
     if (
       headerFixed.value
@@ -413,7 +410,8 @@ export function useLayoutShellAdapter() {
   )
 
   watch(sidebarCollapse, (v) => {
-    if (v !== appStore.sidebarCollapsed) {
+    // 移动端强制折叠不写回持久化偏好，否则会覆盖桌面端的展开/折叠选择
+    if (!isMobile.value && v !== appStore.sidebarCollapsed) {
       appStore.setSidebarCollapsed(v)
     }
     if (v) {
@@ -421,11 +419,22 @@ export function useLayoutShellAdapter() {
     }
   })
 
+  // 进入移动端前的桌面折叠态快照，回到桌面端时据此恢复
+  let desktopSidebarCollapse = appStore.sidebarCollapsed
+
   watch(
     () => isMobile.value,
-    (val) => {
-      if (val)
+    (val, oldVal) => {
+      if (val) {
+        // 进入移动端：先记录桌面折叠态，再强制折叠（仅本地状态，不持久化）
+        if (oldVal === false)
+          desktopSidebarCollapse = sidebarCollapse.value
         sidebarCollapse.value = true
+      }
+      else {
+        // 回到桌面端：恢复进入移动端前的折叠态
+        sidebarCollapse.value = desktopSidebarCollapse
+      }
     },
     { immediate: true },
   )

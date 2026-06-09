@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { TabItem } from '~/types'
-import { Icon } from '~/iconify'
+import { useSortable } from '@dnd-kit/vue/sortable'
 import { NIcon } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { HOME_PATH } from '~/constants'
+import { Icon } from '~/iconify'
 
 interface Props {
   item: TabItem & { displayTitle: string }
@@ -27,6 +28,14 @@ const emit = defineEmits<{
   togglePin: [path: string]
   middleClose: [path: string]
 }>()
+// ── 拖拽排序（@dnd-kit/vue）：固定标签 / 关闭拖拽时禁用 ──────────────
+const rootRef = ref<HTMLElement | null>(null)
+const { isDragging } = useSortable({
+  id: () => props.item.path,
+  index: () => props.index,
+  element: rootRef,
+  disabled: () => !props.draggable,
+})
 
 function resolveIcon(icon: string) {
   if (!icon) {
@@ -74,8 +83,10 @@ function onAuxClick(event: MouseEvent) {
     不触发 leave/enter 动画，彻底消除切换闪烁。
   -->
   <div
+    ref="rootRef"
     class="tab-item group relative flex shrink-0 select-none"
     :class="tabClass"
+    :data-dragging="isDragging || undefined"
     role="button"
     tabindex="0"
     @click="emit('jump', item.path)"
@@ -456,5 +467,12 @@ function onAuxClick(event: MouseEvent) {
 
 .flat-tab--brisk.is-active {
   color: var(--tab-active-color);
+}
+
+/* 拖拽中的标签（dnd-kit 通过 data-dragging 标记拖拽源） */
+.tab-item[data-dragging] {
+  z-index: 3;
+  cursor: grabbing;
+  opacity: 0.6;
 }
 </style>

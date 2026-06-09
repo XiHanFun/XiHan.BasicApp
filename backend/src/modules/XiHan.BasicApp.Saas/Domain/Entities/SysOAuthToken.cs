@@ -19,18 +19,51 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统 OAuth 令牌实体（Token 生命周期中心）
-/// 职责：AccessTokenJti、RefreshToken、过期时间、轮换关系、重放检测；通过 SessionId 关联会话。
-/// 不负责：设备信息、在线状态（由 SysUserSession 负责）。
+/// 系统 OAuth 令牌实体
+/// Token 生命周期中心：承载 AccessTokenJti、RefreshToken、过期时间、轮换关系、重放检测；通过 SessionId 关联会话
 /// </summary>
-[SugarTable("Sys_OAuth_Token", "系统 OAuth 令牌表")]
-[SugarIndex("UX_SysOAuthToken_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
-[SugarIndex("IX_SysOAuthToken_ReTo", nameof(RefreshToken), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_SeId", nameof(SessionId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_ClId", nameof(ClientId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_IsRe", nameof(IsRevoked), OrderByType.Asc)]
-[SugarIndex("IX_SysOAuthToken_AcToExTi", nameof(AccessTokenExpiresTime), OrderByType.Asc)]
+/// <remarks>
+/// 职责边界：
+/// - 本表只管"Token 凭据本身"；"设备/IP/在线状态"交由 SysUserSession
+/// - AccessToken 本体不入库，仅存 JTI（黑名单/撤销校验使用）
+///
+/// 关联：
+/// - ClientId → SysOAuthApp；UserId → SysUser；SessionId → SysUserSession
+///
+/// 写入：
+/// - AccessTokenJti 全局唯一（UX_AcJti）
+/// - RefreshToken 使用一次后必须轮换（旧值作废 + 写新 Token）
+/// - IsRevoked=true 的 Token 立即写入黑名单缓存（Redis）
+/// - 过期时间字段 AccessToken/RefreshToken 分别管理（后者远大于前者）
+///
+/// 查询：
+/// - 鉴权 JWT 校验：按 AccessTokenJti 查 + 校验未撤销、未过期
+/// - 刷新 Token：按 RefreshToken 查 + 校验使用次数
+/// - 按会话批量吊销：IX_SeId + UPDATE IsRevoked=true
+///
+/// 删除：
+/// - 硬删（空间敏感）或按过期时间归档
+/// - 用户登出 / 强制下线时批量吊销同会话的所有 Token
+///
+/// 状态：
+/// - IsRevoked: false=有效 / true=已吊销
+///
+/// 场景：
+/// - JWT 鉴权 + 黑名单
+/// - RefreshToken 轮换与重放检测
+/// - 强制多端下线、会话吊销
+/// </remarks>
+[SugarTable("SysOAuthToken", "系统OAuth令牌表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_ReTo", nameof(RefreshToken), OrderByType.Asc)]
+[SugarIndex("IX_{table}_SeId", nameof(SessionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsRe", nameof(IsRevoked), OrderByType.Asc)]
+[SugarIndex("IX_{table}_AcToExTi", nameof(AccessTokenExpirationTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_PaTo", nameof(ParentTokenId), OrderByType.Asc)]
 public partial class SysOAuthToken : BasicAppCreationEntity
 {
     /// <summary>
@@ -62,10 +95,18 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     public virtual string? RefreshToken { get; set; }
 
     /// <summary>
-    /// 被替换后的新 Token 的 RefreshToken 或 JTI（轮换检测：若已撤销且存在则视为重放，需撤销整会话）
+    /// 被替换后的新 Token 的 RefreshToken 或 JTI（正向链：当前 Token 替换后指向的新 Token 标识）
+    /// 轮换检测：若 IsRevoked=true 且 ReplacedByToken 非空时再次被使用，视为重放攻击，需撤销整会话
     /// </summary>
     [SugarColumn(ColumnDescription = "被替换为的Token标识", Length = 200, IsNullable = true)]
     public virtual string? ReplacedByToken { get; set; }
+
+    /// <summary>
+    /// 父 Token ID（反向链：本 Token 由哪一条父 Token 轮换而来；初次颁发时为空）
+    /// 配合 ReplacedByToken 构成双向链路，支持 O(1) 按父查子 + 完整链路溯源
+    /// </summary>
+    [SugarColumn(ColumnDescription = "父TokenID", IsNullable = true)]
+    public virtual long? ParentTokenId { get; set; }
 
     /// <summary>
     /// 令牌类型
@@ -100,20 +141,20 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态", IsNullable = true)]
-    public virtual YesOrNo? State { get; set; }
+    [SugarColumn(ColumnDescription = "状态")]
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 访问令牌过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "访问令牌过期时间")]
-    public virtual DateTimeOffset AccessTokenExpiresTime { get; set; }
+    public virtual DateTimeOffset AccessTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 刷新令牌过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "刷新令牌过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? RefreshTokenExpiresTime { get; set; }
+    public virtual DateTimeOffset? RefreshTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已撤销

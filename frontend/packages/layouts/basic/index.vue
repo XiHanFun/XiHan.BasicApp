@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { Icon } from '~/iconify'
 import { darkTheme, NConfigProvider } from 'naive-ui'
 import { computed } from 'vue'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
+import AppFavorites from './components/AppFavorites.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
@@ -10,6 +11,7 @@ import AppTabbar from './components/AppTabbar.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
 import { useLayoutShellAdapter } from './composables'
+import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
 import { LayoutContentRenderer } from './core'
 
@@ -20,6 +22,9 @@ const shell = useLayoutShellAdapter()
 
 // 初始化 SignalR 连接（实时通知 + 踢下线）
 useSignalRIntegration()
+
+// 定时检查前端资源更新
+useCheckUpdates()
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
@@ -118,8 +123,11 @@ const sidebarEnableState = computed(
             class="my-0 mr-1"
             @click="shell.handleHeaderToggle"
           >
-            <Icon :icon="shell.showSider.value ? 'ep:fold' : 'ep:expand'" width="18" height="18" />
+            <Icon :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" width="18" height="18" />
           </XihanIconButton>
+
+          <!-- 收藏夹（收藏常用菜单，跨端同步；可在偏好设置中开关） -->
+          <AppFavorites v-if="shell.appStore.widgetFavorites" />
 
           <!-- Header content (flex-1 fills remaining header space) -->
           <NConfigProvider
@@ -141,7 +149,7 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="flex-1 overflow-auto transition-[margin-top] duration-200" :style="shell.contentStyle.value">
+      <div class="flex-1 overflow-auto transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
         <div
           class="h-full"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"

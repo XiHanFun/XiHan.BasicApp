@@ -1,39 +1,26 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { MenuRoute } from '~/types'
+import { useAppContext } from '~/stores/app-context'
+import {
+  resolveFirstNavigableRouteListPath,
+  routeListContainsVisiblePath,
+} from '~/utils'
 
-const viewModules = import.meta.glob('@/views/**/*.vue')
 const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 
+// 后端 Component 路径（PascalCase）→ 前端实际文件路径（kebab-case）的别名映射
 const componentAliasMap: Record<string, string> = {
-  'dashboard/index': '_core/dashboard/index',
-  'core/dashboard/index': '_core/dashboard/index',
+  // _core 特殊映射（packages/views/_core 不在 src/views 目录下）
   '_core/dashboard/index': '_core/dashboard/index',
-  'about/index': '_core/about/index',
-  'core/about/index': '_core/about/index',
   '_core/about/index': '_core/about/index',
-  'system/monitor/index': 'system/server/index',
-  'system/cache/index': 'system/cache/index',
-  'system/message/index': 'system/message/index',
-  'system/oauthapp/index': 'system/oauth-app/index',
-  'system/o-auth-app/index': 'system/oauth-app/index',
+  '_core/profile/index': '_core/profile/index',
 }
 
-const explicitComponentMap: Record<string, () => Promise<unknown>> = {
-  'dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
-  'core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
+// packages 自身的 _core 视图映射（使用 ~/ 引用，无需从 src 注入）
+const coreComponentMap: Record<string, () => Promise<unknown>> = {
   '_core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
-  'about/index': () => import('~/views/_core/about/index.vue'),
-  'core/about/index': () => import('~/views/_core/about/index.vue'),
   '_core/about/index': () => import('~/views/_core/about/index.vue'),
-  'system/log/access': () => import('@/views/system/log/access/index.vue'),
-  'system/log/operation': () => import('@/views/system/log/operation/index.vue'),
-  'system/log/exception': () => import('@/views/system/log/exception/index.vue'),
-  'system/log/audit': () => import('@/views/system/log/audit/index.vue'),
-  'system/monitor/index': () => import('@/views/system/server/index.vue'),
-  'system/cache/index': () => import('@/views/system/cache/index.vue'),
-  'system/message/index': () => import('@/views/system/message/index.vue'),
-  'system/oauthapp/index': () => import('@/views/system/oauth-app/index.vue'),
-  'system/o-auth-app/index': () => import('@/views/system/oauth-app/index.vue'),
+  '_core/profile/index': () => import('~/views/_core/profile/index.vue'),
 }
 
 function toKebabCase(input: string) {
@@ -61,19 +48,9 @@ function resolveView(component?: string) {
     .map(segment => toKebabCase(segment))
     .join('/')
   const aliasPath = componentAliasMap[lowerPath] ?? componentAliasMap[kebabPath] ?? ''
-  for (const key of [lowerPath, kebabPath, aliasPath]) {
-    if (!key) {
-      continue
-    }
-    const explicit = explicitComponentMap[key]
-    if (explicit) {
-      return explicit
-    }
-  }
 
   const removeIndexSuffix = (path: string) => path.replace(/\/index$/i, '')
   const candidates = new Set([
-    rawPath,
     lowerPath,
     kebabPath,
     aliasPath,
@@ -83,16 +60,35 @@ function resolveView(component?: string) {
     removeIndexSuffix(aliasPath),
   ])
 
+  // 优先匹配 packages 自身的 _core 视图
+  for (const candidate of candidates) {
+    if (!candidate)
+      continue
+    const core = coreComponentMap[candidate]
+    if (core)
+      return core
+  }
+
+  // 然后查 src 注册的显式映射（优先级高于 glob）
+  const ctx = useAppContext()
+  for (const candidate of candidates) {
+    if (!candidate)
+      continue
+    const explicit = ctx.explicitComponentMap[candidate]
+    if (explicit)
+      return explicit
+  }
+
+  // 最后查 src 注册的 viewModules glob
   const keys = Array.from(candidates).flatMap(path => [
     `/src/views/${path}.vue`,
     `/src/views/${path}/index.vue`,
   ])
 
   for (const key of keys) {
-    const matched = viewModules[key]
-    if (matched) {
+    const matched = ctx.viewModules[key]
+    if (matched)
       return matched
-    }
   }
 
   return null
@@ -109,7 +105,21 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
         meta: item.meta as unknown as Record<string, unknown>,
       } as unknown as RouteRecordRaw
 
-      if (item.redirect) {
+      if (item.children?.length) {
+        route.children = mapMenuToRoutes(item.children)
+      }
+
+      if (route.children?.length) {
+        const firstChildPath = resolveFirstNavigableRouteListPath(route.children)
+        const redirect = item.redirect && item.redirect !== item.path
+          && routeListContainsVisiblePath(route.children, item.redirect)
+          ? item.redirect
+          : firstChildPath
+        if (redirect && redirect !== item.path) {
+          route.redirect = redirect
+        }
+      }
+      else if (item.redirect && item.redirect !== item.path) {
         route.redirect = item.redirect
       }
 
@@ -117,11 +127,6 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
         route.component = component
       }
 
-      if (item.children?.length) {
-        route.children = mapMenuToRoutes(item.children)
-      }
-
-      // 叶子菜单若未匹配到本地组件，使用兜底页面避免空白路由。
       if (!route.component && (!route.children || route.children.length === 0) && fallbackView) {
         route.component = fallbackView
       }

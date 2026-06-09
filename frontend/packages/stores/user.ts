@@ -7,7 +7,7 @@ import { LocalStorage } from '~/utils'
 export const useUserStore = defineStore('user', () => {
   const userInfo = ref<UserInfo | null>(LocalStorage.get<UserInfo>(USER_INFO_KEY))
 
-  const isLoggedIn = computed(() => userInfo.value !== null)
+  const isLoggedIn = computed(() => Boolean(userInfo.value?.basicId))
   const username = computed(() => userInfo.value?.userName ?? '')
   const nickname = computed(() => userInfo.value?.nickName ?? '')
   const avatar = computed(() => userInfo.value?.avatar ?? '')

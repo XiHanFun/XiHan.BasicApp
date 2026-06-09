@@ -20,24 +20,61 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统菜单实体
-/// 菜单是一种特殊的资源类型，用于前端界面渲染
-/// 与 SysResource 是一对一关系，SysResource 提供权限控制，SysMenu 提供界面配置
+/// 纯 UI 结构：负责前端导航/路由/展示；权限鉴权完全由其关联的 SysPermission 决定
 /// </summary>
-[SugarTable("Sys_Menu", "系统菜单表")]
-[SugarIndex("UX_SysMenu_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysMenu_MeCo", nameof(MenuCode), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_ReId", nameof(ResourceId), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_MeTy", nameof(MenuType), OrderByType.Asc)]
-[SugarIndex("IX_SysMenu_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysMenu : BasicAppAggregateRoot
+/// <remarks>
+/// 职责边界：
+/// - 菜单 ≠ 资源 ≠ 权限；菜单仅描述 UI 层级，通过 PermissionId 反向绑定一个权限点
+/// - 后端鉴权永远基于 Permission，不依赖菜单存在性
+///
+/// 关联：
+/// - PermissionId → SysPermission（可空；空表示纯展示菜单，无需鉴权）
+/// - ParentId → SysMenu（自关联树结构）
+///
+/// 写入：
+/// - TenantId + MenuCode 租户内唯一（UX_TeId_MeCo）
+/// - TenantId = 0（即派生属性 IsGlobal=true）为平台全局菜单，所有租户共享读取（Model A：查询合并 TenantId IN(0,current)）；
+///   租户可叠加 TenantId&gt;0 的私有菜单。全局菜单仅平台运维态可维护，不按租户克隆
+/// - 树结构写入必须做环路检测（禁止 A→B→A）
+///
+/// 查询：
+/// - 前端菜单树：按 TenantId + Status + PermissionId（可见）过滤，ORDER BY Sort
+/// - 按 ParentId 构建层级：IX_PaId
+/// - 按权限反查菜单：IX_PeId
+///
+/// 删除：
+/// - 仅软删；删除父菜单前必须先处理子菜单（级联软删或提示）
+///
+/// 状态：
+/// - Status: Yes/No 启停（停用菜单对所有用户隐藏）
+/// - MenuType: 目录/菜单/按钮/外链等
+///
+/// 场景：
+/// - 登录后按用户权限集合过滤可见菜单树
+/// - 按钮级权限：MenuType=Button 配合 PermissionId 控制按钮显示
+/// </remarks>
+[SugarTable("SysMenu", "系统菜单表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_MeCo", nameof(TenantId), OrderByType.Asc, nameof(MenuCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_MeTy", nameof(MenuType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+public partial class SysMenu : BasicAppFullAuditedEntity
 {
     /// <summary>
-    /// 关联资源ID（每个菜单对应一个资源，可为空表示纯展示菜单）
+    /// 权限ID（菜单可见性所需的权限，为空表示纯展示菜单无需鉴权）
     /// </summary>
-    [SugarColumn(ColumnDescription = "关联资源ID", IsNullable = true)]
-    public virtual long? ResourceId { get; set; }
+    /// <remarks>
+    /// 设计决策：单一 PermissionId 是有意设计——菜单可见性由一个权限点控制。
+    /// 若菜单需要多个权限才能访问（如同时需要 user:read 和 department:read），
+    /// 应创建组合权限点（如 user-dept:view）绑定到菜单，而非引入多对多关联表。
+    /// 这样保证后端鉴权永远基于 Permission，菜单只是 UI 层的展示映射。
+    /// </remarks>
+    [SugarColumn(ColumnDescription = "权限ID", IsNullable = true)]
+    public virtual long? PermissionId { get; set; }
 
     /// <summary>
     /// 父级菜单ID
@@ -158,7 +195,7 @@ public partial class SysMenu : BasicAppAggregateRoot
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序

@@ -9,7 +9,7 @@ import { ref, shallowRef } from 'vue'
 import { TOKEN_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
 
-export type SignalREventHandler = (...args: any[]) => void
+export type SignalREventHandler = Parameters<HubConnection['on']>[1]
 
 const connection = shallowRef<HubConnection | null>(null)
 const connected = ref(false)
@@ -21,9 +21,28 @@ let eventHandlers: Map<string, Set<SignalREventHandler>> = new Map()
  * Hub 路径默认 /hubs/notification，认证时自动携带 JWT
  */
 export function useSignalR(hubPath = '/hubs/notification') {
+  function normalizeBaseForHub(rawBase: string): string {
+    const base = (rawBase || '').trim().replace(/\/+$/g, '')
+    if (!base) {
+      return ''
+    }
+
+    const apiPrefix = (import.meta.env.VITE_API_PREFIX || '/api').trim()
+    if (apiPrefix && base.toLowerCase().endsWith(apiPrefix.toLowerCase())) {
+      return base.slice(0, base.length - apiPrefix.length).replace(/\/+$/g, '')
+    }
+
+    if (base.toLowerCase().endsWith('/api')) {
+      return base.slice(0, -4).replace(/\/+$/g, '')
+    }
+
+    return base
+  }
+
   function buildHubUrl(): string {
-    const base = import.meta.env.VITE_API_BASE_URL || ''
-    return `${base}${hubPath}`
+    const base = normalizeBaseForHub(import.meta.env.VITE_API_BASE_URL || '')
+    const normalizedHubPath = hubPath.startsWith('/') ? hubPath : `/${hubPath}`
+    return `${base}${normalizedHubPath}`
   }
 
   async function start() {
@@ -43,9 +62,9 @@ export function useSignalR(hubPath = '/hubs/notification') {
       .withUrl(hubUrl, {
         accessTokenFactory: () => LocalStorage.get<string>(TOKEN_KEY) ?? '',
         transport:
-          HttpTransportType.WebSockets |
-          HttpTransportType.ServerSentEvents |
-          HttpTransportType.LongPolling,
+          HttpTransportType.WebSockets
+          | HttpTransportType.ServerSentEvents
+          | HttpTransportType.LongPolling,
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {
@@ -86,8 +105,16 @@ export function useSignalR(hubPath = '/hubs/notification') {
     try {
       await conn.start()
       connected.value = true
-    } catch {
+    }
+    catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[SignalR] 连接失败，请检查 Hub 地址与后端服务状态', {
+          hubUrl,
+          error,
+        })
+      }
       connected.value = false
+      connection.value = null
     }
   }
 
@@ -95,7 +122,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
     if (connection.value) {
       try {
         await connection.value.stop()
-      } catch {
+      }
+      catch {
         // 忽略停止时的错误
       }
       connection.value = null
@@ -118,7 +146,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
     if (handler) {
       eventHandlers.get(method)?.delete(handler)
       connection.value?.off(method, handler)
-    } else {
+    }
+    else {
       eventHandlers.delete(method)
       connection.value?.off(method)
     }

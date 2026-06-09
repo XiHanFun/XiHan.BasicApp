@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NInput, NSelect, NSlider, NSwitch } from 'naive-ui'
+import { NCard, NInput, NInputNumber, NSelect, NSlider, NSwitch } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useLocale } from '~/hooks'
 import PrefTip from './PrefTip.vue'
@@ -80,6 +80,21 @@ const localeOptions = [
           <PrefTip :content="t('preference.general.check_updates_tip')" />
         </div>
         <NSwitch v-model:value="appStore.enableCheckUpdates" />
+      </div>
+      <div v-if="appStore.enableCheckUpdates" class="pref-row">
+        <span>{{ t('preference.general.check_updates_interval') }}</span>
+        <div class="flex items-center gap-1">
+          <NInputNumber
+            v-model:value="appStore.checkUpdatesInterval"
+            :min="10"
+            :max="300"
+            :step="10"
+            size="small"
+            :input-props="{ style: 'text-align: center' }"
+            style="width: 90px"
+          />
+          <span class="unit-label">{{ t('preference.general.check_updates_interval_unit') }}</span>
+        </div>
       </div>
     </NCard>
   </div>

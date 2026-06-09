@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import type { SysNuGetPackage } from '@/api'
 import { NCard, NTag, NText } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { serverApi } from '@/api'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 import PackageJson from '../../../../package.json'
 
 defineOptions({ name: 'AboutPage' })
@@ -89,11 +88,12 @@ const governanceItems = [
   { icon: 'lucide:layers', label: '架构模式', value: '模块化分层' },
 ]
 
-const backendDependencies = ref<SysNuGetPackage[]>([])
+const { apis } = useAppContext()
+const backendDependencies = ref<Array<{ packageName: string, packageVersion: string }>>([])
 
 async function fetchBackendDependencies() {
   try {
-    backendDependencies.value = (await serverApi.getNuGetPackages()) ?? []
+    backendDependencies.value = (await apis.serverApi.getNuGetPackages()) ?? []
   }
   catch {
     backendDependencies.value = []

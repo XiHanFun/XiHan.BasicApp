@@ -21,14 +21,21 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <summary>
 /// 系统用户权限关联实体（直授）
 /// </summary>
-[SugarTable("Sys_User_Permission", "系统用户权限关联表")]
-[SugarIndex("UX_SysUserPermission_UsId_PeId", nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
-[SugarIndex("IX_SysUserPermission_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_PeId", nameof(PermissionId), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_EfTi", nameof(EffectiveTime), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_ExTi", nameof(ExpirationTime), OrderByType.Asc)]
-[SugarIndex("IX_SysUserPermission_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+/// <remarks>
+/// 用户直授权限优先级最高，可覆盖所有角色级别的权限决策：
+/// - Deny：最终拒绝该权限，即使用户的所有角色都 Grant 了此权限
+/// - Grant：最终授予该权限，即使用户的所有角色都未包含或 Deny 了此权限
+/// 适用场景：临时提权、特殊用户例外、紧急权限收回
+/// </remarks>
+[SugarTable("SysUserPermission", "系统用户权限关联表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_UsId_PeId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PeId", nameof(PermissionId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserPermission : BasicAppCreationEntity
 {
     /// <summary>
@@ -62,10 +69,16 @@ public partial class SysUserPermission : BasicAppCreationEntity
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
+    /// 授权原因（关联审批单号、工单号等，用于审计追溯）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "授权原因", Length = 500, IsNullable = true)]
+    public virtual string? GrantReason { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注

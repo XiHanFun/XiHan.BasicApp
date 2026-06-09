@@ -1,131 +1,131 @@
-import { useBaseApi } from '../base'
+import { createDynamicApiClient } from '../base'
 
-const api = useBaseApi('Server')
+const serverApiClient = createDynamicApiClient('Server')
 
 export interface SysRuntimeInfo {
-  osName: string
-  osDescription: string
-  osVersion: string
-  osArchitecture: string
-  processArchitecture: string
+  clrVersion: string
+  commandLineArgs: string[]
+  currentDirectory: string
+  environmentVariableCount: number
   frameworkDescription: string
-  runtimeVersion: string
+  interactiveMode: string
   is64BitOperatingSystem: boolean
   is64BitProcess: boolean
   isInteractive: boolean
-  interactiveMode: string
-  processorCount: number
-  systemDirectory: string
-  currentDirectory: string
   machineName: string
-  userName: string
-  userDomainName: string
-  workingSet: number
-  systemStartTime: string
-  systemUptime: string
-  processStartTime: string
-  processUptime: string
+  osArchitecture: string
+  osDescription: string
+  osName: string
+  osVersion: string
+  processArchitecture: string
   processId: number
   processName: string
-  clrVersion: string
-  environmentVariableCount: number
-  commandLineArgs: string[]
+  processStartTime: string
+  processUptime: string
+  processorCount: number
+  runtimeVersion: string
+  systemDirectory: string
+  systemStartTime: string
+  systemUptime: string
+  userDomainName: string
+  userName: string
+  workingSet: number
 }
 
 export interface SysCpuInfo {
-  processorName: string
-  processorArchitecture: string
-  physicalCoreCount: number
-  logicalCoreCount: number
   baseClockSpeed: number
   cacheBytes: number
+  logicalCoreCount: number
+  physicalCoreCount: number
+  processorArchitecture: string
+  processorName: string
   usagePercentage: number
 }
 
 export interface SysMemoryInfo {
-  totalBytes: number
-  usedBytes: number
-  freeBytes: number
   availableBytes: number
-  buffersCachedBytes: number
-  usagePercentage: number
   availablePercentage: number
+  buffersCachedBytes: number
+  freeBytes: number
+  totalBytes: number
+  usagePercentage: number
+  usedBytes: number
 }
 
 export interface SysDiskInfo {
-  diskName: string
-  typeName: string
-  totalSpace: number
-  freeSpace: number
-  usedSpace: number
   availableRate: number
+  diskName: string
+  freeSpace: number
+  totalSpace: number
+  typeName: string
+  usedSpace: number
 }
 
 export interface SysNetworkIpAddress {
   address: string
-  subnetMask: string
   prefixLength: number
+  subnetMask: string
 }
 
 export interface SysNetworkStatistics {
   bytesReceived: number
   bytesSent: number
+  incomingPacketsDiscarded: number
+  incomingPacketsWithErrors: number
+  outgoingPacketsDiscarded: number
+  outgoingPacketsWithErrors: number
   packetsReceived: number
   packetsSent: number
-  incomingPacketsDiscarded: number
-  outgoingPacketsDiscarded: number
-  incomingPacketsWithErrors: number
-  outgoingPacketsWithErrors: number
 }
 
 export interface SysNetworkInfo {
-  name: string
   description: string
-  type: string
-  operationalStatus: string
-  speed: string
-  physicalAddress: string
-  supportsMulticast: boolean
-  isReceiveOnly: boolean
+  dhcpServerAddresses: string[]
   dnsAddresses: string[]
   gatewayAddresses: string[]
-  dhcpServerAddresses: string[]
   iPv4Addresses: SysNetworkIpAddress[]
   iPv6Addresses: SysNetworkIpAddress[]
+  isReceiveOnly: boolean
+  name: string
+  operationalStatus: string
+  physicalAddress: string
+  speed: string
   statistics?: SysNetworkStatistics
+  supportsMulticast: boolean
+  type: string
 }
 
 export interface SysBoardInfo {
-  product: string
   manufacturer: string
+  product: string
   serialNumber: string
   version: string
 }
 
 export interface SysGpuInfo {
-  name: string
-  description: string
-  vendor: string
-  deviceId: string
   busInfo: string
+  description: string
+  deviceId: string
   driverVersion: string
   memoryBytes: number
-  temperature?: number
-  videoModeDescription: string
-  status: string
-  utilizationPercentage?: number
   memoryUtilizationPercentage?: number
+  name: string
+  status: string
+  temperature?: number
+  utilizationPercentage?: number
+  vendor: string
+  videoModeDescription: string
 }
 
 export interface SysServerInfo {
-  runtimeInfo: SysRuntimeInfo
-  cpuInfo: SysCpuInfo
-  memoryInfo: SysMemoryInfo
-  diskInfos: SysDiskInfo[]
-  networkInfos: SysNetworkInfo[]
   boardInfo: SysBoardInfo
-  gpuInfos: SysGpuInfo[]
   collectedAt: string
+  cpuInfo: SysCpuInfo
+  diskInfos: SysDiskInfo[]
+  gpuInfos: SysGpuInfo[]
+  memoryInfo: SysMemoryInfo
+  networkInfos: SysNetworkInfo[]
+  runtimeInfo: SysRuntimeInfo
 }
 
 export interface SysNuGetPackage {
@@ -134,22 +134,34 @@ export interface SysNuGetPackage {
 }
 
 export const serverApi = {
-  getServerInfo: (params?: { includeDisk?: boolean, includeNetwork?: boolean }) =>
-    api.request.get<SysServerInfo>(`${api.baseUrl}ServerInfo`, { params }),
-
-  getRuntimeInfo: () => api.request.get<SysRuntimeInfo>(`${api.baseUrl}RuntimeInfo`),
-
-  getCpuInfo: () => api.request.get<SysCpuInfo>(`${api.baseUrl}CpuInfo`),
-
-  getMemoryInfo: () => api.request.get<SysMemoryInfo>(`${api.baseUrl}MemoryInfo`),
-
-  getDiskInfo: () => api.request.get<SysDiskInfo[]>(`${api.baseUrl}DiskInfo`),
-
-  getNetworkInfo: () => api.request.get<SysNetworkInfo[]>(`${api.baseUrl}NetworkInfo`),
-
-  getBoardInfo: () => api.request.get<SysBoardInfo>(`${api.baseUrl}BoardInfo`),
-
-  getGpuInfo: () => api.request.get<SysGpuInfo[]>(`${api.baseUrl}GpuInfo`),
-
-  getNuGetPackages: () => api.request.get<SysNuGetPackage[]>(`${api.baseUrl}NuGetPackages`),
+  getBoardInfo() {
+    return serverApiClient.get<SysBoardInfo>('BoardInfo')
+  },
+  getCpuInfo() {
+    return serverApiClient.get<SysCpuInfo>('CpuInfo')
+  },
+  getDiskInfo() {
+    return serverApiClient.get<SysDiskInfo[]>('DiskInfo')
+  },
+  getGpuInfo() {
+    return serverApiClient.get<SysGpuInfo[]>('GpuInfo')
+  },
+  getMemoryInfo() {
+    return serverApiClient.get<SysMemoryInfo>('MemoryInfo')
+  },
+  getNetworkInfo() {
+    return serverApiClient.get<SysNetworkInfo[]>('NetworkInfo')
+  },
+  getNuGetPackages() {
+    return serverApiClient.get<SysNuGetPackage[]>('NuGetPackages')
+  },
+  getRuntimeInfo() {
+    return serverApiClient.get<SysRuntimeInfo>('RuntimeInfo')
+  },
+  getServerInfo(params?: { includeDisk?: boolean, includeNetwork?: boolean }) {
+    return serverApiClient.get<SysServerInfo>('ServerInfo', {
+      IncludeDisk: params?.includeDisk,
+      IncludeNetwork: params?.includeNetwork,
+    })
+  },
 }

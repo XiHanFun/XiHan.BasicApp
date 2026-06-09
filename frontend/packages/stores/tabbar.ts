@@ -66,6 +66,9 @@ export const useTabbarStore = defineStore('tabbar', () => {
       return
     }
     const current = tabs.value[index]
+    if (!current) {
+      return
+    }
     if (!current.closable) {
       return
     }
@@ -126,6 +129,9 @@ export const useTabbarStore = defineStore('tabbar', () => {
       return
     }
     const [source] = tabs.value.splice(sourceIndex, 1)
+    if (!source) {
+      return
+    }
     tabs.value.splice(targetIndex, 0, source)
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)

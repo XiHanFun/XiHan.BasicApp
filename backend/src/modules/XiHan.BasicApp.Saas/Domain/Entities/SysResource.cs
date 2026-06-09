@@ -20,26 +20,49 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统资源实体
-/// 统一抽象所有可被授权的资源（菜单、API、按钮、文件等）
+/// 权限体系中的"被控对象"（API/数据表/文件/报表等），扁平结构，与 UI 菜单完全解耦
 /// </summary>
-[SugarTable("Sys_Resource", "系统资源表")]
-[SugarIndex("UX_SysResource_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysResource_ReCo", nameof(ResourceCode), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_ReTy", nameof(ResourceType), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_ReTy_St", nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysResource_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+/// <remarks>
+/// 职责边界：
+/// - 本实体仅描述"保护对象"本身；"能对资源做什么"由 SysOperation 定义；"谁能做"由 SysPermission 组合
+/// - 不包含菜单/UI 层级概念（UI 由 SysMenu 单独承载）
+///
+/// 关联：
+/// - 反向：SysPermission.ResourceId、SysFieldLevelSecurity.ResourceId
+///
+/// 写入：
+/// - TenantId + ResourceCode 租户内唯一（UX_TeId_ReCo）
+/// - TenantId = 0（即派生属性 IsGlobal=true）时作为平台资源模板，所有租户共享
+/// - ResourcePath 对 API 类资源建议填写路由模式（便于自动扫描注册）
+/// - Metadata JSON 用于扩展（如 controller/action、字段结构描述）
+///
+/// 查询：
+/// - 按资源类型+状态筛选走复合索引 IX_TeId_ReTy_St
+/// - 全局+私有合并查询优先使用：WHERE TenantId IN (0, ?)
+///   平台记录以 TenantId=0 唯一约束；IsGlobal 为派生只读属性（= TenantId==0）
+///
+/// 删除：
+/// - 仅软删；删除前必须校验：无权限引用（SysPermission.ResourceId）、无字段级策略引用（SysFieldLevelSecurity.ResourceId）
+///
+/// 状态与访问级别：
+/// - Status: Yes/No 启停
+/// - AccessLevel: 替代原 IsRequireAuth+IsPublic 组合，明确表达匿名/认证/授权访问需求
+///
+/// 场景：
+/// - 接口自动扫描注册：程序启动时将控制器 Action 注册为 API 类资源
+/// - 动态资源：管理端定义自定义资源类型（报表/数据表/业务对象等）
+/// </remarks>
+[SugarTable("SysResource", "系统资源表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_ReCo", nameof(TenantId), OrderByType.Asc, nameof(ResourceCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_ReTy", nameof(ResourceType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_ReTy_St", nameof(TenantId), OrderByType.Asc, nameof(ResourceType), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysResource : BasicAppAggregateRoot
 {
     /// <summary>
-    /// 父资源ID（支持资源树结构）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "父资源ID", IsNullable = true)]
-    public virtual long? ParentId { get; set; }
-
-    /// <summary>
-    /// 资源编码（唯一标识，如：user:list, order:create）
+    /// 资源编码（唯一标识，如：user, order, department）
     /// </summary>
     [SugarColumn(ColumnDescription = "资源编码", Length = 100, IsNullable = false)]
     public virtual string ResourceCode { get; set; } = string.Empty;
@@ -54,19 +77,13 @@ public partial class SysResource : BasicAppAggregateRoot
     /// 资源类型
     /// </summary>
     [SugarColumn(ColumnDescription = "资源类型")]
-    public virtual ResourceType ResourceType { get; set; } = ResourceType.Menu;
+    public virtual ResourceType ResourceType { get; set; } = ResourceType.Api;
 
     /// <summary>
     /// 资源路径（URL/文件路径/API路径等）
     /// </summary>
     [SugarColumn(ColumnDescription = "资源路径", Length = 500, IsNullable = true)]
     public virtual string? ResourcePath { get; set; }
-
-    /// <summary>
-    /// 资源图标
-    /// </summary>
-    [SugarColumn(ColumnDescription = "资源图标", Length = 100, IsNullable = true)]
-    public virtual string? Icon { get; set; }
 
     /// <summary>
     /// 资源描述
@@ -82,22 +99,16 @@ public partial class SysResource : BasicAppAggregateRoot
     public virtual string? Metadata { get; set; }
 
     /// <summary>
-    /// 是否需要认证
+    /// 资源访问级别（替代原 IsRequireAuth+IsPublic，消除无效布尔组合）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要认证")]
-    public virtual bool IsRequireAuth { get; set; } = true;
-
-    /// <summary>
-    /// 是否公开资源（无需授权即可访问）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "是否公开")]
-    public virtual bool IsPublic { get; set; } = false;
+    [SugarColumn(ColumnDescription = "访问级别")]
+    public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序

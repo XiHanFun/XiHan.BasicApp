@@ -4,6 +4,7 @@ import type {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios'
+import type { Router } from 'vue-router'
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
 import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
@@ -14,7 +15,11 @@ import {
   tryDecryptSecureResponse,
 } from './security'
 
-type AnyRecord = Record<string, any>
+type AnyRecord = Record<string, unknown>
+type HeaderBag = Record<string, unknown> & {
+  delete?: (name: string) => void
+}
+
 interface RequestMeta {
   requestId: string
   startedAt: number
@@ -22,20 +27,97 @@ interface RequestMeta {
   url: string
 }
 
+function asRecord(value: unknown): AnyRecord | undefined {
+  return value && typeof value === 'object' ? value as AnyRecord : undefined
+}
+
+function readResponseLogFields(payload: unknown) {
+  const record = asRecord(payload)
+  return {
+    code: record?.code as string | number | undefined,
+    message: typeof record?.message === 'string' ? record.message : undefined,
+    traceId: typeof record?.traceId === 'string' ? record.traceId : undefined,
+  }
+}
+
+/** Flat 请求的返回结构：data 和 error 互斥 */
+export interface FlatRequestResult<T> {
+  data: T | null
+  error: Error | null
+}
+
+/** 全局 Router 引用，由应用层调用 bindRouter 注入 */
+let _router: Router | null = null
+export function bindRouter(router: Router) {
+  _router = router
+}
+
+/** 强制登出时的清理回调，由应用层注入以重置 Pinia stores */
+let _logoutHook: (() => void) | null = null
+export function bindLogoutHook(hook: () => void) {
+  _logoutHook = hook
+}
+
+/** HTTP 状态码 → 明确中文提示（按状态码统一化，区分权限/资源/服务端等） */
+const HTTP_ERROR_MESSAGES: Record<number, string> = {
+  400: '请求参数有误',
+  401: '登录已过期，请重新登录',
+  403: '没有操作权限',
+  404: '请求的资源不存在',
+  408: '请求超时，请稍后重试',
+  409: '请求冲突，请刷新后重试',
+  422: '请求参数校验失败',
+  429: '请求过于频繁，请稍后再试',
+  500: '服务器内部错误',
+  502: '网关错误',
+  503: '服务暂时不可用',
+  504: '网关超时',
+}
+
+/** 从响应体提取后端业务错误消息（非二进制响应时优先采用） */
+function extractBackendMessage(data: unknown): string | undefined {
+  if (data && typeof data === 'object' && !(data instanceof Blob)) {
+    const message = (data as Record<string, unknown>).message
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim()
+    }
+  }
+  return undefined
+}
+
+/** 将请求错误归一为明确提示：区分网络错误/超时/取消与各 HTTP 状态码 */
+function resolveRequestErrorMessage(error: unknown): string {
+  const err = error as { code?: string, message?: string, response?: { status: number, data?: unknown } }
+  if (!err?.response) {
+    if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message ?? '')) {
+      return '请求超时，请稍后重试'
+    }
+    if (err?.code === 'ERR_CANCELED') {
+      return '请求已取消'
+    }
+    return '网络连接失败，请检查网络后重试'
+  }
+  const backendMessage = extractBackendMessage(err.response.data)
+  if (backendMessage) {
+    return backendMessage
+  }
+  return HTTP_ERROR_MESSAGES[err.response.status] ?? `请求失败（${err.response.status}）`
+}
+
 export class RequestClient {
   private instance: AxiosInstance
   private apiPrefix: string
+  private refreshTokenUrl: string
   private isRefreshing = false
   private pendingRequests: Array<(token: string | null) => void> = []
   private readonly securityConfig = resolveApiSecurityRuntimeConfig()
 
-  constructor(config?: AxiosRequestConfig & { apiPrefix?: string }) {
+  constructor(config?: AxiosRequestConfig & { apiPrefix?: string, refreshTokenUrl?: string }) {
     this.apiPrefix = config?.apiPrefix ?? '/api'
+    // 刷新令牌端点路径可配置（request 层不可反向依赖 api/modules，故以构造选项集中管理，避免散落硬编码）
+    this.refreshTokenUrl = config?.refreshTokenUrl ?? '/Auth/RefreshToken'
     this.instance = axios.create({
       timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
       ...config,
     })
 
@@ -45,7 +127,8 @@ export class RequestClient {
   private resolveUrl(url: string) {
     if (!url.startsWith('/'))
       return url
-    if (url.startsWith('/api/'))
+    // 已带 apiPrefix 前缀则不重复拼接（用配置值判断，避免硬编码 '/api/' 在自定义网关前缀下绕过拼接）
+    if (this.apiPrefix && url.startsWith(`${this.apiPrefix}/`))
       return url
     return `${this.apiPrefix}${url}`
   }
@@ -63,14 +146,38 @@ export class RequestClient {
     return String(method ?? 'GET').toUpperCase()
   }
 
+  private isFormData(input: unknown): input is FormData {
+    return typeof FormData !== 'undefined' && input instanceof FormData
+  }
+
+  private removeContentTypeHeader(headers: unknown) {
+    const rawHeaders = headers as HeaderBag | null | undefined
+    if (!rawHeaders) {
+      return
+    }
+
+    if (typeof rawHeaders.delete === 'function') {
+      rawHeaders.delete('Content-Type')
+      rawHeaders.delete('content-type')
+      return
+    }
+
+    delete rawHeaders['Content-Type']
+    delete rawHeaders['content-type']
+  }
+
   private tryExtractMeta(config: unknown): RequestMeta | null {
-    const raw = (config as AnyRecord | undefined)?._meta as RequestMeta | undefined
+    const raw = asRecord(config)?._meta as RequestMeta | undefined
     return raw ?? null
   }
 
   private setupInterceptors() {
     this.instance.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
+        if (this.isFormData(config.data)) {
+          this.removeContentTypeHeader(config.headers)
+        }
+
         const token = LocalStorage.get<string>(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
@@ -87,7 +194,7 @@ export class RequestClient {
             method,
             url,
           }
-          Object.assign(config as AnyRecord, { _meta: meta })
+          Object.assign(config as unknown as AnyRecord, { _meta: meta })
           config.headers['X-Request-Id'] = requestId
 
           appendRequestLog({
@@ -118,15 +225,15 @@ export class RequestClient {
         const meta = this.tryExtractMeta(response.config)
         if (meta) {
           const now = Date.now()
-          const payload = response.data as AnyRecord | undefined
+          const payload = readResponseLogFields(response.data)
           updateRequestLog(meta.requestId, {
             finishedAt: now,
             duration: Math.max(0, now - meta.startedAt),
             status: 'success',
             statusCode: response.status,
-            responseCode: payload?.code,
-            message: payload?.message,
-            traceId: payload?.traceId,
+            responseCode: payload.code,
+            message: payload.message,
+            traceId: payload.traceId,
           })
         }
         return response
@@ -144,16 +251,21 @@ export class RequestClient {
         const meta = this.tryExtractMeta(error?.config)
         if (meta) {
           const now = Date.now()
-          const payload = error?.response?.data as AnyRecord | undefined
+          const payload = readResponseLogFields(error?.response?.data)
           updateRequestLog(meta.requestId, {
             finishedAt: now,
             duration: Math.max(0, now - meta.startedAt),
             status: 'error',
             statusCode: error?.response?.status,
-            responseCode: payload?.code,
-            message: payload?.message ?? error?.message ?? '请求失败',
-            traceId: payload?.traceId,
+            responseCode: payload.code,
+            message: payload.message ?? error?.message ?? '请求失败',
+            traceId: payload.traceId,
           })
+        }
+
+        // 统一化错误提示：覆盖 axios 默认英文消息，业务 catch 可直接用 error.message
+        if (error) {
+          error.message = resolveRequestErrorMessage(error)
         }
 
         if (error.response) {
@@ -191,12 +303,19 @@ export class RequestClient {
     this.pendingRequests.forEach(cb => cb(null))
     this.pendingRequests = []
     this.isRefreshing = false
-    window.location.href = LOGIN_PATH
+    _logoutHook?.()
+    if (_router) {
+      _router.replace(LOGIN_PATH)
+    }
+    else {
+      window.location.href = LOGIN_PATH
+    }
   }
 
   private async refreshAccessToken(): Promise<string | null> {
     const refreshToken = LocalStorage.get<string>(REFRESH_TOKEN_KEY)
-    if (!refreshToken)
+    const accessToken = LocalStorage.get<string>(TOKEN_KEY)
+    if (!refreshToken || !accessToken)
       return null
 
     if (this.isRefreshing) {
@@ -208,9 +327,9 @@ export class RequestClient {
     this.isRefreshing = true
     try {
       const { data } = await this.instance.post(
-        this.resolveUrl('/auth/refreshtoken'),
-        { refreshToken },
-        { _isRefresh: true } as any,
+        this.resolveUrl(this.refreshTokenUrl),
+        { accessToken, refreshToken },
+        { _isRefresh: true } as Record<string, unknown>,
       )
       const payload = (data?.data ?? data) as {
         accessToken?: string
@@ -243,17 +362,29 @@ export class RequestClient {
     }
   }
 
-  async request<T = any>(config: AxiosRequestConfig): Promise<T> {
+  /** Flat 模式：返回 { data, error }，不抛异常 */
+  async requestFlat<T = unknown>(config: AxiosRequestConfig): Promise<FlatRequestResult<T>> {
+    try {
+      const data = await this.request<T>(config)
+      return { data, error: null }
+    }
+    catch (err) {
+      return { data: null, error: err instanceof Error ? err : new Error(String(err)) }
+    }
+  }
+
+  async request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.request<ApiResponse<T> | T>(config)
     const { data } = response
-    const typed = data as AnyRecord
+    const typed = asRecord(data)
     const meta = this.tryExtractMeta(response.config)
 
-    if (typed && typeof typed === 'object') {
+    if (typed) {
       const responseData = typed.data
       const responseCode = typed.code
       const responseSuccess = typed.isSuccess
       const responseMessage = typed.message
+      const traceId = typeof typed.traceId === 'string' ? typed.traceId : undefined
       const hasEnvelope = responseData !== undefined && (responseCode !== undefined || responseSuccess !== undefined)
 
       if (hasEnvelope) {
@@ -267,23 +398,23 @@ export class RequestClient {
             duration: Math.max(0, now - meta.startedAt),
             status: 'error',
             statusCode: response.status,
-            responseCode,
-            message: (responseMessage as string) || '请求失败',
-            traceId: typed.traceId,
+            responseCode: typeof responseCode === 'string' || typeof responseCode === 'number' ? responseCode : undefined,
+            message: typeof responseMessage === 'string' ? responseMessage : '请求失败',
+            traceId,
           })
         }
-        return Promise.reject(new Error((responseMessage as string) || '请求失败'))
+        return Promise.reject(new Error(typeof responseMessage === 'string' ? responseMessage : '请求失败'))
       }
     }
 
     return data as T
   }
 
-  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({ ...config, method: 'GET', url: this.resolveUrl(url) })
   }
 
-  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({
       ...config,
       method: 'POST',
@@ -292,7 +423,7 @@ export class RequestClient {
     })
   }
 
-  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({
       ...config,
       method: 'PUT',
@@ -301,7 +432,7 @@ export class RequestClient {
     })
   }
 
-  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const normalizedData = config?.data ? this.normalizeRequestData(config.data) : undefined
 
     return this.request<T>({
@@ -312,13 +443,22 @@ export class RequestClient {
     })
   }
 
-  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.request<T>({
       ...config,
       method: 'PATCH',
       url: this.resolveUrl(url),
       data: this.normalizeRequestData(data),
     })
+  }
+
+  /** Flat 快捷方法 */
+  getFlat<T = unknown>(url: string, config?: AxiosRequestConfig) {
+    return this.requestFlat<T>({ ...config, method: 'GET', url: this.resolveUrl(url) })
+  }
+
+  postFlat<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) {
+    return this.requestFlat<T>({ ...config, method: 'POST', url: this.resolveUrl(url), data })
   }
 }
 

@@ -1,5 +1,10 @@
 import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
+type HeaderBag = Record<string, unknown> & {
+  get?: (name: string) => unknown
+  set?: (name: string, value: string) => void
+}
+
 interface SecureEnvelope {
   alg?: string
   contentSign?: string
@@ -164,7 +169,7 @@ export async function tryDecryptSecureResponse<T>(
     }
   }
 
-  ; (response as any).data = tryParseJson(plaintext)
+  ;(response as AxiosResponse<unknown>).data = tryParseJson(plaintext)
 }
 
 function createNonce(): string {
@@ -331,9 +336,9 @@ async function resolveAesKeyBytes(seed: string): Promise<Uint8Array> {
 }
 
 function setHeader(config: InternalAxiosRequestConfig, name: string, value: string) {
-  const headers = config.headers as any
+  const headers = config.headers as HeaderBag | null | undefined
   if (!headers) {
-    config.headers = { [name]: value } as any
+    config.headers = { [name]: value } as InternalAxiosRequestConfig['headers']
     return
   }
 
@@ -346,7 +351,7 @@ function setHeader(config: InternalAxiosRequestConfig, name: string, value: stri
 }
 
 function getHeaderValue(headers: unknown, name: string): string {
-  const rawHeaders = headers as any
+  const rawHeaders = headers as HeaderBag | null | undefined
   if (!rawHeaders) {
     return ''
   }

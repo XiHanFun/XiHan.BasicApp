@@ -14,26 +14,52 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统通知实体
+/// 站内通知内容主表：承载通知正文、发布状态、目标范围；每用户读取/确认状态由 SysUserNotification 独立维护
 /// </summary>
-[SugarTable("Sys_Notification", "系统通知表")]
-[SugarIndex("IX_SysNotification_ReUsId", nameof(RecipientUserId), OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_NoTy", nameof(NotificationType), OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_NoSt", nameof(NotificationStatus), OrderByType.Asc)]
-[SugarIndex("IX_SysNotification_SeTi", nameof(SendTime), OrderByType.Desc)]
-public partial class SysNotification : BasicAppAggregateRoot
+/// <remarks>
+/// 职责边界：
+/// - 本表只有"一条通知内容"；"谁看过/是否已读"交由 SysUserNotification
+/// - 避免循环："通知表 × 用户表"直接笛卡尔积（大租户会爆）
+///
+/// 关联：
+/// - 反向：SysUserNotification.NotificationId
+///
+/// 写入：
+/// - 编辑阶段 IsPublished=false；发布后 IsPublished=true + SendTime
+/// - 发布时按 TargetType（All/Role/Department/User）展开生成 SysUserNotification 记录
+/// - 可选 ExpirationTime 控制消息过期自动隐藏
+///
+/// 查询：
+/// - 租户最近发布：IX_TeId_SeTi
+/// - 按通知类型过滤：IX_NoTy
+/// - 按目标类型过滤：IX_TaTy
+///
+/// 删除：
+/// - 仅软删；删除时级联软删所有 SysUserNotification
+///
+/// 状态：
+/// - IsPublished: false=草稿 / true=已发布
+/// - NotificationType: System/Announcement/Activity/Personal 等
+/// - TargetType: All=全员通知；Role/Department/User=定向通知
+///
+/// 场景：
+/// - 系统公告、版本升级通知、营销活动、告警推送
+/// </remarks>
+[SugarTable("SysNotification", "系统通知表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("IX_{table}_NoTy", nameof(NotificationType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TaTy", nameof(TargetType), OrderByType.Asc)]
+[SugarIndex("IX_{table}_IsPu", nameof(IsPublished), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
+public partial class SysNotification : BasicAppFullAuditedEntity
 {
-    /// <summary>
-    /// 接收用户ID（为空表示全体用户）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
-    public virtual long? RecipientUserId { get; set; }
-
     /// <summary>
     /// 发送用户ID
     /// </summary>
@@ -83,34 +109,28 @@ public partial class SysNotification : BasicAppAggregateRoot
     public virtual long? BusinessId { get; set; }
 
     /// <summary>
-    /// 通知状态
-    /// </summary>
-    [SugarColumn(ColumnDescription = "通知状态")]
-    public virtual NotificationStatus NotificationStatus { get; set; } = NotificationStatus.Unread;
-
-    /// <summary>
-    /// 阅读时间
-    /// </summary>
-    [SugarColumn(ColumnDescription = "阅读时间", IsNullable = true)]
-    public virtual DateTimeOffset? ReadTime { get; set; }
-
-    /// <summary>
     /// 发送时间
     /// </summary>
     [SugarColumn(ColumnDescription = "发送时间")]
-    public virtual DateTimeOffset SendTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset SendTime { get; set; }
 
     /// <summary>
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
-    public virtual DateTimeOffset? ExpireTime { get; set; }
+    public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
-    /// 是否全员通知
+    /// 通知目标类型（All=全员, Role=角色, Department=部门, User=指定用户）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否全员通知")]
-    public virtual bool IsGlobal { get; set; } = false;
+    [SugarColumn(ColumnDescription = "通知目标类型")]
+    public virtual NotificationTargetType TargetType { get; set; } = NotificationTargetType.All;
+
+    /// <summary>
+    /// 目标值（JSON格式，存储目标ID数组，如 [1,2,3]；TargetType=All时可为null）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "目标值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? TargetValue { get; set; }
 
     /// <summary>
     /// 是否需要确认
@@ -119,10 +139,10 @@ public partial class SysNotification : BasicAppAggregateRoot
     public virtual bool NeedConfirm { get; set; } = false;
 
     /// <summary>
-    /// 状态
+    /// 是否已发布（发布后不可编辑/删除）
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    [SugarColumn(ColumnDescription = "是否已发布")]
+    public virtual bool IsPublished { get; set; } = false;
 
     /// <summary>
     /// 备注

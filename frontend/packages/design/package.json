@@ -1,0 +1,6 @@
+{
+  "name": "@xihan/design",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./global.css"
+}

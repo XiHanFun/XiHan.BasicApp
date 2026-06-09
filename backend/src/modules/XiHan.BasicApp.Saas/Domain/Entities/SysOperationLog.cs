@@ -14,20 +14,54 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统操作日志实体
+/// 业务操作轨迹（用户视角：点了什么/做了什么），对应前端操作行为
 /// </summary>
-[SugarTable("Sys_Operation_Log_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
-[SugarIndex("IX_SysOperationLog_UsId", nameof(UserId), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OpTy", nameof(OperationType), OrderByType.Asc)]
-[SugarIndex("IX_SysOperationLog_OpTi", nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
-[SugarIndex("IX_SysOperationLog_St", nameof(Status), OrderByType.Asc)]
-public partial class SysOperationLog : BasicAppCreationEntity
+/// <remarks>
+/// 职责边界：
+/// - 与 SysOpenApiLog 区别：本表关注"业务语义"（用户导出了报表），SysOpenApiLog 关注"HTTP 请求"（POST /api/export）
+/// - 与 SysDiffLog 区别：本表覆盖更宽泛的操作，SysDiffLog 仅针对敏感/合规级操作
+///
+/// 分表策略：
+/// - 按月分表；查询/清理必带时间范围
+///
+/// 关联：
+/// - UserId → SysUser；UserSessionId → SysUserSession.UserSessionId（会话业务标识，非主键）；TraceId 串联请求链
+///
+/// 写入：
+/// - 由业务切面（AOP）/拦截器统一写入
+/// - OperationType 用于快速分类（查询/新增/修改/删除/导出等）
+/// - Result 记录该操作最终结果（成功/失败/部分成功），勿与启用状态 EnableStatus 混淆
+///
+/// 查询：
+/// - 用户操作历史（个人中心"我的操作"）：IX_UsId + 时间范围
+/// - 租户操作趋势：IX_TeId_OpTi
+/// - 按类型聚合：IX_OpTy
+/// - 失败操作分析：IX_Re
+///
+/// 删除：
+/// - 不支持业务删除；按保留策略清理
+///
+/// 场景：
+/// - 用户自助查看操作历史
+/// - 管理员审查可疑行为
+/// - 行为分析驱动产品优化
+/// </remarks>
+[SugarTable("SysOperationLog_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
+[SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_OpTy", nameof(OperationType), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TeId_OpTi", nameof(TenantId), OrderByType.Asc, nameof(OperationTime), OrderByType.Desc)]
+[SugarIndex("IX_{split_table}_Re", nameof(Result), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
+[SugarIndex("IX_{split_table}_UsSeId", nameof(UserSessionId), OrderByType.Asc)]
+public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
 {
     /// <summary>
     /// 用户ID
@@ -40,6 +74,18 @@ public partial class SysOperationLog : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
     public virtual string? UserName { get; set; }
+
+    /// <summary>
+    /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    public virtual string? UserSessionId { get; set; }
+
+    /// <summary>
+    /// 链路追踪ID，用于串联整个请求生命周期
+    /// </summary>
+    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 操作类型
@@ -84,18 +130,6 @@ public partial class SysOperationLog : BasicAppCreationEntity
     public virtual string? RequestUrl { get; set; }
 
     /// <summary>
-    /// 请求参数
-    /// </summary>
-    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? RequestParams { get; set; }
-
-    /// <summary>
-    /// 响应结果
-    /// </summary>
-    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
-    public virtual string? ResponseResult { get; set; }
-
-    /// <summary>
     /// 执行时间（毫秒）
     /// </summary>
     [SugarColumn(ColumnDescription = "执行时间（毫秒）")]
@@ -126,10 +160,16 @@ public partial class SysOperationLog : BasicAppCreationEntity
     public virtual string? Os { get; set; }
 
     /// <summary>
-    /// 操作状态
+    /// User-Agent
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    [SugarColumn(ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
+    public virtual string? UserAgent { get; set; }
+
+    /// <summary>
+    /// 操作执行结果（成功/失败/部分成功）
+    /// </summary>
+    [SugarColumn(ColumnDescription = "操作执行结果")]
+    public virtual OperationExecuteResult Result { get; set; } = OperationExecuteResult.Success;
 
     /// <summary>
     /// 错误消息
@@ -141,7 +181,7 @@ public partial class SysOperationLog : BasicAppCreationEntity
     /// 操作时间
     /// </summary>
     [SugarColumn(ColumnDescription = "操作时间")]
-    public virtual DateTimeOffset OperationTime { get; set; } = DateTimeOffset.Now;
+    public virtual DateTimeOffset OperationTime { get; set; }
 
     /// <summary>
     /// 创建时间

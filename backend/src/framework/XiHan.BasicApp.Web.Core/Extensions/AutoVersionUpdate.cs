@@ -62,7 +62,7 @@ public static class AutoVersionUpdate
 
             return app;
         }
-        else if (currentVersion.CompareTo(historyVersion) <= 0 && historyIsRunScript)
+        else if (CompareVersion(currentVersion, historyVersion) <= 0 && historyIsRunScript)
         {
             LogHelper.Handle("当前版本号与历史版本号相同，且已执行过脚本，不再执行");
 
@@ -78,7 +78,7 @@ public static class AutoVersionUpdate
             var scriptSqlVersions = GetScriptSqlVersions();
 
             // 若不存在当前版本的脚本，则只保存当前版本信息，不执行脚本
-            if (scriptSqlVersions.All(s => s.Version.CompareTo(currentVersion) < 0))
+            if (scriptSqlVersions.All(s => CompareVersion(s.Version, currentVersion) < 0))
             {
                 LogHelper.Handle("不存在当前版本的脚本，只保存当前版本信息，不执行脚本");
 
@@ -93,8 +93,8 @@ public static class AutoVersionUpdate
             {
                 var sqlVersion = sqlFileInfo.Version;
 
-                // 只执行大于历史版本的脚本，或者当前版本但未执行过
-                if (sqlVersion.CompareTo(historyVersion) < 0)
+                // 只执行大于历史版本的脚本，或者当前版本但未执行过（使用语义化版本比较）
+                if (CompareVersion(sqlVersion, historyVersion) < 0)
                 {
                     LogHelper.Handle($"版本{sqlVersion}低于历史版本，跳过");
                     continue;
@@ -102,6 +102,13 @@ public static class AutoVersionUpdate
                 if (sqlVersion == historyVersion && historyIsRunScript)
                 {
                     LogHelper.Handle($"版本{sqlVersion}等于历史版本，且已执行过脚本，跳过");
+                    continue;
+                }
+
+                // 不执行超过当前程序版本的脚本
+                if (CompareVersion(sqlVersion, currentVersion) > 0)
+                {
+                    LogHelper.Handle($"版本{sqlVersion}高于当前版本{currentVersion}，跳过");
                     continue;
                 }
 
@@ -146,6 +153,56 @@ public static class AutoVersionUpdate
     }
 
     /// <summary>
+    /// 解析语义化版本号 x.y.z，用于正确比较 10.2.0 与 2.0.0 等
+    /// </summary>
+    private static bool TryParseVersion(string version, out int major, out int minor, out int patch)
+    {
+        major = minor = patch = 0;
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            return false;
+        }
+
+        var parts = version.Trim().Split('.');
+        if (parts.Length < 1 || !int.TryParse(parts[0], out major))
+        {
+            return false;
+        }
+
+        if (parts.Length >= 2 && !int.TryParse(parts[1], out minor))
+        {
+            return false;
+        }
+
+        if (parts.Length >= 3 && !int.TryParse(parts[2], out patch))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 语义化版本比较：a 小于 b 返回负数，等于返回 0，大于返回正数
+    /// </summary>
+    private static int CompareVersion(string a, string b)
+    {
+        TryParseVersion(a, out var ma, out var mia, out var pa);
+        TryParseVersion(b, out var mb, out var mib, out var pb);
+        if (ma != mb)
+        {
+            return ma.CompareTo(mb);
+        }
+
+        if (mia != mib)
+        {
+            return mia.CompareTo(mib);
+        }
+
+        return pa.CompareTo(pb);
+    }
+
+    /// <summary>
     /// 获取入口程序集上一次运行版本信息
     /// </summary>
     /// <returns></returns>
@@ -164,7 +221,7 @@ public static class AutoVersionUpdate
                 var parts = info.Split('^');
                 var version = parts.Length > 0 ? parts[0].ToString() : string.Empty;
                 var date = parts.Length > 1 ? parts[1] : string.Empty;
-                var isRunScript = parts.Length > 2 ? parts[2].ConvertToBool() : false;
+                var isRunScript = parts.Length > 2 && parts[2].ConvertToBool();
 
                 return new HistoryVersionInfo(version, date, isRunScript);
             }
@@ -182,12 +239,18 @@ public static class AutoVersionUpdate
     {
         // 获取所有脚本文件
         var path = Path.Combine(AppContext.BaseDirectory, "UpdateScripts");
-        var scriptFiles = Directory.GetFiles(path, "*.sql").ToList();
 
-        var sqlVersions = scriptFiles
-            .Select(s => new SqlFileInfo(Path.GetFileNameWithoutExtension(s), s))
-            .OrderBy(s => s.Version).ToList();
-        return sqlVersions;
+        if (Directory.Exists(path))
+        {
+            var scriptFiles = Directory.GetFiles(path, "*.sql").ToList();
+
+            var sqlVersions = scriptFiles
+                .Select(s => new SqlFileInfo(Path.GetFileNameWithoutExtension(s), s))
+                .OrderBy(s => s.Version, Comparer<string>.Create(CompareVersion))
+                .ToList();
+            return sqlVersions;
+        }
+        return [];
     }
 
     /// <summary>

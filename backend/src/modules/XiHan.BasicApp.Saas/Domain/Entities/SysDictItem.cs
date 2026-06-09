@@ -20,15 +20,38 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 系统字典项实体
+/// 字典的具体选项，支持父子结构（多级联动字典）
 /// </summary>
-[SugarTable("Sys_Dict_Item", "系统字典项表")]
-[SugarIndex("UX_SysDictItem_DiId_ItCo", nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, true)]
-[SugarIndex("IX_SysDictItem_DiId", nameof(DictId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_ItCo", nameof(ItemCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_DiCo", nameof(DictCode), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_PaId", nameof(ParentId), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_St", nameof(Status), OrderByType.Asc)]
-[SugarIndex("IX_SysDictItem_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
+/// <remarks>
+/// 关联：
+/// - DictId → SysDict；ParentId → SysDictItem（自关联，支持树形）
+///
+/// 写入：
+/// - DictId + ItemCode 唯一（UX_DiId_ItCo），同字典下项编码不能重复
+/// - 多级联动（如省-市-区）：通过 ParentId 自关联构建
+/// - 同租户约束：DictId 必须与当前 TenantId 一致
+///
+/// 查询：
+/// - 字典选项加载：WHERE DictId=? AND Status=Yes ORDER BY Sort
+/// - 树形联动：IX_PaId + 递归
+///
+/// 删除：
+/// - 仅软删；删除父项前必须处理子项
+///
+/// 状态：
+/// - Status: Yes/No
+///
+/// 场景：
+/// - 下拉框选项加载
+/// - 多级联动选择（地区三级、组织架构选择）
+/// </remarks>
+[SugarTable("SysDictItem", "系统字典项表")]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+[SugarIndex("UX_{table}_TeId_DiId_ItCo", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
 public partial class SysDictItem : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -36,12 +59,6 @@ public partial class SysDictItem : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnDescription = "字典ID", IsNullable = false)]
     public virtual long DictId { get; set; }
-
-    /// <summary>
-    /// 字典编码（冗余字段，便于查询）
-    /// </summary>
-    [SugarColumn(ColumnDescription = "字典编码", Length = 100, IsNullable = false)]
-    public virtual string DictCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 父级字典项ID
@@ -74,22 +91,10 @@ public partial class SysDictItem : BasicAppFullAuditedEntity
     public virtual string? ItemDescription { get; set; }
 
     /// <summary>
-    /// 扩展属性1
+    /// 扩展元数据（JSON格式，替代固定扩展列，支持自描述的灵活扩展）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展属性1", Length = 200, IsNullable = true)]
-    public virtual string? ExtendField1 { get; set; }
-
-    /// <summary>
-    /// 扩展属性2
-    /// </summary>
-    [SugarColumn(ColumnDescription = "扩展属性2", Length = 200, IsNullable = true)]
-    public virtual string? ExtendField2 { get; set; }
-
-    /// <summary>
-    /// 扩展属性3
-    /// </summary>
-    [SugarColumn(ColumnDescription = "扩展属性3", Length = 200, IsNullable = true)]
-    public virtual string? ExtendField3 { get; set; }
+    [SugarColumn(ColumnDescription = "扩展元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? Metadata { get; set; }
 
     /// <summary>
     /// 是否默认
@@ -101,7 +106,7 @@ public partial class SysDictItem : BasicAppFullAuditedEntity
     /// 状态
     /// </summary>
     [SugarColumn(ColumnDescription = "状态")]
-    public virtual YesOrNo Status { get; set; } = YesOrNo.Yes;
+    public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序

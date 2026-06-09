@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.AspNetCore.SignalR;
 using XiHan.Framework.Web.RealTime.Attributes;
 using XiHan.Framework.Web.RealTime.Hubs;
 using XiHan.Framework.Web.RealTime.Services;
@@ -20,7 +19,7 @@ using XiHan.Framework.Web.RealTime.Services;
 namespace XiHan.BasicApp.Saas.Hubs;
 
 /// <summary>
-/// 曦寒基础应用通知 Hub（实时通知 + 踢下线）
+/// 曦寒基础应用通知 Hub
 /// </summary>
 [AuthorizeHub]
 public class BasicAppNotificationHub : XiHanHub
@@ -32,20 +31,5 @@ public class BasicAppNotificationHub : XiHanHub
     public BasicAppNotificationHub(IConnectionManager connectionManager)
         : base(connectionManager)
     {
-    }
-
-    /// <summary>
-    /// 连接时触发
-    /// </summary>
-    public override async Task OnConnectedAsync()
-    {
-        await base.OnConnectedAsync();
-
-        // 通知当前用户连接成功
-        await Clients.Caller.SendAsync("Connected", new
-        {
-            UserId,
-            Timestamp = DateTime.UtcNow
-        });
     }
 }

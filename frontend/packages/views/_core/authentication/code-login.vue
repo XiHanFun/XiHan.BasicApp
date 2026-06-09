@@ -3,23 +3,21 @@ import type { FormInst, FormRules } from 'naive-ui'
 import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naive-ui'
 import { onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { sendPhoneLoginCodeApi } from '@/api'
 import { useTheme } from '~/hooks'
-import { useAuthStore } from '~/stores'
+import { useAppContext, useAuthStore } from '~/stores'
 
 defineOptions({ name: 'CodeLoginPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
-const router = useRouter()
 const message = useMessage()
 const authStore = useAuthStore()
+const { apis } = useAppContext()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
-const defaultTenantId = 1
+const defaultTenantId = '1'
 
 const formData = ref({
   phone: '',
@@ -43,7 +41,7 @@ function handleSendCode() {
       if (errors)
         return
       try {
-        const response = await sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
+        const response = await apis.sendPhoneLoginCodeApi(formData.value.phone, defaultTenantId)
         countdown.value = 60
         timer = setInterval(() => {
           countdown.value--
@@ -162,9 +160,5 @@ onBeforeUnmount(() => {
         {{ t('page.login.login_btn') }}
       </NButton>
     </NForm>
-
-    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push('/auth/login')">
-      {{ t('page.auth.back_to_login') }}
-    </NButton>
   </div>
 </template>

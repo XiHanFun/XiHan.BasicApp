@@ -21,8 +21,8 @@ export default {
     pending: 'Notification feature coming soon',
   },
   search: {
-    placeholder: 'Search',
-    input_hint: 'Enter menu name, path or route name',
-    empty: 'No matching menus found',
+    placeholder: 'Command Palette',
+    input_hint: 'Search menus & actions, or type to jump anywhere',
+    empty: 'No matching results',
   },
 }
