@@ -137,7 +137,7 @@ public static class AutoVersionUpdate
     private static string GetEntryAssemblyCurrentVersion()
     {
         var entryAssemblyVersion = ReflectionHelper.GetEntryAssemblyVersion();
-        return entryAssemblyVersion.ToString(3);
+        return entryAssemblyVersion?.ToString(3) ?? "0.0.0";
     }
 
     /// <summary>
@@ -221,7 +221,7 @@ public static class AutoVersionUpdate
                 var parts = info.Split('^');
                 var version = parts.Length > 0 ? parts[0].ToString() : string.Empty;
                 var date = parts.Length > 1 ? parts[1] : string.Empty;
-                var isRunScript = parts.Length > 2 ? parts[2].ConvertToBool() : false;
+                var isRunScript = parts.Length > 2 && parts[2].ConvertToBool();
 
                 return new HistoryVersionInfo(version, date, isRunScript);
             }
@@ -261,7 +261,7 @@ public static class AutoVersionUpdate
     /// <param name="sqlVersion"></param>
     private static void HandleSqlScript(IApplicationBuilder app, string sql, string sqlVersion)
     {
-        using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+        using var scope = app.ApplicationServices.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
 
         var isSuccess = false;
