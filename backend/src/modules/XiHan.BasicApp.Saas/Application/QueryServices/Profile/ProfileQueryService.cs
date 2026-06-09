@@ -43,7 +43,7 @@ public sealed class ProfileQueryService
 
     private readonly IUserStatisticsRepository _userStatisticsRepository;
 
-    private readonly IUserPreferenceRepository _userPreferenceRepository;
+    private readonly IUserNotificationPreferenceRepository _notificationPreferenceRepository;
 
     /// <summary>
     /// 构造函数
@@ -54,10 +54,10 @@ public sealed class ProfileQueryService
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
         IUserStatisticsRepository userStatisticsRepository,
-        IUserPreferenceRepository userPreferenceRepository,
+        IUserNotificationPreferenceRepository notificationPreferenceRepository,
         ISqlSugarClientResolver clientResolver)
     {
-        _userPreferenceRepository = userPreferenceRepository;
+        _notificationPreferenceRepository = notificationPreferenceRepository;
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
         _userSessionRepository = userSessionRepository;
@@ -295,7 +295,7 @@ public sealed class ProfileQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
         // 无记录时返回默认偏好（不落库，写入时再惰性创建）
         return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
     }
@@ -303,7 +303,7 @@ public sealed class ProfileQueryService
     /// <summary>
     /// 偏好实体 → DTO
     /// </summary>
-    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserPreference preference)
+    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserNotificationPreference preference)
     {
         ArgumentNullException.ThrowIfNull(preference);
 

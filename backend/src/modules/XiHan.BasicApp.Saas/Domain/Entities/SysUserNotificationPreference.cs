@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysUserPreference
+// FileName:SysUserNotificationPreference
 // Guid:b3e1f8a2-6c4d-4e9a-8f1b-2d5c7e9a0b34
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -18,10 +18,13 @@ using XiHan.BasicApp.Core.Entities;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统用户偏好实体
-/// SysUser 的 1:1 偏好扩展：承载个人通知偏好（接收渠道 × 通知类型），与安全/资料解耦
+/// 系统用户通知偏好实体
+/// SysUser 的 1:1 通知偏好扩展：承载个人通知偏好（接收渠道 × 通知类型），与安全/资料/通用设置解耦。
 /// </summary>
 /// <remarks>
+/// 命名说明：
+/// - 专指"通知偏好"，与通用的全场景设置同步实体 <see cref="SysUserSetting"/>（主题/布局/页面设置等）区分，避免歧义
+///
 /// 职责边界：
 /// - 与 SysUser 一对一（UX_UsId），独立表便于偏好项独立演进，不污染主表
 /// - 仅存"用户个人意愿开关"；实际是否发送还需结合系统策略（如安全告警强制下发）
@@ -43,12 +46,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 个人中心"通知偏好"设置：渠道（站内信/邮箱/短信/推送）× 类型（公告/任务/审批/安全/营销）
 /// - 营销类可随时关闭（GDPR 合规）；安全告警建议始终开启
 /// </remarks>
-[SugarTable("SysUserPreference", "系统用户偏好表")]
+[SugarTable("SysUserNotificationPreference", "系统用户通知偏好表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId", nameof(UserId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
-public partial class SysUserPreference : BasicAppFullAuditedEntity
+public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 用户ID

@@ -249,16 +249,16 @@ function createShellApis() {
         return getWithFallback<AppEnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
       },
     },
-    pagePreferenceApi: {
-      get(pageCode: string) {
-        return getWithFallback<{ pageCode: string, payload?: null | string }>(
-          '/PagePreference/Get',
-          { pageCode, payload: null },
-          { params: { pageCode } },
+    userSettingApi: {
+      get(input: { scene: number, settingKey: string }) {
+        return getWithFallback<{ scene: number, settingKey: string, settingValue?: null | string }>(
+          '/UserSettingQuery/Get',
+          { scene: input.scene, settingKey: input.settingKey, settingValue: null },
+          { params: input },
         )
       },
-      save(input: { pageCode: string, payload?: null | string }) {
-        return requestClient.post<{ pageCode: string, payload?: null | string }>('/PagePreference/Save', input)
+      save(input: { scene: number, settingKey: string, settingValue?: null | string }) {
+        return requestClient.post<{ scene: number, settingKey: string, settingValue?: null | string }>('/UserSetting/Save', input)
       },
     },
     fieldSecurityApi: {

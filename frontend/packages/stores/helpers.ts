@@ -1,18 +1,10 @@
 import { nextTick, watch } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
-import { STORAGE_PREFIX } from '~/constants'
+import { PREFERENCE_SETTING_KEY, STORAGE_PREFIX, UserSettingScene } from '~/constants'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 
 const BUILD_TIME_KEY = `${STORAGE_PREFIX}build_time`
-
-/**
- * 偏好设置在 PagePreference 中的保留页面码（全局，按当前用户维度）。
- * 与收藏夹 [[favorites]] 同源：后端不解释 Payload 语义，仅按 (UserId, PageCode) 存取，零后端改动。
- */
-const PREFERENCES_PAGE_CODE = '__app:preferences__'
-/** PagePreference 载荷分区名（payload = {"preferences":{ storageKey: value, ... }}） */
-const PREFERENCES_SECTION = 'preferences'
 
 /**
  * 所有经 bindPersist 注册的偏好 (storageKey → ref)。
@@ -65,12 +57,12 @@ function scheduleBackendSync() {
     registry.forEach((source, key) => {
       snapshot[key] = source.value
     })
-    const payload = JSON.stringify({ [PREFERENCES_SECTION]: snapshot })
+    const settingValue = JSON.stringify(snapshot)
     const task = islandStart('pref:save', '正在同步偏好设置…')
     void useAppContext()
       .apis
-      .pagePreferenceApi
-      .save({ pageCode: PREFERENCES_PAGE_CODE, payload })
+      .userSettingApi
+      .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue })
       .then(() => task.success('偏好设置已同步'))
       .catch(() => task.error('偏好设置同步失败'))
   }, 800)
@@ -126,9 +118,8 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
   backendSyncEnabled = false
   let needSeed = false
   try {
-    const dto = await useAppContext().apis.pagePreferenceApi.get(PREFERENCES_PAGE_CODE)
-    const parsed = dto?.payload ? (JSON.parse(dto.payload) as Record<string, unknown>) : null
-    const remote = parsed ? parsed[PREFERENCES_SECTION] : null
+    const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY })
+    const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as Record<string, unknown>) : null
     if (remote && typeof remote === 'object') {
       const map = remote as Record<string, unknown>
       registry.forEach((source, key) => {

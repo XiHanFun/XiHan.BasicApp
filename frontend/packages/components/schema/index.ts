@@ -35,8 +35,8 @@ export type { UseSchemaDictionaries } from './useSchemaDictionaries'
 export { downloadText, toCsv, useSchemaExport } from './useSchemaExport'
 export type { UseSchemaExportOptions } from './useSchemaExport'
 
-export { usePagePreferenceSync } from './usePagePreferenceSync'
-export type { PagePreferenceSync } from './usePagePreferenceSync'
+export { useUserSettingSync } from './useUserSettingSync'
+export type { UserSettingSync } from './useUserSettingSync'
 
 export { useFieldSecurity } from './useFieldSecurity'
 export type { FieldSecurityRule, UseFieldSecurity } from './useFieldSecurity'

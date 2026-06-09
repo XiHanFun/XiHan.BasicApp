@@ -52,7 +52,7 @@ public sealed partial class ProfileAppService
 
     private readonly IProfileVerificationService _profileVerificationService;
 
-    private readonly IUserPreferenceRepository _userPreferenceRepository;
+    private readonly IUserNotificationPreferenceRepository _notificationPreferenceRepository;
 
     /// <summary>
     /// 构造函数
@@ -63,7 +63,7 @@ public sealed partial class ProfileAppService
         IProfileVerificationService profileVerificationService,
         ILocalEventBus localEventBus,
         IUserNotificationDispatchService notificationDispatchService,
-        IUserPreferenceRepository userPreferenceRepository,
+        IUserNotificationPreferenceRepository notificationPreferenceRepository,
         ICurrentUser currentUser)
     {
         _profileDomainService = profileDomainService;
@@ -71,7 +71,7 @@ public sealed partial class ProfileAppService
         _profileVerificationService = profileVerificationService;
         _localEventBus = localEventBus;
         _notificationDispatchService = notificationDispatchService;
-        _userPreferenceRepository = userPreferenceRepository;
+        _notificationPreferenceRepository = notificationPreferenceRepository;
         _currentUser = currentUser;
     }
 
@@ -89,18 +89,18 @@ public sealed partial class ProfileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();
-        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
         if (preference is null)
         {
             // 惰性创建
-            preference = new SysUserPreference { UserId = userId };
+            preference = new SysUserNotificationPreference { UserId = userId };
             ApplyPreference(preference, input);
-            await _userPreferenceRepository.AddAsync(preference, cancellationToken);
+            await _notificationPreferenceRepository.AddAsync(preference, cancellationToken);
         }
         else
         {
             ApplyPreference(preference, input);
-            await _userPreferenceRepository.UpdateAsync(preference, cancellationToken);
+            await _notificationPreferenceRepository.UpdateAsync(preference, cancellationToken);
         }
 
         return ProfileQueryService.ToPreferenceDto(preference);
@@ -204,7 +204,7 @@ public sealed partial class ProfileAppService
     /// <summary>
     /// 将 DTO 写入偏好实体
     /// </summary>
-    private static void ApplyPreference(SysUserPreference preference, ProfileNotificationPreferenceDto input)
+    private static void ApplyPreference(SysUserNotificationPreference preference, ProfileNotificationPreferenceDto input)
     {
         preference.ChannelInApp = input.ChannelInApp;
         preference.ChannelEmail = input.ChannelEmail;

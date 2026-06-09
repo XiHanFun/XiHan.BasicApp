@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
 import { computed, ref, watch } from 'vue'
 import { storage } from '~/utils'
-import { usePagePreferenceSync } from './usePagePreferenceSync'
+import { useUserSettingSync } from './useUserSettingSync'
 
 /**
  * 单列设置项（显隐 / 固定 / 列宽）
@@ -70,7 +70,7 @@ export function useTableSettings(
   },
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
-  const sync = usePagePreferenceSync(pageCode)
+  const sync = useUserSettingSync(pageCode)
   const defaultSelectable = options?.defaultSelectable ?? false
 
   /** 由 schema 字段生成的默认列设置 */
