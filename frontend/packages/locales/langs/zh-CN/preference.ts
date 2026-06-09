@@ -2,6 +2,8 @@ export default {
   sync_status: {
     local: '本地',
     local_tip: '仅本地保存，未开启同步（可在 偏好设置 › 通用 中开启对应同步）',
+    synced: '同步',
+    synced_tip: '已开启同步，变更会保存到后端账号并跨端覆盖',
   },
   drawer: {
     title: '偏好设置',

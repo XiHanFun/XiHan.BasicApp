@@ -47,7 +47,7 @@ export function createThemeSlice() {
   const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
   const frostedGlassEnabled = ref<boolean>(LocalStorage.get<boolean>(FROSTED_GLASS_ENABLED_KEY) ?? false)
-  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 20)
+  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 10)
 
   const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
@@ -71,7 +71,7 @@ export function createThemeSlice() {
   bindPersist(TRANSITION_PROGRESS_KEY, transitionProgress, true)
   bindPersist(TRANSITION_LOADING_KEY, transitionLoading, true)
   bindPersist(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled, false)
-  bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, 20)
+  bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, 10)
   bindPersist(GRAYSCALE_ENABLED_KEY, grayscaleEnabled, false)
   bindPersist(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled, false)
   bindPersist(WATERMARK_ENABLED_KEY, watermarkEnabled, false)

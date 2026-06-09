@@ -229,14 +229,6 @@ watch(visible, (open, was) => {
       </NScrollbar>
       <template #footer>
         <div class="drawer-footer">
-          <NButton
-            type="primary"
-            class="footer-save"
-            :disabled="!appStore.preferenceDraftDirty"
-            @click="savePreferences"
-          >
-            {{ t('preference.drawer.save') }}
-          </NButton>
           <NSpace :wrap="false">
             <NButton
               circle
@@ -260,6 +252,14 @@ watch(visible, (open, was) => {
               </template>
             </NButton>
           </NSpace>
+          <NButton
+            type="primary"
+            class="footer-save"
+            :disabled="!appStore.preferenceDraftDirty"
+            @click="savePreferences"
+          >
+            {{ t('preference.drawer.save') }}
+          </NButton>
         </div>
       </template>
     </NDrawerContent>
@@ -279,12 +279,13 @@ watch(visible, (open, was) => {
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
 }
 
-/* 保存按钮占据主区域，工具按钮（复制/重置/清空）靠右紧凑排列 */
+/* 工具按钮（复制/重置/清空）居左；保存按钮居右、宽度自适应（较窄） */
 .footer-save {
-  flex: 1;
+  flex: none;
 }
 
 :deep(.preference-scrollbar) {

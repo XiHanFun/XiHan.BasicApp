@@ -2,6 +2,8 @@ export default {
   sync_status: {
     local: 'Local',
     local_tip: 'Stored on this device only — sync is off. Enable it in Preferences › General.',
+    synced: 'Synced',
+    synced_tip: 'Sync is on — changes are saved to your account and apply across devices.',
   },
   drawer: {
     title: 'Preferences',
