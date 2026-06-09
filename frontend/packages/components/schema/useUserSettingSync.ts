@@ -1,6 +1,6 @@
 import { islandStart } from '~/composables/useDynamicIsland'
 import { UserSettingScene } from '~/constants'
-import { useAppContext } from '~/stores'
+import { isSearchSyncEnabled, isTableSyncEnabled, useAppContext } from '~/stores'
 
 /** 分区 → 中文名（用于灵动岛同步提示） */
 const SECTION_NAMES: Record<string, string> = {
@@ -11,6 +11,20 @@ const SECTION_NAMES: Record<string, string> = {
 
 function sectionName(section: string): string {
   return SECTION_NAMES[section] ?? '页面设置'
+}
+
+/**
+ * 分区是否开启后端同步：搜索→「同步搜索设置」开关；表格/视图→「同步表格设置」开关；其余默认开启。
+ * 关闭时仅本地（localStorage 由各调用方维护），不上行 / 不拉取后端。
+ */
+function isSectionSyncEnabled(section: string): boolean {
+  if (section === 'search') {
+    return isSearchSyncEnabled()
+  }
+  if (section === 'table' || section === 'views') {
+    return isTableSyncEnabled()
+  }
+  return true
 }
 
 /**
@@ -73,6 +87,10 @@ async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
 }
 
 function saveSection(pageCode: string, section: string, value: unknown): void {
+  // 该分区未开启同步：仅本地（由调用方写 localStorage），不更新合并缓存、不上行后端
+  if (!isSectionSyncEnabled(section)) {
+    return
+  }
   const payload = cache.get(pageCode) ?? {}
   payload[section] = value
   cache.set(pageCode, payload)
@@ -106,6 +124,10 @@ export function useUserSettingSync(pageCode: string): UserSettingSync {
   resolveApi()
   return {
     hydrate: async <T>(section: string): Promise<T | undefined> => {
+      // 该分区未开启同步：不拉取后端，使用本地
+      if (!isSectionSyncEnabled(section)) {
+        return undefined
+      }
       const payload = await loadPayload(pageCode)
       return payload[section] as T | undefined
     },

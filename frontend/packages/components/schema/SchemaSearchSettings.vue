@@ -4,10 +4,14 @@ import type { SearchFieldSetting } from './useSearchSettings'
 import { DragDropProvider } from '@dnd-kit/vue'
 import { NButton, NCheckbox, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
 import { Icon } from '~/iconify'
+import { useAppStore } from '~/stores'
 import { resolveSortMove } from '../common/sortable'
 import SortableItem from '../common/SortableItem.vue'
+import SyncStatusBadge from '../common/SyncStatusBadge.vue'
 
 defineOptions({ name: 'SchemaSearchSettings' })
+
+const appStore = useAppStore()
 
 const props = defineProps<{
   /** 搜索字段设置（来自 useSearchSettings.settings） */
@@ -48,7 +52,10 @@ function onDragEnd(event: DragEndEvent) {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-base font-semibold text-foreground">搜索设置</span>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-semibold text-foreground">搜索设置</span>
+          <SyncStatusBadge :synced="appStore.searchSyncEnabled" />
+        </div>
         <div class="flex gap-2">
           <NButton size="small" secondary @click="emit('reset')">
             恢复默认

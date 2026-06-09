@@ -1,6 +1,6 @@
 import { nextTick, ref, watch } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
-import { PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, STORAGE_PREFIX, UserSettingScene } from '~/constants'
+import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, UserSettingScene } from '~/constants'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 
@@ -55,16 +55,41 @@ export function invalidateCacheIfBuildTimeChanged() {
   LocalStorage.set(BUILD_TIME_KEY, currentBuildTime)
 }
 
+/**
+ * 同步开关本身为「设备本地」维度：仅本地存储，不随偏好快照上行后端、也不被远端覆盖。
+ */
+const DEVICE_LOCAL_KEYS = new Set<string>([
+  PREFERENCE_SYNC_KEY,
+  FAVORITES_SYNC_KEY,
+  SEARCH_SYNC_KEY,
+  TABLE_SYNC_KEY,
+])
+
 /** 偏好后端同步是否启用（用户开关，默认关闭=仅本地存储）。读自注册表中的同步开关偏好。 */
 export function isPreferenceSyncEnabled(): boolean {
   return registry.get(PREFERENCE_SYNC_KEY)?.value === true
+}
+
+/** 收藏夹后端同步是否启用（默认关闭=仅本地存储） */
+export function isFavoritesSyncEnabled(): boolean {
+  return registry.get(FAVORITES_SYNC_KEY)?.value === true
+}
+
+/** 搜索设置后端同步是否启用（默认关闭=仅本地存储） */
+export function isSearchSyncEnabled(): boolean {
+  return registry.get(SEARCH_SYNC_KEY)?.value === true
+}
+
+/** 表格/视图设置后端同步是否启用（默认关闭=仅本地存储） */
+export function isTableSyncEnabled(): boolean {
+  return registry.get(TABLE_SYNC_KEY)?.value === true
 }
 
 /** 构建整份偏好快照（排除同步开关本身——设备本地维度，不上行） */
 function buildPreferenceSnapshot(): string {
   const snapshot: Record<string, unknown> = {}
   registry.forEach((source, key) => {
-    if (key === PREFERENCE_SYNC_KEY) {
+    if (DEVICE_LOCAL_KEYS.has(key)) {
       return
     }
     snapshot[key] = source.value
@@ -233,7 +258,7 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
       const map = remote as Record<string, unknown>
       registry.forEach((source, key) => {
         // 同步开关为设备本地维度，不受远端覆盖
-        if (key === PREFERENCE_SYNC_KEY) {
+        if (DEVICE_LOCAL_KEYS.has(key)) {
           return
         }
         if (key in map && map[key] !== undefined) {

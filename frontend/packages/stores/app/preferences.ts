@@ -10,16 +10,19 @@ import {
   COPYRIGHT_SITE_KEY,
   DEFAULT_LOCALE,
   DYNAMIC_TITLE_KEY,
+  FAVORITES_SYNC_KEY,
   FOOTER_ENABLE_KEY,
   FOOTER_FIXED_KEY,
   FOOTER_SHOW_DEV_INFO_KEY,
   LOCALE_KEY,
   PREFERENCE_SYNC_KEY,
   SEARCH_ENABLED_KEY,
+  SEARCH_SYNC_KEY,
   SHORTCUT_ENABLE_KEY,
   SHORTCUT_LOCK_KEY,
   SHORTCUT_LOGOUT_KEY,
   SHORTCUT_SEARCH_KEY,
+  TABLE_SYNC_KEY,
   WIDGET_DYNAMIC_ISLAND_KEY,
   WIDGET_FAVORITES_KEY,
   WIDGET_FULLSCREEN_KEY,
@@ -40,8 +43,11 @@ export function createPreferencesSlice() {
   const locale = ref<string>(LocalStorage.get<string>(LOCALE_KEY) ?? DEFAULT_LOCALE)
   const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
-  // 偏好设置后端同步开关：默认关闭（仅本地存储），开启后偏好变更上行后端并跨端覆盖
+  // 各类后端同步开关：默认关闭（仅本地存储），开启后该类保存时上行后端
   const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? false)
+  const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? false)
+  const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? false)
+  const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? false)
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 60)
 
@@ -92,6 +98,9 @@ export function createPreferencesSlice() {
   bindPersist(SEARCH_ENABLED_KEY, searchEnabled, true)
   bindPersist(DYNAMIC_TITLE_KEY, dynamicTitle, true)
   bindPersist(PREFERENCE_SYNC_KEY, preferenceSyncEnabled, false)
+  bindPersist(FAVORITES_SYNC_KEY, favoritesSyncEnabled, false)
+  bindPersist(SEARCH_SYNC_KEY, searchSyncEnabled, false)
+  bindPersist(TABLE_SYNC_KEY, tableSyncEnabled, false)
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 60)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
@@ -131,6 +140,15 @@ export function createPreferencesSlice() {
   }
   function setPreferenceSyncEnabled(v: boolean) {
     save(PREFERENCE_SYNC_KEY, preferenceSyncEnabled, v)
+  }
+  function setFavoritesSyncEnabled(v: boolean) {
+    save(FAVORITES_SYNC_KEY, favoritesSyncEnabled, v)
+  }
+  function setSearchSyncEnabled(v: boolean) {
+    save(SEARCH_SYNC_KEY, searchSyncEnabled, v)
+  }
+  function setTableSyncEnabled(v: boolean) {
+    save(TABLE_SYNC_KEY, tableSyncEnabled, v)
   }
   function setEnableCheckUpdates(v: boolean) {
     save(CHECK_UPDATES_KEY, enableCheckUpdates, v)
@@ -216,6 +234,9 @@ export function createPreferencesSlice() {
     searchEnabled,
     dynamicTitle,
     preferenceSyncEnabled,
+    favoritesSyncEnabled,
+    searchSyncEnabled,
+    tableSyncEnabled,
     enableCheckUpdates,
     checkUpdatesInterval,
     widgetThemeToggle,
@@ -246,6 +267,9 @@ export function createPreferencesSlice() {
     setSearchEnabled,
     setDynamicTitle,
     setPreferenceSyncEnabled,
+    setFavoritesSyncEnabled,
+    setSearchSyncEnabled,
+    setTableSyncEnabled,
     setEnableCheckUpdates,
     setCheckUpdatesInterval,
     setWidgetThemeToggle,

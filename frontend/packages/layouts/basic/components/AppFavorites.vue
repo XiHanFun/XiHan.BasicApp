@@ -7,8 +7,9 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
 import SortableItem from '~/components/common/SortableItem.vue'
+import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { Icon } from '~/iconify'
-import { useFavoritesStore } from '~/stores'
+import { useAppStore, useFavoritesStore } from '~/stores'
 import { registerFavoritesAnchor, useFavoritesPulse } from '../composables/use-favorites-fly'
 
 defineOptions({ name: 'AppFavorites' })
@@ -17,6 +18,7 @@ const route = useRoute()
 const router = useRouter()
 const { t, te } = useI18n()
 const favoritesStore = useFavoritesStore()
+const appStore = useAppStore()
 
 const showPanel = ref(false)
 const anchorRef = ref<HTMLElement | null>(null)
@@ -113,7 +115,10 @@ onBeforeUnmount(() => {
     <div class="flex flex-col gap-2">
       <!-- 头部 -->
       <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold text-foreground">收藏夹</span>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-semibold text-foreground">收藏夹</span>
+          <SyncStatusBadge :synced="appStore.favoritesSyncEnabled" />
+        </div>
         <span class="text-xs text-foreground/40">可拖拽排序</span>
       </div>
 

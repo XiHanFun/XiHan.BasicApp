@@ -4,10 +4,14 @@ import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings
 import { DragDropProvider } from '@dnd-kit/vue'
 import { NButton, NCheckbox, NDivider, NIcon, NInputNumber, NPopover, NTooltip } from 'naive-ui'
 import { Icon } from '~/iconify'
+import { useAppStore } from '~/stores'
 import { resolveSortMove } from '../common/sortable'
 import SortableItem from '../common/SortableItem.vue'
+import SyncStatusBadge from '../common/SyncStatusBadge.vue'
 
 defineOptions({ name: 'SchemaTableSettings' })
+
+const appStore = useAppStore()
 
 const props = defineProps<{
   /** 列设置（来自 useTableSettings.columns） */
@@ -95,7 +99,10 @@ function onDragEnd(event: DragEndEvent) {
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <span class="text-base font-semibold text-foreground">表格设置</span>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-semibold text-foreground">表格设置</span>
+          <SyncStatusBadge :synced="appStore.tableSyncEnabled" />
+        </div>
         <div class="flex gap-2">
           <NButton size="small" secondary @click="emit('reset')">
             恢复默认
