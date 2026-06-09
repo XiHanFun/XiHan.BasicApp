@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import type { DragEndEvent } from '@dnd-kit/vue'
-import type { DropdownOption } from 'naive-ui'
 import type { TabItem } from '~/types'
 import { DragDropProvider } from '@dnd-kit/vue'
 import { useDebounceFn } from '@vueuse/core'
-import { NButton, NDropdown, NIcon } from 'naive-ui'
+import { NButton, NIcon } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -14,7 +13,6 @@ import { Icon } from '~/iconify'
 import { useAppStore, useFavoritesStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
-  createDropdownIcon,
   flyToFavorites,
   getTabByPath,
   openTabInNewWindow,
@@ -69,13 +67,6 @@ const tabThemeVars = computed(() => {
     '--tab-active-bg': `color-mix(in srgb, ${color} 18%, hsl(var(--background)))`,
   }
 })
-const moreTabOptions = computed<DropdownOption[]>(() =>
-  localizedTabs.value.map(item => ({
-    key: item.path,
-    label: item.displayTitle,
-    icon: createDropdownIcon(item.pinned ? 'lucide:pin' : 'lucide:file'),
-  })),
-)
 const contextMenuOptions = computed(() => {
   return buildTabContextOptions({
     path: contextTabPath.value,
@@ -183,6 +174,23 @@ function openContextMenu(e: MouseEvent, tab: TabItem) {
   contextMenuVisible.value = true
 }
 
+// 工具栏「网格」按钮：打开当前选中标签的上下文菜单（与右键标签一致），而非罗列已打开标签
+function openActiveTabMenu(e: MouseEvent) {
+  const activeTab = getTabByPath(visibleTabs.value, route.fullPath)
+  if (!activeTab) {
+    return
+  }
+  contextTabPath.value = activeTab.path
+  contextTabClosable.value = activeTab.closable
+  contextTabPinned.value = Boolean(activeTab.pinned)
+  // 菜单与收藏「飞入」动画都以按钮自身矩形为锚点
+  const btnRect = (e.currentTarget as HTMLElement | null)?.getBoundingClientRect() ?? null
+  contextTabRect.value = btnRect
+  contextMenuX.value = btnRect ? btnRect.right : e.clientX
+  contextMenuY.value = btnRect ? btnRect.bottom + 4 : e.clientY
+  contextMenuVisible.value = true
+}
+
 function handleDropdownSelect(key: string) {
   if (!contextTabPath.value) {
     return
@@ -282,10 +290,6 @@ function onTabDragEnd(event: DragEndEvent) {
   if (from && to && from.path !== to.path) {
     tabbarStore.moveTab(from.path, to.path)
   }
-}
-
-function handleMoreTabSelect(path: string) {
-  handleJump(path)
 }
 
 // ---- 滚动按钮逻辑 ----
@@ -496,19 +500,18 @@ watch(() => route.fullPath, () => {
       @select="handleDropdownSelect"
     />
     <span class="tab-divider" />
-    <NDropdown
+    <NButton
       v-if="tabbarPreferences.tabbarShowMore.value"
-      :options="moreTabOptions"
-      @select="(key) => handleMoreTabSelect(String(key))"
+      quaternary
+      size="tiny"
+      @click="openActiveTabMenu"
     >
-      <NButton quaternary size="tiny">
-        <template #icon>
-          <NIcon>
-            <Icon icon="lucide:layout-grid" width="14" />
-          </NIcon>
-        </template>
-      </NButton>
-    </NDropdown>
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:layout-grid" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
     <span
       v-if="tabbarPreferences.tabbarShowMore.value && (appStore.widgetRefresh || tabbarPreferences.tabbarShowMaximize.value)"
       class="tab-divider"
