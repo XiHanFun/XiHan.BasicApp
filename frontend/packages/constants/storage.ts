@@ -11,6 +11,7 @@ export const SIDEBAR_COLLAPSED_KEY = `${STORAGE_PREFIX}sidebar_collapsed`
 export const TAGS_BAR_KEY = `${STORAGE_PREFIX}tags_bar`
 export const TABS_LIST_KEY = `${STORAGE_PREFIX}tabs_list`
 export const FAVORITES_KEY = `${STORAGE_PREFIX}favorites`
+export const RECENT_ROUTES_KEY = `${STORAGE_PREFIX}recent_routes`
 export const LAYOUT_MODE_KEY = `${STORAGE_PREFIX}layout_mode`
 export const THEME_COLOR_KEY = `${STORAGE_PREFIX}theme_color`
 export const BRAND_TITLE_KEY = `${STORAGE_PREFIX}brand_title`
