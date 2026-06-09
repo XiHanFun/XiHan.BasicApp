@@ -19,6 +19,7 @@ import {
   SHORTCUT_LOCK_KEY,
   SHORTCUT_LOGOUT_KEY,
   SHORTCUT_SEARCH_KEY,
+  WIDGET_DYNAMIC_ISLAND_KEY,
   WIDGET_FAVORITES_KEY,
   WIDGET_FULLSCREEN_KEY,
   WIDGET_LANGUAGE_TOGGLE_KEY,
@@ -57,6 +58,7 @@ export function createPreferencesSlice() {
   )
   const widgetRefresh = ref<boolean>(LocalStorage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
   const widgetFavorites = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FAVORITES_KEY) ?? true)
+  const widgetDynamicIsland = ref<boolean>(LocalStorage.get<boolean>(WIDGET_DYNAMIC_ISLAND_KEY) ?? true)
   const widgetPreferencePosition = ref<string>(
     LocalStorage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
@@ -97,6 +99,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGET_SIDEBAR_TOGGLE_KEY, widgetSidebarToggle, true)
   bindPersist(WIDGET_REFRESH_KEY, widgetRefresh, true)
   bindPersist(WIDGET_FAVORITES_KEY, widgetFavorites, true)
+  bindPersist(WIDGET_DYNAMIC_ISLAND_KEY, widgetDynamicIsland, true)
   bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, 'auto')
   bindPersist(FOOTER_ENABLE_KEY, footerEnable, true)
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)
@@ -154,6 +157,9 @@ export function createPreferencesSlice() {
   }
   function setWidgetFavorites(v: boolean) {
     save(WIDGET_FAVORITES_KEY, widgetFavorites, v)
+  }
+  function setWidgetDynamicIsland(v: boolean) {
+    save(WIDGET_DYNAMIC_ISLAND_KEY, widgetDynamicIsland, v)
   }
   function setWidgetPreferencePosition(v: string) {
     save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
@@ -213,6 +219,7 @@ export function createPreferencesSlice() {
     widgetSidebarToggle,
     widgetRefresh,
     widgetFavorites,
+    widgetDynamicIsland,
     widgetPreferencePosition,
     footerEnable,
     footerFixed,
@@ -241,6 +248,7 @@ export function createPreferencesSlice() {
     setWidgetSidebarToggle,
     setWidgetRefresh,
     setWidgetFavorites,
+    setWidgetDynamicIsland,
     setWidgetPreferencePosition,
     setFooterEnable,
     setFooterFixed,

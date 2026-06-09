@@ -205,6 +205,8 @@ export default {
       sidebar_toggle: 'Sidebar Toggle',
       refresh: 'Refresh',
       favorites: 'Favorites',
+      dynamic_island: 'Dynamic Island',
+      dynamic_island_tip: 'Top dynamic island: progress for login / sync / upload / network, click to expand activity',
       preference_position: 'Preference Position',
       preference_position_auto: 'Auto',
       preference_position_header: 'Header',
