@@ -5,6 +5,7 @@ import { NIcon } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { usePlatform } from '~/composables/usePlatform'
 import { useRecentRoutes } from '~/composables/useRecentRoutes'
 import { AUTH_PATH, LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
@@ -25,10 +26,10 @@ const { isDark, toggleThemeWithTransition } = useTheme()
 const { refresh: refreshCurrentTab } = useRefresh()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 const { recent, recordRecent } = useRecentRoutes()
+const { formatShortcut } = usePlatform()
 
+// 仅在快捷键启用时展示触发按钮上的 ⌘K/Ctrl+K 徽标
 const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcutSearch)
-const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.userAgent)
-const shortcutLabel = computed(() => (isMac ? '⌘ K' : 'Ctrl K'))
 
 const visible = ref(false)
 const keyword = ref('')
@@ -406,7 +407,7 @@ watch(
           <Icon icon="lucide:search" />
         </NIcon>
         <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
-        <kbd v-if="showShortcut" class="search-kbd">{{ shortcutLabel }}</kbd>
+        <kbd v-if="showShortcut" class="search-kbd">{{ formatShortcut('Ctrl+K') }}</kbd>
       </button>
     </div>
     <div class="sm:hidden">
