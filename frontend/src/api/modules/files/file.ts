@@ -73,8 +73,12 @@ export const fileApi = {
   updateStorageStatus(input: FileStorageStatusUpdateDto) {
     return fileCommandApi.put<FileStorageDetailDto, FileStorageStatusUpdateDto>('FileStorageStatus', input)
   },
-  upload(input: FileUploadInput) {
-    return fileCommandApi.post<FileDetailDto, FormData>('UploadFile', toFileUploadFormData(input))
+  upload(input: FileUploadInput, onProgress?: (percent: number) => void) {
+    return fileCommandApi.post<FileDetailDto, FormData>('UploadFile', toFileUploadFormData(input), {
+      onUploadProgress: onProgress
+        ? e => onProgress(e.total ? Math.round((e.loaded / e.total) * 100) : 0)
+        : undefined,
+    })
   },
   verifyStorage(input: FileStorageVerifyDto) {
     return fileCommandApi.post<FileStorageDetailDto, FileStorageVerifyDto>('VerifyFileStorage', input)
