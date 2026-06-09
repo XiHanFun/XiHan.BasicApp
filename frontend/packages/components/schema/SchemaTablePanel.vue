@@ -2,6 +2,7 @@
 import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'naive-ui'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
+import { useIsMobile } from '~/composables'
 import { toSortParams } from './selectors'
 
 defineOptions({ name: 'SchemaTablePanel' })
@@ -75,6 +76,8 @@ const emit = defineEmits<{
   'sort': [field: string | undefined, order: 'asc' | 'desc' | undefined]
   'resizeColumn': [key: string, width: number]
 }>()
+
+const { isMobile } = useIsMobile()
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
 
@@ -186,11 +189,14 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
       </div>
       <NPagination
         v-if="!tree"
+        class="xh-table-panel__pagination"
         :item-count="total"
         :page="page"
         :page-size="pageSize"
         :page-sizes="pageSizes"
-        show-size-picker
+        :page-slot="isMobile ? 5 : 9"
+        :size="isMobile ? 'small' : 'medium'"
+        :show-size-picker="!isMobile"
         @update:page="(value: number) => emit('update:page', value)"
         @update:page-size="(value: number) => emit('update:pageSize', value)"
       />
@@ -231,6 +237,12 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
   gap: 12px;
   align-items: center;
   min-width: 0;
+}
+
+/* 分页：限制不超过页脚宽度；窄屏/页数极多时内部横向滚动，避免撑破页面 */
+.xh-table-panel__pagination {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .xh-table__count {
