@@ -63,4 +63,9 @@ public static class SaasCacheNames
     /// 部门树缓存。
     /// </summary>
     public const string DepartmentTree = "basicapp:saas:organization:dept-tree";
+
+    /// <summary>
+    /// 用户设置缓存（全场景偏好/页面设置同步）。
+    /// </summary>
+    public const string UserSetting = "basicapp:saas:user:setting";
 }
