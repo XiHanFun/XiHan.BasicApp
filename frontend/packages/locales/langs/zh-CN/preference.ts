@@ -1,12 +1,14 @@
 export default {
   drawer: {
     title: '偏好设置',
+    save: '保存',
     copy: '复制偏好设置',
     reset: '重置偏好',
     clear_cache: '清除缓存并登出',
+    save_success: '偏好设置已保存',
     copy_success: '偏好设置已复制',
     copy_failed: '复制失败',
-    reset_success: '偏好设置已恢复默认',
+    reset_success: '已恢复默认，点击保存后生效',
     tab: {
       appearance: '外观',
       layout: '布局',
@@ -224,6 +226,7 @@ export default {
     language: '语言',
     dynamic_title: '动态标题',
     dynamic_island: '启用灵动岛',
+    preference_sync: '同步偏好设置',
     watermark: '水印',
     watermark_content: '内容',
     watermark_text: '水印文案',
@@ -232,6 +235,7 @@ export default {
     check_updates_interval_unit: '秒',
     dynamic_title_tip: '页面标题随当前路由名称动态更新，便于在多个浏览器标签页中区分',
     dynamic_island_tip: '顶部灵动岛：登录、设置同步、文件上传、网络状态等过程会在此聚合提示，点击可展开查看活动与历史；关闭后这些结果改用消息提示框显示。',
+    preference_sync_tip: '默认关闭，偏好设置仅保存在本机；开启后偏好变更会同步到后端账号，并在其它设备登录时跨端覆盖。',
     watermark_tip: '在页面正文区域叠加半透明水印文字',
     check_updates_tip: '定期检测是否有新版本可用，有更新时显示提示',
     frosted_glass: '磨砂效果',

@@ -1,12 +1,14 @@
 export default {
   drawer: {
     title: 'Preferences',
+    save: 'Save',
     copy: 'Copy Preferences',
     reset: 'Reset Preferences',
     clear_cache: 'Clear Cache & Logout',
+    save_success: 'Preferences saved',
     copy_success: 'Preferences copied',
     copy_failed: 'Copy failed',
-    reset_success: 'Preferences reset to defaults',
+    reset_success: 'Reset to defaults — click Save to apply',
     tab: {
       appearance: 'Appearance',
       layout: 'Layout',
@@ -232,6 +234,7 @@ export default {
     language: 'Language',
     dynamic_title: 'Dynamic Title',
     dynamic_island: 'Dynamic Island',
+    preference_sync: 'Sync Preferences',
     watermark: 'Watermark',
     watermark_content: 'Content',
     watermark_text: 'Watermark Text',
@@ -242,6 +245,8 @@ export default {
       'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
     dynamic_island_tip:
       'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
+    preference_sync_tip:
+      'Off by default — preferences are stored on this device only. When on, preference changes sync to your account and override across devices on next sign-in.',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
     check_updates_tip:
       'Periodically check for new versions and show a notification when an update is available',

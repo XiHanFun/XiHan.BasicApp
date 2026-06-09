@@ -14,6 +14,7 @@ import {
   FOOTER_FIXED_KEY,
   FOOTER_SHOW_DEV_INFO_KEY,
   LOCALE_KEY,
+  PREFERENCE_SYNC_KEY,
   SEARCH_ENABLED_KEY,
   SHORTCUT_ENABLE_KEY,
   SHORTCUT_LOCK_KEY,
@@ -39,6 +40,8 @@ export function createPreferencesSlice() {
   const locale = ref<string>(LocalStorage.get<string>(LOCALE_KEY) ?? DEFAULT_LOCALE)
   const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
+  // 偏好设置后端同步开关：默认关闭（仅本地存储），开启后偏好变更上行后端并跨端覆盖
+  const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? false)
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 60)
 
@@ -88,6 +91,7 @@ export function createPreferencesSlice() {
   bindPersist(LOCALE_KEY, locale, DEFAULT_LOCALE)
   bindPersist(SEARCH_ENABLED_KEY, searchEnabled, true)
   bindPersist(DYNAMIC_TITLE_KEY, dynamicTitle, true)
+  bindPersist(PREFERENCE_SYNC_KEY, preferenceSyncEnabled, false)
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 60)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
@@ -124,6 +128,9 @@ export function createPreferencesSlice() {
   }
   function setDynamicTitle(v: boolean) {
     save(DYNAMIC_TITLE_KEY, dynamicTitle, v)
+  }
+  function setPreferenceSyncEnabled(v: boolean) {
+    save(PREFERENCE_SYNC_KEY, preferenceSyncEnabled, v)
   }
   function setEnableCheckUpdates(v: boolean) {
     save(CHECK_UPDATES_KEY, enableCheckUpdates, v)
@@ -208,6 +215,7 @@ export function createPreferencesSlice() {
     locale,
     searchEnabled,
     dynamicTitle,
+    preferenceSyncEnabled,
     enableCheckUpdates,
     checkUpdatesInterval,
     widgetThemeToggle,
@@ -237,6 +245,7 @@ export function createPreferencesSlice() {
     setLocale,
     setSearchEnabled,
     setDynamicTitle,
+    setPreferenceSyncEnabled,
     setEnableCheckUpdates,
     setCheckUpdatesInterval,
     setWidgetThemeToggle,

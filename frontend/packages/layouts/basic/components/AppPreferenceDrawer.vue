@@ -102,12 +102,17 @@ async function copyPreferences() {
 }
 
 function resetPreferences() {
-  // 仅重置「偏好设置」为默认值（内存级，经各偏好 watch 落地本地并同步后端）；
-  // 不清理 token / 用户信息 / 收藏 / 标签，也不刷新整页，因此不会登出
+  // 草稿模式下仅把内存值恢复默认（实时预览），需点击「保存」才落地；关闭不保存则还原
   appStore.resetPreferences()
   // 语言为「动作型」偏好（vue-i18n 不响应式跟随 store），重置后手动同步当前界面语言
   i18nLocale.value = appStore.locale
   message.success(t('preference.drawer.reset_success'))
+}
+
+/** 保存草稿：把当前预览的偏好提交落地（本地 + 按开关上行后端） */
+function savePreferences() {
+  appStore.commitPreferenceDraft()
+  message.success(t('preference.drawer.save_success'))
 }
 
 function openDrawer() {
@@ -141,6 +146,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener(LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER, handleOpenPreferenceDrawer)
+  // 兜底：组件卸载（如登出）时结束草稿，避免残留暂停态影响后续正常落地
+  appStore.discardPreferenceDraft()
 })
 
 watch(
@@ -149,6 +156,18 @@ watch(
     openDrawer()
   },
 )
+
+// 偏好草稿生命周期：打开抽屉进入草稿（仅预览）；关闭若未保存则还原到打开/最近保存时的值
+watch(visible, (open, was) => {
+  if (open && !was) {
+    appStore.beginPreferenceDraft()
+  }
+  else if (!open && was) {
+    appStore.discardPreferenceDraft()
+    // 还原后同步界面语言（locale 为动作型偏好，vue-i18n 不响应式跟随 store）
+    i18nLocale.value = appStore.locale
+  }
+})
 </script>
 
 <template>
@@ -205,29 +224,39 @@ watch(
         </NTabs>
       </NScrollbar>
       <template #footer>
-        <NSpace justify="end">
+        <div class="drawer-footer">
           <NButton
-            circle
             type="primary"
-            secondary
-            :title="t('preference.drawer.copy')"
-            @click="copyPreferences"
+            class="footer-save"
+            :disabled="!appStore.preferenceDraftDirty"
+            @click="savePreferences"
           >
-            <template #icon>
-              <Icon icon="lucide:copy" width="16" />
-            </template>
+            {{ t('preference.drawer.save') }}
           </NButton>
-          <NButton circle :title="t('preference.drawer.reset')" @click="resetPreferences">
-            <template #icon>
-              <Icon icon="lucide:rotate-ccw" width="16" />
-            </template>
-          </NButton>
-          <NButton circle :title="t('preference.drawer.clear_cache')" @click="clearAndLogout">
-            <template #icon>
-              <Icon icon="lucide:trash-2" width="16" />
-            </template>
-          </NButton>
-        </NSpace>
+          <NSpace :wrap="false">
+            <NButton
+              circle
+              type="primary"
+              secondary
+              :title="t('preference.drawer.copy')"
+              @click="copyPreferences"
+            >
+              <template #icon>
+                <Icon icon="lucide:copy" width="16" />
+              </template>
+            </NButton>
+            <NButton circle :title="t('preference.drawer.reset')" @click="resetPreferences">
+              <template #icon>
+                <Icon icon="lucide:rotate-ccw" width="16" />
+              </template>
+            </NButton>
+            <NButton circle :title="t('preference.drawer.clear_cache')" @click="clearAndLogout">
+              <template #icon>
+                <Icon icon="lucide:trash-2" width="16" />
+              </template>
+            </NButton>
+          </NSpace>
+        </div>
       </template>
     </NDrawerContent>
   </NDrawer>
@@ -240,6 +269,18 @@ watch(
 
 :deep(.n-drawer-footer) {
   padding: 8px 16px !important;
+}
+
+.drawer-footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+}
+
+/* 保存按钮占据主区域，工具按钮（复制/重置/清空）靠右紧凑排列 */
+.footer-save {
+  flex: 1;
 }
 
 :deep(.preference-scrollbar) {

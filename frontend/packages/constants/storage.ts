@@ -27,6 +27,7 @@ export const WATERMARK_TEXT_KEY = `${STORAGE_PREFIX}watermark_text`
 export const UI_RADIUS_KEY = `${STORAGE_PREFIX}ui_radius`
 export const FONT_SIZE_KEY = `${STORAGE_PREFIX}font_size`
 export const DYNAMIC_TITLE_KEY = `${STORAGE_PREFIX}dynamic_title`
+export const PREFERENCE_SYNC_KEY = `${STORAGE_PREFIX}preference_sync`
 export const CHECK_UPDATES_KEY = `${STORAGE_PREFIX}check_updates`
 export const CHECK_UPDATES_INTERVAL_KEY = `${STORAGE_PREFIX}check_updates_interval`
 export const BREADCRUMB_SHOW_HOME_KEY = `${STORAGE_PREFIX}breadcrumb_show_home`
