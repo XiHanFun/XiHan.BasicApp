@@ -49,6 +49,13 @@ const localeOptions = [
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.preference_sync') }}</span>
+          <PrefTip :content="t('preference.general.preference_sync_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.preferenceSyncEnabled" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.frosted_glass') }}</span>
           <PrefTip :content="t('preference.general.frosted_glass_tip')" />
         </div>
