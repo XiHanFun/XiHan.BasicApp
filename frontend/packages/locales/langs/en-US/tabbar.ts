@@ -1,6 +1,8 @@
 export default {
   reload: 'Reload',
   open: 'Open in New Window',
+  split_right: 'Open in Split View',
+  split_close: 'Close Split View',
   favorite: 'Add to Favorites',
   unfavorite: 'Remove from Favorites',
   pin: 'Pin',

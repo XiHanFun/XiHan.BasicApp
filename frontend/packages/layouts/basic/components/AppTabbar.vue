@@ -10,7 +10,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useFavoritesStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import { useAppStore, useFavoritesStore, useSplitViewStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
   flyToFavorites,
@@ -29,6 +29,7 @@ const appStore = useAppStore()
 const tabbarPreferences = useTabbarPreferences()
 const tabbarStore = useTabbarStore()
 const favoritesStore = useFavoritesStore()
+const splitViewStore = useSplitViewStore()
 
 const visibleTabs = computed(() => tabbarStore.tabs)
 const localizedTabs = computed(() => {
@@ -137,6 +138,9 @@ function handleContextMenuSelect(key: string, tabPath: string) {
       break
     case 'open':
       openTabInNewWindow(tabPath)
+      break
+    case 'splitRight':
+      splitViewStore.open(tabPath)
       break
     case 'favorite': {
       const target = getTabByPath(visibleTabs.value, tabPath)
