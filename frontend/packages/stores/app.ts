@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { createLayoutSlice } from './app/layout'
 import { createPreferencesSlice } from './app/preferences'
 import { createThemeSlice } from './app/theme'
+import { resetRegisteredPreferences } from './helpers'
 import { SetupStoreId } from './store-ids'
 
 /**
@@ -14,9 +15,15 @@ export const useAppStore = defineStore(SetupStoreId.App, () => {
   const layout = createLayoutSlice()
   const preferences = createPreferencesSlice()
 
+  /** 重置所有偏好为默认值（内存级，不触发整页刷新，因此不会影响登录态） */
+  function resetPreferences() {
+    resetRegisteredPreferences()
+  }
+
   return {
     ...theme,
     ...layout,
     ...preferences,
+    resetPreferences,
   }
 })
