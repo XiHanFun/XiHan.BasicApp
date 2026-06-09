@@ -12,6 +12,7 @@ import {
   THEME_ANIMATION_ENABLED_KEY,
   THEME_AUTO,
   THEME_COLOR_KEY,
+  THEME_DYNAMIC_COLOR_KEY,
   THEME_MODE_KEY,
   TRANSITION_ENABLE_KEY,
   TRANSITION_LOADING_KEY,
@@ -30,6 +31,8 @@ export function createThemeSlice() {
     LocalStorage.get<'light' | 'dark' | 'auto'>(THEME_MODE_KEY) ?? DEFAULT_THEME,
   )
   const themeColor = ref<string>(LocalStorage.get<string>(THEME_COLOR_KEY) ?? DEFAULT_THEME_COLOR)
+  // Material You 动态取色：从品牌色派生整套和谐色阶（默认开启）
+  const themeDynamicColor = ref<boolean>(LocalStorage.get<boolean>(THEME_DYNAMIC_COLOR_KEY) ?? true)
   const uiRadius = ref<number>(LocalStorage.get<number>(UI_RADIUS_KEY) ?? DEFAULT_UI_RADIUS)
   const fontSize = ref<number>(LocalStorage.get<number>(FONT_SIZE_KEY) ?? DEFAULT_FONT_SIZE)
 
@@ -59,6 +62,7 @@ export function createThemeSlice() {
 
   bindPersist(THEME_MODE_KEY, themeMode, DEFAULT_THEME)
   bindPersist(THEME_COLOR_KEY, themeColor, DEFAULT_THEME_COLOR)
+  bindPersist(THEME_DYNAMIC_COLOR_KEY, themeDynamicColor, true)
   bindPersist(UI_RADIUS_KEY, uiRadius, DEFAULT_UI_RADIUS)
   bindPersist(FONT_SIZE_KEY, fontSize, DEFAULT_FONT_SIZE)
   bindPersist(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, true)
@@ -84,6 +88,9 @@ export function createThemeSlice() {
   }
   function setThemeColor(color: string) {
     save(THEME_COLOR_KEY, themeColor, color)
+  }
+  function setThemeDynamicColor(v: boolean) {
+    save(THEME_DYNAMIC_COLOR_KEY, themeDynamicColor, v)
   }
   function setUiRadius(value: number) {
     save(UI_RADIUS_KEY, uiRadius, value)
@@ -128,6 +135,7 @@ export function createThemeSlice() {
   return {
     themeMode,
     themeColor,
+    themeDynamicColor,
     uiRadius,
     fontSize,
     isDark,
@@ -146,6 +154,7 @@ export function createThemeSlice() {
     setTheme,
     setFollowSystemTheme,
     setThemeColor,
+    setThemeDynamicColor,
     setUiRadius,
     setFontSize,
     setThemeAnimationEnabled,

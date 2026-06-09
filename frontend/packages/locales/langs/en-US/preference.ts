@@ -26,6 +26,8 @@ export default {
       default_or_custom: 'Default or Custom',
       default: 'Default',
       custom: 'Custom',
+      dynamic: 'Material You',
+      dynamic_tip: 'Derive a full harmonious palette from the brand color; turn off to change only the primary',
       family: {
         red: 'Red',
         orange: 'Orange',
