@@ -25,6 +25,16 @@ public sealed class NotificationCreateDto
     public NotificationType NotificationType { get; set; } = NotificationType.System;
     public string Title { get; set; } = string.Empty;
     public string? Content { get; set; }
+
+    /// <summary>
+    /// 模板编码（站内通知渠道；提供时按模板渲染覆盖 Title/Content，缺失回退原值）
+    /// </summary>
+    public string? TemplateCode { get; set; }
+
+    /// <summary>
+    /// 模板变量
+    /// </summary>
+    public Dictionary<string, string>? TemplateParams { get; set; }
     public string? Icon { get; set; }
     public string? Link { get; set; }
     public string? BusinessType { get; set; }
