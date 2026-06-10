@@ -22,6 +22,7 @@ import {
   SHORTCUT_LOCK_KEY,
   SHORTCUT_LOGOUT_KEY,
   SHORTCUT_SEARCH_KEY,
+  SHORTCUT_TAB_OVERVIEW_KEY,
   TABLE_SYNC_KEY,
   WIDGET_DYNAMIC_ISLAND_KEY,
   WIDGET_FAVORITES_KEY,
@@ -92,6 +93,7 @@ export function createPreferencesSlice() {
   const shortcutSearch = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_SEARCH_KEY) ?? true)
   const shortcutLogout = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOGOUT_KEY) ?? false)
   const shortcutLock = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOCK_KEY) ?? false)
+  const shortcutTabOverview = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_TAB_OVERVIEW_KEY) ?? true)
 
   // ---- 持久化绑定 ----
   bindPersist(LOCALE_KEY, locale, DEFAULT_LOCALE)
@@ -127,6 +129,7 @@ export function createPreferencesSlice() {
   bindPersist(SHORTCUT_SEARCH_KEY, shortcutSearch, true)
   bindPersist(SHORTCUT_LOGOUT_KEY, shortcutLogout, false)
   bindPersist(SHORTCUT_LOCK_KEY, shortcutLock, false)
+  bindPersist(SHORTCUT_TAB_OVERVIEW_KEY, shortcutTabOverview, true)
 
   // ---- Actions ----
   function setLocale(lang: string) {
@@ -228,6 +231,9 @@ export function createPreferencesSlice() {
   function setShortcutLock(v: boolean) {
     save(SHORTCUT_LOCK_KEY, shortcutLock, v)
   }
+  function setShortcutTabOverview(v: boolean) {
+    save(SHORTCUT_TAB_OVERVIEW_KEY, shortcutTabOverview, v)
+  }
 
   return {
     locale,
@@ -263,6 +269,7 @@ export function createPreferencesSlice() {
     shortcutSearch,
     shortcutLogout,
     shortcutLock,
+    shortcutTabOverview,
     setLocale,
     setSearchEnabled,
     setDynamicTitle,
@@ -296,5 +303,6 @@ export function createPreferencesSlice() {
     setShortcutSearch,
     setShortcutLogout,
     setShortcutLock,
+    setShortcutTabOverview,
   }
 }

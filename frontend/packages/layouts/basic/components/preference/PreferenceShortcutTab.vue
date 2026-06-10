@@ -36,6 +36,14 @@ const { formatShortcut: keys } = usePlatform()
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <div class="flex items-center gap-1.5">
+        <span>{{ t('preference.shortcut.tab_overview') }}</span>
+        <kbd class="kbd">{{ keys('Alt+B') }}</kbd>
+        <PrefTip :content="t('preference.shortcut.tab_overview_tip')" />
+      </div>
+      <NSwitch v-model:value="appStore.shortcutTabOverview" :disabled="!appStore.shortcutEnable" />
+    </div>
+    <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
+      <div class="flex items-center gap-1.5">
         <span>{{ t('preference.shortcut.lock') }}</span>
         <kbd class="kbd">{{ keys('Alt+L') }}</kbd>
         <PrefTip :content="t('preference.shortcut.lock_tip')" />

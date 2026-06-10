@@ -8,9 +8,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
+import { usePlatform } from '~/composables/usePlatform'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useFavoritesStore, useSplitViewStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import { useAppStore, useFavoritesStore, useLayoutBridgeStore, useSplitViewStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
   flyToFavorites,
@@ -30,6 +31,8 @@ const tabbarPreferences = useTabbarPreferences()
 const tabbarStore = useTabbarStore()
 const favoritesStore = useFavoritesStore()
 const splitViewStore = useSplitViewStore()
+const layoutBridgeStore = useLayoutBridgeStore()
+const { formatShortcut } = usePlatform()
 
 // 隐藏被合并到右侧分屏的标签（视为已并入分屏锚定标签）
 const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStore.isMergedTab(tab.path)))
@@ -565,6 +568,19 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       <template #icon>
         <NIcon>
           <Icon icon="lucide:layout-grid" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
+    <span class="tab-divider" />
+    <NButton
+      quaternary
+      size="tiny"
+      :title="`${t('tabbar.overview')} (${formatShortcut('Alt+B')})`"
+      @click="layoutBridgeStore.requestOpenTabOverview()"
+    >
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:layers" width="14" />
         </NIcon>
       </template>
     </NButton>
