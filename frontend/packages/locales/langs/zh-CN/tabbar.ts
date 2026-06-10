@@ -3,6 +3,7 @@ export default {
   open: '新窗口打开',
   split_right: '右侧分屏打开',
   split_close: '关闭分屏',
+  split_switch: '切换右侧标签',
   favorite: '收藏',
   unfavorite: '取消收藏',
   pin: '固定',
