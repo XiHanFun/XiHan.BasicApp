@@ -3,33 +3,37 @@ import { ref } from 'vue'
 import { SetupStoreId } from './store-ids'
 
 /**
- * 分屏对照（Split View）：内容区左右并排，左为当前页（主路由），右为另一标签页。
+ * 分屏对照（Split View）：把「当前标签」与「另一个已打开标签」合并成一个分屏标签，
+ * 内容区左右并排——左为锚定标签（主视图），右为另一标签（iframe 内容-only 模式，
+ * 拥有独立路由上下文，类似 HarmonyOS 多窗口 / iPad Split View）。
  *
- * 右侧 pane 用 iframe 加载目标路径的「内容-only 模式」(?__pane=1)，从而拥有独立的
- * 路由上下文（各自的 useRoute / 筛选互不串扰），类似 HarmonyOS 多窗口 / iPad Split View。
+ * 模型：active + leftPath（分屏锚定标签）+ rightPath（被合并到右侧、从标签栏隐藏的标签）。
+ * 仅当当前路由 === leftPath 时显示分屏；右标签从标签栏隐藏（视为已并入左标签）。
  * 纯视图态，不持久化（刷新后关闭）。
  */
 export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
-  /** 是否开启分屏 */
   const active = ref(false)
-  /** 右侧 pane 当前展示的路径（取自已打开标签） */
-  const panePath = ref('')
+  /** 分屏锚定标签（左侧 = 主视图，菜单显示「关闭分屏」） */
+  const leftPath = ref('')
+  /** 右侧 pane 标签（合并后从标签栏隐藏） */
+  const rightPath = ref('')
   /** 左侧宽度占比 [0.2, 0.8] */
   const ratio = ref(0.5)
 
-  /** 开启分屏并在右侧打开指定路径 */
-  function open(path: string): void {
-    if (!path) {
+  /** 开启分屏：left 锚定标签 + right 右侧标签 */
+  function open(left: string, right: string): void {
+    if (!left || !right || left === right) {
       return
     }
-    panePath.value = path
+    leftPath.value = left
+    rightPath.value = right
     active.value = true
   }
 
-  /** 切换右侧 pane 路径 */
-  function setPanePath(path: string): void {
-    if (path) {
-      panePath.value = path
+  /** 切换右侧标签（不能与左侧相同） */
+  function setRightPath(path: string): void {
+    if (path && path !== leftPath.value) {
+      rightPath.value = path
     }
   }
 
@@ -41,7 +45,30 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
   /** 关闭分屏 */
   function close(): void {
     active.value = false
+    leftPath.value = ''
+    rightPath.value = ''
   }
 
-  return { active, panePath, ratio, open, setPanePath, setRatio, close }
+  /** 是否为分屏锚定标签（其菜单显示「关闭分屏」） */
+  function isSplitTab(path: string): boolean {
+    return active.value && path === leftPath.value
+  }
+
+  /** 是否为被合并到右侧、应从标签栏隐藏的标签 */
+  function isMergedTab(path: string): boolean {
+    return active.value && path === rightPath.value
+  }
+
+  return {
+    active,
+    leftPath,
+    rightPath,
+    ratio,
+    open,
+    setRightPath,
+    setRatio,
+    close,
+    isSplitTab,
+    isMergedTab,
+  }
 })

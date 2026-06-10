@@ -22,7 +22,7 @@ function tr(title: string): string {
 
 /** 右侧 pane 的 iframe 源：目标路径 + 内容-only 模式（hash 路由） */
 const paneSrc = computed(() => {
-  const path = splitView.panePath
+  const path = splitView.rightPath
   if (!path) {
     return ''
   }
@@ -32,16 +32,19 @@ const paneSrc = computed(() => {
 })
 
 const paneTitle = computed(() => {
-  const tab = tabbarStore.tabs.find(item => item.path === splitView.panePath)
-  return tr(tab?.title ?? splitView.panePath)
+  const tab = tabbarStore.tabs.find(item => item.path === splitView.rightPath)
+  return tr(tab?.title ?? splitView.rightPath)
 })
 
+// 可切换的右侧标签：其它已打开标签（排除左侧锚定标签）
 const tabOptions = computed(() =>
-  tabbarStore.tabs.map(item => ({ key: item.path, label: tr(item.title) })),
+  tabbarStore.tabs
+    .filter(item => item.path !== splitView.leftPath)
+    .map(item => ({ key: item.path, label: tr(item.title) })),
 )
 
 function onSelect(key: string): void {
-  splitView.setPanePath(key)
+  splitView.setRightPath(key)
 }
 
 function reload(): void {
@@ -49,7 +52,7 @@ function reload(): void {
 }
 
 function openInMain(): void {
-  const path = splitView.panePath
+  const path = splitView.rightPath
   splitView.close()
   if (path) {
     void router.push(path)
