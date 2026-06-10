@@ -31,7 +31,8 @@ const tabbarStore = useTabbarStore()
 const favoritesStore = useFavoritesStore()
 const splitViewStore = useSplitViewStore()
 
-const visibleTabs = computed(() => tabbarStore.tabs)
+// 隐藏被合并到右侧分屏的标签（视为已并入分屏锚定标签）
+const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStore.isMergedTab(tab.path)))
 const localizedTabs = computed(() => {
   return visibleTabs.value.map((tab) => {
     const translated = te(tab.title) ? t(tab.title) : tab.title
@@ -69,12 +70,18 @@ const tabThemeVars = computed(() => {
   }
 })
 const contextMenuOptions = computed(() => {
+  // 分屏子菜单候选：其它已打开标签（排除被右键的标签自身）
+  const splitTargets = localizedTabs.value
+    .filter(tab => tab.path !== contextTabPath.value)
+    .map(tab => ({ path: tab.path, title: tab.displayTitle }))
   return buildTabContextOptions({
     path: contextTabPath.value,
     closable: contextTabClosable.value,
     pinned: contextTabPinned.value,
     favorited: favoritesStore.has(contextTabPath.value),
     favoritesEnabled: appStore.widgetFavorites,
+    isSplitTab: splitViewStore.isSplitTab(contextTabPath.value),
+    splitTargets,
     tabs: visibleTabs.value,
     isContentMaximized: isContentMaximized.value,
     t,
@@ -90,6 +97,10 @@ function handleJump(path: string) {
 
 function handleClose(path: string, e: MouseEvent) {
   e.stopPropagation()
+  // 关闭分屏锚定标签 → 一并关闭分屏（右标签随后恢复可见，再被本次关闭逻辑处理）
+  if (splitViewStore.isSplitTab(path)) {
+    splitViewStore.close()
+  }
   tabbarStore.removeTab(path)
   if (route.fullPath === path) {
     router.push(tabbarStore.activeTab)
@@ -104,6 +115,16 @@ function handleCloseOthers(path: string) {
 }
 
 function handleContextMenuSelect(key: string, tabPath: string) {
+  // 分屏：选择某个已打开标签 → 与当前标签合并为分屏（左=当前标签，右=所选标签）
+  if (key.startsWith('split:')) {
+    const right = key.slice('split:'.length)
+    splitViewStore.open(tabPath, right)
+    tabbarStore.setActiveTab(tabPath)
+    if (route.fullPath !== tabPath) {
+      router.push(tabPath)
+    }
+    return
+  }
   switch (key) {
     case 'close':
       tabbarStore.removeTab(tabPath)
@@ -139,8 +160,8 @@ function handleContextMenuSelect(key: string, tabPath: string) {
     case 'open':
       openTabInNewWindow(tabPath)
       break
-    case 'splitRight':
-      splitViewStore.open(tabPath)
+    case 'splitClose':
+      splitViewStore.close()
       break
     case 'favorite': {
       const target = getTabByPath(visibleTabs.value, tabPath)
@@ -400,6 +421,17 @@ watch(() => appStore.tabbarStyle, () => {
 
 watch(() => route.fullPath, () => {
   nextTick(scrollToActive)
+})
+
+// 分屏安全收尾：左/右任一标签被关闭（含「关闭其他/全部」）则自动关闭分屏，避免悬空
+watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
+  if (!splitViewStore.active) {
+    return
+  }
+  const paths = new Set(tabbarStore.tabs.map(tab => tab.path))
+  if (!paths.has(splitViewStore.leftPath) || !paths.has(splitViewStore.rightPath)) {
+    splitViewStore.close()
+  }
 })
 </script>
 

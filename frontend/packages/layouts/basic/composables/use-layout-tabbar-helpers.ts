@@ -40,11 +40,15 @@ export function buildTabContextOptions(params: {
   pinned: boolean
   favorited: boolean
   favoritesEnabled: boolean
+  /** 该标签是否为分屏锚定标签（菜单显示「关闭分屏」） */
+  isSplitTab: boolean
+  /** 分屏候选标签（其它已打开标签，用于「右侧分屏打开」子菜单） */
+  splitTargets: { path: string, title: string }[]
   tabs: TabItem[]
   isContentMaximized: boolean
   t: (key: string) => string
 }) {
-  const { path, closable, pinned, favorited, favoritesEnabled, tabs, isContentMaximized, t } = params
+  const { path, closable, pinned, favorited, favoritesEnabled, isSplitTab, splitTargets, tabs, isContentMaximized, t } = params
   const {
     closeAllDisabled,
     closeCurrentDisabled,
@@ -54,11 +58,33 @@ export function buildTabContextOptions(params: {
     pinDisabled,
   } = getTabDisableState(tabs, path, closable)
 
+  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）
+  let splitItems: DropdownOption[] = []
+  if (isSplitTab) {
+    splitItems = [
+      { key: 'splitClose', label: t('tabbar.split_close'), icon: createDropdownIcon('lucide:columns-2') },
+    ]
+  }
+  else if (splitTargets.length > 0) {
+    splitItems = [
+      {
+        key: 'splitParent',
+        label: t('tabbar.split_right'),
+        icon: createDropdownIcon('lucide:columns-2'),
+        children: splitTargets.map(target => ({
+          key: `split:${target.path}`,
+          label: target.title,
+          icon: createDropdownIcon('lucide:file'),
+        })),
+      },
+    ]
+  }
+
   return [
     { key: 'reload', label: t('tabbar.reload'), icon: createDropdownIcon('lucide:refresh-cw') },
     { key: 'divider-open-before', type: 'divider' },
     { key: 'open', label: t('tabbar.open'), icon: createDropdownIcon('lucide:external-link') },
-    { key: 'splitRight', label: t('tabbar.split_right'), icon: createDropdownIcon('lucide:columns-2') },
+    ...splitItems,
     { key: 'divider-open-after', type: 'divider' },
     ...(favoritesEnabled
       ? [{

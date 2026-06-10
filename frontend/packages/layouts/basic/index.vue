@@ -25,8 +25,12 @@ const shell = useLayoutShellAdapter()
 const route = useRoute()
 const splitView = useSplitViewStore()
 
-// 分屏 pane（iframe 内）的「内容-only」模式：只渲染页面内容，跳过外壳与实时连接/更新检查
-const isPaneMode = route.query.__pane === '1'
+// 分屏 pane（iframe 内）的「内容-only」模式：只渲染页面内容，跳过外壳与实时连接/更新检查。
+// 主信号取自 index.html 在 HTML 解析阶段捕获的全局标记（早于路由守卫，守卫会重写 URL 丢失 query）；
+// route.query / hash 作为兜底。
+const isPaneMode = (typeof window !== 'undefined' && (window as unknown as { __XIHAN_PANE__?: boolean }).__XIHAN_PANE__ === true)
+  || route.query.__pane === '1'
+  || (typeof window !== 'undefined' && window.location.hash.includes('__pane=1'))
 
 if (!isPaneMode) {
   // 初始化 SignalR 连接（实时通知 + 踢下线）
@@ -35,7 +39,10 @@ if (!isPaneMode) {
   useCheckUpdates()
 }
 
-// 分屏分隔条拖拽：按住左右拖动调整左右占比
+// 仅当「当前路由 === 分屏锚定标签」时显示分屏（右标签已并入、从标签栏隐藏）
+const showSplit = computed(() => splitView.active && route.fullPath === splitView.leftPath)
+
+// 分屏分隔条拖拽：拖拽期间用全屏遮罩接管指针（防 iframe 吞事件→卡顿），rAF 合帧更丝滑
 const splitRowRef = ref<HTMLElement | null>(null)
 const draggingDivider = ref(false)
 function onDividerDown() {
@@ -45,9 +52,25 @@ function onDividerDown() {
   }
   const rect = el.getBoundingClientRect()
   draggingDivider.value = true
-  const move = (ev: PointerEvent) => splitView.setRatio((ev.clientX - rect.left) / rect.width)
+  document.body.style.userSelect = 'none'
+  let raf = 0
+  let pendingX = 0
+  const move = (ev: PointerEvent) => {
+    pendingX = ev.clientX
+    if (raf) {
+      return
+    }
+    raf = requestAnimationFrame(() => {
+      raf = 0
+      splitView.setRatio((pendingX - rect.left) / rect.width)
+    })
+  }
   const up = () => {
     draggingDivider.value = false
+    document.body.style.userSelect = ''
+    if (raf) {
+      cancelAnimationFrame(raf)
+    }
     window.removeEventListener('pointermove', move)
     window.removeEventListener('pointerup', up)
   }
@@ -186,7 +209,7 @@ const sidebarEnableState = computed(
       <div class="flex-1 overflow-hidden transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
         <!-- 普通内容 -->
         <div
-          v-if="!splitView.active"
+          v-if="!showSplit"
           class="h-full overflow-auto"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
@@ -197,8 +220,8 @@ const sidebarEnableState = computed(
         >
           <LayoutContentRenderer :transition-name="shell.transitionName.value" />
         </div>
-        <!-- 分屏对照：左=当前页，右=另一标签（iframe 内容-only） -->
-        <div v-else ref="splitRowRef" class="flex h-full w-full overflow-hidden">
+        <!-- 分屏对照：左=锚定标签（主视图），右=另一标签（iframe 内容-only） -->
+        <div v-else ref="splitRowRef" class="relative flex h-full w-full overflow-hidden">
           <div class="h-full min-w-0 overflow-auto" :style="{ flexBasis: `${splitView.ratio * 100}%` }">
             <LayoutContentRenderer :transition-name="shell.transitionName.value" />
           </div>
@@ -210,6 +233,8 @@ const sidebarEnableState = computed(
           <div class="h-full min-w-0 flex-1">
             <SplitPane />
           </div>
+          <!-- 拖拽遮罩：覆盖 iframe，保证指针事件不被吞，拖动丝滑 -->
+          <div v-if="draggingDivider" class="split-drag-overlay" />
         </div>
       </div>
 
@@ -289,6 +314,14 @@ const sidebarEnableState = computed(
 .split-divider:hover,
 .split-divider.is-dragging {
   background: hsl(var(--primary) / 50%);
+}
+
+/* 拖拽遮罩：覆盖整个分屏行（含 iframe），拖拽期间接管指针避免卡顿 */
+.split-drag-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  cursor: col-resize;
 }
 
 .footer-bar {

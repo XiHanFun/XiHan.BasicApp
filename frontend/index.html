@@ -14,6 +14,11 @@
     <title>%VITE_APP_TITLE%</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <script>
+      // 分屏 pane（iframe）标记：在任何路由/守卫运行前，从原始 URL 捕获，
+      // 避免守卫首次加载时用 next({ path }) 重写 URL 丢失 __pane query。
+      window.__XIHAN_PANE__ = /[?&]__pane=1/.test(location.href)
+    </script>
     <style>
       #app-loading {
         position: fixed;
