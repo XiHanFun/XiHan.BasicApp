@@ -75,6 +75,7 @@ public sealed class MenuDomainService
             Redirect = NormalizeNullable(command.Redirect),
             Icon = NormalizeNullable(command.Icon),
             Title = NormalizeNullable(command.Title),
+            I18nKey = NormalizeNullable(command.I18nKey),
             IsExternal = command.IsExternal,
             ExternalUrl = command.IsExternal ? NormalizeNullable(command.ExternalUrl) : null,
             IsCache = command.IsCache,
@@ -115,6 +116,7 @@ public sealed class MenuDomainService
         menu.Redirect = NormalizeNullable(command.Redirect);
         menu.Icon = NormalizeNullable(command.Icon);
         menu.Title = NormalizeNullable(command.Title);
+        menu.I18nKey = NormalizeNullable(command.I18nKey);
         menu.IsExternal = command.IsExternal;
         menu.ExternalUrl = command.IsExternal ? NormalizeNullable(command.ExternalUrl) : null;
         menu.IsCache = command.IsCache;
@@ -193,6 +195,7 @@ public sealed class MenuDomainService
             command.Redirect,
             command.Icon,
             command.Title,
+            command.I18nKey,
             command.IsExternal,
             command.ExternalUrl,
             command.Badge,
@@ -218,6 +221,7 @@ public sealed class MenuDomainService
             command.Redirect,
             command.Icon,
             command.Title,
+            command.I18nKey,
             command.IsExternal,
             command.ExternalUrl,
             command.Badge,
@@ -235,6 +239,7 @@ public sealed class MenuDomainService
         string? redirect,
         string? icon,
         string? title,
+        string? i18nKey,
         bool isExternal,
         string? externalUrl,
         string? badge,
@@ -251,6 +256,7 @@ public sealed class MenuDomainService
         ValidateOptionalLength(redirect, 200, nameof(redirect), "重定向地址不能超过 200 个字符。");
         ValidateOptionalLength(icon, 100, nameof(icon), "菜单图标不能超过 100 个字符。");
         ValidateOptionalLength(title, 100, nameof(title), "菜单标题不能超过 100 个字符。");
+        ValidateOptionalLength(i18nKey, 100, nameof(i18nKey), "国际化键不能超过 100 个字符。");
         ValidateOptionalLength(externalUrl, 500, nameof(externalUrl), "外链地址不能超过 500 个字符。");
         ValidateOptionalLength(badge, 50, nameof(badge), "标签内容不能超过 50 个字符。");
         ValidateOptionalLength(badgeType, 20, nameof(badgeType), "标签类型不能超过 20 个字符。");

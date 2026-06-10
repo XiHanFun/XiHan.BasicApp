@@ -989,6 +989,95 @@ public static class SaasPermissionCodes
     }
 
     /// <summary>
+    /// 系统通知权限码（站内通知/公告，独立于邮件短信的 Message 族，支持独立授权）
+    /// </summary>
+    public static class Notification
+    {
+        /// <summary>
+        /// 查看系统通知
+        /// </summary>
+        public const string Read = "saas:notification:read";
+
+        /// <summary>
+        /// 创建系统通知
+        /// </summary>
+        public const string Create = "saas:notification:create";
+
+        /// <summary>
+        /// 更新系统通知
+        /// </summary>
+        public const string Update = "saas:notification:update";
+
+        /// <summary>
+        /// 发布系统通知
+        /// </summary>
+        public const string Publish = "saas:notification:publish";
+
+        /// <summary>
+        /// 删除系统通知
+        /// </summary>
+        public const string Delete = "saas:notification:delete";
+    }
+
+    /// <summary>
+    /// 存储配置权限码（对象存储/本地存储等存储后端配置，独立于参数配置的 Config 族）
+    /// </summary>
+    public static class StorageConfig
+    {
+        /// <summary>
+        /// 查看存储配置
+        /// </summary>
+        public const string Read = "saas:storage-config:read";
+
+        /// <summary>
+        /// 创建存储配置
+        /// </summary>
+        public const string Create = "saas:storage-config:create";
+
+        /// <summary>
+        /// 更新存储配置
+        /// </summary>
+        public const string Update = "saas:storage-config:update";
+
+        /// <summary>
+        /// 更新存储配置状态
+        /// </summary>
+        public const string Status = "saas:storage-config:status";
+
+        /// <summary>
+        /// 删除存储配置
+        /// </summary>
+        public const string Delete = "saas:storage-config:delete";
+    }
+
+    /// <summary>
+    /// 缓存管理权限码（平台运维专属：查看/清理分布式缓存）
+    /// </summary>
+    public static class Cache
+    {
+        /// <summary>
+        /// 查看缓存
+        /// </summary>
+        public const string Read = "saas:cache:read";
+
+        /// <summary>
+        /// 清理缓存
+        /// </summary>
+        public const string Clear = "saas:cache:clear";
+    }
+
+    /// <summary>
+    /// 服务监控权限码（平台运维专属：查看服务器与运行时指标）
+    /// </summary>
+    public static class Server
+    {
+        /// <summary>
+        /// 查看服务监控
+        /// </summary>
+        public const string Read = "saas:server:read";
+    }
+
+    /// <summary>
     /// 用户部门归属权限码
     /// </summary>
     public static class UserDepartment

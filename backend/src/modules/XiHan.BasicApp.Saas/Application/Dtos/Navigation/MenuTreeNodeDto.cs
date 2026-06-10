@@ -89,6 +89,11 @@ public sealed class MenuTreeNodeDto : BasicAppDto
     public string? Title { get; set; }
 
     /// <summary>
+    /// 国际化键（如 menu.identity_user，有值时前端按键翻译菜单标题）
+    /// </summary>
+    public string? I18nKey { get; set; }
+
+    /// <summary>
     /// 是否外链
     /// </summary>
     public bool IsExternal { get; set; }
