@@ -16,10 +16,11 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Models;
 using XiHan.Framework.Messaging.Options;
-using XiHan.Framework.Templating.Services;
+
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
@@ -39,7 +40,7 @@ public sealed class MessageDeliveryService
 
     private readonly XiHanMessagingOptions _messagingOptions;
 
-    private readonly ITemplateService _templateService;
+    private readonly IMessageTemplateRenderer _messageTemplateRenderer;
 
     /// <summary>
     /// 构造函数
@@ -49,14 +50,14 @@ public sealed class MessageDeliveryService
         IMessageRecordQueryService messageQueryService,
         IMessageDispatcher messageDispatcher,
         IMessageOutbox messageOutbox,
-        ITemplateService templateService,
+        IMessageTemplateRenderer messageTemplateRenderer,
         IOptions<XiHanMessagingOptions> messagingOptions)
     {
         _messageDomainService = messageDomainService;
         _messageQueryService = messageQueryService;
         _messageDispatcher = messageDispatcher;
         _messageOutbox = messageOutbox;
-        _templateService = templateService;
+        _messageTemplateRenderer = messageTemplateRenderer;
         _messagingOptions = messagingOptions.Value;
     }
 
@@ -124,7 +125,7 @@ public sealed class MessageDeliveryService
             TenantId = null,
             Subject = command.Subject ?? string.Empty,
             Content = command.Content,
-            TemplateCode = command.TemplateId?.ToString(),
+            TemplateCode = command.TemplateCode,
             TemplateParams = ParseTemplateParams(command.TemplateParams),
             ScheduledTime = command.ScheduledTime,
             Recipients =
@@ -146,7 +147,7 @@ public sealed class MessageDeliveryService
                 ["EmailType"] = command.EmailType.ToString(),
                 ["SendUserId"] = command.SendUserId?.ToString(),
                 ["ReceiveUserId"] = command.ReceiveUserId?.ToString(),
-                ["TemplateId"] = command.TemplateId?.ToString(),
+                ["TemplateCode"] = command.TemplateCode,
                 ["TemplateParams"] = command.TemplateParams,
                 ["MaxRetryCount"] = command.MaxRetryCount.ToString(),
                 ["BusinessType"] = command.BusinessType,
@@ -164,7 +165,7 @@ public sealed class MessageDeliveryService
             TenantId = null,
             Subject = string.Empty,
             Content = command.Content,
-            TemplateCode = command.TemplateId?.ToString(),
+            TemplateCode = command.TemplateCode,
             TemplateParams = ParseTemplateParams(command.TemplateParams),
             ScheduledTime = command.ScheduledTime,
             Recipients =
@@ -181,7 +182,7 @@ public sealed class MessageDeliveryService
                 ["Provider"] = command.Provider,
                 ["SenderId"] = command.SenderId?.ToString(),
                 ["ReceiverId"] = command.ReceiverId?.ToString(),
-                ["TemplateId"] = command.TemplateId?.ToString(),
+                ["TemplateCode"] = command.TemplateCode,
                 ["TemplateParams"] = command.TemplateParams,
                 ["MaxRetryCount"] = command.MaxRetryCount.ToString(),
                 ["BusinessType"] = command.BusinessType,
@@ -226,23 +227,42 @@ public sealed class MessageDeliveryService
         }
     }
 
+    /// <summary>
+    /// 按 TemplateCode 从模板库查找并渲染信封内容（租户模板优先回退全局；模板缺失/损坏保留原始内容）。
+    /// </summary>
     private async Task RenderTemplateAsync(MessageEnvelope envelope)
     {
-        if (string.IsNullOrWhiteSpace(envelope.TemplateCode) ||
-            envelope.TemplateParams is null ||
-            envelope.TemplateParams.Count == 0)
+        if (string.IsNullOrWhiteSpace(envelope.TemplateCode))
         {
             return;
         }
 
+        var channel = MapChannel(envelope.Channel);
         var variables = envelope.TemplateParams.ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value);
-        try
+        var rendered = await _messageTemplateRenderer.RenderAsync(channel, envelope.TemplateCode, variables);
+        if (rendered is null)
         {
-            envelope.Content = await _templateService.RenderAsync(envelope.TemplateCode, variables);
+            // 模板不存在/停用/渲染失败：保留原始内容，由发送链路继续处理
+            return;
         }
-        catch
+
+        envelope.Content = rendered.Content;
+        if (!string.IsNullOrWhiteSpace(rendered.Subject))
         {
-            // 模板渲染失败时保留原始内容，后续由消息发送链路处理。
+            envelope.Subject = rendered.Subject;
         }
+    }
+
+    /// <summary>
+    /// 信封渠道字符串映射为消息渠道枚举
+    /// </summary>
+    private static MessageChannel MapChannel(string channel)
+    {
+        return channel.ToLowerInvariant() switch
+        {
+            "email" => MessageChannel.Email,
+            "sms" => MessageChannel.Sms,
+            _ => MessageChannel.SiteNotification
+        };
     }
 }

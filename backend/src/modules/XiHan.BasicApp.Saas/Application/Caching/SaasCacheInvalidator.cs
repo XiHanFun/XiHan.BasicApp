@@ -42,6 +42,8 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasUserSettingCacheItem, string> _userSettingCache;
 
+    private readonly IDistributedCache<SaasMessageTemplateCacheItem, string> _messageTemplateCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -55,7 +57,8 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasResourceSelectCacheItem, string> resourceSelectCache,
         IDistributedCache<SaasOperationSelectCacheItem, string> operationSelectCache,
         IDistributedCache<SaasDepartmentTreeCacheItem, string> departmentTreeCache,
-        IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache)
+        IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache,
+        IDistributedCache<SaasMessageTemplateCacheItem, string> messageTemplateCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
@@ -67,6 +70,7 @@ public sealed class SaasCacheInvalidator
         _operationSelectCache = operationSelectCache;
         _departmentTreeCache = departmentTreeCache;
         _userSettingCache = userSettingCache;
+        _messageTemplateCache = messageTemplateCache;
     }
     /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
@@ -131,5 +135,11 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateUserSettingAsync(long userId, CancellationToken cancellationToken = default)
     {
         return _userSettingCache.RemoveByPatternAsync(SaasCacheKeys.UserSettingPattern(userId), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateMessageTemplateAsync(CancellationToken cancellationToken = default)
+    {
+        return _messageTemplateCache.RemoveByPatternAsync(SaasCacheKeys.AllMessageTemplatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

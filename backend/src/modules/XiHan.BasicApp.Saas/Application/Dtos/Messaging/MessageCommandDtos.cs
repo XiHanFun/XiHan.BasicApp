@@ -82,7 +82,7 @@ public sealed class EmailCreateDto
     public string? Content { get; set; }
     public bool IsHtml { get; set; } = true;
     public string? Attachments { get; set; }
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }
     public int MaxRetryCount { get; set; } = 3;
@@ -104,7 +104,7 @@ public sealed class EmailUpdateDto : BasicAppUDto
     public string? Content { get; set; }
     public bool IsHtml { get; set; } = true;
     public string? Attachments { get; set; }
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }
     public int MaxRetryCount { get; set; } = 3;
@@ -129,7 +129,7 @@ public sealed class SmsCreateDto
     public SmsType SmsType { get; set; } = SmsType.Notification;
     public string ToPhone { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public string? Provider { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }
@@ -145,7 +145,7 @@ public sealed class SmsUpdateDto : BasicAppUDto
     public SmsType SmsType { get; set; } = SmsType.Notification;
     public string ToPhone { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public string? Provider { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }

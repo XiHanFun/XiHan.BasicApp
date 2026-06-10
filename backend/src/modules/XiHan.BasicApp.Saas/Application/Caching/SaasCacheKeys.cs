@@ -189,6 +189,27 @@ public static class SaasCacheKeys
         return $"tenant:{tenantSegment}:dept-tree:{Hash($"{onlyEnabled}|{limit}")}";
     }
 
+    /// <summary>
+    /// 消息模板缓存键（按 租户 × 渠道 × 模板编码 隔离；platform 表示全局上下文）。
+    /// </summary>
+    /// <param name="tenantId">当前租户上下文（null/0 为平台态）。</param>
+    /// <param name="channel">消息渠道枚举值。</param>
+    /// <param name="templateCode">模板编码（调用方已规范化）。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string MessageTemplate(long? tenantId, int channel, string templateCode)
+    {
+        var tenantSegment = tenantId is > 0 ? tenantId.Value.ToString() : "platform";
+        return $"tenant:{tenantSegment}:channel:{channel}:code:{templateCode}";
+    }
+
+    /// <summary>
+    /// 全部消息模板缓存匹配模式（模板写路径整体失效）。
+    /// </summary>
+    public static string AllMessageTemplatesPattern()
+    {
+        return "tenant:*:channel:*:code:*";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
