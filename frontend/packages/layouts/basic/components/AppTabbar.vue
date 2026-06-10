@@ -36,6 +36,18 @@ const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStor
 const localizedTabs = computed(() => {
   return visibleTabs.value.map((tab) => {
     const translated = te(tab.title) ? t(tab.title) : tab.title
+    // 分屏锚定标签：视觉合并为「左标题 | 右标题」+ 分屏图标
+    if (splitViewStore.isSplitTab(tab.path)) {
+      const right = tabbarStore.tabs.find(item => item.path === splitViewStore.rightPath)
+      if (right) {
+        const rightTitle = te(right.title) ? t(right.title) : right.title
+        return {
+          ...tab,
+          meta: { ...tab.meta, icon: 'lucide:columns-2' },
+          displayTitle: `${translated} | ${rightTitle}`,
+        }
+      }
+    }
     return {
       ...tab,
       displayTitle: translated,

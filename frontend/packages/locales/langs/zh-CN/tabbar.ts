@@ -4,6 +4,7 @@ export default {
   split_right: '右侧分屏打开',
   split_close: '关闭分屏',
   split_switch: '切换右侧标签',
+  split_swap: '左右互换',
   favorite: '收藏',
   unfavorite: '取消收藏',
   pin: '固定',
