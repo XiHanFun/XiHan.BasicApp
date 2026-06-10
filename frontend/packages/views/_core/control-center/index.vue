@@ -106,7 +106,7 @@ onMounted(loadTenants)
           <template #icon>
             <Icon icon="lucide:log-out" />
           </template>
-          {{ t('header.logout') }}
+          {{ t('header.user.logout') }}
         </NButton>
       </div>
     </header>
@@ -212,14 +212,16 @@ onMounted(loadTenants)
 </template>
 
 <style scoped>
+/* 全部取色走设计系统令牌（packages/design/variables.css，.dark 自动切换），禁止硬编码颜色 */
 .cc-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  color: hsl(var(--foreground));
   background:
-    radial-gradient(1200px 500px at 80% -10%, rgb(79 124 255 / 10%), transparent 60%),
-    radial-gradient(900px 420px at -10% 110%, rgb(111 91 255 / 8%), transparent 55%),
-    var(--body-color, rgb(246 248 252));
+    radial-gradient(1200px 500px at 80% -10%, hsl(var(--primary) / 10%), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, hsl(var(--primary) / 6%), transparent 55%),
+    hsl(var(--background));
 }
 
 .cc-topbar {
@@ -244,6 +246,7 @@ onMounted(loadTenants)
 .cc-brand__title {
   font-size: 16px;
   font-weight: 700;
+  color: hsl(var(--foreground));
 }
 
 .cc-user {
@@ -254,7 +257,7 @@ onMounted(loadTenants)
 
 .cc-user__name {
   font-size: 13px;
-  color: var(--text-secondary, rgb(107 114 128));
+  color: hsl(var(--muted-foreground));
 }
 
 .cc-main {
@@ -278,22 +281,24 @@ onMounted(loadTenants)
   margin: 0 0 6px;
   font-size: 26px;
   font-weight: 700;
+  color: hsl(var(--foreground));
 }
 
 .cc-subtitle {
   margin: 0;
   font-size: 14px;
-  color: var(--text-secondary, rgb(107 114 128));
+  color: hsl(var(--muted-foreground));
 }
 
 .cc-card {
   padding: 20px;
   margin-bottom: 16px;
-  background: var(--card-color, rgb(255 255 255 / 85%));
+  color: hsl(var(--card-foreground));
+  background: hsl(var(--card) / 88%);
   backdrop-filter: blur(8px);
-  border: 1px solid var(--border-color, rgb(0 0 0 / 8%));
+  border: 1px solid hsl(var(--border));
   border-radius: 16px;
-  box-shadow: 0 8px 28px rgb(20 40 80 / 6%);
+  box-shadow: 0 8px 28px hsl(var(--foreground) / 5%);
 }
 
 .cc-card__head {
@@ -309,6 +314,7 @@ onMounted(loadTenants)
   align-items: center;
   font-size: 15px;
   font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .cc-platform {
@@ -324,8 +330,8 @@ onMounted(loadTenants)
   justify-content: center;
   width: 44px;
   height: 44px;
-  color: var(--primary-color, rgb(79 124 255));
-  background: var(--primary-color-suppl, rgb(79 124 255 / 12%));
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 12%);
   border-radius: 12px;
 }
 
@@ -337,11 +343,12 @@ onMounted(loadTenants)
 .cc-platform__title {
   font-size: 15px;
   font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .cc-platform__desc {
   font-size: 13px;
-  color: var(--text-secondary, rgb(107 114 128));
+  color: hsl(var(--muted-foreground));
 }
 
 .cc-tenant-grid {
@@ -356,17 +363,18 @@ onMounted(loadTenants)
   align-items: center;
   width: 100%;
   padding: 14px;
+  color: hsl(var(--foreground));
   text-align: left;
   cursor: pointer;
   background: transparent;
-  border: 1px solid var(--border-color, rgb(0 0 0 / 8%));
+  border: 1px solid hsl(var(--border));
   border-radius: 12px;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
 .cc-tenant:hover:not(:disabled) {
-  background: var(--hover-bg, rgb(0 0 0 / 3%));
-  border-color: var(--primary-color, rgb(79 124 255));
+  background: hsl(var(--accent));
+  border-color: hsl(var(--primary));
   transform: translateY(-1px);
 }
 
@@ -376,7 +384,7 @@ onMounted(loadTenants)
 }
 
 .cc-tenant--current {
-  border-color: var(--success-color, rgb(34 197 94));
+  border-color: hsl(var(--success));
 }
 
 .cc-tenant__logo {
@@ -389,7 +397,8 @@ onMounted(loadTenants)
   overflow: hidden;
   font-size: 15px;
   font-weight: 600;
-  background: var(--primary-color-suppl, rgb(79 124 255 / 12%));
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 12%);
   border-radius: 10px;
 }
 
@@ -409,6 +418,7 @@ onMounted(loadTenants)
   align-items: center;
   font-size: 14px;
   font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .cc-tenant__meta {
@@ -420,12 +430,12 @@ onMounted(loadTenants)
 
 .cc-tenant__code {
   font-size: 12px;
-  color: var(--text-secondary, rgb(107 114 128));
+  color: hsl(var(--muted-foreground));
 }
 
 .cc-tenant__arrow {
   flex-shrink: 0;
-  color: var(--text-secondary, rgb(107 114 128));
+  color: hsl(var(--muted-foreground));
 }
 
 .cc-empty {
@@ -434,6 +444,6 @@ onMounted(loadTenants)
 
 .cc-empty__hint {
   font-size: 12px;
-  color: var(--text-secondary, rgb(107 114 128));
+  color: hsl(var(--muted-foreground));
 }
 </style>

@@ -159,6 +159,7 @@ function createDefaultForm(): MenuFormModel {
     sort: 100,
     status: EnableStatus.Enabled,
     title: null,
+    i18nKey: null,
   }
 }
 
@@ -411,6 +412,7 @@ function buildFormModel(row: MenuDetailDto | MenuListItemDto): MenuFormModel {
     sort: row.sort,
     status: row.status,
     title: row.title ?? null,
+    i18nKey: row.i18nKey ?? null,
   }
 }
 
@@ -528,6 +530,7 @@ async function handleSubmit() {
         routeName: toStr(menuForm.value.routeName),
         sort: menuForm.value.sort,
         title: toStr(menuForm.value.title),
+        i18nKey: toStr(menuForm.value.i18nKey),
       }
       await menuManagementApi.update(updateInput)
     }
@@ -556,6 +559,7 @@ async function handleSubmit() {
         sort: menuForm.value.sort,
         status: menuForm.value.status,
         title: toStr(menuForm.value.title),
+        i18nKey: toStr(menuForm.value.i18nKey),
       }
       await menuManagementApi.create(createInput)
     }
@@ -676,6 +680,9 @@ onMounted(() => {
             </NDescriptionsItem>
             <NDescriptionsItem label="标题">
               {{ formatNullable(currentDetail.title) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="国际化键">
+              {{ formatNullable(currentDetail.i18nKey) }}
             </NDescriptionsItem>
             <NDescriptionsItem label="标签">
               <NTag v-if="currentDetail.badge" size="small" round :bordered="false" :type="badgeTagType(currentDetail.badgeType)">
@@ -799,6 +806,9 @@ onMounted(() => {
           </NFormItem>
           <NFormItem label="标题" path="title">
             <NInput v-model:value="menuForm.title" clearable placeholder="显示标题" />
+          </NFormItem>
+          <NFormItem label="国际化键" path="i18nKey">
+            <NInput v-model:value="menuForm.i18nKey" clearable placeholder="如 menu.identity_user（可选，按键翻译标题）" />
           </NFormItem>
           <NFormItem label="排序" path="sort">
             <NInputNumber v-model:value="menuForm.sort" :min="0" style="width: 100%" />
