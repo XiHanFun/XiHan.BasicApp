@@ -84,6 +84,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReviewDomainService, ReviewDomainService>();
         services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();
         services.AddScoped<IMessageDomainService, MessageDomainService>();
+        services.AddScoped<IMessageTemplateDomainService, MessageTemplateDomainService>();
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();

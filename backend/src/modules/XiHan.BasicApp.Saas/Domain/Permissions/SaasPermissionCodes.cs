@@ -79,6 +79,7 @@ public static class SaasPermissionCodes
         User.Delete,
         UserSecurity.Read,
         UserSecurity.ResetPassword,
+        UserSecurity.ResetTwoFactor,
         UserSecurity.Lock,
         UserSecurity.LoginPolicy,
         UserSession.Read,
@@ -143,6 +144,24 @@ public static class SaasPermissionCodes
         Message.Status,
         Message.Publish,
         Message.Delete,
+        MessageTemplate.Read,
+        MessageTemplate.Create,
+        MessageTemplate.Update,
+        MessageTemplate.Status,
+        MessageTemplate.Delete,
+        Notification.Read,
+        Notification.Create,
+        Notification.Update,
+        Notification.Publish,
+        Notification.Delete,
+        StorageConfig.Read,
+        StorageConfig.Create,
+        StorageConfig.Update,
+        StorageConfig.Status,
+        StorageConfig.Delete,
+        Cache.Read,
+        Cache.Clear,
+        Server.Read,
         UserDepartment.Read,
         UserDepartment.Grant,
         UserDepartment.Update,
@@ -522,6 +541,11 @@ public static class SaasPermissionCodes
         /// 重置用户密码
         /// </summary>
         public const string ResetPassword = "saas:user-security:reset-password";
+
+        /// <summary>
+        /// 重置用户双因素认证（OTP）
+        /// </summary>
+        public const string ResetTwoFactor = "saas:user-security:reset-two-factor";
 
         /// <summary>
         /// 更新用户锁定状态
@@ -986,6 +1010,37 @@ public static class SaasPermissionCodes
         /// 删除系统消息
         /// </summary>
         public const string Delete = "saas:message:delete";
+    }
+
+    /// <summary>
+    /// 消息模板权限码（邮件/短信/通知内容模板管理）
+    /// </summary>
+    public static class MessageTemplate
+    {
+        /// <summary>
+        /// 查看消息模板
+        /// </summary>
+        public const string Read = "saas:message-template:read";
+
+        /// <summary>
+        /// 创建消息模板
+        /// </summary>
+        public const string Create = "saas:message-template:create";
+
+        /// <summary>
+        /// 更新消息模板
+        /// </summary>
+        public const string Update = "saas:message-template:update";
+
+        /// <summary>
+        /// 更新消息模板状态
+        /// </summary>
+        public const string Status = "saas:message-template:status";
+
+        /// <summary>
+        /// 删除消息模板
+        /// </summary>
+        public const string Delete = "saas:message-template:delete";
     }
 
     /// <summary>

@@ -15,6 +15,7 @@ export default {
   message: '消息中心',
   message_notification: '通知公告',
   message_record: '邮件短信',
+  message_template: '消息模板',
   approval: '审批规则',
   approval_review: '审批中心',
   approval_constraint: '约束规则',

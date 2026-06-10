@@ -359,7 +359,8 @@ public sealed class SaasTenantEditionSeeder(
                 SaasPermissionCodes.Notification.Create,
                 SaasPermissionCodes.Notification.Update,
                 SaasPermissionCodes.Notification.Publish,
-                SaasPermissionCodes.Notification.Delete
+                SaasPermissionCodes.Notification.Delete,
+                SaasPermissionCodes.MessageTemplate.Read
             ]);
         var proPermissions = Combine(
             basicPermissions,
@@ -418,7 +419,11 @@ public sealed class SaasTenantEditionSeeder(
                 SaasPermissionCodes.StorageConfig.Create,
                 SaasPermissionCodes.StorageConfig.Update,
                 SaasPermissionCodes.StorageConfig.Status,
-                SaasPermissionCodes.StorageConfig.Delete
+                SaasPermissionCodes.StorageConfig.Delete,
+                SaasPermissionCodes.MessageTemplate.Create,
+                SaasPermissionCodes.MessageTemplate.Update,
+                SaasPermissionCodes.MessageTemplate.Status,
+                SaasPermissionCodes.MessageTemplate.Delete
             ]);
 
         return

@@ -15,6 +15,7 @@ export default {
   message: 'Message Center',
   message_notification: 'Announcements',
   message_record: 'Email & SMS',
+  message_template: 'Message Templates',
   approval: 'Approval Rules',
   approval_review: 'Approval Center',
   approval_constraint: 'Constraint Rules',
