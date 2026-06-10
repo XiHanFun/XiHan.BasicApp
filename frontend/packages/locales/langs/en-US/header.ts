@@ -2,6 +2,7 @@ export default {
   user: {
     profile: 'Profile',
     lock: 'Lock Screen',
+    switch_tenant: 'Switch Tenant',
     logout: 'Sign Out',
   },
   locale: {

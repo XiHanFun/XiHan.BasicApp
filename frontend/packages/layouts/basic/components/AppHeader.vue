@@ -186,6 +186,12 @@ const userOptions = computed<DropdownOption[]>(() => [
     key: 'profile',
     icon: () => h(Icon, { icon: 'lucide:user' }),
   },
+  {
+    // 切换租户 / 平台管理：打开控制中心（独立公共页，不进标签栏）
+    label: t('header.user.switch_tenant'),
+    key: 'control-center',
+    icon: () => h(Icon, { icon: 'lucide:building-2' }),
+  },
   ...(appStore.widgetLockScreen
     ? [
         {
@@ -236,6 +242,10 @@ async function handleUserAction(key: string) {
   }
   if (key === 'profile') {
     router.push('/workbench/profile')
+    return
+  }
+  if (key === 'control-center') {
+    router.push('/control-center')
     return
   }
   if (key === 'lock') {

@@ -2,6 +2,7 @@ export default {
   user: {
     profile: '个人中心',
     lock: '锁屏',
+    switch_tenant: '切换租户',
     logout: '退出登录',
   },
   locale: {

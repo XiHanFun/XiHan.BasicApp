@@ -159,6 +159,11 @@ export function setupRouterGuard(router: Router) {
       }
     }
 
+    // 独立公共页（控制中心等，meta.standalone）不挂主布局、不进入标签栏
+    if (to.meta?.standalone) {
+      return next()
+    }
+
     const rawTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
     const routeTitle = i18n.global.te(rawTitle) ? i18n.global.t(rawTitle) : rawTitle
     const pinned = to.path === (accessStore.homePath || HOME_PATH) || Boolean(to.meta?.affixTab)
