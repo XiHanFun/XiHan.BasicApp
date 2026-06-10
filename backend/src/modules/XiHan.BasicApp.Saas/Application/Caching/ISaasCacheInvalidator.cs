@@ -78,4 +78,9 @@ public interface ISaasCacheInvalidator
     /// 失效版本门控缓存（版本权限白名单变更/租户换版本后调用，鉴权快照热路径）。
     /// </summary>
     Task InvalidateEditionGateAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效字典项树缓存（字典/字典项增删改/启停后调用）。
+    /// </summary>
+    Task InvalidateDictionaryAsync(CancellationToken cancellationToken = default);
 }
