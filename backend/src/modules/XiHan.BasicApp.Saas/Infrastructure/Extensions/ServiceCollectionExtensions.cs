@@ -23,7 +23,6 @@ using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Authentication.OAuth;
@@ -177,11 +176,11 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasTenantEditionSeeder>();
         services.AddDataSeeder<SaasConfigurationSeeder>();
         services.AddDataSeeder<SaasDictSeeder>();
-        services.AddDataSeeder<SaasIdentityPermissionSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
         services.AddDataSeeder<SaasMessageTemplateSeeder>();
-        services.AddDataSeeder<SaasDepartmentSeeder>();
-        services.AddDataSeeder<SaasDemoUserSeeder>();
+        services.AddDataSeeder<SaasOrganizationSeeder>();
+        services.AddDataSeeder<SaasNotificationSeeder>();
+        services.AddDataSeeder<SaasStorageConfigSeeder>();
         return services;
     }
 

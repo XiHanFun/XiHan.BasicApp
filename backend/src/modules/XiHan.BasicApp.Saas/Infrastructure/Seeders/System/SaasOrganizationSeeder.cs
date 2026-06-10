@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasDepartmentSeeder
+// FileName:SaasOrganizationSeeder
 // Guid:5f3a1e2d-8b6c-4790-ae12-c6d7890f1a3b
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -21,25 +20,22 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
+namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 /// <summary>
-/// SaaS 默认部门种子数据（与演示用户部门名称对齐，并维护闭包表）
-/// 演示配套数据，仅在开发环境执行，生产环境默认跳过
+/// SaaS 组织架构种子数据（默认租户正式组织结构：总公司 + 6 个一级部门，并维护闭包表）
 /// </summary>
-public sealed class SaasDepartmentSeeder(
+public sealed class SaasOrganizationSeeder(
     ISqlSugarClientResolver clientResolver,
-    ILogger<SaasDepartmentSeeder> logger,
+    ILogger<SaasOrganizationSeeder> logger,
     IServiceProvider serviceProvider,
-    ICurrentTenant currentTenant,
-    IHostEnvironment hostEnvironment)
+    ICurrentTenant currentTenant)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
     private const string DefaultTenantCode = "default";
     private const string RootDepartmentCode = "xihan";
 
     private readonly ICurrentTenant _currentTenant = currentTenant;
-    private readonly IHostEnvironment _hostEnvironment = hostEnvironment;
 
     /// <summary>
     /// 种子数据优先级（需在演示用户之前）
@@ -49,20 +45,13 @@ public sealed class SaasDepartmentSeeder(
     /// <summary>
     /// 种子数据名称
     /// </summary>
-    public override string Name => "[SaaS]默认部门种子数据";
+    public override string Name => "[SaaS]组织架构种子数据";
 
     /// <summary>
     /// 种子数据实现
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        // 演示配套数据仅在开发环境播种，生产环境跳过
-        if (!_hostEnvironment.IsDevelopment())
-        {
-            Logger.LogInformation("非开发环境，跳过默认部门种子数据");
-            return;
-        }
-
         var tenantId = await ResolveTenantIdAsync();
         if (tenantId == 0)
         {
@@ -78,20 +67,13 @@ public sealed class SaasDepartmentSeeder(
             client, tenantId, null, "XiHan", RootDepartmentCode, DepartmentType.Company, "总公司", 10);
         created += rootDept.Created ? 1 : 0;
 
-        var techDept = await EnsureDepartmentAsync(
-            client, tenantId, rootDept.Department.BasicId, "技术部", "tech", DepartmentType.Department, "技术研发中心", 20);
-        created += techDept.Created ? 1 : 0;
+        created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "技术部", "tech", DepartmentType.Department, "技术研发中心", 20)).Created ? 1 : 0;
 
         created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "产品部", "product", DepartmentType.Department, "产品设计与管理", 30)).Created ? 1 : 0;
-        created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "销售部", "sales", DepartmentType.Department, "销售与客户管理", 40)).Created ? 1 : 0;
         created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "运营部", "ops", DepartmentType.Department, "运营与增长", 45)).Created ? 1 : 0;
         created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "市场部", "marketing", DepartmentType.Department, "市场与品牌", 46)).Created ? 1 : 0;
         created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "人事部", "hr", DepartmentType.Department, "人力资源与行政", 50)).Created ? 1 : 0;
         created += (await EnsureDepartmentAsync(client, tenantId, rootDept.Department.BasicId, "财务部", "finance", DepartmentType.Department, "财务管理与审计", 60)).Created ? 1 : 0;
-
-        created += (await EnsureDepartmentAsync(client, tenantId, techDept.Department.BasicId, "前端组", "frontend", DepartmentType.Team, "Web 前端开发团队", 21)).Created ? 1 : 0;
-        created += (await EnsureDepartmentAsync(client, tenantId, techDept.Department.BasicId, "后端组", "backend", DepartmentType.Team, "后端服务开发团队", 22)).Created ? 1 : 0;
-        created += (await EnsureDepartmentAsync(client, tenantId, techDept.Department.BasicId, "测试组", "qa", DepartmentType.Team, "质量保证与测试团队", 23)).Created ? 1 : 0;
 
         await RebuildDepartmentHierarchyAsync(client, tenantId);
 
