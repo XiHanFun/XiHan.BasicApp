@@ -52,6 +52,8 @@ public sealed class AuthorizationSnapshotQueryService
 
     private readonly IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> _snapshotCache;
 
+    private readonly IDistributedCache<SaasEditionGateCacheItem, string> _editionGateCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -66,7 +68,8 @@ public sealed class AuthorizationSnapshotQueryService
         ITenantRepository tenantRepository,
         ITenantEditionPermissionRepository tenantEditionPermissionRepository,
         ICurrentTenant currentTenant,
-        IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> snapshotCache)
+        IDistributedCache<SaasAuthorizationSnapshotCacheItem, string> snapshotCache,
+        IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache)
     {
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
@@ -79,6 +82,7 @@ public sealed class AuthorizationSnapshotQueryService
         _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
         _currentTenant = currentTenant;
         _snapshotCache = snapshotCache;
+        _editionGateCache = editionGateCache;
     }
 
     /// <inheritdoc />
@@ -126,8 +130,8 @@ public sealed class AuthorizationSnapshotQueryService
     /// </summary>
     /// <remarks>
     /// 例外（不门控）：超管通配 *、平台运维态（无租户）、租户未绑定版本、版本未配置白名单（避免误锁）。
-    /// 门控在缓存外叠加：原始快照仍按 userId 缓存，版本变更（升降级）即时生效，无需失效用户快照缓存。
-    /// 性能：命中门控时按当前实现每次拉取版本白名单；后续可对"版本→白名单"做独立缓存优化（见方案 REQ-5.3）。
+    /// 门控在用户快照缓存之外叠加：白名单走独立的版本门控缓存（10 分钟 TTL，版本权限/租户换版写路径调
+    /// InvalidateEditionGateAsync 失效），鉴权热路径不再每请求查 2 次库。
     /// </remarks>
     private async Task<AuthorizationSnapshot> ApplyEditionGatingAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken)
     {
@@ -144,23 +148,38 @@ public sealed class AuthorizationSnapshotQueryService
             return snapshot;
         }
 
-        var tenant = await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken);
-        if (tenant?.EditionId is not > 0)
+        var gate = await _editionGateCache.GetOrAddAsync(
+            SaasCacheKeys.EditionGate(tenantId.Value),
+            async () =>
+            {
+                var tenant = await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken);
+                if (tenant?.EditionId is not > 0)
+                {
+                    return new SaasEditionGateCacheItem { EditionId = null, CachedAt = DateTimeOffset.UtcNow };
+                }
+
+                var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(tenant.EditionId.Value, cancellationToken);
+                return new SaasEditionGateCacheItem
+                {
+                    EditionId = tenant.EditionId,
+                    PermissionIds = [.. whitelist
+                        .Where(item => item.Status == ValidityStatus.Valid)
+                        .Select(item => item.PermissionId)
+                        .Distinct()],
+                    CachedAt = DateTimeOffset.UtcNow
+                };
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        // 缓存异常 / 未绑定版本 / 版本未配置白名单：视为未启用门控，保持原快照（避免把租户锁死）
+        if (gate?.EditionId is not > 0 || gate.PermissionIds.Count == 0)
         {
             return snapshot;
         }
 
-        var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(tenant.EditionId.Value, cancellationToken);
-        var allowedIds = whitelist
-            .Where(item => item.Status == ValidityStatus.Valid)
-            .Select(item => item.PermissionId)
-            .ToHashSet();
-
-        // 版本未配置白名单：视为未启用门控，保持原快照（避免把租户锁死）
-        if (allowedIds.Count == 0)
-        {
-            return snapshot;
-        }
+        var allowedIds = gate.PermissionIds.ToHashSet();
 
         var gatedIds = new HashSet<long>(snapshot.PermissionIds);
         gatedIds.IntersectWith(allowedIds);

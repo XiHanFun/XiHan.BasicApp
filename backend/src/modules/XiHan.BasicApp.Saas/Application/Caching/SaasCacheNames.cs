@@ -73,4 +73,9 @@ public static class SaasCacheNames
     /// 消息模板缓存（渠道+编码 → 模板内容，发送链路高频读取）。
     /// </summary>
     public const string MessageTemplate = "basicapp:saas:message:template";
+
+    /// <summary>
+    /// 版本门控缓存（租户 → 版本权限白名单，鉴权快照热路径）。
+    /// </summary>
+    public const string EditionGate = "basicapp:saas:tenancy:edition-gate";
 }

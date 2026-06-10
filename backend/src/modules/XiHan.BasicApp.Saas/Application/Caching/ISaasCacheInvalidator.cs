@@ -73,4 +73,9 @@ public interface ISaasCacheInvalidator
     /// 失效消息模板缓存（模板增删改/启停后调用，发送链路按 渠道+编码 高频读取）。
     /// </summary>
     Task InvalidateMessageTemplateAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效版本门控缓存（版本权限白名单变更/租户换版本后调用，鉴权快照热路径）。
+    /// </summary>
+    Task InvalidateEditionGateAsync(CancellationToken cancellationToken = default);
 }
