@@ -3,6 +3,7 @@ export default {
   open: 'Open in New Window',
   split_right: 'Open in Split View',
   split_close: 'Close Split View',
+  split_switch: 'Switch Right Tab',
   favorite: 'Add to Favorites',
   unfavorite: 'Remove from Favorites',
   pin: 'Pin',

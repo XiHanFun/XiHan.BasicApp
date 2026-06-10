@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { darkTheme, NConfigProvider } from 'naive-ui'
+import { darkTheme, NConfigProvider, NDropdown } from 'naive-ui'
 import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useSplitViewStore } from '~/stores'
+import { useSplitViewStore, useTabbarStore } from '~/stores'
 import AppFavorites from './components/AppFavorites.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
@@ -23,7 +24,10 @@ defineOptions({ name: 'BasicLayout' })
 const { isDark, themeOverrides } = useTheme()
 const shell = useLayoutShellAdapter()
 const route = useRoute()
+const router = useRouter()
+const { t, te } = useI18n()
 const splitView = useSplitViewStore()
+const tabbarStore = useTabbarStore()
 
 // 分屏 pane（iframe 内）的「内容-only」模式：只渲染页面内容，跳过外壳与实时连接/更新检查。
 // 主信号取自 index.html 在 HTML 解析阶段捕获的全局标记（早于路由守卫，守卫会重写 URL 丢失 query）；
@@ -76,6 +80,37 @@ function onDividerDown() {
   }
   window.addEventListener('pointermove', move)
   window.addEventListener('pointerup', up)
+}
+
+// ── 分割线悬浮工具组（不占右侧顶部空间）──────────────────────────
+const splitPaneRef = ref<InstanceType<typeof SplitPane> | null>(null)
+
+function trTab(title: string): string {
+  return te(title) ? t(title) : title
+}
+
+/** 右侧可切换的标签：其它已打开标签（排除左侧锚定标签） */
+const splitTabOptions = computed(() =>
+  tabbarStore.tabs
+    .filter(item => item.path !== splitView.leftPath)
+    .map(item => ({ key: item.path, label: trTab(item.title) })),
+)
+
+function onSplitTabSelect(key: string | number): void {
+  splitView.setRightPath(String(key))
+}
+
+function splitPaneReload(): void {
+  splitPaneRef.value?.reload()
+}
+
+/** 右侧页转入主视图：关闭分屏并跳转 */
+function splitPaneOpenInMain(): void {
+  const path = splitView.rightPath
+  splitView.close()
+  if (path) {
+    void router.push(path)
+  }
 }
 
 const appVersion = __APP_VERSION__
@@ -229,9 +264,30 @@ const sidebarEnableState = computed(
             class="split-divider"
             :class="{ 'is-dragging': draggingDivider }"
             @pointerdown="onDividerDown"
-          />
+          >
+            <!-- 分割线悬浮工具组：切换右侧标签 / 刷新 / 转入主视图 / 关闭分屏 -->
+            <div class="split-tools" @pointerdown.stop>
+              <span class="split-tools__grip" @pointerdown="onDividerDown">
+                <Icon icon="lucide:grip-vertical" width="13" height="13" />
+              </span>
+              <NDropdown trigger="click" :options="splitTabOptions" @select="onSplitTabSelect">
+                <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch')">
+                  <Icon icon="lucide:columns-2" width="14" height="14" />
+                </button>
+              </NDropdown>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.reload')" @click="splitPaneReload">
+                <Icon icon="lucide:rotate-cw" width="13" height="13" />
+              </button>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.open')" @click="splitPaneOpenInMain">
+                <Icon icon="lucide:external-link" width="13" height="13" />
+              </button>
+              <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @click="splitView.close()">
+                <Icon icon="lucide:x" width="14" height="14" />
+              </button>
+            </div>
+          </div>
           <div class="h-full min-w-0 flex-1">
-            <SplitPane />
+            <SplitPane ref="splitPaneRef" />
           </div>
           <!-- 拖拽遮罩：覆盖 iframe，保证指针事件不被吞，拖动丝滑 -->
           <div v-if="draggingDivider" class="split-drag-overlay" />
@@ -305,6 +361,7 @@ const sidebarEnableState = computed(
 <style scoped>
 /* 分屏分隔条 */
 .split-divider {
+  position: relative;
   flex: 0 0 6px;
   cursor: col-resize;
   background: hsl(var(--border));
@@ -314,6 +371,59 @@ const sidebarEnableState = computed(
 .split-divider:hover,
 .split-divider.is-dragging {
   background: hsl(var(--primary) / 50%);
+}
+
+/* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间 */
+.split-tools {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 3px;
+  border-radius: 9999px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 16px hsl(var(--foreground) / 10%);
+  transform: translate(-50%, -50%);
+  cursor: default;
+}
+
+/* 拖拽手柄：工具组里也能拖（事件不 stop，转给分隔条逻辑） */
+.split-tools__grip {
+  display: inline-flex;
+  padding: 2px 0;
+  color: hsl(var(--muted-foreground));
+  cursor: col-resize;
+}
+
+.split-tools__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: hsl(var(--foreground) / 65%);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.split-tools__btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+.split-tools__btn--close:hover {
+  background: hsl(var(--destructive) / 12%);
+  color: hsl(var(--destructive));
 }
 
 /* 拖拽遮罩：覆盖整个分屏行（含 iframe），拖拽期间接管指针避免卡顿 */
