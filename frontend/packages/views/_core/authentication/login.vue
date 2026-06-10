@@ -33,7 +33,6 @@ const rememberMe = ref(true)
 const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
-  tenantEnabled: true,
   oauthProviders: [],
 })
 
@@ -62,7 +61,6 @@ const methodIcons: Record<string, string> = {
 const formData = ref({
   username: 'superadmin',
   password: 'SuperAdmin@123',
-  tenantId: '1',
 })
 
 const rules: FormRules = {
@@ -71,18 +69,6 @@ const rules: FormRules = {
   ],
   password: [
     { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
-  ],
-  tenantId: [
-    {
-      trigger: 'blur',
-      validator: (_rule: unknown, value: string) => {
-        if (!loginConfig.value.tenantEnabled)
-          return true
-        if (!value?.trim())
-          return new Error('请输入租户ID')
-        return true
-      },
-    },
   ],
 }
 
@@ -103,7 +89,7 @@ function getOauthProviderIcon(name: string) {
 }
 
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
-  authStore.startOAuthLogin(provider, resolveTenantId())
+  authStore.startOAuthLogin(provider)
 }
 
 async function loadLoginConfig() {
@@ -117,15 +103,10 @@ onMounted(async () => {
   cachedDeviceId.value = await generateDeviceFingerprint()
 })
 
-function resolveTenantId() {
-  return loginConfig.value.tenantEnabled ? formData.value.tenantId.trim() || undefined : undefined
-}
-
 function buildLoginParams() {
   return {
     username: formData.value.username,
     password: formData.value.password,
-    tenantId: resolveTenantId(),
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     deviceId: cachedDeviceId.value || undefined,
@@ -452,14 +433,6 @@ onMounted(async () => {
                 </NIcon>
               </template>
             </NInput>
-          </NFormItem>
-          <NFormItem
-            v-if="loginConfig.tenantEnabled"
-            path="tenantId"
-            :show-feedback="false"
-            class="!mb-6"
-          >
-            <NInput v-model:value="formData.tenantId" size="large" placeholder="请输入租户ID" />
           </NFormItem>
           <div class="flex justify-between items-center mb-5 text-sm">
             <NCheckbox v-model:checked="rememberMe">

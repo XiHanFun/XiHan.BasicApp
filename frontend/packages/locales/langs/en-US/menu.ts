@@ -33,6 +33,7 @@ export default {
   playground_form_dynamic: 'Dynamic Form',
   playground_cache: 'Cache Demo',
   profile: 'Profile',
+  control_center: 'Control Center',
   settings: 'Settings',
   about: 'About',
   editor_demo: 'Editor Demo',

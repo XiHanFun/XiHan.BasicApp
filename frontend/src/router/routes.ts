@@ -4,6 +4,7 @@ import BasicLayout from '~/layouts/basic/index.vue'
 import { coreRoutes } from '~/router/routes/core'
 
 const AboutPage = () => import('~/views/_core/about/index.vue')
+const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
 const EditorDemoPage = () => import('~/views/_core/editor-demo/index.vue')
 const ProfilePage = () => import('~/views/_core/profile/index.vue')
 
@@ -22,6 +23,18 @@ export const staticRoutes: RouteRecordRaw[] = [
         meta: {
           title: 'menu.profile',
           icon: 'lucide:user',
+          hidden: true,
+        },
+      },
+      {
+        // 控制中心：登录后未进入租户（平台态）的落点——选择租户进入 / 平台管理入口；
+        // 不依赖后端菜单（平台态普通用户无任何菜单），故为静态隐藏路由
+        path: '/control-center',
+        name: 'ControlCenter',
+        component: ControlCenterPage,
+        meta: {
+          title: 'menu.control_center',
+          icon: 'lucide:layout-grid',
           hidden: true,
         },
       },

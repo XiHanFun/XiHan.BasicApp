@@ -17,7 +17,6 @@ const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
-const defaultTenantId = '1'
 
 const formData = ref({
   email: '',
@@ -41,7 +40,7 @@ function handleSendCode() {
       if (errors)
         return
       try {
-        const response = await apis.sendEmailLoginCodeApi(formData.value.email, defaultTenantId)
+        const response = await apis.sendEmailLoginCodeApi(formData.value.email)
         countdown.value = 60
         timer = setInterval(() => {
           countdown.value--
@@ -71,7 +70,6 @@ async function handleLogin() {
     await authStore.loginByEmailCode({
       email: formData.value.email,
       code: formData.value.code,
-      tenantId: defaultTenantId,
     })
   }
   catch (err: unknown) {

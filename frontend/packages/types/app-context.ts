@@ -139,16 +139,16 @@ export interface AppContextApis extends Record<string, unknown> {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
   }
   phoneLoginApi: (input: PhoneLoginParams) => Promise<LoginToken>
-  sendEmailLoginCodeApi: (email: string, tenantId?: null | string) => Promise<VerificationCodeResult>
+  sendEmailLoginCodeApi: (email: string) => Promise<VerificationCodeResult>
   registerApi: (input: unknown) => Promise<unknown>
-  requestPasswordResetApi: (email: string, scopeId?: string) => Promise<PasswordResetResult>
+  requestPasswordResetApi: (email: string) => Promise<PasswordResetResult>
   revokeOtherSessionsApi: () => Promise<unknown>
   revokeSessionApi: (sessionId: string) => Promise<unknown>
   send2FASetupCodeApi: (method: number | string) => Promise<VerificationCodeResult>
   sendChangeEmailCodeApi: (input: ChangeEmailParams) => Promise<VerificationCodeResult>
   sendChangePhoneCodeApi: (input: ChangePhoneParams) => Promise<VerificationCodeResult>
   sendEmailVerifyCodeApi: () => Promise<VerificationCodeResult>
-  sendPhoneLoginCodeApi: (phone: string, scopeId?: string) => Promise<VerificationCodeResult>
+  sendPhoneLoginCodeApi: (phone: string) => Promise<VerificationCodeResult>
   sendPhoneVerifyCodeApi: () => Promise<VerificationCodeResult>
   serverApi: {
     getNuGetPackages: () => Promise<AppBackendDependency[]>

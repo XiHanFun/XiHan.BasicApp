@@ -60,7 +60,6 @@ const viewModules = import.meta.glob('/src/views/**/*.vue')
 const defaultLoginConfig: LoginConfig = {
   loginMethods: ['password'],
   oauthProviders: [],
-  tenantEnabled: true,
 }
 
 function emptyPage(input?: { page?: number, pageSize?: number }): AppPageSummary {
@@ -125,17 +124,17 @@ function createAuthApis() {
     emailLoginApi(input: EmailLoginParams) {
       return requestClient.post<LoginToken>('/Auth/EmailLogin', input)
     },
-    sendEmailLoginCodeApi(email: string, tenantId?: null | string) {
-      return requestClient.post<VerificationCodeResult>('/Auth/EmailLoginCode', { email, tenantId })
+    sendEmailLoginCodeApi(email: string) {
+      return requestClient.post<VerificationCodeResult>('/Auth/EmailLoginCode', { email })
     },
     registerApi(input: unknown) {
       return requestClient.post('/Auth/Register', input)
     },
-    requestPasswordResetApi(email: string, scopeId?: string) {
-      return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email, scopeId })
+    requestPasswordResetApi(email: string) {
+      return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email })
     },
-    sendPhoneLoginCodeApi(phone: string, scopeId?: string) {
-      return requestClient.post<VerificationCodeResult>('/Auth/PhoneLoginCode', { phone, scopeId })
+    sendPhoneLoginCodeApi(phone: string) {
+      return requestClient.post<VerificationCodeResult>('/Auth/PhoneLoginCode', { phone })
     },
   }
 }

@@ -74,6 +74,15 @@ export const useAuthStore = defineStore('auth', () => {
     // showIsland:false — 同步过程由登录灵动岛统一覆盖，避免重复提示
     await hydratePreferencesFromBackend({ showIsland: false })
 
+    // 智能落点（先登录后选租户）：后端按成员关系决定登录态——
+    // 未进入租户（tenantId 为空：平台账号/超管/多租户成员待选择）→ 控制中心；
+    // 已直进唯一租户 → 正常首页/重定向。
+    if (!userInfo.tenantId) {
+      await router.replace('/control-center')
+      loginTask.success('登录成功')
+      return
+    }
+
     const homePath = accessStore.homePath || HOME_PATH
     if (redirect) {
       const target = decodeURIComponent(redirect)
@@ -133,13 +142,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function startOAuthLogin(provider: OAuthProviderItem, tenantId?: null | string) {
+  function startOAuthLogin(provider: OAuthProviderItem) {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
     const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
-    let url = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider.name)}`
-    if (tenantId) {
-      url += `&tenantId=${tenantId}`
-    }
+    const url = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider.name)}`
     window.location.href = url
   }
 
@@ -157,6 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
   const STATIC_ROUTE_NAMES = new Set([
     'RootLayout',
     'Profile',
+    'ControlCenter',
     'EditorDemo',
     ...CORE_ROUTE_NAMES,
   ])

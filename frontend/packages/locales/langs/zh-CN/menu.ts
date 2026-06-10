@@ -33,6 +33,7 @@ export default {
   playground_form_dynamic: '动态表单',
   playground_cache: '缓存示例',
   profile: '个人中心',
+  control_center: '控制中心',
   settings: '系统设置',
   about: '关于系统',
   editor_demo: '编辑器演示',
