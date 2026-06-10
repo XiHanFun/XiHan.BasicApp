@@ -56,6 +56,8 @@ export const staticRoutes: RouteRecordRaw[] = [
       title: 'menu.control_center',
       icon: 'lucide:layout-grid',
       hidden: true,
+      // 独立公共页：不挂主布局、不进入标签栏（同认证页定位）
+      standalone: true,
     },
   },
   ...coreRoutes,
