@@ -116,6 +116,8 @@ public static class PageRegistry
         new("message.notification","通知公告","menu.message_notification",MenuType.Menu,"/message/notification","MessageNotification","message/notification/index","message",SaasPermissionCodes.Notification.Read,"lucide:bell",310),
         // [4.2] 邮件短信
         new("message.record","邮件短信","menu.message_record",MenuType.Menu,"/message/record","MessageRecord","message/record/index","message",SaasPermissionCodes.Message.Read,"lucide:send",320),
+        // [4.3] 消息模板
+        new("message.template","消息模板","menu.message_template",MenuType.Menu,"/message/template","MessageTemplate","message/template/index","message",SaasPermissionCodes.MessageTemplate.Read,"lucide:file-code-2",330),
 
         // [5] 审批规则
         new("approval","审批规则","menu.approval",MenuType.Directory,"/approval","Approval",null,null,null,"lucide:clipboard-check",400,"/approval/review"),
@@ -228,6 +230,12 @@ public static class PageRegistry
 
         // [4.2] 邮件短信
         new("message.record.delete","删除","message.record",SaasPermissionCodes.Message.Delete,1),
+
+        // [4.3] 消息模板
+        new("message.template.create","新增","message.template",SaasPermissionCodes.MessageTemplate.Create,1),
+        new("message.template.update","编辑","message.template",SaasPermissionCodes.MessageTemplate.Update,2),
+        new("message.template.status","启停","message.template",SaasPermissionCodes.MessageTemplate.Status,3),
+        new("message.template.delete","删除","message.template",SaasPermissionCodes.MessageTemplate.Delete,4),
 
         // [5.1] 审批中心
         new("approval.review.audit","审核","approval.review",SaasPermissionCodes.Review.Audit,1),
