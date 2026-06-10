@@ -81,14 +81,13 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
 
   /**
    * 左右互换：翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新。
-   * ratio 取补值使两个 pane 维持各自宽度、仅交换位置。
+   * ratio（视觉左侧占比）保持不变 → 分割线位置固定，互换前后左侧始终一样宽。
    */
   function toggleReversed(): void {
     if (!active.value) {
       return
     }
     reversed.value = !reversed.value
-    ratio.value = Math.min(0.8, Math.max(0.2, 1 - ratio.value))
     persist()
   }
 
