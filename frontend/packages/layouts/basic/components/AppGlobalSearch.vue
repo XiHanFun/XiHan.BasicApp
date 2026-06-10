@@ -5,6 +5,7 @@ import { NIcon } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { ensurePinyin, getPinyinIndex, usePinyinReady } from '~/composables/usePinyin'
 import { usePlatform } from '~/composables/usePlatform'
 import { useRecentRoutes } from '~/composables/useRecentRoutes'
 import { AUTH_PATH, LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
@@ -27,6 +28,7 @@ const { refresh: refreshCurrentTab } = useRefresh()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 const { recent, recordRecent } = useRecentRoutes()
 const { formatShortcut } = usePlatform()
+const pinyinReady = usePinyinReady()
 
 // 仅在快捷键启用时展示触发按钮上的 ⌘K/Ctrl+K 徽标
 const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcutSearch)
@@ -128,7 +130,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:theme',
       group: 'action',
-      title: isDark.value ? '切换到浅色主题' : '切换到深色主题',
+      title: isDark.value ? t('header.search.action.theme_light') : t('header.search.action.theme_dark'),
       icon: isDark.value ? 'lucide:sun' : 'lucide:moon',
       keywords: 'theme dark light 主题 深色 浅色 切换',
       run: () => toggleThemeWithTransition(),
@@ -136,7 +138,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:prefs',
       group: 'action',
-      title: '打开偏好设置',
+      title: t('header.search.action.preferences'),
       icon: 'lucide:settings-2',
       keywords: 'preference settings 设置 偏好 配置',
       run: () => layoutBridgeStore.requestOpenPreferenceDrawer(),
@@ -144,7 +146,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:favorite',
       group: 'action',
-      title: currentFavorited.value ? '取消收藏当前页' : '收藏当前页',
+      title: currentFavorited.value ? t('header.search.action.favorite_remove') : t('header.search.action.favorite_add'),
       icon: currentFavorited.value ? 'lucide:star-off' : 'lucide:star',
       keywords: 'favorite 收藏 标记',
       run: toggleFavoriteCurrent,
@@ -152,7 +154,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:fullscreen',
       group: 'action',
-      title: isFullscreen.value ? '退出全屏' : '进入全屏',
+      title: isFullscreen.value ? t('header.search.action.fullscreen_exit') : t('header.search.action.fullscreen_enter'),
       icon: isFullscreen.value ? 'lucide:minimize' : 'lucide:maximize',
       keywords: 'fullscreen 全屏',
       run: () => void toggleFullscreen(),
@@ -160,7 +162,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:refresh',
       group: 'action',
-      title: '刷新当前页',
+      title: t('header.search.action.refresh'),
       icon: 'lucide:rotate-cw',
       keywords: 'refresh reload 刷新 重载',
       run: () => refreshCurrentTab(),
@@ -168,7 +170,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:sidebar',
       group: 'action',
-      title: '折叠 / 展开侧栏',
+      title: t('header.search.action.sidebar_toggle'),
       icon: 'lucide:panel-left',
       keywords: 'sidebar 侧栏 折叠 展开',
       run: () => layoutBridgeStore.requestSidebarToggle(),
@@ -178,7 +180,7 @@ const actionItems = computed<PaletteItem[]>(() => {
     list.push({
       id: 'act:lock',
       group: 'action',
-      title: '锁定屏幕',
+      title: t('header.search.action.lock'),
       icon: 'lucide:lock',
       keywords: 'lock 锁屏 锁定',
       run: () => layoutBridgeStore.requestLockScreen(),
@@ -187,7 +189,7 @@ const actionItems = computed<PaletteItem[]>(() => {
   list.push({
     id: 'act:logout',
     group: 'action',
-    title: '退出登录',
+    title: t('header.search.action.logout'),
     icon: 'lucide:log-out',
     keywords: 'logout 退出 登出 注销',
     run: () => void authStore.logout(),
@@ -217,10 +219,26 @@ function fuzzy(q: string, text: string): { score: number, indices: number[] } | 
   return qi === ql.length ? { score, indices } : null
 }
 
+const ASCII_QUERY_RE = /^[\w\s]+$/
+
 function matchItem(item: PaletteItem, q: string): { score: number, indices: number[] } | null {
   const onTitle = fuzzy(q, item.title)
   if (onTitle) {
-    return { score: onTitle.score + 20, indices: onTitle.indices }
+    return { score: onTitle.score + 24, indices: onTitle.indices }
+  }
+  // 拼音匹配（字母查询 × 含汉字标题）：首字母优先、全拼次之；命中位映射回原字符做高亮
+  if (ASCII_QUERY_RE.test(q)) {
+    const idx = getPinyinIndex(item.title)
+    if (idx) {
+      const onInitials = fuzzy(q, idx.initials)
+      if (onInitials) {
+        return { score: onInitials.score + 16, indices: onInitials.indices }
+      }
+      const onFull = fuzzy(q, idx.full)
+      if (onFull) {
+        return { score: onFull.score + 10, indices: [...new Set(onFull.indices.map(i => idx.fullMap[i]!))] }
+      }
+    }
   }
   const extra = fuzzy(q, `${item.keywords ?? ''} ${item.subtitle ?? ''}`)
   return extra ? { score: extra.score, indices: [] } : null
@@ -239,25 +257,27 @@ function matchAndSort(items: PaletteItem[], q: string): PaletteView[] {
 }
 
 const groups = computed<{ key: string, label: string, items: PaletteView[] }[]>(() => {
+  // 拼音词典懒加载完成后触发重算（命中拼音的结果即时生效）
+  void pinyinReady.value
   const q = keyword.value.trim()
   const result: { key: string, label: string, items: PaletteView[] }[] = []
   if (!q) {
     if (recentItems.value.length) {
-      result.push({ key: 'recent', label: '最近访问', items: recentItems.value.slice(0, 6) })
+      result.push({ key: 'recent', label: t('header.search.group.recent'), items: recentItems.value.slice(0, 6) })
     }
     if (favoriteItems.value.length) {
-      result.push({ key: 'favorite', label: '收藏夹', items: favoriteItems.value.slice(0, 6) })
+      result.push({ key: 'favorite', label: t('header.search.group.favorite'), items: favoriteItems.value.slice(0, 6) })
     }
-    result.push({ key: 'action', label: '操作', items: actionItems.value })
+    result.push({ key: 'action', label: t('header.search.group.action'), items: actionItems.value })
     return result
   }
   const acts = matchAndSort(actionItems.value, q)
   const menus = matchAndSort(menuItems.value, q)
   if (acts.length) {
-    result.push({ key: 'action', label: '操作', items: acts })
+    result.push({ key: 'action', label: t('header.search.group.action'), items: acts })
   }
   if (menus.length) {
-    result.push({ key: 'menu', label: '菜单', items: menus })
+    result.push({ key: 'menu', label: t('header.search.group.menu'), items: menus })
   }
   return result
 })
@@ -364,6 +384,8 @@ function openSearch(): void {
   visible.value = true
   keyword.value = ''
   activeIndex.value = 0
+  // 懒加载拼音词典（幂等；就绪后 groups 自动重算）
+  void ensurePinyin()
   void nextTick(() => inputRef.value?.focus())
 }
 
@@ -466,7 +488,7 @@ watch(
                     :class="{ 'cmdk-hl': seg.hit }"
                   >{{ seg.text }}</span>
                 </span>
-                <span v-if="it.group === 'action'" class="cmdk-item__tag">操作</span>
+                <span v-if="it.group === 'action'" class="cmdk-item__tag">{{ t('header.search.tag_action') }}</span>
                 <span v-else-if="it.subtitle" class="cmdk-item__path">{{ it.subtitle }}</span>
               </button>
             </template>
@@ -481,9 +503,9 @@ watch(
 
           <!-- 底部快捷键提示 -->
           <div class="cmdk-footer">
-            <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
-            <span><kbd>↵</kbd> 打开</span>
-            <span><kbd>esc</kbd> 关闭</span>
+            <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('header.search.footer.select') }}</span>
+            <span><kbd>↵</kbd> {{ t('header.search.footer.open') }}</span>
+            <span><kbd>esc</kbd> {{ t('header.search.footer.close') }}</span>
           </div>
         </div>
       </div>
