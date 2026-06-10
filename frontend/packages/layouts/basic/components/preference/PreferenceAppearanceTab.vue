@@ -3,6 +3,8 @@ import type { useAppStore } from '~/stores'
 import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
+import PageLoader from '~/components/common/PageLoader.vue'
 import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -66,6 +68,14 @@ const transitionItems = computed(() => [
   { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
   { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
 ])
+
+// 加载动画列表（名称按 locale 国际化）
+const loaderItems = computed(() =>
+  LOADER_CURVES.map(curve => ({
+    value: curve.id,
+    label: t(`preference.general.animation.loaders.${curve.id}`),
+  })),
+)
 </script>
 
 <template>
@@ -277,6 +287,33 @@ const transitionItems = computed(() => [
           <PrefTip :content="t('preference.general.animation.transition_loading_tip')" />
         </div>
         <NSwitch v-model:value="appStore.transitionLoading" />
+      </div>
+      <div
+        class="transition-grid"
+        :class="{ 'pointer-events-none opacity-40': !appStore.transitionLoading }"
+      >
+        <div
+          v-for="item in loaderItems"
+          :key="item.value"
+          class="transition-item"
+          :class="{ 'is-active': appStore.loadingName === item.value }"
+          @click="appStore.transitionLoading && (appStore.loadingName = item.value)"
+        >
+          <div class="transition-preview">
+            <PageLoader :name="item.value" :size="40" preview :fixed-color="appStore.loadingFixedColor" />
+          </div>
+          <span class="item-label" :title="item.label">{{ item.label }}</span>
+        </div>
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.animation.loading_fixed_color') }}</span>
+          <PrefTip :content="t('preference.general.animation.loading_fixed_color_tip')" />
+        </div>
+        <NSwitch
+          v-model:value="appStore.loadingFixedColor"
+          :disabled="!appStore.transitionLoading"
+        />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
@@ -538,7 +575,8 @@ const transitionItems = computed(() => [
 /* 过渡动画预览选择器 */
 .transition-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* minmax(0,1fr) 允许列收缩，避免长标签（如加载动画英文名）撑破栅格导致横向溢出 */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   margin-top: 4px;
 }
@@ -560,6 +598,9 @@ const transitionItems = computed(() => [
   overflow: visible;
   clip-path: inset(-7px round calc(var(--radius) + 5px));
   position: relative;
+  /* 居中容器内的加载器（绝对定位的 .preview-block 不受影响） */
+  display: grid;
+  place-items: center;
   transition: border-color 0.18s ease;
 }
 
@@ -569,9 +610,15 @@ const transitionItems = computed(() => [
 
 .item-label {
   font-size: 11px;
+  line-height: 1.3;
   color: hsl(var(--muted-foreground));
   text-align: center;
-  white-space: nowrap;
+  /* 长名换行并最多 2 行截断，保证卡片宽度统一、不溢出 */
+  display: -webkit-box;
+  overflow: hidden;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .transition-item.is-active .item-label {
