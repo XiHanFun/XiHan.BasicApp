@@ -27,18 +27,6 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
-        // 控制中心：登录后未进入租户（平台态）的落点——选择租户进入 / 平台管理入口；
-        // 不依赖后端菜单（平台态普通用户无任何菜单），故为静态隐藏路由
-        path: '/control-center',
-        name: 'ControlCenter',
-        component: ControlCenterPage,
-        meta: {
-          title: 'menu.control_center',
-          icon: 'lucide:layout-grid',
-          hidden: true,
-        },
-      },
-      {
         path: '/about',
         name: 'About',
         component: AboutPage,
@@ -57,6 +45,18 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
     ],
+  },
+  {
+    // 控制中心：登录后未进入租户（平台态）的全屏独立落点页——选择租户进入 / 平台管理入口；
+    // 不挂载主布局（此时无菜单/标签栏），与认证页同级的顶层路由
+    path: '/control-center',
+    name: 'ControlCenter',
+    component: ControlCenterPage,
+    meta: {
+      title: 'menu.control_center',
+      icon: 'lucide:layout-grid',
+      hidden: true,
+    },
   },
   ...coreRoutes,
 ]

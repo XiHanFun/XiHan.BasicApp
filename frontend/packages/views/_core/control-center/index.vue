@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
-import { useAccessStore, useUserStore } from '~/stores'
+import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ControlCenter' })
@@ -14,6 +14,8 @@ defineOptions({ name: 'ControlCenter' })
 const { t } = useI18n()
 const message = useMessage()
 const accessStore = useAccessStore()
+const appStore = useAppStore()
+const authStore = useAuthStore()
 const userStore = useUserStore()
 
 const loading = ref(false)
@@ -26,6 +28,9 @@ const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?
 /** 当前是否处于平台态（未进入任何租户） */
 const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
 const displayName = computed(() => userStore.nickname || userStore.username)
+const avatar = computed(() => userStore.avatar)
+const brandTitle = computed(() => appStore.brandTitle)
+const brandLogo = computed(() => appStore.brandLogo)
 
 async function loadTenants() {
   loading.value = true
@@ -65,6 +70,10 @@ function enterPlatform() {
   window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
 }
 
+async function handleLogout() {
+  await authStore.logout()
+}
+
 function memberTagType(type: TenantMemberType) {
   if (type === TenantMemberType.Owner) {
     return 'warning'
@@ -85,110 +94,174 @@ onMounted(loadTenants)
 
 <template>
   <div class="cc-page">
-    <div class="cc-container">
-      <header class="cc-header">
-        <h1 class="cc-title">
-          {{ t('page.control_center.welcome') }}，{{ displayName }}
-        </h1>
-        <p class="cc-subtitle">
-          {{ t('page.control_center.subtitle') }}
-        </p>
-      </header>
-
-      <section v-if="canAccessPlatform && isPlatform" class="cc-card cc-platform">
-        <div class="cc-platform__icon">
-          <Icon icon="lucide:shield-check" width="22" />
-        </div>
-        <div class="cc-platform__body">
-          <div class="cc-platform__title">
-            {{ t('page.control_center.platform_panel') }}
-          </div>
-          <div class="cc-platform__desc">
-            {{ t('page.control_center.platform_desc') }}
-          </div>
-        </div>
-        <NButton type="primary" @click="enterPlatform">
-          {{ t('page.control_center.enter_platform') }}
+    <header class="cc-topbar">
+      <div class="cc-brand">
+        <img v-if="brandLogo" :src="brandLogo" alt="" class="cc-brand__logo">
+        <span class="cc-brand__title">{{ brandTitle }}</span>
+      </div>
+      <div class="cc-user">
+        <NAvatar v-if="avatar" :src="avatar" :size="28" round />
+        <span class="cc-user__name">{{ displayName }}</span>
+        <NButton size="small" quaternary @click="handleLogout">
           <template #icon>
-            <Icon icon="lucide:arrow-right" />
+            <Icon icon="lucide:log-out" />
           </template>
+          {{ t('header.logout') }}
         </NButton>
-      </section>
+      </div>
+    </header>
 
-      <section class="cc-card">
-        <div class="cc-card__head">
-          <div class="cc-card__title">
-            <Icon icon="lucide:building-2" width="16" />
-            <span>{{ t('page.control_center.my_tenants') }}</span>
-          </div>
-          <NButton size="tiny" quaternary :loading="loading" @click="loadTenants">
-            <template #icon>
-              <Icon icon="lucide:refresh-cw" />
-            </template>
-            {{ t('page.control_center.refresh') }}
-          </NButton>
+    <main class="cc-main">
+      <div class="cc-container">
+        <div class="cc-header">
+          <h1 class="cc-title">
+            {{ t('page.control_center.welcome') }}，{{ displayName }}
+          </h1>
+          <p class="cc-subtitle">
+            {{ t('page.control_center.subtitle') }}
+          </p>
         </div>
-        <NSpin :show="loading">
-          <NEmpty
-            v-if="tenants.length === 0 && loaded"
-            :description="t('page.control_center.no_tenants')"
-            class="cc-empty"
-          >
-            <template #extra>
-              <span class="cc-empty__hint">{{ t('page.control_center.no_tenants_hint') }}</span>
-            </template>
-          </NEmpty>
-          <div v-else class="cc-tenant-grid">
-            <button
-              v-for="tenant in tenants"
-              :key="tenant.membershipId"
-              type="button"
-              class="cc-tenant"
-              :class="{ 'cc-tenant--current': tenant.isCurrent }"
-              :disabled="switching"
-              @click="enterTenant(tenant)"
-            >
-              <div class="cc-tenant__logo">
-                <NAvatar
-                  v-if="tenant.logo"
-                  :src="tenant.logo"
-                  :size="40"
-                  object-fit="cover"
-                  class="cc-tenant__avatar"
-                />
-                <template v-else>
-                  {{ tenantInitial(tenant) }}
-                </template>
-              </div>
-              <div class="cc-tenant__body">
-                <div class="cc-tenant__name">
-                  {{ tenant.tenantName }}
-                  <NTag v-if="tenant.isCurrent" type="success" size="tiny" :bordered="false">
-                    {{ t('page.control_center.current') }}
-                  </NTag>
-                </div>
-                <div class="cc-tenant__meta">
-                  <NTag :type="memberTagType(tenant.memberType)" size="tiny" round :bordered="false">
-                    {{ getOptionLabel(MEMBER_TYPE_OPTIONS, tenant.memberType) }}
-                  </NTag>
-                  <span class="cc-tenant__code">{{ tenant.tenantCode }}</span>
-                </div>
-              </div>
-              <Icon v-if="!tenant.isCurrent" icon="lucide:arrow-right" width="16" class="cc-tenant__arrow" />
-            </button>
+
+        <section v-if="canAccessPlatform && isPlatform" class="cc-card cc-platform">
+          <div class="cc-platform__icon">
+            <Icon icon="lucide:shield-check" width="22" />
           </div>
-        </NSpin>
-      </section>
-    </div>
+          <div class="cc-platform__body">
+            <div class="cc-platform__title">
+              {{ t('page.control_center.platform_panel') }}
+            </div>
+            <div class="cc-platform__desc">
+              {{ t('page.control_center.platform_desc') }}
+            </div>
+          </div>
+          <NButton type="primary" @click="enterPlatform">
+            {{ t('page.control_center.enter_platform') }}
+            <template #icon>
+              <Icon icon="lucide:arrow-right" />
+            </template>
+          </NButton>
+        </section>
+
+        <section class="cc-card">
+          <div class="cc-card__head">
+            <div class="cc-card__title">
+              <Icon icon="lucide:building-2" width="16" />
+              <span>{{ t('page.control_center.my_tenants') }}</span>
+            </div>
+            <NButton size="tiny" quaternary :loading="loading" @click="loadTenants">
+              <template #icon>
+                <Icon icon="lucide:refresh-cw" />
+              </template>
+              {{ t('page.control_center.refresh') }}
+            </NButton>
+          </div>
+          <NSpin :show="loading">
+            <NEmpty
+              v-if="tenants.length === 0 && loaded"
+              :description="t('page.control_center.no_tenants')"
+              class="cc-empty"
+            >
+              <template #extra>
+                <span class="cc-empty__hint">{{ t('page.control_center.no_tenants_hint') }}</span>
+              </template>
+            </NEmpty>
+            <div v-else class="cc-tenant-grid">
+              <button
+                v-for="tenant in tenants"
+                :key="tenant.membershipId"
+                type="button"
+                class="cc-tenant"
+                :class="{ 'cc-tenant--current': tenant.isCurrent }"
+                :disabled="switching"
+                @click="enterTenant(tenant)"
+              >
+                <div class="cc-tenant__logo">
+                  <NAvatar
+                    v-if="tenant.logo"
+                    :src="tenant.logo"
+                    :size="40"
+                    object-fit="cover"
+                    class="cc-tenant__avatar"
+                  />
+                  <template v-else>
+                    {{ tenantInitial(tenant) }}
+                  </template>
+                </div>
+                <div class="cc-tenant__body">
+                  <div class="cc-tenant__name">
+                    {{ tenant.tenantName }}
+                    <NTag v-if="tenant.isCurrent" type="success" size="tiny" :bordered="false">
+                      {{ t('page.control_center.current') }}
+                    </NTag>
+                  </div>
+                  <div class="cc-tenant__meta">
+                    <NTag :type="memberTagType(tenant.memberType)" size="tiny" round :bordered="false">
+                      {{ getOptionLabel(MEMBER_TYPE_OPTIONS, tenant.memberType) }}
+                    </NTag>
+                    <span class="cc-tenant__code">{{ tenant.tenantCode }}</span>
+                  </div>
+                </div>
+                <Icon v-if="!tenant.isCurrent" icon="lucide:arrow-right" width="16" class="cc-tenant__arrow" />
+              </button>
+            </div>
+          </NSpin>
+        </section>
+      </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
 .cc-page {
   display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 80% -10%, rgb(79 124 255 / 10%), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgb(111 91 255 / 8%), transparent 55%),
+    var(--body-color, rgb(246 248 252));
+}
+
+.cc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+}
+
+.cc-brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cc-brand__logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.cc-brand__title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cc-user {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cc-user__name {
+  font-size: 13px;
+  color: var(--text-secondary, rgb(107 114 128));
+}
+
+.cc-main {
+  display: flex;
+  flex: 1;
   justify-content: center;
-  min-height: 100%;
-  padding: 48px 24px;
+  padding: 32px 24px 64px;
 }
 
 .cc-container {
@@ -198,12 +271,13 @@ onMounted(loadTenants)
 
 .cc-header {
   margin-bottom: 24px;
+  text-align: center;
 }
 
 .cc-title {
-  margin: 0 0 4px;
-  font-size: 24px;
-  font-weight: 600;
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 700;
 }
 
 .cc-subtitle {
@@ -215,9 +289,11 @@ onMounted(loadTenants)
 .cc-card {
   padding: 20px;
   margin-bottom: 16px;
-  background: var(--card-bg, rgb(255 255 255 / 60%));
+  background: var(--card-color, rgb(255 255 255 / 85%));
+  backdrop-filter: blur(8px);
   border: 1px solid var(--border-color, rgb(0 0 0 / 8%));
-  border-radius: 14px;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgb(20 40 80 / 6%);
 }
 
 .cc-card__head {
