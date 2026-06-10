@@ -22,7 +22,32 @@ export default {
   },
   search: {
     placeholder: 'Command Palette',
-    input_hint: 'Search menus & actions, or type to jump anywhere',
+    input_hint: 'Search menus & actions (pinyin supported), or type to jump anywhere',
     empty: 'No matching results',
+    tag_action: 'Action',
+    group: {
+      recent: 'Recent',
+      favorite: 'Favorites',
+      action: 'Actions',
+      menu: 'Menus',
+    },
+    action: {
+      theme_light: 'Switch to Light Theme',
+      theme_dark: 'Switch to Dark Theme',
+      preferences: 'Open Preferences',
+      favorite_add: 'Favorite Current Page',
+      favorite_remove: 'Unfavorite Current Page',
+      fullscreen_enter: 'Enter Fullscreen',
+      fullscreen_exit: 'Exit Fullscreen',
+      refresh: 'Refresh Current Page',
+      sidebar_toggle: 'Toggle Sidebar',
+      lock: 'Lock Screen',
+      logout: 'Sign Out',
+    },
+    footer: {
+      select: 'Select',
+      open: 'Open',
+      close: 'Close',
+    },
   },
 }
