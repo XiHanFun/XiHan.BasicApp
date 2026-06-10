@@ -135,6 +135,8 @@ public sealed class TenantEditionAppService
         var result = await _tenantEditionDomainService.GrantTenantEditionPermissionAsync(
             TenantEditionPermissionApplicationMapper.ToGrantCommand(input),
             cancellationToken);
+        // 版本白名单变更：失效版本门控缓存（鉴权快照热路径，事务提交后生效）
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
         return TenantEditionPermissionApplicationMapper.ToDetailDto(result.EditionPermission, result.Permission);
     }
 
@@ -147,6 +149,7 @@ public sealed class TenantEditionAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _tenantEditionDomainService.RevokeTenantEditionPermissionAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
     }
 
     /// <summary>
@@ -162,6 +165,7 @@ public sealed class TenantEditionAppService
         var result = await _tenantEditionDomainService.UpdateTenantEditionPermissionStatusAsync(
             TenantEditionPermissionApplicationMapper.ToStatusCommand(input),
             cancellationToken);
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
         return TenantEditionPermissionApplicationMapper.ToDetailDto(result.EditionPermission, result.Permission);
     }
 }

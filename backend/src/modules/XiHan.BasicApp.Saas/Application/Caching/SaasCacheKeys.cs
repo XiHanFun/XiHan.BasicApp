@@ -210,6 +210,24 @@ public static class SaasCacheKeys
         return "tenant:*:channel:*:code:*";
     }
 
+    /// <summary>
+    /// 版本门控缓存键（租户 → 版本权限白名单）。
+    /// </summary>
+    /// <param name="tenantId">租户标识。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string EditionGate(long tenantId)
+    {
+        return $"tenant:{tenantId}";
+    }
+
+    /// <summary>
+    /// 全部版本门控缓存匹配模式（版本权限/租户版本变更后整体失效）。
+    /// </summary>
+    public static string AllEditionGatesPattern()
+    {
+        return "tenant:*";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

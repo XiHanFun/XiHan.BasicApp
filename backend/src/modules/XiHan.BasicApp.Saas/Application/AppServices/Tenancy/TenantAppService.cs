@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -36,6 +37,7 @@ public sealed class TenantAppService
 {
     private readonly ICurrentUser _currentUser;
     private readonly ITenantDomainService _tenantDomainService;
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
     private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
     private readonly IPasswordHasher _passwordHasher;
 
@@ -46,12 +48,14 @@ public sealed class TenantAppService
         ITenantDomainService tenantDomainService,
         ITenantProvisionDomainService tenantProvisionDomainService,
         IPasswordHasher passwordHasher,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _tenantDomainService = tenantDomainService;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _passwordHasher = passwordHasher;
         _currentUser = currentUser;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -98,6 +102,8 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantDomainService.UpdateTenantAsync(TenantApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        // 租户可能更换版本：失效版本门控缓存（事务提交后生效）
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
 
