@@ -3,6 +3,7 @@ import { darkTheme, NConfigProvider, NDropdown } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useSplitViewStore, useTabbarStore } from '~/stores'
@@ -34,6 +35,9 @@ useSignalRIntegration()
 
 // 定时检查前端资源更新
 useCheckUpdates()
+
+// 容器变形转场：点击的行/按钮「长大」成弹窗、关闭收回原位（跟随「页面切换动画」偏好）
+setupContainerTransform({ enabled: () => shell.appStore.transitionEnable })
 
 // 仅当「当前路由 === 分屏锚定标签」时显示分屏（右标签已并入、从标签栏隐藏）
 const showSplit = computed(() => splitView.active && route.fullPath === splitView.leftPath)

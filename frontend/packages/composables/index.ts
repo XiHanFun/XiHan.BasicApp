@@ -1,5 +1,6 @@
 export * from './useAccessDirective'
 export * from './useAvatarUrl'
+export * from './useContainerTransform'
 export * from './useDynamicIsland'
 export * from './useGlobalShortcuts'
 export * from './useHtmlStyle'
