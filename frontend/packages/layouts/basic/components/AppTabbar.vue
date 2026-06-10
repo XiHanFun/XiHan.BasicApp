@@ -36,15 +36,22 @@ const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStor
 const localizedTabs = computed(() => {
   return visibleTabs.value.map((tab) => {
     const translated = te(tab.title) ? t(tab.title) : tab.title
-    // 分屏锚定标签：视觉合并为「左标题 | 右标题」+ 分屏图标
+    // 分屏锚定标签：视觉合并为「左icon 左标题 | 右icon 右标题」（顺序跟随视觉反转）
     if (splitViewStore.isSplitTab(tab.path)) {
       const right = tabbarStore.tabs.find(item => item.path === splitViewStore.rightPath)
       if (right) {
         const rightTitle = te(right.title) ? t(right.title) : right.title
+        const rightIcon = right.meta?.icon as string | undefined
+        const anchorIcon = tab.meta?.icon as string | undefined
+        const rev = splitViewStore.reversed
         return {
           ...tab,
-          meta: { ...tab.meta, icon: 'lucide:columns-2' },
-          displayTitle: `${translated} | ${rightTitle}`,
+          meta: { ...tab.meta, icon: rev ? rightIcon : anchorIcon },
+          displayTitle: rev ? rightTitle : translated,
+          splitRight: {
+            title: rev ? translated : rightTitle,
+            icon: rev ? anchorIcon : rightIcon,
+          },
         }
       }
     }
@@ -435,7 +442,8 @@ watch(() => route.fullPath, () => {
   nextTick(scrollToActive)
 })
 
-// 分屏安全收尾：左/右任一标签被关闭（含「关闭其他/全部」）则自动关闭分屏，避免悬空
+// 分屏安全收尾：左/右任一标签缺失（关闭标签/「关闭其他/全部」/刷新后标签未持久化）则自动关闭分屏
+// immediate：分屏状态会随 SessionStorage 恢复，启动时即校验标签是否齐全
 watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
   if (!splitViewStore.active) {
     return
@@ -444,7 +452,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
   if (!paths.has(splitViewStore.leftPath) || !paths.has(splitViewStore.rightPath)) {
     splitViewStore.close()
   }
-})
+}, { immediate: true })
 </script>
 
 <template>
