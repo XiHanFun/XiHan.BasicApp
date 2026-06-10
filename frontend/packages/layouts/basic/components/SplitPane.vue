@@ -62,10 +62,10 @@ defineExpose({ reload })
 </template>
 
 <style scoped>
+/* 背景保持透明：与左侧主视图透出同一布局底色，避免左右空隙色不一致 */
 .split-pane-body {
   height: 100%;
   width: 100%;
   overflow: auto;
-  background: hsl(var(--background));
 }
 </style>
