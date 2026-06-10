@@ -196,7 +196,7 @@ export default {
     },
     widget: {
       title: '工具栏',
-      global_search: '启用全局搜索',
+      global_search: '启用命令面板',
       theme_toggle: '启用主题切换',
       language_toggle: '启用语言切换',
       fullscreen: '启用全屏',
@@ -307,12 +307,14 @@ export default {
   shortcut: {
     global: '全局',
     enabled: '快捷键',
-    search: '全局搜索',
+    search: '命令面板',
     logout: '退出登录',
     lock: '锁定屏幕',
+    tab_overview: '标签总览',
     enabled_tip: '开启后，下方各快捷键将在全局范围内持续生效',
-    search_tip: '在任意页面按下快捷键，打开全局搜索面板',
+    search_tip: '在任意页面按下快捷键，打开命令面板（搜索菜单与操作，支持拼音）',
     lock_tip: '按下快捷键后立即锁定屏幕，需要输入密码才能恢复使用',
     logout_tip: '按下快捷键后直接退出登录并跳转至登录页',
+    tab_overview_tip: '按下快捷键打开标签卡片总览（已打开标签的网格视图），再次按下关闭',
   },
 }

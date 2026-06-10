@@ -6,6 +6,7 @@ export const useLayoutBridgeStore = defineStore('layout-bridge', () => {
   const preferenceDrawerVersion = ref(0)
   const globalSearchVersion = ref(0)
   const lockScreenVersion = ref(0)
+  const tabOverviewVersion = ref(0)
 
   function requestSidebarToggle() {
     sidebarToggleVersion.value += 1
@@ -23,14 +24,20 @@ export const useLayoutBridgeStore = defineStore('layout-bridge', () => {
     lockScreenVersion.value += 1
   }
 
+  function requestOpenTabOverview() {
+    tabOverviewVersion.value += 1
+  }
+
   return {
     sidebarToggleVersion,
     preferenceDrawerVersion,
     globalSearchVersion,
     lockScreenVersion,
+    tabOverviewVersion,
     requestSidebarToggle,
     requestOpenPreferenceDrawer,
     requestOpenGlobalSearch,
     requestLockScreen,
+    requestOpenTabOverview,
   }
 })

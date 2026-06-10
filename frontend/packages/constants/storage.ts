@@ -76,6 +76,7 @@ export const SHORTCUT_ENABLE_KEY = `${STORAGE_PREFIX}shortcut_enable`
 export const SHORTCUT_SEARCH_KEY = `${STORAGE_PREFIX}shortcut_search`
 export const SHORTCUT_LOGOUT_KEY = `${STORAGE_PREFIX}shortcut_logout`
 export const SHORTCUT_LOCK_KEY = `${STORAGE_PREFIX}shortcut_lock`
+export const SHORTCUT_TAB_OVERVIEW_KEY = `${STORAGE_PREFIX}shortcut_tab_overview`
 export const TRANSITION_ENABLE_KEY = `${STORAGE_PREFIX}transition_enable`
 export const TRANSITION_NAME_KEY = `${STORAGE_PREFIX}transition_name`
 export const LOADING_NAME_KEY = `${STORAGE_PREFIX}loading_name`

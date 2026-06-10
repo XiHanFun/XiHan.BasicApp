@@ -12,6 +12,7 @@ import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
+import AppTabOverview from './components/AppTabOverview.vue'
 import SplitPane from './components/SplitPane.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
@@ -491,6 +492,7 @@ const sidebarEnableState = computed(
 
     <!-- ==================== Extra ==================== -->
     <AppPreferenceDrawer />
+    <AppTabOverview />
     <XihanBackTop :scroll-y="shell.scrollY.value" />
 
     <!-- Mobile mask -->

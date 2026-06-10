@@ -204,7 +204,7 @@ export default {
     },
     widget: {
       title: 'Toolbar',
-      global_search: 'Global Search',
+      global_search: 'Command Palette',
       theme_toggle: 'Theme Toggle',
       language_toggle: 'Language Toggle',
       fullscreen: 'Fullscreen',
@@ -325,12 +325,14 @@ export default {
   shortcut: {
     global: 'Global',
     enabled: 'Shortcuts',
-    search: 'Global Search',
+    search: 'Command Palette',
     logout: 'Sign Out',
     lock: 'Lock Screen',
+    tab_overview: 'Tab Overview',
     enabled_tip: 'When enabled, all shortcuts below will be active globally',
-    search_tip: 'Press the shortcut to open the global search panel from any page',
+    search_tip: 'Press the shortcut to open the command palette (search menus & actions, pinyin supported)',
     lock_tip: 'Press the shortcut to immediately lock the screen, requiring a password to resume',
     logout_tip: 'Press the shortcut to sign out immediately and redirect to the login page',
+    tab_overview_tip: 'Press the shortcut to open the tab overview grid; press again to close',
   },
 }

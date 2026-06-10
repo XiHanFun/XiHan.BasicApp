@@ -585,7 +585,8 @@ watch(
   justify-content: center;
   align-items: flex-start;
   padding-top: 14vh;
-  background: hsl(var(--overlay, 0 0% 0%) / 0.4);
+  /* 自包含暗色遮罩：--overlay 变量自带 alpha，叠加二次 alpha 会成为非法值导致背景失效 */
+  background: rgb(0 0 0 / 40%);
   backdrop-filter: blur(2px);
 }
 
