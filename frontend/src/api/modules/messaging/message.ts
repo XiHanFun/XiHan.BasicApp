@@ -85,7 +85,7 @@ function toEmailPageParams(input: EmailPageQueryDto) {
   appendDynamicApiParam(params, 'SendTimeEnd', input.sendTimeEnd)
   appendDynamicApiParam(params, 'SendTimeStart', input.sendTimeStart)
   appendDynamicApiParam(params, 'SendUserId', input.sendUserId)
-  appendDynamicApiParam(params, 'TemplateId', input.templateId)
+  appendDynamicApiParam(params, 'TemplateCode', input.templateCode)
 
   return params
 }
@@ -105,7 +105,7 @@ function toSmsPageParams(input: SmsPageQueryDto) {
   appendDynamicApiParam(params, 'SenderId', input.senderId)
   appendDynamicApiParam(params, 'SmsStatus', input.smsStatus)
   appendDynamicApiParam(params, 'SmsType', input.smsType)
-  appendDynamicApiParam(params, 'TemplateId', input.templateId)
+  appendDynamicApiParam(params, 'TemplateCode', input.templateCode)
 
   return params
 }

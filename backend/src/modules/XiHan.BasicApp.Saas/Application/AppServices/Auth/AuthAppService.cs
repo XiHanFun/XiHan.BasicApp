@@ -15,6 +15,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
@@ -23,6 +24,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
@@ -293,8 +295,9 @@ public sealed class AuthAppService
                 Content: BuildPasswordResetHtml(temporaryPassword, brand),
                 IsHtml: true,
                 Attachments: null,
-                TemplateId: null,
-                TemplateParams: null,
+                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
+                TemplateCode: SaasMessageTemplateCodes.Auth.PasswordReset,
+                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["temporary_password"] = temporaryPassword, ["brand"] = brand }),
                 ScheduledTime: null,
                 MaxRetryCount: 3,
                 BusinessType: "auth.password-reset",
@@ -541,8 +544,9 @@ public sealed class AuthAppService
                     Content: BuildEmailLoginCodeHtml(code, minutes, brand),
                     IsHtml: true,
                     Attachments: null,
-                    TemplateId: null,
-                    TemplateParams: null,
+                    // 模板优先：投递链路按编码查模板渲染（租户可自定义覆盖全局），缺失回退上方内置内容
+                    TemplateCode: SaasMessageTemplateCodes.Auth.EmailLoginCode,
+                    TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["code"] = code, ["minutes"] = minutes.ToString(), ["brand"] = brand }),
                     ScheduledTime: null,
                     MaxRetryCount: 3,
                     BusinessType: "auth.email-login",

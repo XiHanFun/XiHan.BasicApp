@@ -68,4 +68,9 @@ public static class SaasCacheNames
     /// 用户设置缓存（全场景偏好/页面设置同步）。
     /// </summary>
     public const string UserSetting = "basicapp:saas:user:setting";
+
+    /// <summary>
+    /// 消息模板缓存（渠道+编码 → 模板内容，发送链路高频读取）。
+    /// </summary>
+    public const string MessageTemplate = "basicapp:saas:message:template";
 }

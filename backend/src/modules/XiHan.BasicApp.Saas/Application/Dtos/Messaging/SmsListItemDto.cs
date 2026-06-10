@@ -40,7 +40,7 @@ public class SmsListItemDto : BasicAppDto
     /// <summary>
     /// 模板主键
     /// </summary>
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
 
     /// <summary>
     /// 短信服务商

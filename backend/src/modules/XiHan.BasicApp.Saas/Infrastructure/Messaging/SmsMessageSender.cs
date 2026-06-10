@@ -18,7 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Models;
-using XiHan.Framework.Templating.Services;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 
@@ -87,7 +87,7 @@ public sealed class SmsMessageSender : IMessageSender
         var maxRetryCount = envelope.Metadata.TryGetValue("MaxRetryCount", out var maxRetryStr) && int.TryParse(maxRetryStr, out var maxRetryParsed) ? maxRetryParsed : 3;
         var senderId = envelope.Metadata.TryGetValue("SenderId", out var senderIdStr) && long.TryParse(senderIdStr, out var senderIdParsed) ? senderIdParsed : (long?)null;
         var receiverId = envelope.Metadata.TryGetValue("ReceiverId", out var receiverIdStr) && long.TryParse(receiverIdStr, out var receiverIdParsed) ? receiverIdParsed : (long?)null;
-        var templateId = envelope.Metadata.TryGetValue("TemplateId", out var templateIdStr) && long.TryParse(templateIdStr, out var templateIdParsed) ? templateIdParsed : (long?)null;
+        var templateCode = envelope.Metadata.TryGetValue("TemplateCode", out var templateCodeVal) && !string.IsNullOrWhiteSpace(templateCodeVal) ? templateCodeVal : envelope.TemplateCode;
         var templateParams = envelope.Metadata.TryGetValue("TemplateParams", out var templateParamsVal) ? templateParamsVal : null;
 
         // 获取或创建 SysSms 记录
@@ -117,7 +117,7 @@ public sealed class SmsMessageSender : IMessageSender
                 SmsType = smsType,
                 ToPhone = recipient.Address,
                 Content = content ?? string.Empty,
-                TemplateId = templateId,
+                TemplateCode = templateCode,
                 TemplateParams = templateParams,
                 Provider = provider,
                 SmsStatus = SmsStatus.Sending,
@@ -182,30 +182,23 @@ public sealed class SmsMessageSender : IMessageSender
     }
 
     /// <summary>
-    /// 渲染模板内容
+    /// 渲染模板内容：按 TemplateCode 从模板库查找（租户优先回退全局）并渲染，模板缺失/损坏回退原始内容
     /// </summary>
     private async Task<string?> RenderContentAsync(MessageEnvelope envelope, AsyncServiceScope scope, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(envelope.TemplateCode) || envelope.TemplateParams is null || envelope.TemplateParams.Count == 0)
+        if (string.IsNullOrWhiteSpace(envelope.TemplateCode))
         {
             return envelope.Content;
         }
 
-        var templateService = scope.ServiceProvider.GetRequiredService<ITemplateService>();
+        var renderer = scope.ServiceProvider.GetRequiredService<IMessageTemplateRenderer>();
         var variables = new Dictionary<string, object?>();
         foreach (var kvp in envelope.TemplateParams)
         {
             variables[kvp.Key] = kvp.Value;
         }
 
-        try
-        {
-            return await templateService.RenderAsync(envelope.TemplateCode, variables);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "短信模板渲染失败，使用原始内容。TemplateCode: {TemplateCode}", envelope.TemplateCode);
-            return envelope.Content;
-        }
+        var rendered = await renderer.RenderAsync(MessageChannel.Sms, envelope.TemplateCode, variables, cancellationToken);
+        return rendered?.Content ?? envelope.Content;
     }
 }

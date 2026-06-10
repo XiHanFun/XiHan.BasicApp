@@ -57,7 +57,7 @@ public sealed class MessageDomainService
             Content = NormalizeNullable(command.Content),
             IsHtml = command.IsHtml,
             Attachments = OptionalJson(command.Attachments, "邮件附件必须是合法 JSON。"),
-            TemplateId = command.TemplateId,
+            TemplateCode = command.TemplateCode,
             TemplateParams = OptionalJson(command.TemplateParams, "邮件模板参数必须是合法 JSON。"),
             EmailStatus = EmailStatus.Pending,
             ScheduledTime = command.ScheduledTime,
@@ -109,7 +109,7 @@ public sealed class MessageDomainService
         email.Content = NormalizeNullable(command.Content);
         email.IsHtml = command.IsHtml;
         email.Attachments = OptionalJson(command.Attachments, "邮件附件必须是合法 JSON。");
-        email.TemplateId = command.TemplateId;
+        email.TemplateCode = command.TemplateCode;
         email.TemplateParams = OptionalJson(command.TemplateParams, "邮件模板参数必须是合法 JSON。");
         email.ScheduledTime = command.ScheduledTime;
         email.MaxRetryCount = command.MaxRetryCount;
@@ -156,7 +156,7 @@ public sealed class MessageDomainService
             SmsType = command.SmsType,
             ToPhone = Required(command.ToPhone, 50, nameof(command.ToPhone), "手机号不能超过 50 个字符。"),
             Content = Required(command.Content, 1000, nameof(command.Content), "短信内容不能超过 1000 个字符。"),
-            TemplateId = command.TemplateId,
+            TemplateCode = command.TemplateCode,
             TemplateParams = OptionalJson(command.TemplateParams, "短信模板参数必须是合法 JSON。"),
             Provider = Optional(command.Provider, 50, nameof(command.Provider), "短信服务商不能超过 50 个字符。"),
             SmsStatus = SmsStatus.Pending,
@@ -202,7 +202,7 @@ public sealed class MessageDomainService
         sms.SmsType = command.SmsType;
         sms.ToPhone = Required(command.ToPhone, 50, nameof(command.ToPhone), "手机号不能超过 50 个字符。");
         sms.Content = Required(command.Content, 1000, nameof(command.Content), "短信内容不能超过 1000 个字符。");
-        sms.TemplateId = command.TemplateId;
+        sms.TemplateCode = command.TemplateCode;
         sms.TemplateParams = OptionalJson(command.TemplateParams, "短信模板参数必须是合法 JSON。");
         sms.Provider = Optional(command.Provider, 50, nameof(command.Provider), "短信服务商不能超过 50 个字符。");
         sms.ScheduledTime = command.ScheduledTime;

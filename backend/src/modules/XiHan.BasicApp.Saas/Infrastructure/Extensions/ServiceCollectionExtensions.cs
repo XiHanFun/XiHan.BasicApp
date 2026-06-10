@@ -115,6 +115,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnumMetadataQueryService, EnumMetadataQueryService>();
         services.AddScoped<IServerInfoQueryService, ServerInfoQueryService>();
         services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
+        services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
@@ -178,6 +179,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasDictSeeder>();
         services.AddDataSeeder<SaasIdentityPermissionSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
+        services.AddDataSeeder<SaasMessageTemplateSeeder>();
         services.AddDataSeeder<SaasDepartmentSeeder>();
         services.AddDataSeeder<SaasDemoUserSeeder>();
         return services;

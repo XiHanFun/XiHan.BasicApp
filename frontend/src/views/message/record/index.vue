@@ -61,7 +61,7 @@ const emailQuery = reactive({
   keyword: '',
   receiveUserId: null as ApiId | null,
   sendUserId: null as ApiId | null,
-  templateId: null as ApiId | null,
+  templateCode: null as string | null,
 })
 
 const smsQuery = reactive({
@@ -73,7 +73,7 @@ const smsQuery = reactive({
   senderId: null as ApiId | null,
   smsStatus: null as SmsStatus | null,
   smsType: null as SmsType | null,
-  templateId: null as ApiId | null,
+  templateCode: null as string | null,
 })
 
 const messageTabOptions = [
@@ -139,7 +139,7 @@ async function fetchEmailData() {
       keyword: normalizeNullable(emailQuery.keyword),
       receiveUserId: normalizeId(emailQuery.receiveUserId),
       sendUserId: normalizeId(emailQuery.sendUserId),
-      templateId: normalizeId(emailQuery.templateId),
+      templateCode: emailQuery.templateCode?.trim() || undefined,
     })
     emailList.value = result.items
     emailTotal.value = result.page.totalCount
@@ -173,7 +173,7 @@ async function fetchSmsData() {
       senderId: normalizeId(smsQuery.senderId),
       smsStatus: smsQuery.smsStatus,
       smsType: smsQuery.smsType,
-      templateId: normalizeId(smsQuery.templateId),
+      templateCode: smsQuery.templateCode?.trim() || undefined,
     })
     smsList.value = result.items
     smsTotal.value = result.page.totalCount
@@ -214,7 +214,7 @@ const emailColumns = computed<DataTableColumns<EmailListItemDto>>(() => [
   { key: 'businessType', title: '业务类型', minWidth: 130, ellipsis: { tooltip: true } },
   { key: 'sendUserId', title: '发送用户', minWidth: 110 },
   { key: 'receiveUserId', title: '接收用户', minWidth: 110 },
-  { key: 'templateId', title: '模板', minWidth: 110 },
+  { key: 'templateCode', title: '模板编码', minWidth: 130 },
   {
     key: 'retryCount',
     title: '重试',
@@ -278,7 +278,7 @@ const smsColumns = computed<DataTableColumns<SmsListItemDto>>(() => [
   { key: 'businessType', title: '业务类型', minWidth: 130, ellipsis: { tooltip: true } },
   { key: 'senderId', title: '发送用户', minWidth: 110 },
   { key: 'receiverId', title: '接收用户', minWidth: 110 },
-  { key: 'templateId', title: '模板', minWidth: 110 },
+  { key: 'templateCode', title: '模板编码', minWidth: 130 },
   { key: 'cost', title: '费用', minWidth: 90 },
   {
     key: 'retryCount',
@@ -366,7 +366,7 @@ function handleReset() {
     emailQuery.keyword = ''
     emailQuery.receiveUserId = null
     emailQuery.sendUserId = null
-    emailQuery.templateId = null
+    emailQuery.templateCode = null
     emailPage.value = 1
     fetchEmailData()
   }
@@ -379,7 +379,7 @@ function handleReset() {
     smsQuery.senderId = null
     smsQuery.smsStatus = null
     smsQuery.smsType = null
-    smsQuery.templateId = null
+    smsQuery.templateCode = null
     smsPage.value = 1
     fetchSmsData()
   }
@@ -552,7 +552,7 @@ onMounted(() => fetchEmailData())
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <NInput v-model:value="emailQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
+          <NInput v-model:value="emailQuery.templateCode" clearable placeholder="模板编码" style="width: 130px" />
           <NInput v-model:value="emailQuery.sendUserId" clearable placeholder="发送用户" style="width: 120px" />
           <NInput
             v-model:value="emailQuery.receiveUserId"
@@ -598,7 +598,7 @@ onMounted(() => fetchEmailData())
             style="width: 130px"
             @keyup.enter="handleSearch"
           />
-          <NInput v-model:value="smsQuery.templateId" clearable placeholder="模板 ID" style="width: 120px" />
+          <NInput v-model:value="smsQuery.templateCode" clearable placeholder="模板编码" style="width: 130px" />
           <NInput v-model:value="smsQuery.senderId" clearable placeholder="发送用户" style="width: 120px" />
           <NInput v-model:value="smsQuery.receiverId" clearable placeholder="接收用户" style="width: 120px" />
         </template>
@@ -684,8 +684,8 @@ onMounted(() => fetchEmailData())
           <NDescriptionsItem label="用户引用">
             {{ currentEmailDetail.sendUserId || '-' }} -> {{ currentEmailDetail.receiveUserId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="模板">
-            {{ currentEmailDetail.templateId || '-' }}
+          <NDescriptionsItem label="模板编码">
+            {{ currentEmailDetail.templateCode || '-' }}
           </NDescriptionsItem>
           <NDescriptionsItem label="内容标记">
             正文 {{ formatFlag(currentEmailDetail.hasBody) }}，附件 {{ formatFlag(currentEmailDetail.hasAttachment) }}，模板数据 {{ formatFlag(currentEmailDetail.hasTemplateData) }}
@@ -732,8 +732,8 @@ onMounted(() => fetchEmailData())
           <NDescriptionsItem label="用户引用">
             {{ currentSmsDetail.senderId || '-' }} -> {{ currentSmsDetail.receiverId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="模板">
-            {{ currentSmsDetail.templateId || '-' }}
+          <NDescriptionsItem label="模板编码">
+            {{ currentSmsDetail.templateCode || '-' }}
           </NDescriptionsItem>
           <NDescriptionsItem label="费用">
             {{ currentSmsDetail.cost ?? '-' }}

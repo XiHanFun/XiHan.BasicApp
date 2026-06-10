@@ -68,4 +68,9 @@ public interface ISaasCacheInvalidator
     /// 失效指定用户的设置缓存（写后整体失效该用户全部场景）。
     /// </summary>
     Task InvalidateUserSettingAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 失效消息模板缓存（模板增删改/启停后调用，发送链路按 渠道+编码 高频读取）。
+    /// </summary>
+    Task InvalidateMessageTemplateAsync(CancellationToken cancellationToken = default);
 }

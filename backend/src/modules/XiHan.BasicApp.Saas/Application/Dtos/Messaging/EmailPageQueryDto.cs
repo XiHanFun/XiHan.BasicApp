@@ -50,7 +50,7 @@ public sealed class EmailPageQueryDto : BasicAppPRDto
     /// <summary>
     /// 模板主键
     /// </summary>
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
 
     /// <summary>
     /// 业务类型
