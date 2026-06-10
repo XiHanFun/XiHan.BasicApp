@@ -16,7 +16,9 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -34,12 +36,17 @@ public sealed class NotificationAppService
 {
     private readonly INotificationDomainService _notificationDomainService;
 
+    private readonly IMessageTemplateRenderer _messageTemplateRenderer;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public NotificationAppService(INotificationDomainService notificationDomainService)
+    public NotificationAppService(
+        INotificationDomainService notificationDomainService,
+        IMessageTemplateRenderer messageTemplateRenderer)
     {
         _notificationDomainService = notificationDomainService;
+        _messageTemplateRenderer = messageTemplateRenderer;
     }
 
     /// <summary>
@@ -51,6 +58,22 @@ public sealed class NotificationAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 渲染前置：提供模板编码时按 站内通知 渠道渲染（租户模板优先回退全局），
+        // 标题取模板 Subject、内容取模板 Content；模板缺失/停用/损坏回退调用方传入值
+        if (!string.IsNullOrWhiteSpace(input.TemplateCode))
+        {
+            var variables = (input.TemplateParams ?? []).ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value);
+            var rendered = await _messageTemplateRenderer.RenderAsync(MessageChannel.SiteNotification, input.TemplateCode, variables, cancellationToken);
+            if (rendered is not null)
+            {
+                input.Content = rendered.Content;
+                if (!string.IsNullOrWhiteSpace(rendered.Subject))
+                {
+                    input.Title = rendered.Subject;
+                }
+            }
+        }
 
         var result = await _notificationDomainService.CreateNotificationAsync(NotificationApplicationMapper.ToCreateCommand(input), cancellationToken);
         return NotificationApplicationMapper.ToDetailDto(result.Notification);
