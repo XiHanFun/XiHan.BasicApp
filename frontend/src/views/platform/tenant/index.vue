@@ -252,6 +252,7 @@ function onAction(payload: SchemaActionPayload) {
 
 function createDefaultForm(): TenantFormModel {
   return {
+    adminEmail: null,
     adminPassword: null,
     adminUserName: null,
     domain: null,
@@ -487,6 +488,7 @@ async function handleSubmit() {
     }
     else {
       const createInput: TenantCreateDto = {
+        adminEmail: normalizeNullable(tenantForm.value.adminEmail),
         adminPassword: normalizeNullable(tenantForm.value.adminPassword),
         adminUserName: normalizeNullable(tenantForm.value.adminUserName),
         domain: normalizeNullable(tenantForm.value.domain),
@@ -705,6 +707,14 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem v-if="!tenantForm.basicId" label="管理员账号" path="adminUserName">
           <NInput v-model:value="tenantForm.adminUserName" clearable placeholder="选填，填写后开通时自动创建管理员" />
+        </NFormItem>
+        <NFormItem v-if="!tenantForm.basicId" label="管理员邮箱" path="adminEmail">
+          <NInput
+            v-model:value="tenantForm.adminEmail"
+            clearable
+            placeholder="管理员登录邮箱（全平台唯一）"
+            :input-props="{ type: 'email' }"
+          />
         </NFormItem>
         <NFormItem v-if="!tenantForm.basicId" label="管理员密码" path="adminPassword">
           <NInput
