@@ -80,6 +80,11 @@ const columnFields = computed<ListFieldSchema[]>(() =>
   resolvedFields.value.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
 
+/** 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地 */
+const peekFields = computed<ListFieldSchema[]>(() =>
+  resolvedFields.value.filter(f => !f.permission || hasPermission(f.permission)),
+)
+
 /** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */
 const autoSelectable = (props.schema.actions ?? []).some(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission)))
   || (!!props.schema.batchRemovable && !!props.schema.resource.remove)
@@ -487,6 +492,7 @@ defineExpose({
           :children-key="schema.tree?.childrenKey ?? 'children'"
           :default-expand-all="schema.tree?.defaultExpandAll ?? true"
           :remount-key="tableRemountKey"
+          :peek-fields="peekFields"
           @sort="changeSort"
           @update:page="changePage"
           @update:page-size="changePageSize"
