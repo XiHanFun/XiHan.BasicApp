@@ -78,4 +78,9 @@ public static class SaasCacheNames
     /// 版本门控缓存（租户 → 版本权限白名单，鉴权快照热路径）。
     /// </summary>
     public const string EditionGate = "basicapp:saas:tenancy:edition-gate";
+
+    /// <summary>
+    /// 字典项树缓存（字典驱动的下拉/选项高频读取）。
+    /// </summary>
+    public const string DictItemTree = "basicapp:saas:configuration:dict-tree";
 }

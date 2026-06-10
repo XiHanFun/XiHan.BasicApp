@@ -228,6 +228,23 @@ public static class SaasCacheKeys
         return "tenant:*";
     }
 
+    /// <summary>
+    /// 字典项树缓存键（按 租户 × 字典 × 过滤条件 隔离）。
+    /// </summary>
+    public static string DictItemTree(long? tenantId, long dictId, bool onlyEnabled, int limit)
+    {
+        var tenantSegment = tenantId is > 0 ? tenantId.Value.ToString() : "platform";
+        return $"tenant:{tenantSegment}:dict:{dictId}:{Hash($"{onlyEnabled}|{limit}")}";
+    }
+
+    /// <summary>
+    /// 全部字典项树缓存匹配模式（字典/字典项写路径整体失效）。
+    /// </summary>
+    public static string AllDictItemTreesPattern()
+    {
+        return "tenant:*:dict:*";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

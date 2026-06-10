@@ -46,6 +46,8 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasEditionGateCacheItem, string> _editionGateCache;
 
+    private readonly IDistributedCache<SaasDictItemTreeCacheItem, string> _dictItemTreeCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -61,7 +63,8 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasDepartmentTreeCacheItem, string> departmentTreeCache,
         IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache,
         IDistributedCache<SaasMessageTemplateCacheItem, string> messageTemplateCache,
-        IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache)
+        IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache,
+        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
@@ -75,6 +78,7 @@ public sealed class SaasCacheInvalidator
         _userSettingCache = userSettingCache;
         _messageTemplateCache = messageTemplateCache;
         _editionGateCache = editionGateCache;
+        _dictItemTreeCache = dictItemTreeCache;
     }
     /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
@@ -151,5 +155,11 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateEditionGateAsync(CancellationToken cancellationToken = default)
     {
         return _editionGateCache.RemoveByPatternAsync(SaasCacheKeys.AllEditionGatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateDictionaryAsync(CancellationToken cancellationToken = default)
+    {
+        return _dictItemTreeCache.RemoveByPatternAsync(SaasCacheKeys.AllDictItemTreesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

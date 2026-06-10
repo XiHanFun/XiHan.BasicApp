@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -34,12 +35,15 @@ public sealed class DictAppService
 {
     private readonly IDictDomainService _dictDomainService;
 
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DictAppService(IDictDomainService dictDomainService)
+    public DictAppService(IDictDomainService dictDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _dictDomainService = dictDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
     /// <summary>
     /// 创建系统字典
@@ -52,6 +56,7 @@ public sealed class DictAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _dictDomainService.CreateDictAsync(DictApplicationMapper.ToCreateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
     }
 
@@ -66,6 +71,7 @@ public sealed class DictAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _dictDomainService.CreateDictItemAsync(DictApplicationMapper.ToItemCreateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
     }
 
@@ -78,6 +84,7 @@ public sealed class DictAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _dictDomainService.DeleteDictAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
     }
 
     /// <summary>
@@ -89,6 +96,7 @@ public sealed class DictAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _dictDomainService.DeleteDictItemAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
     }
 
     /// <summary>
@@ -102,6 +110,7 @@ public sealed class DictAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _dictDomainService.UpdateDictAsync(DictApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
     }
 
@@ -116,6 +125,7 @@ public sealed class DictAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _dictDomainService.UpdateDictItemAsync(DictApplicationMapper.ToItemUpdateCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
     }
 
@@ -130,6 +140,7 @@ public sealed class DictAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _dictDomainService.UpdateDictItemStatusAsync(DictApplicationMapper.ToItemStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
     }
 
@@ -144,6 +155,7 @@ public sealed class DictAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _dictDomainService.UpdateDictStatusAsync(DictApplicationMapper.ToStatusCommand(input), cancellationToken);
+        await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
     }
 }
