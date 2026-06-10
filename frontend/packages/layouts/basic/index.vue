@@ -3,7 +3,7 @@ import { darkTheme, NConfigProvider, NDropdown } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useTheme } from '~/hooks'
+import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useSplitViewStore, useTabbarStore } from '~/stores'
 import AppFavorites from './components/AppFavorites.vue'
@@ -14,7 +14,7 @@ import AppTabbar from './components/AppTabbar.vue'
 import SplitPane from './components/SplitPane.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
-import { useLayoutShellAdapter } from './composables'
+import { openTabInNewWindow, useLayoutShellAdapter } from './composables'
 import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
 import { LayoutContentRenderer } from './core'
@@ -38,11 +38,21 @@ useCheckUpdates()
 // 仅当「当前路由 === 分屏锚定标签」时显示分屏（右标签已并入、从标签栏隐藏）
 const showSplit = computed(() => splitView.active && route.fullPath === splitView.leftPath)
 
-// 路由抵达「右侧标签」路径时原子交换左右（pre-flush，渲染前完成 → 不闪烁）。
-// 同时覆盖两种入口：左右互换按钮（push 右路径）、用户经菜单直接导航到被合并的右标签。
+// 路由变化时对齐分屏状态（pre-flush，渲染前完成 → 不闪烁）：
+// - 抵达副标签路径（用户经菜单直接导航）→ 锚定/副互换
+// - 抵达「替换锚定页」的目标路径 → 把锚定切到新页
+const pendingAnchorSwitch = ref('')
 watch(() => route.fullPath, (path) => {
-  if (splitView.active && path === splitView.rightPath) {
+  if (!splitView.active) {
+    return
+  }
+  if (path === splitView.rightPath) {
     splitView.swapPaths()
+    return
+  }
+  if (pendingAnchorSwitch.value && path === pendingAnchorSwitch.value) {
+    splitView.setLeftPath(path)
+    pendingAnchorSwitch.value = ''
   }
 })
 
@@ -82,51 +92,121 @@ function onDividerDown() {
   window.addEventListener('pointerup', up)
 }
 
-// ── 分割线悬浮工具组（不占右侧顶部空间）──────────────────────────
+// ── 分割线悬浮工具组（左右页面各自的替换/刷新/新窗口，分组显示）────
 const splitPaneRef = ref<InstanceType<typeof SplitPane> | null>(null)
+const { refresh: refreshCurrentTab } = useRefresh()
 
 function trTab(title: string): string {
   return te(title) ? t(title) : title
 }
 
-/** 右侧可切换的标签：其它已打开标签（排除左侧锚定标签） */
+/** 可替换为的标签：其它已打开标签（排除分屏中的两个页面） */
 const splitTabOptions = computed(() =>
   tabbarStore.tabs
-    .filter(item => item.path !== splitView.leftPath)
+    .filter(item => item.path !== splitView.leftPath && item.path !== splitView.rightPath)
     .map(item => ({ key: item.path, label: trTab(item.title) })),
 )
 
-function onSplitTabSelect(key: string | number): void {
-  splitView.setRightPath(String(key))
+/** 视觉侧 → 是否为锚定 pane（锚定默认在左，reversed 后在右） */
+function sideIsAnchor(side: 'left' | 'right'): boolean {
+  return side === 'left' ? !splitView.reversed : splitView.reversed
 }
 
-function splitPaneReload(): void {
-  splitPaneRef.value?.reload()
+function sidePath(side: 'left' | 'right'): string {
+  return sideIsAnchor(side) ? splitView.leftPath : splitView.rightPath
 }
 
-/** 右侧页转入主视图：关闭分屏并跳转 */
-function splitPaneOpenInMain(): void {
-  const path = splitView.rightPath
-  splitView.close()
-  if (path) {
+/** 替换某一侧页面：锚定侧需导航（watcher 在路由抵达时对齐）；副侧直接换渲染组件 */
+function onSideSelect(side: 'left' | 'right', key: string | number): void {
+  const path = String(key)
+  if (sideIsAnchor(side)) {
+    pendingAnchorSwitch.value = path
     void router.push(path)
+  }
+  else {
+    splitView.setRightPath(path)
   }
 }
 
-// ── 左右互换（交叉滑动动画）────────────────────────────────────
-// out：两侧相向滑动淡出 → 导航到右路径（watcher 原子交换内容）→ in：延续运动方向反向滑入
-const swapPhase = ref<'idle' | 'out' | 'in'>('idle')
+/** 刷新某一侧：锚定侧走标签刷新机制（当前路由），副侧重建渲染组件 */
+function onSideReload(side: 'left' | 'right'): void {
+  if (sideIsAnchor(side)) {
+    refreshCurrentTab()
+  }
+  else {
+    splitPaneRef.value?.reload()
+  }
+}
+
+/** 新窗口打开某一侧页面 */
+function onSideOpen(side: 'left' | 'right'): void {
+  openTabInNewWindow(sidePath(side))
+}
+
+// ── 左右互换（收缩成页面大图标 → 图标交叉飞行 → 展开为交换后内容）──
+// 互换 = 翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新。
+// shrink：两屏向中心收缩淡出、各自中央弹出页面大图标 → fly：两枚图标互飞对方位置
+// →（翻转 order，幕后瞬时完成）→ expand：图标弹出消失、两屏展开
+const swapPhase = ref<'idle' | 'shrink' | 'fly' | 'expand'>('idle')
+const swapCenters = ref({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } })
+const swapIcons = ref({ left: 'lucide:file', right: 'lucide:file' })
+
+function resolveTabIcon(path: string): string {
+  const icon = tabbarStore.tabs.find(tab => tab.path === path)?.meta?.icon as string | undefined
+  if (!icon) {
+    return 'lucide:file'
+  }
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
+
+/** 取 pane 中心点（相对分屏行），作为图标的停靠/飞行坐标 */
+function paneCenter(selector: string): { x: number, y: number } {
+  const row = splitRowRef.value
+  const el = row?.querySelector(selector)
+  if (!row || !el) {
+    return { x: 0, y: 0 }
+  }
+  const rowRect = row.getBoundingClientRect()
+  const rect = el.getBoundingClientRect()
+  return { x: rect.left - rowRect.left + rect.width / 2, y: rect.top - rowRect.top + rect.height / 2 }
+}
+
+/** 图标位置：shrink 停在本侧中心，fly/expand 飞到对侧中心（transition 负责插值飞行） */
+function swapIconTransform(side: 'left' | 'right'): string {
+  const own = swapCenters.value[side]
+  const other = swapCenters.value[side === 'left' ? 'right' : 'left']
+  const pos = swapPhase.value === 'shrink' ? own : other
+  return `translate(${pos.x}px, ${pos.y}px)`
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 async function swapSplitPanes(): Promise<void> {
   if (swapPhase.value !== 'idle' || !splitView.rightPath) {
     return
   }
-  swapPhase.value = 'out'
-  await new Promise(resolve => setTimeout(resolve, 170))
-  await router.push(splitView.rightPath)
-  swapPhase.value = 'in'
-  window.setTimeout(() => {
-    swapPhase.value = 'idle'
-  }, 260)
+  // 视觉侧中心/图标（锚定 pane 可能在视觉右侧）
+  const anchorCenter = paneCenter('.split-anchor')
+  const secondaryCenter = paneCenter('.split-secondary')
+  const visualLeftIsAnchor = anchorCenter.x <= secondaryCenter.x
+  swapCenters.value = visualLeftIsAnchor
+    ? { left: anchorCenter, right: secondaryCenter }
+    : { left: secondaryCenter, right: anchorCenter }
+  swapIcons.value = {
+    left: resolveTabIcon(visualLeftIsAnchor ? splitView.leftPath : splitView.rightPath),
+    right: resolveTabIcon(visualLeftIsAnchor ? splitView.rightPath : splitView.leftPath),
+  }
+  swapPhase.value = 'shrink'
+  await wait(260)
+  swapPhase.value = 'fly'
+  await wait(360)
+  // 纯视觉交换：翻转 order，两侧实例原地保留（零刷新）
+  splitView.toggleReversed()
+  swapPhase.value = 'expand'
+  await wait(260)
+  swapPhase.value = 'idle'
 }
 
 const appVersion = __APP_VERSION__
@@ -266,50 +346,92 @@ const sidebarEnableState = computed(
         >
           <LayoutContentRenderer :transition-name="shell.transitionName.value" />
         </div>
-        <!-- 分屏对照：左=锚定标签（主视图），右=另一标签（iframe 内容-only） -->
+        <!-- 分屏对照：锚定标签（主视图）+ 副标签（应用内直接渲染）；reversed 时仅交换视觉顺序 -->
         <div
           v-else
           ref="splitRowRef"
           class="relative flex h-full w-full overflow-hidden"
-          :class="{ 'split-swap-out': swapPhase === 'out', 'split-swap-in': swapPhase === 'in' }"
+          :class="{ 'split-collapsed': swapPhase === 'shrink' || swapPhase === 'fly' }"
         >
-          <div class="split-left h-full min-w-0 overflow-auto" :style="{ flexBasis: `${splitView.ratio * 100}%` }">
+          <div
+            class="split-anchor h-full min-w-0 overflow-auto"
+            :style="{
+              flexBasis: `${(splitView.reversed ? 1 - splitView.ratio : splitView.ratio) * 100}%`,
+              order: splitView.reversed ? 3 : 1,
+            }"
+          >
             <LayoutContentRenderer :transition-name="shell.transitionName.value" />
           </div>
           <div
             class="split-divider"
             :class="{ 'is-dragging': draggingDivider }"
+            style="order: 2"
             @pointerdown="onDividerDown"
           >
-            <!-- 分割线悬浮工具组：切换右侧标签 / 刷新 / 转入主视图 / 关闭分屏 -->
+            <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作 -->
             <div class="split-tools" @pointerdown.stop>
+              <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
+              <NDropdown trigger="click" :options="splitTabOptions" @select="(key: string | number) => onSideSelect('left', key)">
+                <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')">
+                  <Icon icon="lucide:replace" width="13" height="13" />
+                </button>
+              </NDropdown>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @click="onSideReload('left')">
+                <Icon icon="lucide:rotate-cw" width="13" height="13" />
+              </button>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_left')" @click="onSideOpen('left')">
+                <Icon icon="lucide:external-link" width="13" height="13" />
+              </button>
+
+              <span class="split-tools__sep" />
               <span class="split-tools__grip" @pointerdown="onDividerDown">
                 <Icon icon="lucide:grip-vertical" width="13" height="13" />
               </span>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @click="swapSplitPanes">
                 <Icon icon="lucide:arrow-left-right" width="13" height="13" />
               </button>
-              <NDropdown trigger="click" :options="splitTabOptions" @select="onSplitTabSelect">
-                <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch')">
-                  <Icon icon="lucide:columns-2" width="14" height="14" />
-                </button>
-              </NDropdown>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.reload')" @click="splitPaneReload">
-                <Icon icon="lucide:rotate-cw" width="13" height="13" />
-              </button>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.open')" @click="splitPaneOpenInMain">
-                <Icon icon="lucide:external-link" width="13" height="13" />
-              </button>
               <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @click="splitView.close()">
                 <Icon icon="lucide:x" width="14" height="14" />
               </button>
+              <span class="split-tools__sep" />
+
+              <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
+              <NDropdown trigger="click" :options="splitTabOptions" @select="(key: string | number) => onSideSelect('right', key)">
+                <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')">
+                  <Icon icon="lucide:replace" width="13" height="13" />
+                </button>
+              </NDropdown>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @click="onSideReload('right')">
+                <Icon icon="lucide:rotate-cw" width="13" height="13" />
+              </button>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_right')" @click="onSideOpen('right')">
+                <Icon icon="lucide:external-link" width="13" height="13" />
+              </button>
             </div>
           </div>
-          <div class="split-right h-full min-w-0 flex-1">
+          <div class="split-secondary h-full min-w-0 flex-1" :style="{ order: splitView.reversed ? 1 : 3 }">
             <SplitPane ref="splitPaneRef" />
           </div>
-          <!-- 拖拽遮罩：覆盖 iframe，保证指针事件不被吞，拖动丝滑 -->
+          <!-- 拖拽遮罩：拖拽期间接管指针，拖动丝滑 -->
           <div v-if="draggingDivider" class="split-drag-overlay" />
+
+          <!-- 互换动画：两枚页面大图标（收缩时弹出 → 交叉飞行 → 展开时消散） -->
+          <template v-if="swapPhase !== 'idle'">
+            <div class="swap-icon" :style="{ transform: swapIconTransform('left') }">
+              <div class="swap-icon__center">
+                <div class="swap-icon__card" :class="swapPhase === 'expand' ? 'is-out' : 'is-in'">
+                  <Icon :icon="swapIcons.left" width="30" height="30" />
+                </div>
+              </div>
+            </div>
+            <div class="swap-icon" :style="{ transform: swapIconTransform('right') }">
+              <div class="swap-icon__center">
+                <div class="swap-icon__card" :class="swapPhase === 'expand' ? 'is-out' : 'is-in'">
+                  <Icon :icon="swapIcons.right" width="30" height="30" />
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -411,6 +533,23 @@ const sidebarEnableState = computed(
   cursor: default;
 }
 
+/* 左/右分组小标签 */
+.split-tools__label {
+  padding: 1px 0;
+  font-size: 10px;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+  user-select: none;
+}
+
+/* 分组分隔线 */
+.split-tools__sep {
+  width: 14px;
+  height: 1px;
+  margin: 3px 0;
+  background: hsl(var(--border));
+}
+
 /* 拖拽手柄：工具组里也能拖（事件不 stop，转给分隔条逻辑） */
 .split-tools__grip {
   display: inline-flex;
@@ -453,42 +592,68 @@ const sidebarEnableState = computed(
   cursor: col-resize;
 }
 
-/* 左右互换动画：out 两侧相向滑动淡出；内容交换后 in 延续运动方向滑入 */
-.split-left,
-.split-right {
+/* 左右互换动画：两屏向中心收缩淡出（split-collapsed），expand 时过渡回原状 */
+.split-anchor,
+.split-secondary {
+  transform-origin: center;
   transition:
-    transform 0.17s ease,
-    opacity 0.17s ease;
+    transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.24s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.split-swap-out .split-left {
-  transform: translateX(32px);
+.split-collapsed .split-anchor,
+.split-collapsed .split-secondary {
+  transform: scale(0.62);
   opacity: 0;
+  pointer-events: none;
 }
 
-.split-swap-out .split-right {
-  transform: translateX(-32px);
-  opacity: 0;
+/* 飞行图标：外层（.swap-icon）负责定位与飞行（transition transform），
+   内层卡片（__card）负责弹入/消散动画——分层避免 animation 覆盖 transform 定位 */
+.swap-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 22;
+  pointer-events: none;
+  transition: transform 0.34s cubic-bezier(0.45, 0.05, 0.25, 1);
 }
 
-.split-swap-in .split-left {
-  animation: split-enter-from-right 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+.swap-icon__center {
+  transform: translate(-50%, -50%);
 }
 
-.split-swap-in .split-right {
-  animation: split-enter-from-left 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+.swap-icon__card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 12px 32px hsl(var(--foreground) / 15%);
+  color: hsl(var(--primary));
 }
 
-@keyframes split-enter-from-right {
+.swap-icon__card.is-in {
+  animation: swap-card-in 0.24s cubic-bezier(0.22, 1.3, 0.36, 1) both;
+}
+
+.swap-icon__card.is-out {
+  animation: swap-card-out 0.22s ease both;
+}
+
+@keyframes swap-card-in {
   from {
-    transform: translateX(32px);
+    transform: scale(0.3);
     opacity: 0;
   }
 }
 
-@keyframes split-enter-from-left {
-  from {
-    transform: translateX(-32px);
+@keyframes swap-card-out {
+  to {
+    transform: scale(0.4);
     opacity: 0;
   }
 }
