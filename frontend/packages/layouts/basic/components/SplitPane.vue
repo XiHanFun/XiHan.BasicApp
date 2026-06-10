@@ -1,23 +1,46 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import type { Component } from 'vue'
+import { NEmpty } from 'naive-ui'
+import { computed, defineAsyncComponent, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useSplitViewStore } from '~/stores'
 
 defineOptions({ name: 'SplitPane' })
 
 const splitView = useSplitViewStore()
+const router = useRouter()
 
-/** iframe reload 令牌：变更 src 触发重载（由分割线工具组调用 reload 暴露方法） */
+/** 重载令牌：变更 key 触发组件重建（由分割线工具组调用 reload） */
 const reloadKey = ref(0)
 
-/** 右侧 pane 的 iframe 源：目标路径 + 内容-only 模式（hash 路由） */
-const paneSrc = computed(() => {
+/** 懒加载路由组件 → 异步组件包装缓存（按原始 loader 引用缓存，避免重复包装导致反复重挂载） */
+const asyncCache = new Map<unknown, Component>()
+
+/**
+ * 解析右侧路径对应的路由叶子组件，应用内直接渲染（同一应用实例，无 iframe、零重启零闪烁）。
+ * 注：pane 内组件经 useRoute() 读到的是主路由；对自包含的列表页（pageCode 驱动）无影响。
+ */
+const paneComponent = computed<Component | null>(() => {
   const path = splitView.rightPath
   if (!path) {
-    return ''
+    return null
   }
-  const base = `${window.location.origin}${window.location.pathname}`
-  const sep = path.includes('?') ? '&' : '?'
-  return `${base}#${path}${sep}__pane=1&__k=${reloadKey.value}`
+  const resolved = router.resolve(path)
+  const record = resolved.matched[resolved.matched.length - 1]
+  const raw = record?.components?.default
+  if (!raw) {
+    return null
+  }
+  // 懒加载路由（() => import(...)）：包装为异步组件；已是组件对象则直接用
+  if (typeof raw === 'function' && !('render' in raw) && !('setup' in raw)) {
+    let wrapped = asyncCache.get(raw)
+    if (!wrapped) {
+      wrapped = defineAsyncComponent(raw as () => Promise<Component>)
+      asyncCache.set(raw, wrapped)
+    }
+    return wrapped
+  }
+  return raw as Component
 })
 
 function reload(): void {
@@ -28,20 +51,21 @@ defineExpose({ reload })
 </script>
 
 <template>
-  <iframe
-    v-if="paneSrc"
-    :src="paneSrc"
-    class="split-pane-frame"
-    title="split-pane"
-  />
+  <div class="split-pane-body">
+    <component
+      :is="paneComponent"
+      v-if="paneComponent"
+      :key="`${splitView.rightPath}#${reloadKey}`"
+    />
+    <NEmpty v-else description="无法加载该页面" class="py-12" />
+  </div>
 </template>
 
 <style scoped>
-.split-pane-frame {
-  display: block;
-  width: 100%;
+.split-pane-body {
   height: 100%;
-  border: none;
+  width: 100%;
+  overflow: auto;
   background: hsl(var(--background));
 }
 </style>

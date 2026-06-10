@@ -42,6 +42,16 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
     ratio.value = Math.min(0.8, Math.max(0.2, value))
   }
 
+  /** 左右互换（仅交换路径；导航由调用方负责，布局层在路由抵达右路径时调用本方法对齐） */
+  function swapPaths(): void {
+    if (!active.value) {
+      return
+    }
+    const left = leftPath.value
+    leftPath.value = rightPath.value
+    rightPath.value = left
+  }
+
   /** 关闭分屏 */
   function close(): void {
     active.value = false
@@ -67,6 +77,7 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
     open,
     setRightPath,
     setRatio,
+    swapPaths,
     close,
     isSplitTab,
     isMergedTab,

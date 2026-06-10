@@ -4,6 +4,7 @@ export default {
   split_right: 'Open in Split View',
   split_close: 'Close Split View',
   split_switch: 'Switch Right Tab',
+  split_swap: 'Swap Panes',
   favorite: 'Add to Favorites',
   unfavorite: 'Remove from Favorites',
   pin: 'Pin',

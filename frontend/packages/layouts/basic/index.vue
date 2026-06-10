@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { darkTheme, NConfigProvider, NDropdown } from 'naive-ui'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '~/hooks'
@@ -29,22 +29,22 @@ const { t, te } = useI18n()
 const splitView = useSplitViewStore()
 const tabbarStore = useTabbarStore()
 
-// 分屏 pane（iframe 内）的「内容-only」模式：只渲染页面内容，跳过外壳与实时连接/更新检查。
-// 主信号取自 index.html 在 HTML 解析阶段捕获的全局标记（早于路由守卫，守卫会重写 URL 丢失 query）；
-// route.query / hash 作为兜底。
-const isPaneMode = (typeof window !== 'undefined' && (window as unknown as { __XIHAN_PANE__?: boolean }).__XIHAN_PANE__ === true)
-  || route.query.__pane === '1'
-  || (typeof window !== 'undefined' && window.location.hash.includes('__pane=1'))
+// 初始化 SignalR 连接（实时通知 + 踢下线）
+useSignalRIntegration()
 
-if (!isPaneMode) {
-  // 初始化 SignalR 连接（实时通知 + 踢下线）
-  useSignalRIntegration()
-  // 定时检查前端资源更新
-  useCheckUpdates()
-}
+// 定时检查前端资源更新
+useCheckUpdates()
 
 // 仅当「当前路由 === 分屏锚定标签」时显示分屏（右标签已并入、从标签栏隐藏）
 const showSplit = computed(() => splitView.active && route.fullPath === splitView.leftPath)
+
+// 路由抵达「右侧标签」路径时原子交换左右（pre-flush，渲染前完成 → 不闪烁）。
+// 同时覆盖两种入口：左右互换按钮（push 右路径）、用户经菜单直接导航到被合并的右标签。
+watch(() => route.fullPath, (path) => {
+  if (splitView.active && path === splitView.rightPath) {
+    splitView.swapPaths()
+  }
+})
 
 // 分屏分隔条拖拽：拖拽期间用全屏遮罩接管指针（防 iframe 吞事件→卡顿），rAF 合帧更丝滑
 const splitRowRef = ref<HTMLElement | null>(null)
@@ -113,6 +113,22 @@ function splitPaneOpenInMain(): void {
   }
 }
 
+// ── 左右互换（交叉滑动动画）────────────────────────────────────
+// out：两侧相向滑动淡出 → 导航到右路径（watcher 原子交换内容）→ in：延续运动方向反向滑入
+const swapPhase = ref<'idle' | 'out' | 'in'>('idle')
+async function swapSplitPanes(): Promise<void> {
+  if (swapPhase.value !== 'idle' || !splitView.rightPath) {
+    return
+  }
+  swapPhase.value = 'out'
+  await new Promise(resolve => setTimeout(resolve, 170))
+  await router.push(splitView.rightPath)
+  swapPhase.value = 'in'
+  window.setTimeout(() => {
+    swapPhase.value = 'idle'
+  }, 260)
+}
+
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
 const appHomepage = __APP_HOMEPAGE__
@@ -136,12 +152,7 @@ const sidebarEnableState = computed(
 </script>
 
 <template>
-  <!-- 分屏 pane（iframe 内）：仅渲染页面内容，无外壳 -->
-  <div v-if="isPaneMode" class="h-full w-full overflow-auto bg-background">
-    <LayoutContentRenderer :transition-name="shell.transitionName.value" />
-  </div>
-
-  <div v-else class="relative flex min-h-full w-full">
+  <div class="relative flex min-h-full w-full">
     <!-- ==================== Sidebar ==================== -->
     <NConfigProvider
       v-if="sidebarEnableState"
@@ -256,8 +267,13 @@ const sidebarEnableState = computed(
           <LayoutContentRenderer :transition-name="shell.transitionName.value" />
         </div>
         <!-- 分屏对照：左=锚定标签（主视图），右=另一标签（iframe 内容-only） -->
-        <div v-else ref="splitRowRef" class="relative flex h-full w-full overflow-hidden">
-          <div class="h-full min-w-0 overflow-auto" :style="{ flexBasis: `${splitView.ratio * 100}%` }">
+        <div
+          v-else
+          ref="splitRowRef"
+          class="relative flex h-full w-full overflow-hidden"
+          :class="{ 'split-swap-out': swapPhase === 'out', 'split-swap-in': swapPhase === 'in' }"
+        >
+          <div class="split-left h-full min-w-0 overflow-auto" :style="{ flexBasis: `${splitView.ratio * 100}%` }">
             <LayoutContentRenderer :transition-name="shell.transitionName.value" />
           </div>
           <div
@@ -270,6 +286,9 @@ const sidebarEnableState = computed(
               <span class="split-tools__grip" @pointerdown="onDividerDown">
                 <Icon icon="lucide:grip-vertical" width="13" height="13" />
               </span>
+              <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @click="swapSplitPanes">
+                <Icon icon="lucide:arrow-left-right" width="13" height="13" />
+              </button>
               <NDropdown trigger="click" :options="splitTabOptions" @select="onSplitTabSelect">
                 <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch')">
                   <Icon icon="lucide:columns-2" width="14" height="14" />
@@ -286,7 +305,7 @@ const sidebarEnableState = computed(
               </button>
             </div>
           </div>
-          <div class="h-full min-w-0 flex-1">
+          <div class="split-right h-full min-w-0 flex-1">
             <SplitPane ref="splitPaneRef" />
           </div>
           <!-- 拖拽遮罩：覆盖 iframe，保证指针事件不被吞，拖动丝滑 -->
@@ -426,12 +445,52 @@ const sidebarEnableState = computed(
   color: hsl(var(--destructive));
 }
 
-/* 拖拽遮罩：覆盖整个分屏行（含 iframe），拖拽期间接管指针避免卡顿 */
+/* 拖拽遮罩：覆盖整个分屏行，拖拽期间接管指针避免卡顿 */
 .split-drag-overlay {
   position: absolute;
   inset: 0;
   z-index: 20;
   cursor: col-resize;
+}
+
+/* 左右互换动画：out 两侧相向滑动淡出；内容交换后 in 延续运动方向滑入 */
+.split-left,
+.split-right {
+  transition:
+    transform 0.17s ease,
+    opacity 0.17s ease;
+}
+
+.split-swap-out .split-left {
+  transform: translateX(32px);
+  opacity: 0;
+}
+
+.split-swap-out .split-right {
+  transform: translateX(-32px);
+  opacity: 0;
+}
+
+.split-swap-in .split-left {
+  animation: split-enter-from-right 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.split-swap-in .split-right {
+  animation: split-enter-from-left 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes split-enter-from-right {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+}
+
+@keyframes split-enter-from-left {
+  from {
+    transform: translateX(-32px);
+    opacity: 0;
+  }
 }
 
 .footer-bar {
