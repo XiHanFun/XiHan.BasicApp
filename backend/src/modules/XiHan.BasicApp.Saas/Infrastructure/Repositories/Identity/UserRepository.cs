@@ -65,6 +65,21 @@ public sealed class UserRepository(
     }
 
     /// <inheritdoc />
+    public async Task<bool> ExistsEmailGloballyAsync(string email, long? excludeUserId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var query = CreateNoTenantQueryable().Where(user => user.Email == email);
+        if (excludeUserId.HasValue)
+        {
+            query = query.Where(user => user.BasicId != excludeUserId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<SysUser?> GetByIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

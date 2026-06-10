@@ -57,12 +57,13 @@ public sealed class SaasIdentitySeeder(
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var tenantId = await EnsureDefaultTenantAsync();
+        // 超管为平台账号（TenantId=0）：登录后落控制中心（平台态），可管理租户/用户/系统，
+        // 并可经 SwitchTenant 进入任意租户；不建立 SysTenantUser 成员关系。
+        _ = await EnsureDefaultTenantAsync();
         var role = await EnsureSuperAdminRoleAsync();
-        var user = await EnsureSuperAdminUserAsync(tenantId);
-        await EnsureSuperAdminSecurityAsync(tenantId, user.BasicId);
-        await EnsureSuperAdminMembershipAsync(tenantId, user.BasicId);
-        await EnsureSuperAdminUserRoleAsync(tenantId, user.BasicId, role.BasicId);
+        var user = await EnsureSuperAdminUserAsync();
+        await EnsureSuperAdminSecurityAsync(user.BasicId);
+        await EnsureSuperAdminUserRoleAsync(user.BasicId, role.BasicId);
         Logger.LogInformation("SaaS 基础身份数据已就绪，默认登录账号 {UserName}", SuperAdminUserName);
     }
 
@@ -90,10 +91,10 @@ public sealed class SaasIdentitySeeder(
         return changed;
     }
 
-    private static bool ApplySuperAdminUser(SysUser user, long tenantId, bool overwriteProfile)
+    private static bool ApplySuperAdminUser(SysUser user, bool overwriteProfile)
     {
         var changed = false;
-        changed |= SetIfChanged(user.TenantId, tenantId, value => user.TenantId = value);
+        changed |= SetIfChanged(user.TenantId, 0, value => user.TenantId = value);
         changed |= SetIfChanged(user.UserName, SuperAdminUserName, value => user.UserName = value);
         changed |= SetIfChanged(user.Status, EnableStatus.Enabled, value => user.Status = value);
         changed |= SetIfChanged(user.Language, string.IsNullOrWhiteSpace(user.Language) ? "zh-CN" : user.Language, value => user.Language = value);
@@ -118,43 +119,10 @@ public sealed class SaasIdentitySeeder(
         return changed;
     }
 
-    private static bool ApplySuperAdminMembership(SysTenantUser member, long tenantId, long userId)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var changed = false;
-        changed |= SetIfChanged(member.TenantId, tenantId, value => member.TenantId = value);
-        changed |= SetIfChanged(member.UserId, userId, value => member.UserId = value);
-        changed |= SetIfChanged(member.MemberType, TenantMemberType.Owner, value => member.MemberType = value);
-        changed |= SetIfChanged(member.InviteStatus, TenantMemberInviteStatus.Accepted, value => member.InviteStatus = value);
-        changed |= SetIfChanged(member.DisplayName, "超级管理员", value => member.DisplayName = value);
-        changed |= SetIfChanged(member.Status, ValidityStatus.Valid, value => member.Status = value);
-        changed |= SetIfChanged(member.Remark, "系统初始化默认租户所有者", value => member.Remark = value);
-
-        if (!member.InvitedTime.HasValue)
-        {
-            member.InvitedTime = now;
-            changed = true;
-        }
-
-        if (!member.RespondedTime.HasValue)
-        {
-            member.RespondedTime = now;
-            changed = true;
-        }
-
-        if (!member.LastActiveTime.HasValue)
-        {
-            member.LastActiveTime = now;
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    private static bool ApplySuperAdminUserRole(SysUserRole userRole, long tenantId, long userId, long roleId)
+    private static bool ApplySuperAdminUserRole(SysUserRole userRole, long userId, long roleId)
     {
         var changed = false;
-        changed |= SetIfChanged(userRole.TenantId, tenantId, value => userRole.TenantId = value);
+        changed |= SetIfChanged(userRole.TenantId, 0, value => userRole.TenantId = value);
         changed |= SetIfChanged(userRole.UserId, userId, value => userRole.UserId = value);
         changed |= SetIfChanged(userRole.RoleId, roleId, value => userRole.RoleId = value);
         changed |= SetIfChanged(userRole.Status, ValidityStatus.Valid, value => userRole.Status = value);
@@ -239,15 +207,15 @@ public sealed class SaasIdentitySeeder(
         return savedRole;
     }
 
-    private async Task<SysUser> EnsureSuperAdminUserAsync(long tenantId)
+    private async Task<SysUser> EnsureSuperAdminUserAsync()
     {
-        using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
+        using var platformScope = _currentTenant.Change(null);
         var client = DbClient;
         var existingUser = await client.Queryable<SysUser>()
-            .FirstAsync(user => user.TenantId == tenantId && user.UserName == SuperAdminUserName);
+            .FirstAsync(user => user.TenantId == 0 && user.UserName == SuperAdminUserName);
         if (existingUser is not null)
         {
-            if (ApplySuperAdminUser(existingUser, tenantId, overwriteProfile: false))
+            if (ApplySuperAdminUser(existingUser, overwriteProfile: false))
             {
                 _ = await client.Updateable(existingUser).ExecuteCommandAsync();
             }
@@ -259,22 +227,22 @@ public sealed class SaasIdentitySeeder(
         {
             UserName = SuperAdminUserName
         };
-        _ = ApplySuperAdminUser(user, tenantId, overwriteProfile: true);
+        _ = ApplySuperAdminUser(user, overwriteProfile: true);
 
         var savedUser = await client.Insertable(user).ExecuteReturnEntityAsync();
         Logger.LogInformation("成功初始化超级管理员账号，UserId={UserId}", savedUser.BasicId);
         return savedUser;
     }
 
-    private async Task EnsureSuperAdminSecurityAsync(long tenantId, long userId)
+    private async Task EnsureSuperAdminSecurityAsync(long userId)
     {
-        using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
+        using var platformScope = _currentTenant.Change(null);
         var client = DbClient;
         var exists = await client.Queryable<SysUserSecurity>()
             .FirstAsync(security => security.UserId == userId);
         if (exists is not null)
         {
-            if (ApplySuperAdminSecurity(exists, tenantId, userId, resetPassword: false))
+            if (ApplySuperAdminSecurity(exists, userId, resetPassword: false))
             {
                 _ = await client.Updateable(exists).ExecuteCommandAsync();
             }
@@ -282,50 +250,24 @@ public sealed class SaasIdentitySeeder(
             return;
         }
 
-        var now = DateTimeOffset.UtcNow;
         var security = new SysUserSecurity
         {
             SecurityStamp = Guid.NewGuid().ToString("N")
         };
-        _ = ApplySuperAdminSecurity(security, tenantId, userId, resetPassword: true);
+        _ = ApplySuperAdminSecurity(security, userId, resetPassword: true);
 
         _ = await client.Insertable(security).ExecuteReturnEntityAsync();
     }
 
-    private async Task EnsureSuperAdminMembershipAsync(long tenantId, long userId)
+    private async Task EnsureSuperAdminUserRoleAsync(long userId, long roleId)
     {
-        using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
-        var client = DbClient;
-        var exists = await client.Queryable<SysTenantUser>()
-            .FirstAsync(member => member.TenantId == tenantId && member.UserId == userId);
-        if (exists is not null)
-        {
-            if (ApplySuperAdminMembership(exists, tenantId, userId))
-            {
-                _ = await client.Updateable(exists).ExecuteCommandAsync();
-            }
-
-            return;
-        }
-
-        var member = new SysTenantUser
-        {
-            UserId = userId
-        };
-        _ = ApplySuperAdminMembership(member, tenantId, userId);
-
-        _ = await client.Insertable(member).ExecuteReturnEntityAsync();
-    }
-
-    private async Task EnsureSuperAdminUserRoleAsync(long tenantId, long userId, long roleId)
-    {
-        using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
+        using var platformScope = _currentTenant.Change(null);
         var client = DbClient;
         var exists = await client.Queryable<SysUserRole>()
-            .FirstAsync(userRole => userRole.TenantId == tenantId && userRole.UserId == userId && userRole.RoleId == roleId);
+            .FirstAsync(userRole => userRole.TenantId == 0 && userRole.UserId == userId && userRole.RoleId == roleId);
         if (exists is not null)
         {
-            if (ApplySuperAdminUserRole(exists, tenantId, userId, roleId))
+            if (ApplySuperAdminUserRole(exists, userId, roleId))
             {
                 _ = await client.Updateable(exists).ExecuteCommandAsync();
             }
@@ -338,7 +280,7 @@ public sealed class SaasIdentitySeeder(
             UserId = userId,
             RoleId = roleId
         };
-        _ = ApplySuperAdminUserRole(userRole, tenantId, userId, roleId);
+        _ = ApplySuperAdminUserRole(userRole, userId, roleId);
 
         _ = await client.Insertable(userRole).ExecuteReturnEntityAsync();
     }
@@ -358,11 +300,11 @@ public sealed class SaasIdentitySeeder(
         return changed;
     }
 
-    private bool ApplySuperAdminSecurity(SysUserSecurity security, long tenantId, long userId, bool resetPassword)
+    private bool ApplySuperAdminSecurity(SysUserSecurity security, long userId, bool resetPassword)
     {
         var now = DateTimeOffset.UtcNow;
         var changed = false;
-        changed |= SetIfChanged(security.TenantId, tenantId, value => security.TenantId = value);
+        changed |= SetIfChanged(security.TenantId, 0, value => security.TenantId = value);
         changed |= SetIfChanged(security.UserId, userId, value => security.UserId = value);
         changed |= SetIfChanged(security.EmailVerified, true, value => security.EmailVerified = value);
         changed |= SetIfChanged(security.AllowMultiLogin, true, value => security.AllowMultiLogin = value);

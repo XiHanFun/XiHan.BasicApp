@@ -78,10 +78,11 @@ public sealed class TenantProvisionDomainService
     }
 
     /// <inheritdoc />
-    public async Task<SysUser> ProvisionTenantAdminAsync(SysTenant tenant, string adminUserName, string passwordHash, CancellationToken cancellationToken = default)
+    public async Task<SysUser> ProvisionTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
         ArgumentException.ThrowIfNullOrWhiteSpace(adminUserName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(adminEmail);
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -97,7 +98,7 @@ public sealed class TenantProvisionDomainService
         }
 
         // 2) 创建管理员（用户/安全/成员）
-        var adminUser = await InitializeTenantAdminAsync(tenant, adminUserName, passwordHash, cancellationToken);
+        var adminUser = await InitializeTenantAdminAsync(tenant, adminUserName, adminEmail, passwordHash, cancellationToken);
 
         // 3) 创建 Owner 角色并按版本白名单授权
         var ownerRoleId = await CreateOwnerRoleWithEditionPermissionsAsync(tenant, editionId, cancellationToken);
@@ -158,18 +159,27 @@ public sealed class TenantProvisionDomainService
         return role.BasicId;
     }
     /// <inheritdoc />
-    public async Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string passwordHash, CancellationToken cancellationToken = default)
+    public async Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
         ArgumentException.ThrowIfNullOrWhiteSpace(adminUserName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(adminEmail);
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 邮箱是全平台唯一的登录身份标识
+        var normalizedEmail = adminEmail.Trim();
+        if (await _userRepository.ExistsEmailGloballyAsync(normalizedEmail, cancellationToken: cancellationToken))
+        {
+            throw new InvalidOperationException("管理员邮箱已被其他账号使用。");
+        }
 
         // 创建管理员用户
         var adminUser = new SysUser
         {
             TenantId = tenant.BasicId,
             UserName = adminUserName.Trim(),
+            Email = normalizedEmail,
             Status = EnableStatus.Enabled,
             IsSystemAccount = true
         };

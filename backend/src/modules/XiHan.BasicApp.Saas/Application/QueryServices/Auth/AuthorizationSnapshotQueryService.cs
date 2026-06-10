@@ -91,9 +91,10 @@ public sealed class AuthorizationSnapshotQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 分布式缓存：按用户缓存授权快照。失效由授权写路径触发——角色/角色权限/用户角色/用户权限/
-        // 权限委托/权限定义启停删等变更时，对应 AppService 调 InvalidateAuthorizationAsync（considerUow，事务提交后失效）。
-        var cacheKey = SaasCacheKeys.AuthorizationSnapshot(userId);
+        // 分布式缓存：按 用户 × 租户上下文 缓存授权快照（多租户成员在不同租户角色不同，切换租户不串味）。
+        // 失效由授权写路径触发——角色/角色权限/用户角色/用户权限/权限委托/权限定义启停删等变更时，
+        // 对应 AppService 调 InvalidateAuthorizationAsync（按用户模式整体失效全部租户维度，considerUow 事务提交后生效）。
+        var cacheKey = SaasCacheKeys.AuthorizationSnapshot(_currentTenant.Id, userId);
         var item = await _snapshotCache.GetOrAddAsync(
             cacheKey,
             async () =>
@@ -195,7 +196,14 @@ public sealed class AuthorizationSnapshotQueryService
     /// </summary>
     private async Task<AuthorizationSnapshot> BuildSnapshotAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        var userRoles = await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
+        // 绑定行显式按租户上下文过滤：授权绑定（用户角色/直授/委托）按 (当前租户 OR 全局) 生效。
+        // 租户上下文时与全局租户过滤器等价；平台态（无租户上下文，过滤器关闭）则仅全局绑定生效，
+        // 防止多租户成员在平台态聚合出跨租户权限（渗漏）。
+        var bindingScopeTenantId = _currentTenant.Id ?? 0;
+
+        var userRoles = (await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
+            .Where(item => item.TenantId == bindingScopeTenantId || item.TenantId == 0)
+            .ToList();
         var roles = await _roleRepository.GetEnabledByIdsAsync(userRoles.Select(item => item.RoleId), cancellationToken);
         var roleCodes = roles
             .Select(role => role.RoleCode)
@@ -222,7 +230,9 @@ public sealed class AuthorizationSnapshotQueryService
         // 角色权限（含角色继承展开：后代继承祖先 Grant，Deny 覆盖）
         var roleGrantIds = await ResolveRoleGrantIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
 
-        var userPermissions = await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
+        var userPermissions = (await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
+            .Where(item => item.TenantId == bindingScopeTenantId || item.TenantId == 0)
+            .ToList();
         var userGrantIds = userPermissions
             .Where(permission => permission.PermissionAction == PermissionAction.Grant)
             .Select(permission => permission.PermissionId)
@@ -264,7 +274,11 @@ public sealed class AuthorizationSnapshotQueryService
     /// </summary>
     private async Task<HashSet<long>> ResolveDelegatedPermissionIdsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        var delegations = await _permissionDelegationRepository.GetActiveByDelegateeIdAsync(userId, now, cancellationToken);
+        // 委托绑定同样按 (当前租户 OR 全局) 生效，见 BuildSnapshotAsync 中绑定行过滤说明
+        var bindingScopeTenantId = _currentTenant.Id ?? 0;
+        var delegations = (await _permissionDelegationRepository.GetActiveByDelegateeIdAsync(userId, now, cancellationToken))
+            .Where(item => item.TenantId == bindingScopeTenantId || item.TenantId == 0)
+            .ToList();
         if (delegations.Count == 0)
         {
             return [];

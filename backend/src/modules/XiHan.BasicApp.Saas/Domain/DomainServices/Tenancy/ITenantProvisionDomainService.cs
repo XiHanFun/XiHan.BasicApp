@@ -30,20 +30,22 @@ public interface ITenantProvisionDomainService
     /// </summary>
     /// <param name="tenant">已创建的租户实体</param>
     /// <param name="adminUserName">管理员用户名</param>
+    /// <param name="adminEmail">管理员邮箱（登录身份标识，全平台唯一）</param>
     /// <param name="passwordHash">管理员密码哈希</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>创建的管理员用户</returns>
-    Task<SysUser> ProvisionTenantAdminAsync(SysTenant tenant, string adminUserName, string passwordHash, CancellationToken cancellationToken = default);
+    Task<SysUser> ProvisionTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 初始化租户管理员账号
     /// </summary>
     /// <param name="tenant">已创建的租户实体</param>
     /// <param name="adminUserName">管理员用户名</param>
+    /// <param name="adminEmail">管理员邮箱（登录身份标识，全平台唯一）</param>
     /// <param name="passwordHash">管理员密码哈希</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>创建的管理员用户</returns>
-    Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string passwordHash, CancellationToken cancellationToken = default);
+    Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 为租户管理员分配默认角色

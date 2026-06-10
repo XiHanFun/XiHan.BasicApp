@@ -55,13 +55,29 @@ public static class SaasCacheKeys
     }
 
     /// <summary>
-    /// 用户授权快照缓存键。
+    /// 用户授权快照缓存键（按 用户 × 租户上下文 双维隔离）。
     /// </summary>
+    /// <remarks>
+    /// 同一用户可能是多个租户的成员，角色/权限绑定按租户上下文生效；
+    /// 仅按 userId 缓存会在切换租户后串味，故键必须包含当前租户维度（平台态记为 platform）。
+    /// </remarks>
+    /// <param name="tenantId">当前租户上下文（null/0 表示平台态）。</param>
     /// <param name="userId">用户标识。</param>
     /// <returns>业务缓存键。</returns>
-    public static string AuthorizationSnapshot(long userId)
+    public static string AuthorizationSnapshot(long? tenantId, long userId)
     {
-        return $"user:{userId}";
+        var tenantSegment = tenantId is > 0 ? tenantId.Value.ToString() : "platform";
+        return $"user:{userId}:tenant:{tenantSegment}";
+    }
+
+    /// <summary>
+    /// 指定用户全部租户上下文的授权快照缓存匹配模式（授权变更后整体失效该用户）。
+    /// </summary>
+    /// <param name="userId">用户标识。</param>
+    /// <returns>业务缓存键匹配模式。</returns>
+    public static string AuthorizationSnapshotPattern(long userId)
+    {
+        return $"user:{userId}:tenant:*";
     }
 
     /// <summary>

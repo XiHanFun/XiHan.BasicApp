@@ -53,12 +53,17 @@ public sealed class TenantCreateDto : BasicAppCDto
     public long? EditionId { get; set; }
 
     /// <summary>
-    /// 租户管理员用户名（与 AdminPassword 同时提供时，开通后自动创建管理员 + Owner 角色 + 按版本授权）
+    /// 租户管理员用户名（与 AdminEmail/AdminPassword 同时提供时，开通后自动创建管理员 + Owner 角色 + 按版本授权）
     /// </summary>
     public string? AdminUserName { get; set; }
 
     /// <summary>
-    /// 租户管理员初始密码（与 AdminUserName 同时提供时生效）
+    /// 租户管理员邮箱（登录身份标识，全平台唯一；开通管理员时必填）
+    /// </summary>
+    public string? AdminEmail { get; set; }
+
+    /// <summary>
+    /// 租户管理员初始密码（与 AdminUserName/AdminEmail 同时提供时生效）
     /// </summary>
     public string? AdminPassword { get; set; }
 

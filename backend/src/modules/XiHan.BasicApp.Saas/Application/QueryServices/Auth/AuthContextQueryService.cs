@@ -75,6 +75,28 @@ public sealed class AuthContextQueryService
     }
 
     /// <inheritdoc />
+    public async Task<LoginTenantContext?> FindAvailableLoginTenantAsync(long tenantId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        if (tenantId <= 0)
+        {
+            return null;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId, cancellationToken);
+        if (tenant is null
+            || tenant.TenantStatus != TenantStatus.Normal
+            || tenant.ConfigStatus is not TenantConfigStatus.Configured
+            || (tenant.ExpirationTime.HasValue && tenant.ExpirationTime.Value <= now))
+        {
+            return null;
+        }
+
+        return new LoginTenantContext(tenant.BasicId, tenant.TenantName);
+    }
+
+    /// <inheritdoc />
     public async Task<UserInfoDto> GetCurrentUserInfoAsync(
         long userId,
         long? tenantId,
