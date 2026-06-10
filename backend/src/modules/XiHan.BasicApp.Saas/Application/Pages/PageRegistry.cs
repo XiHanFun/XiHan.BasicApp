@@ -20,8 +20,15 @@ namespace XiHan.BasicApp.Saas.Application.Pages;
 /// <summary>
 /// 页面描述符（单一事实源条目）
 /// </summary>
+/// <remarks>
+/// 一致性约定（前后端同步的硬规则）：
+/// - Component 必须等于 Path 去掉前导斜杠后追加 "/index"（即前端 src/views 目录结构与路由路径一一对应）
+/// - I18nKey 命名为 menu.{Code 中 . 与 - 替换为 _}，并在前端 packages/locales/langs/{lang}/menu.ts 中维护双语文案
+/// - 静态路由（/about、/workbench/profile、/control-center 等）由前端 src/router/routes.ts 持有，不得登记到本表（避免路径/路由名冲突）
+/// </remarks>
 /// <param name="Code">页面唯一码</param>
-/// <param name="Title">页面标题</param>
+/// <param name="Title">页面标题（中文原文，I18nKey 缺失翻译时的回退展示）</param>
+/// <param name="I18nKey">国际化键（menu.* 命名空间）</param>
 /// <param name="MenuType">菜单类型</param>
 /// <param name="Path">路由路径</param>
 /// <param name="RouteName">路由名称</param>
@@ -36,6 +43,7 @@ namespace XiHan.BasicApp.Saas.Application.Pages;
 public sealed record PageDescriptor(
     string Code,
     string Title,
+    string? I18nKey,
     MenuType MenuType,
     string Path,
     string RouteName,
@@ -74,89 +82,89 @@ public static class PageRegistry
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
         // [1] 工作台
-        new("workbench","工作台",MenuType.Directory,"/workbench","Workbench",null,null,null,"lucide:layout-dashboard",10,"/workbench/dashboard"),
+        new("workbench","工作台","menu.workbench",MenuType.Directory,"/workbench","Workbench",null,null,null,"lucide:layout-dashboard",10,"/workbench/dashboard"),
         // [1.1] 仪表盘
-        new("workbench.dashboard","仪表盘",MenuType.Menu,"/workbench/dashboard","WorkbenchDashboard","workbench/dashboard/index","workbench",SaasPermissionCodes.UserStatistics.Read,"lucide:gauge",11,null,false,true),
+        new("workbench.dashboard","仪表盘","menu.workbench_dashboard",MenuType.Menu,"/workbench/dashboard","WorkbenchDashboard","workbench/dashboard/index","workbench",SaasPermissionCodes.UserStatistics.Read,"lucide:gauge",11,null,false,true),
         // [1.2] 我的消息
-        new("workbench.inbox","我的消息",MenuType.Menu,"/workbench/inbox","WorkbenchInbox","workbench/inbox/index","workbench",null,"lucide:inbox",12),
+        new("workbench.inbox","我的消息","menu.workbench_inbox",MenuType.Menu,"/workbench/inbox","WorkbenchInbox","workbench/inbox/index","workbench",null,"lucide:inbox",12),
 
         // [2] 身份权限
-        new("identity","身份权限",MenuType.Directory,"/identity","Identity",null,null,null,"lucide:shield-check",100,"/identity/user"),
+        new("identity","身份权限","menu.identity",MenuType.Directory,"/identity","Identity",null,null,null,"lucide:shield-check",100,"/identity/user"),
         // [2.1] 用户管理
-        new("identity.user","用户管理",MenuType.Menu,"/identity/user","IdentityUser","system/user/index","identity",SaasPermissionCodes.User.Read,"lucide:users",110),
+        new("identity.user","用户管理","menu.identity_user",MenuType.Menu,"/identity/user","IdentityUser","identity/user/index","identity",SaasPermissionCodes.User.Read,"lucide:users",110),
         // [2.2] 角色管理
-        new("identity.role","角色管理",MenuType.Menu,"/identity/role","IdentityRole","system/role/index","identity",SaasPermissionCodes.Role.Read,"lucide:shield-user",120),
+        new("identity.role","角色管理","menu.identity_role",MenuType.Menu,"/identity/role","IdentityRole","identity/role/index","identity",SaasPermissionCodes.Role.Read,"lucide:shield-user",120),
         // [2.3] 组织机构
-        new("identity.org","组织机构",MenuType.Menu,"/identity/org","IdentityOrg","system/org/index","identity",SaasPermissionCodes.Department.Read,"lucide:network",130),
+        new("identity.org","组织机构","menu.identity_org",MenuType.Menu,"/identity/org","IdentityOrg","identity/org/index","identity",SaasPermissionCodes.Department.Read,"lucide:network",130),
         // [2.4] 权限管理
-        new("identity.permission","权限管理",MenuType.Menu,"/identity/permission","IdentityPermission","system/permission/index","identity",SaasPermissionCodes.Permission.Read,"lucide:key-round",140),
-        // [2.5] 授权申请
-        new("identity.authorization","授权申请",MenuType.Menu,"/identity/authorization","IdentityAuthorization","identity/authorization/index","identity",SaasPermissionCodes.PermissionRequest.Read,"lucide:file-key",150),
+        new("identity.permission","权限管理","menu.identity_permission",MenuType.Menu,"/identity/permission","IdentityPermission","identity/permission/index","identity",SaasPermissionCodes.Permission.Read,"lucide:key-round",140),
+        // [2.5] 字段安全（字段级读写与脱敏策略）
+        new("identity.field-security","字段安全","menu.identity_field_security",MenuType.Menu,"/identity/field-security","IdentityFieldSecurity","identity/field-security/index","identity",SaasPermissionCodes.FieldLevelSecurity.Read,"lucide:eye-off",150),
+        // [2.6] 授权申请
+        new("identity.authorization","授权申请","menu.identity_authorization",MenuType.Menu,"/identity/authorization","IdentityAuthorization","identity/authorization/index","identity",SaasPermissionCodes.PermissionRequest.Read,"lucide:file-key",160),
 
         // [3] 租户管理
-        new("tenant","租户管理",MenuType.Directory,"/tenant","Tenant",null,null,null,"lucide:building-2",200,"/tenant/list"),
+        new("tenant","租户管理","menu.tenant",MenuType.Directory,"/tenant","Tenant",null,null,null,"lucide:building-2",200,"/tenant/list"),
         // [3.1] 租户列表
-        new("tenant.list","租户列表",MenuType.Menu,"/tenant/list","TenantList","platform/tenant/index","tenant",SaasPermissionCodes.Tenant.Read,"lucide:building",210),
+        new("tenant.list","租户列表","menu.tenant_list",MenuType.Menu,"/tenant/list","TenantList","tenant/list/index","tenant",SaasPermissionCodes.Tenant.Read,"lucide:building",210),
         // [3.2] 版本套餐
-        new("tenant.edition","版本套餐",MenuType.Menu,"/tenant/edition","TenantEdition","tenant/edition/index","tenant",SaasPermissionCodes.TenantEdition.Read,"lucide:package",220),
+        new("tenant.edition","版本套餐","menu.tenant_edition",MenuType.Menu,"/tenant/edition","TenantEdition","tenant/edition/index","tenant",SaasPermissionCodes.TenantEdition.Read,"lucide:package",220),
 
         // [4] 消息中心
-        // 注：SaasPermissionCodes 中无独立 Notification 族，使用语义最近的 Message.Read
-        new("message","消息中心",MenuType.Directory,"/message","Message",null,null,null,"lucide:mail",300,"/message/notification"),
-        // [4.1] 通知管理
-        new("message.notification","通知管理",MenuType.Menu,"/message/notification","MessageNotification","message/notification/index","message",SaasPermissionCodes.Message.Read,"lucide:bell",310),
+        new("message","消息中心","menu.message",MenuType.Directory,"/message","Message",null,null,null,"lucide:mail",300,"/message/notification"),
+        // [4.1] 通知公告
+        new("message.notification","通知公告","menu.message_notification",MenuType.Menu,"/message/notification","MessageNotification","message/notification/index","message",SaasPermissionCodes.Notification.Read,"lucide:bell",310),
         // [4.2] 邮件短信
-        new("message.record","邮件短信",MenuType.Menu,"/message/record","MessageRecord","system/message/index","message",SaasPermissionCodes.Message.Read,"lucide:send",320),
+        new("message.record","邮件短信","menu.message_record",MenuType.Menu,"/message/record","MessageRecord","message/record/index","message",SaasPermissionCodes.Message.Read,"lucide:send",320),
 
         // [5] 审批规则
-        new("approval","审批规则",MenuType.Directory,"/approval","Approval",null,null,null,"lucide:clipboard-check",400,"/approval/review"),
+        new("approval","审批规则","menu.approval",MenuType.Directory,"/approval","Approval",null,null,null,"lucide:clipboard-check",400,"/approval/review"),
         // [5.1] 审批中心
-        new("approval.review","审批中心",MenuType.Menu,"/approval/review","ApprovalReview","platform/approval/index","approval",SaasPermissionCodes.Review.Read,"lucide:check-check",410),
+        new("approval.review","审批中心","menu.approval_review",MenuType.Menu,"/approval/review","ApprovalReview","approval/review/index","approval",SaasPermissionCodes.Review.Read,"lucide:check-check",410),
         // [5.2] 约束规则
-        new("approval.constraint","约束规则",MenuType.Menu,"/approval/constraint","ApprovalConstraint","approval/constraint/index","approval",SaasPermissionCodes.ConstraintRule.Read,"lucide:shield-alert",420),
+        new("approval.constraint","约束规则","menu.approval_constraint",MenuType.Menu,"/approval/constraint","ApprovalConstraint","approval/constraint/index","approval",SaasPermissionCodes.ConstraintRule.Read,"lucide:shield-alert",420),
 
         // [6] 文件存储
-        // 注：SaasPermissionCodes 中无独立 StorageConfig 族，使用语义最近的 Config.Read
-        new("file","文件存储",MenuType.Directory,"/file","File",null,null,null,"lucide:folder",500,"/file/library"),
+        new("file","文件存储","menu.file",MenuType.Directory,"/file","File",null,null,null,"lucide:folder",500,"/file/library"),
         // [6.1] 文件管理
-        new("file.library","文件管理",MenuType.Menu,"/file/library","FileLibrary","platform/file/index","file",SaasPermissionCodes.File.Read,"lucide:folder-open",510),
+        new("file.library","文件管理","menu.file_library",MenuType.Menu,"/file/library","FileLibrary","file/library/index","file",SaasPermissionCodes.File.Read,"lucide:folder-open",510),
         // [6.2] 存储配置
-        new("file.storage","存储配置",MenuType.Menu,"/file/storage","FileStorage","file/storage/index","file",SaasPermissionCodes.Config.Read,"lucide:hard-drive",520),
+        new("file.storage","存储配置","menu.file_storage",MenuType.Menu,"/file/storage","FileStorage","file/storage/index","file",SaasPermissionCodes.StorageConfig.Read,"lucide:hard-drive",520),
 
         // [7] 开放平台
-        new("openapi","开放平台",MenuType.Directory,"/openapi","Openapi",null,null,null,"lucide:blocks",600,"/openapi/app"),
+        new("openapi","开放平台","menu.openapi",MenuType.Directory,"/openapi","Openapi",null,null,null,"lucide:blocks",600,"/openapi/app"),
         // [7.1] 应用管理
-        new("openapi.app","应用管理",MenuType.Menu,"/openapi/app","OpenapiApp","platform/app/index","openapi",SaasPermissionCodes.OAuthApp.Read,"lucide:badge-check",610),
+        new("openapi.app","应用管理","menu.openapi_app",MenuType.Menu,"/openapi/app","OpenapiApp","openapi/app/index","openapi",SaasPermissionCodes.OAuthApp.Read,"lucide:badge-check",610),
 
         // [8] 系统设置
-        new("setting","系统设置",MenuType.Directory,"/setting","Setting",null,null,null,"lucide:settings",700,"/setting/menu"),
+        new("setting","系统设置","menu.setting",MenuType.Directory,"/setting","Setting",null,null,null,"lucide:settings",700,"/setting/menu"),
         // [8.1] 菜单管理
-        new("setting.menu","菜单管理",MenuType.Menu,"/setting/menu","SettingMenu","platform/menu/index","setting",SaasPermissionCodes.Menu.Read,"lucide:list-tree",710),
+        new("setting.menu","菜单管理","menu.setting_menu",MenuType.Menu,"/setting/menu","SettingMenu","setting/menu/index","setting",SaasPermissionCodes.Menu.Read,"lucide:list-tree",710),
         // [8.2] 字典管理
-        new("setting.dict","字典管理",MenuType.Menu,"/setting/dict","SettingDict","platform/dict/index","setting",SaasPermissionCodes.Dict.Read,"lucide:book-open",720),
+        new("setting.dict","字典管理","menu.setting_dict",MenuType.Menu,"/setting/dict","SettingDict","setting/dict/index","setting",SaasPermissionCodes.Dict.Read,"lucide:book-open",720),
         // [8.3] 参数配置
-        new("setting.config","参数配置",MenuType.Menu,"/setting/config","SettingConfig","platform/config/index","setting",SaasPermissionCodes.Config.Read,"lucide:sliders-horizontal",730),
+        new("setting.config","参数配置","menu.setting_config",MenuType.Menu,"/setting/config","SettingConfig","setting/config/index","setting",SaasPermissionCodes.Config.Read,"lucide:sliders-horizontal",730),
         // [8.4] 任务调度
-        new("setting.job","任务调度",MenuType.Menu,"/setting/job","SettingJob","platform/job/index","setting",SaasPermissionCodes.Task.Read,"lucide:timer",740),
-        // [8.5] 缓存管理
-        new("setting.cache","缓存管理",MenuType.Menu,"/setting/cache","SettingCache","platform/cache/index","setting",SaasPermissionCodes.Config.Read,"lucide:database-backup",750),
-        // [8.6] 服务监控
-        new("setting.server","服务监控",MenuType.Menu,"/setting/server","SettingServer","platform/server/index","setting",SaasPermissionCodes.Config.Read,"lucide:server",760),
-        // [8.7] 日志审计
-        new("log","日志审计",MenuType.Directory,"/log","Log",null,"setting",null,"lucide:file-search",765,"/log/access"),
-        // [8.7.1] 访问日志
-        new("log.access","访问日志",MenuType.Menu,"/log/access","LogAccess","log/access/index","log",SaasPermissionCodes.AccessLog.Read,"lucide:globe",810),
-        // [8.7.2] 接口日志
-        new("log.api","接口日志",MenuType.Menu,"/log/api","LogApi","log/api/index","log",SaasPermissionCodes.ApiLog.Read,"lucide:webhook",820),
-        // [8.7.3] 操作日志
-        new("log.operation","操作日志",MenuType.Menu,"/log/operation","LogOperation","log/operation/index","log",SaasPermissionCodes.OperationLog.Read,"lucide:mouse-pointer-click",830),
-        // [8.7.4] 登录日志
-        new("log.login","登录日志",MenuType.Menu,"/log/login","LogLogin","log/login/index","log",SaasPermissionCodes.LoginLog.Read,"lucide:log-in",840),
-        // [8.7.5] 异常日志
-        new("log.exception","异常日志",MenuType.Menu,"/log/exception","LogException","log/exception/index","log",SaasPermissionCodes.ExceptionLog.Read,"lucide:triangle-alert",850),
+        new("setting.job","任务调度","menu.setting_job",MenuType.Menu,"/setting/job","SettingJob","setting/job/index","setting",SaasPermissionCodes.Task.Read,"lucide:timer",740),
+        // [8.5] 缓存管理（平台运维专属权限）
+        new("setting.cache","缓存管理","menu.setting_cache",MenuType.Menu,"/setting/cache","SettingCache","setting/cache/index","setting",SaasPermissionCodes.Cache.Read,"lucide:database-backup",750),
+        // [8.6] 服务监控（平台运维专属权限）
+        new("setting.server","服务监控","menu.setting_server",MenuType.Menu,"/setting/server","SettingServer","setting/server/index","setting",SaasPermissionCodes.Server.Read,"lucide:server",760),
 
-        // [9] 关于系统
-        new("about","关于系统",MenuType.Menu,"/about","About","/about/index",null,SaasPermissionCodes.Version.Read,"lucide:info",770),
+        // [9] 日志审计（顶层目录：路径 /log 与目录层级一致）
+        new("log","日志审计","menu.log",MenuType.Directory,"/log","Log",null,null,null,"lucide:file-search",800,"/log/access"),
+        // [9.1] 访问日志
+        new("log.access","访问日志","menu.log_access",MenuType.Menu,"/log/access","LogAccess","log/access/index","log",SaasPermissionCodes.AccessLog.Read,"lucide:globe",810),
+        // [9.2] 接口日志
+        new("log.api","接口日志","menu.log_api",MenuType.Menu,"/log/api","LogApi","log/api/index","log",SaasPermissionCodes.ApiLog.Read,"lucide:webhook",820),
+        // [9.3] 操作日志
+        new("log.operation","操作日志","menu.log_operation",MenuType.Menu,"/log/operation","LogOperation","log/operation/index","log",SaasPermissionCodes.OperationLog.Read,"lucide:mouse-pointer-click",830),
+        // [9.4] 登录日志
+        new("log.login","登录日志","menu.log_login",MenuType.Menu,"/log/login","LogLogin","log/login/index","log",SaasPermissionCodes.LoginLog.Read,"lucide:log-in",840),
+        // [9.5] 异常日志
+        new("log.exception","异常日志","menu.log_exception",MenuType.Menu,"/log/exception","LogException","log/exception/index","log",SaasPermissionCodes.ExceptionLog.Read,"lucide:triangle-alert",850),
+        // [9.6] 数据变更
+        new("log.diff","数据变更","menu.log_diff",MenuType.Menu,"/log/diff","LogDiff","log/diff/index","log",SaasPermissionCodes.DiffLog.Read,"lucide:file-diff",860),
     ];
 
     /// <summary>
@@ -190,7 +198,13 @@ public static class PageRegistry
         new("identity.permission.delete","删除","identity.permission",SaasPermissionCodes.Permission.Delete,3),
         new("identity.permission.status","启停","identity.permission",SaasPermissionCodes.Permission.Status,4),
 
-        // [2.5] 授权申请
+        // [2.5] 字段安全
+        new("identity.field-security.create","新增","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Create,1),
+        new("identity.field-security.update","编辑","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Update,2),
+        new("identity.field-security.status","启停","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Status,3),
+        new("identity.field-security.delete","删除","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Delete,4),
+
+        // [2.6] 授权申请
         new("identity.authorization.create","发起申请","identity.authorization",SaasPermissionCodes.PermissionRequest.Create,1),
         new("identity.authorization.audit","审批","identity.authorization",SaasPermissionCodes.PermissionRequest.Status,2),
         new("identity.authorization.withdraw","撤回","identity.authorization",SaasPermissionCodes.PermissionRequest.Withdraw,3),
@@ -206,11 +220,11 @@ public static class PageRegistry
         new("tenant.edition.status","启停","tenant.edition",SaasPermissionCodes.TenantEdition.Status,3),
         new("tenant.edition.default","设为默认","tenant.edition",SaasPermissionCodes.TenantEdition.Default,4),
 
-        // [4.1] 通知管理
-        new("message.notification.create","新增","message.notification",SaasPermissionCodes.Message.Create,1),
-        new("message.notification.update","编辑","message.notification",SaasPermissionCodes.Message.Update,2),
-        new("message.notification.publish","发布","message.notification",SaasPermissionCodes.Message.Publish,3),
-        new("message.notification.delete","删除","message.notification",SaasPermissionCodes.Message.Delete,4),
+        // [4.1] 通知公告
+        new("message.notification.create","新增","message.notification",SaasPermissionCodes.Notification.Create,1),
+        new("message.notification.update","编辑","message.notification",SaasPermissionCodes.Notification.Update,2),
+        new("message.notification.publish","发布","message.notification",SaasPermissionCodes.Notification.Publish,3),
+        new("message.notification.delete","删除","message.notification",SaasPermissionCodes.Notification.Delete,4),
 
         // [4.2] 邮件短信
         new("message.record.delete","删除","message.record",SaasPermissionCodes.Message.Delete,1),
@@ -232,9 +246,10 @@ public static class PageRegistry
         new("file.library.delete","删除","file.library",SaasPermissionCodes.File.Delete,3),
 
         // [6.2] 存储配置
-        new("file.storage.create","新增","file.storage",SaasPermissionCodes.Config.Create,1),
-        new("file.storage.update","编辑","file.storage",SaasPermissionCodes.Config.Update,2),
-        new("file.storage.delete","删除","file.storage",SaasPermissionCodes.Config.Delete,3),
+        new("file.storage.create","新增","file.storage",SaasPermissionCodes.StorageConfig.Create,1),
+        new("file.storage.update","编辑","file.storage",SaasPermissionCodes.StorageConfig.Update,2),
+        new("file.storage.status","启停","file.storage",SaasPermissionCodes.StorageConfig.Status,3),
+        new("file.storage.delete","删除","file.storage",SaasPermissionCodes.StorageConfig.Delete,4),
 
         // [7.1] 应用管理
         new("openapi.app.create","新增","openapi.app",SaasPermissionCodes.OAuthApp.Create,1),
@@ -267,5 +282,8 @@ public static class PageRegistry
         new("setting.job.delete","删除","setting.job",SaasPermissionCodes.Task.Delete,3),
         new("setting.job.status","启停","setting.job",SaasPermissionCodes.Task.Status,4),
         new("setting.job.run","执行","setting.job",SaasPermissionCodes.Task.RunStatus,5),
+
+        // [8.5] 缓存管理
+        new("setting.cache.clear","清理","setting.cache",SaasPermissionCodes.Cache.Clear,1),
     ];
 }

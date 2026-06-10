@@ -186,6 +186,7 @@ public sealed class SaasMenuSeeder(
         changed |= SetIfChanged(menu.Redirect, definition.Redirect, value => menu.Redirect = value);
         changed |= SetIfChanged(menu.Icon, definition.Icon, value => menu.Icon = value);
         changed |= SetIfChanged(menu.Title, definition.Title, value => menu.Title = value);
+        changed |= SetIfChanged(menu.I18nKey, definition.I18nKey, value => menu.I18nKey = value);
         changed |= SetIfChanged(menu.IsExternal, false, value => menu.IsExternal = value);
         changed |= SetIfChanged(menu.ExternalUrl, null, value => menu.ExternalUrl = value);
         changed |= SetIfChanged(menu.IsCache, definition.IsCache, value => menu.IsCache = value);
@@ -224,6 +225,7 @@ public sealed class SaasMenuSeeder(
             .Select(page => new MenuSeedDefinition(
                 page.Code,
                 page.Title,
+                page.I18nKey,
                 page.MenuType,
                 page.Path,
                 page.RouteName,
@@ -241,6 +243,7 @@ public sealed class SaasMenuSeeder(
             .Select(button => new MenuSeedDefinition(
                 button.Code,
                 button.Title,
+                I18nKey: null,
                 MenuType.Button,
                 Path: null,
                 RouteName: null,
@@ -257,6 +260,7 @@ public sealed class SaasMenuSeeder(
     private sealed record MenuSeedDefinition(
         string MenuCode,
         string MenuName,
+        string? I18nKey,
         MenuType MenuType,
         string? Path,
         string? RouteName,

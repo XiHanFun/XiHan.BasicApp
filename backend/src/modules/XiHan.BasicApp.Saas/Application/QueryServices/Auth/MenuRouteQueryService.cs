@@ -173,7 +173,10 @@ public sealed class MenuRouteQueryService
             Redirect = NormalizeNullable(menu.Redirect, 200),
             Meta = new MenuMetaDto
             {
-                Title = string.IsNullOrWhiteSpace(menu.Title) ? menu.MenuName : menu.Title.Trim(),
+                // 国际化优先：有 I18nKey 时下发键（前端 te(key) 命中则翻译，否则回退原文），无键回退 Title/MenuName
+                Title = !string.IsNullOrWhiteSpace(menu.I18nKey)
+                    ? menu.I18nKey.Trim()
+                    : string.IsNullOrWhiteSpace(menu.Title) ? menu.MenuName : menu.Title.Trim(),
                 Icon = NormalizeNullable(menu.Icon, 100),
                 Hidden = !menu.IsVisible,
                 KeepAlive = menu.IsCache,

@@ -62,7 +62,10 @@ public sealed class SaasTenantEditionSeeder(
         SaasPermissionCodes.Menu.Create,
         SaasPermissionCodes.Menu.Update,
         SaasPermissionCodes.Menu.Status,
-        SaasPermissionCodes.Menu.Delete
+        SaasPermissionCodes.Menu.Delete,
+        SaasPermissionCodes.Cache.Read,
+        SaasPermissionCodes.Cache.Clear,
+        SaasPermissionCodes.Server.Read
     };
 
     private readonly ICurrentTenant _currentTenant = currentTenant;
@@ -352,7 +355,11 @@ public sealed class SaasTenantEditionSeeder(
                 SaasPermissionCodes.UserDepartment.Grant,
                 SaasPermissionCodes.UserDepartment.Update,
                 SaasPermissionCodes.UserDepartment.Status,
-                SaasPermissionCodes.UserDepartment.Revoke
+                SaasPermissionCodes.UserDepartment.Revoke,
+                SaasPermissionCodes.Notification.Create,
+                SaasPermissionCodes.Notification.Update,
+                SaasPermissionCodes.Notification.Publish,
+                SaasPermissionCodes.Notification.Delete
             ]);
         var proPermissions = Combine(
             basicPermissions,
@@ -406,7 +413,12 @@ public sealed class SaasTenantEditionSeeder(
                 SaasPermissionCodes.ApiLog.Read,
                 SaasPermissionCodes.DiffLog.Read,
                 SaasPermissionCodes.ExceptionLog.Read,
-                SaasPermissionCodes.PermissionChangeLog.Read
+                SaasPermissionCodes.PermissionChangeLog.Read,
+                SaasPermissionCodes.StorageConfig.Read,
+                SaasPermissionCodes.StorageConfig.Create,
+                SaasPermissionCodes.StorageConfig.Update,
+                SaasPermissionCodes.StorageConfig.Status,
+                SaasPermissionCodes.StorageConfig.Delete
             ]);
 
         return
@@ -489,6 +501,7 @@ public sealed class SaasTenantEditionSeeder(
             SaasPermissionCodes.Dict.Read,
             SaasPermissionCodes.File.Read,
             SaasPermissionCodes.Message.Read,
+            SaasPermissionCodes.Notification.Read,
             SaasPermissionCodes.AccessLog.Read,
             SaasPermissionCodes.LoginLog.Read,
             SaasPermissionCodes.OperationLog.Read
