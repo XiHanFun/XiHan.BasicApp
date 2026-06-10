@@ -81,7 +81,7 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateAuthorizationAsync(long? userId = null, CancellationToken cancellationToken = default)
     {
         return userId.HasValue
-            ? _authorizationSnapshotCache.RemoveAsync(SaasCacheKeys.AuthorizationSnapshot(userId.Value), hideErrors: true, considerUow: true, token: cancellationToken)
+            ? _authorizationSnapshotCache.RemoveByPatternAsync(SaasCacheKeys.AuthorizationSnapshotPattern(userId.Value), hideErrors: true, considerUow: true, token: cancellationToken)
             : _authorizationSnapshotCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
     }
 

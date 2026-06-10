@@ -66,13 +66,20 @@ public sealed class TenantAppService
 
         var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
 
-        // 同时提供管理员账号密码时，一站式开通：管理员 + Owner 角色 + 按版本白名单授权
+        // 同时提供管理员账号信息时，一站式开通：管理员 + Owner 角色 + 按版本白名单授权
         if (!string.IsNullOrWhiteSpace(input.AdminUserName) && !string.IsNullOrWhiteSpace(input.AdminPassword))
         {
+            // 邮箱是全平台唯一的登录身份标识，开通管理员时必填
+            if (string.IsNullOrWhiteSpace(input.AdminEmail) || !input.AdminEmail.Contains('@'))
+            {
+                throw new ArgumentException("租户管理员邮箱不能为空且格式必须有效。");
+            }
+
             var passwordHash = _passwordHasher.HashPassword(input.AdminPassword.Trim());
             _ = await _tenantProvisionDomainService.ProvisionTenantAdminAsync(
                 result.Tenant,
                 input.AdminUserName.Trim(),
+                input.AdminEmail.Trim(),
                 passwordHash,
                 cancellationToken);
         }

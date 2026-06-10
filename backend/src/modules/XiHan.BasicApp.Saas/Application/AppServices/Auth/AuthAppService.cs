@@ -156,7 +156,12 @@ public sealed class AuthAppService
         var userName = NormalizeRequired(input.Username, "用户名不能为空。", 50, "用户名不能超过 50 个字符。");
         var password = NormalizeRequired(input.Password, "密码不能为空。", 200, "密码不能超过 200 个字符。");
         var nickName = string.IsNullOrWhiteSpace(input.NickName) ? userName : input.NickName.Trim();
-        var email = string.IsNullOrWhiteSpace(input.Email) ? null : input.Email.Trim();
+        // 邮箱是全平台唯一的登录身份标识，注册必填（唯一性由用户领域服务统一校验）
+        var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
+        if (!email.Contains('@'))
+        {
+            throw new ArgumentException("邮箱格式无效。");
+        }
 
         // 自助注册统一落到默认租户，注册即成为普通成员（不分配角色，权限由管理员后续授权）
         using var tenantScope = _currentTenant.Change(DefaultRegistrationTenantId, DefaultRegistrationTenantId.ToString());
@@ -210,8 +215,9 @@ public sealed class AuthAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
-        var tenantId = ParseScopeTenantId(input.ScopeId);
-        using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
+
+        // 邮箱全平台唯一：平台态全局定位账号，无需调用方提供租户范围
+        using var platformScope = _currentTenant.Change(null);
 
         var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
         // 防用户枚举：邮箱不存在时同样返回受理，不暴露账号是否存在
@@ -244,14 +250,6 @@ public sealed class AuthAppService
             Accepted = true,
             TemporaryPassword = temporaryPassword
         };
-    }
-
-    /// <summary>
-    /// 解析找回密码范围标识为租户标识，缺省回退到默认租户
-    /// </summary>
-    private static long ParseScopeTenantId(string? scopeId)
-    {
-        return long.TryParse(scopeId, out var parsed) && parsed > 0 ? parsed : DefaultRegistrationTenantId;
     }
 
     /// <summary>
@@ -369,17 +367,18 @@ public sealed class AuthAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var userName = NormalizeRequired(input.Username, "用户名不能为空。", 50, "用户名不能超过 50 个字符。");
+        var login = NormalizeRequired(input.Username, "登录账号不能为空。", 256, "登录账号不能超过 256 个字符。");
         var password = NormalizeRequired(input.Password, "密码不能为空。", 200, "密码不能超过 200 个字符。");
         var now = DateTimeOffset.UtcNow;
-        var tenant = await _authContextQueryService.GetLoginTenantOrThrowAsync(input.TenantId, now, cancellationToken);
-        var effectiveTenantId = tenant?.TenantId;
-        using var tenantScope = _currentTenant.Change(effectiveTenantId, tenant?.TenantName);
+
+        // 先登录后选租户：登录页不再选择租户，统一在平台态完成身份认证
+        // （邮箱全平台唯一定位；平台账号可用用户名），登录成功后按成员关系决定落点
+        using var platformScope = _currentTenant.Change(null);
 
         var authResult = await _authenticationDomainService.AuthenticatePasswordLoginAsync(
-            userName,
+            login,
             password,
-            effectiveTenantId,
+            tenantId: null,
             now,
             cancellationToken);
 
@@ -392,13 +391,13 @@ public sealed class AuthAppService
             // 尚未提交验证码：进入方式选择 / 验证码下发阶段（不签发令牌）
             if (string.IsNullOrWhiteSpace(input.TwoFactorCode))
             {
-                return await BuildTwoFactorChallengeAsync(twoFactorUser, availableMethods, input.TwoFactorMethod, effectiveTenantId, cancellationToken);
+                return await BuildTwoFactorChallengeAsync(twoFactorUser, availableMethods, input.TwoFactorMethod, tenantId: null, cancellationToken);
             }
 
             // 已提交验证码：按所选方式校验，未通过抛出（记录失败事件）；通过则继续往下签发令牌
-            await VerifyTwoFactorCodeOrThrowAsync(twoFactorUser, security, availableMethods, input.TwoFactorMethod, input.TwoFactorCode, effectiveTenantId, now, userName, cancellationToken);
+            await VerifyTwoFactorCodeOrThrowAsync(twoFactorUser, security, availableMethods, input.TwoFactorMethod, input.TwoFactorCode, tenantId: null, now, login, cancellationToken);
 
-            var twoFactorToken = await IssueLoginTokenAsync(twoFactorUser, security, effectiveTenantId, userName, input.DeviceId, now, cancellationToken);
+            var twoFactorToken = await IssueLoginTokenWithLandingAsync(twoFactorUser, security, login, input.DeviceId, now, cancellationToken);
             return new LoginResponseDto
             {
                 RequiresTwoFactor = false,
@@ -411,26 +410,77 @@ public sealed class AuthAppService
             var clientForFailure = _clientInfoProvider.GetCurrent();
             await _localEventBus.PublishAsync(
                 new AuthLoginFailedDomainEvent(
-                    effectiveTenantId,
+                    null,
                     authResult.User?.BasicId,
-                    userName,
+                    login,
                     authResult.FailureResult,
                     authResult.ErrorMessage,
                     now,
                     _httpContextAccessor.HttpContext?.TraceIdentifier,
                     clientForFailure.IpAddress,
                     clientForFailure.UserAgent));
-            throw new InvalidOperationException(authResult.ErrorMessage ?? "用户名或密码错误。");
+            throw new InvalidOperationException(authResult.ErrorMessage ?? "账号或密码错误。");
         }
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
-        var token = await IssueLoginTokenAsync(user, authResult.Security, effectiveTenantId, userName, input.DeviceId, now, cancellationToken);
+        var token = await IssueLoginTokenWithLandingAsync(user, authResult.Security, login, input.DeviceId, now, cancellationToken);
 
         return new LoginResponseDto
         {
             RequiresTwoFactor = false,
             Token = token
         };
+    }
+
+    /// <summary>
+    /// 决定登录落点租户并签发令牌（在落点租户上下文内重建快照）。
+    /// </summary>
+    /// <remarks>
+    /// 落点策略（先登录后选租户）：
+    /// - 平台账号（TenantId=0）或超管角色 → 平台态（前端落控制中心，可管理租户/用户/系统或选租户进入）
+    /// - 恰好一个可用租户成员 → 直接进入该租户（免选择）
+    /// - 零个或多个可用租户 → 平台态（前端落控制中心选择租户）
+    /// 进入租户后可随时通过 SwitchTenant 切换。
+    /// </remarks>
+    private async Task<LoginTokenDto> IssueLoginTokenWithLandingAsync(
+        SysUser user,
+        SysUserSecurity? security,
+        string loginName,
+        string? deviceId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var landing = await ResolveLoginLandingAsync(user, now, cancellationToken);
+        using var landingScope = _currentTenant.Change(landing?.TenantId, landing?.TenantName);
+        return await IssueLoginTokenAsync(user, security, landing?.TenantId, loginName, deviceId, now, cancellationToken);
+    }
+
+    /// <summary>
+    /// 解析登录落点租户；返回 null 表示平台态（控制中心）。
+    /// </summary>
+    private async Task<LoginTenantContext?> ResolveLoginLandingAsync(SysUser user, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        // 平台账号（TenantId=0，如超管）恒落平台态
+        if (user.TenantId == 0)
+        {
+            return null;
+        }
+
+        // 拥有超管角色（全局绑定）的账号同样恒落平台态（平台态快照仅含全局绑定，普通用户在此为空）
+        var platformSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
+        if (platformSnapshot.Roles.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, now, cancellationToken);
+        if (memberships.Count != 1)
+        {
+            return null;
+        }
+
+        // 唯一租户也要确认可用（正常/已配置/未过期），不可用则落控制中心由前端展示原因
+        return await _authContextQueryService.FindAvailableLoginTenantAsync(memberships[0].TenantId, now, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -443,18 +493,18 @@ public sealed class AuthAppService
 
         var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
         var now = DateTimeOffset.UtcNow;
-        var tenant = await _authContextQueryService.GetLoginTenantOrThrowAsync(input.TenantId, now, cancellationToken);
-        var effectiveTenantId = tenant?.TenantId;
-        using var tenantScope = _currentTenant.Change(effectiveTenantId, tenant?.TenantName);
+
+        // 先登录后选租户：平台态按全平台唯一邮箱定位用户
+        using var platformScope = _currentTenant.Change(null);
 
         // 复用邮箱登录的用户定位与账号可用性校验，确保仅向有效账号下发验证码
-        var authResult = await _authenticationDomainService.AuthenticateEmailLoginAsync(email, effectiveTenantId, now, cancellationToken);
+        var authResult = await _authenticationDomainService.AuthenticateEmailLoginAsync(email, tenantId: null, now, cancellationToken);
         if (!authResult.Succeeded)
         {
             throw new InvalidOperationException(authResult.ErrorMessage ?? "邮箱不可用。");
         }
 
-        var code = await IssueAndSendEmailLoginCodeAsync(email, authResult.User?.BasicId, effectiveTenantId, cancellationToken);
+        var code = await IssueAndSendEmailLoginCodeAsync(email, authResult.User?.BasicId, tenantId: null, cancellationToken);
 
         return new VerificationCodeResultDto
         {
@@ -515,22 +565,22 @@ public sealed class AuthAppService
         var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
         var code = NormalizeRequired(input.Code, "验证码不能为空。", 12, "验证码格式无效。");
         var now = DateTimeOffset.UtcNow;
-        var tenant = await _authContextQueryService.GetLoginTenantOrThrowAsync(input.TenantId, now, cancellationToken);
-        var effectiveTenantId = tenant?.TenantId;
-        using var tenantScope = _currentTenant.Change(effectiveTenantId, tenant?.TenantName);
 
-        if (!_emailLoginCodeService.TryConsume(effectiveTenantId, email, code))
+        // 先登录后选租户：平台态验证 + 智能落点
+        using var platformScope = _currentTenant.Change(null);
+
+        if (!_emailLoginCodeService.TryConsume(tenantId: null, email, code))
         {
             throw new InvalidOperationException("验证码无效或已过期。");
         }
 
-        var authResult = await _authenticationDomainService.AuthenticateEmailLoginAsync(email, effectiveTenantId, now, cancellationToken);
+        var authResult = await _authenticationDomainService.AuthenticateEmailLoginAsync(email, tenantId: null, now, cancellationToken);
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
             await _localEventBus.PublishAsync(
                 new AuthLoginFailedDomainEvent(
-                    effectiveTenantId,
+                    null,
                     authResult.User?.BasicId,
                     email,
                     authResult.FailureResult,
@@ -543,7 +593,7 @@ public sealed class AuthAppService
         }
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
-        return await IssueLoginTokenAsync(user, authResult.Security, effectiveTenantId, user.UserName, input.DeviceId, now, cancellationToken);
+        return await IssueLoginTokenWithLandingAsync(user, authResult.Security, user.UserName, input.DeviceId, now, cancellationToken);
     }
 
     /// <summary>

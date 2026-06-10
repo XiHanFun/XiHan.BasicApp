@@ -44,6 +44,14 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 检查邮箱是否已被占用（全平台范围，邮箱为登录身份标识须全局唯一）
+    /// </summary>
+    /// <param name="email">邮箱（调用方已 Trim）</param>
+    /// <param name="excludeUserId">排除的用户主键（更新自身时传入）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<bool> ExistsEmailGloballyAsync(string email, long? excludeUserId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 忽略租户过滤，按主键获取用户（平台运维 / 跨租户切换场景使用，需上层做权限校验）
     /// </summary>
     /// <remarks>

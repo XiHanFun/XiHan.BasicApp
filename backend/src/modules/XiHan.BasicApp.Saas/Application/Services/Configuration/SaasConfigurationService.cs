@@ -104,14 +104,13 @@ public sealed class SaasConfigurationService
     /// <inheritdoc />
     public async Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
     {
+        // 登录模型为「先登录后选租户」，登录页不再提供租户选择（落点由后端按成员关系决定）
         var loginMethods = await GetStringListAsync(SaasConfigKeys.Auth.LoginMethods, ["password"], cancellationToken);
-        var tenantEnabled = await GetBooleanAsync(SaasConfigKeys.Auth.TenantSelectionEnabled, true, cancellationToken);
         var oauthProviders = await GetOAuthProvidersAsync(cancellationToken);
 
         return new LoginConfigDto
         {
             LoginMethods = loginMethods.Count == 0 ? ["password"] : [.. loginMethods],
-            TenantEnabled = tenantEnabled,
             OAuthProviders = oauthProviders
         };
     }

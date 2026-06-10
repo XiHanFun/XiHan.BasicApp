@@ -149,6 +149,12 @@ public sealed class ProfileDomainService
         var target = NormalizeContact(command.ContactKind, command.Target);
         if (command.ContactKind == ProfileContactKind.Email)
         {
+            // 邮箱为登录身份标识，须全平台唯一
+            if (await _userRepository.ExistsEmailGloballyAsync(target, user.BasicId, cancellationToken))
+            {
+                throw new InvalidOperationException("邮箱已被其他账号使用。");
+            }
+
             user.Email = target;
             security.EmailVerified = true;
         }

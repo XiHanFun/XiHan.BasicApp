@@ -177,6 +177,7 @@ public sealed class UserDomainService
             throw new InvalidOperationException("用户名已存在。");
         }
 
+        await EnsureEmailUniqueAsync(NormalizeNullable(command.Email), excludeUserId: null, cancellationToken);
         await EnsurePasswordMeetsPolicyAsync(command, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
@@ -223,6 +224,11 @@ public sealed class UserDomainService
         var normalizedPhone = NormalizeNullable(command.Phone);
         var emailChanged = !string.Equals(user.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase);
         var phoneChanged = !string.Equals(user.Phone, normalizedPhone, StringComparison.Ordinal);
+
+        if (emailChanged)
+        {
+            await EnsureEmailUniqueAsync(normalizedEmail, user.BasicId, cancellationToken);
+        }
 
         user.RealName = NormalizeNullable(command.RealName);
         user.NickName = NormalizeNullable(command.NickName);
@@ -1474,6 +1480,22 @@ public sealed class UserDomainService
 
         return await _userRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("用户不存在。");
+    }
+
+    /// <summary>
+    /// 校验邮箱全平台唯一（邮箱为登录身份标识；为空跳过）
+    /// </summary>
+    private async Task EnsureEmailUniqueAsync(string? email, long? excludeUserId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
+        if (await _userRepository.ExistsEmailGloballyAsync(email, excludeUserId, cancellationToken))
+        {
+            throw new InvalidOperationException("邮箱已被其他账号使用。");
+        }
     }
 
     /// <summary>
