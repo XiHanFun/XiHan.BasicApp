@@ -356,7 +356,7 @@ const sidebarEnableState = computed(
           <div
             class="split-anchor h-full min-w-0 overflow-auto"
             :style="{
-              flexBasis: `${(splitView.reversed ? 1 - splitView.ratio : splitView.ratio) * 100}%`,
+              flexBasis: `calc((100% - 6px) * ${splitView.reversed ? 1 - splitView.ratio : splitView.ratio})`,
               order: splitView.reversed ? 3 : 1,
             }"
           >
@@ -373,39 +373,39 @@ const sidebarEnableState = computed(
               <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
               <NDropdown trigger="click" :options="splitTabOptions" @select="(key: string | number) => onSideSelect('left', key)">
                 <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')">
-                  <Icon icon="lucide:replace" width="13" height="13" />
+                  <Icon icon="lucide:replace" width="16" height="16" />
                 </button>
               </NDropdown>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @click="onSideReload('left')">
-                <Icon icon="lucide:rotate-cw" width="13" height="13" />
+                <Icon icon="lucide:rotate-cw" width="16" height="16" />
               </button>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_left')" @click="onSideOpen('left')">
-                <Icon icon="lucide:external-link" width="13" height="13" />
+                <Icon icon="lucide:external-link" width="16" height="16" />
               </button>
 
               <span class="split-tools__sep" />
               <span class="split-tools__grip" @pointerdown="onDividerDown">
-                <Icon icon="lucide:grip-vertical" width="13" height="13" />
+                <Icon icon="lucide:grip-vertical" width="16" height="16" />
               </span>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @click="swapSplitPanes">
-                <Icon icon="lucide:arrow-left-right" width="13" height="13" />
+                <Icon icon="lucide:arrow-left-right" width="16" height="16" />
               </button>
               <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @click="splitView.close()">
-                <Icon icon="lucide:x" width="14" height="14" />
+                <Icon icon="lucide:x" width="17" height="17" />
               </button>
               <span class="split-tools__sep" />
 
               <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
               <NDropdown trigger="click" :options="splitTabOptions" @select="(key: string | number) => onSideSelect('right', key)">
                 <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')">
-                  <Icon icon="lucide:replace" width="13" height="13" />
+                  <Icon icon="lucide:replace" width="16" height="16" />
                 </button>
               </NDropdown>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @click="onSideReload('right')">
-                <Icon icon="lucide:rotate-cw" width="13" height="13" />
+                <Icon icon="lucide:rotate-cw" width="16" height="16" />
               </button>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_right')" @click="onSideOpen('right')">
-                <Icon icon="lucide:external-link" width="13" height="13" />
+                <Icon icon="lucide:external-link" width="16" height="16" />
               </button>
             </div>
           </div>
@@ -514,7 +514,8 @@ const sidebarEnableState = computed(
   background: hsl(var(--primary) / 50%);
 }
 
-/* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间 */
+/* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间。
+   默认隐藏，悬停分割线（含工具组自身）或拖拽中才显示 */
 .split-tools {
   position: absolute;
   top: 50%;
@@ -523,20 +524,29 @@ const sidebarEnableState = computed(
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 3px;
+  gap: 3px;
+  padding: 9px 5px;
   border-radius: 9999px;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 16px hsl(var(--foreground) / 10%);
+  box-shadow: 0 6px 22px hsl(var(--foreground) / 12%);
   transform: translate(-50%, -50%);
   cursor: default;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.split-divider:hover .split-tools,
+.split-divider.is-dragging .split-tools {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* 左/右分组小标签 */
 .split-tools__label {
-  padding: 1px 0;
-  font-size: 10px;
+  padding: 2px 0;
+  font-size: 12px;
   line-height: 1;
   color: hsl(var(--muted-foreground));
   user-select: none;
@@ -544,9 +554,9 @@ const sidebarEnableState = computed(
 
 /* 分组分隔线 */
 .split-tools__sep {
-  width: 14px;
+  width: 20px;
   height: 1px;
-  margin: 3px 0;
+  margin: 4px 0;
   background: hsl(var(--border));
 }
 
@@ -562,8 +572,8 @@ const sidebarEnableState = computed(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 9999px;
   background: transparent;
