@@ -111,15 +111,18 @@ public sealed class TenantEditionDomainService
     }
 
     /// <inheritdoc />
-    public async Task RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<TenantEditionPermissionCommandResult> RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var editionPermission = await GetTenantEditionPermissionOrThrowAsync(id, cancellationToken);
+        var permission = await _permissionRepository.GetByIdAsync(editionPermission.PermissionId, cancellationToken);
         if (!await _tenantEditionPermissionRepository.DeleteAsync(editionPermission, cancellationToken))
         {
             throw new InvalidOperationException("租户版本权限撤销失败。");
         }
+
+        return new TenantEditionPermissionCommandResult(editionPermission, permission);
     }
 
     /// <inheritdoc />

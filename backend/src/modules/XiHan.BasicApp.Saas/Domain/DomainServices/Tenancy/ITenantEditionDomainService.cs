@@ -32,7 +32,8 @@ public interface ITenantEditionDomainService
     /// <summary>
     /// 撤销租户版本权限
     /// </summary>
-    Task RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default);
+    /// <returns>被撤销的版本权限映射（调用方据此回收受影响租户的越界授权）</returns>
+    Task<TenantEditionPermissionCommandResult> RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 设置默认租户版本

@@ -46,6 +46,8 @@ public sealed class TenantProvisionDomainService
 
     private readonly IRolePermissionRepository _rolePermissionRepository;
 
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
     private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
 
     private readonly ICurrentTenant _currentTenant;
@@ -62,6 +64,7 @@ public sealed class TenantProvisionDomainService
         ITenantRepository tenantRepository,
         IRoleRepository roleRepository,
         IRolePermissionRepository rolePermissionRepository,
+        IUserPermissionRepository userPermissionRepository,
         ITenantEditionPermissionRepository tenantEditionPermissionRepository,
         ICurrentTenant currentTenant)
     {
@@ -73,6 +76,7 @@ public sealed class TenantProvisionDomainService
         _tenantRepository = tenantRepository;
         _roleRepository = roleRepository;
         _rolePermissionRepository = rolePermissionRepository;
+        _userPermissionRepository = userPermissionRepository;
         _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
         _currentTenant = currentTenant;
     }
@@ -239,5 +243,90 @@ public sealed class TenantProvisionDomainService
 
         tenant.EditionId = defaultEdition.BasicId;
         return defaultEdition.BasicId;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> ReconcileTenantAuthorizationWithEditionAsync(SysTenant tenant, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(tenant);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (tenant.EditionId is not > 0)
+        {
+            return 0;
+        }
+
+        var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(tenant.EditionId.Value, cancellationToken);
+        var allowedIds = whitelist
+            .Where(item => item.Status == ValidityStatus.Valid)
+            .Select(item => item.PermissionId)
+            .ToHashSet();
+
+        // 白名单为空视为门控未启用（与运行时鉴权门控语义一致），不做回收，避免误清
+        if (allowedIds.Count == 0)
+        {
+            return 0;
+        }
+
+        // 仅处理该租户自有绑定行（TenantId=本租户）；全局行（TenantId=0）属平台运维资产，不在回收范围
+        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
+        var tenantId = tenant.BasicId;
+        var now = DateTimeOffset.UtcNow;
+
+        var staleRolePermissions = (await _rolePermissionRepository.GetListAsync(
+                item => item.TenantId == tenantId && item.Status == ValidityStatus.Valid,
+                cancellationToken))
+            .Where(item => !allowedIds.Contains(item.PermissionId))
+            .ToList();
+        foreach (var item in staleRolePermissions)
+        {
+            item.Status = ValidityStatus.Invalid;
+            item.ExpirationTime = now;
+            item.Remark = "套餐变更回收：超出当前版本权限白名单";
+        }
+
+        if (staleRolePermissions.Count > 0)
+        {
+            _ = await _rolePermissionRepository.UpdateRangeAsync(staleRolePermissions, cancellationToken);
+        }
+
+        var staleUserPermissions = (await _userPermissionRepository.GetListAsync(
+                item => item.TenantId == tenantId && item.Status == ValidityStatus.Valid,
+                cancellationToken))
+            .Where(item => !allowedIds.Contains(item.PermissionId))
+            .ToList();
+        foreach (var item in staleUserPermissions)
+        {
+            item.Status = ValidityStatus.Invalid;
+            item.ExpirationTime = now;
+            item.Remark = "套餐变更回收：超出当前版本权限白名单";
+        }
+
+        if (staleUserPermissions.Count > 0)
+        {
+            _ = await _userPermissionRepository.UpdateRangeAsync(staleUserPermissions, cancellationToken);
+        }
+
+        return staleRolePermissions.Count + staleUserPermissions.Count;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> ReconcileEditionTenantsAuthorizationAsync(long editionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (editionId <= 0)
+        {
+            return 0;
+        }
+
+        var tenants = await _tenantRepository.GetListAsync(tenant => tenant.EditionId == editionId, cancellationToken);
+        var total = 0;
+        foreach (var tenant in tenants)
+        {
+            total += await ReconcileTenantAuthorizationWithEditionAsync(tenant, cancellationToken);
+        }
+
+        return total;
     }
 }
