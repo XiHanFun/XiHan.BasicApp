@@ -346,6 +346,38 @@ public sealed class UserDomainService
     }
 
     /// <summary>
+    /// 重置用户双因素认证（清除 OTP 绑定）
+    /// </summary>
+    /// <remarks>
+    /// 清除双因素开关、方式与密钥并刷新安全戳；用户下次登录不再要求 OTP，可在个人中心重新绑定。
+    /// </remarks>
+    /// <param name="command">双因素重置参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户安全详情</returns>
+    public async Task<UserSecurityCommandResult> ResetUserTwoFactorAsync(UserTwoFactorResetCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.UserId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
+        }
+
+        var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
+
+        var now = DateTimeOffset.UtcNow;
+        security.TwoFactorEnabled = false;
+        security.TwoFactorMethod = TwoFactorMethod.None;
+        security.TwoFactorSecret = null;
+        security.SecurityStamp = NewSecurityStamp();
+        security.Remark = NormalizeNullable(command.Remark);
+
+        var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        return new UserSecurityCommandResult(savedSecurity, user, now);
+    }
+
+    /// <summary>
     /// 更新用户锁定状态
     /// </summary>
     /// <param name="command">锁定状态参数</param>

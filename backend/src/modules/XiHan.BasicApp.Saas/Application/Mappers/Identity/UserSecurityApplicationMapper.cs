@@ -87,6 +87,15 @@ public static class UserSecurityApplicationMapper
     }
 
     /// <summary>
+    /// 映射用户双因素重置命令
+    /// </summary>
+    public static UserTwoFactorResetCommand ToTwoFactorResetCommand(UserTwoFactorResetDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return new UserTwoFactorResetCommand(input.UserId, input.Remark);
+    }
+
+    /// <summary>
     /// 映射用户安全详情
     /// </summary>
     /// <param name="security">用户安全实体</param>

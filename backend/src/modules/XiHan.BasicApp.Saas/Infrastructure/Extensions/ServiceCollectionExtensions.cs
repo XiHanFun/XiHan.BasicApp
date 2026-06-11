@@ -30,9 +30,11 @@ using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
+using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Web.Api.Logging.Writers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Extensions;
@@ -132,7 +134,9 @@ public static class ServiceCollectionExtensions
     /// 添加 SaaS 领域事件处理器
     /// </summary>
     /// <remarks>
-    /// 事件处理器注册为 Transient，由事件总线框架通过 <c>OnRegistered</c> 钩子自动发现并订阅。
+    /// 事件总线的 <c>OnRegistered</c> 自动发现仅覆盖以接口为服务类型的注册（由 Castle 动态代理扫描触发），
+    /// 具体类注册不会被发现。因此这里在注册的同时显式将处理器加入
+    /// <see cref="XiHanLocalEventBusOptions.Handlers"/>，确保 LocalEventBus 完成订阅。
     /// Transient 生命周期确保每次事件发布时获取新实例，避免并发冲突。
     /// </remarks>
     /// <param name="services">服务集合</param>
@@ -140,28 +144,42 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSaasEventHandlers(this IServiceCollection services)
     {
         // 租户事件
-        services.AddTransient<TenantStatusChangedEventHandler>();
-        services.AddTransient<TenantMembershipChangedEventHandler>();
+        services.AddSaasLocalEventHandler<TenantStatusChangedEventHandler>();
+        services.AddSaasLocalEventHandler<TenantMembershipChangedEventHandler>();
 
         // 用户会话事件
-        services.AddTransient<UserSessionRevokedEventHandler>();
+        services.AddSaasLocalEventHandler<UserSessionRevokedEventHandler>();
 
         // 认证事件
-        services.AddTransient<AuthLoginEventHandler>();
+        services.AddSaasLocalEventHandler<AuthLoginEventHandler>();
 
         // 文件事件
-        services.AddTransient<FileUploadedEventHandler>();
-        services.AddTransient<FileDeletedEventHandler>();
-        services.AddTransient<FilePrimaryStorageChangedEventHandler>();
+        services.AddSaasLocalEventHandler<FileUploadedEventHandler>();
+        services.AddSaasLocalEventHandler<FileDeletedEventHandler>();
+        services.AddSaasLocalEventHandler<FilePrimaryStorageChangedEventHandler>();
 
         // 授权事件
-        services.AddTransient<AuthorizationChangedEventHandler>();
-        services.AddTransient<DataScopeChangedEventHandler>();
-        services.AddTransient<FieldLevelSecurityChangedEventHandler>();
+        services.AddSaasLocalEventHandler<AuthorizationChangedEventHandler>();
+        services.AddSaasLocalEventHandler<DataScopeChangedEventHandler>();
+        services.AddSaasLocalEventHandler<FieldLevelSecurityChangedEventHandler>();
 
         // 组织层级事件
-        services.AddTransient<HierarchyChangedEventHandler>();
+        services.AddSaasLocalEventHandler<HierarchyChangedEventHandler>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// 注册本地事件处理器并加入事件总线订阅列表
+    /// </summary>
+    /// <typeparam name="THandler">事件处理器类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    private static IServiceCollection AddSaasLocalEventHandler<THandler>(this IServiceCollection services)
+        where THandler : class
+    {
+        services.AddTransient<THandler>();
+        services.Configure<XiHanLocalEventBusOptions>(options => options.Handlers.AddIfNotContains(typeof(THandler)));
         return services;
     }
 

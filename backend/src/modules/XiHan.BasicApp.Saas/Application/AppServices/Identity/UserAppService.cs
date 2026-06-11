@@ -22,10 +22,13 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -49,6 +52,8 @@ public sealed class UserAppService
 
     private readonly IUserSessionRepository _userSessionRepository;
 
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -58,7 +63,8 @@ public sealed class UserAppService
         IFieldSecurityService fieldSecurity,
         ICurrentUser currentUser,
         ISaasCacheInvalidator cacheInvalidator,
-        IUserSessionRepository userSessionRepository)
+        IUserSessionRepository userSessionRepository,
+        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService)
     {
         _userDomainService = userDomainService;
         _userRepository = userRepository;
@@ -66,6 +72,7 @@ public sealed class UserAppService
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
         _userSessionRepository = userSessionRepository;
+        _realtimeNotificationService = realtimeNotificationService;
     }
 
     #region 用户核心
@@ -98,6 +105,19 @@ public sealed class UserAppService
         // 删除用户后：吊销其全部会话（请求期会话校验随即拒绝）+ 失效授权快照
         await _userSessionRepository.RevokeByUserIdAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(id, cancellationToken);
+
+        // 实时踢出被删用户的在线连接（仓储级批量吊销不走领域事件，这里直推 ForceLogout）
+        try
+        {
+            await _realtimeNotificationService.SendToUserAsync(
+                id.ToString(),
+                SignalRConstants.ClientMethods.ForceLogout,
+                new { reason = "账号已被删除，如有疑问请联系管理员。", targetSessionIds = (string[]?)null });
+        }
+        catch
+        {
+            // 实时推送失败不影响删除主流程（令牌校验仍会拒绝已吊销会话）
+        }
     }
 
     /// <summary>

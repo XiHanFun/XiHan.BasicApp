@@ -31,6 +31,14 @@ public interface IUserSecurityAppService : IApplicationService
     Task<UserSecurityDetailDto> ResetUserPasswordAsync(UserPasswordResetDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 重置用户双因素认证（清除 OTP 绑定）
+    /// </summary>
+    /// <param name="input">双因素重置参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户安全详情</returns>
+    Task<UserSecurityDetailDto> ResetUserTwoFactorAsync(UserTwoFactorResetDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新用户锁定状态
     /// </summary>
     /// <param name="input">锁定状态参数</param>
