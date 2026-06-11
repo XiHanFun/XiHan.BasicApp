@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Configurations;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Identity;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -153,8 +154,8 @@ public sealed class SaasConfigurationSeeder(
             new("账号锁定分钟数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.AccountLockoutMinutes, "15", "15", ConfigType.Feature, ConfigDataType.Number, "触发登录风控后默认锁定时长", 140),
             new("允许多设备登录", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionAllowMultiLogin, "true", "true", ConfigType.Feature, ConfigDataType.Boolean, "默认登录策略是否允许同一用户多设备在线", 150),
             new("默认最大登录设备", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionMaxLoginDevices, "5", "5", ConfigType.Feature, ConfigDataType.Number, "普通账号默认最大在线设备数，0 表示不限", 160),
-            new("默认 OAuth ClientId", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionClientId, "basicapp-web", "basicapp-web", ConfigType.Feature, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 ClientId", 170),
-            new("默认 OAuth Scope", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionScope, "basicapp", "basicapp", ConfigType.Feature, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 Scope", 180),
+            new("默认 OAuth ClientId", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionClientId, SaasOAuthClientIds.Web, SaasOAuthClientIds.Web, ConfigType.Feature, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 ClientId", 170),
+            new("默认 OAuth Scope", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionScope, SaasOAuthClientIds.DefaultScope, SaasOAuthClientIds.DefaultScope, ConfigType.Feature, ConfigDataType.String, "密码登录签发 OAuth Token 时使用的默认 Scope", 180),
             new("刷新令牌有效天数", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.SessionRefreshTokenDays, "7", "7", ConfigType.Feature, ConfigDataType.Number, "密码登录签发刷新令牌的有效天数", 190),
             new("审计日志保留天数", SaasConfigKeys.Groups.Audit, SaasConfigKeys.Audit.LogRetentionDays, "180", "180", ConfigType.Environment, ConfigDataType.Number, "审计与访问日志默认保留周期", 200),
             new("文件存储提供者", SaasConfigKeys.Groups.File, SaasConfigKeys.File.StorageProvider, "local", "local", ConfigType.Environment, ConfigDataType.String, "文件存储提供者类型：local / s3 / oss / azure", 210),
