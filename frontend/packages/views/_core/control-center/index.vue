@@ -4,6 +4,7 @@ import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
+import { XUserAvatar } from '~/components'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
@@ -100,8 +101,6 @@ onMounted(loadTenants)
         <span class="cc-brand__title">{{ brandTitle }}</span>
       </div>
       <div class="cc-user">
-        <NAvatar v-if="avatar" :src="avatar" :size="28" round />
-        <span class="cc-user__name">{{ displayName }}</span>
         <NButton size="small" quaternary @click="handleLogout">
           <template #icon>
             <Icon icon="lucide:log-out" />
@@ -114,6 +113,7 @@ onMounted(loadTenants)
     <main class="cc-main">
       <div class="cc-container">
         <div class="cc-header">
+          <XUserAvatar :avatar="avatar" :name="displayName" :size="64" class="cc-avatar" />
           <h1 class="cc-title">
             {{ t('page.control_center.welcome') }}，{{ displayName }}
           </h1>
@@ -255,11 +255,6 @@ onMounted(loadTenants)
   align-items: center;
 }
 
-.cc-user__name {
-  font-size: 13px;
-  color: hsl(var(--muted-foreground));
-}
-
 .cc-main {
   display: flex;
   flex: 1;
@@ -275,6 +270,11 @@ onMounted(loadTenants)
 .cc-header {
   margin-bottom: 24px;
   text-align: center;
+}
+
+.cc-avatar {
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px hsl(var(--primary) / 18%);
 }
 
 .cc-title {
@@ -445,5 +445,41 @@ onMounted(loadTenants)
 .cc-empty__hint {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+}
+
+/* 小屏适配：收紧间距，平台管理卡片纵向堆叠、按钮整行 */
+@media (max-width: 480px) {
+  .cc-topbar {
+    padding: 10px 16px;
+  }
+
+  .cc-brand__title {
+    font-size: 14px;
+  }
+
+  .cc-main {
+    padding: 20px 16px 48px;
+  }
+
+  .cc-title {
+    font-size: 20px;
+  }
+
+  .cc-subtitle {
+    font-size: 13px;
+  }
+
+  .cc-card {
+    padding: 16px;
+  }
+
+  .cc-platform {
+    flex-wrap: wrap;
+  }
+
+  .cc-platform > .n-button {
+    width: 100%;
+    margin-top: 4px;
+  }
 }
 </style>

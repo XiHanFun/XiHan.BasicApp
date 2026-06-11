@@ -3,8 +3,9 @@ import type { Component } from 'vue'
 import type { UserProfile } from '~/types'
 import { NSpin, useMessage } from 'naive-ui'
 import { computed, markRaw, onMounted, ref } from 'vue'
+import { XUserAvatar } from '~/components'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
+import { useAppContext, useUserStore } from '~/stores'
 import ProfileTabBinding from './ProfileTabBinding.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabDevices from './ProfileTabDevices.vue'
@@ -20,32 +21,58 @@ defineOptions({ name: 'ProfilePage' })
 interface ProfileNavItem {
   key: string
   label: string
-  desc: string
   icon: string
+}
+
+interface ProfileNavGroup {
+  title: string | null
+  items: ProfileNavItem[]
 }
 
 const message = useMessage()
 const { apis } = useAppContext()
+const userStore = useUserStore()
 
 const activeTab = ref('profile')
 const profileLoading = ref(false)
 const profile = ref<UserProfile | null>(null)
 
-const navItems: ProfileNavItem[] = [
-  { key: 'profile', label: '个人资料', desc: '头像、昵称与联系方式', icon: 'lucide:contact' },
-  { key: 'security', label: '安全设置', desc: '密码、两步验证与账号状态', icon: 'lucide:shield-check' },
-  { key: 'loginLogs', label: '登录日志', desc: '近期登录记录与异常排查', icon: 'lucide:file-clock' },
-  { key: 'binding', label: '账号绑定', desc: '第三方账号关联', icon: 'lucide:link' },
+/** GitHub 风格分组导航：顶部资料项 + 按主题分组 */
+const navGroups: ProfileNavGroup[] = [
   {
-    key: 'devices',
-    label: '登录设备',
-    desc: '在线会话与设备管理',
-    icon: 'lucide:monitor-smartphone',
+    title: null,
+    items: [
+      { key: 'profile', label: '个人资料', icon: 'lucide:contact' },
+    ],
   },
-  { key: 'tenants', label: '我的租户', desc: '可访问的租户与成员身份', icon: 'lucide:building-2' },
-  { key: 'stats', label: '数据统计', desc: '登录、访问与活跃度', icon: 'lucide:bar-chart-3' },
-  { key: 'notifications', label: '通知偏好', desc: '消息渠道与提醒', icon: 'lucide:bell-ring' },
-  { key: 'developer', label: '开发者设置', desc: '令牌与第三方接入', icon: 'lucide:code-2' },
+  {
+    title: '访问与安全',
+    items: [
+      { key: 'security', label: '安全设置', icon: 'lucide:shield-check' },
+      { key: 'binding', label: '账号绑定', icon: 'lucide:link' },
+      { key: 'devices', label: '登录设备', icon: 'lucide:monitor-smartphone' },
+      { key: 'loginLogs', label: '登录日志', icon: 'lucide:file-clock' },
+    ],
+  },
+  {
+    title: '偏好设置',
+    items: [
+      { key: 'notifications', label: '通知偏好', icon: 'lucide:bell-ring' },
+    ],
+  },
+  {
+    title: '租户与数据',
+    items: [
+      { key: 'tenants', label: '我的租户', icon: 'lucide:building-2' },
+      { key: 'stats', label: '数据统计', icon: 'lucide:bar-chart-3' },
+    ],
+  },
+  {
+    title: '开发者',
+    items: [
+      { key: 'developer', label: '开发者设置', icon: 'lucide:code-2' },
+    ],
+  },
 ]
 
 const tabComponents: Record<string, Component> = {
@@ -89,152 +116,265 @@ onMounted(loadProfile)
 
 <template>
   <div class="pc">
-    <nav class="pc__tabs" aria-label="个人中心选项卡" role="tablist">
-      <button
-        v-for="item in navItems"
-        :key="item.key"
-        type="button"
-        role="tab"
-        class="pc__tab"
-        :class="{ 'is-active': activeTab === item.key }"
-        :aria-selected="activeTab === item.key"
-        @click="selectTab(item.key)"
-      >
-        <span class="pc__tab-icon">
-          <Icon :icon="item.icon" width="17" />
-        </span>
-        <span class="pc__tab-copy">
-          <span class="pc__tab-title">{{ item.label }}</span>
-        </span>
-      </button>
-    </nav>
-
-    <main class="pc__content">
-      <NSpin :show="profileLoading && !profile">
-        <KeepAlive>
-          <component
-            :is="activeComponent"
-            v-bind="currentComponentProps"
-            @saved="loadProfile"
-            @updated="loadProfile"
+    <div class="pc__container">
+      <!-- 左侧：身份信息 + 分组导航（GitHub 设置页风格） -->
+      <aside class="pc__sidebar">
+        <div class="pc__identity">
+          <XUserAvatar
+            :size="40"
+            :avatar="userStore.avatar"
+            :name="userStore.nickname || userStore.username"
           />
-        </KeepAlive>
-      </NSpin>
-    </main>
+          <div class="pc__identity-copy">
+            <div class="pc__identity-name">
+              {{ userStore.nickname || userStore.username }}
+            </div>
+            <div class="pc__identity-sub">
+              @{{ userStore.username }} · 个人账号
+            </div>
+          </div>
+        </div>
+
+        <nav class="pc__nav" aria-label="个人中心导航">
+          <div
+            v-for="(group, groupIndex) in navGroups"
+            :key="groupIndex"
+            class="pc__nav-group"
+          >
+            <div v-if="group.title" class="pc__nav-group-title">
+              {{ group.title }}
+            </div>
+            <button
+              v-for="item in group.items"
+              :key="item.key"
+              type="button"
+              class="pc__nav-item"
+              :class="{ 'is-active': activeTab === item.key }"
+              :aria-current="activeTab === item.key ? 'page' : undefined"
+              @click="selectTab(item.key)"
+            >
+              <Icon :icon="item.icon" width="16" class="pc__nav-icon" />
+              <span class="pc__nav-label">{{ item.label }}</span>
+            </button>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- 右侧：内容区 -->
+      <main class="pc__content">
+        <NSpin :show="profileLoading && !profile">
+          <KeepAlive>
+            <component
+              :is="activeComponent"
+              v-bind="currentComponentProps"
+              @saved="loadProfile"
+              @updated="loadProfile"
+            />
+          </KeepAlive>
+        </NSpin>
+      </main>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .pc {
   min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  background: var(--bg-base);
-}
-
-.pc__tabs {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 2px 0 4px;
-  background: var(--bg-base);
-}
-
-.pc__tab {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  min-width: 0;
-  min-height: 38px;
-  padding: 7px 11px;
-  border: 0;
-  border-radius: var(--radius);
-  background: hsl(var(--accent) / 72%);
-  color: var(--text-secondary);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background 0.16s,
-    box-shadow 0.16s,
-    color 0.16s;
-}
-
-.pc__tab:hover {
-  background: hsl(var(--background) / 72%);
-  color: var(--text-primary);
-}
-
-.pc__tab.is-active {
+  padding: 24px 20px;
+  /* GitHub 式纯净背景：亮色为白、暗色随主题，不再用灰色底 */
   background: var(--bg-surface);
-  color: hsl(var(--primary));
-  box-shadow: 0 10px 24px hsl(var(--primary) / 8%);
 }
 
-.pc__tab-icon {
+/* GitHub 式居中容器：侧边栏 + 内容整体限宽水平居中 */
+.pc__container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border-radius: 8px;
-  background: hsl(var(--background) / 70%);
-  color: inherit;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1336px;
+  margin: 0 auto;
 }
 
-.pc__tab-copy {
+/* ===== 左侧导航 ===== */
+.pc__sidebar {
+  position: sticky;
+  top: 14px;
+  flex-shrink: 0;
+  width: 232px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 14px;
+}
+
+.pc__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px;
   min-width: 0;
 }
 
-.pc__tab-title {
+.pc__identity-copy {
+  min-width: 0;
+}
+
+.pc__identity-name {
   font-size: 14px;
   font-weight: 700;
-  line-height: 1.3;
-  color: inherit;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.pc__identity-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pc__nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.pc__nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pc__nav-group + .pc__nav-group {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid hsl(var(--border) / 70%);
+}
+
+.pc__nav-group-title {
+  padding: 2px 10px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.pc__nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s;
+}
+
+.pc__nav-item:hover {
+  background: hsl(var(--accent));
+}
+
+.pc__nav-item.is-active {
+  background: hsl(var(--accent));
+  font-weight: 600;
+}
+
+/* GitHub 式激活指示条 */
+.pc__nav-item.is-active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  border-radius: 2px;
+  background: hsl(var(--primary));
+}
+
+.pc__nav-icon {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.pc__nav-item.is-active .pc__nav-icon {
+  color: hsl(var(--primary));
+}
+
+.pc__nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== 右侧内容 ===== */
 .pc__content {
+  flex: 1;
   min-width: 0;
+  max-width: 1080px; /* GitHub 式可读宽度上限，超宽屏不无限拉伸 */
 }
 
-@media (max-width: 768px) {
+/* ===== 窄屏：导航横向滑动条 ===== */
+@media (max-width: 900px) {
   .pc {
     padding: 12px;
   }
 
-  .pc__tabs {
-    flex-wrap: nowrap;
+  .pc__container {
+    flex-direction: column;
+    /* 纵向布局时横轴改为拉伸：flex-start 会让内容按固有宽度靠左，右侧留白 */
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .pc__sidebar {
+    position: static;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .pc__nav {
+    flex-direction: row;
+    gap: 6px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
+    padding-bottom: 4px;
   }
 
-  .pc__tab {
+  .pc__nav-group {
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .pc__nav-group + .pc__nav-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .pc__nav-group-title {
+    display: none;
+  }
+
+  .pc__nav-item {
     flex: 0 0 auto;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    min-width: 70px;
-    min-height: 56px;
-    padding: 8px;
-    text-align: center;
+    width: auto;
+    padding: 7px 12px;
+    background: hsl(var(--accent) / 72%);
   }
 
-  .pc__tab-icon {
-    width: 30px;
-    height: 30px;
+  .pc__nav-item.is-active {
+    color: hsl(var(--primary));
   }
 
-  .pc__tab-copy {
-    align-items: center;
+  .pc__nav-item.is-active::before {
+    display: none;
   }
 }
 </style>
