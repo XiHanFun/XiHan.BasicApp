@@ -134,16 +134,23 @@ public sealed class ProfileQueryService
             .GroupBy(item => DateOnly.FromDateTime(item.AccessTime.UtcDateTime))
             .ToDictionary(group => group.Key, group => group.Count());
 
+        // 每日在线分钟取自当日 Today 周期快照（聚合任务按日 upsert，天然形成逐日历史）
+        var onlineByDate = stats
+            .Where(item => item.Period == StatisticsPeriod.Today && item.StatisticsDate >= startDate)
+            .GroupBy(item => item.StatisticsDate)
+            .ToDictionary(group => group.Key, group => group.Max(item => item.OnlineTime) / 60);
+
         // 仅返回有活跃记录的日期（稀疏），前端日历自行补齐空白格
         result.Trend = [.. operationByDate.Keys
             .Union(accessByDate.Keys)
+            .Union(onlineByDate.Keys)
             .OrderBy(date => date)
             .Select(date => new ProfileActivityTrendPointDto
             {
                 Date = date,
                 OperationCount = operationByDate.GetValueOrDefault(date),
                 AccessCount = accessByDate.GetValueOrDefault(date),
-                OnlineMinutes = 0
+                OnlineMinutes = onlineByDate.GetValueOrDefault(date)
             })];
 
         // 统计快照缺失时，用原始日志兜底最后行为时间，避免概要全为空

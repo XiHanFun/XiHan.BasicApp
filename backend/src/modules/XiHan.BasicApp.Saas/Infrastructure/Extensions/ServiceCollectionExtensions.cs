@@ -201,6 +201,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasOrganizationSeeder>();
         services.AddDataSeeder<SaasNotificationSeeder>();
         services.AddDataSeeder<SaasStorageConfigSeeder>();
+        services.AddDataSeeder<SaasTaskSeeder>();
         return services;
     }
 
