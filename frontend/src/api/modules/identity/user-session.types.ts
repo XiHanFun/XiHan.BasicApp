@@ -14,15 +14,22 @@ export enum DeviceType {
   Api = 'Api',
 }
 
+/** 会话状态（与后端 SessionStatus 枚举序列化值一致） */
+export enum SessionStatus {
+  Active = 'Active',
+  Offline = 'Offline',
+  Revoked = 'Revoked',
+  Expired = 'Expired',
+}
+
 export interface UserSessionPageQueryDto extends PageRequest {
   deviceType?: DeviceType
-  isOnline?: boolean
-  isRevoked?: boolean
   keyword?: string
   lastActivityTimeEnd?: DateTimeString
   lastActivityTimeStart?: DateTimeString
   loginTimeEnd?: DateTimeString
   loginTimeStart?: DateTimeString
+  status?: SessionStatus
   userId?: ApiId
 }
 
@@ -35,8 +42,6 @@ export interface UserSessionListItemDto extends BasicDto {
   expirationTime?: DateTimeString | null
   ipAddressMasked?: string | null
   isExpired: boolean
-  isOnline: boolean
-  isRevoked: boolean
   lastActivityTime: DateTimeString
   loginTime: DateTimeString
   logoutTime?: DateTimeString | null
@@ -45,6 +50,7 @@ export interface UserSessionListItemDto extends BasicDto {
   operatingSystem?: string | null
   realName?: string | null
   revokedTime?: DateTimeString | null
+  status: SessionStatus
   userId: ApiId
   userName?: string | null
   userSessionId: string

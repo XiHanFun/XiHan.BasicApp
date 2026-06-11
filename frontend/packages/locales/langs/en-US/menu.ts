@@ -10,6 +10,7 @@ export default {
   identity_permission: 'Permissions',
   identity_field_security: 'Field Security',
   identity_authorization: 'Access Requests',
+  identity_online_user: 'Online Users',
   tenant_list: 'Tenants',
   tenant_edition: 'Editions & Plans',
   message: 'Message Center',
