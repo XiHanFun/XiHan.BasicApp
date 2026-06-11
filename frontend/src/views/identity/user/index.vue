@@ -43,6 +43,7 @@ import {
   PermissionAction,
   permissionApi,
   roleApi,
+  SessionStatus,
   StatisticsPeriod,
   TenantMemberInviteStatus,
   TenantMemberType,
@@ -142,7 +143,7 @@ const detUser = computed(() => {
   const u = d.user
   const sec = d.security
   const todayStat = d.statistics.find(s => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
-  const onlineSession = d.sessions.find(s => s.isOnline)
+  const onlineSession = d.sessions.find(s => s.status === SessionStatus.Active)
   const badges: { label: string, cls: string, icon: string }[] = []
   if (sec) {
     badges.push(

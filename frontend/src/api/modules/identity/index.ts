@@ -1,3 +1,5 @@
+export * from './online-user'
+export * from './online-user.types'
 export * from './user'
 export * from './user-security'
 export * from './user-security.types'

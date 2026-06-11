@@ -10,6 +10,7 @@ export default {
   identity_permission: '权限管理',
   identity_field_security: '字段安全',
   identity_authorization: '授权申请',
+  identity_online_user: '在线用户',
   tenant_list: '租户列表',
   tenant_edition: '版本套餐',
   message: '消息中心',

@@ -48,9 +48,8 @@ function toUserSessionPageParams(input: UserSessionPageQueryDto) {
   const params: DynamicApiParams = createPageRequestParams(input)
 
   appendDynamicApiParam(params, 'DeviceType', input.deviceType)
-  appendDynamicApiParam(params, 'IsOnline', input.isOnline)
-  appendDynamicApiParam(params, 'IsRevoked', input.isRevoked)
   appendDynamicApiParam(params, 'Keyword', input.keyword)
+  appendDynamicApiParam(params, 'Status', input.status)
   appendDynamicApiParam(params, 'LastActivityTimeEnd', input.lastActivityTimeEnd)
   appendDynamicApiParam(params, 'LastActivityTimeStart', input.lastActivityTimeStart)
   appendDynamicApiParam(params, 'LoginTimeEnd', input.loginTimeEnd)

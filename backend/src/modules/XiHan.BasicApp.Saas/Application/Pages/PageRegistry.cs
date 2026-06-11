@@ -102,6 +102,8 @@ public static class PageRegistry
         new("identity.field-security","字段安全","menu.identity_field_security",MenuType.Menu,"/identity/field-security","IdentityFieldSecurity","identity/field-security/index","identity",SaasPermissionCodes.FieldLevelSecurity.Read,"lucide:eye-off",150),
         // [2.6] 授权申请
         new("identity.authorization","授权申请","menu.identity_authorization",MenuType.Menu,"/identity/authorization","IdentityAuthorization","identity/authorization/index","identity",SaasPermissionCodes.PermissionRequest.Read,"lucide:file-key",160),
+        // [2.7] 在线用户（会话实时视图：活跃会话 + SignalR 连接标注，权限复用用户会话码）
+        new("identity.online-user","在线用户","menu.identity_online_user",MenuType.Menu,"/identity/online-user","IdentityOnlineUser","identity/online-user/index","identity",SaasPermissionCodes.UserSession.Read,"lucide:radio",170),
 
         // [3] 租户管理
         new("tenant","租户管理","menu.tenant",MenuType.Directory,"/tenant","Tenant",null,null,null,"lucide:building-2",200,"/tenant/list"),
@@ -210,6 +212,9 @@ public static class PageRegistry
         new("identity.authorization.create","发起申请","identity.authorization",SaasPermissionCodes.PermissionRequest.Create,1),
         new("identity.authorization.audit","审批","identity.authorization",SaasPermissionCodes.PermissionRequest.Status,2),
         new("identity.authorization.withdraw","撤回","identity.authorization",SaasPermissionCodes.PermissionRequest.Withdraw,3),
+
+        // [2.7] 在线用户
+        new("identity.online-user.revoke","强制下线","identity.online-user",SaasPermissionCodes.UserSession.Revoke,1),
 
         // [3.1] 租户列表
         new("tenant.list.create","新增","tenant.list",SaasPermissionCodes.Tenant.Create,1),
