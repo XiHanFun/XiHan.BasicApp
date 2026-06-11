@@ -25,14 +25,14 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 public interface IProfileVerificationService
 {
     /// <summary>
-    /// 消费验证码并返回待确认值
+    /// 消费验证码并返回待确认值（一次性，消费即销毁）
     /// </summary>
-    string ConsumeCode(long userId, ProfileVerificationPurpose purpose, string? code);
+    Task<string> ConsumeCodeAsync(long userId, ProfileVerificationPurpose purpose, string? code, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 校验双因素验证码
     /// </summary>
-    void EnsureTwoFactorCodeValid(ProfileUserSecurityContext context, TwoFactorMethod method, string? code);
+    Task EnsureTwoFactorCodeValidAsync(ProfileUserSecurityContext context, TwoFactorMethod method, string? code, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 发送验证码

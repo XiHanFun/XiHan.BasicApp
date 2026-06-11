@@ -563,12 +563,20 @@ public sealed class ProfileDomainService
         }
     }
 
+    /// <summary>
+    /// 校验用户不是任何租户的所有者（跨租户检查）
+    /// </summary>
+    /// <remarks>
+    /// 多租户成员场景：仅查当前租户上下文会漏掉用户在其他租户的 Owner 身份，
+    /// 注销后该租户将失去所有者。故按用户跨全部租户的有效成员关系检查，
+    /// 任一租户为 Owner 即拒绝，提示先移交所有权。
+    /// </remarks>
     private async Task EnsureCurrentUserIsNotTenantOwnerAsync(SysUser user, CancellationToken cancellationToken)
     {
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, DateTimeOffset.UtcNow, cancellationToken);
+        if (memberships.Any(membership => membership.MemberType == TenantMemberType.Owner))
         {
-            throw new InvalidOperationException("租户所有者账号不能在个人中心自助关闭。");
+            throw new InvalidOperationException("当前账号仍是租户所有者，不能自助关闭；请先在对应租户移交所有权。");
         }
     }
 
