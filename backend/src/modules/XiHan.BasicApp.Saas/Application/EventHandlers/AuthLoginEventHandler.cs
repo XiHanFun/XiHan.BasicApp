@@ -13,9 +13,11 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
+using SqlSugar;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Web.Api.Logging;
 using XiHan.Framework.Web.Api.Logging.Pipelines;
@@ -34,6 +36,8 @@ public sealed class AuthLoginEventHandler
 
     private readonly IUserNotificationDispatchService _notificationDispatchService;
 
+    private readonly ISqlSugarClientResolver _clientResolver;
+
     private readonly ILogger<AuthLoginEventHandler> _logger;
 
     /// <summary>
@@ -42,10 +46,12 @@ public sealed class AuthLoginEventHandler
     public AuthLoginEventHandler(
         ILoginLogPipeline loginLogPipeline,
         IUserNotificationDispatchService notificationDispatchService,
+        ISqlSugarClientResolver clientResolver,
         ILogger<AuthLoginEventHandler> logger)
     {
         _loginLogPipeline = loginLogPipeline;
         _notificationDispatchService = notificationDispatchService;
+        _clientResolver = clientResolver;
         _logger = logger;
     }
     /// <inheritdoc />
@@ -64,6 +70,24 @@ public sealed class AuthLoginEventHandler
             eventData.UserAgent,
             eventData.LoginTime);
 
+        // 多设备登录提醒：存在其它活跃会话时升级为告警通知（实时推送会到达其它在线设备），
+        // 并区分「新设备」与「已知设备」；无其它会话时保持普通登录成功通知。
+        var concurrent = await DetectConcurrentLoginAsync(eventData);
+        if (concurrent.HasOtherActiveSessions)
+        {
+            var title = concurrent.IsKnownDevice ? "账号在其它设备登录" : "账号在新设备登录";
+            await DispatchNotificationAsync(
+                eventData.UserId,
+                title,
+                BuildAuthNotificationContent("您的账号刚刚在另一台设备登录。若非本人操作，请立即修改密码并下线可疑会话。", eventData),
+                NotificationType.Warning,
+                "auth.login.concurrent",
+                eventData.SessionRecordId,
+                "lucide:shield-alert",
+                "/workbench/profile");
+            return;
+        }
+
         await DispatchNotificationAsync(
             eventData.UserId,
             "登录成功",
@@ -73,6 +97,47 @@ public sealed class AuthLoginEventHandler
             eventData.SessionRecordId,
             "lucide:log-in",
             "/workbench/profile");
+    }
+
+    /// <summary>
+    /// 检测并发登录：是否存在其它活跃会话、本次登录设备是否曾经使用过。
+    /// 查询失败时按「无其它会话」处理，不阻塞登录主流程。
+    /// </summary>
+    private async Task<(bool HasOtherActiveSessions, bool IsKnownDevice)> DetectConcurrentLoginAsync(AuthLoginSucceededDomainEvent eventData)
+    {
+        try
+        {
+            var db = _clientResolver.GetCurrentClient();
+
+            var otherActiveCount = await db.Queryable<SysUserSession>()
+                .Where(session => session.UserId == eventData.UserId
+                    && session.Status == SessionStatus.Active
+                    && session.BasicId != eventData.SessionRecordId)
+                .CountAsync();
+            if (otherActiveCount <= 0)
+            {
+                return (false, false);
+            }
+
+            // 设备识别：本次会话的 DeviceId 此前出现过 → 已知设备
+            var currentDeviceId = await db.Queryable<SysUserSession>()
+                .Where(session => session.BasicId == eventData.SessionRecordId)
+                .Select(session => session.DeviceId)
+                .FirstAsync();
+            var isKnownDevice = !string.IsNullOrWhiteSpace(currentDeviceId)
+                && await db.Queryable<SysUserSession>()
+                    .Where(session => session.UserId == eventData.UserId
+                        && session.BasicId != eventData.SessionRecordId
+                        && session.DeviceId == currentDeviceId)
+                    .AnyAsync();
+
+            return (true, isKnownDevice);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "并发登录检测失败，用户：{UserId}", eventData.UserId);
+            return (false, false);
+        }
     }
 
     /// <inheritdoc />

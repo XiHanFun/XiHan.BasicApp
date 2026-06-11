@@ -71,6 +71,11 @@ public sealed record UserStatusChangeCommand(long BasicId, EnableStatus Status, 
 public sealed record UserPasswordResetCommand(long UserId, string NewPassword, DateTimeOffset? PasswordExpirationTime, string? Remark);
 
 /// <summary>
+/// 用户双因素认证重置命令（清除 OTP 绑定）
+/// </summary>
+public sealed record UserTwoFactorResetCommand(long UserId, string? Remark);
+
+/// <summary>
 /// 用户锁定状态变更命令
 /// </summary>
 public sealed record UserLockChangeCommand(long UserId, bool IsLocked, DateTimeOffset? LockoutEndTime, string? Remark);

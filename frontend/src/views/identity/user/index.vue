@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   PageResult,
@@ -14,6 +13,7 @@ import type { UserPermissionListItemDto } from '@/api/modules/authorization/user
 import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NCheckbox,
@@ -33,6 +33,7 @@ import {
   NTabPane,
   NTabs,
   NTag,
+  useDialog,
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
@@ -46,21 +47,21 @@ import {
   TenantMemberInviteStatus,
   TenantMemberType,
   TwoFactorMethod,
-  userManagementApi,
   UserGender,
+  userManagementApi,
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
 
+defineOptions({ name: 'SystemUserPage' })
+
 const GENDER_TAG_TYPE: Record<UserGender, 'default' | 'info' | 'warning'> = {
   [UserGender.Unknown]: 'default',
   [UserGender.Male]: 'info',
   [UserGender.Female]: 'warning',
 }
-
-defineOptions({ name: 'SystemUserPage' })
 
 interface UserFormState {
   basicId?: ApiId
@@ -83,6 +84,7 @@ interface UserFormState {
 }
 
 const message = useMessage()
+const dialog = useDialog()
 
 /** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
 const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
@@ -507,6 +509,14 @@ const schema: PageSchema = {
     { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
     { key: 'grant', title: '权限直授', scope: 'row', icon: 'lucide:key-round' },
     { key: 'lock', title: '锁定/解锁', scope: 'row', icon: 'lucide:lock' },
+    { key: 'resetPassword', title: '重置密码', scope: 'row', icon: 'lucide:key-square' },
+    {
+      key: 'resetOtp',
+      title: '重置 OTP',
+      scope: 'row',
+      icon: 'lucide:shield-off',
+      visible: row => (row as unknown as UserListItemDto).twoFactorEnabled,
+    },
     { key: 'logout', title: '强制下线', scope: 'row', icon: 'lucide:log-out' },
     {
       key: 'delete',
@@ -540,9 +550,17 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         void toggleLock(row)
       break
+    case 'resetPassword':
+      if (row)
+        resetPassword(row)
+      break
+    case 'resetOtp':
+      if (row)
+        resetOtp(row)
+      break
     case 'logout':
       if (row)
-        void forceLogout(row)
+        forceLogout(row)
       break
     case 'delete':
       if (row)
@@ -797,18 +815,112 @@ async function toggleLock(row: UserListItemDto) {
   }
 }
 
-async function forceLogout(row: UserListItemDto) {
-  try {
-    await userManagementApi.sessions.revokeUserSessions({
-      userId: row.basicId,
-      reason: '管理员强制下线',
-    })
-    message.success('已强制下线')
-    reloadList()
+function displayName(row: UserListItemDto): string {
+  return row.nickName || row.userName
+}
+
+function forceLogout(row: UserListItemDto) {
+  dialog.warning({
+    title: '强制下线',
+    content: `将撤销用户「${displayName(row)}」的全部登录会话，其在线设备会立即被踢出。确认继续？`,
+    positiveText: '确认下线',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await userManagementApi.sessions.revokeUserSessions({
+          userId: row.basicId,
+          reason: '管理员强制下线',
+        })
+        message.success('已强制下线')
+        reloadList()
+      }
+      catch {
+        message.error('强制下线失败')
+      }
+    },
+  })
+}
+
+/** 生成临时密码：大小写 + 数字 + 符号，规避易混淆字符（0O1lI） */
+function generateTempPassword(length = 12): string {
+  const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ'
+  const lower = 'abcdefghjkmnpqrstuvwxyz'
+  const digits = '23456789'
+  const symbols = '!@#$%&*'
+  const all = upper + lower + digits + symbols
+  const buf = new Uint32Array(length)
+  crypto.getRandomValues(buf)
+  const pick = (set: string, seed: number) => set[seed % set.length]!
+  const chars = [pick(upper, buf[0]!), pick(lower, buf[1]!), pick(digits, buf[2]!), pick(symbols, buf[3]!)]
+  for (let i = chars.length; i < length; i++) {
+    chars.push(pick(all, buf[i]!))
   }
-  catch {
-    message.error('强制下线失败')
+  // Fisher-Yates 打乱（复用随机源）
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = buf[i]! % (i + 1)
+    ;[chars[i], chars[j]] = [chars[j]!, chars[i]!]
   }
+  return chars.join('')
+}
+
+function resetPassword(row: UserListItemDto) {
+  const tempPassword = generateTempPassword()
+  dialog.warning({
+    title: '重置密码',
+    content: `将为用户「${displayName(row)}」生成新的临时密码并立即生效，原密码作废、登录失败计数清零。确认继续？`,
+    positiveText: '确认重置',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await userManagementApi.security.resetPassword({
+          userId: row.basicId,
+          newPassword: tempPassword,
+          remark: '管理员重置密码',
+        })
+        dialog.success({
+          title: '密码已重置',
+          content: () => h('div', { class: 'space-y-2' }, [
+            h('div', `用户「${displayName(row)}」的临时密码（仅本次显示，请立即转交并提醒用户修改）：`),
+            h('div', {
+              class: 'rounded bg-[hsl(var(--muted))] px-3 py-2 font-mono text-base font-semibold tracking-wider select-all',
+            }, tempPassword),
+          ]),
+          positiveText: '复制密码',
+          negativeText: '关闭',
+          onPositiveClick: () => {
+            void navigator.clipboard?.writeText(tempPassword)
+            message.success('临时密码已复制')
+            return false
+          },
+        })
+      }
+      catch {
+        message.error('重置密码失败')
+      }
+    },
+  })
+}
+
+function resetOtp(row: UserListItemDto) {
+  dialog.warning({
+    title: '重置 OTP',
+    content: `将清除用户「${displayName(row)}」的双因素认证绑定（OTP），用户下次登录不再要求验证码，可在个人中心重新绑定。确认继续？`,
+    positiveText: '确认重置',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await userManagementApi.security.resetTwoFactor({
+          userId: row.basicId,
+          remark: '管理员重置双因素认证',
+        })
+        message.success('OTP 已重置')
+        reloadList()
+      }
+      catch {
+        message.error('重置 OTP 失败')
+      }
+    },
+  })
 }
 
 // ── 权限直授抽屉（角色直授 + 权限直授 Grant/Deny） ──────────────
@@ -1111,8 +1223,12 @@ async function confirmDelete() {
                   <div class="form-row-main">
                     <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
                     <div>
-                      <div class="lbl">账号锁定</div>
-                      <div class="sub">锁定后用户无法登录</div>
+                      <div class="lbl">
+                        账号锁定
+                      </div>
+                      <div class="sub">
+                        锁定后用户无法登录
+                      </div>
                     </div>
                   </div>
                   <NSwitch v-model:value="userForm.isLocked" />
@@ -1127,8 +1243,12 @@ async function confirmDelete() {
                   <div class="form-row-main">
                     <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
                     <div>
-                      <div class="lbl">允许多端登录</div>
-                      <div class="sub">关闭后新登录会踢出旧会话</div>
+                      <div class="lbl">
+                        允许多端登录
+                      </div>
+                      <div class="sub">
+                        关闭后新登录会踢出旧会话
+                      </div>
                     </div>
                   </div>
                   <NSwitch v-model:value="userForm.multiLogin" />
@@ -1137,8 +1257,12 @@ async function confirmDelete() {
                   <div class="form-row-main">
                     <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
                     <div>
-                      <div class="lbl">最大登录设备数</div>
-                      <div class="sub">0 = 不限</div>
+                      <div class="lbl">
+                        最大登录设备数
+                      </div>
+                      <div class="sub">
+                        0 = 不限
+                      </div>
                     </div>
                   </div>
                   <NInputNumber
@@ -1156,7 +1280,9 @@ async function confirmDelete() {
 
           <NTabPane name="2" tab="角色权限" display-directive="show">
             <div class="pick-panel">
-              <p class="pick-desc">选择要分配的角色，可多选</p>
+              <p class="pick-desc">
+                选择要分配的角色，可多选
+              </p>
               <p v-if="selRoleIds.length" class="pick-summary">
                 已选
                 <strong>{{ selRoleIds.length }}</strong>
@@ -1167,7 +1293,7 @@ async function confirmDelete() {
                   v-for="r in roleOptions"
                   :key="r.basicId"
                   type="button"
-                  :class="['pick-chip', selRoleIds.includes(r.basicId) ? 'on' : '']"
+                  class="pick-chip" :class="[selRoleIds.includes(r.basicId) ? 'on' : '']"
                   @click="togglePick(selRoleIds, r.basicId)"
                 >
                   <Icon icon="tabler:user-check" :size="13" />
@@ -1179,7 +1305,9 @@ async function confirmDelete() {
 
           <NTabPane name="3" tab="所属部门" display-directive="show">
             <div class="pick-panel">
-              <p class="pick-desc">选择所属部门，可多选</p>
+              <p class="pick-desc">
+                选择所属部门，可多选
+              </p>
               <p v-if="selDeptIds.length" class="pick-summary">
                 已选
                 <strong>{{ selDeptIds.length }}</strong>
@@ -1190,7 +1318,7 @@ async function confirmDelete() {
                   v-for="d in deptFlatOptions"
                   :key="d.value"
                   type="button"
-                  :class="['pick-chip', selDeptIds.includes(d.value) ? 'on' : '']"
+                  class="pick-chip" :class="[selDeptIds.includes(d.value) ? 'on' : '']"
                   @click="togglePick(selDeptIds, d.value)"
                 >
                   <Icon icon="tabler:building" :size="13" />
@@ -1204,7 +1332,9 @@ async function confirmDelete() {
 
       <template #footer>
         <NSpace justify="end">
-          <NButton size="small" @click="closeModals">取消</NButton>
+          <NButton size="small" @click="closeModals">
+            取消
+          </NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="saveUser">
             保存
           </NButton>
@@ -1231,12 +1361,16 @@ async function confirmDelete() {
             <div class="det-name">
               {{ detUser.displayName }}
             </div>
-            <div class="det-sub">@{{ detUser.userName }}</div>
+            <div class="det-sub">
+              @{{ detUser.userName }}
+            </div>
           </div>
         </div>
       </template>
 
-      <div v-if="detailLoading" class="modal-loading">加载中…</div>
+      <div v-if="detailLoading" class="modal-loading">
+        加载中…
+      </div>
       <template v-else-if="detUser">
         <div class="det-info-grid">
           <div>
@@ -1265,7 +1399,7 @@ async function confirmDelete() {
           </div>
         </div>
         <div class="det-badges">
-          <span v-for="t in detUser.badges" :key="t.label" :class="['bdg', t.cls]">
+          <span v-for="t in detUser.badges" :key="t.label" class="bdg" :class="[t.cls]">
             <Icon :icon="t.icon" :size="12" />
             {{ t.label }}
           </span>
@@ -1277,7 +1411,7 @@ async function confirmDelete() {
             <span>行为统计（今日）</span>
           </div>
           <div class="det-stat-grid">
-            <div v-for="m in detUser.metrics" :key="m.label" :class="['det-stat-card', m.cls]">
+            <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
               <div class="det-stat-top">
                 <span class="det-stat-lbl">{{ m.label }}</span>
                 <Icon :icon="m.icon" :size="13" />
@@ -1298,16 +1432,22 @@ async function confirmDelete() {
             <div class="session-title">
               {{ detUser.sessionLabel }}
             </div>
-            <div class="session-sub">{{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}</div>
+            <div class="session-sub">
+              {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
+            </div>
           </div>
           <span class="bdg bdg-ok">在线</span>
         </div>
-        <div v-else class="session-empty">暂无活跃会话</div>
+        <div v-else class="session-empty">
+          暂无活跃会话
+        </div>
       </template>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton size="small" @click="closeModals">关闭</NButton>
+          <NButton size="small" @click="closeModals">
+            关闭
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -1330,14 +1470,20 @@ async function confirmDelete() {
             <span class="name">{{ delTarget?.name }}</span>
             " 吗？
           </p>
-          <p class="del-desc">此操作为软删除，保留审计记录；删除前将吊销该用户全部会话。</p>
+          <p class="del-desc">
+            此操作为软删除，保留审计记录；删除前将吊销该用户全部会话。
+          </p>
         </div>
       </div>
 
       <template #footer>
         <NSpace justify="end">
-          <NButton size="small" @click="closeModals">取消</NButton>
-          <NButton size="small" type="error" @click="confirmDelete">确认删除</NButton>
+          <NButton size="small" @click="closeModals">
+            取消
+          </NButton>
+          <NButton size="small" type="error" @click="confirmDelete">
+            确认删除
+          </NButton>
         </NSpace>
       </template>
     </NModal>
@@ -1348,7 +1494,9 @@ async function confirmDelete() {
         <NSpin :show="grantLoading">
           <NTabs v-model:value="grantTab" animated type="line">
             <NTabPane name="role" tab="角色直授">
-              <p class="grant-desc">勾选即把角色直接授予该用户（绕过分组）。</p>
+              <p class="grant-desc">
+                勾选即把角色直接授予该用户（绕过分组）。
+              </p>
               <div class="grant-role-grid">
                 <label
                   v-for="r in roleOptions"
