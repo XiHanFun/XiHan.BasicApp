@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <div ref="rootRef" class="di-root">
-      <Transition name="island">
+      <Transition name="island" appear>
         <div
           v-if="shellVisible"
           class="di-shell"
@@ -845,23 +845,26 @@ onBeforeUnmount(() => {
   color: rgb(255 255 255 / 45%);
 }
 
-/* ============ 壳体出现/消失过渡 ============ */
+/* ============ 壳体出现/消失过渡：从视口顶缘弹出 / 收回 ============ */
+/* 入场：自顶部滑入并轻微回弹（appear 保证刷新恢复任务时的初始挂载同样有动效） */
 .island-enter-active {
   transition:
-    opacity 0.28s ease,
-    transform 0.42s cubic-bezier(0.22, 1.4, 0.36, 1);
+    opacity 0.32s ease,
+    transform 0.52s cubic-bezier(0.24, 1.32, 0.36, 1);
 }
 
+/* 离场：加速收回顶部 */
 .island-leave-active {
   transition:
-    opacity 0.18s ease,
-    transform 0.22s cubic-bezier(0.4, 0, 1, 1);
+    opacity 0.26s ease 0.04s,
+    transform 0.3s cubic-bezier(0.55, 0, 0.8, 0.25);
 }
 
 .island-enter-from,
 .island-leave-to {
   opacity: 0;
-  transform: translateY(-14px) scale(0.8);
+  /* -100% 按壳体自身高度计算，再加顶部留白，确保完全移出视口上缘 */
+  transform: translateY(calc(-100% - 14px)) scale(0.88);
 }
 
 .di-text-enter-active,
