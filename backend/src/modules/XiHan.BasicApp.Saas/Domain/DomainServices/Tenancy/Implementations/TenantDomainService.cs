@@ -31,15 +31,18 @@ public sealed class TenantDomainService
     public TenantDomainService(
         ITenantRepository tenantRepository,
         ITenantUserRepository tenantUserRepository,
+        ITenantProvisionDomainService tenantProvisionDomainService,
         ICurrentTenant currentTenant)
     {
         _tenantRepository = tenantRepository;
         _tenantUserRepository = tenantUserRepository;
+        _tenantProvisionDomainService = tenantProvisionDomainService;
         _currentTenant = currentTenant;
     }
 
     private readonly ITenantRepository _tenantRepository;
     private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
     private readonly ICurrentTenant _currentTenant;
 
     /// <inheritdoc />
@@ -104,6 +107,8 @@ public sealed class TenantDomainService
         var domain = NormalizeNullable(command.Domain);
         await EnsureDomainAvailableAsync(domain, tenant.BasicId, cancellationToken);
 
+        var previousEditionId = tenant.EditionId;
+
         tenant.TenantName = command.TenantName.Trim();
         tenant.TenantShortName = NormalizeNullable(command.TenantShortName);
         tenant.Logo = NormalizeNullable(command.Logo);
@@ -116,7 +121,15 @@ public sealed class TenantDomainService
         tenant.Sort = command.Sort;
         tenant.Remark = NormalizeNullable(command.Remark);
 
-        return new TenantCommandResult(await _tenantRepository.UpdateAsync(tenant, cancellationToken), DateTimeOffset.UtcNow);
+        var updated = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
+
+        // 套餐变更（含降级）：回收超出新版本白名单的存量角色/用户直授权限行（REQ-5.3）
+        if (previousEditionId != command.EditionId)
+        {
+            _ = await _tenantProvisionDomainService.ReconcileTenantAuthorizationWithEditionAsync(updated, cancellationToken);
+        }
+
+        return new TenantCommandResult(updated, DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />

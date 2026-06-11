@@ -63,4 +63,25 @@ public interface ITenantProvisionDomainService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>分配的默认版本ID（null 表示无默认版本）</returns>
     Task<long?> AssignDefaultEditionAsync(SysTenant tenant, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 套餐变更（含降级）后回收越界授权：将该租户超出其当前版本权限白名单的
+    /// 角色权限/用户直授权限行置为失效（保留行以供审计追溯）
+    /// </summary>
+    /// <remarks>
+    /// 与运行时门控语义一致：版本未绑定或白名单为空（门控未启用）时不做任何回收，避免误清。
+    /// 运行时门控已保证越界权限不生效，本方法负责数据层面的存量清理（REQ-5.3）。
+    /// </remarks>
+    /// <param name="tenant">租户实体</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>回收（置失效）的授权行数</returns>
+    Task<int> ReconcileTenantAuthorizationWithEditionAsync(SysTenant tenant, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 版本权限白名单收窄（撤销/停用映射）后，对绑定该版本的所有租户回收越界授权
+    /// </summary>
+    /// <param name="editionId">版本ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>回收（置失效）的授权行数合计</returns>
+    Task<int> ReconcileEditionTenantsAuthorizationAsync(long editionId, CancellationToken cancellationToken = default);
 }
