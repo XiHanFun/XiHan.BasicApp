@@ -79,7 +79,13 @@ public sealed class AuthLoginEventHandler
             await DispatchNotificationAsync(
                 eventData.UserId,
                 title,
-                BuildAuthNotificationContent("您的账号刚刚在另一台设备登录。若非本人操作，请立即修改密码并下线可疑会话。", eventData),
+                BuildAuthNotificationContent(
+                    "您的账号刚刚在另一台设备登录。若非本人操作，请立即修改密码并下线可疑会话。",
+                    eventData.LoginTime,
+                    FirstNotEmpty(eventData.Location, eventData.IpAddress),
+                    eventData.Browser,
+                    eventData.OperatingSystem,
+                    eventData.DeviceName),
                 NotificationType.Warning,
                 "auth.login.concurrent",
                 eventData.SessionRecordId,
@@ -91,7 +97,13 @@ public sealed class AuthLoginEventHandler
         await DispatchNotificationAsync(
             eventData.UserId,
             "登录成功",
-            BuildAuthNotificationContent("您的账号已成功登录。", eventData),
+            BuildAuthNotificationContent(
+                "您的账号已成功登录。",
+                eventData.LoginTime,
+                FirstNotEmpty(eventData.Location, eventData.IpAddress),
+                eventData.Browser,
+                eventData.OperatingSystem,
+                eventData.DeviceName),
             NotificationType.User,
             "auth.login",
             eventData.SessionRecordId,
@@ -173,10 +185,19 @@ public sealed class AuthLoginEventHandler
             eventData.UserAgent,
             eventData.LogoutTime);
 
+        // 登出提醒面向用户的其它在线设备（或下次登录时查看），按「其它设备登出」表述；
+        // 登出事件本身只携带 IP/UA，设备与位置信息从会话记录补全
+        var session = await GetSessionSnapshotAsync(eventData.SessionRecordId);
         await DispatchNotificationAsync(
             eventData.UserId,
-            "退出登录",
-            "您已退出当前会话。",
+            "账号在其它设备登出",
+            BuildAuthNotificationContent(
+                "您的账号刚刚在一台设备上退出登录。",
+                eventData.LogoutTime,
+                FirstNotEmpty(session?.Location, session?.IpAddress, eventData.IpAddress),
+                session?.Browser,
+                session?.OperatingSystem,
+                session?.DeviceName),
             NotificationType.User,
             "auth.logout",
             eventData.SessionRecordId,
@@ -184,11 +205,35 @@ public sealed class AuthLoginEventHandler
             "/workbench/profile");
     }
 
-    private static string BuildAuthNotificationContent(string prefix, AuthLoginSucceededDomainEvent eventData)
+    /// <summary>
+    /// 读取会话记录用于补全通知中的设备信息，查询失败时返回 null（不阻塞通知主流程）。
+    /// </summary>
+    private async Task<SysUserSession?> GetSessionSnapshotAsync(long sessionRecordId)
     {
-        var parts = new List<string> { prefix, $"时间：{eventData.LoginTime:yyyy-MM-dd HH:mm:ss} UTC" };
+        try
+        {
+            var db = _clientResolver.GetCurrentClient();
+            return await db.Queryable<SysUserSession>()
+                .Where(session => session.BasicId == sessionRecordId)
+                .FirstAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "登出通知会话信息查询失败，会话：{SessionRecordId}", sessionRecordId);
+            return null;
+        }
+    }
 
-        var location = FirstNotEmpty(eventData.Location, eventData.IpAddress);
+    private static string BuildAuthNotificationContent(
+        string prefix,
+        DateTimeOffset time,
+        string? location,
+        string? browser,
+        string? operatingSystem,
+        string? deviceName)
+    {
+        var parts = new List<string> { prefix, $"时间：{time:yyyy-MM-dd HH:mm:ss} UTC" };
+
         if (!string.IsNullOrWhiteSpace(location))
         {
             parts.Add($"位置：{location}");
@@ -196,7 +241,7 @@ public sealed class AuthLoginEventHandler
 
         var device = string.Join(
             " / ",
-            new[] { eventData.Browser, eventData.OperatingSystem, eventData.DeviceName }
+            new[] { browser, operatingSystem, deviceName }
                 .Where(static item => !string.IsNullOrWhiteSpace(item))
                 .Distinct(StringComparer.OrdinalIgnoreCase));
         if (!string.IsNullOrWhiteSpace(device))
