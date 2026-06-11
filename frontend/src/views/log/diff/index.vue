@@ -24,12 +24,13 @@ const successOptions = [
 ]
 
 const operationTypeOptions = [
-  { label: '查询', value: AuditOperationType.Query },
   { label: '新增', value: AuditOperationType.Create },
   { label: '修改', value: AuditOperationType.Update },
   { label: '删除', value: AuditOperationType.Delete },
+  { label: '恢复', value: AuditOperationType.Restore },
   { label: '导入', value: AuditOperationType.Import },
   { label: '导出', value: AuditOperationType.Export },
+  { label: '查询', value: AuditOperationType.Query },
   { label: '其他', value: AuditOperationType.Other },
 ]
 

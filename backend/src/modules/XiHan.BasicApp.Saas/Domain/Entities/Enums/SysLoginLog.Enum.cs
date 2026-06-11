@@ -64,6 +64,36 @@ public enum LoginResult
     Logout = 10,
 
     /// <summary>
+    /// 令牌刷新（认证审计事件）
+    /// </summary>
+    [Description("令牌刷新")]
+    TokenRefreshed = 11,
+
+    /// <summary>
+    /// 密码修改（认证审计事件）
+    /// </summary>
+    [Description("密码修改")]
+    PasswordChanged = 12,
+
+    /// <summary>
+    /// 密码重置（认证审计事件）
+    /// </summary>
+    [Description("密码重置")]
+    PasswordReset = 13,
+
+    /// <summary>
+    /// 绑定 MFA（认证审计事件）
+    /// </summary>
+    [Description("绑定MFA")]
+    MfaBound = 14,
+
+    /// <summary>
+    /// 解绑 MFA（认证审计事件）
+    /// </summary>
+    [Description("解绑MFA")]
+    MfaUnbound = 15,
+
+    /// <summary>
     /// 失败 - 其他错误
     /// </summary>
     [Description("其他失败")]

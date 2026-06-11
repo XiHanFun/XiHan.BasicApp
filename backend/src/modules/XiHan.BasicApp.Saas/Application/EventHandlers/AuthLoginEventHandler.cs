@@ -30,7 +30,8 @@ namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 public sealed class AuthLoginEventHandler
     : ILocalEventHandler<AuthLoginSucceededDomainEvent>,
       ILocalEventHandler<AuthLoginFailedDomainEvent>,
-      ILocalEventHandler<AuthLogoutDomainEvent>
+      ILocalEventHandler<AuthLogoutDomainEvent>,
+      ILocalEventHandler<AuthSecurityAuditDomainEvent>
 {
     private readonly ILoginLogPipeline _loginLogPipeline;
 
@@ -203,6 +204,24 @@ public sealed class AuthLoginEventHandler
             eventData.SessionRecordId,
             "lucide:log-out",
             "/workbench/profile");
+    }
+
+    /// <inheritdoc />
+    public async Task HandleEventAsync(AuthSecurityAuditDomainEvent eventData)
+    {
+        ArgumentNullException.ThrowIfNull(eventData);
+
+        // 认证审计事件（令牌刷新/密码修改/密码重置/绑定解绑MFA）统一落登录日志
+        await WriteLoginLogAsync(
+            eventData.TraceId,
+            eventData.UserId,
+            eventData.UserName,
+            sessionId: null,
+            eventData.AuditResult,
+            eventData.Message,
+            eventData.IpAddress,
+            eventData.UserAgent,
+            eventData.AuditTime);
     }
 
     /// <summary>

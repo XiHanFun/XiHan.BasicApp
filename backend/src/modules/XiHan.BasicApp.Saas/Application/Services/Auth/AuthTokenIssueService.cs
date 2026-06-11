@@ -65,6 +65,40 @@ public sealed class AuthTokenIssueService
         return ToLoginTokenDto(tokenResult);
     }
 
+    /// <inheritdoc />
+    public AuthTokenIdentity? ResolveTokenIdentity(string accessToken)
+    {
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            return null;
+        }
+
+        try
+        {
+            var claims = _jwtTokenService.GetClaimsFromToken(accessToken.Trim());
+            if (claims is null || claims.Count == 0)
+            {
+                return null;
+            }
+
+            var userIdValue = claims.FirstOrDefault(c => c.Type == XiHanClaimTypes.UserId)?.Value
+                ?? claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            var userName = claims.FirstOrDefault(c => c.Type == XiHanClaimTypes.UserName)?.Value;
+            var tenantIdValue = claims.FirstOrDefault(c => c.Type == XiHanClaimTypes.TenantId)?.Value;
+
+            long? userId = long.TryParse(userIdValue, out var parsedUserId) ? parsedUserId : null;
+            long? tenantId = long.TryParse(tenantIdValue, out var parsedTenantId) ? parsedTenantId : null;
+            return userId is null && string.IsNullOrWhiteSpace(userName)
+                ? null
+                : new AuthTokenIdentity(userId, userName, tenantId);
+        }
+        catch
+        {
+            // 审计归属解析失败不影响主流程
+            return null;
+        }
+    }
+
     private static List<Claim> BuildClaims(
         SysUser user,
         long? tenantId,

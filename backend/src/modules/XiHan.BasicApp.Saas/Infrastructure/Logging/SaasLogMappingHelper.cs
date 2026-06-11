@@ -109,8 +109,93 @@ internal static class SaasLogMappingHelper
             "DELETE" => OperationType.Delete,
             "IMPORT" => OperationType.Import,
             "EXPORT" => OperationType.Export,
+            "REVIEW" => OperationType.Review,
+            "APPROVE" => OperationType.Approve,
+            "STARTTASK" => OperationType.StartTask,
+            "EXECUTE" => OperationType.Execute,
+            "RESTORE" => OperationType.Restore,
             _ => OperationType.Other
         };
+    }
+
+    /// <summary>
+    /// 根据 Action 名称语义映射操作类型，无法识别时回退到 HTTP 方法映射
+    /// </summary>
+    /// <remarks>
+    /// 操作日志面向业务行为（新增/修改/删除/审核/导入/导出/审批/发起任务/执行命令），
+    /// 优先从动作命名识别语义，避免 POST 一律记为"新增"。
+    /// </remarks>
+    public static OperationType ResolveOperationTypeByAction(string? actionName, string? httpMethod)
+    {
+        if (!string.IsNullOrWhiteSpace(actionName))
+        {
+            var name = actionName.Trim();
+            if (ContainsAny(name, "Import"))
+            {
+                return OperationType.Import;
+            }
+
+            if (ContainsAny(name, "Export", "Download"))
+            {
+                return OperationType.Export;
+            }
+
+            if (ContainsAny(name, "Review", "Audit"))
+            {
+                return OperationType.Review;
+            }
+
+            if (ContainsAny(name, "Approve", "Approval", "Reject"))
+            {
+                return OperationType.Approve;
+            }
+
+            if (ContainsAny(name, "Trigger", "Dispatch")
+                || (ContainsAny(name, "Start", "Launch") && ContainsAny(name, "Task", "Job", "Workflow", "Process")))
+            {
+                return OperationType.StartTask;
+            }
+
+            if (ContainsAny(name, "Execute", "Run", "Command", "Invoke"))
+            {
+                return OperationType.Execute;
+            }
+
+            if (ContainsAny(name, "Restore", "Recover"))
+            {
+                return OperationType.Restore;
+            }
+
+            if (ContainsAny(name, "Create", "Add", "Insert", "Register", "Upload"))
+            {
+                return OperationType.Create;
+            }
+
+            if (ContainsAny(name, "Delete", "Remove", "Clear", "Revoke"))
+            {
+                return OperationType.Delete;
+            }
+
+            if (ContainsAny(name, "Update", "Modify", "Edit", "Change", "Set", "Enable", "Disable", "Save", "Reset", "Sort", "Move", "Assign", "Grant", "Bind", "Unbind", "Switch"))
+            {
+                return OperationType.Update;
+            }
+
+            if (ContainsAny(name, "Get", "Page", "List", "Query", "Search", "Find", "Detail", "Batch"))
+            {
+                return OperationType.Query;
+            }
+        }
+
+        return ResolveOperationTypeByHttpMethod(httpMethod);
+    }
+
+    /// <summary>
+    /// 名称包含任一关键字（忽略大小写）
+    /// </summary>
+    private static bool ContainsAny(string value, params string[] keywords)
+    {
+        return keywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -187,8 +272,15 @@ internal static class SaasLogMappingHelper
         return operationType switch
         {
             OperationType.Delete => 4,
+            OperationType.Export => 4,
+            OperationType.Execute => 4,
             OperationType.Update => 3,
+            OperationType.Restore => 3,
+            OperationType.Review => 3,
+            OperationType.Approve => 3,
+            OperationType.Import => 3,
             OperationType.Create => 2,
+            OperationType.StartTask => 2,
             _ => 1
         };
     }

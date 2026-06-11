@@ -4,7 +4,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/compone
 import type { OperationLogDetailDto, OperationLogListItemDto, PageResult } from '@/api'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
-import { createPageRequest, EnableStatus, logManagementApi, OperationType } from '@/api'
+import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -17,20 +17,31 @@ const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<OperationLogDetailDto | null>(null)
 
-const statusOptions = [
-  { label: '成功', value: EnableStatus.Enabled },
-  { label: '失败', value: EnableStatus.Disabled },
+const resultOptions = [
+  { label: '成功', value: OperationExecuteResult.Success },
+  { label: '失败', value: OperationExecuteResult.Failed },
+  { label: '部分成功', value: OperationExecuteResult.PartialSuccess },
 ]
 
+function resultTagType(result: OperationExecuteResult) {
+  switch (result) {
+    case OperationExecuteResult.Success: return 'success'
+    case OperationExecuteResult.PartialSuccess: return 'warning'
+    default: return 'error'
+  }
+}
+
 const operationTypeOptions = [
-  { label: '登录', value: OperationType.Login },
-  { label: '登出', value: OperationType.Logout },
-  { label: '查询', value: OperationType.Query },
   { label: '新增', value: OperationType.Create },
   { label: '修改', value: OperationType.Update },
   { label: '删除', value: OperationType.Delete },
+  { label: '审核', value: OperationType.Review },
   { label: '导入', value: OperationType.Import },
   { label: '导出', value: OperationType.Export },
+  { label: '审批', value: OperationType.Approve },
+  { label: '发起任务', value: OperationType.StartTask },
+  { label: '执行命令', value: OperationType.Execute },
+  { label: '恢复', value: OperationType.Restore },
   { label: '其他', value: OperationType.Other },
 ]
 
@@ -65,15 +76,19 @@ const fields: ListFieldSchema[] = [
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 24 },
   { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 25 },
   {
-    key: 'status',
+    key: 'result',
     title: '操作状态',
     dataType: 'enum',
     searchable: true,
-    options: statusOptions,
+    options: resultOptions,
     searchPlaceholder: '状态',
     width: 90,
     order: 26,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as OperationLogListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => (row as unknown as OperationLogListItemDto).status === EnableStatus.Enabled ? '成功' : '失败'),
+    render: row => h(
+      NTag,
+      { size: 'small', round: true, bordered: false, type: resultTagType((row as unknown as OperationLogListItemDto).result) },
+      () => getOptionLabel(resultOptions, (row as unknown as OperationLogListItemDto).result),
+    ),
   },
   { key: 'operationTime', title: '操作时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 28 },
@@ -107,7 +122,7 @@ const schema: PageSchema = {
         ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
         keyword: toStr(f.keyword),
         operationType: (f.operationType as OperationType | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
+        result: (f.result as OperationExecuteResult | undefined) ?? undefined,
         userName: toStr(f.userName),
         userId: toStr(f.userId),
         module: toStr(f.module),
@@ -135,7 +150,7 @@ const detailFields: LogDetailField[] = [
   { key: 'userName', label: '用户名' },
   { key: 'userId', label: '用户主键' },
   { key: 'operationType', label: '操作类型', options: operationTypeOptions, type: 'enum' },
-  { key: 'status', label: '操作状态', options: statusOptions, type: 'enum' },
+  { key: 'result', label: '操作状态', options: resultOptions, type: 'enum' },
   { key: 'module', label: '操作模块' },
   { key: 'function', label: '操作功能' },
   { key: 'title', label: '操作标题', span: 2 },

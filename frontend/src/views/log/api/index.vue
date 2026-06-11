@@ -136,7 +136,7 @@ function toIso(v: unknown): string | undefined {
 
 const schema: PageSchema = {
   pageCode: 'log.api',
-  pageName: '接口日志',
+  pageName: '开放接口日志',
   rowKey: 'basicId',
   scrollX: 2400,
   fields,

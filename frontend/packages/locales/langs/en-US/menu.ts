@@ -32,7 +32,7 @@ export default {
   setting_server: 'Server Monitor',
   log: 'Audit Logs',
   log_access: 'Access Logs',
-  log_api: 'API Logs',
+  log_api: 'Open API Logs',
   log_operation: 'Operation Logs',
   log_login: 'Login Logs',
   log_exception: 'Exception Logs',
