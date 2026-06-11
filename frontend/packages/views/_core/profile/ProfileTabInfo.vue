@@ -146,14 +146,19 @@ const avatarRemoving = ref(false)
 /** 头像原始值（fileId 或旧数据的直链），用于按钮禁用判断与持久化对比 */
 const currentAvatar = computed(() => props.profile?.avatar || userStore.avatar)
 
-/** 把头像写入资料并同步全局状态（与 profileForm 合并提交，避免覆盖其它字段） */
+/** 把头像写入资料并同步全局状态（其余字段取已保存的资料快照，避免连带提交表单里未保存的编辑） */
 async function persistAvatar(avatar: string) {
+  const saved = props.profile
   await apis.updateProfileApi({
-    ...profileForm.value,
+    nickName: saved?.nickName ?? undefined,
+    realName: saved?.realName ?? undefined,
+    gender: saved?.gender ?? 0,
+    birthday: saved?.birthday ?? undefined,
+    country: saved?.country ?? undefined,
+    remark: saved?.remark ?? undefined,
+    language: saved?.language ?? undefined,
+    timeZone: saved?.timeZone ?? undefined,
     avatar,
-    birthday: profileForm.value.birthday
-      ? new Date(profileForm.value.birthday).toISOString()
-      : undefined,
   })
   if (userStore.userInfo) {
     userStore.setUserInfo({ ...userStore.userInfo, avatar })
@@ -682,6 +687,21 @@ function cancelChange() {
       </div>
       <div class="pf-section__body">
         <div class="pf-field-grid">
+          <div class="pf-field-card">
+            <span class="pf-field-card__label">真实姓名</span>
+            <NInput v-model:value="profileForm.realName" placeholder="您的真实姓名" :maxlength="50" />
+          </div>
+          <div class="pf-field-card">
+            <span class="pf-field-card__label">生日</span>
+            <NDatePicker
+              v-model:value="profileForm.birthday"
+              type="date"
+              placeholder="选择生日"
+              clearable
+              :is-date-disabled="(ts: number) => ts > Date.now()"
+              style="width: 100%"
+            />
+          </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">性别</span>
             <NSelect v-model:value="profileForm.gender" :options="genderOptions" />

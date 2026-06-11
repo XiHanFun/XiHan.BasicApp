@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { LoginLogItem } from '~/types'
-import { NButton, NPagination, NSpin, NTag } from 'naive-ui'
+import { NButton, NPagination, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -9,6 +9,7 @@ import { formatDate } from '~/utils'
 defineOptions({ name: 'ProfileTabLoginLogs' })
 
 const { apis } = useAppContext()
+const message = useMessage()
 
 /** 紧凑行布局下一屏约可容纳的条数 */
 const PAGE_SIZE = 10
@@ -72,9 +73,10 @@ async function loadLogs(nextPage = 1) {
     total.value = res.total
     page.value = nextPage
   }
-  catch {
+  catch (e: unknown) {
     logs.value = []
     total.value = 0
+    message.error((e as Error)?.message || '加载登录日志失败')
   }
   finally {
     loading.value = false

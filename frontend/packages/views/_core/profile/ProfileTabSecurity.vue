@@ -19,7 +19,7 @@ import {
 import { computed, h, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
+import { useAccessStore, useAppContext, useUserStore } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 
 const props = defineProps<{ profile: UserProfile | null }>()
@@ -66,7 +66,6 @@ async function changePassword() {
   pwdSaving.value = true
   try {
     await apis.changePasswordApi({
-      userId: props.profile.userId,
       oldPassword: pwdForm.value.oldPassword,
       newPassword: pwdForm.value.newPassword,
     })
@@ -340,6 +339,18 @@ function cancelDisable() {
 // ==================== 账号管理 ====================
 
 const accountPassword = ref('')
+
+/** 停用/注销成功后：清理本地凭证与用户态（会话已被服务端吊销），再整页跳登录 */
+function cleanupAuthAndRedirect() {
+  try {
+    useAccessStore().$reset()
+    useUserStore().$reset()
+  }
+  catch {
+    // 清理失败不阻断跳转，整页导航会重建全部内存态
+  }
+  window.location.href = LOGIN_PATH
+}
 const accountActionLoading = ref(false)
 
 function handleDeactivateAccount() {
@@ -370,7 +381,7 @@ function handleDeactivateAccount() {
         await apis.deactivateAccountApi(accountPassword.value)
         message.success('账号已停用，即将退出登录')
         setTimeout(() => {
-          window.location.href = LOGIN_PATH
+          cleanupAuthAndRedirect()
         }, 1500)
       }
       catch (e: unknown) {
@@ -412,7 +423,7 @@ function handleDeleteAccount() {
         await apis.deleteAccountApi(accountPassword.value)
         message.success('账号已注销，即将退出')
         setTimeout(() => {
-          window.location.href = LOGIN_PATH
+          cleanupAuthAndRedirect()
         }, 1500)
       }
       catch (e: unknown) {

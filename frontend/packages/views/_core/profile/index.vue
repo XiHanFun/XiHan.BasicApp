@@ -2,7 +2,8 @@
 import type { Component } from 'vue'
 import type { UserProfile } from '~/types'
 import { NSpin, useMessage } from 'naive-ui'
-import { computed, markRaw, onMounted, ref } from 'vue'
+import { computed, markRaw, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { XUserAvatar } from '~/components'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
@@ -32,6 +33,8 @@ interface ProfileNavGroup {
 const message = useMessage()
 const { apis } = useAppContext()
 const userStore = useUserStore()
+const route = useRoute()
+const router = useRouter()
 
 const activeTab = ref('profile')
 const profileLoading = ref(false)
@@ -87,6 +90,18 @@ const tabComponents: Record<string, Component> = {
   developer: markRaw(ProfileTabDeveloper),
 }
 
+// 页签与 URL ?tab= 双向同步：支持深链与刷新保持
+watch(
+  () => route.query.tab,
+  (tab) => {
+    const key = typeof tab === 'string' ? tab : ''
+    if (key && key !== activeTab.value && key in tabComponents) {
+      activeTab.value = key
+    }
+  },
+  { immediate: true },
+)
+
 const activeComponent = computed(() => tabComponents[activeTab.value] ?? tabComponents.profile)
 const currentComponentProps = computed(() =>
   activeTab.value === 'profile' || activeTab.value === 'security'
@@ -96,6 +111,8 @@ const currentComponentProps = computed(() =>
 
 function selectTab(key: string) {
   activeTab.value = key
+  // 仅同步 query，不产生新历史记录
+  void router.replace({ query: { ...route.query, tab: key === 'profile' ? undefined : key } })
 }
 
 async function loadProfile() {

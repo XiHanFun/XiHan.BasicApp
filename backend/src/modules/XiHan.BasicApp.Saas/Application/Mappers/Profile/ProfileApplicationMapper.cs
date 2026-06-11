@@ -30,7 +30,7 @@ public static class ProfileApplicationMapper
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        return new ProfileChangePasswordCommand(userId, input.UserId, input.OldPassword, input.NewPassword);
+        return new ProfileChangePasswordCommand(userId, input.OldPassword, input.NewPassword);
     }
 
     /// <summary>

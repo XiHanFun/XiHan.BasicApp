@@ -81,11 +81,6 @@ public sealed class ProfileDomainService
         ArgumentException.ThrowIfNullOrWhiteSpace(command.NewPassword);
 
         var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
-        if (command.InputUserId != user.BasicId)
-        {
-            throw new InvalidOperationException("只能修改当前用户密码。");
-        }
-
         EnsurePasswordMatches(security, command.OldPassword);
         await EnsurePasswordMeetsPolicyAsync(user, command.NewPassword, cancellationToken);
 
