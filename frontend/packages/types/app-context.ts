@@ -12,6 +12,8 @@ import type {
 } from './auth'
 import type { NotificationStatus, NotificationType } from './enums'
 import type {
+  ApiCredentialItem,
+  ApiCredentialSecret,
   ChangeEmailParams,
   ChangePasswordParams,
   ChangePhoneParams,
@@ -126,6 +128,12 @@ export interface AppContextApis extends Record<string, unknown> {
     recent: (pageCode: string, count?: number) => Promise<Array<{ basicId: number | string, pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string, createdTime: string }>>
   }
   getActivityApi: () => Promise<UserActivity>
+  /** 个人 API 凭证（开发者设置；Secret 明文仅创建/滚动时返回一次） */
+  getApiCredentialsApi: () => Promise<ApiCredentialItem[]>
+  createApiCredentialApi: (credentialName?: string) => Promise<ApiCredentialSecret>
+  rotateApiCredentialSecretApi: (id: number | string) => Promise<ApiCredentialSecret>
+  updateApiCredentialStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<ApiCredentialItem>
+  deleteApiCredentialApi: (id: number | string) => Promise<unknown>
   getNotificationPreferenceApi: () => Promise<NotificationPreference>
   updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>
   /** 由文件主键(fileId)换取对象存储预签名访问 URL（<img> 可直接用、无需 token，会过期） */

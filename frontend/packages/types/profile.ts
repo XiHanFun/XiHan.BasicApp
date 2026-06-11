@@ -19,7 +19,7 @@ export interface UserProfile {
   lastLoginIp?: string
   isSystemAccount: boolean
   twoFactorEnabled: boolean
-  /** 0=未启用 1=TOTP 2=邮箱 3=手机 */
+  /** 位标志（可组合）：1=TOTP 2=邮箱 4=手机，0=未启用 */
   twoFactorMethod: number
   emailVerified: boolean
   phoneVerified: boolean
@@ -49,7 +49,6 @@ export interface UpdateProfileParams {
 }
 
 export interface ChangePasswordParams {
-  userId: string
   oldPassword: string
   newPassword: string
 }
@@ -147,4 +146,22 @@ export interface UserActivity {
   lastAccessTime?: string
   lastOperationTime?: string
   trend: UserActivityTrendPoint[]
+}
+
+/** 个人 API 凭证（与后端 ProfileApiCredentialDto 对应；Status 经 JsonStringEnumConverter 序列化为字符串） */
+export interface ApiCredentialItem {
+  basicId: number | string
+  credentialName: string
+  appKey: string
+  status: 'Disabled' | 'Enabled'
+  lastUsedTime?: string | null
+  expirationTime?: string | null
+  createdTime: string
+}
+
+/** 个人 API 凭证密钥（明文 Secret 仅创建/滚动时返回一次） */
+export interface ApiCredentialSecret {
+  basicId: number | string
+  appKey: string
+  appSecret: string
 }

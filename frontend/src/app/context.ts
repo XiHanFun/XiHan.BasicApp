@@ -1,5 +1,7 @@
 import type { Router } from 'vue-router'
 import type {
+  ApiCredentialItem,
+  ApiCredentialSecret,
   AppBackendDependency,
   AppEnumBatchQuery,
   AppEnumDefinition,
@@ -168,6 +170,21 @@ function createProfileApis() {
     getActivityApi() {
       return requestClient.get<UserActivity>('/Profile/Activity')
     },
+    getApiCredentialsApi() {
+      return requestClient.get<ApiCredentialItem[]>('/Profile/ApiCredentials')
+    },
+    createApiCredentialApi(credentialName?: string) {
+      return requestClient.post<ApiCredentialSecret>('/Profile/ApiCredential', { credentialName })
+    },
+    rotateApiCredentialSecretApi(id: number | string) {
+      return requestClient.post<ApiCredentialSecret>('/Profile/RotateApiCredentialSecret', { basicId: id })
+    },
+    updateApiCredentialStatusApi(id: number | string, status: 'Disabled' | 'Enabled') {
+      return requestClient.put<ApiCredentialItem>('/Profile/ApiCredentialStatus', { basicId: id, status })
+    },
+    deleteApiCredentialApi(id: number | string) {
+      return requestClient.delete(`/Profile/ApiCredential/${id}`)
+    },
     getNotificationPreferenceApi() {
       return requestClient.get<NotificationPreference>('/Profile/NotificationPreference')
     },
@@ -178,17 +195,17 @@ function createProfileApis() {
       return fileApi.generatePresignedUrl(fileId)
     },
     getLinkedAccountsApi() {
-      return getWithFallback<ExternalLoginItem[]>('/Profile/LinkedAccounts', [])
+      return requestClient.get<ExternalLoginItem[]>('/Profile/LinkedAccounts')
     },
     getLoginLogsApi(page: number, pageSize: number) {
-      return getWithFallback<LoginLogPage>('/Profile/LoginLogs', { items: [], total: 0 }, { params: { page, pageSize } })
+      return requestClient.get<LoginLogPage>('/Profile/LoginLogs', { params: { page, pageSize } })
         .then(result => ({ ...result, page, pageSize }))
     },
     getProfileApi() {
       return requestClient.get<UserProfile>('/Profile/Profile')
     },
     getSessionsApi() {
-      return getWithFallback<UserSessionItem[]>('/Profile/Sessions', [])
+      return requestClient.get<UserSessionItem[]>('/Profile/Sessions')
     },
     revokeOtherSessionsApi() {
       return requestClient.post('/Profile/RevokeOtherSessions')
