@@ -1,28 +1,22 @@
 <script lang="ts" setup>
 import type { TenantSwitcherDto } from '@/api'
 import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { tenantApi, TenantMemberType } from '@/api'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
-import { useAccessStore, useUserStore } from '~/stores'
+import { useAccessStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabTenants' })
 
 const message = useMessage()
 const accessStore = useAccessStore()
-const userStore = useUserStore()
 
 const loading = ref(false)
 const loaded = ref(false)
 const switching = ref(false)
 const tenants = ref<TenantSwitcherDto[]>([])
-
-/** 是否可进入平台运维态（超管 / 平台管理员） */
-const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?? false)
-/** 当前是否处于平台运维态 */
-const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
 
 async function loadTenants() {
   loading.value = true
@@ -38,8 +32,8 @@ async function loadTenants() {
   }
 }
 
-/** 切换租户 / 进入平台运维态：重签发令牌后重载应用以加载新上下文 */
-async function switchTo(tenantId: null | string, label: string) {
+/** 切换租户：重签发令牌后重载应用以加载新上下文 */
+async function switchTo(tenantId: string, label: string) {
   if (switching.value) {
     return
   }
@@ -102,30 +96,7 @@ onMounted(loadTenants)
       <div class="pf-section__body">
         <NSpin :show="loading">
           <div class="pf-list">
-            <div
-              v-if="canAccessPlatform"
-              class="pf-list-item"
-              :class="{ 'pf-list-item--active': isPlatform }"
-            >
-              <div class="pf-list-icon" :class="{ 'pf-list-icon--active': isPlatform }">
-                <Icon icon="lucide:shield-check" width="18" />
-              </div>
-              <div class="pf-list-body">
-                <div class="pf-list-title">
-                  平台运维
-                  <NTag v-if="isPlatform" type="success" size="tiny" :bordered="false">
-                    当前
-                  </NTag>
-                </div>
-                <div class="pf-list-desc">
-                  维护平台级全局菜单 / 权限 / 角色 / 版本
-                </div>
-              </div>
-              <NButton v-if="!isPlatform" size="small" secondary :loading="switching" @click="switchTo(null, '平台运维')">
-                进入
-              </NButton>
-            </div>
-            <NEmpty v-if="tenants.length === 0 && loaded && !canAccessPlatform" description="暂无可访问的租户" />
+            <NEmpty v-if="tenants.length === 0 && loaded" description="暂无可访问的租户" />
             <div
               v-for="t in tenants"
               :key="t.membershipId"

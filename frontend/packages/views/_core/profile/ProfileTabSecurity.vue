@@ -830,14 +830,17 @@ function handleDeleteAccount() {
 <style src="./profile-shared.css" />
 
 <style scoped>
-/* 两步验证：每种方式独立卡片（覆盖设置行默认底边线，改卡片间距） */
+/* 两步验证：每种方式独立描边盒（GitHub 式，无底色） */
 .pf-2fa-method {
   gap: 14px;
   padding: 16px;
   margin-bottom: 10px;
+  border: 1px solid hsl(var(--border) / 70%);
   border-radius: var(--radius);
-  background: hsl(var(--muted) / 28%);
-  transition: background 0.2s;
+  background: transparent;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .pf-2fa-icon {
@@ -856,6 +859,7 @@ function handleDeleteAccount() {
 }
 
 .pf-2fa-method.is-on {
+  border-color: hsl(var(--primary) / 45%);
   background: hsl(var(--primary) / 4%);
 }
 

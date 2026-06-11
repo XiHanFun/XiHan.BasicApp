@@ -4,6 +4,7 @@ import {
   NButton,
   NEmpty,
   NPopconfirm,
+  NSpace,
   NSpin,
   useMessage,
 } from 'naive-ui'
@@ -81,11 +82,19 @@ onMounted(loadLinkedAccounts)
           </div>
         </div>
         <div class="pf-section__extra">
-          <NButton size="tiny" quaternary @click="loadLinkedAccounts">
-            <template #icon>
-              <Icon icon="lucide:refresh-cw" />
-            </template>
-          </NButton>
+          <NSpace :size="8">
+            <NButton size="tiny" quaternary @click="loadLinkedAccounts">
+              <template #icon>
+                <Icon icon="lucide:refresh-cw" />
+              </template>
+            </NButton>
+            <NButton size="tiny" @click="handleLinkNewAccount('')">
+              <template #icon>
+                <Icon icon="lucide:plus" />
+              </template>
+              绑定新账号
+            </NButton>
+          </NSpace>
         </div>
       </div>
       <div class="pf-section__body">
@@ -117,14 +126,6 @@ onMounted(loadLinkedAccounts)
               </NPopconfirm>
             </div>
           </div>
-          <div class="pf-section__add">
-            <NButton size="small" dashed @click="handleLinkNewAccount('')">
-              <template #icon>
-                <Icon icon="lucide:plus" />
-              </template>
-              绑定新账号
-            </NButton>
-          </div>
         </NSpin>
       </div>
     </section>
@@ -132,9 +133,3 @@ onMounted(loadLinkedAccounts)
 </template>
 
 <style src="./profile-shared.css" />
-
-<style scoped>
-.pf-section__add {
-  margin-top: 12px;
-}
-</style>

@@ -4,18 +4,15 @@ import {
   NGrid,
   NGridItem,
   NIcon,
-  NProgress,
-  NSkeleton,
-  NStatistic,
   NTag,
   NTimeline,
   NTimelineItem,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { workbenchApi, serverManagementApi } from '@/api'
-import { Icon } from '~/iconify'
+import { workbenchApi } from '@/api'
 import { usePermission } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
 
@@ -25,73 +22,30 @@ const router = useRouter()
 const userStore = useUserStore()
 const { hasPermission } = usePermission()
 
-const loading = ref(true)
-const loginCount = ref(0)
-const accessCount = ref(0)
-const operationCount = ref(0)
-const apiCallCount = ref(0)
 const onlineTime = ref(0)
 const unreadCount = ref(0)
 const pendingConfirmCount = ref(0)
 const lastLoginTime = ref<string | null>(null)
-const serverCpu = ref(0)
-const serverMemory = ref(0)
-const serverDisk = ref(0)
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 6) return '夜深了'
-  if (h < 9) return '早上好'
-  if (h < 12) return '上午好'
-  if (h < 14) return '中午好'
-  if (h < 18) return '下午好'
-  if (h < 22) return '晚上好'
+  if (h < 6)
+    return '夜深了'
+  if (h < 9)
+    return '早上好'
+  if (h < 12)
+    return '上午好'
+  if (h < 14)
+    return '中午好'
+  if (h < 18)
+    return '下午好'
+  if (h < 22)
+    return '晚上好'
   return '夜深了'
 })
 
 const onlineTimeText = computed(() => formatDuration(onlineTime.value))
 const lastLoginText = computed(() => lastLoginTime.value ? formatDate(lastLoginTime.value) : '暂无记录')
-
-const statCards = computed(() => [
-  {
-    label: '登录次数',
-    value: loginCount.value,
-    sub: '今日登录行为',
-    icon: 'lucide:log-in',
-    color: '#3b82f6',
-    bg: 'rgba(59,130,246,0.1)',
-  },
-  {
-    label: '访问次数',
-    value: accessCount.value,
-    sub: '今日页面访问',
-    icon: 'lucide:activity',
-    color: '#22c55e',
-    bg: 'rgba(34,197,94,0.1)',
-  },
-  {
-    label: '操作次数',
-    value: operationCount.value,
-    sub: '今日业务操作',
-    icon: 'lucide:clipboard-list',
-    color: '#ef4444',
-    bg: 'rgba(239,68,68,0.1)',
-  },
-  {
-    label: 'API 调用',
-    value: apiCallCount.value,
-    sub: '今日接口调用',
-    icon: 'lucide:globe',
-    color: '#f59e0b',
-    bg: 'rgba(245,158,11,0.1)',
-  },
-])
-
-const systemMetrics = computed(() => [
-  { label: 'CPU', value: serverCpu.value, color: '#3b82f6' },
-  { label: '内存', value: serverMemory.value, color: '#22c55e' },
-  { label: '磁盘', value: serverDisk.value, color: '#f59e0b' },
-])
 
 // TODO: 确认各快捷入口的权限码与后台权限中心一致，当前为基于模块命名约定的占位码。
 const quickLinkDefinitions = [
@@ -119,73 +73,31 @@ const recentActivities = [
 async function fetchDashboardData() {
   try {
     const summary = await workbenchApi.dashboard.summary()
-    loginCount.value = summary.statistics.loginCount
-    accessCount.value = summary.statistics.accessCount
-    operationCount.value = summary.statistics.operationCount
-    apiCallCount.value = summary.statistics.apiCallCount
     onlineTime.value = summary.statistics.onlineTime
     lastLoginTime.value = summary.statistics.lastLoginTime ?? null
     unreadCount.value = summary.inbox.unreadCount
     pendingConfirmCount.value = summary.inbox.pendingConfirmCount
   }
   catch {
-    resetStats()
+    onlineTime.value = 0
+    lastLoginTime.value = null
+    unreadCount.value = 0
+    pendingConfirmCount.value = 0
   }
-  finally {
-    loading.value = false
-  }
-}
-
-async function fetchServerMetrics() {
-  try {
-    const [cpu, memory, disks] = await Promise.all([
-      serverManagementApi.getCpuInfo(),
-      serverManagementApi.getMemoryInfo(),
-      serverManagementApi.getDiskInfo(),
-    ])
-    serverCpu.value = Math.round(cpu.usagePercentage)
-    serverMemory.value = Math.round(memory.usagePercentage)
-    const avgDisk = disks.length > 0
-      ? Math.round(disks.reduce((sum, d) => sum + (100 - d.availableRate), 0) / disks.length)
-      : 0
-    serverDisk.value = avgDisk
-  }
-  catch {
-    serverCpu.value = 0
-    serverMemory.value = 0
-    serverDisk.value = 0
-  }
-}
-
-function resetStats() {
-  loginCount.value = 0
-  accessCount.value = 0
-  operationCount.value = 0
-  apiCallCount.value = 0
-  onlineTime.value = 0
-  unreadCount.value = 0
-  pendingConfirmCount.value = 0
-  lastLoginTime.value = null
 }
 
 function formatDuration(seconds: number) {
-  if (seconds <= 0) return '0 分钟'
+  if (seconds <= 0)
+    return '0 分钟'
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
-  if (hours > 0) return `${hours} 小时 ${minutes} 分钟`
+  if (hours > 0)
+    return `${hours} 小时 ${minutes} 分钟`
   return `${Math.max(minutes, 1)} 分钟`
-}
-
-function getProgressStatus(value: number) {
-  if (value >= 90) return 'error'
-  if (value >= 70) return 'warning'
-  return 'success'
 }
 
 onMounted(() => {
   fetchDashboardData()
-  // TODO: Replace with workbenchApi.serverMetrics() when backend provides aggregated endpoint
-  fetchServerMetrics()
 })
 </script>
 
@@ -210,40 +122,17 @@ onMounted(() => {
           </div>
         </div>
         <div class="welcome-stats">
-          <div class="welcome-stat">
+          <button class="welcome-stat" type="button" @click="router.push('/workbench/inbox')">
             <span class="welcome-stat-value">{{ unreadCount }}</span>
             <span class="welcome-stat-label">未读消息</span>
-          </div>
-          <div class="welcome-stat">
+          </button>
+          <button class="welcome-stat" type="button" @click="router.push('/workbench/inbox')">
             <span class="welcome-stat-value">{{ pendingConfirmCount }}</span>
             <span class="welcome-stat-label">待确认</span>
-          </div>
+          </button>
         </div>
       </div>
     </NCard>
-
-    <NGrid :cols="4" :item-responsive="true" :x-gap="14" :y-gap="14" responsive="screen">
-      <NGridItem v-for="card in statCards" :key="card.label" span="4 s:2 m:1">
-        <NCard :bordered="false" class="stat-card">
-          <NSkeleton v-if="loading" :height="88" :width="'100%'" />
-          <div v-else class="stat-inner">
-            <div class="stat-icon" :style="{ backgroundColor: card.bg }">
-              <NIcon :color="card.color" size="24">
-                <Icon :icon="card.icon" />
-              </NIcon>
-            </div>
-            <div class="stat-body">
-              <NStatistic :value="card.value" class="stat-value">
-                <template #suffix>
-                  <span class="stat-sub">{{ card.sub }}</span>
-                </template>
-              </NStatistic>
-              <span class="stat-label">{{ card.label }}</span>
-            </div>
-          </div>
-        </NCard>
-      </NGridItem>
-    </NGrid>
 
     <NGrid :cols="3" :item-responsive="true" :x-gap="14" :y-gap="14" responsive="screen">
       <NGridItem span="3 m:2">
@@ -274,35 +163,6 @@ onMounted(() => {
                 <span class="quick-desc">{{ link.desc }}</span>
               </div>
             </button>
-          </div>
-        </NCard>
-      </NGridItem>
-
-      <NGridItem span="3 m:1">
-        <NCard :bordered="false" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <NIcon class="section-icon" size="16">
-                <Icon icon="lucide:cpu" />
-              </NIcon>
-              <span>系统状态</span>
-            </div>
-          </template>
-          <div class="metrics-list">
-            <div v-for="metric in systemMetrics" :key="metric.label" class="metric-item">
-              <div class="metric-header">
-                <span class="metric-label">{{ metric.label }}</span>
-                <span class="metric-value" :style="{ color: metric.color }">{{ metric.value }}%</span>
-              </div>
-              <NProgress
-                :color="metric.color"
-                :percentage="metric.value"
-                :processing="metric.value > 70"
-                :status="getProgressStatus(metric.value)"
-                :height="6"
-                border-radius="3px"
-              />
-            </div>
           </div>
         </NCard>
       </NGridItem>
@@ -385,7 +245,7 @@ onMounted(() => {
 
 .welcome-stats {
   display: none;
-  gap: 24px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -400,74 +260,29 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s ease;
+}
+
+.welcome-stat:hover {
+  background: hsl(var(--primary) / 0.08);
 }
 
 .welcome-stat-value {
   color: hsl(var(--foreground));
   font-size: 24px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .welcome-stat-label {
   color: hsl(var(--muted-foreground));
   font-size: 11px;
-}
-
-/* Stat Cards */
-.stat-card {
-  border-radius: 12px !important;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.stat-card :deep(.n-card__content) {
-  padding: 18px 20px !important;
-}
-
-.stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px hsl(var(--foreground) / 0.06);
-}
-
-.stat-inner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stat-icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-}
-
-.stat-body {
-  min-width: 0;
-  flex: 1;
-}
-
-.stat-value :deep(.n-statistic__value) {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.stat-value :deep(.n-statistic__value__suffix) {
-  font-size: 12px;
-}
-
-.stat-label {
-  color: hsl(var(--muted-foreground));
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.stat-sub {
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
 }
 
 /* Section Card */
@@ -504,12 +319,6 @@ onMounted(() => {
   gap: 4px;
 }
 
-@media (min-width: 900px) {
-  .quick-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
 .quick-item {
   display: flex;
   align-items: center;
@@ -521,12 +330,15 @@ onMounted(() => {
   background: transparent;
   cursor: pointer;
   outline: none;
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
   text-align: center;
 }
 
 .quick-item:hover {
   background: hsl(var(--accent));
+  transform: translateY(-1px);
 }
 
 .quick-icon {
@@ -553,36 +365,5 @@ onMounted(() => {
 .quick-desc {
   color: hsl(var(--muted-foreground));
   font-size: 10px;
-}
-
-/* System Metrics */
-.metrics-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.metric-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.metric-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.metric-label {
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.metric-value {
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 </style>
