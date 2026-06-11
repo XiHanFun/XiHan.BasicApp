@@ -13,23 +13,23 @@ export interface SchemaSelectOption<TValue extends string | number = string | nu
 /**
  * 字段数据类型（决定渲染器与默认搜索控件）
  */
-export type SchemaFieldDataType =
-  | 'string'
-  | 'text'
-  | 'number'
-  | 'boolean'
-  | 'enum'
-  | 'date'
-  | 'datetime'
-  | 'money'
-  | 'percent'
-  | 'tag'
-  | 'json'
-  | 'image'
-  | 'avatar'
-  | 'email'
-  | 'phone'
-  | 'url'
+export type SchemaFieldDataType
+  = | 'string'
+    | 'text'
+    | 'number'
+    | 'boolean'
+    | 'enum'
+    | 'date'
+    | 'datetime'
+    | 'money'
+    | 'percent'
+    | 'tag'
+    | 'json'
+    | 'image'
+    | 'avatar'
+    | 'email'
+    | 'phone'
+    | 'url'
 
 /**
  * 列表字段 Schema —— 页面字段的单一事实源。
@@ -188,6 +188,11 @@ export interface SchemaResource<TRow> {
   tree?: (params: SchemaQueryParams) => Promise<TRow[]>
   /** 删除单条（行级/批量删除依赖） */
   remove?: (id: ApiId) => Promise<void>
+  /**
+   * 新增单条（导入闭环依赖）—— 接收按 importable 字段组装的记录（field.key → 归一化值），
+   * 页面适配器负责映射为后端 CreateDto（补默认值/裁剪字段）。
+   */
+  create?: (record: Record<string, unknown>) => Promise<unknown>
 }
 
 /**

@@ -7,11 +7,12 @@ import { computed, h, onMounted, ref } from 'vue'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import SchemaActionPanel from './SchemaActionPanel.vue'
+import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import { toColumns, toExportFields } from './selectors'
+import { toColumns, toExportFields, toImportFields } from './selectors'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
@@ -355,6 +356,18 @@ const { exporting, exportCsv } = useSchemaExport<Row>({
   fetchRows: fetchExportRows,
 })
 
+/** 导入：字段含 importable 且 resource.create 存在时，工具栏出现内置导入按钮 */
+const importFields = computed(() => toImportFields(resolvedSchema.value, hasPermission))
+const canImport = computed(() => importFields.value.length > 0 && !!props.schema.resource.create)
+const importVisible = ref(false)
+
+/** 导入完毕：有成功行则刷新列表 */
+function onImportFinished(summary: { total: number, success: number, failed: number }) {
+  if (summary.success > 0) {
+    void table.load()
+  }
+}
+
 onMounted(async () => {
   void dictionaries.resolve()
   await table.load()
@@ -421,6 +434,16 @@ defineExpose({
               </NButton>
             </template>
             刷新
+          </NTooltip>
+          <NTooltip v-if="canImport">
+            <template #trigger>
+              <NButton circle quaternary size="small" aria-label="导入" @click="importVisible = true">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:upload" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            导入（CSV）
           </NTooltip>
           <NTooltip v-if="exportFields.length">
             <template #trigger>
@@ -528,6 +551,16 @@ defineExpose({
         </SchemaTablePanel>
       </template>
     </NCard>
+
+    <!-- 内置导入对话框（模板下载/解析/预校验/批量创建） -->
+    <SchemaImportDialog
+      v-if="canImport"
+      v-model:show="importVisible"
+      :create="schema.resource.create!"
+      :fields="importFields"
+      :file-name="schema.pageCode"
+      @finished="onImportFinished"
+    />
 
     <!-- 默认插槽：承载页面自有弹窗/抽屉 -->
     <slot :reload="reload" />
