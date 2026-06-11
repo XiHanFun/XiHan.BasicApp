@@ -275,6 +275,9 @@ function restoreState(): void {
     const saved = JSON.parse(raw) as Partial<PersistedState>
     if (Array.isArray(saved.history)) {
       history.value = saved.history.slice(0, HISTORY_CAP)
+      // 序号续接：orderSeq 每次会话从 0 起，若不推进到恢复历史的最大序号，
+      // 本会话同名任务会产出与恢复项相同的 (id, order)，导致列表 key 冲突
+      orderSeq = Math.max(orderSeq, ...history.value.map(item => item.order ?? 0))
     }
     for (const item of saved.tasks ?? []) {
       upsert(item.id, item.label, {

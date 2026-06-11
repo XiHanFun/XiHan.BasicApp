@@ -131,7 +131,6 @@ function relativeTime(time: number): string {
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
 const PILL_HEIGHT = 34
-const PILL_H_PADDING = 26 // 左 14 + 右 12，与样式对齐
 
 const pillInnerRef = ref<HTMLElement | null>(null)
 const panelLayerRef = ref<HTMLElement | null>(null)
@@ -145,10 +144,45 @@ function panelWidth(): number {
 async function measurePill(): Promise<void> {
   await nextTick()
   const inner = pillInnerRef.value
-  if (inner) {
-    pillWidth.value = Math.min(inner.scrollWidth + PILL_H_PADDING, Math.min(window.innerWidth * 0.8, 440))
+  if (!inner) {
+    return
   }
+  // 量取内容固有宽度：临时切到 max-content（同帧内改回，不产生闪烁）。
+  // 注意不能直接用 scrollWidth——inner 为 width:100% 时它不小于容器宽，会逐次放大。
+  const previousWidth = inner.style.width
+  inner.style.width = 'max-content'
+  const intrinsic = inner.getBoundingClientRect().width
+  inner.style.width = previousWidth
+  pillWidth.value = Math.min(Math.ceil(intrinsic), Math.min(window.innerWidth * 0.8, 440))
 }
+
+// ── 新任务到达脉冲：岛已在屏上时（不重新入场）以轻微弹跳提示 ───────
+const popping = ref(false)
+let popTimer: ReturnType<typeof setTimeout> | null = null
+
+function triggerPop(): void {
+  popping.value = false
+  requestAnimationFrame(() => {
+    popping.value = true
+    if (popTimer) {
+      clearTimeout(popTimer)
+    }
+    popTimer = setTimeout(() => {
+      popping.value = false
+      popTimer = null
+    }, 500)
+  })
+}
+
+watch(
+  () => (current.value ? `${current.value.id}:${current.value.state}` : null),
+  (next, prev) => {
+    // 仅在"岛已可见且任务/状态切换"时脉冲；首次出现交给入场动效
+    if (next && prev && next !== prev && !expanded.value) {
+      triggerPop()
+    }
+  },
+)
 
 // 面板内容尺寸随任务/历史变化：ResizeObserver 持续驱动壳体高度过渡（惰性创建，规避挂载时序）
 let panelObserver: ResizeObserver | null = null
@@ -245,6 +279,10 @@ onBeforeUnmount(() => {
     clearInterval(tickTimer)
     tickTimer = null
   }
+  if (popTimer) {
+    clearTimeout(popTimer)
+    popTimer = null
+  }
 })
 </script>
 
@@ -255,7 +293,7 @@ onBeforeUnmount(() => {
         <div
           v-if="shellVisible"
           class="di-shell"
-          :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`]"
+          :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-pop': popping }]"
           :style="shellStyle"
         >
           <!-- 折叠层：胶囊（图标贴最左，按钮贴最右） -->
@@ -387,7 +425,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div
                   v-for="item in history"
-                  :key="item.id + item.order"
+                  :key="`${item.id}:${item.order}:${item.time}`"
                   class="di-history-item"
                   :class="`is-${item.state}`"
                 >
@@ -865,6 +903,25 @@ onBeforeUnmount(() => {
   opacity: 0;
   /* -100% 按壳体自身高度计算，再加顶部留白，确保完全移出视口上缘 */
   transform: translateY(calc(-100% - 14px)) scale(0.88);
+}
+
+/* 新任务到达脉冲（岛已在屏上、不重新入场时的轻弹跳提示） */
+.di-pop {
+  animation: di-pop 0.45s cubic-bezier(0.3, 1.3, 0.4, 1);
+}
+
+@keyframes di-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  35% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .di-text-enter-active,
