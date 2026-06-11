@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -84,6 +85,8 @@ public sealed class AuthAppService
 
     private readonly IUserDomainService _userDomainService;
 
+    private readonly ILogger<AuthAppService> _logger;
+
     /// <summary>
     /// 超级管理员角色编码（与种子/授权快照约定一致，运行时特判 *）
     /// </summary>
@@ -116,7 +119,8 @@ public sealed class AuthAppService
         IHttpContextAccessor httpContextAccessor,
         IUserRepository userRepository,
         ITenantUserRepository tenantUserRepository,
-        IUserDomainService userDomainService)
+        IUserDomainService userDomainService,
+        ILogger<AuthAppService> logger)
     {
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
@@ -137,6 +141,7 @@ public sealed class AuthAppService
         _userRepository = userRepository;
         _tenantUserRepository = tenantUserRepository;
         _userDomainService = userDomainService;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -201,11 +206,77 @@ public sealed class AuthAppService
             throw new UserFriendlyException(ex.Message, innerException: ex);
         }
 
+        // 欢迎邮件尽力而为：投递失败只记录日志，绝不阻断注册主流程
+        if (_emailSenderOptions.CurrentValue.IsConfigured)
+        {
+            try
+            {
+                await SendWelcomeEmailAsync(email, result.User, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "注册欢迎邮件发送失败，UserId={UserId}", result.User.BasicId);
+            }
+        }
+
         return new RegisterResultDto
         {
             UserId = result.User.BasicId,
             UserName = result.User.UserName
         };
+    }
+
+    /// <summary>
+    /// 发送注册欢迎邮件（复用消息投递管道，模板优先、内置内容兜底）
+    /// </summary>
+    private async Task SendWelcomeEmailAsync(string email, SysUser user, CancellationToken cancellationToken)
+    {
+        var emailOptions = _emailSenderOptions.CurrentValue;
+        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        var displayName = string.IsNullOrWhiteSpace(user.NickName) ? user.UserName : user.NickName;
+        await _messageDeliveryService.CreateEmailAsync(
+            new EmailCreateCommand(
+                SendUserId: null,
+                ReceiveUserId: user.BasicId,
+                EmailType: EmailType.Notification,
+                FromEmail: emailOptions.FromEmail,
+                FromName: emailOptions.FromName,
+                ToEmail: email,
+                CcEmail: null,
+                BccEmail: null,
+                Subject: $"欢迎加入 {brand}",
+                Content: BuildWelcomeHtml(displayName, brand),
+                IsHtml: true,
+                Attachments: null,
+                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
+                TemplateCode: SaasMessageTemplateCodes.Auth.Welcome,
+                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["user_name"] = displayName, ["brand"] = brand }),
+                ScheduledTime: null,
+                MaxRetryCount: 3,
+                BusinessType: "auth.welcome",
+                BusinessId: user.BasicId,
+                Remark: null),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// 构建欢迎邮件的 HTML 正文（与全局模板种子同款式，全内联样式兜底）
+    /// </summary>
+    private static string BuildWelcomeHtml(string userName, string brand)
+    {
+        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
+  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
+    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
+      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
+    </div>
+    <div style='padding:32px;'>
+      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>欢迎加入</h1>
+      <p style='margin:0 0 8px;font-size:14px;line-height:1.7;color:#6b7280;'>{userName}，您好！</p>
+      <p style='margin:0;font-size:14px;line-height:1.7;color:#6b7280;'>您的账号已创建成功，现在即可使用注册邮箱登录 {brand}。</p>
+    </div>
+    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
+  </div>
+</div>";
     }
 
     /// <inheritdoc />
