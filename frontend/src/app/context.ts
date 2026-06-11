@@ -269,6 +269,18 @@ function createShellApis() {
         )
       },
     },
+    importHistoryApi: {
+      create(input: { pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string }) {
+        return requestClient.post<unknown>('/ImportHistory/Create', input)
+      },
+      recent(pageCode: string, count = 10) {
+        return getWithFallback<Array<{ basicId: number | string, pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string, createdTime: string }>>(
+          '/ImportHistoryQuery/GetMine',
+          [],
+          { params: { pageCode, count } },
+        )
+      },
+    },
     operationLogApi: {
       page(input: { page?: number, pageSize?: number }) {
         return getWithFallback<AppPageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))

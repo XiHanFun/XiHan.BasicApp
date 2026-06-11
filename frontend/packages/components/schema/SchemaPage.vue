@@ -558,7 +558,8 @@ defineExpose({
       v-model:show="importVisible"
       :create="schema.resource.create!"
       :fields="importFields"
-      :file-name="schema.pageCode"
+      :page-code="schema.pageCode"
+      :resource-code="schema.resourceCode"
       @finished="onImportFinished"
     />
 

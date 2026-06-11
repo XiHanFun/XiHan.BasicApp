@@ -14,8 +14,10 @@ import {
   NUpload,
   NUploadDragger,
 } from 'naive-ui'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
+import { formatDate } from '~/utils'
 import { useSchemaImport } from './useSchemaImport'
 
 defineOptions({ name: 'SchemaImportDialog' })
@@ -23,8 +25,10 @@ defineOptions({ name: 'SchemaImportDialog' })
 const props = defineProps<{
   /** 导入字段（已按权限过滤、字典选项已注入） */
   fields: ListFieldSchema[]
-  /** 模板/失败行文件名前缀（通常为 pageCode） */
-  fileName: string
+  /** 页面码（模板/失败行文件名前缀 + 留痕维度） */
+  pageCode: string
+  /** 后端资源码（留痕用，可空） */
+  resourceCode?: string
   /** 创建单条（来自 resource.create） */
   create: (record: Record<string, unknown>) => Promise<unknown>
 }>()
@@ -36,19 +40,55 @@ const emit = defineEmits<{
 
 const show = defineModel<boolean>('show', { default: false })
 
+const importHistoryApi = useAppContext().apis.importHistoryApi
+
 const importer = useSchemaImport({
   fields: () => props.fields,
-  fileName: () => props.fileName,
+  fileName: () => props.pageCode,
   create: record => props.create(record),
 })
 const { phase, rows, fileErrors, validRows, errorRows, progress, summary } = importer
 
-// 每次打开重置到初始态
+/** 最近导入记录（当前用户 × 当前页面，端点未就绪时静默为空） */
+type RecentImport = Awaited<ReturnType<typeof importHistoryApi.recent>>[number]
+const recentImports = ref<RecentImport[]>([])
+
+async function loadRecent(): Promise<void> {
+  try {
+    recentImports.value = await importHistoryApi.recent(props.pageCode, 5)
+  }
+  catch {
+    recentImports.value = []
+  }
+}
+
+// 每次打开重置到初始态并拉取最近导入
 watch(show, (value) => {
   if (value) {
     importer.reset()
+    void loadRecent()
   }
 })
+
+/** 导入留痕上报（尽力而为，失败静默不影响导入结果） */
+function reportHistory(result: ImportSummary): void {
+  const errors = errorRows.value
+    .flatMap(row => row.errors)
+    .slice(0, 50)
+    .map(error => ({ row: error.row, field: error.field ?? null, message: error.message }))
+  void importHistoryApi
+    .create({
+      pageCode: props.pageCode,
+      resourceCode: props.resourceCode ?? null,
+      fileName: importer.sourceFileName.value || `${props.pageCode}.csv`,
+      totalCount: result.total,
+      successCount: result.success,
+      failCount: result.failed,
+      errorSummary: errors.length > 0 ? JSON.stringify(errors) : null,
+    })
+    .then(() => loadRecent())
+    .catch(() => undefined)
+}
 
 /** 选择文件即解析校验（阻止真实上传） */
 function onBeforeUpload(data: { file: UploadFileInfo }): boolean {
@@ -88,6 +128,7 @@ async function handleRun(): Promise<void> {
     return
   }
   const result = await importer.run()
+  reportHistory(result)
   emit('finished', result)
 }
 
@@ -186,6 +227,23 @@ function handleClose(): void {
           可下载失败行修正后重新导入。
         </template>
       </NAlert>
+
+      <!-- 最近导入（当前用户 × 当前页面） -->
+      <div v-if="phase === 'idle' && recentImports.length > 0" class="xh-import-recent">
+        <div class="xh-import-recent__title">
+          最近导入
+        </div>
+        <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
+          <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
+          <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
+          <NTag size="tiny" type="success" :bordered="false">
+            成功 {{ item.successCount }}
+          </NTag>
+          <NTag v-if="item.failCount > 0" size="tiny" type="error" :bordered="false">
+            失败 {{ item.failCount }}
+          </NTag>
+        </div>
+      </div>
     </NSpace>
 
     <template #footer>
@@ -235,5 +293,28 @@ function handleClose(): void {
   padding: 12px 0;
   font-size: 13px;
   color: var(--n-text-color-3, rgb(118 124 130));
+}
+
+.xh-import-recent__title {
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--n-text-color);
+}
+
+.xh-import-recent__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0;
+  font-size: 12px;
+  color: var(--n-text-color-3, rgb(118 124 130));
+}
+
+.xh-import-recent__file {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

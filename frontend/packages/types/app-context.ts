@@ -120,6 +120,11 @@ export interface AppContextApis extends Record<string, unknown> {
   fieldSecurityApi: {
     getMine: (resourceCode: string) => Promise<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>
   }
+  /** 导入历史（Schema 页面导入留痕：执行完毕上报 + 当前用户最近导入记录） */
+  importHistoryApi: {
+    create: (input: { pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string }) => Promise<unknown>
+    recent: (pageCode: string, count?: number) => Promise<Array<{ basicId: number | string, pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string, createdTime: string }>>
+  }
   getActivityApi: () => Promise<UserActivity>
   getNotificationPreferenceApi: () => Promise<NotificationPreference>
   updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>

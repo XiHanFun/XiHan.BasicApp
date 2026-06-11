@@ -236,6 +236,8 @@ export interface UseSchemaImport {
   progress: Ref<number>
   /** 导入结果（done 阶段有值） */
   summary: Ref<ImportSummary | null>
+  /** 源文件名（loadFile 后有值，供留痕上报） */
+  sourceFileName: Ref<string>
   /** 下载导入模板 */
   downloadTemplate: () => void
   /** 解析并校验文件 */
@@ -254,6 +256,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
   const fileErrors = ref<string[]>([])
   const progress = ref(0)
   const summary = ref<ImportSummary | null>(null)
+  const sourceFileName = ref('')
 
   const validRows = computed(() => rows.value.filter(r => r.errors.length === 0 && r.record))
   const errorRows = computed(() => rows.value.filter(r => r.errors.length > 0))
@@ -264,6 +267,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     fileErrors.value = []
     progress.value = 0
     summary.value = null
+    sourceFileName.value = ''
   }
 
   function downloadTemplate(): void {
@@ -272,6 +276,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
 
   async function loadFile(file: File): Promise<void> {
     reset()
+    sourceFileName.value = file.name
     const fields = options.fields()
     const matrix = parseCsv(await file.text())
     // 跳过以 # 开头的说明行
@@ -383,6 +388,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     errorRows,
     progress,
     summary,
+    sourceFileName,
     downloadTemplate,
     loadFile,
     run,
