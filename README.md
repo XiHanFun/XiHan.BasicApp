@@ -376,8 +376,8 @@ sudo systemctl start XiHan.BasicApp
 
 ## 项目版本
 
-- 后端版本：v2.2.0
-- 前端版本：v1.2.1
+- 后端版本：v2.3.1
+- 前端版本：v2.3.1
 
 ## 开源协议
 
