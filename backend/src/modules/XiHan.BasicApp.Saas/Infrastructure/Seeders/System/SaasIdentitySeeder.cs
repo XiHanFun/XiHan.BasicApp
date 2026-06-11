@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -30,17 +31,28 @@ public sealed class SaasIdentitySeeder(
     ILogger<SaasIdentitySeeder> logger,
     IServiceProvider serviceProvider,
     ICurrentTenant currentTenant,
-    IPasswordHasher passwordHasher)
+    IPasswordHasher passwordHasher,
+    IConfiguration configuration)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
     private const long DefaultTenantId = 1;
     private const string DefaultTenantCode = "default";
     private const string SuperAdminUserName = "superadmin";
-    private const string SuperAdminPassword = "SuperAdmin@123";
     private const string SuperAdminRoleCode = "super_admin";
+
+    /// <summary>
+    /// 超管初始密码配置键（环境变量形式 Saas__Seed__SuperAdminPassword）
+    /// </summary>
+    private const string SuperAdminPasswordConfigKey = "Saas:Seed:SuperAdminPassword";
+
+    /// <summary>
+    /// 超管初始密码内置默认值（仅本地联调兜底，生产必须配置覆盖并在首次登录后修改）
+    /// </summary>
+    private const string DefaultSuperAdminPassword = "SuperAdmin@123";
 
     private readonly ICurrentTenant _currentTenant = currentTenant;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IConfiguration _configuration = configuration;
 
     /// <summary>
     /// 种子数据优先级
@@ -313,7 +325,7 @@ public sealed class SaasIdentitySeeder(
 
         if (resetPassword || string.IsNullOrWhiteSpace(security.Password))
         {
-            security.Password = _passwordHasher.HashPassword(SuperAdminPassword);
+            security.Password = _passwordHasher.HashPassword(ResolveSuperAdminPassword());
             security.LastPasswordChangeTime = now;
             changed = true;
         }
@@ -331,5 +343,22 @@ public sealed class SaasIdentitySeeder(
         }
 
         return changed;
+    }
+
+    /// <summary>
+    /// 解析超管初始密码：优先取配置，未配置时回退内置默认值并告警
+    /// </summary>
+    private string ResolveSuperAdminPassword()
+    {
+        var configured = _configuration[SuperAdminPasswordConfigKey];
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            return configured.Trim();
+        }
+
+        Logger.LogWarning(
+            "超管初始密码使用内置默认值，生产环境请通过配置 {ConfigKey}（环境变量 Saas__Seed__SuperAdminPassword）覆盖，并在首次登录后立即修改密码",
+            SuperAdminPasswordConfigKey);
+        return DefaultSuperAdminPassword;
     }
 }
