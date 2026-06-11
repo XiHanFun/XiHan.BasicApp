@@ -522,7 +522,7 @@ public sealed class AuthAppService
     /// </summary>
     private async Task<string> IssueAndSendEmailLoginCodeAsync(string email, long? receiveUserId, long? tenantId, CancellationToken cancellationToken)
     {
-        var code = _emailLoginCodeService.IssueCode(tenantId, email);
+        var code = await _emailLoginCodeService.IssueCodeAsync(tenantId, email, cancellationToken);
         var emailOptions = _emailSenderOptions.CurrentValue;
 
         // 已配置真实 SMTP：通过消息投递管道发送验证码邮件（失败会抛出，避免静默丢码）
@@ -573,7 +573,7 @@ public sealed class AuthAppService
         // 先登录后选租户：平台态验证 + 智能落点
         using var platformScope = _currentTenant.Change(null);
 
-        if (!_emailLoginCodeService.TryConsume(tenantId: null, email, code))
+        if (!await _emailLoginCodeService.TryConsumeAsync(tenantId: null, email, code, cancellationToken))
         {
             throw new InvalidOperationException("验证码无效或已过期。");
         }
@@ -830,7 +830,7 @@ public sealed class AuthAppService
         var verified = method switch
         {
             "totp" => VerifyTotpCode(security, trimmedCode),
-            "email" => _emailLoginCodeService.TryConsume(tenantId, RequireUserEmail(user), trimmedCode),
+            "email" => await _emailLoginCodeService.TryConsumeAsync(tenantId, RequireUserEmail(user), trimmedCode, cancellationToken),
             _ => throw new InvalidOperationException("不支持的双因素验证方式。")
         };
 

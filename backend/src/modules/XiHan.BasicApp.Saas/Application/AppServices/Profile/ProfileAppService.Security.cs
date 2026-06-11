@@ -63,7 +63,7 @@ public sealed partial class ProfileAppService
             return;
         }
 
-        _profileVerificationService.EnsureTwoFactorCodeValid(context, method, input.Code);
+        await _profileVerificationService.EnsureTwoFactorCodeValidAsync(context, method, input.Code, cancellationToken);
         await _profileDomainService.DisableTwoFactorAsync(ProfileApplicationMapper.ToTwoFactorCommand(userId, method), cancellationToken);
     }
 
@@ -77,7 +77,7 @@ public sealed partial class ProfileAppService
         var userId = GetCurrentUserIdOrThrow();
         var context = await _profileQueryService.GetSecurityContextAsync(userId, cancellationToken);
         var method = ToTwoFactorMethod(input.Method);
-        _profileVerificationService.EnsureTwoFactorCodeValid(context, method, input.Code);
+        await _profileVerificationService.EnsureTwoFactorCodeValidAsync(context, method, input.Code, cancellationToken);
         await _profileDomainService.EnableTwoFactorAsync(ProfileApplicationMapper.ToTwoFactorCommand(userId, method), cancellationToken);
     }
 
