@@ -25,6 +25,11 @@ const loginResultOptions = [
   { label: '需二次验证', value: LoginResult.RequiresTwoFactor },
   { label: '二次验证失败', value: LoginResult.TwoFactorFailed },
   { label: '登出', value: LoginResult.Logout },
+  { label: '令牌刷新', value: LoginResult.TokenRefreshed },
+  { label: '密码修改', value: LoginResult.PasswordChanged },
+  { label: '密码重置', value: LoginResult.PasswordReset },
+  { label: '绑定MFA', value: LoginResult.MfaBound },
+  { label: '解绑MFA', value: LoginResult.MfaUnbound },
   { label: '其他失败', value: LoginResult.Failed },
 ]
 
@@ -36,13 +41,18 @@ const riskOptions = [
 function loginResultType(result: LoginResult) {
   switch (result) {
     case LoginResult.Success: return 'success'
-    case LoginResult.Logout: return 'info'
+    case LoginResult.Logout:
+    case LoginResult.TokenRefreshed: return 'info'
     case LoginResult.InvalidCredentials:
     case LoginResult.TwoFactorFailed:
     case LoginResult.Failed: return 'error'
     case LoginResult.AccountLocked:
     case LoginResult.AccountDisabled:
-    case LoginResult.RequiresTwoFactor: return 'warning'
+    case LoginResult.RequiresTwoFactor:
+    case LoginResult.PasswordChanged:
+    case LoginResult.PasswordReset:
+    case LoginResult.MfaBound:
+    case LoginResult.MfaUnbound: return 'warning'
     default: return 'default'
   }
 }

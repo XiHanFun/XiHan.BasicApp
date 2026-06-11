@@ -30,4 +30,17 @@ public interface IAuthTokenIssueService
     /// 刷新访问令牌
     /// </summary>
     LoginTokenDto RefreshAccessToken(string accessToken, string refreshToken);
+
+    /// <summary>
+    /// 从访问令牌解析用户身份（不校验有效期，仅用于审计归属），解析失败返回 null
+    /// </summary>
+    AuthTokenIdentity? ResolveTokenIdentity(string accessToken);
 }
+
+/// <summary>
+/// 访问令牌中的用户身份信息
+/// </summary>
+/// <param name="UserId">用户标识</param>
+/// <param name="UserName">用户名</param>
+/// <param name="TenantId">租户标识</param>
+public sealed record AuthTokenIdentity(long? UserId, string? UserName, long? TenantId);

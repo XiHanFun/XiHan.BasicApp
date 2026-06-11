@@ -23,11 +23,13 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using Microsoft.AspNetCore.Http;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -54,6 +56,10 @@ public sealed partial class ProfileAppService
 
     private readonly IUserNotificationPreferenceRepository _notificationPreferenceRepository;
 
+    private readonly IClientInfoProvider _clientInfoProvider;
+
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -64,7 +70,9 @@ public sealed partial class ProfileAppService
         ILocalEventBus localEventBus,
         IUserNotificationDispatchService notificationDispatchService,
         IUserNotificationPreferenceRepository notificationPreferenceRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IClientInfoProvider clientInfoProvider,
+        IHttpContextAccessor httpContextAccessor)
     {
         _profileDomainService = profileDomainService;
         _profileQueryService = profileQueryService;
@@ -73,6 +81,27 @@ public sealed partial class ProfileAppService
         _notificationDispatchService = notificationDispatchService;
         _notificationPreferenceRepository = notificationPreferenceRepository;
         _currentUser = currentUser;
+        _clientInfoProvider = clientInfoProvider;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    /// <summary>
+    /// 发布认证安全审计事件（密码修改/绑定解绑MFA 等），统一落登录日志
+    /// </summary>
+    private async Task PublishSecurityAuditAsync(LoginResult auditResult, string message)
+    {
+        var client = _clientInfoProvider.GetCurrent();
+        await _localEventBus.PublishAsync(
+            new AuthSecurityAuditDomainEvent(
+                _currentUser.TenantId,
+                _currentUser.UserId,
+                _currentUser.UserName,
+                auditResult,
+                message,
+                DateTimeOffset.UtcNow,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent));
     }
 
     /// <inheritdoc />

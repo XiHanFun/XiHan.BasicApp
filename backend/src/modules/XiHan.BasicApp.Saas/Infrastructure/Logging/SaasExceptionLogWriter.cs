@@ -79,6 +79,7 @@ public class SaasExceptionLogWriter : IExceptionLogWriter
             ExceptionType = SaasLogMappingHelper.TrimOrDefault(record.ExceptionType, 200, "Exception"),
             ExceptionMessage = SaasLogMappingHelper.TrimOrDefault(record.ExceptionMessage, 2000, "未捕获异常"),
             ExceptionStackTrace = SaasLogMappingHelper.TrimOrNull(record.ExceptionStackTrace, 32000),
+            ExceptionSource = ClassifyExceptionSource(record.ExceptionType, record.ExceptionStackTrace),
             ExceptionLocation = SaasLogMappingHelper.TrimOrNull(BuildExceptionLocation(record), 300),
             SeverityLevel = record.StatusCode >= StatusCodes.Status500InternalServerError ? 5 : 3,
             RequestPath = SaasLogMappingHelper.TrimOrNull(record.Path, 500),
@@ -109,6 +110,54 @@ public class SaasExceptionLogWriter : IExceptionLogWriter
         };
 
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 按异常类型/堆栈归类异常来源：业务异常、数据库异常、Redis 异常、第三方接口异常、消息队列异常、未捕获异常
+    /// </summary>
+    private static string ClassifyExceptionSource(string? exceptionType, string? stackTrace)
+    {
+        var type = exceptionType ?? string.Empty;
+        var stack = stackTrace ?? string.Empty;
+
+        if (ContainsAny(type, "BusinessException", "UserFriendlyException", "ValidationException", "ArgumentException", "InvalidOperationException"))
+        {
+            return "业务异常";
+        }
+
+        if (ContainsAny(type, "SqlSugarException", "DbException", "NpgsqlException", "SqlException", "MySqlException", "SqliteException", "PostgresException", "VersionExceptions")
+            || ContainsAny(stack, "SqlSugar", "Npgsql."))
+        {
+            return "数据库异常";
+        }
+
+        if (ContainsAny(type, "RedisException", "RedisConnectionException", "RedisTimeoutException")
+            || ContainsAny(stack, "StackExchange.Redis", "FreeRedis", "CSRedis"))
+        {
+            return "Redis异常";
+        }
+
+        if (ContainsAny(type, "HttpRequestException", "SocketException", "WebException")
+            || ContainsAny(stack, "System.Net.Http.HttpClient"))
+        {
+            return "第三方接口异常";
+        }
+
+        if (ContainsAny(type, "RabbitMQ", "KafkaException", "MqttException", "BrokerUnreachableException")
+            || ContainsAny(stack, "RabbitMQ.Client", "Confluent.Kafka", "MQTTnet"))
+        {
+            return "消息队列异常";
+        }
+
+        return "未捕获异常";
+    }
+
+    /// <summary>
+    /// 文本包含任一关键字（忽略大小写）
+    /// </summary>
+    private static bool ContainsAny(string value, params string[] keywords)
+    {
+        return keywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string? BuildExceptionLocation(ExceptionLogRecord record)

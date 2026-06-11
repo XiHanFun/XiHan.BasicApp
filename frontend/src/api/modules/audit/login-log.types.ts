@@ -9,6 +9,11 @@ export enum LoginResult {
   RequiresTwoFactor = 'RequiresTwoFactor',
   TwoFactorFailed = 'TwoFactorFailed',
   Logout = 'Logout',
+  TokenRefreshed = 'TokenRefreshed',
+  PasswordChanged = 'PasswordChanged',
+  PasswordReset = 'PasswordReset',
+  MfaBound = 'MfaBound',
+  MfaUnbound = 'MfaUnbound',
   Failed = 'Failed',
 }
 

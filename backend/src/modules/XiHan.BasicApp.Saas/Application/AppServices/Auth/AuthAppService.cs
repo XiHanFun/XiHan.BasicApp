@@ -311,6 +311,9 @@ public sealed class AuthAppService
             throw new UserFriendlyException(ex.Message, innerException: ex);
         }
 
+        // 认证审计：密码重置落登录日志
+        await PublishSecurityAuditAsync(user.TenantId, user.BasicId, user.UserName, LoginResult.PasswordReset, "找回密码-重置为临时密码");
+
         // 已配置真实 SMTP：通过消息投递管道发送临时密码邮件，响应不回显；未配置（本地联调）：回显临时密码便于测试
         if (_emailSenderOptions.CurrentValue.IsConfigured)
         {
@@ -824,7 +827,7 @@ public sealed class AuthAppService
 
     /// <inheritdoc />
     [AllowAnonymous]
-    public Task<LoginTokenDto> RefreshTokenAsync(RefreshTokenRequestDto input, CancellationToken cancellationToken = default)
+    public async Task<LoginTokenDto> RefreshTokenAsync(RefreshTokenRequestDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -834,7 +837,37 @@ public sealed class AuthAppService
             throw new InvalidOperationException("刷新令牌参数不完整。");
         }
 
-        return Task.FromResult(_authTokenIssueService.RefreshAccessToken(input.AccessToken, input.RefreshToken));
+        var token = _authTokenIssueService.RefreshAccessToken(input.AccessToken, input.RefreshToken);
+
+        // 认证审计：令牌刷新落登录日志（身份从旧令牌解析，仅用于审计归属）
+        var identity = _authTokenIssueService.ResolveTokenIdentity(input.AccessToken);
+        await PublishSecurityAuditAsync(
+            identity?.TenantId,
+            identity?.UserId,
+            identity?.UserName,
+            LoginResult.TokenRefreshed,
+            "访问令牌刷新");
+
+        return token;
+    }
+
+    /// <summary>
+    /// 发布认证安全审计事件（令牌刷新/密码重置等），失败不影响主流程
+    /// </summary>
+    private async Task PublishSecurityAuditAsync(long? tenantId, long? userId, string? userName, LoginResult auditResult, string message)
+    {
+        var client = _clientInfoProvider.GetCurrent();
+        await _localEventBus.PublishAsync(
+            new AuthSecurityAuditDomainEvent(
+                tenantId,
+                userId,
+                userName,
+                auditResult,
+                message,
+                DateTimeOffset.UtcNow,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent));
     }
 
     /// <summary>

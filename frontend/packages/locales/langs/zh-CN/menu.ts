@@ -32,7 +32,7 @@ export default {
   setting_server: '服务监控',
   log: '日志审计',
   log_access: '访问日志',
-  log_api: '接口日志',
+  log_api: '开放接口日志',
   log_operation: '操作日志',
   log_login: '登录日志',
   log_exception: '异常日志',

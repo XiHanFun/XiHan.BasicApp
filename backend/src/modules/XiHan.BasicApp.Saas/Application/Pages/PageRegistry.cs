@@ -157,8 +157,8 @@ public static class PageRegistry
         new("log","日志审计","menu.log",MenuType.Directory,"/log","Log",null,null,null,"lucide:file-search",800,"/log/access"),
         // [9.1] 访问日志
         new("log.access","访问日志","menu.log_access",MenuType.Menu,"/log/access","LogAccess","log/access/index","log",SaasPermissionCodes.AccessLog.Read,"lucide:globe",810),
-        // [9.2] 接口日志
-        new("log.api","接口日志","menu.log_api",MenuType.Menu,"/log/api","LogApi","log/api/index","log",SaasPermissionCodes.ApiLog.Read,"lucide:webhook",820),
+        // [9.2] 开放接口日志
+        new("log.api","开放接口日志","menu.log_api",MenuType.Menu,"/log/api","LogApi","log/api/index","log",SaasPermissionCodes.ApiLog.Read,"lucide:webhook",820),
         // [9.3] 操作日志
         new("log.operation","操作日志","menu.log_operation",MenuType.Menu,"/log/operation","LogOperation","log/operation/index","log",SaasPermissionCodes.OperationLog.Read,"lucide:mouse-pointer-click",830),
         // [9.4] 登录日志

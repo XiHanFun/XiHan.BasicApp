@@ -1,5 +1,4 @@
 import type { ApiId, BasicDto, DateTimeString, NumericString, PageRequest } from '../../types'
-import type { EnableStatus } from '../shared'
 
 export { EnableStatus } from '../shared'
 
@@ -13,7 +12,19 @@ export enum OperationType {
   Delete = 'Delete',
   Import = 'Import',
   Export = 'Export',
+  Review = 'Review',
+  Approve = 'Approve',
+  StartTask = 'StartTask',
+  Execute = 'Execute',
+  Restore = 'Restore',
   Other = 'Other',
+}
+
+/** 与后端 OperationExecuteResult 一致（操作执行结果：成功/失败/部分成功） */
+export enum OperationExecuteResult {
+  Success = 'Success',
+  Failed = 'Failed',
+  PartialSuccess = 'PartialSuccess',
 }
 
 export interface OperationLogPageQueryDto extends PageRequest {
@@ -26,8 +37,8 @@ export interface OperationLogPageQueryDto extends PageRequest {
   operationTimeEnd?: DateTimeString | null
   operationTimeStart?: DateTimeString | null
   operationType?: OperationType | null
+  result?: OperationExecuteResult | null
   sessionId?: string | null
-  status?: EnableStatus | null
   title?: string | null
   traceId?: string | null
   userId?: ApiId | null
@@ -49,8 +60,8 @@ export interface OperationLogListItemDto extends BasicDto {
   operationType: OperationType
   os?: string | null
   requestUrl?: string | null
+  result: OperationExecuteResult
   sessionId?: string | null
-  status: EnableStatus
   title?: string | null
   traceId?: string | null
   userAgent?: string | null

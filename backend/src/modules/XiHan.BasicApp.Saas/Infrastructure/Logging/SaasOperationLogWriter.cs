@@ -55,14 +55,36 @@ public class SaasOperationLogWriter : IOperationLogWriter
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
+    /// 认证类动作集合：登录/登出/令牌等认证行为由登录日志承担审计，不重复落操作日志
+    /// </summary>
+    private static readonly HashSet<string> AuthAuditActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Login", "Logout", "EmailLogin", "EmailLoginCode", "PhoneLogin", "PhoneLoginCode",
+        "RefreshToken", "Register", "PasswordResetRequest", "LoginConfig", "SwitchTenant"
+    };
+
+    /// <summary>
     /// 写入操作日志
     /// </summary>
     public async Task WriteAsync(OperationLogRecord record, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(record);
 
+        // 操作日志只记录业务行为：查询类动作不记录；认证类动作由登录日志负责审计
+        var operationType = SaasLogMappingHelper.ResolveOperationTypeByAction(record.ActionName, record.Method);
+        if (operationType == OperationType.Query)
+        {
+            return;
+        }
+
+        if (string.Equals(record.ControllerName, "Auth", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(record.ActionName)
+            && AuthAuditActions.Contains(record.ActionName))
+        {
+            return;
+        }
+
         var clientInfo = _clientInfoProvider.GetCurrent();
-        var operationType = SaasLogMappingHelper.ResolveOperationTypeByHttpMethod(record.Method);
         var elapsedMilliseconds = SaasLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
         var title = BuildTitle(record);
         var description = BuildDescription(record);
