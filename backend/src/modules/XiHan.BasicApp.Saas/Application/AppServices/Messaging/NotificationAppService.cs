@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -20,9 +22,13 @@ using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -38,15 +44,31 @@ public sealed class NotificationAppService
 
     private readonly IMessageTemplateRenderer _messageTemplateRenderer;
 
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
+
+    private readonly IUserTaskProgressNotifier _taskProgressNotifier;
+
+    private readonly ICurrentUser _currentUser;
+
+    private readonly ILogger<NotificationAppService> _logger;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public NotificationAppService(
         INotificationDomainService notificationDomainService,
-        IMessageTemplateRenderer messageTemplateRenderer)
+        IMessageTemplateRenderer messageTemplateRenderer,
+        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
+        IUserTaskProgressNotifier taskProgressNotifier,
+        ICurrentUser currentUser,
+        ILogger<NotificationAppService> logger)
     {
         _notificationDomainService = notificationDomainService;
         _messageTemplateRenderer = messageTemplateRenderer;
+        _realtimeNotificationService = realtimeNotificationService;
+        _taskProgressNotifier = taskProgressNotifier;
+        _currentUser = currentUser;
+        _logger = logger;
     }
 
     /// <summary>
@@ -93,6 +115,10 @@ public sealed class NotificationAppService
     /// <summary>
     /// 发布系统通知
     /// </summary>
+    /// <remarks>
+    /// 发布落库后：① 给在线接收者实时推送 ReceiveNotification（收件箱即时刷新，无需等下次拉取）；
+    /// ② 给发布者经 TaskProgress 推送任务进度（灵动岛呈现）。推送失败均不影响发布结果。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Message.Publish)]
     public async Task<NotificationPublishResultDto> PublishNotificationAsync(NotificationPublishDto input, CancellationToken cancellationToken = default)
@@ -100,8 +126,73 @@ public sealed class NotificationAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _notificationDomainService.PublishNotificationAsync(NotificationApplicationMapper.ToPublishCommand(input), cancellationToken);
+        var publisherId = _currentUser.UserId ?? 0;
+        var progressTaskId = $"notification-publish:{input.BasicId}";
+        await _taskProgressNotifier.NotifyRunningAsync(publisherId, progressTaskId, "正在发布公告…", cancellationToken: cancellationToken);
+
+        NotificationPublishCommandResult result;
+        try
+        {
+            result = await _notificationDomainService.PublishNotificationAsync(NotificationApplicationMapper.ToPublishCommand(input), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await _taskProgressNotifier.NotifyFailedAsync(publisherId, progressTaskId, "公告发布失败", ex.Message, cancellationToken);
+            throw;
+        }
+
+        await PushPublishedNotificationAsync(result.Notification);
+        await _taskProgressNotifier.NotifySucceededAsync(
+            publisherId,
+            progressTaskId,
+            "公告已发布",
+            $"已发送给 {result.RecipientCount} 位用户",
+            link: "/message/notification",
+            cancellationToken: cancellationToken);
+
         return NotificationApplicationMapper.ToPublishResultDto(result);
+    }
+
+    /// <summary>
+    /// 给在线接收者实时推送已发布公告（全员目标广播，指定用户目标点发；失败只记日志）
+    /// </summary>
+    private async Task PushPublishedNotificationAsync(SysNotification notification)
+    {
+        try
+        {
+            var payload = new
+            {
+                type = (int)notification.NotificationType,
+                title = notification.Title,
+                content = notification.Content,
+                basicId = notification.BasicId,
+                notificationId = notification.BasicId,
+                notificationType = (int)notification.NotificationType,
+                sendTime = notification.SendTime
+            };
+
+            if (notification.TargetType == NotificationTargetType.All)
+            {
+                await _realtimeNotificationService.SendToAllAsync(SignalRConstants.ClientMethods.ReceiveNotification, payload);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(notification.TargetValue))
+            {
+                var userIds = JsonSerializer.Deserialize<long[]>(notification.TargetValue) ?? [];
+                if (userIds.Length > 0)
+                {
+                    await _realtimeNotificationService.SendToUsersAsync(
+                        [.. userIds.Select(id => id.ToString())],
+                        SignalRConstants.ClientMethods.ReceiveNotification,
+                        payload);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "公告实时推送失败，NotificationId={NotificationId}", notification.BasicId);
+        }
     }
 
     /// <summary>
