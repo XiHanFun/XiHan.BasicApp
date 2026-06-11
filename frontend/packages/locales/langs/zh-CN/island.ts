@@ -1,0 +1,18 @@
+export default {
+  title: '动态',
+  collapse: '收起',
+  recent: '最近',
+  clear: '清空',
+  empty: '暂无动态',
+  dismiss: '移除',
+  elapsed_prefix: '已进行',
+  just_now: '刚刚',
+  minutes_ago: '{n} 分钟前',
+  hours_ago: '{n} 小时前',
+  network_lost: '网络已断开，等待重连…',
+  network_lost_detail: '当前更改可能无法同步，网络恢复后会自动重试。',
+  network_restored: '网络已恢复',
+  realtime_lost: '实时连接已断开，重连中…',
+  realtime_lost_detail: '通知推送与后台任务进度暂不可用，恢复后自动续传。',
+  realtime_restored: '实时连接已恢复',
+}

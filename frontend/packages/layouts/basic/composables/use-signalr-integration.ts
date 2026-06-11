@@ -1,7 +1,8 @@
+import type { ServerTaskProgressPayload } from '~/composables'
 import { useDialog, useNotification } from 'naive-ui'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSignalR } from '~/composables'
+import { applyServerTaskProgress, islandStatus, useSignalR } from '~/composables'
 import { useAccessStore, useAuthStore } from '~/stores'
 
 const SIGNALR_RECONNECT_INTERVAL_MS = 15000
@@ -120,6 +121,8 @@ export function useSignalRIntegration() {
     }
     signalR.on('ForceLogout', handleForceLogout)
     signalR.on('ReceiveNotification', handleReceiveNotification)
+    // 服务端后台任务进度 → 灵动岛（同 taskId 复用同一条，刷新后由会话级持久化恢复）
+    signalR.on('TaskProgress', payload => applyServerTaskProgress(payload as ServerTaskProgressPayload))
     isListenersBound = true
   }
 
@@ -151,18 +154,33 @@ export function useSignalRIntegration() {
     },
   )
 
+  // 实时连接状态进灵动岛（常驻提示，仅在"曾连上后断开"时出现，避免登录初期噪音）
+  let realtimeHandle: ReturnType<typeof islandStatus> | null = null
   const stopConnectedWatch = watch(
     () => signalR.connected.value,
-    (isConnected) => {
+    (isConnected, wasConnected) => {
       if (!accessStore.accessToken) {
         clearReconnectTimer()
+        realtimeHandle?.dismiss()
+        realtimeHandle = null
         return
       }
       if (isConnected) {
         clearReconnectTimer()
+        if (realtimeHandle) {
+          realtimeHandle.success(t('island.realtime_restored'))
+          realtimeHandle = null
+        }
       }
       else {
         ensureReconnectTimer()
+        if (wasConnected) {
+          realtimeHandle = islandStatus('sys:realtime', t('island.realtime_lost'), {
+            state: 'error',
+            icon: 'lucide:plug-zap',
+            detail: t('island.realtime_lost_detail'),
+          })
+        }
       }
     },
   )
