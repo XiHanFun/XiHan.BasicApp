@@ -1,0 +1,18 @@
+export default {
+  title: 'Activity',
+  collapse: 'Collapse',
+  recent: 'Recent',
+  clear: 'Clear',
+  empty: 'No activity',
+  dismiss: 'Dismiss',
+  elapsed_prefix: 'Elapsed',
+  just_now: 'just now',
+  minutes_ago: '{n} min ago',
+  hours_ago: '{n} hr ago',
+  network_lost: 'Network lost, reconnecting…',
+  network_lost_detail: 'Changes may not sync; retry happens automatically once back online.',
+  network_restored: 'Network restored',
+  realtime_lost: 'Realtime connection lost, reconnecting…',
+  realtime_lost_detail: 'Push notifications and task progress paused; resumes automatically.',
+  realtime_restored: 'Realtime connection restored',
+}

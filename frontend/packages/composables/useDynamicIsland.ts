@@ -1,13 +1,17 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 /**
  * 灵动岛（Dynamic Island）。
  *
- * 不止是提醒：支持「进行中/成功/失败/信息」状态、确定性进度条、岛内交互按钮、
- * 整条点击跳转、常驻状态（网络/连接等），以及点击展开的活动面板（活动 + 最近历史）。
+ * 不止是提醒：支持「进行中/成功/失败/信息」状态、确定性进度（进度环）、岛内交互按钮、
+ * 整条点击跳转、常驻状态（网络/实时连接等）、服务端后台任务（SignalR TaskProgress 推送）
+ * 以及点击展开的活动面板（活动 + 最近历史）。
  *
  * 模块级单例状态，可在 store / composable / 组件任意处调用，由全局挂载的
  * DynamicIsland 组件订阅渲染。`islandStart` 兼容旧用法 `islandStart(id, label)`。
+ *
+ * 常驻性：状态存活于模块作用域（跨路由不丢）；服务端任务与历史另存 sessionStorage，
+ * 刷新页面后自动恢复（进行中的服务端任务等待 SignalR 续推）。
  */
 
 export type IslandState = 'loading' | 'success' | 'error' | 'info'
@@ -33,12 +37,14 @@ export interface IslandTaskInit {
   icon?: string
   /** 状态 */
   state?: IslandState
-  /** 进度 0-100；省略表示不确定（转圈） */
+  /** 进度 0-100；省略表示不确定（旋转弧环） */
   progress?: number
   /** 岛内交互按钮 */
   actions?: IslandAction[]
   /** 整条点击回调（如跳转/查看） */
   onClick?: () => void
+  /** 整条点击跳转的应用内链接（与 onClick 二选一，组件经路由跳转） */
+  link?: string
   /** 常驻：不自动消失（用于网络/连接等状态指示） */
   persistent?: boolean
 }
@@ -50,6 +56,10 @@ export interface IslandTask extends IslandTaskInit {
   order: number
   /** event=普通任务（终态入历史）；status=常驻状态 */
   kind: 'event' | 'status'
+  /** local=前端本地任务；server=服务端推送任务（参与刷新恢复） */
+  source: 'local' | 'server'
+  /** 任务开始时间戳（展开面板显示耗时） */
+  startedAt: number
 }
 
 export interface IslandHistoryItem {
@@ -58,6 +68,8 @@ export interface IslandHistoryItem {
   detail?: string
   state: IslandState
   order: number
+  /** 终态时间戳（展开面板显示相对时间） */
+  time: number
 }
 
 export interface IslandHandle {
@@ -77,10 +89,21 @@ export interface IslandHandle {
   dismiss: () => void
 }
 
+/** 服务端任务进度载荷（与后端 TaskProgress 事件约定一致） */
+export interface ServerTaskProgressPayload {
+  taskId: string
+  label: string
+  detail?: null | string
+  state?: null | string
+  progress?: null | number
+  link?: null | string
+}
+
 const SUCCESS_LINGER = 1600
 const ERROR_LINGER = 3200
 const INFO_LINGER = 2400
 const HISTORY_CAP = 20
+const STORAGE_KEY = 'xihan_island_state'
 
 const tasks = ref<IslandTask[]>([])
 const history = ref<IslandHistoryItem[]>([])
@@ -118,7 +141,7 @@ function pushHistory(task: IslandTask): void {
     return
   }
   history.value = [
-    { id: task.id, label: task.label, detail: task.detail, state: task.state, order: ++orderSeq },
+    { id: task.id, label: task.label, detail: task.detail, state: task.state, order: ++orderSeq, time: Date.now() },
     ...history.value,
   ].slice(0, HISTORY_CAP)
 }
@@ -137,12 +160,13 @@ function scheduleRemoval(id: string, delay: number): void {
   timers.set(id, setTimeout(() => removeTask(id), delay))
 }
 
-function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' | 'status'): void {
+function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' | 'status', source: 'local' | 'server' = 'local'): void {
   const index = tasks.value.findIndex(item => item.id === id)
   const base: Partial<IslandTask> = index >= 0 ? tasks.value[index]! : {}
   const next: IslandTask = {
     id,
     kind: (base.kind as IslandTask['kind']) ?? kind,
+    source: (base.source as IslandTask['source']) ?? source,
     label,
     detail: init.detail ?? base.detail,
     icon: init.icon ?? base.icon,
@@ -150,7 +174,9 @@ function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' |
     progress: init.progress ?? base.progress,
     actions: init.actions ?? base.actions,
     onClick: init.onClick ?? base.onClick,
+    link: init.link ?? base.link,
     persistent: init.persistent ?? base.persistent,
+    startedAt: base.startedAt ?? Date.now(),
     order: ++orderSeq,
   }
   if (index >= 0) {
@@ -211,6 +237,67 @@ function makeHandle(id: string): IslandHandle {
   }
 }
 
+// ── 会话级持久化：服务端任务（进行中）与历史在刷新后恢复 ────────────
+interface PersistedState {
+  tasks: Array<Pick<IslandTask, 'detail' | 'icon' | 'id' | 'label' | 'link' | 'progress' | 'startedAt'>>
+  history: IslandHistoryItem[]
+}
+
+function persistState(): void {
+  try {
+    const payload: PersistedState = {
+      tasks: tasks.value
+        .filter(item => item.source === 'server' && item.state === 'loading')
+        .map(item => ({
+          id: item.id,
+          label: item.label,
+          detail: item.detail,
+          icon: item.icon,
+          progress: item.progress,
+          link: item.link,
+          startedAt: item.startedAt,
+        })),
+      history: history.value,
+    }
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  }
+  catch {
+    // 存储不可用（隐私模式等）时静默放弃持久化
+  }
+}
+
+function restoreState(): void {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      return
+    }
+    const saved = JSON.parse(raw) as Partial<PersistedState>
+    if (Array.isArray(saved.history)) {
+      history.value = saved.history.slice(0, HISTORY_CAP)
+    }
+    for (const item of saved.tasks ?? []) {
+      upsert(item.id, item.label, {
+        detail: item.detail,
+        icon: item.icon,
+        progress: item.progress,
+        link: item.link,
+        state: 'loading',
+      }, 'event', 'server')
+      const restored = tasks.value.find(t => t.id === item.id)
+      if (restored && item.startedAt) {
+        restored.startedAt = item.startedAt
+      }
+    }
+  }
+  catch {
+    // 损坏的持久化载荷直接丢弃
+  }
+}
+
+restoreState()
+watch([tasks, history], persistState, { deep: true })
+
 // ── 关闭灵动岛时的兜底接管 ──────────────────────────────────────
 // 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由 Naive Message 接管终态。
 type IslandMessageSink = (state: 'success' | 'error' | 'info', content: string) => void
@@ -221,7 +308,7 @@ let messageSink: IslandMessageSink | null = null
  * 注入灵动岛启用判定与「关闭时」的消息兜底。
  * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由 Naive Message 接管。
  */
-export function configureDynamicIsland(options: { isEnabled: () => boolean; message: IslandMessageSink }): void {
+export function configureDynamicIsland(options: { isEnabled: () => boolean, message: IslandMessageSink }): void {
   enabledResolver = options.isEnabled
   messageSink = options.message
 }
@@ -272,7 +359,7 @@ function silentHandle(): IslandHandle {
  * 开始一个灵动岛任务（默认进行中态）。返回句柄推进终态。
  * @param id    任务键；同 id 复用同一条
  * @param label 文案
- * @param init  可选：detail/icon/state/progress/actions/onClick/persistent
+ * @param init  可选：detail/icon/state/progress/actions/onClick/link/persistent
  */
 export function islandStart(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
   // 灵动岛关闭：不进岛，终态由 Naive Message 接管
@@ -296,6 +383,41 @@ export function islandStatus(id: string, label: string, init: IslandTaskInit = {
   clearTimer(id)
   upsert(id, label, { ...init, state: init.state ?? 'info', persistent: true }, 'status')
   return makeHandle(id)
+}
+
+/**
+ * 服务端后台任务进度入口（SignalR TaskProgress 事件 → 灵动岛）。
+ * 同 taskId 复用同一条；进行中任务参与会话级持久化（刷新后恢复，等待服务端续推）。
+ */
+export function applyServerTaskProgress(payload: ServerTaskProgressPayload): void {
+  if (!payload?.taskId || !payload.label) {
+    return
+  }
+
+  const id = `server:${payload.taskId}`
+  const state: IslandState = payload.state === 'success' || payload.state === 'error' || payload.state === 'info'
+    ? payload.state
+    : 'loading'
+
+  if (!islandEnabled()) {
+    if (state !== 'loading') {
+      messageSink?.(state === 'info' ? 'info' : state, payload.label)
+    }
+    return
+  }
+
+  clearTimer(id)
+  upsert(id, payload.label, {
+    detail: payload.detail ?? undefined,
+    progress: payload.progress ?? undefined,
+    link: payload.link ?? undefined,
+    state,
+    icon: state === 'loading' ? 'lucide:server' : undefined,
+  }, 'event', 'server')
+
+  if (state !== 'loading') {
+    settle(id, state)
+  }
 }
 
 /** 组件订阅入口与操作 */
