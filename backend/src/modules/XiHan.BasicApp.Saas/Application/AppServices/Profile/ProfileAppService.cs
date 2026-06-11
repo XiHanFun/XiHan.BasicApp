@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Http;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Web.Core.Clients;
@@ -56,6 +57,10 @@ public sealed partial class ProfileAppService
 
     private readonly IUserNotificationPreferenceRepository _notificationPreferenceRepository;
 
+    private readonly IUserApiCredentialRepository _userApiCredentialRepository;
+
+    private readonly IPasswordHasher _passwordHasher;
+
     private readonly IClientInfoProvider _clientInfoProvider;
 
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -70,6 +75,8 @@ public sealed partial class ProfileAppService
         ILocalEventBus localEventBus,
         IUserNotificationDispatchService notificationDispatchService,
         IUserNotificationPreferenceRepository notificationPreferenceRepository,
+        IUserApiCredentialRepository userApiCredentialRepository,
+        IPasswordHasher passwordHasher,
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
@@ -80,6 +87,8 @@ public sealed partial class ProfileAppService
         _localEventBus = localEventBus;
         _notificationDispatchService = notificationDispatchService;
         _notificationPreferenceRepository = notificationPreferenceRepository;
+        _userApiCredentialRepository = userApiCredentialRepository;
+        _passwordHasher = passwordHasher;
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;

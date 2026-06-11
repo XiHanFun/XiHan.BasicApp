@@ -156,4 +156,29 @@ public interface IProfileAppService : IApplicationService
     /// 更新当前用户通知偏好
     /// </summary>
     Task<ProfileNotificationPreferenceDto> UpdateNotificationPreferenceAsync(ProfileNotificationPreferenceDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户 API 凭证列表
+    /// </summary>
+    Task<List<ProfileApiCredentialDto>> GetApiCredentialsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 创建 API 凭证（明文 Secret 仅本次返回）
+    /// </summary>
+    Task<ProfileApiCredentialSecretDto> CreateApiCredentialAsync(ProfileApiCredentialCreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 滚动 API 凭证密钥（AppKey 不变，旧密钥立即失效，明文 Secret 仅本次返回）
+    /// </summary>
+    Task<ProfileApiCredentialSecretDto> RotateApiCredentialSecretAsync(ProfileApiCredentialIdDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 启停 API 凭证
+    /// </summary>
+    Task<ProfileApiCredentialDto> UpdateApiCredentialStatusAsync(ProfileApiCredentialStatusDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除 API 凭证
+    /// </summary>
+    Task DeleteApiCredentialAsync(long id, CancellationToken cancellationToken = default);
 }
