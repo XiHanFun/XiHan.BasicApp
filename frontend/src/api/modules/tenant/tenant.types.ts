@@ -88,6 +88,8 @@ export interface TenantSwitcherDto {
   expirationTime?: DateTimeString | null
   inviteStatus: TenantMemberInviteStatus
   isCurrent: boolean
+  /** 加入时间（受邀响应时间，缺省为成员关系创建时间） */
+  joinedTime: DateTimeString
   logo?: string | null
   memberType: TenantMemberType
   membershipExpirationTime?: DateTimeString | null

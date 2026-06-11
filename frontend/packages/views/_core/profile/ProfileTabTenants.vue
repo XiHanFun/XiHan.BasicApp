@@ -125,14 +125,14 @@ onMounted(loadTenants)
                 </div>
                 <div class="pf-list-desc">
                   {{ getOptionLabel(MEMBER_TYPE_OPTIONS, t.memberType) }}
+                  <template v-if="t.joinedTime">
+                    · 加入于 {{ formatDate(t.joinedTime, 'YYYY-MM-DD') }}
+                  </template>
                   <template v-if="t.membershipExpirationTime">
-                    · 加入 {{ formatDate(t.membershipExpirationTime, 'YYYY-MM-DD') }}
+                    · 有效期至 {{ formatDate(t.membershipExpirationTime, 'YYYY-MM-DD') }}
                   </template>
                   <template v-else-if="t.domain">
                     · {{ t.domain }}
-                  </template>
-                  <template v-else>
-                    · {{ t.tenantCode }}
                   </template>
                 </div>
               </div>
