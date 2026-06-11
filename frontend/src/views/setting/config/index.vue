@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ConfigCreateDto,
   ConfigDetailDto,
   ConfigListItemDto,
   ConfigUpdateDto,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NConfigProvider,
@@ -86,17 +86,19 @@ function pickEnum<T>(value: unknown): T | undefined {
 // ── 字段单一事实源（列 + searchable/advancedSearch；仅搜索字段 visible:false；order 控顺序） ──
 const fields: ListFieldSchema[] = [
   { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索配置名称/键/分组', width: 250, order: 0 },
-  { key: 'configName', title: '配置名称', dataType: 'string', sortable: true, minWidth: 160, order: 1 },
-  { key: 'configKey', title: '配置键', dataType: 'string', minWidth: 180, order: 2 },
-  { key: 'configGroup', title: '分组', dataType: 'string', minWidth: 100, order: 3 },
+  { key: 'configName', title: '配置名称', dataType: 'string', sortable: true, importable: true, required: true, minWidth: 160, order: 1 },
+  { key: 'configKey', title: '配置键', dataType: 'string', importable: true, required: true, minWidth: 180, order: 2 },
+  { key: 'configGroup', title: '分组', dataType: 'string', importable: true, minWidth: 100, order: 3 },
   // enum/boolean + options 由框架自动渲染为 NTag，无需自定义 render
-  { key: 'configType', title: '配置类型', dataType: 'enum', searchable: true, options: configTypeOptions, searchPlaceholder: '配置类型', width: 100, order: 4 },
-  { key: 'dataType', title: '数据类型', dataType: 'enum', advancedSearch: true, options: dataTypeOptions, searchPlaceholder: '数据类型', width: 100, order: 5 },
-  { key: 'isGlobal', title: '全局', dataType: 'boolean', searchable: true, options: globalOptions, searchPlaceholder: '全局', width: 80, order: 6 },
+  { key: 'configType', title: '配置类型', dataType: 'enum', searchable: true, importable: true, options: configTypeOptions, searchPlaceholder: '配置类型', width: 100, order: 4 },
+  { key: 'dataType', title: '数据类型', dataType: 'enum', advancedSearch: true, importable: true, options: dataTypeOptions, searchPlaceholder: '数据类型', width: 100, order: 5 },
+  // 仅导入字段：配置值不在列表 DTO 中，visible:false 不进表格/列设置
+  { key: 'configValue', title: '配置值', dataType: 'text', visible: false, importable: true, order: 5.5 },
+  { key: 'isGlobal', title: '全局', dataType: 'boolean', searchable: true, importable: true, options: globalOptions, searchPlaceholder: '全局', width: 80, order: 6 },
   { key: 'isBuiltIn', title: '内置', dataType: 'boolean', width: 80, order: 7 },
   { key: 'isEncrypted', title: '加密', dataType: 'boolean', width: 80, order: 8 },
-  { key: 'status', title: '状态', dataType: 'enum', searchable: true, options: statusOptions, searchPlaceholder: '状态', width: 90, order: 9 },
-  { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 10 },
+  { key: 'status', title: '状态', dataType: 'enum', searchable: true, importable: true, options: statusOptions, searchPlaceholder: '状态', width: 90, order: 9 },
+  { key: 'sort', title: '排序', dataType: 'number', sortable: true, importable: true, width: 80, order: 10 },
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
 ]
 
@@ -120,6 +122,25 @@ const schema: PageSchema = {
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => configManagementApi.delete(id),
+    // 导入适配器：importable 字段记录 → CreateDto（缺省值在此兜底）
+    create: (record) => {
+      const input: ConfigCreateDto = {
+        configDescription: null,
+        configGroup: (record.configGroup as string | undefined) ?? null,
+        configKey: String(record.configKey ?? '').trim(),
+        configName: String(record.configName ?? '').trim(),
+        configType: (record.configType as ConfigType | undefined) ?? ConfigType.Application,
+        configValue: (record.configValue as string | undefined) ?? null,
+        dataType: (record.dataType as ConfigDataType | undefined) ?? ConfigDataType.String,
+        defaultValue: null,
+        isEncrypted: false,
+        isGlobal: Boolean(record.isGlobal ?? false),
+        remark: null,
+        sort: typeof record.sort === 'number' ? record.sort : 100,
+        status: (record.status as EnableStatus | undefined) ?? EnableStatus.Enabled,
+      }
+      return configManagementApi.create(input)
+    },
   },
   actions: [
     { key: 'create', title: '新增配置', scope: 'page', type: 'primary', icon: 'lucide:plus' },

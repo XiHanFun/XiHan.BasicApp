@@ -49,6 +49,16 @@ export function toExportFields<TRow extends object>(
 }
 
 /**
+ * 派生：导入字段（importable=true 且有权限）—— 导入模板列与解析校验的事实源。
+ */
+export function toImportFields<TRow extends object>(
+  schema: PageSchema<TRow>,
+  can: (code: string) => boolean,
+): ListFieldSchema<TRow>[] {
+  return byOrder(schema.fields.filter(f => f.importable && isFieldPermitted(f, can)))
+}
+
+/**
  * 派生：表格列（visible=true 且有权限），可叠加视图/列设置的列可见、顺序与固定。
  * @param options.visibleKeys 覆盖的可见列；未提供则用 schema 默认
  * @param options.columnOrder 覆盖的列顺序
