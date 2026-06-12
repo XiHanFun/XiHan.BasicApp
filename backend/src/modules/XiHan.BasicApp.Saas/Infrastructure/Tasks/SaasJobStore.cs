@@ -104,6 +104,19 @@ public sealed class SaasJobStore : IJobStore
         }
 
         task.RunTaskStatus = MapToRunTaskStatus(status);
+
+        // 终态回写执行统计与下次执行时间（调度器内存态 → 数据库可观测；
+        // 惰性从 scope 解析 IJobScheduler，规避与调度器构造期的循环依赖）
+        if (status is JobStatus.Succeeded or JobStatus.Failed or JobStatus.Canceled)
+        {
+            task.ExecutedCount++;
+            var jobScheduler = scope.ServiceProvider.GetService<IJobScheduler>();
+            if (jobScheduler is not null)
+            {
+                task.NextRunTime = jobScheduler.GetNextFireTime(task.TaskCode);
+            }
+        }
+
         await repository.UpdateAsync(task);
     }
 
