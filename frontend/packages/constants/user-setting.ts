@@ -12,7 +12,8 @@ export const UserSettingScene = {
   Page: 1,
 } as const
 
-/** 用户设置场景取值类型 */
+/** 用户设置场景取值类型（与同名常量对象有意合并声明） */
+// eslint-disable-next-line ts/no-redeclare
 export type UserSettingScene = typeof UserSettingScene[keyof typeof UserSettingScene]
 
 /** 应用偏好设置键（主题/外观/布局/组件/快捷键，偏好场景下） */
@@ -20,3 +21,17 @@ export const PREFERENCE_SETTING_KEY = 'global'
 
 /** 收藏夹设置键（偏好场景下） */
 export const FAVORITES_SETTING_KEY = 'favorites'
+
+/**
+ * 本端会话标识（每标签页唯一）：保存用户设置时随请求上行，
+ * 后端推送 UserSettingChanged 时原样回传 sourceClientId，本端据此过滤自身回显。
+ */
+export const USER_SETTING_CLIENT_ID = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+/** UserSettingChanged 实时推送载荷（与后端 UserSettingAppService 推送约定一致） */
+export interface UserSettingChangedPayload {
+  scene: number
+  settingKey: string
+  settingValue?: null | string
+  sourceClientId?: null | string
+}
