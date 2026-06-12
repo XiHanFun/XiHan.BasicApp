@@ -1,14 +1,18 @@
 <script setup lang="ts">
+import type { DataTableColumns } from 'naive-ui'
 import type {
   PageResult,
   TaskCreateDto,
   TaskDetailDto,
   TaskListItemDto,
+  TaskLogDetailDto,
+  TaskLogListItemDto,
   TaskUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
+  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -29,7 +33,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
-import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, TriggerType } from '@/api'
+import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -225,6 +229,7 @@ const schema: PageSchema = {
   actions: [
     { key: 'create', title: '新增任务', scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+    { key: 'logs', title: '执行日志', scope: 'row', icon: 'lucide:history', permission: 'saas:task-log:read' },
     { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
     { key: 'trigger', title: '立即执行', scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto) },
     { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
@@ -246,6 +251,11 @@ function onAction(payload: SchemaActionPayload) {
     case 'view':
       if (row) {
         void handleDetail(row)
+      }
+      break
+    case 'logs':
+      if (row) {
+        handleLogs(row)
       }
       break
     case 'edit':
@@ -288,6 +298,100 @@ async function handleDetail(row: TaskListItemDto) {
   }
   finally {
     detailLoading.value = false
+  }
+}
+
+// ── 执行日志抽屉（按任务过滤的执行历史） ────────────────────────
+const logVisible = ref(false)
+const logLoading = ref(false)
+const logTask = ref<TaskListItemDto | null>(null)
+const logItems = ref<TaskLogListItemDto[]>([])
+const logPagination = ref({ itemCount: 0, page: 1, pageSize: 10 })
+const logStatusFilter = ref<RunTaskStatus | null>(null)
+const logBatchFilter = ref('')
+
+function formatExecutionTime(value: string) {
+  const ms = Number(value)
+  if (!Number.isFinite(ms)) {
+    return '-'
+  }
+  return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms} ms`
+}
+
+const taskLogColumns: DataTableColumns<TaskLogListItemDto> = [
+  { ellipsis: { tooltip: true }, key: 'batchNumber', render: row => row.batchNumber || '-', title: '批次号', width: 150 },
+  {
+    key: 'taskStatus',
+    render: row => h(NTag, { bordered: false, round: true, size: 'small', type: runStatusTag(row.taskStatus) }, () => getOptionLabel(runTaskStatusOptions, row.taskStatus)),
+    title: '状态',
+    width: 96,
+  },
+  { key: 'triggerMode', render: row => row.triggerMode || '-', title: '触发方式', width: 96 },
+  { key: 'startTime', render: row => formatDate(row.startTime), title: '开始时间', width: 160 },
+  { key: 'endTime', render: row => formatNullableDate(row.endTime), title: '结束时间', width: 160 },
+  { key: 'executionTime', render: row => formatExecutionTime(row.executionTime), title: '耗时', width: 90 },
+  { key: 'retryCount', title: '重试', width: 64 },
+]
+
+// 行点击查看异常堆栈/输出日志详情
+function taskLogRowProps(row: TaskLogListItemDto) {
+  return {
+    onClick: () => void handleLogDetail(row),
+    style: 'cursor: pointer;',
+  }
+}
+
+function handleLogs(row: TaskListItemDto) {
+  logTask.value = row
+  logStatusFilter.value = null
+  logBatchFilter.value = ''
+  logVisible.value = true
+  void loadTaskLogs(1)
+}
+
+async function loadTaskLogs(page?: number) {
+  if (!logTask.value) {
+    return
+  }
+  if (page) {
+    logPagination.value.page = page
+  }
+  logLoading.value = true
+  try {
+    const result = await taskLogApi.page({
+      ...createPageRequest({ page: { pageIndex: logPagination.value.page, pageSize: logPagination.value.pageSize } }),
+      taskId: logTask.value.basicId,
+      taskStatus: logStatusFilter.value ?? undefined,
+      batchNumber: logBatchFilter.value.trim() || undefined,
+    })
+    logItems.value = result.items
+    logPagination.value.itemCount = result.page.totalCount
+  }
+  catch (e) {
+    message.error((e as Error).message || '加载执行日志失败')
+  }
+  finally {
+    logLoading.value = false
+  }
+}
+
+// ── 执行日志详情（异常堆栈 / 输出日志） ─────────────────────────
+const logDetailVisible = ref(false)
+const logDetailLoading = ref(false)
+const logDetail = ref<TaskLogDetailDto | null>(null)
+
+async function handleLogDetail(row: TaskLogListItemDto) {
+  logDetailVisible.value = true
+  logDetailLoading.value = true
+  logDetail.value = null
+  try {
+    logDetail.value = await taskLogApi.detail(row.basicId) ?? null
+  }
+  catch (e) {
+    message.error((e as Error).message || '加载日志详情失败')
+  }
+  finally {
+    logDetailLoading.value = false
   }
 }
 
@@ -595,6 +699,12 @@ async function handleSubmit() {
         </NSpin>
         <template v-if="detailData" #footer>
           <NSpace justify="end">
+            <NButton @click="handleLogs(detailData); detailVisible = false">
+              <template #icon>
+                <NIcon><Icon icon="lucide:history" /></NIcon>
+              </template>
+              执行日志
+            </NButton>
             <NButton
               type="primary"
               :disabled="triggerDisabled(detailData)"
@@ -619,6 +729,133 @@ async function handleSubmit() {
         </template>
       </NDrawerContent>
     </NDrawer>
+
+    <!-- 执行日志抽屉：按任务过滤的执行历史，行点击查看异常堆栈/输出日志 -->
+    <NDrawer v-model:show="logVisible" :width="860">
+      <NDrawerContent closable :title="`执行日志 - ${logTask?.taskName ?? ''}`">
+        <div class="xh-task-log-toolbar">
+          <NSelect
+            v-model:value="logStatusFilter"
+            clearable
+            :options="runTaskStatusOptions"
+            placeholder="任务状态"
+            size="small"
+            style="width: 140px"
+            @update:value="loadTaskLogs(1)"
+          />
+          <NInput
+            v-model:value="logBatchFilter"
+            clearable
+            placeholder="批次号"
+            size="small"
+            style="width: 180px"
+            @clear="loadTaskLogs(1)"
+            @keyup.enter="loadTaskLogs(1)"
+          />
+          <NButton size="small" @click="loadTaskLogs(1)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+            </template>
+            刷新
+          </NButton>
+          <span class="xh-task-log-tip">点击行查看执行结果与异常堆栈</span>
+        </div>
+        <NDataTable
+          :columns="taskLogColumns"
+          :data="logItems"
+          :loading="logLoading"
+          :pagination="{
+            page: logPagination.page,
+            pageSize: logPagination.pageSize,
+            itemCount: logPagination.itemCount,
+            onUpdatePage: (p: number) => loadTaskLogs(p),
+          }"
+          :row-key="(row: TaskLogListItemDto) => row.basicId"
+          :row-props="taskLogRowProps"
+          remote
+          size="small"
+        />
+      </NDrawerContent>
+    </NDrawer>
+
+    <!-- 执行日志详情：执行结果 / 异常信息 / 异常堆栈 / 输出日志 -->
+    <NModal
+      v-model:show="logDetailVisible"
+      :auto-focus="false"
+      :bordered="false"
+      preset="card"
+      style="width: 760px; max-width: 92vw"
+      title="执行日志详情"
+    >
+      <NSpin :show="logDetailLoading">
+        <NEmpty v-if="!logDetailLoading && !logDetail" class="xh-detail-empty" description="暂无日志详情">
+          <template #icon>
+            <NIcon><Icon icon="lucide:inbox" /></NIcon>
+          </template>
+        </NEmpty>
+        <NScrollbar v-else-if="logDetail" style="max-height: 70vh">
+          <NDescriptions :column="2" bordered label-placement="left" size="small">
+            <NDescriptionsItem label="任务名称">
+              {{ logDetail.taskName }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="任务编码">
+              {{ logDetail.taskCode }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="批次号">
+              {{ logDetail.batchNumber || '-' }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="状态">
+              <NTag :type="runStatusTag(logDetail.taskStatus)" round size="small">
+                {{ getOptionLabel(runTaskStatusOptions, logDetail.taskStatus) }}
+              </NTag>
+            </NDescriptionsItem>
+            <NDescriptionsItem label="触发方式">
+              {{ logDetail.triggerMode || '-' }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="重试次数">
+              {{ logDetail.retryCount }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="开始时间">
+              {{ formatDate(logDetail.startTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="结束时间">
+              {{ formatNullableDate(logDetail.endTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="执行耗时">
+              {{ formatExecutionTime(logDetail.executionTime) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem label="备注">
+              {{ logDetail.remark || '-' }}
+            </NDescriptionsItem>
+          </NDescriptions>
+
+          <template v-if="logDetail.executionResult">
+            <div class="xh-task-log-section">
+              执行结果
+            </div>
+            <pre class="xh-task-log-pre">{{ logDetail.executionResult }}</pre>
+          </template>
+          <template v-if="logDetail.exceptionMessage">
+            <div class="xh-task-log-section is-error">
+              异常信息
+            </div>
+            <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionMessage }}</pre>
+          </template>
+          <template v-if="logDetail.exceptionStackTrace">
+            <div class="xh-task-log-section is-error">
+              异常堆栈
+            </div>
+            <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionStackTrace }}</pre>
+          </template>
+          <template v-if="logDetail.outputLog">
+            <div class="xh-task-log-section">
+              输出日志
+            </div>
+            <pre class="xh-task-log-pre">{{ logDetail.outputLog }}</pre>
+          </template>
+        </NScrollbar>
+      </NSpin>
+    </NModal>
 
     <NModal
       v-model:show="modalVisible"
@@ -716,5 +953,44 @@ async function handleSubmit() {
 <style scoped>
 .xh-detail-empty {
   padding: 48px 0;
+}
+
+.xh-task-log-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.xh-task-log-tip {
+  margin-left: auto;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.xh-task-log-section {
+  margin: 16px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.xh-task-log-section.is-error {
+  color: var(--n-color-target, #d03050);
+}
+
+.xh-task-log-pre {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--n-action-color, rgb(128 128 128 / 8%));
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xh-task-log-pre.is-error {
+  color: #d03050;
+  background: rgb(208 48 80 / 6%);
 }
 </style>

@@ -31,6 +31,7 @@ export default {
   setting_job: 'Job Scheduler',
   setting_cache: 'Cache',
   setting_server: 'Server Monitor',
+  setting_version: 'Versions & Upgrades',
   log: 'Audit Logs',
   log_access: 'Access Logs',
   log_api: 'Open API Logs',
