@@ -6,7 +6,8 @@ import {
   NEmpty,
   NIcon,
   NInput,
-  NSpace,
+  NRadioButton,
+  NRadioGroup,
   NSpin,
   NTag,
   NTooltip,
@@ -14,70 +15,121 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, onMounted, ref } from 'vue'
-import { cacheManagementApi } from '@/api'
-import { Icon, XJsonViewer } from '~/components'
+import { computed, h, onMounted, ref } from 'vue'
+import { cacheApi } from '@/api'
+import { Icon } from '~/components'
+import { usePermission } from '~/hooks'
 
 defineOptions({ name: 'PlatformCachePage' })
 
 const message = useMessage()
 const dialog = useDialog()
+const { hasPermission } = usePermission()
 
-// 查询状态
+/** 维护权限（写入/删除）；无则只读浏览 */
+const canManage = computed(() => hasPermission('saas:cache:clear'))
+
+// ── 键列表（左侧） ──
 const keyPattern = ref('*')
 const loadingKeys = ref(false)
-const loadingValue = ref(false)
-
-// 缓存键列表
 const cacheKeys = ref<string[]>([])
-const selectedKey = ref<string | null>(null)
-const selectedValue = ref<string | null>(null)
+const selectedKeys = ref<string[]>([])
+const expandedKeys = ref<string[]>([])
 
-// 将扁平键列表构建为树结构（按 : 分隔）
-const treeData = computed<TreeOption[]>(() => {
-  const root: TreeOption[] = []
-  const map = new Map<string, TreeOption>()
+// ── 键值（右侧） ──
+const detailKey = ref<null | string>(null)
+const loadingValue = ref(false)
+const rawValue = ref<null | string>(null)
+const draft = ref('')
+const format = ref<'json' | 'text'>('text')
+const editing = ref(false)
+const saving = ref(false)
+
+const GROUP_PREFIX = '__group__'
+
+interface CacheTreeOption extends TreeOption {
+  leafCount?: number
+}
+
+/**
+ * 扁平键 → 树（按 : 分组）。叶子与分组分槽存储：
+ * 同一路径既是某键又是更深键前缀（如 a:b 与 a:b:c 并存）时不互相覆盖、不丢键。
+ * 分组节点不可选（selectable:false），仅叶子参与选择，避免多选时混入分组。
+ */
+const treeData = computed<CacheTreeOption[]>(() => {
+  const root: CacheTreeOption[] = []
+  const groupMap = new Map<string, CacheTreeOption>()
+  const leafMap = new Map<string, CacheTreeOption>()
+
+  const ensureGroup = (pathAccum: string, segment: string, parent: CacheTreeOption[]): CacheTreeOption => {
+    let node = groupMap.get(pathAccum)
+    if (!node) {
+      node = { key: `${GROUP_PREFIX}${pathAccum}`, label: segment, isLeaf: false, selectable: false, children: [], leafCount: 0 }
+      groupMap.set(pathAccum, node)
+      parent.push(node)
+    }
+    return node
+  }
 
   for (const key of cacheKeys.value) {
     const parts = key.split(':')
     let parentChildren = root
     let pathAccum = ''
 
-    for (let i = 0; i < parts.length; i++) {
+    for (let i = 0; i < parts.length - 1; i++) {
       const segment = parts[i]!
       pathAccum = pathAccum ? `${pathAccum}:${segment}` : segment
-      const isLeaf = i === parts.length - 1
+      const group = ensureGroup(pathAccum, segment, parentChildren)
+      group.leafCount = (group.leafCount ?? 0) + 1
+      parentChildren = group.children as CacheTreeOption[]
+    }
 
-      if (!map.has(pathAccum)) {
-        const node: TreeOption = {
-          key: isLeaf ? key : `__group__${pathAccum}`,
-          label: segment,
-          isLeaf,
-          children: isLeaf ? undefined : [],
-        }
-        map.set(pathAccum, node)
-        parentChildren.push(node)
-      }
-
-      const current = map.get(pathAccum)!
-      if (!isLeaf) {
-        parentChildren = current.children as TreeOption[]
-      }
+    const leafSegment = parts[parts.length - 1]!
+    if (!leafMap.has(key)) {
+      const leaf: CacheTreeOption = { key, label: leafSegment, isLeaf: true }
+      leafMap.set(key, leaf)
+      parentChildren.push(leaf)
     }
   }
 
   return root
 })
 
-const keyCount = computed(() => cacheKeys.value.length)
+function renderTreeLabel({ option }: { option: TreeOption }) {
+  const node = option as CacheTreeOption
+  if (node.isLeaf) {
+    return h('span', { class: 'cache-tree-leaf', title: String(node.key) }, String(node.label ?? ''))
+  }
+  return h('span', { class: 'cache-tree-group' }, [
+    h('span', null, String(node.label ?? '')),
+    h('span', { class: 'cache-tree-count' }, `(${node.leafCount ?? 0})`),
+  ])
+}
 
-async function handleSearch() {
+const keyCount = computed(() => cacheKeys.value.length)
+const selectedCount = computed(() => selectedKeys.value.length)
+
+function collectGroupKeys(nodes: CacheTreeOption[]): string[] {
+  const keys: string[] = []
+  const walk = (list: CacheTreeOption[]) => {
+    for (const node of list) {
+      if (!node.isLeaf) {
+        keys.push(String(node.key))
+        walk((node.children ?? []) as CacheTreeOption[])
+      }
+    }
+  }
+  walk(nodes)
+  return keys
+}
+
+async function loadKeys() {
   loadingKeys.value = true
-  selectedKey.value = null
-  selectedValue.value = null
   try {
-    const keys = await cacheManagementApi.getKeys(keyPattern.value.trim() || '*')
+    const keys = await cacheApi.getKeys(keyPattern.value.trim() || '*')
     cacheKeys.value = keys?.sort() ?? []
+    selectedKeys.value = []
+    expandedKeys.value = cacheKeys.value.length <= 100 ? collectGroupKeys(treeData.value) : []
   }
   catch {
     message.error('查询缓存键失败')
@@ -87,36 +139,151 @@ async function handleSearch() {
   }
 }
 
-async function handleSelectNode(keys: Array<string | number>, option: Array<TreeOption | null>) {
-  const node = option[0]
-  if (!node?.isLeaf) {
-    selectedKey.value = null
-    selectedValue.value = null
-    return
-  }
+async function handleSearch() {
+  resetDetail()
+  await loadKeys()
+}
 
-  const key = String(keys[0])
-  selectedKey.value = key
+function resetDetail() {
+  detailKey.value = null
+  rawValue.value = null
+  draft.value = ''
+  editing.value = false
+}
+
+/**
+ * 选择变化：分组不可选，keys 仅含叶子。
+ * 单击 = 替换为单选；Ctrl/⌘ 点击 = 累加；Shift 点击 = 范围选（Naive 原生）。
+ * 本次点击的叶子（meta.node）加载到右侧详情。
+ */
+function handleSelect(
+  keys: Array<number | string>,
+  _option: Array<null | TreeOption>,
+  meta: { action: 'select' | 'unselect', node: null | TreeOption },
+) {
+  selectedKeys.value = keys.map(String)
+  if (meta.action === 'select' && meta.node?.isLeaf) {
+    void loadValue(String(meta.node.key))
+  }
+}
+
+async function loadValue(key: string) {
+  detailKey.value = key
+  editing.value = false
   loadingValue.value = true
   try {
-    const value = await cacheManagementApi.getString(key)
-    selectedValue.value = value ?? null
+    const value = await cacheApi.getString(key)
+    rawValue.value = value ?? null
+    draft.value = value ?? ''
+    format.value = isJson(value ?? '') ? 'json' : 'text'
   }
   catch {
     message.error('获取缓存值失败')
-    selectedValue.value = null
+    rawValue.value = null
   }
   finally {
     loadingValue.value = false
   }
 }
 
-function handleDeleteSelected() {
-  if (!selectedKey.value) {
+function reloadValue() {
+  if (detailKey.value) {
+    void loadValue(detailKey.value)
+  }
+}
+
+function isJson(text: string): boolean {
+  const trimmed = text.trim()
+  if (!trimmed || (!trimmed.startsWith('{') && !trimmed.startsWith('['))) {
+    return false
+  }
+  try {
+    JSON.parse(trimmed)
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+/** 美化后的展示值（Json 视图）；非法 JSON 回退原文 */
+const prettyValue = computed(() => {
+  if (rawValue.value === null) {
+    return ''
+  }
+  try {
+    return JSON.stringify(JSON.parse(rawValue.value), null, 2)
+  }
+  catch {
+    return rawValue.value
+  }
+})
+
+const displayValue = computed(() => (format.value === 'json' ? prettyValue.value : (rawValue.value ?? '')))
+
+/** 字节大小（人类可读） */
+const sizeText = computed(() => {
+  if (rawValue.value === null) {
+    return ''
+  }
+  const bytes = new TextEncoder().encode(rawValue.value).length
+  if (bytes < 1024) {
+    return `${bytes} B`
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`
+  }
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`
+})
+
+async function handleCopy() {
+  if (rawValue.value === null) {
     return
   }
+  try {
+    await navigator.clipboard.writeText(displayValue.value)
+    message.success('已复制')
+  }
+  catch {
+    message.error('复制失败')
+  }
+}
 
-  const key = selectedKey.value
+function startEdit() {
+  draft.value = rawValue.value ?? ''
+  format.value = 'text'
+  editing.value = true
+}
+
+function cancelEdit() {
+  draft.value = rawValue.value ?? ''
+  editing.value = false
+}
+
+async function handleSave() {
+  if (!detailKey.value) {
+    return
+  }
+  saving.value = true
+  try {
+    await cacheApi.updateString(detailKey.value, draft.value)
+    message.success('已保存')
+    editing.value = false
+    reloadValue()
+  }
+  catch {
+    message.error('保存失败（鉴权关键缓存禁止改写）')
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+function handleDeleteCurrent() {
+  const key = detailKey.value
+  if (!key) {
+    return
+  }
   dialog.warning({
     title: '确认删除',
     content: `确定删除缓存键「${key}」？`,
@@ -124,15 +291,45 @@ function handleDeleteSelected() {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        await cacheManagementApi.remove(key)
+        await cacheApi.remove(key)
         message.success('删除成功')
-        cacheKeys.value = cacheKeys.value.filter(k => k !== key)
-        selectedKey.value = null
-        selectedValue.value = null
+        resetDetail()
+        await loadKeys()
       }
       catch {
         message.error('删除失败')
       }
+    },
+  })
+}
+
+function clearSelection() {
+  selectedKeys.value = []
+}
+
+function handleBatchDelete() {
+  const targets = [...selectedKeys.value]
+  if (targets.length === 0) {
+    return
+  }
+  dialog.warning({
+    title: '批量删除',
+    content: `确定删除选中的 ${targets.length} 个缓存键？此操作不可恢复。`,
+    positiveText: '确认删除',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      const results = await Promise.allSettled(targets.map(key => cacheApi.remove(key)))
+      const failed = results.filter(result => result.status === 'rejected').length
+      if (failed === 0) {
+        message.success(`已删除 ${targets.length} 个键`)
+      }
+      else {
+        message.warning(`删除完成：成功 ${targets.length - failed} 个，失败 ${failed} 个`)
+      }
+      if (detailKey.value && targets.includes(detailKey.value)) {
+        resetDetail()
+      }
+      await loadKeys()
     },
   })
 }
@@ -146,9 +343,10 @@ function handleDeleteByPattern() {
     negativeText: '取消',
     onPositiveClick: async () => {
       try {
-        const count = await cacheManagementApi.removeByPattern(pattern)
+        const count = await cacheApi.removeByPattern(pattern)
         message.success(`已删除 ${count} 个缓存键`)
-        await handleSearch()
+        resetDetail()
+        await loadKeys()
       }
       catch {
         message.error('批量删除失败')
@@ -157,143 +355,190 @@ function handleDeleteByPattern() {
   })
 }
 
-// 格式化显示值（尝试解析 JSON）
-const displayValue = computed(() => {
-  if (selectedValue.value === null) {
-    return selectedKey.value ? 'null (键不存在或值为空)' : '请选择一个缓存键'
-  }
-  try {
-    const parsed = JSON.parse(selectedValue.value)
-    return JSON.stringify(parsed, null, 2)
-  }
-  catch {
-    return selectedValue.value
-  }
-})
-
-const displayTitle = computed(() => {
-  if (!selectedKey.value) {
-    return '缓存内容'
-  }
-  return selectedKey.value
-})
-
-onMounted(() => {
-  handleSearch()
-})
+onMounted(loadKeys)
 </script>
 
 <template>
   <div class="cache-page">
-    <!-- 第一行：查询 + 操作 -->
-    <NCard :bordered="false" size="small" class="cache-toolbar">
-      <NSpace align="center" wrap>
-        <NInput
-          v-model:value="keyPattern"
-          placeholder="输入键模式，如 auth:* 或 *"
-          clearable
-          style="width: 280px"
-          @keydown.enter="handleSearch"
-        >
-          <template #prefix>
-            <NIcon size="14" color="var(--text-secondary)">
-              <Icon icon="lucide:search" />
-            </NIcon>
-          </template>
-        </NInput>
-
-        <NTooltip>
-          <template #trigger>
-            <NButton type="primary" size="small" :loading="loadingKeys" @click="handleSearch">
-              <template #icon>
-                <NIcon><Icon icon="lucide:search" /></NIcon>
-              </template>
-              查询
-            </NButton>
-          </template>
-          按模式搜索缓存键
-        </NTooltip>
-
-        <NTooltip>
-          <template #trigger>
-            <NButton
-              size="small"
-              :disabled="!selectedKey"
-              type="error"
-              ghost
-              @click="handleDeleteSelected"
-            >
-              <template #icon>
-                <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-              </template>
-              删除选中
-            </NButton>
-          </template>
-          删除当前选中的缓存键
-        </NTooltip>
-
-        <NTooltip>
-          <template #trigger>
-            <NButton size="small" type="warning" ghost @click="handleDeleteByPattern">
-              <template #icon>
-                <NIcon><Icon icon="lucide:eraser" /></NIcon>
-              </template>
-              按模式删除
-            </NButton>
-          </template>
-          按当前模式批量删除缓存键
-        </NTooltip>
-
-        <NTag v-if="keyCount > 0" size="small" type="info" :bordered="false" round>
-          共 {{ keyCount }} 个键
-        </NTag>
-      </NSpace>
-    </NCard>
-
-    <!-- 第二行：左树右详情 -->
-    <div class="cache-content">
-      <!-- 左侧：缓存键树 -->
+    <div class="cache-body">
+      <!-- 左侧：键树 -->
       <NCard :bordered="false" size="small" class="cache-tree-card">
         <template #header>
           <div class="cache-card-header">
-            <Icon icon="lucide:folder-tree" width="15" />
+            <Icon icon="lucide:database-backup" width="15" />
             <span>缓存键</span>
+            <NTag v-if="keyCount > 0" size="tiny" type="info" :bordered="false" round>
+              {{ keyCount }}
+            </NTag>
           </div>
         </template>
-        <NSpin :show="loadingKeys" class="cache-tree-spin">
-          <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
-            <NEmpty description="暂无缓存键" />
+
+        <div class="cache-tree-toolbar">
+          <NInput
+            v-model:value="keyPattern"
+            size="small"
+            placeholder="键模式，如 basicapp:* 或 *"
+            clearable
+            @keydown.enter="handleSearch"
+          >
+            <template #prefix>
+              <NIcon :size="14">
+                <Icon icon="lucide:search" />
+              </NIcon>
+            </template>
+          </NInput>
+          <NTooltip>
+            <template #trigger>
+              <NButton size="small" type="primary" :loading="loadingKeys" @click="handleSearch">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:search" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            按模式搜索
+          </NTooltip>
+        </div>
+
+        <!-- 滚动区：相对壳 + 绝对内胆（脱离文档流，树高不撑页面），树在内部滚动 -->
+        <div class="cache-scroll-host">
+          <div class="cache-scroll-body">
+            <NSpin class="cache-scroll-spin" :show="loadingKeys" size="small">
+              <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
+                <NEmpty description="暂无缓存键" />
+              </div>
+              <NTree
+                v-else
+                v-model:selected-keys="selectedKeys"
+                v-model:expanded-keys="expandedKeys"
+                :data="treeData"
+                block-line
+                :multiple="canManage"
+                selectable
+                :render-label="renderTreeLabel"
+                @update:selected-keys="handleSelect"
+              />
+            </NSpin>
           </div>
-          <NTree
-            v-else
-            :data="treeData"
-            block-line
-            :selectable="true"
-            :default-expand-all="cacheKeys.length <= 100"
-            @update:selected-keys="handleSelectNode"
-          />
-        </NSpin>
+        </div>
+
+        <!-- 选中/批量操作条（始终一行，不占树空间） -->
+        <div v-if="canManage" class="cache-batch-bar">
+          <span v-if="selectedCount > 0" class="cache-batch-count">
+            已选 <strong>{{ selectedCount }}</strong> 个
+          </span>
+          <span v-else class="cache-batch-hint">Ctrl/⌘ 或 Shift 点击可多选</span>
+          <div class="cache-batch-actions">
+            <NButton v-if="selectedCount > 0" size="tiny" quaternary @click="clearSelection">
+              清空
+            </NButton>
+            <NButton v-if="selectedCount > 0" size="tiny" type="error" @click="handleBatchDelete">
+              删除选中
+            </NButton>
+            <NButton v-else size="tiny" quaternary type="warning" @click="handleDeleteByPattern">
+              按模式删除
+            </NButton>
+          </div>
+        </div>
       </NCard>
 
-      <!-- 右侧：缓存值详情 -->
+      <!-- 右侧：键值 -->
       <NCard :bordered="false" size="small" class="cache-detail-card">
         <template #header>
-          <div class="cache-card-header">
+          <div v-if="detailKey" class="cache-detail-header">
+            <span class="cache-detail-key" :title="detailKey">{{ detailKey }}</span>
+          </div>
+          <div v-else class="cache-card-header">
             <Icon icon="lucide:file-json" width="15" />
-            <span>{{ displayTitle }}</span>
+            <span>缓存内容</span>
           </div>
         </template>
-        <NSpin :show="loadingValue" class="cache-detail-spin">
-          <XJsonViewer
-            v-if="selectedKey"
-            :title="displayTitle"
-            :raw-text="displayValue"
-            :max-height="0"
-          />
-          <div v-else class="cache-empty">
-            <NEmpty description="请在左侧选择一个缓存键查看内容" />
+
+        <template v-if="detailKey" #header-extra>
+          <div class="cache-detail-actions">
+            <NTag v-if="sizeText" size="tiny" :bordered="false">
+              {{ sizeText }}
+            </NTag>
+            <NRadioGroup v-if="!editing" v-model:value="format" size="small">
+              <NRadioButton value="text">
+                Text
+              </NRadioButton>
+              <NRadioButton value="json">
+                Json
+              </NRadioButton>
+            </NRadioGroup>
+            <NTooltip>
+              <template #trigger>
+                <NButton size="tiny" quaternary @click="handleCopy">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:copy" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              复制
+            </NTooltip>
+            <NTooltip>
+              <template #trigger>
+                <NButton size="tiny" quaternary @click="reloadValue">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              刷新
+            </NTooltip>
+            <NButton v-if="canManage && !editing" size="tiny" @click="startEdit">
+              <template #icon>
+                <NIcon><Icon icon="lucide:pencil-line" /></NIcon>
+              </template>
+              编辑
+            </NButton>
+            <NTooltip v-if="canManage">
+              <template #trigger>
+                <NButton size="tiny" quaternary type="error" @click="handleDeleteCurrent">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              删除此键
+            </NTooltip>
           </div>
-        </NSpin>
+        </template>
+
+        <!-- 滚动区：相对壳 + 绝对内胆，详情在内部滚动 -->
+        <div class="cache-scroll-host">
+          <div class="cache-scroll-body">
+            <NSpin class="cache-scroll-spin" :show="loadingValue" size="small">
+              <div v-if="!detailKey" class="cache-empty">
+                <NEmpty description="请在左侧选择一个缓存键查看内容" />
+              </div>
+              <div v-else-if="rawValue === null" class="cache-empty">
+                <NEmpty description="键不存在或值为空" />
+              </div>
+              <template v-else>
+                <!-- 编辑态：文本域 + 保存/取消 -->
+                <template v-if="editing">
+                  <NInput
+                    v-model:value="draft"
+                    type="textarea"
+                    class="cache-value-editor"
+                    placeholder="缓存值"
+                  />
+                  <div class="cache-edit-actions">
+                    <NButton size="small" @click="cancelEdit">
+                      取消
+                    </NButton>
+                    <NButton size="small" type="primary" :loading="saving" @click="handleSave">
+                      保存
+                    </NButton>
+                  </div>
+                </template>
+                <!-- 预览态：只读 -->
+                <pre v-else class="cache-value-pre">{{ displayValue }}</pre>
+              </template>
+            </NSpin>
+          </div>
+        </div>
       </NCard>
     </div>
   </div>
@@ -303,79 +548,229 @@ onMounted(() => {
 .cache-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  box-sizing: border-box;
   height: 100%;
+  padding: 12px;
+  overflow: hidden;
 }
 
-.cache-toolbar {
-  flex-shrink: 0;
-}
-
-.cache-content {
+/*
+ * 左右行容器：flex:1 + height:0 收敛到视口剩余高度（同 SchemaPage 表格区 class="flex-1" style="height:0"）。
+ * height:0 是关键——给 flex item 一个确定的 0 起点，避免 flex-basis 退化为内容高度（树自然高）反向撑破父链。
+ */
+.cache-body {
   display: flex;
-  gap: 12px;
   flex: 1;
+  gap: 12px;
+  height: 0;
   min-height: 0;
+  /* page 锁定高度后，行容器在其内不被子（树/详情）撑破，迫使滚动发生在左右两栏内部 */
+  overflow: hidden;
 }
 
+/* ── 左侧键树卡片 ── */
 .cache-tree-card {
-  width: 360px;
-  min-width: 280px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  width: 460px;
+  min-width: 360px;
   overflow: hidden;
 }
 
 .cache-tree-card :deep(.n-card__content) {
+  display: flex;
   flex: 1;
-  overflow: auto;
+  flex-direction: column;
+  min-height: 0;
   padding: 8px 12px !important;
+  overflow: hidden;
 }
 
-.cache-detail-card {
+.cache-tree-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/*
+ * 滚动区：相对壳 + 绝对内胆。
+ * 内胆 position:absolute 脱离文档流，对外固有高度为 0——树/详情再高也不会经 flex-basis
+ * 把内容高度灌进框架的内容高度链（该链为内容驱动 + 视口下限），页面恒收敛于视口，
+ * 滚动只发生在内胆里。
+ */
+.cache-scroll-host {
+  position: relative;
   flex: 1;
-  min-width: 0;
+  min-height: 0;
+}
+
+.cache-scroll-body {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+}
+
+/* NSpin 占满内胆（内容少时空态居中/编辑器撑满），内容多时自然撑高、由内胆滚动 */
+.cache-scroll-spin {
   display: flex;
   flex-direction: column;
+  min-height: 100%;
+}
+
+.cache-scroll-spin :deep(.n-spin-content) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.cache-tree-leaf {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.cache-tree-group {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.cache-tree-count {
+  font-size: 12px;
+  color: var(--text-secondary, rgb(118 124 130));
+}
+
+.cache-batch-bar {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--n-border-color, rgb(239 239 245));
+}
+
+.cache-batch-count {
+  font-size: 12px;
+  color: var(--text-secondary, rgb(118 124 130));
+}
+
+.cache-batch-count strong {
+  color: var(--n-text-color);
+}
+
+.cache-batch-hint {
+  font-size: 12px;
+  color: var(--text-secondary, rgb(150 154 160));
+}
+
+.cache-batch-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ── 右侧详情卡片 ── */
+.cache-detail-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
 .cache-detail-card :deep(.n-card__content) {
+  display: flex;
   flex: 1;
-  overflow: auto;
-  padding: 8px 12px !important;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 16px 12px !important;
+  overflow: hidden;
 }
 
 .cache-card-header {
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.cache-tree-spin,
-.cache-detail-spin {
-  min-height: 200px;
+.cache-detail-header {
+  display: flex;
+  min-width: 0;
+}
+
+.cache-detail-key {
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cache-detail-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cache-value-pre {
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: break-all;
+  white-space: pre-wrap;
+  background: var(--n-action-color, rgb(250 250 252));
+  border-radius: 6px;
+}
+
+.cache-value-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+.cache-value-editor :deep(textarea) {
+  height: 100% !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.cache-edit-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 .cache-empty {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
   min-height: 200px;
 }
 
 @media (max-width: 768px) {
-  .cache-content {
+  .cache-body {
     flex-direction: column;
   }
 
+  /* 绝对内胆不再有固有高度，小屏给树卡显式高度，详情占余下空间 */
   .cache-tree-card {
+    flex: none;
     width: 100%;
-    max-height: 300px;
+    min-width: 0;
+    height: 320px;
   }
 }
 </style>

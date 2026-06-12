@@ -280,7 +280,7 @@ function createShellApis() {
     fieldSecurityApi: {
       getMine(resourceCode: string) {
         return getWithFallback<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>(
-          '/MyFieldSecurity/GetMine',
+          '/MyFieldSecurity/Mine',
           [],
           { params: { resourceCode } },
         )
@@ -292,7 +292,7 @@ function createShellApis() {
       },
       recent(pageCode: string, count = 10) {
         return getWithFallback<Array<{ basicId: number | string, pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string, createdTime: string }>>(
-          '/ImportHistoryQuery/GetMine',
+          '/ImportHistoryQuery/Mine',
           [],
           { params: { pageCode, count } },
         )
