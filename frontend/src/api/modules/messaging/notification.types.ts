@@ -45,6 +45,62 @@ export interface NotificationDetailDto extends NotificationListItemDto {
   modifiedId?: ApiId | null
 }
 
+export interface NotificationCreateDto {
+  businessId?: ApiId | null
+  businessType?: string | null
+  content?: string | null
+  expirationTime?: DateTimeString | null
+  icon?: string | null
+  link?: string | null
+  needConfirm: boolean
+  notificationType: NotificationType
+  /** 创建后立即发布（默认 false，走「先建后发」流程） */
+  publishImmediately: boolean
+  remark?: string | null
+  sendTime?: DateTimeString | null
+  sendUserId?: ApiId | null
+  targetType: NotificationTargetType
+  /** 模板编码（站内通知渠道；提供时按模板渲染覆盖 title/content，缺失回退原值） */
+  templateCode?: string | null
+  /** 模板变量 */
+  templateParams?: Record<string, string> | null
+  title: string
+  /** 目标类型为指定用户时的接收用户主键列表 */
+  userIds: ApiId[]
+}
+
+export interface NotificationUpdateDto {
+  basicId: ApiId
+  businessId?: ApiId | null
+  businessType?: string | null
+  content?: string | null
+  expirationTime?: DateTimeString | null
+  icon?: string | null
+  link?: string | null
+  needConfirm: boolean
+  notificationType: NotificationType
+  remark?: string | null
+  sendTime?: DateTimeString | null
+  targetType: NotificationTargetType
+  title: string
+  /** 目标类型为指定用户时的接收用户主键列表（更新会整体覆盖原列表） */
+  userIds: ApiId[]
+}
+
+export interface NotificationPublishDto {
+  basicId: ApiId
+  /** 留空沿用创建时设定的目标类型 */
+  targetType?: NotificationTargetType | null
+  /** 留空沿用创建时设定的指定用户列表 */
+  userIds?: ApiId[]
+}
+
+export interface NotificationPublishResultDto {
+  basicId: ApiId
+  recipientCount: number
+  sendTime: DateTimeString
+}
+
 export interface UserNotificationPageQueryDto extends PageRequest {
   confirmTimeEnd?: DateTimeString | null
   confirmTimeStart?: DateTimeString | null
