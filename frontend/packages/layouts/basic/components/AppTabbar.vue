@@ -571,8 +571,9 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
         </NIcon>
       </template>
     </NButton>
-    <span class="tab-divider" />
+    <span v-if="tabbarPreferences.tabbarShowOverview.value" class="tab-divider" />
     <NButton
+      v-if="tabbarPreferences.tabbarShowOverview.value"
       quaternary
       size="tiny"
       :title="`${t('tabbar.overview')} (${formatShortcut('Alt+B')})`"

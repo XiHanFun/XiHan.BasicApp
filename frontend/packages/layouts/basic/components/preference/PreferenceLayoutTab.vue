@@ -440,6 +440,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <NSwitch v-model:value="appStore.tabbarShowMore" :disabled="!appStore.tabbarEnabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
+        <span>{{ t('preference.layout.tabbar.show_overview') }}</span>
+        <NSwitch v-model:value="appStore.tabbarShowOverview" :disabled="!appStore.tabbarEnabled" />
+      </div>
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">
         <span>{{ t('preference.layout.tabbar.show_maximize') }}</span>
         <NSwitch v-model:value="appStore.tabbarShowMaximize" :disabled="!appStore.tabbarEnabled" />
       </div>
