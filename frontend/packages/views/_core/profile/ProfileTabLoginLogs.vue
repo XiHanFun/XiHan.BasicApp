@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LoginLogItem } from '~/types'
+import type { LoginAuditResult, LoginLogItem } from '~/types'
 import { NButton, NPagination, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
@@ -19,50 +19,53 @@ const total = ref(0)
 const page = ref(1)
 const loading = ref(false)
 
-/** 与后端 LoginResult 枚举一致（含认证审计事件） */
-const loginResultLabel: Record<number, string> = {
-  0: '成功',
-  1: '密码错误',
-  2: '账号锁定',
-  3: '账号禁用',
-  4: '需二次验证',
-  5: '二次验证失败',
-  10: '登出',
-  11: '令牌刷新',
-  12: '密码修改',
-  13: '密码重置',
-  14: '绑定MFA',
-  15: '解绑MFA',
-  99: '其他失败',
+/** 与后端 LoginResult 枚举（字符串序列化）一致，含认证审计事件 */
+const loginResultLabel: Record<LoginAuditResult, string> = {
+  Success: '成功',
+  InvalidCredentials: '密码错误',
+  AccountLocked: '账号锁定',
+  AccountDisabled: '账号禁用',
+  RequiresTwoFactor: '需二次验证',
+  TwoFactorFailed: '二次验证失败',
+  Logout: '登出',
+  TokenRefreshed: '令牌刷新',
+  PasswordChanged: '密码修改',
+  PasswordReset: '密码重置',
+  MfaBound: '绑定MFA',
+  MfaUnbound: '解绑MFA',
+  Failed: '其他失败',
 }
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
-function resultTagType(result: number): TagType {
-  if (result === 0)
+const ERROR_RESULTS: LoginAuditResult[] = ['InvalidCredentials', 'TwoFactorFailed', 'Failed']
+const NEUTRAL_RESULTS: LoginAuditResult[] = ['Logout', 'TokenRefreshed']
+
+function resultTagType(result: LoginAuditResult): TagType {
+  if (result === 'Success')
     return 'success'
-  if (result === 10 || result === 11)
+  if (NEUTRAL_RESULTS.includes(result))
     return 'info'
-  if (result === 1 || result === 5 || result === 99)
+  if (ERROR_RESULTS.includes(result))
     return 'error'
   return 'warning'
 }
 
-function resultIcon(result: number) {
-  if (result === 0)
+function resultIcon(result: LoginAuditResult) {
+  if (result === 'Success')
     return 'lucide:log-in'
-  if (result === 10)
+  if (result === 'Logout')
     return 'lucide:log-out'
-  if (result === 11)
+  if (result === 'TokenRefreshed')
     return 'lucide:refresh-cw'
-  if (result >= 12 && result <= 15)
+  if (result === 'PasswordChanged' || result === 'PasswordReset' || result === 'MfaBound' || result === 'MfaUnbound')
     return 'lucide:key-round'
   return 'lucide:shield-alert'
 }
 
 /** 仅认证失败类记录用危险配色，登出/审计事件保持中性 */
-function isDanger(result: number) {
-  return result === 1 || result === 2 || result === 3 || result === 5 || result === 99
+function isDanger(result: LoginAuditResult) {
+  return ERROR_RESULTS.includes(result) || result === 'AccountLocked' || result === 'AccountDisabled'
 }
 
 async function loadLogs(nextPage = 1) {
