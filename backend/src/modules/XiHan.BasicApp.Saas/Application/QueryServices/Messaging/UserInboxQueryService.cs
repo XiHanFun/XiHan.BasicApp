@@ -89,7 +89,7 @@ public sealed class UserInboxQueryService
         return [.. userNotifications
             .Where(item => notificationMap.ContainsKey(item.NotificationId))
             .Select(item => UserNotificationDispatchService.ToInboxItem(item, notificationMap[item.NotificationId]))
-            .Where(item => !unreadOnly || item.NotificationStatus == (int)NotificationStatus.Unread || (item.NeedConfirm && !item.ConfirmTime.HasValue))
+            .Where(item => !unreadOnly || item.NotificationStatus == NotificationStatus.Unread || (item.NeedConfirm && !item.ConfirmTime.HasValue))
             .OrderByDescending(item => item.SendTime)
             .ThenByDescending(item => item.BasicId)
             .Take(MaxInboxItems)];

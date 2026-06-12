@@ -218,7 +218,7 @@ public sealed class ProfileQueryService
                 LoginLocation = log.LoginLocation,
                 Browser = log.Browser,
                 Os = log.Os,
-                LoginResult = (int)log.LoginResult,
+                LoginResult = log.LoginResult,
                 Message = log.Message
             })],
             Total = total

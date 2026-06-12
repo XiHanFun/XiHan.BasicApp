@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { DragDropProvider } from '@dnd-kit/vue'
-import { NEmpty, NPopover } from 'naive-ui'
+import { NDivider, NEmpty, NPopover } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -112,22 +112,23 @@ onBeforeUnmount(() => {
       </span>
     </template>
 
-    <div class="flex flex-col gap-2">
-      <!-- 头部 -->
+    <div class="fav-panel flex flex-col gap-2">
+      <!-- 头部（与表格设置/搜索设置统一样式） -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-semibold text-foreground">收藏夹</span>
+          <span class="text-base font-semibold text-foreground">收藏夹</span>
           <SyncStatusBadge :synced="appStore.favoritesSyncEnabled" />
         </div>
-        <span class="text-xs text-foreground/40">可拖拽排序</span>
       </div>
+
+      <NDivider class="!my-1" />
 
       <!-- 空态 -->
       <NEmpty
         v-if="items.length === 0"
         size="small"
         description="暂无收藏，右键标签页选择「收藏」即可添加"
-        class="py-3"
+        class="fav-empty"
       />
 
       <!-- 收藏药丸（可拖拽排序，点击导航，× 移除） -->
@@ -160,6 +161,11 @@ onBeforeUnmount(() => {
           </SortableItem>
         </div>
       </DragDropProvider>
+
+      <template v-if="items.length > 0">
+        <NDivider class="!my-1" />
+        <span class="text-xs text-foreground/40">点击导航到对应页面；拖拽可排序；× 移除收藏</span>
+      </template>
     </div>
   </NPopover>
 </template>
@@ -236,9 +242,23 @@ onBeforeUnmount(() => {
   }
 }
 
+/* 面板内容区：保底高度，避免空态/少量收藏时面板过矮 */
+.fav-panel {
+  min-height: 200px;
+}
+
+/* 空态居中填满保底高度 */
+.fav-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 0;
+}
+
 /* 收藏药丸 */
 .fav-list {
-  max-height: 320px;
+  max-height: 480px;
   overflow-y: auto;
 }
 

@@ -63,13 +63,29 @@ export interface ChangePhoneParams {
   password: string
 }
 
+/** 与后端 LoginResult 枚举（JsonStringEnumConverter 序列化值）一致，含认证审计事件 */
+export type LoginAuditResult
+  = | 'AccountDisabled'
+    | 'AccountLocked'
+    | 'Failed'
+    | 'InvalidCredentials'
+    | 'Logout'
+    | 'MfaBound'
+    | 'MfaUnbound'
+    | 'PasswordChanged'
+    | 'PasswordReset'
+    | 'RequiresTwoFactor'
+    | 'Success'
+    | 'TokenRefreshed'
+    | 'TwoFactorFailed'
+
 export interface LoginLogItem {
   loginTime: string
   loginIp?: string
   loginLocation?: string
   browser?: string
   os?: string
-  loginResult: number
+  loginResult: LoginAuditResult
   message?: string
 }
 

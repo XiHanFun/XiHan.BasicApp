@@ -56,8 +56,8 @@ public sealed class UserNotificationDispatchService
             NotificationId = notification.BasicId,
             Title = notification.Title,
             Content = notification.Content,
-            NotificationType = (int)notification.NotificationType,
-            NotificationStatus = (int)userNotification.NotificationStatus,
+            NotificationType = notification.NotificationType,
+            NotificationStatus = userNotification.NotificationStatus,
             SendTime = notification.SendTime,
             ReadTime = userNotification.ReadTime,
             ConfirmTime = userNotification.ConfirmTime,
@@ -97,13 +97,13 @@ public sealed class UserNotificationDispatchService
         return item;
     }
 
-    private static string ToRealtimeType(int notificationType)
+    private static string ToRealtimeType(NotificationType notificationType)
     {
         return notificationType switch
         {
-            (int)NotificationType.Warning => "Warning",
-            (int)NotificationType.Error => "Error",
-            (int)NotificationType.User => "Success",
+            NotificationType.Warning => "Warning",
+            NotificationType.Error => "Error",
+            NotificationType.User => "Success",
             _ => "Info"
         };
     }

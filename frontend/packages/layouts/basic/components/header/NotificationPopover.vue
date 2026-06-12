@@ -2,9 +2,9 @@
 import type { NotificationItem } from '~/stores'
 import { NBadge, NButton, NEmpty, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { NotificationStatus, NotificationType } from '~/types/enums'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
+import { NotificationStatus, NotificationType } from '~/types/enums'
 
 defineOptions({ name: 'NotificationPopover' })
 
@@ -148,6 +148,7 @@ function handleClickOutside() {
             :value="props.unreadCount"
             :max="99"
             :show="props.unreadCount > 0"
+            :processing="props.unreadCount > 0"
             :offset="[-2, 2]"
           >
             <Icon icon="lucide:bell" width="16" height="16" />
@@ -325,7 +326,7 @@ function handleClickOutside() {
 .notification-dropdown {
   position: fixed;
   z-index: 2000;
-  width: min(560px, calc(100vw - 24px));
+  width: min(420px, calc(100vw - 24px));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
@@ -339,11 +340,11 @@ function handleClickOutside() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 8px;
+  padding: 12px 16px 6px;
 }
 
 .notification-dropdown-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: hsl(var(--foreground));
 }
@@ -474,7 +475,8 @@ function handleClickOutside() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 8px;
+  background: hsl(var(--muted) / 25%);
   border-top: 1px solid hsl(var(--border));
 }
 

@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Domain.Entities;
+
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
@@ -438,9 +440,9 @@ public sealed class ProfileLoginLogItemDto
     public string? Os { get; set; }
 
     /// <summary>
-    /// 登录结果
+    /// 登录结果（枚举序列化为字符串，与前端契约一致）
     /// </summary>
-    public int LoginResult { get; set; }
+    public LoginResult LoginResult { get; set; }
 
     /// <summary>
     /// 消息
