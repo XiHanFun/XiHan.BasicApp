@@ -1,9 +1,12 @@
 import type { ServerTaskProgressPayload } from '~/composables'
+import type { UserSettingChangedPayload } from '~/constants'
 import { useDialog, useNotification } from 'naive-ui'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { applyRemotePageSetting } from '~/components'
 import { applyServerTaskProgress, islandStatus, useSignalR } from '~/composables'
-import { useAccessStore, useAuthStore } from '~/stores'
+import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 
 const SIGNALR_RECONNECT_INTERVAL_MS = 15000
 const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
@@ -115,6 +118,28 @@ export function useSignalRIntegration() {
     }, SIGNALR_RECONNECT_INTERVAL_MS)
   }
 
+  /**
+   * 同账号其它设备保存设置后的实时推送：按场景分发应用。
+   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值。
+   */
+  function handleUserSettingChanged(payload: UserSettingChangedPayload) {
+    if (!payload || payload.sourceClientId === USER_SETTING_CLIENT_ID) {
+      return
+    }
+    if (payload.scene === UserSettingScene.Preference) {
+      if (payload.settingKey === PREFERENCE_SETTING_KEY) {
+        void applyRemotePreferenceSnapshot(payload.settingValue)
+      }
+      else if (payload.settingKey === FAVORITES_SETTING_KEY) {
+        useFavoritesStore().applyRemote(payload.settingValue)
+      }
+      return
+    }
+    if (payload.scene === UserSettingScene.Page && payload.settingKey) {
+      applyRemotePageSetting(payload.settingKey, payload.settingValue)
+    }
+  }
+
   function setupListeners() {
     if (isListenersBound) {
       return
@@ -123,6 +148,8 @@ export function useSignalRIntegration() {
     signalR.on('ReceiveNotification', handleReceiveNotification)
     // 服务端后台任务进度 → 灵动岛（同 taskId 复用同一条，刷新后由会话级持久化恢复）
     signalR.on('TaskProgress', payload => applyServerTaskProgress(payload as ServerTaskProgressPayload))
+    // 用户设置多端实时同步（偏好/收藏夹/页面设置）
+    signalR.on('UserSettingChanged', payload => handleUserSettingChanged(payload as UserSettingChangedPayload))
     isListenersBound = true
   }
 

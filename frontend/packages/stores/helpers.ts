@@ -1,6 +1,6 @@
 import { nextTick, ref, watch } from 'vue'
-import { islandStart } from '~/composables/useDynamicIsland'
-import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, UserSettingScene } from '~/constants'
+import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
+import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 
@@ -65,22 +65,22 @@ const DEVICE_LOCAL_KEYS = new Set<string>([
   TABLE_SYNC_KEY,
 ])
 
-/** 偏好后端同步是否启用（用户开关，默认关闭=仅本地存储）。读自注册表中的同步开关偏好。 */
+/** 偏好后端同步是否启用（用户开关，默认开启=上行后端并实时推送多端）。读自注册表中的同步开关偏好。 */
 export function isPreferenceSyncEnabled(): boolean {
   return registry.get(PREFERENCE_SYNC_KEY)?.value === true
 }
 
-/** 收藏夹后端同步是否启用（默认关闭=仅本地存储） */
+/** 收藏夹后端同步是否启用（默认开启；关闭后仅本地存储） */
 export function isFavoritesSyncEnabled(): boolean {
   return registry.get(FAVORITES_SYNC_KEY)?.value === true
 }
 
-/** 搜索设置后端同步是否启用（默认关闭=仅本地存储） */
+/** 搜索设置后端同步是否启用（默认开启；关闭后仅本地存储） */
 export function isSearchSyncEnabled(): boolean {
   return registry.get(SEARCH_SYNC_KEY)?.value === true
 }
 
-/** 表格/视图设置后端同步是否启用（默认关闭=仅本地存储） */
+/** 表格/视图设置后端同步是否启用（默认开启；关闭后仅本地存储） */
 export function isTableSyncEnabled(): boolean {
   return registry.get(TABLE_SYNC_KEY)?.value === true
 }
@@ -103,13 +103,13 @@ function pushPreferencesToBackend(): void {
     return
   }
   const settingValue = buildPreferenceSnapshot()
-  const task = islandStart('pref:save', '正在同步偏好设置…')
+  const task = settingSyncIsland('pref:save', '偏好设置')
   void useAppContext()
     .apis
     .userSettingApi
-    .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue })
-    .then(() => task.success('偏好设置已同步'))
-    .catch(() => task.error('偏好设置同步失败'))
+    .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID })
+    .then(() => task.success())
+    .catch(() => task.error())
 }
 
 /** 防抖把整份偏好快照上行后端（尽力而为，失败静默） */
@@ -247,7 +247,7 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
     return
   }
   // 登录流程由登录灵动岛统一覆盖，此处不重复提示；刷新恢复会话时则独立提示
-  const task = options?.showIsland === false ? null : islandStart('pref:hydrate', '正在同步偏好设置…')
+  const task = options?.showIsland === false ? null : settingSyncIsland('pref:hydrate', '偏好设置')
   // 应用远端期间暂停回写，避免把刚拉取的远端值原样回传
   backendSyncEnabled = false
   let needSeed = false
@@ -270,7 +270,7 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
       // 后端无偏好记录：登录后以本地当前偏好播种
       needSeed = true
     }
-    task?.success('偏好设置已同步')
+    task?.success()
   }
   catch {
     // 静默：保留本地
@@ -284,6 +284,42 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
       scheduleBackendSync()
     }
   }
+}
+
+/**
+ * 应用来自其它在线设备的偏好变更推送（SignalR UserSettingChanged，scene=Preference / settingKey=global）。
+ * 仅在已开启偏好同步、非草稿编辑中、会话回写已就绪（已水合）时应用；
+ * 应用期间暂停回写：watch 照常落地 localStorage，但不把远端值回环上行。
+ * 草稿模式（偏好抽屉打开）期间忽略远端推送，避免编辑中界面跳变——按「最后保存者赢」收敛。
+ */
+export async function applyRemotePreferenceSnapshot(settingValue?: null | string): Promise<void> {
+  if (!settingValue || !isPreferenceSyncEnabled() || persistSuspended || !backendSyncEnabled) {
+    return
+  }
+  let remote: Record<string, unknown>
+  try {
+    remote = JSON.parse(settingValue) as Record<string, unknown>
+  }
+  catch {
+    return
+  }
+  if (!remote || typeof remote !== 'object') {
+    return
+  }
+  backendSyncEnabled = false
+  registry.forEach((source, key) => {
+    // 同步开关为设备本地维度，不受远端覆盖
+    if (DEVICE_LOCAL_KEYS.has(key)) {
+      return
+    }
+    if (key in remote && remote[key] !== undefined) {
+      source.value = remote[key]
+    }
+  })
+  // 等本轮 watch flush（写本地、上行被门挡住）后恢复回写
+  await nextTick()
+  backendSyncEnabled = true
+  settingSyncRemoteApplied('pref:remote', '偏好设置')
 }
 
 /** 退出登录：停止后端回写、清空待发请求，允许下次登录重新水合 */

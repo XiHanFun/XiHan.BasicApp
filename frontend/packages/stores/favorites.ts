@@ -1,8 +1,8 @@
 import type { FavoriteItem } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { islandStart } from '~/composables/useDynamicIsland'
-import { FAVORITES_KEY, FAVORITES_SETTING_KEY, UserSettingScene } from '~/constants'
+import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
+import { FAVORITES_KEY, FAVORITES_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { useAppContext } from '~/stores/app-context'
 import { isFavoritesSyncEnabled } from '~/stores/helpers'
 import { SetupStoreId } from '~/stores/store-ids'
@@ -38,13 +38,13 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     }
     saveTimer = setTimeout(() => {
       const settingValue = JSON.stringify(favorites.value)
-      const task = islandStart('favorites:save', '正在同步收藏夹…')
+      const task = settingSyncIsland('favorites:save', '收藏夹')
       void useAppContext()
         .apis
         .userSettingApi
-        .save({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY, settingValue })
-        .then(() => task.success('收藏夹已同步'))
-        .catch(() => task.error('收藏夹同步失败'))
+        .save({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID })
+        .then(() => task.success())
+        .catch(() => task.error())
     }, 600)
   }
 
@@ -120,7 +120,7 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
       return inflight
     }
     inflight = (async () => {
-      const task = islandStart('favorites:hydrate', '正在同步收藏夹…')
+      const task = settingSyncIsland('favorites:hydrate', '收藏夹')
       try {
         const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY })
         const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as unknown) : null
@@ -131,7 +131,7 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
           favorites.value = list
           LocalStorage.set(FAVORITES_KEY, list)
         }
-        task.success('收藏夹已同步')
+        task.success()
       }
       catch {
         // 静默：保留本地
@@ -143,5 +143,31 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     return inflight
   }
 
-  return { favorites, count, has, add, remove, toggle, move, clear, hydrate }
+  /**
+   * 应用来自其它在线设备的收藏夹变更推送（SignalR UserSettingChanged，scene=Preference / settingKey=favorites）。
+   * 直接覆盖内存与本地，不再回环上行。
+   */
+  function applyRemote(settingValue?: null | string): void {
+    if (!settingValue || !isFavoritesSyncEnabled()) {
+      return
+    }
+    let remote: unknown
+    try {
+      remote = JSON.parse(settingValue)
+    }
+    catch {
+      return
+    }
+    if (!Array.isArray(remote)) {
+      return
+    }
+    const list: FavoriteItem[] = remote
+      .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
+      .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
+    favorites.value = list
+    LocalStorage.set(FAVORITES_KEY, list)
+    settingSyncRemoteApplied('favorites:remote', '收藏夹')
+  }
+
+  return { favorites, count, has, add, remove, toggle, move, clear, hydrate, applyRemote }
 })
