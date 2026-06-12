@@ -1724,9 +1724,9 @@ public static class SaasPermissionDefinitions
             SaasPermissionCodes.Module,
             SaasPermissionCodes.Cache.Read,
             "缓存查看",
-            "查看分布式缓存键值与统计（平台运维）",
+            "查看分布式缓存键值与统计（平台运维，可读取鉴权快照等敏感缓存明文，须审计）",
             "[\"saas\",\"cache\"]",
-            false,
+            true,
             2300,
             2300),
         new(
