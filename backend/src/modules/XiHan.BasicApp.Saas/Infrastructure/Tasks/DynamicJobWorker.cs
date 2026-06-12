@@ -189,15 +189,21 @@ public sealed class DynamicJobWorker : IJobWorker
                             {
                                 return JsonSerializer.Deserialize(element.GetRawText(), p.ParameterType)!;
                             }
-                            return p.DefaultValue;
+
+                            // 无匹配参数：有缺省值用缺省值（p.DefaultValue 在无缺省值时是 DBNull，
+                            // 直传必炸）；值类型给零值，引用类型给 null
+                            return p.HasDefaultValue
+                                ? p.DefaultValue
+                                : p.ParameterType.IsValueType ? Activator.CreateInstance(p.ParameterType) : null;
                         }).ToArray();
                     }
                 }
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-                // JSON 解析失败时，将整个字符串作为单个参数
-                methodParams = [sysTask.TaskParams];
+                // JSON 非法时按"无参数"继续（原实现把整串塞成唯一参数，几乎必然导致找不到方法）
+                _logger.LogWarning(ex, "任务 {TaskCode} 的 TaskParams 不是合法 JSON，已按无参调用处理", sysTask.TaskCode);
+                methodParams = [];
             }
         }
 
