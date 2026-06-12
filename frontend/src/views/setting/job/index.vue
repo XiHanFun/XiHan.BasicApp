@@ -302,15 +302,13 @@ async function handleTrigger(row: TaskListItemDto) {
     return
   }
   try {
-    await jobManagementApi.updateRunStatus({
-      basicId: row.basicId,
-      runTaskStatus: RunTaskStatus.Running,
-    })
-    message.success('任务已触发')
+    // 经调度器真正触发一次执行（旧实现仅改写运行状态字段，不会执行任务）
+    await jobManagementApi.run(row.basicId)
+    message.success('任务已触发，执行结果见任务日志')
     reloadJob()
   }
-  catch {
-    message.error('触发任务失败')
+  catch (e) {
+    message.error((e as Error)?.message || '触发任务失败')
   }
 }
 

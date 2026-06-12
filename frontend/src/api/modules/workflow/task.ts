@@ -31,21 +31,25 @@ export const taskApi = {
       toTaskPageParams(input),
     )
   },
-  // Commands
+  // Commands（动态 API 会剥离方法名动词前缀 Create/Update/Delete：实际路由不含动词）
   create(input: TaskCreateDto) {
-    return taskCommandApi.post<TaskDetailDto, TaskCreateDto>('CreateTask', input)
+    return taskCommandApi.post<TaskDetailDto, TaskCreateDto>('Task', input)
   },
   delete(id: ApiId) {
-    return taskCommandApi.delete(`DeleteTask/${formatDynamicApiRouteValue(id)}`)
+    return taskCommandApi.delete(`Task/${formatDynamicApiRouteValue(id)}`)
   },
   update(input: TaskUpdateDto) {
-    return taskCommandApi.put<TaskDetailDto, TaskUpdateDto>('UpdateTask', input)
+    return taskCommandApi.put<TaskDetailDto, TaskUpdateDto>('Task', input)
   },
   updateRunStatus(input: TaskRunStatusUpdateDto) {
-    return taskCommandApi.put<TaskDetailDto, TaskRunStatusUpdateDto>('UpdateTaskRunStatus', input)
+    return taskCommandApi.put<TaskDetailDto, TaskRunStatusUpdateDto>('TaskRunStatus', input)
   },
   updateStatus(input: TaskStatusUpdateDto) {
-    return taskCommandApi.put<TaskDetailDto, TaskStatusUpdateDto>('UpdateTaskStatus', input)
+    return taskCommandApi.put<TaskDetailDto, TaskStatusUpdateDto>('TaskStatus', input)
+  },
+  // Run 不在动词剥离表内：路由保留完整方法名（POST RunTask）
+  run(id: ApiId) {
+    return taskCommandApi.post<{ instanceId: string }, { basicId: ApiId }>('RunTask', { basicId: id })
   },
 }
 
