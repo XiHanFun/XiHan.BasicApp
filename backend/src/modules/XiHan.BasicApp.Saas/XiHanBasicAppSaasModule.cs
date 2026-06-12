@@ -15,7 +15,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Core;
-using XiHan.BasicApp.Saas.Application.AppServices;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Infrastructure.Extensions;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Web.Core;
@@ -77,15 +77,16 @@ public class XiHanBasicAppSaasModule : XiHanModule
         var scheduler = context.ServiceProvider.GetRequiredService<IJobScheduler>();
         var logger = context.ServiceProvider.GetRequiredService<ILogger<XiHanBasicAppSaasModule>>();
 
-        // 1. 扫描当前程序集中的 [JobName] 特性标注的 IJobWorker 实现（如 DynamicJobWorker）
+        // 1. 扫描当前程序集中带 [JobName] 特性的 IJobWorker 实现（声明式任务）。
+        //    注意：DynamicJobWorker 是反射桥接器、UserStatisticsAggregationTask 是反射目标类，
+        //    均不带 [JobName]，故本步对当前程序集是空操作；保留以支持未来的声明式 Worker。
         var jobAssembly = typeof(DynamicJobWorker).Assembly;
         scheduler.RegisterJobsFromAssembly(jobAssembly);
-        logger.LogInformation("已从程序集 {Assembly} 自动发现并注册声明式任务", jobAssembly.FullName);
 
-        // 2. 同步数据库中所有启用的 SysTask 记录到调度器
+        // 2. 同步数据库中所有启用的 SysTask 记录到调度器（含崩溃残留 Running 状态复位）
         using var scope = context.ServiceProvider.CreateScope();
-        var taskAppService = scope.ServiceProvider.GetRequiredService<TaskAppService>();
-        taskAppService.SyncAllActiveJobsAsync().GetAwaiter().GetResult();
+        var schedulerSyncService = scope.ServiceProvider.GetRequiredService<ITaskSchedulerSyncService>();
+        schedulerSyncService.SyncAllActiveJobsAsync().GetAwaiter().GetResult();
         logger.LogInformation("数据库中的活跃 SysTask 记录已同步到调度器");
     }
 }

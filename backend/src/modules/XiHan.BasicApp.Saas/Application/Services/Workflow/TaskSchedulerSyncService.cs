@@ -170,6 +170,9 @@ public sealed class TaskSchedulerSyncService
                     ? task.StartTime.Value - DateTimeOffset.UtcNow
                     : TimeSpan.FromSeconds(1))
                 : null,
+            EndTime = task.EndTime,
+            // SysTask.RepeatCount 语义与框架一致：-1 不限，达到次数后不再触发
+            RepeatCount = task.RepeatCount,
             Priority = MapPriority(task.Priority),
             AllowConcurrent = task.AllowConcurrent,
             TimeoutMilliseconds = task.TimeoutSeconds * 1000,
