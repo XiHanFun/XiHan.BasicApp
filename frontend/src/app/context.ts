@@ -273,7 +273,7 @@ function createShellApis() {
           { params: input },
         )
       },
-      save(input: { scene: number, settingKey: string, settingValue?: null | string }) {
+      save(input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string }) {
         return requestClient.post<{ scene: number, settingKey: string, settingValue?: null | string }>('/UserSetting/Save', input)
       },
     },

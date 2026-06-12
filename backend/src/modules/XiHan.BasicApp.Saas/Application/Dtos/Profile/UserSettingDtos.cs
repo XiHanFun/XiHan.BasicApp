@@ -56,4 +56,9 @@ public sealed class UserSettingSaveDto
     /// 设置载荷（JSON）
     /// </summary>
     public string? SettingValue { get; set; }
+
+    /// <summary>
+    /// 发起端标识（每端会话唯一，不落库；随变更推送原样回传，供发起端过滤自身回显）
+    /// </summary>
+    public string? ClientId { get; set; }
 }
