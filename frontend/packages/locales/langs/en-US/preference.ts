@@ -258,13 +258,13 @@ export default {
     dynamic_island_tip:
       'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
     preference_sync_tip:
-      'Off by default — preferences are stored on this device only. When on, preference changes sync to your account and override across devices on next sign-in.',
+      'On by default — preference changes sync to your account and are pushed in real time to your other online devices. When off, preferences are stored on this device only.',
     favorites_sync_tip:
-      'Off by default — favorites are stored on this device only. When on, favorite changes sync to your account across devices.',
+      'On by default — favorite changes sync to your account and are pushed in real time to your other online devices. When off, favorites are stored on this device only.',
     search_sync_tip:
-      'Off by default — per-page search settings are stored on this device only. When on, they sync to your account on save.',
+      'On by default — per-page search settings sync to your account on save and are pushed in real time to your other online devices. When off, they are stored on this device only.',
     table_sync_tip:
-      'Off by default — per-page table columns and saved views are stored on this device only. When on, they sync to your account on save.',
+      'On by default — per-page table columns and saved views sync to your account on save and are pushed in real time to your other online devices. When off, they are stored on this device only.',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
     check_updates_tip:
       'Periodically check for new versions and show a notification when an update is available',

@@ -113,10 +113,10 @@ export interface AppContextApis extends Record<string, unknown> {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
   }
-  /** 用户设置（按 用户 × 场景 × 设置键 全场景跨端同步，载荷为 JSON 字符串） */
+  /** 用户设置（按 用户 × 场景 × 设置键 全场景跨端同步，载荷为 JSON 字符串；clientId 供后端推送回显过滤） */
   userSettingApi: {
     get: (input: { scene: number, settingKey: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
-    save: (input: { scene: number, settingKey: string, settingValue?: null | string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
+    save: (input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
   }
   /** 字段权限（按资源下发当前用户的有效 FLS 规则：可读/可编辑/脱敏策略） */
   fieldSecurityApi: {

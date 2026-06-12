@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
-import { computed, ref, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { storage } from '~/utils'
 import { useUserSettingSync } from './useUserSettingSync'
 
@@ -103,6 +103,16 @@ export function useSearchSettings(
       applyPersisted(remote)
     }
   })
+
+  // 其它在线设备保存搜索设置时实时应用（SignalR 推送），并落地本地保持刷新后一致
+  const unsubscribeRemote = sync.subscribeRemote('search', (value) => {
+    const remote = value as PersistedSearchSettings
+    if (remote && Array.isArray(remote.fields) && remote.fields.length > 0) {
+      applyPersisted(remote)
+      storage.set(storageKey, remote)
+    }
+  })
+  onScopeDispose(unsubscribeRemote)
 
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {

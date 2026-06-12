@@ -52,7 +52,7 @@ export type { SearchFieldSetting } from './useSearchSettings'
 export { useTableSettings } from './useTableSettings'
 export type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
 
-export { useUserSettingSync } from './useUserSettingSync'
+export { applyRemotePageSetting, subscribeRemotePageSetting, useUserSettingSync } from './useUserSettingSync'
 export type { UserSettingSync } from './useUserSettingSync'
 
 export { useViewManager } from './useViewManager'
