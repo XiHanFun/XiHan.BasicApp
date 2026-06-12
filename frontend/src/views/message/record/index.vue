@@ -1,27 +1,30 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type { ApiId, EmailDetailDto, EmailListItemDto, EmailType, SmsDetailDto, SmsListItemDto, SmsType } from '@/api'
+import type {
+  ApiId,
+  EmailDetailDto,
+  EmailListItemDto,
+  EmailType,
+  PageResult,
+  SmsDetailDto,
+  SmsListItemDto,
+  SmsType,
+} from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
-  NCard,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
-  NIcon,
-  NInput,
-  NPagination,
-  NPopconfirm,
-  NSelect,
   NSpace,
+  NTabPane,
+  NTabs,
   NTag,
-  NTooltip,
+  useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { h, ref } from 'vue'
 import { createPageRequest, EmailStatus, messageCenterApi, SmsStatus } from '@/api'
-import { Icon } from '~/components'
+import { SchemaPage } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -31,82 +34,45 @@ type MessageTab = 'email' | 'sms'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 const message = useMessage()
+const dialog = useDialog()
+
 const activeTab = ref<MessageTab>('email')
-const emailLoaded = ref(false)
-const smsLoaded = ref(false)
+
+const emailPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+const smsPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+// 详情抽屉（邮件/短信共用一个，按 detailTab 切换内容）
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailTab = ref<MessageTab>('email')
 const currentEmailDetail = ref<EmailDetailDto | null>(null)
 const currentSmsDetail = ref<SmsDetailDto | null>(null)
-const actionLoading = ref(false)
 
-const emailLoading = ref(false)
-const emailList = ref<EmailListItemDto[]>([])
-const emailTotal = ref(0)
-const emailPage = ref(1)
-const emailPageSize = ref(20)
-
-const smsLoading = ref(false)
-const smsList = ref<SmsListItemDto[]>([])
-const smsTotal = ref(0)
-const smsPage = ref(1)
-const smsPageSize = ref(20)
-
-const emailQuery = reactive({
-  businessId: null as ApiId | null,
-  businessType: '',
-  emailStatus: null as EmailStatus | null,
-  emailType: null as EmailType | null,
-  keyword: '',
-  receiveUserId: null as ApiId | null,
-  sendUserId: null as ApiId | null,
-  templateCode: null as string | null,
-})
-
-const smsQuery = reactive({
-  businessId: null as ApiId | null,
-  businessType: '',
-  keyword: '',
-  provider: '',
-  receiverId: null as ApiId | null,
-  senderId: null as ApiId | null,
-  smsStatus: null as SmsStatus | null,
-  smsType: null as SmsType | null,
-  templateCode: null as string | null,
-})
-
-const messageTabOptions = [
-  { label: '系统邮件', value: 'email' },
-  { label: '系统短信', value: 'sms' },
-]
-
-function normalizeNullable(value?: string | null) {
-  const normalized = value?.trim()
+// 过滤值归一化：空串/空值 → null，与后端「未传即不过滤」语义一致
+function normalizeNullable(value: unknown): string | null {
+  const normalized = (value as string | undefined)?.trim()
   return normalized || null
 }
-
-function normalizeId(value: ApiId | null) {
-  return value || null
+function normalizeId(value: unknown): ApiId | null {
+  return (value as ApiId | null | undefined) || null
+}
+function normalizeTemplateCode(value: unknown): string | undefined {
+  return (value as string | undefined)?.trim() || undefined
 }
 
 function getMessageStatusTagType(status: EmailStatus | SmsStatus): TagType {
   if (status === EmailStatus.Success) {
     return 'success'
   }
-
   if (status === EmailStatus.Failed) {
     return 'error'
   }
-
   if (status === EmailStatus.Sending) {
     return 'warning'
   }
-
   if (status === EmailStatus.Cancelled) {
     return 'default'
   }
-
   return 'info'
 }
 
@@ -122,363 +88,106 @@ function canResend(status: EmailStatus | SmsStatus) {
   return status === EmailStatus.Failed || status === EmailStatus.Pending || status === EmailStatus.Cancelled
 }
 
-async function fetchEmailData() {
-  emailLoading.value = true
-  try {
-    const result = await messageCenterApi.emailPage({
-      ...createPageRequest({
-        page: {
-          pageIndex: emailPage.value,
-          pageSize: emailPageSize.value,
-        },
-      }),
-      businessId: normalizeId(emailQuery.businessId),
-      businessType: normalizeNullable(emailQuery.businessType),
-      emailStatus: emailQuery.emailStatus,
-      emailType: emailQuery.emailType,
-      keyword: normalizeNullable(emailQuery.keyword),
-      receiveUserId: normalizeId(emailQuery.receiveUserId),
-      sendUserId: normalizeId(emailQuery.sendUserId),
-      templateCode: emailQuery.templateCode?.trim() || undefined,
-    })
-    emailList.value = result.items
-    emailTotal.value = result.page.totalCount
-    emailLoaded.value = true
-  }
-  catch {
-    message.error('查询系统邮件失败')
-    emailList.value = []
-    emailTotal.value = 0
-  }
-  finally {
-    emailLoading.value = false
-  }
-}
-
-async function fetchSmsData() {
-  smsLoading.value = true
-  try {
-    const result = await messageCenterApi.smsPage({
-      ...createPageRequest({
-        page: {
-          pageIndex: smsPage.value,
-          pageSize: smsPageSize.value,
-        },
-      }),
-      businessId: normalizeId(smsQuery.businessId),
-      businessType: normalizeNullable(smsQuery.businessType),
-      keyword: normalizeNullable(smsQuery.keyword),
-      provider: normalizeNullable(smsQuery.provider),
-      receiverId: normalizeId(smsQuery.receiverId),
-      senderId: normalizeId(smsQuery.senderId),
-      smsStatus: smsQuery.smsStatus,
-      smsType: smsQuery.smsType,
-      templateCode: smsQuery.templateCode?.trim() || undefined,
-    })
-    smsList.value = result.items
-    smsTotal.value = result.page.totalCount
-    smsLoaded.value = true
-  }
-  catch {
-    message.error('查询系统短信失败')
-    smsList.value = []
-    smsTotal.value = 0
-  }
-  finally {
-    smsLoading.value = false
-  }
-}
-
-const emailColumns = computed<DataTableColumns<EmailListItemDto>>(() => [
-  { key: 'subject', title: '邮件主题', minWidth: 220, ellipsis: { tooltip: true } },
+// ── 系统邮件 ──────────────────────────────────────────────────
+const emailFields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索主题/业务类型', order: 0 },
+  { key: 'subject', title: '邮件主题', dataType: 'string', minWidth: 220, order: 1 },
   {
     key: 'emailType',
     title: '邮件类型',
+    dataType: 'enum',
+    searchable: true,
+    options: EMAIL_TYPE_OPTIONS,
+    searchPlaceholder: '邮件类型',
     minWidth: 110,
-    render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, row.emailType),
+    order: 2,
+    render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, (row as unknown as EmailListItemDto).emailType),
   },
   {
     key: 'emailStatus',
     title: '发送状态',
+    dataType: 'enum',
+    searchable: true,
+    options: EMAIL_STATUS_OPTIONS,
+    searchPlaceholder: '发送状态',
     width: 100,
-    render: row =>
-      h(NTag, { type: getMessageStatusTagType(row.emailStatus), round: true, size: 'small' }, () => getOptionLabel(EMAIL_STATUS_OPTIONS, row.emailStatus)),
+    order: 3,
+    render: (row) => {
+      const r = row as unknown as EmailListItemDto
+      return h(NTag, { type: getMessageStatusTagType(r.emailStatus), round: true, size: 'small' }, () => getOptionLabel(EMAIL_STATUS_OPTIONS, r.emailStatus))
+    },
   },
   {
     key: 'isHtml',
     title: 'HTML',
+    dataType: 'boolean',
     width: 82,
-    render: row =>
-      h(NTag, { type: row.isHtml ? 'info' : 'default', round: true, size: 'small' }, () => row.isHtml ? '是' : '否'),
+    order: 4,
+    render: (row) => {
+      const r = row as unknown as EmailListItemDto
+      return h(NTag, { type: r.isHtml ? 'info' : 'default', round: true, size: 'small' }, () => formatFlag(r.isHtml))
+    },
   },
-  { key: 'businessType', title: '业务类型', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'sendUserId', title: '发送用户', minWidth: 110 },
-  { key: 'receiveUserId', title: '接收用户', minWidth: 110 },
-  { key: 'templateCode', title: '模板编码', minWidth: 130 },
-  {
-    key: 'retryCount',
-    title: '重试',
-    minWidth: 90,
-    render: row => formatRetry(row),
-  },
-  {
-    key: 'sendTime',
-    title: '发送时间',
-    minWidth: 170,
-    sorter: true,
-    render: row => row.sendTime ? formatDate(row.sendTime) : '-',
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render: row => formatDate(row.createdTime),
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 160,
-    fixed: 'right',
-    render: row =>
-      h(NSpace, { size: 4 }, () => [
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleEmailDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '详情',
-        }),
-        canResend(row.emailStatus)
-          ? h(NTooltip, {}, {
-              trigger: () => h(NButton, { ariaLabel: '重发', circle: true, quaternary: true, size: 'small', type: 'warning', loading: actionLoading.value, onClick: () => handleResendEmail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:refresh-cw' })) }),
-              default: () => '重发',
-            })
-          : null,
-        h(NPopconfirm, { onPositiveClick: () => handleDeleteEmail(row) }, {
-          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确定删除该邮件？',
-        }),
-      ]),
-  },
-])
+  { key: 'businessType', title: '业务类型', dataType: 'string', searchable: true, searchPlaceholder: '业务类型', minWidth: 130, order: 5 },
+  { key: 'sendUserId', title: '发送用户', dataType: 'string', searchable: true, searchPlaceholder: '发送用户', minWidth: 110, order: 6 },
+  { key: 'receiveUserId', title: '接收用户', dataType: 'string', searchable: true, searchPlaceholder: '接收用户', minWidth: 110, order: 7 },
+  { key: 'templateCode', title: '模板编码', dataType: 'string', searchable: true, searchPlaceholder: '模板编码', minWidth: 130, order: 8 },
+  { key: 'retryCount', title: '重试', dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as EmailListItemDto) },
+  { key: 'sendTime', title: '发送时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+]
 
-const smsColumns = computed<DataTableColumns<SmsListItemDto>>(() => [
-  { key: 'provider', title: '服务商', minWidth: 140, ellipsis: { tooltip: true } },
-  {
-    key: 'smsType',
-    title: '短信类型',
-    minWidth: 110,
-    render: row => getOptionLabel(SMS_TYPE_OPTIONS, row.smsType),
+const emailSchema: PageSchema = {
+  pageCode: 'message.email',
+  pageName: '系统邮件',
+  rowKey: 'basicId',
+  scrollX: 1600,
+  fields: emailFields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return messageCenterApi.emailPage({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        businessId: null,
+        businessType: normalizeNullable(f.businessType),
+        emailStatus: (f.emailStatus ?? null) as EmailStatus | null,
+        emailType: (f.emailType ?? null) as EmailType | null,
+        keyword: normalizeNullable(f.keyword),
+        receiveUserId: normalizeId(f.receiveUserId),
+        sendUserId: normalizeId(f.sendUserId),
+        templateCode: normalizeTemplateCode(f.templateCode),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => messageCenterApi.deleteEmail(id),
   },
-  {
-    key: 'smsStatus',
-    title: '发送状态',
-    width: 100,
-    render: row =>
-      h(NTag, { type: getMessageStatusTagType(row.smsStatus), round: true, size: 'small' }, () => getOptionLabel(SMS_STATUS_OPTIONS, row.smsStatus)),
-  },
-  { key: 'businessType', title: '业务类型', minWidth: 130, ellipsis: { tooltip: true } },
-  { key: 'senderId', title: '发送用户', minWidth: 110 },
-  { key: 'receiverId', title: '接收用户', minWidth: 110 },
-  { key: 'templateCode', title: '模板编码', minWidth: 130 },
-  { key: 'cost', title: '费用', minWidth: 90 },
-  {
-    key: 'retryCount',
-    title: '重试',
-    minWidth: 90,
-    render: row => formatRetry(row),
-  },
-  {
-    key: 'sendTime',
-    title: '发送时间',
-    minWidth: 170,
-    sorter: true,
-    render: row => row.sendTime ? formatDate(row.sendTime) : '-',
-  },
-  {
-    key: 'createdTime',
-    title: '创建时间',
-    minWidth: 170,
-    sorter: true,
-    render: row => formatDate(row.createdTime),
-  },
-  {
-    key: 'actions',
-    title: '操作',
-    width: 160,
-    fixed: 'right',
-    render: row =>
-      h(NSpace, { size: 4 }, () => [
-        h(NTooltip, {}, {
-          trigger: () => h(NButton, { ariaLabel: '详情', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleSmsDetail(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-          default: () => '详情',
-        }),
-        canResend(row.smsStatus)
-          ? h(NTooltip, {}, {
-              trigger: () => h(NButton, { ariaLabel: '重发', circle: true, quaternary: true, size: 'small', type: 'warning', loading: actionLoading.value, onClick: () => handleResendSms(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:refresh-cw' })) }),
-              default: () => '重发',
-            })
-          : null,
-        h(NPopconfirm, { onPositiveClick: () => handleDeleteSms(row) }, {
-          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', loading: actionLoading.value }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确定删除该短信？',
-        }),
-      ]),
-  },
-])
+  actions: [
+    { key: 'detail', title: '详情', scope: 'row', type: 'primary', icon: 'lucide:eye' },
+    { key: 'resend', title: '重发', scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as EmailListItemDto).emailStatus) },
+    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+  ],
+}
 
-const emailTotalPages = computed(() => Math.max(1, Math.ceil(emailTotal.value / emailPageSize.value)))
-const smsTotalPages = computed(() => Math.max(1, Math.ceil(smsTotal.value / smsPageSize.value)))
-
-function reloadActiveGrid() {
-  if (activeTab.value === 'email') {
-    fetchEmailData()
+function onEmailAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as EmailListItemDto | undefined
+  if (!row) {
     return
   }
-
-  fetchSmsData()
-}
-
-function handleSearch() {
-  if (activeTab.value === 'email') {
-    emailPage.value = 1
-    fetchEmailData()
+  if (payload.key === 'detail') {
+    void openEmailDetail(row)
   }
-  else {
-    smsPage.value = 1
-    fetchSmsData()
+  else if (payload.key === 'resend') {
+    void resendEmail(row)
+  }
+  else if (payload.key === 'delete') {
+    confirmDeleteEmail(row)
   }
 }
 
-function handleTabChanged() {
-  if (activeTab.value === 'email' && !emailLoaded.value) {
-    fetchEmailData()
-  }
-  else if (activeTab.value === 'sms' && !smsLoaded.value) {
-    fetchSmsData()
-  }
-}
-
-function handleReset() {
-  if (activeTab.value === 'email') {
-    emailQuery.businessId = null
-    emailQuery.businessType = ''
-    emailQuery.emailStatus = null
-    emailQuery.emailType = null
-    emailQuery.keyword = ''
-    emailQuery.receiveUserId = null
-    emailQuery.sendUserId = null
-    emailQuery.templateCode = null
-    emailPage.value = 1
-    fetchEmailData()
-  }
-  else {
-    smsQuery.businessId = null
-    smsQuery.businessType = ''
-    smsQuery.keyword = ''
-    smsQuery.provider = ''
-    smsQuery.receiverId = null
-    smsQuery.senderId = null
-    smsQuery.smsStatus = null
-    smsQuery.smsType = null
-    smsQuery.templateCode = null
-    smsPage.value = 1
-    fetchSmsData()
-  }
-}
-
-function handleEmailPageChange(page: number) {
-  emailPage.value = page
-  fetchEmailData()
-}
-
-function handleEmailPageSizeChange(size: number) {
-  emailPageSize.value = size
-  emailPage.value = 1
-  fetchEmailData()
-}
-
-function handleSmsPageChange(page: number) {
-  smsPage.value = page
-  fetchSmsData()
-}
-
-function handleSmsPageSizeChange(size: number) {
-  smsPageSize.value = size
-  smsPage.value = 1
-  fetchSmsData()
-}
-
-async function handleResendEmail(row: EmailListItemDto) {
-  actionLoading.value = true
-  try {
-    await messageCenterApi.updateEmailStatus({
-      basicId: row.basicId,
-      emailStatus: EmailStatus.Pending,
-    })
-    message.success('邮件已重新加入发送队列')
-    reloadActiveGrid()
-  }
-  catch {
-    message.error('重发邮件失败')
-  }
-  finally {
-    actionLoading.value = false
-  }
-}
-
-async function handleResendSms(row: SmsListItemDto) {
-  actionLoading.value = true
-  try {
-    await messageCenterApi.updateSmsStatus({
-      basicId: row.basicId,
-      smsStatus: SmsStatus.Pending,
-    })
-    message.success('短信已重新加入发送队列')
-    reloadActiveGrid()
-  }
-  catch {
-    message.error('重发短信失败')
-  }
-  finally {
-    actionLoading.value = false
-  }
-}
-
-async function handleDeleteEmail(row: EmailListItemDto) {
-  actionLoading.value = true
-  try {
-    await messageCenterApi.deleteEmail(row.basicId)
-    message.success('邮件已删除')
-    reloadActiveGrid()
-  }
-  catch {
-    message.error('删除邮件失败')
-  }
-  finally {
-    actionLoading.value = false
-  }
-}
-
-async function handleDeleteSms(row: SmsListItemDto) {
-  actionLoading.value = true
-  try {
-    await messageCenterApi.deleteSms(row.basicId)
-    message.success('短信已删除')
-    reloadActiveGrid()
-  }
-  catch {
-    message.error('删除短信失败')
-  }
-  finally {
-    actionLoading.value = false
-  }
-}
-
-async function handleEmailDetail(row: EmailListItemDto) {
+async function openEmailDetail(row: EmailListItemDto) {
   detailTab.value = 'email'
   detailVisible.value = true
   detailLoading.value = true
   currentSmsDetail.value = null
-
   try {
     currentEmailDetail.value = await messageCenterApi.emailDetail(row.basicId)
   }
@@ -491,12 +200,129 @@ async function handleEmailDetail(row: EmailListItemDto) {
   }
 }
 
-async function handleSmsDetail(row: SmsListItemDto) {
+async function resendEmail(row: EmailListItemDto) {
+  try {
+    await messageCenterApi.updateEmailStatus({ basicId: row.basicId, emailStatus: EmailStatus.Pending })
+    message.success('邮件已重新加入发送队列')
+    void emailPageRef.value?.reload()
+  }
+  catch {
+    message.error('重发邮件失败')
+  }
+}
+
+function confirmDeleteEmail(row: EmailListItemDto) {
+  dialog.warning({
+    title: '删除邮件',
+    content: '确定删除该邮件？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: () => deleteEmail(row),
+  })
+}
+
+async function deleteEmail(row: EmailListItemDto) {
+  try {
+    await messageCenterApi.deleteEmail(row.basicId)
+    message.success('邮件已删除')
+    void emailPageRef.value?.reload()
+  }
+  catch {
+    message.error('删除邮件失败')
+  }
+}
+
+// ── 系统短信 ──────────────────────────────────────────────────
+const smsFields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索服务商/业务类型', order: 0 },
+  { key: 'provider', title: '服务商', dataType: 'string', searchable: true, searchPlaceholder: '服务商', minWidth: 140, order: 1 },
+  {
+    key: 'smsType',
+    title: '短信类型',
+    dataType: 'enum',
+    searchable: true,
+    options: SMS_TYPE_OPTIONS,
+    searchPlaceholder: '短信类型',
+    minWidth: 110,
+    order: 2,
+    render: row => getOptionLabel(SMS_TYPE_OPTIONS, (row as unknown as SmsListItemDto).smsType),
+  },
+  {
+    key: 'smsStatus',
+    title: '发送状态',
+    dataType: 'enum',
+    searchable: true,
+    options: SMS_STATUS_OPTIONS,
+    searchPlaceholder: '发送状态',
+    width: 100,
+    order: 3,
+    render: (row) => {
+      const r = row as unknown as SmsListItemDto
+      return h(NTag, { type: getMessageStatusTagType(r.smsStatus), round: true, size: 'small' }, () => getOptionLabel(SMS_STATUS_OPTIONS, r.smsStatus))
+    },
+  },
+  { key: 'businessType', title: '业务类型', dataType: 'string', searchable: true, searchPlaceholder: '业务类型', minWidth: 130, order: 4 },
+  { key: 'senderId', title: '发送用户', dataType: 'string', searchable: true, searchPlaceholder: '发送用户', minWidth: 110, order: 5 },
+  { key: 'receiverId', title: '接收用户', dataType: 'string', searchable: true, searchPlaceholder: '接收用户', minWidth: 110, order: 6 },
+  { key: 'templateCode', title: '模板编码', dataType: 'string', searchable: true, searchPlaceholder: '模板编码', minWidth: 130, order: 7 },
+  { key: 'cost', title: '费用', dataType: 'string', minWidth: 90, order: 8 },
+  { key: 'retryCount', title: '重试', dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as SmsListItemDto) },
+  { key: 'sendTime', title: '发送时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+]
+
+const smsSchema: PageSchema = {
+  pageCode: 'message.sms',
+  pageName: '系统短信',
+  rowKey: 'basicId',
+  scrollX: 1600,
+  fields: smsFields,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return messageCenterApi.smsPage({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        businessId: null,
+        businessType: normalizeNullable(f.businessType),
+        keyword: normalizeNullable(f.keyword),
+        provider: normalizeNullable(f.provider),
+        receiverId: normalizeId(f.receiverId),
+        senderId: normalizeId(f.senderId),
+        smsStatus: (f.smsStatus ?? null) as SmsStatus | null,
+        smsType: (f.smsType ?? null) as SmsType | null,
+        templateCode: normalizeTemplateCode(f.templateCode),
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => messageCenterApi.deleteSms(id),
+  },
+  actions: [
+    { key: 'detail', title: '详情', scope: 'row', type: 'primary', icon: 'lucide:eye' },
+    { key: 'resend', title: '重发', scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as SmsListItemDto).smsStatus) },
+    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+  ],
+}
+
+function onSmsAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as SmsListItemDto | undefined
+  if (!row) {
+    return
+  }
+  if (payload.key === 'detail') {
+    void openSmsDetail(row)
+  }
+  else if (payload.key === 'resend') {
+    void resendSms(row)
+  }
+  else if (payload.key === 'delete') {
+    confirmDeleteSms(row)
+  }
+}
+
+async function openSmsDetail(row: SmsListItemDto) {
   detailTab.value = 'sms'
   detailVisible.value = true
   detailLoading.value = true
   currentEmailDetail.value = null
-
   try {
     currentSmsDetail.value = await messageCenterApi.smsDetail(row.basicId)
   }
@@ -509,158 +335,49 @@ async function handleSmsDetail(row: SmsListItemDto) {
   }
 }
 
-onMounted(() => fetchEmailData())
+async function resendSms(row: SmsListItemDto) {
+  try {
+    await messageCenterApi.updateSmsStatus({ basicId: row.basicId, smsStatus: SmsStatus.Pending })
+    message.success('短信已重新加入发送队列')
+    void smsPageRef.value?.reload()
+  }
+  catch {
+    message.error('重发短信失败')
+  }
+}
+
+function confirmDeleteSms(row: SmsListItemDto) {
+  dialog.warning({
+    title: '删除短信',
+    content: '确定删除该短信？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: () => deleteSms(row),
+  })
+}
+
+async function deleteSms(row: SmsListItemDto) {
+  try {
+    await messageCenterApi.deleteSms(row.basicId)
+    message.success('短信已删除')
+    void smsPageRef.value?.reload()
+  }
+  catch {
+    message.error('删除短信失败')
+  }
+}
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full">
-    <div class="xh-query-panel mb-2" style="padding:10px 16px;background:var(--n-card-color);border-radius:var(--n-border-radius);">
-      <div class="xh-query-panel__content">
-        <NSelect
-          v-model:value="activeTab"
-          :options="messageTabOptions"
-          style="width: 120px"
-          @update:value="handleTabChanged"
-        />
-
-        <template v-if="activeTab === 'email'">
-          <NInput
-            v-model:value="emailQuery.keyword"
-            clearable
-            placeholder="搜索主题/业务类型"
-            style="width: 220px"
-            @keyup.enter="handleSearch"
-          />
-          <NSelect
-            v-model:value="emailQuery.emailType"
-            :options="EMAIL_TYPE_OPTIONS"
-            clearable
-            placeholder="邮件类型"
-            style="width: 120px"
-          />
-          <NSelect
-            v-model:value="emailQuery.emailStatus"
-            :options="EMAIL_STATUS_OPTIONS"
-            clearable
-            placeholder="发送状态"
-            style="width: 120px"
-          />
-          <NInput
-            v-model:value="emailQuery.businessType"
-            clearable
-            placeholder="业务类型"
-            style="width: 130px"
-            @keyup.enter="handleSearch"
-          />
-          <NInput v-model:value="emailQuery.templateCode" clearable placeholder="模板编码" style="width: 130px" />
-          <NInput v-model:value="emailQuery.sendUserId" clearable placeholder="发送用户" style="width: 120px" />
-          <NInput
-            v-model:value="emailQuery.receiveUserId"
-            clearable
-            placeholder="接收用户"
-            style="width: 120px"
-          />
-        </template>
-
-        <template v-else>
-          <NInput
-            v-model:value="smsQuery.keyword"
-            clearable
-            placeholder="搜索服务商/业务类型"
-            style="width: 220px"
-            @keyup.enter="handleSearch"
-          />
-          <NSelect
-            v-model:value="smsQuery.smsType"
-            :options="SMS_TYPE_OPTIONS"
-            clearable
-            placeholder="短信类型"
-            style="width: 120px"
-          />
-          <NSelect
-            v-model:value="smsQuery.smsStatus"
-            :options="SMS_STATUS_OPTIONS"
-            clearable
-            placeholder="发送状态"
-            style="width: 120px"
-          />
-          <NInput
-            v-model:value="smsQuery.provider"
-            clearable
-            placeholder="服务商"
-            style="width: 120px"
-            @keyup.enter="handleSearch"
-          />
-          <NInput
-            v-model:value="smsQuery.businessType"
-            clearable
-            placeholder="业务类型"
-            style="width: 130px"
-            @keyup.enter="handleSearch"
-          />
-          <NInput v-model:value="smsQuery.templateCode" clearable placeholder="模板编码" style="width: 130px" />
-          <NInput v-model:value="smsQuery.senderId" clearable placeholder="发送用户" style="width: 120px" />
-          <NInput v-model:value="smsQuery.receiverId" clearable placeholder="接收用户" style="width: 120px" />
-        </template>
-
-        <NButton size="small" type="primary" @click="handleSearch">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          查询
-        </NButton>
-        <NButton size="small" @click="handleReset">
-          <template #icon>
-            <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-          </template>
-          重置
-        </NButton>
-      </div>
-    </div>
-
-    <NCard v-show="activeTab === 'email'" content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="emailColumns"
-        :data="emailList"
-        :loading="emailLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row: EmailListItemDto) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ emailTotal }}</strong> 条，第 <strong>{{ emailPage }}</strong> / {{ emailTotalPages }} 页
-        </div>
-        <NPagination :page="emailPage" :page-count="emailTotalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="emailPageSize" show-size-picker @update:page="handleEmailPageChange" @update:page-size="handleEmailPageSizeChange" />
-      </div>
-    </NCard>
-
-    <NCard v-show="activeTab === 'sms'" content-style="padding:0;display:flex;flex-direction:column;height:100%;" :bordered="false" class="flex-1" style="height:0;">
-      <NDataTable
-        :columns="smsColumns"
-        :data="smsList"
-        :loading="smsLoading"
-        :bordered="false"
-        :single-line="false"
-        :row-key="(row: SmsListItemDto) => row.basicId"
-        :scroll-x="2000"
-        size="small"
-        striped
-        flex-height
-        style="flex:1;"
-      />
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--n-border-color);flex-shrink:0;">
-        <div style="font-size:13px;color:var(--n-text-color-3);">
-          共 <strong>{{ smsTotal }}</strong> 条，第 <strong>{{ smsPage }}</strong> / {{ smsTotalPages }} 页
-        </div>
-        <NPagination :page="smsPage" :page-count="smsTotalPages" :page-slot="7" :page-sizes="[10,20,50,100]" :page-size="smsPageSize" show-size-picker @update:page="handleSmsPageChange" @update:page-size="handleSmsPageSizeChange" />
-      </div>
-    </NCard>
+  <div class="message-page">
+    <NTabs v-model:value="activeTab" animated type="line">
+      <NTabPane name="email" tab="系统邮件" display-directive="show:lazy">
+        <SchemaPage ref="emailPageRef" :schema="emailSchema" @action="onEmailAction" />
+      </NTabPane>
+      <NTabPane name="sms" tab="系统短信" display-directive="show:lazy">
+        <SchemaPage ref="smsPageRef" :schema="smsSchema" @action="onSmsAction" />
+      </NTabPane>
+    </NTabs>
 
     <NDrawer v-model:show="detailVisible" :width="620">
       <NDrawerContent closable :title="detailTab === 'email' ? '系统邮件详情' : '系统短信详情'">
@@ -774,3 +491,32 @@ onMounted(() => fetchEmailData())
     </NDrawer>
   </div>
 </template>
+
+<style scoped>
+.message-page {
+  height: 100%;
+}
+
+/* SchemaPage 依赖父级定高（内部 flex-1 + height:0 的表格卡片，分页贴底）。
+   被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
+   与授权申请等以 NTabs 包裹 SchemaPage 的页面保持一致。 */
+.message-page :deep(.n-tabs) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.message-page :deep(.n-tabs-nav) {
+  padding: 8px 12px 0;
+}
+
+.message-page :deep(.n-tabs-pane-wrapper) {
+  flex: 1;
+  height: 0;
+}
+
+.message-page :deep(.n-tab-pane) {
+  height: 100%;
+  padding: 0;
+}
+</style>
