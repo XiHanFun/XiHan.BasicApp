@@ -154,6 +154,8 @@ public static class PageRegistry
         new("setting.cache","缓存管理","menu.setting_cache",MenuType.Menu,"/setting/cache","SettingCache","setting/cache/index","setting",SaasPermissionCodes.Cache.Read,"lucide:database-backup",750),
         // [8.6] 服务监控（平台运维专属权限）
         new("setting.server","服务监控","menu.setting_server",MenuType.Menu,"/setting/server","SettingServer","setting/server/index","setting",SaasPermissionCodes.Server.Read,"lucide:server",760),
+        // [8.7] 版本管理（系统版本与升级迁移）
+        new("setting.version","版本管理","menu.setting_version",MenuType.Menu,"/setting/version","SettingVersion","setting/version/index","setting",SaasPermissionCodes.Version.Read,"lucide:git-branch",770),
 
         // [9] 日志审计（顶层目录：路径 /log 与目录层级一致）
         new("log","日志审计","menu.log",MenuType.Directory,"/log","Log",null,null,null,"lucide:file-search",800,"/log/access"),
@@ -295,8 +297,15 @@ public static class PageRegistry
         new("setting.job.delete","删除","setting.job",SaasPermissionCodes.Task.Delete,3),
         new("setting.job.status","启停","setting.job",SaasPermissionCodes.Task.Status,4),
         new("setting.job.run","执行","setting.job",SaasPermissionCodes.Task.RunStatus,5),
+        new("setting.job.logs","执行日志","setting.job",SaasPermissionCodes.TaskLog.Read,6),
 
         // [8.5] 缓存管理
         new("setting.cache.clear","清理","setting.cache",SaasPermissionCodes.Cache.Clear,1),
+
+        // [8.7] 版本管理
+        new("setting.version.create","新增","setting.version",SaasPermissionCodes.Version.Create,1),
+        new("setting.version.update","编辑","setting.version",SaasPermissionCodes.Version.Update,2),
+        new("setting.version.upgrade","升级","setting.version",SaasPermissionCodes.Version.Upgrade,3),
+        new("setting.version.delete","删除","setting.version",SaasPermissionCodes.Version.Delete,4),
     ];
 }
