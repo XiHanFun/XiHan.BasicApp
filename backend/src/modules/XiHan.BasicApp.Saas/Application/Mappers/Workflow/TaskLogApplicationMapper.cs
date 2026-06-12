@@ -72,6 +72,11 @@ public static class TaskLogApplicationMapper
             RetryCount = item.RetryCount,
             TriggerMode = item.TriggerMode,
             CreatedTime = item.CreatedTime,
+            ExecutionResult = taskLog.ExecutionResult,
+            ExceptionMessage = taskLog.ExceptionMessage,
+            ExceptionStackTrace = taskLog.ExceptionStackTrace,
+            OutputLog = taskLog.OutputLog,
+            Remark = taskLog.Remark,
             CreatedId = taskLog.CreatedId,
             CreatedBy = taskLog.CreatedBy
         };
