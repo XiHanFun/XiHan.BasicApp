@@ -36,19 +36,19 @@ export const oauthAppApi = {
   },
   // Commands
   create(input: OAuthAppCreateDto) {
-    return oauthAppCommandApi.post<OAuthAppSecretDto, OAuthAppCreateDto>('CreateOAuthApp', input)
+    return oauthAppCommandApi.post<OAuthAppSecretDto, OAuthAppCreateDto>('OAuthApp', input)
   },
   delete(id: OAuthAppDetailDto['basicId']) {
-    return oauthAppCommandApi.delete(`DeleteOAuthApp/${formatDynamicApiRouteValue(id)}`)
+    return oauthAppCommandApi.delete(`OAuthApp/${formatDynamicApiRouteValue(id)}`)
   },
   regenerateSecret(id: OAuthAppDetailDto['basicId']) {
     return oauthAppCommandApi.post<OAuthAppSecretDto>(`RegenerateOAuthAppSecret/${formatDynamicApiRouteValue(id)}`)
   },
   update(input: OAuthAppUpdateDto) {
-    return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppUpdateDto>('UpdateOAuthApp', input)
+    return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppUpdateDto>('OAuthApp', input)
   },
   updateStatus(input: OAuthAppStatusUpdateDto) {
-    return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppStatusUpdateDto>('UpdateOAuthAppStatus', input)
+    return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppStatusUpdateDto>('OAuthAppStatus', input)
   },
 }
 
