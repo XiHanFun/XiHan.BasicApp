@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -181,6 +182,12 @@ public sealed partial class ProfileAppService
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// 显式锁定 POST /Profile/DeleteAccount：按动词剥离约定本方法会推断成 DELETE /Profile/Account，
+    /// 带密码确认 body 的 DELETE 不符合习惯，前端也按 POST 完整方法名调用。
+    /// </remarks>
+    [HttpPost]
+    [DynamicApi(Name = "DeleteAccount")]
     [UnitOfWork(true)]
     public async Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {

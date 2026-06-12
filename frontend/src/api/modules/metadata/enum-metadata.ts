@@ -17,9 +17,9 @@ export interface EnumMetadata {
 
 export const enumMetadataApi = {
   getAll() {
-    return enumApi.get<EnumMetadata[]>('GetAllEnums')
+    return enumApi.get<EnumMetadata[]>('AllEnums')
   },
   getByName(enumTypeName: string) {
-    return enumApi.get<EnumMetadata>(`GetEnum/${encodeURIComponent(enumTypeName)}`)
+    return enumApi.get<EnumMetadata>(`Enum/${encodeURIComponent(enumTypeName)}`)
   },
 }
