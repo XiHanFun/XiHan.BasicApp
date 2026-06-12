@@ -12,10 +12,12 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Tasks.ScheduledJobs.Models;
@@ -32,15 +34,23 @@ public sealed class TaskSchedulerSyncService
 
     private readonly ITaskSchedulerQueryService _taskSchedulerQueryService;
 
+    private readonly ITaskRepository _taskRepository;
+
+    private readonly ILogger<TaskSchedulerSyncService> _logger;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public TaskSchedulerSyncService(
         ITaskSchedulerQueryService taskSchedulerQueryService,
-        IJobScheduler jobScheduler)
+        ITaskRepository taskRepository,
+        IJobScheduler jobScheduler,
+        ILogger<TaskSchedulerSyncService> logger)
     {
         _taskSchedulerQueryService = taskSchedulerQueryService;
+        _taskRepository = taskRepository;
         _jobScheduler = jobScheduler;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -54,6 +64,7 @@ public sealed class TaskSchedulerSyncService
                 return;
             case TaskSchedulerSyncAction.Register:
                 _jobScheduler.RegisterJob(BuildJobInfo(task));
+                TriggerImmediateIfNeeded(task);
                 return;
             case TaskSchedulerSyncAction.Unregister:
                 _jobScheduler.UnregisterJob(task.TaskCode);
@@ -63,6 +74,7 @@ public sealed class TaskSchedulerSyncService
                 if (task.Status == EnableStatus.Enabled)
                 {
                     _jobScheduler.RegisterJob(BuildJobInfo(task));
+                    TriggerImmediateIfNeeded(task);
                 }
 
                 return;
@@ -81,6 +93,18 @@ public sealed class TaskSchedulerSyncService
     public async Task SyncAllActiveJobsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 崩溃残留复位：启动时不存在任何运行中实例，库里遗留的 Running 一律视为上次进程
+        // 异常退出的脏状态，复位为 Failed，避免非并发任务被"运行中"闸门永久跳过
+        var staleRunning = await _taskRepository.GetListAsync(
+            task => task.RunTaskStatus == RunTaskStatus.Running,
+            cancellationToken);
+        foreach (var stale in staleRunning)
+        {
+            stale.RunTaskStatus = RunTaskStatus.Failed;
+            _ = await _taskRepository.UpdateAsync(stale, cancellationToken);
+            _logger.LogWarning("启动复位脏运行状态：任务 {TaskCode} 上次执行未正常收尾，已标记为失败", stale.TaskCode);
+        }
 
         var tasks = await _taskSchedulerQueryService.GetEnabledTasksAsync(cancellationToken);
         if (tasks.Count == 0)
@@ -104,6 +128,29 @@ public sealed class TaskSchedulerSyncService
         }
     }
 
+    /// <summary>
+    /// 立即执行型任务注册即触发一次（Immediate 映射为框架 Manual，无自动触发时机）
+    /// </summary>
+    private void TriggerImmediateIfNeeded(SysTask task)
+    {
+        if (task.TriggerType != TriggerType.Immediate || task.Status != EnableStatus.Enabled)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _ = await _jobScheduler.TriggerJobAsync(task.TaskCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "立即执行型任务注册触发失败：{TaskCode}", task.TaskCode);
+            }
+        });
+    }
+
     private static JobInfo BuildJobInfo(SysTask task)
     {
         return new JobInfo
@@ -115,6 +162,13 @@ public sealed class TaskSchedulerSyncService
             CronExpression = task.CronExpression,
             Interval = task.IntervalSeconds.HasValue
                 ? TimeSpan.FromSeconds(task.IntervalSeconds.Value)
+                : null,
+            // 定时执行(Schedule→Delay)：按 StartTime 推延迟；缺省/已过期给 1 秒兜底立即跑一次。
+            // 不设置 Delay 时框架算不出下次触发时间，该类任务会注册了也永不执行。
+            Delay = task.TriggerType == TriggerType.Schedule
+                ? (task.StartTime.HasValue && task.StartTime.Value > DateTimeOffset.UtcNow
+                    ? task.StartTime.Value - DateTimeOffset.UtcNow
+                    : TimeSpan.FromSeconds(1))
                 : null,
             Priority = MapPriority(task.Priority),
             AllowConcurrent = task.AllowConcurrent,
