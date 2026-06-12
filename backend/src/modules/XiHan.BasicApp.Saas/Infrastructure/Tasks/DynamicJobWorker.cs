@@ -70,13 +70,13 @@ public sealed class DynamicJobWorker : IJobWorker
             using var scope = _scopeFactory.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<ITaskRepository>();
 
-            // 通过 TaskCode 查找 SysTask
+            // 通过 TaskCode 查找 SysTask。
+            // 注意：谓词不能写成 (cond ? 列条件 : true) 的三元式——SqlSugar 会把布尔常量分支
+            // 翻译成 boolean = integer 比较，PostgreSQL 直接报 42883。
             long? tenantId = context.TenantId;
-            var tasks = await repository.GetListAsync(
-                task => task.TaskCode == jobName &&
-                        (tenantId.HasValue && tenantId.Value > 0
-                            ? task.TenantId == tenantId.Value
-                            : true));
+            var tasks = tenantId is > 0
+                ? await repository.GetListAsync(task => task.TaskCode == jobName && task.TenantId == tenantId.Value)
+                : await repository.GetListAsync(task => task.TaskCode == jobName);
 
             var sysTask = tasks.FirstOrDefault();
             if (sysTask is null)
