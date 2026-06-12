@@ -37,6 +37,7 @@ import {
   TABBAR_SHOW_ICON_KEY,
   TABBAR_SHOW_MAXIMIZE_KEY,
   TABBAR_SHOW_MORE_KEY,
+  TABBAR_SHOW_OVERVIEW_KEY,
   TABBAR_STYLE_KEY,
   TABBAR_VISIT_HISTORY_KEY,
   TAGS_BAR_KEY,
@@ -132,6 +133,7 @@ export function createLayoutSlice() {
     LocalStorage.get<boolean>(TABBAR_MIDDLE_CLICK_CLOSE_KEY) ?? true,
   )
   const tabbarShowIcon = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_ICON_KEY) ?? true)
+  const tabbarShowOverview = ref<boolean>(LocalStorage.get<boolean>(TABBAR_SHOW_OVERVIEW_KEY) ?? true)
   const tabbarStyle = ref<string>(LocalStorage.get<string>(TABBAR_STYLE_KEY) ?? 'chrome')
 
   // ---- 面包屑 ----
@@ -185,6 +187,7 @@ export function createLayoutSlice() {
   bindPersist(TABBAR_SCROLL_RESPONSE_KEY, tabbarScrollResponse, true)
   bindPersist(TABBAR_MIDDLE_CLICK_CLOSE_KEY, tabbarMiddleClickClose, true)
   bindPersist(TABBAR_SHOW_ICON_KEY, tabbarShowIcon, true)
+  bindPersist(TABBAR_SHOW_OVERVIEW_KEY, tabbarShowOverview, true)
   bindPersist(TABBAR_STYLE_KEY, tabbarStyle, 'chrome')
   bindPersist(BREADCRUMB_ENABLED_KEY, breadcrumbEnabled, true)
   bindPersist(BREADCRUMB_SHOW_HOME_KEY, breadcrumbShowHome, false)
@@ -302,6 +305,9 @@ export function createLayoutSlice() {
   function setTabbarShowIcon(v: boolean) {
     save(TABBAR_SHOW_ICON_KEY, tabbarShowIcon, v)
   }
+  function setTabbarShowOverview(v: boolean) {
+    save(TABBAR_SHOW_OVERVIEW_KEY, tabbarShowOverview, v)
+  }
   function setTabbarStyle(v: string) {
     save(TABBAR_STYLE_KEY, tabbarStyle, v)
   }
@@ -358,6 +364,7 @@ export function createLayoutSlice() {
     tabbarScrollResponse,
     tabbarMiddleClickClose,
     tabbarShowIcon,
+    tabbarShowOverview,
     tabbarStyle,
     breadcrumbEnabled,
     breadcrumbShowHome,
@@ -400,6 +407,7 @@ export function createLayoutSlice() {
     setTabbarScrollResponse,
     setTabbarMiddleClickClose,
     setTabbarShowIcon,
+    setTabbarShowOverview,
     setTabbarStyle,
     setBreadcrumbEnabled,
     setBreadcrumbShowHome,
