@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { ApiLogDetailDto, ApiLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { createPageRequest, logManagementApi, SignatureType } from '@/api'
@@ -134,6 +134,33 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildApiQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    isSuccess: toBool(f.isSuccess),
+    method: toStr(f.method),
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    apiPath: toStr(f.apiPath),
+    statusCode: toNum(f.statusCode),
+    signatureType: (f.signatureType as SignatureType | undefined) ?? undefined,
+    isSignatureValid: toBool(f.isSignatureValid),
+    clientId: toStr(f.clientId),
+    appId: toStr(f.appId),
+    apiVersion: toStr(f.apiVersion),
+    traceId: toStr(f.traceId),
+    requestId: toStr(f.requestId),
+    sessionId: toStr(f.sessionId),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    requestTimeStart: toIso(f.requestTimeStart),
+    requestTimeEnd: toIso(f.requestTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.api',
   pageName: '开放接口日志',
@@ -141,31 +168,8 @@ const schema: PageSchema = {
   scrollX: 2400,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.api.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        isSuccess: toBool(f.isSuccess),
-        method: toStr(f.method),
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        apiPath: toStr(f.apiPath),
-        statusCode: toNum(f.statusCode),
-        signatureType: (f.signatureType as SignatureType | undefined) ?? undefined,
-        isSignatureValid: toBool(f.isSignatureValid),
-        clientId: toStr(f.clientId),
-        appId: toStr(f.appId),
-        apiVersion: toStr(f.apiVersion),
-        traceId: toStr(f.traceId),
-        requestId: toStr(f.requestId),
-        sessionId: toStr(f.sessionId),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        requestTimeStart: toIso(f.requestTimeStart),
-        requestTimeEnd: toIso(f.requestTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.api.page(buildApiQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.api', buildQuery: buildApiQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },

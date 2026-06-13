@@ -300,6 +300,11 @@ public static class ServiceCollectionExtensions
         // 导出 Provider（逐资源登记；新增资源在此追加一行）
         services.AddScoped<IExportProvider, UserExportProvider>();
         services.AddScoped<IExportProvider, OperationLogExportProvider>();
+        services.AddScoped<IExportProvider, AccessLogExportProvider>();
+        services.AddScoped<IExportProvider, ApiLogExportProvider>();
+        services.AddScoped<IExportProvider, LoginLogExportProvider>();
+        services.AddScoped<IExportProvider, ExceptionLogExportProvider>();
+        services.AddScoped<IExportProvider, DiffLogExportProvider>();
 
         // 后台执行 worker
         services.AddHostedService<ExportTaskHostedService>();

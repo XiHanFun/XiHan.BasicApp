@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { AccessLogDetailDto, AccessLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { AccessResult, createPageRequest, logManagementApi } from '@/api'
@@ -107,6 +107,28 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildAccessQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
+    method: toStr(f.method),
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    resourcePath: toStr(f.resourcePath),
+    resourceType: toStr(f.resourceType),
+    sessionId: toStr(f.sessionId),
+    traceId: toStr(f.traceId),
+    statusCode: toNum(f.statusCode),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    accessTimeStart: toIso(f.accessTimeStart),
+    accessTimeEnd: toIso(f.accessTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.access',
   pageName: '访问日志',
@@ -114,26 +136,8 @@ const schema: PageSchema = {
   scrollX: 2200,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.access.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
-        method: toStr(f.method),
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        resourcePath: toStr(f.resourcePath),
-        resourceType: toStr(f.resourceType),
-        sessionId: toStr(f.sessionId),
-        traceId: toStr(f.traceId),
-        statusCode: toNum(f.statusCode),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        accessTimeStart: toIso(f.accessTimeStart),
-        accessTimeEnd: toIso(f.accessTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.access.page(buildAccessQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.access', buildQuery: buildAccessQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
