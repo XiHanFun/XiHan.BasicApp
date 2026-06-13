@@ -429,9 +429,13 @@ function onExportSelect(key: string) {
   }
 }
 
-/** 导入：字段含 importable 且 resource.create 存在时，工具栏出现内置导入按钮 */
+/** 导出/导入按钮权限门控：声明了对应权限码则需有权限才显示；未声明不限制（渐进过渡） */
+const canExportPermitted = computed(() => !props.schema.exportPermission || hasPermission(props.schema.exportPermission))
+const canImportPermitted = computed(() => !props.schema.importPermission || hasPermission(props.schema.importPermission))
+
+/** 导入：字段含 importable 且 resource.create 存在 + 导入权限通过时，工具栏出现内置导入按钮 */
 const importFields = computed(() => toImportFields(resolvedSchema.value, hasPermission))
-const canImport = computed(() => importFields.value.length > 0 && !!props.schema.resource.create)
+const canImport = computed(() => importFields.value.length > 0 && !!props.schema.resource.create && canImportPermitted.value)
 const importVisible = ref(false)
 
 /** 导入完毕：有成功行则刷新列表 */
@@ -520,7 +524,7 @@ defineExpose({
           </NTooltip>
           <!-- 通用导出：所有 SchemaPage 列表页默认获得同步 CSV 导出（导出所见列，零配置）；
                已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口 -->
-          <template v-if="effectiveExportFields.length">
+          <template v-if="effectiveExportFields.length && canExportPermitted">
             <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
             <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
               <NButton circle quaternary size="small" aria-label="导出" :loading="exporting || submittingExport">

@@ -129,6 +129,7 @@ function buildLoginQuery(params: SchemaQueryParams) {
 
 const schema: PageSchema = {
   pageCode: 'log.login',
+  exportPermission: 'saas:login-log:export',
   pageName: '登录日志',
   rowKey: 'basicId',
   scrollX: 2000,

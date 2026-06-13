@@ -149,6 +149,7 @@ function buildDiffQuery(params: SchemaQueryParams) {
 
 const schema: PageSchema = {
   pageCode: 'log.diff',
+  exportPermission: 'saas:diff-log:export',
   pageName: '数据变更',
   rowKey: 'basicId',
   scrollX: 2300,

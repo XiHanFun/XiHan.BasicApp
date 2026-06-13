@@ -224,7 +224,16 @@ public static class SaasPermissionCodes
         ConstraintRule.Create,
         ConstraintRule.Update,
         ConstraintRule.Status,
-        ConstraintRule.Delete
+        ConstraintRule.Delete,
+        // 导入导出（逐资源细粒度，渐进登记）
+        User.Export,
+        OperationLog.Export,
+        AccessLog.Export,
+        ApiLog.Export,
+        LoginLog.Export,
+        ExceptionLog.Export,
+        DiffLog.Export,
+        Config.Import
     ];
 
     /// <summary>
@@ -525,6 +534,11 @@ public static class SaasPermissionCodes
         /// 删除用户
         /// </summary>
         public const string Delete = "saas:user:delete";
+
+        /// <summary>
+        /// 导出用户
+        /// </summary>
+        public const string Export = "saas:user:export";
     }
 
     /// <summary>
@@ -685,6 +699,11 @@ public static class SaasPermissionCodes
         /// 查看访问日志
         /// </summary>
         public const string Read = "saas:access-log:read";
+
+        /// <summary>
+        /// 导出访问日志
+        /// </summary>
+        public const string Export = "saas:access-log:export";
     }
 
     /// <summary>
@@ -696,6 +715,11 @@ public static class SaasPermissionCodes
         /// 查看 API 日志
         /// </summary>
         public const string Read = "saas:api-log:read";
+
+        /// <summary>
+        /// 导出 API 日志
+        /// </summary>
+        public const string Export = "saas:api-log:export";
     }
 
     /// <summary>
@@ -707,6 +731,11 @@ public static class SaasPermissionCodes
         /// 查看差异日志
         /// </summary>
         public const string Read = "saas:diff-log:read";
+
+        /// <summary>
+        /// 导出差异日志
+        /// </summary>
+        public const string Export = "saas:diff-log:export";
     }
 
     /// <summary>
@@ -718,6 +747,11 @@ public static class SaasPermissionCodes
         /// 查看异常日志
         /// </summary>
         public const string Read = "saas:exception-log:read";
+
+        /// <summary>
+        /// 导出异常日志
+        /// </summary>
+        public const string Export = "saas:exception-log:export";
     }
 
     /// <summary>
@@ -729,6 +763,11 @@ public static class SaasPermissionCodes
         /// 查看登录日志
         /// </summary>
         public const string Read = "saas:login-log:read";
+
+        /// <summary>
+        /// 导出登录日志
+        /// </summary>
+        public const string Export = "saas:login-log:export";
     }
 
     /// <summary>
@@ -740,6 +779,11 @@ public static class SaasPermissionCodes
         /// 查看操作日志
         /// </summary>
         public const string Read = "saas:operation-log:read";
+
+        /// <summary>
+        /// 导出操作日志
+        /// </summary>
+        public const string Export = "saas:operation-log:export";
     }
 
     /// <summary>
@@ -881,6 +925,11 @@ public static class SaasPermissionCodes
         /// 删除系统配置
         /// </summary>
         public const string Delete = "saas:config:delete";
+
+        /// <summary>
+        /// 导入系统配置
+        /// </summary>
+        public const string Import = "saas:config:import";
     }
 
     /// <summary>

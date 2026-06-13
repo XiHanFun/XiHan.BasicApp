@@ -216,6 +216,10 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   permissions?: string[]
   /** 对应后端资源码（用于字段脱敏 FLS 规则匹配；缺省则不拉取脱敏规则） */
   resourceCode?: string
+  /** 导出按钮所需权限码（声明后导出按钮仅在用户拥有该权限时显示；缺省则不限制，沿用通用导出） */
+  exportPermission?: string
+  /** 导入按钮所需权限码（声明后导入按钮仅在用户拥有该权限时显示；缺省则不限制） */
+  importPermission?: string
   /** 数据资源 */
   resource: SchemaResource<TRow>
   /** 字段单一事实源 */
