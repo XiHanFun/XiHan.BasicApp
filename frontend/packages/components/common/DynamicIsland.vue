@@ -51,28 +51,20 @@ const {
 /** 壳体是否可见：折叠态需有当前任务，展开态需有面板内容 */
 const shellVisible = computed(() => enabled.value && (expanded.value ? hasPanel.value : !!current.value))
 
-// ── 折叠态二级（悬停渐进披露）─────────────────────────────────────
-// 多任务时折叠态默认极简（图标 + 计数，如「↑ 3」），悬停展开为聚合文案，点击再全展开面板
-const isHovering = ref(false)
+// ── 折叠态形态 ──────────────────────────────────────────────────
+// 单任务＝第一形态：中~宽自适应胶囊，显示任务文案。
+// 多任务＝第二形态：固定「宽」档胶囊，常驻聚合文案「N 个任务进行中」+ 计数 + 展开箭头。
+// 不再有更小的极简档（图标+计数），宽度只在「中」「宽」之间。
 const isMulti = computed(() => loadingCount.value > 1)
 const displayLabel = computed(() => {
   if (!current.value) {
     return ''
   }
-  // 多任务：默认极简（无文案），悬停时显示聚合文案；单任务：始终显示文案
   if (isMulti.value) {
-    return isHovering.value ? t('island.tasks_ongoing', { n: loadingCount.value }) : ''
+    return t('island.tasks_ongoing', { n: loadingCount.value })
   }
   return current.value.label
 })
-function onPillEnter(): void {
-  if (!expanded.value) {
-    isHovering.value = true
-  }
-}
-function onPillLeave(): void {
-  isHovering.value = false
-}
 
 function stateIcon(state?: IslandState): string {
   switch (state) {
@@ -154,7 +146,7 @@ function relativeTime(time: number): string {
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
 const PILL_HEIGHT = 34
-// 折叠态宽度上下限：避免内容忽长忽短导致胶囊宽度跳变（短文案撑到下限、长文案截断到上限）
+// 折叠态两档宽度：「中」(下限) 与「宽」(上限)。单任务在二者间按内容自适应，多任务固定「宽」档。
 const PILL_MIN_WIDTH = 150
 const PILL_MAX_WIDTH = 320
 
@@ -179,12 +171,12 @@ async function measurePill(): Promise<void> {
   inner.style.width = 'max-content'
   const intrinsic = inner.getBoundingClientRect().width
   inner.style.width = previousWidth
-  // 多任务极简态（折叠且未悬停）用更小的下限，呈现紧凑「图标 + 计数」；其余维持常规下限
-  const minWidth = isMulti.value && !isHovering.value ? 96 : PILL_MIN_WIDTH
-  pillWidth.value = Math.min(
-    Math.max(Math.ceil(intrinsic), minWidth),
-    Math.min(window.innerWidth * 0.8, PILL_MAX_WIDTH),
-  )
+  // 宽度只收敛为两档：「中」(PILL_MIN_WIDTH 下限) ~「宽」(PILL_MAX_WIDTH 上限)，不再有更小的极简档。
+  // 第二形态（多任务）固定「宽」档承载聚合文案；第一形态（单任务）在中~宽间按内容自适应，超「宽」自然截断。
+  const cap = Math.min(window.innerWidth * 0.8, PILL_MAX_WIDTH)
+  pillWidth.value = isMulti.value
+    ? cap
+    : Math.min(Math.max(Math.ceil(intrinsic), Math.min(PILL_MIN_WIDTH, cap)), cap)
 }
 
 // ── 新任务到达脉冲：岛已在屏上时（不重新入场）以轻微弹跳提示 ───────
@@ -336,8 +328,6 @@ onBeforeUnmount(() => {
             :aria-label="current?.label"
             :tabindex="expanded ? -1 : 0"
             @click="expand"
-            @mouseenter="onPillEnter"
-            @mouseleave="onPillLeave"
           >
             <span ref="pillInnerRef" class="di-pill__inner">
               <!-- 指示器：确定态进度环 / 不确定态旋转弧环 / 终态状态图标 -->
