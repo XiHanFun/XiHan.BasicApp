@@ -74,6 +74,26 @@ public sealed class FileDomainService
     }
 
     /// <inheritdoc />
+    public async Task IncrementDownloadCountAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
+        file.IncrementDownloadCount();
+        _ = await _fileRepository.UpdateAsync(file, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task IncrementViewCountAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var file = await GetFileOrThrowAsync(fileId, cancellationToken);
+        file.IncrementViewCount();
+        _ = await _fileRepository.UpdateAsync(file, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<FileCommandResult> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

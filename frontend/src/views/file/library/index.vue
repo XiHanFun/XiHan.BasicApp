@@ -29,6 +29,7 @@ import {
   NTag,
   NTooltip,
   NUpload,
+  NUploadDragger,
   useMessage,
 } from 'naive-ui'
 import Papa from 'papaparse'
@@ -395,19 +396,15 @@ const detailTitle = computed(() => detailKind.value === 'file' ? '文件详情' 
 // ── 上传抽屉 ────────────────────────────────────────────────────
 const uploadVisible = ref(false)
 const uploadLoading = ref(false)
+// 上传表单仅保留与用户相关的字段；存储供应商/桶/目录/访问控制等由后端默认存储配置决定，不再让用户填写
 const uploadForm = reactive({
-  accessControl: '',
   accessLevel: ResourceAccessLevel.Authorized,
-  bucketName: '',
-  cacheControl: '',
-  directory: '',
   isEncrypted: false,
   isTemporary: false,
   overwrite: false,
-  providerName: '',
   remark: '',
-  retentionDays: 0,
-  routeKey: '',
+  // 临时文件保留天数（开启「临时」时生效；后端要求临时文件必须带过期/保留天数，否则校验失败）
+  retentionDays: 7,
   tags: '',
 })
 
@@ -433,6 +430,14 @@ function normalizeNullable(value?: string | null) {
 }
 
 function openUploadDrawer() {
+  // 每次打开重置为默认，避免上次的开关/备注残留
+  uploadForm.accessLevel = ResourceAccessLevel.Authorized
+  uploadForm.isEncrypted = false
+  uploadForm.isTemporary = false
+  uploadForm.overwrite = false
+  uploadForm.remark = ''
+  uploadForm.retentionDays = 7
+  uploadForm.tags = ''
   uploadVisible.value = true
 }
 
@@ -516,19 +521,14 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
   uploadLoading.value = true
   try {
     await fileManagementApi.upload({
-      accessControl: normalizeNullable(uploadForm.accessControl),
       accessLevel: uploadForm.accessLevel,
-      bucketName: normalizeNullable(uploadForm.bucketName),
-      cacheControl: normalizeNullable(uploadForm.cacheControl),
-      directory: normalizeNullable(uploadForm.directory),
       file: rawFile,
       isEncrypted: uploadForm.isEncrypted,
       isTemporary: uploadForm.isTemporary,
       overwrite: uploadForm.overwrite,
-      providerName: normalizeNullable(uploadForm.providerName),
       remark: normalizeNullable(uploadForm.remark),
-      retentionDays: uploadForm.retentionDays,
-      routeKey: normalizeNullable(uploadForm.routeKey),
+      // 仅临时文件传保留天数（≥1），普通文件传 0；满足后端临时文件必须带保留期的校验
+      retentionDays: uploadForm.isTemporary ? Math.max(1, uploadForm.retentionDays) : 0,
       tags: normalizeNullable(uploadForm.tags),
     })
     options.onProgress({ percent: 100 })
@@ -889,48 +889,81 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
     :schema="schema"
     @action="onAction"
   >
-    <NDrawer v-model:show="uploadVisible" :width="520">
-      <NDrawerContent closable title="上传文件">
-        <NSpace vertical>
+    <NModal
+      v-model:show="uploadVisible"
+      preset="card"
+      title="上传文件"
+      :bordered="false"
+      :mask-closable="!uploadLoading"
+      :closable="!uploadLoading"
+      style="width: 520px; max-width: calc(100vw - 32px)"
+    >
+      <NSpace vertical :size="16">
+        <!-- 拖拽区：点击或拖入文件即上传（按当前默认存储配置保存） -->
+        <NUpload
+          :custom-request="handleUploadRequest"
+          :disabled="uploadLoading"
+          :show-file-list="false"
+          :multiple="false"
+        >
+          <NUploadDragger>
+            <div class="file-upload-dragger">
+              <NIcon :size="38" :depth="3">
+                <Icon icon="lucide:cloud-upload" />
+              </NIcon>
+              <div class="file-upload-dragger__text">
+                {{ uploadLoading ? '上传中…' : '点击或拖拽文件到此处上传' }}
+              </div>
+              <div class="file-upload-dragger__hint">
+                文件将按当前默认存储配置保存
+              </div>
+            </div>
+          </NUploadDragger>
+        </NUpload>
+
+        <!-- 访问级别 -->
+        <div class="file-upload-field">
+          <span class="file-upload-field__label">访问级别</span>
           <NSelect
             v-model:value="uploadForm.accessLevel"
             :options="accessLevelOptions"
+            :disabled="uploadLoading"
             placeholder="访问级别"
           />
-          <NInput v-model:value="uploadForm.routeKey" clearable placeholder="路由键" />
-          <NInput v-model:value="uploadForm.providerName" clearable placeholder="存储提供商" />
-          <NInput v-model:value="uploadForm.bucketName" clearable placeholder="存储桶" />
-          <NInput v-model:value="uploadForm.directory" clearable placeholder="目录" />
-          <NInput v-model:value="uploadForm.accessControl" clearable placeholder="访问控制" />
-          <NInput v-model:value="uploadForm.cacheControl" clearable placeholder="缓存控制" />
-          <NInput v-model:value="uploadForm.tags" clearable placeholder="标签" />
-          <NInput v-model:value="uploadForm.remark" clearable placeholder="备注" type="textarea" />
-          <NInputNumber v-model:value="uploadForm.retentionDays" :min="0" placeholder="保留天数" style="width: 100%" />
-          <div class="file-upload-switches">
-            <NSpace align="center">
-              <span>覆盖</span>
-              <NSwitch v-model:value="uploadForm.overwrite" />
-            </NSpace>
-            <NSpace align="center">
-              <span>加密</span>
-              <NSwitch v-model:value="uploadForm.isEncrypted" />
-            </NSpace>
-            <NSpace align="center">
-              <span>临时</span>
-              <NSwitch v-model:value="uploadForm.isTemporary" />
-            </NSpace>
+        </div>
+
+        <!-- 开关：覆盖 / 加密 / 临时 -->
+        <div class="file-upload-switches">
+          <div class="file-upload-switch">
+            <span>覆盖同名</span>
+            <NSwitch v-model:value="uploadForm.overwrite" :disabled="uploadLoading" />
           </div>
-          <NUpload :custom-request="handleUploadRequest" :disabled="uploadLoading" :show-file-list="false">
-            <NButton block :loading="uploadLoading" type="primary">
-              <template #icon>
-                <NIcon><Icon icon="lucide:upload" /></NIcon>
-              </template>
-              选择文件
-            </NButton>
-          </NUpload>
-        </NSpace>
-      </NDrawerContent>
-    </NDrawer>
+          <div class="file-upload-switch">
+            <span>加密</span>
+            <NSwitch v-model:value="uploadForm.isEncrypted" :disabled="uploadLoading" />
+          </div>
+          <div class="file-upload-switch">
+            <span>临时</span>
+            <NSwitch v-model:value="uploadForm.isTemporary" :disabled="uploadLoading" />
+          </div>
+        </div>
+
+        <!-- 保留天数：仅临时文件需要 -->
+        <div v-if="uploadForm.isTemporary" class="file-upload-field">
+          <span class="file-upload-field__label">保留天数</span>
+          <NInputNumber
+            v-model:value="uploadForm.retentionDays"
+            :min="1"
+            :disabled="uploadLoading"
+            placeholder="临时文件到期后自动清理"
+            style="width: 100%"
+          />
+        </div>
+
+        <NInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" placeholder="标签（可选）" />
+        <NInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" placeholder="备注（可选）" type="textarea" :rows="2" />
+      </NSpace>
+    </NModal>
 
     <NDrawer v-model:show="metadataVisible" :width="460">
       <NDrawerContent closable title="编辑文件元数据">
@@ -1249,7 +1282,45 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 .file-upload-switches {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 20px;
+}
+
+.file-upload-switch {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--n-text-color, inherit);
+}
+
+.file-upload-dragger {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.file-upload-dragger__text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--n-text-color, inherit);
+}
+
+.file-upload-dragger__hint {
+  font-size: 12px;
+  color: var(--text-secondary, rgb(140 145 150));
+}
+
+.file-upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.file-upload-field__label {
+  font-size: 13px;
+  color: var(--text-secondary, rgb(118 124 130));
 }
 
 .file-preview-body {
