@@ -28,6 +28,16 @@ export const fileApi = {
   detail(id: ApiId) {
     return fileQueryApi.get<FileDetailDto | null>(`FileDetail/${formatDynamicApiRouteValue(id)}`)
   },
+  /**
+   * 彻底删除：物理删除文件记录与副本；deletePhysical=true 时连物理文件一并删除（不可恢复）。
+   * 后端 DeleteFileAsync 的 Delete 前缀被 DynamicApi 当 HTTP 谓词剥离，实际路由为 DELETE /api/File/File；
+   * 且框架约定 DELETE 不收 body，FileDeleteDto 经 query 绑定。
+   */
+  destroy(input: { basicId: ApiId, deletePhysical: boolean, reason?: string }) {
+    return fileCommandApi.delete<void>('File', {
+      params: { basicId: input.basicId, deletePhysical: input.deletePhysical, reason: input.reason },
+    })
+  },
   download(fileId: ApiId) {
     // 后端 DownloadFileAsync：Download 前缀不在动词约定表，默认 POST；fileId（简单类型）在 POST 下绑定 Query。
     // 走鉴权下载接口（File.Read），axios 自动带 token，规避静态 URL 的匿名/未知 MIME 访问限制。

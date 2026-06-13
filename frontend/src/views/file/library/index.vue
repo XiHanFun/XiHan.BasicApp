@@ -30,6 +30,7 @@ import {
   NTooltip,
   NUpload,
   NUploadDragger,
+  useDialog,
   useMessage,
 } from 'naive-ui'
 import Papa from 'papaparse'
@@ -52,6 +53,7 @@ type DetailKind = 'file' | 'storage'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 const message = useMessage()
+const dialog = useDialog()
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -335,8 +337,10 @@ const schema: PageSchema = {
     { key: 'view', title: '查看详情', scope: 'row' },
     { key: 'metadata', title: '编辑元数据', scope: 'row' },
     { key: 'storages', title: '存储副本', scope: 'row' },
-    { key: 'archive', title: '归档', scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Archived },
-    { key: 'delete', title: '删除', scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Deleted },
+    // 回收站语义：正常文件可「归档」（软删，可恢复）；非正常文件可「恢复」；任意状态可「彻底删除」（物理删，不可恢复）
+    { key: 'archive', title: '归档', scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
+    { key: 'restore', title: '恢复', scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal },
+    { key: 'destroy', title: '彻底删除', scope: 'row', type: 'error' },
   ],
 }
 
@@ -374,12 +378,17 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'archive':
       if (row) {
-        void handleUpdateFileStatus(row, FileStatus.Archived)
+        void handleUpdateFileStatus(row, FileStatus.Archived, '已归档')
       }
       break
-    case 'delete':
+    case 'restore':
       if (row) {
-        void handleDeleteFile(row)
+        void handleUpdateFileStatus(row, FileStatus.Normal, '已恢复')
+      }
+      break
+    case 'destroy':
+      if (row) {
+        handleDestroyFile(row)
       }
       break
   }
@@ -482,34 +491,43 @@ async function handleSaveMetadata() {
   }
 }
 
-async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus) {
+async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, successText = '文件状态已更新') {
   actionLoading.value = true
   try {
     await fileManagementApi.updateStatus({ basicId: row.basicId, status })
-    message.success('文件状态已更新')
+    message.success(successText)
     reload()
   }
   catch {
-    message.error('更新文件状态失败')
+    message.error('操作失败')
   }
   finally {
     actionLoading.value = false
   }
 }
 
-async function handleDeleteFile(row: FileListItemDto) {
-  actionLoading.value = true
-  try {
-    await fileManagementApi.updateStatus({ basicId: row.basicId, status: FileStatus.Deleted })
-    message.success('文件已删除')
-    reload()
-  }
-  catch {
-    message.error('删除文件失败')
-  }
-  finally {
-    actionLoading.value = false
-  }
+/** 彻底删除：物理删除记录 + 物理文件，不可恢复，强二次确认 */
+function handleDestroyFile(row: FileListItemDto) {
+  dialog.error({
+    title: '彻底删除',
+    content: `将永久删除「${row.originalName}」的记录、所有存储副本及物理文件，此操作不可恢复。确定继续？`,
+    positiveText: '彻底删除',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      actionLoading.value = true
+      try {
+        await fileManagementApi.destroy({ basicId: row.basicId, deletePhysical: true })
+        message.success('已彻底删除')
+        reload()
+      }
+      catch {
+        message.error('彻底删除失败')
+      }
+      finally {
+        actionLoading.value = false
+      }
+    },
+  })
 }
 
 async function handleUploadRequest(options: UploadCustomRequestOptions) {
