@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { DiffLogDetailDto, DiffLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { AuditOperationType, AuditRiskLevel, createPageRequest, diffLogApi } from '@/api'
@@ -124,6 +124,29 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildDiffQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    operationType: (f.operationType as AuditOperationType | undefined) ?? undefined,
+    riskLevel: (f.riskLevel as AuditRiskLevel | undefined) ?? undefined,
+    isSuccess: f.isSuccess == null ? undefined : Number(f.isSuccess) === 1,
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    entityType: toStr(f.entityType),
+    entityName: toStr(f.entityName),
+    entityId: toStr(f.entityId),
+    tableName: toStr(f.tableName),
+    traceId: toStr(f.traceId),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    auditTimeStart: toIso(f.auditTimeStart),
+    auditTimeEnd: toIso(f.auditTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.diff',
   pageName: '数据变更',
@@ -131,27 +154,8 @@ const schema: PageSchema = {
   scrollX: 2300,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return diffLogApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        operationType: (f.operationType as AuditOperationType | undefined) ?? undefined,
-        riskLevel: (f.riskLevel as AuditRiskLevel | undefined) ?? undefined,
-        isSuccess: f.isSuccess == null ? undefined : Number(f.isSuccess) === 1,
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        entityType: toStr(f.entityType),
-        entityName: toStr(f.entityName),
-        entityId: toStr(f.entityId),
-        tableName: toStr(f.tableName),
-        traceId: toStr(f.traceId),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        auditTimeStart: toIso(f.auditTimeStart),
-        auditTimeEnd: toIso(f.auditTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => diffLogApi.page(buildDiffQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.diff', buildQuery: buildDiffQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
