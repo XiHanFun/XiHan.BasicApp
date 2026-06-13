@@ -189,6 +189,11 @@ export interface SchemaResource<TRow> {
   /** 删除单条（行级/批量删除依赖） */
   remove?: (id: ApiId) => Promise<void>
   /**
+   * 启停单条（批量启用/停用依赖）—— 框架按行调用，enabled=true 启用 / false 停用；
+   * 页面适配器负责映射为后端状态更新 API（status 枚举/remark 等由页面填充）。
+   */
+  updateStatus?: (id: ApiId, enabled: boolean) => Promise<unknown>
+  /**
    * 新增单条（导入闭环依赖）—— 接收按 importable 字段组装的记录（field.key → 归一化值），
    * 页面适配器负责映射为后端 CreateDto（补默认值/裁剪字段）。
    */
@@ -234,6 +239,8 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   batchRemovable?: boolean
   /** 批量删除所需权限码（声明后多选批量删除仅在用户拥有该权限时可用；缺省则不限制） */
   removePermission?: string
+  /** 批量启停所需权限码（声明后多选「批量启用/停用」仅在用户拥有该权限时可用；依赖 resource.updateStatus） */
+  statusPermission?: string
   /** 表格横向滚动宽度 */
   scrollX?: number
   /** 默认每页数量 */

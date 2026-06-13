@@ -181,6 +181,7 @@ const schema: PageSchema = {
   pageName: '角色管理',
   batchRemovable: true,
   removePermission: 'saas:role:delete',
+  statusPermission: 'saas:role:status',
   rowKey: 'basicId',
   scrollX: 1600,
   fields,
@@ -198,6 +199,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => roleManagementApi.delete(id),
+    updateStatus: (id, enabled) => roleManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用角色' : '批量停用角色' }),
   },
   actions: [
     { key: 'create', title: '新增角色', scope: 'page', type: 'primary', icon: 'lucide:plus' },
