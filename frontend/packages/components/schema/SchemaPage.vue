@@ -91,6 +91,7 @@ const peekFields = computed<ListFieldSchema[]>(() =>
 /** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */
 const autoSelectable = (props.schema.actions ?? []).some(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission)))
   || (!!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
+  || (!!props.schema.resource.updateStatus && (!props.schema.statusPermission || hasPermission(props.schema.statusPermission)))
 
 /** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化） */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: autoSelectable })
@@ -263,6 +264,10 @@ function clearSelection() {
 const canBatchRemove = computed(() => !!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
 const batchRemoving = ref(false)
 
+/** 批量启停：依赖 resource.updateStatus，按 statusPermission 门控 */
+const canBatchStatus = computed(() => !!props.schema.resource.updateStatus && (!props.schema.statusPermission || hasPermission(props.schema.statusPermission)))
+const batchStatusUpdating = ref(false)
+
 function handleBatchRemove() {
   const targets = selectedRows.value
   const removeFn = props.schema.resource.remove
@@ -293,6 +298,43 @@ function handleBatchRemove() {
       }
       finally {
         batchRemoving.value = false
+      }
+    },
+  })
+}
+
+/** 批量启停：对选中行逐个调用 resource.updateStatus(id, enabled)，并发执行后汇总 */
+function handleBatchStatus(enabled: boolean) {
+  const targets = selectedRows.value
+  const updateFn = props.schema.resource.updateStatus
+  if (targets.length === 0 || !updateFn) {
+    return
+  }
+  const rowKey = props.schema.rowKey ?? 'basicId'
+  const label = enabled ? '启用' : '停用'
+  dialog.warning({
+    title: `批量${label}`,
+    content: `确定${label}选中的 ${targets.length} 条记录？`,
+    positiveText: `确认${label}`,
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      batchStatusUpdating.value = true
+      try {
+        const results = await Promise.allSettled(
+          targets.map(row => updateFn((row as Record<string, unknown>)[rowKey] as ApiId, enabled)),
+        )
+        const failed = results.filter(r => r.status === 'rejected').length
+        if (failed === 0) {
+          message.success(`已${label} ${targets.length} 条`)
+        }
+        else {
+          message.warning(`${label}完成：成功 ${targets.length - failed} 条，失败 ${failed} 条`)
+        }
+        clearSelection()
+        await table.load()
+      }
+      finally {
+        batchStatusUpdating.value = false
       }
     },
   })
@@ -618,6 +660,24 @@ defineExpose({
               <span class="xh-batch-bar__count">已选择 <strong>{{ checkedKeys.length }}</strong> 条</span>
               <NButton quaternary size="small" @click="clearSelection">
                 清空选择
+              </NButton>
+              <NButton
+                v-if="canBatchStatus"
+                size="small"
+                type="success"
+                :loading="batchStatusUpdating"
+                @click="handleBatchStatus(true)"
+              >
+                批量启用
+              </NButton>
+              <NButton
+                v-if="canBatchStatus"
+                size="small"
+                type="warning"
+                :loading="batchStatusUpdating"
+                @click="handleBatchStatus(false)"
+              >
+                批量停用
               </NButton>
               <NButton
                 v-if="canBatchRemove"
