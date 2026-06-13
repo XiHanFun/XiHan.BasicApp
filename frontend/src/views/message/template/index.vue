@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   MessageTemplateDetailDto,
   MessageTemplateListItemDto,
   PageResult,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDescriptions,
@@ -151,6 +151,7 @@ function toStr(v: unknown): string | undefined {
 
 const schema: PageSchema = {
   pageCode: 'message.template',
+  exportPermission: 'saas:message-template:export',
   pageName: '消息模板',
   rowKey: 'basicId',
   scrollX: 1500,

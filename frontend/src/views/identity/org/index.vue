@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CascaderOption, DataTableColumns } from 'naive-ui'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   DepartmentCreateDto,
@@ -11,6 +10,7 @@ import type {
   DepartmentTreeNodeDto,
   DepartmentUpdateDto,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NCascader,
@@ -131,6 +131,7 @@ const fields: ListFieldSchema[] = [
 // DepartmentTreeQueryDto 仅支持 keyword/limit/onlyEnabled；类型/状态仅作为列展示。
 const schema: PageSchema = {
   pageCode: 'system.org',
+  exportPermission: 'saas:department:export',
   pageName: '组织机构',
   rowKey: 'basicId',
   scrollX: 1400,

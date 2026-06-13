@@ -233,7 +233,21 @@ public static class SaasPermissionCodes
         LoginLog.Export,
         ExceptionLog.Export,
         DiffLog.Export,
-        Config.Import
+        Config.Import,
+        Role.Export,
+        Department.Export,
+        Permission.Export,
+        FieldLevelSecurity.Export,
+        PermissionRequest.Export,
+        Tenant.Export,
+        MessageTemplate.Export,
+        Review.Export,
+        File.Export,
+        OAuthApp.Export,
+        Menu.Export,
+        Dict.Export,
+        Config.Export,
+        Task.Export
     ];
 
     /// <summary>
@@ -260,6 +274,11 @@ public static class SaasPermissionCodes
         /// 更新租户状态
         /// </summary>
         public const string Status = "saas:tenant:status";
+
+        /// <summary>
+        /// 导出租户
+        /// </summary>
+        public const string Export = "saas:tenant:export";
     }
 
     /// <summary>
@@ -379,6 +398,11 @@ public static class SaasPermissionCodes
         /// 删除权限定义
         /// </summary>
         public const string Delete = "saas:permission:delete";
+
+        /// <summary>
+        /// 导出权限定义
+        /// </summary>
+        public const string Export = "saas:permission:export";
     }
 
     /// <summary>
@@ -472,6 +496,11 @@ public static class SaasPermissionCodes
         /// 删除菜单
         /// </summary>
         public const string Delete = "saas:menu:delete";
+
+        /// <summary>
+        /// 导出菜单
+        /// </summary>
+        public const string Export = "saas:menu:export";
     }
 
     /// <summary>
@@ -503,6 +532,11 @@ public static class SaasPermissionCodes
         /// 删除部门
         /// </summary>
         public const string Delete = "saas:department:delete";
+
+        /// <summary>
+        /// 导出部门
+        /// </summary>
+        public const string Export = "saas:department:export";
     }
 
     /// <summary>
@@ -666,6 +700,11 @@ public static class SaasPermissionCodes
         /// 重置 OAuth 应用密钥
         /// </summary>
         public const string Secret = "saas:oauth-app:secret";
+
+        /// <summary>
+        /// 导出 OAuth 应用
+        /// </summary>
+        public const string Export = "saas:oauth-app:export";
     }
 
     /// <summary>
@@ -831,6 +870,11 @@ public static class SaasPermissionCodes
         /// 删除系统任务
         /// </summary>
         public const string Delete = "saas:task:delete";
+
+        /// <summary>
+        /// 导出系统任务
+        /// </summary>
+        public const string Export = "saas:task:export";
     }
 
     /// <summary>
@@ -883,6 +927,11 @@ public static class SaasPermissionCodes
         /// 删除系统审查
         /// </summary>
         public const string Delete = "saas:review:delete";
+
+        /// <summary>
+        /// 导出系统审查
+        /// </summary>
+        public const string Export = "saas:review:export";
     }
 
     /// <summary>
@@ -930,6 +979,11 @@ public static class SaasPermissionCodes
         /// 导入系统配置
         /// </summary>
         public const string Import = "saas:config:import";
+
+        /// <summary>
+        /// 导出系统配置
+        /// </summary>
+        public const string Export = "saas:config:export";
     }
 
     /// <summary>
@@ -961,6 +1015,11 @@ public static class SaasPermissionCodes
         /// 删除系统字典
         /// </summary>
         public const string Delete = "saas:dict:delete";
+
+        /// <summary>
+        /// 导出系统字典
+        /// </summary>
+        public const string Export = "saas:dict:export";
     }
 
     /// <summary>
@@ -1023,6 +1082,11 @@ public static class SaasPermissionCodes
         /// 删除系统文件
         /// </summary>
         public const string Delete = "saas:file:delete";
+
+        /// <summary>
+        /// 导出系统文件
+        /// </summary>
+        public const string Export = "saas:file:export";
     }
 
     /// <summary>
@@ -1090,6 +1154,11 @@ public static class SaasPermissionCodes
         /// 删除消息模板
         /// </summary>
         public const string Delete = "saas:message-template:delete";
+
+        /// <summary>
+        /// 导出消息模板
+        /// </summary>
+        public const string Export = "saas:message-template:export";
     }
 
     /// <summary>
@@ -1241,6 +1310,11 @@ public static class SaasPermissionCodes
         /// 删除角色定义
         /// </summary>
         public const string Delete = "saas:role:delete";
+
+        /// <summary>
+        /// 导出角色
+        /// </summary>
+        public const string Export = "saas:role:export";
     }
 
     /// <summary>
@@ -1448,6 +1522,11 @@ public static class SaasPermissionCodes
         /// 删除字段级安全
         /// </summary>
         public const string Delete = "saas:field-level-security:delete";
+
+        /// <summary>
+        /// 导出字段级安全
+        /// </summary>
+        public const string Export = "saas:field-level-security:export";
     }
 
     /// <summary>
@@ -1510,6 +1589,11 @@ public static class SaasPermissionCodes
         /// 撤回权限申请
         /// </summary>
         public const string Withdraw = "saas:permission-request:withdraw";
+
+        /// <summary>
+        /// 导出权限申请
+        /// </summary>
+        public const string Export = "saas:permission-request:export";
     }
 
     /// <summary>

@@ -177,6 +177,7 @@ const fields: ListFieldSchema[] = [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema: PageSchema = {
   pageCode: 'system.role',
+  exportPermission: 'saas:role:export',
   pageName: '角色管理',
   rowKey: 'basicId',
   scrollX: 1600,
@@ -1158,7 +1159,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
             @update:checked-keys="onMenuCheck"
           />
         </NSpin>
-        <p class="perm-tip">勾选菜单授予其关联权限；勾选目录级联其下子菜单。改动需点「保存授权」统一提交。</p>
+        <p class="perm-tip">
+          勾选菜单授予其关联权限；勾选目录级联其下子菜单。改动需点「保存授权」统一提交。
+        </p>
         <template #footer>
           <NButton @click="menuVisible = false">
             取消

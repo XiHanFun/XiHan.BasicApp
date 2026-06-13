@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   FieldLevelSecurityCreateDto,
@@ -7,6 +6,7 @@ import type {
   FieldLevelSecurityUpdateDto,
   PageResult,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NForm,
@@ -25,8 +25,8 @@ import {
   createPageRequest,
   departmentApi,
   EnableStatus,
-  FieldMaskStrategy,
   fieldLevelSecurityApi,
+  FieldMaskStrategy,
   FieldSecurityTargetType,
   permissionApi,
   resourceApi,
@@ -314,6 +314,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'system.field-security',
+  exportPermission: 'saas:field-level-security:export',
   pageName: '字段级权限',
   rowKey: 'basicId',
   scrollX: 1500,

@@ -145,6 +145,7 @@ const fields: ListFieldSchema[] = [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema: PageSchema = {
   pageCode: 'platform.app',
+  exportPermission: 'saas:oauth-app:export',
   pageName: '应用管理',
   rowKey: 'basicId',
   scrollX: 1700,

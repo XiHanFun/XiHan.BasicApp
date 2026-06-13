@@ -229,6 +229,7 @@ function isPending(row: unknown) {
 
 const requestSchema: PageSchema = {
   pageCode: 'system.authorization.request',
+  exportPermission: 'saas:permission-request:export',
   pageName: '授权申请',
   rowKey: 'basicId',
   scrollX: 1300,

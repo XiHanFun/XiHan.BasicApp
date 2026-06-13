@@ -105,6 +105,7 @@ const fields: ListFieldSchema[] = [
 // ── 资源适配器：归一化查询参数 → 后端 API（仅放后端支持的搜索字段） ──
 const schema: PageSchema = {
   pageCode: 'platform.config',
+  exportPermission: 'saas:config:export',
   importPermission: 'saas:config:import',
   pageName: '参数配置',
   rowKey: 'basicId',

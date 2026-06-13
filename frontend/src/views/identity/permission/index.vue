@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   OperationSelectItemDto,
@@ -9,7 +8,10 @@ import type {
   PermissionListItemDto,
   PermissionUpdateDto,
   ResourceSelectItemDto,
+
+  ValidityStatus,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDescriptions,
@@ -38,7 +40,6 @@ import {
   EnableStatus,
   permissionCenterApi,
   PermissionType,
-  ValidityStatus,
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import {
@@ -244,6 +245,7 @@ const fields: ListFieldSchema[] = [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema: PageSchema = {
   pageCode: 'system.permission',
+  exportPermission: 'saas:permission:export',
   pageName: '权限管理',
   rowKey: 'basicId',
   scrollX: 2000,

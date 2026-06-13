@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   DictCreateDto,
   DictDetailDto,
@@ -9,6 +8,7 @@ import type {
   DictListItemDto,
   DictUpdateDto,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDataTable,
@@ -117,6 +117,7 @@ const fields: ListFieldSchema[] = [
 // schema 使用框架默认行类型（Record），页面侧在 handler 入口断言为 DictListItemDto 保有类型安全
 const schema: PageSchema = {
   pageCode: 'platform.dict',
+  exportPermission: 'saas:dict:export',
   pageName: '字典管理',
   rowKey: 'basicId',
   scrollX: 1000,

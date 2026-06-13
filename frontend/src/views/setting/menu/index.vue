@@ -207,6 +207,7 @@ function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
 
 const schema: PageSchema = {
   pageCode: 'platform.menu',
+  exportPermission: 'saas:menu:export',
   pageName: '菜单管理',
   rowKey: 'basicId',
   scrollX: 2000,
