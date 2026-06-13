@@ -518,7 +518,9 @@ defineExpose({
             </template>
             导入（CSV）
           </NTooltip>
-          <template v-if="exportFields.length || canSubmitExport">
+          <!-- 通用导出：所有 SchemaPage 列表页默认获得同步 CSV 导出（导出所见列，零配置）；
+               已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口 -->
+          <template v-if="effectiveExportFields.length">
             <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
             <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
               <NButton circle quaternary size="small" aria-label="导出" :loading="exporting || submittingExport">
