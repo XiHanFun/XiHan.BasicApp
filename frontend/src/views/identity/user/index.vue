@@ -499,6 +499,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'system.user',
+  exportPermission: 'saas:user:export',
   pageName: '用户管理',
   rowKey: 'basicId',
   scrollX: 1760,

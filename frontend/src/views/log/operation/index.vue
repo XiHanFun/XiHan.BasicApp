@@ -134,6 +134,7 @@ function buildOperationQuery(params: SchemaQueryParams) {
 
 const schema: PageSchema = {
   pageCode: 'log.operation',
+  exportPermission: 'saas:operation-log:export',
   pageName: '操作日志',
   rowKey: 'basicId',
   scrollX: 2200,

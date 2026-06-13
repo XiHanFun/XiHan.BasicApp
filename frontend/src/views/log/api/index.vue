@@ -163,6 +163,7 @@ function buildApiQuery(params: SchemaQueryParams) {
 
 const schema: PageSchema = {
   pageCode: 'log.api',
+  exportPermission: 'saas:api-log:export',
   pageName: '开放接口日志',
   rowKey: 'basicId',
   scrollX: 2400,

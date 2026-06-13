@@ -309,5 +309,15 @@ public static class PageRegistry
         new("setting.version.update","编辑","setting.version",SaasPermissionCodes.Version.Update,2),
         new("setting.version.upgrade","升级","setting.version",SaasPermissionCodes.Version.Upgrade,3),
         new("setting.version.delete","删除","setting.version",SaasPermissionCodes.Version.Delete,4),
+
+        // 导入导出按钮（逐资源细粒度，渐进登记；前端按对应权限码显隐导出/导入按钮）
+        new("identity.user.export","导出","identity.user",SaasPermissionCodes.User.Export,6),
+        new("log.operation.export","导出","log.operation",SaasPermissionCodes.OperationLog.Export,1),
+        new("log.access.export","导出","log.access",SaasPermissionCodes.AccessLog.Export,1),
+        new("log.api.export","导出","log.api",SaasPermissionCodes.ApiLog.Export,1),
+        new("log.login.export","导出","log.login",SaasPermissionCodes.LoginLog.Export,1),
+        new("log.exception.export","导出","log.exception",SaasPermissionCodes.ExceptionLog.Export,1),
+        new("log.diff.export","导出","log.diff",SaasPermissionCodes.DiffLog.Export,1),
+        new("setting.config.import","导入","setting.config",SaasPermissionCodes.Config.Import,5),
     ];
 }

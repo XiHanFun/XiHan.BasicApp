@@ -131,6 +131,7 @@ function buildAccessQuery(params: SchemaQueryParams) {
 
 const schema: PageSchema = {
   pageCode: 'log.access',
+  exportPermission: 'saas:access-log:export',
   pageName: '访问日志',
   rowKey: 'basicId',
   scrollX: 2200,

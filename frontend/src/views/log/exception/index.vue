@@ -166,6 +166,7 @@ function buildExceptionQuery(params: SchemaQueryParams) {
 
 const schema: PageSchema = {
   pageCode: 'log.exception',
+  exportPermission: 'saas:exception-log:export',
   pageName: '异常日志',
   rowKey: 'basicId',
   scrollX: 2800,
