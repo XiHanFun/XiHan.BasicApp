@@ -32,6 +32,7 @@ export default {
   setting_cache: 'Cache',
   setting_server: 'Server Monitor',
   setting_version: 'Versions & Upgrades',
+  setting_export_center: 'Export Center',
   log: 'Audit Logs',
   log_access: 'Access Logs',
   log_api: 'Open API Logs',

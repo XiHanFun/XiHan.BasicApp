@@ -32,6 +32,7 @@ export default {
   setting_cache: '缓存管理',
   setting_server: '服务监控',
   setting_version: '版本管理',
+  setting_export_center: '导出中心',
   log: '日志审计',
   log_access: '访问日志',
   log_api: '开放接口日志',
