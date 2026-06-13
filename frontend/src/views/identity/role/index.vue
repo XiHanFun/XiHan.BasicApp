@@ -179,6 +179,8 @@ const schema: PageSchema = {
   pageCode: 'system.role',
   exportPermission: 'saas:role:export',
   pageName: '角色管理',
+  batchRemovable: true,
+  removePermission: 'saas:role:delete',
   rowKey: 'basicId',
   scrollX: 1600,
   fields,

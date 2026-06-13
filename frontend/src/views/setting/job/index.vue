@@ -208,6 +208,8 @@ const schema: PageSchema = {
   pageCode: 'platform.job',
   exportPermission: 'saas:task:export',
   pageName: '任务调度',
+  batchRemovable: true,
+  removePermission: 'saas:task:delete',
   rowKey: 'basicId',
   scrollX: 2000,
   fields,

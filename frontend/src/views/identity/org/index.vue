@@ -133,6 +133,8 @@ const schema: PageSchema = {
   pageCode: 'system.org',
   exportPermission: 'saas:department:export',
   pageName: '组织机构',
+  batchRemovable: true,
+  removePermission: 'saas:department:delete',
   rowKey: 'basicId',
   scrollX: 1400,
   tree: { childrenKey: 'children', defaultExpandAll: false },

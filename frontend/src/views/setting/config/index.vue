@@ -108,6 +108,8 @@ const schema: PageSchema = {
   exportPermission: 'saas:config:export',
   importPermission: 'saas:config:import',
   pageName: '参数配置',
+  batchRemovable: true,
+  removePermission: 'saas:config:delete',
   rowKey: 'basicId',
   scrollX: 1500,
   fields,

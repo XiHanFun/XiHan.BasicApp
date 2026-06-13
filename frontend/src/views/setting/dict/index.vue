@@ -119,6 +119,8 @@ const schema: PageSchema = {
   pageCode: 'platform.dict',
   exportPermission: 'saas:dict:export',
   pageName: '字典管理',
+  batchRemovable: true,
+  removePermission: 'saas:dict:delete',
   rowKey: 'basicId',
   scrollX: 1000,
   fields,

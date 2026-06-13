@@ -209,6 +209,8 @@ const schema: PageSchema = {
   pageCode: 'platform.menu',
   exportPermission: 'saas:menu:export',
   pageName: '菜单管理',
+  batchRemovable: true,
+  removePermission: 'saas:menu:delete',
   rowKey: 'basicId',
   scrollX: 2000,
   tree: { childrenKey: 'children', defaultExpandAll: false },

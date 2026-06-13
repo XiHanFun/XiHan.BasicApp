@@ -247,6 +247,8 @@ const schema: PageSchema = {
   pageCode: 'system.permission',
   exportPermission: 'saas:permission:export',
   pageName: '权限管理',
+  batchRemovable: true,
+  removePermission: 'saas:permission:delete',
   rowKey: 'basicId',
   scrollX: 2000,
   fields,

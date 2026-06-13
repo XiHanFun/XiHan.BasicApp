@@ -90,7 +90,7 @@ const peekFields = computed<ListFieldSchema[]>(() =>
 
 /** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */
 const autoSelectable = (props.schema.actions ?? []).some(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission)))
-  || (!!props.schema.batchRemovable && !!props.schema.resource.remove)
+  || (!!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
 
 /** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化） */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: autoSelectable })
@@ -260,7 +260,7 @@ function clearSelection() {
 }
 
 /** 内置批量删除：依赖 resource.remove + schema.batchRemovable */
-const canBatchRemove = computed(() => !!props.schema.batchRemovable && !!props.schema.resource.remove)
+const canBatchRemove = computed(() => !!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
 const batchRemoving = ref(false)
 
 function handleBatchRemove() {

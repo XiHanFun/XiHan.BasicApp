@@ -316,6 +316,8 @@ const schema: PageSchema = {
   pageCode: 'system.field-security',
   exportPermission: 'saas:field-level-security:export',
   pageName: '字段级权限',
+  batchRemovable: true,
+  removePermission: 'saas:field-level-security:delete',
   rowKey: 'basicId',
   scrollX: 1500,
   fields,
