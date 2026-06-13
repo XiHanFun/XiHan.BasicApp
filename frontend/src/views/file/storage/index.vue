@@ -149,6 +149,7 @@ const schema: PageSchema = {
   pageCode: 'file.storage',
   exportPermission: 'saas:storage-config:export',
   pageName: '存储配置',
+  statusPermission: 'saas:storage-config:status',
   rowKey: 'basicId',
   scrollX: 1200,
   fields,
@@ -163,6 +164,7 @@ const schema: PageSchema = {
         storageType: pickEnum<StorageConfigType>(f.storageType),
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
+    updateStatus: (id, enabled) => storageConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
     { key: 'create', title: '新增配置', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:storage-config:create' },

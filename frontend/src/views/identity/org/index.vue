@@ -135,6 +135,7 @@ const schema: PageSchema = {
   pageName: '组织机构',
   batchRemovable: true,
   removePermission: 'saas:department:delete',
+  statusPermission: 'saas:department:status',
   rowKey: 'basicId',
   scrollX: 1400,
   tree: { childrenKey: 'children', defaultExpandAll: false },
@@ -149,6 +150,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<Record<string, unknown>[]>
     },
     remove: id => orgManagementApi.delete(id),
+    updateStatus: (id, enabled) => orgManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
     { key: 'create', title: '新增根部门', scope: 'page', type: 'primary', icon: 'lucide:plus' },

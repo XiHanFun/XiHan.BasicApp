@@ -211,6 +211,7 @@ const schema: PageSchema = {
   pageName: '菜单管理',
   batchRemovable: true,
   removePermission: 'saas:menu:delete',
+  statusPermission: 'saas:menu:status',
   rowKey: 'basicId',
   scrollX: 2000,
   tree: { childrenKey: 'children', defaultExpandAll: false },
@@ -224,6 +225,7 @@ const schema: PageSchema = {
       return result.then(items => buildTree(items)) as unknown as Promise<Record<string, unknown>[]>
     },
     remove: (id: ApiId) => menuManagementApi.delete(id),
+    updateStatus: (id, enabled) => menuManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   fields: [
     {

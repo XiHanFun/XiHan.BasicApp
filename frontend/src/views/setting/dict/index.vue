@@ -121,6 +121,7 @@ const schema: PageSchema = {
   pageName: '字典管理',
   batchRemovable: true,
   removePermission: 'saas:dict:delete',
+  statusPermission: 'saas:dict:status',
   rowKey: 'basicId',
   scrollX: 1000,
   fields,
@@ -135,6 +136,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => dictManagementApi.delete(id),
+    updateStatus: (id, enabled) => dictManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用字典' : '批量停用字典' }),
   },
   actions: [
     { key: 'create', title: '新增字典', scope: 'page', type: 'primary', icon: 'lucide:plus' },

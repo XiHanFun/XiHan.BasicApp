@@ -110,6 +110,7 @@ const schema: PageSchema = {
   pageName: '参数配置',
   batchRemovable: true,
   removePermission: 'saas:config:delete',
+  statusPermission: 'saas:config:status',
   rowKey: 'basicId',
   scrollX: 1500,
   fields,
@@ -126,6 +127,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => configManagementApi.delete(id),
+    updateStatus: (id, enabled) => configManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用配置' : '批量停用配置' }),
     // 导入适配器：importable 字段记录 → CreateDto（缺省值在此兜底）
     create: (record) => {
       const input: ConfigCreateDto = {

@@ -210,6 +210,7 @@ const schema: PageSchema = {
   pageName: '任务调度',
   batchRemovable: true,
   removePermission: 'saas:task:delete',
+  statusPermission: 'saas:task:status',
   rowKey: 'basicId',
   scrollX: 2000,
   fields,
@@ -228,6 +229,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => jobManagementApi.delete(id),
+    updateStatus: (id, enabled) => jobManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
     { key: 'create', title: '新增任务', scope: 'page', type: 'primary', icon: 'lucide:plus' },
