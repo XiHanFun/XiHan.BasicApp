@@ -131,6 +131,9 @@ function relativeTime(time: number): string {
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
 const PILL_HEIGHT = 34
+// 折叠态宽度上下限：避免内容忽长忽短导致胶囊宽度跳变（短文案撑到下限、长文案截断到上限）
+const PILL_MIN_WIDTH = 150
+const PILL_MAX_WIDTH = 320
 
 const pillInnerRef = ref<HTMLElement | null>(null)
 const panelLayerRef = ref<HTMLElement | null>(null)
@@ -153,7 +156,10 @@ async function measurePill(): Promise<void> {
   inner.style.width = 'max-content'
   const intrinsic = inner.getBoundingClientRect().width
   inner.style.width = previousWidth
-  pillWidth.value = Math.min(Math.ceil(intrinsic), Math.min(window.innerWidth * 0.8, 440))
+  pillWidth.value = Math.min(
+    Math.max(Math.ceil(intrinsic), PILL_MIN_WIDTH),
+    Math.min(window.innerWidth * 0.8, PILL_MAX_WIDTH),
+  )
 }
 
 // ── 新任务到达脉冲：岛已在屏上时（不重新入场）以轻微弹跳提示 ───────
@@ -208,6 +214,9 @@ watch(
   { immediate: true },
 )
 
+// 终态（成功/失败/信息）折叠态呈「卡片」（方一点的圆角）；进行中呈「胶囊」（全圆角）
+const isTerminal = computed(() => !!current.value && current.value.state !== 'loading')
+
 const shellStyle = computed(() => {
   if (expanded.value) {
     return {
@@ -219,7 +228,7 @@ const shellStyle = computed(() => {
   return {
     width: `${pillWidth.value}px`,
     height: `${PILL_HEIGHT}px`,
-    borderRadius: '17px',
+    borderRadius: isTerminal.value ? '13px' : '18px',
   }
 })
 
@@ -562,6 +571,29 @@ onBeforeUnmount(() => {
   color: #60a5fa;
 }
 
+/* ============ 终态卡片：折叠态指示器用状态色实心圆底 + 深色图标 ============ */
+/* 与「过程胶囊」的进度环明显区分，呈现「卡片通知」质感（仅折叠终态，不影响展开面板内的项） */
+.di-shell.is-success .di-pill__inner .di-indicator,
+.di-shell.is-error .di-pill__inner .di-indicator,
+.di-shell.is-info .di-pill__inner .di-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  color: rgb(12 16 22 / 92%);
+}
+
+.di-shell.is-success .di-pill__inner .di-indicator {
+  background: #34d399;
+}
+
+.di-shell.is-error .di-pill__inner .di-indicator {
+  background: #f87171;
+}
+
+.di-shell.is-info .di-pill__inner .di-indicator {
+  background: #60a5fa;
+}
+
 /* ============ 进度环 ============ */
 .di-ring {
   width: 20px;
@@ -728,7 +760,9 @@ onBeforeUnmount(() => {
   color: rgb(255 255 255 / 35%);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
 }
 
 .di-item:hover .di-item__dismiss {
