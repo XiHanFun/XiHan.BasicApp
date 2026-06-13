@@ -16,10 +16,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
+using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
+using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
@@ -275,6 +277,32 @@ public static class ServiceCollectionExtensions
 
         // 注册动态任务执行器（桥接 SysTask.TaskClass/TaskMethod 反射模型，同时实现 IJobWorker）
         services.AddTransient<DynamicJobWorker>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 SaaS 导出中心基础设施
+    /// </summary>
+    /// <remarks>
+    /// 导出引擎：执行器 + CSV 写出器 + 逐资源登记的 <see cref="IExportProvider"/>（首版 system.user / log.operation）；
+    /// 后台 <see cref="ExportTaskHostedService"/> 轮询 Pending 任务异步执行。
+    /// 导出任务仓储（<c>IExportTaskRepository</c>）随 <c>SaasRepository</c> 的 <c>IScopedDependency</c> 自动注册。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasExportInfrastructure(this IServiceCollection services)
+    {
+        // 导出引擎
+        services.AddScoped<IExportExecutor, ExportExecutor>();
+        services.AddSingleton<IExportWriter, CsvExportWriter>();
+
+        // 导出 Provider（逐资源登记；新增资源在此追加一行）
+        services.AddScoped<IExportProvider, UserExportProvider>();
+        services.AddScoped<IExportProvider, OperationLogExportProvider>();
+
+        // 后台执行 worker
+        services.AddHostedService<ExportTaskHostedService>();
 
         return services;
     }
