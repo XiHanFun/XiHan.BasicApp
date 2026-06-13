@@ -156,6 +156,8 @@ public static class PageRegistry
         new("setting.server","服务监控","menu.setting_server",MenuType.Menu,"/setting/server","SettingServer","setting/server/index","setting",SaasPermissionCodes.Server.Read,"lucide:server",760),
         // [8.7] 版本管理（系统版本与升级迁移）
         new("setting.version","版本管理","menu.setting_version",MenuType.Menu,"/setting/version","SettingVersion","setting/version/index","setting",SaasPermissionCodes.Version.Read,"lucide:git-branch",770),
+        // [8.8] 导出中心（我的异步导出任务：任何登录用户可见自己的导出，自鉴权无需权限码）
+        new("setting.export-center","导出中心","menu.setting_export_center",MenuType.Menu,"/setting/export-center","SettingExportCenter","setting/export-center/index","setting",null,"lucide:download",780),
 
         // [9] 日志审计（顶层目录：路径 /log 与目录层级一致）
         new("log","日志审计","menu.log",MenuType.Directory,"/log","Log",null,null,null,"lucide:file-search",800,"/log/access"),
