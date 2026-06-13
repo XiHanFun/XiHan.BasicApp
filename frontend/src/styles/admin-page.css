@@ -68,3 +68,13 @@
   max-height: 280px;
   overflow: auto;
 }
+
+/*
+ * 抽屉响应式：左右两侧抽屉默认用固定 px 宽度，小屏视口比其窄时会超出视口、内容被裁切。
+ * 用 max-width 约束——大屏不触发（保持设定宽度），小屏自动收窄到视口内，内容完整可滚动。
+ * 全局生效，覆盖所有页面的 NDrawer，无需逐个改成弹窗。
+ */
+.n-drawer.n-drawer--left-placement,
+.n-drawer.n-drawer--right-placement {
+  max-width: calc(100vw - 24px);
+}
