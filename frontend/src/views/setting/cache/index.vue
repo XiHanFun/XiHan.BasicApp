@@ -29,6 +29,19 @@ const { hasPermission } = usePermission()
 /** 维护权限（写入/删除）；无则只读浏览 */
 const canManage = computed(() => hasPermission('saas:cache:clear'))
 
+/**
+ * NCard 内容容器样式：经 content-style prop 直传内联样式，不依赖 naive 内部 class（class 名随版本/前缀变动会失效）。
+ * 让内容区成为定高 flex 列，使内部滚动壳能撑满并收敛——与 SchemaPage 的做法一致。
+ */
+const cardContentStyle = {
+  display: 'flex',
+  flex: '1',
+  flexDirection: 'column',
+  minHeight: '0',
+  padding: '8px 12px',
+  overflow: 'hidden',
+} as const
+
 // ── 键列表（左侧） ──
 const keyPattern = ref('*')
 const loadingKeys = ref(false)
@@ -362,7 +375,12 @@ onMounted(loadKeys)
   <div class="cache-page">
     <div class="cache-body">
       <!-- 左侧：键树 -->
-      <NCard :bordered="false" size="small" class="cache-tree-card">
+      <NCard
+        :bordered="false"
+        size="small"
+        class="cache-tree-card"
+        :content-style="cardContentStyle"
+      >
         <template #header>
           <div class="cache-card-header">
             <Icon icon="lucide:database-backup" width="15" />
@@ -442,7 +460,12 @@ onMounted(loadKeys)
       </NCard>
 
       <!-- 右侧：键值 -->
-      <NCard :bordered="false" size="small" class="cache-detail-card">
+      <NCard
+        :bordered="false"
+        size="small"
+        class="cache-detail-card"
+        :content-style="cardContentStyle"
+      >
         <template #header>
           <div v-if="detailKey" class="cache-detail-header">
             <span class="cache-detail-key" :title="detailKey">{{ detailKey }}</span>
@@ -563,7 +586,8 @@ onMounted(loadKeys)
   flex: 1;
   gap: 12px;
   height: 0;
-  min-height: 0;
+  /* 固定值兜底：极端布局模式下高度链失效时，左右栏仍有最小可用高度而不是塌成 0 */
+  min-height: 360px;
   /* page 锁定高度后，行容器在其内不被子（树/详情）撑破，迫使滚动发生在左右两栏内部 */
   overflow: hidden;
 }
@@ -575,15 +599,6 @@ onMounted(loadKeys)
   flex-shrink: 0;
   width: 460px;
   min-width: 360px;
-  overflow: hidden;
-}
-
-.cache-tree-card :deep(.n-card__content) {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  padding: 8px 12px !important;
   overflow: hidden;
 }
 
@@ -679,15 +694,6 @@ onMounted(loadKeys)
   flex: 1;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-}
-
-.cache-detail-card :deep(.n-card__content) {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-  padding: 8px 16px 12px !important;
   overflow: hidden;
 }
 
