@@ -13,7 +13,7 @@ import type { UserPermissionListItemDto } from '@/api/modules/authorization/user
 import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import {
   NButton,
   NCheckbox,
@@ -303,6 +303,17 @@ function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
 }
 
+/** 查询构建（resource.page 与导出快照复用） */
+function buildUserQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    gender: toStr(f.gender) as UserGender | undefined,
+    status: toStr(f.status) as EnableStatus | undefined,
+  }
+}
+
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────────
 const fields: ListFieldSchema[] = [
   // 仅搜索（不作为列）
@@ -493,16 +504,9 @@ const schema: PageSchema = {
   scrollX: 1760,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return userManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        gender: toStr(f.gender) as UserGender | undefined,
-        status: toStr(f.status) as EnableStatus | undefined,
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
     remove: id => userManagementApi.delete(id),
+    export: { businessType: 'system.user', buildQuery: buildUserQuery },
   },
   actions: [
     { key: 'create', title: '新建用户', scope: 'page', type: 'primary', icon: 'tabler:plus' },
