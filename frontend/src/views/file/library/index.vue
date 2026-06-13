@@ -45,6 +45,7 @@ import {
   ResourceAccessLevel,
 } from '@/api'
 import { Icon, SchemaPage, XMdEditor } from '~/components'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { downloadBlob, formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformFilePage' })
@@ -572,28 +573,34 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
     return
   }
   uploadLoading.value = true
+  // 接入灵动岛：上传作为持续任务呈现进度，完成/失败进终态（灵动岛关闭时自动降级为消息提示）
+  const task = islandStart('file:upload', `正在上传 ${rawFile.name}`, { icon: 'lucide:upload', progress: 0 })
+  // 弹窗即时关闭，上传进度交由灵动岛跟踪，不阻塞用户继续操作
+  uploadVisible.value = false
   try {
-    await fileManagementApi.upload({
-      accessLevel: uploadForm.accessLevel,
-      file: rawFile,
-      isEncrypted: uploadForm.isEncrypted,
-      isTemporary: uploadForm.isTemporary,
-      overwrite: uploadForm.overwrite,
-      remark: normalizeNullable(uploadForm.remark),
-      // 仅临时文件传保留天数（≥1），普通文件传 0；满足后端临时文件必须带保留期的校验
-      retentionDays: uploadForm.isTemporary ? Math.max(1, uploadForm.retentionDays) : 0,
-      tags: normalizeNullable(uploadForm.tags),
-    })
+    await fileManagementApi.upload(
+      {
+        accessLevel: uploadForm.accessLevel,
+        file: rawFile,
+        isEncrypted: uploadForm.isEncrypted,
+        isTemporary: uploadForm.isTemporary,
+        overwrite: uploadForm.overwrite,
+        remark: normalizeNullable(uploadForm.remark),
+        // 仅临时文件传保留天数（≥1），普通文件传 0；满足后端临时文件必须带保留期的校验
+        retentionDays: uploadForm.isTemporary ? Math.max(1, uploadForm.retentionDays) : 0,
+        tags: normalizeNullable(uploadForm.tags),
+      },
+      percent => task.setProgress(percent),
+    )
     options.onProgress({ percent: 100 })
     options.onFinish()
-    uploadVisible.value = false
+    task.success('上传成功', { detail: rawFile.name })
     await nextTick()
     reload()
-    message.success('上传成功')
   }
   catch {
     options.onError()
-    message.error('上传失败')
+    task.error('上传失败', { detail: rawFile.name })
   }
   finally {
     uploadLoading.value = false
