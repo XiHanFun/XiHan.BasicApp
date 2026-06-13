@@ -159,6 +159,16 @@ function onAuxClick(event: MouseEvent) {
               <Icon icon="lucide:pin" />
             </NIcon>
           </button>
+          <!-- 首页固定标签：只读锁图标（强制固定、不可取消，纯展示不触发 togglePin） -->
+          <span
+            v-else-if="item.pinned && item.path === HOME_PATH"
+            class="chrome-tab__lock chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
+            aria-label="已固定"
+          >
+            <NIcon size="12">
+              <Icon icon="lucide:lock" />
+            </NIcon>
+          </span>
         </div>
       </div>
     </template>
@@ -199,6 +209,16 @@ function onAuxClick(event: MouseEvent) {
             <Icon icon="lucide:pin" />
           </NIcon>
         </button>
+        <!-- 首页固定标签：只读锁图标（强制固定、不可取消，纯展示不触发 togglePin） -->
+        <span
+          v-else-if="item.pinned && item.path === HOME_PATH"
+          class="flat-tab__lock flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
+          aria-label="已固定"
+        >
+          <NIcon size="12">
+            <Icon icon="lucide:lock" />
+          </NIcon>
+        </span>
       </div>
     </template>
   </div>
@@ -269,7 +289,8 @@ function onAuxClick(event: MouseEvent) {
   transition: all 0.2s ease;
 }
 
-.chrome-tab__pin {
+.chrome-tab__pin,
+.chrome-tab__lock {
   border: 0;
   background: transparent;
   padding: 0;
@@ -282,8 +303,10 @@ function onAuxClick(event: MouseEvent) {
 
 .tab-item.chrome-tab:hover .chrome-tab__close,
 .tab-item.chrome-tab:hover .chrome-tab__pin,
+.tab-item.chrome-tab:hover .chrome-tab__lock,
 .tab-item.chrome-tab.is-active .chrome-tab__close,
-.tab-item.chrome-tab.is-active .chrome-tab__pin {
+.tab-item.chrome-tab.is-active .chrome-tab__pin,
+.tab-item.chrome-tab.is-active .chrome-tab__lock {
   opacity: 0.92;
   transform: scale(1);
 }
@@ -354,7 +377,8 @@ function onAuxClick(event: MouseEvent) {
 }
 
 .flat-tab__close,
-.flat-tab__pin {
+.flat-tab__pin,
+.flat-tab__lock {
   border: 0;
   background: transparent;
   padding: 0;
@@ -372,8 +396,10 @@ function onAuxClick(event: MouseEvent) {
 
 .tab-item.flat-tab:hover .flat-tab__close,
 .tab-item.flat-tab:hover .flat-tab__pin,
+.tab-item.flat-tab:hover .flat-tab__lock,
 .tab-item.flat-tab.is-active .flat-tab__close,
-.tab-item.flat-tab.is-active .flat-tab__pin {
+.tab-item.flat-tab.is-active .flat-tab__pin,
+.tab-item.flat-tab.is-active .flat-tab__lock {
   opacity: 0.92;
   transform: scale(1);
 }
