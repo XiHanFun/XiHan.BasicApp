@@ -96,6 +96,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'setting.version',
+  exportPermission: 'saas:version:export',
   pageName: '版本管理',
   batchRemovable: true,
   removePermission: 'saas:version:delete',

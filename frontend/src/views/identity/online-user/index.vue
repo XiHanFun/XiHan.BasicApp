@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { OnlineUserListItemDto, OnlineUserSummaryDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import { NTag, useDialog, useMessage } from 'naive-ui'
 import { h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { createPageRequest, DeviceType, onlineUserApi, userSessionApi } from '@/api'
@@ -139,6 +139,7 @@ function toStr(v: unknown): string | undefined {
 
 const schema: PageSchema = {
   pageCode: 'identity.online-user',
+  exportPermission: 'saas:user-session:export',
   pageName: '在线用户',
   rowKey: 'basicId',
   scrollX: 1700,

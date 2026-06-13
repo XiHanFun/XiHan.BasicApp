@@ -147,6 +147,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'file.storage',
+  exportPermission: 'saas:storage-config:export',
   pageName: '存储配置',
   rowKey: 'basicId',
   scrollX: 1200,

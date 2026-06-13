@@ -218,6 +218,7 @@ const fields: ListFieldSchema[] = [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema: PageSchema = {
   pageCode: 'approval.constraint',
+  exportPermission: 'saas:constraint-rule:export',
   pageName: '约束规则',
   rowKey: 'basicId',
   scrollX: 1600,
@@ -813,7 +814,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <NInput
             v-model:value="ruleForm.parameters"
             clearable
-            placeholder='如基数约束: {"maxCount": 2}'
+            placeholder="如基数约束: {&quot;maxCount&quot;: 2}"
             :rows="2"
             type="textarea"
           />

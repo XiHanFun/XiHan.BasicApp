@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type {
   ApiId,
   DateTimeString,
@@ -7,6 +6,7 @@ import type {
   NotificationListItemDto,
   PageResult,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDatePicker,
@@ -183,6 +183,7 @@ function toStr(v: unknown): string | undefined {
 
 const schema: PageSchema = {
   pageCode: 'message.notification',
+  exportPermission: 'saas:notification:export',
   pageName: '公告管理',
   rowKey: 'basicId',
   scrollX: 1300,

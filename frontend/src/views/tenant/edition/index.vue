@@ -196,6 +196,7 @@ function toBool(v: unknown): boolean | undefined {
 
 const schema: PageSchema = {
   pageCode: 'tenant.edition',
+  exportPermission: 'saas:tenant-edition:export',
   pageName: '版本套餐',
   rowKey: 'basicId',
   scrollX: 1500,
