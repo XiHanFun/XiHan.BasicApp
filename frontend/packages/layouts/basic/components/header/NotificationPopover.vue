@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NotificationItem } from '~/stores'
-import { NBadge, NButton, NEmpty, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
+import { NButton, NEmpty, NNumberAnimation, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
@@ -141,18 +141,14 @@ function handleClickOutside() {
         <button
           ref="triggerRef"
           type="button"
-          class="xihan-icon-btn mr-1"
+          class="xihan-icon-btn notification-btn mr-1"
           @click="showPopover = !showPopover"
         >
-          <NBadge
-            :value="props.unreadCount"
-            :max="99"
-            :show="props.unreadCount > 0"
-            :processing="props.unreadCount > 0"
-            :offset="[-2, 2]"
-          >
-            <Icon icon="lucide:bell" width="16" height="16" />
-          </NBadge>
+          <Icon icon="lucide:bell" width="16" height="16" />
+          <span v-if="props.unreadCount > 0" class="notification-btn__badge">
+            <NNumberAnimation :to="Math.min(props.unreadCount, 99)" :duration="500" :precision="0" />
+            <span v-if="props.unreadCount > 99">+</span>
+          </span>
         </button>
       </template>
       通知
@@ -315,6 +311,30 @@ function handleClickOutside() {
 .xihan-icon-btn:hover {
   background: hsl(var(--accent));
   color: hsl(var(--foreground));
+}
+
+/* 通知未读徽标：与收藏夹徽标同尺寸（14px 小圆 + 9px 字），红色为通知语义色 */
+.notification-btn {
+  position: relative;
+}
+
+.notification-btn__badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 9999px;
+  background: hsl(var(--destructive, 0 84% 60%));
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
 }
 
 .notification-overlay {

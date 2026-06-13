@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { DragDropProvider } from '@dnd-kit/vue'
-import { NDivider, NEmpty, NPopover } from 'naive-ui'
+import { NDivider, NEmpty, NNumberAnimation, NPopover } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -107,7 +107,10 @@ onBeforeUnmount(() => {
           aria-label="收藏夹"
         >
           <Icon icon="lucide:star" width="18" height="18" />
-          <span v-if="favoritesStore.count > 0" class="fav-btn__badge">{{ favoritesStore.count }}</span>
+          <span v-if="favoritesStore.count > 0" class="fav-btn__badge">
+            <NNumberAnimation :to="Math.min(favoritesStore.count, 99)" :duration="500" :precision="0" />
+            <span v-if="favoritesStore.count > 99">+</span>
+          </span>
         </button>
       </span>
     </template>
@@ -206,6 +209,9 @@ onBeforeUnmount(() => {
   position: absolute;
   top: -1px;
   right: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 14px;
   height: 14px;
   padding: 0 3px;
