@@ -139,6 +139,7 @@ const emailFields: ListFieldSchema[] = [
 
 const emailSchema: PageSchema = {
   pageCode: 'message.email',
+  exportPermission: 'saas:message:export',
   pageName: '系统邮件',
   rowKey: 'basicId',
   scrollX: 1600,
@@ -273,6 +274,7 @@ const smsFields: ListFieldSchema[] = [
 
 const smsSchema: PageSchema = {
   pageCode: 'message.sms',
+  exportPermission: 'saas:message:export',
   pageName: '系统短信',
   rowKey: 'basicId',
   scrollX: 1600,

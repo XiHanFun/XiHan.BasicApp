@@ -333,5 +333,12 @@ public static class PageRegistry
         new("setting.dict.export","导出","setting.dict",SaasPermissionCodes.Dict.Export,9),
         new("setting.config.export","导出","setting.config",SaasPermissionCodes.Config.Export,9),
         new("setting.job.export","导出","setting.job",SaasPermissionCodes.Task.Export,9),
+        new("setting.version.export","导出","setting.version",SaasPermissionCodes.Version.Export,9),
+        new("identity.online-user.export","导出","identity.online-user",SaasPermissionCodes.UserSession.Export,9),
+        new("message.record.export","导出","message.record",SaasPermissionCodes.Message.Export,9),
+        new("message.notification.export","导出","message.notification",SaasPermissionCodes.Notification.Export,9),
+        new("tenant.edition.export","导出","tenant.edition",SaasPermissionCodes.TenantEdition.Export,9),
+        new("file.storage.export","导出","file.storage",SaasPermissionCodes.StorageConfig.Export,9),
+        new("approval.constraint.export","导出","approval.constraint",SaasPermissionCodes.ConstraintRule.Export,9),
     ];
 }
