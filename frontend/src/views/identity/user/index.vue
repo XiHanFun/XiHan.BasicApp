@@ -503,12 +503,14 @@ const schema: PageSchema = {
   pageName: '用户管理',
   batchRemovable: true,
   removePermission: 'saas:user:delete',
+  statusPermission: 'saas:user:status',
   rowKey: 'basicId',
   scrollX: 1760,
   fields,
   resource: {
     page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
     remove: id => userManagementApi.delete(id),
+    updateStatus: (id, enabled) => userManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
     export: { businessType: 'system.user', buildQuery: buildUserQuery },
   },
   actions: [

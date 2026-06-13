@@ -198,6 +198,7 @@ const schema: PageSchema = {
   pageCode: 'tenant.edition',
   exportPermission: 'saas:tenant-edition:export',
   pageName: '版本套餐',
+  statusPermission: 'saas:tenant-edition:status',
   rowKey: 'basicId',
   scrollX: 1500,
   fields,
@@ -212,6 +213,7 @@ const schema: PageSchema = {
         isDefault: toBool(f.isDefault) ?? null,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
+    updateStatus: (id, enabled) => tenantEditionApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
     { key: 'create', title: '新增版本', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:tenant-edition:create' },

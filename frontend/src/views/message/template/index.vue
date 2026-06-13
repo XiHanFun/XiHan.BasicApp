@@ -153,6 +153,7 @@ const schema: PageSchema = {
   pageCode: 'message.template',
   exportPermission: 'saas:message-template:export',
   pageName: '消息模板',
+  statusPermission: 'saas:message-template:status',
   rowKey: 'basicId',
   scrollX: 1500,
   fields,
@@ -166,6 +167,7 @@ const schema: PageSchema = {
         status: (f.status as EnableStatus | undefined) ?? undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
+    updateStatus: (id, enabled) => messageTemplateApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
     { key: 'create', title: '新增模板', scope: 'page', type: 'primary', icon: 'lucide:plus' },

@@ -249,6 +249,7 @@ const schema: PageSchema = {
   pageName: '权限管理',
   batchRemovable: true,
   removePermission: 'saas:permission:delete',
+  statusPermission: 'saas:permission:status',
   rowKey: 'basicId',
   scrollX: 2000,
   fields,
@@ -266,6 +267,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => permissionCenterApi.delete(id),
+    updateStatus: (id, enabled) => permissionCenterApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用权限' : '批量停用权限' }),
   },
   actions: [
     { key: 'create', title: '新增权限', scope: 'page', type: 'primary', icon: 'lucide:plus' },

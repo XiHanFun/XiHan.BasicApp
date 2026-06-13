@@ -318,6 +318,7 @@ const schema: PageSchema = {
   pageName: '字段级权限',
   batchRemovable: true,
   removePermission: 'saas:field-level-security:delete',
+  statusPermission: 'saas:field-level-security:status',
   rowKey: 'basicId',
   scrollX: 1500,
   fields,
@@ -333,6 +334,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => fieldLevelSecurityApi.delete(id),
+    updateStatus: (id, enabled) => fieldLevelSecurityApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用字段规则' : '批量停用字段规则' }),
   },
   actions: [
     { key: 'create', title: '新增字段规则', scope: 'page', type: 'primary', icon: 'lucide:plus' },

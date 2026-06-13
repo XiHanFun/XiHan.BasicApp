@@ -149,6 +149,7 @@ const schema: PageSchema = {
   pageName: '应用管理',
   batchRemovable: true,
   removePermission: 'saas:oauth-app:delete',
+  statusPermission: 'saas:oauth-app:status',
   rowKey: 'basicId',
   scrollX: 1700,
   fields,
@@ -167,6 +168,7 @@ const schema: PageSchema = {
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => appManagementApi.delete(id),
+    updateStatus: (id, enabled) => appManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
     { key: 'create', title: '新增应用', scope: 'page', type: 'primary', icon: 'lucide:plus' },

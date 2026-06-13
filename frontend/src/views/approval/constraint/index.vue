@@ -220,6 +220,7 @@ const schema: PageSchema = {
   pageCode: 'approval.constraint',
   exportPermission: 'saas:constraint-rule:export',
   pageName: '约束规则',
+  statusPermission: 'saas:constraint-rule:status',
   rowKey: 'basicId',
   scrollX: 1600,
   fields,
@@ -233,6 +234,7 @@ const schema: PageSchema = {
         status: (f.status as EnableStatus | undefined) || undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
+    updateStatus: (id, enabled) => constraintRuleApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用约束规则' : '批量停用约束规则' }),
   },
   actions: [
     { key: 'create', title: '新增规则', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:constraint-rule:create' },
