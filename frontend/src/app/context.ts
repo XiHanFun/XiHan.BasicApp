@@ -298,6 +298,11 @@ function createShellApis() {
         )
       },
     },
+    exportTaskApi: {
+      submit(input: { businessType: string, taskName?: string, scope: number, format: number, querySnapshot?: null | string, columns: Array<{ key: string, title: string, valueMap?: Record<string, string> }> }) {
+        return requestClient.post<unknown>('/ExportTask/Submit', input)
+      },
+    },
     operationLogApi: {
       page(input: { page?: number, pageSize?: number }) {
         return getWithFallback<AppPageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))

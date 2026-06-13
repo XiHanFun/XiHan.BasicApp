@@ -4,8 +4,10 @@ import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } f
 import type { ApiId } from '~/types/contracts'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
@@ -356,6 +358,74 @@ const { exporting, exportCsv } = useSchemaExport<Row>({
   fetchRows: fetchExportRows,
 })
 
+// ── 导出中心：提交异步导出（resource.export 存在时启用「提交到导出中心」入口） ──
+const appContext = useAppContext()
+const canSubmitExport = computed(() => !!props.schema.resource.export)
+const submittingExport = ref(false)
+
+const exportMenuOptions = computed(() => [
+  { key: 'center:1', label: '导出查询结果（导出中心）' },
+  { key: 'center:0', label: '仅导出当前页（导出中心）' },
+  { key: 'center:2', label: '导出全部（导出中心）' },
+  { key: 'divider', type: 'divider' },
+  { key: 'local', label: '本地导出 CSV' },
+])
+
+/** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
+function buildExportColumns() {
+  return exportFields.value.map((field) => {
+    const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: field.key, title: field.title }
+    if (field.options?.length) {
+      column.valueMap = Object.fromEntries(field.options.map(option => [String(option.value), option.label]))
+    }
+    return column
+  })
+}
+
+/** 提交导出任务到导出中心（scope：0 当前页 / 1 查询结果 / 2 全部） */
+async function submitExport(scope: number) {
+  const cfg = props.schema.resource.export
+  if (!cfg) {
+    return
+  }
+  const params = {
+    page: page.value,
+    pageSize: pageSize.value,
+    sortField: sortField.value,
+    sortOrder: sortOrder.value,
+    filters: { ...filters },
+  }
+  const query = cfg.buildQuery ? cfg.buildQuery(params) : params
+  submittingExport.value = true
+  const task = islandStart('export:submit', '提交导出…', { icon: 'lucide:download', progress: 0 })
+  try {
+    await appContext.apis.exportTaskApi.submit({
+      businessType: cfg.businessType,
+      scope,
+      format: 0,
+      querySnapshot: JSON.stringify(query),
+      columns: buildExportColumns(),
+    })
+    task.success('已提交导出', { detail: '可在导出中心查看进度与下载' })
+  }
+  catch (error) {
+    task.error('提交导出失败', { detail: (error as Error).message })
+  }
+  finally {
+    submittingExport.value = false
+  }
+}
+
+function onExportSelect(key: string) {
+  if (key === 'local') {
+    void exportCsv()
+    return
+  }
+  if (key.startsWith('center:')) {
+    void submitExport(Number(key.slice('center:'.length)))
+  }
+}
+
 /** 导入：字段含 importable 且 resource.create 存在时，工具栏出现内置导入按钮 */
 const importFields = computed(() => toImportFields(resolvedSchema.value, hasPermission))
 const canImport = computed(() => importFields.value.length > 0 && !!props.schema.resource.create)
@@ -445,16 +515,27 @@ defineExpose({
             </template>
             导入（CSV）
           </NTooltip>
-          <NTooltip v-if="exportFields.length">
-            <template #trigger>
-              <NButton circle quaternary size="small" aria-label="导出" :loading="exporting" @click="exportCsv">
+          <template v-if="exportFields.length">
+            <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
+            <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
+              <NButton circle quaternary size="small" aria-label="导出" :loading="exporting || submittingExport">
                 <template #icon>
                   <NIcon><Icon icon="lucide:download" /></NIcon>
                 </template>
               </NButton>
-            </template>
-            导出（CSV）
-          </NTooltip>
+            </NDropdown>
+            <!-- 未登记页面：维持本地同步 CSV 导出 -->
+            <NTooltip v-else>
+              <template #trigger>
+                <NButton circle quaternary size="small" aria-label="导出" :loading="exporting" @click="exportCsv">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:download" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              导出（CSV）
+            </NTooltip>
+          </template>
           <SchemaTableSettings
             :columns="settings.columns.value"
             :density="settings.density.value"

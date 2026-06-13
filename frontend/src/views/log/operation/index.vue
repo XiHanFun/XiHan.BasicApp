@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { OperationLogDetailDto, OperationLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType } from '@/api'
@@ -109,6 +109,29 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildOperationQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    operationType: (f.operationType as OperationType | undefined) ?? undefined,
+    result: (f.result as OperationExecuteResult | undefined) ?? undefined,
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    module: toStr(f.module),
+    function: toStr(f.function),
+    title: toStr(f.title),
+    method: toStr(f.method),
+    traceId: toStr(f.traceId),
+    sessionId: toStr(f.sessionId),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    operationTimeStart: toIso(f.operationTimeStart),
+    operationTimeEnd: toIso(f.operationTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.operation',
   pageName: '操作日志',
@@ -116,27 +139,8 @@ const schema: PageSchema = {
   scrollX: 2200,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.operation.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        operationType: (f.operationType as OperationType | undefined) ?? undefined,
-        result: (f.result as OperationExecuteResult | undefined) ?? undefined,
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        module: toStr(f.module),
-        function: toStr(f.function),
-        title: toStr(f.title),
-        method: toStr(f.method),
-        traceId: toStr(f.traceId),
-        sessionId: toStr(f.sessionId),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        operationTimeStart: toIso(f.operationTimeStart),
-        operationTimeEnd: toIso(f.operationTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.operation.page(buildOperationQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.operation', buildQuery: buildOperationQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
