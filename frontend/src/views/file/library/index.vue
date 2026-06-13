@@ -368,7 +368,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'metadata':
       if (row) {
-        openMetadataDrawer(row)
+        void openMetadataDrawer(row)
       }
       break
     case 'storages':
@@ -401,6 +401,24 @@ const detailKind = ref<DetailKind>('file')
 const currentFileDetail = ref<FileDetailDto | null>(null)
 const currentStorageDetail = ref<FileStorageDetailDto | null>(null)
 const detailTitle = computed(() => detailKind.value === 'file' ? '文件详情' : '存储副本详情')
+
+/**
+ * 尺寸/时长智能文案：图片显「宽 × 高」、音视频显时长；文档等无此信息时返回空（详情中整行隐藏，不再显示「- x - / -」）。
+ */
+const dimensionText = computed(() => {
+  const detail = currentFileDetail.value
+  if (!detail) {
+    return ''
+  }
+  const parts: string[] = []
+  if (detail.width || detail.height) {
+    parts.push(`${detail.width ?? '?'} × ${detail.height ?? '?'}`)
+  }
+  if (detail.duration) {
+    parts.push(formatDuration(detail.duration))
+  }
+  return parts.join(' / ')
+})
 
 // ── 上传抽屉 ────────────────────────────────────────────────────
 const uploadVisible = ref(false)
@@ -450,16 +468,32 @@ function openUploadDrawer() {
   uploadVisible.value = true
 }
 
-function openMetadataDrawer(row: FileListItemDto) {
+async function openMetadataDrawer(row: FileListItemDto) {
   metadataRow.value = row
+  // 先用列表值快速回填（列表 DTO 无 tags/remark/访问权限）
   metadataForm.accessLevel = row.accessLevel
   metadataForm.accessPermissions = ''
   metadataForm.isEncrypted = row.isEncrypted
   metadataForm.isTemporary = row.isTemporary
-  metadataForm.retentionDays = row.retentionDays
+  metadataForm.retentionDays = row.retentionDays || 7
   metadataForm.tags = ''
   metadataForm.remark = ''
   metadataVisible.value = true
+  // 取详情回填标签/备注/访问权限，避免编辑时看不到原值、保存被清空
+  try {
+    const detail = await fileManagementApi.detail(row.basicId)
+    if (detail && metadataRow.value?.basicId === row.basicId) {
+      metadataForm.accessPermissions = detail.accessPermissions ?? ''
+      metadataForm.tags = detail.tags ?? ''
+      metadataForm.remark = detail.remark ?? ''
+      if (detail.retentionDays) {
+        metadataForm.retentionDays = detail.retentionDays
+      }
+    }
+  }
+  catch {
+    // 取详情失败：保持列表值回填，不阻断编辑
+  }
 }
 
 async function handleSaveMetadata() {
@@ -475,7 +509,8 @@ async function handleSaveMetadata() {
       accessPermissions: normalizeNullable(metadataForm.accessPermissions),
       isEncrypted: metadataForm.isEncrypted,
       isTemporary: metadataForm.isTemporary,
-      retentionDays: metadataForm.retentionDays,
+      // 临时文件保留天数兜底 ≥1，满足后端校验；非临时按原值
+      retentionDays: metadataForm.isTemporary ? Math.max(1, metadataForm.retentionDays) : metadataForm.retentionDays,
       tags: normalizeNullable(metadataForm.tags),
       remark: normalizeNullable(metadataForm.remark),
     })
@@ -985,26 +1020,40 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
     <NDrawer v-model:show="metadataVisible" :width="460">
       <NDrawerContent closable title="编辑文件元数据">
-        <NSpace vertical>
-          <NSelect
-            v-model:value="metadataForm.accessLevel"
-            :options="accessLevelOptions"
-            placeholder="访问级别"
-          />
-          <NInput v-model:value="metadataForm.accessPermissions" clearable placeholder="访问权限" />
-          <NInput v-model:value="metadataForm.tags" clearable placeholder="标签" />
-          <NInput v-model:value="metadataForm.remark" clearable placeholder="备注" type="textarea" />
-          <NInputNumber v-model:value="metadataForm.retentionDays" :min="0" placeholder="保留天数" style="width: 100%" />
+        <NSpace vertical :size="16">
+          <div class="file-upload-field">
+            <span class="file-upload-field__label">访问级别</span>
+            <NSelect
+              v-model:value="metadataForm.accessLevel"
+              :options="accessLevelOptions"
+              placeholder="访问级别"
+            />
+          </div>
+
           <div class="file-upload-switches">
-            <NSpace align="center">
+            <div class="file-upload-switch">
               <span>加密</span>
               <NSwitch v-model:value="metadataForm.isEncrypted" />
-            </NSpace>
-            <NSpace align="center">
+            </div>
+            <div class="file-upload-switch">
               <span>临时</span>
               <NSwitch v-model:value="metadataForm.isTemporary" />
-            </NSpace>
+            </div>
           </div>
+
+          <div v-if="metadataForm.isTemporary" class="file-upload-field">
+            <span class="file-upload-field__label">保留天数</span>
+            <NInputNumber
+              v-model:value="metadataForm.retentionDays"
+              :min="1"
+              placeholder="临时文件到期后自动清理"
+              style="width: 100%"
+            />
+          </div>
+
+          <NInput v-model:value="metadataForm.tags" clearable placeholder="标签（可选）" />
+          <NInput v-model:value="metadataForm.remark" clearable placeholder="备注（可选）" type="textarea" :rows="2" />
+
           <NButton block :loading="metadataLoading" type="primary" @click="handleSaveMetadata">
             <template #icon>
               <NIcon><Icon icon="lucide:save" /></NIcon>
@@ -1023,79 +1072,79 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
         <NDescriptions
           v-else-if="detailKind === 'file' && currentFileDetail"
-          :column="1"
+          :column="2"
+          label-placement="left"
           bordered
           size="small"
         >
-          <NDescriptionsItem label="文件主键">
-            {{ currentFileDetail.basicId }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="原始文件名">
+          <NDescriptionsItem label="原始文件名" :span="2">
             {{ currentFileDetail.originalName }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="存储文件名">
-            {{ currentFileDetail.fileName }}
-          </NDescriptionsItem>
-          <NDescriptionsItem label="文件哈希">
-            <div class="file-detail-content">
-              {{ currentFileDetail.fileHash || '-' }}
-            </div>
           </NDescriptionsItem>
           <NDescriptionsItem label="文件类型">
             {{ getOptionLabel(fileTypeOptions, currentFileDetail.fileType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="MIME">
-            {{ currentFileDetail.mimeType || '-' }}
-          </NDescriptionsItem>
           <NDescriptionsItem label="文件大小">
             {{ formatFileSize(Number(currentFileDetail.fileSize || 0)) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="尺寸/时长">
-            {{ currentFileDetail.width || '-' }} x {{ currentFileDetail.height || '-' }} / {{ formatDuration(currentFileDetail.duration) }}
+          <NDescriptionsItem label="MIME">
+            {{ currentFileDetail.mimeType || '-' }}
+          </NDescriptionsItem>
+          <NDescriptionsItem v-if="dimensionText" label="尺寸/时长">
+            {{ dimensionText }}
           </NDescriptionsItem>
           <NDescriptionsItem label="访问级别">
             {{ getOptionLabel(accessLevelOptions, currentFileDetail.accessLevel) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="访问权限">
-            <div class="file-detail-content">
-              {{ currentFileDetail.accessPermissions || '-' }}
-            </div>
-          </NDescriptionsItem>
           <NDescriptionsItem label="状态">
             {{ getOptionLabel(fileStatusOptions, currentFileDetail.status) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="标记">
-            加密 {{ formatFlag(currentFileDetail.isEncrypted) }}，临时 {{ formatFlag(currentFileDetail.isTemporary) }}
+          <NDescriptionsItem label="加密">
+            {{ formatFlag(currentFileDetail.isEncrypted) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="上传来源">
-            {{ currentFileDetail.uploadIp || '-' }} / {{ currentFileDetail.uploadSource || '-' }}
+          <NDescriptionsItem label="临时">
+            {{ formatFlag(currentFileDetail.isTemporary) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="统计">
-            下载 {{ currentFileDetail.downloadCount }}，访问 {{ currentFileDetail.viewCount }}
+          <NDescriptionsItem label="下载次数">
+            {{ currentFileDetail.downloadCount }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="标签">
-            <div class="file-detail-content">
-              {{ currentFileDetail.tags || '-' }}
-            </div>
-          </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
-            <div class="file-detail-content">
-              {{ currentFileDetail.remark || '-' }}
-            </div>
-          </NDescriptionsItem>
-          <NDescriptionsItem label="扩展数据">
-            <div class="file-detail-content">
-              {{ currentFileDetail.extendData || '-' }}
-            </div>
-          </NDescriptionsItem>
-          <NDescriptionsItem label="过期时间">
-            {{ formatDateTime(currentFileDetail.expirationTime) }}
+          <NDescriptionsItem label="访问次数">
+            {{ currentFileDetail.viewCount }}
           </NDescriptionsItem>
           <NDescriptionsItem label="创建时间">
             {{ formatDateTime(currentFileDetail.createdTime) }}
           </NDescriptionsItem>
           <NDescriptionsItem label="修改时间">
             {{ formatDateTime(currentFileDetail.modifiedTime) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem v-if="currentFileDetail.isTemporary" label="过期时间" :span="2">
+            {{ formatDateTime(currentFileDetail.expirationTime) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem v-if="currentFileDetail.tags" label="标签" :span="2">
+            {{ currentFileDetail.tags }}
+          </NDescriptionsItem>
+          <NDescriptionsItem v-if="currentFileDetail.remark" label="备注" :span="2">
+            <div class="file-detail-content">
+              {{ currentFileDetail.remark }}
+            </div>
+          </NDescriptionsItem>
+          <NDescriptionsItem v-if="currentFileDetail.accessPermissions" label="访问权限" :span="2">
+            <div class="file-detail-content">
+              {{ currentFileDetail.accessPermissions }}
+            </div>
+          </NDescriptionsItem>
+          <NDescriptionsItem label="上传来源" :span="2">
+            {{ currentFileDetail.uploadIp || '-' }} / {{ currentFileDetail.uploadSource || '-' }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="存储文件名" :span="2">
+            {{ currentFileDetail.fileName }}
+          </NDescriptionsItem>
+          <NDescriptionsItem label="文件哈希" :span="2">
+            <div class="file-detail-content">
+              {{ currentFileDetail.fileHash || '-' }}
+            </div>
+          </NDescriptionsItem>
+          <NDescriptionsItem label="文件主键" :span="2">
+            {{ currentFileDetail.basicId }}
           </NDescriptionsItem>
         </NDescriptions>
 
