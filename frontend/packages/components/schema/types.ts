@@ -232,6 +232,8 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   rowKey?: string
   /** 启用内置批量删除（依赖 resource.remove；选中后批量浮条出现「批量删除」，框架统一确认/并发删除/刷新） */
   batchRemovable?: boolean
+  /** 批量删除所需权限码（声明后多选批量删除仅在用户拥有该权限时可用；缺省则不限制） */
+  removePermission?: string
   /** 表格横向滚动宽度 */
   scrollX?: number
   /** 默认每页数量 */

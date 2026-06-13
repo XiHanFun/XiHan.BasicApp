@@ -153,6 +153,8 @@ const schema: PageSchema = {
   pageCode: 'platform.approval',
   exportPermission: 'saas:review:export',
   pageName: '审批中心',
+  batchRemovable: true,
+  removePermission: 'saas:review:delete',
   rowKey: 'basicId',
   scrollX: 2000,
   fields,

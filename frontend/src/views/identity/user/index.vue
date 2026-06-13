@@ -501,6 +501,8 @@ const schema: PageSchema = {
   pageCode: 'system.user',
   exportPermission: 'saas:user:export',
   pageName: '用户管理',
+  batchRemovable: true,
+  removePermission: 'saas:user:delete',
   rowKey: 'basicId',
   scrollX: 1760,
   fields,

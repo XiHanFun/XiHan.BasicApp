@@ -147,6 +147,8 @@ const schema: PageSchema = {
   pageCode: 'platform.app',
   exportPermission: 'saas:oauth-app:export',
   pageName: '应用管理',
+  batchRemovable: true,
+  removePermission: 'saas:oauth-app:delete',
   rowKey: 'basicId',
   scrollX: 1700,
   fields,

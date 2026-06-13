@@ -97,6 +97,8 @@ const fields: ListFieldSchema[] = [
 const schema: PageSchema = {
   pageCode: 'setting.version',
   pageName: '版本管理',
+  batchRemovable: true,
+  removePermission: 'saas:version:delete',
   rowKey: 'basicId',
   scrollX: 1200,
   fields,
@@ -157,6 +159,12 @@ const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<VersionDetailDto | null>(null)
 
+// ── 迁移历史列表（详情抽屉内）：先于 handleDetail 声明，handleDetail 内会重置 keyword 并加载 ──
+const migrationLoading = ref(false)
+const migrationItems = ref<MigrationHistoryListItemDto[]>([])
+const migrationKeyword = ref('')
+const migrationPagination = ref({ itemCount: 0, page: 1, pageSize: 10 })
+
 async function handleDetail(row: VersionListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
@@ -176,11 +184,6 @@ async function handleDetail(row: VersionListItemDto) {
 }
 
 // ── 迁移历史列表（详情抽屉内） ──────────────────────────────────
-const migrationLoading = ref(false)
-const migrationItems = ref<MigrationHistoryListItemDto[]>([])
-const migrationKeyword = ref('')
-const migrationPagination = ref({ itemCount: 0, page: 1, pageSize: 10 })
-
 const migrationColumns: DataTableColumns<MigrationHistoryListItemDto> = [
   { key: 'version', title: '版本', width: 130, ellipsis: { tooltip: true } },
   { key: 'scriptName', title: '脚本名称', minWidth: 160, ellipsis: { tooltip: true } },
