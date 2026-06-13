@@ -574,8 +574,9 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
   }
   uploadLoading.value = true
   // 接入灵动岛：上传作为持续任务呈现进度，完成/失败进终态（灵动岛关闭时自动降级为消息提示）
+  // 每个文件用唯一 id（多文件并发时各自一条；多任务会自动收缩为「图标 + 计数」的极简态）
   // 折叠态文案精简为「正在上传」，文件名放 detail（展开/悬停可见），避免长文件名把胶囊撑宽
-  const task = islandStart('file:upload', '正在上传', { detail: rawFile.name, icon: 'lucide:upload', progress: 0 })
+  const task = islandStart(`file:upload:${options.file.id}`, '正在上传', { detail: rawFile.name, icon: 'lucide:upload', progress: 0 })
   // 弹窗即时关闭，上传进度交由灵动岛跟踪，不阻塞用户继续操作
   uploadVisible.value = false
   try {
@@ -963,9 +964,8 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         <!-- 拖拽区：点击或拖入文件即上传（按当前默认存储配置保存） -->
         <NUpload
           :custom-request="handleUploadRequest"
-          :disabled="uploadLoading"
           :show-file-list="false"
-          :multiple="false"
+          multiple
         >
           <NUploadDragger>
             <div class="file-upload-dragger">
@@ -973,10 +973,10 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
                 <Icon icon="lucide:cloud-upload" />
               </NIcon>
               <div class="file-upload-dragger__text">
-                {{ uploadLoading ? '上传中…' : '点击或拖拽文件到此处上传' }}
+                点击或拖拽文件到此处上传（支持多选）
               </div>
               <div class="file-upload-dragger__hint">
-                文件将按当前默认存储配置保存
+                文件将按当前默认存储配置保存；上传进度在顶部灵动岛跟踪
               </div>
             </div>
           </NUploadDragger>
