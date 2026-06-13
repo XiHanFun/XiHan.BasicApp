@@ -51,6 +51,29 @@ const {
 /** 壳体是否可见：折叠态需有当前任务，展开态需有面板内容 */
 const shellVisible = computed(() => enabled.value && (expanded.value ? hasPanel.value : !!current.value))
 
+// ── 折叠态二级（悬停渐进披露）─────────────────────────────────────
+// 多任务时折叠态默认极简（图标 + 计数，如「↑ 3」），悬停展开为聚合文案，点击再全展开面板
+const isHovering = ref(false)
+const isMulti = computed(() => loadingCount.value > 1)
+const displayLabel = computed(() => {
+  if (!current.value) {
+    return ''
+  }
+  // 多任务：默认极简（无文案），悬停时显示聚合文案；单任务：始终显示文案
+  if (isMulti.value) {
+    return isHovering.value ? t('island.tasks_ongoing', { n: loadingCount.value }) : ''
+  }
+  return current.value.label
+})
+function onPillEnter(): void {
+  if (!expanded.value) {
+    isHovering.value = true
+  }
+}
+function onPillLeave(): void {
+  isHovering.value = false
+}
+
 function stateIcon(state?: IslandState): string {
   switch (state) {
     case 'success':
@@ -156,8 +179,10 @@ async function measurePill(): Promise<void> {
   inner.style.width = 'max-content'
   const intrinsic = inner.getBoundingClientRect().width
   inner.style.width = previousWidth
+  // 多任务极简态（折叠且未悬停）用更小的下限，呈现紧凑「图标 + 计数」；其余维持常规下限
+  const minWidth = isMulti.value && !isHovering.value ? 96 : PILL_MIN_WIDTH
   pillWidth.value = Math.min(
-    Math.max(Math.ceil(intrinsic), PILL_MIN_WIDTH),
+    Math.max(Math.ceil(intrinsic), minWidth),
     Math.min(window.innerWidth * 0.8, PILL_MAX_WIDTH),
   )
 }
@@ -207,15 +232,12 @@ watch(panelLayerRef, (layer, _old, onCleanup) => {
 }, { flush: 'post' })
 
 watch(
-  () => [current.value?.label, current.value?.state, current.value?.progress != null, loadingCount.value] as const,
+  () => [displayLabel.value, current.value?.state, current.value?.progress != null, loadingCount.value] as const,
   () => {
     void measurePill()
   },
   { immediate: true },
 )
-
-// 终态（成功/失败/信息）折叠态呈「卡片」（方一点的圆角）；进行中呈「胶囊」（全圆角）
-const isTerminal = computed(() => !!current.value && current.value.state !== 'loading')
 
 const shellStyle = computed(() => {
   if (expanded.value) {
@@ -225,10 +247,11 @@ const shellStyle = computed(() => {
       borderRadius: '16px',
     }
   }
+  // 折叠态恒为胶囊圆角：参照 iOS 灵动岛——完成态不改变形状，仅内容从进度环切换为状态图标
   return {
     width: `${pillWidth.value}px`,
     height: `${PILL_HEIGHT}px`,
-    borderRadius: isTerminal.value ? '13px' : '18px',
+    borderRadius: '18px',
   }
 })
 
@@ -313,6 +336,8 @@ onBeforeUnmount(() => {
             :aria-label="current?.label"
             :tabindex="expanded ? -1 : 0"
             @click="expand"
+            @mouseenter="onPillEnter"
+            @mouseleave="onPillLeave"
           >
             <span ref="pillInnerRef" class="di-pill__inner">
               <!-- 指示器：确定态进度环 / 不确定态旋转弧环 / 终态状态图标 -->
@@ -334,7 +359,7 @@ onBeforeUnmount(() => {
                 <Icon v-else-if="current" :icon="current.icon || stateIcon(current.state)" width="15" height="15" />
               </span>
               <Transition name="di-text" mode="out-in">
-                <span :key="`${current?.state}:${current?.label}`" class="di-label">{{ current?.label }}</span>
+                <span v-if="displayLabel" :key="displayLabel" class="di-label">{{ displayLabel }}</span>
               </Transition>
               <span class="di-trailing">
                 <span v-if="current?.state === 'loading' && current?.progress != null" class="di-pct">
@@ -571,8 +596,8 @@ onBeforeUnmount(() => {
   color: #60a5fa;
 }
 
-/* ============ 终态卡片：折叠态指示器用状态色实心圆底 + 深色图标 ============ */
-/* 与「过程胶囊」的进度环明显区分，呈现「卡片通知」质感（仅折叠终态，不影响展开面板内的项） */
+/* ============ 终态：折叠态指示器用状态色实心圆底 + 深色图标 ============ */
+/* 形状仍是胶囊（同 iOS 完成态不变形），靠状态色圆底图标 + 弹入动效与「进度环」区分 */
 .di-shell.is-success .di-pill__inner .di-indicator,
 .di-shell.is-error .di-pill__inner .di-indicator,
 .di-shell.is-info .di-pill__inner .di-indicator {
@@ -580,6 +605,24 @@ onBeforeUnmount(() => {
   height: 18px;
   border-radius: 9999px;
   color: rgb(12 16 22 / 92%);
+  /* 完成反馈：状态图标弹现，呼应 iOS 灵动岛完成态的图标弹入 */
+  animation: di-badge-pop 0.42s cubic-bezier(0.3, 1.45, 0.4, 1);
+}
+
+@keyframes di-badge-pop {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+
+  55% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .di-shell.is-success .di-pill__inner .di-indicator {

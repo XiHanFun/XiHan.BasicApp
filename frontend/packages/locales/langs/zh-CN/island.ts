@@ -5,6 +5,7 @@ export default {
   clear: '清空',
   empty: '暂无动态',
   dismiss: '移除',
+  tasks_ongoing: '{n} 个任务进行中',
   elapsed_prefix: '已进行',
   just_now: '刚刚',
   minutes_ago: '{n} 分钟前',
