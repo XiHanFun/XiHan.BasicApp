@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { PageResult, ReviewDetailDto, ReviewListItemDto } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDescriptions,
@@ -151,6 +151,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'platform.approval',
+  exportPermission: 'saas:review:export',
   pageName: '审批中心',
   rowKey: 'basicId',
   scrollX: 2000,

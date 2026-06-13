@@ -206,6 +206,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'platform.job',
+  exportPermission: 'saas:task:export',
   pageName: '任务调度',
   rowKey: 'basicId',
   scrollX: 2000,

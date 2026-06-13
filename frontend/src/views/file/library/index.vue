@@ -311,6 +311,7 @@ const fields: ListFieldSchema[] = [
 
 const schema: PageSchema = {
   pageCode: 'platform.file',
+  exportPermission: 'saas:file:export',
   pageName: '文件管理',
   rowKey: 'basicId',
   scrollX: 1800,

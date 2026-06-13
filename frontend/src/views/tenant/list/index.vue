@@ -205,6 +205,7 @@ function toDate(v: unknown): string | null {
 
 const schema: PageSchema = {
   pageCode: 'platform.tenant',
+  exportPermission: 'saas:tenant:export',
   pageName: '租户管理',
   rowKey: 'basicId',
   scrollX: 2000,
