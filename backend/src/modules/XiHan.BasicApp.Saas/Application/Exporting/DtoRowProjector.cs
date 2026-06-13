@@ -78,7 +78,8 @@ public static class DtoRowProjector
             bool b => b ? "true" : "false",
             DateTimeOffset dto => dto.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
             DateTime dt => dt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-            Enum e => Convert.ToInt64(e, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
+            // 枚举渲染为名称（与前端 JsonStringEnumConverter 一致），匹配列快照 valueMap 的键得到 label
+            Enum e => e.ToString(),
             Guid g => g.ToString(),
             IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
             IEnumerable enumerable => string.Join(",", enumerable.Cast<object?>().Select(item => item?.ToString() ?? string.Empty)),

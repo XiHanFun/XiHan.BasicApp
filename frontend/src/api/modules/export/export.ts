@@ -1,25 +1,25 @@
 import type { ApiId, PageResult } from '../../types'
 import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
-/** 导出任务状态（与后端 ExportTaskStatus 对齐） */
+/** 导出任务状态（与后端 JsonStringEnumConverter 序列化值一致） */
 export enum ExportTaskStatus {
-  Pending = 0,
-  Processing = 1,
-  Success = 2,
-  Failed = 3,
+  Pending = 'Pending',
+  Processing = 'Processing',
+  Success = 'Success',
+  Failed = 'Failed',
 }
 
-/** 导出范围（与后端 ExportScope 对齐） */
+/** 导出范围（与后端 JsonStringEnumConverter 序列化值一致） */
 export enum ExportScope {
-  CurrentPage = 0,
-  SearchResult = 1,
-  All = 2,
+  CurrentPage = 'CurrentPage',
+  SearchResult = 'SearchResult',
+  All = 'All',
 }
 
-/** 导出格式（与后端 ExportFormat 对齐） */
+/** 导出格式（与后端 JsonStringEnumConverter 序列化值一致） */
 export enum ExportFormat {
-  Csv = 0,
-  Xlsx = 1,
+  Csv = 'Csv',
+  Xlsx = 'Xlsx',
 }
 
 /** 导出列定义（随提交快照上送；valueMap 用于枚举/字典原始值 → label） */
