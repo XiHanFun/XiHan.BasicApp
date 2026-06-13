@@ -5,6 +5,7 @@ export default {
   clear: 'Clear',
   empty: 'No activity',
   dismiss: 'Dismiss',
+  tasks_ongoing: '{n} tasks running',
   elapsed_prefix: 'Elapsed',
   just_now: 'just now',
   minutes_ago: '{n} min ago',
