@@ -146,13 +146,14 @@ function relativeTime(time: number): string {
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
 const PILL_HEIGHT = 34
-// 折叠态两档宽度：「中」(下限) 与「宽」(上限)。单任务在二者间按内容自适应，多任务固定「宽」档。
-const PILL_MIN_WIDTH = 150
+// 折叠态两档宽度：「中」(下限 200) 与「宽」(上限 320)。单任务在二者间按内容自适应，多任务固定「宽」档。
+// 中档下限刻意取得较饱满，避免「登录成功」等短文案缩成小胶囊，与「宽」档形成清晰的中/宽两级。
+const PILL_MIN_WIDTH = 200
 const PILL_MAX_WIDTH = 320
 
 const pillInnerRef = ref<HTMLElement | null>(null)
 const panelLayerRef = ref<HTMLElement | null>(null)
-const pillWidth = ref<number>(180)
+const pillWidth = ref<number>(PILL_MIN_WIDTH)
 const panelHeight = ref<number>(120)
 
 function panelWidth(): number {
