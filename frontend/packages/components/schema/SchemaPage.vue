@@ -305,6 +305,9 @@ function reload() {
 /** 导出字段（exportable + 权限） */
 const exportFields = computed(() => toExportFields(resolvedSchema.value, hasPermission))
 
+/** 有效导出列：页面声明了 exportable 则用之，否则回退为当前可见列（"导出所见"） */
+const effectiveExportFields = computed(() => exportFields.value.length ? exportFields.value : columnFields.value)
+
 /** 取导出行：列表模式翻页拉全集（受安全上限约束）；树形模式展平当前树 */
 async function fetchExportRows(): Promise<Row[]> {
   const childrenKey = props.schema.tree?.childrenKey ?? 'children'
@@ -353,7 +356,7 @@ async function fetchExportRows(): Promise<Row[]> {
 }
 
 const { exporting, exportCsv } = useSchemaExport<Row>({
-  fields: () => exportFields.value,
+  fields: () => effectiveExportFields.value,
   fileName: () => props.schema.pageCode,
   fetchRows: fetchExportRows,
 })
@@ -373,7 +376,7 @@ const exportMenuOptions = computed(() => [
 
 /** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
 function buildExportColumns() {
-  return exportFields.value.map((field) => {
+  return effectiveExportFields.value.map((field) => {
     const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: field.key, title: field.title }
     if (field.options?.length) {
       column.valueMap = Object.fromEntries(field.options.map(option => [String(option.value), option.label]))
@@ -515,7 +518,7 @@ defineExpose({
             </template>
             导入（CSV）
           </NTooltip>
-          <template v-if="exportFields.length">
+          <template v-if="exportFields.length || canSubmitExport">
             <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
             <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
               <NButton circle quaternary size="small" aria-label="导出" :loading="exporting || submittingExport">
