@@ -574,7 +574,8 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
   }
   uploadLoading.value = true
   // 接入灵动岛：上传作为持续任务呈现进度，完成/失败进终态（灵动岛关闭时自动降级为消息提示）
-  const task = islandStart('file:upload', `正在上传 ${rawFile.name}`, { icon: 'lucide:upload', progress: 0 })
+  // 折叠态文案精简为「正在上传」，文件名放 detail（展开/悬停可见），避免长文件名把胶囊撑宽
+  const task = islandStart('file:upload', '正在上传', { detail: rawFile.name, icon: 'lucide:upload', progress: 0 })
   // 弹窗即时关闭，上传进度交由灵动岛跟踪，不阻塞用户继续操作
   uploadVisible.value = false
   try {
