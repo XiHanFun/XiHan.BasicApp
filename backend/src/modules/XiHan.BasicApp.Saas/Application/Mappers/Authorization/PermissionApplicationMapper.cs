@@ -15,6 +15,7 @@
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Application.Mappers;
 
@@ -70,6 +71,8 @@ public static class PermissionApplicationMapper
             ModuleCode = permission.ModuleCode,
             PermissionCode = permission.PermissionCode,
             PermissionName = permission.PermissionName,
+            GroupCode = SaasPermissionGroups.ResolveGroupCode(permission.PermissionCode),
+            GroupName = SaasPermissionGroups.ResolveGroupName(permission.PermissionCode),
             PermissionDescription = permission.PermissionDescription,
             IsRequireAudit = permission.IsRequireAudit,
             IsGlobal = permission.IsGlobal,

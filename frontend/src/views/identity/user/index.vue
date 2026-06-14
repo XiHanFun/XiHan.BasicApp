@@ -973,15 +973,46 @@ const grantPermFiltered = computed(() => {
   )
 })
 
+/** 取权限码的资源段：saas:{resource}:{action} → resource */
+function grantPermResourceKey(code: string): string {
+  const parts = code.split(':')
+  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
+}
+
+/** 一组权限名的公共前缀，作为功能块显示名 */
+function grantPermCommonPrefix(names: string[]): string {
+  if (names.length === 0) {
+    return ''
+  }
+  let prefix = names[0]!
+  for (const name of names) {
+    let i = 0
+    while (i < prefix.length && i < name.length && prefix[i] === name[i]) {
+      i++
+    }
+    prefix = prefix.slice(0, i)
+    if (!prefix) {
+      break
+    }
+  }
+  return prefix
+}
+
+/** 按资源（功能块）分组：每个资源成为独立功能块，组名取该组权限名公共前缀 */
 const grantPermGroups = computed(() => {
   const map = new Map<string, PermissionListItemDto[]>()
   for (const p of grantPermFiltered.value) {
-    const key = p.moduleCode || '其它'
+    // 组码优先用后端定义的 groupCode；缺省回退资源段推导（兼容后端未重建时）
+    const key = p.groupCode || p.resourceName || grantPermResourceKey(p.permissionCode) || p.moduleCode || '其它'
     const arr = map.get(key) ?? []
     arr.push(p)
     map.set(key, arr)
   }
-  return [...map.entries()].map(([name, items]) => ({ name, items }))
+  return [...map.entries()].map(([key, items]) => ({
+    key,
+    name: items[0]?.groupName || grantPermCommonPrefix(items.map(item => item.permissionName)) || key,
+    items,
+  }))
 })
 
 async function loadPermCatalog() {

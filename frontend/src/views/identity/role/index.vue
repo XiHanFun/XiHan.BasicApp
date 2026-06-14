@@ -286,20 +286,50 @@ const permFiltered = computed(() => {
   )
 })
 
-/** 按资源（其次模块）分组 */
+/** 取权限码的资源段作为分组键：saas:{resource}:{action} → resource */
+function permResourceKey(code: string): string {
+  const parts = code.split(':')
+  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
+}
+
+/** 一组权限名的公共前缀，作为功能块显示名（如「租户」「权限定义」「角色」） */
+function permCommonPrefix(names: string[]): string {
+  if (names.length === 0) {
+    return ''
+  }
+  let prefix = names[0]!
+  for (const name of names) {
+    let i = 0
+    while (i < prefix.length && i < name.length && prefix[i] === name[i]) {
+      i++
+    }
+    prefix = prefix.slice(0, i)
+    if (!prefix) {
+      break
+    }
+  }
+  return prefix
+}
+
+/** 按资源（功能块）分组：以权限码资源段为键，组名取该组权限名公共前缀，使每个资源成为独立功能块 */
 const permGroups = computed(() => {
   const map = new Map<string, PermissionListItemDto[]>()
   for (const permission of permFiltered.value) {
-    const group = permission.resourceName || permission.moduleCode || '其他'
-    const list = map.get(group)
+    // 组码优先用后端定义的 groupCode；缺省回退资源段推导（兼容后端未重建时）
+    const key = permission.groupCode || permission.resourceName || permResourceKey(permission.permissionCode) || permission.moduleCode || '其他'
+    const list = map.get(key)
     if (list) {
       list.push(permission)
     }
     else {
-      map.set(group, [permission])
+      map.set(key, [permission])
     }
   }
-  return [...map.entries()].map(([name, items]) => ({ name, items }))
+  return [...map.entries()].map(([key, items]) => ({
+    key,
+    name: items[0]?.groupName || permCommonPrefix(items.map(item => item.permissionName)) || key,
+    items,
+  }))
 })
 
 /** 权限目录翻页拉全集（后端 pageSize 受夹紧，按页计数停止） */
@@ -1116,7 +1146,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
         <NSpin :show="permLoading">
           <NEmpty v-if="permGroups.length === 0 && !permLoading" class="perm-empty" description="无匹配权限" />
           <div v-else class="perm-groups">
-            <section v-for="group in permGroups" :key="group.name" class="perm-group">
+            <section v-for="group in permGroups" :key="group.key" class="perm-group">
               <div class="perm-group-head">
                 <span>{{ group.name }}</span>
                 <span class="perm-group-count">{{ group.items.length }}</span>
