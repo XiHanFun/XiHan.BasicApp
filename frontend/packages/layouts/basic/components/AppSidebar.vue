@@ -94,6 +94,7 @@ const {
   resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
+  openExternalIfMatch,
 } = useLayoutMenuDomain()
 
 const appTitle = computed(
@@ -332,6 +333,8 @@ const extraContentStyle = computed((): CSSProperties => {
 // --- Actions ---
 function handleMenuUpdate(key: string) {
   if (!key)
+    return
+  if (openExternalIfMatch(key))
     return
   if (key.startsWith('/')) {
     if (key !== route.path)

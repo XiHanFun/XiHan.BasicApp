@@ -41,6 +41,7 @@ const {
   resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
+  openExternalIfMatch,
 } = useLayoutMenuDomain()
 
 // 偏好设置入口可见性：头部按钮与悬浮 FAB 互斥（auto 模式窄屏走 FAB，头部按钮隐藏）
@@ -275,6 +276,9 @@ function handleBreadcrumbSelect(path: string) {
 
 function handleTopMenuSelect(path: string) {
   if (!path || path === route.path) {
+    return
+  }
+  if (openExternalIfMatch(path)) {
     return
   }
   if (!isSplitMode.value) {
