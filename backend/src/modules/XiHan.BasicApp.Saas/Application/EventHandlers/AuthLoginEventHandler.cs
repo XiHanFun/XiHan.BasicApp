@@ -81,7 +81,7 @@ public sealed class AuthLoginEventHandler
                 eventData.UserId,
                 title,
                 BuildAuthNotificationContent(
-                    "您的账号刚刚在另一台设备登录。若非本人操作，请立即修改密码并下线可疑会话。",
+                    "您的账号在另一台设备登录。若非本人操作，请立即修改密码并下线可疑会话。",
                     eventData.LoginTime,
                     FirstNotEmpty(eventData.Location, eventData.IpAddress),
                     eventData.Browser,
@@ -193,7 +193,7 @@ public sealed class AuthLoginEventHandler
             eventData.UserId,
             "账号在其它设备登出",
             BuildAuthNotificationContent(
-                "您的账号刚刚在一台设备上退出登录。",
+                "您的账号在一台设备上退出登录。",
                 eventData.LogoutTime,
                 FirstNotEmpty(session?.Location, session?.IpAddress, eventData.IpAddress),
                 session?.Browser,

@@ -40,6 +40,8 @@ namespace XiHan.BasicApp.Saas.Application.Pages;
 /// <param name="Redirect">重定向路径（目录项指向首个子项）</param>
 /// <param name="IsCache">是否缓存组件</param>
 /// <param name="IsAffix">是否固定标签页</param>
+/// <param name="IsExternal">是否外链菜单（直接打开外部地址，不生成可用前端路由）</param>
+/// <param name="ExternalUrl">外链地址（IsExternal=true 时使用）</param>
 public sealed record PageDescriptor(
     string Code,
     string Title,
@@ -54,7 +56,9 @@ public sealed record PageDescriptor(
     int Sort,
     string? Redirect = null,
     bool IsCache = false,
-    bool IsAffix = false);
+    bool IsAffix = false,
+    bool IsExternal = false,
+    string? ExternalUrl = null);
 
 /// <summary>
 /// 按钮描述符（页面内操作按钮，菜单种子据此生成 MenuType.Button 节点）
@@ -82,97 +86,106 @@ public static class PageRegistry
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
         // [1] 工作台
-        new("workbench","工作台","menu.workbench",MenuType.Directory,"/workbench","Workbench",null,null,null,"lucide:layout-dashboard",10,"/workbench/dashboard"),
+        Dir("workbench", "工作台", "lucide:layout-dashboard", 10, "/workbench/dashboard"),
         // [1.1] 仪表盘
-        new("workbench.dashboard","仪表盘","menu.workbench_dashboard",MenuType.Menu,"/workbench/dashboard","WorkbenchDashboard","workbench/dashboard/index","workbench",SaasPermissionCodes.UserStatistics.Read,"lucide:gauge",11,null,false,true),
+        Page("workbench.dashboard", "仪表盘", SaasPermissionCodes.UserStatistics.Read, "lucide:gauge", 11, isAffix: true),
         // [1.2] 我的消息
-        new("workbench.inbox","我的消息","menu.workbench_inbox",MenuType.Menu,"/workbench/inbox","WorkbenchInbox","workbench/inbox/index","workbench",null,"lucide:inbox",12),
+        Page("workbench.inbox", "我的消息", null, "lucide:inbox", 12),
 
         // [2] 身份权限
-        new("identity","身份权限","menu.identity",MenuType.Directory,"/identity","Identity",null,null,null,"lucide:shield-check",100,"/identity/user"),
+        Dir("identity", "身份权限", "lucide:shield-check", 100, "/identity/user"),
         // [2.1] 用户管理
-        new("identity.user","用户管理","menu.identity_user",MenuType.Menu,"/identity/user","IdentityUser","identity/user/index","identity",SaasPermissionCodes.User.Read,"lucide:users",110),
+        Page("identity.user", "用户管理", SaasPermissionCodes.User.Read, "lucide:users", 110),
         // [2.2] 角色管理
-        new("identity.role","角色管理","menu.identity_role",MenuType.Menu,"/identity/role","IdentityRole","identity/role/index","identity",SaasPermissionCodes.Role.Read,"lucide:shield-user",120),
+        Page("identity.role", "角色管理", SaasPermissionCodes.Role.Read, "lucide:shield-user", 120),
         // [2.3] 组织机构
-        new("identity.org","组织机构","menu.identity_org",MenuType.Menu,"/identity/org","IdentityOrg","identity/org/index","identity",SaasPermissionCodes.Department.Read,"lucide:network",130),
+        Page("identity.org", "组织机构", SaasPermissionCodes.Department.Read, "lucide:network", 130),
         // [2.4] 权限管理
-        new("identity.permission","权限管理","menu.identity_permission",MenuType.Menu,"/identity/permission","IdentityPermission","identity/permission/index","identity",SaasPermissionCodes.Permission.Read,"lucide:key-round",140),
+        Page("identity.permission", "权限管理", SaasPermissionCodes.Permission.Read, "lucide:key-round", 140),
         // [2.5] 字段安全（字段级读写与脱敏策略）
-        new("identity.field-security","字段安全","menu.identity_field_security",MenuType.Menu,"/identity/field-security","IdentityFieldSecurity","identity/field-security/index","identity",SaasPermissionCodes.FieldLevelSecurity.Read,"lucide:eye-off",150),
+        Page("identity.field-security", "字段安全", SaasPermissionCodes.FieldLevelSecurity.Read, "lucide:eye-off", 150),
         // [2.6] 授权申请
-        new("identity.authorization","授权申请","menu.identity_authorization",MenuType.Menu,"/identity/authorization","IdentityAuthorization","identity/authorization/index","identity",SaasPermissionCodes.PermissionRequest.Read,"lucide:file-key",160),
+        Page("identity.authorization", "授权申请", SaasPermissionCodes.PermissionRequest.Read, "lucide:file-key", 160),
         // [2.7] 在线用户（会话实时视图：活跃会话 + SignalR 连接标注，权限复用用户会话码）
-        new("identity.online-user","在线用户","menu.identity_online_user",MenuType.Menu,"/identity/online-user","IdentityOnlineUser","identity/online-user/index","identity",SaasPermissionCodes.UserSession.Read,"lucide:radio",170),
+        Page("identity.online-user", "在线用户", SaasPermissionCodes.UserSession.Read, "lucide:radio", 170),
 
         // [3] 租户管理
-        new("tenant","租户管理","menu.tenant",MenuType.Directory,"/tenant","Tenant",null,null,null,"lucide:building-2",200,"/tenant/list"),
+        Dir("tenant", "租户管理", "lucide:building-2", 200, "/tenant/list"),
         // [3.1] 租户列表
-        new("tenant.list","租户列表","menu.tenant_list",MenuType.Menu,"/tenant/list","TenantList","tenant/list/index","tenant",SaasPermissionCodes.Tenant.Read,"lucide:building",210),
+        Page("tenant.list", "租户列表", SaasPermissionCodes.Tenant.Read, "lucide:building", 210),
         // [3.2] 版本套餐
-        new("tenant.edition","版本套餐","menu.tenant_edition",MenuType.Menu,"/tenant/edition","TenantEdition","tenant/edition/index","tenant",SaasPermissionCodes.TenantEdition.Read,"lucide:package",220),
+        Page("tenant.edition", "版本套餐", SaasPermissionCodes.TenantEdition.Read, "lucide:package", 220),
 
         // [4] 消息中心
-        new("message","消息中心","menu.message",MenuType.Directory,"/message","Message",null,null,null,"lucide:mail",300,"/message/notification"),
+        Dir("message", "消息中心", "lucide:mail", 300, "/message/notification"),
         // [4.1] 通知公告
-        new("message.notification","通知公告","menu.message_notification",MenuType.Menu,"/message/notification","MessageNotification","message/notification/index","message",SaasPermissionCodes.Notification.Read,"lucide:bell",310),
+        Page("message.notification", "通知公告", SaasPermissionCodes.Notification.Read, "lucide:bell", 310),
         // [4.2] 邮件短信
-        new("message.record","邮件短信","menu.message_record",MenuType.Menu,"/message/record","MessageRecord","message/record/index","message",SaasPermissionCodes.Message.Read,"lucide:send",320),
+        Page("message.record", "邮件短信", SaasPermissionCodes.Message.Read, "lucide:send", 320),
         // [4.3] 消息模板
-        new("message.template","消息模板","menu.message_template",MenuType.Menu,"/message/template","MessageTemplate","message/template/index","message",SaasPermissionCodes.MessageTemplate.Read,"lucide:file-code-2",330),
+        Page("message.template", "消息模板", SaasPermissionCodes.MessageTemplate.Read, "lucide:file-code-2", 330),
 
         // [5] 审批规则
-        new("approval","审批规则","menu.approval",MenuType.Directory,"/approval","Approval",null,null,null,"lucide:clipboard-check",400,"/approval/review"),
+        Dir("approval", "审批规则", "lucide:clipboard-check", 400, "/approval/review"),
         // [5.1] 审批中心
-        new("approval.review","审批中心","menu.approval_review",MenuType.Menu,"/approval/review","ApprovalReview","approval/review/index","approval",SaasPermissionCodes.Review.Read,"lucide:check-check",410),
+        Page("approval.review", "审批中心", SaasPermissionCodes.Review.Read, "lucide:check-check", 410),
         // [5.2] 约束规则
-        new("approval.constraint","约束规则","menu.approval_constraint",MenuType.Menu,"/approval/constraint","ApprovalConstraint","approval/constraint/index","approval",SaasPermissionCodes.ConstraintRule.Read,"lucide:shield-alert",420),
+        Page("approval.constraint", "约束规则", SaasPermissionCodes.ConstraintRule.Read, "lucide:shield-alert", 420),
 
         // [6] 文件存储
-        new("file","文件存储","menu.file",MenuType.Directory,"/file","File",null,null,null,"lucide:folder",500,"/file/library"),
+        Dir("file", "文件存储", "lucide:folder", 500, "/file/library"),
         // [6.1] 文件管理
-        new("file.library","文件管理","menu.file_library",MenuType.Menu,"/file/library","FileLibrary","file/library/index","file",SaasPermissionCodes.File.Read,"lucide:folder-open",510),
+        Page("file.library", "文件管理", SaasPermissionCodes.File.Read, "lucide:folder-open", 510),
         // [6.2] 存储配置
-        new("file.storage","存储配置","menu.file_storage",MenuType.Menu,"/file/storage","FileStorage","file/storage/index","file",SaasPermissionCodes.StorageConfig.Read,"lucide:hard-drive",520),
+        Page("file.storage", "存储配置", SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 520),
 
         // [7] 开放平台
-        new("openapi","开放平台","menu.openapi",MenuType.Directory,"/openapi","Openapi",null,null,null,"lucide:blocks",600,"/openapi/app"),
+        Dir("openapi", "开放平台", "lucide:blocks", 600, "/openapi/app"),
         // [7.1] 应用管理
-        new("openapi.app","应用管理","menu.openapi_app",MenuType.Menu,"/openapi/app","OpenapiApp","openapi/app/index","openapi",SaasPermissionCodes.OAuthApp.Read,"lucide:badge-check",610),
+        Page("openapi.app", "应用管理", SaasPermissionCodes.OAuthApp.Read, "lucide:badge-check", 610),
 
         // [8] 系统设置
-        new("setting","系统设置","menu.setting",MenuType.Directory,"/setting","Setting",null,null,null,"lucide:settings",700,"/setting/menu"),
+        Dir("setting", "系统设置", "lucide:settings", 700, "/setting/menu"),
         // [8.1] 菜单管理
-        new("setting.menu","菜单管理","menu.setting_menu",MenuType.Menu,"/setting/menu","SettingMenu","setting/menu/index","setting",SaasPermissionCodes.Menu.Read,"lucide:list-tree",710),
+        Page("setting.menu", "菜单管理", SaasPermissionCodes.Menu.Read, "lucide:list-tree", 710),
         // [8.2] 字典管理
-        new("setting.dict","字典管理","menu.setting_dict",MenuType.Menu,"/setting/dict","SettingDict","setting/dict/index","setting",SaasPermissionCodes.Dict.Read,"lucide:book-open",720),
+        Page("setting.dict", "字典管理", SaasPermissionCodes.Dict.Read, "lucide:book-open", 720),
         // [8.3] 参数配置
-        new("setting.config","参数配置","menu.setting_config",MenuType.Menu,"/setting/config","SettingConfig","setting/config/index","setting",SaasPermissionCodes.Config.Read,"lucide:sliders-horizontal",730),
+        Page("setting.config", "参数配置", SaasPermissionCodes.Config.Read, "lucide:sliders-horizontal", 730),
         // [8.4] 任务调度
-        new("setting.job","任务调度","menu.setting_job",MenuType.Menu,"/setting/job","SettingJob","setting/job/index","setting",SaasPermissionCodes.Task.Read,"lucide:timer",740),
+        Page("setting.job", "任务调度", SaasPermissionCodes.Task.Read, "lucide:timer", 740),
         // [8.5] 缓存管理（平台运维专属权限）
-        new("setting.cache","缓存管理","menu.setting_cache",MenuType.Menu,"/setting/cache","SettingCache","setting/cache/index","setting",SaasPermissionCodes.Cache.Read,"lucide:database-backup",750),
+        Page("setting.cache", "缓存管理", SaasPermissionCodes.Cache.Read, "lucide:database-backup", 750),
         // [8.6] 服务监控（平台运维专属权限）
-        new("setting.server","服务监控","menu.setting_server",MenuType.Menu,"/setting/server","SettingServer","setting/server/index","setting",SaasPermissionCodes.Server.Read,"lucide:server",760),
+        Page("setting.server", "服务监控", SaasPermissionCodes.Server.Read, "lucide:server", 760),
         // [8.7] 版本管理（系统版本与升级迁移）
-        new("setting.version","版本管理","menu.setting_version",MenuType.Menu,"/setting/version","SettingVersion","setting/version/index","setting",SaasPermissionCodes.Version.Read,"lucide:git-branch",770),
+        Page("setting.version", "版本管理", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
         // [8.8] 导出中心（我的异步导出任务：任何登录用户可见自己的导出，自鉴权无需权限码）
-        new("setting.export-center","导出中心","menu.setting_export_center",MenuType.Menu,"/setting/export-center","SettingExportCenter","setting/export-center/index","setting",null,"lucide:download",780),
+        Page("setting.export-center", "导出中心", null, "lucide:download", 780),
 
         // [9] 日志审计（顶层目录：路径 /log 与目录层级一致）
-        new("log","日志审计","menu.log",MenuType.Directory,"/log","Log",null,null,null,"lucide:file-search",800,"/log/access"),
+        Dir("log", "日志审计", "lucide:file-search", 800, "/log/access"),
         // [9.1] 访问日志
-        new("log.access","访问日志","menu.log_access",MenuType.Menu,"/log/access","LogAccess","log/access/index","log",SaasPermissionCodes.AccessLog.Read,"lucide:globe",810),
+        Page("log.access", "访问日志", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 810),
         // [9.2] 开放接口日志
-        new("log.api","开放接口日志","menu.log_api",MenuType.Menu,"/log/api","LogApi","log/api/index","log",SaasPermissionCodes.ApiLog.Read,"lucide:webhook",820),
+        Page("log.api", "开放接口日志", SaasPermissionCodes.ApiLog.Read, "lucide:webhook", 820),
         // [9.3] 操作日志
-        new("log.operation","操作日志","menu.log_operation",MenuType.Menu,"/log/operation","LogOperation","log/operation/index","log",SaasPermissionCodes.OperationLog.Read,"lucide:mouse-pointer-click",830),
+        Page("log.operation", "操作日志", SaasPermissionCodes.OperationLog.Read, "lucide:mouse-pointer-click", 830),
         // [9.4] 登录日志
-        new("log.login","登录日志","menu.log_login",MenuType.Menu,"/log/login","LogLogin","log/login/index","log",SaasPermissionCodes.LoginLog.Read,"lucide:log-in",840),
+        Page("log.login", "登录日志", SaasPermissionCodes.LoginLog.Read, "lucide:log-in", 840),
         // [9.5] 异常日志
-        new("log.exception","异常日志","menu.log_exception",MenuType.Menu,"/log/exception","LogException","log/exception/index","log",SaasPermissionCodes.ExceptionLog.Read,"lucide:triangle-alert",850),
+        Page("log.exception", "异常日志", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 850),
         // [9.6] 数据变更
-        new("log.diff","数据变更","menu.log_diff",MenuType.Menu,"/log/diff","LogDiff","log/diff/index","log",SaasPermissionCodes.DiffLog.Read,"lucide:file-diff",860),
+        Page("log.diff", "数据变更", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 860),
+
+        // [10] 关于
+        Dir("about", "关于", "lucide:info", 900, "/about"),
+        // [10.1] 关于项目（复用前端静态 /about 页：RouteName=About 令动态路由按名去重跳过，导航直达静态页）
+        StaticPage("about.project", "关于项目", "/about", "About", "_core/about/index", "lucide:file-text", 910),
+        // [10.2] Github（外链，直接打开）
+        Link("about.github", "Github", "https://github.com/XiHanFun/XiHan.BasicApp", "lucide:github", 920),
+        // [10.3] Gitee（外链，直接打开）
+        Link("about.gitee", "Gitee", "https://gitee.com/XiHanFun/XiHan.BasicApp", "lucide:git-branch", 930),
     ];
 
     /// <summary>
@@ -181,164 +194,222 @@ public static class PageRegistry
     public static IReadOnlyList<ButtonDescriptor> Buttons { get; } =
     [
         // [2.1] 用户管理
-        new("identity.user.create","新增","identity.user",SaasPermissionCodes.User.Create,1),
-        new("identity.user.update","编辑","identity.user",SaasPermissionCodes.User.Update,2),
-        new("identity.user.delete","删除","identity.user",SaasPermissionCodes.User.Delete,3),
-        new("identity.user.status","启停","identity.user",SaasPermissionCodes.User.Status,4),
-        new("identity.user.reset-password","重置密码","identity.user",SaasPermissionCodes.UserSecurity.ResetPassword,5),
+        Btn("identity.user.create", "新增", SaasPermissionCodes.User.Create, 1),
+        Btn("identity.user.update", "编辑", SaasPermissionCodes.User.Update, 2),
+        Btn("identity.user.delete", "删除", SaasPermissionCodes.User.Delete, 3),
+        Btn("identity.user.status", "启停", SaasPermissionCodes.User.Status, 4),
+        Btn("identity.user.reset-password", "重置密码", SaasPermissionCodes.UserSecurity.ResetPassword, 5),
+        Btn("identity.user.export", "导出", SaasPermissionCodes.User.Export, 6),
 
         // [2.2] 角色管理
-        new("identity.role.create","新增","identity.role",SaasPermissionCodes.Role.Create,1),
-        new("identity.role.update","编辑","identity.role",SaasPermissionCodes.Role.Update,2),
-        new("identity.role.delete","删除","identity.role",SaasPermissionCodes.Role.Delete,3),
-        new("identity.role.status","启停","identity.role",SaasPermissionCodes.Role.Status,4),
-        new("identity.role.grant-permission","分配权限","identity.role",SaasPermissionCodes.RolePermission.Grant,5),
+        Btn("identity.role.create", "新增", SaasPermissionCodes.Role.Create, 1),
+        Btn("identity.role.update", "编辑", SaasPermissionCodes.Role.Update, 2),
+        Btn("identity.role.delete", "删除", SaasPermissionCodes.Role.Delete, 3),
+        Btn("identity.role.status", "启停", SaasPermissionCodes.Role.Status, 4),
+        Btn("identity.role.grant-permission", "分配权限", SaasPermissionCodes.RolePermission.Grant, 5),
+        Btn("identity.role.export", "导出", SaasPermissionCodes.Role.Export, 9),
 
         // [2.3] 组织机构
-        new("identity.org.create","新增","identity.org",SaasPermissionCodes.Department.Create,1),
-        new("identity.org.update","编辑","identity.org",SaasPermissionCodes.Department.Update,2),
-        new("identity.org.delete","删除","identity.org",SaasPermissionCodes.Department.Delete,3),
-        new("identity.org.status","启停","identity.org",SaasPermissionCodes.Department.Status,4),
+        Btn("identity.org.create", "新增", SaasPermissionCodes.Department.Create, 1),
+        Btn("identity.org.update", "编辑", SaasPermissionCodes.Department.Update, 2),
+        Btn("identity.org.delete", "删除", SaasPermissionCodes.Department.Delete, 3),
+        Btn("identity.org.status", "启停", SaasPermissionCodes.Department.Status, 4),
+        Btn("identity.org.export", "导出", SaasPermissionCodes.Department.Export, 9),
 
         // [2.4] 权限管理
-        new("identity.permission.create","新增","identity.permission",SaasPermissionCodes.Permission.Create,1),
-        new("identity.permission.update","编辑","identity.permission",SaasPermissionCodes.Permission.Update,2),
-        new("identity.permission.delete","删除","identity.permission",SaasPermissionCodes.Permission.Delete,3),
-        new("identity.permission.status","启停","identity.permission",SaasPermissionCodes.Permission.Status,4),
+        Btn("identity.permission.create", "新增", SaasPermissionCodes.Permission.Create, 1),
+        Btn("identity.permission.update", "编辑", SaasPermissionCodes.Permission.Update, 2),
+        Btn("identity.permission.delete", "删除", SaasPermissionCodes.Permission.Delete, 3),
+        Btn("identity.permission.status", "启停", SaasPermissionCodes.Permission.Status, 4),
+        Btn("identity.permission.export", "导出", SaasPermissionCodes.Permission.Export, 9),
 
-        // [2.5] 字段安全
-        new("identity.field-security.create","新增","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Create,1),
-        new("identity.field-security.update","编辑","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Update,2),
-        new("identity.field-security.status","启停","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Status,3),
-        new("identity.field-security.delete","删除","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Delete,4),
+        // [2.5] 字段安全（字段级读写与脱敏策略）
+        Btn("identity.field-security.create", "新增", SaasPermissionCodes.FieldLevelSecurity.Create, 1),
+        Btn("identity.field-security.update", "编辑", SaasPermissionCodes.FieldLevelSecurity.Update, 2),
+        Btn("identity.field-security.status", "启停", SaasPermissionCodes.FieldLevelSecurity.Status, 3),
+        Btn("identity.field-security.delete", "删除", SaasPermissionCodes.FieldLevelSecurity.Delete, 4),
+        Btn("identity.field-security.export", "导出", SaasPermissionCodes.FieldLevelSecurity.Export, 9),
 
         // [2.6] 授权申请
-        new("identity.authorization.create","发起申请","identity.authorization",SaasPermissionCodes.PermissionRequest.Create,1),
-        new("identity.authorization.audit","审批","identity.authorization",SaasPermissionCodes.PermissionRequest.Status,2),
-        new("identity.authorization.withdraw","撤回","identity.authorization",SaasPermissionCodes.PermissionRequest.Withdraw,3),
+        Btn("identity.authorization.create", "发起申请", SaasPermissionCodes.PermissionRequest.Create, 1),
+        Btn("identity.authorization.audit", "审批", SaasPermissionCodes.PermissionRequest.Status, 2),
+        Btn("identity.authorization.withdraw", "撤回", SaasPermissionCodes.PermissionRequest.Withdraw, 3),
+        Btn("identity.authorization.export", "导出", SaasPermissionCodes.PermissionRequest.Export, 9),
 
-        // [2.7] 在线用户
-        new("identity.online-user.revoke","强制下线","identity.online-user",SaasPermissionCodes.UserSession.Revoke,1),
+        // [2.7] 在线用户（会话实时视图：活跃会话 + SignalR 连接标注，权限复用用户会话码）
+        Btn("identity.online-user.revoke", "强制下线", SaasPermissionCodes.UserSession.Revoke, 1),
+        Btn("identity.online-user.export", "导出", SaasPermissionCodes.UserSession.Export, 9),
 
         // [3.1] 租户列表
-        new("tenant.list.create","新增","tenant.list",SaasPermissionCodes.Tenant.Create,1),
-        new("tenant.list.update","编辑","tenant.list",SaasPermissionCodes.Tenant.Update,2),
-        new("tenant.list.status","启停","tenant.list",SaasPermissionCodes.Tenant.Status,3),
+        Btn("tenant.list.create", "新增", SaasPermissionCodes.Tenant.Create, 1),
+        Btn("tenant.list.update", "编辑", SaasPermissionCodes.Tenant.Update, 2),
+        Btn("tenant.list.status", "启停", SaasPermissionCodes.Tenant.Status, 3),
+        Btn("tenant.list.export", "导出", SaasPermissionCodes.Tenant.Export, 9),
 
         // [3.2] 版本套餐
-        new("tenant.edition.create","新增","tenant.edition",SaasPermissionCodes.TenantEdition.Create,1),
-        new("tenant.edition.update","编辑","tenant.edition",SaasPermissionCodes.TenantEdition.Update,2),
-        new("tenant.edition.status","启停","tenant.edition",SaasPermissionCodes.TenantEdition.Status,3),
-        new("tenant.edition.default","设为默认","tenant.edition",SaasPermissionCodes.TenantEdition.Default,4),
+        Btn("tenant.edition.create", "新增", SaasPermissionCodes.TenantEdition.Create, 1),
+        Btn("tenant.edition.update", "编辑", SaasPermissionCodes.TenantEdition.Update, 2),
+        Btn("tenant.edition.status", "启停", SaasPermissionCodes.TenantEdition.Status, 3),
+        Btn("tenant.edition.default", "设为默认", SaasPermissionCodes.TenantEdition.Default, 4),
+        Btn("tenant.edition.export", "导出", SaasPermissionCodes.TenantEdition.Export, 9),
 
         // [4.1] 通知公告
-        new("message.notification.create","新增","message.notification",SaasPermissionCodes.Notification.Create,1),
-        new("message.notification.update","编辑","message.notification",SaasPermissionCodes.Notification.Update,2),
-        new("message.notification.publish","发布","message.notification",SaasPermissionCodes.Notification.Publish,3),
-        new("message.notification.delete","删除","message.notification",SaasPermissionCodes.Notification.Delete,4),
+        Btn("message.notification.create", "新增", SaasPermissionCodes.Notification.Create, 1),
+        Btn("message.notification.update", "编辑", SaasPermissionCodes.Notification.Update, 2),
+        Btn("message.notification.publish", "发布", SaasPermissionCodes.Notification.Publish, 3),
+        Btn("message.notification.delete", "删除", SaasPermissionCodes.Notification.Delete, 4),
+        Btn("message.notification.export", "导出", SaasPermissionCodes.Notification.Export, 9),
 
         // [4.2] 邮件短信
-        new("message.record.delete","删除","message.record",SaasPermissionCodes.Message.Delete,1),
+        Btn("message.record.delete", "删除", SaasPermissionCodes.Message.Delete, 1),
+        Btn("message.record.export", "导出", SaasPermissionCodes.Message.Export, 9),
 
         // [4.3] 消息模板
-        new("message.template.create","新增","message.template",SaasPermissionCodes.MessageTemplate.Create,1),
-        new("message.template.update","编辑","message.template",SaasPermissionCodes.MessageTemplate.Update,2),
-        new("message.template.status","启停","message.template",SaasPermissionCodes.MessageTemplate.Status,3),
-        new("message.template.delete","删除","message.template",SaasPermissionCodes.MessageTemplate.Delete,4),
+        Btn("message.template.create", "新增", SaasPermissionCodes.MessageTemplate.Create, 1),
+        Btn("message.template.update", "编辑", SaasPermissionCodes.MessageTemplate.Update, 2),
+        Btn("message.template.status", "启停", SaasPermissionCodes.MessageTemplate.Status, 3),
+        Btn("message.template.delete", "删除", SaasPermissionCodes.MessageTemplate.Delete, 4),
+        Btn("message.template.export", "导出", SaasPermissionCodes.MessageTemplate.Export, 9),
 
         // [5.1] 审批中心
-        new("approval.review.audit","审核","approval.review",SaasPermissionCodes.Review.Audit,1),
-        new("approval.review.withdraw","撤回","approval.review",SaasPermissionCodes.Review.Withdraw,2),
-        new("approval.review.delete","删除","approval.review",SaasPermissionCodes.Review.Delete,3),
+        Btn("approval.review.audit", "审核", SaasPermissionCodes.Review.Audit, 1),
+        Btn("approval.review.withdraw", "撤回", SaasPermissionCodes.Review.Withdraw, 2),
+        Btn("approval.review.delete", "删除", SaasPermissionCodes.Review.Delete, 3),
+        Btn("approval.review.export", "导出", SaasPermissionCodes.Review.Export, 9),
 
         // [5.2] 约束规则
-        new("approval.constraint.create","新增","approval.constraint",SaasPermissionCodes.ConstraintRule.Create,1),
-        new("approval.constraint.update","编辑","approval.constraint",SaasPermissionCodes.ConstraintRule.Update,2),
-        new("approval.constraint.delete","删除","approval.constraint",SaasPermissionCodes.ConstraintRule.Delete,3),
-        new("approval.constraint.status","启停","approval.constraint",SaasPermissionCodes.ConstraintRule.Status,4),
+        Btn("approval.constraint.create", "新增", SaasPermissionCodes.ConstraintRule.Create, 1),
+        Btn("approval.constraint.update", "编辑", SaasPermissionCodes.ConstraintRule.Update, 2),
+        Btn("approval.constraint.delete", "删除", SaasPermissionCodes.ConstraintRule.Delete, 3),
+        Btn("approval.constraint.status", "启停", SaasPermissionCodes.ConstraintRule.Status, 4),
+        Btn("approval.constraint.export", "导出", SaasPermissionCodes.ConstraintRule.Export, 9),
 
         // [6.1] 文件管理
-        new("file.library.create","上传","file.library",SaasPermissionCodes.File.Create,1),
-        new("file.library.update","编辑","file.library",SaasPermissionCodes.File.Update,2),
-        new("file.library.delete","删除","file.library",SaasPermissionCodes.File.Delete,3),
+        Btn("file.library.create", "上传", SaasPermissionCodes.File.Create, 1),
+        Btn("file.library.update", "编辑", SaasPermissionCodes.File.Update, 2),
+        Btn("file.library.delete", "删除", SaasPermissionCodes.File.Delete, 3),
+        Btn("file.library.export", "导出", SaasPermissionCodes.File.Export, 9),
 
         // [6.2] 存储配置
-        new("file.storage.create","新增","file.storage",SaasPermissionCodes.StorageConfig.Create,1),
-        new("file.storage.update","编辑","file.storage",SaasPermissionCodes.StorageConfig.Update,2),
-        new("file.storage.status","启停","file.storage",SaasPermissionCodes.StorageConfig.Status,3),
-        new("file.storage.delete","删除","file.storage",SaasPermissionCodes.StorageConfig.Delete,4),
+        Btn("file.storage.create", "新增", SaasPermissionCodes.StorageConfig.Create, 1),
+        Btn("file.storage.update", "编辑", SaasPermissionCodes.StorageConfig.Update, 2),
+        Btn("file.storage.status", "启停", SaasPermissionCodes.StorageConfig.Status, 3),
+        Btn("file.storage.delete", "删除", SaasPermissionCodes.StorageConfig.Delete, 4),
+        Btn("file.storage.export", "导出", SaasPermissionCodes.StorageConfig.Export, 9),
 
         // [7.1] 应用管理
-        new("openapi.app.create","新增","openapi.app",SaasPermissionCodes.OAuthApp.Create,1),
-        new("openapi.app.update","编辑","openapi.app",SaasPermissionCodes.OAuthApp.Update,2),
-        new("openapi.app.delete","删除","openapi.app",SaasPermissionCodes.OAuthApp.Delete,3),
-        new("openapi.app.status","启停","openapi.app",SaasPermissionCodes.OAuthApp.Status,4),
-        new("openapi.app.secret","重置密钥","openapi.app",SaasPermissionCodes.OAuthApp.Secret,5),
+        Btn("openapi.app.create", "新增", SaasPermissionCodes.OAuthApp.Create, 1),
+        Btn("openapi.app.update", "编辑", SaasPermissionCodes.OAuthApp.Update, 2),
+        Btn("openapi.app.delete", "删除", SaasPermissionCodes.OAuthApp.Delete, 3),
+        Btn("openapi.app.status", "启停", SaasPermissionCodes.OAuthApp.Status, 4),
+        Btn("openapi.app.secret", "重置密钥", SaasPermissionCodes.OAuthApp.Secret, 5),
+        Btn("openapi.app.export", "导出", SaasPermissionCodes.OAuthApp.Export, 9),
 
         // [8.1] 菜单管理
-        new("setting.menu.create","新增","setting.menu",SaasPermissionCodes.Menu.Create,1),
-        new("setting.menu.update","编辑","setting.menu",SaasPermissionCodes.Menu.Update,2),
-        new("setting.menu.delete","删除","setting.menu",SaasPermissionCodes.Menu.Delete,3),
-        new("setting.menu.status","启停","setting.menu",SaasPermissionCodes.Menu.Status,4),
+        Btn("setting.menu.create", "新增", SaasPermissionCodes.Menu.Create, 1),
+        Btn("setting.menu.update", "编辑", SaasPermissionCodes.Menu.Update, 2),
+        Btn("setting.menu.delete", "删除", SaasPermissionCodes.Menu.Delete, 3),
+        Btn("setting.menu.status", "启停", SaasPermissionCodes.Menu.Status, 4),
+        Btn("setting.menu.export", "导出", SaasPermissionCodes.Menu.Export, 9),
 
         // [8.2] 字典管理
-        new("setting.dict.create","新增","setting.dict",SaasPermissionCodes.Dict.Create,1),
-        new("setting.dict.update","编辑","setting.dict",SaasPermissionCodes.Dict.Update,2),
-        new("setting.dict.delete","删除","setting.dict",SaasPermissionCodes.Dict.Delete,3),
-        new("setting.dict.status","启停","setting.dict",SaasPermissionCodes.Dict.Status,4),
+        Btn("setting.dict.create", "新增", SaasPermissionCodes.Dict.Create, 1),
+        Btn("setting.dict.update", "编辑", SaasPermissionCodes.Dict.Update, 2),
+        Btn("setting.dict.delete", "删除", SaasPermissionCodes.Dict.Delete, 3),
+        Btn("setting.dict.status", "启停", SaasPermissionCodes.Dict.Status, 4),
+        Btn("setting.dict.export", "导出", SaasPermissionCodes.Dict.Export, 9),
 
         // [8.3] 参数配置
-        new("setting.config.create","新增","setting.config",SaasPermissionCodes.Config.Create,1),
-        new("setting.config.update","编辑","setting.config",SaasPermissionCodes.Config.Update,2),
-        new("setting.config.delete","删除","setting.config",SaasPermissionCodes.Config.Delete,3),
-        new("setting.config.status","启停","setting.config",SaasPermissionCodes.Config.Status,4),
+        Btn("setting.config.create", "新增", SaasPermissionCodes.Config.Create, 1),
+        Btn("setting.config.update", "编辑", SaasPermissionCodes.Config.Update, 2),
+        Btn("setting.config.delete", "删除", SaasPermissionCodes.Config.Delete, 3),
+        Btn("setting.config.status", "启停", SaasPermissionCodes.Config.Status, 4),
+        Btn("setting.config.import", "导入", SaasPermissionCodes.Config.Import, 5),
+        Btn("setting.config.export", "导出", SaasPermissionCodes.Config.Export, 9),
 
         // [8.4] 任务调度
-        new("setting.job.create","新增","setting.job",SaasPermissionCodes.Task.Create,1),
-        new("setting.job.update","编辑","setting.job",SaasPermissionCodes.Task.Update,2),
-        new("setting.job.delete","删除","setting.job",SaasPermissionCodes.Task.Delete,3),
-        new("setting.job.status","启停","setting.job",SaasPermissionCodes.Task.Status,4),
-        new("setting.job.run","执行","setting.job",SaasPermissionCodes.Task.RunStatus,5),
-        new("setting.job.logs","执行日志","setting.job",SaasPermissionCodes.TaskLog.Read,6),
+        Btn("setting.job.create", "新增", SaasPermissionCodes.Task.Create, 1),
+        Btn("setting.job.update", "编辑", SaasPermissionCodes.Task.Update, 2),
+        Btn("setting.job.delete", "删除", SaasPermissionCodes.Task.Delete, 3),
+        Btn("setting.job.status", "启停", SaasPermissionCodes.Task.Status, 4),
+        Btn("setting.job.run", "执行", SaasPermissionCodes.Task.RunStatus, 5),
+        Btn("setting.job.logs", "执行日志", SaasPermissionCodes.TaskLog.Read, 6),
+        Btn("setting.job.export", "导出", SaasPermissionCodes.Task.Export, 9),
 
-        // [8.5] 缓存管理
-        new("setting.cache.clear","清理","setting.cache",SaasPermissionCodes.Cache.Clear,1),
+        // [8.5] 缓存管理（平台运维专属权限）
+        Btn("setting.cache.clear", "清理", SaasPermissionCodes.Cache.Clear, 1),
 
-        // [8.7] 版本管理
-        new("setting.version.create","新增","setting.version",SaasPermissionCodes.Version.Create,1),
-        new("setting.version.update","编辑","setting.version",SaasPermissionCodes.Version.Update,2),
-        new("setting.version.upgrade","升级","setting.version",SaasPermissionCodes.Version.Upgrade,3),
-        new("setting.version.delete","删除","setting.version",SaasPermissionCodes.Version.Delete,4),
+        // [8.7] 版本管理（系统版本与升级迁移）
+        Btn("setting.version.create", "新增", SaasPermissionCodes.Version.Create, 1),
+        Btn("setting.version.update", "编辑", SaasPermissionCodes.Version.Update, 2),
+        Btn("setting.version.upgrade", "升级", SaasPermissionCodes.Version.Upgrade, 3),
+        Btn("setting.version.delete", "删除", SaasPermissionCodes.Version.Delete, 4),
+        Btn("setting.version.export", "导出", SaasPermissionCodes.Version.Export, 9),
 
-        // 导入导出按钮（逐资源细粒度，渐进登记；前端按对应权限码显隐导出/导入按钮）
-        new("identity.user.export","导出","identity.user",SaasPermissionCodes.User.Export,6),
-        new("log.operation.export","导出","log.operation",SaasPermissionCodes.OperationLog.Export,1),
-        new("log.access.export","导出","log.access",SaasPermissionCodes.AccessLog.Export,1),
-        new("log.api.export","导出","log.api",SaasPermissionCodes.ApiLog.Export,1),
-        new("log.login.export","导出","log.login",SaasPermissionCodes.LoginLog.Export,1),
-        new("log.exception.export","导出","log.exception",SaasPermissionCodes.ExceptionLog.Export,1),
-        new("log.diff.export","导出","log.diff",SaasPermissionCodes.DiffLog.Export,1),
-        new("setting.config.import","导入","setting.config",SaasPermissionCodes.Config.Import,5),
-        new("identity.role.export","导出","identity.role",SaasPermissionCodes.Role.Export,9),
-        new("identity.org.export","导出","identity.org",SaasPermissionCodes.Department.Export,9),
-        new("identity.permission.export","导出","identity.permission",SaasPermissionCodes.Permission.Export,9),
-        new("identity.field-security.export","导出","identity.field-security",SaasPermissionCodes.FieldLevelSecurity.Export,9),
-        new("identity.authorization.export","导出","identity.authorization",SaasPermissionCodes.PermissionRequest.Export,9),
-        new("tenant.list.export","导出","tenant.list",SaasPermissionCodes.Tenant.Export,9),
-        new("message.template.export","导出","message.template",SaasPermissionCodes.MessageTemplate.Export,9),
-        new("approval.review.export","导出","approval.review",SaasPermissionCodes.Review.Export,9),
-        new("file.library.export","导出","file.library",SaasPermissionCodes.File.Export,9),
-        new("openapi.app.export","导出","openapi.app",SaasPermissionCodes.OAuthApp.Export,9),
-        new("setting.menu.export","导出","setting.menu",SaasPermissionCodes.Menu.Export,9),
-        new("setting.dict.export","导出","setting.dict",SaasPermissionCodes.Dict.Export,9),
-        new("setting.config.export","导出","setting.config",SaasPermissionCodes.Config.Export,9),
-        new("setting.job.export","导出","setting.job",SaasPermissionCodes.Task.Export,9),
-        new("setting.version.export","导出","setting.version",SaasPermissionCodes.Version.Export,9),
-        new("identity.online-user.export","导出","identity.online-user",SaasPermissionCodes.UserSession.Export,9),
-        new("message.record.export","导出","message.record",SaasPermissionCodes.Message.Export,9),
-        new("message.notification.export","导出","message.notification",SaasPermissionCodes.Notification.Export,9),
-        new("tenant.edition.export","导出","tenant.edition",SaasPermissionCodes.TenantEdition.Export,9),
-        new("file.storage.export","导出","file.storage",SaasPermissionCodes.StorageConfig.Export,9),
-        new("approval.constraint.export","导出","approval.constraint",SaasPermissionCodes.ConstraintRule.Export,9),
+        // [9.1] 访问日志
+        Btn("log.access.export", "导出", SaasPermissionCodes.AccessLog.Export, 1),
+
+        // [9.2] 开放接口日志
+        Btn("log.api.export", "导出", SaasPermissionCodes.ApiLog.Export, 1),
+
+        // [9.3] 操作日志
+        Btn("log.operation.export", "导出", SaasPermissionCodes.OperationLog.Export, 1),
+
+        // [9.4] 登录日志
+        Btn("log.login.export", "导出", SaasPermissionCodes.LoginLog.Export, 1),
+
+        // [9.5] 异常日志
+        Btn("log.exception.export", "导出", SaasPermissionCodes.ExceptionLog.Export, 1),
+
+        // [9.6] 数据变更
+        Btn("log.diff.export", "导出", SaasPermissionCodes.DiffLog.Export, 1),
     ];
+
+    /// <summary>
+    /// 构造目录页（MenuType.Directory）：I18nKey/Path/RouteName/ParentCode 由 Code 派生，Component 恒为 null
+    /// </summary>
+    private static PageDescriptor Dir(string code, string title, string icon, int sort, string redirect) =>
+        new(code, title, I18nOf(code), MenuType.Directory, PathOf(code), RouteOf(code), null, ParentOf(code), null, icon, sort, redirect);
+
+    /// <summary>
+    /// 构造菜单页（MenuType.Menu）：I18nKey/Path/RouteName/Component/ParentCode 由 Code 派生
+    /// </summary>
+    private static PageDescriptor Page(string code, string title, string? permissionCode, string icon, int sort, bool isCache = false, bool isAffix = false) =>
+        new(code, title, I18nOf(code), MenuType.Menu, PathOf(code), RouteOf(code), PathOf(code)[1..] + "/index", ParentOf(code), permissionCode, icon, sort, null, isCache, isAffix);
+
+    /// <summary>
+    /// 构造页面按钮（MenuType.Button）：ParentCode 由 Code 派生
+    /// </summary>
+    private static ButtonDescriptor Btn(string code, string title, string permissionCode, int sort) =>
+        new(code, title, ParentOf(code)!, permissionCode, sort);
+
+    /// <summary>
+    /// 复用前端静态路由页面的菜单项（MenuType.Menu）：path/routeName/component 显式给定（与 src/router/routes.ts
+    /// 静态路由对齐，动态路由按 RouteName 去重跳过，仅生成侧边栏入口与导航目标），ParentCode 由 Code 派生
+    /// </summary>
+    private static PageDescriptor StaticPage(string code, string title, string path, string routeName, string component, string icon, int sort) =>
+        new(code, title, I18nOf(code), MenuType.Menu, path, routeName, component, ParentOf(code), null, icon, sort);
+
+    /// <summary>
+    /// 外链菜单项（MenuType.Menu + IsExternal）：前端按 ExternalUrl 新标签直接打开、不渲染组件，ParentCode 由 Code 派生
+    /// </summary>
+    private static PageDescriptor Link(string code, string title, string externalUrl, string icon, int sort) =>
+        new(code, title, I18nOf(code), MenuType.Menu, PathOf(code), RouteOf(code), null, ParentOf(code), null, icon, sort, null, false, false, true, externalUrl);
+
+    /// <summary>国际化键：menu.{Code 中 . 与 - 替换为 _}</summary>
+    private static string I18nOf(string code) => "menu." + code.Replace('.', '_').Replace('-', '_');
+
+    /// <summary>路由路径：/{Code 中 . 替换为 /}</summary>
+    private static string PathOf(string code) => "/" + code.Replace('.', '/');
+
+    /// <summary>父页面码：Code 去掉末段（顶层返回 null）</summary>
+    private static string? ParentOf(string code)
+    {
+        var index = code.LastIndexOf('.');
+        return index < 0 ? null : code[..index];
+    }
+
+    /// <summary>路由名：Code 按 . 与 - 切分后各段首字母大写拼接</summary>
+    private static string RouteOf(string code) =>
+        string.Concat(code.Split('.', '-').Select(segment => char.ToUpperInvariant(segment[0]) + segment[1..]));
 }
