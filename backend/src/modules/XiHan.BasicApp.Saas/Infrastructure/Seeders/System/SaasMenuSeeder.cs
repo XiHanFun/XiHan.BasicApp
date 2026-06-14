@@ -187,8 +187,8 @@ public sealed class SaasMenuSeeder(
         changed |= SetIfChanged(menu.Icon, definition.Icon, value => menu.Icon = value);
         changed |= SetIfChanged(menu.Title, definition.Title, value => menu.Title = value);
         changed |= SetIfChanged(menu.I18nKey, definition.I18nKey, value => menu.I18nKey = value);
-        changed |= SetIfChanged(menu.IsExternal, false, value => menu.IsExternal = value);
-        changed |= SetIfChanged(menu.ExternalUrl, null, value => menu.ExternalUrl = value);
+        changed |= SetIfChanged(menu.IsExternal, definition.IsExternal, value => menu.IsExternal = value);
+        changed |= SetIfChanged(menu.ExternalUrl, definition.ExternalUrl, value => menu.ExternalUrl = value);
         changed |= SetIfChanged(menu.IsCache, definition.IsCache, value => menu.IsCache = value);
         changed |= SetIfChanged(menu.IsVisible, true, value => menu.IsVisible = value);
         changed |= SetIfChanged(menu.IsAffix, definition.IsAffix, value => menu.IsAffix = value);
@@ -237,7 +237,9 @@ public sealed class SaasMenuSeeder(
                 page.Sort,
                 page.Redirect,
                 page.IsCache,
-                page.IsAffix));
+                page.IsAffix,
+                page.IsExternal,
+                page.ExternalUrl));
 
         var buttons = PageRegistry.Buttons
             .Select(button => new MenuSeedDefinition(
@@ -272,5 +274,7 @@ public sealed class SaasMenuSeeder(
         int Sort,
         string? Redirect = null,
         bool IsCache = false,
-        bool IsAffix = false);
+        bool IsAffix = false,
+        bool IsExternal = false,
+        string? ExternalUrl = null);
 }

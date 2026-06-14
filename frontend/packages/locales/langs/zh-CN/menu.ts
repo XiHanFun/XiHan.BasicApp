@@ -40,6 +40,10 @@ export default {
   log_login: '登录日志',
   log_exception: '异常日志',
   log_diff: '数据变更',
+  about: '关于',
+  about_project: '关于项目',
+  about_github: 'Github',
+  about_gitee: 'Gitee',
   // ==================== 通用 / 历史键 ====================
   dashboard: '仪表板',
   workspace: '工作台',
@@ -77,6 +81,5 @@ export default {
   profile: '个人中心',
   control_center: '控制中心',
   settings: '系统设置',
-  about: '关于系统',
   editor_demo: '编辑器演示',
 }

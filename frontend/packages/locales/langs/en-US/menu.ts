@@ -40,6 +40,10 @@ export default {
   log_login: 'Login Logs',
   log_exception: 'Exception Logs',
   log_diff: 'Data Changes',
+  about: 'About',
+  about_project: 'About Project',
+  about_github: 'Github',
+  about_gitee: 'Gitee',
   // ==================== Common / legacy keys ====================
   dashboard: 'Dashboard',
   workspace: 'Workspace',
@@ -77,6 +81,5 @@ export default {
   profile: 'Profile',
   control_center: 'Control Center',
   settings: 'Settings',
-  about: 'About',
   editor_demo: 'Editor Demo',
 }
