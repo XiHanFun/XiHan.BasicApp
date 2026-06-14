@@ -35,8 +35,8 @@ bld/
 !frontend/src/api/modules/log/
 !frontend/src/api/modules/log/**
 # Allow frontend business views directory named "log".
-!frontend/src/views/log/
-!frontend/src/views/log/**
+!frontend/src/views/setting/log/
+!frontend/src/views/setting/log/**
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

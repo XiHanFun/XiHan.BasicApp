@@ -126,7 +126,7 @@ const fields: ListFieldSchema[] = [
 ]
 
 const schema: PageSchema = {
-  pageCode: 'setting.export-center',
+  pageCode: 'file.export-center',
   pageName: '导出中心',
   rowKey: 'basicId',
   scrollX: 1400,

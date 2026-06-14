@@ -138,6 +138,8 @@ public static class PageRegistry
         Page("file.library", "文件管理", SaasPermissionCodes.File.Read, "lucide:folder-open", 510),
         // [6.2] 存储配置
         Page("file.storage", "存储配置", SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 520),
+        // [6.3] 导出中心（挂入文件存储；我的异步导出任务，任意登录用户可见自己的导出，无需权限码。
+        Page("file.export-center", "导出中心", null, "lucide:download", 530, parentCode: "file"),
 
         // [7] 开放平台
         Dir("openapi", "开放平台", "lucide:blocks", 600, "/openapi/app"),
@@ -160,26 +162,23 @@ public static class PageRegistry
         Page("setting.server", "服务监控", SaasPermissionCodes.Server.Read, "lucide:server", 760),
         // [8.7] 版本管理（系统版本与升级迁移）
         Page("setting.version", "版本管理", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
-        // [8.8] 导出中心（我的异步导出任务：任何登录用户可见自己的导出，自鉴权无需权限码）
-        Page("setting.export-center", "导出中心", null, "lucide:download", 780),
-
-        // [9] 日志审计（顶层目录：路径 /log 与目录层级一致）
-        Dir("log", "日志审计", "lucide:file-search", 800, "/log/access"),
-        // [9.1] 访问日志
+        // [8.8] 日志审计（挂入系统设置作为子目录；log.* code 与路径 /log/* 保持不变，仅用 parentCode 改挂载位置）
+        Dir("log", "日志审计", "lucide:file-search", 780, "/log/access", parentCode: "setting"),
+        // [8.8.1] 访问日志
         Page("log.access", "访问日志", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 810),
-        // [9.2] 开放接口日志
+        // [8.8.2] 开放接口日志
         Page("log.api", "开放接口日志", SaasPermissionCodes.ApiLog.Read, "lucide:webhook", 820),
-        // [9.3] 操作日志
+        // [8.8.3] 操作日志
         Page("log.operation", "操作日志", SaasPermissionCodes.OperationLog.Read, "lucide:mouse-pointer-click", 830),
-        // [9.4] 登录日志
+        // [8.8.4] 登录日志
         Page("log.login", "登录日志", SaasPermissionCodes.LoginLog.Read, "lucide:log-in", 840),
-        // [9.5] 异常日志
+        // [8.8.5] 异常日志
         Page("log.exception", "异常日志", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 850),
-        // [9.6] 数据变更
+        // [8.8.6] 数据变更
         Page("log.diff", "数据变更", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 860),
 
-        // [10] 关于
-        Dir("about", "关于", "lucide:info", 900, "/about"),
+        // [9] 关于项目
+        Dir("about", "关于项目", "lucide:info", 900, "/about"),
         // [10.1] 关于项目（复用前端静态 /about 页：RouteName=About 令动态路由按名去重跳过，导航直达静态页）
         StaticPage("about.project", "关于项目", "/about", "About", "_core/about/index", "lucide:file-text", 910),
         // [10.2] Github（外链，直接打开）
@@ -366,16 +365,18 @@ public static class PageRegistry
     ];
 
     /// <summary>
-    /// 构造目录页（MenuType.Directory）：I18nKey/Path/RouteName/ParentCode 由 Code 派生，Component 恒为 null
+    /// 构造目录页（MenuType.Directory）：I18nKey/Path/RouteName/ParentCode 由 Code 派生，Component 恒为 null。
+    /// parentCode 显式传入时覆盖派生父级（把目录挂到与 code 前缀不同的父级下，路径/视图保持不变）
     /// </summary>
-    private static PageDescriptor Dir(string code, string title, string icon, int sort, string redirect) =>
-        new(code, title, I18nOf(code), MenuType.Directory, PathOf(code), RouteOf(code), null, ParentOf(code), null, icon, sort, redirect);
+    private static PageDescriptor Dir(string code, string title, string icon, int sort, string redirect, string? parentCode = null) =>
+        new(code, title, I18nOf(code), MenuType.Directory, PathOf(code), RouteOf(code), null, parentCode ?? ParentOf(code), null, icon, sort, redirect);
 
     /// <summary>
-    /// 构造菜单页（MenuType.Menu）：I18nKey/Path/RouteName/Component/ParentCode 由 Code 派生
+    /// 构造菜单页（MenuType.Menu）：I18nKey/Path/RouteName/Component/ParentCode 由 Code 派生。
+    /// parentCode 显式传入时覆盖派生父级（把菜单挂到与 code 前缀不同的父级下，路径/视图保持不变）
     /// </summary>
-    private static PageDescriptor Page(string code, string title, string? permissionCode, string icon, int sort, bool isCache = false, bool isAffix = false) =>
-        new(code, title, I18nOf(code), MenuType.Menu, PathOf(code), RouteOf(code), PathOf(code)[1..] + "/index", ParentOf(code), permissionCode, icon, sort, null, isCache, isAffix);
+    private static PageDescriptor Page(string code, string title, string? permissionCode, string icon, int sort, bool isCache = false, bool isAffix = false, string? parentCode = null) =>
+        new(code, title, I18nOf(code), MenuType.Menu, PathOf(code), RouteOf(code), PathOf(code)[1..] + "/index", parentCode ?? ParentOf(code), permissionCode, icon, sort, null, isCache, isAffix);
 
     /// <summary>
     /// 构造页面按钮（MenuType.Button）：ParentCode 由 Code 派生
