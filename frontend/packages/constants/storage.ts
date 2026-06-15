@@ -101,3 +101,4 @@ export const COPYRIGHT_ICP_KEY = `${STORAGE_PREFIX}copyright_icp`
 export const COPYRIGHT_ICP_URL_KEY = `${STORAGE_PREFIX}copyright_icp_url`
 export const FROSTED_GLASS_ENABLED_KEY = `${STORAGE_PREFIX}frosted_glass_enabled`
 export const FROSTED_GLASS_INTENSITY_KEY = `${STORAGE_PREFIX}frosted_glass_intensity`
+export const PROFILE_ACTIVE_TAB_KEY = `${STORAGE_PREFIX}profile_active_tab`
