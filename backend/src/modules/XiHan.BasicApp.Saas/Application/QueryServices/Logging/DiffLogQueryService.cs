@@ -205,6 +205,12 @@ public sealed class DiffLogQueryService
             predicate = And(predicate, diffLog => diffLog.TableName == tableName);
         }
 
+        if (!string.IsNullOrWhiteSpace(input.OperationIp))
+        {
+            var operationIp = input.OperationIp.Trim();
+            predicate = And(predicate, diffLog => diffLog.OperationIp != null && diffLog.OperationIp.Contains(operationIp));
+        }
+
         if (input.IsSuccess.HasValue)
         {
             var isSuccess = input.IsSuccess.Value;
@@ -266,6 +272,7 @@ public sealed class DiffLogQueryService
         ValidateMaxLength(input.EntityId, 100, nameof(input.EntityId), "实体 ID 长度不能超过 100。");
         ValidateMaxLength(input.EntityName, 200, nameof(input.EntityName), "实体名称长度不能超过 200。");
         ValidateMaxLength(input.TableName, 100, nameof(input.TableName), "表名称长度不能超过 100。");
+        ValidateMaxLength(input.OperationIp, 64, nameof(input.OperationIp), "操作 IP 长度不能超过 64。");
         ValidateExecutionTime(input.MinExecutionTime, nameof(input.MinExecutionTime), "最小执行耗时不能小于 0。");
         ValidateExecutionTime(input.MaxExecutionTime, nameof(input.MaxExecutionTime), "最大执行耗时不能小于 0。");
 

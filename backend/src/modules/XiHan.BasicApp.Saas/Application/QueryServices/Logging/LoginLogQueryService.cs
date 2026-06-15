@@ -157,6 +157,12 @@ public sealed class LoginLogQueryService
             predicate = And(predicate, loginLog => loginLog.TraceId == traceId);
         }
 
+        if (!string.IsNullOrWhiteSpace(input.LoginIp))
+        {
+            var loginIp = input.LoginIp.Trim();
+            predicate = And(predicate, loginLog => loginLog.LoginIp != null && loginLog.LoginIp.Contains(loginIp));
+        }
+
         if (input.LoginResult.HasValue)
         {
             var loginResult = input.LoginResult.Value;
@@ -200,6 +206,7 @@ public sealed class LoginLogQueryService
         ValidateMaxLength(input.UserName, 50, nameof(input.UserName), "用户名长度不能超过 50。");
         ValidateMaxLength(input.SessionId, 100, nameof(input.SessionId), "会话标识长度不能超过 100。");
         ValidateMaxLength(input.TraceId, 64, nameof(input.TraceId), "链路追踪 ID 长度不能超过 64。");
+        ValidateMaxLength(input.LoginIp, 64, nameof(input.LoginIp), "登录 IP 长度不能超过 64。");
 
         if (input.LoginResult.HasValue && !Enum.IsDefined(input.LoginResult.Value))
         {

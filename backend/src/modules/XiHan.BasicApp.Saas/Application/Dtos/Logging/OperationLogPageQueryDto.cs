@@ -74,6 +74,11 @@ public sealed class OperationLogPageQueryDto : BasicAppPRDto
     public string? Method { get; set; }
 
     /// <summary>
+    /// 操作 IP（模糊匹配）
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
     /// 操作执行结果（成功/失败/部分成功）
     /// </summary>
     public OperationExecuteResult? Result { get; set; }

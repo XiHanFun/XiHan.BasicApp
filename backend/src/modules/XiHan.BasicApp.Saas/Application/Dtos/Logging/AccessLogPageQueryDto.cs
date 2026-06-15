@@ -63,6 +63,11 @@ public sealed class AccessLogPageQueryDto : BasicAppPRDto
     public string? Method { get; set; }
 
     /// <summary>
+    /// 访问 IP（模糊匹配）
+    /// </summary>
+    public string? AccessIp { get; set; }
+
+    /// <summary>
     /// 访问结果
     /// </summary>
     public AccessResult? AccessResult { get; set; }

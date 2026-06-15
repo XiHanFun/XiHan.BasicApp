@@ -181,6 +181,12 @@ public sealed class AccessLogQueryService
             predicate = And(predicate, accessLog => accessLog.Method == method);
         }
 
+        if (!string.IsNullOrWhiteSpace(input.AccessIp))
+        {
+            var accessIp = input.AccessIp.Trim();
+            predicate = And(predicate, accessLog => accessLog.AccessIp != null && accessLog.AccessIp.Contains(accessIp));
+        }
+
         if (input.AccessResult.HasValue)
         {
             var accessResult = input.AccessResult.Value;
@@ -239,6 +245,7 @@ public sealed class AccessLogQueryService
         ValidateMaxLength(input.ResourcePath, 500, nameof(input.ResourcePath), "资源路径长度不能超过 500。");
         ValidateMaxLength(input.ResourceType, 50, nameof(input.ResourceType), "资源类型长度不能超过 50。");
         ValidateMaxLength(input.Method, 10, nameof(input.Method), "请求方法长度不能超过 10。");
+        ValidateMaxLength(input.AccessIp, 64, nameof(input.AccessIp), "访问 IP 长度不能超过 64。");
         ValidateStatusCode(input.StatusCode);
         ValidateExecutionTime(input.MinExecutionTime, nameof(input.MinExecutionTime), "最小执行耗时不能小于 0。");
         ValidateExecutionTime(input.MaxExecutionTime, nameof(input.MaxExecutionTime), "最大执行耗时不能小于 0。");
