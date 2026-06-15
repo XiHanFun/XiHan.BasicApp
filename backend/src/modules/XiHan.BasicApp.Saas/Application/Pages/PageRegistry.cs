@@ -162,25 +162,26 @@ public static class PageRegistry
         Page("setting.server", "服务监控", SaasPermissionCodes.Server.Read, "lucide:server", 760),
         // [8.7] 版本管理（系统版本与升级迁移）
         Page("setting.version", "版本管理", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
-        // [8.8] 日志审计（挂入系统设置作为子目录；log.* code 与路径 /log/* 保持不变，仅用 parentCode 改挂载位置）
-        Dir("log", "日志审计", "lucide:file-search", 780, "/log/access", parentCode: "setting"),
-        // [8.8.1] 访问日志
+
+        // [9] 日志审计
+        Dir("log", "日志审计", "lucide:file-search", 800, "/log/access"),
+        // [9.1] 访问日志
         Page("log.access", "访问日志", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 810),
-        // [8.8.2] 开放接口日志
+        // [9.2] 开放接口日志
         Page("log.api", "开放接口日志", SaasPermissionCodes.ApiLog.Read, "lucide:webhook", 820),
-        // [8.8.3] 操作日志
+        // [9.3] 操作日志
         Page("log.operation", "操作日志", SaasPermissionCodes.OperationLog.Read, "lucide:mouse-pointer-click", 830),
-        // [8.8.4] 登录日志
+        // [9.4] 登录日志
         Page("log.login", "登录日志", SaasPermissionCodes.LoginLog.Read, "lucide:log-in", 840),
-        // [8.8.5] 异常日志
+        // [9.5] 异常日志
         Page("log.exception", "异常日志", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 850),
-        // [8.8.6] 数据变更
+        // [9.6] 数据变更
         Page("log.diff", "数据变更", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 860),
 
-        // [9] 关于项目
+        // [10] 关于项目
         Dir("about", "关于项目", "lucide:info", 900, "/about"),
         // [10.1] 关于项目（复用前端静态 /about 页：RouteName=About 令动态路由按名去重跳过，导航直达静态页）
-        StaticPage("about.project", "关于项目", "/about", "About", "_core/about/index", "lucide:file-text", 910),
+        StaticPage("about.project", "项目概览", "/about", "About", "_core/about/index", "lucide:file-text", 910),
         // [10.2] Github（外链，直接打开）
         Link("about.github", "Github", "https://github.com/XiHanFun/XiHan.BasicApp", "lucide:github", 920),
         // [10.3] Gitee（外链，直接打开）
