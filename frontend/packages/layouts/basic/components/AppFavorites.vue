@@ -165,10 +165,10 @@ onBeforeUnmount(() => {
         </div>
       </DragDropProvider>
 
-      <template v-if="items.length > 0">
+      <div v-if="items.length > 0" class="fav-footer">
         <NDivider class="!my-1" />
         <span class="text-xs text-foreground/40">点击导航到对应页面；拖拽可排序；× 移除收藏</span>
-      </template>
+      </div>
     </div>
   </NPopover>
 </template>
@@ -260,6 +260,11 @@ onBeforeUnmount(() => {
   flex-direction: column;
   justify-content: center;
   padding: 24px 0;
+}
+
+/* 页脚（分割线 + 提示语）：钉在弹层底部 */
+.fav-footer {
+  margin-top: auto;
 }
 
 /* 收藏药丸 */

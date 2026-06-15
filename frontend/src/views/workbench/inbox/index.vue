@@ -7,7 +7,6 @@ import {
   NSelect,
   NSkeleton,
   NSpace,
-  NSwitch,
   NTag,
   useMessage,
 } from 'naive-ui'
@@ -40,6 +39,16 @@ const notificationTypeOptions = [
   { label: '错误', value: NotificationType.Error },
 ]
 
+const scopeOptions = [
+  { label: '全部', value: 'all' },
+  { label: '待处理', value: 'pending' },
+]
+
+function changeScope(value: string | number) {
+  unreadOnly.value = value === 'pending'
+  loadNotifications()
+}
+
 const visibleItems = computed(() => {
   let result = items.value
   if (unreadOnly.value) {
@@ -57,7 +66,6 @@ const unreadCount = computed(() =>
 const confirmCount = computed(() =>
   items.value.filter(item => item.needConfirm && !item.confirmTime).length,
 )
-const attentionCount = computed(() => visibleItems.value.filter(needsAttention).length)
 
 function needsAttention(item: UserInboxItemDto) {
   return item.notificationStatus === NotificationStatus.Unread || (item.needConfirm && !item.confirmTime)
@@ -91,6 +99,20 @@ function notificationTypeTag(type: NotificationType): TagType {
     default:
       return 'default'
   }
+}
+
+/** 按通知类型给图标着色（主题无关的语义色 + 同色低透明度底） */
+const TYPE_COLOR: Record<string, string> = {
+  [NotificationType.System]: '#64748b',
+  [NotificationType.User]: '#22c55e',
+  [NotificationType.Announcement]: '#3b82f6',
+  [NotificationType.Warning]: '#f59e0b',
+  [NotificationType.Error]: '#ef4444',
+}
+
+function iconStyle(item: UserInboxItemDto) {
+  const color = TYPE_COLOR[item.notificationType] ?? '#64748b'
+  return { color, background: `color-mix(in srgb, ${color} 14%, transparent)` }
 }
 
 function syncHeaderStore(list = items.value) {
@@ -195,17 +217,7 @@ onMounted(loadNotifications)
 <template>
   <div class="inbox-page">
     <div class="inbox-toolbar">
-      <div class="inbox-title">
-        <span class="inbox-title-icon">
-          <Icon icon="lucide:inbox" width="18" />
-        </span>
-        <span>站内信</span>
-        <NTag :type="attentionCount > 0 ? 'warning' : 'success'" round size="small">
-          {{ attentionCount }} 待处理
-        </NTag>
-      </div>
-
-      <div class="inbox-toolbar-right">
+      <div class="inbox-toolbar-left">
         <NSelect
           v-model:value="typeFilter"
           :options="notificationTypeOptions"
@@ -214,44 +226,40 @@ onMounted(loadNotifications)
           size="small"
           style="width: 120px"
         />
-        <NSpace align="center" :size="8">
-          <NTag round size="small">
-            未读 {{ unreadCount }}
-          </NTag>
-          <NTag round size="small" :type="confirmCount > 0 ? 'warning' : 'default'">
-            待确认 {{ confirmCount }}
-          </NTag>
-          <NSwitch
-            v-model:value="unreadOnly"
-            size="small"
-            @update:value="loadNotifications"
-          >
-            <template #checked>
-              待处理
-            </template>
-            <template #unchecked>
-              全部
-            </template>
-          </NSwitch>
-          <NButton
-            :disabled="unreadCount === 0"
-            :loading="loading"
-            size="small"
-            secondary
-            type="primary"
-            @click="handleMarkAllRead"
-          >
-            <template #icon>
-              <NIcon><Icon icon="lucide:check-check" /></NIcon>
-            </template>
-            全部已读
-          </NButton>
-          <NButton aria-label="刷新" circle :loading="loading" size="small" @click="loadNotifications">
-            <template #icon>
-              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-            </template>
-          </NButton>
-        </NSpace>
+        <NSelect
+          :value="unreadOnly ? 'pending' : 'all'"
+          :options="scopeOptions"
+          size="small"
+          style="width: 96px"
+          @update:value="changeScope"
+        />
+      </div>
+
+      <div class="inbox-toolbar-right">
+        <NTag round size="small">
+          未读 {{ unreadCount }}
+        </NTag>
+        <NTag round size="small" :type="confirmCount > 0 ? 'warning' : 'default'">
+          待确认 {{ confirmCount }}
+        </NTag>
+        <NButton
+          :disabled="unreadCount === 0"
+          :loading="loading"
+          size="small"
+          secondary
+          type="primary"
+          @click="handleMarkAllRead"
+        >
+          <template #icon>
+            <NIcon><Icon icon="lucide:check-check" /></NIcon>
+          </template>
+          全部已读
+        </NButton>
+        <NButton aria-label="刷新" circle :loading="loading" size="small" @click="loadNotifications">
+          <template #icon>
+            <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
+          </template>
+        </NButton>
       </div>
     </div>
 
@@ -274,7 +282,7 @@ onMounted(loadNotifications)
         class="inbox-item"
         :class="{ 'inbox-item--attention': needsAttention(item) }"
       >
-        <div class="inbox-item-icon">
+        <div class="inbox-item-icon" :style="iconStyle(item)">
           <Icon :icon="item.icon || 'lucide:bell'" width="18" />
         </div>
 
@@ -364,6 +372,7 @@ onMounted(loadNotifications)
 
 .inbox-toolbar {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -373,31 +382,18 @@ onMounted(loadNotifications)
   background: var(--bg-surface);
 }
 
-.inbox-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.inbox-title {
+/* 左侧：搜索筛选条件 */
+.inbox-toolbar-left {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
 }
 
-.inbox-title-icon {
+/* 右侧：计数 + 操作 */
+.inbox-toolbar-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: hsl(var(--primary) / 10%);
-  color: hsl(var(--primary));
+  gap: 8px;
 }
 
 .inbox-skeleton {
@@ -427,12 +423,17 @@ onMounted(loadNotifications)
 
 .inbox-list {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
   min-height: 0;
+  overflow-y: auto;
+  /* 滚动时底部留白，避免最后一条贴边 */
+  padding-bottom: 4px;
 }
 
 .inbox-item {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
@@ -443,12 +444,19 @@ onMounted(loadNotifications)
   background: var(--bg-surface);
   transition:
     border-color 0.16s ease,
-    background 0.16s ease;
+    background 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
+.inbox-item:hover {
+  border-color: hsl(var(--primary) / 40%);
+  box-shadow: 0 1px 6px hsl(var(--primary) / 8%);
+}
+
+/* 待处理：左侧主色指示条 + 轻微底色，弱于整行高亮 */
 .inbox-item--attention {
-  border-color: hsl(var(--primary) / 34%);
-  background: hsl(var(--accent));
+  background: color-mix(in srgb, hsl(var(--primary)) 5%, var(--bg-surface));
+  box-shadow: inset 3px 0 0 hsl(var(--primary));
 }
 
 .inbox-item-icon {
@@ -457,9 +465,8 @@ onMounted(loadNotifications)
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 8px;
-  background: #eef6ff;
-  color: #2563eb;
+  border-radius: 9px;
+  flex-shrink: 0;
 }
 
 .inbox-item-main {
@@ -469,11 +476,12 @@ onMounted(loadNotifications)
 .inbox-item-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 .inbox-item-title {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -516,6 +524,7 @@ onMounted(loadNotifications)
     flex-direction: column;
   }
 
+  .inbox-toolbar-left,
   .inbox-toolbar-right {
     flex-wrap: wrap;
   }
