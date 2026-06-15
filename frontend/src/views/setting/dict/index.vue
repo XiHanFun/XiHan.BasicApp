@@ -1,21 +1,16 @@
 <script setup lang="ts">
+import type { DataTableColumns } from 'naive-ui'
 import type {
   DictCreateDto,
-  DictDetailDto,
   DictItemCreateDto,
   DictItemListItemDto,
   DictItemUpdateDto,
   DictListItemDto,
   DictUpdateDto,
 } from '@/api'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDataTable,
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
   NEmpty,
   NForm,
   NFormItem,
@@ -25,19 +20,17 @@ import {
   NModal,
   NPagination,
   NPopconfirm,
-  NScrollbar,
   NSelect,
   NSpace,
-  NSpin,
   NSwitch,
   NTag,
   useMessage,
 } from 'naive-ui'
-import { computed, h, reactive, ref } from 'vue'
+import { computed, h, onMounted, reactive, ref } from 'vue'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
-import { Icon, SchemaPage } from '~/components'
+import { Icon } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
-import { formatDate, getOptionLabel } from '~/utils'
+import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformDictPage' })
 
@@ -72,176 +65,180 @@ const builtInOptions = [
   { label: '非内置', value: 0 },
 ]
 
-const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
-
-function reloadDict() {
-  void schemaPageRef.value?.reload()
-}
-
-function canMaintainDict(row: DictListItemDto) {
-  return !row.isBuiltIn
-}
-
-// ── 字段单一事实源 ──────────────────────────────────────────────
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索字典名称/编码/类型', width: 250, order: 0 },
-  { key: 'dictName', title: '字典名称', dataType: 'string', sortable: true, minWidth: 140, order: 1 },
-  { key: 'dictCode', title: '字典编码', dataType: 'string', minWidth: 140, order: 2 },
-  { key: 'dictType', title: '字典类型', dataType: 'string', minWidth: 120, order: 3 },
-  // boolean/enum + options 由框架 renderFieldCell 自动渲染为 NTag，无需自定义 render
-  {
-    key: 'isBuiltIn',
-    title: '内置',
-    dataType: 'boolean',
-    searchable: true,
-    options: builtInOptions,
-    searchPlaceholder: '是否内置',
-    width: 80,
-    order: 4,
-  },
-  {
-    key: 'status',
-    title: '状态',
-    dataType: 'enum',
-    searchable: true,
-    options: statusOptions,
-    searchPlaceholder: '状态',
-    width: 90,
-    order: 5,
-  },
-  { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 6 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
-]
-
-// ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
-// schema 使用框架默认行类型（Record），页面侧在 handler 入口断言为 DictListItemDto 保有类型安全
-const schema: PageSchema = {
-  pageCode: 'platform.dict',
-  exportPermission: 'saas:dict:export',
-  pageName: '字典管理',
-  batchRemovable: true,
-  removePermission: 'saas:dict:delete',
-  statusPermission: 'saas:dict:status',
-  rowKey: 'basicId',
-  scrollX: 1000,
-  fields,
-  resource: {
-    page: (params) => {
-      const { keyword, isBuiltIn, status } = params.filters
-      return dictManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        isBuiltIn: isBuiltIn === undefined || isBuiltIn === null ? undefined : Boolean(isBuiltIn),
-        keyword: (keyword as string | undefined)?.trim() || undefined,
-        status: status as EnableStatus | undefined,
-      }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
-    },
-    remove: id => dictManagementApi.delete(id),
-    updateStatus: (id, enabled) => dictManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用字典' : '批量停用字典' }),
-  },
-  actions: [
-    { key: 'create', title: '新增字典', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
-    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
-    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
-  ],
-}
-
-// ── 行/页面操作分发 ─────────────────────────────────────────────
-function onAction(payload: SchemaActionPayload) {
-  const row = payload.row as unknown as DictListItemDto | undefined
-  switch (payload.key) {
-    case 'create':
-      handleAdd()
-      break
-    case 'view':
-      if (row) {
-        void handleView(row)
-      }
-      break
-    case 'edit':
-      if (row) {
-        handleEdit(row)
-      }
-      break
-    case 'toggle':
-      if (row) {
-        void handleToggleStatus(row)
-      }
-      break
-    case 'delete':
-      if (row) {
-        void handleDelete(row)
-      }
-      break
+// 行内操作按钮：先阻止冒泡（避免触发整行选中），再执行动作
+function stopAnd(action: () => void) {
+  return (e: MouseEvent) => {
+    e.stopPropagation()
+    action()
   }
 }
 
-// ── 字典项（详情抽屉内主从子表，保留页面自有逻辑） ──────────────
+// ── 右侧：字典项列表状态（从，随左侧选中刷新；声明前置供主表选中逻辑引用） ──
 const itemLoading = ref(false)
 const itemList = ref<DictItemListItemDto[]>([])
 const itemTotal = ref(0)
 const itemPage = ref(1)
 const itemPageSize = ref(20)
 const itemQueryParams = reactive({ keyword: '' })
+const checkedItemKeys = ref<Array<string | number>>([])
 
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const editingStatus = ref<EnableStatus | null>(null)
-const dictForm = ref<DictFormModel>(createDefaultDictForm())
-const modalTitle = computed(() => (dictForm.value.basicId ? '编辑字典' : '新增字典'))
+// ── 左侧：字典列表（主表，选中驱动右侧字典项刷新） ───────────────
+const dictLoading = ref(false)
+const dictList = ref<DictListItemDto[]>([])
+const dictTotal = ref(0)
+const dictPage = ref(1)
+const dictPageSize = ref(20)
+const dictQueryParams = reactive({
+  keyword: '',
+  status: null as EnableStatus | null,
+  isBuiltIn: null as number | null,
+})
 
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const currentDetail = ref<DictDetailDto | null>(null)
 const currentDict = ref<DictListItemDto | null>(null)
+const checkedDictKeys = ref<Array<string | number>>([])
 
-const itemModalVisible = ref(false)
-const itemSubmitLoading = ref(false)
-const itemEditingStatus = ref<EnableStatus | null>(null)
-const itemForm = ref<DictItemFormModel>(createDefaultDictItemForm())
-const itemModalTitle = computed(() => (itemForm.value.basicId ? '编辑字典项' : '新增字典项'))
+async function fetchDictData() {
+  dictLoading.value = true
+  try {
+    const result = await dictManagementApi.page({
+      ...createPageRequest({ page: { pageIndex: dictPage.value, pageSize: dictPageSize.value } }),
+      isBuiltIn: dictQueryParams.isBuiltIn == null ? undefined : dictQueryParams.isBuiltIn === 1,
+      keyword: dictQueryParams.keyword?.trim() || undefined,
+      status: dictQueryParams.status ?? undefined,
+    })
+    dictList.value = result.items
+    dictTotal.value = result.page.totalCount
+    syncSelectionAfterDictLoad()
+  }
+  catch {
+    message.error('查询字典失败')
+    dictList.value = []
+    dictTotal.value = 0
+    currentDict.value = null
+    itemList.value = []
+    itemTotal.value = 0
+  }
+  finally {
+    dictLoading.value = false
+  }
+}
 
-function createDefaultDictForm(): DictFormModel {
+// 列表刷新后维持选中：当前选中仍在则同步为最新数据，否则自动选中首条
+function syncSelectionAfterDictLoad() {
+  if (!dictList.value.length) {
+    currentDict.value = null
+    itemList.value = []
+    itemTotal.value = 0
+    return
+  }
+  const latest = currentDict.value
+    ? dictList.value.find(d => d.basicId === currentDict.value?.basicId)
+    : undefined
+  if (latest) {
+    currentDict.value = latest
+    return
+  }
+  const first = dictList.value[0]
+  if (first) {
+    selectDict(first)
+  }
+}
+
+function selectDict(row: DictListItemDto) {
+  if (currentDict.value?.basicId === row.basicId) {
+    return
+  }
+  currentDict.value = row
+  itemQueryParams.keyword = ''
+  itemPage.value = 1
+  checkedItemKeys.value = []
+  fetchItemData()
+}
+
+function handleDictSearch() {
+  dictPage.value = 1
+  fetchDictData()
+}
+
+function handleDictPageChange(page: number) {
+  dictPage.value = page
+  fetchDictData()
+}
+
+function reloadDict() {
+  fetchDictData()
+}
+
+const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
+  { type: 'selection', width: 40 },
+  {
+    key: 'dictName',
+    title: '字典名称',
+    minWidth: 140,
+    ellipsis: { tooltip: true },
+    render: (row: DictListItemDto) =>
+      h('div', { class: 'dict-name' }, [
+        h('span', { class: 'dict-name__text' }, row.dictName),
+        row.isBuiltIn
+          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => '内置')
+          : null,
+      ]),
+  },
+  {
+    key: 'dictCode',
+    title: '编码',
+    minWidth: 130,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'dictType',
+    title: '类型',
+    minWidth: 110,
+    ellipsis: { tooltip: true },
+  },
+  {
+    key: 'status',
+    title: '状态',
+    width: 72,
+    align: 'center',
+    render: (row: DictListItemDto) =>
+      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small', bordered: false }, () => getOptionLabel(statusOptions, row.status)),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    width: 110,
+    align: 'center',
+    render: (row: DictListItemDto) =>
+      h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
+        h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => handleEdit(row)) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NPopconfirm, { onPositiveClick: () => handleToggleStatus(row) }, {
+          trigger: () => h(NButton, { ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => '确认更新字典状态？',
+        }),
+        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
+          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => '确认删除该字典？',
+        }),
+      ]),
+  },
+])
+
+function dictRowProps(row: DictListItemDto) {
   return {
-    dictCode: '',
-    dictDescription: null,
-    dictName: '',
-    dictType: '',
-    sort: 100,
-    status: EnableStatus.Enabled,
+    class: currentDict.value?.basicId === row.basicId ? 'dict-row--active' : '',
+    style: 'cursor: pointer;',
+    onClick: (e: MouseEvent) => {
+      // 点击多选框列不触发整行选中（避免误切当前字典）
+      if ((e.target as HTMLElement | null)?.closest('.n-data-table-td--selection, .n-checkbox')) {
+        return
+      }
+      selectDict(row)
+    },
   }
 }
 
-function createDefaultDictItemForm(): DictItemFormModel {
-  return {
-    dictId: '',
-    isDefault: false,
-    itemCode: '',
-    itemDescription: null,
-    itemName: '',
-    itemValue: null,
-    parentId: null,
-    sort: 100,
-    status: EnableStatus.Enabled,
-  }
-}
-
-function formatNullable(value: unknown) {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
-}
-
-function formatNullableDate(value?: string | null) {
-  return value ? formatDate(value) : '-'
-}
-
-function formatBoolean(value?: boolean | null) {
-  if (value === undefined || value === null) {
-    return '-'
-  }
-  return value ? '是' : '否'
-}
-
+// ── 右侧：字典项列表（从表，随左侧选中刷新） ────────────────────
 async function fetchItemData() {
   if (!currentDict.value) {
     itemList.value = []
@@ -273,7 +270,8 @@ async function fetchItemData() {
   }
 }
 
-const itemColumns = computed(() => [
+const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
+  { type: 'selection' },
   {
     key: 'itemName',
     title: '字典项名称',
@@ -330,7 +328,10 @@ const itemColumns = computed(() => [
   },
 ])
 
-const itemTotalPages = computed(() => Math.max(1, Math.ceil(itemTotal.value / itemPageSize.value)))
+function handleItemSearch() {
+  itemPage.value = 1
+  fetchItemData()
+}
 
 function handleItemPageChange(page: number) {
   itemPage.value = page
@@ -341,6 +342,44 @@ function handleItemPageSizeChange(pageSize: number) {
   itemPageSize.value = pageSize
   itemPage.value = 1
   fetchItemData()
+}
+
+// ── 字典 表单/弹窗 ──────────────────────────────────────────────
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const editingStatus = ref<EnableStatus | null>(null)
+const dictForm = ref<DictFormModel>(createDefaultDictForm())
+const modalTitle = computed(() => (dictForm.value.basicId ? '编辑字典' : '新增字典'))
+
+const itemModalVisible = ref(false)
+const itemSubmitLoading = ref(false)
+const itemEditingStatus = ref<EnableStatus | null>(null)
+const itemForm = ref<DictItemFormModel>(createDefaultDictItemForm())
+const itemModalTitle = computed(() => (itemForm.value.basicId ? '编辑字典项' : '新增字典项'))
+
+function createDefaultDictForm(): DictFormModel {
+  return {
+    dictCode: '',
+    dictDescription: null,
+    dictName: '',
+    dictType: '',
+    sort: 100,
+    status: EnableStatus.Enabled,
+  }
+}
+
+function createDefaultDictItemForm(): DictItemFormModel {
+  return {
+    dictId: '',
+    isDefault: false,
+    itemCode: '',
+    itemDescription: null,
+    itemName: '',
+    itemValue: null,
+    parentId: null,
+    sort: 100,
+    status: EnableStatus.Enabled,
+  }
 }
 
 function handleAdd() {
@@ -361,30 +400,6 @@ function handleEdit(row: DictListItemDto) {
     status: row.status,
   }
   modalVisible.value = true
-}
-
-async function handleView(row: DictListItemDto) {
-  currentDict.value = row
-  detailVisible.value = true
-  detailLoading.value = true
-  currentDetail.value = null
-
-  try {
-    currentDetail.value = await dictManagementApi.detail(row.basicId)
-    if (!currentDetail.value) {
-      message.warning('未查询到字典详情')
-    }
-  }
-  catch {
-    message.error('加载字典详情失败')
-  }
-  finally {
-    detailLoading.value = false
-  }
-
-  itemQueryParams.keyword = ''
-  itemPage.value = 1
-  fetchItemData()
 }
 
 function validateDictForm() {
@@ -468,15 +483,55 @@ async function handleToggleStatus(row: DictListItemDto) {
   reloadDict()
 }
 
-function handleItemSearch() {
-  itemPage.value = 1
-  fetchItemData()
+// ── 字典 批量操作 ───────────────────────────────────────────────
+async function handleBatchDeleteDict() {
+  const ids = [...checkedDictKeys.value]
+  if (!ids.length) {
+    return
+  }
+  try {
+    await Promise.all(ids.map(id => dictManagementApi.delete(String(id))))
+    message.success(`已删除 ${ids.length} 个字典`)
+  }
+  catch {
+    message.error('批量删除失败')
+  }
+  finally {
+    checkedDictKeys.value = []
+    reloadDict()
+  }
 }
 
+async function handleBatchToggleDict(enable: boolean) {
+  const ids = [...checkedDictKeys.value]
+  if (!ids.length) {
+    return
+  }
+  try {
+    await Promise.all(ids.map(id => dictManagementApi.updateStatus({
+      basicId: String(id),
+      remark: enable ? '批量启用字典' : '批量停用字典',
+      status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
+    })))
+    message.success('状态已更新')
+  }
+  catch {
+    message.error('批量操作失败')
+  }
+  finally {
+    checkedDictKeys.value = []
+    reloadDict()
+  }
+}
+
+// ── 字典项 表单/弹窗 ────────────────────────────────────────────
 function handleItemAdd() {
+  if (!currentDict.value) {
+    return
+  }
   itemEditingStatus.value = null
   itemForm.value = createDefaultDictItemForm()
-  itemForm.value.dictId = currentDict.value?.basicId ?? ''
+  itemForm.value.dictId = currentDict.value.basicId
   itemModalVisible.value = true
 }
 
@@ -582,106 +637,231 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
   message.success('状态已更新')
   fetchItemData()
 }
+
+// ── 字典项 批量操作 ─────────────────────────────────────────────
+async function handleBatchDeleteItem() {
+  const ids = [...checkedItemKeys.value]
+  if (!ids.length) {
+    return
+  }
+  try {
+    await Promise.all(ids.map(id => dictManagementApi.itemDelete(String(id))))
+    message.success(`已删除 ${ids.length} 个字典项`)
+  }
+  catch {
+    message.error('批量删除失败')
+  }
+  finally {
+    checkedItemKeys.value = []
+    fetchItemData()
+  }
+}
+
+async function handleBatchToggleItem(enable: boolean) {
+  const ids = [...checkedItemKeys.value]
+  if (!ids.length) {
+    return
+  }
+  try {
+    await Promise.all(ids.map(id => dictManagementApi.itemUpdateStatus({
+      basicId: String(id),
+      remark: enable ? '批量启用字典项' : '批量停用字典项',
+      status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
+    })))
+    message.success('状态已更新')
+  }
+  catch {
+    message.error('批量操作失败')
+  }
+  finally {
+    checkedItemKeys.value = []
+    fetchItemData()
+  }
+}
+
+onMounted(fetchDictData)
 </script>
 
 <template>
-  <SchemaPage
-    ref="schemaPageRef"
-    :schema="schema"
-    @action="onAction"
-  >
-    <NDrawer v-model:show="detailVisible" :width="800">
-      <NDrawerContent :title="`字典详情 - ${currentDict?.dictName ?? ''}`" closable>
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无字典详情">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
-            <NDescriptions :column="2" bordered class="mb-4" size="small">
-              <NDescriptionsItem label="字典名称">
-                {{ currentDetail.dictName }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="字典编码">
-                {{ currentDetail.dictCode }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="字典类型">
-                {{ formatNullable(currentDetail.dictType) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="是否内置">
-                {{ formatBoolean(currentDetail.isBuiltIn) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="排序">
-                {{ currentDetail.sort }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="状态">
-                {{ getOptionLabel(statusOptions, currentDetail.status) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="描述">
-                {{ formatNullable(currentDetail.dictDescription) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="创建时间">
-                {{ formatNullableDate(currentDetail.createdTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="修改时间">
-                {{ formatNullableDate(currentDetail.modifiedTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="创建人">
-                {{ formatNullable(currentDetail.createdBy) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem label="修改人">
-                {{ formatNullable(currentDetail.modifiedBy) }}
-              </NDescriptionsItem>
-            </NDescriptions>
+  <div class="dict-mgmt">
+    <!-- 左侧：字典列表（主） -->
+    <section class="pane pane--master">
+      <header class="pane__head">
+        <div class="pane__title-row">
+          <span class="pane__title">字典列表</span>
+          <span class="pane__count">{{ dictTotal }}</span>
+        </div>
+        <NButton size="small" type="primary" @click="handleAdd">
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
+          </template>
+          新增字典
+        </NButton>
+      </header>
 
-            <NSpace class="mb-3" vertical>
-              <div class="flex gap-2 items-center">
-                <NInput
-                  v-model:value="itemQueryParams.keyword"
-                  clearable
-                  placeholder="搜索字典项"
-                  style="width: 220px"
-                  @keyup.enter="handleItemSearch"
-                />
-                <NButton size="small" type="primary" @click="handleItemSearch">
-                  查询
-                </NButton>
-                <div class="flex-1" />
-                <NButton size="small" type="primary" @click="handleItemAdd">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:plus" /></NIcon>
-                  </template>
-                  新增字典项
-                </NButton>
-              </div>
-            </NSpace>
-            <NDataTable
-              :columns="itemColumns"
-              :data="itemList"
-              :loading="itemLoading"
-              :row-key="(row: DictItemListItemDto) => row.basicId"
-              :scroll-x="700"
-              size="small"
-              striped
-            />
-            <div class="flex justify-end p-2">
-              <NPagination
-                v-model:page="itemPage"
-                v-model:page-size="itemPageSize"
-                :item-count="itemTotal"
-                :page-count="itemTotalPages"
-                :page-sizes="[10, 20, 50, 100]"
-                show-size-picker
-                @update:page="handleItemPageChange"
-                @update:page-size="handleItemPageSizeChange"
-              />
-            </div>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+      <div class="pane__filters">
+        <NInput
+          v-model:value="dictQueryParams.keyword"
+          class="pane__kw"
+          clearable
+          placeholder="搜索名称 / 编码 / 类型"
+          size="small"
+          @keyup.enter="handleDictSearch"
+          @clear="handleDictSearch"
+        />
+        <NSelect
+          v-model:value="dictQueryParams.status"
+          class="pane__filter-select"
+          clearable
+          :options="statusOptions"
+          placeholder="状态"
+          size="small"
+          @update:value="handleDictSearch"
+        />
+        <NSelect
+          v-model:value="dictQueryParams.isBuiltIn"
+          class="pane__filter-select"
+          clearable
+          :options="builtInOptions"
+          placeholder="内置"
+          size="small"
+          @update:value="handleDictSearch"
+        />
+        <NButton class="pane__search" size="small" type="primary" @click="handleDictSearch">
+          查询
+        </NButton>
+      </div>
 
+      <div class="pane__body">
+        <NDataTable
+          v-model:checked-row-keys="checkedDictKeys"
+          class="pane__table"
+          flex-height
+          :columns="dictColumns"
+          :data="dictList"
+          :loading="dictLoading"
+          :row-key="(row: DictListItemDto) => row.basicId"
+          :row-props="dictRowProps"
+          size="small"
+        />
+      </div>
+
+      <footer class="pane__foot">
+        <div class="pane__foot-left">
+          <template v-if="checkedDictKeys.length">
+            <span class="pane__sel">已选 {{ checkedDictKeys.length }}</span>
+            <NButton size="tiny" @click="handleBatchToggleDict(true)">
+              启用
+            </NButton>
+            <NButton size="tiny" @click="handleBatchToggleDict(false)">
+              停用
+            </NButton>
+            <NPopconfirm @positive-click="handleBatchDeleteDict">
+              <template #trigger>
+                <NButton size="tiny" type="error">
+                  删除
+                </NButton>
+              </template>
+              确认删除选中的 {{ checkedDictKeys.length }} 个字典？
+            </NPopconfirm>
+          </template>
+        </div>
+        <NPagination
+          v-model:page="dictPage"
+          :item-count="dictTotal"
+          :page-size="dictPageSize"
+          :page-slot="5"
+          size="small"
+          @update:page="handleDictPageChange"
+        />
+      </footer>
+    </section>
+
+    <!-- 右侧：字典项列表（从，随左侧选中刷新） -->
+    <section class="pane pane--detail">
+      <header class="pane__head">
+        <div class="pane__title-row">
+          <span class="pane__title">{{ currentDict ? currentDict.dictName : '未选择字典' }}</span>
+          <span v-if="currentDict" class="pane__count">{{ itemTotal }} 项</span>
+        </div>
+        <NButton size="small" type="primary" :disabled="!currentDict" @click="handleItemAdd">
+          <template #icon>
+            <NIcon><Icon icon="lucide:plus" /></NIcon>
+          </template>
+          新增字典项
+        </NButton>
+      </header>
+
+      <div class="pane__filters">
+        <NInput
+          v-model:value="itemQueryParams.keyword"
+          class="pane__kw"
+          clearable
+          :disabled="!currentDict"
+          placeholder="搜索字典项名称 / 编码"
+          size="small"
+          @keyup.enter="handleItemSearch"
+          @clear="handleItemSearch"
+        />
+        <NButton class="pane__search" size="small" type="primary" :disabled="!currentDict" @click="handleItemSearch">
+          查询
+        </NButton>
+      </div>
+
+      <div class="pane__body">
+        <NEmpty v-if="!currentDict" class="pane__empty" description="请选择左侧字典以查看字典项">
+          <template #icon>
+            <NIcon><Icon icon="lucide:list-tree" /></NIcon>
+          </template>
+        </NEmpty>
+        <NDataTable
+          v-else
+          v-model:checked-row-keys="checkedItemKeys"
+          class="pane__table"
+          flex-height
+          :columns="itemColumns"
+          :data="itemList"
+          :loading="itemLoading"
+          :row-key="(row: DictItemListItemDto) => row.basicId"
+          :scroll-x="640"
+          size="small"
+          striped
+        />
+      </div>
+
+      <footer v-if="currentDict" class="pane__foot">
+        <div class="pane__foot-left">
+          <template v-if="checkedItemKeys.length">
+            <span class="pane__sel">已选 {{ checkedItemKeys.length }}</span>
+            <NButton size="tiny" @click="handleBatchToggleItem(true)">
+              启用
+            </NButton>
+            <NButton size="tiny" @click="handleBatchToggleItem(false)">
+              停用
+            </NButton>
+            <NPopconfirm @positive-click="handleBatchDeleteItem">
+              <template #trigger>
+                <NButton size="tiny" type="error">
+                  删除
+                </NButton>
+              </template>
+              确认删除选中的 {{ checkedItemKeys.length }} 个字典项？
+            </NPopconfirm>
+          </template>
+        </div>
+        <NPagination
+          v-model:page="itemPage"
+          v-model:page-size="itemPageSize"
+          :item-count="itemTotal"
+          :page-sizes="[10, 20, 50, 100]"
+          show-size-picker
+          @update:page="handleItemPageChange"
+          @update:page-size="handleItemPageSizeChange"
+        />
+      </footer>
+    </section>
+
+    <!-- 字典 新增/编辑 -->
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -734,6 +914,7 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
       </template>
     </NModal>
 
+    <!-- 字典项 新增/编辑 -->
     <NModal
       v-model:show="itemModalVisible"
       :auto-focus="false"
@@ -788,11 +969,182 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
         </NSpace>
       </template>
     </NModal>
-  </SchemaPage>
+  </div>
 </template>
 
 <style scoped>
-.xh-detail-empty {
-  padding: 48px 0;
+.dict-mgmt {
+  display: flex;
+  gap: 12px;
+  height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 左右等宽：两栏各占一半 */
+.pane--master,
+.pane--detail {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.pane__head {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* 标题区：单行，标题/计数同行排列 */
+.pane__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pane__title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 字典编码：等宽小药丸，与名称区分但不抢眼 */
+/* 计数：轻量徽标 */
+.pane__count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.pane__filters {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+/* 搜索条件：固定宽度，靠左排列 */
+.pane__kw {
+  width: 240px;
+}
+
+.pane__filter-select {
+  width: 110px;
+  flex-shrink: 0;
+}
+
+/* 查询按钮：推到筛选区最右侧 */
+.pane__search {
+  margin-left: auto;
+}
+
+.pane__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 14px;
+}
+
+/* flex-height 表格：占满 body 中段并在内部 tbody 滚动，不撑破容器 */
+.pane__table {
+  flex: 1;
+  min-height: 0;
+}
+
+.pane__empty {
+  padding: 64px 0;
+}
+
+.pane__foot {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* 批量操作条：选中行后在底部左侧出现 */
+.pane__foot-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pane__sel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* 主表行：选中态用主色淡染（不使用侧边色条），名称转主色，选中一目了然 */
+.pane :deep(.dict-row--active > td) {
+  background-color: hsl(var(--primary) / 0.08);
+}
+
+.pane :deep(.dict-row--active) .dict-name__text {
+  color: hsl(var(--primary));
+}
+
+.dict-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dict-name__text {
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  /* 窄屏：上下堆叠，整页可滚动；每栏表格给定高度以便内部滚动 */
+  .dict-mgmt {
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .pane--master,
+  .pane--detail {
+    flex: none;
+  }
+
+  .pane__body {
+    flex: none;
+    height: 56vh;
+  }
 }
 </style>
