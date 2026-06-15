@@ -2,11 +2,13 @@
 import type { Component } from 'vue'
 import type { UserProfile } from '~/types'
 import { NSpin, useMessage } from 'naive-ui'
-import { computed, markRaw, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, markRaw, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { XUserAvatar } from '~/components'
+import { PROFILE_ACTIVE_TAB_KEY } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
+import { SessionStorage } from '~/utils'
 import ProfileTabBinding from './ProfileTabBinding.vue'
 import ProfileTabDeveloper from './ProfileTabDeveloper.vue'
 import ProfileTabDevices from './ProfileTabDevices.vue'
@@ -34,7 +36,6 @@ const message = useMessage()
 const { apis } = useAppContext()
 const userStore = useUserStore()
 const route = useRoute()
-const router = useRouter()
 
 const activeTab = ref('profile')
 const profileLoading = ref(false)
@@ -90,17 +91,20 @@ const tabComponents: Record<string, Component> = {
   developer: markRaw(ProfileTabDeveloper),
 }
 
-// 页签与 URL ?tab= 双向同步：支持深链与刷新保持
-watch(
-  () => route.query.tab,
-  (tab) => {
-    const key = typeof tab === 'string' ? tab : ''
-    if (key && key !== activeTab.value && key in tabComponents) {
-      activeTab.value = key
-    }
-  },
-  { immediate: true },
-)
+// 初始选中页签：URL ?tab=（深链兼容）> 会话记忆 > 默认「个人资料」。
+// 注意：个人中心是「一个页面」，子页签切换只改内部状态，不再写入路由 query，
+// 否则带不同 ?tab= 的 fullPath 会被标签栏识别为新标签，导致每点一次就多开一个标签。
+activeTab.value = (() => {
+  const queryTab = typeof route.query.tab === 'string' ? route.query.tab : ''
+  if (queryTab && queryTab in tabComponents) {
+    return queryTab
+  }
+  const stored = SessionStorage.get<string>(PROFILE_ACTIVE_TAB_KEY)
+  if (stored && stored in tabComponents) {
+    return stored
+  }
+  return 'profile'
+})()
 
 const activeComponent = computed(() => tabComponents[activeTab.value] ?? tabComponents.profile)
 const currentComponentProps = computed(() =>
@@ -111,8 +115,8 @@ const currentComponentProps = computed(() =>
 
 function selectTab(key: string) {
   activeTab.value = key
-  // 仅同步 query，不产生新历史记录
-  void router.replace({ query: { ...route.query, tab: key === 'profile' ? undefined : key } })
+  // 仅记入会话存储（刷新后仍停留在原子页），不写入路由，避免标签栏重复开标签
+  SessionStorage.set(PROFILE_ACTIVE_TAB_KEY, key)
 }
 
 async function loadProfile() {
