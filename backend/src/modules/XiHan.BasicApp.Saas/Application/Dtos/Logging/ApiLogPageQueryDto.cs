@@ -68,6 +68,11 @@ public sealed class ApiLogPageQueryDto : BasicAppPRDto
     public string? ApiPath { get; set; }
 
     /// <summary>
+    /// 请求 IP（模糊匹配）
+    /// </summary>
+    public string? RequestIp { get; set; }
+
+    /// <summary>
     /// 请求方法
     /// </summary>
     public string? Method { get; set; }

@@ -48,6 +48,11 @@ public sealed class LoginLogPageQueryDto : BasicAppPRDto
     public string? TraceId { get; set; }
 
     /// <summary>
+    /// 登录 IP（模糊匹配）
+    /// </summary>
+    public string? LoginIp { get; set; }
+
+    /// <summary>
     /// 登录结果
     /// </summary>
     public LoginResult? LoginResult { get; set; }

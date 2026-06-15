@@ -88,6 +88,11 @@ public sealed class ExceptionLogPageQueryDto : BasicAppPRDto
     public int? StatusCode { get; set; }
 
     /// <summary>
+    /// 操作 IP（模糊匹配）
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
     /// 设备类型
     /// </summary>
     public DeviceType? DeviceType { get; set; }

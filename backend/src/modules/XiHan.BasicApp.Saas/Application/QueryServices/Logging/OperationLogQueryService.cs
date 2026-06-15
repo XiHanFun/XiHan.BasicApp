@@ -191,6 +191,12 @@ public sealed class OperationLogQueryService
             predicate = And(predicate, operationLog => operationLog.Method == method);
         }
 
+        if (!string.IsNullOrWhiteSpace(input.OperationIp))
+        {
+            var operationIp = input.OperationIp.Trim();
+            predicate = And(predicate, operationLog => operationLog.OperationIp != null && operationLog.OperationIp.Contains(operationIp));
+        }
+
         if (input.Result.HasValue)
         {
             var result = input.Result.Value;
@@ -244,6 +250,7 @@ public sealed class OperationLogQueryService
         ValidateMaxLength(input.Function, 50, nameof(input.Function), "操作功能长度不能超过 50。");
         ValidateMaxLength(input.Title, 200, nameof(input.Title), "操作标题长度不能超过 200。");
         ValidateMaxLength(input.Method, 10, nameof(input.Method), "请求方法长度不能超过 10。");
+        ValidateMaxLength(input.OperationIp, 64, nameof(input.OperationIp), "操作 IP 长度不能超过 64。");
         ValidateExecutionTime(input.MinExecutionTime, nameof(input.MinExecutionTime), "最小执行耗时不能小于 0。");
         ValidateExecutionTime(input.MaxExecutionTime, nameof(input.MaxExecutionTime), "最大执行耗时不能小于 0。");
 

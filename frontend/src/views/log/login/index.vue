@@ -65,7 +65,7 @@ const fields: ListFieldSchema[] = [
   { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
   { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
-  { key: 'loginIp', title: '登录 IP', dataType: 'string', minWidth: 130, order: 14 },
+  { key: 'loginIp', title: '登录 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索登录 IP', minWidth: 130, order: 14 },
   { key: 'loginLocation', title: '登录位置', dataType: 'string', minWidth: 160, order: 15 },
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 16 },
   { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 17 },
@@ -122,6 +122,7 @@ function buildLoginQuery(params: SchemaQueryParams) {
     isRiskLogin: toBool(f.isRiskLogin),
     sessionId: toStr(f.sessionId),
     traceId: toStr(f.traceId),
+    loginIp: toStr(f.loginIp),
     loginTimeStart: toIso(f.loginTimeStart),
     loginTimeEnd: toIso(f.loginTimeEnd),
   }
