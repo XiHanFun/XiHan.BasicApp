@@ -27,11 +27,11 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
-        path: '/about',
-        name: 'About',
+        path: '/about/project',
+        name: 'AboutProject',
         component: AboutPage,
         meta: {
-          title: 'menu.about',
+          title: 'menu.about_project',
           icon: 'lucide:info',
         },
       },
