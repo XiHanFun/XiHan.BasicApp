@@ -40,8 +40,8 @@ export default {
   log_login: '登录日志',
   log_exception: '异常日志',
   log_diff: '数据变更',
-  about: '关于',
-  about_project: '关于项目',
+  about: '关于项目',
+  about_project: '项目概览',
   about_github: 'Github',
   about_gitee: 'Gitee',
   // ==================== 通用 / 历史键 ====================
