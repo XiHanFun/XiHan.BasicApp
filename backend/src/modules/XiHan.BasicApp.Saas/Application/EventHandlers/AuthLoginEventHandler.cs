@@ -268,7 +268,8 @@ public sealed class AuthLoginEventHandler
             parts.Add($"设备：{device}");
         }
 
-        return string.Join(" ", parts);
+        // 逐行拼接（标题 / 时间 / 位置 / 设备各占一行），前端以 white-space: pre-line 渲染，弹窗与详情更易读
+        return string.Join("\n", parts);
     }
 
     private static string? FirstNotEmpty(params string?[] values)
