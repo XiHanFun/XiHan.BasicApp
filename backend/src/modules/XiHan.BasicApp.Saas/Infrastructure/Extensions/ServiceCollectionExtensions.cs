@@ -202,6 +202,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasMessageTemplateSeeder>();
         services.AddDataSeeder<SaasOAuthAppSeeder>();
         services.AddDataSeeder<SaasOrganizationSeeder>();
+        services.AddDataSeeder<SaasSampleIdentitySeeder>();
         services.AddDataSeeder<SaasNotificationSeeder>();
         services.AddDataSeeder<SaasStorageConfigSeeder>();
         services.AddDataSeeder<SaasTaskSeeder>();

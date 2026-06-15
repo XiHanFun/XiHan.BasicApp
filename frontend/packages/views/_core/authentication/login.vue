@@ -59,8 +59,8 @@ const methodIcons: Record<string, string> = {
 }
 
 const formData = ref({
-  username: 'superadmin',
-  password: 'SuperAdmin@123',
+  username: '',
+  password: '',
 })
 
 const rules: FormRules = {
@@ -70,6 +70,21 @@ const rules: FormRules = {
   password: [
     { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
   ],
+}
+
+// 快捷登录账号（种子数据内置，默认租户成员；用于演示不同权限层级）
+// 注：租户用户在「先登录后选租户」模型下需以邮箱登录（邮箱全平台唯一定位），故此处用邮箱作为登录标识。
+const quickAccounts = [
+  { label: '系统管理员', login: 'admin@xihan.fun', password: 'Admin@123' },
+  { label: '普通用户', login: 'user@xihan.fun', password: 'User@123' },
+  { label: '游客', login: 'guest@xihan.fun', password: 'Guest@123' },
+]
+
+/** 填入对应账号并直接登录 */
+function quickLogin(account: { login: string, password: string }) {
+  formData.value.username = account.login
+  formData.value.password = account.password
+  handleLogin()
 }
 
 const redirect = computed(() => {
@@ -452,6 +467,20 @@ onMounted(async () => {
           >
             {{ t('page.login.login_btn') }}
           </NButton>
+
+          <!-- 快捷登录：内置演示账号，一键填入并登录 -->
+          <div class="grid grid-cols-3 gap-2 mt-3">
+            <NButton
+              v-for="acc in quickAccounts"
+              :key="acc.login"
+              secondary
+              class="!h-10 !rounded-xl !text-sm"
+              :disabled="authStore.loginLoading"
+              @click="quickLogin(acc)"
+            >
+              {{ acc.label }}
+            </NButton>
+          </div>
         </NForm>
 
         <NDivider
