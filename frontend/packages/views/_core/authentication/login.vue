@@ -91,10 +91,11 @@ const redirect = computed(() => {
   return (route.query.redirect as string) || undefined
 })
 
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi）
 const oauthProviderIcons: Record<string, string> = {
-  github: 'lucide:github',
-  google: 'lucide:globe',
-  qq: 'lucide:message-circle',
+  github: 'mdi:github',
+  google: 'mdi:google',
+  qq: 'mdi:qqchat',
 }
 
 const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])

@@ -102,6 +102,8 @@ public sealed class AuthAppService
 
     private readonly IDistributedCache _distributedCache;
 
+    private readonly IUserNotificationDispatchService _userNotificationDispatchService;
+
     private readonly ILogger<AuthAppService> _logger;
 
     /// <summary>
@@ -129,6 +131,7 @@ public sealed class AuthAppService
         IUserDomainService userDomainService,
         IExternalLoginStore externalLoginStore,
         IDistributedCache distributedCache,
+        IUserNotificationDispatchService userNotificationDispatchService,
         ILogger<AuthAppService> logger)
     {
         _authenticationDomainService = authenticationDomainService;
@@ -152,6 +155,7 @@ public sealed class AuthAppService
         _userDomainService = userDomainService;
         _externalLoginStore = externalLoginStore;
         _distributedCache = distributedCache;
+        _userNotificationDispatchService = userNotificationDispatchService;
         _logger = logger;
     }
 
@@ -860,6 +864,31 @@ public sealed class AuthAppService
 
         await _externalLoginStore.CreateAsync(userId, info, tenantId, cancellationToken);
         _logger.LogInformation("第三方账号绑定成功 provider={Provider} userId={UserId}", info.Provider, userId);
+
+        // 绑定成功通知（与登录一致：落站内信并尝试实时推送）；通知失败不影响绑定结果
+        try
+        {
+            var content = string.Join(
+                "\n",
+                $"您已成功绑定第三方账号（{info.Provider}）。",
+                $"时间：{DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss} UTC",
+                "若非本人操作，请立即解除绑定并检查账号安全。");
+            await _userNotificationDispatchService.DispatchToUserAsync(
+                userId,
+                "第三方账号绑定成功",
+                content,
+                NotificationType.User,
+                businessType: "auth.external.bind",
+                businessId: userId,
+                link: "/workbench/profile",
+                icon: "lucide:link",
+                cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "第三方账号绑定通知发送失败 userId={UserId}", userId);
+        }
+
         return ExternalLoginResultDto.BindSuccess();
     }
 
