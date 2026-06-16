@@ -484,6 +484,16 @@ onMounted(async () => {
           </div>
         </NForm>
 
+        <p
+          class="mt-6 text-sm text-center"
+          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
+        >
+          {{ t('page.auth.no_account') }}
+          <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
+            {{ t('page.login.register') }}
+          </span>
+        </p>
+
         <NDivider
           v-if="oauthProviders.length > 0"
           :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'"
@@ -504,16 +514,6 @@ onMounted(async () => {
             {{ provider.displayName }}
           </NButton>
         </div>
-
-        <p
-          class="mt-6 text-sm text-center"
-          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
-        >
-          {{ t('page.auth.no_account') }}
-          <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
-            {{ t('page.login.register') }}
-          </span>
-        </p>
       </div>
     </Transition>
   </div>
