@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-import type { ExternalLoginItem } from '~/types'
+import type { DropdownOption } from 'naive-ui'
+import type { ExternalLoginItem, OAuthProviderItem } from '~/types'
 import {
   NButton,
+  NDropdown,
   NEmpty,
   NPopconfirm,
   NSpace,
   NSpin,
   useMessage,
 } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -23,6 +25,11 @@ const message = useMessage()
 const linkedAccounts = ref<ExternalLoginItem[]>([])
 const linkedLoading = ref(false)
 const linkedLoaded = ref(false)
+const oauthProviders = ref<OAuthProviderItem[]>([])
+
+const providerOptions = computed<DropdownOption[]>(() =>
+  oauthProviders.value.map(item => ({ key: item.name, label: item.displayName })),
+)
 
 async function loadLinkedAccounts() {
   linkedLoading.value = true
@@ -35,6 +42,16 @@ async function loadLinkedAccounts() {
   }
   finally {
     linkedLoading.value = false
+  }
+}
+
+async function loadProviders() {
+  try {
+    const config = await apis.getLoginConfigApi()
+    oauthProviders.value = config.oAuthProviders ?? []
+  }
+  catch {
+    oauthProviders.value = []
   }
 }
 
@@ -61,11 +78,27 @@ function providerIcon(name: string) {
   return map[name.toLowerCase()] || 'lucide:link'
 }
 
-function handleLinkNewAccount(_provider: string) {
-  message.info('绑定功能需要配合 OAuth 回调端点实现')
+async function handleStartBind(provider: string) {
+  try {
+    // 浏览器跳转不带 JWT 头，先换取一次性票据以携带当前用户身份
+    const ticket = await apis.createOAuthBindTicketApi()
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+    const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
+    window.location.href = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider)}&bindTicket=${encodeURIComponent(ticket)}`
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || '发起绑定失败')
+  }
 }
 
-onMounted(loadLinkedAccounts)
+function handleProviderSelect(key: string) {
+  void handleStartBind(key)
+}
+
+onMounted(() => {
+  loadLinkedAccounts()
+  loadProviders()
+})
 </script>
 
 <template>
@@ -88,11 +121,24 @@ onMounted(loadLinkedAccounts)
                 <Icon icon="lucide:refresh-cw" />
               </template>
             </NButton>
-            <NButton size="tiny" @click="handleLinkNewAccount('')">
+            <NDropdown
+              v-if="providerOptions.length > 0"
+              trigger="click"
+              :options="providerOptions"
+              @select="handleProviderSelect"
+            >
+              <NButton size="tiny">
+                <template #icon>
+                  <Icon icon="lucide:plus" />
+                </template>
+                绑定新账号
+              </NButton>
+            </NDropdown>
+            <NButton v-else size="tiny" disabled>
               <template #icon>
                 <Icon icon="lucide:plus" />
               </template>
-              绑定新账号
+              暂无可绑定渠道
             </NButton>
           </NSpace>
         </div>

@@ -35,7 +35,8 @@ export interface OAuthProviderItem {
 
 export interface LoginConfig {
   loginMethods: string[]
-  oauthProviders: OAuthProviderItem[]
+  // 与后端序列化键一致：OAuthProviders 经 camelCase 策略输出为 oAuthProviders
+  oAuthProviders: OAuthProviderItem[]
 }
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */

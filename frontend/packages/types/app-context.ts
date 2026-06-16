@@ -158,6 +158,7 @@ export interface AppContextApis extends Record<string, unknown> {
   phoneLoginApi: (input: PhoneLoginParams) => Promise<LoginToken>
   sendEmailLoginCodeApi: (email: string) => Promise<VerificationCodeResult>
   registerApi: (input: unknown) => Promise<unknown>
+  createOAuthBindTicketApi: () => Promise<string>
   requestPasswordResetApi: (email: string) => Promise<PasswordResetResult>
   revokeOtherSessionsApi: () => Promise<unknown>
   revokeSessionApi: (sessionId: string) => Promise<unknown>

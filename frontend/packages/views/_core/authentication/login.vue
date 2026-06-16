@@ -33,7 +33,7 @@ const rememberMe = ref(true)
 const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
-  oauthProviders: [],
+  oAuthProviders: [],
 })
 
 // ==================== 2FA 三阶段状态 ====================
@@ -97,7 +97,7 @@ const oauthProviderIcons: Record<string, string> = {
   qq: 'lucide:message-circle',
 }
 
-const oauthProviders = computed(() => loginConfig.value.oauthProviders ?? [])
+const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
 
 function getOauthProviderIcon(name: string) {
   return oauthProviderIcons[name.toLowerCase()] ?? 'lucide:link-2'
