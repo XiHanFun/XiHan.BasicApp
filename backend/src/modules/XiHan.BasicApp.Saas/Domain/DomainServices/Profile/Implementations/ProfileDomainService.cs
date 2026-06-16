@@ -357,6 +357,22 @@ public sealed class ProfileDomainService
             cancellationToken)
             ?? throw new InvalidOperationException("第三方账号绑定不存在。");
 
+        // 解绑前防锁死：若这是用户最后一个三方绑定，且账号没有可找回密码的真实邮箱，拒绝解绑。
+        // （自动建号的三方用户密码随机、不可知，占位邮箱 @external.local 又无法找回 → 解绑即永久失去全部登录入口）
+        var hasOtherBinding = await _externalLoginRepository.GetFirstAsync(
+            item => item.UserId == command.UserId && item.Provider != provider,
+            cancellationToken) is not null;
+        if (!hasOtherBinding)
+        {
+            var (user, _) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
+            var hasRecoverableEmail = !string.IsNullOrWhiteSpace(user.Email)
+                && !user.Email.EndsWith("@external.local", StringComparison.OrdinalIgnoreCase);
+            if (!hasRecoverableEmail)
+            {
+                throw new InvalidOperationException("这是您当前唯一的登录方式，且账号没有可用于找回密码的邮箱，无法解除绑定。请先绑定有效邮箱或设置其它登录方式。");
+            }
+        }
+
         account.IsDeleted = true;
         account.DeletedTime = DateTimeOffset.UtcNow;
         _ = await _externalLoginRepository.UpdateAsync(account, cancellationToken);

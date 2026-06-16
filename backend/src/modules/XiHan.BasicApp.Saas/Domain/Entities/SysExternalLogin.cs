@@ -29,14 +29,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - Provider + ProviderKey + TenantId 唯一（UX_Pr_PrKe_TeId），保证同租户内一个第三方身份只绑一人
 /// - ProviderKey 是第三方系统中的用户唯一标识（OpenId/UnionId 等）
 /// - 同一用户可绑定多个 Provider（微信 + 钉钉 + 邮箱）
-/// - 敏感的第三方 AccessToken/RefreshToken 须加密存储
+/// - 仅存身份关联（Provider/ProviderKey/邮箱/头像），不存第三方 Access/Refresh Token（当前无代用户调用第三方 API 的场景）
 ///
 /// 查询：
 /// - 第三方回调登录：按 (Provider, ProviderKey, TenantId) 精确定位本地用户
 /// - 用户已绑定账号列表：IX_UsId
 ///
 /// 删除：
-/// - 仅软删；解绑时应同步吊销第三方 Token
+/// - 仅软删（回填 DeletedTime）；解绑前校验防止失去唯一登录方式
 ///
 /// 场景：
 /// - 单点登录（SSO）：企业微信 / 钉钉 / 飞书扫码
