@@ -44,6 +44,12 @@ export const coreRoutes: RouteRecordRaw[] = [
         meta: { title: 'page.auth.forget_password_title', hidden: true },
       },
       {
+        path: 'reset-password',
+        name: 'ResetPassword',
+        component: () => import('~/views/_core/authentication/reset-password.vue'),
+        meta: { title: 'page.auth.forget_password_title', hidden: true },
+      },
+      {
         path: 'register',
         name: 'Register',
         component: () => import('~/views/_core/authentication/register.vue'),

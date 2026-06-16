@@ -38,12 +38,20 @@ public interface IAuthAppService : IApplicationService
     Task<RegisterResultDto> RegisterAsync(RegisterRequestDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 申请找回密码（重置为临时密码）
+    /// 申请找回密码（发送一次性重置链接邮件，不立即更改密码）
     /// </summary>
     /// <param name="input">找回密码参数</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>受理结果</returns>
     Task<PasswordResetResultDto> PasswordResetRequestAsync(PasswordResetRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 消费一次性重置链接令牌并设置新密码
+    /// </summary>
+    /// <param name="input">令牌 + 新密码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>重置结果</returns>
+    Task<PasswordResetConfirmResultDto> ConsumePasswordResetTokenAsync(PasswordResetConfirmDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 密码登录

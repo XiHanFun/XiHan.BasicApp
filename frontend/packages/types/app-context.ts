@@ -4,6 +4,7 @@ import type {
   LoginParams,
   LoginResponse,
   LoginToken,
+  PasswordResetConfirmResult,
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
@@ -160,6 +161,7 @@ export interface AppContextApis extends Record<string, unknown> {
   registerApi: (input: unknown) => Promise<unknown>
   createOAuthBindTicketApi: () => Promise<string>
   requestPasswordResetApi: (email: string) => Promise<PasswordResetResult>
+  consumePasswordResetTokenApi: (token: string, newPassword: string) => Promise<PasswordResetConfirmResult>
   revokeOtherSessionsApi: () => Promise<unknown>
   revokeSessionApi: (sessionId: string) => Promise<unknown>
   send2FASetupCodeApi: (method: number | string) => Promise<VerificationCodeResult>

@@ -227,8 +227,10 @@ public sealed class EmailMessageSender : IMessageSender
             SmtpPort = options.SmtpPort,
             UseSsl = options.UseSsl,
             FromMail = fromMail,
+            FromName = fromName,
             FromUserName = options.UserName,
-            FromPassword = options.Password
+            FromPassword = options.Password,
+            AcceptInvalidCertificate = options.AcceptInvalidCertificate
         };
 
         var toModel = new EmailToModel

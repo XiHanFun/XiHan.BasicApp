@@ -278,7 +278,7 @@ public sealed class PasswordResetRequestDto
 }
 
 /// <summary>
-/// 密码重置结果 DTO
+/// 密码重置申请结果 DTO
 /// </summary>
 public sealed class PasswordResetResultDto
 {
@@ -288,9 +288,36 @@ public sealed class PasswordResetResultDto
     public bool Accepted { get; set; }
 
     /// <summary>
-    /// 临时密码，仅在未接入真实邮件通道时回显，便于本地联调；生产接入真实通道后应置空
+    /// 一次性重置链接，仅开发环境回显便于本地联调；生产绝不回显
     /// </summary>
-    public string? TemporaryPassword { get; set; }
+    public string? DebugResetUrl { get; set; }
+}
+
+/// <summary>
+/// 密码重置确认（消费一次性链接并设置新密码）请求 DTO
+/// </summary>
+public sealed class PasswordResetConfirmDto
+{
+    /// <summary>
+    /// 一次性重置令牌（来自找回密码邮件链接）
+    /// </summary>
+    public string Token { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 新密码
+    /// </summary>
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 密码重置确认结果 DTO
+/// </summary>
+public sealed class PasswordResetConfirmResultDto
+{
+    /// <summary>
+    /// 是否重置成功
+    /// </summary>
+    public bool Success { get; set; }
 }
 
 /// <summary>
