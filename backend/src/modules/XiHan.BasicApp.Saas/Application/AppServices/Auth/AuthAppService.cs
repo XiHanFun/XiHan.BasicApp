@@ -13,8 +13,11 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
@@ -104,6 +107,10 @@ public sealed class AuthAppService
 
     private readonly IUserNotificationDispatchService _userNotificationDispatchService;
 
+    private readonly IWebHostEnvironment _webHostEnvironment;
+
+    private readonly IConfiguration _configuration;
+
     private readonly ILogger<AuthAppService> _logger;
 
     /// <summary>
@@ -132,6 +139,8 @@ public sealed class AuthAppService
         IExternalLoginStore externalLoginStore,
         IDistributedCache distributedCache,
         IUserNotificationDispatchService userNotificationDispatchService,
+        IWebHostEnvironment webHostEnvironment,
+        IConfiguration configuration,
         ILogger<AuthAppService> logger)
     {
         _authenticationDomainService = authenticationDomainService;
@@ -156,6 +165,8 @@ public sealed class AuthAppService
         _externalLoginStore = externalLoginStore;
         _distributedCache = distributedCache;
         _userNotificationDispatchService = userNotificationDispatchService;
+        _webHostEnvironment = webHostEnvironment;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -302,6 +313,9 @@ public sealed class AuthAppService
 
         var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
 
+        // 频率限制（邮箱+IP）：对存在/不存在的邮箱一视同仁，既防刷又不泄露账号是否存在
+        await EnsureNotRateLimitedAsync("pwd-reset", email, cancellationToken);
+
         // 邮箱全平台唯一：平台态全局定位账号，无需调用方提供租户范围
         using var platformScope = _currentTenant.Change(null);
 
@@ -312,11 +326,69 @@ public sealed class AuthAppService
             return new PasswordResetResultDto { Accepted = true };
         }
 
-        var temporaryPassword = GenerateTemporaryPassword();
+        // 签发一次性重置令牌（不透明、短时效、用后即焚），仅记录 token→userId；不立即改密码——
+        // 避免任何人凭邮箱反复触发重置把账号锁死（密码只在用户点链接设置新密码时才变）。
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .Replace('+', '-')
+            .Replace('/', '_')
+            .TrimEnd('=');
+        await _distributedCache.SetStringAsync(
+            PasswordResetCacheKey(token),
+            user.BasicId.ToString(),
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30) },
+            cancellationToken);
+
+        var resetUrl = BuildPasswordResetUrl(token);
+
+        // 已配置真实 SMTP：发送带一次性链接的邮件（失败抛出，避免静默丢链接）
+        if (_emailSenderOptions.CurrentValue.IsConfigured)
+        {
+            await SendPasswordResetEmailAsync(email, user.BasicId, resetUrl, cancellationToken);
+        }
+
+        return new PasswordResetResultDto
+        {
+            Accepted = true,
+            // 仅开发环境回显重置链接便于本地联调；生产绝不回显
+            DebugResetUrl = _webHostEnvironment.IsDevelopment() ? resetUrl : null
+        };
+    }
+
+    /// <inheritdoc />
+    [AllowAnonymous]
+    [UnitOfWork(true)]
+    public async Task<PasswordResetConfirmResultDto> ConsumePasswordResetTokenAsync(PasswordResetConfirmDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var token = (input.Token ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            throw new UserFriendlyException("重置链接无效或已过期，请重新申请找回密码。");
+        }
+
+        var newPassword = input.NewPassword ?? string.Empty;
+        if (newPassword.Length is < 8 or > 128)
+        {
+            throw new UserFriendlyException("新密码长度需为 8-128 位。");
+        }
+
+        var key = PasswordResetCacheKey(token);
+        var userIdText = await _distributedCache.GetStringAsync(key, cancellationToken);
+        if (string.IsNullOrWhiteSpace(userIdText) || !long.TryParse(userIdText, out var userId))
+        {
+            throw new UserFriendlyException("重置链接无效或已过期，请重新申请找回密码。");
+        }
+
+        using var platformScope = _currentTenant.Change(null);
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
+            ?? throw new UserFriendlyException("用户不存在。");
+
         try
         {
             await _userDomainService.ResetUserPasswordAsync(
-                new UserPasswordResetCommand(user.BasicId, temporaryPassword, PasswordExpirationTime: null, Remark: "找回密码-临时密码"),
+                new UserPasswordResetCommand(user.BasicId, newPassword, PasswordExpirationTime: null, Remark: "找回密码-自助重置"),
                 cancellationToken);
         }
         catch (InvalidOperationException ex)
@@ -324,21 +396,13 @@ public sealed class AuthAppService
             throw new UserFriendlyException(ex.Message, innerException: ex);
         }
 
+        // 一次性：成功后立即失效，防重放
+        await _distributedCache.RemoveAsync(key, cancellationToken);
+
         // 认证审计：密码重置落登录日志
-        await PublishSecurityAuditAsync(user.TenantId, user.BasicId, user.UserName, LoginResult.PasswordReset, "找回密码-重置为临时密码");
+        await PublishSecurityAuditAsync(user.TenantId, user.BasicId, user.UserName, LoginResult.PasswordReset, "找回密码-自助重置成功");
 
-        // 已配置真实 SMTP：通过消息投递管道发送临时密码邮件，响应不回显；未配置（本地联调）：回显临时密码便于测试
-        if (_emailSenderOptions.CurrentValue.IsConfigured)
-        {
-            await SendPasswordResetEmailAsync(email, user.BasicId, temporaryPassword, cancellationToken);
-            return new PasswordResetResultDto { Accepted = true };
-        }
-
-        return new PasswordResetResultDto
-        {
-            Accepted = true,
-            TemporaryPassword = temporaryPassword
-        };
+        return new PasswordResetConfirmResultDto { Success = true };
     }
 
     /// <inheritdoc />
@@ -458,6 +522,9 @@ public sealed class AuthAppService
         var email = NormalizeRequired(input.Email, "邮箱不能为空。", 256, "邮箱不能超过 256 个字符。");
         var now = DateTimeOffset.UtcNow;
 
+        // 频率限制（邮箱+IP）：防刷验证码
+        await EnsureNotRateLimitedAsync("email-code", email, cancellationToken);
+
         // 先登录后选租户：平台态按全平台唯一邮箱定位用户
         using var platformScope = _currentTenant.Change(null);
 
@@ -473,8 +540,8 @@ public sealed class AuthAppService
         return new VerificationCodeResultDto
         {
             ExpiresInSeconds = _emailLoginCodeService.ExpiresInSeconds,
-            // 已配置真实 SMTP 时不回显验证码；未配置（本地联调）时回显以便测试
-            DebugCode = _emailSenderOptions.CurrentValue.IsConfigured ? null : code
+            // 仅开发环境回显验证码便于本地联调；生产绝不回显
+            DebugCode = _webHostEnvironment.IsDevelopment() ? code : null
         };
     }
 
@@ -688,9 +755,9 @@ public sealed class AuthAppService
     }
 
     /// <summary>
-    /// 构建临时密码邮件的 HTML 正文（全内联样式，兼容主流邮件客户端）
+    /// 构建找回密码邮件的 HTML 正文：一次性重置链接按钮（全内联样式，兼容主流邮件客户端）
     /// </summary>
-    private static string BuildPasswordResetHtml(string temporaryPassword, string brand)
+    private static string BuildPasswordResetHtml(string resetUrl, string brand)
     {
         return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
   <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
@@ -698,16 +765,60 @@ public sealed class AuthAppService
       <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
     </div>
     <div style='padding:32px;'>
-      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>临时登录密码</h1>
-      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您申请了找回密码，请使用以下临时密码登录，并尽快在个人中心修改为新密码：</p>
-      <div style='margin:0 0 24px;padding:18px 0;text-align:center;background:#f3f6ff;border:1px solid #e3e9ff;border-radius:12px;'>
-        <span style='font-size:24px;font-weight:700;letter-spacing:4px;color:#3b5bdb;'>{temporaryPassword}</span>
+      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>重置密码</h1>
+      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您申请了找回密码，请点击下方按钮在 30 分钟内设置新密码。该链接仅可使用一次。</p>
+      <div style='margin:0 0 24px;text-align:center;'>
+        <a href='{resetUrl}' style='display:inline-block;padding:12px 28px;background:#3b5bdb;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;'>设置新密码</a>
       </div>
-      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件并立即联系管理员。</p>
+      <p style='margin:0 0 12px;font-size:12px;line-height:1.7;color:#9ca3af;word-break:break-all;'>若按钮无法点击，请复制以下链接到浏览器打开：<br/>{resetUrl}</p>
+      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件——您的密码不会被更改。</p>
     </div>
     <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
   </div>
 </div>";
+    }
+
+    /// <summary>
+    /// 找回密码一次性令牌的分布式缓存键
+    /// </summary>
+    private static string PasswordResetCacheKey(string token)
+    {
+        return $"auth:pwd-reset:{token}";
+    }
+
+    /// <summary>
+    /// 复用 OAuth 前端回调地址推导前端基址，拼出一次性重置密码落地页链接（dev/prod 均已配置 FrontendCallbackUrl）。
+    /// </summary>
+    private string BuildPasswordResetUrl(string token)
+    {
+        var callback = _configuration[$"{OAuthOptions.SectionName}:FrontendCallbackUrl"];
+        var baseUrl = "http://localhost:7777";
+        if (!string.IsNullOrWhiteSpace(callback))
+        {
+            var idx = callback.IndexOf("/#/", StringComparison.Ordinal);
+            baseUrl = idx > 0 ? callback[..idx] : callback.TrimEnd('/');
+        }
+        return $"{baseUrl}/#/auth/reset-password?token={Uri.EscapeDataString(token)}";
+    }
+
+    /// <summary>
+    /// 邮箱+IP 频率限制：同一邮箱+IP 在窗口期（60s）内只允许一次，防刷验证码/重置链接。超限抛友好异常。
+    /// </summary>
+    private async Task EnsureNotRateLimitedAsync(string scope, string email, CancellationToken cancellationToken)
+    {
+        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var key = $"auth:ratelimit:{scope}:{email.ToLowerInvariant()}:{ip}";
+        var hit = await _distributedCache.GetStringAsync(key, cancellationToken);
+        if (!string.IsNullOrEmpty(hit))
+        {
+            throw new UserFriendlyException("操作过于频繁，请稍后再试。");
+        }
+
+        await _distributedCache.SetStringAsync(
+            key,
+            "1",
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
+            cancellationToken);
     }
 
     private static string RequireUserEmail(SysUser user)
@@ -1007,9 +1118,9 @@ public sealed class AuthAppService
     }
 
     /// <summary>
-    /// 发送临时密码邮件（复用消息投递管道）
+    /// 发送找回密码邮件：携带一次性重置链接（复用消息投递管道）
     /// </summary>
-    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string temporaryPassword, CancellationToken cancellationToken)
+    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string resetUrl, CancellationToken cancellationToken)
     {
         var emailOptions = _emailSenderOptions.CurrentValue;
         var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
@@ -1023,13 +1134,13 @@ public sealed class AuthAppService
                 ToEmail: email,
                 CcEmail: null,
                 BccEmail: null,
-                Subject: $"【{brand}】临时登录密码",
-                Content: BuildPasswordResetHtml(temporaryPassword, brand),
+                Subject: $"【{brand}】重置密码",
+                Content: BuildPasswordResetHtml(resetUrl, brand),
                 IsHtml: true,
                 Attachments: null,
-                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
-                TemplateCode: SaasMessageTemplateCodes.Auth.PasswordReset,
-                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["temporary_password"] = temporaryPassword, ["brand"] = brand }),
+                // 重置链接邮件直发内置内容，不走可被租户改写的模板，避免占位符不一致导致链接丢失
+                TemplateCode: null,
+                TemplateParams: null,
                 ScheduledTime: null,
                 MaxRetryCount: 3,
                 BusinessType: "auth.password-reset",

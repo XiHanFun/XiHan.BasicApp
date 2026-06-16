@@ -34,8 +34,9 @@ async function handleSubmit() {
     await formRef.value?.validate()
     loading.value = true
     const result = await apis.requestPasswordResetApi(formData.value.email)
-    if (result.temporaryPassword) {
-      message.success(`${t('page.auth.reset_link_sent')}（临时密码：${result.temporaryPassword}）`)
+    if (result.debugResetUrl) {
+      // 开发环境（未配 SMTP）回显重置链接，便于本地联调
+      message.success(`${t('page.auth.reset_link_sent')}（重置链接：${result.debugResetUrl}）`)
     }
     else {
       message.success(t('page.auth.reset_link_sent'))

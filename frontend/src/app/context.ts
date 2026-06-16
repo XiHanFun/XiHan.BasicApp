@@ -19,6 +19,7 @@ import type {
   LoginResponse,
   LoginToken,
   NotificationPreference,
+  PasswordResetConfirmResult,
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
@@ -138,6 +139,9 @@ function createAuthApis() {
     },
     requestPasswordResetApi(email: string) {
       return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email })
+    },
+    consumePasswordResetTokenApi(token: string, newPassword: string) {
+      return requestClient.post<PasswordResetConfirmResult>('/Auth/ConsumePasswordResetToken', { token, newPassword })
     },
     sendPhoneLoginCodeApi(phone: string) {
       return requestClient.post<VerificationCodeResult>('/Auth/PhoneLoginCode', { phone })

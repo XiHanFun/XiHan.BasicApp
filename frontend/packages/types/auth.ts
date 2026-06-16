@@ -79,7 +79,12 @@ export interface VerificationCodeResult {
 
 export interface PasswordResetResult {
   accepted: boolean
-  temporaryPassword?: string
+  /** 一次性重置链接，仅开发环境回显，便于本地无邮件时联调 */
+  debugResetUrl?: string
+}
+
+export interface PasswordResetConfirmResult {
+  success: boolean
 }
 
 /** 登录响应（区分正常登录与双因素验证挑战） */
