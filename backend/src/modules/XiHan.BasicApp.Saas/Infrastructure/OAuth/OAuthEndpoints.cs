@@ -157,9 +157,8 @@ public static class OAuthEndpoints
         var providerKey = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var email = principal.FindFirst(ClaimTypes.Email)?.Value;
         var displayName = principal.FindFirst(ClaimTypes.Name)?.Value;
-        var avatar = principal.FindFirst("urn:github:avatar")?.Value
-            ?? principal.FindFirst("picture")?.Value
-            ?? principal.FindFirst("avatar_url")?.Value;
+        // 各 provider 注册时已把头像 JSON 字段统一映射到 OAuthOptions.AvatarClaimType（见框架 RegisterProvider），此处只读这一个 Claim。
+        var avatar = principal.FindFirst(OAuthOptions.AvatarClaimType)?.Value;
 
         if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(providerKey))
         {
