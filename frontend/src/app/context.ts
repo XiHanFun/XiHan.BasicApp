@@ -61,7 +61,7 @@ const viewModules = import.meta.glob('/src/views/**/*.vue')
 
 const defaultLoginConfig: LoginConfig = {
   loginMethods: ['password'],
-  oauthProviders: [],
+  oAuthProviders: [],
 }
 
 function emptyPage(input?: { page?: number, pageSize?: number }): AppPageSummary {
@@ -131,6 +131,10 @@ function createAuthApis() {
     },
     registerApi(input: unknown) {
       return requestClient.post('/Auth/Register', input)
+    },
+    createOAuthBindTicketApi() {
+      // 动态 API 约定会剥离方法名的 Create 前缀，实际路由为 /Auth/OAuthBindTicket
+      return requestClient.post<string>('/Auth/OAuthBindTicket')
     },
     requestPasswordResetApi(email: string) {
       return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email })

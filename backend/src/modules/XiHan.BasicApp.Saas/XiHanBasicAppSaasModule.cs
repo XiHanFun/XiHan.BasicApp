@@ -12,17 +12,23 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.BasicApp.Saas.Infrastructure.Extensions;
+using XiHan.BasicApp.Saas.Infrastructure.OAuth;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Tasks.ScheduledJobs.Extensions;
+using XiHan.Framework.Web.Core.Extensions;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Extensions;
 
 namespace XiHan.BasicApp.Saas;
 
@@ -91,5 +97,24 @@ public class XiHanBasicAppSaasModule : XiHanModule
         var schedulerSyncService = scope.ServiceProvider.GetRequiredService<ITaskSchedulerSyncService>();
         schedulerSyncService.SyncAllActiveJobsAsync().GetAwaiter().GetResult();
         logger.LogInformation("数据库中的活跃 SysTask 记录已同步到调度器");
+    }
+
+    /// <summary>
+    /// 应用初始化
+    /// </summary>
+    /// <param name="context"></param>
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var app = context.GetApplicationBuilder();
+
+        app.UseEndpoints(endpoints =>
+        {
+            // 映射 SignalR Hub 端点
+            endpoints.MapXiHanHub<BasicAppNotificationHub>(SignalRConstants.HubPaths.Notification);
+            endpoints.MapXiHanHub<BasicAppChatHub>(SignalRConstants.HubPaths.Chat);
+
+            // 第三方登录（OAuth）端点：/api/OAuth/ExternalLogin（发起）+ /api/OAuth/Callback（回调）
+            endpoints.MapOAuthEndpoints();
+        });
     }
 }

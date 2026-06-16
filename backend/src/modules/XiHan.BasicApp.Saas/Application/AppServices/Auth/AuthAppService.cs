@@ -14,8 +14,10 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -29,6 +31,7 @@ using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
@@ -47,6 +50,16 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class AuthAppService
     : SaasApplicationService, IAuthAppService
 {
+    /// <summary>
+    /// 超级管理员角色编码（与种子/授权快照约定一致，运行时特判 *）
+    /// </summary>
+    private const string SuperAdminRoleCode = "super_admin";
+
+    /// <summary>
+    /// 默认租户标识：自助注册 / 找回密码在缺省范围时落到该租户（与基础身份种子约定一致）
+    /// </summary>
+    private const long DefaultRegistrationTenantId = 1;
+
     private readonly IAuthContextQueryService _authContextQueryService;
 
     private readonly IAuthenticationDomainService _authenticationDomainService;
@@ -85,17 +98,11 @@ public sealed class AuthAppService
 
     private readonly IUserDomainService _userDomainService;
 
+    private readonly IExternalLoginStore _externalLoginStore;
+
+    private readonly IDistributedCache _distributedCache;
+
     private readonly ILogger<AuthAppService> _logger;
-
-    /// <summary>
-    /// 超级管理员角色编码（与种子/授权快照约定一致，运行时特判 *）
-    /// </summary>
-    private const string SuperAdminRoleCode = "super_admin";
-
-    /// <summary>
-    /// 默认租户标识：自助注册 / 找回密码在缺省范围时落到该租户（与基础身份种子约定一致）
-    /// </summary>
-    private const long DefaultRegistrationTenantId = 1;
 
     /// <summary>
     /// 构造函数
@@ -120,6 +127,8 @@ public sealed class AuthAppService
         IUserRepository userRepository,
         ITenantUserRepository tenantUserRepository,
         IUserDomainService userDomainService,
+        IExternalLoginStore externalLoginStore,
+        IDistributedCache distributedCache,
         ILogger<AuthAppService> logger)
     {
         _authenticationDomainService = authenticationDomainService;
@@ -141,7 +150,60 @@ public sealed class AuthAppService
         _userRepository = userRepository;
         _tenantUserRepository = tenantUserRepository;
         _userDomainService = userDomainService;
+        _externalLoginStore = externalLoginStore;
+        _distributedCache = distributedCache;
         _logger = logger;
+    }
+
+    /// <inheritdoc />
+    // 非公开 API（[DynamicApi(IsEnabled=false)]），仅由 OAuth 回调端点经"未代理目标实例"直接调用。
+    // [UnitOfWork(IsDisabled=true)] 表明本流程不开启外层事务：匿名端点无 UoW 中间件预留的工作单元，
+    // 若开事务会让拦截器在新作用域里急切 BEGIN/COMPLETE 而死锁；各步仓储/领域服务各自即时提交。
+    [DynamicApi(IsEnabled = false)]
+    [UnitOfWork(IsDisabled = true)]
+    public async Task<ExternalLoginResultDto> ExternalLoginAsync(ExternalLoginCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var provider = command.Provider?.Trim();
+        var providerKey = command.ProviderKey?.Trim();
+        if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(providerKey))
+        {
+            return ExternalLoginResultDto.Fail("invalid", "第三方账号信息不完整。");
+        }
+
+        var info = new ExternalLoginInfo
+        {
+            Provider = provider,
+            ProviderKey = providerKey,
+            DisplayName = command.DisplayName,
+            Email = command.Email,
+            AvatarUrl = command.AvatarUrl
+        };
+
+        return command.IsBind
+            ? await BindExternalLoginAsync(info, command.BindUserId, cancellationToken)
+            : await LoginByExternalAsync(info, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    // 非事务：仅操作分布式缓存，无需 DB 事务；避免 UoW 拦截器在新作用域里急切开启事务
+    [UnitOfWork(IsDisabled = true)]
+    public async Task<string> CreateOAuthBindTicketAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
+        var ticket = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .Replace('+', '-')
+            .Replace('/', '_')
+            .TrimEnd('=');
+        await _distributedCache.SetStringAsync(
+            OAuthBindTicket.CacheKey(ticket),
+            userId.ToString(),
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) },
+            cancellationToken);
+        return ticket;
     }
 
     /// <inheritdoc />
@@ -226,59 +288,6 @@ public sealed class AuthAppService
         };
     }
 
-    /// <summary>
-    /// 发送注册欢迎邮件（复用消息投递管道，模板优先、内置内容兜底）
-    /// </summary>
-    private async Task SendWelcomeEmailAsync(string email, SysUser user, CancellationToken cancellationToken)
-    {
-        var emailOptions = _emailSenderOptions.CurrentValue;
-        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
-        var displayName = string.IsNullOrWhiteSpace(user.NickName) ? user.UserName : user.NickName;
-        await _messageDeliveryService.CreateEmailAsync(
-            new EmailCreateCommand(
-                SendUserId: null,
-                ReceiveUserId: user.BasicId,
-                EmailType: EmailType.Notification,
-                FromEmail: emailOptions.FromEmail,
-                FromName: emailOptions.FromName,
-                ToEmail: email,
-                CcEmail: null,
-                BccEmail: null,
-                Subject: $"欢迎加入 {brand}",
-                Content: BuildWelcomeHtml(displayName, brand),
-                IsHtml: true,
-                Attachments: null,
-                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
-                TemplateCode: SaasMessageTemplateCodes.Auth.Welcome,
-                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["user_name"] = displayName, ["brand"] = brand }),
-                ScheduledTime: null,
-                MaxRetryCount: 3,
-                BusinessType: "auth.welcome",
-                BusinessId: user.BasicId,
-                Remark: null),
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// 构建欢迎邮件的 HTML 正文（与全局模板种子同款式，全内联样式兜底）
-    /// </summary>
-    private static string BuildWelcomeHtml(string userName, string brand)
-    {
-        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
-  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
-    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
-      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
-    </div>
-    <div style='padding:32px;'>
-      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>欢迎加入</h1>
-      <p style='margin:0 0 8px;font-size:14px;line-height:1.7;color:#6b7280;'>{userName}，您好！</p>
-      <p style='margin:0;font-size:14px;line-height:1.7;color:#6b7280;'>您的账号已创建成功，现在即可使用注册邮箱登录 {brand}。</p>
-    </div>
-    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
-  </div>
-</div>";
-    }
-
     /// <inheritdoc />
     [AllowAnonymous]
     [UnitOfWork(true)]
@@ -326,81 +335,6 @@ public sealed class AuthAppService
             Accepted = true,
             TemporaryPassword = temporaryPassword
         };
-    }
-
-    /// <summary>
-    /// 生成满足默认密码策略的临时密码：含大小写/数字/特殊字符，
-    /// 字母数字之间以特殊字符分隔，确保不出现连续序列或重复字符
-    /// </summary>
-    private static string GenerateTemporaryPassword()
-    {
-        const string uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";  // 去除易混 I/O
-        const string lowers = "abcdefghijkmnpqrstuvwxyz";  // 去除易混 l/o
-        const string digits = "23456789";                  // 去除易混 0/1
-        var bytes = Guid.NewGuid().ToByteArray();
-        char Pick(string set, int i) => set[bytes[i] % set.Length];
-        return string.Concat(
-            Pick(uppers, 0), '@',
-            Pick(lowers, 1), '#',
-            Pick(digits, 2), '$',
-            Pick(uppers, 3), '%',
-            Pick(lowers, 4), '&',
-            Pick(digits, 5));
-    }
-
-    /// <summary>
-    /// 发送临时密码邮件（复用消息投递管道）
-    /// </summary>
-    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string temporaryPassword, CancellationToken cancellationToken)
-    {
-        var emailOptions = _emailSenderOptions.CurrentValue;
-        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
-        await _messageDeliveryService.CreateEmailAsync(
-            new EmailCreateCommand(
-                SendUserId: null,
-                ReceiveUserId: receiveUserId,
-                EmailType: EmailType.Verification,
-                FromEmail: emailOptions.FromEmail,
-                FromName: emailOptions.FromName,
-                ToEmail: email,
-                CcEmail: null,
-                BccEmail: null,
-                Subject: $"【{brand}】临时登录密码",
-                Content: BuildPasswordResetHtml(temporaryPassword, brand),
-                IsHtml: true,
-                Attachments: null,
-                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
-                TemplateCode: SaasMessageTemplateCodes.Auth.PasswordReset,
-                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["temporary_password"] = temporaryPassword, ["brand"] = brand }),
-                ScheduledTime: null,
-                MaxRetryCount: 3,
-                BusinessType: "auth.password-reset",
-                BusinessId: receiveUserId,
-                Remark: null),
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// 构建临时密码邮件的 HTML 正文（全内联样式，兼容主流邮件客户端）
-    /// </summary>
-    private static string BuildPasswordResetHtml(string temporaryPassword, string brand)
-    {
-        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
-  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
-    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
-      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
-    </div>
-    <div style='padding:32px;'>
-      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>临时登录密码</h1>
-      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您申请了找回密码，请使用以下临时密码登录，并尽快在个人中心修改为新密码：</p>
-      <div style='margin:0 0 24px;padding:18px 0;text-align:center;background:#f3f6ff;border:1px solid #e3e9ff;border-radius:12px;'>
-        <span style='font-size:24px;font-weight:700;letter-spacing:4px;color:#3b5bdb;'>{temporaryPassword}</span>
-      </div>
-      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件并立即联系管理员。</p>
-    </div>
-    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
-  </div>
-</div>";
     }
 
     /// <inheritdoc />
@@ -509,57 +443,6 @@ public sealed class AuthAppService
         };
     }
 
-    /// <summary>
-    /// 决定登录落点租户并签发令牌（在落点租户上下文内重建快照）。
-    /// </summary>
-    /// <remarks>
-    /// 落点策略（先登录后选租户）：
-    /// - 平台账号（TenantId=0）或超管角色 → 平台态（前端落控制中心，可管理租户/用户/系统或选租户进入）
-    /// - 恰好一个可用租户成员 → 直接进入该租户（免选择）
-    /// - 零个或多个可用租户 → 平台态（前端落控制中心选择租户）
-    /// 进入租户后可随时通过 SwitchTenant 切换。
-    /// </remarks>
-    private async Task<LoginTokenDto> IssueLoginTokenWithLandingAsync(
-        SysUser user,
-        SysUserSecurity? security,
-        string loginName,
-        string? deviceId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var landing = await ResolveLoginLandingAsync(user, now, cancellationToken);
-        using var landingScope = _currentTenant.Change(landing?.TenantId, landing?.TenantName);
-        return await IssueLoginTokenAsync(user, security, landing?.TenantId, loginName, deviceId, now, cancellationToken);
-    }
-
-    /// <summary>
-    /// 解析登录落点租户；返回 null 表示平台态（控制中心）。
-    /// </summary>
-    private async Task<LoginTenantContext?> ResolveLoginLandingAsync(SysUser user, DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        // 平台账号（TenantId=0，如超管）恒落平台态
-        if (user.TenantId == 0)
-        {
-            return null;
-        }
-
-        // 拥有超管角色（全局绑定）的账号同样恒落平台态（平台态快照仅含全局绑定，普通用户在此为空）
-        var platformSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
-        if (platformSnapshot.Roles.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, now, cancellationToken);
-        if (memberships.Count != 1)
-        {
-            return null;
-        }
-
-        // 唯一租户也要确认可用（正常/已配置/未过期），不可用则落控制中心由前端展示原因
-        return await _authContextQueryService.FindAvailableLoginTenantAsync(memberships[0].TenantId, now, cancellationToken);
-    }
-
     /// <inheritdoc />
     [AllowAnonymous]
     [UnitOfWork(true)]
@@ -589,47 +472,6 @@ public sealed class AuthAppService
             // 已配置真实 SMTP 时不回显验证码；未配置（本地联调）时回显以便测试
             DebugCode = _emailSenderOptions.CurrentValue.IsConfigured ? null : code
         };
-    }
-
-    /// <summary>
-    /// 为指定邮箱生成登录验证码并在已配置 SMTP 时发送邮件，返回生成的验证码（供本地联调回显）
-    /// </summary>
-    private async Task<string> IssueAndSendEmailLoginCodeAsync(string email, long? receiveUserId, long? tenantId, CancellationToken cancellationToken)
-    {
-        var code = await _emailLoginCodeService.IssueCodeAsync(tenantId, email, cancellationToken);
-        var emailOptions = _emailSenderOptions.CurrentValue;
-
-        // 已配置真实 SMTP：通过消息投递管道发送验证码邮件（失败会抛出，避免静默丢码）
-        if (emailOptions.IsConfigured)
-        {
-            var minutes = Math.Max(1, _emailLoginCodeService.ExpiresInSeconds / 60);
-            var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
-            await _messageDeliveryService.CreateEmailAsync(
-                new EmailCreateCommand(
-                    SendUserId: null,
-                    ReceiveUserId: receiveUserId,
-                    EmailType: EmailType.Verification,
-                    FromEmail: emailOptions.FromEmail,
-                    FromName: emailOptions.FromName,
-                    ToEmail: email,
-                    CcEmail: null,
-                    BccEmail: null,
-                    Subject: $"【{brand}】登录验证码",
-                    Content: BuildEmailLoginCodeHtml(code, minutes, brand),
-                    IsHtml: true,
-                    Attachments: null,
-                    // 模板优先：投递链路按编码查模板渲染（租户可自定义覆盖全局），缺失回退上方内置内容
-                    TemplateCode: SaasMessageTemplateCodes.Auth.EmailLoginCode,
-                    TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["code"] = code, ["minutes"] = minutes.ToString(), ["brand"] = brand }),
-                    ScheduledTime: null,
-                    MaxRetryCount: 3,
-                    BusinessType: "auth.email-login",
-                    BusinessId: receiveUserId,
-                    Remark: null),
-                cancellationToken);
-        }
-
-        return code;
     }
 
     /// <inheritdoc />
@@ -672,67 +514,6 @@ public sealed class AuthAppService
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
         return await IssueLoginTokenWithLandingAsync(user, authResult.Security, user.UserName, input.DeviceId, now, cancellationToken);
-    }
-
-    /// <summary>
-    /// 签发登录会话与令牌：构建授权快照、签发访问令牌、落地会话并发布登录成功事件
-    /// </summary>
-    private async Task<LoginTokenDto> IssueLoginTokenAsync(
-        SysUser user,
-        SysUserSecurity? security,
-        long? effectiveTenantId,
-        string userName,
-        string? deviceId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        // 构建授权快照（角色 + 权限）
-        var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
-        var client = _clientInfoProvider.GetCurrent();
-        var sessionBusinessId = Guid.NewGuid().ToString("N");
-        var accessTokenJti = Guid.NewGuid().ToString("N");
-
-        // 具体权限码以服务端实时快照为准，token 不再冻结具体权限（避免变更后失效不及时与权限清单泄露）；
-        // 仅保留通配 * 作为超管快路径
-        IReadOnlyCollection<string> tokenPermissions = authSnapshot.Permissions.Contains("*") ? ["*"] : [];
-        var tokenIssue = _authTokenIssueService.IssueAccessToken(
-            new AuthAccessTokenIssueCommand(
-                user,
-                effectiveTenantId,
-                sessionBusinessId,
-                accessTokenJti,
-                authSnapshot.Roles,
-                tokenPermissions,
-                deviceId));
-        var sessionResult = await _loginSessionDomainService.IssuePasswordLoginAsync(
-            user,
-            security,
-            effectiveTenantId,
-            sessionBusinessId,
-            accessTokenJti,
-            tokenIssue.TokenResult,
-            deviceId,
-            client,
-            now,
-            cancellationToken);
-
-        await _localEventBus.PublishAsync(
-            new AuthLoginSucceededDomainEvent(
-                effectiveTenantId,
-                user.BasicId,
-                userName,
-                sessionResult.Session.BasicId,
-                sessionBusinessId,
-                now,
-                _httpContextAccessor.HttpContext?.TraceIdentifier,
-                client.IpAddress,
-                client.UserAgent,
-                client.Location,
-                client.Browser,
-                client.OperatingSystem,
-                client.DeviceName));
-
-        return tokenIssue.Token;
     }
 
     /// <inheritdoc />
@@ -849,6 +630,536 @@ public sealed class AuthAppService
             "访问令牌刷新");
 
         return token;
+    }
+
+    private static string SanitizeUserNameBase(string provider)
+    {
+        var letters = new string((provider ?? "ext").Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(letters))
+        {
+            return "ext";
+        }
+
+        return letters.Length > 20 ? letters[..20] : letters;
+    }
+
+    /// <summary>
+    /// 构建欢迎邮件的 HTML 正文（与全局模板种子同款式，全内联样式兜底）
+    /// </summary>
+    private static string BuildWelcomeHtml(string userName, string brand)
+    {
+        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
+  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
+    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
+      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
+    </div>
+    <div style='padding:32px;'>
+      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>欢迎加入</h1>
+      <p style='margin:0 0 8px;font-size:14px;line-height:1.7;color:#6b7280;'>{userName}，您好！</p>
+      <p style='margin:0;font-size:14px;line-height:1.7;color:#6b7280;'>您的账号已创建成功，现在即可使用注册邮箱登录 {brand}。</p>
+    </div>
+    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
+  </div>
+</div>";
+    }
+
+    /// <summary>
+    /// 生成满足默认密码策略的临时密码：含大小写/数字/特殊字符，
+    /// 字母数字之间以特殊字符分隔，确保不出现连续序列或重复字符
+    /// </summary>
+    private static string GenerateTemporaryPassword()
+    {
+        const string uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";  // 去除易混 I/O
+        const string lowers = "abcdefghijkmnpqrstuvwxyz";  // 去除易混 l/o
+        const string digits = "23456789";                  // 去除易混 0/1
+        var bytes = Guid.NewGuid().ToByteArray();
+        char Pick(string set, int i) => set[bytes[i] % set.Length];
+        return string.Concat(
+            Pick(uppers, 0), '@',
+            Pick(lowers, 1), '#',
+            Pick(digits, 2), '$',
+            Pick(uppers, 3), '%',
+            Pick(lowers, 4), '&',
+            Pick(digits, 5));
+    }
+
+    /// <summary>
+    /// 构建临时密码邮件的 HTML 正文（全内联样式，兼容主流邮件客户端）
+    /// </summary>
+    private static string BuildPasswordResetHtml(string temporaryPassword, string brand)
+    {
+        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
+  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
+    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
+      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
+    </div>
+    <div style='padding:32px;'>
+      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>临时登录密码</h1>
+      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您申请了找回密码，请使用以下临时密码登录，并尽快在个人中心修改为新密码：</p>
+      <div style='margin:0 0 24px;padding:18px 0;text-align:center;background:#f3f6ff;border:1px solid #e3e9ff;border-radius:12px;'>
+        <span style='font-size:24px;font-weight:700;letter-spacing:4px;color:#3b5bdb;'>{temporaryPassword}</span>
+      </div>
+      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件并立即联系管理员。</p>
+    </div>
+    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
+  </div>
+</div>";
+    }
+
+    private static string RequireUserEmail(SysUser user)
+    {
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            throw new InvalidOperationException("账号未绑定邮箱，无法使用邮箱验证码。");
+        }
+
+        return user.Email.Trim();
+    }
+
+    private static string? NormalizeTwoFactorMethod(string? method)
+    {
+        return string.IsNullOrWhiteSpace(method) ? null : method.Trim().ToLowerInvariant();
+    }
+
+    private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException(requiredMessage);
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), maxLengthMessage);
+        }
+
+        return normalized;
+    }
+
+    /// <summary>
+    /// 构建登录验证码邮件的 HTML 正文（全内联样式，兼容主流邮件客户端）
+    /// </summary>
+    private static string BuildEmailLoginCodeHtml(string code, int minutes, string brand)
+    {
+        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
+  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
+    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
+      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
+    </div>
+    <div style='padding:32px;'>
+      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>登录验证码</h1>
+      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您正在登录 {brand}，请在登录页输入以下验证码完成验证：</p>
+      <div style='margin:0 0 24px;padding:18px 0;text-align:center;background:#f3f6ff;border:1px solid #e3e9ff;border-radius:12px;'>
+        <span style='font-size:32px;font-weight:700;letter-spacing:10px;color:#3b5bdb;'>{code}</span>
+      </div>
+      <p style='margin:0 0 8px;font-size:13px;line-height:1.7;color:#6b7280;'>验证码 <strong style='color:#374151;'>{minutes} 分钟</strong> 内有效，请勿向任何人泄露。</p>
+      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件，您的账号仍然安全。</p>
+    </div>
+    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
+  </div>
+</div>";
+    }
+
+    private static List<string> ResolveTwoFactorMethods(TwoFactorMethod method)
+    {
+        var methods = new List<string>();
+        if (method.HasFlag(TwoFactorMethod.Totp))
+        {
+            methods.Add("totp");
+        }
+
+        if (method.HasFlag(TwoFactorMethod.Email))
+        {
+            methods.Add("email");
+        }
+
+        if (method.HasFlag(TwoFactorMethod.Phone))
+        {
+            methods.Add("phone");
+        }
+
+        return methods.Count == 0 ? ["totp"] : methods;
+    }
+
+    /// <summary>
+    /// 第三方登录：按 (Provider, ProviderKey) 精确定位用户；未绑定则自动建号（不按邮箱并入既有账号，防冒用）。
+    /// </summary>
+    private async Task<ExternalLoginResultDto> LoginByExternalAsync(ExternalLoginInfo info, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        SysUser user;
+        bool isNewUser;
+
+        // 在默认注册租户范围内定位/创建绑定（与自助注册一致）
+        using (_currentTenant.Change(DefaultRegistrationTenantId, DefaultRegistrationTenantId.ToString()))
+        {
+            var boundUserId = await _externalLoginStore.FindUserIdAsync(info.Provider, info.ProviderKey, DefaultRegistrationTenantId, cancellationToken);
+            if (boundUserId is { } existingId && existingId > 0)
+            {
+                var existing = await _userRepository.GetByIdIgnoreTenantAsync(existingId, cancellationToken);
+                if (existing is null)
+                {
+                    return ExternalLoginResultDto.Fail("user_not_found", "绑定的用户不存在。");
+                }
+
+                if (existing.Status != EnableStatus.Enabled)
+                {
+                    return ExternalLoginResultDto.Fail("disabled", "账号已被禁用，无法登录。");
+                }
+
+                user = existing;
+                isNewUser = false;
+            }
+            else
+            {
+                // 首登自动建号 + 写入绑定（两步各自提交：本流程非事务，理由见 ExternalLoginAsync 注释）
+                user = await CreateExternalUserAsync(info, cancellationToken);
+                await _externalLoginStore.CreateAsync(user.BasicId, info, DefaultRegistrationTenantId, cancellationToken);
+                isNewUser = true;
+            }
+        }
+
+        // 平台态签发，落点（控制中心 / 唯一租户）由统一逻辑决定，与密码登录一致
+        using var platformScope = _currentTenant.Change(null);
+        var token = await IssueLoginTokenWithLandingAsync(user, security: null, user.UserName, deviceId: null, now, cancellationToken);
+        _logger.LogInformation("第三方登录成功 provider={Provider} userId={UserId} 新用户={IsNewUser}", info.Provider, user.BasicId, isNewUser);
+        return ExternalLoginResultDto.LoginSuccess(token);
+    }
+
+    /// <summary>
+    /// 绑定第三方账号到指定用户（票据已校验身份）；已被他人绑定则拒绝。
+    /// </summary>
+    private async Task<ExternalLoginResultDto> BindExternalLoginAsync(ExternalLoginInfo info, long? bindUserId, CancellationToken cancellationToken)
+    {
+        if (bindUserId is not { } userId || userId <= 0)
+        {
+            return ExternalLoginResultDto.Fail("unauthenticated", "请先登录后再绑定第三方账号。");
+        }
+
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return ExternalLoginResultDto.Fail("user_not_found", "用户不存在。");
+        }
+
+        var tenantId = user.TenantId;
+        using var scope = _currentTenant.Change(tenantId, tenantId.ToString());
+
+        var existing = await _externalLoginStore.FindUserIdAsync(info.Provider, info.ProviderKey, tenantId, cancellationToken);
+        if (existing == userId)
+        {
+            // 幂等：已绑定到本人，直接成功
+            return ExternalLoginResultDto.BindSuccess();
+        }
+
+        if (existing is not null)
+        {
+            return ExternalLoginResultDto.Fail("conflict", "该第三方账号已被其他用户绑定。");
+        }
+
+        await _externalLoginStore.CreateAsync(userId, info, tenantId, cancellationToken);
+        _logger.LogInformation("第三方账号绑定成功 provider={Provider} userId={UserId}", info.Provider, userId);
+        return ExternalLoginResultDto.BindSuccess();
+    }
+
+    /// <summary>
+    /// 第三方首登自动建号：随机强密码、不分配角色（与自助注册一致）；三方邮箱被占用则用占位邮箱，避免并入既有账号。
+    /// </summary>
+    private async Task<SysUser> CreateExternalUserAsync(ExternalLoginInfo info, CancellationToken cancellationToken)
+    {
+        var nickName = string.IsNullOrWhiteSpace(info.DisplayName) ? $"{info.Provider}用户" : info.DisplayName.Trim();
+        if (nickName.Length > 50)
+        {
+            nickName = nickName[..50];
+        }
+
+        var userName = await GenerateUniqueUserNameAsync(info.Provider, cancellationToken);
+        var email = await ResolveExternalEmailAsync(info, userName, cancellationToken);
+
+        var command = new UserCreateCommand(
+            UserName: userName,
+            InitialPassword: GenerateTemporaryPassword(),
+            RealName: null,
+            NickName: nickName,
+            Avatar: info.AvatarUrl,
+            Email: email,
+            Phone: null,
+            Gender: UserGender.Unknown,
+            Birthday: null,
+            Status: EnableStatus.Enabled,
+            TimeZone: null,
+            Language: "zh-CN",
+            Country: null,
+            MemberType: TenantMemberType.Member,
+            EffectiveTime: null,
+            ExpirationTime: null,
+            DisplayName: nickName,
+            InviteRemark: null,
+            Remark: $"第三方登录自动创建（{info.Provider}）",
+            OperatorUserId: null);
+
+        try
+        {
+            var result = await _userDomainService.CreateUserAsync(command, cancellationToken);
+            return result.User;
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new UserFriendlyException(ex.Message, innerException: ex);
+        }
+    }
+
+    /// <summary>
+    /// 生成唯一用户名：提供商名 + 随机后缀，冲突重试
+    /// </summary>
+    private async Task<string> GenerateUniqueUserNameAsync(string provider, CancellationToken cancellationToken)
+    {
+        var baseName = SanitizeUserNameBase(provider);
+        for (var i = 0; i < 8; i++)
+        {
+            var suffix = Convert.ToHexString(RandomNumberGenerator.GetBytes(3)).ToLowerInvariant();
+            var candidate = $"{baseName}_{suffix}";
+            if (!await _userRepository.ExistsUserNameAsync(candidate, null, cancellationToken))
+            {
+                return candidate;
+            }
+        }
+
+        return $"{baseName}_{Guid.NewGuid():N}";
+    }
+
+    /// <summary>
+    /// 解析建号邮箱：三方邮箱未被占用才使用，否则用占位邮箱（不按邮箱并入既有账号）
+    /// </summary>
+    private async Task<string> ResolveExternalEmailAsync(ExternalLoginInfo info, string userName, CancellationToken cancellationToken)
+    {
+        var email = info.Email?.Trim();
+        if (!string.IsNullOrWhiteSpace(email) && email.Contains('@')
+            && !await _userRepository.ExistsEmailGloballyAsync(email, null, cancellationToken))
+        {
+            return email;
+        }
+
+        return $"{userName}@external.local";
+    }
+
+    /// <summary>
+    /// 发送注册欢迎邮件（复用消息投递管道，模板优先、内置内容兜底）
+    /// </summary>
+    private async Task SendWelcomeEmailAsync(string email, SysUser user, CancellationToken cancellationToken)
+    {
+        var emailOptions = _emailSenderOptions.CurrentValue;
+        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        var displayName = string.IsNullOrWhiteSpace(user.NickName) ? user.UserName : user.NickName;
+        await _messageDeliveryService.CreateEmailAsync(
+            new EmailCreateCommand(
+                SendUserId: null,
+                ReceiveUserId: user.BasicId,
+                EmailType: EmailType.Notification,
+                FromEmail: emailOptions.FromEmail,
+                FromName: emailOptions.FromName,
+                ToEmail: email,
+                CcEmail: null,
+                BccEmail: null,
+                Subject: $"欢迎加入 {brand}",
+                Content: BuildWelcomeHtml(displayName, brand),
+                IsHtml: true,
+                Attachments: null,
+                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
+                TemplateCode: SaasMessageTemplateCodes.Auth.Welcome,
+                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["user_name"] = displayName, ["brand"] = brand }),
+                ScheduledTime: null,
+                MaxRetryCount: 3,
+                BusinessType: "auth.welcome",
+                BusinessId: user.BasicId,
+                Remark: null),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// 发送临时密码邮件（复用消息投递管道）
+    /// </summary>
+    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string temporaryPassword, CancellationToken cancellationToken)
+    {
+        var emailOptions = _emailSenderOptions.CurrentValue;
+        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        await _messageDeliveryService.CreateEmailAsync(
+            new EmailCreateCommand(
+                SendUserId: null,
+                ReceiveUserId: receiveUserId,
+                EmailType: EmailType.Verification,
+                FromEmail: emailOptions.FromEmail,
+                FromName: emailOptions.FromName,
+                ToEmail: email,
+                CcEmail: null,
+                BccEmail: null,
+                Subject: $"【{brand}】临时登录密码",
+                Content: BuildPasswordResetHtml(temporaryPassword, brand),
+                IsHtml: true,
+                Attachments: null,
+                // 模板优先：投递链路按编码查模板渲染，缺失回退上方内置内容
+                TemplateCode: SaasMessageTemplateCodes.Auth.PasswordReset,
+                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["temporary_password"] = temporaryPassword, ["brand"] = brand }),
+                ScheduledTime: null,
+                MaxRetryCount: 3,
+                BusinessType: "auth.password-reset",
+                BusinessId: receiveUserId,
+                Remark: null),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// 决定登录落点租户并签发令牌（在落点租户上下文内重建快照）。
+    /// </summary>
+    /// <remarks>
+    /// 落点策略（先登录后选租户）：
+    /// - 平台账号（TenantId=0）或超管角色 → 平台态（前端落控制中心，可管理租户/用户/系统或选租户进入）
+    /// - 恰好一个可用租户成员 → 直接进入该租户（免选择）
+    /// - 零个或多个可用租户 → 平台态（前端落控制中心选择租户）
+    /// 进入租户后可随时通过 SwitchTenant 切换。
+    /// </remarks>
+    private async Task<LoginTokenDto> IssueLoginTokenWithLandingAsync(
+        SysUser user,
+        SysUserSecurity? security,
+        string loginName,
+        string? deviceId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var landing = await ResolveLoginLandingAsync(user, now, cancellationToken);
+        using var landingScope = _currentTenant.Change(landing?.TenantId, landing?.TenantName);
+        return await IssueLoginTokenAsync(user, security, landing?.TenantId, loginName, deviceId, now, cancellationToken);
+    }
+
+    /// <summary>
+    /// 解析登录落点租户；返回 null 表示平台态（控制中心）。
+    /// </summary>
+    private async Task<LoginTenantContext?> ResolveLoginLandingAsync(SysUser user, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        // 平台账号（TenantId=0，如超管）恒落平台态
+        if (user.TenantId == 0)
+        {
+            return null;
+        }
+
+        // 拥有超管角色（全局绑定）的账号同样恒落平台态（平台态快照仅含全局绑定，普通用户在此为空）
+        var platformSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
+        if (platformSnapshot.Roles.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, now, cancellationToken);
+        if (memberships.Count != 1)
+        {
+            return null;
+        }
+
+        // 唯一租户也要确认可用（正常/已配置/未过期），不可用则落控制中心由前端展示原因
+        return await _authContextQueryService.FindAvailableLoginTenantAsync(memberships[0].TenantId, now, cancellationToken);
+    }
+
+    /// <summary>
+    /// 为指定邮箱生成登录验证码并在已配置 SMTP 时发送邮件，返回生成的验证码（供本地联调回显）
+    /// </summary>
+    private async Task<string> IssueAndSendEmailLoginCodeAsync(string email, long? receiveUserId, long? tenantId, CancellationToken cancellationToken)
+    {
+        var code = await _emailLoginCodeService.IssueCodeAsync(tenantId, email, cancellationToken);
+        var emailOptions = _emailSenderOptions.CurrentValue;
+
+        // 已配置真实 SMTP：通过消息投递管道发送验证码邮件（失败会抛出，避免静默丢码）
+        if (emailOptions.IsConfigured)
+        {
+            var minutes = Math.Max(1, _emailLoginCodeService.ExpiresInSeconds / 60);
+            var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+            await _messageDeliveryService.CreateEmailAsync(
+                new EmailCreateCommand(
+                    SendUserId: null,
+                    ReceiveUserId: receiveUserId,
+                    EmailType: EmailType.Verification,
+                    FromEmail: emailOptions.FromEmail,
+                    FromName: emailOptions.FromName,
+                    ToEmail: email,
+                    CcEmail: null,
+                    BccEmail: null,
+                    Subject: $"【{brand}】登录验证码",
+                    Content: BuildEmailLoginCodeHtml(code, minutes, brand),
+                    IsHtml: true,
+                    Attachments: null,
+                    // 模板优先：投递链路按编码查模板渲染（租户可自定义覆盖全局），缺失回退上方内置内容
+                    TemplateCode: SaasMessageTemplateCodes.Auth.EmailLoginCode,
+                    TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["code"] = code, ["minutes"] = minutes.ToString(), ["brand"] = brand }),
+                    ScheduledTime: null,
+                    MaxRetryCount: 3,
+                    BusinessType: "auth.email-login",
+                    BusinessId: receiveUserId,
+                    Remark: null),
+                cancellationToken);
+        }
+
+        return code;
+    }
+
+    /// <summary>
+    /// 签发登录会话与令牌：构建授权快照、签发访问令牌、落地会话并发布登录成功事件
+    /// </summary>
+    private async Task<LoginTokenDto> IssueLoginTokenAsync(
+        SysUser user,
+        SysUserSecurity? security,
+        long? effectiveTenantId,
+        string userName,
+        string? deviceId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        // 构建授权快照（角色 + 权限）
+        var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
+        var client = _clientInfoProvider.GetCurrent();
+        var sessionBusinessId = Guid.NewGuid().ToString("N");
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+
+        // 具体权限码以服务端实时快照为准，token 不再冻结具体权限（避免变更后失效不及时与权限清单泄露）；
+        // 仅保留通配 * 作为超管快路径
+        IReadOnlyCollection<string> tokenPermissions = authSnapshot.Permissions.Contains("*") ? ["*"] : [];
+        var tokenIssue = _authTokenIssueService.IssueAccessToken(
+            new AuthAccessTokenIssueCommand(
+                user,
+                effectiveTenantId,
+                sessionBusinessId,
+                accessTokenJti,
+                authSnapshot.Roles,
+                tokenPermissions,
+                deviceId));
+        var sessionResult = await _loginSessionDomainService.IssuePasswordLoginAsync(
+            user,
+            security,
+            effectiveTenantId,
+            sessionBusinessId,
+            accessTokenJti,
+            tokenIssue.TokenResult,
+            deviceId,
+            client,
+            now,
+            cancellationToken);
+
+        await _localEventBus.PublishAsync(
+            new AuthLoginSucceededDomainEvent(
+                effectiveTenantId,
+                user.BasicId,
+                userName,
+                sessionResult.Session.BasicId,
+                sessionBusinessId,
+                now,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent,
+                client.Location,
+                client.Browser,
+                client.OperatingSystem,
+                client.DeviceName));
+
+        return tokenIssue.Token;
     }
 
     /// <summary>
@@ -978,81 +1289,4 @@ public sealed class AuthAppService
     {
         return IssueAndSendEmailLoginCodeAsync(RequireUserEmail(user), user.BasicId, tenantId, cancellationToken);
     }
-
-    private static string RequireUserEmail(SysUser user)
-    {
-        if (string.IsNullOrWhiteSpace(user.Email))
-        {
-            throw new InvalidOperationException("账号未绑定邮箱，无法使用邮箱验证码。");
-        }
-
-        return user.Email.Trim();
-    }
-
-    private static string? NormalizeTwoFactorMethod(string? method)
-    {
-        return string.IsNullOrWhiteSpace(method) ? null : method.Trim().ToLowerInvariant();
-    }
-
-    private static string NormalizeRequired(string? value, string requiredMessage, int maxLength, string maxLengthMessage)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new ArgumentException(requiredMessage);
-        }
-
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), maxLengthMessage);
-        }
-
-        return normalized;
-    }
-
-    /// <summary>
-    /// 构建登录验证码邮件的 HTML 正文（全内联样式，兼容主流邮件客户端）
-    /// </summary>
-    private static string BuildEmailLoginCodeHtml(string code, int minutes, string brand)
-    {
-        return $@"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
-  <div style='max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
-    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
-      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{brand}</div>
-    </div>
-    <div style='padding:32px;'>
-      <h1 style='margin:0 0 12px;font-size:20px;color:#1f2937;'>登录验证码</h1>
-      <p style='margin:0 0 24px;font-size:14px;line-height:1.7;color:#6b7280;'>您正在登录 {brand}，请在登录页输入以下验证码完成验证：</p>
-      <div style='margin:0 0 24px;padding:18px 0;text-align:center;background:#f3f6ff;border:1px solid #e3e9ff;border-radius:12px;'>
-        <span style='font-size:32px;font-weight:700;letter-spacing:10px;color:#3b5bdb;'>{code}</span>
-      </div>
-      <p style='margin:0 0 8px;font-size:13px;line-height:1.7;color:#6b7280;'>验证码 <strong style='color:#374151;'>{minutes} 分钟</strong> 内有效，请勿向任何人泄露。</p>
-      <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件，您的账号仍然安全。</p>
-    </div>
-    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
-  </div>
-</div>";
-    }
-
-    private static List<string> ResolveTwoFactorMethods(TwoFactorMethod method)
-    {
-        var methods = new List<string>();
-        if (method.HasFlag(TwoFactorMethod.Totp))
-        {
-            methods.Add("totp");
-        }
-
-        if (method.HasFlag(TwoFactorMethod.Email))
-        {
-            methods.Add("email");
-        }
-
-        if (method.HasFlag(TwoFactorMethod.Phone))
-        {
-            methods.Add("phone");
-        }
-
-        return methods.Count == 0 ? ["totp"] : methods;
-    }
-
 }

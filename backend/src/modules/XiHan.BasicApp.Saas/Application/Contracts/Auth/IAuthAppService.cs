@@ -104,4 +104,19 @@ public interface IAuthAppService : IApplicationService
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>
     Task LogoutAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 第三方登录编排（登录/绑定）。非公开 API，仅由 OAuth 回调端点服务端调用。
+    /// </summary>
+    /// <param name="command">编排命令</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>编排结果</returns>
+    Task<ExternalLoginResultDto> ExternalLoginAsync(ExternalLoginCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 创建第三方账号绑定一次性票据（已登录用户调用；浏览器跳转发起绑定时携带身份）
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>票据令牌</returns>
+    Task<string> CreateOAuthBindTicketAsync(CancellationToken cancellationToken = default);
 }
