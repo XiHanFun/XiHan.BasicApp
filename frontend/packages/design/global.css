@@ -1,12 +1,8 @@
-@import './variables.css';
-@import './transition.css';
-@import './scrollbar.css';
-@import './ui.css';
-@import './naive.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ============================================================================
+ * 设计系统基础层（base / components）
+ * Tailwind 核心与设计令牌的引入统一在入口 src/styles/index.css，
+ * 本文件仅保留 @apply 规则，依赖入口中已加载的 utilities 与 @theme 颜色。
+ * ========================================================================== */
 
 @layer base {
   *,
