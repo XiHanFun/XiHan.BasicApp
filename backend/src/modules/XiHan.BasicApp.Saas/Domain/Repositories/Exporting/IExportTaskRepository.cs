@@ -32,10 +32,15 @@ public interface IExportTaskRepository : ISaasRepository<SysExportTask>
     Task<SysExportTask?> GetByIdForUserAsync(long id, long userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 原子领取下一个待执行任务（Pending → Processing，FIFO）；无待执行返回 null。
-    /// 由后台 worker 在无租户上下文下跨租户调用。
+    /// 按主键原子领取指定任务（仅当仍为 Pending 才置 Processing）；领取失败（已执行/取消/重复投递）返回 null。
+    /// 队列消费者据队列项的任务 id 调用，跨租户。
     /// </summary>
-    Task<SysExportTask?> ClaimNextPendingAsync(DateTimeOffset now, CancellationToken cancellationToken = default);
+    Task<SysExportTask?> ClaimByIdAsync(long id, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取所有待执行（Pending）任务的主键（按创建时间升序）；后台启动恢复时用于重投队列，跨租户。
+    /// </summary>
+    Task<IReadOnlyList<long>> GetPendingIdsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 回写进度（已处理行数 + 百分比）

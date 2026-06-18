@@ -132,11 +132,21 @@ public sealed class MessageDomainService
         var email = await GetEmailOrThrowAsync(command.BasicId, cancellationToken);
 
         email.EmailStatus = command.EmailStatus;
-        email.SendTime = command.EmailStatus == EmailStatus.Success
-            ? command.SendTime ?? DateTimeOffset.UtcNow
-            : command.SendTime;
-        email.RetryCount = command.RetryCount ?? email.RetryCount;
-        email.ErrorMessage = Optional(command.ErrorMessage, 1000, nameof(command.ErrorMessage), "错误信息不能超过 1000 个字符。");
+        if (command.EmailStatus == EmailStatus.Pending)
+        {
+            // 重新入队（重发）：给一份全新的重试预算、清空上次错误与发送时间，由发件箱后台重新投递
+            email.RetryCount = command.RetryCount ?? 0;
+            email.ErrorMessage = null;
+            email.SendTime = null;
+        }
+        else
+        {
+            email.SendTime = command.EmailStatus == EmailStatus.Success
+                ? command.SendTime ?? DateTimeOffset.UtcNow
+                : command.SendTime;
+            email.RetryCount = command.RetryCount ?? email.RetryCount;
+            email.ErrorMessage = Optional(command.ErrorMessage, 1000, nameof(command.ErrorMessage), "错误信息不能超过 1000 个字符。");
+        }
         email.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。") ?? email.Remark;
 
         return new EmailCommandResult(await _emailRepository.UpdateAsync(email, cancellationToken));
