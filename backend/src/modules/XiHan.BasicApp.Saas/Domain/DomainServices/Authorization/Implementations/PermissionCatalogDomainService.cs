@@ -26,6 +26,28 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class PermissionCatalogDomainService
     : IPermissionCatalogDomainService
 {
+    private readonly ICurrentTenant _currentTenant;
+
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
+    private readonly IMenuRepository _menuRepository;
+
+    private readonly IOperationRepository _operationRepository;
+
+    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IPermissionRequestRepository _permissionRequestRepository;
+
+    private readonly IResourceRepository _resourceRepository;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
+
+    private readonly IUserPermissionRepository _userPermissionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -54,18 +76,6 @@ public sealed class PermissionCatalogDomainService
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
         _currentTenant = currentTenant;
     }
-
-    private readonly ICurrentTenant _currentTenant;
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-    private readonly IMenuRepository _menuRepository;
-    private readonly IOperationRepository _operationRepository;
-    private readonly IPermissionDelegationRepository _permissionDelegationRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IPermissionRequestRepository _permissionRequestRepository;
-    private readonly IResourceRepository _resourceRepository;
-    private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
-    private readonly IUserPermissionRepository _userPermissionRepository;
 
     /// <inheritdoc />
     public async Task<PermissionCatalogCommandResult> CreatePermissionAsync(PermissionCreateCommand command, CancellationToken cancellationToken = default)

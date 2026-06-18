@@ -23,6 +23,8 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class ConfigDomainService
     : IConfigDomainService
 {
+    private readonly IConfigRepository _configRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -30,8 +32,6 @@ public sealed class ConfigDomainService
     {
         _configRepository = configRepository;
     }
-
-    private readonly IConfigRepository _configRepository;
 
     /// <inheritdoc />
     public async Task<ConfigCommandResult> CreateConfigAsync(ConfigCreateCommand command, CancellationToken cancellationToken = default)
@@ -150,13 +150,6 @@ public sealed class ConfigDomainService
         EnsureEnum(command.DataType, nameof(command.DataType));
     }
 
-    private async Task<SysConfig> GetConfigOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统配置主键必须大于 0。");
-        return await _configRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统配置不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -205,5 +198,12 @@ public sealed class ConfigDomainService
         }
 
         return normalized;
+    }
+
+    private async Task<SysConfig> GetConfigOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统配置主键必须大于 0。");
+        return await _configRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统配置不存在。");
     }
 }

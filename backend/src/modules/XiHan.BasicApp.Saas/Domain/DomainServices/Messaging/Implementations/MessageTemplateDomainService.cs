@@ -128,27 +128,6 @@ public sealed class MessageTemplateDomainService
         }
     }
 
-    /// <summary>
-    /// 获取可维护的模板：全局模板（TenantId=0）仅平台运维态可维护（与菜单/权限等全局模板同一不变量）
-    /// </summary>
-    private async Task<SysMessageTemplate> GetEditableOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "模板主键必须大于 0。");
-        }
-
-        var template = await _messageTemplateRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("消息模板不存在。");
-
-        if (template.IsGlobal && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台级全局模板仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-
-        return template;
-    }
-
     private static string NormalizeCode(string code)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -192,7 +171,7 @@ public sealed class MessageTemplateDomainService
     }
 
     private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
+            where TEnum : struct, Enum
     {
         if (!Enum.IsDefined(value))
         {
@@ -203,5 +182,26 @@ public sealed class MessageTemplateDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>
+    /// 获取可维护的模板：全局模板（TenantId=0）仅平台运维态可维护（与菜单/权限等全局模板同一不变量）
+    /// </summary>
+    private async Task<SysMessageTemplate> GetEditableOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "模板主键必须大于 0。");
+        }
+
+        var template = await _messageTemplateRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("消息模板不存在。");
+
+        if (template.IsGlobal && !_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("平台级全局模板仅平台运维态可维护，请切换到平台运维后操作。");
+        }
+
+        return template;
     }
 }

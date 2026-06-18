@@ -144,7 +144,7 @@ public sealed class SaasSampleIdentitySeeder(
 
     private static readonly IReadOnlyList<UserSeed> UserSeeds =
     [
-        new("admin", "系统管理员", "Admin", "admin@xihan.fun", "Admin@123", "tenant_admin", TenantMemberType.Admin, "tech"),
+        new("admin", "系统管理员", "Admin", "me@zhaifanhua.com", "Admin@123", "tenant_admin", TenantMemberType.Admin, "tech"),
         new("user", "普通用户", "User", "user@xihan.fun", "User@123", "normal_user", TenantMemberType.Member, "product"),
         new("guest", "游客", "Guest", "guest@xihan.fun", "Guest@123", "guest", TenantMemberType.Guest, "marketing"),
         new("auditor", "审计员", "Auditor", "auditor@xihan.fun", "Auditor@123", "auditor", TenantMemberType.Member, "finance"),
@@ -339,32 +339,6 @@ public sealed class SaasSampleIdentitySeeder(
         return (saved.BasicId, true);
     }
 
-    private async Task EnsureUserSecurityAsync(ISqlSugarClient client, long tenantId, long userId, string password)
-    {
-        var exists = await client.Queryable<SysUserSecurity>()
-            .FirstAsync(security => security.UserId == userId);
-        if (exists is not null)
-        {
-            return;
-        }
-
-        var now = DateTimeOffset.UtcNow;
-        var security = new SysUserSecurity
-        {
-            TenantId = tenantId,
-            UserId = userId,
-            Password = _passwordHasher.HashPassword(password),
-            SecurityStamp = Guid.NewGuid().ToString("N"),
-            EmailVerified = true,
-            AllowMultiLogin = true,
-            MaxLoginDevices = 0,
-            LastPasswordChangeTime = now,
-            LastSecurityCheckTime = now,
-            Remark = "系统初始化演示账号安全记录",
-        };
-        _ = await client.Insertable(security).ExecuteReturnEntityAsync();
-    }
-
     private static async Task EnsureMembershipAsync(ISqlSugarClient client, long tenantId, long userId, TenantMemberType memberType)
     {
         var exists = await client.Queryable<SysTenantUser>()
@@ -427,6 +401,32 @@ public sealed class SaasSampleIdentitySeeder(
             Remark = "系统初始化演示用户部门归属",
         };
         _ = await client.Insertable(relation).ExecuteReturnEntityAsync();
+    }
+
+    private async Task EnsureUserSecurityAsync(ISqlSugarClient client, long tenantId, long userId, string password)
+    {
+        var exists = await client.Queryable<SysUserSecurity>()
+            .FirstAsync(security => security.UserId == userId);
+        if (exists is not null)
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var security = new SysUserSecurity
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            Password = _passwordHasher.HashPassword(password),
+            SecurityStamp = Guid.NewGuid().ToString("N"),
+            EmailVerified = true,
+            AllowMultiLogin = true,
+            MaxLoginDevices = 0,
+            LastPasswordChangeTime = now,
+            LastSecurityCheckTime = now,
+            Remark = "系统初始化演示账号安全记录",
+        };
+        _ = await client.Insertable(security).ExecuteReturnEntityAsync();
     }
 
     /// <summary>

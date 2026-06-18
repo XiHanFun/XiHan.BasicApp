@@ -202,6 +202,20 @@ public sealed class EmailMessageSender : IMessageSender
     }
 
     /// <summary>
+    /// 解析以逗号/分号分隔的多地址字符串
+    /// </summary>
+    private static List<string> SplitAddresses(string? addresses)
+    {
+        if (string.IsNullOrWhiteSpace(addresses))
+        {
+            return [];
+        }
+
+        return [.. addresses
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+    }
+
+    /// <summary>
     /// 通过框架 EmailBot（MailKit/SMTP）发送邮件；未配置 SMTP 或发送失败时抛出异常，由调用方记录失败状态
     /// </summary>
     private async Task SendViaSmtpAsync(SysEmail email, string? content, CancellationToken cancellationToken)
@@ -248,20 +262,6 @@ public sealed class EmailMessageSender : IMessageSender
         {
             throw new InvalidOperationException("SMTP 邮件发送失败，请检查邮件服务配置与网络。");
         }
-    }
-
-    /// <summary>
-    /// 解析以逗号/分号分隔的多地址字符串
-    /// </summary>
-    private static List<string> SplitAddresses(string? addresses)
-    {
-        if (string.IsNullOrWhiteSpace(addresses))
-        {
-            return [];
-        }
-
-        return [.. addresses
-            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
     }
 
     /// <summary>

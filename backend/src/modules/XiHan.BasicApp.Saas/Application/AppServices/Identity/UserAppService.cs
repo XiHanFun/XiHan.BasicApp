@@ -163,5 +163,4 @@ public sealed class UserAppService
     }
 
     #endregion
-
 }

@@ -173,20 +173,6 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册本地事件处理器并加入事件总线订阅列表
-    /// </summary>
-    /// <typeparam name="THandler">事件处理器类型</typeparam>
-    /// <param name="services">服务集合</param>
-    /// <returns>服务集合</returns>
-    private static IServiceCollection AddSaasLocalEventHandler<THandler>(this IServiceCollection services)
-        where THandler : class
-    {
-        services.AddTransient<THandler>();
-        services.Configure<XiHanLocalEventBusOptions>(options => options.Handlers.AddIfNotContains(typeof(THandler)));
-        return services;
-    }
-
-    /// <summary>
     /// 添加 SaaS 种子数据提供者
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -318,6 +304,20 @@ public static class ServiceCollectionExtensions
         // 注意：ExportTaskHostedService 继承 XiHanBackgroundServiceBase（IBackgroundWorker:ISingletonDependency）
         // 且类名以 HostedService 结尾，已被约定注册自动暴露为 IHostedService 托管。切勿再 AddHostedService（否则重复托管、重复消费）。
 
+        return services;
+    }
+
+    /// <summary>
+    /// 注册本地事件处理器并加入事件总线订阅列表
+    /// </summary>
+    /// <typeparam name="THandler">事件处理器类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    private static IServiceCollection AddSaasLocalEventHandler<THandler>(this IServiceCollection services)
+        where THandler : class
+    {
+        services.AddTransient<THandler>();
+        services.Configure<XiHanLocalEventBusOptions>(options => options.Handlers.AddIfNotContains(typeof(THandler)));
         return services;
     }
 }

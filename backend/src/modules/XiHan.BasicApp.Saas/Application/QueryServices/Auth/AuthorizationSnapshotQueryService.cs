@@ -125,6 +125,14 @@ public sealed class AuthorizationSnapshotQueryService
         return await ApplyEditionGatingAsync(snapshot, cancellationToken);
     }
 
+    private static DistributedCacheEntryOptions CreateCacheOptions()
+    {
+        return new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        };
+    }
+
     /// <summary>
     /// 按当前租户版本(Edition)的权限白名单收窄有效权限。
     /// </summary>
@@ -200,14 +208,6 @@ public sealed class AuthorizationSnapshotQueryService
             .ToList();
 
         return snapshot with { Permissions = gatedCodes, PermissionIds = gatedIds };
-    }
-
-    private static DistributedCacheEntryOptions CreateCacheOptions()
-    {
-        return new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-        };
     }
 
     /// <summary>

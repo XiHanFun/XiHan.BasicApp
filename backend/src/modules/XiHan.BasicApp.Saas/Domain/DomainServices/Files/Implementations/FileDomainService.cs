@@ -24,6 +24,12 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class FileDomainService
     : IFileDomainService
 {
+    private readonly IFileRepository _fileRepository;
+
+    private readonly IFileStorageDomainService _fileStorageDomainService;
+
+    private readonly IFileStorageRepository _fileStorageRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -36,10 +42,6 @@ public sealed class FileDomainService
         _fileStorageRepository = fileStorageRepository;
         _fileStorageDomainService = fileStorageDomainService;
     }
-
-    private readonly IFileRepository _fileRepository;
-    private readonly IFileStorageDomainService _fileStorageDomainService;
-    private readonly IFileStorageRepository _fileStorageRepository;
 
     /// <inheritdoc />
     public async Task<FileDeleteCommandResult> DeleteFileAsync(FileDeleteCommand command, CancellationToken cancellationToken = default)
@@ -363,20 +365,6 @@ public sealed class FileDomainService
         EnsureOptionalId(thumbnailFileId, nameof(thumbnailFileId), "缩略图文件主键必须大于 0。");
     }
 
-    private async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统文件主键必须大于 0。");
-        return await _fileRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统文件不存在。");
-    }
-
-    private async Task<SysFileStorage> GetFileStorageOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统文件存储主键必须大于 0。");
-        return await _fileStorageRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统文件存储不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -469,5 +457,19 @@ public sealed class FileDomainService
         }
 
         return normalized;
+    }
+
+    private async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统文件主键必须大于 0。");
+        return await _fileRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统文件不存在。");
+    }
+
+    private async Task<SysFileStorage> GetFileStorageOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统文件存储主键必须大于 0。");
+        return await _fileStorageRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统文件存储不存在。");
     }
 }

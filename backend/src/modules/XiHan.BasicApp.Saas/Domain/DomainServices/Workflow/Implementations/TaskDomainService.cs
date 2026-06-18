@@ -25,6 +25,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class TaskDomainService
     : ITaskDomainService
 {
+    private readonly ITaskRepository _taskRepository;
+
+    private readonly ITaskScheduleDomainService _taskScheduleDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -35,9 +39,6 @@ public sealed class TaskDomainService
         _taskRepository = taskRepository;
         _taskScheduleDomainService = taskScheduleDomainService;
     }
-
-    private readonly ITaskRepository _taskRepository;
-    private readonly ITaskScheduleDomainService _taskScheduleDomainService;
 
     /// <inheritdoc />
     public async Task<TaskCommandResult> CreateTaskAsync(TaskCreateCommand command, CancellationToken cancellationToken = default)
@@ -208,46 +209,6 @@ public sealed class TaskDomainService
             : TaskSchedulerSyncAction.None;
     }
 
-    private void ValidateCreateCommand(TaskCreateCommand command)
-    {
-        EnsureEnum(command.RunTaskStatus, nameof(command.RunTaskStatus));
-        EnsureEnum(command.Status, nameof(command.Status));
-        _taskScheduleDomainService.EnsureScheduleConfiguration(
-            command.TriggerType,
-            command.CronExpression,
-            command.StartTime,
-            command.EndTime,
-            command.IntervalSeconds,
-            command.RepeatCount,
-            command.ExecutedCount,
-            command.TimeoutSeconds,
-            command.RetryCount,
-            command.MaxRetryCount);
-    }
-
-    private void ValidateUpdateCommand(TaskUpdateCommand command)
-    {
-        EnsureId(command.BasicId, "系统任务主键必须大于 0。");
-        _taskScheduleDomainService.EnsureScheduleConfiguration(
-            command.TriggerType,
-            command.CronExpression,
-            command.StartTime,
-            command.EndTime,
-            command.IntervalSeconds,
-            command.RepeatCount,
-            command.ExecutedCount,
-            command.TimeoutSeconds,
-            command.RetryCount,
-            command.MaxRetryCount);
-    }
-
-    private async Task<SysTask> GetTaskOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统任务主键必须大于 0。");
-        return await _taskRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统任务不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -316,5 +277,45 @@ public sealed class TaskDomainService
         }
 
         return normalized;
+    }
+
+    private void ValidateCreateCommand(TaskCreateCommand command)
+    {
+        EnsureEnum(command.RunTaskStatus, nameof(command.RunTaskStatus));
+        EnsureEnum(command.Status, nameof(command.Status));
+        _taskScheduleDomainService.EnsureScheduleConfiguration(
+            command.TriggerType,
+            command.CronExpression,
+            command.StartTime,
+            command.EndTime,
+            command.IntervalSeconds,
+            command.RepeatCount,
+            command.ExecutedCount,
+            command.TimeoutSeconds,
+            command.RetryCount,
+            command.MaxRetryCount);
+    }
+
+    private void ValidateUpdateCommand(TaskUpdateCommand command)
+    {
+        EnsureId(command.BasicId, "系统任务主键必须大于 0。");
+        _taskScheduleDomainService.EnsureScheduleConfiguration(
+            command.TriggerType,
+            command.CronExpression,
+            command.StartTime,
+            command.EndTime,
+            command.IntervalSeconds,
+            command.RepeatCount,
+            command.ExecutedCount,
+            command.TimeoutSeconds,
+            command.RetryCount,
+            command.MaxRetryCount);
+    }
+
+    private async Task<SysTask> GetTaskOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统任务主键必须大于 0。");
+        return await _taskRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统任务不存在。");
     }
 }

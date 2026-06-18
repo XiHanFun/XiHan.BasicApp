@@ -37,45 +37,6 @@ public sealed class SaasUserStore : IUserStore
         _currentTenant = currentTenant ?? throw new ArgumentNullException(nameof(currentTenant));
     }
 
-    /// <summary>
-    /// 按登录标识定位用户。
-    /// </summary>
-    /// <remarks>
-    /// 登录身份模型（先登录后选租户）：
-    /// - 无租户上下文（标准登录路径）：含 @ 视为邮箱，按全平台唯一邮箱定位（UX_Em）；
-    ///   不含 @ 回退平台账号用户名定位（TenantId=0，如 superadmin），普通租户用户必须用邮箱登录。
-    /// - 有租户上下文（租户内嵌登录等特殊场景）：沿用 租户内用户名 定位（UX_TeId_UsNa）。
-    /// </remarks>
-    private async Task<SysUser?> FindUserByLoginAsync(string login, CancellationToken cancellationToken)
-    {
-        var db = _clientResolver.GetCurrentClient();
-        var tenantId = _currentTenant.Id;
-
-        if (tenantId is null or 0)
-        {
-            return login.Contains('@')
-                ? await db.Queryable<SysUser>()
-                    .Where(u => u.Email == login && !u.IsDeleted)
-                    .FirstAsync(cancellationToken)
-                : await db.Queryable<SysUser>()
-                    .Where(u => u.UserName == login && u.TenantId == 0 && !u.IsDeleted)
-                    .FirstAsync(cancellationToken);
-        }
-
-        return await db.Queryable<SysUser>()
-            .Where(u => u.UserName == login && u.TenantId == tenantId.Value && !u.IsDeleted)
-            .FirstAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// 按登录标识定位用户主键，未找到返回 0。
-    /// </summary>
-    private async Task<long> FindUserIdByLoginAsync(string login, CancellationToken cancellationToken)
-    {
-        var user = await FindUserByLoginAsync(login, cancellationToken);
-        return user?.BasicId ?? 0;
-    }
-
     /// <inheritdoc />
     public async Task<UserInfo?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
@@ -396,5 +357,44 @@ public sealed class SaasUserStore : IUserStore
             PasswordChangedTime = security?.LastPasswordChangeTime?.UtcDateTime,
             IsActive = user.Status == EnableStatus.Enabled
         };
+    }
+
+    /// <summary>
+    /// 按登录标识定位用户。
+    /// </summary>
+    /// <remarks>
+    /// 登录身份模型（先登录后选租户）：
+    /// - 无租户上下文（标准登录路径）：含 @ 视为邮箱，按全平台唯一邮箱定位（UX_Em）；
+    ///   不含 @ 回退平台账号用户名定位（TenantId=0，如 superadmin），普通租户用户必须用邮箱登录。
+    /// - 有租户上下文（租户内嵌登录等特殊场景）：沿用 租户内用户名 定位（UX_TeId_UsNa）。
+    /// </remarks>
+    private async Task<SysUser?> FindUserByLoginAsync(string login, CancellationToken cancellationToken)
+    {
+        var db = _clientResolver.GetCurrentClient();
+        var tenantId = _currentTenant.Id;
+
+        if (tenantId is null or 0)
+        {
+            return login.Contains('@')
+                ? await db.Queryable<SysUser>()
+                    .Where(u => u.Email == login && !u.IsDeleted)
+                    .FirstAsync(cancellationToken)
+                : await db.Queryable<SysUser>()
+                    .Where(u => u.UserName == login && u.TenantId == 0 && !u.IsDeleted)
+                    .FirstAsync(cancellationToken);
+        }
+
+        return await db.Queryable<SysUser>()
+            .Where(u => u.UserName == login && u.TenantId == tenantId.Value && !u.IsDeleted)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 按登录标识定位用户主键，未找到返回 0。
+    /// </summary>
+    private async Task<long> FindUserIdByLoginAsync(string login, CancellationToken cancellationToken)
+    {
+        var user = await FindUserByLoginAsync(login, cancellationToken);
+        return user?.BasicId ?? 0;
     }
 }

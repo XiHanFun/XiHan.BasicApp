@@ -142,6 +142,17 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
     }
 
     /// <summary>
+    /// 邮件/短信发送较轻，并发上限 5；队列空时 2s 再查。
+    /// </summary>
+    private static IDynamicServiceConfig BuildConfig(IOptions<XiHanBackgroundServiceOptions> options)
+    {
+        var config = new DynamicServiceConfig(options);
+        config.UpdateMaxConcurrentTasks(5);
+        config.UpdateIdleDelay(2000);
+        return config;
+    }
+
+    /// <summary>
     /// 启动恢复：复位崩溃残留的 Sending→Pending，并把所有待发送重投队列（TryClaimForSendingAsync 保证不重复发送）。
     /// </summary>
     private async Task RecoverPendingAsync(CancellationToken cancellationToken)
@@ -166,16 +177,5 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
         {
             Logger.LogWarning(ex, "发件箱启动恢复失败（忽略，继续启动）");
         }
-    }
-
-    /// <summary>
-    /// 邮件/短信发送较轻，并发上限 5；队列空时 2s 再查。
-    /// </summary>
-    private static IDynamicServiceConfig BuildConfig(IOptions<XiHanBackgroundServiceOptions> options)
-    {
-        var config = new DynamicServiceConfig(options);
-        config.UpdateMaxConcurrentTasks(5);
-        config.UpdateIdleDelay(2000);
-        return config;
     }
 }

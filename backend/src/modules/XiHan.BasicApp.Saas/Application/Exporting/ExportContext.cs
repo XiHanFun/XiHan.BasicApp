@@ -29,12 +29,12 @@ public sealed class ExportContext
     /// <summary>
     /// 业务类型（= pageCode）
     /// </summary>
-    public required string BusinessType { get; init; }
+    public string BusinessType { get; init; }
 
     /// <summary>
     /// 导出范围
     /// </summary>
-    public required ExportScope Scope { get; init; }
+    public ExportScope Scope { get; init; }
 
     /// <summary>
     /// 查询条件快照（资源自身分页查询 DTO 的 JSON）
@@ -44,17 +44,17 @@ public sealed class ExportContext
     /// <summary>
     /// 导出列（按顺序）
     /// </summary>
-    public required IReadOnlyList<ExportColumnDto> Columns { get; init; }
+    public IReadOnlyList<ExportColumnDto> Columns { get; init; }
 
     /// <summary>
     /// 发起人用户ID
     /// </summary>
-    public required long UserId { get; init; }
+    public long UserId { get; init; }
 
     /// <summary>
     /// 发起租户ID
     /// </summary>
-    public required long TenantId { get; init; }
+    public long TenantId { get; init; }
 
     /// <summary>
     /// 总行数（Provider 首页查询后回填，供进度计算；未知为 null）

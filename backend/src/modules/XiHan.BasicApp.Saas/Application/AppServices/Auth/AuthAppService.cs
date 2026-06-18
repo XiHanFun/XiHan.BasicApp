@@ -786,41 +786,6 @@ public sealed class AuthAppService
         return $"auth:pwd-reset:{token}";
     }
 
-    /// <summary>
-    /// 复用 OAuth 前端回调地址推导前端基址，拼出一次性重置密码落地页链接（dev/prod 均已配置 FrontendCallbackUrl）。
-    /// </summary>
-    private string BuildPasswordResetUrl(string token)
-    {
-        var callback = _configuration[$"{OAuthOptions.SectionName}:FrontendCallbackUrl"];
-        var baseUrl = "http://localhost:7777";
-        if (!string.IsNullOrWhiteSpace(callback))
-        {
-            var idx = callback.IndexOf("/#/", StringComparison.Ordinal);
-            baseUrl = idx > 0 ? callback[..idx] : callback.TrimEnd('/');
-        }
-        return $"{baseUrl}/#/auth/reset-password?token={Uri.EscapeDataString(token)}";
-    }
-
-    /// <summary>
-    /// 邮箱+IP 频率限制：同一邮箱+IP 在窗口期（60s）内只允许一次，防刷验证码/重置链接。超限抛友好异常。
-    /// </summary>
-    private async Task EnsureNotRateLimitedAsync(string scope, string email, CancellationToken cancellationToken)
-    {
-        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var key = $"auth:ratelimit:{scope}:{email.ToLowerInvariant()}:{ip}";
-        var hit = await _distributedCache.GetStringAsync(key, cancellationToken);
-        if (!string.IsNullOrEmpty(hit))
-        {
-            throw new UserFriendlyException("操作过于频繁，请稍后再试。");
-        }
-
-        await _distributedCache.SetStringAsync(
-            key,
-            "1",
-            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
-            cancellationToken);
-    }
-
     private static string RequireUserEmail(SysUser user)
     {
         if (string.IsNullOrWhiteSpace(user.Email))
@@ -895,6 +860,41 @@ public sealed class AuthAppService
         }
 
         return methods.Count == 0 ? ["totp"] : methods;
+    }
+
+    /// <summary>
+    /// 复用 OAuth 前端回调地址推导前端基址，拼出一次性重置密码落地页链接（dev/prod 均已配置 FrontendCallbackUrl）。
+    /// </summary>
+    private string BuildPasswordResetUrl(string token)
+    {
+        var callback = _configuration[$"{OAuthOptions.SectionName}:FrontendCallbackUrl"];
+        var baseUrl = "http://localhost:7777";
+        if (!string.IsNullOrWhiteSpace(callback))
+        {
+            var idx = callback.IndexOf("/#/", StringComparison.Ordinal);
+            baseUrl = idx > 0 ? callback[..idx] : callback.TrimEnd('/');
+        }
+        return $"{baseUrl}/#/auth/reset-password?token={Uri.EscapeDataString(token)}";
+    }
+
+    /// <summary>
+    /// 邮箱+IP 频率限制：同一邮箱+IP 在窗口期（60s）内只允许一次，防刷验证码/重置链接。超限抛友好异常。
+    /// </summary>
+    private async Task EnsureNotRateLimitedAsync(string scope, string email, CancellationToken cancellationToken)
+    {
+        var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var key = $"auth:ratelimit:{scope}:{email.ToLowerInvariant()}:{ip}";
+        var hit = await _distributedCache.GetStringAsync(key, cancellationToken);
+        if (!string.IsNullOrEmpty(hit))
+        {
+            throw new UserFriendlyException("操作过于频繁，请稍后再试。");
+        }
+
+        await _distributedCache.SetStringAsync(
+            key,
+            "1",
+            new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60) },
+            cancellationToken);
     }
 
     /// <summary>

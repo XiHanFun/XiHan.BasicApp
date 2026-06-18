@@ -34,6 +34,29 @@ public sealed class SaasDictSeeder(
     ICurrentTenant currentTenant)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
+    /// <summary>
+    /// 枚举绑定字典注册表：以枚举为唯一事实来源，字典项由反射自动生成。
+    /// 新增/调整枚举值后，字典随之自动同步，无需两处维护。
+    /// </summary>
+    private static readonly IReadOnlyList<EnumDictRegistration> EnumDictRegistrations =
+    [
+        new("enable_status", "启用状态", "通用启用/禁用状态", 10, typeof(EnableStatus), 1),
+        new("tenant_status", "租户状态", "租户生命周期状态", 30, typeof(TenantStatus), 0),
+        new("tenant_config_status", "租户配置状态", "租户数据库和运行环境配置状态", 40, typeof(TenantConfigStatus), 0),
+        new("tenant_isolation_mode", "租户隔离模式", "租户数据隔离策略", 50, typeof(TenantIsolationMode), 0),
+        new("tenant_member_type", "租户成员类型", "用户在租户内的成员身份", 60, typeof(TenantMemberType), 0),
+        new("tenant_member_invite_status", "租户成员邀请状态", "租户成员邀请和响应生命周期", 70, typeof(TenantMemberInviteStatus), 0),
+        new("role_type", "角色类型", "角色定义类型", 80, typeof(RoleType), 0),
+        new("data_permission_scope", "数据权限范围", "角色或用户授权的数据访问范围", 90, typeof(DataPermissionScope), 0),
+        new("permission_type", "权限类型", "权限定义类型", 100, typeof(PermissionType), 1),
+        new("user_gender", "用户性别", "用户资料性别选项", 110, typeof(UserGender), 0),
+        new("config_type", "配置类型", "系统参数配置类型", 120, typeof(ConfigType), 0),
+        new("config_data_type", "配置数据类型", "系统参数值数据类型", 130, typeof(ConfigDataType), 0),
+        new("department_type", "部门类型", "组织架构部门分类", 140, typeof(DepartmentType), 6),
+        new("message_channel", "消息发送渠道", "系统通知和消息的发送渠道", 150, typeof(MessageChannel), 0),
+        new("task_status", "任务状态", "系统任务生命周期状态", 180, typeof(RunTaskStatus), 0)
+    ];
+
     private readonly ICurrentTenant _currentTenant = currentTenant;
 
     /// <summary>
@@ -215,29 +238,6 @@ public sealed class SaasDictSeeder(
         // 枚举绑定字典（反射生成）+ 纯业务字典（手工维护），两者合并
         return [.. BuildEnumDefinitions(), .. BuildManualDefinitions()];
     }
-
-    /// <summary>
-    /// 枚举绑定字典注册表：以枚举为唯一事实来源，字典项由反射自动生成。
-    /// 新增/调整枚举值后，字典随之自动同步，无需两处维护。
-    /// </summary>
-    private static readonly IReadOnlyList<EnumDictRegistration> EnumDictRegistrations =
-    [
-        new("enable_status", "启用状态", "通用启用/禁用状态", 10, typeof(EnableStatus), 1),
-        new("tenant_status", "租户状态", "租户生命周期状态", 30, typeof(TenantStatus), 0),
-        new("tenant_config_status", "租户配置状态", "租户数据库和运行环境配置状态", 40, typeof(TenantConfigStatus), 0),
-        new("tenant_isolation_mode", "租户隔离模式", "租户数据隔离策略", 50, typeof(TenantIsolationMode), 0),
-        new("tenant_member_type", "租户成员类型", "用户在租户内的成员身份", 60, typeof(TenantMemberType), 0),
-        new("tenant_member_invite_status", "租户成员邀请状态", "租户成员邀请和响应生命周期", 70, typeof(TenantMemberInviteStatus), 0),
-        new("role_type", "角色类型", "角色定义类型", 80, typeof(RoleType), 0),
-        new("data_permission_scope", "数据权限范围", "角色或用户授权的数据访问范围", 90, typeof(DataPermissionScope), 0),
-        new("permission_type", "权限类型", "权限定义类型", 100, typeof(PermissionType), 1),
-        new("user_gender", "用户性别", "用户资料性别选项", 110, typeof(UserGender), 0),
-        new("config_type", "配置类型", "系统参数配置类型", 120, typeof(ConfigType), 0),
-        new("config_data_type", "配置数据类型", "系统参数值数据类型", 130, typeof(ConfigDataType), 0),
-        new("department_type", "部门类型", "组织架构部门分类", 140, typeof(DepartmentType), 6),
-        new("message_channel", "消息发送渠道", "系统通知和消息的发送渠道", 150, typeof(MessageChannel), 0),
-        new("task_status", "任务状态", "系统任务生命周期状态", 180, typeof(RunTaskStatus), 0)
-    ];
 
     /// <summary>
     /// 反射生成枚举绑定字典：字典项编码取枚举名 snake_case，名称取 [Description]，值取枚举整型值。

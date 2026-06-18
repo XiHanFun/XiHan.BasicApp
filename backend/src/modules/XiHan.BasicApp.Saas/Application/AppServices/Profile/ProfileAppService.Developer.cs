@@ -147,6 +147,28 @@ public sealed partial class ProfileAppService
     }
 
     /// <summary>
+    /// 生成应用密钥明文（加密安全随机数，前缀 sk_）
+    /// </summary>
+    private static string GenerateApiSecret()
+    {
+        return $"sk_{RandomCoder.GetNumberOrLetter(43)}";
+    }
+
+    private static ProfileApiCredentialDto ToApiCredentialDto(SysUserApiCredential credential)
+    {
+        return new ProfileApiCredentialDto
+        {
+            BasicId = credential.BasicId,
+            CredentialName = credential.CredentialName,
+            AppKey = credential.AppKey,
+            Status = credential.Status,
+            LastUsedTime = credential.LastUsedTime,
+            ExpirationTime = credential.ExpirationTime,
+            CreatedTime = credential.CreatedTime
+        };
+    }
+
+    /// <summary>
     /// 校验凭证归属并返回（仅允许操作本人凭证）
     /// </summary>
     private async Task<SysUserApiCredential> GetOwnedApiCredentialOrThrowAsync(long userId, long credentialId, CancellationToken cancellationToken)
@@ -183,14 +205,6 @@ public sealed partial class ProfileAppService
     }
 
     /// <summary>
-    /// 生成应用密钥明文（加密安全随机数，前缀 sk_）
-    /// </summary>
-    private static string GenerateApiSecret()
-    {
-        return $"sk_{RandomCoder.GetNumberOrLetter(43)}";
-    }
-
-    /// <summary>
     /// 凭证变更安全通知（创建/滚动/删除）
     /// </summary>
     private async Task NotifyApiCredentialChangeAsync(long userId, string title, string content, long credentialId, CancellationToken cancellationToken)
@@ -205,19 +219,5 @@ public sealed partial class ProfileAppService
             link: "/workbench/profile",
             icon: "lucide:key-round",
             cancellationToken: cancellationToken);
-    }
-
-    private static ProfileApiCredentialDto ToApiCredentialDto(SysUserApiCredential credential)
-    {
-        return new ProfileApiCredentialDto
-        {
-            BasicId = credential.BasicId,
-            CredentialName = credential.CredentialName,
-            AppKey = credential.AppKey,
-            Status = credential.Status,
-            LastUsedTime = credential.LastUsedTime,
-            ExpirationTime = credential.ExpirationTime,
-            CreatedTime = credential.CreatedTime
-        };
     }
 }

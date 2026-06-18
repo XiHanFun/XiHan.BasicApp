@@ -160,35 +160,6 @@ public sealed class ExportExecutor : IExportExecutor
         }
     }
 
-    private async Task FailAsync(SysExportTask task, long userId, string islandTaskId, string message, CancellationToken cancellationToken)
-    {
-        var trimmed = message.Length > 1000 ? message[..1000] : message;
-        await _repository.MarkFailedAsync(task.BasicId, trimmed, DateTimeOffset.UtcNow, cancellationToken);
-        await _notifier.NotifyFailedAsync(userId, islandTaskId, $"{task.TaskName} 导出失败", trimmed, cancellationToken);
-    }
-
-    private async Task<(long FileId, long FileSize)> UploadAsync(MemoryStream content, string fileName, string taskName, CancellationToken cancellationToken)
-    {
-        var bytes = content.ToArray();
-        var stream = new MemoryStream(bytes);
-        var formFile = new FormFile(stream, 0, bytes.Length, "file", fileName)
-        {
-            Headers = new HeaderDictionary(),
-            ContentType = "text/csv; charset=utf-8"
-        };
-
-        var uploadDto = new FileUploadDto
-        {
-            File = formFile,
-            IsTemporary = true,
-            RetentionDays = 30,
-            Remark = $"导出产物：{taskName}"
-        };
-
-        var result = await _fileTransferService.UploadAsync(uploadDto, cancellationToken);
-        return (result.File.BasicId, result.File.FileSize);
-    }
-
     private static List<ExportColumnDto> DeserializeColumns(string fieldsSnapshot)
     {
         if (string.IsNullOrWhiteSpace(fieldsSnapshot))
@@ -222,5 +193,34 @@ public sealed class ExportExecutor : IExportExecutor
         identity.AddClaim(new Claim(XiHanClaimTypes.UserId, userId.ToString()));
         identity.AddClaim(new Claim(XiHanClaimTypes.TenantId, tenantId.ToString()));
         return new ClaimsPrincipal(identity);
+    }
+
+    private async Task FailAsync(SysExportTask task, long userId, string islandTaskId, string message, CancellationToken cancellationToken)
+    {
+        var trimmed = message.Length > 1000 ? message[..1000] : message;
+        await _repository.MarkFailedAsync(task.BasicId, trimmed, DateTimeOffset.UtcNow, cancellationToken);
+        await _notifier.NotifyFailedAsync(userId, islandTaskId, $"{task.TaskName} 导出失败", trimmed, cancellationToken);
+    }
+
+    private async Task<(long FileId, long FileSize)> UploadAsync(MemoryStream content, string fileName, string taskName, CancellationToken cancellationToken)
+    {
+        var bytes = content.ToArray();
+        var stream = new MemoryStream(bytes);
+        var formFile = new FormFile(stream, 0, bytes.Length, "file", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "text/csv; charset=utf-8"
+        };
+
+        var uploadDto = new FileUploadDto
+        {
+            File = formFile,
+            IsTemporary = true,
+            RetentionDays = 30,
+            Remark = $"导出产物：{taskName}"
+        };
+
+        var result = await _fileTransferService.UploadAsync(uploadDto, cancellationToken);
+        return (result.File.BasicId, result.File.FileSize);
     }
 }

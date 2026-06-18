@@ -113,56 +113,7 @@ public sealed class TenantProvisionDomainService
         return adminUser;
     }
 
-    /// <summary>
-    /// 创建租户 Owner 角色，并按其版本(Edition)允许的权限白名单批量授权
-    /// </summary>
-    private async Task<long> CreateOwnerRoleWithEditionPermissionsAsync(SysTenant tenant, long? editionId, CancellationToken cancellationToken)
-    {
-        var role = new SysRole
-        {
-            TenantId = tenant.BasicId,
-            RoleCode = TenantOwnerRoleCode,
-            RoleName = "租户所有者",
-            RoleDescription = "租户初始化所有者角色，拥有租户版本范围内全部权限",
-            RoleType = RoleType.Custom,
-            DataScope = DataPermissionScope.All,
-            MaxMembers = 0,
-            Status = EnableStatus.Enabled,
-            Sort = 1,
-            Remark = "租户开通初始化角色"
-        };
-        role = await _roleRepository.AddAsync(role, cancellationToken);
-
-        if (!editionId.HasValue)
-        {
-            return role.BasicId;
-        }
-
-        var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(editionId.Value, cancellationToken);
-        var grants = whitelist
-            .Where(item => item.Status == ValidityStatus.Valid)
-            .Select(item => item.PermissionId)
-            .Distinct()
-            .Select(permissionId => new SysRolePermission
-            {
-                TenantId = tenant.BasicId,
-                RoleId = role.BasicId,
-                PermissionId = permissionId,
-                PermissionAction = PermissionAction.Grant,
-                Status = ValidityStatus.Valid,
-                GrantReason = "租户开通按版本白名单初始化",
-                Remark = "租户开通初始化授权"
-            })
-            .ToList();
-
-        if (grants.Count > 0)
-        {
-            _ = await _rolePermissionRepository.AddRangeAsync(grants, cancellationToken);
-        }
-
-        return role.BasicId;
-    }
-    /// <inheritdoc />
+    /// <inheritdoc />
     public async Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -328,5 +279,55 @@ public sealed class TenantProvisionDomainService
         }
 
         return total;
+    }
+
+    /// <summary>
+    /// 创建租户 Owner 角色，并按其版本(Edition)允许的权限白名单批量授权
+    /// </summary>
+    private async Task<long> CreateOwnerRoleWithEditionPermissionsAsync(SysTenant tenant, long? editionId, CancellationToken cancellationToken)
+    {
+        var role = new SysRole
+        {
+            TenantId = tenant.BasicId,
+            RoleCode = TenantOwnerRoleCode,
+            RoleName = "租户所有者",
+            RoleDescription = "租户初始化所有者角色，拥有租户版本范围内全部权限",
+            RoleType = RoleType.Custom,
+            DataScope = DataPermissionScope.All,
+            MaxMembers = 0,
+            Status = EnableStatus.Enabled,
+            Sort = 1,
+            Remark = "租户开通初始化角色"
+        };
+        role = await _roleRepository.AddAsync(role, cancellationToken);
+
+        if (!editionId.HasValue)
+        {
+            return role.BasicId;
+        }
+
+        var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(editionId.Value, cancellationToken);
+        var grants = whitelist
+            .Where(item => item.Status == ValidityStatus.Valid)
+            .Select(item => item.PermissionId)
+            .Distinct()
+            .Select(permissionId => new SysRolePermission
+            {
+                TenantId = tenant.BasicId,
+                RoleId = role.BasicId,
+                PermissionId = permissionId,
+                PermissionAction = PermissionAction.Grant,
+                Status = ValidityStatus.Valid,
+                GrantReason = "租户开通按版本白名单初始化",
+                Remark = "租户开通初始化授权"
+            })
+            .ToList();
+
+        if (grants.Count > 0)
+        {
+            _ = await _rolePermissionRepository.AddRangeAsync(grants, cancellationToken);
+        }
+
+        return role.BasicId;
     }
 }

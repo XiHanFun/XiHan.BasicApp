@@ -116,5 +116,4 @@ public sealed class PermissionConditionAppService
     }
 
     #endregion PermissionCondition
-
 }

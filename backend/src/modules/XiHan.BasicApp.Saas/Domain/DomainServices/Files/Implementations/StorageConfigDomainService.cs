@@ -23,6 +23,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class StorageConfigDomainService
     : IStorageConfigDomainService
 {
+    private readonly IFileStorageRepository _fileStorageRepository;
+
+    private readonly IStorageConfigRepository _storageConfigRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -33,9 +37,6 @@ public sealed class StorageConfigDomainService
         _storageConfigRepository = storageConfigRepository;
         _fileStorageRepository = fileStorageRepository;
     }
-
-    private readonly IFileStorageRepository _fileStorageRepository;
-    private readonly IStorageConfigRepository _storageConfigRepository;
 
     /// <inheritdoc />
     public async Task<StorageConfigCommandResult> CreateStorageConfigAsync(StorageConfigCreateCommand command, CancellationToken cancellationToken = default)

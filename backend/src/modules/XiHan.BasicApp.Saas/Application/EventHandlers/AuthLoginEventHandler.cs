@@ -112,47 +112,6 @@ public sealed class AuthLoginEventHandler
             "/workbench/profile");
     }
 
-    /// <summary>
-    /// 检测并发登录：是否存在其它活跃会话、本次登录设备是否曾经使用过。
-    /// 查询失败时按「无其它会话」处理，不阻塞登录主流程。
-    /// </summary>
-    private async Task<(bool HasOtherActiveSessions, bool IsKnownDevice)> DetectConcurrentLoginAsync(AuthLoginSucceededDomainEvent eventData)
-    {
-        try
-        {
-            var db = _clientResolver.GetCurrentClient();
-
-            var otherActiveCount = await db.Queryable<SysUserSession>()
-                .Where(session => session.UserId == eventData.UserId
-                    && session.Status == SessionStatus.Active
-                    && session.BasicId != eventData.SessionRecordId)
-                .CountAsync();
-            if (otherActiveCount <= 0)
-            {
-                return (false, false);
-            }
-
-            // 设备识别：本次会话的 DeviceId 此前出现过 → 已知设备
-            var currentDeviceId = await db.Queryable<SysUserSession>()
-                .Where(session => session.BasicId == eventData.SessionRecordId)
-                .Select(session => session.DeviceId)
-                .FirstAsync();
-            var isKnownDevice = !string.IsNullOrWhiteSpace(currentDeviceId)
-                && await db.Queryable<SysUserSession>()
-                    .Where(session => session.UserId == eventData.UserId
-                        && session.BasicId != eventData.SessionRecordId
-                        && session.DeviceId == currentDeviceId)
-                    .AnyAsync();
-
-            return (true, isKnownDevice);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "并发登录检测失败，用户：{UserId}", eventData.UserId);
-            return (false, false);
-        }
-    }
-
     /// <inheritdoc />
     public async Task HandleEventAsync(AuthLoginFailedDomainEvent eventData)
     {
@@ -224,32 +183,13 @@ public sealed class AuthLoginEventHandler
             eventData.AuditTime);
     }
 
-    /// <summary>
-    /// 读取会话记录用于补全通知中的设备信息，查询失败时返回 null（不阻塞通知主流程）。
-    /// </summary>
-    private async Task<SysUserSession?> GetSessionSnapshotAsync(long sessionRecordId)
-    {
-        try
-        {
-            var db = _clientResolver.GetCurrentClient();
-            return await db.Queryable<SysUserSession>()
-                .Where(session => session.BasicId == sessionRecordId)
-                .FirstAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "登出通知会话信息查询失败，会话：{SessionRecordId}", sessionRecordId);
-            return null;
-        }
-    }
-
     private static string BuildAuthNotificationContent(
-        string prefix,
-        DateTimeOffset time,
-        string? location,
-        string? browser,
-        string? operatingSystem,
-        string? deviceName)
+            string prefix,
+            DateTimeOffset time,
+            string? location,
+            string? browser,
+            string? operatingSystem,
+            string? deviceName)
     {
         var parts = new List<string> { prefix, $"时间：{time:yyyy-MM-dd HH:mm:ss} UTC" };
 
@@ -275,6 +215,66 @@ public sealed class AuthLoginEventHandler
     private static string? FirstNotEmpty(params string?[] values)
     {
         return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim();
+    }
+
+    /// <summary>
+    /// 检测并发登录：是否存在其它活跃会话、本次登录设备是否曾经使用过。
+    /// 查询失败时按「无其它会话」处理，不阻塞登录主流程。
+    /// </summary>
+    private async Task<(bool HasOtherActiveSessions, bool IsKnownDevice)> DetectConcurrentLoginAsync(AuthLoginSucceededDomainEvent eventData)
+    {
+        try
+        {
+            var db = _clientResolver.GetCurrentClient();
+
+            var otherActiveCount = await db.Queryable<SysUserSession>()
+                .Where(session => session.UserId == eventData.UserId
+                    && session.Status == SessionStatus.Active
+                    && session.BasicId != eventData.SessionRecordId)
+                .CountAsync();
+            if (otherActiveCount <= 0)
+            {
+                return (false, false);
+            }
+
+            // 设备识别：本次会话的 DeviceId 此前出现过 → 已知设备
+            var currentDeviceId = await db.Queryable<SysUserSession>()
+                .Where(session => session.BasicId == eventData.SessionRecordId)
+                .Select(session => session.DeviceId)
+                .FirstAsync();
+            var isKnownDevice = !string.IsNullOrWhiteSpace(currentDeviceId)
+                && await db.Queryable<SysUserSession>()
+                    .Where(session => session.UserId == eventData.UserId
+                        && session.BasicId != eventData.SessionRecordId
+                        && session.DeviceId == currentDeviceId)
+                    .AnyAsync();
+
+            return (true, isKnownDevice);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "并发登录检测失败，用户：{UserId}", eventData.UserId);
+            return (false, false);
+        }
+    }
+
+    /// <summary>
+    /// 读取会话记录用于补全通知中的设备信息，查询失败时返回 null（不阻塞通知主流程）。
+    /// </summary>
+    private async Task<SysUserSession?> GetSessionSnapshotAsync(long sessionRecordId)
+    {
+        try
+        {
+            var db = _clientResolver.GetCurrentClient();
+            return await db.Queryable<SysUserSession>()
+                .Where(session => session.BasicId == sessionRecordId)
+                .FirstAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "登出通知会话信息查询失败，会话：{SessionRecordId}", sessionRecordId);
+            return null;
+        }
     }
 
     private async Task WriteLoginLogAsync(
