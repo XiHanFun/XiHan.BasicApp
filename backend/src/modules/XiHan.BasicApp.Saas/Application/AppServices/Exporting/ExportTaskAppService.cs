@@ -18,8 +18,11 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -36,13 +39,19 @@ public sealed class ExportTaskAppService
 
     private readonly IExportTaskRepository _repository;
 
+    private readonly IRedisDelayQueue<ExportTaskMessage> _exportTaskQueue;
+
+    private readonly IUnitOfWorkManager _unitOfWorkManager;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ExportTaskAppService(IExportTaskRepository repository, ICurrentUser currentUser)
+    public ExportTaskAppService(IExportTaskRepository repository, ICurrentUser currentUser, IRedisDelayQueue<ExportTaskMessage> exportTaskQueue, IUnitOfWorkManager unitOfWorkManager)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _exportTaskQueue = exportTaskQueue;
+        _unitOfWorkManager = unitOfWorkManager;
     }
 
     /// <inheritdoc />
@@ -78,6 +87,19 @@ public sealed class ExportTaskAppService
         };
         // CreatedId（发起人）/ TenantId（发起租户）由审计 AOP 自动注入，后台据此重建上下文
         entity = await _repository.AddAsync(entity, cancellationToken);
+
+        // 提交后入队（延迟 0）：后台导出服务拉取后立即领取执行（替换原 3s 轮询）。无环境 UoW 时直接入队。
+        var taskId = entity.BasicId;
+        var message = new ExportTaskMessage { ExportTaskId = taskId, CreatedAt = DateTimeOffset.UtcNow };
+        var uow = _unitOfWorkManager.Current;
+        if (uow is not null)
+        {
+            uow.OnCompleted(() => _exportTaskQueue.EnqueueAsync(message, TimeSpan.Zero));
+        }
+        else
+        {
+            await _exportTaskQueue.EnqueueAsync(message, TimeSpan.Zero, cancellationToken);
+        }
 
         return ToDto(entity);
     }

@@ -51,36 +51,45 @@ public sealed class ExportTaskRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <inheritdoc />
-    public async Task<SysExportTask?> ClaimNextPendingAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
+    public async Task<SysExportTask?> ClaimByIdAsync(long id, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // FIFO 取一条待执行候选（无租户上下文时全局过滤器不限制，可跨租户领取）
-        var candidates = await CreateQueryable()
-            .Where(task => task.Status == ExportTaskStatus.Pending)
-            .OrderBy(task => task.CreatedTime)
-            .Take(1)
-            .ToListAsync(cancellationToken);
-        var candidate = candidates.FirstOrDefault();
-        if (candidate is null)
-        {
-            return null;
-        }
-
-        // 条件更新抢占：仅当仍为 Pending 才置 Processing，防多 worker / 重入重复领取
+        // 条件更新抢占：仅当仍为 Pending 才置 Processing，防重复投递/多 worker 重复领取
         var claimed = await UpdateAsync(
             task => new SysExportTask { Status = ExportTaskStatus.Processing, StartedTime = now, Progress = 0 },
-            task => task.BasicId == candidate.BasicId && task.Status == ExportTaskStatus.Pending,
+            task => task.BasicId == id && task.Status == ExportTaskStatus.Pending,
             cancellationToken);
         if (!claimed)
         {
             return null;
         }
 
-        candidate.Status = ExportTaskStatus.Processing;
-        candidate.StartedTime = now;
-        candidate.Progress = 0;
+        var rows = await CreateQueryable()
+            .Where(task => task.BasicId == id)
+            .Take(1)
+            .ToListAsync(cancellationToken);
+        var candidate = rows.FirstOrDefault();
+        if (candidate is not null)
+        {
+            candidate.Status = ExportTaskStatus.Processing;
+            candidate.StartedTime = now;
+            candidate.Progress = 0;
+        }
+
         return candidate;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<long>> GetPendingIdsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(task => task.Status == ExportTaskStatus.Pending)
+            .OrderBy(task => task.CreatedTime)
+            .Select(task => task.BasicId)
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />

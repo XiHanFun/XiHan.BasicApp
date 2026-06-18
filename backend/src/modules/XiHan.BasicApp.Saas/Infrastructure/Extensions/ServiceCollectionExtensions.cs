@@ -259,6 +259,13 @@ public static class ServiceCollectionExtensions
         services.AddOptions<EmailSenderOptions>().BindConfiguration(EmailSenderOptions.SectionName);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, EmailMessageSender>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, SmsMessageSender>());
+
+        // 业务层发件箱（框架 Messaging 仅负责路由，发件箱在业务层）：先落 SysEmail/SysSms 为 Pending，
+        // 入 Redis 延迟队列后由后台服务拉取发送（拉不到等待、拉到消费、可并发；失败延迟重投）。
+        services.AddSingleton<DbMessageOutbox>();
+        // 注意：MessageOutboxHostedService 继承 XiHanBackgroundServiceBase（IBackgroundWorker:ISingletonDependency）
+        // 且类名以 HostedService 结尾，已被约定注册自动暴露为 IHostedService 托管。切勿再 AddHostedService（否则重复托管、重复消费）。
+
         return services;
     }
 
@@ -307,8 +314,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExportProvider, ExceptionLogExportProvider>();
         services.AddScoped<IExportProvider, DiffLogExportProvider>();
 
-        // 后台执行 worker
-        services.AddHostedService<ExportTaskHostedService>();
+        // 后台执行 worker：从 Redis 延迟队列拉取任务执行（拉不到等待、拉到消费、可并发）。
+        // 注意：ExportTaskHostedService 继承 XiHanBackgroundServiceBase（IBackgroundWorker:ISingletonDependency）
+        // 且类名以 HostedService 结尾，已被约定注册自动暴露为 IHostedService 托管。切勿再 AddHostedService（否则重复托管、重复消费）。
 
         return services;
     }
