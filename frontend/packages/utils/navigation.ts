@@ -1,8 +1,10 @@
 export interface NavigableRouteLike {
   path?: string
   redirect?: unknown
+  // 索引签名：兼容 vue-router 的 RouteMeta（辅助函数仅读取 hidden，其余字段透传），避免弱类型不匹配
   meta?: {
     hidden?: boolean
+    [key: string]: unknown
   } | null
   children?: NavigableRouteLike[]
 }

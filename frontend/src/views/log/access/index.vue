@@ -65,6 +65,8 @@ const fields: ListFieldSchema[] = [
     searchPlaceholder: '请求方法',
     width: 100,
     order: 17,
+    // 直接展示原始方法字符串：OPTIONS/HEAD 等不在搜索选项内，避免按枚举映射后显示为空
+    render: row => (row as unknown as AccessLogListItemDto).method || '-',
   },
   {
     key: 'accessResult',

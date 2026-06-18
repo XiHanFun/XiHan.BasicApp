@@ -74,7 +74,6 @@ const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
 // 收藏「飞入」动画的起点矩形（右键时捕获被点中标签的 DOM 位置）
 const contextTabRect = ref<DOMRect | null>(null)
-const tabsContainerRef = ref<HTMLElement | null>(null)
 const scrollViewportRef = ref<HTMLElement | null>(null)
 
 // ---- 溢出滚动按钮 ----
@@ -492,7 +491,6 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
         class="tabbar-viewport h-full overflow-x-auto"
       >
         <div
-          ref="tabsContainerRef"
           class="pr-2"
           :class="appStore.tabbarStyle === 'chrome'
             ? 'flex h-full min-w-max items-end'

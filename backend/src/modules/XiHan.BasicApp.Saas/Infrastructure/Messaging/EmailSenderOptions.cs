@@ -60,7 +60,7 @@ public sealed class EmailSenderOptions
     public string UserName { get; set; } = string.Empty;
 
     /// <summary>
-    /// SMTP 认证密码。生产请用环境变量 <c>XiHan__Email__Password</c> 注入，切勿写入 appsettings 明文。
+    /// SMTP 认证密码（直接配置于 <c>XiHan:Email:Password</c>；为空则不进行认证）。
     /// </summary>
     public string Password { get; set; } = string.Empty;
 

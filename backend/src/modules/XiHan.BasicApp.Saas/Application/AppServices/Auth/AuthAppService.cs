@@ -1138,9 +1138,9 @@ public sealed class AuthAppService
                 Content: BuildPasswordResetHtml(resetUrl, brand),
                 IsHtml: true,
                 Attachments: null,
-                // 重置链接邮件直发内置内容，不走可被租户改写的模板，避免占位符不一致导致链接丢失
-                TemplateCode: null,
-                TemplateParams: null,
+                // 模板优先：投递链路按编码查模板渲染（含 {{reset_url}}），模板缺失/损坏回退上方内置内容（保证链接不丢）
+                TemplateCode: SaasMessageTemplateCodes.Auth.PasswordReset,
+                TemplateParams: JsonSerializer.Serialize(new Dictionary<string, string> { ["reset_url"] = resetUrl, ["brand"] = brand }),
                 ScheduledTime: null,
                 MaxRetryCount: 3,
                 BusinessType: "auth.password-reset",

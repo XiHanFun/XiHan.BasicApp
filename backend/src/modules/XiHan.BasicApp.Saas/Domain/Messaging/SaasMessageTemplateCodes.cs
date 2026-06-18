@@ -34,7 +34,12 @@ public static class SaasMessageTemplateCodes
         public const string EmailLoginCode = "auth-email-login-code";
 
         /// <summary>
-        /// 找回密码临时密码邮件（变量：temporary_password/brand）
+        /// 验证码邮件：绑定/换绑/两步验证通用（变量：code/minutes/brand/title）
+        /// </summary>
+        public const string EmailVerificationCode = "auth-email-verification-code";
+
+        /// <summary>
+        /// 找回密码邮件：携带一次性重置链接（变量：reset_url/brand）
         /// </summary>
         public const string PasswordReset = "auth-password-reset";
 
@@ -47,5 +52,10 @@ public static class SaasMessageTemplateCodes
         /// 登录验证码短信（变量：code/minutes/brand）
         /// </summary>
         public const string SmsLoginCode = "auth-sms-login-code";
+
+        /// <summary>
+        /// 验证码短信：绑定/换绑/两步验证通用（变量：code/minutes/brand/title）
+        /// </summary>
+        public const string SmsVerificationCode = "auth-sms-verification-code";
     }
 }
