@@ -96,8 +96,23 @@ function handleKeydown(e: KeyboardEvent) {
       </NButton>
     </NForm>
 
-    <NButton class="mt-5 !h-11 w-full !rounded-xl" quaternary @click="router.push(LOGIN_PATH)">
-      {{ t('page.auth.back_to_login') }}
-    </NButton>
+    <p
+      class="mt-6 text-sm text-center"
+      :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
+    >
+      <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
+        {{ t('page.auth.back_to_login') }}
+      </span>
+    </p>
   </div>
 </template>
+
+<style scoped>
+.link-primary {
+  color: hsl(var(--primary));
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+</style>

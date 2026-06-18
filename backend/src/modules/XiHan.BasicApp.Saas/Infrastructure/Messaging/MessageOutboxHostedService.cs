@@ -124,11 +124,15 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
             if (results.Any(result => !result.IsSuccess))
             {
                 // 失败（Sender 已置 Failed + RetryCount++）：延迟重投，下次领取据 MaxRetryCount 自限；超限领取失败即丢弃
+                var error = string.Join("; ", results
+                    .Where(result => !result.IsSuccess)
+                    .Select(result => result.ErrorMessage)
+                    .Where(msg => !string.IsNullOrWhiteSpace(msg)));
                 await _queue.EnqueueAsync(
                     new MessageOutboxMessage { Channel = message.Channel, EntityId = message.EntityId, RetryCount = message.RetryCount + 1, CreatedAt = DateTimeOffset.UtcNow },
                     RetryDelay,
                     cancellationToken);
-                Logger.LogWarning("发件箱发送失败，将延迟重投：{Channel}:{Id}", message.Channel, message.EntityId);
+                Logger.LogWarning("发件箱发送失败，将延迟重投：{Channel}:{Id}，原因：{Error}", message.Channel, message.EntityId, error);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
