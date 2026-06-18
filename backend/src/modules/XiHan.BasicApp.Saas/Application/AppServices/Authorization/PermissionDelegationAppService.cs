@@ -128,5 +128,4 @@ public sealed class PermissionDelegationAppService
     }
 
     #endregion PermissionDelegation
-
 }

@@ -32,6 +32,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 /// </summary>
 public class SaasOperationLogWriter : IOperationLogWriter
 {
+    /// <summary>
+    /// 认证类动作集合：登录/登出/令牌等认证行为由登录日志承担审计，不重复落操作日志
+    /// </summary>
+    private static readonly HashSet<string> AuthAuditActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Login", "Logout", "EmailLogin", "EmailLoginCode", "PhoneLogin", "PhoneLoginCode",
+        "RefreshToken", "Register", "PasswordResetRequest", "LoginConfig", "SwitchTenant"
+    };
+
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
@@ -53,15 +62,6 @@ public class SaasOperationLogWriter : IOperationLogWriter
     }
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
-
-    /// <summary>
-    /// 认证类动作集合：登录/登出/令牌等认证行为由登录日志承担审计，不重复落操作日志
-    /// </summary>
-    private static readonly HashSet<string> AuthAuditActions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Login", "Logout", "EmailLogin", "EmailLoginCode", "PhoneLogin", "PhoneLoginCode",
-        "RefreshToken", "Register", "PasswordResetRequest", "LoginConfig", "SwitchTenant"
-    };
 
     /// <summary>
     /// 写入操作日志

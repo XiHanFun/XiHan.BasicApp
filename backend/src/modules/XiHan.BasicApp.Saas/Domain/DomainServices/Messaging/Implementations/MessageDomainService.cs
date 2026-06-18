@@ -24,6 +24,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class MessageDomainService
     : IMessageDomainService
 {
+    private readonly IEmailRepository _emailRepository;
+
+    private readonly ISmsRepository _smsRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -32,9 +36,6 @@ public sealed class MessageDomainService
         _emailRepository = emailRepository;
         _smsRepository = smsRepository;
     }
-
-    private readonly IEmailRepository _emailRepository;
-    private readonly ISmsRepository _smsRepository;
 
     /// <inheritdoc />
     public async Task<EmailCommandResult> CreateOutboxEmailAsync(EmailCreateCommand command, CancellationToken cancellationToken = default)
@@ -311,20 +312,6 @@ public sealed class MessageDomainService
         EnsureNonNegative(maxRetryCount, nameof(maxRetryCount), "最大重试次数不能小于 0。");
     }
 
-    private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统邮件主键必须大于 0。");
-        return await _emailRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统邮件不存在。");
-    }
-
-    private async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统短信主键必须大于 0。");
-        return await _smsRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统短信不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -417,5 +404,19 @@ public sealed class MessageDomainService
         }
 
         return normalized;
+    }
+
+    private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统邮件主键必须大于 0。");
+        return await _emailRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统邮件不存在。");
+    }
+
+    private async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统短信主键必须大于 0。");
+        return await _smsRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统短信不存在。");
     }
 }

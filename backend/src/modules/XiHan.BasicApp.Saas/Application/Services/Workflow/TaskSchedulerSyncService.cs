@@ -62,13 +62,16 @@ public sealed class TaskSchedulerSyncService
         {
             case TaskSchedulerSyncAction.None:
                 return;
+
             case TaskSchedulerSyncAction.Register:
                 _jobScheduler.RegisterJob(BuildJobInfo(task));
                 TriggerImmediateIfNeeded(task);
                 return;
+
             case TaskSchedulerSyncAction.Unregister:
                 _jobScheduler.UnregisterJob(task.TaskCode);
                 return;
+
             case TaskSchedulerSyncAction.Replace:
                 _jobScheduler.UnregisterJob(task.TaskCode);
                 if (task.Status == EnableStatus.Enabled)
@@ -78,12 +81,15 @@ public sealed class TaskSchedulerSyncService
                 }
 
                 return;
+
             case TaskSchedulerSyncAction.Pause:
                 _jobScheduler.PauseJob(task.TaskCode);
                 return;
+
             case TaskSchedulerSyncAction.Resume:
                 _jobScheduler.ResumeJob(task.TaskCode);
                 return;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(syncAction), "任务调度同步动作无效。");
         }
@@ -126,29 +132,6 @@ public sealed class TaskSchedulerSyncService
 
             _jobScheduler.RegisterJob(BuildJobInfo(task));
         }
-    }
-
-    /// <summary>
-    /// 立即执行型任务注册即触发一次（Immediate 映射为框架 Manual，无自动触发时机）
-    /// </summary>
-    private void TriggerImmediateIfNeeded(SysTask task)
-    {
-        if (task.TriggerType != TriggerType.Immediate || task.Status != EnableStatus.Enabled)
-        {
-            return;
-        }
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                _ = await _jobScheduler.TriggerJobAsync(task.TaskCode);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "立即执行型任务注册触发失败：{TaskCode}", task.TaskCode);
-            }
-        });
     }
 
     private static JobInfo BuildJobInfo(SysTask task)
@@ -209,4 +192,27 @@ public sealed class TaskSchedulerSyncService
         TriggerType.Cron => JobTriggerType.Cron,
         _ => JobTriggerType.Manual
     };
+
+    /// <summary>
+    /// 立即执行型任务注册即触发一次（Immediate 映射为框架 Manual，无自动触发时机）
+    /// </summary>
+    private void TriggerImmediateIfNeeded(SysTask task)
+    {
+        if (task.TriggerType != TriggerType.Immediate || task.Status != EnableStatus.Enabled)
+        {
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _ = await _jobScheduler.TriggerJobAsync(task.TaskCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "立即执行型任务注册触发失败：{TaskCode}", task.TaskCode);
+            }
+        });
+    }
 }

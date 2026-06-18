@@ -25,6 +25,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class DictDomainService
     : IDictDomainService
 {
+    private readonly IDictItemRepository _dictItemRepository;
+
+    private readonly IDictRepository _dictRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -35,9 +39,6 @@ public sealed class DictDomainService
         _dictRepository = dictRepository;
         _dictItemRepository = dictItemRepository;
     }
-
-    private readonly IDictItemRepository _dictItemRepository;
-    private readonly IDictRepository _dictRepository;
 
     /// <inheritdoc />
     public async Task<DictCommandResult> CreateDictAsync(DictCreateCommand command, CancellationToken cancellationToken = default)
@@ -247,6 +248,84 @@ public sealed class DictDomainService
         EnsureOptionalId(command.ParentId, nameof(command.ParentId), "父级字典项主键必须大于 0。");
     }
 
+    private static void EnsureEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    private static void EnsureId(long id, string message)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), message);
+        }
+    }
+
+    private static void EnsureOptionalId(long? id, string paramName, string message)
+    {
+        if (id is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static string? Optional(string? value, int maxLength, string paramName, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+
+        return normalized;
+    }
+
+    private static string? OptionalJson(string? value, string message)
+    {
+        var normalized = NormalizeNullable(value);
+        if (normalized is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            using var _ = JsonDocument.Parse(normalized);
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException(message, exception);
+        }
+
+        return normalized;
+    }
+
+    private static string Required(string? value, int maxLength, string paramName, string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+
+        return normalized;
+    }
+
     private Task<bool> ClearDefaultItemsAsync(long dictId, long? excludeItemId, CancellationToken cancellationToken)
     {
         return excludeItemId.HasValue
@@ -327,83 +406,5 @@ public sealed class DictDomainService
 
         await EnsureNoParentCycleAsync(parent, currentItemId, cancellationToken);
         return parent;
-    }
-
-    private static void EnsureEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    private static void EnsureId(long id, string message)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), message);
-        }
-    }
-
-    private static void EnsureOptionalId(long? id, string paramName, string message)
-    {
-        if (id is <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    private static string? NormalizeNullable(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
-
-    private static string? Optional(string? value, int maxLength, string paramName, string message)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-
-        return normalized;
-    }
-
-    private static string? OptionalJson(string? value, string message)
-    {
-        var normalized = NormalizeNullable(value);
-        if (normalized is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            using var _ = JsonDocument.Parse(normalized);
-        }
-        catch (JsonException exception)
-        {
-            throw new InvalidOperationException(message, exception);
-        }
-
-        return normalized;
-    }
-
-    private static string Required(string? value, int maxLength, string paramName, string message)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(value);
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-
-        return normalized;
     }
 }

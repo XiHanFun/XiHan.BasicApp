@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -21,10 +22,8 @@ using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using Microsoft.AspNetCore.Http;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
@@ -93,25 +92,6 @@ public sealed partial class ProfileAppService
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
-    }
-
-    /// <summary>
-    /// 发布认证安全审计事件（密码修改/绑定解绑MFA 等），统一落登录日志
-    /// </summary>
-    private async Task PublishSecurityAuditAsync(LoginResult auditResult, string message)
-    {
-        var client = _clientInfoProvider.GetCurrent();
-        await _localEventBus.PublishAsync(
-            new AuthSecurityAuditDomainEvent(
-                _currentUser.TenantId,
-                _currentUser.UserId,
-                _currentUser.UserName,
-                auditResult,
-                message,
-                DateTimeOffset.UtcNow,
-                _httpContextAccessor.HttpContext?.TraceIdentifier,
-                client.IpAddress,
-                client.UserAgent));
     }
 
     /// <inheritdoc />
@@ -271,6 +251,25 @@ public sealed partial class ProfileAppService
             (int)TwoFactorMethod.Phone => TwoFactorMethod.Phone,
             _ => throw new ArgumentOutOfRangeException(nameof(method), "双因素方式无效。")
         };
+    }
+
+    /// <summary>
+    /// 发布认证安全审计事件（密码修改/绑定解绑MFA 等），统一落登录日志
+    /// </summary>
+    private async Task PublishSecurityAuditAsync(LoginResult auditResult, string message)
+    {
+        var client = _clientInfoProvider.GetCurrent();
+        await _localEventBus.PublishAsync(
+            new AuthSecurityAuditDomainEvent(
+                _currentUser.TenantId,
+                _currentUser.UserId,
+                _currentUser.UserName,
+                auditResult,
+                message,
+                DateTimeOffset.UtcNow,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent));
     }
 
     private string? GetCurrentSessionId()

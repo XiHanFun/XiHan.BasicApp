@@ -35,6 +35,7 @@ public sealed class NotificationCreateDto
     /// 模板变量
     /// </summary>
     public Dictionary<string, string>? TemplateParams { get; set; }
+
     public string? Icon { get; set; }
     public string? Link { get; set; }
     public string? BusinessType { get; set; }

@@ -264,5 +264,4 @@ public sealed class RoleAppService
         await _cacheInvalidator.InvalidateRoleDefinitionAsync(cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
     }
-
 }

@@ -83,55 +83,6 @@ public sealed class MenuRouteQueryService
     }
 
     /// <summary>
-    /// 构建菜单路由树（缓存未命中时执行，含空目录剪枝）。
-    /// </summary>
-    private async Task<List<MenuRouteDto>> BuildRoutesAsync(AuthorizationSnapshot snapshot, bool hasAllPermissions, CancellationToken cancellationToken)
-    {
-        var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
-        var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
-        var menus = await _menuRepository.GetListAsync(
-            menu => menu.Status == EnableStatus.Enabled && menu.MenuType != MenuType.Button,
-            cancellationToken);
-        var visibleMenus = menus
-            .Where(menu => menu.IsVisible)
-            .Where(menu => !menu.PermissionId.HasValue || hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value))
-            .OrderBy(menu => menu.Sort)
-            .ThenBy(menu => menu.BasicId)
-            .ToList();
-
-        if (visibleMenus.Count == 0)
-        {
-            return [BuildFallbackDashboardRoute()];
-        }
-
-        var routeMap = visibleMenus.ToDictionary(menu => menu.BasicId, menu => ToMenuRoute(menu, permissionCodeMap));
-        var roots = new List<MenuRouteDto>();
-        foreach (var menu in visibleMenus)
-        {
-            var route = routeMap[menu.BasicId];
-            if (menu.ParentId.HasValue && routeMap.TryGetValue(menu.ParentId.Value, out var parent))
-            {
-                parent.Children ??= [];
-                parent.Children.Add(route);
-            }
-            else
-            {
-                roots.Add(route);
-            }
-        }
-
-        // 剪掉无可见子菜单的目录：目录本身不关联权限（对所有人可见），但若其下无任何已授权的子菜单，
-        // 显示一个点不进去的空目录没有意义，应隐藏（叶子菜单已按权限过滤，目录可见性派生自子菜单）。
-        var directoryIds = visibleMenus
-            .Where(menu => menu.MenuType == MenuType.Directory)
-            .Select(menu => menu.BasicId.ToString())
-            .ToHashSet();
-        roots = PruneEmptyDirectories(roots, directoryIds);
-
-        return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
-    }
-
-    /// <summary>
     /// 递归剪掉无可见子菜单的目录（自底向上：先剪子目录，父目录随之可能变空再剪）
     /// </summary>
     private static List<MenuRouteDto> PruneEmptyDirectories(List<MenuRouteDto> nodes, HashSet<string> directoryIds)
@@ -251,5 +202,54 @@ public sealed class MenuRouteQueryService
 
         var normalized = value.Trim();
         return normalized.Length > maxLength ? normalized[..maxLength] : normalized;
+    }
+
+    /// <summary>
+    /// 构建菜单路由树（缓存未命中时执行，含空目录剪枝）。
+    /// </summary>
+    private async Task<List<MenuRouteDto>> BuildRoutesAsync(AuthorizationSnapshot snapshot, bool hasAllPermissions, CancellationToken cancellationToken)
+    {
+        var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
+        var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
+        var menus = await _menuRepository.GetListAsync(
+            menu => menu.Status == EnableStatus.Enabled && menu.MenuType != MenuType.Button,
+            cancellationToken);
+        var visibleMenus = menus
+            .Where(menu => menu.IsVisible)
+            .Where(menu => !menu.PermissionId.HasValue || hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value))
+            .OrderBy(menu => menu.Sort)
+            .ThenBy(menu => menu.BasicId)
+            .ToList();
+
+        if (visibleMenus.Count == 0)
+        {
+            return [BuildFallbackDashboardRoute()];
+        }
+
+        var routeMap = visibleMenus.ToDictionary(menu => menu.BasicId, menu => ToMenuRoute(menu, permissionCodeMap));
+        var roots = new List<MenuRouteDto>();
+        foreach (var menu in visibleMenus)
+        {
+            var route = routeMap[menu.BasicId];
+            if (menu.ParentId.HasValue && routeMap.TryGetValue(menu.ParentId.Value, out var parent))
+            {
+                parent.Children ??= [];
+                parent.Children.Add(route);
+            }
+            else
+            {
+                roots.Add(route);
+            }
+        }
+
+        // 剪掉无可见子菜单的目录：目录本身不关联权限（对所有人可见），但若其下无任何已授权的子菜单，
+        // 显示一个点不进去的空目录没有意义，应隐藏（叶子菜单已按权限过滤，目录可见性派生自子菜单）。
+        var directoryIds = visibleMenus
+            .Where(menu => menu.MenuType == MenuType.Directory)
+            .Select(menu => menu.BasicId.ToString())
+            .ToHashSet();
+        roots = PruneEmptyDirectories(roots, directoryIds);
+
+        return roots.Count == 0 ? [BuildFallbackDashboardRoute()] : roots;
     }
 }

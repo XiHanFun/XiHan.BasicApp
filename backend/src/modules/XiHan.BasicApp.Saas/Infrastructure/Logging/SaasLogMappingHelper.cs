@@ -191,14 +191,6 @@ internal static class SaasLogMappingHelper
     }
 
     /// <summary>
-    /// 名称包含任一关键字（忽略大小写）
-    /// </summary>
-    private static bool ContainsAny(string value, params string[] keywords)
-    {
-        return keywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
     /// 根据响应结果映射操作执行结果
     /// </summary>
     public static OperationExecuteResult ResolveResult(int statusCode, string? errorMessage)
@@ -283,5 +275,13 @@ internal static class SaasLogMappingHelper
             OperationType.StartTask => 2,
             _ => 1
         };
+    }
+
+    /// <summary>
+    /// 名称包含任一关键字（忽略大小写）
+    /// </summary>
+    private static bool ContainsAny(string value, params string[] keywords)
+    {
+        return keywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
     }
 }

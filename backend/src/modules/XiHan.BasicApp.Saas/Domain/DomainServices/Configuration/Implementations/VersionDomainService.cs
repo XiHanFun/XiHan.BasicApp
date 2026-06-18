@@ -23,6 +23,8 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class VersionDomainService
     : IVersionDomainService
 {
+    private readonly IVersionRepository _versionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -30,8 +32,6 @@ public sealed class VersionDomainService
     {
         _versionRepository = versionRepository;
     }
-
-    private readonly IVersionRepository _versionRepository;
 
     /// <inheritdoc />
     public async Task<VersionCommandResult> CreateVersionAsync(VersionCreateCommand command, CancellationToken cancellationToken = default)
@@ -134,13 +134,6 @@ public sealed class VersionDomainService
         _ = Optional(upgradeNode, 128, nameof(upgradeNode), "升级节点不能超过 128 个字符。");
     }
 
-    private async Task<SysVersion> GetVersionOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统版本主键必须大于 0。");
-        return await _versionRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统版本不存在。");
-    }
-
     private static void EnsureId(long id, string message)
     {
         if (id <= 0)
@@ -175,5 +168,12 @@ public sealed class VersionDomainService
         }
 
         return normalized;
+    }
+
+    private async Task<SysVersion> GetVersionOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统版本主键必须大于 0。");
+        return await _versionRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统版本不存在。");
     }
 }

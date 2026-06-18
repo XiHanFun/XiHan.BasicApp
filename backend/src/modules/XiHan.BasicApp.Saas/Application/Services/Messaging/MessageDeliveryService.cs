@@ -18,7 +18,6 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Messaging.Models;
 
-
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
@@ -145,6 +144,19 @@ public sealed class MessageDeliveryService
     }
 
     /// <summary>
+    /// 信封渠道字符串映射为消息渠道枚举
+    /// </summary>
+    private static MessageChannel MapChannel(string channel)
+    {
+        return channel.ToLowerInvariant() switch
+        {
+            "email" => MessageChannel.Email,
+            "sms" => MessageChannel.Sms,
+            _ => MessageChannel.SiteNotification
+        };
+    }
+
+    /// <summary>
     /// 按 TemplateCode 从模板库查找并渲染信封内容（租户模板优先回退全局；模板缺失/损坏保留原始内容）。
     /// </summary>
     private async Task RenderTemplateAsync(MessageEnvelope envelope)
@@ -168,18 +180,5 @@ public sealed class MessageDeliveryService
         {
             envelope.Subject = rendered.Subject;
         }
-    }
-
-    /// <summary>
-    /// 信封渠道字符串映射为消息渠道枚举
-    /// </summary>
-    private static MessageChannel MapChannel(string channel)
-    {
-        return channel.ToLowerInvariant() switch
-        {
-            "email" => MessageChannel.Email,
-            "sms" => MessageChannel.Sms,
-            _ => MessageChannel.SiteNotification
-        };
     }
 }

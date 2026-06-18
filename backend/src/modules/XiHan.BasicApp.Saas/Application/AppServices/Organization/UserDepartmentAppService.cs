@@ -98,5 +98,4 @@ public sealed class UserDepartmentAppService
     }
 
     #endregion
-
 }

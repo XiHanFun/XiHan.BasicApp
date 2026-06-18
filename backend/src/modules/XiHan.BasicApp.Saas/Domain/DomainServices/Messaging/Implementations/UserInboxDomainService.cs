@@ -13,7 +13,6 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -24,6 +23,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class UserInboxDomainService
     : IUserInboxDomainService
 {
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -34,9 +37,6 @@ public sealed class UserInboxDomainService
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
     }
-
-    private readonly INotificationRepository _notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository;
 
     /// <inheritdoc />
     public async Task<UserInboxDispatchResult> DispatchToUserAsync(UserInboxDispatchCommand command, CancellationToken cancellationToken = default)
@@ -137,24 +137,6 @@ public sealed class UserInboxDomainService
         }
     }
 
-    private async Task<SysUserNotification> GetUserNotificationOrThrowAsync(long id, long userId, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户通知主键必须大于 0。");
-        }
-
-        EnsureUserId(userId);
-        var userNotification = await _userNotificationRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户通知不存在。");
-        if (userNotification.UserId != userId || userNotification.NotificationStatus == NotificationStatus.Deleted)
-        {
-            throw new InvalidOperationException("用户通知不存在。");
-        }
-
-        return userNotification;
-    }
-
     private static void EnsureUserId(long userId)
     {
         if (userId <= 0)
@@ -181,5 +163,23 @@ public sealed class UserInboxDomainService
     private static string NormalizeRequired(string value, int maxLength)
     {
         return ToMaxLength(value.Trim(), maxLength);
+    }
+
+    private async Task<SysUserNotification> GetUserNotificationOrThrowAsync(long id, long userId, CancellationToken cancellationToken)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "用户通知主键必须大于 0。");
+        }
+
+        EnsureUserId(userId);
+        var userNotification = await _userNotificationRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("用户通知不存在。");
+        if (userNotification.UserId != userId || userNotification.NotificationStatus == NotificationStatus.Deleted)
+        {
+            throw new InvalidOperationException("用户通知不存在。");
+        }
+
+        return userNotification;
     }
 }

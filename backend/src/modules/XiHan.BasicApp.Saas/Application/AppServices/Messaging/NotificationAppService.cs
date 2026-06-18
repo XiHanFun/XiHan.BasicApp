@@ -154,6 +154,20 @@ public sealed class NotificationAppService
     }
 
     /// <summary>
+    /// 更新系统通知
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Message.Update)]
+    public async Task<NotificationDetailDto> UpdateNotificationAsync(NotificationUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _notificationDomainService.UpdateNotificationAsync(NotificationApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        return NotificationApplicationMapper.ToDetailDto(result.Notification);
+    }
+
+    /// <summary>
     /// 给在线接收者实时推送已发布公告（全员目标广播，指定用户目标点发；失败只记日志）
     /// </summary>
     private async Task PushPublishedNotificationAsync(SysNotification notification)
@@ -193,19 +207,5 @@ public sealed class NotificationAppService
         {
             _logger.LogWarning(ex, "公告实时推送失败，NotificationId={NotificationId}", notification.BasicId);
         }
-    }
-
-    /// <summary>
-    /// 更新系统通知
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Update)]
-    public async Task<NotificationDetailDto> UpdateNotificationAsync(NotificationUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var result = await _notificationDomainService.UpdateNotificationAsync(NotificationApplicationMapper.ToUpdateCommand(input), cancellationToken);
-        return NotificationApplicationMapper.ToDetailDto(result.Notification);
     }
 }

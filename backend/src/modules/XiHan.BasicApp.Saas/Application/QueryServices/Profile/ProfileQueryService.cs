@@ -66,6 +66,27 @@ public sealed class ProfileQueryService
         _clientResolver = clientResolver;
     }
 
+    /// <summary>
+    /// 偏好实体 → DTO
+    /// </summary>
+    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserNotificationPreference preference)
+    {
+        ArgumentNullException.ThrowIfNull(preference);
+
+        return new ProfileNotificationPreferenceDto
+        {
+            ChannelInApp = preference.ChannelInApp,
+            ChannelEmail = preference.ChannelEmail,
+            ChannelSms = preference.ChannelSms,
+            ChannelPush = preference.ChannelPush,
+            TypeAnnouncement = preference.TypeAnnouncement,
+            TypeTask = preference.TypeTask,
+            TypeApproval = preference.TypeApproval,
+            TypeSecurity = preference.TypeSecurity,
+            TypeMarketing = preference.TypeMarketing
+        };
+    }
+
     /// <inheritdoc />
     public async Task<ProfileUserSecurityContext> GetSecurityContextAsync(long userId, CancellationToken cancellationToken = default)
     {
@@ -268,6 +289,21 @@ public sealed class ProfileQueryService
             })];
     }
 
+    /// <inheritdoc />
+    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        // 无记录时返回默认偏好（不落库，写入时再惰性创建）
+        return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
+    }
+
     private static SysUserStatistics? GetLatestSnapshot(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
     {
         return stats
@@ -289,42 +325,6 @@ public sealed class ProfileQueryService
             AccessCount = stats.AccessCount,
             OperationCount = stats.OperationCount,
             OnlineTime = stats.OnlineTime
-        };
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default)
-    {
-        if (userId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
-        // 无记录时返回默认偏好（不落库，写入时再惰性创建）
-        return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
-    }
-
-    /// <summary>
-    /// 偏好实体 → DTO
-    /// </summary>
-    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserNotificationPreference preference)
-    {
-        ArgumentNullException.ThrowIfNull(preference);
-
-        return new ProfileNotificationPreferenceDto
-        {
-            ChannelInApp = preference.ChannelInApp,
-            ChannelEmail = preference.ChannelEmail,
-            ChannelSms = preference.ChannelSms,
-            ChannelPush = preference.ChannelPush,
-            TypeAnnouncement = preference.TypeAnnouncement,
-            TypeTask = preference.TypeTask,
-            TypeApproval = preference.TypeApproval,
-            TypeSecurity = preference.TypeSecurity,
-            TypeMarketing = preference.TypeMarketing
         };
     }
 

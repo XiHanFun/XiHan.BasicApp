@@ -119,6 +119,17 @@ public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportT
     }
 
     /// <summary>
+    /// 导出占内存，限并发 2；队列空时 3s 再查。
+    /// </summary>
+    private static IDynamicServiceConfig BuildConfig(IOptions<XiHanBackgroundServiceOptions> options)
+    {
+        var config = new DynamicServiceConfig(options);
+        config.UpdateMaxConcurrentTasks(2);
+        config.UpdateIdleDelay(3000);
+        return config;
+    }
+
+    /// <summary>
     /// 启动恢复：复位崩溃残留的 Processing→Pending，并把所有 Pending 重投队列（ClaimByIdAsync 保证不重复执行）。
     /// </summary>
     private async Task RecoverPendingAsync(CancellationToken cancellationToken)
@@ -145,16 +156,5 @@ public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportT
         {
             Logger.LogWarning(ex, "导出启动恢复失败（忽略，继续启动）");
         }
-    }
-
-    /// <summary>
-    /// 导出占内存，限并发 2；队列空时 3s 再查。
-    /// </summary>
-    private static IDynamicServiceConfig BuildConfig(IOptions<XiHanBackgroundServiceOptions> options)
-    {
-        var config = new DynamicServiceConfig(options);
-        config.UpdateMaxConcurrentTasks(2);
-        config.UpdateIdleDelay(3000);
-        return config;
     }
 }

@@ -160,5 +160,4 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     }
 
     #endregion
-
 }

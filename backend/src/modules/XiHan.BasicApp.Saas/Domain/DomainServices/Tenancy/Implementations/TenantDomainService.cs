@@ -25,6 +25,14 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class TenantDomainService
     : ITenantDomainService
 {
+    private readonly ITenantRepository _tenantRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
+
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,11 +47,6 @@ public sealed class TenantDomainService
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _currentTenant = currentTenant;
     }
-
-    private readonly ITenantRepository _tenantRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
-    private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
-    private readonly ICurrentTenant _currentTenant;
 
     /// <inheritdoc />
     public async Task<TenantCommandResult> CreateTenantAsync(TenantCreateCommand command, CancellationToken cancellationToken = default)
@@ -257,6 +260,54 @@ public sealed class TenantDomainService
         ValidateCommonInput(command.IsolationMode, command.EditionId, command.UserLimit, command.StorageLimit);
     }
 
+    private static void EnsureOwnerCanBeChanged(SysTenantUser member, TenantMemberType newMemberType)
+    {
+        if (member.MemberType == TenantMemberType.Owner && newMemberType != TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者成员类型不能直接变更。");
+        }
+    }
+
+    private static void EnsureOwnerCanBeRevoked(SysTenantUser member, TenantMemberInviteStatus newInviteStatus)
+    {
+        if (member.MemberType == TenantMemberType.Owner && newInviteStatus is TenantMemberInviteStatus.Revoked or TenantMemberInviteStatus.Expired)
+        {
+            throw new InvalidOperationException("租户所有者成员关系不能直接撤销或过期。");
+        }
+    }
+
+    private static void ValidateEffectivePeriod(DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime)
+    {
+        if (effectiveTime.HasValue && expirationTime.HasValue && expirationTime.Value <= effectiveTime.Value)
+        {
+            throw new InvalidOperationException("租户成员失效时间必须晚于生效时间。");
+        }
+    }
+
+    private static void ValidateMemberUpdateCommand(TenantMemberUpdateCommand command)
+    {
+        EnsureId(command.BasicId, "租户成员主键必须大于 0。");
+        ValidateEnum(command.MemberType, nameof(command.MemberType));
+        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
+    }
+
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    private static void EnsureId(long id, string message)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), message);
+        }
+    }
+
     private async Task EnsureDomainAvailableAsync(string? domain, long? excludeId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(domain))
@@ -278,22 +329,6 @@ public sealed class TenantDomainService
             ?? throw new InvalidOperationException("租户不存在。");
     }
 
-    private static void EnsureOwnerCanBeChanged(SysTenantUser member, TenantMemberType newMemberType)
-    {
-        if (member.MemberType == TenantMemberType.Owner && newMemberType != TenantMemberType.Owner)
-        {
-            throw new InvalidOperationException("租户所有者成员类型不能直接变更。");
-        }
-    }
-
-    private static void EnsureOwnerCanBeRevoked(SysTenantUser member, TenantMemberInviteStatus newInviteStatus)
-    {
-        if (member.MemberType == TenantMemberType.Owner && newInviteStatus is TenantMemberInviteStatus.Revoked or TenantMemberInviteStatus.Expired)
-        {
-            throw new InvalidOperationException("租户所有者成员关系不能直接撤销或过期。");
-        }
-    }
-
     private void EnsurePlatformAdminNotAssigned(TenantMemberType memberType)
     {
         if (memberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
@@ -302,42 +337,10 @@ public sealed class TenantDomainService
         }
     }
 
-    private static void ValidateEffectivePeriod(DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime)
-    {
-        if (effectiveTime.HasValue && expirationTime.HasValue && expirationTime.Value <= effectiveTime.Value)
-        {
-            throw new InvalidOperationException("租户成员失效时间必须晚于生效时间。");
-        }
-    }
-
-    private static void ValidateMemberUpdateCommand(TenantMemberUpdateCommand command)
-    {
-        EnsureId(command.BasicId, "租户成员主键必须大于 0。");
-        ValidateEnum(command.MemberType, nameof(command.MemberType));
-        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
-    }
-
     private async Task<SysTenantUser> GetTenantMemberOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "租户成员主键必须大于 0。");
         return await _tenantUserRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("租户成员不存在。");
-    }
-
-    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    private static void EnsureId(long id, string message)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), message);
-        }
     }
 }

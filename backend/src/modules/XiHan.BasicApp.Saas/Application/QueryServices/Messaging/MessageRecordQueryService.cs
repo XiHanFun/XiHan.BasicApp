@@ -23,6 +23,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class MessageRecordQueryService
     : IMessageRecordQueryService
 {
+    private readonly IEmailRepository _emailRepository;
+
+    private readonly ISmsRepository _smsRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -31,9 +35,6 @@ public sealed class MessageRecordQueryService
         _emailRepository = emailRepository;
         _smsRepository = smsRepository;
     }
-
-    private readonly IEmailRepository _emailRepository;
-    private readonly ISmsRepository _smsRepository;
 
     /// <inheritdoc />
     public async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken = default)

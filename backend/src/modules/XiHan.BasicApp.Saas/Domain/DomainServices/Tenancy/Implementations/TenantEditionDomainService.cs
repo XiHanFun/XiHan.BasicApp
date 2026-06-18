@@ -24,6 +24,12 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class TenantEditionDomainService
     : ITenantEditionDomainService
 {
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
+
+    private readonly ITenantEditionRepository _tenantEditionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -36,10 +42,6 @@ public sealed class TenantEditionDomainService
         _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
         _permissionRepository = permissionRepository;
     }
-
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
-    private readonly ITenantEditionRepository _tenantEditionRepository;
 
     /// <inheritdoc />
     public async Task<TenantEditionCommandResult> CreateTenantEditionAsync(TenantEditionCreateCommand command, CancellationToken cancellationToken = default)
@@ -276,6 +278,29 @@ public sealed class TenantEditionDomainService
         ValidateCommonInput(command.UserLimit, command.StorageLimit, command.Price, command.BillingPeriodMonths, command.IsFree);
     }
 
+    private static void ValidateGrantCommand(TenantEditionPermissionGrantCommand command)
+    {
+        EnsureId(command.EditionId, "租户版本主键必须大于 0。");
+        EnsureId(command.PermissionId, "权限主键必须大于 0。");
+    }
+
+    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    private static void EnsureId(long id, string message)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), message);
+        }
+    }
+
     private Task<bool> ClearDefaultEditionsAsync(long? excludeId, CancellationToken cancellationToken)
     {
         return excludeId.HasValue
@@ -294,12 +319,6 @@ public sealed class TenantEditionDomainService
         EnsureId(id, "租户版本主键必须大于 0。");
         return await _tenantEditionRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("租户版本不存在。");
-    }
-
-    private static void ValidateGrantCommand(TenantEditionPermissionGrantCommand command)
-    {
-        EnsureId(command.EditionId, "租户版本主键必须大于 0。");
-        EnsureId(command.PermissionId, "权限主键必须大于 0。");
     }
 
     private async Task<SysPermission> GetGrantablePermissionOrThrowAsync(long permissionId, CancellationToken cancellationToken)
@@ -325,22 +344,5 @@ public sealed class TenantEditionDomainService
         EnsureId(id, "租户版本权限绑定主键必须大于 0。");
         return await _tenantEditionPermissionRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("租户版本权限绑定不存在。");
-    }
-
-    private static void ValidateEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    private static void EnsureId(long id, string message)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), message);
-        }
     }
 }

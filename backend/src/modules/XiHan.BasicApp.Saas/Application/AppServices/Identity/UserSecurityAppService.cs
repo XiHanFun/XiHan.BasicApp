@@ -101,5 +101,4 @@ public sealed class UserSecurityAppService
     }
 
     #endregion
-
 }

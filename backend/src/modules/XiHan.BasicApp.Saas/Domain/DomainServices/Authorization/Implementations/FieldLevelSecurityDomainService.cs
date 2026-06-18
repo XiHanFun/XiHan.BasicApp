@@ -25,6 +25,20 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class FieldLevelSecurityDomainService
     : IFieldLevelSecurityDomainService
 {
+    private readonly ICurrentTenant _currentTenant;
+
+    private readonly IDepartmentRepository _departmentRepository;
+
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IResourceRepository _resourceRepository;
+
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -45,14 +59,6 @@ public sealed class FieldLevelSecurityDomainService
         _tenantUserRepository = tenantUserRepository;
         _currentTenant = currentTenant;
     }
-
-    private readonly ICurrentTenant _currentTenant;
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IResourceRepository _resourceRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <inheritdoc />
     public async Task<FieldLevelSecurityCommandResult> CreateAsync(FieldLevelSecurityCreateCommand command, CancellationToken cancellationToken = default)

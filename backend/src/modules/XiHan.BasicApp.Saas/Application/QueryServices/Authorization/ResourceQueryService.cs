@@ -145,17 +145,6 @@ public sealed class ResourceQueryService
     }
 
     /// <summary>
-    /// 实时查询可选全局资源列表（缓存未命中或带关键字时执行）。
-    /// </summary>
-    private async Task<IReadOnlyList<ResourceSelectItemDto>> QueryAvailableGlobalResourcesAsync(ResourceSelectQueryDto input, CancellationToken cancellationToken)
-    {
-        var request = BuildResourceSelectRequest(input);
-        var resources = await _resourceRepository.GetPagedAsync(request, cancellationToken);
-
-        return [.. resources.Items.Select(ResourceApplicationMapper.ToSelectItemDto)];
-    }
-
-    /// <summary>
     /// 构建资源分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
@@ -256,5 +245,16 @@ public sealed class ResourceQueryService
         {
             request.Conditions.AddFilter((SysResource resource) => resource.Status, status.Value);
         }
+    }
+
+    /// <summary>
+    /// 实时查询可选全局资源列表（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<ResourceSelectItemDto>> QueryAvailableGlobalResourcesAsync(ResourceSelectQueryDto input, CancellationToken cancellationToken)
+    {
+        var request = BuildResourceSelectRequest(input);
+        var resources = await _resourceRepository.GetPagedAsync(request, cancellationToken);
+
+        return [.. resources.Items.Select(ResourceApplicationMapper.ToSelectItemDto)];
     }
 }
