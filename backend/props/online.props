@@ -1,0 +1,7 @@
+<Project>
+	<!-- 正式发布：引用线上 XiHan.Framework NuGet 包的版本 -->
+	<!-- 仅被 *.csproj（正式发布变体）导入；*.Local.csproj（本地调试变体）直接 ProjectReference 框架源码，不使用此版本 -->
+	<PropertyGroup>
+		<XiHanFrameworkVersion Condition="'$(XiHanFrameworkVersion)' == ''">3.0.0</XiHanFrameworkVersion>
+	</PropertyGroup>
+</Project>
