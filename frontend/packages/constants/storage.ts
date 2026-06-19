@@ -32,6 +32,7 @@ export const PREFERENCE_SYNC_KEY = `${STORAGE_PREFIX}preference_sync`
 export const FAVORITES_SYNC_KEY = `${STORAGE_PREFIX}favorites_sync`
 export const SEARCH_SYNC_KEY = `${STORAGE_PREFIX}search_sync`
 export const TABLE_SYNC_KEY = `${STORAGE_PREFIX}table_sync`
+export const TABLE_ROW_PEEK_KEY = `${STORAGE_PREFIX}table_row_peek`
 export const CHECK_UPDATES_KEY = `${STORAGE_PREFIX}check_updates`
 export const CHECK_UPDATES_INTERVAL_KEY = `${STORAGE_PREFIX}check_updates_interval`
 export const BREADCRUMB_SHOW_HOME_KEY = `${STORAGE_PREFIX}breadcrumb_show_home`

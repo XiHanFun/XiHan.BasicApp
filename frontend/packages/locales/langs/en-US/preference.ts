@@ -86,6 +86,12 @@ export default {
       title: 'Font',
       size: 'Size',
     },
+    interaction: {
+      title: 'Interaction',
+    },
+    effects: {
+      title: 'Effects',
+    },
     other: {
       title: 'Other',
       color_weakness: 'Color Weakness',
@@ -243,6 +249,7 @@ export default {
     language: 'Language',
     dynamic_title: 'Dynamic Title',
     dynamic_island: 'Dynamic Island',
+    table_row_peek: 'Row Peek on Hover',
     preference_sync: 'Preferences',
     favorites_sync: 'Favorites',
     search_sync: 'Search Settings',
@@ -257,6 +264,8 @@ export default {
       'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
     dynamic_island_tip:
       'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
+    table_row_peek_tip:
+      'On list pages, hovering a row for ~0.5s pops a peek card next to the cursor showing all of the row\'s fields (including columns hidden in the table). Turn off to disable. Not active on mobile.',
     preference_sync_tip:
       'On by default — preference changes sync to your account and are pushed in real time to your other online devices. When off, preferences are stored on this device only.',
     favorites_sync_tip:
