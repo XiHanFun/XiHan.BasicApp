@@ -77,9 +77,12 @@ const HTTP_ERROR_MESSAGES: Record<number, string> = {
 /** 从响应体提取后端业务错误消息（非二进制响应时优先采用） */
 function extractBackendMessage(data: unknown): string | undefined {
   if (data && typeof data === 'object' && !(data instanceof Blob)) {
-    const message = (data as Record<string, unknown>).message
-    if (typeof message === 'string' && message.trim()) {
-      return message.trim()
+    const record = data as Record<string, unknown>
+    // 后端错误工厂把具体错误放在 data（message 仅为通用码描述，如「服务器内部错误」），故优先取 data，其次 message
+    for (const candidate of [record.data, record.message]) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate.trim()
+      }
     }
   }
   return undefined
