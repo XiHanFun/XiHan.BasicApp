@@ -23,6 +23,7 @@ import {
   SHORTCUT_LOGOUT_KEY,
   SHORTCUT_SEARCH_KEY,
   SHORTCUT_TAB_OVERVIEW_KEY,
+  TABLE_ROW_PEEK_KEY,
   TABLE_SYNC_KEY,
   WIDGET_DYNAMIC_ISLAND_KEY,
   WIDGET_FAVORITES_KEY,
@@ -49,6 +50,8 @@ export function createPreferencesSlice() {
   const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
   const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? true)
   const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? true)
+  // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
+  const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 60)
 
@@ -103,6 +106,7 @@ export function createPreferencesSlice() {
   bindPersist(FAVORITES_SYNC_KEY, favoritesSyncEnabled, true)
   bindPersist(SEARCH_SYNC_KEY, searchSyncEnabled, true)
   bindPersist(TABLE_SYNC_KEY, tableSyncEnabled, true)
+  bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 60)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
@@ -152,6 +156,9 @@ export function createPreferencesSlice() {
   }
   function setTableSyncEnabled(v: boolean) {
     save(TABLE_SYNC_KEY, tableSyncEnabled, v)
+  }
+  function setTableRowPeek(v: boolean) {
+    save(TABLE_ROW_PEEK_KEY, tableRowPeek, v)
   }
   function setEnableCheckUpdates(v: boolean) {
     save(CHECK_UPDATES_KEY, enableCheckUpdates, v)
@@ -243,6 +250,7 @@ export function createPreferencesSlice() {
     favoritesSyncEnabled,
     searchSyncEnabled,
     tableSyncEnabled,
+    tableRowPeek,
     enableCheckUpdates,
     checkUpdatesInterval,
     widgetThemeToggle,
@@ -277,6 +285,7 @@ export function createPreferencesSlice() {
     setFavoritesSyncEnabled,
     setSearchSyncEnabled,
     setTableSyncEnabled,
+    setTableRowPeek,
     setEnableCheckUpdates,
     setCheckUpdatesInterval,
     setWidgetThemeToggle,

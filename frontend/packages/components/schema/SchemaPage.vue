@@ -7,7 +7,7 @@ import { computed, h, onMounted, ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
+import { useAppContext, useAppStore } from '~/stores'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
@@ -40,6 +40,7 @@ const emit = defineEmits<{
 type Row = Record<string, any>
 
 const { hasPermission } = usePermission()
+const appStore = useAppStore()
 const dialog = useDialog()
 const message = useMessage()
 
@@ -83,9 +84,14 @@ const columnFields = computed<ListFieldSchema[]>(() =>
   resolvedFields.value.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
 
-/** 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地 */
+/**
+ * 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地。
+ * 受偏好「表格悬停速览」开关控制：关闭时返回空列表，下游据此停用悬停行为。
+ */
 const peekFields = computed<ListFieldSchema[]>(() =>
-  resolvedFields.value.filter(f => !f.permission || hasPermission(f.permission)),
+  appStore.tableRowPeek
+    ? resolvedFields.value.filter(f => !f.permission || hasPermission(f.permission))
+    : [],
 )
 
 /** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */

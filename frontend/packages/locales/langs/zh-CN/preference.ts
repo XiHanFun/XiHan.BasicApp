@@ -85,6 +85,12 @@ export default {
       title: '字体',
       size: '大小',
     },
+    interaction: {
+      title: '交互',
+    },
+    effects: {
+      title: '效果',
+    },
     other: {
       title: '其它',
       color_weakness: '色弱模式',
@@ -235,6 +241,7 @@ export default {
     language: '语言',
     dynamic_title: '动态标题',
     dynamic_island: '灵动岛',
+    table_row_peek: '表格悬停速览',
     preference_sync: '偏好设置',
     favorites_sync: '收藏夹设置',
     search_sync: '搜索设置',
@@ -247,6 +254,7 @@ export default {
     check_updates_interval_unit: '秒',
     dynamic_title_tip: '页面标题随当前路由名称动态更新，便于在多个浏览器标签页中区分',
     dynamic_island_tip: '顶部灵动岛：登录、设置同步、文件上传、网络状态等过程会在此聚合提示，点击可展开查看活动与历史；关闭后这些结果改用消息提示框显示。',
+    table_row_peek_tip: '在各列表页悬停某一行约半秒后，于光标旁浮出该行全部字段的速览卡（含表格隐藏列）；关闭后不再弹出。移动端不生效。',
     preference_sync_tip: '默认开启，偏好变更同步到后端账号，并实时推送到该账号的其它在线设备；关闭后仅保存在本机。',
     favorites_sync_tip: '默认开启，收藏夹变更同步到后端账号，并实时推送到其它在线设备；关闭后仅保存在本机。',
     search_sync_tip: '默认开启，各列表页的搜索条件设置保存时同步到后端账号，并实时推送到其它在线设备；关闭后仅保存在本机。',

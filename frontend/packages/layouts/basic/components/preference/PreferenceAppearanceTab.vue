@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NColorPicker, NIcon, NInputNumber, NRadioGroup, NSwitch } from 'naive-ui'
+import { NCard, NColorPicker, NIcon, NInput, NInputNumber, NRadioGroup, NSlider, NSwitch } from 'naive-ui'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
@@ -345,6 +345,68 @@ const loaderItems = computed(() =>
           </div>
           <span class="item-label">{{ item.label }}</span>
         </div>
+      </div>
+    </NCard>
+
+    <!-- 交互 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
+        {{ t('preference.appearance.interaction.title') }}
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.dynamic_island') }}</span>
+          <PrefTip :content="t('preference.general.dynamic_island_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.widgetDynamicIsland" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.table_row_peek') }}</span>
+          <PrefTip :content="t('preference.general.table_row_peek_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.tableRowPeek" />
+      </div>
+    </NCard>
+
+    <!-- 效果 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
+        {{ t('preference.appearance.effects.title') }}
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.frosted_glass') }}</span>
+          <PrefTip :content="t('preference.general.frosted_glass_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.frostedGlassEnabled" />
+      </div>
+      <div v-if="appStore.frostedGlassEnabled" class="pref-row">
+        <span>{{ t('preference.general.frosted_glass_intensity') }}</span>
+        <NSlider
+          v-model:value="appStore.frostedGlassIntensity"
+          :min="1"
+          :max="100"
+          :step="1"
+          :tooltip="true"
+          style="width: 150px"
+        />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.watermark') }}</span>
+          <PrefTip :content="t('preference.general.watermark_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.watermarkEnabled" />
+      </div>
+      <div v-if="appStore.watermarkEnabled" class="mb-2 pref-row">
+        <span>{{ t('preference.general.watermark_content') }}</span>
+        <NInput
+          v-model:value="appStore.watermarkText"
+          size="small"
+          style="width: 150px"
+          :placeholder="t('preference.general.watermark_text')"
+        />
       </div>
     </NCard>
 
