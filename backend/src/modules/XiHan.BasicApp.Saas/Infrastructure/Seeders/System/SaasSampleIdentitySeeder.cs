@@ -144,7 +144,7 @@ public sealed class SaasSampleIdentitySeeder(
 
     private static readonly IReadOnlyList<UserSeed> UserSeeds =
     [
-        new("admin", "系统管理员", "Admin", "me@zhaifanhua.com", "Admin@123", "tenant_admin", TenantMemberType.Admin, "tech"),
+        new("admin", "系统管理员", "Admin", "admin@xihan.fun", "Admin@123", "tenant_admin", TenantMemberType.Admin, "tech"),
         new("user", "普通用户", "User", "user@xihan.fun", "User@123", "normal_user", TenantMemberType.Member, "product"),
         new("guest", "游客", "Guest", "guest@xihan.fun", "Guest@123", "guest", TenantMemberType.Guest, "marketing"),
         new("auditor", "审计员", "Auditor", "auditor@xihan.fun", "Auditor@123", "auditor", TenantMemberType.Member, "finance"),
