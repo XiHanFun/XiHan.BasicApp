@@ -3,8 +3,9 @@ import type { DropdownOption } from 'naive-ui'
 import { NButton, NDropdown, NIcon, NPopover } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import { DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
-import { useLocale, useTheme } from '~/hooks'
+import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 
@@ -18,7 +19,6 @@ const emit = defineEmits<{
 
 const appStore = useAppStore()
 const { isDark, toggleThemeWithTransition, setThemeColor } = useTheme()
-const { setLocale } = useLocale()
 const { t } = useI18n()
 
 const colorPresets = computed(() => {
@@ -31,12 +31,6 @@ const colorPresets = computed(() => {
   return presets
 })
 const showColorPicker = ref(false)
-
-// ---- 语言 ----
-const localeOptions = [
-  { label: '简体中文', key: 'zh-CN' },
-  { label: 'English', key: 'en-US' },
-]
 
 // ---- 布局 ----
 const currentAlign = ref<LoginFormAlign>('right')
@@ -123,11 +117,11 @@ function handleLayoutSelect(key: string) {
     </NDropdown>
 
     <!-- 语言 -->
-    <NDropdown
+    <LocaleSwitcher
       v-if="appStore.widgetLanguageToggle"
-      :options="localeOptions"
+      variant="dropdown"
+      apply
       placement="bottom-end"
-      @select="(key) => setLocale(String(key))"
     >
       <NButton quaternary circle size="small" class="toolbar-btn">
         <template #icon>
@@ -136,7 +130,7 @@ function handleLayoutSelect(key: string) {
           </NIcon>
         </template>
       </NButton>
-    </NDropdown>
+    </LocaleSwitcher>
 
     <!-- 主题 -->
     <NButton

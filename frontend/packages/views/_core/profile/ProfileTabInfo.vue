@@ -14,6 +14,8 @@ import {
 import { computed, h, ref, watch } from 'vue'
 import { fileApi, ResourceAccessLevel } from '@/api'
 import { XUserAvatar } from '~/components'
+import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
+import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
@@ -120,18 +122,6 @@ const genderOptions = [
   { label: '未设置', value: 0 },
   { label: '男', value: 1 },
   { label: '女', value: 2 },
-]
-const languageOptions = [
-  { label: '简体中文', value: 'zh-CN' },
-  { label: 'English', value: 'en-US' },
-]
-const timezoneOptions = [
-  { label: 'UTC+8 北京时间', value: 'Asia/Shanghai' },
-  { label: 'UTC+9 东京时间', value: 'Asia/Tokyo' },
-  { label: 'UTC+0 格林尼治时间', value: 'UTC' },
-  { label: 'UTC-5 美东时间', value: 'America/New_York' },
-  { label: 'UTC-8 美西时间', value: 'America/Los_Angeles' },
-  { label: 'UTC+1 中欧时间', value: 'Europe/Berlin' },
 ]
 
 // ==================== 头像上传 / 删除 ====================
@@ -712,11 +702,11 @@ function cancelChange() {
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">语言</span>
-            <NSelect v-model:value="profileForm.language" :options="languageOptions" />
+            <LocaleSwitcher v-model:value="profileForm.language" variant="select" />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">时区</span>
-            <NSelect v-model:value="profileForm.timeZone" :options="timezoneOptions" />
+            <TimezoneSwitcher v-model:value="profileForm.timeZone" variant="select" />
           </div>
           <div class="pf-field-card pf-field-card--block">
             <span class="pf-field-card__label">个人简介</span>

@@ -7,7 +7,7 @@ import type {
 import type { Router } from 'vue-router'
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
-import { BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
+import { APP_TIMEZONE_KEY, BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
 import {
   applyApiSecurityToRequest,
@@ -184,6 +184,13 @@ export class RequestClient {
         const token = LocalStorage.get<string>(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
+        }
+
+        // 用户时区（已选优先，否则跟随浏览器）：后端据此将 UTC 时间换算为该时区返回
+        const timezone = LocalStorage.get<string>(APP_TIMEZONE_KEY)
+          || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : '')
+        if (timezone) {
+          config.headers['X-Timezone'] = timezone
         }
 
         const existingMeta = this.tryExtractMeta(config)
