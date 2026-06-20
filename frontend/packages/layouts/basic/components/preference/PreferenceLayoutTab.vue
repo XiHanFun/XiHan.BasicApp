@@ -492,6 +492,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <NSwitch v-model:value="appStore.widgetLanguageToggle" />
       </div>
       <div class="pref-row">
+        <span>{{ t('preference.layout.widget.timezone_toggle') }}</span>
+        <NSwitch v-model:value="appStore.widgetTimezone" />
+      </div>
+      <div class="pref-row">
         <span>{{ t('preference.layout.widget.theme_toggle') }}</span>
         <NSwitch v-model:value="appStore.widgetThemeToggle" />
       </div>

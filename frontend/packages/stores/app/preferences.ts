@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import {
+  APP_TIMEZONE_KEY,
   CHECK_UPDATES_INTERVAL_KEY,
   CHECK_UPDATES_KEY,
   COPYRIGHT_DATE_KEY,
@@ -52,6 +53,8 @@ export function createPreferencesSlice() {
   const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? true)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
+  // 用户时区（IANA，如 Asia/Shanghai）：空串表示跟随浏览器；随请求头 X-Timezone 上行，后端按此换算返回时间
+  const appTimezone = ref<string>(LocalStorage.get<string>(APP_TIMEZONE_KEY) ?? '')
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 60)
 
@@ -60,7 +63,7 @@ export function createPreferencesSlice() {
   const widgetLanguageToggle = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_LANGUAGE_TOGGLE_KEY) ?? true,
   )
-  const widgetTimezone = ref<boolean>(LocalStorage.get<boolean>(WIDGET_TIMEZONE_KEY) ?? false)
+  const widgetTimezone = ref<boolean>(LocalStorage.get<boolean>(WIDGET_TIMEZONE_KEY) ?? true)
   const widgetFullscreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FULLSCREEN_KEY) ?? true)
   const widgetNotification = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true,
@@ -107,11 +110,12 @@ export function createPreferencesSlice() {
   bindPersist(SEARCH_SYNC_KEY, searchSyncEnabled, true)
   bindPersist(TABLE_SYNC_KEY, tableSyncEnabled, true)
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
+  bindPersist(APP_TIMEZONE_KEY, appTimezone, '')
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 60)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
   bindPersist(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, true)
-  bindPersist(WIDGET_TIMEZONE_KEY, widgetTimezone, false)
+  bindPersist(WIDGET_TIMEZONE_KEY, widgetTimezone, true)
   bindPersist(WIDGET_FULLSCREEN_KEY, widgetFullscreen, true)
   bindPersist(WIDGET_NOTIFICATION_KEY, widgetNotification, true)
   bindPersist(WIDGET_LOCKSCREEN_KEY, widgetLockScreen, true)
@@ -159,6 +163,9 @@ export function createPreferencesSlice() {
   }
   function setTableRowPeek(v: boolean) {
     save(TABLE_ROW_PEEK_KEY, tableRowPeek, v)
+  }
+  function setAppTimezone(v: string) {
+    save(APP_TIMEZONE_KEY, appTimezone, v)
   }
   function setEnableCheckUpdates(v: boolean) {
     save(CHECK_UPDATES_KEY, enableCheckUpdates, v)
@@ -251,6 +258,7 @@ export function createPreferencesSlice() {
     searchSyncEnabled,
     tableSyncEnabled,
     tableRowPeek,
+    appTimezone,
     enableCheckUpdates,
     checkUpdatesInterval,
     widgetThemeToggle,
@@ -286,6 +294,7 @@ export function createPreferencesSlice() {
     setSearchSyncEnabled,
     setTableSyncEnabled,
     setTableRowPeek,
+    setAppTimezone,
     setEnableCheckUpdates,
     setCheckUpdatesInterval,
     setWidgetThemeToggle,

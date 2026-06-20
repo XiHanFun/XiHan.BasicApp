@@ -3,6 +3,8 @@ import type { HeaderToolbarPropsContract } from '../../contracts'
 import type { NotificationItem } from '~/stores'
 import { NDropdown } from 'naive-ui'
 import { XUserAvatar } from '~/components'
+import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
+import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
@@ -21,8 +23,6 @@ const props = defineProps<HeaderToolbarPropsContract & {
 }>()
 
 const emit = defineEmits<{
-  localeChange: [key: string]
-  timezoneChange: [key: string]
   themeToggle: [event: MouseEvent]
   notificationMarkRead: [id: string]
   notificationConfirm: [id: string]
@@ -44,26 +44,26 @@ const { isMobile } = useIsMobile()
     <AppGlobalSearch v-if="props.appStore.searchEnabled" class="mr-1" />
 
     <!-- 语言切换（小屏隐藏） -->
-    <NDropdown
+    <LocaleSwitcher
       v-if="props.appStore.widgetLanguageToggle && !isMobile"
-      :options="props.localeOptions"
-      @select="(key) => emit('localeChange', String(key))"
+      variant="dropdown"
+      apply
     >
       <XihanIconButton class="mr-1" tooltip="切换语言">
         <Icon icon="lucide:languages" width="16" height="16" />
       </XihanIconButton>
-    </NDropdown>
+    </LocaleSwitcher>
 
     <!-- 时区切换（小屏隐藏） -->
-    <NDropdown
+    <TimezoneSwitcher
       v-if="props.appStore.widgetTimezone && !isMobile"
-      :options="props.timezoneOptions"
-      @select="(key) => emit('timezoneChange', String(key))"
+      variant="dropdown"
+      apply
     >
       <XihanIconButton class="mr-1 mt-[2px]" tooltip="切换时区">
         <Icon icon="lucide:clock-3" width="16" height="16" />
       </XihanIconButton>
-    </NDropdown>
+    </TimezoneSwitcher>
 
     <!-- 主题切换 -->
     <XihanIconButton

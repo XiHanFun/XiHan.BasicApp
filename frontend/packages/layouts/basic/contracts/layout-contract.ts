@@ -37,8 +37,6 @@ export interface HeaderToolbarPropsContract {
   isDark: boolean
   isFullscreen: boolean
   showPreferencesInHeader?: boolean
-  timezoneOptions: DropdownOption[]
-  localeOptions: Array<{ label: string, key: string }>
   userOptions: DropdownOption[]
 }
 

@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NInputNumber, NSelect, NSwitch } from 'naive-ui'
+import { NCard, NInputNumber, NSwitch } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { useLocale } from '~/hooks'
+import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
+import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceGeneralTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()
 const appStore = props.appStore
 const { t } = useI18n()
-const { setLocale } = useLocale()
-
-const localeOptions = [
-  { label: '简体中文', value: 'zh-CN' },
-  { label: 'English', value: 'en-US' },
-]
 </script>
 
 <template>
@@ -25,13 +20,11 @@ const localeOptions = [
       </div>
       <div class="pref-row">
         <span>{{ t('preference.general.language') }}</span>
-        <NSelect
-          v-model:value="appStore.locale"
-          :options="localeOptions"
-          size="small"
-          style="width: 110px"
-          @update:value="(v) => setLocale(String(v))"
-        />
+        <LocaleSwitcher variant="select" apply size="small" :select-width="130" />
+      </div>
+      <div class="pref-row">
+        <span>{{ t('preference.general.timezone') }}</span>
+        <TimezoneSwitcher variant="select" apply size="small" :select-width="190" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">

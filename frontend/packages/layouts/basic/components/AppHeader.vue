@@ -2,10 +2,10 @@
 import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
 import type { VNodeChild } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
-import { NMenu, useMessage } from 'naive-ui'
+import { NMenu } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocale, useTheme } from '~/hooks'
+import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { NotificationStatus } from '~/types/enums'
@@ -29,9 +29,7 @@ const layoutBridgeStore = useLayoutBridgeStore()
 const notificationStore = useNotificationStore()
 const appContext = useAppContext()
 const { t, te } = useI18n()
-const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
-const { setLocale } = useLocale()
 const {
   route,
   router,
@@ -60,9 +58,6 @@ const canGoBack = computed(() => hasBack.value)
 const canGoForward = computed(() => hasForward.value)
 
 const isFullscreen = ref(false)
-const currentTimezone = ref(
-  typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC',
-)
 
 const isTopNavLayout = computed(() => appStore.layoutMode === 'top')
 const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
@@ -222,20 +217,6 @@ const userOptions = computed<DropdownOption[]>(() => [
   },
 ])
 
-const localeOptions = computed(() => [
-  { label: t('header.locale.zh_cn'), key: 'zh-CN' },
-  { label: t('header.locale.en_us'), key: 'en-US' },
-])
-
-const timezoneOptions = computed<DropdownOption[]>(() => [
-  { label: t('header.timezone.utc'), key: 'UTC' },
-  { label: t('header.timezone.shanghai'), key: 'Asia/Shanghai' },
-  { label: t('header.timezone.tokyo'), key: 'Asia/Tokyo' },
-  { label: t('header.timezone.london'), key: 'Europe/London' },
-  { label: t('header.timezone.new_york'), key: 'America/New_York' },
-  { label: t('header.timezone.los_angeles'), key: 'America/Los_Angeles' },
-])
-
 async function handleUserAction(key: string) {
   if (key === 'logout') {
     await authStore.logout()
@@ -252,16 +233,6 @@ async function handleUserAction(key: string) {
   if (key === 'lock') {
     layoutBridgeStore.requestLockScreen()
   }
-}
-
-function handleLocaleChange(key: string) {
-  setLocale(key)
-}
-
-function handleTimezoneChange(timezone: string) {
-  currentTimezone.value = timezone
-  localStorage.setItem('xihan_app_timezone', timezone)
-  message.success(t('header.timezone.switch_success', { timezone }))
 }
 
 function handleThemeToggle(event: MouseEvent) {
@@ -419,10 +390,6 @@ function toggleFullscreen() {
 }
 
 onMounted(() => {
-  const savedTimezone = localStorage.getItem('xihan_app_timezone')
-  if (savedTimezone) {
-    currentTimezone.value = savedTimezone
-  }
   syncFullscreenState()
   document.addEventListener('fullscreenchange', syncFullscreenState)
   updateHistoryState()
@@ -502,8 +469,6 @@ watch(() => route.fullPath, () => {
     :is-dark="isDark"
     :is-fullscreen="isFullscreen"
     :show-preferences-in-header="showPreferencesInHeader"
-    :timezone-options="timezoneOptions"
-    :locale-options="localeOptions"
     :user-options="userOptions"
     :notification-all-items="notificationStore.allItems"
     :notification-mentioned-items="notificationStore.mentionedItems"
@@ -511,8 +476,6 @@ watch(() => route.fullPath, () => {
     :notification-unread-mentioned="notificationStore.unreadMentioned"
     :notification-unread-count="notificationStore.unreadCount"
     :notification-loading="notificationStore.loading"
-    @locale-change="handleLocaleChange"
-    @timezone-change="handleTimezoneChange"
     @theme-toggle="handleThemeToggle"
     @notification-mark-read="handleNotificationMarkRead"
     @notification-confirm="handleNotificationConfirm"
