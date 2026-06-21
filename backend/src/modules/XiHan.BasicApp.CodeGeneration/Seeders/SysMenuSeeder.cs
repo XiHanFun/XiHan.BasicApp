@@ -52,12 +52,12 @@ public class SysMenuSeeder : DataSeederBase
 
         if (!existsCodes.Contains("develop"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "lucide:hammer", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = false, IsAffix = false, Status = EnableStatus.Disabled, Sort = 400, Remark = "代码生成前端和应用服务重建前暂不显示" });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "lucide:hammer", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 400, Remark = "开发工具目录" });
         }
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "lucide:code-xml", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = false, IsAffix = false, Status = EnableStatus.Disabled, Sort = 401, Remark = "代码生成前端和应用服务重建前暂不显示" });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "lucide:code-xml", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 401, Remark = "代码生成" });
         }
 
         if (addList.Count > 0)
@@ -74,20 +74,20 @@ public class SysMenuSeeder : DataSeederBase
                 .ExecuteCommandAsync();
         }
 
-        var hideCount = await client.Updateable<SysMenu>()
-            .SetColumns(m => m.IsVisible == false)
-            .SetColumns(m => m.Status == EnableStatus.Disabled)
-            .SetColumns(m => m.Remark == "代码生成前端和应用服务重建前暂不显示")
+        // 代码生成前端与应用服务已就绪，菜单解除隐藏：把仍隐藏/停用的项置为可见且启用
+        var showCount = await client.Updateable<SysMenu>()
+            .SetColumns(m => m.IsVisible == true)
+            .SetColumns(m => m.Status == EnableStatus.Enabled)
             .Where(m => m.MenuCode == "develop" || m.MenuCode == "code_gen")
-            .Where(m => m.IsVisible || m.Status != EnableStatus.Disabled)
+            .Where(m => !m.IsVisible || m.Status != EnableStatus.Enabled)
             .ExecuteCommandAsync();
 
-        if (addList.Count == 0 && hideCount == 0)
+        if (addList.Count == 0 && showCount == 0)
         {
-            Logger.LogInformation("系统菜单数据已存在且保持隐藏，跳过种子数据");
+            Logger.LogInformation("系统菜单数据已存在且已显示，跳过种子数据");
             return;
         }
 
-        Logger.LogInformation("成功初始化 {AddCount} 个系统菜单，隐藏 {HideCount} 个未完成菜单", addList.Count, hideCount);
+        Logger.LogInformation("成功初始化 {AddCount} 个系统菜单，显示 {ShowCount} 个代码生成菜单", addList.Count, showCount);
     }
 }
