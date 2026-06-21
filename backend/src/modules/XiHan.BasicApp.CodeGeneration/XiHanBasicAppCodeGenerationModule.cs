@@ -37,5 +37,11 @@ public class XiHanBasicAppCodeGenerationModule : XiHanModule
 
         // 注册代码生成模块种子数据
         services.AddCodeGenerationDataSeeders();
+
+        // 注册代码生成引擎（渲染器/类型映射/扫描/打包/编排）
+        services.AddCodeGenerationEngine();
+
+        // 注册代码生成领域服务（未携带 DI 标记接口，需显式登记）
+        services.AddCodeGenerationDomainServices();
     }
 }
