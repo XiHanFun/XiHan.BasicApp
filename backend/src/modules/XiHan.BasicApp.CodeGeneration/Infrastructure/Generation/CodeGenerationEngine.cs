@@ -1,0 +1,236 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:CodeGenerationEngine
+// Guid:c0de9e00-0307-4a00-9000-000000000307
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/06/20 10:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using System.Diagnostics;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
+using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
+
+/// <summary>
+/// 代码生成引擎（管线编排：建模 → 选模板 → 渲染 → 产出）
+/// </summary>
+/// <remarks>
+/// 本类已接通"配置 → 渲染 → 产物"主链路；以下为 S2 待完善项（已标 TODO）：
+/// 内置全栈模板、树表/主子表上下文扩展、文件名/路径表达式的健壮渲染、落盘白名单。
+/// </remarks>
+public sealed class CodeGenerationEngine(
+    ICodeGenTableRepository tableRepository,
+    ICodeGenTableColumnRepository columnRepository,
+    ICodeGenTemplateRepository templateRepository,
+    ITemplateRendererResolver rendererResolver,
+    ITypeMappingProvider typeMappingProvider,
+    IGeneratedArtifactPackager packager) : ICodeGenerationEngine
+{
+    private readonly ICodeGenTableRepository _tableRepository = tableRepository;
+    private readonly ICodeGenTableColumnRepository _columnRepository = columnRepository;
+    private readonly ICodeGenTemplateRepository _templateRepository = templateRepository;
+    private readonly ITemplateRendererResolver _rendererResolver = rendererResolver;
+    private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
+    private readonly IGeneratedArtifactPackager _packager = packager;
+
+    /// <inheritdoc />
+    public Task<GenerationResult> PreviewAsync(GenerationRequest request, CancellationToken cancellationToken = default)
+        => RenderCoreAsync(request, cancellationToken);
+
+    /// <inheritdoc />
+    public async Task<GenerationResult> GenerateAsync(GenerationRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var result = await RenderCoreAsync(request, cancellationToken);
+        if (!result.Success)
+        {
+            return result;
+        }
+
+        switch (request.GenType)
+        {
+            case GenType.Zip:
+                result.Package = await _packager.PackAsync(result.Artifacts, cancellationToken);
+                break;
+
+            case GenType.CustomPath:
+                // 安全 D5：生产环境默认禁用落盘；需路径白名单 + 规范化校验后方可开启
+                // TODO(S2)：实现受控目录落盘（IGeneratedArtifactWriter + 白名单 + ".." 穿越校验）
+                return GenerationResult.Fail("自定义路径落盘暂未启用（安全策略）。请使用预览或 Zip 下载。");
+
+            case GenType.Preview:
+            default:
+                break;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 渲染核心：加载配置 → 构建上下文 → 渲染模板 → 产出文件
+    /// </summary>
+    private async Task<GenerationResult> RenderCoreAsync(GenerationRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var stopwatch = Stopwatch.StartNew();
+
+        var table = await _tableRepository.GetByIdAsync(request.TableId, cancellationToken);
+        if (table is null)
+        {
+            return GenerationResult.Fail($"代码生成表配置不存在：{request.TableId}");
+        }
+
+        var columns = await _columnRepository.GetByTableIdAsync(table.BasicId, cancellationToken);
+        var context = BuildContext(table, columns);
+
+        var templates = request.TemplateCodes is { Count: > 0 }
+            ? await _templateRepository.GetByCodesAsync(request.TemplateCodes, cancellationToken)
+            : await _templateRepository.GetEnabledByGroupAsync(table.ModuleName, cancellationToken);
+
+        if (templates.Count == 0)
+        {
+            return GenerationResult.Fail("未找到可用模板（请检查模板分组/编码与启用状态）。");
+        }
+
+        var artifacts = new List<GeneratedArtifact>(templates.Count);
+        foreach (var template in templates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var renderer = _rendererResolver.Resolve(template.TemplateEngine);
+            var content = await renderer.RenderAsync(template.TemplateContent ?? string.Empty, context, cancellationToken);
+            var fileName = await ResolveFileNameAsync(renderer, template, context, cancellationToken);
+            var relativePath = await ResolveRelativePathAsync(renderer, template, context, fileName, cancellationToken);
+
+            artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode));
+        }
+
+        stopwatch.Stop();
+        return GenerationResult.Ok(artifacts, stopwatch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// 由表配置 + 列配置构建模板上下文
+    /// </summary>
+    private CodeGenerationContext BuildContext(SysCodeGenTable table, IReadOnlyList<SysCodeGenTableColumn> columns)
+    {
+        var columnSchemas = columns.Select(column => MapColumn(table, column)).ToList();
+
+        return new CodeGenerationContext
+        {
+            TableName = table.TableName,
+            TableComment = table.TableComment,
+            ClassName = table.ClassName,
+            Namespace = table.Namespace,
+            ModuleName = table.ModuleName,
+            BusinessName = table.BusinessName,
+            FunctionName = table.FunctionName,
+            Author = table.Author,
+            TemplateType = table.TemplateType,
+            Columns = columnSchemas,
+            PrimaryKey = columnSchemas.FirstOrDefault(column => column.IsPrimaryKey)
+                ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn)
+        };
+    }
+
+    /// <summary>
+    /// 列配置 → 列模型；C#/TS 类型缺失时回退到类型映射器
+    /// </summary>
+    private ColumnSchema MapColumn(SysCodeGenTable table, SysCodeGenTableColumn column)
+    {
+        var schema = new ColumnSchema
+        {
+            ColumnName = column.ColumnName,
+            ColumnComment = column.ColumnComment,
+            DbType = column.ColumnType,
+            CSharpType = column.CSharpType ?? string.Empty,
+            CSharpProperty = column.CSharpProperty ?? string.Empty,
+            TsType = column.TsType ?? string.Empty,
+            IsPrimaryKey = column.IsPrimaryKey,
+            IsIdentity = column.IsIdentity,
+            IsNullable = column.IsNullable,
+            IsRequired = column.IsRequired,
+            Length = column.ColumnLength,
+            DecimalDigits = column.DecimalDigits,
+            HtmlType = column.HtmlType,
+            QueryType = column.QueryType
+        };
+
+        // 列配置未填类型时，按 DB 类型回退映射（导入流程会预填，此处为兜底）
+        if (string.IsNullOrWhiteSpace(schema.CSharpType) || string.IsNullOrWhiteSpace(schema.TsType))
+        {
+            var mapping = _typeMappingProvider.Map(table.DatabaseType, column.ColumnType, column.IsNullable);
+            if (string.IsNullOrWhiteSpace(schema.CSharpType))
+            {
+                schema.CSharpType = mapping.CSharpType;
+            }
+
+            if (string.IsNullOrWhiteSpace(schema.TsType))
+            {
+                schema.TsType = mapping.TsType;
+            }
+        }
+
+        return schema;
+    }
+
+    /// <summary>
+    /// 解析输出文件名（优先模板 FileNameExpression，回退 ClassName + 扩展名）
+    /// </summary>
+    private static async Task<string> ResolveFileNameAsync(
+        ITemplateRenderer renderer,
+        SysCodeGenTemplate template,
+        CodeGenerationContext context,
+        CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(template.FileNameExpression))
+        {
+            var rendered = await renderer.RenderAsync(template.FileNameExpression, context, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(rendered))
+            {
+                return rendered.Trim();
+            }
+        }
+
+        var extension = string.IsNullOrWhiteSpace(template.FileExtension) ? ".cs" : template.FileExtension.Trim();
+        if (!extension.StartsWith('.'))
+        {
+            extension = "." + extension;
+        }
+
+        return context.ClassName + extension;
+    }
+
+    /// <summary>
+    /// 解析输出相对路径（优先模板 FilePathExpression 作为目录，拼接文件名）
+    /// </summary>
+    private static async Task<string> ResolveRelativePathAsync(
+        ITemplateRenderer renderer,
+        SysCodeGenTemplate template,
+        CodeGenerationContext context,
+        string fileName,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(template.FilePathExpression))
+        {
+            return fileName;
+        }
+
+        var directory = await renderer.RenderAsync(template.FilePathExpression, context, cancellationToken);
+        directory = directory?.Trim().Replace('\\', '/').TrimEnd('/');
+
+        return string.IsNullOrWhiteSpace(directory) ? fileName : $"{directory}/{fileName}";
+    }
+}
