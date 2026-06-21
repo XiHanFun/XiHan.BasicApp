@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
+using XiHan.BasicApp.CodeGeneration.Application.Mappers;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
