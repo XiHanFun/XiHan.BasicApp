@@ -356,6 +356,18 @@ XiHan.BasicApp.CodeGeneration/
 - [x] 前端验证：`vue-tsc --noEmit` 整项目 0 错误；eslint + oxlint 限定 codegen 目录 0 错误
 - ⚠ 待真实环境联调（后端部署 + 前端构建后，走通 导入→配置→预览→生成下载）
 
+### S4 零代码运行时（基础切片已落地，整体演进中）
+> 核心思想（§9）：同一套配置元数据（SysCodeGenTable/Column），低代码把它编译成代码，零代码在运行时解释执行。本阶段交付**只读动态运行时**基础切片，证明"配置表 → 运行时数据/表单，不产代码、不重编译"的路径。
+
+- [x] **S4.1 只读动态运行时**（后端，dotnet build 验证 0 错误）：`DynamicRuntimeAppService`（DynamicApi 暴露）
+  - `GetSchemaAsync(tableId)`：按配置元数据返回字段 schema（列名/属性名/标签/控件/查询方式）
+  - `GetPageAsync({tableId,pageIndex,pageSize})`：用原始 `ISqlSugarClient.Queryable<Dictionary<string,object>>().AS(表名).ToPageListAsync(...)` 运行时分页读取**已配置且启用**的表，返回字典行
+  - 安全：表名只来自已配置启用记录（非用户输入），无注入面；只读
+- [x] **S4.1 前端**：动态运行时 API + 元数据驱动的「运行时数据」弹窗（复用现有 SchemaPage/表格机制，按 schema 动态渲染列；type-check 通过）
+- [ ] **S4.2**：运行时关键字/过滤/排序（按列元数据 QueryType 翻译为 SqlSugar 条件）+ 写入（动态 Insert/Update/Delete + 列校验/FLS）
+- [ ] **S4.3**：动态建表（SqlSugar CodeFirst 动态类型 / DbMaintenance）—— 在线设计实体即建表
+- [ ] **S4.4（框架级）**：元数据驱动的动态 API 约定（DynamicApi 运行时控制器 + 通用 CRUD 端点族）、动态表单设计器、与 RBAC/ABAC/FLS 打通 —— 属 XiHan.Framework 级独立工程，需迭代验证
+
 ### 待办
-- [ ] 真实表生成验证（服务器，端到端联调）
-- [ ] 零代码运行时（S4）
+- [ ] 真实表生成验证（服务器，端到端联调 S0–S3）
+- [ ] S4.2–S4.4 零代码运行时演进（框架级，独立迭代）
