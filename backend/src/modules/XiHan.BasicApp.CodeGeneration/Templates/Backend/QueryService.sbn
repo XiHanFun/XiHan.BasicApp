@@ -1,0 +1,127 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}QueryService
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Application.Contracts;
+using {{ Namespace }}.Application.Dtos;
+using {{ Namespace }}.Application.Mappers;
+using {{ Namespace }}.Domain.Entities;
+using {{ Namespace }}.Domain.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Application.Services;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Enums;
+using XiHan.Framework.Domain.Shared.Paging.Models;
+
+namespace {{ Namespace }}.Application.QueryServices;
+
+/// <summary>
+/// {{ TableComment }}查询应用服务
+/// </summary>
+[Authorize]
+[DynamicApi(Group = "{{ ModuleName }}", GroupName = "{{ FunctionName }}", Tag = "{{ BusinessName }}")]
+public sealed class {{ ClassName }}QueryService : ApplicationServiceBase, I{{ ClassName }}QueryService
+{
+    private readonly I{{ ClassName }}Repository _repository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public {{ ClassName }}QueryService(I{{ ClassName }}Repository repository)
+    {
+        _repository = repository;
+    }
+
+    /// <inheritdoc />
+    public async Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> GetPageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = BuildPageRequest(input);
+        var page = await _repository.GetPagedAsync(request, cancellationToken);
+        if (page.Items.Count == 0)
+        {
+            return new PageResultDtoBase<{{ ClassName }}ListItemDto>([], page.Page)
+            {
+                ExtendDatas = page.ExtendDatas
+            };
+        }
+
+        var items = page.Items
+            .Select({{ ClassName }}ApplicationMapper.ToListItemDto)
+            .ToList();
+        return new PageResultDtoBase<{{ ClassName }}ListItemDto>(items, page.Page)
+        {
+            ExtendDatas = page.ExtendDatas
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<{{ ClassName }}DetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "{{ TableComment }}主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entity = await _repository.GetByIdAsync(id, cancellationToken);
+        return entity is null ? null : {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
+    }
+
+    /// <summary>
+    /// 构建{{ TableComment }}分页请求
+    /// </summary>
+    private static BasicAppPRDto BuildPageRequest({{ ClassName }}PageQueryDto input)
+    {
+        var request = new BasicAppPRDto
+        {
+            Page = input.Page,
+            Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+{{~ has_like = false ~}}
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && col.QueryType == "Like" ~}}
+{{~ has_like = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ if has_like ~}}
+
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            request.Conditions.SetKeyword<{{ ClassName }}>(
+                input.Keyword.Trim()
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && col.QueryType == "Like" ~}},
+                entity => entity.{{ col.CSharpProperty }}
+{{~ end ~}}
+{{~ end ~}});
+        }
+{{~ end ~}}
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+
+        if (input.{{ col.CSharpProperty }}{{ if col.CSharpType | string.contains "?" }} is not null{{ else }}.HasValue{{ end }})
+        {
+            request.Conditions.AddFilter(({{ ClassName }} entity) => entity.{{ col.CSharpProperty }}, input.{{ col.CSharpProperty }}{{ if !(col.CSharpType | string.contains "?") }}.Value{{ end }});
+        }
+{{~ end ~}}
+{{~ end ~}}
+
+        request.Conditions.AddSort(({{ ClassName }} entity) => entity.CreatedTime, SortDirection.Descending, 0);
+        return request;
+    }
+}

@@ -28,6 +28,18 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
 {
     private readonly ITemplateService _templateService = templateService;
 
+    /// <summary>
+    /// 基类（BasicAppFullAuditedEntity）托管的列名集合：主键/租户/审计/软删，生成实体属性时应跳过。
+    /// 模板可据 col.IsBaseColumn 过滤，只生成业务列。
+    /// </summary>
+    private static readonly HashSet<string> BaseColumnNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "BasicId", "Id", "TenantId", "IsDeleted",
+        "CreatedTime", "CreatedId", "CreatedBy",
+        "ModifiedTime", "ModifiedId", "ModifiedBy",
+        "DeletedTime", "DeletedId", "DeletedBy"
+    };
+
     /// <inheritdoc />
     public TemplateEngine Engine => TemplateEngine.Scriban;
 
@@ -42,8 +54,60 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             return string.Empty;
         }
 
-        // 直接把强类型上下文作为模型交给 Scriban 渲染
-        return await _templateService.RenderAsync(templateSource, context);
+        // 走框架已验证可用的「字典变量」重载（生产中 MessageTemplateRenderer 同款路径）。
+        // 将上下文展开为嵌套字典：键即 Scriban 变量名/成员名，精确匹配、不经成员重命名，
+        // 故模板用确定的 PascalCase 访问（如 {{ ClassName }}、{{ for col in Columns }}{{ col.CSharpProperty }}）。
+        var variables = BuildVariables(context);
+        return await _templateService.RenderAsync(templateSource, variables);
+    }
+
+    /// <summary>
+    /// 上下文 → Scriban 字典模型（PascalCase 键；Columns 为字典列表）
+    /// </summary>
+    private static IDictionary<string, object?> BuildVariables(CodeGenerationContext context)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["TableName"] = context.TableName,
+            ["TableComment"] = context.TableComment,
+            ["ClassName"] = context.ClassName,
+            ["Namespace"] = context.Namespace,
+            ["ModuleName"] = context.ModuleName,
+            ["BusinessName"] = context.BusinessName,
+            ["FunctionName"] = context.FunctionName,
+            ["Author"] = context.Author,
+            // 枚举以名称字符串透出，便于模板按名比较（如 {{ if TemplateType == "Tree" }}）
+            ["TemplateType"] = context.TemplateType.ToString(),
+            ["PrimaryKey"] = context.PrimaryKey is null ? null : BuildColumn(context.PrimaryKey),
+            ["Columns"] = context.Columns.Select(BuildColumn).ToList(),
+            ["Options"] = context.Options
+        };
+    }
+
+    /// <summary>
+    /// 列 → Scriban 字典（标量值；枚举以名称字符串透出）
+    /// </summary>
+    private static IDictionary<string, object?> BuildColumn(ColumnSchema column)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["ColumnName"] = column.ColumnName,
+            ["ColumnComment"] = column.ColumnComment,
+            ["DbType"] = column.DbType,
+            ["CSharpType"] = column.CSharpType,
+            ["CSharpProperty"] = column.CSharpProperty,
+            ["TsType"] = column.TsType,
+            ["IsPrimaryKey"] = column.IsPrimaryKey,
+            ["IsIdentity"] = column.IsIdentity,
+            ["IsNullable"] = column.IsNullable,
+            ["IsRequired"] = column.IsRequired,
+            // 基类托管列（主键/审计/软删/租户）：模板生成业务属性时应跳过
+            ["IsBaseColumn"] = BaseColumnNames.Contains(column.ColumnName),
+            ["Length"] = column.Length,
+            ["DecimalDigits"] = column.DecimalDigits,
+            ["HtmlType"] = column.HtmlType.ToString(),
+            ["QueryType"] = column.QueryType.ToString()
+        };
     }
 
     /// <inheritdoc />

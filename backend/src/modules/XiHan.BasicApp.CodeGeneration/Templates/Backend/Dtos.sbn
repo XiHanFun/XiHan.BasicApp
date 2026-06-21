@@ -1,0 +1,77 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}Dtos
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+#pragma warning disable CS1591
+
+using XiHan.BasicApp.Core.Dtos;
+
+namespace {{ Namespace }}.Application.Dtos;
+
+/// <summary>
+/// {{ TableComment }}创建 DTO
+/// </summary>
+public sealed class {{ ClassName }}CreateDto
+{
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+/// <summary>
+/// {{ TableComment }}更新 DTO
+/// </summary>
+public sealed class {{ ClassName }}UpdateDto : BasicAppUDto
+{
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+/// <summary>
+/// {{ TableComment }}分页查询 DTO
+/// </summary>
+public sealed class {{ ClassName }}PageQueryDto : BasicAppPRDto
+{
+    public string? Keyword { get; set; }
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+    public {{ col.CSharpType }}{{ if !(col.CSharpType | string.contains "?") }}?{{ end }} {{ col.CSharpProperty }} { get; set; }
+{{~ end ~}}
+{{~ end ~}}
+}
+
+/// <summary>
+/// {{ TableComment }}列表项 DTO
+/// </summary>
+public class {{ ClassName }}ListItemDto : BasicAppDto
+{
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+{{~ end ~}}
+{{~ end ~}}
+    public DateTimeOffset CreatedTime { get; set; }
+}
+
+/// <summary>
+/// {{ TableComment }}详情 DTO
+/// </summary>
+public sealed class {{ ClassName }}DetailDto : {{ ClassName }}ListItemDto
+{
+    public long? CreatedId { get; set; }
+    public string? CreatedBy { get; set; }
+    public long? ModifiedId { get; set; }
+    public string? ModifiedBy { get; set; }
+}

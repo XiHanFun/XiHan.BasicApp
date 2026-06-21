@@ -1,0 +1,78 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}AppService
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using Microsoft.AspNetCore.Authorization;
+using {{ Namespace }}.Application.Contracts;
+using {{ Namespace }}.Application.Dtos;
+using {{ Namespace }}.Application.Mappers;
+using {{ Namespace }}.Domain.Repositories;
+using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Application.Services;
+using XiHan.Framework.Uow.Attributes;
+
+namespace {{ Namespace }}.Application.AppServices;
+
+/// <summary>
+/// {{ TableComment }}命令应用服务
+/// </summary>
+[Authorize]
+[DynamicApi(Group = "{{ ModuleName }}", GroupName = "{{ FunctionName }}", Tag = "{{ BusinessName }}")]
+public sealed class {{ ClassName }}AppService : ApplicationServiceBase, I{{ ClassName }}AppService
+{
+    private readonly I{{ ClassName }}Repository _repository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public {{ ClassName }}AppService(I{{ ClassName }}Repository repository)
+    {
+        _repository = repository;
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<{{ ClassName }}DetailDto> CreateAsync({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entity = {{ ClassName }}ApplicationMapper.ToEntity(input);
+        entity = await _repository.AddAsync(entity, cancellationToken);
+        return {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task<{{ ClassName }}DetailDto> UpdateAsync({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entity = await _repository.GetByIdAsync(input.BasicId, cancellationToken)
+            ?? throw new ArgumentException($"未找到主键为 {input.BasicId} 的记录。", nameof(input));
+        {{ ClassName }}ApplicationMapper.ApplyUpdate(entity, input);
+        entity = await _repository.UpdateAsync(entity, cancellationToken);
+        return {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        _ = await _repository.DeleteByIdAsync(id, cancellationToken);
+    }
+}

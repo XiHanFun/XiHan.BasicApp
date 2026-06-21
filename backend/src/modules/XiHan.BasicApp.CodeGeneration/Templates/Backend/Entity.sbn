@@ -1,0 +1,36 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using SqlSugar;
+using XiHan.BasicApp.Core.Entities;
+
+namespace {{ Namespace }}.Domain.Entities;
+
+/// <summary>
+/// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}实体
+/// </summary>
+[SugarTable("{{ TableName }}"{{ if TableComment }}, "{{ TableComment }}"{{ end }})]
+[SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+public partial class {{ ClassName }} : BasicAppFullAuditedEntity
+{
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn ~}}
+    /// <summary>
+    /// {{ if col.ColumnComment }}{{ col.ColumnComment }}{{ else }}{{ col.CSharpProperty }}{{ end }}
+    /// </summary>
+    [SugarColumn(ColumnDescription = "{{ col.ColumnComment }}"{{ if col.Length }}, Length = {{ col.Length }}{{ end }}{{ if col.DecimalDigits }}, DecimalDigits = {{ col.DecimalDigits }}{{ end }}{{ if col.IsNullable }}, IsNullable = true{{ else }}, IsNullable = false{{ end }})]
+    public virtual {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+
+{{~ end ~}}
+{{~ end ~}}
+}

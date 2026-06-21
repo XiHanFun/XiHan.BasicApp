@@ -1,0 +1,25 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}Repository
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Domain.Entities;
+using {{ Namespace }}.Domain.Repositories;
+using XiHan.BasicApp.Saas.Infrastructure.Repositories;
+using XiHan.Framework.Data.SqlSugar.Clients;
+
+namespace {{ Namespace }}.Infrastructure.Repositories;
+
+/// <summary>
+/// {{ TableComment }}仓储实现
+/// </summary>
+public sealed class {{ ClassName }}Repository(ISqlSugarClientResolver clientResolver)
+    : SaasRepository<{{ ClassName }}>(clientResolver), I{{ ClassName }}Repository
+{
+}

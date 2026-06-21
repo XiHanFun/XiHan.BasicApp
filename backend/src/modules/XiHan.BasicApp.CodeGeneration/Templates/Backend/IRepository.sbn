@@ -1,0 +1,22 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:I{{ ClassName }}Repository
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Repositories;
+
+namespace {{ Namespace }}.Domain.Repositories;
+
+/// <summary>
+/// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}仓储接口
+/// </summary>
+public interface I{{ ClassName }}Repository : ISaasRepository<{{ ClassName }}>
+{
+}
