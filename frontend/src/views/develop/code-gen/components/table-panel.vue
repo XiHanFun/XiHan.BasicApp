@@ -33,6 +33,7 @@ import { getOptionLabel } from '~/utils'
 import ColumnConfigModal from './column-config-modal.vue'
 import GenerateModal from './generate-modal.vue'
 import ImportTableModal from './import-table-modal.vue'
+import RuntimeDataModal from './runtime-data-modal.vue'
 import TableEditModal from './table-edit-modal.vue'
 
 defineOptions({ name: 'CodeGenTablePanel' })
@@ -55,6 +56,7 @@ const importVisible = ref(false)
 const editVisible = ref(false)
 const columnVisible = ref(false)
 const generateVisible = ref(false)
+const runtimeVisible = ref(false)
 const currentTableId = ref<ApiId | null>(null)
 const currentTableName = ref('')
 
@@ -148,11 +150,20 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
   {
     key: 'actions',
     title: '操作',
-    width: 240,
+    width: 288,
     fixed: 'right',
     align: 'center',
     render: (row: CodeGenTableListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
+        h(NButton, {
+          circle: true,
+          quaternary: true,
+          size: 'small',
+          title: '运行时数据',
+          onClick: () => handleRuntime(row),
+        }, {
+          icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:database' })),
+        }),
         h(NButton, {
           quaternary: true,
           size: 'small',
@@ -199,6 +210,12 @@ function handleGenerate(row: CodeGenTableListItemDto) {
   currentTableId.value = row.basicId
   currentTableName.value = row.tableName
   generateVisible.value = true
+}
+
+function handleRuntime(row: CodeGenTableListItemDto) {
+  currentTableId.value = row.basicId
+  currentTableName.value = row.tableName
+  runtimeVisible.value = true
 }
 
 async function handleDelete(row: CodeGenTableListItemDto) {
@@ -273,7 +290,7 @@ onMounted(fetchData)
         :data="list"
         :loading="loading"
         :row-key="(row: CodeGenTableListItemDto) => row.basicId"
-        :scroll-x="1400"
+        :scroll-x="1448"
         size="small"
       />
     </div>
@@ -298,6 +315,11 @@ onMounted(fetchData)
       :table-id="currentTableId"
       :table-name="currentTableName"
       @generated="fetchData"
+    />
+    <RuntimeDataModal
+      v-model:show="runtimeVisible"
+      :table-id="currentTableId"
+      :table-name="currentTableName"
     />
   </div>
 </template>
