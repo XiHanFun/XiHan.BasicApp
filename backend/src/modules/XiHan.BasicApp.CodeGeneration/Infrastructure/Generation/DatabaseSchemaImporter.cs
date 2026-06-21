@@ -16,6 +16,7 @@ using System.Reflection;
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.Framework.Data.SqlSugar.Metadata;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
@@ -278,11 +279,21 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
                         continue;
                     }
 
-                    var realTable = string.IsNullOrWhiteSpace(tableAttribute.TableName) ? type.Name : tableAttribute.TableName;
+                    // 分表实体的 SugarTable 名是模板（如 SysDiffLog_{year}{month}{day}），取占位符 { 之前的基础名
+                    var rawTableName = string.IsNullOrWhiteSpace(tableAttribute.TableName) ? type.Name : tableAttribute.TableName;
+                    var realTable = ExtractBaseName(rawTableName);
+                    if (string.IsNullOrWhiteSpace(realTable))
+                    {
+                        realTable = type.Name;
+                    }
+
                     var lowerTable = realTable.ToLowerInvariant();
                     tables[lowerTable] = realTable;
 
-                    if (type.GetCustomAttribute<SplitTableAttribute>() is not null)
+                    // 分表标记：ISplitTableEntity 接口 或 [SplitTable] 特性（与框架自身判定一致）
+                    var isSplitTable = typeof(ISplitTableEntity).IsAssignableFrom(type)
+                        || type.GetCustomAttribute<SplitTableAttribute>() is not null;
+                    if (isSplitTable)
                     {
                         splitBases.Add(lowerTable);
                     }
@@ -307,6 +318,22 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
             }
 
             return new EntityNameCatalog(tables, columns, splitBases);
+        }
+
+        /// <summary>
+        /// 取表名模板占位符 { 之前的基础名（如 SysDiffLog_{year}{month}{day} → SysDiffLog）；无占位符则原样
+        /// </summary>
+        private static string ExtractBaseName(string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                return tableName;
+            }
+
+            var placeholderIndex = tableName.IndexOf('{');
+            return placeholderIndex < 0
+                ? tableName
+                : tableName[..placeholderIndex].TrimEnd('_', '-', ' ');
         }
     }
 }
