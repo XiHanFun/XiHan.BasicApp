@@ -1,0 +1,247 @@
+{{~ # 预计算控件需求标志（避免按列重复 import 造成 eslint no-unused） ~}}
+{{~ has_number = false ~}}
+{{~ has_switch = false ~}}
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.HtmlType == "Switch"; has_switch = true; end ~}}
+{{~ if col.HtmlType != "Switch" && col.HtmlType != "Textarea" && col.TsType == "number"; has_number = true; end ~}}
+{{~ end ~}}
+{{~ end ~}}
+<script setup lang="ts">
+import type { PageResult } from '@/api'
+import type {
+  {{ ClassName }}CreateDto,
+  {{ ClassName }}DetailDto,
+  {{ ClassName }}ListItemDto,
+  {{ ClassName }}UpdateDto,
+} from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import {
+  NButton,
+  NForm,
+  NFormItem,
+  NInput,
+{{~ if has_number ~}}
+  NInputNumber,
+{{~ end ~}}
+  NModal,
+  NSpace,
+{{~ if has_switch ~}}
+  NSwitch,
+{{~ end ~}}
+  useMessage,
+} from 'naive-ui'
+import { computed, ref } from 'vue'
+import { createPageRequest } from '@/api'
+import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
+import { SchemaPage } from '~/components'
+
+defineOptions({ name: '{{ ClassName }}Page' })
+
+interface {{ ClassName }}FormModel {
+  basicId?: string
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ else ~}}
+  {{ col.TsProperty }}: {{ col.TsType }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+const message = useMessage()
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadList() {
+  void schemaPageRef.value?.reload()
+}
+
+const fields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment }}', width: 250, order: 0 },
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+{{~ end ~}}
+{{~ end ~}}
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 99 },
+]
+
+const schema: PageSchema = {
+  pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
+  pageName: '{{ TableComment }}',
+  batchRemovable: true,
+  rowKey: 'basicId',
+  scrollX: 1200,
+  fields,
+  resource: {
+    page: (params) => {
+      const { keyword{{ for col in Columns }}{{ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") }}, {{ col.TsProperty }}{{ end }}{{ end }} } = params.filters
+      return {{ ClassNameCamel }}ManagementApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: (keyword as string | undefined)?.trim() || undefined,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+        {{ col.TsProperty }}: ({{ col.TsProperty }} as {{ col.TsType }} | undefined) ?? undefined,
+{{~ end ~}}
+{{~ end ~}}
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => {{ ClassNameCamel }}ManagementApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: '新增{{ TableComment }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'edit', title: '编辑', scope: 'row' },
+    { key: 'delete', title: '删除', scope: 'row' },
+  ],
+}
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as {{ ClassName }}ListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
+}
+
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
+const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment }}' : '新增{{ TableComment }}'))
+
+function createDefaultForm(): {{ ClassName }}FormModel {
+  return {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.TsType == "number" ~}}
+    {{ col.TsProperty }}: 0,
+{{~ else if col.TsType == "boolean" ~}}
+    {{ col.TsProperty }}: false,
+{{~ else if col.IsNullable || !col.IsRequired ~}}
+    {{ col.TsProperty }}: null,
+{{~ else ~}}
+    {{ col.TsProperty }}: '',
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+
+function handleAdd() {
+  form.value = createDefaultForm()
+  modalVisible.value = true
+}
+
+async function handleEdit(row: {{ ClassName }}ListItemDto) {
+  const detail = await {{ ClassNameCamel }}ManagementApi.detail(row.basicId)
+  const src = (detail ?? row) as {{ ClassName }}DetailDto
+  form.value = {
+    basicId: row.basicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+    {{ col.TsProperty }}: src.{{ col.TsProperty }} ?? null,
+{{~ else ~}}
+    {{ col.TsProperty }}: src.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  }
+  modalVisible.value = true
+}
+
+async function handleDelete(row: {{ ClassName }}ListItemDto) {
+  await {{ ClassNameCamel }}ManagementApi.delete(row.basicId)
+  message.success('删除成功')
+  reloadList()
+}
+
+async function handleSubmit() {
+  submitLoading.value = true
+  try {
+    if (form.value.basicId) {
+      const updateInput: {{ ClassName }}UpdateDto = {
+        basicId: form.value.basicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+      }
+      await {{ ClassNameCamel }}ManagementApi.update(updateInput)
+    }
+    else {
+      const createInput: {{ ClassName }}CreateDto = {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+      }
+      await {{ ClassNameCamel }}ManagementApi.create(createInput)
+    }
+    message.success('保存成功')
+    modalVisible.value = false
+    reloadList()
+  }
+  catch {
+    message.error('保存失败')
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
+</script>
+
+<template>
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+    <NModal
+      v-model:show="modalVisible"
+      :auto-focus="false"
+      :bordered="false"
+      :title="modalTitle"
+      preset="card"
+      style="width: 680px; max-width: 92vw"
+    >
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        <NFormItem label="{{ col.ColumnComment }}" path="{{ col.TsProperty }}">
+{{~ if col.HtmlType == "Switch" ~}}
+          <NSwitch v-model:value="form.{{ col.TsProperty }}" />
+{{~ else if col.HtmlType == "Textarea" ~}}
+          <NInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.ColumnComment }}" />
+{{~ else if col.TsType == "number" ~}}
+          <NInputNumber v-model:value="form.{{ col.TsProperty }}" :min="0" style="width: 100%" />
+{{~ else ~}}
+          <NInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.ColumnComment }}" />
+{{~ end ~}}
+        </NFormItem>
+{{~ end ~}}
+{{~ end ~}}
+      </NForm>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+            保存
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </SchemaPage>
+</template>

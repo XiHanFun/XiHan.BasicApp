@@ -17,4 +17,8 @@
       <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.Local.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="Templates\**\*.sbn" />
+    </ItemGroup>
+
 </Project>

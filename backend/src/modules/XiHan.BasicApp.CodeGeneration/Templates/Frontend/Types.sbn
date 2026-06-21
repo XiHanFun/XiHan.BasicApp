@@ -1,0 +1,54 @@
+import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+
+export interface {{ ClassName }}PageQueryDto extends PageRequest {
+  keyword?: string | null
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ end ~}}
+{{~ end ~}}
+}
+
+export interface {{ ClassName }}ListItemDto extends BasicDto {
+  createdTime: DateTimeString
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ else ~}}
+  {{ col.TsProperty }}: {{ col.TsType }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+export interface {{ ClassName }}DetailDto extends {{ ClassName }}ListItemDto {
+  createdBy?: string | null
+  createdId?: ApiId | null
+  modifiedBy?: string | null
+  modifiedId?: ApiId | null
+}
+
+export interface {{ ClassName }}CreateDto {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ else ~}}
+  {{ col.TsProperty }}: {{ col.TsType }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+export interface {{ ClassName }}UpdateDto extends BasicDto {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ else ~}}
+  {{ col.TsProperty }}: {{ col.TsType }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}

@@ -21,13 +21,13 @@ namespace {{ Namespace }}.Application.Contracts;
 public interface I{{ ClassName }}AppService : IApplicationService
 {
     /// <summary>创建{{ TableComment }}</summary>
-    Task<{{ ClassName }}DetailDto> CreateAsync({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default);
+    Task<{{ ClassName }}DetailDto> Create{{ ClassName }}Async({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>更新{{ TableComment }}</summary>
-    Task<{{ ClassName }}DetailDto> UpdateAsync({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default);
+    Task<{{ ClassName }}DetailDto> Update{{ ClassName }}Async({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>删除{{ TableComment }}</summary>
-    Task DeleteAsync(long id, CancellationToken cancellationToken = default);
+    Task Delete{{ ClassName }}Async(long id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -36,8 +36,8 @@ public interface I{{ ClassName }}AppService : IApplicationService
 public interface I{{ ClassName }}QueryService : IApplicationService
 {
     /// <summary>分页查询{{ TableComment }}</summary>
-    Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> GetPageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default);
+    Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> Get{{ ClassName }}PageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default);
 
     /// <summary>查询{{ TableComment }}详情</summary>
-    Task<{{ ClassName }}DetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default);
+    Task<{{ ClassName }}DetailDto?> Get{{ ClassName }}DetailAsync(long id, CancellationToken cancellationToken = default);
 }
