@@ -1,0 +1,158 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:CodeGenTableColumnDomainService
+// Guid:c0de9e00-0c03-4a00-9000-000000000c03
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/06/20 10:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
+using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+
+namespace XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
+
+/// <summary>
+/// 代码生成列配置领域服务实现
+/// </summary>
+public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainService
+{
+    private readonly ICodeGenTableColumnRepository _columnRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public CodeGenTableColumnDomainService(ICodeGenTableColumnRepository columnRepository)
+    {
+        _columnRepository = columnRepository;
+    }
+
+    /// <inheritdoc />
+    public async Task<CodeGenTableColumnBatchSaveResult> BatchSaveColumnsAsync(CodeGenTableColumnBatchSaveCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.TableId, "所属表主键必须大于 0。");
+
+        if (command.Columns is null || command.Columns.Count == 0)
+        {
+            return new CodeGenTableColumnBatchSaveResult([]);
+        }
+
+        var updatedColumns = new List<SysCodeGenTableColumn>(command.Columns.Count);
+        foreach (var columnCommand in command.Columns)
+        {
+            ArgumentNullException.ThrowIfNull(columnCommand);
+
+            var column = await GetColumnOrThrowAsync(columnCommand.BasicId, cancellationToken);
+            if (column.TableId != command.TableId)
+            {
+                throw new InvalidOperationException("批量保存的列配置必须属于同一张表。");
+            }
+
+            ApplyMutableFields(column, columnCommand);
+            updatedColumns.Add(column);
+        }
+
+        var result = await _columnRepository.UpdateRangeAsync(updatedColumns, cancellationToken);
+        return new CodeGenTableColumnBatchSaveResult([.. result]);
+    }
+
+    /// <inheritdoc />
+    public async Task<CodeGenTableColumnCommandResult> UpdateColumnAsync(CodeGenTableColumnUpdateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var column = await GetColumnOrThrowAsync(command.BasicId, cancellationToken);
+        ApplyMutableFields(column, command);
+
+        return new CodeGenTableColumnCommandResult(await _columnRepository.UpdateAsync(column, cancellationToken));
+    }
+
+    /// <summary>
+    /// 覆盖列配置的可变字段
+    /// </summary>
+    private static void ApplyMutableFields(SysCodeGenTableColumn column, CodeGenTableColumnUpdateCommand command)
+    {
+        EnsureEnum(command.QueryType, "查询方式无效。");
+        EnsureEnum(command.HtmlType, "表单显示类型无效。");
+        EnsureEnum(command.Status, "状态无效。");
+
+        column.CSharpType = NormalizeNullable(command.CSharpType, 100, "C# 类型最长 100 个字符。");
+        column.CSharpProperty = NormalizeNullable(command.CSharpProperty, 200, "C# 属性名最长 200 个字符。");
+        column.TsType = NormalizeNullable(command.TsType, 100, "TypeScript 类型最长 100 个字符。");
+        column.IsRequired = command.IsRequired;
+        column.IsList = command.IsList;
+        column.IsInsert = command.IsInsert;
+        column.IsEdit = command.IsEdit;
+        column.IsQuery = command.IsQuery;
+        column.QueryType = command.QueryType;
+        column.HtmlType = command.HtmlType;
+        column.DictType = NormalizeNullable(command.DictType, 100, "字典类型最长 100 个字符。");
+        column.DefaultValue = NormalizeNullable(command.DefaultValue, 500, "默认值最长 500 个字符。");
+        column.RegexPattern = NormalizeNullable(command.RegexPattern, 500, "正则表达式最长 500 个字符。");
+        column.ValidationMessage = NormalizeNullable(command.ValidationMessage, 500, "验证提示信息最长 500 个字符。");
+        column.Sort = command.Sort;
+        column.Status = command.Status;
+    }
+
+    /// <summary>
+    /// 加载列配置，不存在则抛出异常
+    /// </summary>
+    private async Task<SysCodeGenTableColumn> GetColumnOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "列配置主键必须大于 0。");
+        return await _columnRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("列配置不存在。");
+    }
+
+    /// <summary>
+    /// 校验主键大于 0
+    /// </summary>
+    private static void EnsureId(long id, string message)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentException(message, nameof(id));
+        }
+    }
+
+    /// <summary>
+    /// 校验枚举值有效
+    /// </summary>
+    private static void EnsureEnum<TEnum>(TEnum value, string message)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentException(message);
+        }
+    }
+
+    /// <summary>
+    /// 规整可空字符串：空白归 null，否则去空格并做长度校验
+    /// </summary>
+    private static string? NormalizeNullable(string? value, int maxLength, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var trimmed = value.Trim();
+        if (trimmed.Length > maxLength)
+        {
+            throw new ArgumentException(message);
+        }
+
+        return trimmed;
+    }
+}

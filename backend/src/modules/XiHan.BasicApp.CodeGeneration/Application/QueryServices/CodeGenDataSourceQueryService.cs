@@ -1,0 +1,121 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:CodeGenDataSourceQueryService
+// Guid:c0de9e00-0801-4a00-9000-000000000801
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/06/20 10:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.CodeGeneration.Application.Contracts;
+using XiHan.BasicApp.CodeGeneration.Application.Dtos;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
+using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Enums;
+using XiHan.Framework.Domain.Shared.Paging.Models;
+
+namespace XiHan.BasicApp.CodeGeneration.Application.QueryServices;
+
+/// <summary>
+/// 代码生成数据源查询应用服务
+/// </summary>
+[DynamicApi(Group = "BasicApp.CodeGen", GroupName = "代码生成服务", Tag = "数据源")]
+public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationService, ICodeGenDataSourceQueryService
+{
+    private readonly ICodeGenDataSourceRepository _dataSourceRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public CodeGenDataSourceQueryService(ICodeGenDataSourceRepository dataSourceRepository)
+    {
+        _dataSourceRepository = dataSourceRepository;
+    }
+
+    /// <inheritdoc />
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<PageResultDtoBase<CodeGenDataSourceListItemDto>> GetPageAsync(CodeGenDataSourcePageQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = BuildPageRequest(input);
+        var page = await _dataSourceRepository.GetPagedAsync(request, cancellationToken);
+        if (page.Items.Count == 0)
+        {
+            return new PageResultDtoBase<CodeGenDataSourceListItemDto>([], page.Page)
+            {
+                ExtendDatas = page.ExtendDatas
+            };
+        }
+
+        var items = page.Items
+            .Select(CodeGenDataSourceApplicationMapper.ToListItemDto)
+            .ToList();
+        return new PageResultDtoBase<CodeGenDataSourceListItemDto>(items, page.Page)
+        {
+            ExtendDatas = page.ExtendDatas
+        };
+    }
+
+    /// <inheritdoc />
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<CodeGenDataSourceDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "数据源主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dataSource = await _dataSourceRepository.GetByIdAsync(id, cancellationToken);
+        return dataSource is null ? null : CodeGenDataSourceApplicationMapper.ToDetailDto(dataSource);
+    }
+
+    /// <summary>
+    /// 构建数据源分页请求
+    /// </summary>
+    private static BasicAppPRDto BuildPageRequest(CodeGenDataSourcePageQueryDto input)
+    {
+        var request = new BasicAppPRDto
+        {
+            Page = input.Page,
+            Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            request.Conditions.SetKeyword<SysCodeGenDataSource>(
+                input.Keyword.Trim(),
+                source => source.SourceName,
+                source => source.SourceDescription);
+        }
+
+        if (input.DatabaseType.HasValue)
+        {
+            request.Conditions.AddFilter((SysCodeGenDataSource source) => source.DatabaseType, input.DatabaseType.Value);
+        }
+
+        if (input.Status.HasValue)
+        {
+            request.Conditions.AddFilter((SysCodeGenDataSource source) => source.Status, input.Status.Value);
+        }
+
+        request.Conditions.AddSort((SysCodeGenDataSource source) => source.Sort, SortDirection.Ascending, 0);
+        request.Conditions.AddSort((SysCodeGenDataSource source) => source.SourceName, SortDirection.Ascending, 1);
+        return request;
+    }
+}

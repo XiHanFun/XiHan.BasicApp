@@ -1,0 +1,176 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:CodeGenHistoryQueryService
+// Guid:c0de9e00-0805-4a00-9000-000000000805
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/06/20 10:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using XiHan.BasicApp.CodeGeneration.Application.Contracts;
+using XiHan.BasicApp.CodeGeneration.Application.Dtos;
+using XiHan.BasicApp.CodeGeneration.Application.Mappers;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
+using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Enums;
+using XiHan.Framework.Domain.Shared.Paging.Models;
+
+namespace XiHan.BasicApp.CodeGeneration.Application.QueryServices;
+
+/// <summary>
+/// 代码生成历史查询应用服务（历史为系统写入，只读对外）
+/// </summary>
+[DynamicApi(Group = "BasicApp.CodeGen", GroupName = "代码生成服务", Tag = "生成历史")]
+public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationService, ICodeGenHistoryQueryService
+{
+    /// <summary>
+    /// 代码生成历史仓储
+    /// </summary>
+    private readonly ICodeGenHistoryRepository _historyRepository;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public CodeGenHistoryQueryService(ICodeGenHistoryRepository historyRepository)
+    {
+        _historyRepository = historyRepository;
+    }
+
+    /// <summary>
+    /// 获取代码生成历史分页列表
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>代码生成历史分页列表</returns>
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<PageResultDtoBase<CodeGenHistoryListItemDto>> GetPageAsync(CodeGenHistoryPageQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = BuildPageRequest(input);
+        var historyPage = await _historyRepository.GetPagedAsync(request, cancellationToken);
+        if (historyPage.Items.Count == 0)
+        {
+            return new PageResultDtoBase<CodeGenHistoryListItemDto>([], historyPage.Page)
+            {
+                ExtendDatas = historyPage.ExtendDatas
+            };
+        }
+
+        var items = historyPage.Items
+            .Select(CodeGenHistoryApplicationMapper.ToListItemDto)
+            .ToList();
+        return new PageResultDtoBase<CodeGenHistoryListItemDto>(items, historyPage.Page)
+        {
+            ExtendDatas = historyPage.ExtendDatas
+        };
+    }
+
+    /// <summary>
+    /// 获取代码生成历史详情
+    /// </summary>
+    /// <param name="id">代码生成历史主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>代码生成历史详情</returns>
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<CodeGenHistoryDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "代码生成历史主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var history = await _historyRepository.GetByIdAsync(id, cancellationToken);
+        return history is null ? null : CodeGenHistoryApplicationMapper.ToDetailDto(history);
+    }
+
+    /// <summary>
+    /// 按表配置获取代码生成历史（按生成时间倒序）
+    /// </summary>
+    /// <param name="tableId">所属表ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>代码生成历史列表</returns>
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<IReadOnlyList<CodeGenHistoryListItemDto>> GetByTableAsync(long tableId, CancellationToken cancellationToken = default)
+    {
+        if (tableId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(tableId), "所属表ID必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var histories = await _historyRepository.GetByTableIdAsync(tableId, cancellationToken);
+        return histories
+            .Select(CodeGenHistoryApplicationMapper.ToListItemDto)
+            .ToList();
+    }
+
+    /// <summary>
+    /// 构建代码生成历史分页请求
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <returns>代码生成历史分页请求</returns>
+    private static BasicAppPRDto BuildPageRequest(CodeGenHistoryPageQueryDto input)
+    {
+        var request = new BasicAppPRDto
+        {
+            Page = input.Page,
+            Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+
+        if (input.TableId.HasValue)
+        {
+            request.Conditions.AddFilter((SysCodeGenHistory history) => history.TableId, input.TableId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(input.TableName))
+        {
+            request.Conditions.AddFilter((SysCodeGenHistory history) => history.TableName, input.TableName.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(input.BatchNumber))
+        {
+            request.Conditions.AddFilter((SysCodeGenHistory history) => history.BatchNumber, input.BatchNumber.Trim());
+        }
+
+        if (input.GenStatus.HasValue)
+        {
+            request.Conditions.AddFilter((SysCodeGenHistory history) => history.GenStatus, input.GenStatus.Value);
+        }
+
+        if (input.StartTime.HasValue)
+        {
+            request.Conditions.AddFilter(
+                (SysCodeGenHistory history) => history.GenTime,
+                input.StartTime.Value,
+                QueryOperator.GreaterThanOrEqual);
+        }
+
+        if (input.EndTime.HasValue)
+        {
+            request.Conditions.AddFilter(
+                (SysCodeGenHistory history) => history.GenTime,
+                input.EndTime.Value,
+                QueryOperator.LessThanOrEqual);
+        }
+
+        request.Conditions.AddSort((SysCodeGenHistory history) => history.GenTime, SortDirection.Descending, 0);
+        return request;
+    }
+}
