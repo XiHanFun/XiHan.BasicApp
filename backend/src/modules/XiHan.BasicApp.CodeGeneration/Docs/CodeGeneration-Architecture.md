@@ -305,7 +305,7 @@ XiHan.BasicApp.CodeGeneration/
 | --- | --- | --- |
 | **S0 骨架（已完成）** | 本文 + 接口/DTO/服务空壳 + 引擎抽象 + Scriban 渲染器 + 仓储 + DI 装配 | 编译通过；DynamicApi 可见端点；架构可评审 |
 | **S1 CRUD 落地（已完成）** | 4 个聚合的领域服务 + 5 个映射 + 命令/查询实现 + 导入闭环 + 历史留痕 + DI | 数据源/表/列/模板增删改查与分页可用；导入库表→建表/列配置；生成写历史；权限/多租户/密钥脱敏生效 |
-| **S2 引擎落地（后端部分完成）** | 渲染器确定性字典绑定 + 后端全栈 Scriban 模板 ×8 + 内置模板种子 | 渲染器走字典重载、IsBaseColumn 过滤；实体/DTO/仓储/契约/映射/命令/查询模板就绪并种入（IsBuiltIn）；**待真实表跑通验证 + 前端模板** |
+| **S2 引擎落地（已完成）** | 渲染器确定性字典绑定 + 全栈 Scriban 模板 ×11（后端 8 + 前端 3）+ 内置模板种子 | 后端实体/DTO/仓储/契约/映射/命令/查询 + 前端 TS 类型/API/SchemaPage 页面，均就绪并种入（IsBuiltIn）；前后端 DynamicApi 路由对齐；**待真实表跑通验证** |
 | **S3 前端管理页** | `/develop/codeGen`（数据源/表/列/模板/预览/历史） | 可视化完成"导入→配置→预览→生成下载"闭环；菜单解除隐藏 |
 | **S4 零代码运行时** | 框架动态实体/动态 API/动态表单 + 运行时子域 | 配置即生效的运行时 CRUD（不产代码） |
 
@@ -341,14 +341,15 @@ XiHan.BasicApp.CodeGeneration/
 - [x] 领域服务 DI 显式注册（`AddCodeGenerationDomainServices`）
 - 已知约束（见各实现 risks）：密钥用固定口令 AES（at-rest，非 KMS）；连接测试依赖目标库 ADO 驱动已部署；OperatorIp 暂未采集
 
-### S2 引擎落地（后端部分完成）
-- [x] 渲染器 `ScribanTemplateRenderer` 改为确定性字典绑定（走框架已验证的字典重载，PascalCase 键，规避 Scriban 成员重命名）+ `IsBaseColumn` 过滤
-- [x] 后端全栈 Scriban 模板 ×8：Entity / Dtos / IRepository / Repository / Contracts / Mapper / AppService / QueryService（`Templates/Backend/*.sbn`，嵌入资源）
-- [x] 内置模板种子 `SysCodeGenTemplateSeeder`（Order=34，按资源后缀读取，IsBuiltIn）+ csproj EmbeddedResource + DI
-- 已知局限：Between 列暂退化为等值过滤；模板假设业务列为基元类型（枚举列需补 using）；唯一/业务索引不自动推断
-- ⚠ 待验证：模板不可本地执行、生成代码不可本地编译，需在服务器对一张真实表跑一次生成确认
+### S2 引擎落地（已完成）
+- [x] 渲染器 `ScribanTemplateRenderer` 确定性字典绑定（字典重载，PascalCase 键，规避 Scriban 成员重命名）+ `IsBaseColumn` 过滤 + `ClassNameCamel/Kebab`、列 `TsProperty`（camelCase）+ Camelize/Kebabize
+- [x] 后端全栈模板 ×8：Entity / Dtos / IRepository / Repository / Contracts / Mapper / AppService / QueryService（`Templates/Backend/*.sbn`）；命令/查询方法实体限定命名 → DynamicApi 路由可预测
+- [x] 前端全栈模板 ×3：Types（TS DTO）/ Api（双客户端 + 动作名对齐后端路由）/ Page（SchemaPage 列表页 + 弹窗表单，直连模块路径开箱即用）（`Templates/Frontend/*.sbn`）
+- [x] 内置模板种子 `SysCodeGenTemplateSeeder`（Order=34，BuiltInTemplate 带 FileExtension/FilePathExpression，按资源后缀读取，兼容 Backend/Frontend）+ 双 csproj（release + Local）EmbeddedResource + DI
+- 已知局限：Between 列暂退化为等值过滤；业务列按基元类型假设（枚举列需补 using/字典）；唯一/业务索引不自动推断；状态列无 updateStatus 分支；生成前端需在目标库存在对应业务表
+- ⚠ 待验证：模板不可本地执行、生成代码不可本地编译，需在服务器对一张真实表跑一次生成确认（导入→预览→生成→检查产物可编译）
 
 ### 待办
-- [ ] 前端模板（Vue 页面/API/类型）与真实表生成验证（S2 收尾）
-- [ ] 前端管理页（S3）
+- [ ] 真实表生成验证（S2 收尾，服务器）
+- [ ] 前端管理页 `/develop/codeGen`（S3）
 - [ ] 零代码运行时（S4）

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.Text.RegularExpressions;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.Framework.Templating.Services;
@@ -71,6 +72,9 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             ["TableName"] = context.TableName,
             ["TableComment"] = context.TableComment,
             ["ClassName"] = context.ClassName,
+            // 前端文件名/标识用：类名的 camelCase 与 kebab-case
+            ["ClassNameCamel"] = Camelize(context.ClassName),
+            ["ClassNameKebab"] = Kebabize(context.ClassName),
             ["Namespace"] = context.Namespace,
             ["ModuleName"] = context.ModuleName,
             ["BusinessName"] = context.BusinessName,
@@ -96,6 +100,8 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             ["DbType"] = column.DbType,
             ["CSharpType"] = column.CSharpType,
             ["CSharpProperty"] = column.CSharpProperty,
+            // 前端属性名（camelCase，对应后端 camelCase JSON 序列化）
+            ["TsProperty"] = Camelize(column.CSharpProperty),
             ["TsType"] = column.TsType,
             ["IsPrimaryKey"] = column.IsPrimaryKey,
             ["IsIdentity"] = column.IsIdentity,
@@ -108,6 +114,34 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             ["HtmlType"] = column.HtmlType.ToString(),
             ["QueryType"] = column.QueryType.ToString()
         };
+    }
+
+    /// <summary>
+    /// PascalCase → camelCase（首字母小写，其余不变）
+    /// </summary>
+    private static string Camelize(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        return char.ToLowerInvariant(value[0]) + value[1..];
+    }
+
+    /// <summary>
+    /// PascalCase → kebab-case（与前端 toKebabCase 一致：SysProduct → sys-product）
+    /// </summary>
+    private static string Kebabize(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        var result = Regex.Replace(value, "([A-Z]+)([A-Z][a-z])", "$1-$2");
+        result = Regex.Replace(result, "([a-z0-9])([A-Z])", "$1-$2");
+        return result.Replace('_', '-').ToLowerInvariant();
     }
 
     /// <inheritdoc />

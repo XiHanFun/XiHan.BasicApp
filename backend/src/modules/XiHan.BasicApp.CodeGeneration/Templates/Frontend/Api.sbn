@@ -1,0 +1,48 @@
+import type { ApiId, PageResult } from '../../types'
+import type {
+  {{ ClassName }}CreateDto,
+  {{ ClassName }}DetailDto,
+  {{ ClassName }}ListItemDto,
+  {{ ClassName }}PageQueryDto,
+  {{ ClassName }}UpdateDto,
+} from './{{ ClassNameKebab }}.types'
+import {
+  appendDynamicApiParam,
+  createDynamicApiClient,
+  createPageRequestParams,
+  createReadApi,
+  formatDynamicApiRouteValue,
+} from '../../base'
+
+const {{ ClassNameCamel }}QueryApi = createDynamicApiClient('{{ ClassName }}Query')
+const {{ ClassNameCamel }}CommandApi = createDynamicApiClient('{{ ClassName }}')
+const {{ ClassNameCamel }}ReadApi = createReadApi<{{ ClassName }}ListItemDto, {{ ClassName }}DetailDto, {{ ClassName }}PageQueryDto>('{{ ClassName }}Query', '{{ ClassName }}')
+
+export const {{ ClassNameCamel }}ManagementApi = {
+  create(input: {{ ClassName }}CreateDto) {
+    return {{ ClassNameCamel }}CommandApi.post<{{ ClassName }}DetailDto, {{ ClassName }}CreateDto>('{{ ClassName }}', input)
+  },
+  delete(id: ApiId) {
+    return {{ ClassNameCamel }}CommandApi.delete(`{{ ClassName }}/${formatDynamicApiRouteValue(id)}`)
+  },
+  detail(id: ApiId) {
+    return {{ ClassNameCamel }}ReadApi.detail(id)
+  },
+  page(input: {{ ClassName }}PageQueryDto) {
+    return {{ ClassNameCamel }}QueryApi.get<PageResult<{{ ClassName }}ListItemDto>>('{{ ClassName }}Page', to{{ ClassName }}PageParams(input))
+  },
+  update(input: {{ ClassName }}UpdateDto) {
+    return {{ ClassNameCamel }}CommandApi.put<{{ ClassName }}DetailDto, {{ ClassName }}UpdateDto>('{{ ClassName }}', input)
+  },
+}
+
+function to{{ ClassName }}PageParams(input: {{ ClassName }}PageQueryDto) {
+  const params = createPageRequestParams(input)
+  appendDynamicApiParam(params, 'Keyword', input.keyword)
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+  appendDynamicApiParam(params, '{{ col.CSharpProperty }}', input.{{ col.TsProperty }})
+{{~ end ~}}
+{{~ end ~}}
+  return params
+}

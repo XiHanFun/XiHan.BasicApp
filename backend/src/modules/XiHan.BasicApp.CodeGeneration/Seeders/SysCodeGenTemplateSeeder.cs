@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.CodeGeneration.Seeders;
 
 /// <summary>
 /// 代码生成内置模板种子数据
-/// 把 Templates/Backend/*.sbn 作为嵌入资源种入 SysCodeGenTemplate(IsBuiltIn=true)
+/// 把 Templates/Backend/*.sbn 与 Templates/Frontend/*.sbn 作为嵌入资源种入 SysCodeGenTemplate(IsBuiltIn=true)
 /// </summary>
 public class SysCodeGenTemplateSeeder : DataSeederBase
 {
@@ -33,19 +33,33 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     private const string BackendCrudGroup = "backend-crud";
 
     /// <summary>
+    /// 前端内置模板分组
+    /// </summary>
+    private const string FrontendCrudGroup = "frontend-crud";
+
+    /// <summary>
+    /// 前端模板路径表达式（模块小写目录）
+    /// </summary>
+    private const string FrontendApiPath = "src/api/modules/{{ ModuleName | string.downcase }}";
+
+    /// <summary>
     /// 内置模板定义（嵌入资源后缀 → 模板元信息）
-    /// 资源后缀按 ".Templates.Backend.{File}.sbn" 与 GetManifestResourceNames() 匹配，避免硬编码命名空间出错。
+    /// 资源后缀按 ".Templates." + ResourceFile.Replace("/", ".") 与 GetManifestResourceNames() 匹配，
+    /// 同时兼容 Backend/ 与 Frontend/ 子目录，避免硬编码命名空间出错。
     /// </summary>
     private static readonly IReadOnlyList<BuiltInTemplate> BuiltInTemplates =
     [
-        new("backend.entity", "后端实体", BackendCrudGroup, "Entity.sbn", "{{ ClassName }}.cs"),
-        new("backend.dtos", "后端DTO", BackendCrudGroup, "Dtos.sbn", "{{ ClassName }}Dtos.cs"),
-        new("backend.irepository", "后端仓储接口", BackendCrudGroup, "IRepository.sbn", "I{{ ClassName }}Repository.cs"),
-        new("backend.repository", "后端仓储实现", BackendCrudGroup, "Repository.sbn", "{{ ClassName }}Repository.cs"),
-        new("backend.contracts", "后端应用契约", BackendCrudGroup, "Contracts.sbn", "I{{ ClassName }}Contracts.cs"),
-        new("backend.mapper", "后端对象映射", BackendCrudGroup, "Mapper.sbn", "{{ ClassName }}ApplicationMapper.cs"),
-        new("backend.appservice", "后端应用服务", BackendCrudGroup, "AppService.sbn", "{{ ClassName }}AppService.cs"),
-        new("backend.queryservice", "后端查询服务", BackendCrudGroup, "QueryService.sbn", "{{ ClassName }}QueryService.cs"),
+        new("backend.entity", "后端实体", BackendCrudGroup, "Backend/Entity.sbn", "{{ ClassName }}.cs", ".cs", null),
+        new("backend.dtos", "后端DTO", BackendCrudGroup, "Backend/Dtos.sbn", "{{ ClassName }}Dtos.cs", ".cs", null),
+        new("backend.irepository", "后端仓储接口", BackendCrudGroup, "Backend/IRepository.sbn", "I{{ ClassName }}Repository.cs", ".cs", null),
+        new("backend.repository", "后端仓储实现", BackendCrudGroup, "Backend/Repository.sbn", "{{ ClassName }}Repository.cs", ".cs", null),
+        new("backend.contracts", "后端应用契约", BackendCrudGroup, "Backend/Contracts.sbn", "I{{ ClassName }}Contracts.cs", ".cs", null),
+        new("backend.mapper", "后端对象映射", BackendCrudGroup, "Backend/Mapper.sbn", "{{ ClassName }}ApplicationMapper.cs", ".cs", null),
+        new("backend.appservice", "后端应用服务", BackendCrudGroup, "Backend/AppService.sbn", "{{ ClassName }}AppService.cs", ".cs", null),
+        new("backend.queryservice", "后端查询服务", BackendCrudGroup, "Backend/QueryService.sbn", "{{ ClassName }}QueryService.cs", ".cs", null),
+        new("frontend.types", "前端类型定义", FrontendCrudGroup, "Frontend/Types.sbn", "{{ ClassNameKebab }}.types.ts", ".ts", FrontendApiPath),
+        new("frontend.api", "前端接口请求", FrontendCrudGroup, "Frontend/Api.sbn", "{{ ClassNameKebab }}.ts", ".ts", FrontendApiPath),
+        new("frontend.page", "前端列表页面", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", "src/views/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}"),
     ];
 
     /// <summary>
@@ -91,8 +105,8 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
                 continue;
             }
 
-            // 资源名按 ".Templates.Backend.{File}" 后缀定位，避免硬编码命名空间
-            var suffix = $".Templates.Backend.{template.ResourceFile}";
+            // 资源名按 ".Templates." + ResourceFile（/ 转 .）后缀定位，兼容 Backend/ 与 Frontend/，避免硬编码命名空间
+            var suffix = $".Templates.{template.ResourceFile.Replace("/", ".")}";
             var resourceName = resourceNames.FirstOrDefault(n => n.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
             if (resourceName is null)
             {
@@ -121,8 +135,9 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
                 TemplateType = TemplateType.Single,
                 TemplateEngine = TemplateEngine.Scriban,
                 TemplateContent = content,
-                FileExtension = ".cs",
+                FileExtension = template.FileExtension,
                 FileNameExpression = template.FileNameExpression,
+                FilePathExpression = template.FilePathExpression,
                 IsBuiltIn = true,
                 IsEnabled = true,
                 Sort = currentSort,
@@ -146,7 +161,9 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     /// <param name="Code">模板编码</param>
     /// <param name="Name">模板名称</param>
     /// <param name="Group">模板分组</param>
-    /// <param name="ResourceFile">嵌入资源文件名（Templates/Backend 下）</param>
+    /// <param name="ResourceFile">嵌入资源相对路径（如 Backend/Entity.sbn 或 Frontend/Types.sbn）</param>
     /// <param name="FileNameExpression">生成文件名表达式</param>
-    private sealed record BuiltInTemplate(string Code, string Name, string Group, string ResourceFile, string FileNameExpression);
+    /// <param name="FileExtension">文件扩展名（如 .cs / .ts / .vue）</param>
+    /// <param name="FilePathExpression">生成文件路径表达式（目录，可空）</param>
+    private sealed record BuiltInTemplate(string Code, string Name, string Group, string ResourceFile, string FileNameExpression, string FileExtension, string? FilePathExpression);
 }

@@ -39,7 +39,7 @@ public sealed class {{ ClassName }}AppService : ApplicationServiceBase, I{{ Clas
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task<{{ ClassName }}DetailDto> CreateAsync({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default)
+    public async Task<{{ ClassName }}DetailDto> Create{{ ClassName }}Async({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -51,7 +51,7 @@ public sealed class {{ ClassName }}AppService : ApplicationServiceBase, I{{ Clas
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task<{{ ClassName }}DetailDto> UpdateAsync({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default)
+    public async Task<{{ ClassName }}DetailDto> Update{{ ClassName }}Async({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -65,7 +65,7 @@ public sealed class {{ ClassName }}AppService : ApplicationServiceBase, I{{ Clas
 
     /// <inheritdoc />
     [UnitOfWork(true)]
-    public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
+    public async Task Delete{{ ClassName }}Async(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
         {

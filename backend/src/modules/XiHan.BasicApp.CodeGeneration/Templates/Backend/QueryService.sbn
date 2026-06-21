@@ -43,7 +43,7 @@ public sealed class {{ ClassName }}QueryService : ApplicationServiceBase, I{{ Cl
     }
 
     /// <inheritdoc />
-    public async Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> GetPageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default)
+    public async Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> Get{{ ClassName }}PageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -68,7 +68,7 @@ public sealed class {{ ClassName }}QueryService : ApplicationServiceBase, I{{ Cl
     }
 
     /// <inheritdoc />
-    public async Task<{{ ClassName }}DetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<{{ ClassName }}DetailDto?> Get{{ ClassName }}DetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
         {
