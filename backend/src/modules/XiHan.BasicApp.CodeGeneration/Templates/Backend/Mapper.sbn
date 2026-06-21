@@ -1,0 +1,95 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}ApplicationMapper
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Application.Dtos;
+using {{ Namespace }}.Domain.Entities;
+
+namespace {{ Namespace }}.Application.Mappers;
+
+/// <summary>
+/// {{ TableComment }}应用层映射器（手写静态映射）
+/// </summary>
+public static class {{ ClassName }}ApplicationMapper
+{
+    /// <summary>
+    /// 创建 DTO → 实体
+    /// </summary>
+    public static {{ ClassName }} ToEntity({{ ClassName }}CreateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new {{ ClassName }}
+        {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+            {{ col.CSharpProperty }} = input.{{ col.CSharpProperty }},
+{{~ end ~}}
+{{~ end ~}}
+        };
+    }
+
+    /// <summary>
+    /// 更新 DTO → 写回实体
+    /// </summary>
+    public static void ApplyUpdate({{ ClassName }} entity, {{ ClassName }}UpdateDto input)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(input);
+
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        entity.{{ col.CSharpProperty }} = input.{{ col.CSharpProperty }};
+{{~ end ~}}
+{{~ end ~}}
+    }
+
+    /// <summary>
+    /// 实体 → 列表项 DTO
+    /// </summary>
+    public static {{ ClassName }}ListItemDto ToListItemDto({{ ClassName }} entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        return new {{ ClassName }}ListItemDto
+        {
+            BasicId = entity.BasicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+            {{ col.CSharpProperty }} = entity.{{ col.CSharpProperty }},
+{{~ end ~}}
+{{~ end ~}}
+            CreatedTime = entity.CreatedTime
+        };
+    }
+
+    /// <summary>
+    /// 实体 → 详情 DTO
+    /// </summary>
+    public static {{ ClassName }}DetailDto ToDetailDto({{ ClassName }} entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        return new {{ ClassName }}DetailDto
+        {
+            BasicId = entity.BasicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+            {{ col.CSharpProperty }} = entity.{{ col.CSharpProperty }},
+{{~ end ~}}
+{{~ end ~}}
+            CreatedTime = entity.CreatedTime,
+            CreatedId = entity.CreatedId,
+            CreatedBy = entity.CreatedBy,
+            ModifiedId = entity.ModifiedId,
+            ModifiedBy = entity.ModifiedBy
+        };
+    }
+}

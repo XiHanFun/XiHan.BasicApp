@@ -1,0 +1,43 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:I{{ ClassName }}Contracts
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Application.Dtos;
+using XiHan.Framework.Application.Contracts.Services;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
+
+namespace {{ Namespace }}.Application.Contracts;
+
+/// <summary>
+/// {{ TableComment }}命令应用服务接口
+/// </summary>
+public interface I{{ ClassName }}AppService : IApplicationService
+{
+    /// <summary>创建{{ TableComment }}</summary>
+    Task<{{ ClassName }}DetailDto> CreateAsync({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>更新{{ TableComment }}</summary>
+    Task<{{ ClassName }}DetailDto> UpdateAsync({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>删除{{ TableComment }}</summary>
+    Task DeleteAsync(long id, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// {{ TableComment }}查询应用服务接口
+/// </summary>
+public interface I{{ ClassName }}QueryService : IApplicationService
+{
+    /// <summary>分页查询{{ TableComment }}</summary>
+    Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> GetPageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>查询{{ TableComment }}详情</summary>
+    Task<{{ ClassName }}DetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default);
+}

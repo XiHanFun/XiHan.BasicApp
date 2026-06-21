@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysMenuSeeder>();           // Order = 31
         services.AddDataSeeder<SysPermissionSeeder>();     // Order = 32
         services.AddDataSeeder<SysRolePermissionSeeder>(); // Order = 33
+        services.AddDataSeeder<SysCodeGenTemplateSeeder>(); // Order = 34
         return services;
     }
 
