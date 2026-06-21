@@ -28,9 +28,13 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// connectionConfigId 透传给框架元数据提供器。
 /// <para>
 /// 大小写还原：部分数据库（如 MySQL lower_case_table_names=1）返回的表名/列名为全小写，
-/// 驼峰信息丢失。导入器会把扫描到的名称对照已注册的 <c>[SugarTable]</c> 实体还原为真实大小写
-/// （如 syscodegendatasource → SysCodeGenDataSource），从而让生成的类名/属性名正确；
-/// 未注册的外部表保持原样。
+/// 驼峰信息丢失。导入器把扫描到的名称对照已注册的 <c>[SugarTable]</c> 实体还原为真实大小写
+/// （如 syscodegendatasource → SysCodeGenDataSource）；未注册的外部表保持原样。
+/// </para>
+/// <para>
+/// 分表折叠：带 <c>[SplitTable]</c> 的日志类实体物理表按时间分片（如 sysdifflog_20260601）。
+/// 列表时把同一实体的所有分片折叠为基础逻辑名（SysDiffLog）并去重；导入时若传入基础名（无物理表），
+/// 自动扫描最近一个分片取列结构。
 /// </para>
 /// </remarks>
 public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataProvider) : IDatabaseSchemaImporter
@@ -44,7 +48,20 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
     {
         var tables = await _metadataProvider.GetTablesAsync(connectionConfigId, cancellationToken);
         var catalog = CatalogAccessor.Value;
-        return [.. tables.Select(table => catalog.ResolveTable(table.TableName))];
+
+        // 还原真实大小写 + 把分表分片折叠为基础逻辑名，并按出现顺序去重
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new List<string>();
+        foreach (var table in tables)
+        {
+            var logicalName = catalog.ResolveLogical(table.TableName);
+            if (seen.Add(logicalName))
+            {
+                result.Add(logicalName);
+            }
+        }
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -52,15 +69,25 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
 
+        var catalog = CatalogAccessor.Value;
+        var realTableName = catalog.ResolveTable(tableName);
+
         var table = await _metadataProvider.GetTableAsync(tableName, connectionConfigId, cancellationToken);
+
+        // 分表基础名无物理表：扫描最近一个分片取列结构
+        if (table is null && catalog.IsSplitBase(realTableName))
+        {
+            var shard = await FindLatestShardAsync(realTableName, connectionConfigId, catalog, cancellationToken);
+            if (shard is not null)
+            {
+                table = await _metadataProvider.GetTableAsync(shard, connectionConfigId, cancellationToken);
+            }
+        }
+
         if (table is null)
         {
             return null;
         }
-
-        var catalog = CatalogAccessor.Value;
-        // 优先用调用方传入的（已还原）表名，再兜底用元数据返回名做目录匹配
-        var realTableName = catalog.ResolveTable(string.IsNullOrWhiteSpace(tableName) ? table.TableName : tableName);
 
         var columns = table.Columns.Select(column => MapColumn(column, realTableName, catalog)).ToList();
         return new TableSchema
@@ -70,6 +97,20 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
             PrimaryKeyColumn = columns.FirstOrDefault(column => column.IsPrimaryKey)?.ColumnName,
             Columns = columns
         };
+    }
+
+    /// <summary>
+    /// 查找指定分表基础名下最近的一个物理分片
+    /// </summary>
+    private async Task<string?> FindLatestShardAsync(string realBaseName, string? connectionConfigId, EntityNameCatalog catalog, CancellationToken cancellationToken)
+    {
+        var tables = await _metadataProvider.GetTablesAsync(connectionConfigId, cancellationToken);
+        return tables
+            .Select(table => table.TableName)
+            .Where(name => catalog.TryResolveSplitShard(name, out var baseName)
+                && string.Equals(baseName, realBaseName, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(name => name, StringComparer.Ordinal)
+            .FirstOrDefault();
     }
 
     private static ColumnSchema MapColumn(DatabaseColumnMetadata column, string realTableName, EntityNameCatalog catalog) => new()
@@ -86,20 +127,23 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
     };
 
     /// <summary>
-    /// 已注册 SugarTable 实体的名称目录：小写名 → 真实大小写名（表 + 列）。
-    /// 反射一次、进程内缓存；用于还原 DB 返回的全小写名。
+    /// 已注册 SugarTable 实体的名称目录：小写名 → 真实大小写名（表 + 列），并标记分表基础名。
+    /// 反射一次、进程内缓存；用于还原 DB 返回的全小写名与折叠分表分片。
     /// </summary>
     private sealed class EntityNameCatalog
     {
         private readonly IReadOnlyDictionary<string, string> _tables;
         private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _columns;
+        private readonly IReadOnlySet<string> _splitBases;
 
         private EntityNameCatalog(
             IReadOnlyDictionary<string, string> tables,
-            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> columns)
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> columns,
+            IReadOnlySet<string> splitBases)
         {
             _tables = tables;
             _columns = columns;
+            _splitBases = splitBases;
         }
 
         /// <summary>
@@ -113,6 +157,24 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
             }
 
             return _tables.TryGetValue(dbTableName.ToLowerInvariant(), out var real) ? real : dbTableName;
+        }
+
+        /// <summary>
+        /// 还原为逻辑表名：精确匹配优先；分表分片折叠为基础逻辑名；否则原样
+        /// </summary>
+        public string ResolveLogical(string dbTableName)
+        {
+            if (string.IsNullOrWhiteSpace(dbTableName))
+            {
+                return dbTableName;
+            }
+
+            if (_tables.TryGetValue(dbTableName.ToLowerInvariant(), out var exact))
+            {
+                return exact;
+            }
+
+            return TryResolveSplitShard(dbTableName, out var baseName) ? baseName : dbTableName;
         }
 
         /// <summary>
@@ -132,12 +194,49 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
         }
 
         /// <summary>
+        /// 判断是否为分表基础名
+        /// </summary>
+        public bool IsSplitBase(string tableName)
+        {
+            return !string.IsNullOrWhiteSpace(tableName) && _splitBases.Contains(tableName.ToLowerInvariant());
+        }
+
+        /// <summary>
+        /// 判断是否为某分表实体的物理分片（如 sysdifflog_20260601 → SysDiffLog）
+        /// </summary>
+        public bool TryResolveSplitShard(string dbTableName, out string baseRealName)
+        {
+            baseRealName = string.Empty;
+            if (string.IsNullOrWhiteSpace(dbTableName))
+            {
+                return false;
+            }
+
+            var lower = dbTableName.ToLowerInvariant();
+            foreach (var splitBase in _splitBases)
+            {
+                // 分片命名约定：基础名_后缀（SqlSugar 默认 {table}_{yyyyMMdd}）
+                if (lower.Length > splitBase.Length + 1
+                    && lower.StartsWith(splitBase, StringComparison.Ordinal)
+                    && lower[splitBase.Length] == '_'
+                    && _tables.TryGetValue(splitBase, out var real))
+                {
+                    baseRealName = real;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// 反射构建目录（扫描 XiHan* 程序集中带 [SugarTable] 的实体）
         /// </summary>
         public static EntityNameCatalog Build()
         {
             var tables = new Dictionary<string, string>(StringComparer.Ordinal);
             var columns = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
+            var splitBases = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -183,6 +282,11 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
                     var lowerTable = realTable.ToLowerInvariant();
                     tables[lowerTable] = realTable;
 
+                    if (type.GetCustomAttribute<SplitTableAttribute>() is not null)
+                    {
+                        splitBases.Add(lowerTable);
+                    }
+
                     var columnMap = new Dictionary<string, string>(StringComparer.Ordinal);
                     foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
                     {
@@ -202,7 +306,7 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
                 }
             }
 
-            return new EntityNameCatalog(tables, columns);
+            return new EntityNameCatalog(tables, columns, splitBases);
         }
     }
 }
