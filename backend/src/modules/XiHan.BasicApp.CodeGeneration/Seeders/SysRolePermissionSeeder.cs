@@ -22,6 +22,11 @@ namespace XiHan.BasicApp.CodeGeneration.Seeders;
 /// <summary>
 /// 系统角色权限种子数据
 /// </summary>
+/// <remarks>
+/// 开发功能（代码生成）属平台级开发工具：仅授予超级管理员角色，其它任何角色都不得拥有；
+/// 并把"代码生成"菜单绑定到 code_gen:read 权限点，使其仅对拥有该权限者（=超管）可见，
+/// develop 目录因无可见子菜单被自动剪掉。其它租户/角色既看不到也调不动开发功能。
+/// </remarks>
 public class SysRolePermissionSeeder : DataSeederBase
 {
     /// <summary>
@@ -48,37 +53,48 @@ public class SysRolePermissionSeeder : DataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbClient;
-        var roles = await client.Queryable<SysRole>().Where(r => r.RoleCode == "super_admin" || r.RoleCode == "admin").ToListAsync();
-        var permissions = await client.Queryable<SysPermission>().Where(p => p.PermissionCode.StartsWith("code_gen:") || p.PermissionCode.StartsWith("code_gen_api:")).ToListAsync();
-        if (roles.Count == 0 || permissions.Count == 0)
-        {
-            Logger.LogWarning("系统角色或权限数据不存在，跳过系统角色权限种子数据"); return;
-        }
-
-        var pairs = roles.SelectMany(r => permissions
-            .Select(p => new
-            {
-                RoleId = r.BasicId,
-                PermissionId = p.BasicId
-            })).ToList();
-        var roleIds = roles.Select(r => r.BasicId).ToList();
-        var permissionIds = permissions.Select(p => p.BasicId).ToList();
-        var exists = await client.Queryable<SysRolePermission>()
-            .Where(rp => roleIds.Contains(rp.RoleId) && permissionIds.Contains(rp.PermissionId))
+        var permissions = await client.Queryable<SysPermission>()
+            .Where(p => p.PermissionCode.StartsWith("code_gen:") || p.PermissionCode.StartsWith("code_gen_api:"))
             .ToListAsync();
-        var existsSet = exists.Select(e => $"{e.RoleId}-{e.PermissionId}").ToHashSet();
-        var addList = pairs.Where(x => !existsSet.Contains($"{x.RoleId}-{x.PermissionId}"))
-            .Select(x => new SysRolePermission
-            {
-                RoleId = x.RoleId,
-                PermissionId = x.PermissionId
-            }).ToList();
-
-        if (addList.Count == 0)
+        if (permissions.Count == 0)
         {
-            Logger.LogInformation("系统角色权限数据已存在，跳过种子数据"); return;
+            Logger.LogWarning("代码生成权限不存在，跳过开发功能角色权限/菜单可见性种子"); return;
         }
-        await BulkInsertAsync(addList);
-        Logger.LogInformation("成功初始化 {Count} 个系统角色权限关系", addList.Count);
+
+        // 1) 开发功能仅授超级管理员（其它角色一律不得拥有）。超管运行时本就通配 *，此处显式留痕、确保唯一拥有者。
+        var superRole = await client.Queryable<SysRole>().FirstAsync(r => r.RoleCode == "super_admin");
+        var grantedCount = 0;
+        if (superRole is not null)
+        {
+            var permissionIds = permissions.Select(p => p.BasicId).ToList();
+            var existsSet = (await client.Queryable<SysRolePermission>()
+                    .Where(rp => rp.RoleId == superRole.BasicId && permissionIds.Contains(rp.PermissionId))
+                    .ToListAsync())
+                .Select(rp => rp.PermissionId)
+                .ToHashSet();
+            var addList = permissions
+                .Where(p => !existsSet.Contains(p.BasicId))
+                .Select(p => new SysRolePermission { RoleId = superRole.BasicId, PermissionId = p.BasicId })
+                .ToList();
+            if (addList.Count > 0)
+            {
+                await BulkInsertAsync(addList);
+                grantedCount = addList.Count;
+            }
+        }
+
+        // 2) 把"代码生成"菜单绑定到 code_gen:read 权限 → 仅有该权限者（=超管）可见；develop 目录无可见子菜单将被自动剪掉。
+        // 菜单种子(Order=31)早于权限种子(Order=32)，故菜单建立时无法绑定，统一在此(Order=33)回填。
+        var readPermission = permissions.FirstOrDefault(p => p.PermissionCode == "code_gen:read");
+        var menuBound = 0;
+        if (readPermission is not null)
+        {
+            menuBound = await client.Updateable<SysMenu>()
+                .SetColumns(m => m.PermissionId == readPermission.BasicId)
+                .Where(m => m.MenuCode == "code_gen" && (m.PermissionId == null || m.PermissionId != readPermission.BasicId))
+                .ExecuteCommandAsync();
+        }
+
+        Logger.LogInformation("开发功能仅授超级管理员：新增角色权限 {GrantCount} 条，菜单可见性绑定 {MenuBound} 条", grantedCount, menuBound);
     }
 }
