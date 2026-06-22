@@ -20,6 +20,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -52,14 +53,21 @@ public sealed class RoleQueryService
     private readonly IDistributedCache<SaasRoleSelectCacheItem, string> _roleSelectCache;
 
     /// <summary>
+    /// 超级管理员保护守卫
+    /// </summary>
+    private readonly ISuperAdminProtector _superAdminProtector;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public RoleQueryService(
         IRoleRepository roleRepository,
-        IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache)
+        IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache,
+        ISuperAdminProtector superAdminProtector)
     {
         _roleRepository = roleRepository;
         _roleSelectCache = roleSelectCache;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -75,6 +83,13 @@ public sealed class RoleQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildRolePageRequest(input);
+
+        // 超管隐藏：非超管用户在列表中排除 super_admin 角色（超管自身不受限）
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin())
+        {
+            request.Conditions.AddFilter((SysRole role) => role.RoleCode, "super_admin", QueryOperator.NotEqual);
+        }
+
         var roles = await _roleRepository.GetPagedAsync(request, cancellationToken);
 
         return roles.Map(RoleApplicationMapper.ToListItemDto);
@@ -95,6 +110,13 @@ public sealed class RoleQueryService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 超管隐藏：非超管不得按 id 读取 super_admin 角色详情（列表/选择项已隐藏，详情按 not-found 处理保持一致）
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin()
+            && await _superAdminProtector.IsProtectedRoleAsync(id, cancellationToken))
+        {
+            return null;
+        }
 
         var role = await _roleRepository.GetByIdAsync(id, cancellationToken);
         return role is null ? null : RoleApplicationMapper.ToDetailDto(role);
@@ -193,6 +215,10 @@ public sealed class RoleQueryService
             dataScope: null,
             input.IsGlobal,
             EnableStatus.Enabled);
+
+        // 超管隐藏：选择项始终排除 super_admin 角色（内置单例、不可经下拉授予；
+        // 结果按 type/global/limit 缓存，按用户过滤会污染缓存，故无条件排除最安全）
+        request.Conditions.AddFilter((SysRole role) => role.RoleCode, "super_admin", QueryOperator.NotEqual);
 
         request.Conditions.AddSort((SysRole role) => role.RoleType, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysRole role) => role.Sort, SortDirection.Ascending, 1);

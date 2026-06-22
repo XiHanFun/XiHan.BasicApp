@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -48,16 +49,23 @@ public sealed class RoleDataScopeQueryService
     private readonly IDepartmentRepository _departmentRepository;
 
     /// <summary>
+    /// 超级管理员保护守卫
+    /// </summary>
+    private readonly ISuperAdminProtector _superAdminProtector;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public RoleDataScopeQueryService(
         IRoleRepository roleRepository,
         IRoleDataScopeRepository roleDataScopeRepository,
-        IDepartmentRepository departmentRepository)
+        IDepartmentRepository departmentRepository,
+        ISuperAdminProtector superAdminProtector)
     {
         _roleRepository = roleRepository;
         _roleDataScopeRepository = roleDataScopeRepository;
         _departmentRepository = departmentRepository;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -76,6 +84,11 @@ public sealed class RoleDataScopeQueryService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin() && await _superAdminProtector.IsProtectedRoleAsync(roleId, cancellationToken))
+        {
+            return [];
+        }
 
         _ = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
             ?? throw new InvalidOperationException("角色不存在。");

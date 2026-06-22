@@ -80,6 +80,11 @@ public sealed class UserQueryService
     private readonly IUserDataScopeFilterService _userDataScopeFilter;
 
     /// <summary>
+    /// 超级管理员保护守卫
+    /// </summary>
+    private readonly ISuperAdminProtector _superAdminProtector;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserQueryService(
@@ -90,7 +95,8 @@ public sealed class UserQueryService
         IDepartmentRepository departmentRepository,
         IUserSecurityRepository userSecurityRepository,
         IFieldSecurityService fieldSecurityService,
-        IUserDataScopeFilterService userDataScopeFilter)
+        IUserDataScopeFilterService userDataScopeFilter,
+        ISuperAdminProtector superAdminProtector)
     {
         _userRepository = userRepository;
         _userRoleRepository = userRoleRepository;
@@ -100,6 +106,7 @@ public sealed class UserQueryService
         _userSecurityRepository = userSecurityRepository;
         _fieldSecurity = fieldSecurityService;
         _userDataScopeFilter = userDataScopeFilter;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -121,6 +128,16 @@ public sealed class UserQueryService
         if (!dataScope.Unrestricted)
         {
             request.Conditions.AddFilterIn<SysUser, long>(user => user.BasicId, dataScope.UserIds.Cast<object>());
+        }
+
+        // 超管隐藏：非超管用户排除超管用户（叠加在数据范围过滤之上，超管自身不受限）
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin())
+        {
+            var protectedUserIds = await _superAdminProtector.GetProtectedUserIdsAsync(cancellationToken);
+            if (protectedUserIds.Count > 0)
+            {
+                request.Conditions.AddFilterIn<SysUser, long>(user => user.BasicId, protectedUserIds.Cast<object>(), QueryOperator.NotIn);
+            }
         }
 
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
@@ -175,6 +192,13 @@ public sealed class UserQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 超管隐藏：非超管不得按 id 读取超管用户详情（列表/选择项已隐藏，详情按 not-found 处理保持一致）
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin()
+            && await _superAdminProtector.IsProtectedUserAsync(id, cancellationToken))
+        {
+            return null;
+        }
+
         var user = await _userRepository.GetByIdAsync(id, cancellationToken);
         if (user is null)
         {
@@ -200,6 +224,17 @@ public sealed class UserQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildUserSelectRequest(input);
+
+        // 超管隐藏：非超管用户的选择项中排除超管用户（超管自身不受限）
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin())
+        {
+            var protectedUserIds = await _superAdminProtector.GetProtectedUserIdsAsync(cancellationToken);
+            if (protectedUserIds.Count > 0)
+            {
+                request.Conditions.AddFilterIn<SysUser, long>(user => user.BasicId, protectedUserIds.Cast<object>(), QueryOperator.NotIn);
+            }
+        }
+
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
 
         return [.. users.Items.Select(UserApplicationMapper.ToSelectItemDto)];

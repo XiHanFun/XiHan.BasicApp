@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -50,6 +51,8 @@ public sealed class RoleManagementQueryService
 
     private readonly IUserRepository _userRepository;
 
+    private readonly ISuperAdminProtector _superAdminProtector;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -61,7 +64,8 @@ public sealed class RoleManagementQueryService
         IRoleDataScopeRepository roleDataScopeRepository,
         IDepartmentRepository departmentRepository,
         IUserRoleRepository userRoleRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ISuperAdminProtector superAdminProtector)
     {
         _roleRepository = roleRepository;
         _roleHierarchyRepository = roleHierarchyRepository;
@@ -71,6 +75,7 @@ public sealed class RoleManagementQueryService
         _departmentRepository = departmentRepository;
         _userRoleRepository = userRoleRepository;
         _userRepository = userRepository;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <inheritdoc />
@@ -83,6 +88,13 @@ public sealed class RoleManagementQueryService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 超管隐藏：非超管不得读取 super_admin 角色管理聚合（权限/授予用户等敏感数据），按 not-found 处理
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin()
+            && await _superAdminProtector.IsProtectedRoleAsync(roleId, cancellationToken))
+        {
+            return null;
+        }
 
         var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
         if (role is null)

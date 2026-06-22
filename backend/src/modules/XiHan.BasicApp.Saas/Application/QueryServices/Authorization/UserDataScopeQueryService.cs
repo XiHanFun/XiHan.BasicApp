@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -48,16 +49,23 @@ public sealed class UserDataScopeQueryService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
+    /// 超级管理员保护守卫
+    /// </summary>
+    private readonly ISuperAdminProtector _superAdminProtector;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserDataScopeQueryService(
         IUserDataScopeRepository userDataScopeRepository,
         IDepartmentRepository departmentRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        ISuperAdminProtector superAdminProtector)
     {
         _userDataScopeRepository = userDataScopeRepository;
         _departmentRepository = departmentRepository;
         _tenantUserRepository = tenantUserRepository;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -76,6 +84,11 @@ public sealed class UserDataScopeQueryService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin() && await _superAdminProtector.IsProtectedUserAsync(userId, cancellationToken))
+        {
+            return [];
+        }
 
         var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("当前租户成员不存在。");

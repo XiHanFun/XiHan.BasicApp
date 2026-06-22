@@ -48,6 +48,8 @@ public sealed class UserAppService
 
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly ISuperAdminProtector _superAdminProtector;
+
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     private readonly IUserSessionRepository _userSessionRepository;
@@ -61,6 +63,7 @@ public sealed class UserAppService
         IUserDomainService userDomainService,
         IUserRepository userRepository,
         IFieldSecurityService fieldSecurity,
+        ISuperAdminProtector superAdminProtector,
         ICurrentUser currentUser,
         ISaasCacheInvalidator cacheInvalidator,
         IUserSessionRepository userSessionRepository,
@@ -69,6 +72,7 @@ public sealed class UserAppService
         _userDomainService = userDomainService;
         _userRepository = userRepository;
         _fieldSecurity = fieldSecurity;
+        _superAdminProtector = superAdminProtector;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
         _userSessionRepository = userSessionRepository;
@@ -101,6 +105,8 @@ public sealed class UserAppService
     public async Task DeleteUserAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        // 超管保护：非超管不得删除超管用户
+        await _superAdminProtector.EnsureCanWriteUserAsync(id, cancellationToken);
         await _userDomainService.DeleteUserAsync(id, cancellationToken);
         // 删除用户后：吊销其全部会话（请求期会话校验随即拒绝）+ 失效授权快照
         await _userSessionRepository.RevokeByUserIdAsync(id, cancellationToken);
@@ -130,6 +136,9 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 超管保护：非超管不得修改超管用户
+        await _superAdminProtector.EnsureCanWriteUserAsync(input.BasicId, cancellationToken);
+
         // 写校验：FLS 不可编辑字段不得被修改（防绕过前端只读直接调 API）
         var current = await _userRepository.GetByIdAsync(input.BasicId, cancellationToken);
         if (current is not null)
@@ -150,6 +159,9 @@ public sealed class UserAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 超管保护：非超管不得启停超管用户
+        await _superAdminProtector.EnsureCanWriteUserAsync(input.BasicId, cancellationToken);
 
         var result = await _userDomainService.UpdateUserStatusAsync(UserApplicationMapper.ToStatusCommand(input), cancellationToken);
         // 禁用时吊销其全部会话，使禁用即时生效（请求期会话校验随即拒绝；禁用用户重新启用后需重新登录）

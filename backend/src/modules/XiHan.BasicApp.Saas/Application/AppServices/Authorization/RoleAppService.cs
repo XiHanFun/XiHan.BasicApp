@@ -17,8 +17,10 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
@@ -37,13 +39,31 @@ public sealed class RoleAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly ISuperAdminProtector _superAdminProtector;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
+    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
+
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public RoleAppService(IRoleDomainService roleDomainService, ISaasCacheInvalidator cacheInvalidator)
+    public RoleAppService(
+        IRoleDomainService roleDomainService,
+        ISaasCacheInvalidator cacheInvalidator,
+        ISuperAdminProtector superAdminProtector,
+        IRolePermissionRepository rolePermissionRepository,
+        IRoleDataScopeRepository roleDataScopeRepository,
+        IRoleHierarchyRepository roleHierarchyRepository)
     {
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _superAdminProtector = superAdminProtector;
+        _rolePermissionRepository = rolePermissionRepository;
+        _roleDataScopeRepository = roleDataScopeRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
     }
 
     /// <summary>
@@ -72,6 +92,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
         var result = await _roleDomainService.CreateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
@@ -87,6 +108,8 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.AncestorId, cancellationToken);
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.DescendantId, cancellationToken);
         var result = await _roleDomainService.CreateRoleHierarchyAsync(RoleHierarchyApplicationMapper.ToCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleHierarchyApplicationMapper.ToDetailDto(result.Hierarchy, result.Ancestor, result.Descendant);
@@ -102,6 +125,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
         var result = await _roleDomainService.CreateRolePermissionAsync(RolePermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
@@ -118,6 +142,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
         await _roleDomainService.BatchUpdateRolePermissionsAsync(
             new RolePermissionBatchUpdateCommand(input.RoleId, input.GrantPermissionIds, input.RevokeRolePermissionIds),
             cancellationToken);
@@ -132,6 +157,7 @@ public sealed class RoleAppService
     public async Task DeleteRoleAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await _superAdminProtector.EnsureCanWriteRoleAsync(id, cancellationToken);
         await _roleDomainService.DeleteRoleAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateRoleDefinitionAsync(cancellationToken);
@@ -145,6 +171,11 @@ public sealed class RoleAppService
     public async Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var dataScope = await _roleDataScopeRepository.GetByIdAsync(id, cancellationToken);
+        if (dataScope is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(dataScope.RoleId, cancellationToken);
+        }
         await _roleDomainService.DeleteRoleDataScopeAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
@@ -157,6 +188,12 @@ public sealed class RoleAppService
     public async Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var hierarchy = await _roleHierarchyRepository.GetByIdAsync(id, cancellationToken);
+        if (hierarchy is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(hierarchy.AncestorId, cancellationToken);
+            await _superAdminProtector.EnsureCanWriteRoleAsync(hierarchy.DescendantId, cancellationToken);
+        }
         await _roleDomainService.DeleteRoleHierarchyAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
@@ -169,6 +206,11 @@ public sealed class RoleAppService
     public async Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var rolePermission = await _rolePermissionRepository.GetByIdAsync(id, cancellationToken);
+        if (rolePermission is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(rolePermission.RoleId, cancellationToken);
+        }
         await _roleDomainService.DeleteRolePermissionAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
@@ -183,6 +225,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.BasicId, cancellationToken);
         var result = await _roleDomainService.UpdateRoleAsync(RoleApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateRoleDefinitionAsync(cancellationToken);
@@ -199,6 +242,11 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        var dataScope = await _roleDataScopeRepository.GetByIdAsync(input.BasicId, cancellationToken);
+        if (dataScope is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(dataScope.RoleId, cancellationToken);
+        }
         var result = await _roleDomainService.UpdateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
@@ -214,6 +262,11 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        var dataScope = await _roleDataScopeRepository.GetByIdAsync(input.BasicId, cancellationToken);
+        if (dataScope is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(dataScope.RoleId, cancellationToken);
+        }
         var result = await _roleDomainService.UpdateRoleDataScopeStatusAsync(RoleDataScopeApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
@@ -229,6 +282,11 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        var rolePermission = await _rolePermissionRepository.GetByIdAsync(input.BasicId, cancellationToken);
+        if (rolePermission is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(rolePermission.RoleId, cancellationToken);
+        }
         var result = await _roleDomainService.UpdateRolePermissionAsync(RolePermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
@@ -244,6 +302,11 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        var rolePermission = await _rolePermissionRepository.GetByIdAsync(input.BasicId, cancellationToken);
+        if (rolePermission is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(rolePermission.RoleId, cancellationToken);
+        }
         var result = await _roleDomainService.UpdateRolePermissionStatusAsync(RolePermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
@@ -259,6 +322,7 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.BasicId, cancellationToken);
         var result = await _roleDomainService.UpdateRoleStatusAsync(RoleApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateRoleDefinitionAsync(cancellationToken);
