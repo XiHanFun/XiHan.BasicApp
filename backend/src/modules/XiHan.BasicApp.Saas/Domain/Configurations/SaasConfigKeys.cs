@@ -79,40 +79,12 @@ public static class SaasConfigKeys
     }
 
     /// <summary>
-    /// 应用配置。
-    /// </summary>
-    public static class Application
-    {
-        /// <summary>
-        /// 应用名称。
-        /// </summary>
-        public const string Name = "saas.application.name";
-
-        /// <summary>
-        /// 应用 Logo。
-        /// </summary>
-        public const string Logo = "saas.application.logo";
-
-        /// <summary>
-        /// 默认语言。
-        /// </summary>
-        public const string DefaultLanguage = "saas.application.default.language";
-    }
-
-    /// <summary>
-    /// 租户配置。
-    /// </summary>
-    public static class Tenant
-    {
-        /// <summary>
-        /// 默认租户版本编码。
-        /// </summary>
-        public const string DefaultEditionCode = "saas.tenant.default.edition.code";
-    }
-
-    /// <summary>
     /// 认证配置。
     /// </summary>
+    /// <remarks>
+    /// 仅保留运行期被强类型读取入口（<c>SaasConfigurationService.GetLoginConfigAsync</c>）实际消费的配置键；
+    /// 其余历史占位键（应用/租户/通知/密码策略/会话/审计/文件存储）均无任何代码消费者，已随种子一并移除。
+    /// </remarks>
     public static class Auth
     {
         /// <summary>
@@ -121,127 +93,9 @@ public static class SaasConfigKeys
         public const string LoginMethods = "saas.auth.login.methods";
 
         /// <summary>
-        /// 是否启用登录租户选择。
-        /// </summary>
-        public const string TenantSelectionEnabled = "saas.auth.login.tenant.selection.enabled";
-
-        /// <summary>
         /// OAuth 提供商，JSON 数组。
         /// </summary>
         public const string OAuthProviders = "saas.auth.oauth.providers";
-
-        /// <summary>
-        /// 密码最小长度。
-        /// </summary>
-        public const string PasswordMinLength = "saas.auth.password.min.length";
-
-        /// <summary>
-        /// 密码是否要求数字。
-        /// </summary>
-        public const string PasswordRequireDigit = "saas.auth.password.require.digit";
-
-        /// <summary>
-        /// 密码是否要求大写字母。
-        /// </summary>
-        public const string PasswordRequireUppercase = "saas.auth.password.require.uppercase";
-
-        /// <summary>
-        /// 最大连续登录失败次数。
-        /// </summary>
-        public const string PasswordMaxFailedAttempts = "saas.auth.password.max.failed.attempts";
-
-        /// <summary>
-        /// 账号锁定分钟数。
-        /// </summary>
-        public const string AccountLockoutMinutes = "saas.auth.account.lockout.minutes";
-
-        /// <summary>
-        /// 是否允许同一用户多设备登录。
-        /// </summary>
-        public const string SessionAllowMultiLogin = "saas.auth.session.allow.multi.login";
-
-        /// <summary>
-        /// 默认最大在线设备数。
-        /// </summary>
-        public const string SessionMaxLoginDevices = "saas.auth.session.max.login.devices";
-
-        /// <summary>
-        /// 默认 OAuth ClientId。
-        /// </summary>
-        public const string SessionClientId = "saas.auth.session.client.id";
-
-        /// <summary>
-        /// 默认 OAuth Scope。
-        /// </summary>
-        public const string SessionScope = "saas.auth.session.scope";
-
-        /// <summary>
-        /// 刷新令牌有效天数。
-        /// </summary>
-        public const string SessionRefreshTokenDays = "saas.auth.session.refresh.token.days";
-    }
-
-    /// <summary>
-    /// 通知配置。
-    /// </summary>
-    public static class Notification
-    {
-        /// <summary>
-        /// 登录成功通知开关。
-        /// </summary>
-        public const string AuthLoginEnabled = "saas.notification.auth.login.enabled";
-
-        /// <summary>
-        /// 主动退出通知开关。
-        /// </summary>
-        public const string AuthLogoutEnabled = "saas.notification.auth.logout.enabled";
-    }
-
-    /// <summary>
-    /// 审计配置。
-    /// </summary>
-    public static class Audit
-    {
-        /// <summary>
-        /// 日志保留天数。
-        /// </summary>
-        public const string LogRetentionDays = "saas.audit.log.retention.days";
-    }
-
-    /// <summary>
-    /// 文件存储配置。
-    /// </summary>
-    public static class File
-    {
-        /// <summary>
-        /// 存储提供者。
-        /// </summary>
-        public const string StorageProvider = "saas.file.storage.provider";
-
-        /// <summary>
-        /// 本地存储根路径。
-        /// </summary>
-        public const string StorageBasePath = "saas.file.storage.base.path";
-
-        /// <summary>
-        /// 最大上传文件大小（MB）。
-        /// </summary>
-        public const string MaxFileSize = "saas.file.max.file.size";
-
-        /// <summary>
-        /// 允许的文件扩展名，逗号分隔。
-        /// </summary>
-        public const string AllowedExtensions = "saas.file.allowed.extensions";
-
-        /// <summary>
-        /// 文件存储默认过期天数。
-        /// </summary>
-        public const string FileExpiryDays = "saas.file.expiry.days";
-
-        /// <summary>
-        /// 文件存储路由映射。
-        /// </summary>
-        public const string StorageRoutes = "saas.file.storage.routes";
     }
 
     /// <summary>
@@ -250,33 +104,8 @@ public static class SaasConfigKeys
     public static class Groups
     {
         /// <summary>
-        /// 应用配置分组。
-        /// </summary>
-        public const string Application = "application";
-
-        /// <summary>
-        /// 租户配置分组。
-        /// </summary>
-        public const string Tenant = "tenant";
-
-        /// <summary>
         /// 认证配置分组。
         /// </summary>
         public const string Auth = "auth";
-
-        /// <summary>
-        /// 通知配置分组。
-        /// </summary>
-        public const string Notification = "notification";
-
-        /// <summary>
-        /// 审计配置分组。
-        /// </summary>
-        public const string Audit = "audit";
-
-        /// <summary>
-        /// 文件存储配置分组。
-        /// </summary>
-        public const string File = "file";
     }
 }

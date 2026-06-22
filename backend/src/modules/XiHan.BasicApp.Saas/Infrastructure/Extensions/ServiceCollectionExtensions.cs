@@ -190,6 +190,8 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasOAuthAppSeeder>();
         services.AddDataSeeder<SaasOrganizationSeeder>();
         services.AddDataSeeder<SaasSampleIdentitySeeder>();
+        // 必须在演示身份之后执行（Order=37 > 35）：跨租户成员依赖默认租户样例用户（zhangsan/lisi）。
+        services.AddDataSeeder<SaasBusinessTenantSeeder>();
         services.AddDataSeeder<SaasNotificationSeeder>();
         services.AddDataSeeder<SaasStorageConfigSeeder>();
         services.AddDataSeeder<SaasTaskSeeder>();
