@@ -78,11 +78,20 @@ public sealed class SaasSampleIdentitySeeder(
         SaasPermissionCodes.Server.Read,
     };
 
+    /// <summary>
+    /// 开发工具权限（代码生成）：平台级开发功能，仅超级管理员可拥有，租户管理员的"全部权限"亦排除之。
+    /// </summary>
+    private static bool IsDevelopmentToolCode(string code)
+    {
+        return code.StartsWith("code_gen:", StringComparison.OrdinalIgnoreCase)
+            || code.StartsWith("code_gen_api:", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static readonly IReadOnlyList<RoleSeed> RoleSeeds =
     [
-        new("tenant_admin", "系统管理员", "租户内最高权限：管理用户/角色/部门/业务/日志等（平台专属除外）",
+        new("tenant_admin", "系统管理员", "租户内最高权限：管理用户/角色/部门/业务/日志等（平台/开发专属除外）",
             DataPermissionScope.All, 10,
-            allCodes => allCodes.Where(code => !PlatformOnlyCodes.Contains(code))),
+            allCodes => allCodes.Where(code => !PlatformOnlyCodes.Contains(code) && !IsDevelopmentToolCode(code))),
         new("normal_user", "普通用户", "普通成员：工作台 + 消息阅读",
             DataPermissionScope.SelfOnly, 20,
             _ =>
