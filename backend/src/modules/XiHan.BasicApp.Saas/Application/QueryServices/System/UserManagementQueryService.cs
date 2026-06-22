@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -66,6 +67,8 @@ public sealed class UserManagementQueryService
 
     private readonly IPasswordHistoryRepository _passwordHistoryRepository;
 
+    private readonly ISuperAdminProtector _superAdminProtector;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -83,7 +86,8 @@ public sealed class UserManagementQueryService
         IUserSessionRepository userSessionRepository,
         IUserStatisticsRepository userStatisticsRepository,
         IExternalLoginRepository externalLoginRepository,
-        IPasswordHistoryRepository passwordHistoryRepository)
+        IPasswordHistoryRepository passwordHistoryRepository,
+        ISuperAdminProtector superAdminProtector)
     {
         _userRepository = userRepository;
         _tenantUserRepository = tenantUserRepository;
@@ -99,6 +103,7 @@ public sealed class UserManagementQueryService
         _userStatisticsRepository = userStatisticsRepository;
         _externalLoginRepository = externalLoginRepository;
         _passwordHistoryRepository = passwordHistoryRepository;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <inheritdoc />
@@ -111,6 +116,13 @@ public sealed class UserManagementQueryService
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 超管隐藏：非超管不得读取超管用户管理聚合（角色/权限/会话/密码历史等敏感数据），按 not-found 处理
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin()
+            && await _superAdminProtector.IsProtectedUserAsync(userId, cancellationToken))
+        {
+            return null;
+        }
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)

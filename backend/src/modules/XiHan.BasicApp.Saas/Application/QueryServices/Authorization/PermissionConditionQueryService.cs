@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -63,6 +64,11 @@ public sealed class PermissionConditionQueryService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
+    /// 超级管理员保护守卫
+    /// </summary>
+    private readonly ISuperAdminProtector _superAdminProtector;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionConditionQueryService(
@@ -71,7 +77,8 @@ public sealed class PermissionConditionQueryService
         IUserPermissionRepository userPermissionRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        ISuperAdminProtector superAdminProtector)
     {
         _permissionConditionRepository = permissionConditionRepository;
         _rolePermissionRepository = rolePermissionRepository;
@@ -79,6 +86,7 @@ public sealed class PermissionConditionQueryService
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _tenantUserRepository = tenantUserRepository;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -103,6 +111,12 @@ public sealed class PermissionConditionQueryService
 
         var rolePermission = await _rolePermissionRepository.GetByIdAsync(rolePermissionId, cancellationToken)
             ?? throw new InvalidOperationException("角色权限绑定不存在。");
+
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin() && await _superAdminProtector.IsProtectedRoleAsync(rolePermission.RoleId, cancellationToken))
+        {
+            return [];
+        }
+
         var conditions = onlyValid
             ? await _permissionConditionRepository.GetValidByAuthorizationIdsAsync([rolePermissionId], [], cancellationToken)
             : await _permissionConditionRepository.GetListAsync(
@@ -152,6 +166,12 @@ public sealed class PermissionConditionQueryService
 
         var userPermission = await _userPermissionRepository.GetByIdAsync(userPermissionId, cancellationToken)
             ?? throw new InvalidOperationException("用户直授权限绑定不存在。");
+
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin() && await _superAdminProtector.IsProtectedUserAsync(userPermission.UserId, cancellationToken))
+        {
+            return [];
+        }
+
         var conditions = onlyValid
             ? await _permissionConditionRepository.GetValidByAuthorizationIdsAsync([], [userPermissionId], cancellationToken)
             : await _permissionConditionRepository.GetListAsync(

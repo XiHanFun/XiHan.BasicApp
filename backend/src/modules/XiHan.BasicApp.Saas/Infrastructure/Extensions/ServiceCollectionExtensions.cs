@@ -127,6 +127,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
         services.AddScoped<IFieldSecurityService, FieldSecurityService>();
+        services.AddScoped<ISuperAdminProtector, SuperAdminProtector>();
         services.AddScoped<ICacheManagementService, CacheManagementService>();
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
