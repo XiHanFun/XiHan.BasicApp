@@ -122,7 +122,7 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
       h('div', { class: 'tpl-name' }, [
         h('span', { class: 'tpl-name__text' }, row.templateName),
         row.isBuiltIn
-          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => t('develop.code_gen.common.builtin_tag'))
+          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => t('common.statuses.builtin_tag'))
           : null,
       ]),
   },
@@ -166,11 +166,11 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
         round: true,
         bordered: false,
         type: row.isEnabled ? 'success' : 'default',
-      }, () => (row.isEnabled ? t('develop.code_gen.common.yes') : t('develop.code_gen.common.no'))),
+      }, () => (row.isEnabled ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'status',
-    title: t('develop.code_gen.common.status'),
+    title: t('common.fields.status'),
     width: 72,
     align: 'center',
     render: (row: CodeGenTemplateListItemDto) =>
@@ -183,13 +183,13 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
   },
   {
     key: 'actions',
-    title: t('develop.code_gen.common.actions'),
+    title: t('common.fields.actions'),
     width: 110,
     align: 'center',
     render: (row: CodeGenTemplateListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
         h(NButton, {
-          ariaLabel: t('develop.code_gen.common.edit'),
+          ariaLabel: t('common.actions.edit'),
           circle: true,
           quaternary: true,
           size: 'small',
@@ -198,7 +198,7 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
         }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row), disabled: row.isBuiltIn }, {
           trigger: () => h(NButton, {
-            ariaLabel: t('develop.code_gen.common.delete'),
+            ariaLabel: t('common.actions.delete'),
             circle: true,
             quaternary: true,
             size: 'small',
@@ -223,11 +223,11 @@ async function handleDelete(row: CodeGenTemplateListItemDto) {
   }
   try {
     await codeGenTemplateApi.delete(row.basicId)
-    message.success(t('develop.code_gen.common.delete_success'))
+    message.success(t('common.messages.delete_success'))
     fetchData()
   }
   catch {
-    message.error(t('develop.code_gen.common.delete_failed'))
+    message.error(t('common.messages.delete_failed'))
   }
 }
 
@@ -383,12 +383,12 @@ async function handleSubmit() {
       }
       await codeGenTemplateApi.create(createInput)
     }
-    message.success(t('develop.code_gen.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     fetchData()
   }
   catch {
-    message.error(t('develop.code_gen.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -433,12 +433,12 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="STATUS_OPTIONS"
-        :placeholder="t('develop.code_gen.common.status')"
+        :placeholder="t('common.fields.status')"
         size="small"
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('develop.code_gen.common.search') }}
+        {{ t('common.actions.search') }}
       </NButton>
       <NButton class="panel__add" size="small" type="primary" @click="handleAdd">
         <template #icon>
@@ -514,7 +514,7 @@ onMounted(fetchData)
         <NFormItem :label="t('develop.code_gen.template.form_sort')" path="sort">
           <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="!form.basicId" :label="t('develop.code_gen.common.status')" path="status">
+        <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
           <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
         </NFormItem>
         <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_description')" path="templateDescription">
@@ -540,10 +540,10 @@ onMounted(fetchData)
           </NButton>
           <NSpace>
             <NButton @click="modalVisible = false">
-              {{ t('develop.code_gen.common.cancel') }}
+              {{ t('common.actions.cancel') }}
             </NButton>
             <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-              {{ t('develop.code_gen.common.save') }}
+              {{ t('common.actions.save') }}
             </NButton>
           </NSpace>
         </NSpace>

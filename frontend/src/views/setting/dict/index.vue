@@ -213,13 +213,13 @@ const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
     align: 'center',
     render: (row: DictListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
-        h(NButton, { ariaLabel: t('setting.common.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => handleEdit(row)) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: t('common.actions.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => handleEdit(row)) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleToggleStatus(row) }, {
           trigger: () => h(NButton, { ariaLabel: t('setting.dict.confirm_toggle_dict'), circle: true, quaternary: true, size: 'small', type: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
           default: () => t('setting.dict.confirm_toggle_dict'),
         }),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () => h(NButton, { ariaLabel: t('setting.common.delete'), circle: true, quaternary: true, size: 'small', type: 'error', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          trigger: () => h(NButton, { ariaLabel: t('common.actions.delete'), circle: true, quaternary: true, size: 'small', type: 'error', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
           default: () => t('setting.dict.confirm_delete_dict'),
         }),
       ]),
@@ -297,7 +297,7 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
     title: t('setting.dict.default'),
     width: 70,
     render: (row: DictItemListItemDto) =>
-      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => (row.isDefault ? t('setting.common.yes') : t('setting.common.no'))),
+      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => (row.isDefault ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'status',
@@ -317,13 +317,13 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
     width: 128,
     render: (row: DictItemListItemDto) =>
       h(NSpace, { size: 'small' }, () => [
-        h(NButton, { ariaLabel: t('setting.common.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: t('common.actions.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleItemToggleStatus(row) }, {
           trigger: () => h(NButton, { ariaLabel: t('setting.dict.confirm_toggle_item'), circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
           default: () => t('setting.dict.confirm_toggle_item'),
         }),
         h(NPopconfirm, { onPositiveClick: () => handleItemDelete(row) }, {
-          trigger: () => h(NButton, { ariaLabel: t('setting.common.delete'), circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          trigger: () => h(NButton, { ariaLabel: t('common.actions.delete'), circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
           default: () => t('setting.dict.confirm_delete_item'),
         }),
       ]),
@@ -457,12 +457,12 @@ async function handleSubmit() {
       await dictManagementApi.create(createInput)
     }
 
-    message.success(t('setting.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadDict()
   }
   catch {
-    message.error(t('setting.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -471,7 +471,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: DictListItemDto) {
   await dictManagementApi.delete(row.basicId)
-  message.success(t('setting.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadDict()
 }
 
@@ -481,7 +481,7 @@ async function handleToggleStatus(row: DictListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('setting.dict.dict_disable_remark') : t('setting.dict.dict_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('setting.common.status_updated'))
+  message.success(t('common.messages.status_updated'))
   reloadDict()
 }
 
@@ -496,7 +496,7 @@ async function handleBatchDeleteDict() {
     message.success(t('setting.dict.batch_deleted_dict', { count: ids.length }))
   }
   catch {
-    message.error(t('setting.common.batch_delete_failed'))
+    message.error(t('common.messages.batch_delete_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -515,10 +515,10 @@ async function handleBatchToggleDict(enable: boolean) {
       remark: enable ? t('setting.dict.batch_enable_dict_remark') : t('setting.dict.batch_disable_dict_remark'),
       status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
     })))
-    message.success(t('setting.common.status_updated'))
+    message.success(t('common.messages.status_updated'))
   }
   catch {
-    message.error(t('setting.common.batch_action_failed'))
+    message.error(t('common.messages.batch_action_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -612,12 +612,12 @@ async function handleItemSubmit() {
       await dictManagementApi.itemCreate(createInput)
     }
 
-    message.success(t('setting.common.save_success'))
+    message.success(t('common.messages.save_success'))
     itemModalVisible.value = false
     fetchItemData()
   }
   catch {
-    message.error(t('setting.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     itemSubmitLoading.value = false
@@ -626,7 +626,7 @@ async function handleItemSubmit() {
 
 async function handleItemDelete(row: DictItemListItemDto) {
   await dictManagementApi.itemDelete(row.basicId)
-  message.success(t('setting.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   fetchItemData()
 }
 
@@ -636,7 +636,7 @@ async function handleItemToggleStatus(row: DictItemListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('setting.dict.item_disable_remark') : t('setting.dict.item_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('setting.common.status_updated'))
+  message.success(t('common.messages.status_updated'))
   fetchItemData()
 }
 
@@ -651,7 +651,7 @@ async function handleBatchDeleteItem() {
     message.success(t('setting.dict.batch_deleted_item', { count: ids.length }))
   }
   catch {
-    message.error(t('setting.common.batch_delete_failed'))
+    message.error(t('common.messages.batch_delete_failed'))
   }
   finally {
     checkedItemKeys.value = []
@@ -670,10 +670,10 @@ async function handleBatchToggleItem(enable: boolean) {
       remark: enable ? t('setting.dict.batch_enable_item_remark') : t('setting.dict.batch_disable_item_remark'),
       status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
     })))
-    message.success(t('setting.common.status_updated'))
+    message.success(t('common.messages.status_updated'))
   }
   catch {
-    message.error(t('setting.common.batch_action_failed'))
+    message.error(t('common.messages.batch_action_failed'))
   }
   finally {
     checkedItemKeys.value = []
@@ -730,7 +730,7 @@ onMounted(fetchDictData)
           @update:value="handleDictSearch"
         />
         <NButton class="pane__search" size="small" type="primary" @click="handleDictSearch">
-          {{ t('setting.common.search') }}
+          {{ t('common.actions.search') }}
         </NButton>
       </div>
 
@@ -753,15 +753,15 @@ onMounted(fetchDictData)
           <template v-if="checkedDictKeys.length">
             <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedDictKeys.length }) }}</span>
             <NButton size="tiny" @click="handleBatchToggleDict(true)">
-              {{ t('setting.common.enable') }}
+              {{ t('common.actions.enable') }}
             </NButton>
             <NButton size="tiny" @click="handleBatchToggleDict(false)">
-              {{ t('setting.common.disable') }}
+              {{ t('common.actions.disable') }}
             </NButton>
             <NPopconfirm @positive-click="handleBatchDeleteDict">
               <template #trigger>
                 <NButton size="tiny" type="error">
-                  {{ t('setting.common.delete') }}
+                  {{ t('common.actions.delete') }}
                 </NButton>
               </template>
               {{ t('setting.dict.confirm_batch_delete_dict', { count: checkedDictKeys.length }) }}
@@ -806,7 +806,7 @@ onMounted(fetchDictData)
           @clear="handleItemSearch"
         />
         <NButton class="pane__search" size="small" type="primary" :disabled="!currentDict" @click="handleItemSearch">
-          {{ t('setting.common.search') }}
+          {{ t('common.actions.search') }}
         </NButton>
       </div>
 
@@ -836,15 +836,15 @@ onMounted(fetchDictData)
           <template v-if="checkedItemKeys.length">
             <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedItemKeys.length }) }}</span>
             <NButton size="tiny" @click="handleBatchToggleItem(true)">
-              {{ t('setting.common.enable') }}
+              {{ t('common.actions.enable') }}
             </NButton>
             <NButton size="tiny" @click="handleBatchToggleItem(false)">
-              {{ t('setting.common.disable') }}
+              {{ t('common.actions.disable') }}
             </NButton>
             <NPopconfirm @positive-click="handleBatchDeleteItem">
               <template #trigger>
                 <NButton size="tiny" type="error">
-                  {{ t('setting.common.delete') }}
+                  {{ t('common.actions.delete') }}
                 </NButton>
               </template>
               {{ t('setting.dict.confirm_batch_delete_item', { count: checkedItemKeys.length }) }}
@@ -907,10 +907,10 @@ onMounted(fetchDictData)
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('setting.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -963,10 +963,10 @@ onMounted(fetchDictData)
       <template #footer>
         <NSpace justify="end">
           <NButton @click="itemModalVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="itemSubmitLoading" type="primary" @click="handleItemSubmit">
-            {{ t('setting.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

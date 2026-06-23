@@ -191,12 +191,12 @@ async function handleSubmit() {
         status: form.value.status,
       })
     }
-    message.success(t('develop.code_gen.common.save_success'))
+    message.success(t('common.messages.save_success'))
     emit('saved')
     emit('update:show', false)
   }
   catch {
-    message.error(t('develop.code_gen.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -248,7 +248,7 @@ async function handleSubmit() {
       <NFormItem :label="t('develop.code_gen.table_edit.form_gen_path')" path="genPath">
         <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
       </NFormItem>
-      <NFormItem :label="t('develop.code_gen.common.status')" path="status">
+      <NFormItem :label="t('common.fields.status')" path="status">
         <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
       </NFormItem>
       <NFormItem class="xh-form-full" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
@@ -259,10 +259,10 @@ async function handleSubmit() {
     <template #footer>
       <NSpace justify="end">
         <NButton @click="emit('update:show', false)">
-          {{ t('develop.code_gen.common.cancel') }}
+          {{ t('common.actions.cancel') }}
         </NButton>
         <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-          {{ t('develop.code_gen.common.save') }}
+          {{ t('common.actions.save') }}
         </NButton>
       </NSpace>
     </template>

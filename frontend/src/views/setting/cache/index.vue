@@ -307,17 +307,17 @@ function handleDeleteCurrent() {
   dialog.warning({
     title: t('setting.cache.confirm_delete_title'),
     content: t('setting.cache.confirm_delete_content', { key }),
-    positiveText: t('setting.common.delete'),
-    negativeText: t('setting.common.cancel'),
+    positiveText: t('common.actions.delete'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await cacheApi.remove(key)
-        message.success(t('setting.common.delete_success'))
+        message.success(t('common.messages.delete_success'))
         resetDetail()
         await loadKeys()
       }
       catch {
-        message.error(t('setting.common.delete_failed'))
+        message.error(t('common.messages.delete_failed'))
       }
     },
   })
@@ -336,7 +336,7 @@ function handleBatchDelete() {
     title: t('setting.cache.batch_delete_title'),
     content: t('setting.cache.batch_delete_content', { count: targets.length }),
     positiveText: t('setting.cache.confirm_delete_btn'),
-    negativeText: t('setting.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       const results = await Promise.allSettled(targets.map(key => cacheApi.remove(key)))
       const failed = results.filter(result => result.status === 'rejected').length
@@ -360,7 +360,7 @@ function handleDeleteByPattern() {
     title: t('setting.cache.delete_by_pattern_title'),
     content: t('setting.cache.delete_by_pattern_content', { pattern }),
     positiveText: t('setting.cache.confirm_delete_btn'),
-    negativeText: t('setting.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         const count = await cacheApi.removeByPattern(pattern)
@@ -504,7 +504,7 @@ onMounted(loadKeys)
                   </template>
                 </NButton>
               </template>
-              {{ t('setting.common.copy') }}
+              {{ t('common.actions.copy') }}
             </NTooltip>
             <NTooltip>
               <template #trigger>
@@ -514,7 +514,7 @@ onMounted(loadKeys)
                   </template>
                 </NButton>
               </template>
-              {{ t('setting.common.refresh') }}
+              {{ t('common.actions.refresh') }}
             </NTooltip>
             <NButton v-if="canManage && !editing" size="tiny" @click="startEdit">
               <template #icon>
@@ -556,10 +556,10 @@ onMounted(loadKeys)
                   />
                   <div class="cache-edit-actions">
                     <NButton size="small" @click="cancelEdit">
-                      {{ t('setting.common.cancel') }}
+                      {{ t('common.actions.cancel') }}
                     </NButton>
                     <NButton size="small" type="primary" :loading="saving" @click="handleSave">
-                      {{ t('setting.common.save') }}
+                      {{ t('common.actions.save') }}
                     </NButton>
                   </div>
                 </template>

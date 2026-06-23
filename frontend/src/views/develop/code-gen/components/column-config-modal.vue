@@ -198,12 +198,12 @@ async function handleSubmit() {
       status: row.status,
     }))
     await codeGenTableColumnApi.batchSave({ tableId: props.tableId, columns: payload })
-    message.success(t('develop.code_gen.common.save_success'))
+    message.success(t('common.messages.save_success'))
     emit('saved')
     emit('update:show', false)
   }
   catch {
-    message.error(t('develop.code_gen.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -234,10 +234,10 @@ async function handleSubmit() {
     <template #footer>
       <NSpace justify="end">
         <NButton @click="emit('update:show', false)">
-          {{ t('develop.code_gen.common.cancel') }}
+          {{ t('common.actions.cancel') }}
         </NButton>
         <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-          {{ t('develop.code_gen.common.save') }}
+          {{ t('common.actions.save') }}
         </NButton>
       </NSpace>
     </template>

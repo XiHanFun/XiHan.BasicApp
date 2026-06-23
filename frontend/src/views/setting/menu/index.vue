@@ -59,8 +59,8 @@ interface MenuTreeItem extends MenuListItemDto {
 const message = useMessage()
 
 const statusOptions = computed(() => [
-  { label: t('setting.common.enable'), value: EnableStatus.Enabled },
-  { label: t('setting.common.disable'), value: EnableStatus.Disabled },
+  { label: t('common.actions.enable'), value: EnableStatus.Enabled },
+  { label: t('common.actions.disable'), value: EnableStatus.Disabled },
 ])
 
 const menuTypeOptions = computed(() => [
@@ -129,7 +129,7 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? t('setting.common.yes') : t('setting.common.no')
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
 function formatStatus(value?: EnableStatus | null) {
@@ -324,7 +324,7 @@ const schema = computed<PageSchema>(() => ({
       width: 80,
       order: 6,
       render: row =>
-        h(NTag, { size: 'small', round: true, type: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'default' }, () => ((row as unknown as MenuListItemDto).isVisible ? t('setting.common.yes') : t('setting.common.no'))),
+        h(NTag, { size: 'small', round: true, type: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'default' }, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no'))),
     },
     {
       key: 'status',
@@ -358,9 +358,9 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('setting.menu.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'addChild', title: t('setting.menu.add_child'), scope: 'row', icon: 'lucide:plus', visible: row => (row as unknown as MenuListItemDto).menuType !== MenuType.Button },
     { key: 'view', title: t('setting.menu.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('setting.common.edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainMenu },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainMenu },
     { key: 'toggle', title: t('setting.menu.toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainMenu },
-    { key: 'delete', title: t('setting.common.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.menu.confirm_delete'), visible: canMaintainMenu },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.menu.confirm_delete'), visible: canMaintainMenu },
   ],
 }))
 
@@ -470,12 +470,12 @@ async function toggleStatus(row: MenuListItemDto) {
 async function removeRow(row: MenuListItemDto) {
   try {
     await menuManagementApi.delete(row.basicId)
-    message.success(t('setting.common.delete_success'))
+    message.success(t('common.messages.delete_success'))
     schemaPageRef.value?.reload()
     void loadTree()
   }
   catch {
-    message.error(t('setting.common.delete_failed'))
+    message.error(t('common.messages.delete_failed'))
   }
 }
 
@@ -571,13 +571,13 @@ async function handleSubmit() {
       await menuManagementApi.create(createInput)
     }
 
-    message.success(t('setting.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     schemaPageRef.value?.reload()
     void loadTree()
   }
   catch {
-    message.error(t('setting.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -656,7 +656,7 @@ onMounted(() => {
       </template>
 
       <div v-if="detailLoading" class="modal-loading">
-        {{ t('setting.common.loading') }}
+        {{ t('common.statuses.loading') }}
       </div>
       <NTabs v-else-if="currentDetail" type="line" animated size="small">
         <NTabPane name="overview" :tab="t('setting.menu.overview')">
@@ -748,7 +748,7 @@ onMounted(() => {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="detailVisible = false">
-            {{ t('setting.common.close') }}
+            {{ t('common.actions.close') }}
           </NButton>
           <NButton
             v-if="currentDetail"
@@ -756,7 +756,7 @@ onMounted(() => {
             type="primary"
             @click="detailVisible = false; openEdit(currentDetail as unknown as MenuListItemDto)"
           >
-            {{ t('setting.common.edit') }}
+            {{ t('common.actions.edit') }}
           </NButton>
         </NSpace>
       </template>
@@ -856,10 +856,10 @@ onMounted(() => {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="modalVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('setting.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

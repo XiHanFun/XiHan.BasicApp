@@ -49,7 +49,7 @@ const operationTypeOptions = computed(() => [
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('log.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.operation.keywordPlaceholder'), order: 0 },
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.operation.keywordPlaceholder'), order: 0 },
   // 列（顺序对齐实体 SysOperationLog 属性声明）
   { key: 'userId', title: t('log.common.userId'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
   { key: 'userName', title: t('log.common.userName'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
@@ -93,7 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     ),
   },
   { key: 'operationTime', title: t('log.operation.operationTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
-  { key: 'createdTime', title: t('log.common.createdTime'), dataType: 'datetime', minWidth: 170, order: 28 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 28 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.minExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.minExecutionTime'), order: 40 },
   { key: 'maxExecutionTime', title: t('log.common.maxExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.maxExecutionTime'), order: 41 },
@@ -147,7 +147,7 @@ const schema = computed<PageSchema>(() => ({
     export: { businessType: 'log.operation', buildQuery: buildOperationQuery },
   },
   actions: [
-    { key: 'view', title: t('log.common.viewDetail'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'view', title: t('common.actions.view_detail'), scope: 'row', icon: 'lucide:eye' },
   ],
 }))
 
@@ -171,9 +171,9 @@ const detailFields = computed<LogDetailField[]>(() => [
   { key: 'browser', label: t('log.common.browser') },
   { key: 'os', label: t('log.common.os') },
   { key: 'operationTime', label: t('log.operation.operationTime'), type: 'date' },
-  { key: 'createdTime', label: t('log.common.createdTime'), type: 'date' },
+  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
   { key: 'createdId', label: t('log.common.createdId') },
-  { key: 'createdBy', label: t('log.common.createdBy') },
+  { key: 'createdBy', label: t('common.fields.created_by') },
   { key: 'userAgent', label: t('log.common.userAgent'), type: 'code' },
   { key: 'errorMessage', label: t('log.common.errorMessage'), type: 'code' },
 ])

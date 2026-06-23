@@ -177,7 +177,7 @@ function formatBoolean(value?: boolean | null) {
     return '-'
   }
 
-  return value ? t('identity.common.yes') : t('identity.common.no')
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
 function formatStatus(value?: EnableStatus | null) {
@@ -542,12 +542,12 @@ async function handleSubmit() {
       await permissionCenterApi.create(createInput)
     }
 
-    message.success(t('identity.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadPermission()
   }
   catch {
-    message.error(t('identity.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -556,7 +556,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: PermissionListItemDto) {
   await permissionCenterApi.delete(row.basicId)
-  message.success(t('identity.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadPermission()
 }
 
@@ -566,7 +566,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('identity.permission.front_disable_remark') : t('identity.permission.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('identity.common.status_updated'))
+  message.success(t('common.messages.status_updated'))
   reloadPermission()
 }
 </script>
@@ -898,10 +898,10 @@ async function handleToggleStatus(row: PermissionListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('identity.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

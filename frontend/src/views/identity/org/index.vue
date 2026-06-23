@@ -287,7 +287,7 @@ const memberColumns = computed<DataTableColumns<DepartmentManagementMemberDto>>(
     key: 'isMain',
     width: 72,
     render: row => row.isMain
-      ? h(NTag, { size: 'small', type: 'info', bordered: false }, () => t('identity.common.yes'))
+      ? h(NTag, { size: 'small', type: 'info', bordered: false }, () => t('common.statuses.yes'))
       : h('span', { style: 'color:var(--n-text-color-3)' }, '—'),
   },
   {
@@ -422,12 +422,12 @@ async function handleSubmit() {
       await orgManagementApi.create(createInput)
     }
 
-    message.success(t('identity.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     await reloadAll()
   }
   catch {
-    message.error(t('identity.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -470,7 +470,7 @@ onMounted(() => {
       </template>
 
       <div v-if="detailLoading" class="modal-loading">
-        {{ t('identity.common.loading') }}
+        {{ t('common.statuses.loading') }}
       </div>
       <NTabs v-else-if="managementDetail" type="line" animated size="small">
         <NTabPane name="overview" :tab="t('identity.org.tab_overview')">
@@ -540,7 +540,7 @@ onMounted(() => {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="detailVisible = false">
-            {{ t('identity.common.close') }}
+            {{ t('common.actions.close') }}
           </NButton>
           <NButton
             v-if="detDept"
@@ -548,7 +548,7 @@ onMounted(() => {
             type="primary"
             @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
           >
-            {{ t('identity.common.edit') }}
+            {{ t('common.actions.edit') }}
           </NButton>
         </NSpace>
       </template>
@@ -609,10 +609,10 @@ onMounted(() => {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="modalVisible = false">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('identity.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

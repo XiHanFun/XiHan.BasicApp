@@ -20,8 +20,8 @@ const detailLoading = ref(false)
 const detailData = ref<ApiLogDetailDto | null>(null)
 
 const successOptions = computed(() => [
-  { label: t('log.common.success'), value: 1 },
-  { label: t('log.common.failed'), value: 0 },
+  { label: t('common.statuses.success'), value: 1 },
+  { label: t('common.statuses.failed'), value: 0 },
 ])
 
 const methodOptions = computed(() => [
@@ -59,7 +59,7 @@ function formatSize(bytes: number | string): string {
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索
-  { key: 'keyword', title: t('log.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.api.keywordPlaceholder'), order: 0 },
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.api.keywordPlaceholder'), order: 0 },
   // 列（顺序对齐实体 SysOpenApiLog 属性声明）
   { key: 'userId', title: t('log.common.userId'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
   { key: 'userName', title: t('log.common.userName'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
@@ -111,10 +111,10 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.api.successPlaceholder'),
     width: 100,
     order: 33,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as ApiLogListItemDto).isSuccess ? 'success' : 'error' }, () => (row as unknown as ApiLogListItemDto).isSuccess ? t('log.common.success') : t('log.common.failed')),
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as ApiLogListItemDto).isSuccess ? 'success' : 'error' }, () => (row as unknown as ApiLogListItemDto).isSuccess ? t('common.statuses.success') : t('common.statuses.failed')),
   },
   { key: 'apiVersion', title: t('log.api.apiVersion'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 34 },
-  { key: 'createdTime', title: t('log.common.createdTime'), dataType: 'datetime', minWidth: 170, order: 35 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 35 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.minExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.minExecutionTime'), order: 50 },
   { key: 'maxExecutionTime', title: t('log.common.maxExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.maxExecutionTime'), order: 51 },
@@ -176,7 +176,7 @@ const schema = computed<PageSchema>(() => ({
     export: { businessType: 'log.api', buildQuery: buildApiQuery },
   },
   actions: [
-    { key: 'view', title: t('log.common.viewDetail'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'view', title: t('common.actions.view_detail'), scope: 'row', icon: 'lucide:eye' },
   ],
 }))
 
@@ -196,7 +196,7 @@ const detailFields = computed<LogDetailField[]>(() => [
   { key: 'actionName', label: t('log.common.actionName') },
   { key: 'method', label: t('log.common.method') },
   { key: 'statusCode', label: t('log.common.statusCode') },
-  { key: 'isSuccess', falseText: t('log.common.failed'), label: t('log.api.isSuccess'), trueText: t('log.common.success'), type: 'boolean' },
+  { key: 'isSuccess', falseText: t('common.statuses.failed'), label: t('log.api.isSuccess'), trueText: t('common.statuses.success'), type: 'boolean' },
   { key: 'isSignatureValid', falseText: t('log.api.signatureInvalid'), label: t('log.api.isSignatureValid'), trueText: t('log.api.signatureValid'), type: 'boolean' },
   { key: 'signatureType', label: t('log.api.signatureType'), options: signatureTypeOptions.value, type: 'enum' },
   { key: 'executionTime', label: t('log.common.executionTime'), type: 'duration' },
@@ -208,10 +208,10 @@ const detailFields = computed<LogDetailField[]>(() => [
   { key: 'referer', label: t('log.common.referer'), span: 2 },
   { key: 'requestTime', label: t('log.api.requestTime'), type: 'date' },
   { key: 'responseTime', label: t('log.api.responseTime'), type: 'date' },
-  { key: 'createdTime', label: t('log.common.createdTime'), type: 'date' },
+  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
   { key: 'createdId', label: t('log.common.createdId') },
-  { key: 'createdBy', label: t('log.common.createdBy') },
-  { key: 'remark', label: t('log.common.remark'), span: 2 },
+  { key: 'createdBy', label: t('common.fields.created_by') },
+  { key: 'remark', label: t('common.fields.remark'), span: 2 },
   { key: 'userAgent', label: t('log.common.userAgent'), type: 'code' },
   { key: 'requestParams', label: t('log.common.requestParams'), type: 'code' },
   { key: 'requestBody', label: t('log.common.requestBody'), type: 'code' },

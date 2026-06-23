@@ -88,8 +88,8 @@ const runTaskStatusOptions = computed(() => [
 
 // boolean 选项以 1/0 表达（SchemaSelectOption.value 仅 string|number），查询时 toBool 还原
 const concurrentOptions = computed(() => [
-  { label: t('setting.common.allow'), value: 1 },
-  { label: t('setting.common.forbid'), value: 0 },
+  { label: t('common.statuses.allow'), value: 1 },
+  { label: t('common.statuses.forbid'), value: 0 },
 ])
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -134,7 +134,7 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? t('setting.common.yes') : t('setting.common.no')
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────
@@ -195,7 +195,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: r.allowConcurrent ? 'warning' : 'info', bordered: false }, () => (r.allowConcurrent ? t('setting.common.allow') : t('setting.common.forbid')))
+      return h(NTag, { size: 'small', round: true, type: r.allowConcurrent ? 'warning' : 'info', bordered: false }, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid')))
     },
   },
   { key: 'executedCount', title: t('setting.job.executed_count'), dataType: 'number', minWidth: 100, order: 8 },
@@ -237,10 +237,10 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('setting.job.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: t('setting.job.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'logs', title: t('setting.job.logs'), scope: 'row', icon: 'lucide:history', permission: 'saas:task-log:read' },
-    { key: 'edit', title: t('setting.common.edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
     { key: 'trigger', title: t('setting.job.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto) },
     { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
-    { key: 'delete', title: t('setting.common.delete'), scope: 'row', icon: 'lucide:trash-2', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
   ],
 }))
 
@@ -599,12 +599,12 @@ async function handleSubmit() {
       }
       await jobManagementApi.create(createInput)
     }
-    message.success(t('setting.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadJob()
   }
   catch {
-    message.error(t('setting.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -730,7 +730,7 @@ async function handleSubmit() {
               <template #icon>
                 <NIcon><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></NIcon>
               </template>
-              {{ detailData.status === EnableStatus.Enabled ? t('setting.common.disable') : t('setting.common.enable') }}
+              {{ detailData.status === EnableStatus.Enabled ? t('common.actions.disable') : t('common.actions.enable') }}
             </NButton>
           </NSpace>
         </template>
@@ -767,7 +767,7 @@ async function handleSubmit() {
             <template #icon>
               <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
             </template>
-            {{ t('setting.common.refresh') }}
+            {{ t('common.actions.refresh') }}
           </NButton>
           <span class="xh-task-log-tip">{{ t('setting.job.log_row_tip') }}</span>
         </div>
@@ -954,10 +954,10 @@ async function handleSubmit() {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('setting.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

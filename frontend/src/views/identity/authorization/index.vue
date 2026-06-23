@@ -268,7 +268,7 @@ async function reviewRequest(row: PermissionRequestListItemDto, approved: boolea
     reloadRequest()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.common.operation_failed'))
+    message.error((e as Error)?.message || t('common.messages.operation_failed'))
   }
 }
 
@@ -295,7 +295,7 @@ function onRequestAction(payload: SchemaActionPayload) {
 
 async function handleDeleteRequest(row: PermissionRequestListItemDto) {
   await permissionRequestApi.delete(row.basicId)
-  message.success(t('identity.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadRequest()
 }
 
@@ -457,7 +457,7 @@ async function revokeDelegation(row: PermissionDelegationListItemDto) {
 
 async function handleDeleteDelegation(row: PermissionDelegationListItemDto) {
   await permissionDelegationApi.delete(row.basicId)
-  message.success(t('identity.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadDelegation()
 }
 
@@ -615,10 +615,10 @@ async function submitDelegation() {
             <template #footer>
               <NSpace justify="end">
                 <NButton @click="delegationModalVisible = false">
-                  {{ t('identity.common.cancel') }}
+                  {{ t('common.actions.cancel') }}
                 </NButton>
                 <NButton :loading="delegationSubmitting" type="primary" @click="submitDelegation">
-                  {{ t('identity.common.save') }}
+                  {{ t('common.actions.save') }}
                 </NButton>
               </NSpace>
             </template>

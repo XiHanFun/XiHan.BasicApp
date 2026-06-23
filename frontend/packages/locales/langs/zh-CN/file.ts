@@ -1,13 +1,4 @@
 export default {
-  common: {
-    yes: '是',
-    no: '否',
-    cancel: '取消',
-    save: '保存',
-    refresh: '刷新',
-    detail: '详情',
-    loading: '加载中...',
-  },
   exportCenter: {
     pageName: '导出中心',
     status: {

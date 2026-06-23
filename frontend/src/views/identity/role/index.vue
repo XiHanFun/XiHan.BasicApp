@@ -139,7 +139,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.is_global_placeholder'),
     width: 82,
     order: 5,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'default', bordered: false }, () => (row as unknown as RoleListItemDto).isGlobal ? t('identity.common.yes') : t('identity.common.no')),
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'default', bordered: false }, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no')),
   },
   {
     key: 'dataScope',
@@ -163,7 +163,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.status_placeholder'),
     width: 82,
     order: 9,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('identity.common.enabled') : t('identity.common.disabled')),
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
   },
   {
     key: 'createdTime',
@@ -395,7 +395,7 @@ async function togglePermission(permission: PermissionListItemDto, checked: bool
     permGrants.value = await rolePermissionApi.list(permissionRole.value.basicId)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.common.operation_failed'))
+    message.error((e as Error)?.message || t('common.messages.operation_failed'))
   }
   finally {
     permTogglingId.value = null
@@ -631,7 +631,7 @@ async function saveMenuGrants() {
     message.success(t('identity.role.menu_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.common.save_failed'))
+    message.error((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     menuLoading.value = false
@@ -753,7 +753,7 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? t('identity.common.yes') : t('identity.common.no')
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
 function formatStatus(value?: EnableStatus | null) {
@@ -865,12 +865,12 @@ async function handleSubmit() {
       await roleManagementApi.create(createInput)
     }
 
-    message.success(t('identity.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadRole()
   }
   catch {
-    message.error(t('identity.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -879,7 +879,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: RoleListItemDto) {
   await roleManagementApi.delete(row.basicId)
-  message.success(t('identity.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadRole()
 }
 
@@ -889,7 +889,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('identity.role.front_disable_remark') : t('identity.role.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('identity.common.status_updated'))
+  message.success(t('common.messages.status_updated'))
   reloadRole()
 }
 </script>
@@ -1128,10 +1128,10 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('identity.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -1200,7 +1200,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
         </p>
         <template #footer>
           <NButton @click="menuVisible = false">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton type="primary" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
             {{ t('identity.role.menu_save') }}

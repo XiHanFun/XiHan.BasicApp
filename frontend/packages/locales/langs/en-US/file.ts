@@ -1,13 +1,4 @@
 export default {
-  common: {
-    yes: 'Yes',
-    no: 'No',
-    cancel: 'Cancel',
-    save: 'Save',
-    refresh: 'Refresh',
-    detail: 'Details',
-    loading: 'Loading...',
-  },
   exportCenter: {
     pageName: 'Export Center',
     status: {

@@ -58,7 +58,7 @@ function severityType(level: number) {
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('log.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.exception.keywordPlaceholder'), order: 0 },
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.exception.keywordPlaceholder'), order: 0 },
   // 列（顺序对齐实体 SysExceptionLog 属性声明）
   { key: 'userId', title: t('log.common.userId'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
   { key: 'userName', title: t('log.common.userName'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
@@ -119,7 +119,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   { key: 'handledTime', title: t('log.exception.handledTime'), dataType: 'datetime', minWidth: 170, order: 38 },
   { key: 'errorCode', title: t('log.exception.errorCode'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 39 },
-  { key: 'createdTime', title: t('log.common.createdTime'), dataType: 'datetime', minWidth: 170, order: 40 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 40 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'exceptionTimeStart', title: t('log.common.startTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.startTime'), order: 50 },
   { key: 'exceptionTimeEnd', title: t('log.common.endTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.endTime'), order: 51 },
@@ -179,7 +179,7 @@ const schema = computed<PageSchema>(() => ({
     export: { businessType: 'log.exception', buildQuery: buildExceptionQuery },
   },
   actions: [
-    { key: 'view', title: t('log.common.viewDetail'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'view', title: t('common.actions.view_detail'), scope: 'row', icon: 'lucide:eye' },
   ],
 }))
 
@@ -215,11 +215,11 @@ const detailFields = computed<LogDetailField[]>(() => [
   { key: 'handledBy', label: t('log.exception.handledBy') },
   { key: 'handledTime', label: t('log.exception.handledTime'), type: 'date' },
   { key: 'exceptionTime', label: t('log.exception.exceptionTime'), type: 'date' },
-  { key: 'createdTime', label: t('log.common.createdTime'), type: 'date' },
+  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
   { key: 'createdId', label: t('log.common.createdId') },
-  { key: 'createdBy', label: t('log.common.createdBy') },
+  { key: 'createdBy', label: t('common.fields.created_by') },
   { key: 'handledRemark', label: t('log.exception.handledRemark'), span: 2 },
-  { key: 'remark', label: t('log.common.remark'), span: 2 },
+  { key: 'remark', label: t('common.fields.remark'), span: 2 },
   { key: 'exceptionMessage', label: t('log.exception.exceptionMessage'), type: 'code' },
   { key: 'exceptionStackTrace', label: t('log.common.exceptionStackTrace'), type: 'code' },
   { key: 'requestParams', label: t('log.common.requestParams'), type: 'code' },

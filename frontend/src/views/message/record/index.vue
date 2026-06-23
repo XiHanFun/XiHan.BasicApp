@@ -83,7 +83,7 @@ function formatRetry(row: { maxRetryCount: number, retryCount: number }) {
 }
 
 function formatFlag(value: boolean) {
-  return value ? t('message.common.yes') : t('message.common.no')
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
 function canResend(status: EmailStatus | SmsStatus) {

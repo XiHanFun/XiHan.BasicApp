@@ -176,7 +176,7 @@ async function handleGenerate() {
         <span class="gen__hint">{{ t('develop.code_gen.generate.total_files', { count: artifacts.length }) }}</span>
         <NSpace>
           <NButton @click="emit('update:show', false)">
-            {{ t('develop.code_gen.common.close') }}
+            {{ t('common.actions.close') }}
           </NButton>
           <NButton :disabled="!tableId" :loading="generating" type="primary" @click="handleGenerate">
             {{ t('develop.code_gen.generate.generate_zip') }}
