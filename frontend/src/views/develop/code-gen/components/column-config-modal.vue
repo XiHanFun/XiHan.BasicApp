@@ -17,7 +17,8 @@ import {
   NSpace,
   useMessage,
 } from 'naive-ui'
-import { h, ref, watch } from 'vue'
+import { computed, h, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenTableColumnApi,
   HTML_TYPE_OPTIONS,
@@ -36,6 +37,7 @@ const emit = defineEmits<{
   'saved': []
 }>()
 
+const { t } = useI18n()
 const message = useMessage()
 
 const loading = ref(false)
@@ -60,7 +62,7 @@ async function loadColumns() {
     rows.value = await codeGenTableColumnApi.getByTable(props.tableId)
   }
   catch {
-    message.error('加载列配置失败')
+    message.error(t('develop.code_gen.column.load_failed'))
     rows.value = []
   }
   finally {
@@ -79,11 +81,11 @@ function renderCheckbox(row: CodeGenTableColumnListItemDto, field: BooleanColumn
   })
 }
 
-const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
-  { key: 'columnName', title: '列名', minWidth: 140, fixed: 'left', ellipsis: { tooltip: true } },
+const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => [
+  { key: 'columnName', title: t('develop.code_gen.column.col_column_name'), minWidth: 140, fixed: 'left', ellipsis: { tooltip: true } },
   {
     key: 'columnComment',
-    title: '列说明',
+    title: t('develop.code_gen.column.col_column_comment'),
     minWidth: 160,
     render: (row: CodeGenTableColumnListItemDto) =>
       h(NInput, {
@@ -94,10 +96,10 @@ const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
         },
       }),
   },
-  { key: 'columnType', title: '物理类型', width: 110, ellipsis: { tooltip: true } },
+  { key: 'columnType', title: t('develop.code_gen.column.col_column_type'), width: 110, ellipsis: { tooltip: true } },
   {
     key: 'cSharpType',
-    title: 'C# 类型',
+    title: t('develop.code_gen.column.col_csharp_type'),
     width: 130,
     render: (row: CodeGenTableColumnListItemDto) =>
       h(NInput, {
@@ -110,7 +112,7 @@ const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
   },
   {
     key: 'cSharpProperty',
-    title: '属性名',
+    title: t('develop.code_gen.column.col_csharp_property'),
     width: 140,
     render: (row: CodeGenTableColumnListItemDto) =>
       h(NInput, {
@@ -121,14 +123,14 @@ const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
         },
       }),
   },
-  { key: 'isRequired', title: '必填', width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isRequired') },
-  { key: 'isList', title: '列表', width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isList') },
-  { key: 'isInsert', title: '新增', width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isInsert') },
-  { key: 'isEdit', title: '编辑', width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isEdit') },
-  { key: 'isQuery', title: '查询', width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isQuery') },
+  { key: 'isRequired', title: t('develop.code_gen.column.col_required'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isRequired') },
+  { key: 'isList', title: t('develop.code_gen.column.col_list'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isList') },
+  { key: 'isInsert', title: t('develop.code_gen.column.col_insert'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isInsert') },
+  { key: 'isEdit', title: t('develop.code_gen.column.col_edit'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isEdit') },
+  { key: 'isQuery', title: t('develop.code_gen.column.col_query'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isQuery') },
   {
     key: 'queryType',
-    title: '查询方式',
+    title: t('develop.code_gen.column.col_query_type'),
     width: 130,
     render: (row: CodeGenTableColumnListItemDto) =>
       h(NSelect, {
@@ -142,7 +144,7 @@ const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
   },
   {
     key: 'htmlType',
-    title: '显示类型',
+    title: t('develop.code_gen.column.col_html_type'),
     width: 150,
     render: (row: CodeGenTableColumnListItemDto) =>
       h(NSelect, {
@@ -156,7 +158,7 @@ const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
   },
   {
     key: 'dictType',
-    title: '字典类型',
+    title: t('develop.code_gen.column.col_dict_type'),
     width: 130,
     render: (row: CodeGenTableColumnListItemDto) =>
       h(NInput, {
@@ -167,7 +169,7 @@ const columns: DataTableColumns<CodeGenTableColumnListItemDto> = [
         },
       }),
   },
-]
+])
 
 async function handleSubmit() {
   if (!props.tableId) {
@@ -196,12 +198,12 @@ async function handleSubmit() {
       status: row.status,
     }))
     await codeGenTableColumnApi.batchSave({ tableId: props.tableId, columns: payload })
-    message.success('保存成功')
+    message.success(t('develop.code_gen.common.save_success'))
     emit('saved')
     emit('update:show', false)
   }
   catch {
-    message.error('保存失败')
+    message.error(t('develop.code_gen.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -216,7 +218,7 @@ async function handleSubmit() {
     preset="card"
     :show="show"
     style="width: 96vw; max-width: 1280px"
-    title="列配置"
+    :title="t('develop.code_gen.column.title')"
     @update:show="emit('update:show', $event)"
   >
     <NDataTable
@@ -232,10 +234,10 @@ async function handleSubmit() {
     <template #footer>
       <NSpace justify="end">
         <NButton @click="emit('update:show', false)">
-          取消
+          {{ t('develop.code_gen.common.cancel') }}
         </NButton>
         <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-          保存
+          {{ t('develop.code_gen.common.save') }}
         </NButton>
       </NSpace>
     </template>

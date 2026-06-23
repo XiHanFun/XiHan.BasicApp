@@ -19,6 +19,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenHistoryApi,
   createPageRequest,
@@ -30,6 +31,7 @@ import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'CodeGenHistoryPanel' })
 
+const { t } = useI18n()
 const message = useMessage()
 
 const loading = ref(false)
@@ -76,7 +78,7 @@ async function fetchData() {
     total.value = result.page.totalCount
   }
   catch {
-    message.error('查询生成历史失败')
+    message.error(t('develop.code_gen.history.query_failed'))
     list.value = []
     total.value = 0
   }
@@ -114,19 +116,19 @@ function genStatusTagType(status: GenStatus) {
 const columns = computed<DataTableColumns<CodeGenHistoryListItemDto>>(() => [
   {
     key: 'tableName',
-    title: '表名',
+    title: t('develop.code_gen.history.col_table_name'),
     minWidth: 150,
     ellipsis: { tooltip: true },
   },
   {
     key: 'batchNumber',
-    title: '批次号',
+    title: t('develop.code_gen.history.col_batch_number'),
     minWidth: 160,
     ellipsis: { tooltip: true },
   },
   {
     key: 'genStatus',
-    title: '状态',
+    title: t('develop.code_gen.history.col_status'),
     width: 90,
     align: 'center',
     render: (row: CodeGenHistoryListItemDto) =>
@@ -139,42 +141,42 @@ const columns = computed<DataTableColumns<CodeGenHistoryListItemDto>>(() => [
   },
   {
     key: 'genType',
-    title: '方式',
+    title: t('develop.code_gen.history.col_gen_type'),
     width: 110,
     render: (row: CodeGenHistoryListItemDto) => getOptionLabel(GEN_TYPE_OPTIONS, row.genType),
   },
   {
     key: 'fileCount',
-    title: '文件数',
+    title: t('develop.code_gen.history.col_file_count'),
     width: 80,
     align: 'center',
   },
   {
     key: 'totalSize',
-    title: '总大小',
+    title: t('develop.code_gen.history.col_total_size'),
     width: 100,
     render: (row: CodeGenHistoryListItemDto) => formatSize(row.totalSize),
   },
   {
     key: 'duration',
-    title: '耗时',
+    title: t('develop.code_gen.history.col_duration'),
     width: 90,
     render: (row: CodeGenHistoryListItemDto) => formatDuration(row.duration),
   },
   {
     key: 'operatorName',
-    title: '操作人',
+    title: t('develop.code_gen.history.col_operator'),
     width: 110,
     ellipsis: { tooltip: true },
   },
   {
     key: 'genTime',
-    title: '生成时间',
+    title: t('develop.code_gen.history.col_gen_time'),
     minWidth: 170,
   },
   {
     key: 'actions',
-    title: '操作',
+    title: t('develop.code_gen.common.actions'),
     width: 80,
     align: 'center',
     render: (row: CodeGenHistoryListItemDto) =>
@@ -183,7 +185,7 @@ const columns = computed<DataTableColumns<CodeGenHistoryListItemDto>>(() => [
         size: 'small',
         type: 'primary',
         onClick: () => handleDetail(row),
-      }, () => '详情'),
+      }, () => t('develop.code_gen.common.detail')),
   },
 ])
 
@@ -215,11 +217,11 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
   try {
     detail.value = await codeGenHistoryApi.detail(row.basicId)
     if (!detail.value) {
-      message.error('历史记录不存在')
+      message.error(t('develop.code_gen.history.not_found'))
     }
   }
   catch {
-    message.error('加载历史详情失败')
+    message.error(t('develop.code_gen.history.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -236,7 +238,7 @@ onMounted(fetchData)
         v-model:value="queryParams.tableName"
         class="panel__kw"
         clearable
-        placeholder="搜索表名"
+        :placeholder="t('develop.code_gen.history.search_placeholder')"
         size="small"
         @clear="handleSearch"
         @keyup.enter="handleSearch"
@@ -246,12 +248,12 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="GEN_STATUS_OPTIONS"
-        placeholder="生成状态"
+        :placeholder="t('develop.code_gen.history.filter_gen_status')"
         size="small"
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        查询
+        {{ t('develop.code_gen.common.search') }}
       </NButton>
     </div>
 
@@ -286,63 +288,63 @@ onMounted(fetchData)
       :bordered="false"
       preset="card"
       style="width: 820px; max-width: 94vw"
-      title="生成历史详情"
+      :title="t('develop.code_gen.history.detail_title')"
     >
       <NSpace v-if="detailLoading" justify="center">
-        加载中…
+        {{ t('develop.code_gen.common.loading') }}
       </NSpace>
       <template v-else-if="detail">
         <NDescriptions :column="2" label-placement="left" size="small">
-          <NDescriptionsItem label="表名">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_table_name')">
             {{ detail.tableName }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="批次号">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_batch_number')">
             {{ detail.batchNumber ?? '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="状态">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_status')">
             <NTag :bordered="false" round size="small" :type="genStatusTagType(detail.genStatus)">
               {{ getOptionLabel(GEN_STATUS_OPTIONS, detail.genStatus) }}
             </NTag>
           </NDescriptionsItem>
-          <NDescriptionsItem label="方式">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_gen_type')">
             {{ getOptionLabel(GEN_TYPE_OPTIONS, detail.genType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="文件数">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_file_count')">
             {{ detail.fileCount }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="总大小">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_total_size')">
             {{ formatSize(detail.totalSize) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="耗时">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_duration')">
             {{ formatDuration(detail.duration) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="操作人">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_operator')">
             {{ detail.operatorName ?? '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="生成时间">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_gen_time')">
             {{ detail.genTime }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="操作 IP">
+          <NDescriptionsItem :label="t('develop.code_gen.history.detail_operator_ip')">
             {{ detail.operatorIp ?? '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="detail.genPath" label="生成路径" :span="2">
+          <NDescriptionsItem v-if="detail.genPath" :label="t('develop.code_gen.history.detail_gen_path')" :span="2">
             {{ detail.genPath }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="detail.downloadPath" label="下载路径" :span="2">
+          <NDescriptionsItem v-if="detail.downloadPath" :label="t('develop.code_gen.history.detail_download_path')" :span="2">
             {{ detail.downloadPath }}
           </NDescriptionsItem>
         </NDescriptions>
 
         <div v-if="detail.errorMessage" class="detail-section detail-section--error">
           <div class="detail-section__title">
-            错误信息
+            {{ t('develop.code_gen.history.detail_error') }}
           </div>
           <pre class="detail-section__pre">{{ detail.errorMessage }}</pre>
         </div>
 
         <div v-if="generatedFiles.length" class="detail-section">
           <div class="detail-section__title">
-            产物清单（{{ generatedFiles.length }}）
+            {{ t('develop.code_gen.history.detail_artifacts', { count: generatedFiles.length }) }}
           </div>
           <ul class="detail-files">
             <li v-for="file in generatedFiles" :key="file" class="detail-files__item">
@@ -352,13 +354,13 @@ onMounted(fetchData)
         </div>
       </template>
       <NSpace v-else justify="center">
-        无数据
+        {{ t('develop.code_gen.common.no_data') }}
       </NSpace>
 
       <template #footer>
         <NSpace justify="end">
           <NButton @click="detailVisible = false">
-            关闭
+            {{ t('develop.code_gen.common.close') }}
           </NButton>
         </NSpace>
       </template>

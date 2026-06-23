@@ -3,7 +3,8 @@ import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { DiffLogDetailDto, DiffLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AuditOperationType, AuditRiskLevel, createPageRequest, diffLogApi } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
@@ -11,6 +12,7 @@ import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogDiffPage' })
 
+const { t } = useI18n()
 const message = useMessage()
 
 const detailVisible = ref(false)
@@ -18,29 +20,29 @@ const detailLoading = ref(false)
 const detailData = ref<DiffLogDetailDto | null>(null)
 
 // SchemaSelectOption 仅支持 string|number，布尔筛选用 1/0 表示，请求时转换
-const successOptions = [
-  { label: '成功', value: 1 },
-  { label: '失败', value: 0 },
-]
+const successOptions = computed(() => [
+  { label: t('log.diff.resultSuccess'), value: 1 },
+  { label: t('log.diff.resultFailed'), value: 0 },
+])
 
-const operationTypeOptions = [
-  { label: '新增', value: AuditOperationType.Create },
-  { label: '修改', value: AuditOperationType.Update },
-  { label: '删除', value: AuditOperationType.Delete },
-  { label: '恢复', value: AuditOperationType.Restore },
-  { label: '导入', value: AuditOperationType.Import },
-  { label: '导出', value: AuditOperationType.Export },
-  { label: '查询', value: AuditOperationType.Query },
-  { label: '其他', value: AuditOperationType.Other },
-]
+const operationTypeOptions = computed(() => [
+  { label: t('log.diff.typeCreate'), value: AuditOperationType.Create },
+  { label: t('log.diff.typeUpdate'), value: AuditOperationType.Update },
+  { label: t('log.diff.typeDelete'), value: AuditOperationType.Delete },
+  { label: t('log.diff.typeRestore'), value: AuditOperationType.Restore },
+  { label: t('log.diff.typeImport'), value: AuditOperationType.Import },
+  { label: t('log.diff.typeExport'), value: AuditOperationType.Export },
+  { label: t('log.diff.typeQuery'), value: AuditOperationType.Query },
+  { label: t('log.diff.typeOther'), value: AuditOperationType.Other },
+])
 
-const riskLevelOptions = [
-  { label: '低', value: AuditRiskLevel.Low },
-  { label: '中', value: AuditRiskLevel.Medium },
-  { label: '高', value: AuditRiskLevel.High },
-  { label: '很高', value: AuditRiskLevel.VeryHigh },
-  { label: '严重', value: AuditRiskLevel.Critical },
-]
+const riskLevelOptions = computed(() => [
+  { label: t('log.diff.riskLow'), value: AuditRiskLevel.Low },
+  { label: t('log.diff.riskMedium'), value: AuditRiskLevel.Medium },
+  { label: t('log.diff.riskHigh'), value: AuditRiskLevel.High },
+  { label: t('log.diff.riskVeryHigh'), value: AuditRiskLevel.VeryHigh },
+  { label: t('log.diff.riskCritical'), value: AuditRiskLevel.Critical },
+])
 
 /** 风险等级 → 标签类型 */
 function riskTagType(level: AuditRiskLevel) {
@@ -57,62 +59,62 @@ function riskTagType(level: AuditRiskLevel) {
 }
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索实体/表/用户', order: 0 },
-  { key: 'userId', title: '用户主键', dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
-  { key: 'entityType', title: '实体类型', dataType: 'string', advancedSearch: true, minWidth: 140, order: 12 },
-  { key: 'entityName', title: '实体名称', dataType: 'string', advancedSearch: true, minWidth: 140, order: 13 },
-  { key: 'tableName', title: '数据表', dataType: 'string', advancedSearch: true, minWidth: 140, order: 14 },
-  { key: 'entityId', title: '实体主键', dataType: 'string', advancedSearch: true, minWidth: 120, order: 15 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('log.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.diff.keywordPlaceholder'), order: 0 },
+  { key: 'userId', title: t('log.common.userId'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
+  { key: 'userName', title: t('log.common.userName'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'entityType', title: t('log.diff.entityType'), dataType: 'string', advancedSearch: true, minWidth: 140, order: 12 },
+  { key: 'entityName', title: t('log.diff.entityName'), dataType: 'string', advancedSearch: true, minWidth: 140, order: 13 },
+  { key: 'tableName', title: t('log.diff.tableName'), dataType: 'string', advancedSearch: true, minWidth: 140, order: 14 },
+  { key: 'entityId', title: t('log.diff.entityId'), dataType: 'string', advancedSearch: true, minWidth: 120, order: 15 },
   {
     key: 'operationType',
-    title: '操作类型',
+    title: t('log.diff.operationType'),
     dataType: 'enum',
     searchable: true,
-    options: operationTypeOptions,
-    searchPlaceholder: '操作类型',
+    options: operationTypeOptions.value,
+    searchPlaceholder: t('log.diff.operationTypePlaceholder'),
     width: 90,
     order: 16,
-    render: row => getOptionLabel(operationTypeOptions, (row as unknown as DiffLogListItemDto).operationType),
+    render: row => getOptionLabel(operationTypeOptions.value, (row as unknown as DiffLogListItemDto).operationType),
   },
-  { key: 'changeDescription', title: '变更摘要', dataType: 'string', minWidth: 220, order: 17 },
+  { key: 'changeDescription', title: t('log.diff.changeDescription'), dataType: 'string', minWidth: 220, order: 17 },
   {
     key: 'riskLevel',
-    title: '风险等级',
+    title: t('log.diff.riskLevel'),
     dataType: 'enum',
     searchable: true,
-    options: riskLevelOptions,
-    searchPlaceholder: '风险等级',
+    options: riskLevelOptions.value,
+    searchPlaceholder: t('log.diff.riskLevelPlaceholder'),
     width: 100,
     order: 18,
     render: (row) => {
       const level = (row as unknown as DiffLogListItemDto).riskLevel
-      return h(NTag, { size: 'small', round: true, bordered: false, type: riskTagType(level) }, () => getOptionLabel(riskLevelOptions, level))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: riskTagType(level) }, () => getOptionLabel(riskLevelOptions.value, level))
     },
   },
   {
     key: 'isSuccess',
-    title: '执行结果',
+    title: t('log.diff.isSuccess'),
     dataType: 'enum',
     searchable: true,
-    options: successOptions,
-    searchPlaceholder: '执行结果',
+    options: successOptions.value,
+    searchPlaceholder: t('log.diff.isSuccessPlaceholder'),
     width: 90,
     order: 19,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as DiffLogListItemDto).isSuccess ? 'success' : 'error' }, () => (row as unknown as DiffLogListItemDto).isSuccess ? '成功' : '失败'),
+    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as DiffLogListItemDto).isSuccess ? 'success' : 'error' }, () => (row as unknown as DiffLogListItemDto).isSuccess ? t('log.diff.resultSuccess') : t('log.diff.resultFailed')),
   },
-  { key: 'executionTime', title: '执行耗时', dataType: 'number', sortable: true, width: 110, order: 20, render: row => `${(row as unknown as DiffLogListItemDto).executionTime}ms` },
-  { key: 'operationIp', title: '操作 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索操作 IP', minWidth: 130, order: 21 },
-  { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 22 },
-  { key: 'auditTime', title: '审计时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 24 },
+  { key: 'executionTime', title: t('log.common.executionTime'), dataType: 'number', sortable: true, width: 110, order: 20, render: row => `${(row as unknown as DiffLogListItemDto).executionTime}ms` },
+  { key: 'operationIp', title: t('log.diff.operationIp'), dataType: 'string', searchable: true, searchPlaceholder: t('log.diff.operationIpPlaceholder'), minWidth: 130, order: 21 },
+  { key: 'traceId', title: t('log.common.traceId'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 22 },
+  { key: 'auditTime', title: t('log.diff.auditTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
+  { key: 'createdTime', title: t('log.common.createdTime'), dataType: 'datetime', minWidth: 170, order: 24 },
   // 仅高级搜索
-  { key: 'minExecutionTime', title: '最小耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最小耗时(ms)', order: 40 },
-  { key: 'maxExecutionTime', title: '最大耗时(ms)', dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: '最大耗时(ms)', order: 41 },
-  { key: 'auditTimeStart', title: '开始时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '开始时间', order: 42 },
-  { key: 'auditTimeEnd', title: '结束时间', dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: '结束时间', order: 43 },
-]
+  { key: 'minExecutionTime', title: t('log.common.minExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.minExecutionTime'), order: 40 },
+  { key: 'maxExecutionTime', title: t('log.common.maxExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.maxExecutionTime'), order: 41 },
+  { key: 'auditTimeStart', title: t('log.common.startTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.startTime'), order: 42 },
+  { key: 'auditTimeEnd', title: t('log.common.endTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.endTime'), order: 43 },
+])
 
 function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
@@ -148,51 +150,51 @@ function buildDiffQuery(params: SchemaQueryParams) {
   }
 }
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'log.diff',
   exportPermission: 'saas:diff-log:export',
-  pageName: '数据变更',
+  pageName: t('log.diff.pageName'),
   rowKey: 'basicId',
   scrollX: 2300,
-  fields,
+  fields: fields.value,
   resource: {
     page: params => diffLogApi.page(buildDiffQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
     export: { businessType: 'log.diff', buildQuery: buildDiffQuery },
   },
   actions: [
-    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
+    { key: 'view', title: t('log.common.viewDetail'), scope: 'row', icon: 'lucide:eye' },
   ],
-}
+}))
 
-const detailFields: LogDetailField[] = [
-  { key: 'basicId', label: '日志主键' },
-  { key: 'requestId', label: '请求标识' },
-  { key: 'sessionId', label: '会话标识' },
-  { key: 'traceId', label: '链路追踪 ID' },
-  { key: 'userName', label: '用户名' },
-  { key: 'userId', label: '用户主键' },
-  { key: 'auditType', label: '审计类型' },
-  { key: 'operationType', label: '操作类型', options: operationTypeOptions, type: 'enum' },
-  { key: 'riskLevel', label: '风险等级', options: riskLevelOptions, type: 'enum' },
-  { key: 'entityType', label: '实体类型' },
-  { key: 'entityName', label: '实体名称' },
-  { key: 'tableName', label: '数据表' },
-  { key: 'entityId', label: '实体主键' },
-  { key: 'primaryKey', label: '主键名' },
-  { key: 'primaryKeyValue', label: '主键值' },
-  { key: 'changeDescription', label: '变更摘要', span: 2 },
-  { key: 'description', label: '描述', span: 2 },
-  { key: 'executionTime', label: '执行耗时', type: 'duration' },
-  { key: 'operationIp', label: '操作 IP' },
-  { key: 'auditTime', label: '审计时间', type: 'date' },
-  { key: 'createdTime', label: '创建时间', type: 'date' },
-  { key: 'changedFields', label: '变更字段', type: 'code' },
-  { key: 'beforeData', label: '变更前数据', type: 'code' },
-  { key: 'afterData', label: '变更后数据', type: 'code' },
-  { key: 'extendData', label: '扩展数据', type: 'code' },
-  { key: 'exceptionMessage', label: '异常消息', type: 'code' },
-  { key: 'exceptionStackTrace', label: '异常堆栈', type: 'code' },
-]
+const detailFields = computed<LogDetailField[]>(() => [
+  { key: 'basicId', label: t('log.common.basicId') },
+  { key: 'requestId', label: t('log.common.requestId') },
+  { key: 'sessionId', label: t('log.common.sessionId') },
+  { key: 'traceId', label: t('log.common.traceId') },
+  { key: 'userName', label: t('log.common.userName') },
+  { key: 'userId', label: t('log.common.userId') },
+  { key: 'auditType', label: t('log.diff.auditType') },
+  { key: 'operationType', label: t('log.diff.operationType'), options: operationTypeOptions.value, type: 'enum' },
+  { key: 'riskLevel', label: t('log.diff.riskLevel'), options: riskLevelOptions.value, type: 'enum' },
+  { key: 'entityType', label: t('log.diff.entityType') },
+  { key: 'entityName', label: t('log.diff.entityName') },
+  { key: 'tableName', label: t('log.diff.tableName') },
+  { key: 'entityId', label: t('log.diff.entityId') },
+  { key: 'primaryKey', label: t('log.diff.primaryKey') },
+  { key: 'primaryKeyValue', label: t('log.diff.primaryKeyValue') },
+  { key: 'changeDescription', label: t('log.diff.changeDescription'), span: 2 },
+  { key: 'description', label: t('log.diff.description'), span: 2 },
+  { key: 'executionTime', label: t('log.common.executionTime'), type: 'duration' },
+  { key: 'operationIp', label: t('log.diff.operationIp') },
+  { key: 'auditTime', label: t('log.diff.auditTime'), type: 'date' },
+  { key: 'createdTime', label: t('log.common.createdTime'), type: 'date' },
+  { key: 'changedFields', label: t('log.diff.changedFields'), type: 'code' },
+  { key: 'beforeData', label: t('log.diff.beforeData'), type: 'code' },
+  { key: 'afterData', label: t('log.diff.afterData'), type: 'code' },
+  { key: 'extendData', label: t('log.common.extendData'), type: 'code' },
+  { key: 'exceptionMessage', label: t('log.common.exceptionMessage'), type: 'code' },
+  { key: 'exceptionStackTrace', label: t('log.common.exceptionStackTrace'), type: 'code' },
+])
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as DiffLogListItemDto | undefined
@@ -209,7 +211,7 @@ async function handleDetail(row: DiffLogListItemDto) {
   }
   catch {
     detailData.value = row
-    message.error('加载数据变更详情失败')
+    message.error(t('log.diff.detailLoadFailed'))
   }
   finally {
     detailLoading.value = false
@@ -224,7 +226,7 @@ async function handleDetail(row: DiffLogListItemDto) {
       :fields="detailFields"
       :loading="detailLoading"
       :record="detailData"
-      title="数据变更详情"
+      :title="t('log.diff.detailTitle')"
     />
   </SchemaPage>
 </template>

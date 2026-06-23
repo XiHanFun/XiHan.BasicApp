@@ -19,6 +19,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenTableApi,
   createPageRequest,
@@ -38,6 +39,7 @@ import TableEditModal from './table-edit-modal.vue'
 
 defineOptions({ name: 'CodeGenTablePanel' })
 
+const { t } = useI18n()
 const message = useMessage()
 
 const loading = ref(false)
@@ -74,7 +76,7 @@ async function fetchData() {
     total.value = result.page.totalCount
   }
   catch {
-    message.error('查询表配置失败')
+    message.error(t('develop.code_gen.table.query_failed'))
     list.value = []
     total.value = 0
   }
@@ -110,19 +112,19 @@ function genStatusTagType(status: GenStatus) {
 }
 
 const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
-  { key: 'tableName', title: '表名', minWidth: 170, fixed: 'left', ellipsis: { tooltip: true } },
-  { key: 'className', title: '实体类名', minWidth: 150, ellipsis: { tooltip: true } },
-  { key: 'tableComment', title: '表说明', minWidth: 140, ellipsis: { tooltip: true } },
-  { key: 'moduleName', title: '模块', width: 120, ellipsis: { tooltip: true } },
+  { key: 'tableName', title: t('develop.code_gen.table.col_table_name'), minWidth: 170, fixed: 'left', ellipsis: { tooltip: true } },
+  { key: 'className', title: t('develop.code_gen.table.col_class_name'), minWidth: 150, ellipsis: { tooltip: true } },
+  { key: 'tableComment', title: t('develop.code_gen.table.col_table_comment'), minWidth: 140, ellipsis: { tooltip: true } },
+  { key: 'moduleName', title: t('develop.code_gen.table.col_module'), width: 120, ellipsis: { tooltip: true } },
   {
     key: 'templateType',
-    title: '模板类型',
+    title: t('develop.code_gen.table.col_template_type'),
     width: 100,
     render: (row: CodeGenTableListItemDto) => getOptionLabel(TEMPLATE_TYPE_OPTIONS, row.templateType),
   },
   {
     key: 'genStatus',
-    title: '生成状态',
+    title: t('develop.code_gen.table.col_gen_status'),
     width: 100,
     align: 'center',
     render: (row: CodeGenTableListItemDto) =>
@@ -135,7 +137,7 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('develop.code_gen.table.col_status'),
     width: 72,
     align: 'center',
     render: (row: CodeGenTableListItemDto) =>
@@ -146,10 +148,10 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
         type: row.status === EnableStatus.Enabled ? 'success' : 'error',
       }, () => getOptionLabel(STATUS_OPTIONS, row.status)),
   },
-  { key: 'lastGenTime', title: '最近生成', minWidth: 170 },
+  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), minWidth: 170 },
   {
     key: 'actions',
-    title: '操作',
+    title: t('develop.code_gen.common.actions'),
     width: 288,
     fixed: 'right',
     align: 'center',
@@ -159,7 +161,7 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
           circle: true,
           quaternary: true,
           size: 'small',
-          title: '运行时数据',
+          title: t('develop.code_gen.table.action_runtime'),
           onClick: () => handleRuntime(row),
         }, {
           icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:database' })),
@@ -169,24 +171,24 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
           size: 'small',
           type: 'primary',
           onClick: () => handleGenerate(row),
-        }, () => '生成'),
+        }, () => t('develop.code_gen.table.action_generate')),
         h(NButton, {
           quaternary: true,
           size: 'small',
           onClick: () => handleColumns(row),
-        }, () => '列配置'),
+        }, () => t('develop.code_gen.table.action_columns')),
         h(NButton, {
           quaternary: true,
           size: 'small',
           onClick: () => handleEdit(row),
-        }, () => '编辑'),
+        }, () => t('develop.code_gen.common.edit')),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
           trigger: () => h(NButton, {
             quaternary: true,
             size: 'small',
             type: 'error',
-          }, () => '删除'),
-          default: () => '确认删除该表配置？',
+          }, () => t('develop.code_gen.common.delete')),
+          default: () => t('develop.code_gen.table.confirm_delete'),
         }),
       ]),
   },
@@ -221,11 +223,11 @@ function handleRuntime(row: CodeGenTableListItemDto) {
 async function handleDelete(row: CodeGenTableListItemDto) {
   try {
     await codeGenTableApi.delete(row.basicId)
-    message.success('删除成功')
+    message.success(t('develop.code_gen.common.delete_success'))
     fetchData()
   }
   catch {
-    message.error('删除失败')
+    message.error(t('develop.code_gen.common.delete_failed'))
   }
 }
 
@@ -239,7 +241,7 @@ onMounted(fetchData)
         v-model:value="queryParams.keyword"
         class="panel__kw"
         clearable
-        placeholder="搜索表名 / 类名 / 注释"
+        :placeholder="t('develop.code_gen.table.search_placeholder')"
         size="small"
         @clear="handleSearch"
         @keyup.enter="handleSearch"
@@ -249,7 +251,7 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="TEMPLATE_TYPE_OPTIONS"
-        placeholder="模板类型"
+        :placeholder="t('develop.code_gen.table.filter_template_type')"
         size="small"
         @update:value="handleSearch"
       />
@@ -258,7 +260,7 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="GEN_STATUS_OPTIONS"
-        placeholder="生成状态"
+        :placeholder="t('develop.code_gen.table.filter_gen_status')"
         size="small"
         @update:value="handleSearch"
       />
@@ -267,18 +269,18 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="STATUS_OPTIONS"
-        placeholder="状态"
+        :placeholder="t('develop.code_gen.table.filter_status')"
         size="small"
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        查询
+        {{ t('develop.code_gen.common.search') }}
       </NButton>
       <NButton class="panel__add" size="small" type="primary" @click="handleImport">
         <template #icon>
           <NIcon><Icon icon="lucide:database" /></NIcon>
         </template>
-        导入数据库表
+        {{ t('develop.code_gen.table.import') }}
       </NButton>
     </div>
 

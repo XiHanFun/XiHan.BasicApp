@@ -21,6 +21,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   departmentApi,
@@ -42,6 +43,8 @@ import {
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemFieldSecurityPage' })
+
+const { t } = useI18n()
 
 interface FlsFormModel extends FieldLevelSecurityCreateDto {
   basicId?: ApiId
@@ -66,7 +69,7 @@ const resourceLoading = ref(false)
 const maskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
 const targetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
 
-const modalTitle = computed(() => (flsForm.value.basicId ? '编辑字段规则' : '新增字段规则'))
+const modalTitle = computed(() => (flsForm.value.basicId ? t('identity.field_security.form_edit_title') : t('identity.field_security.form_create_title')))
 const needMaskPattern = computed(() =>
   flsForm.value.maskStrategy === FieldMaskStrategy.PartialMask
   || flsForm.value.maskStrategy === FieldMaskStrategy.Custom,
@@ -74,13 +77,13 @@ const needMaskPattern = computed(() =>
 const targetPlaceholder = computed(() => {
   switch (flsForm.value.targetType) {
     case FieldSecurityTargetType.User:
-      return '搜索并选择用户'
+      return t('identity.field_security.ph_target_user')
     case FieldSecurityTargetType.Permission:
-      return '搜索并选择权限'
+      return t('identity.field_security.ph_target_permission')
     case FieldSecurityTargetType.Department:
-      return '搜索并选择部门'
+      return t('identity.field_security.ph_target_department')
     default:
-      return '搜索并选择角色'
+      return t('identity.field_security.ph_target_role')
   }
 })
 
@@ -186,7 +189,7 @@ async function loadTargetOptions(keyword = '') {
     targetOptions.value = mergeOptions(targetOptions.value, next)
   }
   catch {
-    message.error('加载目标候选失败')
+    message.error(t('identity.field_security.msg_load_target_failed'))
   }
   finally {
     targetLoading.value = false
@@ -203,7 +206,7 @@ async function loadResourceOptions(keyword = '') {
     )
   }
   catch {
-    message.error('加载资源候选失败')
+    message.error(t('identity.field_security.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -235,22 +238,22 @@ function boolTag(value: boolean, onText: string, offText: string) {
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索字段名 / 目标 / 资源', width: 240, order: 0 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('identity.field_security.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.field_security.keyword_placeholder'), width: 240, order: 0 },
   {
     key: 'targetType',
-    title: '目标类型',
+    title: t('identity.field_security.col_target_type'),
     dataType: 'enum',
     searchable: true,
     options: targetTypeOptions,
-    searchPlaceholder: '全部目标类型',
+    searchPlaceholder: t('identity.field_security.target_type_placeholder'),
     width: 110,
     order: 1,
     render: row => getOptionLabel(targetTypeOptions, (row as unknown as FieldLevelSecurityListItemDto).targetType),
   },
   {
     key: 'targetName',
-    title: '目标',
+    title: t('identity.field_security.col_target'),
     dataType: 'string',
     minWidth: 150,
     order: 2,
@@ -261,7 +264,7 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'resourceName',
-    title: '资源',
+    title: t('identity.field_security.col_resource'),
     dataType: 'string',
     minWidth: 150,
     order: 3,
@@ -270,58 +273,58 @@ const fields: ListFieldSchema[] = [
       return r.resourceName || r.resourceCode || String(r.resourceId)
     },
   },
-  { key: 'fieldName', title: '字段名', dataType: 'string', minWidth: 150, order: 4 },
+  { key: 'fieldName', title: t('identity.field_security.col_field_name'), dataType: 'string', minWidth: 150, order: 4 },
   {
     key: 'isReadable',
-    title: '可读',
+    title: t('identity.field_security.col_readable'),
     dataType: 'boolean',
     width: 84,
     order: 5,
-    render: row => boolTag((row as unknown as FieldLevelSecurityListItemDto).isReadable, '可读', '不可读'),
+    render: row => boolTag((row as unknown as FieldLevelSecurityListItemDto).isReadable, t('identity.field_security.readable_on'), t('identity.field_security.readable_off')),
   },
   {
     key: 'isEditable',
-    title: '可编辑',
+    title: t('identity.field_security.col_editable'),
     dataType: 'boolean',
     width: 90,
     order: 6,
-    render: row => boolTag((row as unknown as FieldLevelSecurityListItemDto).isEditable, '可编辑', '只读'),
+    render: row => boolTag((row as unknown as FieldLevelSecurityListItemDto).isEditable, t('identity.field_security.editable_on'), t('identity.field_security.editable_off')),
   },
   {
     key: 'maskStrategy',
-    title: '脱敏策略',
+    title: t('identity.field_security.col_mask_strategy'),
     dataType: 'enum',
     searchable: true,
     options: maskStrategyOptions,
-    searchPlaceholder: '全部脱敏策略',
+    searchPlaceholder: t('identity.field_security.mask_strategy_placeholder'),
     minWidth: 110,
     order: 7,
     render: row => getOptionLabel(maskStrategyOptions, (row as unknown as FieldLevelSecurityListItemDto).maskStrategy),
   },
-  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 90, order: 8 },
+  { key: 'priority', title: t('identity.field_security.col_priority'), dataType: 'number', sortable: true, width: 90, order: 8 },
   {
     key: 'status',
-    title: '状态',
+    title: t('identity.field_security.col_status'),
     dataType: 'enum',
     searchable: true,
     options: STATUS_OPTIONS,
-    searchPlaceholder: '全部状态',
+    searchPlaceholder: t('identity.field_security.status_placeholder'),
     width: 90,
     order: 9,
   },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
-]
+  { key: 'createdTime', title: t('identity.field_security.col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
+])
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'system.field-security',
   exportPermission: 'saas:field-level-security:export',
-  pageName: '字段级权限',
+  pageName: t('identity.field_security.page_name'),
   batchRemovable: true,
   removePermission: 'saas:field-level-security:delete',
   statusPermission: 'saas:field-level-security:status',
   rowKey: 'basicId',
   scrollX: 1500,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const { keyword, targetType, maskStrategy, status } = params.filters
@@ -334,15 +337,15 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => fieldLevelSecurityApi.delete(id),
-    updateStatus: (id, enabled) => fieldLevelSecurityApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用字段规则' : '批量停用字段规则' }),
+    updateStatus: (id, enabled) => fieldLevelSecurityApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.field_security.batch_enable_remark') : t('identity.field_security.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: '新增字段规则', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: '编辑', scope: 'row' },
-    { key: 'toggle', title: '启用/停用', scope: 'row' },
-    { key: 'delete', title: '删除', scope: 'row' },
+    { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row' },
+    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row' },
+    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row' },
   ],
-}
+}))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as FieldLevelSecurityListItemDto | undefined
@@ -408,15 +411,15 @@ async function handleEdit(row: FieldLevelSecurityListItemDto) {
 function validateForm() {
   const form = flsForm.value
   if (!form.targetId) {
-    message.warning('请选择授权目标')
+    message.warning(t('identity.field_security.msg_target_required'))
     return false
   }
   if (!form.resourceId) {
-    message.warning('请选择资源')
+    message.warning(t('identity.field_security.msg_resource_required'))
     return false
   }
   if (!form.fieldName.trim()) {
-    message.warning('请输入字段名')
+    message.warning(t('identity.field_security.msg_field_name_required'))
     return false
   }
   return true
@@ -462,12 +465,12 @@ async function handleSubmit() {
       }
       await fieldLevelSecurityApi.create(createInput)
     }
-    message.success('保存成功')
+    message.success(t('identity.common.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('identity.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -476,17 +479,17 @@ async function handleSubmit() {
 
 async function handleDelete(row: FieldLevelSecurityListItemDto) {
   await fieldLevelSecurityApi.delete(row.basicId)
-  message.success('删除成功')
+  message.success(t('identity.common.delete_success'))
   reloadList()
 }
 
 async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
   await fieldLevelSecurityApi.updateStatus({
     basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? '前端停用字段规则' : '前端启用字段规则',
+    remark: row.status === EnableStatus.Enabled ? t('identity.field_security.front_disable_remark') : t('identity.field_security.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success('状态已更新')
+  message.success(t('identity.common.status_updated'))
   reloadList()
 }
 </script>
@@ -502,14 +505,14 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
       style="width: 720px; max-width: 92vw"
     >
       <NForm :model="flsForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="目标类型" path="targetType">
+        <NFormItem :label="t('identity.field_security.label_target_type')" path="targetType">
           <NSelect
             v-model:value="flsForm.targetType"
             :disabled="Boolean(flsForm.basicId)"
             :options="targetTypeOptions"
           />
         </NFormItem>
-        <NFormItem label="授权目标" path="targetId">
+        <NFormItem :label="t('identity.field_security.label_target')" path="targetId">
           <NSelect
             v-model:value="flsForm.targetId"
             clearable
@@ -522,65 +525,65 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             @search="(kw: string) => loadTargetOptions(kw)"
           />
         </NFormItem>
-        <NFormItem label="资源" path="resourceId">
+        <NFormItem :label="t('identity.field_security.label_resource')" path="resourceId">
           <NSelect
             v-model:value="flsForm.resourceId"
             clearable
             filterable
             :loading="resourceLoading"
             :options="resourceOptions"
-            placeholder="搜索并选择资源"
+            :placeholder="t('identity.field_security.ph_resource')"
             remote
             @focus="loadResourceOptions()"
             @search="(kw: string) => loadResourceOptions(kw)"
           />
         </NFormItem>
-        <NFormItem label="字段名" path="fieldName">
-          <NInput v-model:value="flsForm.fieldName" clearable placeholder="实体/DTO 属性名，如 Email" />
+        <NFormItem :label="t('identity.field_security.label_field_name')" path="fieldName">
+          <NInput v-model:value="flsForm.fieldName" clearable :placeholder="t('identity.field_security.ph_field_name')" />
         </NFormItem>
-        <NFormItem label="可读" path="isReadable">
+        <NFormItem :label="t('identity.field_security.label_readable')" path="isReadable">
           <NSwitch v-model:value="flsForm.isReadable" />
         </NFormItem>
-        <NFormItem label="可编辑" path="isEditable">
+        <NFormItem :label="t('identity.field_security.label_editable')" path="isEditable">
           <NSwitch v-model:value="flsForm.isEditable" />
         </NFormItem>
-        <NFormItem label="脱敏策略" path="maskStrategy">
+        <NFormItem :label="t('identity.field_security.label_mask_strategy')" path="maskStrategy">
           <NSelect v-model:value="flsForm.maskStrategy" :options="maskStrategyOptions" />
         </NFormItem>
-        <NFormItem v-if="needMaskPattern" label="脱敏规则" path="maskPattern">
+        <NFormItem v-if="needMaskPattern" :label="t('identity.field_security.label_mask_pattern')" path="maskPattern">
           <NInput
             v-model:value="flsForm.maskPattern"
             clearable
-            placeholder="如 keep:3,4（保留前3后4）"
+            :placeholder="t('identity.field_security.ph_mask_pattern')"
           />
         </NFormItem>
-        <NFormItem label="优先级" path="priority">
+        <NFormItem :label="t('identity.field_security.label_priority')" path="priority">
           <NInputNumber v-model:value="flsForm.priority" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="!flsForm.basicId" label="状态" path="status">
+        <NFormItem v-if="!flsForm.basicId" :label="t('identity.field_security.label_status')" path="status">
           <NSelect v-model:value="flsForm.status" :options="STATUS_OPTIONS" />
         </NFormItem>
-        <NFormItem label="描述" path="description">
+        <NFormItem :label="t('identity.field_security.label_description')" path="description">
           <NInput
             v-model:value="flsForm.description"
             clearable
-            placeholder="请输入规则描述"
+            :placeholder="t('identity.field_security.ph_description')"
             :rows="2"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="flsForm.remark" clearable placeholder="请输入备注" />
+        <NFormItem :label="t('identity.field_security.label_remark')" path="remark">
+          <NInput v-model:value="flsForm.remark" clearable :placeholder="t('identity.field_security.ph_remark')" />
         </NFormItem>
       </NForm>
 
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('identity.common.save') }}
           </NButton>
         </NSpace>
       </template>

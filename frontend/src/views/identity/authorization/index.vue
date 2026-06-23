@@ -23,7 +23,8 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   DelegationStatus,
@@ -39,6 +40,8 @@ import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '~/
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemAuthorizationPage' })
+
+const { t } = useI18n()
 
 interface NumericSelectOption {
   label: string
@@ -130,7 +133,7 @@ async function loadUserOptions(keyword = '') {
     )
   }
   catch {
-    message.error('加载用户候选失败')
+    message.error(t('identity.authorization.msg_load_user_failed'))
   }
   finally {
     userLoading.value = false
@@ -144,7 +147,7 @@ async function loadRoleOptions(keyword = '') {
     roleOptions.value = mergeOptions(roleOptions.value, roles.map(r => ({ label: `${r.roleName} (${r.roleCode})`, value: r.basicId })))
   }
   catch {
-    message.error('加载角色候选失败')
+    message.error(t('identity.authorization.msg_load_role_failed'))
   }
   finally {
     roleLoading.value = false
@@ -158,7 +161,7 @@ async function loadPermissionOptions(keyword = '') {
     permissionOptions.value = mergeOptions(permissionOptions.value, perms.map(p => ({ label: `${p.permissionName} (${p.permissionCode})`, value: p.basicId })))
   }
   catch {
-    message.error('加载权限候选失败')
+    message.error(t('identity.authorization.msg_load_permission_failed'))
   }
   finally {
     permissionLoading.value = false
@@ -166,11 +169,11 @@ async function loadPermissionOptions(keyword = '') {
 }
 
 // ── 申请审批 ────────────────────────────────────────────────────
-const requestFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索申请人 / 原因', width: 240, order: 0 },
+const requestFields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('identity.authorization.req_col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.authorization.req_keyword_placeholder'), width: 240, order: 0 },
   {
     key: 'requestUserDisplayName',
-    title: '申请人',
+    title: t('identity.authorization.req_col_applicant'),
     dataType: 'string',
     minWidth: 140,
     order: 1,
@@ -181,7 +184,7 @@ const requestFields: ListFieldSchema[] = [
   },
   {
     key: 'target',
-    title: '申请对象',
+    title: t('identity.authorization.req_col_target'),
     dataType: 'string',
     minWidth: 160,
     order: 2,
@@ -190,14 +193,14 @@ const requestFields: ListFieldSchema[] = [
       return r.permissionName || r.roleName || '—'
     },
   },
-  { key: 'requestReason', title: '申请原因', dataType: 'string', minWidth: 200, order: 3 },
+  { key: 'requestReason', title: t('identity.authorization.req_col_reason'), dataType: 'string', minWidth: 200, order: 3 },
   {
     key: 'requestStatus',
-    title: '状态',
+    title: t('identity.authorization.req_col_status'),
     dataType: 'enum',
     searchable: true,
     options: requestStatusOptions,
-    searchPlaceholder: '全部状态',
+    searchPlaceholder: t('identity.authorization.req_status_placeholder'),
     width: 100,
     order: 4,
     render: (row) => {
@@ -211,29 +214,29 @@ const requestFields: ListFieldSchema[] = [
   },
   {
     key: 'expectedExpirationTime',
-    title: '期望有效期',
+    title: t('identity.authorization.req_col_expected_validity'),
     dataType: 'string',
     minWidth: 190,
     order: 5,
     render: (row) => {
       const r = row as unknown as PermissionRequestListItemDto
-      return `${formatNullableDate(r.expectedEffectiveTime)} 至 ${formatNullableDate(r.expectedExpirationTime)}`
+      return t('identity.authorization.validity_range', { from: formatNullableDate(r.expectedEffectiveTime), to: formatNullableDate(r.expectedExpirationTime) })
     },
   },
-  { key: 'createdTime', title: '申请时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
-]
+  { key: 'createdTime', title: t('identity.authorization.req_col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
+])
 
 function isPending(row: unknown) {
   return (row as PermissionRequestListItemDto).requestStatus === PermissionRequestStatus.Pending
 }
 
-const requestSchema: PageSchema = {
+const requestSchema = computed<PageSchema>(() => ({
   pageCode: 'system.authorization.request',
   exportPermission: 'saas:permission-request:export',
-  pageName: '授权申请',
+  pageName: t('identity.authorization.req_page_name'),
   rowKey: 'basicId',
   scrollX: 1300,
-  fields: requestFields,
+  fields: requestFields.value,
   resource: {
     page: (params) => {
       const { keyword, requestStatus } = params.filters
@@ -246,26 +249,26 @@ const requestSchema: PageSchema = {
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
-    { key: 'approve', title: '通过', scope: 'row', type: 'primary', visible: isPending },
-    { key: 'reject', title: '驳回', scope: 'row', visible: isPending },
-    { key: 'delete', title: '删除', scope: 'row' },
+    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', type: 'primary', visible: isPending },
+    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', visible: isPending },
+    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row' },
   ],
-}
+}))
 
 async function reviewRequest(row: PermissionRequestListItemDto, approved: boolean) {
   try {
     if (approved) {
       // 审批通过：后端走审批流并自动为申请人授予角色/权限
-      await permissionRequestApi.approve({ basicId: row.basicId, remark: '审批通过' })
+      await permissionRequestApi.approve({ basicId: row.basicId, remark: t('identity.authorization.req_approve_remark') })
     }
     else {
-      await permissionRequestApi.reject({ basicId: row.basicId, remark: '审批驳回' })
+      await permissionRequestApi.reject({ basicId: row.basicId, remark: t('identity.authorization.req_reject_remark') })
     }
-    message.success(approved ? '已通过并授权' : '已驳回')
+    message.success(approved ? t('identity.authorization.req_approved') : t('identity.authorization.req_rejected'))
     reloadRequest()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '操作失败')
+    message.error((e as Error)?.message || t('identity.common.operation_failed'))
   }
 }
 
@@ -292,16 +295,16 @@ function onRequestAction(payload: SchemaActionPayload) {
 
 async function handleDeleteRequest(row: PermissionRequestListItemDto) {
   await permissionRequestApi.delete(row.basicId)
-  message.success('删除成功')
+  message.success(t('identity.common.delete_success'))
   reloadRequest()
 }
 
 // ── 委托 ────────────────────────────────────────────────────────
-const delegationFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索委托人 / 接收人', width: 240, order: 0 },
+const delegationFields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('identity.authorization.del_col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.authorization.del_keyword_placeholder'), width: 240, order: 0 },
   {
     key: 'delegatorDisplayName',
-    title: '委托人',
+    title: t('identity.authorization.del_col_delegator'),
     dataType: 'string',
     minWidth: 130,
     order: 1,
@@ -312,7 +315,7 @@ const delegationFields: ListFieldSchema[] = [
   },
   {
     key: 'delegateeDisplayName',
-    title: '接收人',
+    title: t('identity.authorization.del_col_delegatee'),
     dataType: 'string',
     minWidth: 130,
     order: 2,
@@ -323,7 +326,7 @@ const delegationFields: ListFieldSchema[] = [
   },
   {
     key: 'target',
-    title: '委托对象',
+    title: t('identity.authorization.del_col_target'),
     dataType: 'string',
     minWidth: 160,
     order: 3,
@@ -334,11 +337,11 @@ const delegationFields: ListFieldSchema[] = [
   },
   {
     key: 'delegationStatus',
-    title: '状态',
+    title: t('identity.authorization.del_col_status'),
     dataType: 'enum',
     searchable: true,
     options: delegationStatusOptions,
-    searchPlaceholder: '全部状态',
+    searchPlaceholder: t('identity.authorization.del_status_placeholder'),
     width: 100,
     order: 4,
     render: (row) => {
@@ -352,29 +355,29 @@ const delegationFields: ListFieldSchema[] = [
   },
   {
     key: 'expirationTime',
-    title: '有效期',
+    title: t('identity.authorization.del_col_validity'),
     dataType: 'string',
     minWidth: 190,
     order: 5,
     render: (row) => {
       const r = row as unknown as PermissionDelegationListItemDto
-      return `${formatNullableDate(r.effectiveTime)} 至 ${formatNullableDate(r.expirationTime)}`
+      return t('identity.authorization.validity_range', { from: formatNullableDate(r.effectiveTime), to: formatNullableDate(r.expirationTime) })
     },
   },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
-]
+  { key: 'createdTime', title: t('identity.authorization.del_col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
+])
 
 function canRevoke(row: unknown) {
   const status = (row as PermissionDelegationListItemDto).delegationStatus
   return status === DelegationStatus.Active || status === DelegationStatus.Pending
 }
 
-const delegationSchema: PageSchema = {
+const delegationSchema = computed<PageSchema>(() => ({
   pageCode: 'system.authorization.delegation',
-  pageName: '权限委托',
+  pageName: t('identity.authorization.del_page_name'),
   rowKey: 'basicId',
   scrollX: 1300,
-  fields: delegationFields,
+  fields: delegationFields.value,
   resource: {
     page: (params) => {
       const { keyword, delegationStatus } = params.filters
@@ -387,11 +390,11 @@ const delegationSchema: PageSchema = {
     remove: id => permissionDelegationApi.delete(id),
   },
   actions: [
-    { key: 'create', title: '新增委托', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'revoke', title: '撤销', scope: 'row', visible: canRevoke },
-    { key: 'delete', title: '删除', scope: 'row' },
+    { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', visible: canRevoke },
+    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row' },
   ],
-}
+}))
 
 const delegationModalVisible = ref(false)
 const delegationSubmitting = ref(false)
@@ -442,42 +445,42 @@ async function revokeDelegation(row: PermissionDelegationListItemDto) {
     await permissionDelegationApi.updateStatus({
       basicId: row.basicId,
       delegationStatus: DelegationStatus.Revoked,
-      remark: '前端撤销委托',
+      remark: t('identity.authorization.del_revoke_remark'),
     })
-    message.success('已撤销')
+    message.success(t('identity.authorization.del_revoked'))
     reloadDelegation()
   }
   catch {
-    message.error('撤销失败')
+    message.error(t('identity.authorization.del_revoke_failed'))
   }
 }
 
 async function handleDeleteDelegation(row: PermissionDelegationListItemDto) {
   await permissionDelegationApi.delete(row.basicId)
-  message.success('删除成功')
+  message.success(t('identity.common.delete_success'))
   reloadDelegation()
 }
 
 function validateDelegation() {
   const form = delegationForm.value
   if (!form.delegatorUserId) {
-    message.warning('请选择委托人')
+    message.warning(t('identity.authorization.msg_delegator_required'))
     return false
   }
   if (!form.delegateeUserId) {
-    message.warning('请选择接收人')
+    message.warning(t('identity.authorization.msg_delegatee_required'))
     return false
   }
   if (form.targetKind === 'role' && !form.roleId) {
-    message.warning('请选择委托角色')
+    message.warning(t('identity.authorization.msg_role_required'))
     return false
   }
   if (form.targetKind === 'permission' && !form.permissionId) {
-    message.warning('请选择委托权限')
+    message.warning(t('identity.authorization.msg_permission_required'))
     return false
   }
   if (!form.expirationTime) {
-    message.warning('请选择到期时间')
+    message.warning(t('identity.authorization.msg_expiration_required'))
     return false
   }
   return true
@@ -500,12 +503,12 @@ async function submitDelegation() {
       roleId: form.targetKind === 'role' ? form.roleId : null,
     }
     await permissionDelegationApi.create(input)
-    message.success('已创建委托')
+    message.success(t('identity.authorization.msg_created'))
     delegationModalVisible.value = false
     reloadDelegation()
   }
   catch {
-    message.error('创建失败')
+    message.error(t('identity.authorization.msg_create_failed'))
   }
   finally {
     delegationSubmitting.value = false
@@ -516,93 +519,93 @@ async function submitDelegation() {
 <template>
   <div class="auth-page">
     <NTabs v-model:value="activeTab" animated type="line">
-      <NTabPane name="request" tab="授权申请">
+      <NTabPane name="request" :tab="t('identity.authorization.tab_request')">
         <SchemaPage ref="requestPageRef" :schema="requestSchema" @action="onRequestAction" />
       </NTabPane>
-      <NTabPane name="delegation" tab="权限委托">
+      <NTabPane name="delegation" :tab="t('identity.authorization.tab_delegation')">
         <SchemaPage ref="delegationPageRef" :schema="delegationSchema" @action="onDelegationAction">
           <NModal
             v-model:show="delegationModalVisible"
             :auto-focus="false"
             :bordered="false"
             preset="card"
-            title="新增权限委托"
+            :title="t('identity.authorization.modal_title')"
             style="width: 640px; max-width: 92vw"
           >
             <NForm :model="delegationForm" class="xh-edit-form-grid" label-placement="top">
-              <NFormItem label="委托人" path="delegatorUserId">
+              <NFormItem :label="t('identity.authorization.label_delegator')" path="delegatorUserId">
                 <NSelect
                   v-model:value="delegationForm.delegatorUserId"
                   clearable
                   filterable
                   :loading="userLoading"
                   :options="userOptions"
-                  placeholder="搜索并选择委托人"
+                  :placeholder="t('identity.authorization.ph_delegator')"
                   remote
                   @focus="loadUserOptions()"
                   @search="(kw: string) => loadUserOptions(kw)"
                 />
               </NFormItem>
-              <NFormItem label="接收人" path="delegateeUserId">
+              <NFormItem :label="t('identity.authorization.label_delegatee')" path="delegateeUserId">
                 <NSelect
                   v-model:value="delegationForm.delegateeUserId"
                   clearable
                   filterable
                   :loading="userLoading"
                   :options="userOptions"
-                  placeholder="搜索并选择接收人"
+                  :placeholder="t('identity.authorization.ph_delegatee')"
                   remote
                   @focus="loadUserOptions()"
                   @search="(kw: string) => loadUserOptions(kw)"
                 />
               </NFormItem>
-              <NFormItem label="委托类型" path="targetKind">
+              <NFormItem :label="t('identity.authorization.label_target_kind')" path="targetKind">
                 <NRadioGroup v-model:value="delegationForm.targetKind">
                   <NRadioButton value="role">
-                    角色
+                    {{ t('identity.authorization.kind_role') }}
                   </NRadioButton>
                   <NRadioButton value="permission">
-                    权限
+                    {{ t('identity.authorization.kind_permission') }}
                   </NRadioButton>
                 </NRadioGroup>
               </NFormItem>
-              <NFormItem v-if="delegationForm.targetKind === 'role'" label="委托角色" path="roleId">
+              <NFormItem v-if="delegationForm.targetKind === 'role'" :label="t('identity.authorization.label_role')" path="roleId">
                 <NSelect
                   v-model:value="delegationForm.roleId"
                   clearable
                   filterable
                   :loading="roleLoading"
                   :options="roleOptions"
-                  placeholder="搜索并选择角色"
+                  :placeholder="t('identity.authorization.ph_role')"
                   remote
                   @focus="loadRoleOptions()"
                   @search="(kw: string) => loadRoleOptions(kw)"
                 />
               </NFormItem>
-              <NFormItem v-else label="委托权限" path="permissionId">
+              <NFormItem v-else :label="t('identity.authorization.label_permission')" path="permissionId">
                 <NSelect
                   v-model:value="delegationForm.permissionId"
                   clearable
                   filterable
                   :loading="permissionLoading"
                   :options="permissionOptions"
-                  placeholder="搜索并选择权限"
+                  :placeholder="t('identity.authorization.ph_permission')"
                   remote
                   @focus="loadPermissionOptions()"
                   @search="(kw: string) => loadPermissionOptions(kw)"
                 />
               </NFormItem>
-              <NFormItem label="生效时间" path="effectiveTime">
+              <NFormItem :label="t('identity.authorization.label_effective_time')" path="effectiveTime">
                 <NDatePicker v-model:value="delegationForm.effectiveTime" clearable style="width: 100%" type="datetime" />
               </NFormItem>
-              <NFormItem label="到期时间" path="expirationTime">
+              <NFormItem :label="t('identity.authorization.label_expiration_time')" path="expirationTime">
                 <NDatePicker v-model:value="delegationForm.expirationTime" clearable style="width: 100%" type="datetime" />
               </NFormItem>
-              <NFormItem label="委托原因" path="delegationReason">
+              <NFormItem :label="t('identity.authorization.label_reason')" path="delegationReason">
                 <NInput
                   v-model:value="delegationForm.delegationReason"
                   clearable
-                  placeholder="请输入委托原因"
+                  :placeholder="t('identity.authorization.ph_reason')"
                   :rows="2"
                   type="textarea"
                 />
@@ -612,10 +615,10 @@ async function submitDelegation() {
             <template #footer>
               <NSpace justify="end">
                 <NButton @click="delegationModalVisible = false">
-                  取消
+                  {{ t('identity.common.cancel') }}
                 </NButton>
                 <NButton :loading="delegationSubmitting" type="primary" @click="submitDelegation">
-                  保存
+                  {{ t('identity.common.save') }}
                 </NButton>
               </NSpace>
             </template>

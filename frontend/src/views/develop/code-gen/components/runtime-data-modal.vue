@@ -14,6 +14,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { codeGenRuntimeApi } from '@/api'
 
 defineOptions({ name: 'CodeGenRuntimeDataModal' })
@@ -30,7 +31,14 @@ const emit = defineEmits<{
 
 type RuntimeRow = Record<string, unknown>
 
+const { t } = useI18n()
 const message = useMessage()
+
+const modalTitle = computed(() =>
+  props.tableName
+    ? `${t('develop.code_gen.runtime.title')} · ${props.tableName}`
+    : t('develop.code_gen.runtime.title'),
+)
 
 const schemaLoading = ref(false)
 const dataLoading = ref(false)
@@ -90,7 +98,7 @@ async function loadSchema(tableId: ApiId) {
     await loadData()
   }
   catch {
-    message.error('加载运行时结构失败')
+    message.error(t('develop.code_gen.runtime.load_schema_failed'))
     schema.value = null
     rows.value = []
     total.value = 0
@@ -115,7 +123,7 @@ async function loadData() {
     total.value = result.totalCount
   }
   catch {
-    message.error('加载运行时数据失败')
+    message.error(t('develop.code_gen.runtime.load_data_failed'))
     rows.value = []
     total.value = 0
   }
@@ -143,14 +151,14 @@ function handlePageSizeChange(value: number) {
     preset="card"
     :show="show"
     style="width: 96vw; max-width: 1200px"
-    :title="`运行时数据${tableName ? ` · ${tableName}` : ''}`"
+    :title="modalTitle"
     @update:show="emit('update:show', $event)"
   >
     <NSpin :show="schemaLoading">
       <div class="runtime">
         <NEmpty
           v-if="!schemaLoading && (!schema || schema.columns.length === 0)"
-          description="暂无运行时结构，先维护列配置后再查看"
+          :description="t('develop.code_gen.runtime.empty')"
         />
         <template v-else>
           <NDataTable

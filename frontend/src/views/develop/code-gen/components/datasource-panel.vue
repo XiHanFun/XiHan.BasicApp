@@ -24,6 +24,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenDataSourceApi,
   createPageRequest,
@@ -56,6 +57,7 @@ interface DatasourceFormModel {
   remark?: string | null
 }
 
+const { t } = useI18n()
 const message = useMessage()
 
 const loading = ref(false)
@@ -84,7 +86,7 @@ async function fetchData() {
     total.value = result.page.totalCount
   }
   catch {
-    message.error('查询数据源失败')
+    message.error(t('develop.code_gen.datasource.query_failed'))
     list.value = []
     total.value = 0
   }
@@ -112,39 +114,39 @@ function handlePageSizeChange(value: number) {
 const columns = computed<DataTableColumns<CodeGenDataSourceListItemDto>>(() => [
   {
     key: 'sourceName',
-    title: '数据源名称',
+    title: t('develop.code_gen.datasource.col_source_name'),
     minWidth: 160,
     ellipsis: { tooltip: true },
     render: (row: CodeGenDataSourceListItemDto) =>
       h('div', { class: 'ds-name' }, [
         h('span', { class: 'ds-name__text' }, row.sourceName),
         row.isDefault
-          ? h(NTag, { size: 'tiny', type: 'info', round: true, bordered: false }, () => '默认')
+          ? h(NTag, { size: 'tiny', type: 'info', round: true, bordered: false }, () => t('develop.code_gen.common.default_tag'))
           : null,
       ]),
   },
   {
     key: 'databaseType',
-    title: '数据库',
+    title: t('develop.code_gen.datasource.col_database'),
     width: 110,
     render: (row: CodeGenDataSourceListItemDto) => getOptionLabel(DATABASE_TYPE_OPTIONS, row.databaseType),
   },
   {
     key: 'host',
-    title: '主机',
+    title: t('develop.code_gen.datasource.col_host'),
     minWidth: 140,
     ellipsis: { tooltip: true },
     render: (row: CodeGenDataSourceListItemDto) => `${row.host}:${row.port}`,
   },
   {
     key: 'databaseName',
-    title: '数据库名',
+    title: t('develop.code_gen.datasource.col_database_name'),
     minWidth: 120,
     ellipsis: { tooltip: true },
   },
   {
     key: 'lastTestResult',
-    title: '连接',
+    title: t('develop.code_gen.datasource.col_connection'),
     width: 90,
     align: 'center',
     render: (row: CodeGenDataSourceListItemDto) =>
@@ -154,12 +156,12 @@ const columns = computed<DataTableColumns<CodeGenDataSourceListItemDto>>(() => [
             round: true,
             bordered: false,
             type: row.lastTestResult ? 'success' : 'error',
-          }, () => (row.lastTestResult ? '正常' : '失败'))
-        : h(NTag, { size: 'small', round: true, bordered: false, type: 'default' }, () => '未测试'),
+          }, () => (row.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed')))
+        : h(NTag, { size: 'small', round: true, bordered: false, type: 'default' }, () => t('develop.code_gen.datasource.tag_untested')),
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('develop.code_gen.common.status'),
     width: 72,
     align: 'center',
     render: (row: CodeGenDataSourceListItemDto) =>
@@ -172,19 +174,19 @@ const columns = computed<DataTableColumns<CodeGenDataSourceListItemDto>>(() => [
   },
   {
     key: 'sort',
-    title: '排序',
+    title: t('develop.code_gen.common.sort'),
     width: 70,
     align: 'center',
   },
   {
     key: 'actions',
-    title: '操作',
+    title: t('develop.code_gen.common.actions'),
     width: 150,
     align: 'center',
     render: (row: CodeGenDataSourceListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
         h(NButton, {
-          ariaLabel: '测试连接',
+          ariaLabel: t('develop.code_gen.datasource.action_test'),
           circle: true,
           quaternary: true,
           size: 'small',
@@ -193,7 +195,7 @@ const columns = computed<DataTableColumns<CodeGenDataSourceListItemDto>>(() => [
           onClick: () => handleTest(row),
         }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:plug' })) }),
         h(NButton, {
-          ariaLabel: '编辑',
+          ariaLabel: t('develop.code_gen.common.edit'),
           circle: true,
           quaternary: true,
           size: 'small',
@@ -202,13 +204,13 @@ const columns = computed<DataTableColumns<CodeGenDataSourceListItemDto>>(() => [
         }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
           trigger: () => h(NButton, {
-            ariaLabel: '删除',
+            ariaLabel: t('develop.code_gen.common.delete'),
             circle: true,
             quaternary: true,
             size: 'small',
             type: 'error',
           }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确认删除该数据源？',
+          default: () => t('develop.code_gen.datasource.confirm_delete'),
         }),
       ]),
   },
@@ -219,15 +221,15 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
   try {
     const result = await codeGenDataSourceApi.testConnection(row.basicId)
     if (result.success) {
-      message.success(`连接成功（${result.elapsedMilliseconds}ms）`)
+      message.success(t('develop.code_gen.datasource.test_success', { ms: result.elapsedMilliseconds }))
     }
     else {
-      message.error(result.message || '连接失败')
+      message.error(result.message || t('develop.code_gen.datasource.test_failed'))
     }
     fetchData()
   }
   catch {
-    message.error('连接测试失败')
+    message.error(t('develop.code_gen.datasource.test_error'))
   }
   finally {
     testingId.value = null
@@ -237,11 +239,11 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
 async function handleDelete(row: CodeGenDataSourceListItemDto) {
   try {
     await codeGenDataSourceApi.delete(row.basicId)
-    message.success('删除成功')
+    message.success(t('develop.code_gen.common.delete_success'))
     fetchData()
   }
   catch {
-    message.error('删除失败')
+    message.error(t('develop.code_gen.common.delete_failed'))
   }
 }
 
@@ -250,7 +252,7 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const form = ref<DatasourceFormModel>(createDefaultForm())
-const modalTitle = computed(() => (form.value.basicId ? '编辑数据源' : '新增数据源'))
+const modalTitle = computed(() => (form.value.basicId ? t('develop.code_gen.datasource.modal_edit_title') : t('develop.code_gen.datasource.modal_add_title')))
 
 function createDefaultForm(): DatasourceFormModel {
   return {
@@ -282,7 +284,7 @@ async function handleEdit(row: CodeGenDataSourceListItemDto) {
   try {
     const detail = await codeGenDataSourceApi.detail(row.basicId)
     if (!detail) {
-      message.error('数据源不存在')
+      message.error(t('develop.code_gen.datasource.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -307,21 +309,21 @@ async function handleEdit(row: CodeGenDataSourceListItemDto) {
     modalVisible.value = true
   }
   catch {
-    message.error('加载数据源详情失败')
+    message.error(t('develop.code_gen.datasource.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.sourceName.trim()) {
-    message.warning('请输入数据源名称')
+    message.warning(t('develop.code_gen.datasource.validate_source_name'))
     return false
   }
   if (!form.value.host.trim()) {
-    message.warning('请输入主机地址')
+    message.warning(t('develop.code_gen.datasource.validate_host'))
     return false
   }
   if (!form.value.databaseName.trim()) {
-    message.warning('请输入数据库名')
+    message.warning(t('develop.code_gen.datasource.validate_database_name'))
     return false
   }
   return true
@@ -355,7 +357,7 @@ async function handleSubmit() {
       if (editingStatus.value !== form.value.status) {
         await codeGenDataSourceApi.updateStatus({
           basicId: form.value.basicId,
-          remark: '前端更新数据源状态',
+          remark: t('develop.code_gen.datasource.update_status_remark'),
           status: form.value.status,
         })
       }
@@ -380,12 +382,12 @@ async function handleSubmit() {
       }
       await codeGenDataSourceApi.create(createInput)
     }
-    message.success('保存成功')
+    message.success(t('develop.code_gen.common.save_success'))
     modalVisible.value = false
     fetchData()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('develop.code_gen.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -402,7 +404,7 @@ onMounted(fetchData)
         v-model:value="queryParams.keyword"
         class="panel__kw"
         clearable
-        placeholder="搜索名称 / 主机 / 库名"
+        :placeholder="t('develop.code_gen.datasource.search_placeholder')"
         size="small"
         @clear="handleSearch"
         @keyup.enter="handleSearch"
@@ -412,7 +414,7 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="DATABASE_TYPE_OPTIONS"
-        placeholder="数据库类型"
+        :placeholder="t('develop.code_gen.datasource.filter_database_type')"
         size="small"
         @update:value="handleSearch"
       />
@@ -421,18 +423,18 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="STATUS_OPTIONS"
-        placeholder="状态"
+        :placeholder="t('develop.code_gen.common.status')"
         size="small"
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        查询
+        {{ t('develop.code_gen.common.search') }}
       </NButton>
       <NButton class="panel__add" size="small" type="primary" @click="handleAdd">
         <template #icon>
           <NIcon><Icon icon="lucide:plus" /></NIcon>
         </template>
-        新增数据源
+        {{ t('develop.code_gen.datasource.add') }}
       </NButton>
     </div>
 
@@ -470,49 +472,49 @@ onMounted(fetchData)
       style="width: 720px; max-width: 92vw"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="数据源名称" path="sourceName">
-          <NInput v-model:value="form.sourceName" clearable placeholder="如: 主库" />
+        <NFormItem :label="t('develop.code_gen.datasource.form_source_name')" path="sourceName">
+          <NInput v-model:value="form.sourceName" clearable :placeholder="t('develop.code_gen.datasource.form_source_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="数据库类型" path="databaseType">
+        <NFormItem :label="t('develop.code_gen.datasource.form_database_type')" path="databaseType">
           <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="主机地址" path="host">
-          <NInput v-model:value="form.host" clearable placeholder="如: 127.0.0.1" />
+        <NFormItem :label="t('develop.code_gen.datasource.form_host')" path="host">
+          <NInput v-model:value="form.host" clearable :placeholder="t('develop.code_gen.datasource.form_host_placeholder')" />
         </NFormItem>
-        <NFormItem label="端口" path="port">
+        <NFormItem :label="t('develop.code_gen.datasource.form_port')" path="port">
           <NInputNumber v-model:value="form.port" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="数据库名" path="databaseName">
+        <NFormItem :label="t('develop.code_gen.datasource.form_database_name')" path="databaseName">
           <NInput v-model:value="form.databaseName" clearable />
         </NFormItem>
-        <NFormItem label="用户名" path="userName">
+        <NFormItem :label="t('develop.code_gen.datasource.form_user_name')" path="userName">
           <NInput v-model:value="form.userName" clearable />
         </NFormItem>
-        <NFormItem :label="form.basicId ? '密码（留空不修改）' : '密码'" path="password">
+        <NFormItem :label="form.basicId ? t('develop.code_gen.datasource.form_password_edit') : t('develop.code_gen.datasource.form_password')" path="password">
           <NInput v-model:value="form.password" clearable show-password-on="click" type="password" />
         </NFormItem>
-        <NFormItem label="连接超时（秒）" path="connectionTimeout">
+        <NFormItem :label="t('develop.code_gen.datasource.form_connection_timeout')" path="connectionTimeout">
           <NInputNumber v-model:value="form.connectionTimeout" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('develop.code_gen.datasource.form_sort')" path="sort">
           <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="设为默认" path="isDefault">
+        <NFormItem :label="t('develop.code_gen.datasource.form_is_default')" path="isDefault">
           <NSwitch v-model:value="form.isDefault" />
         </NFormItem>
-        <NFormItem v-if="!form.basicId" label="状态" path="status">
+        <NFormItem v-if="!form.basicId" :label="t('develop.code_gen.common.status')" path="status">
           <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
         </NFormItem>
-        <NFormItem class="xh-form-full" label="连接字符串（可选，优先级高于上方）" path="connectionString">
+        <NFormItem class="xh-form-full" :label="t('develop.code_gen.datasource.form_connection_string')" path="connectionString">
           <NInput
             v-model:value="form.connectionString"
             clearable
-            placeholder="留空则按主机 / 端口 / 库名拼接"
+            :placeholder="t('develop.code_gen.datasource.form_connection_string_placeholder')"
             :rows="2"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem class="xh-form-full" label="描述" path="sourceDescription">
+        <NFormItem class="xh-form-full" :label="t('develop.code_gen.datasource.form_description')" path="sourceDescription">
           <NInput v-model:value="form.sourceDescription" clearable :rows="2" type="textarea" />
         </NFormItem>
       </NForm>
@@ -520,10 +522,10 @@ onMounted(fetchData)
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('develop.code_gen.common.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('develop.code_gen.common.save') }}
           </NButton>
         </NSpace>
       </template>

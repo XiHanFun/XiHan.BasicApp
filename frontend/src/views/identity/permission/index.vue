@@ -35,6 +35,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   EnableStatus,
@@ -62,6 +63,8 @@ import {
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
+
+const { t } = useI18n()
 
 interface PermissionFormModel extends PermissionCreateDto {
   basicId?: ApiId
@@ -101,17 +104,17 @@ const fieldMaskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
 const fieldSecurityTargetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
 const changeTypeOptions = PERMISSION_CHANGE_TYPE_OPTIONS
 
-const globalOptions = [
-  { label: '全局权限', value: 1 },
-  { label: '租户权限', value: 0 },
-]
+const globalOptions = computed(() => [
+  { label: t('identity.permission.global_permission'), value: 1 },
+  { label: t('identity.permission.tenant_permission'), value: 0 },
+])
 
-const auditOptions = [
-  { label: '需要审计', value: 1 },
-  { label: '无需审计', value: 0 },
-]
+const auditOptions = computed(() => [
+  { label: t('identity.permission.need_audit'), value: 1 },
+  { label: t('identity.permission.no_audit'), value: 0 },
+])
 
-const modalTitle = computed(() => (permissionForm.value.basicId ? '编辑权限' : '新增权限'))
+const modalTitle = computed(() => (permissionForm.value.basicId ? t('identity.permission.form_edit_title') : t('identity.permission.form_create_title')))
 const isResourceBasedForm = computed(() => permissionForm.value.permissionType === PermissionType.ResourceBased)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -174,7 +177,7 @@ function formatBoolean(value?: boolean | null) {
     return '-'
   }
 
-  return value ? '是' : '否'
+  return value ? t('identity.common.yes') : t('identity.common.no')
 }
 
 function formatStatus(value?: EnableStatus | null) {
@@ -190,69 +193,69 @@ function canMaintainPermission(row: PermissionListItemDto) {
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索权限名称/编码', width: 240, order: 0 },
-  { key: 'moduleCode', title: '模块', dataType: 'string', searchable: true, searchPlaceholder: '模块编码', minWidth: 110, order: 1 },
-  { key: 'permissionName', title: '权限名称', dataType: 'string', sortable: true, minWidth: 160, order: 2 },
-  { key: 'permissionCode', title: '权限编码', dataType: 'string', minWidth: 220, order: 3 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('identity.permission.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.permission.keyword_placeholder'), width: 240, order: 0 },
+  { key: 'moduleCode', title: t('identity.permission.col_module'), dataType: 'string', searchable: true, searchPlaceholder: t('identity.permission.module_placeholder'), minWidth: 110, order: 1 },
+  { key: 'permissionName', title: t('identity.permission.col_permission_name'), dataType: 'string', sortable: true, minWidth: 160, order: 2 },
+  { key: 'permissionCode', title: t('identity.permission.col_permission_code'), dataType: 'string', minWidth: 220, order: 3 },
   {
     key: 'permissionType',
-    title: '权限类型',
+    title: t('identity.permission.col_permission_type'),
     dataType: 'enum',
     searchable: true,
     options: permissionTypeOptions,
-    searchPlaceholder: '权限类型',
+    searchPlaceholder: t('identity.permission.permission_type_placeholder'),
     minWidth: 110,
     order: 4,
   },
-  { key: 'resourceName', title: '资源', dataType: 'string', minWidth: 150, order: 5 },
-  { key: 'operationName', title: '操作', dataType: 'string', minWidth: 130, order: 6 },
+  { key: 'resourceName', title: t('identity.permission.col_resource'), dataType: 'string', minWidth: 150, order: 5 },
+  { key: 'operationName', title: t('identity.permission.col_operation'), dataType: 'string', minWidth: 130, order: 6 },
   {
     key: 'isGlobal',
-    title: '全局',
+    title: t('identity.permission.col_is_global'),
     dataType: 'boolean',
     searchable: true,
-    options: globalOptions,
-    searchPlaceholder: '全局',
+    options: globalOptions.value,
+    searchPlaceholder: t('identity.permission.is_global_placeholder'),
     width: 82,
     order: 7,
   },
   {
     key: 'isRequireAudit',
-    title: '审计',
+    title: t('identity.permission.col_is_audit'),
     dataType: 'boolean',
     searchable: true,
-    options: auditOptions,
-    searchPlaceholder: '审计',
+    options: auditOptions.value,
+    searchPlaceholder: t('identity.permission.is_audit_placeholder'),
     width: 82,
     order: 8,
   },
-  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 90, order: 9 },
-  { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 10 },
+  { key: 'priority', title: t('identity.permission.col_priority'), dataType: 'number', sortable: true, width: 90, order: 9 },
+  { key: 'sort', title: t('identity.permission.col_sort'), dataType: 'number', sortable: true, width: 80, order: 10 },
   {
     key: 'status',
-    title: '状态',
+    title: t('identity.permission.col_status'),
     dataType: 'enum',
     searchable: true,
     options: STATUS_OPTIONS,
-    searchPlaceholder: '状态',
+    searchPlaceholder: t('identity.permission.status_placeholder'),
     width: 90,
     order: 11,
   },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 12 },
-]
+  { key: 'createdTime', title: t('identity.permission.col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 12 },
+])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'system.permission',
   exportPermission: 'saas:permission:export',
-  pageName: '权限管理',
+  pageName: t('identity.permission.page_name'),
   batchRemovable: true,
   removePermission: 'saas:permission:delete',
   statusPermission: 'saas:permission:status',
   rowKey: 'basicId',
   scrollX: 2000,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const { keyword, moduleCode, permissionType, isGlobal, isRequireAudit, status } = params.filters
@@ -267,16 +270,16 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => permissionCenterApi.delete(id),
-    updateStatus: (id, enabled) => permissionCenterApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用权限' : '批量停用权限' }),
+    updateStatus: (id, enabled) => permissionCenterApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.permission.batch_enable_remark') : t('identity.permission.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: '新增权限', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
-    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
-    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+    { key: 'create', title: t('identity.permission.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: t('identity.permission.action_view'), scope: 'row' },
+    { key: 'edit', title: t('identity.permission.action_edit'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+    { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -345,11 +348,11 @@ async function handleView(row: PermissionListItemDto) {
   try {
     currentDetail.value = await permissionCenterApi.detailView(row.basicId)
     if (!currentDetail.value) {
-      message.warning('未查询到权限详情')
+      message.warning(t('identity.permission.msg_detail_not_found'))
     }
   }
   catch {
-    message.error('加载权限详情失败')
+    message.error(t('identity.permission.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -366,7 +369,7 @@ async function loadResourceOptions(keyword = '') {
     resourceOptions.value = mergeOptions(resourceOptions.value, items.map(toResourceOption))
   }
   catch {
-    message.error('加载资源选项失败')
+    message.error(t('identity.permission.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -383,7 +386,7 @@ async function loadOperationOptions(keyword = '') {
     operationOptions.value = mergeOptions(operationOptions.value, items.map(toOperationOption))
   }
   catch {
-    message.error('加载操作选项失败')
+    message.error(t('identity.permission.msg_load_operation_failed'))
   }
   finally {
     operationLoading.value = false
@@ -461,12 +464,12 @@ function normalizeTagsInput(value?: string | null) {
   try {
     const parsed: unknown = JSON.parse(normalized)
     if (!Array.isArray(parsed)) {
-      message.warning('权限标签必须是 JSON 数组')
+      message.warning(t('identity.permission.msg_tags_must_json_array'))
       return undefined
     }
   }
   catch {
-    message.warning('权限标签必须是合法 JSON 数组')
+    message.warning(t('identity.permission.msg_tags_invalid_json'))
     return undefined
   }
 
@@ -476,17 +479,17 @@ function normalizeTagsInput(value?: string | null) {
 function validateForm() {
   const form = permissionForm.value
   if (!form.permissionName.trim()) {
-    message.warning('请输入权限名称')
+    message.warning(t('identity.permission.msg_permission_name_required'))
     return false
   }
 
   if (!form.basicId && !form.permissionCode.trim()) {
-    message.warning('请输入权限编码')
+    message.warning(t('identity.permission.msg_permission_code_required'))
     return false
   }
 
   if (!form.basicId && form.permissionType === PermissionType.ResourceBased && (!form.resourceId || !form.operationId)) {
-    message.warning('资源操作权限必须选择资源和操作')
+    message.warning(t('identity.permission.msg_resource_operation_required'))
     return false
   }
 
@@ -539,12 +542,12 @@ async function handleSubmit() {
       await permissionCenterApi.create(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('identity.common.save_success'))
     modalVisible.value = false
     reloadPermission()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('identity.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -553,17 +556,17 @@ async function handleSubmit() {
 
 async function handleDelete(row: PermissionListItemDto) {
   await permissionCenterApi.delete(row.basicId)
-  message.success('删除成功')
+  message.success(t('identity.common.delete_success'))
   reloadPermission()
 }
 
 async function handleToggleStatus(row: PermissionListItemDto) {
   await permissionCenterApi.updateStatus({
     basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? '前端停用权限' : '前端启用权限',
+    remark: row.status === EnableStatus.Enabled ? t('identity.permission.front_disable_remark') : t('identity.permission.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success('状态已更新')
+  message.success(t('identity.common.status_updated'))
   reloadPermission()
 }
 </script>
@@ -575,102 +578,102 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     @action="onAction"
   >
     <NDrawer v-model:show="detailVisible" :width="980">
-      <NDrawerContent closable title="权限详情">
+      <NDrawerContent closable :title="t('identity.permission.detail_title')">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无权限详情">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" :description="t('identity.permission.detail_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:inbox" /></NIcon>
             </template>
           </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
-              <NTabPane name="overview" tab="概览">
+              <NTabPane name="overview" :tab="t('identity.permission.tab_overview')">
                 <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem label="权限名称">
+                  <NDescriptionsItem :label="t('identity.permission.label_permission_name')">
                     {{ currentDetail.permission.permissionName }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="权限编码">
+                  <NDescriptionsItem :label="t('identity.permission.label_permission_code')">
                     {{ currentDetail.permission.permissionCode }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="模块">
+                  <NDescriptionsItem :label="t('identity.permission.label_module')">
                     {{ formatNullable(currentDetail.permission.moduleCode) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="权限类型">
+                  <NDescriptionsItem :label="t('identity.permission.label_permission_type')">
                     {{ getOptionLabel(permissionTypeOptions, currentDetail.permission.permissionType) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="全局权限">
+                  <NDescriptionsItem :label="t('identity.permission.label_is_global')">
                     {{ formatBoolean(currentDetail.permission.isGlobal) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="需要审计">
+                  <NDescriptionsItem :label="t('identity.permission.label_need_audit')">
                     {{ formatBoolean(currentDetail.permission.isRequireAudit) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="优先级">
+                  <NDescriptionsItem :label="t('identity.permission.label_priority')">
                     {{ currentDetail.permission.priority }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="状态">
+                  <NDescriptionsItem :label="t('identity.permission.label_status')">
                     {{ formatStatus(currentDetail.permission.status) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="资源">
+                  <NDescriptionsItem :label="t('identity.permission.label_resource')">
                     {{ formatNullable(currentDetail.resource?.resourceName || currentDetail.permission.resourceName) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="资源编码">
+                  <NDescriptionsItem :label="t('identity.permission.label_resource_code')">
                     {{ formatNullable(currentDetail.resource?.resourceCode || currentDetail.permission.resourceCode) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="资源类型">
+                  <NDescriptionsItem :label="t('identity.permission.label_resource_type')">
                     {{ getOptionLabel(resourceTypeOptions, currentDetail.resource?.resourceType) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="访问级别">
+                  <NDescriptionsItem :label="t('identity.permission.label_access_level')">
                     {{ getOptionLabel(resourceAccessLevelOptions, currentDetail.resource?.accessLevel) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="操作">
+                  <NDescriptionsItem :label="t('identity.permission.label_operation')">
                     {{ formatNullable(currentDetail.operation?.operationName || currentDetail.permission.operationName) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="操作编码">
+                  <NDescriptionsItem :label="t('identity.permission.label_operation_code')">
                     {{ formatNullable(currentDetail.operation?.operationCode || currentDetail.permission.operationCode) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="HTTP 方法">
+                  <NDescriptionsItem :label="t('identity.permission.label_http_method')">
                     {{ getOptionLabel(httpMethodOptions, currentDetail.operation?.httpMethod) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="操作分类">
+                  <NDescriptionsItem :label="t('identity.permission.label_operation_category')">
                     {{ getOptionLabel(operationCategoryOptions, currentDetail.operation?.category) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="操作类型">
+                  <NDescriptionsItem :label="t('identity.permission.label_operation_type')">
                     {{ getOptionLabel(operationTypeOptions, currentDetail.operation?.operationTypeCode) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="危险操作">
+                  <NDescriptionsItem :label="t('identity.permission.label_dangerous')">
                     {{ formatBoolean(currentDetail.operation?.isDangerous) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="权限描述">
+                  <NDescriptionsItem :label="t('identity.permission.label_permission_description')">
                     {{ formatNullable(currentDetail.permission.permissionDescription) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="标签">
+                  <NDescriptionsItem :label="t('identity.permission.label_tags')">
                     {{ formatNullable(currentDetail.permission.tags) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="创建时间">
+                  <NDescriptionsItem :label="t('identity.permission.label_create_time')">
                     {{ formatNullableDate(currentDetail.permission.createdTime) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="聚合时间">
+                  <NDescriptionsItem :label="t('identity.permission.label_generated_time')">
                     {{ formatNullableDate(currentDetail.generatedTime) }}
                   </NDescriptionsItem>
                 </NDescriptions>
               </NTabPane>
 
-              <NTabPane name="conditions" :tab="`ABAC 条件 (${currentDetail.conditions.length})`">
+              <NTabPane name="conditions" :tab="t('identity.permission.tab_conditions', { count: currentDetail.conditions.length })">
                 <table v-if="currentDetail.conditions.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>属性</th>
-                      <th>操作符</th>
-                      <th>值</th>
-                      <th>值类型</th>
-                      <th>分组</th>
-                      <th>状态</th>
+                      <th>{{ t('identity.permission.th_attribute') }}</th>
+                      <th>{{ t('identity.permission.th_operator') }}</th>
+                      <th>{{ t('identity.permission.th_value') }}</th>
+                      <th>{{ t('identity.permission.th_value_type') }}</th>
+                      <th>{{ t('identity.permission.th_group') }}</th>
+                      <th>{{ t('identity.permission.th_status') }}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="item in currentDetail.conditions" :key="item.basicId">
                       <td>{{ item.attributeName }}</td>
-                      <td>{{ item.isNegated ? '非 ' : '' }}{{ getOptionLabel(conditionOperatorOptions, item.operator) }}</td>
+                      <td>{{ item.isNegated ? t('identity.permission.negated_prefix') : '' }}{{ getOptionLabel(conditionOperatorOptions, item.operator) }}</td>
                       <td>{{ formatNullable(item.conditionValue) }}</td>
                       <td>{{ getOptionLabel(configDataTypeOptions, item.valueType) }}</td>
                       <td>{{ item.conditionGroup }}</td>
@@ -678,19 +681,19 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无 ABAC 条件" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.permission.empty_conditions')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="delegations" :tab="`委托 (${currentDetail.delegations.length})`">
+              <NTabPane name="delegations" :tab="t('identity.permission.tab_delegations', { count: currentDetail.delegations.length })">
                 <table v-if="currentDetail.delegations.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>委托人</th>
-                      <th>接收人</th>
-                      <th>状态</th>
-                      <th>关联</th>
-                      <th>到期时间</th>
-                      <th>原因</th>
+                      <th>{{ t('identity.permission.th_delegator') }}</th>
+                      <th>{{ t('identity.permission.th_delegatee') }}</th>
+                      <th>{{ t('identity.permission.th_status') }}</th>
+                      <th>{{ t('identity.permission.th_relation') }}</th>
+                      <th>{{ t('identity.permission.th_expiration_time') }}</th>
+                      <th>{{ t('identity.permission.th_reason') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -704,19 +707,19 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限委托" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.permission.empty_delegations')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="requests" :tab="`申请 (${currentDetail.requests.length})`">
+              <NTabPane name="requests" :tab="t('identity.permission.tab_requests', { count: currentDetail.requests.length })">
                 <table v-if="currentDetail.requests.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>申请人</th>
-                      <th>状态</th>
-                      <th>关联</th>
-                      <th>审批流</th>
-                      <th>期望有效期</th>
-                      <th>原因</th>
+                      <th>{{ t('identity.permission.th_applicant') }}</th>
+                      <th>{{ t('identity.permission.th_status') }}</th>
+                      <th>{{ t('identity.permission.th_relation') }}</th>
+                      <th>{{ t('identity.permission.th_approval_flow') }}</th>
+                      <th>{{ t('identity.permission.th_expected_validity') }}</th>
+                      <th>{{ t('identity.permission.th_reason') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -725,25 +728,25 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                       <td>{{ getOptionLabel(requestStatusOptions, item.requestStatus) }}</td>
                       <td>{{ formatNullable(item.permissionName || item.roleName) }}</td>
                       <td>{{ formatNullable(item.reviewTitle || item.reviewCode) }}</td>
-                      <td>{{ formatNullableDate(item.expectedEffectiveTime) }} 至 {{ formatNullableDate(item.expectedExpirationTime) }}</td>
+                      <td>{{ t('identity.permission.validity_range', { from: formatNullableDate(item.expectedEffectiveTime), to: formatNullableDate(item.expectedExpirationTime) }) }}</td>
                       <td>{{ formatNullable(item.requestReason) }}</td>
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限申请" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.permission.empty_requests')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="fieldSecurities" :tab="`字段级安全 (${currentDetail.fieldSecurities.length})`">
+              <NTabPane name="fieldSecurities" :tab="t('identity.permission.tab_field_securities', { count: currentDetail.fieldSecurities.length })">
                 <table v-if="currentDetail.fieldSecurities.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>字段</th>
-                      <th>资源</th>
-                      <th>目标</th>
-                      <th>可读</th>
-                      <th>可编辑</th>
-                      <th>脱敏</th>
-                      <th>状态</th>
+                      <th>{{ t('identity.permission.th_field') }}</th>
+                      <th>{{ t('identity.permission.th_resource') }}</th>
+                      <th>{{ t('identity.permission.th_target') }}</th>
+                      <th>{{ t('identity.permission.th_readable') }}</th>
+                      <th>{{ t('identity.permission.th_editable') }}</th>
+                      <th>{{ t('identity.permission.th_mask') }}</th>
+                      <th>{{ t('identity.permission.th_status') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -758,20 +761,20 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无字段级安全策略" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.permission.empty_field_securities')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="changeLogs" :tab="`变更历史 (${currentDetail.changeLogs.length})`">
+              <NTabPane name="changeLogs" :tab="t('identity.permission.tab_change_logs', { count: currentDetail.changeLogs.length })">
                 <table v-if="currentDetail.changeLogs.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>变更时间</th>
-                      <th>类型</th>
-                      <th>目标用户</th>
-                      <th>目标角色</th>
-                      <th>操作人</th>
-                      <th>原因</th>
-                      <th>链路</th>
+                      <th>{{ t('identity.permission.th_change_time') }}</th>
+                      <th>{{ t('identity.permission.th_type') }}</th>
+                      <th>{{ t('identity.permission.th_target_user') }}</th>
+                      <th>{{ t('identity.permission.th_target_role') }}</th>
+                      <th>{{ t('identity.permission.th_operator_user') }}</th>
+                      <th>{{ t('identity.permission.th_reason') }}</th>
+                      <th>{{ t('identity.permission.th_trace') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -786,7 +789,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限变更历史" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.permission.empty_change_logs')" style="padding: 40px 0" />
               </NTabPane>
             </NTabs>
           </NScrollbar>
@@ -803,33 +806,33 @@ async function handleToggleStatus(row: PermissionListItemDto) {
       style="width: 760px; max-width: 92vw"
     >
       <NForm :model="permissionForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="权限名称" path="permissionName">
-          <NInput v-model:value="permissionForm.permissionName" clearable size="small" placeholder="请输入权限名称" />
+        <NFormItem :label="t('identity.permission.label_form_permission_name')" path="permissionName">
+          <NInput v-model:value="permissionForm.permissionName" clearable size="small" :placeholder="t('identity.permission.ph_permission_name')" />
         </NFormItem>
-        <NFormItem label="权限编码" path="permissionCode">
+        <NFormItem :label="t('identity.permission.label_form_permission_code')" path="permissionCode">
           <NInput
             v-model:value="permissionForm.permissionCode"
             :disabled="Boolean(permissionForm.basicId)"
             clearable size="small"
-            placeholder="如: saas:user:read"
+            :placeholder="t('identity.permission.ph_permission_code')"
           />
         </NFormItem>
-        <NFormItem label="模块编码" path="moduleCode">
+        <NFormItem :label="t('identity.permission.label_form_module_code')" path="moduleCode">
           <NInput
             v-model:value="permissionForm.moduleCode"
             :disabled="Boolean(permissionForm.basicId)"
             clearable size="small"
-            placeholder="默认取权限编码第一段"
+            :placeholder="t('identity.permission.ph_module_code')"
           />
         </NFormItem>
-        <NFormItem label="权限类型" path="permissionType">
+        <NFormItem :label="t('identity.permission.label_form_permission_type')" path="permissionType">
           <NSelect
             v-model:value="permissionForm.permissionType"
             :disabled="Boolean(permissionForm.basicId)"
             :options="permissionTypeOptions"
           />
         </NFormItem>
-        <NFormItem v-if="isResourceBasedForm" label="资源" path="resourceId">
+        <NFormItem v-if="isResourceBasedForm" :label="t('identity.permission.label_form_resource')" path="resourceId">
           <NSelect
             v-model:value="permissionForm.resourceId"
             :disabled="Boolean(permissionForm.basicId)"
@@ -837,13 +840,13 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             :options="resourceOptions"
             clearable size="small"
             filterable
-            placeholder="搜索并选择资源"
+            :placeholder="t('identity.permission.ph_resource')"
             remote
             @focus="loadResourceOptions()"
             @search="handleResourceSearch"
           />
         </NFormItem>
-        <NFormItem v-if="isResourceBasedForm" label="操作" path="operationId">
+        <NFormItem v-if="isResourceBasedForm" :label="t('identity.permission.label_form_operation')" path="operationId">
           <NSelect
             v-model:value="permissionForm.operationId"
             :disabled="Boolean(permissionForm.basicId)"
@@ -851,25 +854,25 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             :options="operationOptions"
             clearable size="small"
             filterable
-            placeholder="搜索并选择操作"
+            :placeholder="t('identity.permission.ph_operation')"
             remote
             @focus="loadOperationOptions()"
             @search="handleOperationSearch"
           />
         </NFormItem>
-        <NFormItem label="需要审计" path="isRequireAudit">
+        <NFormItem :label="t('identity.permission.label_form_need_audit')" path="isRequireAudit">
           <NSwitch v-model:value="permissionForm.isRequireAudit" />
         </NFormItem>
-        <NFormItem v-if="!permissionForm.basicId" label="状态" path="status">
+        <NFormItem v-if="!permissionForm.basicId" :label="t('identity.permission.label_form_status')" path="status">
           <NSelect v-model:value="permissionForm.status" :options="STATUS_OPTIONS" />
         </NFormItem>
-        <NFormItem label="优先级" path="priority">
+        <NFormItem :label="t('identity.permission.label_form_priority')" path="priority">
           <NInputNumber v-model:value="permissionForm.priority" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('identity.permission.label_form_sort')" path="sort">
           <NInputNumber v-model:value="permissionForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="标签 JSON" path="tags">
+        <NFormItem :label="t('identity.permission.label_form_tags_json')" path="tags">
           <NInput
             v-model:value="permissionForm.tags"
             clearable size="small"
@@ -878,14 +881,14 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="permissionForm.remark" clearable size="small" placeholder="请输入备注" />
+        <NFormItem :label="t('identity.permission.label_form_remark')" path="remark">
+          <NInput v-model:value="permissionForm.remark" clearable size="small" :placeholder="t('identity.permission.ph_remark')" />
         </NFormItem>
-        <NFormItem label="描述" path="permissionDescription">
+        <NFormItem :label="t('identity.permission.label_form_description')" path="permissionDescription">
           <NInput
             v-model:value="permissionForm.permissionDescription"
             clearable size="small"
-            placeholder="请输入权限描述"
+            :placeholder="t('identity.permission.ph_description')"
             :rows="3"
             type="textarea"
           />
@@ -895,10 +898,10 @@ async function handleToggleStatus(row: PermissionListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('identity.common.save') }}
           </NButton>
         </NSpace>
       </template>

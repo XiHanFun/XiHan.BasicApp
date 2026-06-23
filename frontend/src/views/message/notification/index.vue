@@ -26,6 +26,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   notificationApi,
@@ -37,6 +38,7 @@ import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'MessageNotificationPage' })
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
@@ -44,13 +46,13 @@ const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 // ── 选项 ─────────────────────────────────────────────────────────
-const notificationTypeOptions = [
-  { label: '系统通知', value: NotificationType.System },
-  { label: '用户通知', value: NotificationType.User },
-  { label: '公告', value: NotificationType.Announcement },
-  { label: '警告', value: NotificationType.Warning },
-  { label: '错误', value: NotificationType.Error },
-]
+const notificationTypeOptions = computed(() => [
+  { label: t('message.notification.type_system'), value: NotificationType.System },
+  { label: t('message.notification.type_user'), value: NotificationType.User },
+  { label: t('message.notification.type_announcement'), value: NotificationType.Announcement },
+  { label: t('message.notification.type_warning'), value: NotificationType.Warning },
+  { label: t('message.notification.type_error'), value: NotificationType.Error },
+])
 
 const NOTIFICATION_TYPE_TAG: Record<string, TagType> = {
   [NotificationType.System]: 'info',
@@ -61,23 +63,23 @@ const NOTIFICATION_TYPE_TAG: Record<string, TagType> = {
 }
 
 /** 展示用全集（历史数据可能含角色/部门） */
-const targetTypeOptions = [
-  { label: '全员', value: NotificationTargetType.All },
-  { label: '角色', value: NotificationTargetType.Role },
-  { label: '部门', value: NotificationTargetType.Department },
-  { label: '指定用户', value: NotificationTargetType.User },
-]
+const targetTypeOptions = computed(() => [
+  { label: t('message.notification.target_all'), value: NotificationTargetType.All },
+  { label: t('message.notification.target_role'), value: NotificationTargetType.Role },
+  { label: t('message.notification.target_department'), value: NotificationTargetType.Department },
+  { label: t('message.notification.target_user'), value: NotificationTargetType.User },
+])
 
 /** 表单可选目标（后端发布仅支持全员/指定用户） */
-const targetTypeFormOptions = [
-  { label: '全员', value: NotificationTargetType.All },
-  { label: '指定用户', value: NotificationTargetType.User },
-]
+const targetTypeFormOptions = computed(() => [
+  { label: t('message.notification.target_all'), value: NotificationTargetType.All },
+  { label: t('message.notification.target_user'), value: NotificationTargetType.User },
+])
 
-const publishedOptions = [
-  { label: '已发布', value: 1 },
-  { label: '未发布', value: 0 },
-]
+const publishedOptions = computed(() => [
+  { label: t('message.notification.published'), value: 1 },
+  { label: t('message.notification.unpublished'), value: 0 },
+])
 
 // ── 表单 ─────────────────────────────────────────────────────────
 interface NotificationFormModel {
@@ -117,23 +119,23 @@ function createDefaultForm(): NotificationFormModel {
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const notificationForm = ref<NotificationFormModel>(createDefaultForm())
-const modalTitle = computed(() => (notificationForm.value.basicId ? '编辑公告' : '新增公告'))
+const modalTitle = computed(() => (notificationForm.value.basicId ? t('message.notification.edit_title') : t('message.notification.add_title')))
 const isUserTarget = computed(() => notificationForm.value.targetType === NotificationTargetType.User)
 
 const detailVisible = ref(false)
 const currentDetail = ref<NotificationDetailDto | null>(null)
 
 // ── 字段单一事实源：列 + 搜索 ────────────────────────────────────
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索标题/内容', order: 0 },
-  { key: 'title', title: '标题', dataType: 'string', minWidth: 220, order: 10 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('message.notification.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.notification.search_keyword_placeholder'), order: 0 },
+  { key: 'title', title: t('message.notification.col_title'), dataType: 'string', minWidth: 220, order: 10 },
   {
     key: 'notificationType',
-    title: '类型',
+    title: t('message.notification.col_type'),
     dataType: 'enum',
     searchable: true,
-    options: notificationTypeOptions,
-    searchPlaceholder: '类型',
+    options: notificationTypeOptions.value,
+    searchPlaceholder: t('message.notification.search_type_placeholder'),
     width: 110,
     order: 11,
     render: (row) => {
@@ -141,26 +143,26 @@ const fields: ListFieldSchema[] = [
       return h(
         NTag,
         { size: 'small', round: true, bordered: false, type: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'default' },
-        () => getOptionLabel(notificationTypeOptions, r.notificationType),
+        () => getOptionLabel(notificationTypeOptions.value, r.notificationType),
       )
     },
   },
   {
     key: 'targetType',
-    title: '目标类型',
+    title: t('message.notification.col_target_type'),
     dataType: 'enum',
-    options: targetTypeOptions,
+    options: targetTypeOptions.value,
     width: 110,
     order: 12,
-    render: row => getOptionLabel(targetTypeOptions, (row as unknown as NotificationListItemDto).targetType),
+    render: row => getOptionLabel(targetTypeOptions.value, (row as unknown as NotificationListItemDto).targetType),
   },
   {
     key: 'isPublished',
-    title: '是否发布',
+    title: t('message.notification.col_is_published'),
     dataType: 'boolean',
     searchable: true,
-    options: publishedOptions,
-    searchPlaceholder: '发布状态',
+    options: publishedOptions.value,
+    searchPlaceholder: t('message.notification.search_published_placeholder'),
     width: 100,
     order: 13,
     render: (row) => {
@@ -168,26 +170,26 @@ const fields: ListFieldSchema[] = [
       return h(
         NTag,
         { size: 'small', round: true, bordered: false, type: published ? 'success' : 'default' },
-        () => published ? '已发布' : '未发布',
+        () => published ? t('message.notification.published') : t('message.notification.unpublished'),
       )
     },
   },
-  { key: 'sendTime', title: '发送时间', dataType: 'datetime', minWidth: 170, order: 14 },
-  { key: 'expirationTime', title: '过期时间', dataType: 'datetime', minWidth: 170, order: 15 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 16 },
-]
+  { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', minWidth: 170, order: 14 },
+  { key: 'expirationTime', title: t('message.notification.col_expiration_time'), dataType: 'datetime', minWidth: 170, order: 15 },
+  { key: 'createdTime', title: t('message.notification.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 16 },
+])
 
 function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
 }
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'message.notification',
   exportPermission: 'saas:notification:export',
-  pageName: '公告管理',
+  pageName: t('message.notification.page_name'),
   rowKey: 'basicId',
   scrollX: 1300,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -202,13 +204,13 @@ const schema: PageSchema = {
     },
   },
   actions: [
-    { key: 'create', title: '新增公告', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:message:create' },
-    { key: 'view', title: '详情', scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pen', permission: 'saas:message:update', visible: isUnpublished },
-    { key: 'publish', title: '发布', scope: 'row', type: 'primary', icon: 'lucide:send', permission: 'saas:message:publish', visible: isUnpublished },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:message:delete', confirm: true, confirmText: '确认删除该公告？已下发的用户通知会一并删除。' },
+    { key: 'create', title: t('message.notification.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:message:create' },
+    { key: 'view', title: t('message.notification.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('message.notification.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'saas:message:update', visible: isUnpublished },
+    { key: 'publish', title: t('message.notification.action_publish'), scope: 'row', type: 'primary', icon: 'lucide:send', permission: 'saas:message:publish', visible: isUnpublished },
+    { key: 'delete', title: t('message.notification.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:message:delete', confirm: true, confirmText: t('message.notification.confirm_delete') },
   ],
-}
+}))
 
 function isUnpublished(row: unknown): boolean {
   return !(row as NotificationListItemDto).isPublished
@@ -238,13 +240,13 @@ async function openDetail(row: NotificationListItemDto) {
   try {
     currentDetail.value = await notificationApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.error('公告不存在')
+      message.error(t('message.notification.msg_not_found'))
       return
     }
     detailVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || '加载公告详情失败')
+    message.error((e as Error).message || t('message.notification.msg_load_detail_failed'))
   }
 }
 
@@ -253,11 +255,11 @@ async function openEdit(row: NotificationListItemDto) {
   try {
     const detail = await notificationApi.detail(row.basicId)
     if (!detail) {
-      message.error('公告不存在')
+      message.error(t('message.notification.msg_not_found'))
       return
     }
     if (detail.isPublished) {
-      message.warning('已发布公告不可编辑')
+      message.warning(t('message.notification.msg_published_cannot_edit'))
       return
     }
     notificationForm.value = {
@@ -278,28 +280,28 @@ async function openEdit(row: NotificationListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || '加载公告失败')
+    message.error((e as Error).message || t('message.notification.msg_load_failed'))
   }
 }
 
 // ── 发布（确认对话框；目标范围沿用创建时设定） ───────────────────
 function confirmPublish(row: NotificationListItemDto) {
   const targetText = row.targetType === NotificationTargetType.All
-    ? '发布后将立即推送给全体启用用户。'
-    : '发布后将立即推送给创建时指定的用户。'
+    ? t('message.notification.publish_target_all')
+    : t('message.notification.publish_target_user')
   dialog.warning({
-    title: '发布公告',
-    content: `确定发布「${row.title}」吗？${targetText}发布后不可再编辑。`,
-    positiveText: '发布',
-    negativeText: '取消',
+    title: t('message.notification.publish_dialog_title'),
+    content: t('message.notification.publish_confirm_content', { title: row.title, target: targetText }),
+    positiveText: t('message.notification.publish_positive'),
+    negativeText: t('message.common.cancel'),
     onPositiveClick: async () => {
       try {
         const result = await notificationApi.publish({ basicId: row.basicId })
-        message.success(`发布成功，已发送给 ${result.recipientCount} 位用户`)
+        message.success(t('message.notification.msg_publish_success', { count: result.recipientCount }))
         void schemaPageRef.value?.reload()
       }
       catch (e) {
-        message.error((e as Error).message || '发布失败')
+        message.error((e as Error).message || t('message.notification.msg_publish_failed'))
       }
     },
   })
@@ -309,27 +311,27 @@ function confirmPublish(row: NotificationListItemDto) {
 async function removeRow(row: NotificationListItemDto) {
   try {
     await notificationApi.delete(row.basicId)
-    message.success('删除成功')
+    message.success(t('message.notification.msg_delete_success'))
     void schemaPageRef.value?.reload()
   }
   catch (e) {
-    message.error((e as Error).message || '删除失败')
+    message.error((e as Error).message || t('message.notification.msg_delete_failed'))
   }
 }
 
 // ── 新增/编辑提交 ────────────────────────────────────────────────
 function validateForm(form: NotificationFormModel): boolean {
   if (!form.title.trim()) {
-    message.warning('请输入公告标题')
+    message.warning(t('message.notification.msg_title_required'))
     return false
   }
   if (form.targetType === NotificationTargetType.User) {
     if (form.userIds.length === 0) {
-      message.warning('指定用户目标需填写至少一个用户ID')
+      message.warning(t('message.notification.msg_user_required'))
       return false
     }
     if (form.userIds.some(id => !/^[1-9]\d*$/.test(id.trim()))) {
-      message.warning('用户ID必须为正整数')
+      message.warning(t('message.notification.msg_user_id_invalid'))
       return false
     }
   }
@@ -368,7 +370,7 @@ async function handleSubmit() {
         businessId: form.businessId,
         remark: form.remark,
       })
-      message.success('更新成功')
+      message.success(t('message.notification.msg_update_success'))
     }
     else {
       await notificationApi.create({
@@ -389,13 +391,13 @@ async function handleSubmit() {
         businessId: null,
         remark: null,
       })
-      message.success('创建成功，可在列表中发布')
+      message.success(t('message.notification.msg_create_success'))
     }
     modalVisible.value = false
     void schemaPageRef.value?.reload()
   }
   catch (e) {
-    message.error((e as Error).message || '保存失败')
+    message.error((e as Error).message || t('message.notification.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -413,61 +415,61 @@ async function handleSubmit() {
       style="width: 680px"
     >
       <NForm :model="notificationForm" label-placement="top">
-        <NFormItem label="标题" path="title">
-          <NInput v-model:value="notificationForm.title" clearable :maxlength="200" placeholder="请输入公告标题" />
+        <NFormItem :label="t('message.notification.form_title')" path="title">
+          <NInput v-model:value="notificationForm.title" clearable :maxlength="200" :placeholder="t('message.notification.form_title_placeholder')" />
         </NFormItem>
-        <NFormItem label="内容" path="content">
+        <NFormItem :label="t('message.notification.form_content')" path="content">
           <NInput
             v-model:value="notificationForm.content"
             type="textarea"
             :autosize="{ minRows: 5, maxRows: 12 }"
-            placeholder="请输入公告内容"
+            :placeholder="t('message.notification.form_content_placeholder')"
           />
         </NFormItem>
         <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="类型" path="notificationType">
+          <NFormItem :label="t('message.notification.form_type')" path="notificationType">
             <NSelect v-model:value="notificationForm.notificationType" :options="notificationTypeOptions" />
           </NFormItem>
-          <NFormItem label="目标类型" path="targetType">
+          <NFormItem :label="t('message.notification.form_target_type')" path="targetType">
             <NSelect v-model:value="notificationForm.targetType" :options="targetTypeFormOptions" />
           </NFormItem>
         </div>
-        <NFormItem v-if="isUserTarget" label="接收用户ID列表（回车添加）" path="userIds">
+        <NFormItem v-if="isUserTarget" :label="t('message.notification.form_user_ids')" path="userIds">
           <NDynamicTags v-model:value="notificationForm.userIds" />
         </NFormItem>
         <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="图标" path="icon">
-            <NInput v-model:value="notificationForm.icon" clearable :maxlength="100" placeholder="如 lucide:megaphone（可空）" />
+          <NFormItem :label="t('message.notification.form_icon')" path="icon">
+            <NInput v-model:value="notificationForm.icon" clearable :maxlength="100" :placeholder="t('message.notification.form_icon_placeholder')" />
           </NFormItem>
-          <NFormItem label="链接" path="link">
-            <NInput v-model:value="notificationForm.link" clearable :maxlength="500" placeholder="点击通知跳转地址（可空）" />
+          <NFormItem :label="t('message.notification.form_link')" path="link">
+            <NInput v-model:value="notificationForm.link" clearable :maxlength="500" :placeholder="t('message.notification.form_link_placeholder')" />
           </NFormItem>
         </div>
         <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem label="过期时间" path="expirationTime">
+          <NFormItem :label="t('message.notification.form_expiration_time')" path="expirationTime">
             <NDatePicker
               v-model:value="notificationForm.expirationTime"
               type="datetime"
               clearable
               style="width: 100%"
-              placeholder="留空永不过期"
+              :placeholder="t('message.notification.form_expiration_placeholder')"
             />
           </NFormItem>
-          <NFormItem label="需用户确认" path="needConfirm">
+          <NFormItem :label="t('message.notification.form_need_confirm')" path="needConfirm">
             <NSwitch v-model:value="notificationForm.needConfirm" />
           </NFormItem>
         </div>
         <p v-if="isUserTarget && notificationForm.basicId" class="form-hint">
-          编辑会整体覆盖原指定用户列表，请重新填写完整的接收用户ID。
+          {{ t('message.notification.edit_user_hint') }}
         </p>
       </NForm>
       <template #footer>
         <div class="flex justify-end gap-2">
           <NButton size="small" @click="modalVisible = false">
-            取消
+            {{ t('message.common.cancel') }}
           </NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="handleSubmit">
-            保存
+            {{ t('message.common.save') }}
           </NButton>
         </div>
       </template>
@@ -475,58 +477,58 @@ async function handleSubmit() {
 
     <!-- 详情（抽屉） -->
     <NDrawer v-model:show="detailVisible" :width="560">
-      <NDrawerContent title="公告详情" closable>
+      <NDrawerContent :title="t('message.notification.detail_title')" closable>
         <template v-if="currentDetail">
           <NDescriptions :column="2" label-placement="left" bordered size="small">
-            <NDescriptionsItem label="标题" :span="2">
+            <NDescriptionsItem :label="t('message.notification.detail_label_title')" :span="2">
               {{ currentDetail.title }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="类型">
+            <NDescriptionsItem :label="t('message.notification.detail_label_type')">
               {{ getOptionLabel(notificationTypeOptions, currentDetail.notificationType) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="目标类型">
+            <NDescriptionsItem :label="t('message.notification.detail_label_target_type')">
               {{ getOptionLabel(targetTypeOptions, currentDetail.targetType) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="是否发布">
+            <NDescriptionsItem :label="t('message.notification.detail_label_is_published')">
               <NTag size="small" round :bordered="false" :type="currentDetail.isPublished ? 'success' : 'default'">
-                {{ currentDetail.isPublished ? '已发布' : '未发布' }}
+                {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
               </NTag>
             </NDescriptionsItem>
-            <NDescriptionsItem label="需用户确认">
-              {{ currentDetail.needConfirm ? '是' : '否' }}
+            <NDescriptionsItem :label="t('message.notification.detail_label_need_confirm')">
+              {{ currentDetail.needConfirm ? t('message.common.yes') : t('message.common.no') }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="发送时间">
+            <NDescriptionsItem :label="t('message.notification.detail_label_send_time')">
               {{ formatDate(currentDetail.sendTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="过期时间">
-              {{ currentDetail.expirationTime ? formatDate(currentDetail.expirationTime) : '永不过期' }}
+            <NDescriptionsItem :label="t('message.notification.detail_label_expiration_time')">
+              {{ currentDetail.expirationTime ? formatDate(currentDetail.expirationTime) : t('message.notification.never_expire') }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="图标">
+            <NDescriptionsItem :label="t('message.notification.detail_label_icon')">
               {{ currentDetail.icon || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="链接">
+            <NDescriptionsItem :label="t('message.notification.detail_label_link')">
               {{ currentDetail.link || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="业务类型">
+            <NDescriptionsItem :label="t('message.notification.detail_label_business_type')">
               {{ currentDetail.businessType || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="业务主键">
+            <NDescriptionsItem :label="t('message.notification.detail_label_business_id')">
               {{ currentDetail.businessId || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="创建者">
+            <NDescriptionsItem :label="t('message.notification.detail_label_creator')">
               {{ currentDetail.createdBy || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="创建时间">
+            <NDescriptionsItem :label="t('message.notification.detail_label_created_time')">
               {{ formatDate(currentDetail.createdTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="备注" :span="2">
+            <NDescriptionsItem :label="t('message.notification.detail_label_remark')" :span="2">
               {{ currentDetail.remark || '-' }}
             </NDescriptionsItem>
           </NDescriptions>
           <div class="mt-3 text-xs opacity-70">
-            公告内容
+            {{ t('message.notification.detail_content_title') }}
           </div>
-          <pre class="detail-content">{{ currentDetail.content || '（无内容）' }}</pre>
+          <pre class="detail-content">{{ currentDetail.content || t('message.notification.detail_no_content') }}</pre>
         </template>
       </NDrawerContent>
     </NDrawer>

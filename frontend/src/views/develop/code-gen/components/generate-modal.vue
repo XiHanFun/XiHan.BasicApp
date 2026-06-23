@@ -10,6 +10,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { codeGenerationApi, GenType } from '@/api'
 
 defineOptions({ name: 'CodeGenGenerateModal' })
@@ -25,6 +26,7 @@ const emit = defineEmits<{
   'generated': []
 }>()
 
+const { t } = useI18n()
 const message = useMessage()
 
 const previewLoading = ref(false)
@@ -33,6 +35,12 @@ const artifacts = ref<CodeGenArtifactDto[]>([])
 const activeIndex = ref(0)
 
 const activeArtifact = computed(() => artifacts.value[activeIndex.value] ?? null)
+
+const modalTitle = computed(() =>
+  props.tableName
+    ? `${t('develop.code_gen.generate.title')} · ${props.tableName}`
+    : t('develop.code_gen.generate.title'),
+)
 
 watch(
   () => props.show,
@@ -55,7 +63,7 @@ async function loadPreview() {
   try {
     const result = await codeGenerationApi.preview({ tableId: props.tableId })
     if (!result.success) {
-      message.error(result.message || '预览失败')
+      message.error(result.message || t('develop.code_gen.generate.preview_failed'))
       artifacts.value = []
       return
     }
@@ -63,7 +71,7 @@ async function loadPreview() {
     activeIndex.value = 0
   }
   catch {
-    message.error('预览失败')
+    message.error(t('develop.code_gen.generate.preview_failed'))
     artifacts.value = []
   }
   finally {
@@ -99,21 +107,21 @@ async function handleGenerate() {
       genType: GenType.Zip,
     })
     if (!result.success) {
-      message.error(result.message || '生成失败')
+      message.error(result.message || t('develop.code_gen.generate.generate_failed'))
       return
     }
     if (result.packageBase64) {
       const fileName = `${props.tableName || 'codegen'}_${Date.now()}.zip`
       downloadZip(result.packageBase64, fileName)
-      message.success(`已生成 ${result.fileCount} 个文件，开始下载`)
+      message.success(t('develop.code_gen.generate.generate_success', { count: result.fileCount }))
     }
     else {
-      message.warning('生成成功但未返回压缩包')
+      message.warning(t('develop.code_gen.generate.no_package'))
     }
     emit('generated')
   }
   catch {
-    message.error('生成失败')
+    message.error(t('develop.code_gen.generate.generate_failed'))
   }
   finally {
     generating.value = false
@@ -128,7 +136,7 @@ async function handleGenerate() {
     preset="card"
     :show="show"
     style="width: 96vw; max-width: 1200px"
-    :title="`预览 / 生成${tableName ? ` · ${tableName}` : ''}`"
+    :title="modalTitle"
     @update:show="emit('update:show', $event)"
   >
     <NSpin :show="previewLoading">
@@ -155,7 +163,7 @@ async function handleGenerate() {
           </NScrollbar>
         </div>
         <div class="gen__content">
-          <NEmpty v-if="!activeArtifact" description="暂无产物，先维护模板与列配置后预览" />
+          <NEmpty v-if="!activeArtifact" :description="t('develop.code_gen.generate.empty')" />
           <NScrollbar v-else style="max-height: 60vh">
             <pre class="gen__code">{{ activeArtifact.content }}</pre>
           </NScrollbar>
@@ -165,13 +173,13 @@ async function handleGenerate() {
 
     <template #footer>
       <NSpace justify="space-between">
-        <span class="gen__hint">共 {{ artifacts.length }} 个文件</span>
+        <span class="gen__hint">{{ t('develop.code_gen.generate.total_files', { count: artifacts.length }) }}</span>
         <NSpace>
           <NButton @click="emit('update:show', false)">
-            关闭
+            {{ t('develop.code_gen.common.close') }}
           </NButton>
           <NButton :disabled="!tableId" :loading="generating" type="primary" @click="handleGenerate">
-            生成并下载 ZIP
+            {{ t('develop.code_gen.generate.generate_zip') }}
           </NButton>
         </NSpace>
       </NSpace>

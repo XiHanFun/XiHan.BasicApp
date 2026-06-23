@@ -27,6 +27,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
 import { Icon } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
@@ -57,13 +58,14 @@ interface DictItemFormModel {
   status: EnableStatus
 }
 
+const { t } = useI18n()
 const message = useMessage()
 const statusOptions = STATUS_OPTIONS
 
-const builtInOptions = [
-  { label: '内置', value: 1 },
-  { label: '非内置', value: 0 },
-]
+const builtInOptions = computed(() => [
+  { label: t('setting.dict.builtin'), value: 1 },
+  { label: t('setting.dict.not_builtin'), value: 0 },
+])
 
 // 行内操作按钮：先阻止冒泡（避免触发整行选中），再执行动作
 function stopAnd(action: () => void) {
@@ -111,7 +113,7 @@ async function fetchDictData() {
     syncSelectionAfterDictLoad()
   }
   catch {
-    message.error('查询字典失败')
+    message.error(t('setting.dict.query_dict_failed'))
     dictList.value = []
     dictTotal.value = 0
     currentDict.value = null
@@ -173,32 +175,32 @@ const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
   { type: 'selection', width: 40 },
   {
     key: 'dictName',
-    title: '字典名称',
+    title: t('setting.dict.dict_name'),
     minWidth: 140,
     ellipsis: { tooltip: true },
     render: (row: DictListItemDto) =>
       h('div', { class: 'dict-name' }, [
         h('span', { class: 'dict-name__text' }, row.dictName),
         row.isBuiltIn
-          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => '内置')
+          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => t('setting.dict.builtin'))
           : null,
       ]),
   },
   {
     key: 'dictCode',
-    title: '编码',
+    title: t('setting.dict.code'),
     minWidth: 130,
     ellipsis: { tooltip: true },
   },
   {
     key: 'dictType',
-    title: '类型',
+    title: t('setting.dict.type'),
     minWidth: 110,
     ellipsis: { tooltip: true },
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('setting.dict.status'),
     width: 72,
     align: 'center',
     render: (row: DictListItemDto) =>
@@ -206,19 +208,19 @@ const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
   },
   {
     key: 'actions',
-    title: '操作',
+    title: t('setting.dict.actions'),
     width: 110,
     align: 'center',
     render: (row: DictListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
-        h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => handleEdit(row)) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: t('setting.common.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => handleEdit(row)) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleToggleStatus(row) }, {
-          trigger: () => h(NButton, { ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
-          default: () => '确认更新字典状态？',
+          trigger: () => h(NButton, { ariaLabel: t('setting.dict.confirm_toggle_dict'), circle: true, quaternary: true, size: 'small', type: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => t('setting.dict.confirm_toggle_dict'),
         }),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确认删除该字典？',
+          trigger: () => h(NButton, { ariaLabel: t('setting.common.delete'), circle: true, quaternary: true, size: 'small', type: 'error', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => t('setting.dict.confirm_delete_dict'),
         }),
       ]),
   },
@@ -261,7 +263,7 @@ async function fetchItemData() {
     itemTotal.value = result.page.totalCount
   }
   catch {
-    message.error('查询字典项失败')
+    message.error(t('setting.dict.query_item_failed'))
     itemList.value = []
     itemTotal.value = 0
   }
@@ -274,55 +276,55 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
   { type: 'selection' },
   {
     key: 'itemName',
-    title: '字典项名称',
+    title: t('setting.dict.item_name'),
     minWidth: 130,
     ellipsis: { tooltip: true },
   },
   {
     key: 'itemCode',
-    title: '编码',
+    title: t('setting.dict.code'),
     minWidth: 130,
     ellipsis: { tooltip: true },
   },
   {
     key: 'itemValue',
-    title: '值',
+    title: t('setting.dict.item_value'),
     minWidth: 100,
     ellipsis: { tooltip: true },
   },
   {
     key: 'isDefault',
-    title: '默认',
+    title: t('setting.dict.default'),
     width: 70,
     render: (row: DictItemListItemDto) =>
-      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => (row.isDefault ? '是' : '否')),
+      h(NTag, { type: row.isDefault ? 'info' : 'default', round: true, size: 'small' }, () => (row.isDefault ? t('setting.common.yes') : t('setting.common.no'))),
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('setting.dict.status'),
     width: 80,
     render: (row: DictItemListItemDto) =>
       h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
   },
   {
     key: 'sort',
-    title: '排序',
+    title: t('setting.dict.sort'),
     width: 70,
   },
   {
     key: 'actions',
-    title: '操作',
+    title: t('setting.dict.actions'),
     width: 128,
     render: (row: DictItemListItemDto) =>
       h(NSpace, { size: 'small' }, () => [
-        h(NButton, { ariaLabel: '编辑', circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: t('setting.common.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleItemToggleStatus(row) }, {
-          trigger: () => h(NButton, { ariaLabel: '停用或启用', circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
-          default: () => '确认更新字典项状态？',
+          trigger: () => h(NButton, { ariaLabel: t('setting.dict.confirm_toggle_item'), circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
+          default: () => t('setting.dict.confirm_toggle_item'),
         }),
         h(NPopconfirm, { onPositiveClick: () => handleItemDelete(row) }, {
-          trigger: () => h(NButton, { ariaLabel: '删除', circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确认删除该字典项？',
+          trigger: () => h(NButton, { ariaLabel: t('setting.common.delete'), circle: true, quaternary: true, size: 'small', type: 'error' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
+          default: () => t('setting.dict.confirm_delete_item'),
         }),
       ]),
   },
@@ -349,13 +351,13 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const dictForm = ref<DictFormModel>(createDefaultDictForm())
-const modalTitle = computed(() => (dictForm.value.basicId ? '编辑字典' : '新增字典'))
+const modalTitle = computed(() => (dictForm.value.basicId ? t('setting.dict.edit_dict_title') : t('setting.dict.add_dict_title')))
 
 const itemModalVisible = ref(false)
 const itemSubmitLoading = ref(false)
 const itemEditingStatus = ref<EnableStatus | null>(null)
 const itemForm = ref<DictItemFormModel>(createDefaultDictItemForm())
-const itemModalTitle = computed(() => (itemForm.value.basicId ? '编辑字典项' : '新增字典项'))
+const itemModalTitle = computed(() => (itemForm.value.basicId ? t('setting.dict.edit_item_title') : t('setting.dict.add_item_title')))
 
 function createDefaultDictForm(): DictFormModel {
   return {
@@ -404,12 +406,12 @@ function handleEdit(row: DictListItemDto) {
 
 function validateDictForm() {
   if (!dictForm.value.dictName.trim()) {
-    message.warning('请输入字典名称')
+    message.warning(t('setting.dict.validate_dict_name'))
     return false
   }
 
   if (!dictForm.value.basicId && !dictForm.value.dictCode.trim()) {
-    message.warning('请输入字典编码')
+    message.warning(t('setting.dict.validate_dict_code'))
     return false
   }
 
@@ -437,7 +439,7 @@ async function handleSubmit() {
       if (editingStatus.value !== dictForm.value.status) {
         await dictManagementApi.updateStatus({
           basicId: dictForm.value.basicId,
-          remark: '前端更新字典状态',
+          remark: t('setting.dict.dict_status_update_remark'),
           status: dictForm.value.status,
         })
       }
@@ -455,12 +457,12 @@ async function handleSubmit() {
       await dictManagementApi.create(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('setting.common.save_success'))
     modalVisible.value = false
     reloadDict()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('setting.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -469,17 +471,17 @@ async function handleSubmit() {
 
 async function handleDelete(row: DictListItemDto) {
   await dictManagementApi.delete(row.basicId)
-  message.success('删除成功')
+  message.success(t('setting.common.delete_success'))
   reloadDict()
 }
 
 async function handleToggleStatus(row: DictListItemDto) {
   await dictManagementApi.updateStatus({
     basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? '前端停用字典' : '前端启用字典',
+    remark: row.status === EnableStatus.Enabled ? t('setting.dict.dict_disable_remark') : t('setting.dict.dict_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success('状态已更新')
+  message.success(t('setting.common.status_updated'))
   reloadDict()
 }
 
@@ -491,10 +493,10 @@ async function handleBatchDeleteDict() {
   }
   try {
     await Promise.all(ids.map(id => dictManagementApi.delete(String(id))))
-    message.success(`已删除 ${ids.length} 个字典`)
+    message.success(t('setting.dict.batch_deleted_dict', { count: ids.length }))
   }
   catch {
-    message.error('批量删除失败')
+    message.error(t('setting.common.batch_delete_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -510,13 +512,13 @@ async function handleBatchToggleDict(enable: boolean) {
   try {
     await Promise.all(ids.map(id => dictManagementApi.updateStatus({
       basicId: String(id),
-      remark: enable ? '批量启用字典' : '批量停用字典',
+      remark: enable ? t('setting.dict.batch_enable_dict_remark') : t('setting.dict.batch_disable_dict_remark'),
       status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
     })))
-    message.success('状态已更新')
+    message.success(t('setting.common.status_updated'))
   }
   catch {
-    message.error('批量操作失败')
+    message.error(t('setting.common.batch_action_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -554,12 +556,12 @@ function handleItemEdit(row: DictItemListItemDto) {
 
 function validateDictItemForm() {
   if (!itemForm.value.itemName.trim()) {
-    message.warning('请输入字典项名称')
+    message.warning(t('setting.dict.validate_item_name'))
     return false
   }
 
   if (!itemForm.value.basicId && !itemForm.value.itemCode.trim()) {
-    message.warning('请输入字典项编码')
+    message.warning(t('setting.dict.validate_item_code'))
     return false
   }
 
@@ -589,7 +591,7 @@ async function handleItemSubmit() {
       if (itemEditingStatus.value !== itemForm.value.status) {
         await dictManagementApi.itemUpdateStatus({
           basicId: itemForm.value.basicId,
-          remark: '前端更新字典项状态',
+          remark: t('setting.dict.item_status_update_remark'),
           status: itemForm.value.status,
         })
       }
@@ -610,12 +612,12 @@ async function handleItemSubmit() {
       await dictManagementApi.itemCreate(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('setting.common.save_success'))
     itemModalVisible.value = false
     fetchItemData()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('setting.common.save_failed'))
   }
   finally {
     itemSubmitLoading.value = false
@@ -624,17 +626,17 @@ async function handleItemSubmit() {
 
 async function handleItemDelete(row: DictItemListItemDto) {
   await dictManagementApi.itemDelete(row.basicId)
-  message.success('删除成功')
+  message.success(t('setting.common.delete_success'))
   fetchItemData()
 }
 
 async function handleItemToggleStatus(row: DictItemListItemDto) {
   await dictManagementApi.itemUpdateStatus({
     basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? '前端停用字典项' : '前端启用字典项',
+    remark: row.status === EnableStatus.Enabled ? t('setting.dict.item_disable_remark') : t('setting.dict.item_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success('状态已更新')
+  message.success(t('setting.common.status_updated'))
   fetchItemData()
 }
 
@@ -646,10 +648,10 @@ async function handleBatchDeleteItem() {
   }
   try {
     await Promise.all(ids.map(id => dictManagementApi.itemDelete(String(id))))
-    message.success(`已删除 ${ids.length} 个字典项`)
+    message.success(t('setting.dict.batch_deleted_item', { count: ids.length }))
   }
   catch {
-    message.error('批量删除失败')
+    message.error(t('setting.common.batch_delete_failed'))
   }
   finally {
     checkedItemKeys.value = []
@@ -665,13 +667,13 @@ async function handleBatchToggleItem(enable: boolean) {
   try {
     await Promise.all(ids.map(id => dictManagementApi.itemUpdateStatus({
       basicId: String(id),
-      remark: enable ? '批量启用字典项' : '批量停用字典项',
+      remark: enable ? t('setting.dict.batch_enable_item_remark') : t('setting.dict.batch_disable_item_remark'),
       status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
     })))
-    message.success('状态已更新')
+    message.success(t('setting.common.status_updated'))
   }
   catch {
-    message.error('批量操作失败')
+    message.error(t('setting.common.batch_action_failed'))
   }
   finally {
     checkedItemKeys.value = []
@@ -688,14 +690,14 @@ onMounted(fetchDictData)
     <section class="pane pane--master">
       <header class="pane__head">
         <div class="pane__title-row">
-          <span class="pane__title">字典列表</span>
+          <span class="pane__title">{{ t('setting.dict.dict_list') }}</span>
           <span class="pane__count">{{ dictTotal }}</span>
         </div>
         <NButton size="small" type="primary" @click="handleAdd">
           <template #icon>
             <NIcon><Icon icon="lucide:plus" /></NIcon>
           </template>
-          新增字典
+          {{ t('setting.dict.add_dict') }}
         </NButton>
       </header>
 
@@ -704,7 +706,7 @@ onMounted(fetchDictData)
           v-model:value="dictQueryParams.keyword"
           class="pane__kw"
           clearable
-          placeholder="搜索名称 / 编码 / 类型"
+          :placeholder="t('setting.dict.dict_search_placeholder')"
           size="small"
           @keyup.enter="handleDictSearch"
           @clear="handleDictSearch"
@@ -714,7 +716,7 @@ onMounted(fetchDictData)
           class="pane__filter-select"
           clearable
           :options="statusOptions"
-          placeholder="状态"
+          :placeholder="t('setting.dict.status_placeholder')"
           size="small"
           @update:value="handleDictSearch"
         />
@@ -723,12 +725,12 @@ onMounted(fetchDictData)
           class="pane__filter-select"
           clearable
           :options="builtInOptions"
-          placeholder="内置"
+          :placeholder="t('setting.dict.builtin_placeholder')"
           size="small"
           @update:value="handleDictSearch"
         />
         <NButton class="pane__search" size="small" type="primary" @click="handleDictSearch">
-          查询
+          {{ t('setting.common.search') }}
         </NButton>
       </div>
 
@@ -749,20 +751,20 @@ onMounted(fetchDictData)
       <footer class="pane__foot">
         <div class="pane__foot-left">
           <template v-if="checkedDictKeys.length">
-            <span class="pane__sel">已选 {{ checkedDictKeys.length }}</span>
+            <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedDictKeys.length }) }}</span>
             <NButton size="tiny" @click="handleBatchToggleDict(true)">
-              启用
+              {{ t('setting.common.enable') }}
             </NButton>
             <NButton size="tiny" @click="handleBatchToggleDict(false)">
-              停用
+              {{ t('setting.common.disable') }}
             </NButton>
             <NPopconfirm @positive-click="handleBatchDeleteDict">
               <template #trigger>
                 <NButton size="tiny" type="error">
-                  删除
+                  {{ t('setting.common.delete') }}
                 </NButton>
               </template>
-              确认删除选中的 {{ checkedDictKeys.length }} 个字典？
+              {{ t('setting.dict.confirm_batch_delete_dict', { count: checkedDictKeys.length }) }}
             </NPopconfirm>
           </template>
         </div>
@@ -781,14 +783,14 @@ onMounted(fetchDictData)
     <section class="pane pane--detail">
       <header class="pane__head">
         <div class="pane__title-row">
-          <span class="pane__title">{{ currentDict ? currentDict.dictName : '未选择字典' }}</span>
-          <span v-if="currentDict" class="pane__count">{{ itemTotal }} 项</span>
+          <span class="pane__title">{{ currentDict ? currentDict.dictName : t('setting.dict.no_dict_selected') }}</span>
+          <span v-if="currentDict" class="pane__count">{{ t('setting.dict.item_count', { count: itemTotal }) }}</span>
         </div>
         <NButton size="small" type="primary" :disabled="!currentDict" @click="handleItemAdd">
           <template #icon>
             <NIcon><Icon icon="lucide:plus" /></NIcon>
           </template>
-          新增字典项
+          {{ t('setting.dict.add_item') }}
         </NButton>
       </header>
 
@@ -798,18 +800,18 @@ onMounted(fetchDictData)
           class="pane__kw"
           clearable
           :disabled="!currentDict"
-          placeholder="搜索字典项名称 / 编码"
+          :placeholder="t('setting.dict.item_search_placeholder')"
           size="small"
           @keyup.enter="handleItemSearch"
           @clear="handleItemSearch"
         />
         <NButton class="pane__search" size="small" type="primary" :disabled="!currentDict" @click="handleItemSearch">
-          查询
+          {{ t('setting.common.search') }}
         </NButton>
       </div>
 
       <div class="pane__body">
-        <NEmpty v-if="!currentDict" class="pane__empty" description="请选择左侧字典以查看字典项">
+        <NEmpty v-if="!currentDict" class="pane__empty" :description="t('setting.dict.select_dict_hint')">
           <template #icon>
             <NIcon><Icon icon="lucide:list-tree" /></NIcon>
           </template>
@@ -832,20 +834,20 @@ onMounted(fetchDictData)
       <footer v-if="currentDict" class="pane__foot">
         <div class="pane__foot-left">
           <template v-if="checkedItemKeys.length">
-            <span class="pane__sel">已选 {{ checkedItemKeys.length }}</span>
+            <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedItemKeys.length }) }}</span>
             <NButton size="tiny" @click="handleBatchToggleItem(true)">
-              启用
+              {{ t('setting.common.enable') }}
             </NButton>
             <NButton size="tiny" @click="handleBatchToggleItem(false)">
-              停用
+              {{ t('setting.common.disable') }}
             </NButton>
             <NPopconfirm @positive-click="handleBatchDeleteItem">
               <template #trigger>
                 <NButton size="tiny" type="error">
-                  删除
+                  {{ t('setting.common.delete') }}
                 </NButton>
               </template>
-              确认删除选中的 {{ checkedItemKeys.length }} 个字典项？
+              {{ t('setting.dict.confirm_batch_delete_item', { count: checkedItemKeys.length }) }}
             </NPopconfirm>
           </template>
         </div>
@@ -871,33 +873,33 @@ onMounted(fetchDictData)
       style="width: 680px; max-width: 92vw"
     >
       <NForm :model="dictForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="字典编码" path="dictCode">
+        <NFormItem :label="t('setting.dict.dict_code')" path="dictCode">
           <NInput
             v-model:value="dictForm.dictCode"
             clearable
             :disabled="Boolean(dictForm.basicId)"
-            placeholder="如: gender"
+            :placeholder="t('setting.dict.dict_code_placeholder')"
           />
         </NFormItem>
-        <NFormItem label="字典名称" path="dictName">
-          <NInput v-model:value="dictForm.dictName" clearable placeholder="请输入字典名称" />
+        <NFormItem :label="t('setting.dict.dict_name')" path="dictName">
+          <NInput v-model:value="dictForm.dictName" clearable :placeholder="t('setting.dict.dict_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="字典类型" path="dictType">
-          <NInput v-model:value="dictForm.dictType" clearable placeholder="请输入字典类型" />
+        <NFormItem :label="t('setting.dict.dict_type')" path="dictType">
+          <NInput v-model:value="dictForm.dictType" clearable :placeholder="t('setting.dict.dict_type_placeholder')" />
         </NFormItem>
-        <NFormItem label="描述" path="dictDescription">
+        <NFormItem :label="t('setting.dict.description')" path="dictDescription">
           <NInput
             v-model:value="dictForm.dictDescription"
             clearable
-            placeholder="请输入描述"
+            :placeholder="t('setting.dict.description_placeholder')"
             :rows="3"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('setting.dict.sort')" path="sort">
           <NInputNumber v-model:value="dictForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="!dictForm.basicId" label="状态" path="status">
+        <NFormItem v-if="!dictForm.basicId" :label="t('setting.dict.status')" path="status">
           <NSelect v-model:value="dictForm.status" :options="statusOptions" />
         </NFormItem>
       </NForm>
@@ -905,10 +907,10 @@ onMounted(fetchDictData)
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('setting.common.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('setting.common.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -924,36 +926,36 @@ onMounted(fetchDictData)
       style="width: 600px; max-width: 92vw"
     >
       <NForm :model="itemForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="项编码" path="itemCode">
+        <NFormItem :label="t('setting.dict.item_code')" path="itemCode">
           <NInput
             v-model:value="itemForm.itemCode"
             clearable
             :disabled="Boolean(itemForm.basicId)"
-            placeholder="如: male"
+            :placeholder="t('setting.dict.item_code_placeholder')"
           />
         </NFormItem>
-        <NFormItem label="项名称" path="itemName">
-          <NInput v-model:value="itemForm.itemName" clearable placeholder="请输入字典项名称" />
+        <NFormItem :label="t('setting.dict.item_name_label')" path="itemName">
+          <NInput v-model:value="itemForm.itemName" clearable :placeholder="t('setting.dict.item_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="项值" path="itemValue">
-          <NInput v-model:value="itemForm.itemValue" clearable placeholder="请输入字典项值" />
+        <NFormItem :label="t('setting.dict.item_value_label')" path="itemValue">
+          <NInput v-model:value="itemForm.itemValue" clearable :placeholder="t('setting.dict.item_value_placeholder')" />
         </NFormItem>
-        <NFormItem label="描述" path="itemDescription">
+        <NFormItem :label="t('setting.dict.description')" path="itemDescription">
           <NInput
             v-model:value="itemForm.itemDescription"
             clearable
-            placeholder="请输入描述"
+            :placeholder="t('setting.dict.description_placeholder')"
             :rows="2"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="是否默认" path="isDefault">
+        <NFormItem :label="t('setting.dict.is_default')" path="isDefault">
           <NSwitch v-model:value="itemForm.isDefault" />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('setting.dict.sort')" path="sort">
           <NInputNumber v-model:value="itemForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="!itemForm.basicId" label="状态" path="status">
+        <NFormItem v-if="!itemForm.basicId" :label="t('setting.dict.status')" path="status">
           <NSelect v-model:value="itemForm.status" :options="statusOptions" />
         </NFormItem>
       </NForm>
@@ -961,10 +963,10 @@ onMounted(fetchDictData)
       <template #footer>
         <NSpace justify="end">
           <NButton @click="itemModalVisible = false">
-            取消
+            {{ t('setting.common.cancel') }}
           </NButton>
           <NButton :loading="itemSubmitLoading" type="primary" @click="handleItemSubmit">
-            保存
+            {{ t('setting.common.save') }}
           </NButton>
         </NSpace>
       </template>

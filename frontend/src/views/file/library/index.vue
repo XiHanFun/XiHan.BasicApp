@@ -35,6 +35,7 @@ import {
 } from 'naive-ui'
 import Papa from 'papaparse'
 import { computed, h, nextTick, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   fileManagementApi,
@@ -53,6 +54,7 @@ defineOptions({ name: 'PlatformFilePage' })
 type DetailKind = 'file' | 'storage'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -63,61 +65,61 @@ function reload() {
 }
 
 // ── 选项常量（布尔以 1/0 表达，搜索值仅 string|number） ──────────
-const booleanOptions = [
-  { label: '是', value: 1 },
-  { label: '否', value: 0 },
-]
+const booleanOptions = computed(() => [
+  { label: t('file.library.boolean.yes'), value: 1 },
+  { label: t('file.library.boolean.no'), value: 0 },
+])
 
-const fileTypeOptions = [
-  { label: '图片', value: FileType.Image },
-  { label: '文档', value: FileType.Document },
-  { label: '视频', value: FileType.Video },
-  { label: '音频', value: FileType.Audio },
-  { label: '压缩包', value: FileType.Archive },
-  { label: '其他', value: FileType.Other },
-]
+const fileTypeOptions = computed(() => [
+  { label: t('file.library.fileType.image'), value: FileType.Image },
+  { label: t('file.library.fileType.document'), value: FileType.Document },
+  { label: t('file.library.fileType.video'), value: FileType.Video },
+  { label: t('file.library.fileType.audio'), value: FileType.Audio },
+  { label: t('file.library.fileType.archive'), value: FileType.Archive },
+  { label: t('file.library.fileType.other'), value: FileType.Other },
+])
 
-const fileStatusOptions = [
-  { label: '正常', value: FileStatus.Normal },
-  { label: '上传中', value: FileStatus.Uploading },
-  { label: '上传失败', value: FileStatus.UploadFailed },
-  { label: '处理中', value: FileStatus.Processing },
-  { label: '已删除', value: FileStatus.Deleted },
-  { label: '已归档', value: FileStatus.Archived },
-  { label: '已过期', value: FileStatus.Expired },
-  { label: '损坏', value: FileStatus.Corrupted },
-  { label: '违规', value: FileStatus.Violation },
-]
+const fileStatusOptions = computed(() => [
+  { label: t('file.library.fileStatus.normal'), value: FileStatus.Normal },
+  { label: t('file.library.fileStatus.uploading'), value: FileStatus.Uploading },
+  { label: t('file.library.fileStatus.uploadFailed'), value: FileStatus.UploadFailed },
+  { label: t('file.library.fileStatus.processing'), value: FileStatus.Processing },
+  { label: t('file.library.fileStatus.deleted'), value: FileStatus.Deleted },
+  { label: t('file.library.fileStatus.archived'), value: FileStatus.Archived },
+  { label: t('file.library.fileStatus.expired'), value: FileStatus.Expired },
+  { label: t('file.library.fileStatus.corrupted'), value: FileStatus.Corrupted },
+  { label: t('file.library.fileStatus.violation'), value: FileStatus.Violation },
+])
 
-const accessLevelOptions = [
-  { label: '匿名访问', value: ResourceAccessLevel.Public },
-  { label: '仅需认证', value: ResourceAccessLevel.Authenticated },
-  { label: '需要授权', value: ResourceAccessLevel.Authorized },
-]
+const accessLevelOptions = computed(() => [
+  { label: t('file.library.accessLevel.public'), value: ResourceAccessLevel.Public },
+  { label: t('file.library.accessLevel.authenticated'), value: ResourceAccessLevel.Authenticated },
+  { label: t('file.library.accessLevel.authorized'), value: ResourceAccessLevel.Authorized },
+])
 
-const storageTypeOptions = [
-  { label: '本地存储', value: FileStorageType.Local },
-  { label: '阿里云OSS', value: FileStorageType.AliyunOss },
-  { label: '腾讯云COS', value: FileStorageType.TencentCos },
-  { label: 'MinIO', value: FileStorageType.Minio },
-  { label: 'FTP', value: FileStorageType.Ftp },
-  { label: 'SFTP', value: FileStorageType.Sftp },
-  { label: 'WebDAV', value: FileStorageType.WebDav },
-  { label: '自定义存储', value: FileStorageType.Custom },
-]
+const storageTypeOptions = computed(() => [
+  { label: t('file.library.storageType.local'), value: FileStorageType.Local },
+  { label: t('file.library.storageType.aliyunOss'), value: FileStorageType.AliyunOss },
+  { label: t('file.library.storageType.tencentCos'), value: FileStorageType.TencentCos },
+  { label: t('file.library.storageType.minio'), value: FileStorageType.Minio },
+  { label: t('file.library.storageType.ftp'), value: FileStorageType.Ftp },
+  { label: t('file.library.storageType.sftp'), value: FileStorageType.Sftp },
+  { label: t('file.library.storageType.webdav'), value: FileStorageType.WebDav },
+  { label: t('file.library.storageType.custom'), value: FileStorageType.Custom },
+])
 
-const storageStatusOptions = [
-  { label: '正常', value: FileStorageStatus.Normal },
-  { label: '上传中', value: FileStorageStatus.Uploading },
-  { label: '上传失败', value: FileStorageStatus.UploadFailed },
-  { label: '同步中', value: FileStorageStatus.Syncing },
-  { label: '同步失败', value: FileStorageStatus.SyncFailed },
-  { label: '待验证', value: FileStorageStatus.PendingVerification },
-  { label: '验证失败', value: FileStorageStatus.VerificationFailed },
-  { label: '已过期', value: FileStorageStatus.Expired },
-  { label: '已删除', value: FileStorageStatus.Deleted },
-  { label: '不可用', value: FileStorageStatus.Unavailable },
-]
+const storageStatusOptions = computed(() => [
+  { label: t('file.library.storageStatus.normal'), value: FileStorageStatus.Normal },
+  { label: t('file.library.storageStatus.uploading'), value: FileStorageStatus.Uploading },
+  { label: t('file.library.storageStatus.uploadFailed'), value: FileStorageStatus.UploadFailed },
+  { label: t('file.library.storageStatus.syncing'), value: FileStorageStatus.Syncing },
+  { label: t('file.library.storageStatus.syncFailed'), value: FileStorageStatus.SyncFailed },
+  { label: t('file.library.storageStatus.pendingVerification'), value: FileStorageStatus.PendingVerification },
+  { label: t('file.library.storageStatus.verificationFailed'), value: FileStorageStatus.VerificationFailed },
+  { label: t('file.library.storageStatus.expired'), value: FileStorageStatus.Expired },
+  { label: t('file.library.storageStatus.deleted'), value: FileStorageStatus.Deleted },
+  { label: t('file.library.storageStatus.unavailable'), value: FileStorageStatus.Unavailable },
+])
 
 // ── 过滤值清洗辅助 ──────────────────────────────────────────────
 function toStr(v: unknown): string | undefined {
@@ -140,7 +142,7 @@ function formatUploadDuration(value?: number | null) {
 }
 
 function formatFlag(value: boolean) {
-  return value ? '是' : '否'
+  return value ? t('file.library.boolean.yes') : t('file.library.boolean.no')
 }
 
 function getFileStatusTagType(status: FileStatus): TagType {
@@ -230,31 +232,31 @@ function canPreview(row: FileListItemDto): boolean {
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
 // 后端 FilePageQueryDto 支持：keyword/fileType/status/accessLevel/isTemporary/isEncrypted/fileExtension/mimeType
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索文件名/哈希', width: 220, order: 0 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('file.library.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('file.library.columns.keywordPlaceholder'), width: 220, order: 0 },
   {
     key: 'originalName',
-    title: '原始文件名',
+    title: t('file.library.columns.originalName'),
     dataType: 'string',
     minWidth: 220,
     fixed: 'left',
     order: 1,
   },
-  { key: 'fileName', title: '存储文件名', dataType: 'string', minWidth: 220, order: 2 },
+  { key: 'fileName', title: t('file.library.columns.fileName'), dataType: 'string', minWidth: 220, order: 2 },
   {
     key: 'fileType',
-    title: '文件类型',
+    title: t('file.library.columns.fileType'),
     dataType: 'enum',
     searchable: true,
-    options: fileTypeOptions,
-    searchPlaceholder: '文件类型',
+    options: fileTypeOptions.value,
+    searchPlaceholder: t('file.library.columns.fileTypePlaceholder'),
     width: 110,
     order: 3,
-    render: row => h(NTag, { round: true, size: 'small' }, () => getOptionLabel(fileTypeOptions, (row as unknown as FileListItemDto).fileType)),
+    render: row => h(NTag, { round: true, size: 'small' }, () => getOptionLabel(fileTypeOptions.value, (row as unknown as FileListItemDto).fileType)),
   },
   {
     key: 'fileSize',
-    title: '文件大小',
+    title: t('file.library.columns.fileSize'),
     dataType: 'number',
     minWidth: 110,
     order: 4,
@@ -262,60 +264,60 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('file.library.columns.status'),
     dataType: 'enum',
     searchable: true,
-    options: fileStatusOptions,
-    searchPlaceholder: '文件状态',
+    options: fileStatusOptions.value,
+    searchPlaceholder: t('file.library.columns.statusPlaceholder'),
     width: 110,
     order: 5,
-    render: row => h(NTag, { type: getFileStatusTagType((row as unknown as FileListItemDto).status), round: true, size: 'small' }, () => getOptionLabel(fileStatusOptions, (row as unknown as FileListItemDto).status)),
+    render: row => h(NTag, { type: getFileStatusTagType((row as unknown as FileListItemDto).status), round: true, size: 'small' }, () => getOptionLabel(fileStatusOptions.value, (row as unknown as FileListItemDto).status)),
   },
   {
     key: 'accessLevel',
-    title: '访问级别',
+    title: t('file.library.columns.accessLevel'),
     dataType: 'enum',
     searchable: true,
-    options: accessLevelOptions,
-    searchPlaceholder: '访问级别',
+    options: accessLevelOptions.value,
+    searchPlaceholder: t('file.library.columns.accessLevelPlaceholder'),
     minWidth: 110,
     order: 6,
-    render: row => getOptionLabel(accessLevelOptions, (row as unknown as FileListItemDto).accessLevel),
+    render: row => getOptionLabel(accessLevelOptions.value, (row as unknown as FileListItemDto).accessLevel),
   },
   {
     key: 'isTemporary',
-    title: '临时',
+    title: t('file.library.columns.isTemporary'),
     dataType: 'boolean',
     searchable: true,
-    options: booleanOptions,
-    searchPlaceholder: '临时',
+    options: booleanOptions.value,
+    searchPlaceholder: t('file.library.columns.isTemporaryPlaceholder'),
     width: 82,
     order: 7,
   },
   {
     key: 'isEncrypted',
-    title: '加密',
+    title: t('file.library.columns.isEncrypted'),
     dataType: 'boolean',
     searchable: true,
-    options: booleanOptions,
-    searchPlaceholder: '加密',
+    options: booleanOptions.value,
+    searchPlaceholder: t('file.library.columns.isEncryptedPlaceholder'),
     width: 82,
     order: 8,
   },
-  { key: 'fileExtension', title: '扩展名', dataType: 'string', advancedSearch: true, searchPlaceholder: '扩展名', minWidth: 90, order: 9 },
-  { key: 'mimeType', title: 'MIME', dataType: 'string', advancedSearch: true, searchPlaceholder: 'MIME', minWidth: 160, order: 10 },
-  { key: 'downloadCount', title: '下载', dataType: 'number', minWidth: 90, order: 11 },
-  { key: 'viewCount', title: '访问', dataType: 'number', minWidth: 90, order: 12 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
-]
+  { key: 'fileExtension', title: t('file.library.columns.fileExtension'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('file.library.columns.fileExtensionPlaceholder'), minWidth: 90, order: 9 },
+  { key: 'mimeType', title: t('file.library.columns.mimeType'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('file.library.columns.mimeTypePlaceholder'), minWidth: 160, order: 10 },
+  { key: 'downloadCount', title: t('file.library.columns.downloadCount'), dataType: 'number', minWidth: 90, order: 11 },
+  { key: 'viewCount', title: t('file.library.columns.viewCount'), dataType: 'number', minWidth: 90, order: 12 },
+  { key: 'createdTime', title: t('file.library.columns.createdTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
+])
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.file',
   exportPermission: 'saas:file:export',
-  pageName: '文件管理',
+  pageName: t('file.library.pageName'),
   rowKey: 'basicId',
   scrollX: 1800,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -333,18 +335,18 @@ const schema: PageSchema = {
     },
   },
   actions: [
-    { key: 'upload', title: '上传文件', scope: 'page', type: 'primary', icon: 'lucide:upload' },
-    { key: 'preview', title: '预览', scope: 'row', visible: row => canPreview(row as unknown as FileListItemDto) },
-    { key: 'download', title: '下载', scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
-    { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'metadata', title: '编辑元数据', scope: 'row' },
-    { key: 'storages', title: '存储副本', scope: 'row' },
+    { key: 'upload', title: t('file.library.actions.upload'), scope: 'page', type: 'primary', icon: 'lucide:upload' },
+    { key: 'preview', title: t('file.library.actions.preview'), scope: 'row', visible: row => canPreview(row as unknown as FileListItemDto) },
+    { key: 'download', title: t('file.library.actions.download'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
+    { key: 'view', title: t('file.library.actions.view'), scope: 'row' },
+    { key: 'metadata', title: t('file.library.actions.metadata'), scope: 'row' },
+    { key: 'storages', title: t('file.library.actions.storages'), scope: 'row' },
     // 回收站语义：正常文件可「归档」（软删，可恢复）；非正常文件可「恢复」；任意状态可「彻底删除」（物理删，不可恢复）
-    { key: 'archive', title: '归档', scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
-    { key: 'restore', title: '恢复', scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal },
-    { key: 'destroy', title: '彻底删除', scope: 'row', type: 'error' },
+    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
+    { key: 'restore', title: t('file.library.actions.restore'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal },
+    { key: 'destroy', title: t('file.library.actions.destroy'), scope: 'row', type: 'error' },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -380,12 +382,12 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'archive':
       if (row) {
-        void handleUpdateFileStatus(row, FileStatus.Archived, '已归档')
+        void handleUpdateFileStatus(row, FileStatus.Archived, t('file.library.message.archived'))
       }
       break
     case 'restore':
       if (row) {
-        void handleUpdateFileStatus(row, FileStatus.Normal, '已恢复')
+        void handleUpdateFileStatus(row, FileStatus.Normal, t('file.library.message.restored'))
       }
       break
     case 'destroy':
@@ -402,7 +404,7 @@ const detailLoading = ref(false)
 const detailKind = ref<DetailKind>('file')
 const currentFileDetail = ref<FileDetailDto | null>(null)
 const currentStorageDetail = ref<FileStorageDetailDto | null>(null)
-const detailTitle = computed(() => detailKind.value === 'file' ? '文件详情' : '存储副本详情')
+const detailTitle = computed(() => detailKind.value === 'file' ? t('file.library.detail.fileTitle') : t('file.library.detail.storageTitle'))
 
 /**
  * 尺寸/时长智能文案：图片显「宽 × 高」、音视频显时长；文档等无此信息时返回空（详情中整行隐藏，不再显示「- x - / -」）。
@@ -516,19 +518,19 @@ async function handleSaveMetadata() {
       tags: normalizeNullable(metadataForm.tags),
       remark: normalizeNullable(metadataForm.remark),
     })
-    message.success('元数据已更新')
+    message.success(t('file.library.metadata.updated'))
     metadataVisible.value = false
     reload()
   }
   catch {
-    message.error('更新元数据失败')
+    message.error(t('file.library.metadata.updateFailed'))
   }
   finally {
     metadataLoading.value = false
   }
 }
 
-async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, successText = '文件状态已更新') {
+async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, successText = t('file.library.message.fileStatusUpdated')) {
   actionLoading.value = true
   try {
     await fileManagementApi.updateStatus({ basicId: row.basicId, status })
@@ -536,7 +538,7 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, 
     reload()
   }
   catch {
-    message.error('操作失败')
+    message.error(t('file.library.message.operationFailed'))
   }
   finally {
     actionLoading.value = false
@@ -546,19 +548,19 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, 
 /** 彻底删除：物理删除记录 + 物理文件，不可恢复，强二次确认 */
 function handleDestroyFile(row: FileListItemDto) {
   dialog.error({
-    title: '彻底删除',
-    content: `将永久删除「${row.originalName}」的记录、所有存储副本及物理文件，此操作不可恢复。确定继续？`,
-    positiveText: '彻底删除',
-    negativeText: '取消',
+    title: t('file.library.message.destroyTitle'),
+    content: t('file.library.message.destroyContent', { name: row.originalName }),
+    positiveText: t('file.library.actions.destroy'),
+    negativeText: t('file.common.cancel'),
     onPositiveClick: async () => {
       actionLoading.value = true
       try {
         await fileManagementApi.destroy({ basicId: row.basicId, deletePhysical: true })
-        message.success('已彻底删除')
+        message.success(t('file.library.message.destroyed'))
         reload()
       }
       catch {
-        message.error('彻底删除失败')
+        message.error(t('file.library.message.destroyFailed'))
       }
       finally {
         actionLoading.value = false
@@ -577,7 +579,7 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
   // 接入灵动岛：上传作为持续任务呈现进度，完成/失败进终态（灵动岛关闭时自动降级为消息提示）
   // 每个文件用唯一 id（多文件并发时各自一条；多任务会自动收缩为「图标 + 计数」的极简态）
   // 折叠态文案精简为「正在上传」，文件名放 detail（展开/悬停可见），避免长文件名把胶囊撑宽
-  const task = islandStart(`file:upload:${options.file.id}`, '正在上传', { detail: rawFile.name, icon: 'lucide:upload', progress: 0 })
+  const task = islandStart(`file:upload:${options.file.id}`, t('file.library.upload.uploading'), { detail: rawFile.name, icon: 'lucide:upload', progress: 0 })
   // 弹窗即时关闭，上传进度交由灵动岛跟踪，不阻塞用户继续操作
   uploadVisible.value = false
   try {
@@ -597,13 +599,13 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
     )
     options.onProgress({ percent: 100 })
     options.onFinish()
-    task.success('上传成功', { detail: rawFile.name })
+    task.success(t('file.library.upload.uploadSuccess'), { detail: rawFile.name })
     await nextTick()
     reload()
   }
   catch {
     options.onError()
-    task.error('上传失败', { detail: rawFile.name })
+    task.error(t('file.library.upload.uploadFailed'), { detail: rawFile.name })
   }
   finally {
     uploadLoading.value = false
@@ -620,7 +622,7 @@ async function handleFileDetail(row: FileListItemDto) {
   }
   catch {
     currentFileDetail.value = null
-    message.error('加载文件详情失败')
+    message.error(t('file.library.message.fileDetailFailed'))
   }
   finally {
     detailLoading.value = false
@@ -654,10 +656,10 @@ const isBlockPreview = computed(() =>
 async function copyPreviewText() {
   try {
     await navigator.clipboard.writeText(previewText.value)
-    message.success('已复制到剪贴板')
+    message.success(t('file.library.preview.copied'))
   }
   catch {
-    message.error('复制失败')
+    message.error(t('file.library.preview.copyFailed'))
   }
 }
 
@@ -684,7 +686,7 @@ async function handlePreview(row: FileListItemDto) {
   previewLoading.value = true
   try {
     if ((kind === 'markdown' || kind === 'text') && row.fileSize > PREVIEW_TEXT_MAX_BYTES) {
-      previewTextError.value = '文件较大，暂不支持在线文本预览，请下载查看'
+      previewTextError.value = t('file.library.preview.textTooLarge')
       return
     }
     const blob = await fileManagementApi.download(row.basicId)
@@ -703,7 +705,7 @@ async function handlePreview(row: FileListItemDto) {
     }
   }
   catch (error) {
-    const reason = (error as Error).message || '加载预览失败'
+    const reason = (error as Error).message || t('file.library.preview.loadFailed')
     if (kind === 'markdown' || kind === 'text') {
       previewTextError.value = reason
     }
@@ -723,7 +725,7 @@ function parseCsv(text: string) {
   }
   const header = rows[0] ?? []
   csvColumns.value = header.map((title, index) => ({
-    title: title || `列${index + 1}`,
+    title: title || t('file.library.preview.csvColumn', { index: index + 1 }),
     key: String(index),
     resizable: true,
     ellipsis: { tooltip: true },
@@ -747,7 +749,7 @@ async function handleDownload(row: FileListItemDto) {
     downloadBlob(blob, row.originalName)
   }
   catch (error) {
-    message.error((error as Error).message || '下载失败')
+    message.error((error as Error).message || t('file.library.message.downloadFailed'))
   }
 }
 
@@ -801,7 +803,7 @@ async function loadStorageRows() {
   }
   catch {
     storageRows.value = []
-    message.error('加载存储副本失败')
+    message.error(t('file.library.storageList.loadFailed'))
   }
   finally {
     storageListLoading.value = false
@@ -820,7 +822,7 @@ async function viewStorageDetail(storageId: string) {
   }
   catch {
     currentStorageDetail.value = null
-    message.error('加载副本详情失败')
+    message.error(t('file.library.message.storageDetailFailed'))
   }
   finally {
     detailLoading.value = false
@@ -836,11 +838,11 @@ async function handleSwitchPrimary(storage: FileStorageListItemDto) {
   actionLoading.value = true
   try {
     await fileManagementApi.switchPrimaryStorage({ basicId: file.basicId, storageId: storage.basicId })
-    message.success('已设为主副本')
+    message.success(t('file.library.message.setPrimary'))
     await loadStorageRows()
   }
   catch {
-    message.error('设置主副本失败')
+    message.error(t('file.library.message.setPrimaryFailed'))
   }
   finally {
     actionLoading.value = false
@@ -852,11 +854,11 @@ async function handleVerifyStorage(storage: FileStorageListItemDto) {
   actionLoading.value = true
   try {
     await fileManagementApi.verifyStorage({ basicId: storage.basicId })
-    message.success('副本校验已触发')
+    message.success(t('file.library.message.verifyTriggered'))
     await loadStorageRows()
   }
   catch {
-    message.error('副本校验失败')
+    message.error(t('file.library.message.verifyFailed'))
   }
   finally {
     actionLoading.value = false
@@ -871,11 +873,11 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
   actionLoading.value = true
   try {
     await fileManagementApi.updateStorageStatus({ basicId: storage.basicId, status: nextStatus })
-    message.success('副本状态已更新')
+    message.success(t('file.library.message.storageStatusUpdated'))
     await loadStorageRows()
   }
   catch {
-    message.error('更新副本状态失败')
+    message.error(t('file.library.message.storageStatusFailed'))
   }
   finally {
     actionLoading.value = false
@@ -885,61 +887,61 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
 const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => [
   {
     key: 'storageType',
-    title: '存储类型',
+    title: t('file.library.storageList.columns.storageType'),
     minWidth: 110,
-    render: row => getOptionLabel(storageTypeOptions, row.storageType),
+    render: row => getOptionLabel(storageTypeOptions.value, row.storageType),
   },
   {
     key: 'storageProvider',
-    title: '提供商/区域',
+    title: t('file.library.storageList.columns.provider'),
     minWidth: 140,
     ellipsis: { tooltip: true },
     render: row => `${row.storageProvider || '-'} / ${row.storageRegion || '-'}`,
   },
   {
     key: 'isPrimary',
-    title: '主副本',
+    title: t('file.library.storageList.columns.isPrimary'),
     width: 80,
     render: row => row.isPrimary
-      ? h(NTag, { size: 'small', type: 'info', round: true, bordered: false }, () => '主')
+      ? h(NTag, { size: 'small', type: 'info', round: true, bordered: false }, () => t('file.library.flag.primary'))
       : h('span', { class: 'text-foreground/40' }, '-'),
   },
   {
     key: 'flags',
-    title: '校验/同步',
+    title: t('file.library.storageList.columns.verifySync'),
     width: 110,
     render: row => `${formatFlag(row.isVerified)} / ${formatFlag(row.isSynced)}`,
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('file.library.storageList.columns.status'),
     width: 100,
-    render: row => h(NTag, { size: 'small', round: true, type: getStorageStatusTagType(row.status) }, () => getOptionLabel(storageStatusOptions, row.status)),
+    render: row => h(NTag, { size: 'small', round: true, type: getStorageStatusTagType(row.status) }, () => getOptionLabel(storageStatusOptions.value, row.status)),
   },
   {
     key: 'actions',
-    title: '操作',
+    title: t('file.library.storageList.columns.actions'),
     width: 150,
     fixed: 'right',
     render: row => h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
       h(NTooltip, null, {
         trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, onClick: () => viewStorageDetail(row.basicId) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-        default: () => '详情',
+        default: () => t('file.library.storageList.tooltip.detail'),
       }),
       h(NTooltip, null, {
         trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', disabled: row.isPrimary, onClick: () => handleSwitchPrimary(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:star' })) }),
-        default: () => row.isPrimary ? '已是主副本' : '设为主副本',
+        default: () => row.isPrimary ? t('file.library.storageList.tooltip.isPrimary') : t('file.library.storageList.tooltip.setPrimary'),
       }),
       h(NTooltip, null, {
         trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'info', onClick: () => handleVerifyStorage(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:shield-check' })) }),
-        default: () => '校验',
+        default: () => t('file.library.storageList.tooltip.verify'),
       }),
       h(NPopconfirm, { onPositiveClick: () => handleToggleStorageStatus(row) }, {
         trigger: () => h(NTooltip, null, {
           trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: row.status === FileStorageStatus.Normal ? 'warning' : 'success' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === FileStorageStatus.Normal ? 'lucide:ban' : 'lucide:circle-check' })) }),
-          default: () => row.status === FileStorageStatus.Normal ? '停用' : '启用',
+          default: () => row.status === FileStorageStatus.Normal ? t('file.library.storageList.tooltip.disable') : t('file.library.storageList.tooltip.enable'),
         }),
-        default: () => `确认${row.status === FileStorageStatus.Normal ? '停用' : '启用'}该副本？`,
+        default: () => t('file.library.storageList.confirmToggle', { action: row.status === FileStorageStatus.Normal ? t('file.library.storageList.tooltip.disable') : t('file.library.storageList.tooltip.enable') }),
       }),
     ]),
   },
@@ -955,7 +957,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
     <NModal
       v-model:show="uploadVisible"
       preset="card"
-      title="上传文件"
+      :title="t('file.library.upload.title')"
       :bordered="false"
       :mask-closable="!uploadLoading"
       :closable="!uploadLoading"
@@ -974,10 +976,10 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
                 <Icon icon="lucide:cloud-upload" />
               </NIcon>
               <div class="file-upload-dragger__text">
-                点击或拖拽文件到此处上传（支持多选）
+                {{ t('file.library.upload.draggerText') }}
               </div>
               <div class="file-upload-dragger__hint">
-                文件将按当前默认存储配置保存；上传进度在顶部灵动岛跟踪
+                {{ t('file.library.upload.draggerHint') }}
               </div>
             </div>
           </NUploadDragger>
@@ -985,89 +987,89 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
         <!-- 访问级别 -->
         <div class="file-upload-field">
-          <span class="file-upload-field__label">访问级别</span>
+          <span class="file-upload-field__label">{{ t('file.library.upload.accessLevel') }}</span>
           <NSelect
             v-model:value="uploadForm.accessLevel"
             :options="accessLevelOptions"
             :disabled="uploadLoading"
-            placeholder="访问级别"
+            :placeholder="t('file.library.upload.accessLevelPlaceholder')"
           />
         </div>
 
         <!-- 开关：覆盖 / 加密 / 临时 -->
         <div class="file-upload-switches">
           <div class="file-upload-switch">
-            <span>覆盖同名</span>
+            <span>{{ t('file.library.upload.overwrite') }}</span>
             <NSwitch v-model:value="uploadForm.overwrite" :disabled="uploadLoading" />
           </div>
           <div class="file-upload-switch">
-            <span>加密</span>
+            <span>{{ t('file.library.upload.encrypt') }}</span>
             <NSwitch v-model:value="uploadForm.isEncrypted" :disabled="uploadLoading" />
           </div>
           <div class="file-upload-switch">
-            <span>临时</span>
+            <span>{{ t('file.library.upload.temporary') }}</span>
             <NSwitch v-model:value="uploadForm.isTemporary" :disabled="uploadLoading" />
           </div>
         </div>
 
         <!-- 保留天数：仅临时文件需要 -->
         <div v-if="uploadForm.isTemporary" class="file-upload-field">
-          <span class="file-upload-field__label">保留天数</span>
+          <span class="file-upload-field__label">{{ t('file.library.upload.retentionDays') }}</span>
           <NInputNumber
             v-model:value="uploadForm.retentionDays"
             :min="1"
             :disabled="uploadLoading"
-            placeholder="临时文件到期后自动清理"
+            :placeholder="t('file.library.upload.retentionPlaceholder')"
             style="width: 100%"
           />
         </div>
 
-        <NInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" placeholder="标签（可选）" />
-        <NInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" placeholder="备注（可选）" type="textarea" :rows="2" />
+        <NInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tagsPlaceholder')" />
+        <NInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remarkPlaceholder')" type="textarea" :rows="2" />
       </NSpace>
     </NModal>
 
     <NDrawer v-model:show="metadataVisible" :width="460">
-      <NDrawerContent closable title="编辑文件元数据">
+      <NDrawerContent closable :title="t('file.library.metadata.title')">
         <NSpace vertical :size="16">
           <div class="file-upload-field">
-            <span class="file-upload-field__label">访问级别</span>
+            <span class="file-upload-field__label">{{ t('file.library.upload.accessLevel') }}</span>
             <NSelect
               v-model:value="metadataForm.accessLevel"
               :options="accessLevelOptions"
-              placeholder="访问级别"
+              :placeholder="t('file.library.upload.accessLevelPlaceholder')"
             />
           </div>
 
           <div class="file-upload-switches">
             <div class="file-upload-switch">
-              <span>加密</span>
+              <span>{{ t('file.library.upload.encrypt') }}</span>
               <NSwitch v-model:value="metadataForm.isEncrypted" />
             </div>
             <div class="file-upload-switch">
-              <span>临时</span>
+              <span>{{ t('file.library.upload.temporary') }}</span>
               <NSwitch v-model:value="metadataForm.isTemporary" />
             </div>
           </div>
 
           <div v-if="metadataForm.isTemporary" class="file-upload-field">
-            <span class="file-upload-field__label">保留天数</span>
+            <span class="file-upload-field__label">{{ t('file.library.upload.retentionDays') }}</span>
             <NInputNumber
               v-model:value="metadataForm.retentionDays"
               :min="1"
-              placeholder="临时文件到期后自动清理"
+              :placeholder="t('file.library.upload.retentionPlaceholder')"
               style="width: 100%"
             />
           </div>
 
-          <NInput v-model:value="metadataForm.tags" clearable placeholder="标签（可选）" />
-          <NInput v-model:value="metadataForm.remark" clearable placeholder="备注（可选）" type="textarea" :rows="2" />
+          <NInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tagsPlaceholder')" />
+          <NInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remarkPlaceholder')" type="textarea" :rows="2" />
 
           <NButton block :loading="metadataLoading" type="primary" @click="handleSaveMetadata">
             <template #icon>
               <NIcon><Icon icon="lucide:save" /></NIcon>
             </template>
-            保存元数据
+            {{ t('file.library.metadata.save') }}
           </NButton>
         </NSpace>
       </NDrawerContent>
@@ -1076,7 +1078,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
     <NDrawer v-model:show="detailVisible" :width="680">
       <NDrawerContent closable :title="detailTitle">
         <NSpace v-if="detailLoading" justify="center">
-          加载中...
+          {{ t('file.common.loading') }}
         </NSpace>
 
         <NDescriptions
@@ -1086,73 +1088,73 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           bordered
           size="small"
         >
-          <NDescriptionsItem label="原始文件名" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.originalName')" :span="2">
             {{ currentFileDetail.originalName }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="文件类型">
+          <NDescriptionsItem :label="t('file.library.detail.fileType')">
             {{ getOptionLabel(fileTypeOptions, currentFileDetail.fileType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="文件大小">
+          <NDescriptionsItem :label="t('file.library.detail.fileSize')">
             {{ formatFileSize(Number(currentFileDetail.fileSize || 0)) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="MIME">
+          <NDescriptionsItem :label="t('file.library.detail.mime')">
             {{ currentFileDetail.mimeType || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="dimensionText" label="尺寸/时长">
+          <NDescriptionsItem v-if="dimensionText" :label="t('file.library.detail.dimension')">
             {{ dimensionText }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="访问级别">
+          <NDescriptionsItem :label="t('file.library.detail.accessLevel')">
             {{ getOptionLabel(accessLevelOptions, currentFileDetail.accessLevel) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="状态">
+          <NDescriptionsItem :label="t('file.library.detail.status')">
             {{ getOptionLabel(fileStatusOptions, currentFileDetail.status) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="加密">
+          <NDescriptionsItem :label="t('file.library.detail.encrypted')">
             {{ formatFlag(currentFileDetail.isEncrypted) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="临时">
+          <NDescriptionsItem :label="t('file.library.detail.temporary')">
             {{ formatFlag(currentFileDetail.isTemporary) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="下载次数">
+          <NDescriptionsItem :label="t('file.library.detail.downloadCount')">
             {{ currentFileDetail.downloadCount }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="访问次数">
+          <NDescriptionsItem :label="t('file.library.detail.viewCount')">
             {{ currentFileDetail.viewCount }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
+          <NDescriptionsItem :label="t('file.library.detail.createdTime')">
             {{ formatDateTime(currentFileDetail.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
+          <NDescriptionsItem :label="t('file.library.detail.modifiedTime')">
             {{ formatDateTime(currentFileDetail.modifiedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="currentFileDetail.isTemporary" label="过期时间" :span="2">
+          <NDescriptionsItem v-if="currentFileDetail.isTemporary" :label="t('file.library.detail.expirationTime')" :span="2">
             {{ formatDateTime(currentFileDetail.expirationTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="currentFileDetail.tags" label="标签" :span="2">
+          <NDescriptionsItem v-if="currentFileDetail.tags" :label="t('file.library.detail.tags')" :span="2">
             {{ currentFileDetail.tags }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="currentFileDetail.remark" label="备注" :span="2">
+          <NDescriptionsItem v-if="currentFileDetail.remark" :label="t('file.library.detail.remark')" :span="2">
             <div class="file-detail-content">
               {{ currentFileDetail.remark }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="currentFileDetail.accessPermissions" label="访问权限" :span="2">
+          <NDescriptionsItem v-if="currentFileDetail.accessPermissions" :label="t('file.library.detail.accessPermissions')" :span="2">
             <div class="file-detail-content">
               {{ currentFileDetail.accessPermissions }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="上传来源" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.uploadSource')" :span="2">
             {{ currentFileDetail.uploadIp || '-' }} / {{ currentFileDetail.uploadSource || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="存储文件名" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.fileName')" :span="2">
             {{ currentFileDetail.fileName }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="文件哈希" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.fileHash')" :span="2">
             <div class="file-detail-content">
               {{ currentFileDetail.fileHash || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="文件主键" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.basicId')" :span="2">
             {{ currentFileDetail.basicId }}
           </NDescriptionsItem>
         </NDescriptions>
@@ -1163,106 +1165,106 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           bordered
           size="small"
         >
-          <NDescriptionsItem label="副本主键">
+          <NDescriptionsItem :label="t('file.library.detail.storageBasicId')">
             {{ currentStorageDetail.basicId }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="文件主键">
+          <NDescriptionsItem :label="t('file.library.detail.fileId')">
             {{ currentStorageDetail.fileId }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="存储类型">
+          <NDescriptionsItem :label="t('file.library.detail.storageType')">
             {{ getOptionLabel(storageTypeOptions, currentStorageDetail.storageType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="提供商/区域">
+          <NDescriptionsItem :label="t('file.library.detail.provider')">
             {{ currentStorageDetail.storageProvider || '-' }} / {{ currentStorageDetail.storageRegion || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="存储桶">
+          <NDescriptionsItem :label="t('file.library.detail.bucket')">
             {{ currentStorageDetail.bucketName || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="存储路径">
+          <NDescriptionsItem :label="t('file.library.detail.storagePath')">
             <div class="file-detail-content">
               {{ currentStorageDetail.storagePath || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="完整路径">
+          <NDescriptionsItem :label="t('file.library.detail.fullPath')">
             <div class="file-detail-content">
               {{ currentStorageDetail.fullPath || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="访问地址">
+          <NDescriptionsItem :label="t('file.library.detail.accessUrl')">
             <div class="file-detail-content">
               {{ currentStorageDetail.externalUrl || currentStorageDetail.internalUrl || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="CDN 地址">
+          <NDescriptionsItem :label="t('file.library.detail.cdnUrl')">
             <div class="file-detail-content">
               {{ currentStorageDetail.cdnUrl || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="状态">
+          <NDescriptionsItem :label="t('file.library.detail.status')">
             {{ getOptionLabel(storageStatusOptions, currentStorageDetail.status) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="标记">
-            主存储 {{ formatFlag(currentStorageDetail.isPrimary) }}，备份 {{ formatFlag(currentStorageDetail.isBackup) }}，CDN {{ formatFlag(currentStorageDetail.enableCdn) }}
+          <NDescriptionsItem :label="t('file.library.detail.flags')">
+            {{ t('file.library.detail.flagsValue', { primary: formatFlag(currentStorageDetail.isPrimary), backup: formatFlag(currentStorageDetail.isBackup), cdn: formatFlag(currentStorageDetail.enableCdn) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="验证/同步">
-            验证 {{ formatFlag(currentStorageDetail.isVerified) }}，同步 {{ formatFlag(currentStorageDetail.isSynced) }}
+          <NDescriptionsItem :label="t('file.library.detail.verifySync')">
+            {{ t('file.library.detail.verifySyncValue', { verified: formatFlag(currentStorageDetail.isVerified), synced: formatFlag(currentStorageDetail.isSynced) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="访问控制">
+          <NDescriptionsItem :label="t('file.library.detail.accessControl')">
             {{ currentStorageDetail.accessControl || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="存储类别">
+          <NDescriptionsItem :label="t('file.library.detail.storageClass')">
             {{ currentStorageDetail.storageClass || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="缓存控制">
+          <NDescriptionsItem :label="t('file.library.detail.cacheControl')">
             {{ currentStorageDetail.cacheControl || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="上传耗时">
+          <NDescriptionsItem :label="t('file.library.detail.uploadDuration')">
             {{ formatUploadDuration(currentStorageDetail.uploadDuration) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="失败原因">
+          <NDescriptionsItem :label="t('file.library.detail.failureReason')">
             <div class="file-detail-content">
               {{ currentStorageDetail.uploadFailureReason || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
+          <NDescriptionsItem :label="t('file.library.detail.remark')">
             <div class="file-detail-content">
               {{ currentStorageDetail.remark || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem label="上传时间">
+          <NDescriptionsItem :label="t('file.library.detail.uploadedTime')">
             {{ formatDateTime(currentStorageDetail.uploadedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="最后验证">
+          <NDescriptionsItem :label="t('file.library.detail.lastVerifiedTime')">
             {{ formatDateTime(currentStorageDetail.lastVerifiedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="同步时间">
+          <NDescriptionsItem :label="t('file.library.detail.syncedTime')">
             {{ formatDateTime(currentStorageDetail.syncedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
+          <NDescriptionsItem :label="t('file.library.detail.createdTime')">
             {{ formatDateTime(currentStorageDetail.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
+          <NDescriptionsItem :label="t('file.library.detail.modifiedTime')">
             {{ formatDateTime(currentStorageDetail.modifiedTime) }}
           </NDescriptionsItem>
         </NDescriptions>
 
         <div v-else class="py-8 text-center text-gray-400">
-          暂无详情数据
+          {{ t('file.library.detail.empty') }}
         </div>
       </NDrawerContent>
     </NDrawer>
 
     <!-- 存储副本列表抽屉：列出该文件全部副本，支持 详情/设主副本/校验/启停 -->
     <NDrawer v-model:show="storageListVisible" :width="760">
-      <NDrawerContent closable :title="`存储副本 - ${storageFile?.originalName ?? ''}`">
+      <NDrawerContent closable :title="t('file.library.storageList.title', { name: storageFile?.originalName ?? '' })">
         <NSpace vertical :size="12">
           <div class="flex items-center justify-between">
-            <span class="text-sm text-foreground/60">共 {{ storageRows.length }} 个副本</span>
+            <span class="text-sm text-foreground/60">{{ t('file.library.storageList.total', { count: storageRows.length }) }}</span>
             <NButton size="small" :loading="storageListLoading" @click="loadStorageRows">
               <template #icon>
                 <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
               </template>
-              刷新
+              {{ t('file.common.refresh') }}
             </NButton>
           </div>
           <NDataTable
@@ -1281,7 +1283,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
     <NModal
       v-model:show="previewVisible"
       preset="card"
-      :title="`预览 - ${previewName}`"
+      :title="t('file.library.preview.title', { name: previewName })"
       :bordered="false"
       style="width: 80vw;"
     >
@@ -1290,7 +1292,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         :class="{ 'is-text': isBlockPreview }"
       >
         <div v-if="previewLoading" class="text-gray-400">
-          加载中...
+          {{ t('file.common.loading') }}
         </div>
         <div v-else-if="previewTextError" class="text-gray-400">
           {{ previewTextError }}
@@ -1303,7 +1305,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         />
         <div v-else-if="previewKind === 'text'" class="file-preview-code-wrap">
           <button type="button" class="file-preview-copy" @click="copyPreviewText">
-            复制代码
+            {{ t('file.library.preview.copyCode') }}
           </button>
           <div class="file-preview-code-scroll">
             <NCode
@@ -1324,7 +1326,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           class="file-preview-csv"
         />
         <div v-else-if="!previewUrl" class="text-gray-400">
-          无法获取预览内容
+          {{ t('file.library.preview.cannotPreview') }}
         </div>
         <img
           v-else-if="previewKind === 'image'"

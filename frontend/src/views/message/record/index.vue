@@ -22,7 +22,8 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createPageRequest, EmailStatus, messageCenterApi, SmsStatus } from '@/api'
 import { SchemaPage } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
@@ -33,6 +34,7 @@ defineOptions({ name: 'SystemMessagePage' })
 type MessageTab = 'email' | 'sms'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -81,7 +83,7 @@ function formatRetry(row: { maxRetryCount: number, retryCount: number }) {
 }
 
 function formatFlag(value: boolean) {
-  return value ? '是' : '否'
+  return value ? t('message.common.yes') : t('message.common.no')
 }
 
 function canResend(status: EmailStatus | SmsStatus) {
@@ -89,27 +91,27 @@ function canResend(status: EmailStatus | SmsStatus) {
 }
 
 // ── 系统邮件 ──────────────────────────────────────────────────
-const emailFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索主题/业务类型', order: 0 },
-  { key: 'subject', title: '邮件主题', dataType: 'string', minWidth: 220, order: 1 },
+const emailFields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('message.record.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.record.email_search_keyword_placeholder'), order: 0 },
+  { key: 'subject', title: t('message.record.col_subject'), dataType: 'string', minWidth: 220, order: 1 },
   {
     key: 'emailType',
-    title: '邮件类型',
+    title: t('message.record.col_email_type'),
     dataType: 'enum',
     searchable: true,
     options: EMAIL_TYPE_OPTIONS,
-    searchPlaceholder: '邮件类型',
+    searchPlaceholder: t('message.record.search_email_type_placeholder'),
     minWidth: 110,
     order: 2,
     render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, (row as unknown as EmailListItemDto).emailType),
   },
   {
     key: 'emailStatus',
-    title: '发送状态',
+    title: t('message.record.col_email_status'),
     dataType: 'enum',
     searchable: true,
     options: EMAIL_STATUS_OPTIONS,
-    searchPlaceholder: '发送状态',
+    searchPlaceholder: t('message.record.search_status_placeholder'),
     width: 100,
     order: 3,
     render: (row) => {
@@ -119,7 +121,7 @@ const emailFields: ListFieldSchema[] = [
   },
   {
     key: 'isHtml',
-    title: 'HTML',
+    title: t('message.record.col_is_html'),
     dataType: 'boolean',
     width: 82,
     order: 4,
@@ -128,22 +130,22 @@ const emailFields: ListFieldSchema[] = [
       return h(NTag, { type: r.isHtml ? 'info' : 'default', round: true, size: 'small' }, () => formatFlag(r.isHtml))
     },
   },
-  { key: 'businessType', title: '业务类型', dataType: 'string', searchable: true, searchPlaceholder: '业务类型', minWidth: 130, order: 5 },
-  { key: 'sendUserId', title: '发送用户', dataType: 'string', searchable: true, searchPlaceholder: '发送用户', minWidth: 110, order: 6 },
-  { key: 'receiveUserId', title: '接收用户', dataType: 'string', searchable: true, searchPlaceholder: '接收用户', minWidth: 110, order: 7 },
-  { key: 'templateCode', title: '模板编码', dataType: 'string', searchable: true, searchPlaceholder: '模板编码', minWidth: 130, order: 8 },
-  { key: 'retryCount', title: '重试', dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as EmailListItemDto) },
-  { key: 'sendTime', title: '发送时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
-]
+  { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 5 },
+  { key: 'sendUserId', title: t('message.record.col_send_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_send_user_placeholder'), minWidth: 110, order: 6 },
+  { key: 'receiveUserId', title: t('message.record.col_receive_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_receive_user_placeholder'), minWidth: 110, order: 7 },
+  { key: 'templateCode', title: t('message.record.col_template_code'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_template_code_placeholder'), minWidth: 130, order: 8 },
+  { key: 'retryCount', title: t('message.record.col_retry'), dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as EmailListItemDto) },
+  { key: 'sendTime', title: t('message.record.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
+  { key: 'createdTime', title: t('message.record.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+])
 
-const emailSchema: PageSchema = {
+const emailSchema = computed<PageSchema>(() => ({
   pageCode: 'message.email',
   exportPermission: 'saas:message:export',
-  pageName: '系统邮件',
+  pageName: t('message.record.email_page_name'),
   rowKey: 'basicId',
   scrollX: 1600,
-  fields: emailFields,
+  fields: emailFields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -162,11 +164,11 @@ const emailSchema: PageSchema = {
     remove: id => messageCenterApi.deleteEmail(id),
   },
   actions: [
-    { key: 'detail', title: '详情', scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: '重发', scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as EmailListItemDto).emailStatus) },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as EmailListItemDto).emailStatus) },
+    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
   ],
-}
+}))
 
 function onEmailAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as EmailListItemDto | undefined
@@ -194,7 +196,7 @@ async function openEmailDetail(row: EmailListItemDto) {
   }
   catch {
     currentEmailDetail.value = null
-    message.error('加载系统邮件详情失败')
+    message.error(t('message.record.msg_load_email_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -204,20 +206,20 @@ async function openEmailDetail(row: EmailListItemDto) {
 async function resendEmail(row: EmailListItemDto) {
   try {
     await messageCenterApi.updateEmailStatus({ basicId: row.basicId, emailStatus: EmailStatus.Pending })
-    message.success('邮件已重新加入发送队列')
+    message.success(t('message.record.msg_email_requeued'))
     void emailPageRef.value?.reload()
   }
   catch {
-    message.error('重发邮件失败')
+    message.error(t('message.record.msg_email_resend_failed'))
   }
 }
 
 function confirmDeleteEmail(row: EmailListItemDto) {
   dialog.warning({
-    title: '删除邮件',
-    content: '确定删除该邮件？',
-    positiveText: '确定',
-    negativeText: '取消',
+    title: t('message.record.delete_email_title'),
+    content: t('message.record.delete_email_content'),
+    positiveText: t('message.record.confirm'),
+    negativeText: t('message.record.cancel'),
     onPositiveClick: () => deleteEmail(row),
   })
 }
@@ -225,36 +227,36 @@ function confirmDeleteEmail(row: EmailListItemDto) {
 async function deleteEmail(row: EmailListItemDto) {
   try {
     await messageCenterApi.deleteEmail(row.basicId)
-    message.success('邮件已删除')
+    message.success(t('message.record.msg_email_deleted'))
     void emailPageRef.value?.reload()
   }
   catch {
-    message.error('删除邮件失败')
+    message.error(t('message.record.msg_email_delete_failed'))
   }
 }
 
 // ── 系统短信 ──────────────────────────────────────────────────
-const smsFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索服务商/业务类型', order: 0 },
-  { key: 'provider', title: '服务商', dataType: 'string', searchable: true, searchPlaceholder: '服务商', minWidth: 140, order: 1 },
+const smsFields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('message.record.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.record.sms_search_keyword_placeholder'), order: 0 },
+  { key: 'provider', title: t('message.record.col_provider'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_provider_placeholder'), minWidth: 140, order: 1 },
   {
     key: 'smsType',
-    title: '短信类型',
+    title: t('message.record.col_sms_type'),
     dataType: 'enum',
     searchable: true,
     options: SMS_TYPE_OPTIONS,
-    searchPlaceholder: '短信类型',
+    searchPlaceholder: t('message.record.search_sms_type_placeholder'),
     minWidth: 110,
     order: 2,
     render: row => getOptionLabel(SMS_TYPE_OPTIONS, (row as unknown as SmsListItemDto).smsType),
   },
   {
     key: 'smsStatus',
-    title: '发送状态',
+    title: t('message.record.col_email_status'),
     dataType: 'enum',
     searchable: true,
     options: SMS_STATUS_OPTIONS,
-    searchPlaceholder: '发送状态',
+    searchPlaceholder: t('message.record.search_status_placeholder'),
     width: 100,
     order: 3,
     render: (row) => {
@@ -262,23 +264,23 @@ const smsFields: ListFieldSchema[] = [
       return h(NTag, { type: getMessageStatusTagType(r.smsStatus), round: true, size: 'small' }, () => getOptionLabel(SMS_STATUS_OPTIONS, r.smsStatus))
     },
   },
-  { key: 'businessType', title: '业务类型', dataType: 'string', searchable: true, searchPlaceholder: '业务类型', minWidth: 130, order: 4 },
-  { key: 'senderId', title: '发送用户', dataType: 'string', searchable: true, searchPlaceholder: '发送用户', minWidth: 110, order: 5 },
-  { key: 'receiverId', title: '接收用户', dataType: 'string', searchable: true, searchPlaceholder: '接收用户', minWidth: 110, order: 6 },
-  { key: 'templateCode', title: '模板编码', dataType: 'string', searchable: true, searchPlaceholder: '模板编码', minWidth: 130, order: 7 },
-  { key: 'cost', title: '费用', dataType: 'string', minWidth: 90, order: 8 },
-  { key: 'retryCount', title: '重试', dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as SmsListItemDto) },
-  { key: 'sendTime', title: '发送时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
-]
+  { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 4 },
+  { key: 'senderId', title: t('message.record.col_send_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_send_user_placeholder'), minWidth: 110, order: 5 },
+  { key: 'receiverId', title: t('message.record.col_receive_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_receive_user_placeholder'), minWidth: 110, order: 6 },
+  { key: 'templateCode', title: t('message.record.col_template_code'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_template_code_placeholder'), minWidth: 130, order: 7 },
+  { key: 'cost', title: t('message.record.col_cost'), dataType: 'string', minWidth: 90, order: 8 },
+  { key: 'retryCount', title: t('message.record.col_retry'), dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as SmsListItemDto) },
+  { key: 'sendTime', title: t('message.record.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
+  { key: 'createdTime', title: t('message.record.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+])
 
-const smsSchema: PageSchema = {
+const smsSchema = computed<PageSchema>(() => ({
   pageCode: 'message.sms',
   exportPermission: 'saas:message:export',
-  pageName: '系统短信',
+  pageName: t('message.record.sms_page_name'),
   rowKey: 'basicId',
   scrollX: 1600,
-  fields: smsFields,
+  fields: smsFields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -298,11 +300,11 @@ const smsSchema: PageSchema = {
     remove: id => messageCenterApi.deleteSms(id),
   },
   actions: [
-    { key: 'detail', title: '详情', scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: '重发', scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as SmsListItemDto).smsStatus) },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as SmsListItemDto).smsStatus) },
+    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
   ],
-}
+}))
 
 function onSmsAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as SmsListItemDto | undefined
@@ -330,7 +332,7 @@ async function openSmsDetail(row: SmsListItemDto) {
   }
   catch {
     currentSmsDetail.value = null
-    message.error('加载系统短信详情失败')
+    message.error(t('message.record.msg_load_sms_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -340,20 +342,20 @@ async function openSmsDetail(row: SmsListItemDto) {
 async function resendSms(row: SmsListItemDto) {
   try {
     await messageCenterApi.updateSmsStatus({ basicId: row.basicId, smsStatus: SmsStatus.Pending })
-    message.success('短信已重新加入发送队列')
+    message.success(t('message.record.msg_sms_requeued'))
     void smsPageRef.value?.reload()
   }
   catch {
-    message.error('重发短信失败')
+    message.error(t('message.record.msg_sms_resend_failed'))
   }
 }
 
 function confirmDeleteSms(row: SmsListItemDto) {
   dialog.warning({
-    title: '删除短信',
-    content: '确定删除该短信？',
-    positiveText: '确定',
-    negativeText: '取消',
+    title: t('message.record.delete_sms_title'),
+    content: t('message.record.delete_sms_content'),
+    positiveText: t('message.record.confirm'),
+    negativeText: t('message.record.cancel'),
     onPositiveClick: () => deleteSms(row),
   })
 }
@@ -361,11 +363,11 @@ function confirmDeleteSms(row: SmsListItemDto) {
 async function deleteSms(row: SmsListItemDto) {
   try {
     await messageCenterApi.deleteSms(row.basicId)
-    message.success('短信已删除')
+    message.success(t('message.record.msg_sms_deleted'))
     void smsPageRef.value?.reload()
   }
   catch {
-    message.error('删除短信失败')
+    message.error(t('message.record.msg_sms_delete_failed'))
   }
 }
 </script>
@@ -373,121 +375,121 @@ async function deleteSms(row: SmsListItemDto) {
 <template>
   <div class="message-page">
     <NTabs v-model:value="activeTab" animated type="line">
-      <NTabPane name="email" tab="系统邮件" display-directive="show:lazy">
+      <NTabPane name="email" :tab="t('message.record.tab_email')" display-directive="show:lazy">
         <SchemaPage ref="emailPageRef" :schema="emailSchema" @action="onEmailAction" />
       </NTabPane>
-      <NTabPane name="sms" tab="系统短信" display-directive="show:lazy">
+      <NTabPane name="sms" :tab="t('message.record.tab_sms')" display-directive="show:lazy">
         <SchemaPage ref="smsPageRef" :schema="smsSchema" @action="onSmsAction" />
       </NTabPane>
     </NTabs>
 
     <NDrawer v-model:show="detailVisible" :width="620">
-      <NDrawerContent closable :title="detailTab === 'email' ? '系统邮件详情' : '系统短信详情'">
+      <NDrawerContent closable :title="detailTab === 'email' ? t('message.record.detail_email_title') : t('message.record.detail_sms_title')">
         <NSpace v-if="detailLoading" justify="center">
-          加载中...
+          {{ t('message.record.detail_loading') }}
         </NSpace>
 
         <NDescriptions v-else-if="detailTab === 'email' && currentEmailDetail" :column="1" bordered size="small">
-          <NDescriptionsItem label="邮件主题">
+          <NDescriptionsItem :label="t('message.record.detail_subject')">
             {{ currentEmailDetail.subject }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="邮件类型">
+          <NDescriptionsItem :label="t('message.record.detail_email_type')">
             {{ getOptionLabel(EMAIL_TYPE_OPTIONS, currentEmailDetail.emailType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="发送状态">
+          <NDescriptionsItem :label="t('message.record.detail_send_status')">
             {{ getOptionLabel(EMAIL_STATUS_OPTIONS, currentEmailDetail.emailStatus) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="业务引用">
+          <NDescriptionsItem :label="t('message.record.detail_business_ref')">
             {{ currentEmailDetail.businessType || '-' }} / {{ currentEmailDetail.businessId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="用户引用">
+          <NDescriptionsItem :label="t('message.record.detail_user_ref')">
             {{ currentEmailDetail.sendUserId || '-' }} -> {{ currentEmailDetail.receiveUserId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="模板编码">
+          <NDescriptionsItem :label="t('message.record.detail_template_code')">
             {{ currentEmailDetail.templateCode || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="内容标记">
-            正文 {{ formatFlag(currentEmailDetail.hasBody) }}，附件 {{ formatFlag(currentEmailDetail.hasAttachment) }}，模板数据 {{ formatFlag(currentEmailDetail.hasTemplateData) }}
+          <NDescriptionsItem :label="t('message.record.detail_content_flag')">
+            {{ t('message.record.email_content_flag', { body: formatFlag(currentEmailDetail.hasBody), attachment: formatFlag(currentEmailDetail.hasAttachment), templateData: formatFlag(currentEmailDetail.hasTemplateData) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="收件标记">
-            发件地址 {{ formatFlag(currentEmailDetail.hasSenderAddress) }}，收件地址 {{ formatFlag(currentEmailDetail.hasRecipientAddress) }}，抄送 {{ formatFlag(currentEmailDetail.hasCopyRecipient) }}，密送 {{ formatFlag(currentEmailDetail.hasBlindRecipient) }}
+          <NDescriptionsItem :label="t('message.record.detail_recipient_flag')">
+            {{ t('message.record.email_recipient_flag', { senderAddress: formatFlag(currentEmailDetail.hasSenderAddress), recipientAddress: formatFlag(currentEmailDetail.hasRecipientAddress), copyRecipient: formatFlag(currentEmailDetail.hasCopyRecipient), blindRecipient: formatFlag(currentEmailDetail.hasBlindRecipient) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="失败明细">
+          <NDescriptionsItem :label="t('message.record.detail_failure_detail')">
             {{ formatFlag(currentEmailDetail.hasFailureDetail) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
+          <NDescriptionsItem :label="t('message.record.detail_remark')">
             {{ formatFlag(currentEmailDetail.hasNote) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="重试">
+          <NDescriptionsItem :label="t('message.record.detail_retry')">
             {{ formatRetry(currentEmailDetail) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="预定发送时间">
+          <NDescriptionsItem :label="t('message.record.detail_scheduled_time')">
             {{ currentEmailDetail.scheduledTime ? formatDate(currentEmailDetail.scheduledTime) : '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="实际发送时间">
+          <NDescriptionsItem :label="t('message.record.detail_actual_send_time')">
             {{ currentEmailDetail.sendTime ? formatDate(currentEmailDetail.sendTime) : '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
+          <NDescriptionsItem :label="t('message.record.detail_created_time')">
             {{ formatDate(currentEmailDetail.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
+          <NDescriptionsItem :label="t('message.record.detail_modified_time')">
             {{ currentEmailDetail.modifiedTime ? formatDate(currentEmailDetail.modifiedTime) : '-' }}
           </NDescriptionsItem>
         </NDescriptions>
 
         <NDescriptions v-else-if="detailTab === 'sms' && currentSmsDetail" :column="1" bordered size="small">
-          <NDescriptionsItem label="服务商">
+          <NDescriptionsItem :label="t('message.record.detail_provider')">
             {{ currentSmsDetail.provider || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="短信类型">
+          <NDescriptionsItem :label="t('message.record.detail_sms_type')">
             {{ getOptionLabel(SMS_TYPE_OPTIONS, currentSmsDetail.smsType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="发送状态">
+          <NDescriptionsItem :label="t('message.record.detail_send_status')">
             {{ getOptionLabel(SMS_STATUS_OPTIONS, currentSmsDetail.smsStatus) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="业务引用">
+          <NDescriptionsItem :label="t('message.record.detail_business_ref')">
             {{ currentSmsDetail.businessType || '-' }} / {{ currentSmsDetail.businessId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="用户引用">
+          <NDescriptionsItem :label="t('message.record.detail_user_ref')">
             {{ currentSmsDetail.senderId || '-' }} -> {{ currentSmsDetail.receiverId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="模板编码">
+          <NDescriptionsItem :label="t('message.record.detail_template_code')">
             {{ currentSmsDetail.templateCode || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="费用">
+          <NDescriptionsItem :label="t('message.record.detail_cost')">
             {{ currentSmsDetail.cost ?? '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="内容标记">
-            正文 {{ formatFlag(currentSmsDetail.hasBody) }}，模板数据 {{ formatFlag(currentSmsDetail.hasTemplateData) }}，回执 {{ formatFlag(currentSmsDetail.hasProviderReceipt) }}
+          <NDescriptionsItem :label="t('message.record.detail_content_flag')">
+            {{ t('message.record.sms_content_flag', { body: formatFlag(currentSmsDetail.hasBody), templateData: formatFlag(currentSmsDetail.hasTemplateData), providerReceipt: formatFlag(currentSmsDetail.hasProviderReceipt) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="接收号码">
+          <NDescriptionsItem :label="t('message.record.detail_recipient_phone')">
             {{ formatFlag(currentSmsDetail.hasRecipientPhone) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="失败明细">
+          <NDescriptionsItem :label="t('message.record.detail_failure_detail')">
             {{ formatFlag(currentSmsDetail.hasFailureDetail) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
+          <NDescriptionsItem :label="t('message.record.detail_remark')">
             {{ formatFlag(currentSmsDetail.hasNote) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="重试">
+          <NDescriptionsItem :label="t('message.record.detail_retry')">
             {{ formatRetry(currentSmsDetail) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="预定发送时间">
+          <NDescriptionsItem :label="t('message.record.detail_scheduled_time')">
             {{ currentSmsDetail.scheduledTime ? formatDate(currentSmsDetail.scheduledTime) : '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="实际发送时间">
+          <NDescriptionsItem :label="t('message.record.detail_actual_send_time')">
             {{ currentSmsDetail.sendTime ? formatDate(currentSmsDetail.sendTime) : '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
+          <NDescriptionsItem :label="t('message.record.detail_created_time')">
             {{ formatDate(currentSmsDetail.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
+          <NDescriptionsItem :label="t('message.record.detail_modified_time')">
             {{ currentSmsDetail.modifiedTime ? formatDate(currentSmsDetail.modifiedTime) : '-' }}
           </NDescriptionsItem>
         </NDescriptions>
 
         <div v-else class="py-8 text-center text-gray-400">
-          暂无详情数据
+          {{ t('message.record.detail_empty') }}
         </div>
       </NDrawerContent>
     </NDrawer>

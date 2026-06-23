@@ -18,6 +18,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenTableApi,
   DATABASE_TYPE_OPTIONS,
@@ -42,6 +43,7 @@ const emit = defineEmits<{
   'saved': []
 }>()
 
+const { t } = useI18n()
 const message = useMessage()
 
 interface TableFormModel {
@@ -106,7 +108,7 @@ async function loadDetail() {
   try {
     const detail = await codeGenTableApi.detail(props.tableId)
     if (!detail) {
-      message.error('表配置不存在')
+      message.error(t('develop.code_gen.table_edit.not_found'))
       emit('update:show', false)
       return
     }
@@ -131,7 +133,7 @@ async function loadDetail() {
     }
   }
   catch {
-    message.error('加载表配置失败')
+    message.error(t('develop.code_gen.table_edit.load_failed'))
   }
   finally {
     loading.value = false
@@ -140,11 +142,11 @@ async function loadDetail() {
 
 function validateForm() {
   if (!form.value.tableName.trim()) {
-    message.warning('请输入表名')
+    message.warning(t('develop.code_gen.table_edit.validate_table_name'))
     return false
   }
   if (!form.value.className.trim()) {
-    message.warning('请输入实体类名')
+    message.warning(t('develop.code_gen.table_edit.validate_class_name'))
     return false
   }
   return true
@@ -185,16 +187,16 @@ async function handleSubmit() {
     if (editingStatus.value !== form.value.status) {
       await codeGenTableApi.updateStatus({
         basicId: form.value.basicId,
-        remark: '前端更新表配置状态',
+        remark: t('develop.code_gen.table_edit.update_status_remark'),
         status: form.value.status,
       })
     }
-    message.success('保存成功')
+    message.success(t('develop.code_gen.common.save_success'))
     emit('saved')
     emit('update:show', false)
   }
   catch {
-    message.error('保存失败')
+    message.error(t('develop.code_gen.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -209,47 +211,47 @@ async function handleSubmit() {
     preset="card"
     :show="show"
     style="width: 760px; max-width: 92vw"
-    title="编辑表配置"
+    :title="t('develop.code_gen.table_edit.title')"
     @update:show="emit('update:show', $event)"
   >
     <NForm v-if="!loading" :model="form" class="xh-edit-form-grid" label-placement="top">
-      <NFormItem label="表名" path="tableName">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_table_name')" path="tableName">
         <NInput v-model:value="form.tableName" clearable />
       </NFormItem>
-      <NFormItem label="实体类名" path="className">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_class_name')" path="className">
         <NInput v-model:value="form.className" clearable />
       </NFormItem>
-      <NFormItem label="命名空间" path="namespace">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_namespace')" path="namespace">
         <NInput v-model:value="form.namespace" clearable />
       </NFormItem>
-      <NFormItem label="模块名" path="moduleName">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_module_name')" path="moduleName">
         <NInput v-model:value="form.moduleName" clearable />
       </NFormItem>
-      <NFormItem label="业务名" path="businessName">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_business_name')" path="businessName">
         <NInput v-model:value="form.businessName" clearable />
       </NFormItem>
-      <NFormItem label="功能名" path="functionName">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_function_name')" path="functionName">
         <NInput v-model:value="form.functionName" clearable />
       </NFormItem>
-      <NFormItem label="作者" path="author">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_author')" path="author">
         <NInput v-model:value="form.author" clearable />
       </NFormItem>
-      <NFormItem label="模板类型" path="templateType">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_template_type')" path="templateType">
         <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
       </NFormItem>
-      <NFormItem label="生成方式" path="genType">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_gen_type')" path="genType">
         <NSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />
       </NFormItem>
-      <NFormItem label="数据库类型" path="databaseType">
+      <NFormItem :label="t('develop.code_gen.table_edit.form_database_type')" path="databaseType">
         <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
       </NFormItem>
-      <NFormItem label="生成路径" path="genPath">
-        <NInput v-model:value="form.genPath" clearable placeholder="自定义路径生成时使用" />
+      <NFormItem :label="t('develop.code_gen.table_edit.form_gen_path')" path="genPath">
+        <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
       </NFormItem>
-      <NFormItem label="状态" path="status">
+      <NFormItem :label="t('develop.code_gen.common.status')" path="status">
         <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
       </NFormItem>
-      <NFormItem class="xh-form-full" label="表说明" path="tableComment">
+      <NFormItem class="xh-form-full" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
         <NInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />
       </NFormItem>
     </NForm>
@@ -257,10 +259,10 @@ async function handleSubmit() {
     <template #footer>
       <NSpace justify="end">
         <NButton @click="emit('update:show', false)">
-          取消
+          {{ t('develop.code_gen.common.cancel') }}
         </NButton>
         <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-          保存
+          {{ t('develop.code_gen.common.save') }}
         </NButton>
       </NSpace>
     </template>

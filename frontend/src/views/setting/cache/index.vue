@@ -16,12 +16,14 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
 import { Icon } from '~/components'
 import { usePermission } from '~/hooks'
 
 defineOptions({ name: 'PlatformCachePage' })
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 const { hasPermission } = usePermission()
@@ -150,7 +152,7 @@ async function loadKeys() {
     expandedKeys.value = cacheKeys.value.length <= 100 ? collectGroupKeys(treeData.value) : []
   }
   catch {
-    message.error('查询缓存键失败')
+    message.error(t('setting.cache.query_keys_failed'))
   }
   finally {
     loadingKeys.value = false
@@ -196,7 +198,7 @@ async function loadValue(key: string) {
     format.value = isJson(value ?? '') ? 'json' : 'text'
   }
   catch {
-    message.error('获取缓存值失败')
+    message.error(t('setting.cache.get_value_failed'))
     rawValue.value = null
   }
   finally {
@@ -260,10 +262,10 @@ async function handleCopy() {
   }
   try {
     await navigator.clipboard.writeText(displayValue.value)
-    message.success('已复制')
+    message.success(t('setting.cache.copied'))
   }
   catch {
-    message.error('复制失败')
+    message.error(t('setting.cache.copy_failed'))
   }
 }
 
@@ -285,12 +287,12 @@ async function handleSave() {
   saving.value = true
   try {
     await cacheApi.updateString(detailKey.value, draft.value)
-    message.success('已保存')
+    message.success(t('setting.cache.saved'))
     editing.value = false
     reloadValue()
   }
   catch {
-    message.error('保存失败（鉴权关键缓存禁止改写）')
+    message.error(t('setting.cache.save_failed_key_protected'))
   }
   finally {
     saving.value = false
@@ -303,19 +305,19 @@ function handleDeleteCurrent() {
     return
   }
   dialog.warning({
-    title: '确认删除',
-    content: `确定删除缓存键「${key}」？`,
-    positiveText: '删除',
-    negativeText: '取消',
+    title: t('setting.cache.confirm_delete_title'),
+    content: t('setting.cache.confirm_delete_content', { key }),
+    positiveText: t('setting.common.delete'),
+    negativeText: t('setting.common.cancel'),
     onPositiveClick: async () => {
       try {
         await cacheApi.remove(key)
-        message.success('删除成功')
+        message.success(t('setting.common.delete_success'))
         resetDetail()
         await loadKeys()
       }
       catch {
-        message.error('删除失败')
+        message.error(t('setting.common.delete_failed'))
       }
     },
   })
@@ -331,18 +333,18 @@ function handleBatchDelete() {
     return
   }
   dialog.warning({
-    title: '批量删除',
-    content: `确定删除选中的 ${targets.length} 个缓存键？此操作不可恢复。`,
-    positiveText: '确认删除',
-    negativeText: '取消',
+    title: t('setting.cache.batch_delete_title'),
+    content: t('setting.cache.batch_delete_content', { count: targets.length }),
+    positiveText: t('setting.cache.confirm_delete_btn'),
+    negativeText: t('setting.common.cancel'),
     onPositiveClick: async () => {
       const results = await Promise.allSettled(targets.map(key => cacheApi.remove(key)))
       const failed = results.filter(result => result.status === 'rejected').length
       if (failed === 0) {
-        message.success(`已删除 ${targets.length} 个键`)
+        message.success(t('setting.cache.batch_deleted', { count: targets.length }))
       }
       else {
-        message.warning(`删除完成：成功 ${targets.length - failed} 个，失败 ${failed} 个`)
+        message.warning(t('setting.cache.batch_delete_partial', { success: targets.length - failed, failed }))
       }
       if (detailKey.value && targets.includes(detailKey.value)) {
         resetDetail()
@@ -355,19 +357,19 @@ function handleBatchDelete() {
 function handleDeleteByPattern() {
   const pattern = keyPattern.value.trim() || '*'
   dialog.warning({
-    title: '按模式删除',
-    content: `确定删除匹配「${pattern}」的所有缓存键？此操作不可恢复。`,
-    positiveText: '确认删除',
-    negativeText: '取消',
+    title: t('setting.cache.delete_by_pattern_title'),
+    content: t('setting.cache.delete_by_pattern_content', { pattern }),
+    positiveText: t('setting.cache.confirm_delete_btn'),
+    negativeText: t('setting.common.cancel'),
     onPositiveClick: async () => {
       try {
         const count = await cacheApi.removeByPattern(pattern)
-        message.success(`已删除 ${count} 个缓存键`)
+        message.success(t('setting.cache.deleted_by_pattern', { count }))
         resetDetail()
         await loadKeys()
       }
       catch {
-        message.error('批量删除失败')
+        message.error(t('setting.cache.delete_by_pattern_failed'))
       }
     },
   })
@@ -389,7 +391,7 @@ onMounted(loadKeys)
         <template #header>
           <div class="cache-card-header">
             <Icon icon="lucide:database-backup" width="15" />
-            <span>缓存键</span>
+            <span>{{ t('setting.cache.cache_keys') }}</span>
             <NTag v-if="keyCount > 0" size="tiny" type="info" :bordered="false" round>
               {{ keyCount }}
             </NTag>
@@ -400,7 +402,7 @@ onMounted(loadKeys)
           <NInput
             v-model:value="keyPattern"
             size="small"
-            placeholder="键模式，如 basicapp:* 或 *"
+            :placeholder="t('setting.cache.key_pattern_placeholder')"
             clearable
             @keydown.enter="handleSearch"
           >
@@ -418,7 +420,7 @@ onMounted(loadKeys)
                 </template>
               </NButton>
             </template>
-            按模式搜索
+            {{ t('setting.cache.search_by_pattern') }}
           </NTooltip>
         </div>
 
@@ -427,7 +429,7 @@ onMounted(loadKeys)
           <div class="cache-scroll-body">
             <NSpin class="cache-scroll-spin" :show="loadingKeys" size="small">
               <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
-                <NEmpty description="暂无缓存键" />
+                <NEmpty :description="t('setting.cache.empty_keys')" />
               </div>
               <NTree
                 v-else
@@ -447,18 +449,18 @@ onMounted(loadKeys)
         <!-- 选中/批量操作条（始终一行，不占树空间） -->
         <div v-if="canManage" class="cache-batch-bar">
           <span v-if="selectedCount > 0" class="cache-batch-count">
-            已选 <strong>{{ selectedCount }}</strong> 个
+            {{ t('setting.cache.selected') }} <strong>{{ selectedCount }}</strong> {{ t('setting.cache.count_unit') }}
           </span>
-          <span v-else class="cache-batch-hint">Ctrl/⌘ 或 Shift 点击可多选</span>
+          <span v-else class="cache-batch-hint">{{ t('setting.cache.multi_select_hint') }}</span>
           <div class="cache-batch-actions">
             <NButton v-if="selectedCount > 0" size="tiny" quaternary @click="clearSelection">
-              清空
+              {{ t('setting.cache.clear') }}
             </NButton>
             <NButton v-if="selectedCount > 0" size="tiny" type="error" @click="handleBatchDelete">
-              删除选中
+              {{ t('setting.cache.delete_selected') }}
             </NButton>
             <NButton v-else size="tiny" quaternary type="warning" @click="handleDeleteByPattern">
-              按模式删除
+              {{ t('setting.cache.delete_by_pattern') }}
             </NButton>
           </div>
         </div>
@@ -477,7 +479,7 @@ onMounted(loadKeys)
           </div>
           <div v-else class="cache-card-header">
             <Icon icon="lucide:file-json" width="15" />
-            <span>缓存内容</span>
+            <span>{{ t('setting.cache.cache_content') }}</span>
           </div>
         </template>
 
@@ -502,7 +504,7 @@ onMounted(loadKeys)
                   </template>
                 </NButton>
               </template>
-              复制
+              {{ t('setting.common.copy') }}
             </NTooltip>
             <NTooltip>
               <template #trigger>
@@ -512,13 +514,13 @@ onMounted(loadKeys)
                   </template>
                 </NButton>
               </template>
-              刷新
+              {{ t('setting.common.refresh') }}
             </NTooltip>
             <NButton v-if="canManage && !editing" size="tiny" @click="startEdit">
               <template #icon>
                 <NIcon><Icon icon="lucide:pencil-line" /></NIcon>
               </template>
-              编辑
+              {{ t('setting.cache.edit') }}
             </NButton>
             <NTooltip v-if="canManage">
               <template #trigger>
@@ -528,7 +530,7 @@ onMounted(loadKeys)
                   </template>
                 </NButton>
               </template>
-              删除此键
+              {{ t('setting.cache.delete_this_key') }}
             </NTooltip>
           </div>
         </template>
@@ -538,10 +540,10 @@ onMounted(loadKeys)
           <div class="cache-scroll-body">
             <NSpin class="cache-scroll-spin" :show="loadingValue" size="small">
               <div v-if="!detailKey" class="cache-empty">
-                <NEmpty description="请在左侧选择一个缓存键查看内容" />
+                <NEmpty :description="t('setting.cache.select_key_hint')" />
               </div>
               <div v-else-if="rawValue === null" class="cache-empty">
-                <NEmpty description="键不存在或值为空" />
+                <NEmpty :description="t('setting.cache.key_not_exist')" />
               </div>
               <template v-else>
                 <!-- 编辑态：文本域 + 保存/取消 -->
@@ -550,14 +552,14 @@ onMounted(loadKeys)
                     v-model:value="draft"
                     type="textarea"
                     class="cache-value-editor"
-                    placeholder="缓存值"
+                    :placeholder="t('setting.cache.value_placeholder')"
                   />
                   <div class="cache-edit-actions">
                     <NButton size="small" @click="cancelEdit">
-                      取消
+                      {{ t('setting.common.cancel') }}
                     </NButton>
                     <NButton size="small" type="primary" :loading="saving" @click="handleSave">
-                      保存
+                      {{ t('setting.common.save') }}
                     </NButton>
                   </div>
                 </template>

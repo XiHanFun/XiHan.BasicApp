@@ -29,13 +29,15 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createPageRequest, versionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SettingVersionPage' })
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -58,26 +60,26 @@ function formatNullableDate(value?: string | null) {
 }
 
 // boolean 选项以 1/0 表达（SchemaSelectOption.value 仅 string|number），查询时 toBool 还原
-const upgradingOptions = [
-  { label: '升级中', value: 1 },
-  { label: '正常', value: 0 },
-]
+const upgradingOptions = computed(() => [
+  { label: t('setting.version.upgrading'), value: 1 },
+  { label: t('setting.version.normal'), value: 0 },
+])
 
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索应用/数据库/最小支持版本/升级节点', width: 240, order: 0 },
+  { key: 'keyword', title: t('setting.version.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.version.keyword_placeholder'), width: 240, order: 0 },
   // 列 + 搜索
-  { key: 'appVersion', title: '应用版本', dataType: 'string', searchable: true, searchPlaceholder: '应用版本', minWidth: 130, order: 1 },
-  { key: 'dbVersion', title: '数据库版本', dataType: 'string', searchable: true, searchPlaceholder: '数据库版本', minWidth: 130, order: 2 },
-  { key: 'minSupportVersion', title: '最小支持版本', dataType: 'string', minWidth: 130, order: 3 },
+  { key: 'appVersion', title: t('setting.version.app_version'), dataType: 'string', searchable: true, searchPlaceholder: t('setting.version.app_version_placeholder'), minWidth: 130, order: 1 },
+  { key: 'dbVersion', title: t('setting.version.db_version'), dataType: 'string', searchable: true, searchPlaceholder: t('setting.version.db_version_placeholder'), minWidth: 130, order: 2 },
+  { key: 'minSupportVersion', title: t('setting.version.min_support_version'), dataType: 'string', minWidth: 130, order: 3 },
   {
     key: 'isUpgrading',
-    title: '升级状态',
+    title: t('setting.version.upgrade_status'),
     dataType: 'boolean',
     searchable: true,
-    options: upgradingOptions,
-    searchPlaceholder: '升级状态',
+    options: upgradingOptions.value,
+    searchPlaceholder: t('setting.version.upgrade_status_placeholder'),
     width: 100,
     order: 4,
     render: (row) => {
@@ -85,24 +87,24 @@ const fields: ListFieldSchema[] = [
       return h(
         NTag,
         { size: 'small', round: true, bordered: false, type: upgrading ? 'warning' : 'success' },
-        () => (upgrading ? '升级中' : '正常'),
+        () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal')),
       )
     },
   },
-  { key: 'upgradeNode', title: '升级节点', dataType: 'string', minWidth: 140, order: 5 },
-  { key: 'upgradeStartTime', title: '升级开始时间', dataType: 'datetime', minWidth: 170, order: 6 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 7 },
-]
+  { key: 'upgradeNode', title: t('setting.version.upgrade_node'), dataType: 'string', minWidth: 140, order: 5 },
+  { key: 'upgradeStartTime', title: t('setting.version.upgrade_start_time'), dataType: 'datetime', minWidth: 170, order: 6 },
+  { key: 'createdTime', title: t('setting.version.created_time'), dataType: 'datetime', minWidth: 170, order: 7 },
+])
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.version',
   exportPermission: 'saas:version:export',
-  pageName: '版本管理',
+  pageName: t('setting.version.page_name'),
   batchRemovable: true,
   removePermission: 'saas:version:delete',
   rowKey: 'basicId',
   scrollX: 1200,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -117,13 +119,13 @@ const schema: PageSchema = {
     remove: id => versionApi.delete(id),
   },
   actions: [
-    { key: 'create', title: '新增版本', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:version:create' },
-    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
-    { key: 'startUpgrade', title: '开始升级', scope: 'row', icon: 'lucide:rocket', permission: 'saas:version:upgrade', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
-    { key: 'finishUpgrade', title: '完成升级', scope: 'row', icon: 'lucide:circle-check', permission: 'saas:version:upgrade', disabled: row => !(row as unknown as VersionListItemDto).isUpgrading },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:version:delete', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
+    { key: 'create', title: t('setting.version.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:version:create' },
+    { key: 'view', title: t('setting.version.view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'startUpgrade', title: t('setting.version.start_upgrade'), scope: 'row', icon: 'lucide:rocket', permission: 'saas:version:upgrade', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
+    { key: 'finishUpgrade', title: t('setting.version.finish_upgrade'), scope: 'row', icon: 'lucide:circle-check', permission: 'saas:version:upgrade', disabled: row => !(row as unknown as VersionListItemDto).isUpgrading },
+    { key: 'delete', title: t('setting.common.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:version:delete', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -174,7 +176,7 @@ async function handleDetail(row: VersionListItemDto) {
     detailData.value = await versionApi.detail(row.basicId) ?? null
   }
   catch (e) {
-    message.error((e as Error).message || '加载版本详情失败')
+    message.error((e as Error).message || t('setting.version.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -185,22 +187,22 @@ async function handleDetail(row: VersionListItemDto) {
 }
 
 // ── 迁移历史列表（详情抽屉内） ──────────────────────────────────
-const migrationColumns: DataTableColumns<MigrationHistoryListItemDto> = [
-  { key: 'version', title: '版本', width: 130, ellipsis: { tooltip: true } },
-  { key: 'scriptName', title: '脚本名称', minWidth: 160, ellipsis: { tooltip: true } },
+const migrationColumns = computed<DataTableColumns<MigrationHistoryListItemDto>>(() => [
+  { key: 'version', title: t('setting.version.migration_version'), width: 130, ellipsis: { tooltip: true } },
+  { key: 'scriptName', title: t('setting.version.migration_script'), minWidth: 160, ellipsis: { tooltip: true } },
   {
     key: 'success',
-    title: '结果',
+    title: t('setting.version.migration_result'),
     width: 80,
     render: row => h(
       NTag,
       { size: 'small', round: true, bordered: false, type: row.success ? 'success' : 'error' },
-      () => (row.success ? '成功' : '失败'),
+      () => (row.success ? t('setting.version.result_success') : t('setting.version.result_failed')),
     ),
   },
-  { key: 'nodeName', title: '节点', width: 110, ellipsis: { tooltip: true }, render: row => row.nodeName || '-' },
-  { key: 'executedTime', title: '执行时间', width: 160, render: row => formatDate(row.executedTime) },
-]
+  { key: 'nodeName', title: t('setting.version.migration_node'), width: 110, ellipsis: { tooltip: true }, render: row => row.nodeName || '-' },
+  { key: 'executedTime', title: t('setting.version.migration_executed_time'), width: 160, render: row => formatDate(row.executedTime) },
+])
 
 async function loadMigrationHistory(page?: number) {
   if (page) {
@@ -221,7 +223,7 @@ async function loadMigrationHistory(page?: number) {
     migrationPagination.value.itemCount = result.page.totalCount
   }
   catch (e) {
-    message.error((e as Error).message || '加载迁移历史失败')
+    message.error((e as Error).message || t('setting.version.load_migration_failed'))
   }
   finally {
     migrationLoading.value = false
@@ -254,11 +256,11 @@ function handleAdd() {
 
 async function handleCreateSubmit() {
   if (!createForm.value.appVersion.trim()) {
-    message.warning('请输入应用版本')
+    message.warning(t('setting.version.validate_app_version'))
     return
   }
   if (!createForm.value.dbVersion.trim()) {
-    message.warning('请输入数据库版本')
+    message.warning(t('setting.version.validate_db_version'))
     return
   }
   createLoading.value = true
@@ -270,12 +272,12 @@ async function handleCreateSubmit() {
       minSupportVersion: createForm.value.minSupportVersion.trim() || null,
     }
     await versionApi.create(input)
-    message.success('版本已创建')
+    message.success(t('setting.version.version_created'))
     createVisible.value = false
     reloadVersion()
   }
   catch (e) {
-    message.error((e as Error).message || '创建版本失败')
+    message.error((e as Error).message || t('setting.version.create_failed'))
   }
   finally {
     createLoading.value = false
@@ -290,7 +292,7 @@ const startUpgradeNode = ref('')
 
 function handleStartUpgrade(row: VersionListItemDto) {
   if (row.isUpgrading) {
-    message.warning('该版本已处于升级中')
+    message.warning(t('setting.version.already_upgrading'))
     return
   }
   startTarget.value = row
@@ -309,12 +311,12 @@ async function handleStartSubmit() {
       basicId: startTarget.value.basicId,
       upgradeNode: startUpgradeNode.value.trim() || null,
     })
-    message.success('已标记为升级中')
+    message.success(t('setting.version.marked_upgrading'))
     startVisible.value = false
     reloadVersion()
   }
   catch (e) {
-    message.error((e as Error).message || '开始升级失败')
+    message.error((e as Error).message || t('setting.version.start_failed'))
   }
   finally {
     startLoading.value = false
@@ -329,7 +331,7 @@ const finishForm = ref<VersionFormModel>(createDefaultVersionForm())
 
 function handleFinishUpgrade(row: VersionListItemDto) {
   if (!row.isUpgrading) {
-    message.warning('该版本未处于升级中')
+    message.warning(t('setting.version.not_upgrading'))
     return
   }
   finishTarget.value = row
@@ -355,12 +357,12 @@ async function handleFinishSubmit() {
       minSupportVersion: finishForm.value.minSupportVersion.trim() || null,
     }
     await versionApi.finishUpgrade(input)
-    message.success('升级已完成')
+    message.success(t('setting.version.upgrade_finished'))
     finishVisible.value = false
     reloadVersion()
   }
   catch (e) {
-    message.error((e as Error).message || '完成升级失败')
+    message.error((e as Error).message || t('setting.version.finish_failed'))
   }
   finally {
     finishLoading.value = false
@@ -370,22 +372,22 @@ async function handleFinishSubmit() {
 // ── 删除 ────────────────────────────────────────────────────────
 function handleDelete(row: VersionListItemDto) {
   if (row.isUpgrading) {
-    message.warning('升级中的版本不能删除')
+    message.warning(t('setting.version.upgrading_cannot_delete'))
     return
   }
   dialog.warning({
-    title: '删除版本',
-    content: `确定删除版本「${row.appVersion}」吗？删除后不可恢复。`,
-    positiveText: '删除',
-    negativeText: '取消',
+    title: t('setting.version.delete_title'),
+    content: t('setting.version.delete_content', { version: row.appVersion }),
+    positiveText: t('setting.common.delete'),
+    negativeText: t('setting.common.cancel'),
     onPositiveClick: async () => {
       try {
         await versionApi.delete(row.basicId)
-        message.success('版本已删除')
+        message.success(t('setting.version.version_deleted'))
         reloadVersion()
       }
       catch (e) {
-        message.error((e as Error).message || '删除版本失败')
+        message.error((e as Error).message || t('setting.version.delete_failed'))
       }
     },
   })
@@ -400,49 +402,49 @@ function handleDelete(row: VersionListItemDto) {
   >
     <!-- 详情抽屉：版本信息 + 迁移历史台账 -->
     <NDrawer v-model:show="detailVisible" :width="720">
-      <NDrawerContent closable title="版本详情">
+      <NDrawerContent closable :title="t('setting.version.detail_title')">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" description="暂无版本详情">
+          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" :description="t('setting.version.detail_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:inbox" /></NIcon>
             </template>
           </NEmpty>
           <NScrollbar v-else-if="detailData" style="max-height: calc(100vh - 120px)">
             <NDescriptions :column="2" bordered label-placement="left" size="small">
-              <NDescriptionsItem label="应用版本">
+              <NDescriptionsItem :label="t('setting.version.app_version')">
                 {{ detailData.appVersion }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="数据库版本">
+              <NDescriptionsItem :label="t('setting.version.db_version')">
                 {{ detailData.dbVersion }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="最小支持版本">
+              <NDescriptionsItem :label="t('setting.version.min_support_version')">
                 {{ detailData.minSupportVersion || '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="升级状态">
+              <NDescriptionsItem :label="t('setting.version.upgrade_status')">
                 <NTag :type="detailData.isUpgrading ? 'warning' : 'success'" round size="small">
-                  {{ detailData.isUpgrading ? '升级中' : '正常' }}
+                  {{ detailData.isUpgrading ? t('setting.version.upgrading') : t('setting.version.normal') }}
                 </NTag>
               </NDescriptionsItem>
-              <NDescriptionsItem label="升级节点">
+              <NDescriptionsItem :label="t('setting.version.upgrade_node')">
                 {{ detailData.upgradeNode || '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="升级开始时间">
+              <NDescriptionsItem :label="t('setting.version.upgrade_start_time')">
                 {{ formatNullableDate(detailData.upgradeStartTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="创建时间">
+              <NDescriptionsItem :label="t('setting.version.created_time')">
                 {{ formatNullableDate(detailData.createdTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="创建者">
+              <NDescriptionsItem :label="t('setting.version.created_by')">
                 {{ detailData.createdBy || '-' }}
               </NDescriptionsItem>
             </NDescriptions>
 
             <div class="xh-migration-header">
-              <span class="xh-migration-title">迁移历史</span>
+              <span class="xh-migration-title">{{ t('setting.version.migration_history') }}</span>
               <NInput
                 v-model:value="migrationKeyword"
                 clearable
-                placeholder="搜索版本/脚本/节点"
+                :placeholder="t('setting.version.migration_search_placeholder')"
                 size="small"
                 style="width: 220px"
                 @clear="loadMigrationHistory(1)"
@@ -479,26 +481,26 @@ function handleDelete(row: VersionListItemDto) {
       :bordered="false"
       preset="card"
       style="width: 520px; max-width: 92vw"
-      title="新增版本"
+      :title="t('setting.version.add_title')"
     >
       <NForm :model="createForm" label-placement="top">
-        <NFormItem label="应用版本" path="appVersion">
-          <NInput v-model:value="createForm.appVersion" clearable placeholder="如: 1.4.0" />
+        <NFormItem :label="t('setting.version.app_version')" path="appVersion">
+          <NInput v-model:value="createForm.appVersion" clearable :placeholder="t('setting.version.app_version_input_placeholder')" />
         </NFormItem>
-        <NFormItem label="数据库版本" path="dbVersion">
-          <NInput v-model:value="createForm.dbVersion" clearable placeholder="如: 1.4.0" />
+        <NFormItem :label="t('setting.version.db_version')" path="dbVersion">
+          <NInput v-model:value="createForm.dbVersion" clearable :placeholder="t('setting.version.db_version_input_placeholder')" />
         </NFormItem>
-        <NFormItem label="最小支持版本" path="minSupportVersion">
-          <NInput v-model:value="createForm.minSupportVersion" clearable placeholder="低于该版本的客户端将被要求升级（可空）" />
+        <NFormItem :label="t('setting.version.min_support_version')" path="minSupportVersion">
+          <NInput v-model:value="createForm.minSupportVersion" clearable :placeholder="t('setting.version.min_support_input_placeholder')" />
         </NFormItem>
       </NForm>
       <template #footer>
         <NSpace justify="end">
           <NButton @click="createVisible = false">
-            取消
+            {{ t('setting.common.cancel') }}
           </NButton>
           <NButton :loading="createLoading" type="primary" @click="handleCreateSubmit">
-            保存
+            {{ t('setting.common.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -511,21 +513,21 @@ function handleDelete(row: VersionListItemDto) {
       :bordered="false"
       preset="card"
       style="width: 480px; max-width: 92vw"
-      :title="`开始升级 ${startTarget?.appVersion ?? ''}`"
+      :title="t('setting.version.start_title', { version: startTarget?.appVersion ?? '' })"
     >
       <NForm label-placement="top">
-        <NFormItem label="升级节点">
-          <NInput v-model:value="startUpgradeNode" clearable placeholder="执行升级的节点标识（可空）" />
+        <NFormItem :label="t('setting.version.upgrade_node')">
+          <NInput v-model:value="startUpgradeNode" clearable :placeholder="t('setting.version.upgrade_node_placeholder')" />
         </NFormItem>
       </NForm>
-      <span class="xh-modal-tip">确认后该版本将标记为「升级中」，升级开始时间取服务器当前时间。</span>
+      <span class="xh-modal-tip">{{ t('setting.version.start_tip') }}</span>
       <template #footer>
         <NSpace justify="end">
           <NButton @click="startVisible = false">
-            取消
+            {{ t('setting.common.cancel') }}
           </NButton>
           <NButton :loading="startLoading" type="warning" @click="handleStartSubmit">
-            开始升级
+            {{ t('setting.version.start_upgrade') }}
           </NButton>
         </NSpace>
       </template>
@@ -538,27 +540,27 @@ function handleDelete(row: VersionListItemDto) {
       :bordered="false"
       preset="card"
       style="width: 520px; max-width: 92vw"
-      :title="`完成升级 ${finishTarget?.appVersion ?? ''}`"
+      :title="t('setting.version.finish_title', { version: finishTarget?.appVersion ?? '' })"
     >
       <NForm :model="finishForm" label-placement="top">
-        <NFormItem label="应用版本">
-          <NInput v-model:value="finishForm.appVersion" clearable placeholder="留空沿用原值" />
+        <NFormItem :label="t('setting.version.app_version')">
+          <NInput v-model:value="finishForm.appVersion" clearable :placeholder="t('setting.version.keep_original_placeholder')" />
         </NFormItem>
-        <NFormItem label="数据库版本">
-          <NInput v-model:value="finishForm.dbVersion" clearable placeholder="留空沿用原值" />
+        <NFormItem :label="t('setting.version.db_version')">
+          <NInput v-model:value="finishForm.dbVersion" clearable :placeholder="t('setting.version.keep_original_placeholder')" />
         </NFormItem>
-        <NFormItem label="最小支持版本">
-          <NInput v-model:value="finishForm.minSupportVersion" clearable placeholder="留空沿用原值" />
+        <NFormItem :label="t('setting.version.min_support_version')">
+          <NInput v-model:value="finishForm.minSupportVersion" clearable :placeholder="t('setting.version.keep_original_placeholder')" />
         </NFormItem>
       </NForm>
-      <span class="xh-modal-tip">确认后该版本将取消「升级中」标记，并按上方非空字段更新版本号。</span>
+      <span class="xh-modal-tip">{{ t('setting.version.finish_tip') }}</span>
       <template #footer>
         <NSpace justify="end">
           <NButton @click="finishVisible = false">
-            取消
+            {{ t('setting.common.cancel') }}
           </NButton>
           <NButton :loading="finishLoading" type="primary" @click="handleFinishSubmit">
-            完成升级
+            {{ t('setting.version.finish_upgrade') }}
           </NButton>
         </NSpace>
       </template>

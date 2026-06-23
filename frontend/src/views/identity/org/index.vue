@@ -32,6 +32,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   DepartmentType,
   EnableStatus,
@@ -43,6 +44,8 @@ import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemOrgPage' })
+
+const { t } = useI18n()
 
 interface DeptFormModel extends DepartmentCreateDto {
   basicId?: ApiId
@@ -81,29 +84,29 @@ async function reloadAll() {
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   {
     key: 'keyword',
-    title: '关键词',
+    title: t('identity.org.col_keyword'),
     dataType: 'string',
     visible: false,
     searchable: true,
-    searchPlaceholder: '搜索部门名称/编码',
+    searchPlaceholder: t('identity.org.keyword_placeholder'),
     width: 250,
     order: 0,
   },
   {
     key: 'departmentName',
-    title: '部门名称',
+    title: t('identity.org.col_department_name'),
     dataType: 'string',
     treeColumn: true,
     minWidth: 220,
     order: 1,
   },
-  { key: 'departmentCode', title: '部门编码', dataType: 'string', minWidth: 130, order: 2 },
+  { key: 'departmentCode', title: t('identity.org.col_department_code'), dataType: 'string', minWidth: 130, order: 2 },
   {
     key: 'departmentType',
-    title: '类型',
+    title: t('identity.org.col_type'),
     dataType: 'string',
     minWidth: 100,
     order: 3,
@@ -112,7 +115,7 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('identity.org.col_status'),
     dataType: 'enum',
     width: 80,
     order: 4,
@@ -121,25 +124,25 @@ const fields: ListFieldSchema[] = [
       return h(NTag, { size: 'small', round: true, type: status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => getOptionLabel(statusOptions, status))
     },
   },
-  { key: 'phone', title: '电话', dataType: 'phone', minWidth: 130, order: 5 },
-  { key: 'email', title: '邮箱', dataType: 'email', minWidth: 180, order: 6 },
-  { key: 'sort', title: '排序', dataType: 'number', width: 80, order: 7 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 8 },
-]
+  { key: 'phone', title: t('identity.org.col_phone'), dataType: 'phone', minWidth: 130, order: 5 },
+  { key: 'email', title: t('identity.org.col_email'), dataType: 'email', minWidth: 180, order: 6 },
+  { key: 'sort', title: t('identity.org.col_sort'), dataType: 'number', width: 80, order: 7 },
+  { key: 'createdTime', title: t('identity.org.col_create_time'), dataType: 'datetime', minWidth: 170, order: 8 },
+])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 // DepartmentTreeQueryDto 仅支持 keyword/limit/onlyEnabled；类型/状态仅作为列展示。
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'system.org',
   exportPermission: 'saas:department:export',
-  pageName: '组织机构',
+  pageName: t('identity.org.page_name'),
   batchRemovable: true,
   removePermission: 'saas:department:delete',
   statusPermission: 'saas:department:status',
   rowKey: 'basicId',
   scrollX: 1400,
   tree: { childrenKey: 'children', defaultExpandAll: false },
-  fields,
+  fields: fields.value,
   resource: {
     tree: (params) => {
       const keyword = params.filters.keyword as string | undefined
@@ -153,13 +156,13 @@ const schema: PageSchema = {
     updateStatus: (id, enabled) => orgManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: '新增根部门', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'addChild', title: '新增子部门', scope: 'row' },
-    { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'edit', title: '编辑', scope: 'row' },
-    { key: 'toggle', title: '启用/停用', scope: 'row' },
+    { key: 'create', title: t('identity.org.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row' },
+    { key: 'view', title: t('identity.org.action_view'), scope: 'row' },
+    { key: 'edit', title: t('identity.org.action_edit'), scope: 'row' },
+    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row' },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -195,7 +198,7 @@ function onAction(payload: SchemaActionPayload) {
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const deptForm = ref<DeptFormModel>(createDefaultForm())
-const modalTitle = computed(() => (deptForm.value.basicId ? '编辑部门' : '新增部门'))
+const modalTitle = computed(() => (deptForm.value.basicId ? t('identity.org.form_edit_title') : t('identity.org.form_create_title')))
 
 // ── 详情弹窗 ───────────────────────────────────────────────────
 const detailVisible = ref(false)
@@ -254,41 +257,41 @@ function findDepartmentName(parentId: ApiId) {
   return walk(treeNodes.value) ?? formatNullable(parentId)
 }
 
-const childDeptColumns: DataTableColumns<DepartmentListItemDto> = [
-  { title: '部门名称', key: 'departmentName', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: '编码', key: 'departmentCode', width: 100, ellipsis: { tooltip: true } },
+const childDeptColumns = computed<DataTableColumns<DepartmentListItemDto>>(() => [
+  { title: t('identity.org.detail_table_dept_name'), key: 'departmentName', minWidth: 120, ellipsis: { tooltip: true } },
+  { title: t('identity.org.detail_table_code'), key: 'departmentCode', width: 100, ellipsis: { tooltip: true } },
   {
-    title: '类型',
+    title: t('identity.org.detail_table_type'),
     key: 'departmentType',
     width: 90,
     render: row => getOptionLabel(deptTypeOptions, row.departmentType),
   },
   {
-    title: '状态',
+    title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
     render: row => h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => formatStatus(row.status)),
   },
-]
+])
 
-const memberColumns: DataTableColumns<DepartmentManagementMemberDto> = [
+const memberColumns = computed<DataTableColumns<DepartmentManagementMemberDto>>(() => [
   {
-    title: '用户',
+    title: t('identity.org.detail_table_user'),
     key: 'user',
     minWidth: 140,
     render: row => row.realName || row.nickName || row.userName || String(row.userId),
   },
-  { title: '用户名', key: 'userName', width: 110, ellipsis: { tooltip: true }, render: row => row.userName ?? '—' },
+  { title: t('identity.org.detail_table_username'), key: 'userName', width: 110, ellipsis: { tooltip: true }, render: row => row.userName ?? '—' },
   {
-    title: '主部门',
+    title: t('identity.org.detail_table_is_main'),
     key: 'isMain',
     width: 72,
     render: row => row.isMain
-      ? h(NTag, { size: 'small', type: 'info', bordered: false }, () => '是')
+      ? h(NTag, { size: 'small', type: 'info', bordered: false }, () => t('identity.common.yes'))
       : h('span', { style: 'color:var(--n-text-color-3)' }, '—'),
   },
   {
-    title: '状态',
+    title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
     render: row => h(NTag, {
@@ -296,9 +299,9 @@ const memberColumns: DataTableColumns<DepartmentManagementMemberDto> = [
       round: true,
       type: row.status === ValidityStatus.Valid ? 'success' : 'default',
       bordered: false,
-    }, () => (row.status === ValidityStatus.Valid ? '有效' : '无效')),
+    }, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid'))),
   },
-]
+])
 
 function handleAdd(parentId?: ApiId) {
   deptForm.value = createDefaultForm()
@@ -330,7 +333,7 @@ async function handleEdit(row: DepartmentListItemDto) {
     deptForm.value = buildFormModel(detail ?? row)
   }
   catch {
-    message.error('加载部门详情失败')
+    message.error(t('identity.org.msg_load_detail_failed'))
     deptForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -344,11 +347,11 @@ async function handleView(row: DepartmentListItemDto) {
   try {
     managementDetail.value = await orgManagementApi.detailView(row.basicId)
     if (!managementDetail.value) {
-      message.warning('未查询到部门详情')
+      message.warning(t('identity.org.msg_detail_not_found'))
     }
   }
   catch {
-    message.error('加载部门详情失败')
+    message.error(t('identity.org.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -359,21 +362,21 @@ async function handleToggleStatus(row: DepartmentListItemDto) {
   const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
     await orgManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
-    message.success('状态更新成功')
+    message.success(t('identity.org.msg_status_updated'))
     await reloadAll()
   }
   catch {
-    message.error('状态更新失败')
+    message.error(t('identity.org.msg_status_failed'))
   }
 }
 
 function validateForm() {
   if (!deptForm.value.departmentName.trim()) {
-    message.warning('请输入部门名称')
+    message.warning(t('identity.org.msg_department_name_required'))
     return false
   }
   if (!deptForm.value.basicId && !deptForm.value.departmentCode.trim()) {
-    message.warning('请输入部门编码')
+    message.warning(t('identity.org.msg_department_code_required'))
     return false
   }
   return true
@@ -419,12 +422,12 @@ async function handleSubmit() {
       await orgManagementApi.create(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('identity.common.save_success'))
     modalVisible.value = false
     await reloadAll()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('identity.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -467,46 +470,46 @@ onMounted(() => {
       </template>
 
       <div v-if="detailLoading" class="modal-loading">
-        加载中…
+        {{ t('identity.common.loading') }}
       </div>
       <NTabs v-else-if="managementDetail" type="line" animated size="small">
-        <NTabPane name="overview" tab="概览">
+        <NTabPane name="overview" :tab="t('identity.org.tab_overview')">
           <NDescriptions :column="2" bordered size="small">
-            <NDescriptionsItem label="部门类型">
+            <NDescriptionsItem :label="t('identity.org.label_department_type')">
               {{ getOptionLabel(deptTypeOptions, detDept!.departmentType) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="父级部门">
+            <NDescriptionsItem :label="t('identity.org.label_parent')">
               {{ detDept!.parentId ? findDepartmentName(detDept!.parentId) : '—' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="负责人 ID">
+            <NDescriptionsItem :label="t('identity.org.label_leader_id')">
               {{ formatNullable(detDept!.leaderId) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="状态">
+            <NDescriptionsItem :label="t('identity.org.label_status')">
               <NTag size="small" :type="detDept!.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
                 {{ formatStatus(detDept!.status) }}
               </NTag>
             </NDescriptionsItem>
-            <NDescriptionsItem label="电话">
+            <NDescriptionsItem :label="t('identity.org.label_phone')">
               {{ formatNullable(detDept!.phone) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="邮箱">
+            <NDescriptionsItem :label="t('identity.org.label_email')">
               {{ formatNullable(detDept!.email) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="地址" :span="2">
+            <NDescriptionsItem :label="t('identity.org.label_address')" :span="2">
               {{ formatNullable(detDept!.address) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="排序">
+            <NDescriptionsItem :label="t('identity.org.label_sort')">
               {{ detDept!.sort }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="创建时间">
+            <NDescriptionsItem :label="t('identity.org.label_create_time')">
               {{ formatNullableDate(detDept!.createdTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem v-if="detDept!.remark" label="备注" :span="2">
+            <NDescriptionsItem v-if="detDept!.remark" :label="t('identity.org.label_remark')" :span="2">
               {{ detDept!.remark }}
             </NDescriptionsItem>
           </NDescriptions>
         </NTabPane>
-        <NTabPane name="children" :tab="`子部门 (${managementDetail.childDepartments.length})`">
+        <NTabPane name="children" :tab="t('identity.org.tab_children', { count: managementDetail.childDepartments.length })">
           <div class="xh-detail-table-wrap">
             <NDataTable
               v-if="managementDetail.childDepartments.length"
@@ -516,10 +519,10 @@ onMounted(() => {
               size="small"
               :row-key="(row: DepartmentListItemDto) => row.basicId"
             />
-            <NEmpty v-else description="暂无子部门" style="padding: 32px 0" />
+            <NEmpty v-else :description="t('identity.org.empty_children')" style="padding: 32px 0" />
           </div>
         </NTabPane>
-        <NTabPane name="members" :tab="`部门成员 (${managementDetail.members.length})`">
+        <NTabPane name="members" :tab="t('identity.org.tab_members', { count: managementDetail.members.length })">
           <div class="xh-detail-table-wrap">
             <NDataTable
               v-if="managementDetail.members.length"
@@ -529,7 +532,7 @@ onMounted(() => {
               size="small"
               :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
             />
-            <NEmpty v-else description="暂无部门成员" style="padding: 32px 0" />
+            <NEmpty v-else :description="t('identity.org.empty_members')" style="padding: 32px 0" />
           </div>
         </NTabPane>
       </NTabs>
@@ -537,7 +540,7 @@ onMounted(() => {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="detailVisible = false">
-            关闭
+            {{ t('identity.common.close') }}
           </NButton>
           <NButton
             v-if="detDept"
@@ -545,7 +548,7 @@ onMounted(() => {
             type="primary"
             @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
           >
-            编辑
+            {{ t('identity.common.edit') }}
           </NButton>
         </NSpace>
       </template>
@@ -561,44 +564,44 @@ onMounted(() => {
     >
       <NConfigProvider size="small" abstract>
         <NForm :model="deptForm" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem label="部门名称" path="departmentName">
-            <NInput v-model:value="deptForm.departmentName" clearable placeholder="请输入部门名称" />
+          <NFormItem :label="t('identity.org.label_department_name')" path="departmentName">
+            <NInput v-model:value="deptForm.departmentName" clearable :placeholder="t('identity.org.ph_department_name')" />
           </NFormItem>
-          <NFormItem label="部门编码" path="departmentCode">
+          <NFormItem :label="t('identity.org.label_department_code')" path="departmentCode">
             <NInput
               v-model:value="deptForm.departmentCode"
               :disabled="Boolean(deptForm.basicId)"
               clearable
-              placeholder="如: tech_dept"
+              :placeholder="t('identity.org.ph_department_code')"
             />
           </NFormItem>
-          <NFormItem label="上级部门" path="parentId">
+          <NFormItem :label="t('identity.org.label_parent_dept')" path="parentId">
             <NCascader
               v-model:value="deptForm.parentId"
               :options="cascaderOptions"
               check-strategy="child"
               clearable
-              placeholder="选择上级部门（可留空）"
+              :placeholder="t('identity.org.ph_parent')"
               style="width: 100%"
             />
           </NFormItem>
-          <NFormItem label="部门类型" path="departmentType">
+          <NFormItem :label="t('identity.org.label_department_type')" path="departmentType">
             <NSelect v-model:value="deptForm.departmentType" :options="deptTypeOptions" />
           </NFormItem>
-          <NFormItem label="电话" path="phone">
-            <NInput v-model:value="deptForm.phone" clearable placeholder="请输入电话" />
+          <NFormItem :label="t('identity.org.label_phone')" path="phone">
+            <NInput v-model:value="deptForm.phone" clearable :placeholder="t('identity.org.ph_phone')" />
           </NFormItem>
-          <NFormItem label="邮箱" path="email">
-            <NInput v-model:value="deptForm.email" clearable placeholder="请输入邮箱" />
+          <NFormItem :label="t('identity.org.label_email')" path="email">
+            <NInput v-model:value="deptForm.email" clearable :placeholder="t('identity.org.ph_email')" />
           </NFormItem>
-          <NFormItem label="地址" path="address">
-            <NInput v-model:value="deptForm.address" clearable placeholder="请输入地址" />
+          <NFormItem :label="t('identity.org.label_address')" path="address">
+            <NInput v-model:value="deptForm.address" clearable :placeholder="t('identity.org.ph_address')" />
           </NFormItem>
-          <NFormItem label="排序" path="sort">
+          <NFormItem :label="t('identity.org.label_sort')" path="sort">
             <NInputNumber v-model:value="deptForm.sort" :min="0" style="width: 100%" />
           </NFormItem>
-          <NFormItem label="备注" path="remark">
-            <NInput v-model:value="deptForm.remark" clearable placeholder="请输入备注" :rows="3" type="textarea" />
+          <NFormItem :label="t('identity.org.label_remark')" path="remark">
+            <NInput v-model:value="deptForm.remark" clearable :placeholder="t('identity.org.ph_remark')" :rows="3" type="textarea" />
           </NFormItem>
         </NForm>
       </NConfigProvider>
@@ -606,10 +609,10 @@ onMounted(() => {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="modalVisible = false">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('identity.common.save') }}
           </NButton>
         </NSpace>
       </template>

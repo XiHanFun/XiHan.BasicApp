@@ -35,6 +35,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
@@ -65,6 +66,7 @@ interface TenantFormModel extends TenantCreateDto {
 }
 
 const message = useMessage()
+const { t } = useI18n()
 
 const tenantStatusOptions = TENANT_STATUS_OPTIONS
 const configStatusOptions = TENANT_CONFIG_STATUS_OPTIONS
@@ -73,10 +75,10 @@ const memberTypeOptions = MEMBER_TYPE_OPTIONS
 const inviteStatusOptions = MEMBER_INVITE_STATUS_OPTIONS
 const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 
-const expiredOptions = [
-  { label: '是', value: 1 },
-  { label: '否', value: 0 },
-]
+const expiredOptions = computed(() => [
+  { label: t('tenant.list.yes'), value: 1 },
+  { label: t('tenant.list.no'), value: 0 },
+])
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -89,7 +91,7 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<TenantStatus | null>(null)
 const tenantForm = ref<TenantFormModel>(createDefaultForm())
-const modalTitle = computed(() => (tenantForm.value.basicId ? '编辑租户' : '新增租户'))
+const modalTitle = computed(() => (tenantForm.value.basicId ? t('tenant.list.edit_title') : t('tenant.list.add_title')))
 
 const detailVisible = ref(false)
 const detailLoading = ref(false)
@@ -118,37 +120,37 @@ function getTenantStatusTagType(status: TenantStatus) {
 }
 
 // ── 字段单一事实源:列 + 常用搜索 + 高级搜索 ─────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索(不作为列)
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索租户名称/编码/域名', width: 250, order: 0 },
+  { key: 'keyword', title: t('tenant.list.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('tenant.list.keyword_placeholder'), width: 250, order: 0 },
   // 常用搜索 + 列
   {
     key: 'tenantName',
-    title: '租户名称',
+    title: t('tenant.list.tenant_name'),
     dataType: 'string',
     sortable: true,
     minWidth: 160,
     order: 1,
   },
-  { key: 'tenantCode', title: '租户编码', dataType: 'string', minWidth: 150, order: 2 },
-  { key: 'tenantShortName', title: '简称', dataType: 'string', minWidth: 130, order: 3 },
-  { key: 'domain', title: '域名', dataType: 'string', minWidth: 180, order: 4 },
+  { key: 'tenantCode', title: t('tenant.list.tenant_code'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'tenantShortName', title: t('tenant.list.tenant_short_name'), dataType: 'string', minWidth: 130, order: 3 },
+  { key: 'domain', title: t('tenant.list.domain'), dataType: 'string', minWidth: 180, order: 4 },
   {
     key: 'isolationMode',
-    title: '隔离模式',
+    title: t('tenant.list.isolation_mode'),
     dataType: 'enum',
     options: isolationModeOptions,
     minWidth: 120,
     order: 5,
   },
-  { key: 'editionId', title: '版本', dataType: 'string', minWidth: 100, order: 6 },
+  { key: 'editionId', title: t('tenant.list.edition'), dataType: 'string', minWidth: 100, order: 6 },
   {
     key: 'tenantStatus',
-    title: '租户状态',
+    title: t('tenant.list.tenant_status'),
     dataType: 'enum',
     searchable: true,
     options: tenantStatusOptions,
-    searchPlaceholder: '租户状态',
+    searchPlaceholder: t('tenant.list.tenant_status_placeholder'),
     width: 100,
     order: 7,
     render: (row) => {
@@ -158,36 +160,36 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'configStatus',
-    title: '配置状态',
+    title: t('tenant.list.config_status'),
     dataType: 'enum',
     searchable: true,
     options: configStatusOptions,
-    searchPlaceholder: '配置状态',
+    searchPlaceholder: t('tenant.list.config_status_placeholder'),
     minWidth: 110,
     order: 8,
   },
   {
     key: 'isExpired',
-    title: '过期',
+    title: t('tenant.list.is_expired'),
     dataType: 'boolean',
-    options: expiredOptions,
+    options: expiredOptions.value,
     width: 82,
     order: 9,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isExpired ? 'error' : 'success' }, () => (r.isExpired ? '是' : '否'))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isExpired ? 'error' : 'success' }, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no')))
     },
   },
-  { key: 'userLimit', title: '用户上限', dataType: 'number', minWidth: 100, order: 10 },
-  { key: 'storageLimit', title: '存储上限', dataType: 'number', minWidth: 120, order: 11 },
-  { key: 'sort', title: '排序', dataType: 'number', sortable: true, minWidth: 80, order: 12 },
-  { key: 'expirationTime', title: '到期时间', dataType: 'datetime', minWidth: 170, order: 13 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
+  { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', minWidth: 100, order: 10 },
+  { key: 'storageLimit', title: t('tenant.list.storage_limit'), dataType: 'number', minWidth: 120, order: 11 },
+  { key: 'sort', title: t('tenant.list.sort'), dataType: 'number', sortable: true, minWidth: 80, order: 12 },
+  { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', minWidth: 170, order: 13 },
+  { key: 'createdTime', title: t('tenant.list.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
   // 仅高级搜索(不作为列)
-  { key: 'editionIdFilter', title: '版本 ID', dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: '版本 ID', order: 20 },
-  { key: 'expirationTimeStart', title: '到期开始', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期开始', order: 21 },
-  { key: 'expirationTimeEnd', title: '到期结束', dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: '到期结束', order: 22 },
-]
+  { key: 'editionIdFilter', title: t('tenant.list.edition_id'), dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.edition_id_filter_placeholder'), order: 20 },
+  { key: 'expirationTimeStart', title: t('tenant.list.expiration_time_start'), dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.expiration_time_start'), order: 21 },
+  { key: 'expirationTimeEnd', title: t('tenant.list.expiration_time_end'), dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.expiration_time_end'), order: 22 },
+])
 
 /** 过滤值辅助:trim 字符串 / 时间戳转 yyyy-MM-dd */
 function toStr(v: unknown): string | undefined {
@@ -203,13 +205,13 @@ function toDate(v: unknown): string | null {
   return String(v)
 }
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.tenant',
   exportPermission: 'saas:tenant:export',
-  pageName: '租户管理',
+  pageName: t('tenant.list.page_name'),
   rowKey: 'basicId',
   scrollX: 2000,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -225,11 +227,11 @@ const schema: PageSchema = {
     },
   },
   actions: [
-    { key: 'create', title: '新增租户', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: '编辑', scope: 'row' },
+    { key: 'create', title: t('tenant.list.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: t('tenant.list.view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('tenant.list.edit'), scope: 'row' },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -289,7 +291,7 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? '是' : '否'
+  return value ? t('tenant.list.yes') : t('tenant.list.no')
 }
 
 function handleAdd() {
@@ -327,11 +329,11 @@ async function handleView(row: TenantListItemDto) {
   try {
     currentDetail.value = await tenantManagementApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.warning('未查询到租户详情')
+      message.warning(t('tenant.list.detail_not_found'))
     }
   }
   catch {
-    message.error('加载租户详情失败')
+    message.error(t('tenant.list.detail_load_failed'))
   }
   finally {
     detailLoading.value = false
@@ -357,7 +359,7 @@ async function loadMembers() {
   catch {
     memberError.value = true
     members.value = []
-    message.error('加载成员列表失败')
+    message.error(t('tenant.list.member_list_load_failed'))
   }
   finally {
     memberLoading.value = false
@@ -385,12 +387,12 @@ async function handleSaveMember() {
   memberEditLoading.value = true
   try {
     await tenantManagementApi.members.update(editingMember.value)
-    message.success('成员资料更新成功')
+    message.success(t('tenant.list.member_update_success'))
     memberEditVisible.value = false
     await loadMembers()
   }
   catch {
-    message.error('成员资料更新失败')
+    message.error(t('tenant.list.member_update_failed'))
   }
   finally {
     memberEditLoading.value = false
@@ -414,12 +416,12 @@ async function handleSaveMemberStatus() {
       status: editingMemberStatus.value,
     }
     await tenantManagementApi.members.updateStatus(input)
-    message.success('成员状态更新成功')
+    message.success(t('tenant.list.member_status_update_success'))
     memberStatusVisible.value = false
     await loadMembers()
   }
   catch {
-    message.error('成员状态更新失败')
+    message.error(t('tenant.list.member_status_update_failed'))
   }
   finally {
     memberStatusLoading.value = false
@@ -444,11 +446,11 @@ function getInviteStatusTagType(status: TenantMemberInviteStatus) {
 
 function validateForm() {
   if (!tenantForm.value.tenantName.trim()) {
-    message.warning('请输入租户名称')
+    message.warning(t('tenant.list.validate_tenant_name'))
     return false
   }
   if (!tenantForm.value.basicId && !tenantForm.value.tenantCode.trim()) {
-    message.warning('请输入租户编码')
+    message.warning(t('tenant.list.validate_tenant_code'))
     return false
   }
   return true
@@ -482,7 +484,7 @@ async function handleSubmit() {
       if (editingStatus.value !== tenantForm.value.tenantStatus && tenantForm.value.tenantStatus !== undefined) {
         await tenantManagementApi.updateStatus({
           basicId: tenantForm.value.basicId,
-          reason: '前端更新租户状态',
+          reason: t('tenant.list.status_change_reason'),
           tenantStatus: tenantForm.value.tenantStatus,
         })
       }
@@ -509,12 +511,12 @@ async function handleSubmit() {
       await tenantManagementApi.create(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('tenant.list.save_success'))
     modalVisible.value = false
     reloadTenant()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('tenant.list.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -529,91 +531,91 @@ async function handleSubmit() {
     @action="onAction"
   >
     <NDrawer v-model:show="detailVisible" :width="800">
-      <NDrawerContent closable title="租户详情">
+      <NDrawerContent closable :title="t('tenant.list.detail_title')">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无租户详情">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" :description="t('tenant.list.detail_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:inbox" /></NIcon>
             </template>
           </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
-              <NTabPane name="overview" tab="概览">
+              <NTabPane name="overview" :tab="t('tenant.list.tab_overview')">
                 <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem label="租户名称">
+                  <NDescriptionsItem :label="t('tenant.list.tenant_name')">
                     {{ currentDetail.tenantName }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="租户编码">
+                  <NDescriptionsItem :label="t('tenant.list.tenant_code')">
                     {{ currentDetail.tenantCode }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="简称">
+                  <NDescriptionsItem :label="t('tenant.list.tenant_short_name')">
                     {{ formatNullable(currentDetail.tenantShortName) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="域名">
+                  <NDescriptionsItem :label="t('tenant.list.domain')">
                     {{ formatNullable(currentDetail.domain) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="租户状态">
+                  <NDescriptionsItem :label="t('tenant.list.tenant_status')">
                     <NTag :type="getTenantStatusTagType(currentDetail.tenantStatus)" round size="small">
                       {{ getOptionLabel(tenantStatusOptions, currentDetail.tenantStatus) }}
                     </NTag>
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="配置状态">
+                  <NDescriptionsItem :label="t('tenant.list.config_status')">
                     <NTag :type="currentDetail.configStatus === TenantConfigStatus.Configured ? 'success' : currentDetail.configStatus === TenantConfigStatus.Failed ? 'error' : 'warning'" round size="small">
                       {{ getOptionLabel(configStatusOptions, currentDetail.configStatus) }}
                     </NTag>
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="隔离模式">
+                  <NDescriptionsItem :label="t('tenant.list.isolation_mode')">
                     {{ getOptionLabel(isolationModeOptions, currentDetail.isolationMode) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="版本 ID">
+                  <NDescriptionsItem :label="t('tenant.list.edition_id')">
                     {{ formatNullable(currentDetail.editionId) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="用户上限">
+                  <NDescriptionsItem :label="t('tenant.list.user_limit')">
                     {{ formatNullable(currentDetail.userLimit) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="存储上限(MB)">
+                  <NDescriptionsItem :label="t('tenant.list.storage_limit_mb')">
                     {{ formatNullable(currentDetail.storageLimit) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="排序">
+                  <NDescriptionsItem :label="t('tenant.list.sort')">
                     {{ currentDetail.sort }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="已过期">
+                  <NDescriptionsItem :label="t('tenant.list.is_expired_value')">
                     {{ formatBoolean(currentDetail.isExpired) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="到期时间">
+                  <NDescriptionsItem :label="t('tenant.list.expiration_time')">
                     {{ formatNullableDate(currentDetail.expirationTime) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="创建时间">
+                  <NDescriptionsItem :label="t('tenant.list.created_time')">
                     {{ formatNullableDate(currentDetail.createdTime) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="修改时间">
+                  <NDescriptionsItem :label="t('tenant.list.modified_time')">
                     {{ formatNullableDate(currentDetail.modifiedTime) }}
                   </NDescriptionsItem>
                 </NDescriptions>
               </NTabPane>
 
-              <NTabPane name="members" tab="成员">
+              <NTabPane name="members" :tab="t('tenant.list.tab_members')">
                 <NSpin :show="memberLoading">
                   <div v-if="memberError" class="xh-detail-empty">
-                    <NEmpty description="加载成员失败">
+                    <NEmpty :description="t('tenant.list.member_load_failed')">
                       <template #extra>
                         <NButton size="small" @click="loadMembers">
-                          重试
+                          {{ t('tenant.list.member_retry') }}
                         </NButton>
                       </template>
                     </NEmpty>
                   </div>
-                  <NEmpty v-else-if="!memberLoading && members.length === 0" class="xh-detail-empty" description="暂无成员" />
+                  <NEmpty v-else-if="!memberLoading && members.length === 0" class="xh-detail-empty" :description="t('tenant.list.member_empty')" />
                   <table v-else class="xh-detail-table">
                     <thead>
                       <tr>
-                        <th>用户ID</th>
-                        <th>显示名</th>
-                        <th>成员类型</th>
-                        <th>邀请状态</th>
-                        <th>状态</th>
-                        <th>加入时间</th>
-                        <th>操作</th>
+                        <th>{{ t('tenant.list.member_user_id') }}</th>
+                        <th>{{ t('tenant.list.member_display_name') }}</th>
+                        <th>{{ t('tenant.list.member_type') }}</th>
+                        <th>{{ t('tenant.list.member_invite_status') }}</th>
+                        <th>{{ t('tenant.list.member_status') }}</th>
+                        <th>{{ t('tenant.list.member_join_time') }}</th>
+                        <th>{{ t('tenant.list.member_operation') }}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -639,10 +641,10 @@ async function handleSubmit() {
                         <td>
                           <NSpace size="small">
                             <NButton size="tiny" @click="handleEditMember(item)">
-                              编辑资料
+                              {{ t('tenant.list.member_edit') }}
                             </NButton>
                             <NButton size="tiny" type="warning" @click="handleChangeMemberStatus(item)">
-                              变更状态
+                              {{ t('tenant.list.member_change_status') }}
                             </NButton>
                           </NSpace>
                         </td>
@@ -652,18 +654,18 @@ async function handleSubmit() {
                 </NSpin>
               </NTabPane>
 
-              <NTabPane name="config" tab="配置信息">
+              <NTabPane name="config" :tab="t('tenant.list.tab_config')">
                 <NDescriptions :column="1" bordered size="small">
-                  <NDescriptionsItem label="Logo">
+                  <NDescriptionsItem :label="t('tenant.list.logo')">
                     {{ formatNullable(currentDetail.logo) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="域名">
+                  <NDescriptionsItem :label="t('tenant.list.domain')">
                     {{ formatNullable(currentDetail.domain) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="创建人 ID">
+                  <NDescriptionsItem :label="t('tenant.list.created_id')">
                     {{ formatNullable(currentDetail.createdId) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="最后修改人 ID">
+                  <NDescriptionsItem :label="t('tenant.list.modified_id')">
                     {{ formatNullable(currentDetail.modifiedId) }}
                   </NDescriptionsItem>
                 </NDescriptions>
@@ -683,62 +685,62 @@ async function handleSubmit() {
       style="width: 760px; max-width: 92vw"
     >
       <NForm :model="tenantForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="租户名称" path="tenantName">
-          <NInput v-model:value="tenantForm.tenantName" clearable placeholder="请输入租户名称" />
+        <NFormItem :label="t('tenant.list.tenant_name')" path="tenantName">
+          <NInput v-model:value="tenantForm.tenantName" clearable :placeholder="t('tenant.list.tenant_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="租户编码" path="tenantCode">
+        <NFormItem :label="t('tenant.list.tenant_code')" path="tenantCode">
           <NInput
             v-model:value="tenantForm.tenantCode"
             :disabled="Boolean(tenantForm.basicId)"
             clearable
-            placeholder="如: demo"
+            :placeholder="t('tenant.list.tenant_code_placeholder')"
           />
         </NFormItem>
-        <NFormItem label="简称" path="tenantShortName">
-          <NInput v-model:value="tenantForm.tenantShortName" clearable placeholder="请输入租户简称" />
+        <NFormItem :label="t('tenant.list.tenant_short_name')" path="tenantShortName">
+          <NInput v-model:value="tenantForm.tenantShortName" clearable :placeholder="t('tenant.list.tenant_short_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="域名" path="domain">
-          <NInput v-model:value="tenantForm.domain" clearable placeholder="如: demo.example.com" />
+        <NFormItem :label="t('tenant.list.domain')" path="domain">
+          <NInput v-model:value="tenantForm.domain" clearable :placeholder="t('tenant.list.domain_placeholder')" />
         </NFormItem>
-        <NFormItem label="隔离模式" path="isolationMode">
+        <NFormItem :label="t('tenant.list.isolation_mode')" path="isolationMode">
           <NSelect v-model:value="tenantForm.isolationMode" :options="isolationModeOptions" />
         </NFormItem>
-        <NFormItem label="版本 ID" path="editionId">
+        <NFormItem :label="t('tenant.list.edition_id')" path="editionId">
           <NInput v-model:value="tenantForm.editionId" clearable style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="!tenantForm.basicId" label="管理员账号" path="adminUserName">
-          <NInput v-model:value="tenantForm.adminUserName" clearable placeholder="选填，填写后开通时自动创建管理员" />
+        <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_user_name')" path="adminUserName">
+          <NInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" />
         </NFormItem>
-        <NFormItem v-if="!tenantForm.basicId" label="管理员邮箱" path="adminEmail">
+        <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_email')" path="adminEmail">
           <NInput
             v-model:value="tenantForm.adminEmail"
             clearable
-            placeholder="管理员登录邮箱（全平台唯一）"
+            :placeholder="t('tenant.list.admin_email_placeholder')"
             :input-props="{ type: 'email' }"
           />
         </NFormItem>
-        <NFormItem v-if="!tenantForm.basicId" label="管理员密码" path="adminPassword">
+        <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_password')" path="adminPassword">
           <NInput
             v-model:value="tenantForm.adminPassword"
             clearable
-            placeholder="与管理员账号同时填写生效"
+            :placeholder="t('tenant.list.admin_password_placeholder')"
             show-password-on="click"
             type="password"
           />
         </NFormItem>
-        <NFormItem label="用户上限" path="userLimit">
+        <NFormItem :label="t('tenant.list.user_limit')" path="userLimit">
           <NInputNumber v-model:value="tenantForm.userLimit" :min="0" clearable style="width: 100%" />
         </NFormItem>
-        <NFormItem label="存储上限" path="storageLimit">
+        <NFormItem :label="t('tenant.list.storage_limit')" path="storageLimit">
           <NInputNumber v-model:value="tenantForm.storageLimit" :min="0" clearable style="width: 100%" />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('tenant.list.sort')" path="sort">
           <NInputNumber v-model:value="tenantForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="tenantForm.basicId" label="租户状态" path="tenantStatus">
+        <NFormItem v-if="tenantForm.basicId" :label="t('tenant.list.tenant_status')" path="tenantStatus">
           <NSelect v-model:value="tenantForm.tenantStatus" :options="tenantStatusOptions" />
         </NFormItem>
-        <NFormItem label="到期时间" path="expirationTime">
+        <NFormItem :label="t('tenant.list.expiration_time')" path="expirationTime">
           <NDatePicker
             v-model:formatted-value="tenantForm.expirationTime"
             clearable
@@ -747,14 +749,14 @@ async function handleSubmit() {
             value-format="yyyy-MM-dd HH:mm:ss"
           />
         </NFormItem>
-        <NFormItem label="Logo" path="logo">
-          <NInput v-model:value="tenantForm.logo" clearable placeholder="请输入 Logo 地址" />
+        <NFormItem :label="t('tenant.list.logo')" path="logo">
+          <NInput v-model:value="tenantForm.logo" clearable :placeholder="t('tenant.list.logo_placeholder')" />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
+        <NFormItem :label="t('tenant.list.remark')" path="remark">
           <NInput
             v-model:value="tenantForm.remark"
             clearable
-            placeholder="请输入备注"
+            :placeholder="t('tenant.list.remark_placeholder')"
             :rows="3"
             type="textarea"
           />
@@ -764,10 +766,10 @@ async function handleSubmit() {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('tenant.list.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('tenant.list.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -779,16 +781,16 @@ async function handleSubmit() {
       :bordered="false"
       preset="card"
       style="width: 520px; max-width: 92vw"
-      title="编辑成员资料"
+      :title="t('tenant.list.member_edit_title')"
     >
       <NForm v-if="editingMember" :model="editingMember" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="显示名" path="displayName">
-          <NInput v-model:value="editingMember.displayName" clearable placeholder="请输入显示名" />
+        <NFormItem :label="t('tenant.list.member_display_name')" path="displayName">
+          <NInput v-model:value="editingMember.displayName" clearable :placeholder="t('tenant.list.member_display_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="成员类型" path="memberType">
+        <NFormItem :label="t('tenant.list.member_type')" path="memberType">
           <NSelect v-model:value="editingMember.memberType" :options="memberTypeOptions" />
         </NFormItem>
-        <NFormItem label="生效时间" path="effectiveTime">
+        <NFormItem :label="t('tenant.list.member_effective_time')" path="effectiveTime">
           <NDatePicker
             v-model:formatted-value="editingMember.effectiveTime"
             clearable
@@ -797,7 +799,7 @@ async function handleSubmit() {
             value-format="yyyy-MM-dd HH:mm:ss"
           />
         </NFormItem>
-        <NFormItem label="过期时间" path="expirationTime">
+        <NFormItem :label="t('tenant.list.member_expiration_time')" path="expirationTime">
           <NDatePicker
             v-model:formatted-value="editingMember.expirationTime"
             clearable
@@ -806,20 +808,20 @@ async function handleSubmit() {
             value-format="yyyy-MM-dd HH:mm:ss"
           />
         </NFormItem>
-        <NFormItem label="邀请备注" path="inviteRemark">
+        <NFormItem :label="t('tenant.list.member_invite_remark')" path="inviteRemark">
           <NInput
             v-model:value="editingMember.inviteRemark"
             clearable
-            placeholder="请输入邀请备注"
+            :placeholder="t('tenant.list.member_invite_remark_placeholder')"
             :rows="2"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
+        <NFormItem :label="t('tenant.list.member_remark')" path="remark">
           <NInput
             v-model:value="editingMember.remark"
             clearable
-            placeholder="请输入备注"
+            :placeholder="t('tenant.list.member_remark_placeholder')"
             :rows="2"
             type="textarea"
           />
@@ -829,10 +831,10 @@ async function handleSubmit() {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="memberEditVisible = false">
-            取消
+            {{ t('tenant.list.cancel') }}
           </NButton>
           <NButton :loading="memberEditLoading" type="primary" @click="handleSaveMember">
-            保存
+            {{ t('tenant.list.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -844,10 +846,10 @@ async function handleSubmit() {
       :bordered="false"
       preset="card"
       style="width: 360px; max-width: 92vw"
-      title="变更成员状态"
+      :title="t('tenant.list.member_status_title')"
     >
       <NForm label-placement="top">
-        <NFormItem label="状态">
+        <NFormItem :label="t('tenant.list.member_status')">
           <NSelect v-model:value="editingMemberStatus" :options="validityStatusOptions" />
         </NFormItem>
       </NForm>
@@ -855,10 +857,10 @@ async function handleSubmit() {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="memberStatusVisible = false">
-            取消
+            {{ t('tenant.list.cancel') }}
           </NButton>
           <NButton :loading="memberStatusLoading" type="primary" @click="handleSaveMemberStatus">
-            保存
+            {{ t('tenant.list.save') }}
           </NButton>
         </NSpace>
       </template>

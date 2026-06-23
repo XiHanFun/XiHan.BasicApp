@@ -30,6 +30,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   constraintRuleApi,
   ConstraintTargetType,
@@ -76,6 +77,7 @@ interface ConstraintRuleFormModel {
   violationAction: ViolationAction
 }
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -83,11 +85,11 @@ const statusOptions = STATUS_OPTIONS
 const constraintTypeOptions = CONSTRAINT_TYPE_OPTIONS
 const violationActionOptions = VIOLATION_ACTION_OPTIONS
 
-const targetTypeOptions = [
-  { label: '角色', value: ConstraintTargetType.Role },
-  { label: '权限', value: ConstraintTargetType.Permission },
-  { label: '用户', value: ConstraintTargetType.User },
-]
+const targetTypeOptions = computed(() => [
+  { label: t('approval.constraint.target_role'), value: ConstraintTargetType.Role },
+  { label: t('approval.constraint.target_permission'), value: ConstraintTargetType.Permission },
+  { label: t('approval.constraint.target_user'), value: ConstraintTargetType.User },
+])
 
 const VIOLATION_TAG_TYPE: Record<ViolationAction, 'default' | 'error' | 'info' | 'warning'> = {
   [ViolationAction.Deny]: 'error',
@@ -97,13 +99,13 @@ const VIOLATION_TAG_TYPE: Record<ViolationAction, 'default' | 'error' | 'info' |
 }
 
 /** 不同约束类型下规则项的填写提示 */
-const ITEM_HINTS: Partial<Record<ConstraintType, string>> = {
-  [ConstraintType.SSD]: '同组目标互斥，至少需要两个目标项',
-  [ConstraintType.DSD]: '同组目标会话内互斥，至少需要两个目标项',
-  [ConstraintType.MutualExclusion]: '同组目标互斥，至少需要两个目标项',
-  [ConstraintType.Cardinality]: '基数上限等请在「约束参数」中以 JSON 配置',
-  [ConstraintType.Prerequisite]: '分组 0 = 必备项，分组 1 = 目标项，两组均需配置',
-}
+const ITEM_HINTS = computed<Partial<Record<ConstraintType, string>>>(() => ({
+  [ConstraintType.SSD]: t('approval.constraint.hint_ssd'),
+  [ConstraintType.DSD]: t('approval.constraint.hint_dsd'),
+  [ConstraintType.MutualExclusion]: t('approval.constraint.hint_mutual_exclusion'),
+  [ConstraintType.Cardinality]: t('approval.constraint.hint_cardinality'),
+  [ConstraintType.Prerequisite]: t('approval.constraint.hint_prerequisite'),
+}))
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -130,17 +132,17 @@ function formatNullableDate(value?: string | null) {
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索规则编码/名称/描述/备注', width: 240, order: 0 },
-  { key: 'ruleCode', title: '规则编码', dataType: 'string', minWidth: 160, order: 1 },
-  { key: 'ruleName', title: '规则名称', dataType: 'string', minWidth: 160, order: 2 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('approval.constraint.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('approval.constraint.keyword_placeholder'), width: 240, order: 0 },
+  { key: 'ruleCode', title: t('approval.constraint.rule_code'), dataType: 'string', minWidth: 160, order: 1 },
+  { key: 'ruleName', title: t('approval.constraint.rule_name'), dataType: 'string', minWidth: 160, order: 2 },
   {
     key: 'constraintType',
-    title: '约束类型',
+    title: t('approval.constraint.constraint_type'),
     dataType: 'enum',
     searchable: true,
     options: constraintTypeOptions,
-    searchPlaceholder: '约束类型',
+    searchPlaceholder: t('approval.constraint.constraint_type_placeholder'),
     minWidth: 130,
     order: 3,
     render: row => h(
@@ -151,16 +153,16 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'targetType',
-    title: '目标类型',
+    title: t('approval.constraint.target_type'),
     dataType: 'enum',
-    options: targetTypeOptions,
+    options: targetTypeOptions.value,
     width: 96,
     order: 4,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(targetTypeOptions, (row as unknown as ConstraintRuleListItemDto).targetType)),
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(targetTypeOptions.value, (row as unknown as ConstraintRuleListItemDto).targetType)),
   },
   {
     key: 'violationAction',
-    title: '违规处理',
+    title: t('approval.constraint.violation_action'),
     dataType: 'enum',
     options: violationActionOptions,
     width: 110,
@@ -174,56 +176,56 @@ const fields: ListFieldSchema[] = [
       )
     },
   },
-  { key: 'itemCount', title: '规则项数', dataType: 'number', width: 92, order: 6 },
-  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 88, order: 7 },
+  { key: 'itemCount', title: t('approval.constraint.item_count'), dataType: 'number', width: 92, order: 6 },
+  { key: 'priority', title: t('approval.constraint.priority'), dataType: 'number', sortable: true, width: 88, order: 7 },
   {
     key: 'status',
-    title: '状态',
+    title: t('approval.constraint.status'),
     dataType: 'enum',
     searchable: true,
     options: statusOptions,
-    searchPlaceholder: '状态',
+    searchPlaceholder: t('approval.constraint.status_placeholder'),
     width: 82,
     order: 8,
     render: row => h(
       NTag,
       { size: 'small', round: true, bordered: false, type: (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' },
-      () => (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? '启用' : '禁用',
+      () => (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? t('approval.constraint.status_enabled') : t('approval.constraint.status_disabled'),
     ),
   },
   {
     key: 'isActive',
-    title: '当前生效',
+    title: t('approval.constraint.is_active'),
     dataType: 'boolean',
     width: 92,
     order: 9,
     render: row => h(
       NTag,
       { size: 'small', round: true, bordered: false, type: (row as unknown as ConstraintRuleListItemDto).isActive ? 'success' : 'default' },
-      () => (row as unknown as ConstraintRuleListItemDto).isActive ? '生效中' : '未生效',
+      () => (row as unknown as ConstraintRuleListItemDto).isActive ? t('approval.constraint.active_yes') : t('approval.constraint.active_no'),
     ),
   },
-  { key: 'description', title: '描述', dataType: 'string', minWidth: 200, order: 10 },
+  { key: 'description', title: t('approval.constraint.description'), dataType: 'string', minWidth: 200, order: 10 },
   {
     key: 'createdTime',
-    title: '创建时间',
+    title: t('approval.constraint.created_time'),
     dataType: 'datetime',
     sortable: true,
     minWidth: 170,
     order: 11,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate((row as unknown as ConstraintRuleListItemDto).createdTime)),
   },
-]
+])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'approval.constraint',
   exportPermission: 'saas:constraint-rule:export',
-  pageName: '约束规则',
+  pageName: t('approval.constraint.page_name'),
   statusPermission: 'saas:constraint-rule:status',
   rowKey: 'basicId',
   scrollX: 1600,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -234,16 +236,16 @@ const schema: PageSchema = {
         status: (f.status as EnableStatus | undefined) || undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
-    updateStatus: (id, enabled) => constraintRuleApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用约束规则' : '批量停用约束规则' }),
+    updateStatus: (id, enabled) => constraintRuleApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('approval.constraint.remark_batch_enable') : t('approval.constraint.remark_batch_disable') }),
   },
   actions: [
-    { key: 'create', title: '新增规则', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:constraint-rule:create' },
-    { key: 'view', title: '查看详情', scope: 'row', permission: 'saas:constraint-rule:read' },
-    { key: 'edit', title: '编辑', scope: 'row', permission: 'saas:constraint-rule:update' },
-    { key: 'toggle', title: '启用/停用', scope: 'row', permission: 'saas:constraint-rule:status' },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error', permission: 'saas:constraint-rule:delete' },
+    { key: 'create', title: t('approval.constraint.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:constraint-rule:create' },
+    { key: 'view', title: t('approval.constraint.action_view'), scope: 'row', permission: 'saas:constraint-rule:read' },
+    { key: 'edit', title: t('approval.constraint.action_edit'), scope: 'row', permission: 'saas:constraint-rule:update' },
+    { key: 'toggle', title: t('approval.constraint.action_toggle'), scope: 'row', permission: 'saas:constraint-rule:status' },
+    { key: 'delete', title: t('approval.constraint.action_delete'), scope: 'row', type: 'error', permission: 'saas:constraint-rule:delete' },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -320,14 +322,14 @@ async function loadTargetOptions(type: ConstraintTargetType, keyword = '') {
         keyword: normalizeNullable(keyword),
       })
       next = result.items.map(member => ({
-        label: member.displayName ? `${member.displayName} (#${member.userId})` : `成员 #${member.userId}`,
+        label: member.displayName ? `${member.displayName} (#${member.userId})` : t('approval.constraint.member_label', { id: member.userId }),
         value: member.userId,
       }))
     }
     targetOptions.value[type] = mergeOptions(targetOptions.value[type], next)
   }
   catch (e) {
-    message.error((e as Error).message || '加载目标候选失败')
+    message.error((e as Error).message || t('approval.constraint.err_load_targets'))
   }
   finally {
     targetLoading.value[type] = false
@@ -365,10 +367,10 @@ function formatItemGroup(item: ConstraintRuleItemDto) {
     return String(item.constraintGroup)
   }
   if (item.constraintGroup === 0) {
-    return '0（必备项）'
+    return t('approval.constraint.group_prerequisite')
   }
   if (item.constraintGroup === 1) {
-    return '1（目标项）'
+    return t('approval.constraint.group_target')
   }
   return String(item.constraintGroup)
 }
@@ -380,11 +382,11 @@ async function handleView(row: ConstraintRuleListItemDto) {
   try {
     currentDetail.value = await constraintRuleApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.warning('未查询到约束规则详情')
+      message.warning(t('approval.constraint.warn_detail_not_found'))
     }
   }
   catch (e) {
-    message.error((e as Error).message || '加载约束规则详情失败')
+    message.error((e as Error).message || t('approval.constraint.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -397,9 +399,9 @@ const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const ruleForm = ref<ConstraintRuleFormModel>(createDefaultForm())
 
-const modalTitle = computed(() => (ruleForm.value.basicId ? '编辑约束规则' : '新增约束规则'))
+const modalTitle = computed(() => (ruleForm.value.basicId ? t('approval.constraint.modal_title_edit') : t('approval.constraint.modal_title_add')))
 const isPrerequisite = computed(() => ruleForm.value.constraintType === ConstraintType.Prerequisite)
-const itemHint = computed(() => ITEM_HINTS[ruleForm.value.constraintType] ?? '同一目标不可重复添加')
+const itemHint = computed(() => ITEM_HINTS.value[ruleForm.value.constraintType] ?? t('approval.constraint.hint_default'))
 
 function createItem(targetType: ConstraintTargetType): ConstraintItemFormModel {
   return { constraintGroup: 0, remark: null, targetId: null, targetType }
@@ -434,7 +436,7 @@ async function handleEdit(row: ConstraintRuleListItemDto) {
   try {
     const detail = await constraintRuleApi.detail(row.basicId)
     if (!detail) {
-      message.warning('未查询到约束规则详情')
+      message.warning(t('approval.constraint.warn_detail_not_found'))
       return
     }
     for (const item of detail.items) {
@@ -466,7 +468,7 @@ async function handleEdit(row: ConstraintRuleListItemDto) {
     void loadTargetOptions(detail.targetType)
   }
   catch (e) {
-    message.error((e as Error).message || '加载约束规则详情失败')
+    message.error((e as Error).message || t('approval.constraint.err_load_detail'))
   }
 }
 
@@ -510,11 +512,11 @@ function onItemTargetTypeChange(item: ConstraintItemFormModel) {
 function validateForm(): boolean {
   const form = ruleForm.value
   if (!form.basicId && !form.ruleCode.trim()) {
-    message.warning('请输入规则编码')
+    message.warning(t('approval.constraint.warn_input_rule_code'))
     return false
   }
   if (!form.ruleName.trim()) {
-    message.warning('请输入规则名称')
+    message.warning(t('approval.constraint.warn_input_rule_name'))
     return false
   }
   if (form.parameters?.trim()) {
@@ -522,42 +524,42 @@ function validateForm(): boolean {
       JSON.parse(form.parameters)
     }
     catch {
-      message.warning('约束参数必须是合法 JSON')
+      message.warning(t('approval.constraint.warn_invalid_json'))
       return false
     }
   }
   if (form.effectiveTime != null && form.expirationTime != null && form.effectiveTime >= form.expirationTime) {
-    message.warning('生效时间必须早于失效时间')
+    message.warning(t('approval.constraint.warn_time_order'))
     return false
   }
   if (form.items.length === 0) {
-    message.warning('约束规则至少需要一个规则项')
+    message.warning(t('approval.constraint.warn_at_least_one_item'))
     return false
   }
   for (const [index, item] of form.items.entries()) {
     if (!item.targetId) {
-      message.warning(`第 ${index + 1} 个规则项未选择目标`)
+      message.warning(t('approval.constraint.warn_item_no_target', { index: index + 1 }))
       return false
     }
     if (item.constraintGroup == null || item.constraintGroup < 0) {
-      message.warning(`第 ${index + 1} 个规则项的约束分组不能小于 0`)
+      message.warning(t('approval.constraint.warn_item_group_negative', { index: index + 1 }))
       return false
     }
   }
   const targetKeys = new Set(form.items.map(item => `${item.targetType}:${item.targetId}`))
   if (targetKeys.size !== form.items.length) {
-    message.warning('规则项目标不能重复')
+    message.warning(t('approval.constraint.warn_target_duplicate'))
     return false
   }
   const needsPair = [ConstraintType.SSD, ConstraintType.DSD, ConstraintType.MutualExclusion]
   if (needsPair.includes(form.constraintType) && form.items.length < 2) {
-    message.warning('职责分离或互斥约束至少需要两个目标项')
+    message.warning(t('approval.constraint.warn_need_pair'))
     return false
   }
   if (form.constraintType === ConstraintType.Prerequisite) {
     const groups = new Set(form.items.map(item => item.constraintGroup))
     if (!groups.has(0) || !groups.has(1)) {
-      message.warning('先决条件约束必须同时包含分组 0（必备项）和分组 1（目标项）')
+      message.warning(t('approval.constraint.warn_prerequisite_groups'))
       return false
     }
   }
@@ -607,12 +609,12 @@ async function handleSubmit() {
         status: form.status,
       })
     }
-    message.success('保存成功')
+    message.success(t('approval.constraint.msg_save_success'))
     modalVisible.value = false
     reload()
   }
   catch (e) {
-    message.error((e as Error).message || '保存失败')
+    message.error((e as Error).message || t('approval.constraint.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -623,22 +625,22 @@ async function handleSubmit() {
 function confirmToggleStatus(row: ConstraintRuleListItemDto) {
   const enable = row.status !== EnableStatus.Enabled
   dialog.warning({
-    title: enable ? '启用规则' : '停用规则',
-    content: `确定${enable ? '启用' : '停用'}约束规则「${row.ruleName}」吗？${enable ? '启用后规则立即参与约束校验。' : '停用后规则不再参与约束校验。'}`,
-    positiveText: enable ? '启用' : '停用',
-    negativeText: '取消',
+    title: enable ? t('approval.constraint.toggle_enable_title') : t('approval.constraint.toggle_disable_title'),
+    content: enable ? t('approval.constraint.toggle_enable_content', { name: row.ruleName }) : t('approval.constraint.toggle_disable_content', { name: row.ruleName }),
+    positiveText: enable ? t('approval.constraint.toggle_positive_enable') : t('approval.constraint.toggle_positive_disable'),
+    negativeText: t('approval.constraint.cancel'),
     onPositiveClick: async () => {
       try {
         await constraintRuleApi.updateStatus({
           basicId: row.basicId,
-          remark: enable ? '前端启用约束规则' : '前端停用约束规则',
+          remark: enable ? t('approval.constraint.remark_fe_enable') : t('approval.constraint.remark_fe_disable'),
           status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
         })
-        message.success('状态已更新')
+        message.success(t('approval.constraint.msg_status_updated'))
         reload()
       }
       catch (e) {
-        message.error((e as Error).message || '状态更新失败')
+        message.error((e as Error).message || t('approval.constraint.msg_status_update_failed'))
       }
     },
   })
@@ -646,18 +648,18 @@ function confirmToggleStatus(row: ConstraintRuleListItemDto) {
 
 function confirmDelete(row: ConstraintRuleListItemDto) {
   dialog.error({
-    title: '删除规则',
-    content: `确定删除约束规则「${row.ruleName}」吗？其下 ${row.itemCount} 个规则项将一并删除，且不可恢复。`,
-    positiveText: '删除',
-    negativeText: '取消',
+    title: t('approval.constraint.delete_title'),
+    content: t('approval.constraint.delete_content', { name: row.ruleName, count: row.itemCount }),
+    positiveText: t('approval.constraint.btn_delete'),
+    negativeText: t('approval.constraint.cancel'),
     onPositiveClick: async () => {
       try {
         await constraintRuleApi.delete(row.basicId)
-        message.success('删除成功')
+        message.success(t('approval.constraint.msg_delete_success'))
         reload()
       }
       catch (e) {
-        message.error((e as Error).message || '删除失败')
+        message.error((e as Error).message || t('approval.constraint.msg_delete_failed'))
       }
     },
   })
@@ -672,74 +674,74 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
   >
     <!-- 详情抽屉：规则 + 明细项列表 -->
     <NDrawer v-model:show="detailVisible" :width="880">
-      <NDrawerContent closable title="约束规则详情">
+      <NDrawerContent closable :title="t('approval.constraint.detail_title')">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="rule-detail-empty" description="暂无约束规则详情" />
+          <NEmpty v-if="!detailLoading && !currentDetail" class="rule-detail-empty" :description="t('approval.constraint.empty_detail')" />
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NDescriptions :column="2" bordered size="small">
-              <NDescriptionsItem label="规则编码">
+              <NDescriptionsItem :label="t('approval.constraint.rule_code')">
                 {{ currentDetail.ruleCode }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="规则名称">
+              <NDescriptionsItem :label="t('approval.constraint.rule_name')">
                 {{ currentDetail.ruleName }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="约束类型">
+              <NDescriptionsItem :label="t('approval.constraint.constraint_type')">
                 {{ getOptionLabel(constraintTypeOptions, currentDetail.constraintType) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="目标类型">
+              <NDescriptionsItem :label="t('approval.constraint.target_type')">
                 {{ getOptionLabel(targetTypeOptions, currentDetail.targetType) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="违规处理">
+              <NDescriptionsItem :label="t('approval.constraint.violation_action')">
                 {{ getOptionLabel(violationActionOptions, currentDetail.violationAction) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="优先级">
+              <NDescriptionsItem :label="t('approval.constraint.priority')">
                 {{ currentDetail.priority }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="状态">
+              <NDescriptionsItem :label="t('approval.constraint.status')">
                 {{ getOptionLabel(statusOptions, currentDetail.status) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="当前生效">
-                {{ currentDetail.isActive ? '生效中' : '未生效' }}
+              <NDescriptionsItem :label="t('approval.constraint.is_active')">
+                {{ currentDetail.isActive ? t('approval.constraint.active_yes') : t('approval.constraint.active_no') }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="全局规则">
-                {{ currentDetail.isGlobal ? '是' : '否' }}
+              <NDescriptionsItem :label="t('approval.constraint.is_global')">
+                {{ currentDetail.isGlobal ? t('approval.constraint.yes') : t('approval.constraint.no') }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="有效期">
-                {{ formatNullableDate(currentDetail.effectiveTime) }} 至 {{ formatNullableDate(currentDetail.expirationTime) }}
+              <NDescriptionsItem :label="t('approval.constraint.effective_range')">
+                {{ formatNullableDate(currentDetail.effectiveTime) }} {{ t('approval.constraint.effective_range_to') }} {{ formatNullableDate(currentDetail.expirationTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="描述">
+              <NDescriptionsItem :label="t('approval.constraint.description')">
                 {{ formatNullable(currentDetail.description) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="备注">
+              <NDescriptionsItem :label="t('approval.constraint.label_remark')">
                 {{ formatNullable(currentDetail.remark) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="创建">
+              <NDescriptionsItem :label="t('approval.constraint.created')">
                 {{ formatNullable(currentDetail.createdBy) }} · {{ formatNullableDate(currentDetail.createdTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="最后修改">
+              <NDescriptionsItem :label="t('approval.constraint.last_modified')">
                 {{ formatNullable(currentDetail.modifiedBy) }} · {{ formatNullableDate(currentDetail.modifiedTime) }}
               </NDescriptionsItem>
             </NDescriptions>
 
             <template v-if="parametersPretty">
               <h4 class="rule-detail-subtitle">
-                约束参数
+                {{ t('approval.constraint.parameters') }}
               </h4>
               <pre class="rule-params">{{ parametersPretty }}</pre>
             </template>
 
             <h4 class="rule-detail-subtitle">
-              规则项（{{ currentDetail.items.length }}）
+              {{ t('approval.constraint.items_count', { count: currentDetail.items.length }) }}
             </h4>
             <table v-if="currentDetail.items.length" class="rule-detail-table">
               <thead>
                 <tr>
-                  <th>分组</th>
-                  <th>目标类型</th>
-                  <th>目标名称</th>
-                  <th>目标编码</th>
-                  <th>备注</th>
-                  <th>创建时间</th>
+                  <th>{{ t('approval.constraint.col_group') }}</th>
+                  <th>{{ t('approval.constraint.col_target_type') }}</th>
+                  <th>{{ t('approval.constraint.col_target_name') }}</th>
+                  <th>{{ t('approval.constraint.col_target_code') }}</th>
+                  <th>{{ t('approval.constraint.col_remark') }}</th>
+                  <th>{{ t('approval.constraint.col_created_time') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -753,7 +755,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
                 </tr>
               </tbody>
             </table>
-            <NEmpty v-else description="暂无规则项" style="padding: 24px 0" />
+            <NEmpty v-else :description="t('approval.constraint.empty_items')" style="padding: 24px 0" />
           </NScrollbar>
         </NSpin>
       </NDrawerContent>
@@ -769,63 +771,63 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
       style="width: 860px; max-width: 94vw"
     >
       <NForm :model="ruleForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="规则编码" path="ruleCode">
+        <NFormItem :label="t('approval.constraint.label_rule_code')" path="ruleCode">
           <NInput
             v-model:value="ruleForm.ruleCode"
             clearable
             :disabled="Boolean(ruleForm.basicId)"
-            placeholder="如: ssd_finance_audit"
+            :placeholder="t('approval.constraint.placeholder_rule_code')"
           />
         </NFormItem>
-        <NFormItem label="规则名称" path="ruleName">
-          <NInput v-model:value="ruleForm.ruleName" clearable placeholder="请输入规则名称" />
+        <NFormItem :label="t('approval.constraint.label_rule_name')" path="ruleName">
+          <NInput v-model:value="ruleForm.ruleName" clearable :placeholder="t('approval.constraint.placeholder_rule_name')" />
         </NFormItem>
-        <NFormItem label="约束类型" path="constraintType">
+        <NFormItem :label="t('approval.constraint.label_constraint_type')" path="constraintType">
           <NSelect
             v-model:value="ruleForm.constraintType"
             :options="constraintTypeOptions"
             @update:value="onConstraintTypeChange"
           />
         </NFormItem>
-        <NFormItem label="目标类型" path="targetType">
+        <NFormItem :label="t('approval.constraint.label_target_type')" path="targetType">
           <NSelect
             v-model:value="ruleForm.targetType"
             :options="targetTypeOptions"
             @update:value="onRuleTargetTypeChange"
           />
         </NFormItem>
-        <NFormItem label="违规处理" path="violationAction">
+        <NFormItem :label="t('approval.constraint.label_violation_action')" path="violationAction">
           <NSelect v-model:value="ruleForm.violationAction" :options="violationActionOptions" />
         </NFormItem>
-        <NFormItem label="优先级" path="priority">
+        <NFormItem :label="t('approval.constraint.label_priority')" path="priority">
           <NInputNumber v-model:value="ruleForm.priority" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="状态" path="status">
+        <NFormItem :label="t('approval.constraint.label_status')" path="status">
           <NSelect v-model:value="ruleForm.status" :options="statusOptions" />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="ruleForm.remark" clearable placeholder="请输入备注" />
+        <NFormItem :label="t('approval.constraint.label_remark')" path="remark">
+          <NInput v-model:value="ruleForm.remark" clearable :placeholder="t('approval.constraint.placeholder_remark')" />
         </NFormItem>
-        <NFormItem label="生效时间" path="effectiveTime">
+        <NFormItem :label="t('approval.constraint.label_effective_time')" path="effectiveTime">
           <NDatePicker v-model:value="ruleForm.effectiveTime" clearable style="width: 100%" type="datetime" />
         </NFormItem>
-        <NFormItem label="失效时间" path="expirationTime">
+        <NFormItem :label="t('approval.constraint.label_expiration_time')" path="expirationTime">
           <NDatePicker v-model:value="ruleForm.expirationTime" clearable style="width: 100%" type="datetime" />
         </NFormItem>
-        <NFormItem class="xh-form-full-row" label="约束参数（JSON，可选）" path="parameters">
+        <NFormItem class="xh-form-full-row" :label="t('approval.constraint.label_parameters')" path="parameters">
           <NInput
             v-model:value="ruleForm.parameters"
             clearable
-            placeholder="如基数约束: {&quot;maxCount&quot;: 2}"
+            :placeholder="t('approval.constraint.placeholder_parameters')"
             :rows="2"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem class="xh-form-full-row" label="描述" path="description">
+        <NFormItem class="xh-form-full-row" :label="t('approval.constraint.label_description')" path="description">
           <NInput
             v-model:value="ruleForm.description"
             clearable
-            placeholder="请输入规则描述"
+            :placeholder="t('approval.constraint.placeholder_description')"
             :rows="2"
             type="textarea"
           />
@@ -834,18 +836,18 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
 
       <div class="rule-items">
         <div class="rule-items__head">
-          <span class="rule-items__title">规则项（{{ ruleForm.items.length }}）</span>
+          <span class="rule-items__title">{{ t('approval.constraint.items_title', { count: ruleForm.items.length }) }}</span>
           <span class="rule-items__hint">{{ itemHint }}</span>
           <NButton dashed size="small" @click="addItem">
-            添加规则项
+            {{ t('approval.constraint.add_item') }}
           </NButton>
         </div>
-        <NEmpty v-if="ruleForm.items.length === 0" description="尚未添加规则项" style="padding: 20px 0" />
+        <NEmpty v-if="ruleForm.items.length === 0" :description="t('approval.constraint.empty_no_items')" style="padding: 20px 0" />
         <div v-for="(item, index) in ruleForm.items" :key="index" class="rule-item-row">
           <NInputNumber
             v-model:value="item.constraintGroup"
             :min="0"
-            placeholder="分组"
+            :placeholder="t('approval.constraint.placeholder_group')"
             size="small"
             style="width: 100px"
           />
@@ -863,7 +865,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             filterable
             :loading="targetLoading[item.targetType]"
             :options="targetOptions[item.targetType]"
-            placeholder="搜索并选择目标"
+            :placeholder="t('approval.constraint.placeholder_target')"
             remote
             size="small"
             style="flex: 1; min-width: 0"
@@ -873,12 +875,12 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <NInput
             v-model:value="item.remark"
             clearable
-            placeholder="备注（可选）"
+            :placeholder="t('approval.constraint.placeholder_item_remark')"
             size="small"
             style="width: 160px"
           />
           <NButton quaternary size="small" type="error" @click="removeItem(index)">
-            删除
+            {{ t('approval.constraint.item_delete') }}
           </NButton>
         </div>
       </div>
@@ -886,10 +888,10 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('approval.constraint.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('approval.constraint.save') }}
           </NButton>
         </NSpace>
       </template>

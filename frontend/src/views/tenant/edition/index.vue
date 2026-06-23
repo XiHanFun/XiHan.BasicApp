@@ -27,6 +27,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   EnableStatus,
@@ -49,15 +50,16 @@ interface EditionFormModel extends TenantEditionCreateDto {
 const message = useMessage()
 const dialog = useDialog()
 const { hasPermission } = usePermission()
+const { t } = useI18n()
 
 const statusOptions = STATUS_OPTIONS
 const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 const permissionTypeOptions = PERMISSION_TYPE_OPTIONS
 
-const boolOptions = [
-  { label: '是', value: 1 },
-  { label: '否', value: 0 },
-]
+const boolOptions = computed(() => [
+  { label: t('tenant.edition.yes'), value: 1 },
+  { label: t('tenant.edition.no'), value: 0 },
+])
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -66,13 +68,13 @@ function reloadList() {
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索版本编码/名称', width: 240, order: 0 },
-  { key: 'editionCode', title: '版本编码', dataType: 'string', minWidth: 140, order: 1 },
+  { key: 'keyword', title: t('tenant.edition.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('tenant.edition.keyword_placeholder'), width: 240, order: 0 },
+  { key: 'editionCode', title: t('tenant.edition.edition_code'), dataType: 'string', minWidth: 140, order: 1 },
   {
     key: 'editionName',
-    title: '版本名称',
+    title: t('tenant.edition.edition_name'),
     dataType: 'string',
     minWidth: 150,
     order: 2,
@@ -86,88 +88,88 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'price',
-    title: '价格',
+    title: t('tenant.edition.price'),
     dataType: 'money',
     width: 110,
     order: 3,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
       if (r.isFree) {
-        return h(NTag, { size: 'small', round: true, bordered: false, type: 'success' }, () => '免费')
+        return h(NTag, { size: 'small', round: true, bordered: false, type: 'success' }, () => t('tenant.edition.free'))
       }
       return h('span', r.price == null ? '-' : `¥ ${r.price}`)
     },
   },
   {
     key: 'billingPeriodMonths',
-    title: '计费周期',
+    title: t('tenant.edition.billing_period'),
     dataType: 'number',
     width: 100,
     order: 4,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h('span', r.billingPeriodMonths == null ? '-' : `${r.billingPeriodMonths} 个月`)
+      return h('span', r.billingPeriodMonths == null ? '-' : t('tenant.edition.billing_period_months', { count: r.billingPeriodMonths }))
     },
   },
   {
     key: 'userLimit',
-    title: '用户上限',
+    title: t('tenant.edition.user_limit'),
     dataType: 'number',
     width: 100,
     order: 5,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h('span', r.userLimit == null ? '不限' : String(r.userLimit))
+      return h('span', r.userLimit == null ? t('tenant.edition.unlimited') : String(r.userLimit))
     },
   },
   {
     key: 'storageLimit',
-    title: '存储上限',
+    title: t('tenant.edition.storage_limit'),
     dataType: 'number',
     width: 110,
     order: 6,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h('span', r.storageLimit == null ? '不限' : `${r.storageLimit} MB`)
+      return h('span', r.storageLimit == null ? t('tenant.edition.unlimited') : t('tenant.edition.storage_limit_mb', { size: r.storageLimit }))
     },
   },
   {
     key: 'isFree',
-    title: '免费',
+    title: t('tenant.edition.is_free'),
     dataType: 'boolean',
     searchable: true,
-    options: boolOptions,
-    searchPlaceholder: '是否免费',
+    options: boolOptions.value,
+    searchPlaceholder: t('tenant.edition.is_free_placeholder'),
     width: 86,
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isFree ? 'success' : 'default' }, () => (r.isFree ? '是' : '否'))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isFree ? 'success' : 'default' }, () => (r.isFree ? t('tenant.edition.yes') : t('tenant.edition.no')))
     },
   },
   {
     key: 'isDefault',
-    title: '默认',
+    title: t('tenant.edition.is_default'),
     dataType: 'boolean',
     searchable: true,
-    options: boolOptions,
-    searchPlaceholder: '是否默认',
+    options: boolOptions.value,
+    searchPlaceholder: t('tenant.edition.is_default_placeholder'),
     width: 86,
     order: 8,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
       return r.isDefault
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'warning' }, () => '默认')
+        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'warning' }, () => t('tenant.edition.default_tag'))
         : h('span', { style: 'opacity:.45' }, '-')
     },
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('tenant.edition.status'),
     dataType: 'enum',
     searchable: true,
     options: statusOptions,
-    searchPlaceholder: '状态',
+    searchPlaceholder: t('tenant.edition.status_placeholder'),
     width: 90,
     order: 9,
     render: (row) => {
@@ -179,9 +181,9 @@ const fields: ListFieldSchema[] = [
       )
     },
   },
-  { key: 'sort', title: '排序', dataType: 'number', sortable: true, width: 80, order: 10 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
-]
+  { key: 'sort', title: t('tenant.edition.sort'), dataType: 'number', sortable: true, width: 80, order: 10 },
+  { key: 'createdTime', title: t('tenant.edition.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+])
 
 function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
@@ -194,14 +196,14 @@ function toBool(v: unknown): boolean | undefined {
   return Boolean(v)
 }
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'tenant.edition',
   exportPermission: 'saas:tenant-edition:export',
-  pageName: '版本套餐',
+  pageName: t('tenant.edition.page_name'),
   statusPermission: 'saas:tenant-edition:status',
   rowKey: 'basicId',
   scrollX: 1500,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -216,11 +218,11 @@ const schema: PageSchema = {
     updateStatus: (id, enabled) => tenantEditionApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: '新增版本', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:tenant-edition:create' },
-    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil', permission: 'saas:tenant-edition:update' },
+    { key: 'create', title: t('tenant.edition.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:tenant-edition:create' },
+    { key: 'edit', title: t('tenant.edition.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:tenant-edition:update' },
     {
       key: 'enable',
-      title: '启用',
+      title: t('tenant.edition.enable'),
       scope: 'row',
       type: 'success',
       icon: 'lucide:play',
@@ -229,7 +231,7 @@ const schema: PageSchema = {
     },
     {
       key: 'disable',
-      title: '停用',
+      title: t('tenant.edition.disable'),
       scope: 'row',
       type: 'warning',
       icon: 'lucide:pause',
@@ -238,15 +240,15 @@ const schema: PageSchema = {
     },
     {
       key: 'set-default',
-      title: '设为默认',
+      title: t('tenant.edition.set_default'),
       scope: 'row',
       icon: 'lucide:star',
       permission: 'saas:tenant-edition:default',
       visible: row => !(row as unknown as TenantEditionListItemDto).isDefault,
     },
-    { key: 'permissions', title: '版本权限', scope: 'row', icon: 'lucide:shield-check', permission: 'saas:tenant-edition-permission:read' },
+    { key: 'permissions', title: t('tenant.edition.permissions'), scope: 'row', icon: 'lucide:shield-check', permission: 'saas:tenant-edition-permission:read' },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -287,7 +289,7 @@ function onAction(payload: SchemaActionPayload) {
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const editionForm = ref<EditionFormModel>(createDefaultForm())
-const modalTitle = computed(() => (editionForm.value.basicId ? '编辑版本' : '新增版本'))
+const modalTitle = computed(() => (editionForm.value.basicId ? t('tenant.edition.edit_title') : t('tenant.edition.add_title')))
 
 function createDefaultForm(): EditionFormModel {
   return {
@@ -337,11 +339,11 @@ function handleEdit(row: TenantEditionListItemDto) {
 
 function validateForm() {
   if (!editionForm.value.basicId && !editionForm.value.editionCode.trim()) {
-    message.warning('请输入版本编码')
+    message.warning(t('tenant.edition.validate_edition_code'))
     return false
   }
   if (!editionForm.value.editionName.trim()) {
-    message.warning('请输入版本名称')
+    message.warning(t('tenant.edition.validate_edition_name'))
     return false
   }
   return true
@@ -388,12 +390,12 @@ async function handleSubmit() {
       await tenantEditionApi.create(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('tenant.edition.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (e) {
-    message.error((e as Error).message || '保存失败')
+    message.error((e as Error).message || t('tenant.edition.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -404,18 +406,20 @@ async function handleSubmit() {
 function confirmToggleStatus(row: TenantEditionListItemDto, next: EnableStatus) {
   const enabling = next === EnableStatus.Enabled
   dialog.warning({
-    title: enabling ? '启用版本' : '停用版本',
-    content: `确定${enabling ? '启用' : '停用'}版本「${row.editionName}」吗？${enabling ? '' : '停用后新租户将无法选择该版本。'}`,
-    positiveText: enabling ? '启用' : '停用',
-    negativeText: '取消',
+    title: enabling ? t('tenant.edition.confirm_enable_title') : t('tenant.edition.confirm_disable_title'),
+    content: enabling
+      ? t('tenant.edition.confirm_enable_content', { name: row.editionName })
+      : t('tenant.edition.confirm_disable_content', { name: row.editionName }),
+    positiveText: enabling ? t('tenant.edition.enable') : t('tenant.edition.disable'),
+    negativeText: t('tenant.edition.cancel'),
     onPositiveClick: async () => {
       try {
         await tenantEditionApi.updateStatus({ basicId: row.basicId, status: next })
-        message.success(enabling ? '已启用' : '已停用')
+        message.success(enabling ? t('tenant.edition.enabled') : t('tenant.edition.disabled'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || '状态更新失败')
+        message.error((e as Error).message || t('tenant.edition.status_update_failed'))
       }
     },
   })
@@ -423,18 +427,18 @@ function confirmToggleStatus(row: TenantEditionListItemDto, next: EnableStatus) 
 
 function confirmSetDefault(row: TenantEditionListItemDto) {
   dialog.warning({
-    title: '设为默认版本',
-    content: `确定将「${row.editionName}」设为默认版本吗？原默认版本将被取消默认标记。`,
-    positiveText: '设为默认',
-    negativeText: '取消',
+    title: t('tenant.edition.confirm_set_default_title'),
+    content: t('tenant.edition.confirm_set_default_content', { name: row.editionName }),
+    positiveText: t('tenant.edition.set_default'),
+    negativeText: t('tenant.edition.cancel'),
     onPositiveClick: async () => {
       try {
         await tenantEditionApi.updateDefault({ basicId: row.basicId })
-        message.success('已设为默认版本')
+        message.success(t('tenant.edition.set_default_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || '设置默认版本失败')
+        message.error((e as Error).message || t('tenant.edition.set_default_failed'))
       }
     },
   })
@@ -485,7 +489,7 @@ async function loadPermissionList() {
   catch {
     permError.value = true
     permList.value = []
-    message.error('加载版本权限失败')
+    message.error(t('tenant.edition.perm_load_failed'))
   }
   finally {
     permLoading.value = false
@@ -502,7 +506,7 @@ async function loadGrantOptions(keyword: string) {
     }))
   }
   catch (e) {
-    message.error((e as Error).message || '加载权限候选失败')
+    message.error((e as Error).message || t('tenant.edition.perm_load_options_failed'))
   }
   finally {
     grantOptionsLoading.value = false
@@ -519,12 +523,12 @@ async function handleGrant() {
       editionId: permEdition.value.basicId,
       permissionId: grantPermissionId.value,
     })
-    message.success('授予成功')
+    message.success(t('tenant.edition.grant_success'))
     grantPermissionId.value = null
     await loadPermissionList()
   }
   catch (e) {
-    message.error((e as Error).message || '授予失败')
+    message.error((e as Error).message || t('tenant.edition.grant_failed'))
   }
   finally {
     grantSubmitLoading.value = false
@@ -536,11 +540,11 @@ async function handleToggleMappingStatus(item: TenantEditionPermissionListItemDt
   permActingId.value = item.basicId
   try {
     await tenantEditionPermissionApi.updateStatus({ basicId: item.basicId, status: next })
-    message.success(next === ValidityStatus.Valid ? '已启用' : '已停用')
+    message.success(next === ValidityStatus.Valid ? t('tenant.edition.enabled') : t('tenant.edition.disabled'))
     await loadPermissionList()
   }
   catch (e) {
-    message.error((e as Error).message || '状态更新失败')
+    message.error((e as Error).message || t('tenant.edition.status_update_failed'))
   }
   finally {
     permActingId.value = null
@@ -549,19 +553,22 @@ async function handleToggleMappingStatus(item: TenantEditionPermissionListItemDt
 
 function confirmRevoke(item: TenantEditionPermissionListItemDto) {
   dialog.warning({
-    title: '撤销权限',
-    content: `确定从版本「${permEdition.value?.editionName ?? ''}」撤销权限「${item.permissionName ?? item.permissionCode ?? item.permissionId}」吗？`,
-    positiveText: '撤销',
-    negativeText: '取消',
+    title: t('tenant.edition.confirm_revoke_title'),
+    content: t('tenant.edition.confirm_revoke_content', {
+      edition: permEdition.value?.editionName ?? '',
+      permission: item.permissionName ?? item.permissionCode ?? item.permissionId,
+    }),
+    positiveText: t('tenant.edition.perm_revoke'),
+    negativeText: t('tenant.edition.cancel'),
     onPositiveClick: async () => {
       permActingId.value = item.basicId
       try {
         await tenantEditionPermissionApi.revoke(item.basicId)
-        message.success('已撤销')
+        message.success(t('tenant.edition.revoke_success'))
         await loadPermissionList()
       }
       catch (e) {
-        message.error((e as Error).message || '撤销失败')
+        message.error((e as Error).message || t('tenant.edition.revoke_failed'))
       }
       finally {
         permActingId.value = null
@@ -590,85 +597,85 @@ function formatNullable(value: unknown) {
       style="width: 720px; max-width: 92vw"
     >
       <NForm :model="editionForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="版本编码" path="editionCode">
+        <NFormItem :label="t('tenant.edition.edition_code')" path="editionCode">
           <NInput
             v-model:value="editionForm.editionCode"
             :disabled="Boolean(editionForm.basicId)"
             clearable
-            placeholder="如: pro"
+            :placeholder="t('tenant.edition.edition_code_placeholder')"
           />
         </NFormItem>
-        <NFormItem label="版本名称" path="editionName">
-          <NInput v-model:value="editionForm.editionName" clearable placeholder="请输入版本名称" />
+        <NFormItem :label="t('tenant.edition.edition_name')" path="editionName">
+          <NInput v-model:value="editionForm.editionName" clearable :placeholder="t('tenant.edition.edition_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="价格" path="price">
+        <NFormItem :label="t('tenant.edition.price')" path="price">
           <NInputNumber
             v-model:value="editionForm.price"
             :disabled="editionForm.isFree"
             :min="0"
             :precision="2"
             clearable
-            placeholder="留空表示未定价"
+            :placeholder="t('tenant.edition.price_placeholder')"
             style="width: 100%"
           />
         </NFormItem>
-        <NFormItem label="计费周期(月)" path="billingPeriodMonths">
+        <NFormItem :label="t('tenant.edition.billing_period_form')" path="billingPeriodMonths">
           <NInputNumber
             v-model:value="editionForm.billingPeriodMonths"
             :min="1"
             :precision="0"
             clearable
-            placeholder="如: 12"
+            :placeholder="t('tenant.edition.billing_period_placeholder')"
             style="width: 100%"
           />
         </NFormItem>
-        <NFormItem label="用户上限" path="userLimit">
+        <NFormItem :label="t('tenant.edition.user_limit')" path="userLimit">
           <NInputNumber
             v-model:value="editionForm.userLimit"
             :min="0"
             :precision="0"
             clearable
-            placeholder="留空不限"
+            :placeholder="t('tenant.edition.user_limit_placeholder')"
             style="width: 100%"
           />
         </NFormItem>
-        <NFormItem label="存储上限(MB)" path="storageLimit">
+        <NFormItem :label="t('tenant.edition.storage_limit_form')" path="storageLimit">
           <NInputNumber
             v-model:value="editionForm.storageLimit"
             :min="0"
             :precision="0"
             clearable
-            placeholder="留空不限"
+            :placeholder="t('tenant.edition.storage_limit_placeholder')"
             style="width: 100%"
           />
         </NFormItem>
-        <NFormItem label="是否免费" path="isFree">
+        <NFormItem :label="t('tenant.edition.is_free')" path="isFree">
           <NSwitch v-model:value="editionForm.isFree" />
         </NFormItem>
-        <NFormItem label="设为默认版本" path="isDefault">
+        <NFormItem :label="t('tenant.edition.set_default')" path="isDefault">
           <NSwitch v-model:value="editionForm.isDefault" />
         </NFormItem>
-        <NFormItem v-if="!editionForm.basicId" label="状态" path="status">
+        <NFormItem v-if="!editionForm.basicId" :label="t('tenant.edition.status')" path="status">
           <NSelect v-model:value="editionForm.status" :options="statusOptions" />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('tenant.edition.sort')" path="sort">
           <NInputNumber v-model:value="editionForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="描述" path="description">
+        <NFormItem :label="t('tenant.edition.description')" path="description">
           <NInput
             v-model:value="editionForm.description"
             :rows="2"
             clearable
-            placeholder="请输入版本描述"
+            :placeholder="t('tenant.edition.description_placeholder')"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
+        <NFormItem :label="t('tenant.edition.remark')" path="remark">
           <NInput
             v-model:value="editionForm.remark"
             :rows="2"
             clearable
-            placeholder="请输入备注"
+            :placeholder="t('tenant.edition.remark_placeholder')"
             type="textarea"
           />
         </NFormItem>
@@ -677,17 +684,17 @@ function formatNullable(value: unknown) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('tenant.edition.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('tenant.edition.save') }}
           </NButton>
         </NSpace>
       </template>
     </NModal>
 
     <NDrawer v-model:show="permDrawerVisible" :width="760">
-      <NDrawerContent :title="`版本权限 — ${permEdition?.editionName ?? ''}`" closable>
+      <NDrawerContent :title="t('tenant.edition.perm_drawer_title', { name: permEdition?.editionName ?? '' })" closable>
         <div v-if="canGrantPermission" class="perm-grant">
           <NSelect
             v-model:value="grantPermissionId"
@@ -695,7 +702,7 @@ function formatNullable(value: unknown) {
             :options="grantSelectOptions"
             clearable
             filterable
-            placeholder="搜索全局权限（名称/编码）"
+            :placeholder="t('tenant.edition.perm_grant_placeholder')"
             remote
             @search="loadGrantOptions"
           />
@@ -705,16 +712,16 @@ function formatNullable(value: unknown) {
             type="primary"
             @click="handleGrant"
           >
-            授予
+            {{ t('tenant.edition.perm_grant') }}
           </NButton>
         </div>
 
         <NSpin :show="permLoading">
           <div v-if="permError" class="xh-detail-empty">
-            <NEmpty description="加载版本权限失败">
+            <NEmpty :description="t('tenant.edition.perm_load_failed')">
               <template #extra>
                 <NButton size="small" @click="loadPermissionList">
-                  重试
+                  {{ t('tenant.edition.perm_retry') }}
                 </NButton>
               </template>
             </NEmpty>
@@ -722,18 +729,18 @@ function formatNullable(value: unknown) {
           <NEmpty
             v-else-if="!permLoading && permList.length === 0"
             class="xh-detail-empty"
-            description="该版本暂无权限白名单"
+            :description="t('tenant.edition.perm_empty')"
           />
           <table v-else class="xh-detail-table">
             <thead>
               <tr>
-                <th>权限</th>
-                <th>模块</th>
-                <th>类型</th>
-                <th>映射状态</th>
-                <th>授予时间</th>
+                <th>{{ t('tenant.edition.perm_col_permission') }}</th>
+                <th>{{ t('tenant.edition.perm_col_module') }}</th>
+                <th>{{ t('tenant.edition.perm_col_type') }}</th>
+                <th>{{ t('tenant.edition.perm_col_mapping_status') }}</th>
+                <th>{{ t('tenant.edition.perm_col_granted_time') }}</th>
                 <th v-if="canUpdateMapping || canRevokePermission">
-                  操作
+                  {{ t('tenant.edition.perm_col_operation') }}
                 </th>
               </tr>
             </thead>
@@ -767,7 +774,7 @@ function formatNullable(value: unknown) {
                       type="warning"
                       @click="handleToggleMappingStatus(item)"
                     >
-                      {{ item.status === ValidityStatus.Valid ? '停用' : '启用' }}
+                      {{ item.status === ValidityStatus.Valid ? t('tenant.edition.perm_disable') : t('tenant.edition.perm_enable') }}
                     </NButton>
                     <NButton
                       v-if="canRevokePermission"
@@ -776,7 +783,7 @@ function formatNullable(value: unknown) {
                       type="error"
                       @click="confirmRevoke(item)"
                     >
-                      撤销
+                      {{ t('tenant.edition.perm_revoke') }}
                     </NButton>
                   </NSpace>
                 </td>
