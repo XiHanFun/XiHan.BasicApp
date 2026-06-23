@@ -1,0 +1,8 @@
+{
+  "resource": "ApiResponse",
+  "culture": "en-US",
+  "texts": {
+    "ServerError": "An error occurred while processing the request.",
+    "BadRequest": "The request failed."
+  }
+}

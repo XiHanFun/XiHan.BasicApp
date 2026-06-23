@@ -1,0 +1,7 @@
+{
+  "resource": "Errors",
+  "culture": "en-US",
+  "texts": {
+    "Auth.UserNotFound": "The user does not exist."
+  }
+}

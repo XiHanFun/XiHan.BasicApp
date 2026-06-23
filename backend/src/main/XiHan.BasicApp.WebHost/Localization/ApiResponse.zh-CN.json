@@ -1,0 +1,8 @@
+{
+  "resource": "ApiResponse",
+  "culture": "zh-CN",
+  "texts": {
+    "ServerError": "服务端处理异常",
+    "BadRequest": "请求失败"
+  }
+}
