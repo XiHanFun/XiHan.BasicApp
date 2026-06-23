@@ -737,7 +737,11 @@ async function handleSubmit() {
 
     <!-- 执行日志抽屉：按任务过滤的执行历史，行点击查看异常堆栈/输出日志 -->
     <NDrawer v-model:show="logVisible" :width="860">
-      <NDrawerContent closable :title="`执行日志 - ${logTask?.taskName ?? ''}`">
+      <NDrawerContent
+        closable
+        :title="`执行日志 - ${logTask?.taskName ?? ''}`"
+        :body-content-style="{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }"
+      >
         <div class="xh-task-log-toolbar">
           <NSelect
             v-model:value="logStatusFilter"
@@ -765,21 +769,25 @@ async function handleSubmit() {
           </NButton>
           <span class="xh-task-log-tip">点击行查看执行结果与异常堆栈</span>
         </div>
-        <NDataTable
-          :columns="taskLogColumns"
-          :data="logItems"
-          :loading="logLoading"
-          :pagination="{
-            page: logPagination.page,
-            pageSize: logPagination.pageSize,
-            itemCount: logPagination.itemCount,
-            onUpdatePage: (p: number) => loadTaskLogs(p),
-          }"
-          :row-key="(row: TaskLogListItemDto) => row.basicId"
-          :row-props="taskLogRowProps"
-          remote
-          size="small"
-        />
+        <div class="xh-task-log-body">
+          <NDataTable
+            class="xh-task-log-table"
+            flex-height
+            :columns="taskLogColumns"
+            :data="logItems"
+            :loading="logLoading"
+            :pagination="{
+              page: logPagination.page,
+              pageSize: logPagination.pageSize,
+              itemCount: logPagination.itemCount,
+              onUpdatePage: (p: number) => loadTaskLogs(p),
+            }"
+            :row-key="(row: TaskLogListItemDto) => row.basicId"
+            :row-props="taskLogRowProps"
+            remote
+            size="small"
+          />
+        </div>
       </NDrawerContent>
     </NDrawer>
 
@@ -962,9 +970,22 @@ async function handleSubmit() {
 
 .xh-task-log-toolbar {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.xh-task-log-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.xh-task-log-table {
+  flex: 1;
+  min-height: 0;
 }
 
 .xh-task-log-tip {
