@@ -27,7 +27,14 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class EnumMetadataQueryService
     : IEnumMetadataQueryService
 {
-    private const string TargetNamespace = "XiHan.BasicApp.Saas.Domain.Entities";
+    // 扫描业务枚举所在命名空间：Domain.Entities（实体内枚举）+ Domain.Enums（独立业务枚举：
+    // EnableStatus/ValidityStatus/AuthorizationGrantSource）。前端 select/字典经枚举元数据 API 按文化取本地化选项。
+    private static readonly HashSet<string> TargetNamespaces = new(StringComparer.Ordinal)
+    {
+        "XiHan.BasicApp.Saas.Domain.Entities",
+        "XiHan.BasicApp.Saas.Domain.Enums",
+    };
+
     private static readonly Assembly DomainAssembly = typeof(SysUser).Assembly;
     private static readonly Lazy<XDocument?> XmlDocCache = new(LoadXmlDocumentation, LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -105,7 +112,7 @@ public sealed class EnumMetadataQueryService
     private static List<EnumStructure> BuildAllStructures()
     {
         var enumTypes = DomainAssembly.GetTypes()
-            .Where(static type => type.IsEnum && string.Equals(type.Namespace, TargetNamespace, StringComparison.Ordinal))
+            .Where(static type => type.IsEnum && type.Namespace is not null && TargetNamespaces.Contains(type.Namespace))
             .OrderBy(static type => type.Name, StringComparer.Ordinal)
             .ToList();
 
