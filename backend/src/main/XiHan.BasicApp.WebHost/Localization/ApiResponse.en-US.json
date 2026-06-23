@@ -2,7 +2,18 @@
   "resource": "ApiResponse",
   "culture": "en-US",
   "texts": {
-    "ServerError": "An error occurred while processing the request.",
-    "BadRequest": "The request failed."
+    "Success": "Success",
+    "Created": "Created",
+    "BadRequest": "Bad Request",
+    "Unauthorized": "Unauthorized",
+    "Forbidden": "Forbidden",
+    "NotFound": "Not Found",
+    "MethodNotAllowed": "Method Not Allowed",
+    "RequestTimeOut": "Request Timeout",
+    "UnprocessableEntity": "Unprocessable Entity",
+    "TooManyRequests": "Too Many Requests",
+    "Failed": "Internal Server Error",
+    "ServiceUnavailable": "Service Unavailable",
+    "ServerError": "An error occurred while processing the request."
   }
 }
