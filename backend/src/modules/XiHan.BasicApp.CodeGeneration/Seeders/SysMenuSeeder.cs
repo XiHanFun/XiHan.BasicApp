@@ -52,12 +52,12 @@ public class SysMenuSeeder : DataSeederBase
 
         if (!existsCodes.Contains("develop"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "lucide:hammer", Title = "开发工具", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 400, Remark = "开发工具目录" });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "开发工具", MenuCode = "develop", MenuType = MenuType.Directory, Path = "/develop", Component = null, RouteName = null, Icon = "lucide:hammer", Title = "开发工具", I18nKey = "menu.develop", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 400, Remark = "开发工具目录" });
         }
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "lucide:code-xml", Title = "代码生成", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 401, Remark = "代码生成" });
+            addList.Add(new SysMenu { ParentId = null, MenuName = "代码生成", MenuCode = "code_gen", MenuType = MenuType.Menu, Path = "/develop/codeGen", Component = "Develop/CodeGen/Index", RouteName = "DevelopCodeGen", Icon = "lucide:code-xml", Title = "代码生成", I18nKey = "menu.code_gen", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 401, Remark = "代码生成" });
         }
 
         if (addList.Count > 0)
@@ -73,6 +73,11 @@ public class SysMenuSeeder : DataSeederBase
                 .Where(m => m.MenuCode == "code_gen")
                 .ExecuteCommandAsync();
         }
+
+        // 回填国际化键：存量行（已建库）也补上 I18nKey，菜单标题由前端按该键翻译（te 命中则译，否则回退原文）。
+        // 按 MenuCode 等值分别更新，避免可空列 OR 在 PostgreSQL 上的翻译问题。
+        await client.Updateable<SysMenu>().SetColumns(m => m.I18nKey == "menu.develop").Where(m => m.MenuCode == "develop").ExecuteCommandAsync();
+        await client.Updateable<SysMenu>().SetColumns(m => m.I18nKey == "menu.code_gen").Where(m => m.MenuCode == "code_gen").ExecuteCommandAsync();
 
         // 代码生成前端与应用服务已就绪，菜单解除隐藏：把仍隐藏/停用的项置为可见且启用
         var showCount = await client.Updateable<SysMenu>()

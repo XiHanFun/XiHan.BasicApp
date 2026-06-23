@@ -44,6 +44,8 @@ export default {
   about_project: 'About Project',
   about_github: 'Github',
   about_gitee: 'Gitee',
+  develop: 'Development Tools',
+  code_gen: 'Code Generation',
   // ==================== Common / legacy keys ====================
   dashboard: 'Dashboard',
   workspace: 'Workspace',
