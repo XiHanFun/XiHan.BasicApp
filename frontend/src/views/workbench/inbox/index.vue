@@ -11,6 +11,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { NotificationStatus, NotificationType, workbenchApi } from '@/api'
 import { Icon } from '~/iconify'
@@ -24,25 +25,26 @@ type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 const router = useRouter()
 const message = useMessage()
 const notificationStore = useNotificationStore()
+const { t } = useI18n()
 
 const loading = ref(false)
 const unreadOnly = ref(false)
 const typeFilter = ref<NotificationType | undefined>(undefined)
 const items = ref<UserInboxItemDto[]>([])
 
-const notificationTypeOptions = [
-  { label: '全部类型', value: undefined },
-  { label: '系统', value: NotificationType.System },
-  { label: '用户', value: NotificationType.User },
-  { label: '公告', value: NotificationType.Announcement },
-  { label: '警告', value: NotificationType.Warning },
-  { label: '错误', value: NotificationType.Error },
-]
+const notificationTypeOptions = computed(() => [
+  { label: t('workbench.inbox.type_all'), value: undefined },
+  { label: t('workbench.inbox.type_system'), value: NotificationType.System },
+  { label: t('workbench.inbox.type_user'), value: NotificationType.User },
+  { label: t('workbench.inbox.type_announcement'), value: NotificationType.Announcement },
+  { label: t('workbench.inbox.type_warning'), value: NotificationType.Warning },
+  { label: t('workbench.inbox.type_error'), value: NotificationType.Error },
+])
 
-const scopeOptions = [
-  { label: '全部', value: 'all' },
-  { label: '待处理', value: 'pending' },
-]
+const scopeOptions = computed(() => [
+  { label: t('workbench.inbox.scope_all'), value: 'all' },
+  { label: t('workbench.inbox.scope_pending'), value: 'pending' },
+])
 
 function changeScope(value: string | number) {
   unreadOnly.value = value === 'pending'
@@ -74,15 +76,15 @@ function needsAttention(item: UserInboxItemDto) {
 function notificationTypeLabel(type: NotificationType) {
   switch (type) {
     case NotificationType.User:
-      return '用户'
+      return t('workbench.inbox.type_user')
     case NotificationType.Announcement:
-      return '公告'
+      return t('workbench.inbox.type_announcement')
     case NotificationType.Warning:
-      return '警告'
+      return t('workbench.inbox.type_warning')
     case NotificationType.Error:
-      return '错误'
+      return t('workbench.inbox.type_error')
     default:
-      return '系统'
+      return t('workbench.inbox.type_system')
   }
 }
 
@@ -140,7 +142,7 @@ async function loadNotifications() {
     syncHeaderStore(list)
   }
   catch {
-    message.error('加载站内信失败')
+    message.error(t('workbench.inbox.load_failed'))
   }
   finally {
     loading.value = false
@@ -159,7 +161,7 @@ async function handleMarkRead(item: UserInboxItemDto) {
     notificationStore.markItemRead(item.basicId)
   }
   catch {
-    message.error('标记已读失败')
+    message.error(t('workbench.inbox.mark_read_failed'))
   }
 }
 
@@ -173,7 +175,7 @@ async function handleConfirm(item: UserInboxItemDto) {
     notificationStore.markItemConfirmed(item.basicId)
   }
   catch {
-    message.error('确认通知失败')
+    message.error(t('workbench.inbox.confirm_failed'))
   }
 }
 
@@ -194,7 +196,7 @@ async function handleMarkAllRead() {
     notificationStore.markAllRead()
   }
   catch {
-    message.error('全部标记已读失败')
+    message.error(t('workbench.inbox.mark_all_read_failed'))
   }
 }
 
@@ -222,7 +224,7 @@ onMounted(loadNotifications)
           v-model:value="typeFilter"
           :options="notificationTypeOptions"
           clearable
-          placeholder="通知类型"
+          :placeholder="t('workbench.inbox.type_placeholder')"
           size="small"
           style="width: 120px"
         />
@@ -237,10 +239,10 @@ onMounted(loadNotifications)
 
       <div class="inbox-toolbar-right">
         <NTag round size="small">
-          未读 {{ unreadCount }}
+          {{ t('workbench.inbox.unread_count', { n: unreadCount }) }}
         </NTag>
         <NTag round size="small" :type="confirmCount > 0 ? 'warning' : 'default'">
-          待确认 {{ confirmCount }}
+          {{ t('workbench.inbox.confirm_count', { n: confirmCount }) }}
         </NTag>
         <NButton
           :disabled="unreadCount === 0"
@@ -253,9 +255,9 @@ onMounted(loadNotifications)
           <template #icon>
             <NIcon><Icon icon="lucide:check-check" /></NIcon>
           </template>
-          全部已读
+          {{ t('workbench.inbox.mark_all_read') }}
         </NButton>
-        <NButton aria-label="刷新" circle :loading="loading" size="small" @click="loadNotifications">
+        <NButton :aria-label="t('workbench.inbox.refresh')" circle :loading="loading" size="small" @click="loadNotifications">
           <template #icon>
             <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
           </template>
@@ -273,7 +275,7 @@ onMounted(loadNotifications)
       </div>
     </div>
 
-    <NEmpty v-else-if="visibleItems.length === 0" class="inbox-empty" description="暂无通知" />
+    <NEmpty v-else-if="visibleItems.length === 0" class="inbox-empty" :description="t('workbench.inbox.empty')" />
 
     <div v-else class="inbox-list">
       <article
@@ -296,29 +298,29 @@ onMounted(loadNotifications)
                 {{ notificationTypeLabel(item.notificationType) }}
               </NTag>
               <NTag v-if="item.notificationStatus === NotificationStatus.Unread" round size="small" type="warning">
-                未读
+                {{ t('workbench.inbox.unread') }}
               </NTag>
               <NTag v-if="item.needConfirm && !item.confirmTime" round size="small" type="error">
-                待确认
+                {{ t('workbench.inbox.pending_confirm') }}
               </NTag>
             </div>
           </div>
 
           <p class="inbox-item-content">
-            {{ item.content || '无正文' }}
+            {{ item.content || t('workbench.inbox.no_content') }}
           </p>
 
           <div class="inbox-item-foot">
             <span>{{ formatDate(item.sendTime) }}</span>
-            <span v-if="item.readTime">已读 {{ formatDate(item.readTime) }}</span>
-            <span v-if="item.confirmTime">已确认 {{ formatDate(item.confirmTime) }}</span>
+            <span v-if="item.readTime">{{ t('workbench.inbox.read_at', { time: formatDate(item.readTime) }) }}</span>
+            <span v-if="item.confirmTime">{{ t('workbench.inbox.confirmed_at', { time: formatDate(item.confirmTime) }) }}</span>
           </div>
         </div>
 
         <NSpace class="inbox-item-actions" :size="4">
           <NButton
             v-if="item.notificationStatus === NotificationStatus.Unread"
-            aria-label="标记已读"
+            :aria-label="t('workbench.inbox.mark_read')"
             circle
             quaternary
             size="small"
@@ -331,7 +333,7 @@ onMounted(loadNotifications)
           </NButton>
           <NButton
             v-if="item.needConfirm && !item.confirmTime"
-            aria-label="确认"
+            :aria-label="t('workbench.inbox.confirm')"
             circle
             quaternary
             size="small"
@@ -344,7 +346,7 @@ onMounted(loadNotifications)
           </NButton>
           <NButton
             v-if="item.link"
-            aria-label="打开链接"
+            :aria-label="t('workbench.inbox.open_link')"
             circle
             quaternary
             size="small"

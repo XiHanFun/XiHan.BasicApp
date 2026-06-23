@@ -21,11 +21,13 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { serverManagementApi } from '@/api'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'PlatformServerPage' })
 
+const { t } = useI18n()
 const message = useMessage()
 const loading = ref(false)
 const initialized = ref(false)
@@ -53,12 +55,12 @@ function fmtUptime(raw: unknown) {
   const dm = s.match(/^(\d+)\.(\d+):(\d+):(\d+)/)
   if (dm) {
     const [, day = '0', hour = '0', minute = '0', second = '0'] = dm
-    return `${day}天 ${hour}时${minute}分${second}秒`
+    return t('setting.server.uptime_with_day', { day, hour, minute, second })
   }
   const hm = s.match(/^(\d+):(\d+):(\d+)/)
   if (hm) {
     const [, hour = '0', minute = '0', second = '0'] = hm
-    return `${hour}时${minute}分${second.split('.')[0]}秒`
+    return t('setting.server.uptime', { hour, minute, second: second.split('.')[0] ?? '0' })
   }
   return s || '-'
 }
@@ -86,74 +88,74 @@ const memPct = computed(() => mem.value?.usagePercentage ?? 0)
 const overviewItems = computed(() => [
   {
     icon: 'lucide:cpu',
-    title: '处理器',
+    title: t('setting.server.processor'),
     value: cpu.value?.processorName ?? '-',
-    sub: `${cpu.value?.physicalCoreCount ?? '-'}核 ${cpu.value?.logicalCoreCount ?? '-'}线程`,
+    sub: t('setting.server.cores_threads', { physical: cpu.value?.physicalCoreCount ?? '-', logical: cpu.value?.logicalCoreCount ?? '-' }),
   },
   {
     icon: 'lucide:memory-stick',
-    title: '内存',
+    title: t('setting.server.memory'),
     value: fmtBytes(mem.value?.totalBytes),
-    sub: `使用率 ${memPct.value}%`,
+    sub: t('setting.server.usage_rate_value', { pct: memPct.value }),
   },
   {
     icon: 'lucide:monitor',
-    title: '操作系统',
+    title: t('setting.server.os'),
     value: rt.value?.osDescription ?? '-',
-    sub: `${rt.value?.osArchitecture ?? '-'} 架构`,
+    sub: t('setting.server.arch_suffix', { arch: rt.value?.osArchitecture ?? '-' }),
   },
   {
     icon: 'lucide:box',
-    title: '运行框架',
+    title: t('setting.server.framework'),
     value: rt.value?.frameworkDescription ?? '-',
     sub: rt.value?.machineName ?? '-',
   },
   {
     icon: 'lucide:timer',
-    title: '系统运行',
+    title: t('setting.server.system_uptime'),
     value: fmtUptime(rt.value?.systemUptime),
-    sub: `进程 ${fmtUptime(rt.value?.processUptime)}`,
+    sub: t('setting.server.process_uptime', { uptime: fmtUptime(rt.value?.processUptime) }),
   },
 ])
 
 const cpuDetails = computed(() => [
-  { label: '处理器架构', value: cpu.value?.processorArchitecture ?? '-' },
-  { label: '基础频率', value: cpu.value?.baseClockSpeed ? `${cpu.value.baseClockSpeed} GHz` : '-' },
-  { label: '缓存大小', value: fmtBytes(cpu.value?.cacheBytes) },
-  { label: '物理核心', value: cpu.value?.physicalCoreCount ?? '-' },
-  { label: '逻辑核心', value: cpu.value?.logicalCoreCount ?? '-' },
+  { label: t('setting.server.processor_arch'), value: cpu.value?.processorArchitecture ?? '-' },
+  { label: t('setting.server.base_clock'), value: cpu.value?.baseClockSpeed ? `${cpu.value.baseClockSpeed} GHz` : '-' },
+  { label: t('setting.server.cache_size'), value: fmtBytes(cpu.value?.cacheBytes) },
+  { label: t('setting.server.physical_cores'), value: cpu.value?.physicalCoreCount ?? '-' },
+  { label: t('setting.server.logical_cores'), value: cpu.value?.logicalCoreCount ?? '-' },
 ])
 
 const memDetails = computed(() => [
-  { label: '总内存', value: fmtBytes(mem.value?.totalBytes) },
-  { label: '已使用', value: fmtBytes(mem.value?.usedBytes) },
-  { label: '可用', value: fmtBytes(mem.value?.availableBytes ?? mem.value?.freeBytes) },
+  { label: t('setting.server.total_memory'), value: fmtBytes(mem.value?.totalBytes) },
+  { label: t('setting.server.used'), value: fmtBytes(mem.value?.usedBytes) },
+  { label: t('setting.server.available'), value: fmtBytes(mem.value?.availableBytes ?? mem.value?.freeBytes) },
   {
-    label: '可用率',
+    label: t('setting.server.available_rate'),
     value: mem.value?.availablePercentage != null ? `${mem.value.availablePercentage}%` : '-',
   },
 ])
 
 const boardDetails = computed(() => [
-  { icon: 'lucide:factory', label: '制造商', value: boardInfo.value?.manufacturer },
-  { icon: 'lucide:tag', label: '型号', value: boardInfo.value?.product },
-  { icon: 'lucide:git-branch', label: '版本', value: boardInfo.value?.version },
-  { icon: 'lucide:barcode', label: '序列号', value: boardInfo.value?.serialNumber },
+  { icon: 'lucide:factory', label: t('setting.server.manufacturer'), value: boardInfo.value?.manufacturer },
+  { icon: 'lucide:tag', label: t('setting.server.model'), value: boardInfo.value?.product },
+  { icon: 'lucide:git-branch', label: t('setting.server.version'), value: boardInfo.value?.version },
+  { icon: 'lucide:barcode', label: t('setting.server.serial_number'), value: boardInfo.value?.serialNumber },
 ])
 
 const sysDetails = computed(() => [
-  { icon: 'lucide:monitor', label: '操作系统', value: rt.value?.osDescription },
-  { icon: 'lucide:hash', label: '系统版本', value: rt.value?.osVersion },
-  { icon: 'lucide:layers', label: '系统架构', value: rt.value?.osArchitecture },
-  { icon: 'lucide:box', label: '运行框架', value: rt.value?.frameworkDescription },
-  { icon: 'lucide:server', label: '机器名称', value: rt.value?.machineName },
-  { icon: 'lucide:user', label: '当前用户', value: rt.value?.userName },
-  { icon: 'lucide:calendar', label: '系统启动', value: rt.value?.systemStartTime },
-  { icon: 'lucide:play', label: '进程启动', value: rt.value?.processStartTime },
-  { icon: 'lucide:fingerprint', label: '进程ID', value: rt.value?.processId },
-  { icon: 'lucide:terminal', label: '进程名称', value: rt.value?.processName },
-  { icon: 'lucide:hard-drive', label: '工作集', value: fmtBytes(rt.value?.workingSet) },
-  { icon: 'lucide:toggle-right', label: '交互模式', value: rt.value?.interactiveMode },
+  { icon: 'lucide:monitor', label: t('setting.server.os'), value: rt.value?.osDescription },
+  { icon: 'lucide:hash', label: t('setting.server.os_version'), value: rt.value?.osVersion },
+  { icon: 'lucide:layers', label: t('setting.server.os_arch'), value: rt.value?.osArchitecture },
+  { icon: 'lucide:box', label: t('setting.server.framework'), value: rt.value?.frameworkDescription },
+  { icon: 'lucide:server', label: t('setting.server.machine_name'), value: rt.value?.machineName },
+  { icon: 'lucide:user', label: t('setting.server.current_user'), value: rt.value?.userName },
+  { icon: 'lucide:calendar', label: t('setting.server.system_start'), value: rt.value?.systemStartTime },
+  { icon: 'lucide:play', label: t('setting.server.process_start'), value: rt.value?.processStartTime },
+  { icon: 'lucide:fingerprint', label: t('setting.server.process_id'), value: rt.value?.processId },
+  { icon: 'lucide:terminal', label: t('setting.server.process_name'), value: rt.value?.processName },
+  { icon: 'lucide:hard-drive', label: t('setting.server.working_set'), value: fmtBytes(rt.value?.workingSet) },
+  { icon: 'lucide:toggle-right', label: t('setting.server.interactive_mode'), value: rt.value?.interactiveMode },
 ])
 
 const activeNetworks = computed(() =>
@@ -190,7 +192,7 @@ async function fetchData() {
     gpuInfos.value = gpuRes ?? []
   }
   catch {
-    message.error('获取服务器信息失败')
+    message.error(t('setting.server.fetch_failed'))
   }
   finally {
     loading.value = false
@@ -261,14 +263,14 @@ onUnmounted(() => {
         <div class="sv-banner-head">
           <div class="sv-banner-title">
             <Icon icon="lucide:server" width="18" />
-            <span>系统概览</span>
+            <span>{{ t('setting.server.system_overview') }}</span>
           </div>
           <div class="sv-banner-actions">
             <NTag size="small" type="success" :bordered="false" round>
               <template #icon>
                 <Icon icon="lucide:activity" width="12" />
               </template>
-              运行正常
+              {{ t('setting.server.running_normal') }}
             </NTag>
             <NButton
               size="tiny"
@@ -310,7 +312,7 @@ onUnmounted(() => {
             <template #header>
               <div class="sv-card-header">
                 <Icon icon="lucide:cpu" width="16" />
-                <span>CPU信息</span>
+                <span>{{ t('setting.server.cpu_info') }}</span>
               </div>
             </template>
             <div class="sv-perf">
@@ -329,7 +331,7 @@ onUnmounted(() => {
                       <small>%</small>
                     </div>
                     <div class="sv-gauge-label">
-                      使用率
+                      {{ t('setting.server.usage_rate') }}
                     </div>
                   </div>
                 </NProgress>
@@ -352,7 +354,7 @@ onUnmounted(() => {
             <template #header>
               <div class="sv-card-header">
                 <Icon icon="lucide:memory-stick" width="16" />
-                <span>内存信息</span>
+                <span>{{ t('setting.server.memory_info') }}</span>
               </div>
             </template>
             <div class="sv-perf">
@@ -371,7 +373,7 @@ onUnmounted(() => {
                       <small>%</small>
                     </div>
                     <div class="sv-gauge-label">
-                      使用率
+                      {{ t('setting.server.usage_rate') }}
                     </div>
                   </div>
                 </NProgress>
@@ -396,11 +398,11 @@ onUnmounted(() => {
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:hard-drive" width="16" />
-            <span>磁盘信息</span>
+            <span>{{ t('setting.server.disk_info') }}</span>
           </div>
         </template>
         <div v-if="!diskInfos.length" class="sv-empty">
-          暂无数据
+          {{ t('setting.server.no_data') }}
         </div>
         <NGrid v-else cols="1 s:2 l:3" responsive="screen" :x-gap="10" :y-gap="10">
           <NGridItem v-for="disk in diskInfos" :key="disk.diskName">
@@ -430,9 +432,9 @@ onUnmounted(() => {
                 :show-indicator="false"
               />
               <div class="sv-disk-stats">
-                <span>已用 {{ fmtBytes(disk.usedSpace) }}</span>
-                <span>共 {{ fmtBytes(disk.totalSpace) }}</span>
-                <span>可用 {{ fmtBytes(disk.freeSpace) }}</span>
+                <span>{{ t('setting.server.used_space', { value: fmtBytes(disk.usedSpace) }) }}</span>
+                <span>{{ t('setting.server.total_space', { value: fmtBytes(disk.totalSpace) }) }}</span>
+                <span>{{ t('setting.server.free_space', { value: fmtBytes(disk.freeSpace) }) }}</span>
               </div>
             </div>
           </NGridItem>
@@ -444,14 +446,14 @@ onUnmounted(() => {
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:monitor" width="16" />
-            <span>显卡信息</span>
+            <span>{{ t('setting.server.gpu_info') }}</span>
             <NTag v-if="gpuInfos.length" size="small" :bordered="false" type="info" class="sv-pkg-count">
-              {{ gpuInfos.length }} 个
+              {{ t('setting.server.count_unit', { count: gpuInfos.length }) }}
             </NTag>
           </div>
         </template>
         <div v-if="!gpuInfos.length" class="sv-empty">
-          暂无数据
+          {{ t('setting.server.no_data') }}
         </div>
         <NCollapse v-else>
           <NCollapseItem v-for="(gpu, idx) in gpuInfos" :key="idx" :name="idx">
@@ -474,23 +476,23 @@ onUnmounted(() => {
             </template>
             <div class="sv-collapse-body">
               <div v-if="gpu.memoryBytes" class="sv-kv">
-                <span class="sv-kv-label">显存</span>
+                <span class="sv-kv-label">{{ t('setting.server.gpu_memory') }}</span>
                 <span class="sv-kv-value">{{ fmtBytes(gpu.memoryBytes) }}</span>
               </div>
               <div v-if="gpu.driverVersion" class="sv-kv">
-                <span class="sv-kv-label">驱动版本</span>
+                <span class="sv-kv-label">{{ t('setting.server.driver_version') }}</span>
                 <span class="sv-kv-value">{{ gpu.driverVersion }}</span>
               </div>
               <div v-if="gpu.videoModeDescription" class="sv-kv">
-                <span class="sv-kv-label">分辨率</span>
+                <span class="sv-kv-label">{{ t('setting.server.resolution') }}</span>
                 <span class="sv-kv-value">{{ gpu.videoModeDescription }}</span>
               </div>
               <div v-if="gpu.vendor" class="sv-kv">
-                <span class="sv-kv-label">厂商</span>
+                <span class="sv-kv-label">{{ t('setting.server.vendor') }}</span>
                 <span class="sv-kv-value">{{ gpu.vendor }}</span>
               </div>
               <div v-if="gpu.temperature != null" class="sv-kv">
-                <span class="sv-kv-label">温度</span>
+                <span class="sv-kv-label">{{ t('setting.server.temperature') }}</span>
                 <span class="sv-kv-value">{{ gpu.temperature }}°C</span>
               </div>
             </div>
@@ -503,14 +505,14 @@ onUnmounted(() => {
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:network" width="16" />
-            <span>网络信息</span>
+            <span>{{ t('setting.server.network_info') }}</span>
             <NTag v-if="activeNetworks.length" size="small" :bordered="false" type="info" class="sv-pkg-count">
-              {{ activeNetworks.length }} 个活跃
+              {{ t('setting.server.active_count', { count: activeNetworks.length }) }}
             </NTag>
           </div>
         </template>
         <div v-if="!activeNetworks.length" class="sv-empty">
-          暂无数据
+          {{ t('setting.server.no_data') }}
         </div>
         <NCollapse v-else>
           <NCollapseItem v-for="net in activeNetworks" :key="net.name" :name="net.name">
@@ -533,15 +535,15 @@ onUnmounted(() => {
               <NGridItem>
                 <div class="sv-collapse-body">
                   <div class="sv-kv">
-                    <span class="sv-kv-label">描述</span>
+                    <span class="sv-kv-label">{{ t('setting.server.description') }}</span>
                     <span class="sv-kv-value">{{ net.description || '-' }}</span>
                   </div>
                   <div class="sv-kv">
-                    <span class="sv-kv-label">物理地址</span>
+                    <span class="sv-kv-label">{{ t('setting.server.physical_address') }}</span>
                     <span class="sv-kv-value">{{ net.physicalAddress || '-' }}</span>
                   </div>
                   <div class="sv-kv">
-                    <span class="sv-kv-label">速度</span>
+                    <span class="sv-kv-label">{{ t('setting.server.speed') }}</span>
                     <span class="sv-kv-value">{{ net.speed }}</span>
                   </div>
                   <div v-if="net.iPv4Addresses?.length" class="sv-kv">
@@ -563,21 +565,21 @@ onUnmounted(() => {
               <NGridItem v-if="net.statistics">
                 <div class="sv-collapse-body">
                   <div class="sv-kv">
-                    <span class="sv-kv-label">接收</span>
+                    <span class="sv-kv-label">{{ t('setting.server.received') }}</span>
                     <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesReceived) }}</span>
                   </div>
                   <div class="sv-kv">
-                    <span class="sv-kv-label">发送</span>
+                    <span class="sv-kv-label">{{ t('setting.server.sent') }}</span>
                     <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesSent) }}</span>
                   </div>
                   <div class="sv-kv">
-                    <span class="sv-kv-label">接收包</span>
+                    <span class="sv-kv-label">{{ t('setting.server.received_packets') }}</span>
                     <span class="sv-kv-value">
                       {{ net.statistics.packetsReceived?.toLocaleString() }}
                     </span>
                   </div>
                   <div class="sv-kv">
-                    <span class="sv-kv-label">发送包</span>
+                    <span class="sv-kv-label">{{ t('setting.server.sent_packets') }}</span>
                     <span class="sv-kv-value">
                       {{ net.statistics.packetsSent?.toLocaleString() }}
                     </span>
@@ -594,7 +596,7 @@ onUnmounted(() => {
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:circuit-board" width="16" />
-            <span>主板信息</span>
+            <span>{{ t('setting.server.board_info') }}</span>
           </div>
         </template>
         <div class="sv-board-grid">
@@ -617,7 +619,7 @@ onUnmounted(() => {
         <template #header>
           <div class="sv-card-header">
             <Icon icon="lucide:settings" width="16" />
-            <span>系统信息</span>
+            <span>{{ t('setting.server.system_info') }}</span>
           </div>
         </template>
         <div class="sv-sys-grid">

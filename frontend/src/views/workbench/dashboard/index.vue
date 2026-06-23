@@ -37,10 +37,10 @@ const latestItems = ref<UserInboxItemDto[]>([])
 const announcements = ref<NotificationListItemDto[]>([])
 
 const statCards = computed(() => [
-  { key: 'access', label: '今日访问', value: accessCount.value, icon: 'lucide:mouse-pointer-click', color: '#3b82f6' },
-  { key: 'operation', label: '操作次数', value: operationCount.value, icon: 'lucide:activity', color: '#22c55e' },
-  { key: 'login', label: '登录次数', value: loginCount.value, icon: 'lucide:log-in', color: '#8b5cf6' },
-  { key: 'api', label: '接口调用', value: apiCallCount.value, icon: 'lucide:webhook', color: '#f59e0b' },
+  { key: 'access', label: t('workbench.dashboard.stat_access'), value: accessCount.value, icon: 'lucide:mouse-pointer-click', color: '#3b82f6' },
+  { key: 'operation', label: t('workbench.dashboard.stat_operation'), value: operationCount.value, icon: 'lucide:activity', color: '#22c55e' },
+  { key: 'login', label: t('workbench.dashboard.stat_login'), value: loginCount.value, icon: 'lucide:log-in', color: '#8b5cf6' },
+  { key: 'api', label: t('workbench.dashboard.stat_api'), value: apiCallCount.value, icon: 'lucide:webhook', color: '#f59e0b' },
 ])
 
 // 快捷入口复用「收藏夹」数据：用户右键标签收藏的常用菜单
@@ -68,19 +68,20 @@ const quickLinks = computed(() =>
   })),
 )
 
-/** 通知类型 → 标签 + 渐变配色 */
+/** 通知类型 → 标签 key + 渐变配色 */
 interface TypeMeta { label: string, from: string, to: string }
-const DEFAULT_META: TypeMeta = { label: '公告', from: '#2563eb', to: '#4f46e5' }
+const DEFAULT_META: TypeMeta = { label: 'workbench.dashboard.type_announcement', from: '#2563eb', to: '#4f46e5' }
 const TYPE_META: Record<string, TypeMeta> = {
   Announcement: DEFAULT_META,
-  System: { label: '系统', from: '#0ea5e9', to: '#2563eb' },
-  Warning: { label: '提醒', from: '#f59e0b', to: '#ea580c' },
-  Error: { label: '警告', from: '#ef4444', to: '#b91c1c' },
-  User: { label: '消息', from: '#10b981', to: '#059669' },
+  System: { label: 'workbench.dashboard.type_system', from: '#0ea5e9', to: '#2563eb' },
+  Warning: { label: 'workbench.dashboard.type_warning', from: '#f59e0b', to: '#ea580c' },
+  Error: { label: 'workbench.dashboard.type_error', from: '#ef4444', to: '#b91c1c' },
+  User: { label: 'workbench.dashboard.type_user', from: '#10b981', to: '#059669' },
 }
 
 function metaOf(type?: NotificationType | null): TypeMeta {
-  return (type && TYPE_META[type]) || DEFAULT_META
+  const meta = (type && TYPE_META[type]) || DEFAULT_META
+  return { ...meta, label: t(meta.label) }
 }
 
 function slideStyle(item: NotificationListItemDto) {
@@ -114,18 +115,18 @@ function formatRelative(value?: string | null) {
   const diff = Date.now() - new Date(value).getTime()
   const minutes = Math.floor(diff / 60000)
   if (minutes < 1) {
-    return '刚刚'
+    return t('workbench.dashboard.just_now')
   }
   if (minutes < 60) {
-    return `${minutes} 分钟前`
+    return t('workbench.dashboard.minutes_ago', { n: minutes })
   }
   const hours = Math.floor(minutes / 60)
   if (hours < 24) {
-    return `${hours} 小时前`
+    return t('workbench.dashboard.hours_ago', { n: hours })
   }
   const days = Math.floor(hours / 24)
   if (days < 7) {
-    return `${days} 天前`
+    return t('workbench.dashboard.days_ago', { n: days })
   }
   return formatDate(value, 'MM-DD HH:mm')
 }
@@ -193,7 +194,7 @@ onMounted(() => {
         </NIcon>
         <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
         <div class="slide-title">
-          {{ item.title || '系统通知' }}
+          {{ item.title || t('workbench.dashboard.system_notice') }}
         </div>
         <div v-if="item.content" class="slide-content">
           {{ item.content }}
@@ -261,7 +262,7 @@ onMounted(() => {
               <NIcon class="section-icon" size="16">
                 <Icon icon="lucide:zap" />
               </NIcon>
-              <span>快捷入口</span>
+              <span>{{ t('workbench.dashboard.quick_entry') }}</span>
             </div>
           </template>
           <div v-if="quickLinks.length" class="quick-grid">
@@ -282,7 +283,7 @@ onMounted(() => {
               </div>
             </button>
           </div>
-          <NEmpty v-else class="quick-empty" description="暂无收藏，右键标签页选择「收藏」即可添加">
+          <NEmpty v-else class="quick-empty" :description="t('workbench.dashboard.quick_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:star" /></NIcon>
             </template>
@@ -297,7 +298,7 @@ onMounted(() => {
               <NIcon class="section-icon" size="16">
                 <Icon icon="lucide:clock" />
               </NIcon>
-              <span>最近动态</span>
+              <span>{{ t('workbench.dashboard.recent_activity') }}</span>
             </div>
           </template>
           <NTimeline v-if="latestItems.length">
@@ -316,7 +317,7 @@ onMounted(() => {
               </div>
             </NTimelineItem>
           </NTimeline>
-          <NEmpty v-else class="activity-empty" description="暂无最新动态">
+          <NEmpty v-else class="activity-empty" :description="t('workbench.dashboard.activity_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:inbox" /></NIcon>
             </template>

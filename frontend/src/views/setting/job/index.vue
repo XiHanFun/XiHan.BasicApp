@@ -33,6 +33,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
@@ -65,30 +66,31 @@ interface JobFormModel {
   triggerType: TriggerType
 }
 
+const { t } = useI18n()
 const message = useMessage()
 const statusOptions = STATUS_OPTIONS
 
-const triggerTypeOptions = [
-  { label: '立即执行', value: TriggerType.Immediate },
-  { label: '定时执行', value: TriggerType.Schedule },
-  { label: '循环执行', value: TriggerType.Recurring },
-  { label: 'Cron 表达式', value: TriggerType.Cron },
-]
+const triggerTypeOptions = computed(() => [
+  { label: t('setting.job.trigger_immediate'), value: TriggerType.Immediate },
+  { label: t('setting.job.trigger_schedule'), value: TriggerType.Schedule },
+  { label: t('setting.job.trigger_recurring'), value: TriggerType.Recurring },
+  { label: t('setting.job.trigger_cron'), value: TriggerType.Cron },
+])
 
-const runTaskStatusOptions = [
-  { label: '待执行', value: RunTaskStatus.Pending },
-  { label: '执行中', value: RunTaskStatus.Running },
-  { label: '执行成功', value: RunTaskStatus.Success },
-  { label: '执行失败', value: RunTaskStatus.Failed },
-  { label: '已停止', value: RunTaskStatus.Stopped },
-  { label: '已暂停', value: RunTaskStatus.Paused },
-]
+const runTaskStatusOptions = computed(() => [
+  { label: t('setting.job.run_pending'), value: RunTaskStatus.Pending },
+  { label: t('setting.job.run_running'), value: RunTaskStatus.Running },
+  { label: t('setting.job.run_success'), value: RunTaskStatus.Success },
+  { label: t('setting.job.run_failed'), value: RunTaskStatus.Failed },
+  { label: t('setting.job.run_stopped'), value: RunTaskStatus.Stopped },
+  { label: t('setting.job.run_paused'), value: RunTaskStatus.Paused },
+])
 
 // boolean 选项以 1/0 表达（SchemaSelectOption.value 仅 string|number），查询时 toBool 还原
-const concurrentOptions = [
-  { label: '允许', value: 1 },
-  { label: '禁止', value: 0 },
-]
+const concurrentOptions = computed(() => [
+  { label: t('setting.common.allow'), value: 1 },
+  { label: t('setting.common.forbid'), value: 0 },
+])
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -132,49 +134,49 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? '是' : '否'
+  return value ? t('setting.common.yes') : t('setting.common.no')
 }
 
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索任务名称/编码/分组', width: 240, order: 0 },
+  { key: 'keyword', title: t('setting.job.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.job.keyword_placeholder'), width: 240, order: 0 },
   // 列 + 列
-  { key: 'taskName', title: '任务名称', dataType: 'string', minWidth: 180, order: 1 },
-  { key: 'taskCode', title: '任务编码', dataType: 'string', searchable: true, searchPlaceholder: '任务编码', minWidth: 160, order: 2 },
-  { key: 'taskGroup', title: '任务分组', dataType: 'string', searchable: true, searchPlaceholder: '任务分组', minWidth: 120, order: 3 },
+  { key: 'taskName', title: t('setting.job.task_name'), dataType: 'string', minWidth: 180, order: 1 },
+  { key: 'taskCode', title: t('setting.job.task_code'), dataType: 'string', searchable: true, searchPlaceholder: t('setting.job.task_code_placeholder'), minWidth: 160, order: 2 },
+  { key: 'taskGroup', title: t('setting.job.task_group'), dataType: 'string', searchable: true, searchPlaceholder: t('setting.job.task_group_placeholder'), minWidth: 120, order: 3 },
   {
     key: 'triggerType',
-    title: '触发类型',
+    title: t('setting.job.trigger_type'),
     dataType: 'enum',
     searchable: true,
-    options: triggerTypeOptions,
-    searchPlaceholder: '触发类型',
+    options: triggerTypeOptions.value,
+    searchPlaceholder: t('setting.job.trigger_type_placeholder'),
     minWidth: 120,
     order: 4,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(triggerTypeOptions, (row as unknown as TaskListItemDto).triggerType)),
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(triggerTypeOptions.value, (row as unknown as TaskListItemDto).triggerType)),
   },
   {
     key: 'runTaskStatus',
-    title: '运行状态',
+    title: t('setting.job.run_status'),
     dataType: 'enum',
     searchable: true,
-    options: runTaskStatusOptions,
-    searchPlaceholder: '运行状态',
+    options: runTaskStatusOptions.value,
+    searchPlaceholder: t('setting.job.run_status_placeholder'),
     width: 120,
     order: 5,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: runStatusTag(r.runTaskStatus), bordered: false }, () => getOptionLabel(runTaskStatusOptions, r.runTaskStatus))
+      return h(NTag, { size: 'small', round: true, type: runStatusTag(r.runTaskStatus), bordered: false }, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus))
     },
   },
   {
     key: 'status',
-    title: '启停状态',
+    title: t('setting.job.status'),
     dataType: 'enum',
     searchable: true,
     options: statusOptions,
-    searchPlaceholder: '启停状态',
+    searchPlaceholder: t('setting.job.status_placeholder'),
     width: 100,
     order: 6,
     render: (row) => {
@@ -184,36 +186,36 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'allowConcurrent',
-    title: '并发',
+    title: t('setting.job.concurrent'),
     dataType: 'boolean',
     searchable: true,
-    options: concurrentOptions,
-    searchPlaceholder: '并发',
+    options: concurrentOptions.value,
+    searchPlaceholder: t('setting.job.concurrent_placeholder'),
     width: 86,
     order: 7,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: r.allowConcurrent ? 'warning' : 'info', bordered: false }, () => (r.allowConcurrent ? '允许' : '禁止'))
+      return h(NTag, { size: 'small', round: true, type: r.allowConcurrent ? 'warning' : 'info', bordered: false }, () => (r.allowConcurrent ? t('setting.common.allow') : t('setting.common.forbid')))
     },
   },
-  { key: 'executedCount', title: '已执行', dataType: 'number', minWidth: 100, order: 8 },
-  { key: 'retryCount', title: '重试次数', dataType: 'number', minWidth: 100, order: 9 },
-  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 86, order: 10 },
-  { key: 'nextRunTime', title: '下次执行', dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
-  { key: 'lastRunTime', title: '上次执行', dataType: 'datetime', minWidth: 170, order: 12 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 13 },
-]
+  { key: 'executedCount', title: t('setting.job.executed_count'), dataType: 'number', minWidth: 100, order: 8 },
+  { key: 'retryCount', title: t('setting.job.retry_count'), dataType: 'number', minWidth: 100, order: 9 },
+  { key: 'priority', title: t('setting.job.priority'), dataType: 'number', sortable: true, width: 86, order: 10 },
+  { key: 'nextRunTime', title: t('setting.job.next_run'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
+  { key: 'lastRunTime', title: t('setting.job.last_run'), dataType: 'datetime', minWidth: 170, order: 12 },
+  { key: 'createdTime', title: t('setting.job.created_time'), dataType: 'datetime', minWidth: 170, order: 13 },
+])
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.job',
   exportPermission: 'saas:task:export',
-  pageName: '任务调度',
+  pageName: t('setting.job.page_name'),
   batchRemovable: true,
   removePermission: 'saas:task:delete',
   statusPermission: 'saas:task:status',
   rowKey: 'basicId',
   scrollX: 2000,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -232,15 +234,15 @@ const schema: PageSchema = {
     updateStatus: (id, enabled) => jobManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: '新增任务', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
-    { key: 'logs', title: '执行日志', scope: 'row', icon: 'lucide:history', permission: 'saas:task-log:read' },
-    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
-    { key: 'trigger', title: '立即执行', scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto) },
-    { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
-    { key: 'delete', title: '删除', scope: 'row', icon: 'lucide:trash-2', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
+    { key: 'create', title: t('setting.job.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: t('setting.job.view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'logs', title: t('setting.job.logs'), scope: 'row', icon: 'lucide:history', permission: 'saas:task-log:read' },
+    { key: 'edit', title: t('setting.common.edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'trigger', title: t('setting.job.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto) },
+    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
+    { key: 'delete', title: t('setting.common.delete'), scope: 'row', icon: 'lucide:trash-2', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },
   ],
-}
+}))
 
 function triggerDisabled(row: TaskListItemDto) {
   return row.runTaskStatus === RunTaskStatus.Running || row.status !== EnableStatus.Enabled
@@ -299,7 +301,7 @@ async function handleDetail(row: TaskListItemDto) {
     detailData.value = await jobManagementApi.detail(row.basicId) ?? null
   }
   catch {
-    message.error('加载任务详情失败')
+    message.error(t('setting.job.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -323,20 +325,20 @@ function formatExecutionTime(value: string) {
   return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms} ms`
 }
 
-const taskLogColumns: DataTableColumns<TaskLogListItemDto> = [
-  { ellipsis: { tooltip: true }, key: 'batchNumber', render: row => row.batchNumber || '-', title: '批次号', width: 150 },
+const taskLogColumns = computed<DataTableColumns<TaskLogListItemDto>>(() => [
+  { ellipsis: { tooltip: true }, key: 'batchNumber', render: row => row.batchNumber || '-', title: t('setting.job.batch_number'), width: 150 },
   {
     key: 'taskStatus',
-    render: row => h(NTag, { bordered: false, round: true, size: 'small', type: runStatusTag(row.taskStatus) }, () => getOptionLabel(runTaskStatusOptions, row.taskStatus)),
-    title: '状态',
+    render: row => h(NTag, { bordered: false, round: true, size: 'small', type: runStatusTag(row.taskStatus) }, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus)),
+    title: t('setting.job.log_status'),
     width: 96,
   },
-  { key: 'triggerMode', render: row => row.triggerMode || '-', title: '触发方式', width: 96 },
-  { key: 'startTime', render: row => formatDate(row.startTime), title: '开始时间', width: 160 },
-  { key: 'endTime', render: row => formatNullableDate(row.endTime), title: '结束时间', width: 160 },
-  { key: 'executionTime', render: row => formatExecutionTime(row.executionTime), title: '耗时', width: 90 },
-  { key: 'retryCount', title: '重试', width: 64 },
-]
+  { key: 'triggerMode', render: row => row.triggerMode || '-', title: t('setting.job.trigger_mode'), width: 96 },
+  { key: 'startTime', render: row => formatDate(row.startTime), title: t('setting.job.start_time'), width: 160 },
+  { key: 'endTime', render: row => formatNullableDate(row.endTime), title: t('setting.job.end_time'), width: 160 },
+  { key: 'executionTime', render: row => formatExecutionTime(row.executionTime), title: t('setting.job.execution_time'), width: 90 },
+  { key: 'retryCount', title: t('setting.job.retry'), width: 64 },
+])
 
 // 行点击查看异常堆栈/输出日志详情
 function taskLogRowProps(row: TaskLogListItemDto) {
@@ -373,7 +375,7 @@ async function loadTaskLogs(page?: number) {
     logPagination.value.itemCount = result.page.totalCount
   }
   catch (e) {
-    message.error((e as Error).message || '加载执行日志失败')
+    message.error((e as Error).message || t('setting.job.load_logs_failed'))
   }
   finally {
     logLoading.value = false
@@ -393,7 +395,7 @@ async function handleLogDetail(row: TaskLogListItemDto) {
     logDetail.value = await taskLogApi.detail(row.basicId) ?? null
   }
   catch (e) {
-    message.error((e as Error).message || '加载日志详情失败')
+    message.error((e as Error).message || t('setting.job.load_log_detail_failed'))
   }
   finally {
     logDetailLoading.value = false
@@ -403,27 +405,27 @@ async function handleLogDetail(row: TaskLogListItemDto) {
 // ── 行操作：立即执行 / 启停 / 删除 ──────────────────────────────
 async function handleTrigger(row: TaskListItemDto) {
   if (row.status !== EnableStatus.Enabled) {
-    message.warning('停用的任务不能触发')
+    message.warning(t('setting.job.disabled_cannot_trigger'))
     return
   }
   if (row.runTaskStatus === RunTaskStatus.Running) {
-    message.warning('运行中的任务不能再次触发')
+    message.warning(t('setting.job.running_cannot_trigger'))
     return
   }
   try {
     // 经调度器真正触发一次执行（旧实现仅改写运行状态字段，不会执行任务）
     await jobManagementApi.run(row.basicId)
-    message.success('任务已触发，执行结果见任务日志')
+    message.success(t('setting.job.triggered'))
     reloadJob()
   }
   catch (e) {
-    message.error((e as Error)?.message || '触发任务失败')
+    message.error((e as Error)?.message || t('setting.job.trigger_failed'))
   }
 }
 
 async function handleToggleStatus(row: TaskListItemDto) {
   if (row.runTaskStatus === RunTaskStatus.Running) {
-    message.warning('运行中的任务不能更改启停状态')
+    message.warning(t('setting.job.running_cannot_toggle'))
     return
   }
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
@@ -432,26 +434,26 @@ async function handleToggleStatus(row: TaskListItemDto) {
       basicId: row.basicId,
       status: newStatus,
     })
-    message.success(newStatus === EnableStatus.Enabled ? '任务已启用' : '任务已停用')
+    message.success(newStatus === EnableStatus.Enabled ? t('setting.job.task_enabled') : t('setting.job.task_disabled'))
     reloadJob()
   }
   catch {
-    message.error('更新任务状态失败')
+    message.error(t('setting.job.toggle_failed'))
   }
 }
 
 async function handleDelete(row: TaskListItemDto) {
   if (row.runTaskStatus === RunTaskStatus.Running) {
-    message.warning('运行中的任务不能删除')
+    message.warning(t('setting.job.running_cannot_delete'))
     return
   }
   try {
     await jobManagementApi.delete(row.basicId)
-    message.success('任务已删除')
+    message.success(t('setting.job.task_deleted'))
     reloadJob()
   }
   catch {
-    message.error('删除任务失败')
+    message.error(t('setting.job.delete_failed'))
   }
 }
 
@@ -459,7 +461,7 @@ async function handleDelete(row: TaskListItemDto) {
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const jobForm = ref<JobFormModel>(createDefaultJobForm())
-const modalTitle = computed(() => (jobForm.value.basicId ? '编辑任务' : '新增任务'))
+const modalTitle = computed(() => (jobForm.value.basicId ? t('setting.job.edit_title') : t('setting.job.add_title')))
 
 function createDefaultJobForm(): JobFormModel {
   return {
@@ -497,7 +499,7 @@ async function handleEdit(row: TaskListItemDto) {
     detail = await jobManagementApi.detail(row.basicId) ?? null
   }
   catch {
-    message.error('加载任务详情失败')
+    message.error(t('setting.job.load_detail_failed'))
     return
   }
   const src = detail ?? (row as unknown as TaskDetailDto)
@@ -527,15 +529,15 @@ async function handleEdit(row: TaskListItemDto) {
 
 function validateJobForm() {
   if (!jobForm.value.taskName.trim()) {
-    message.warning('请输入任务名称')
+    message.warning(t('setting.job.validate_task_name'))
     return false
   }
   if (!jobForm.value.basicId && !jobForm.value.taskCode.trim()) {
-    message.warning('请输入任务编码')
+    message.warning(t('setting.job.validate_task_code'))
     return false
   }
   if (!jobForm.value.taskClass.trim()) {
-    message.warning('请输入任务类名')
+    message.warning(t('setting.job.validate_task_class'))
     return false
   }
   return true
@@ -597,12 +599,12 @@ async function handleSubmit() {
       }
       await jobManagementApi.create(createInput)
     }
-    message.success('保存成功')
+    message.success(t('setting.common.save_success'))
     modalVisible.value = false
     reloadJob()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('setting.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -617,86 +619,86 @@ async function handleSubmit() {
     @action="onAction"
   >
     <NDrawer v-model:show="detailVisible" :width="640">
-      <NDrawerContent closable title="任务详情">
+      <NDrawerContent closable :title="t('setting.job.detail_title')">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" description="暂无任务详情">
+          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" :description="t('setting.job.detail_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:inbox" /></NIcon>
             </template>
           </NEmpty>
           <NScrollbar v-else-if="detailData" style="max-height: calc(100vh - 120px)">
             <NDescriptions :column="1" bordered label-placement="left" size="small">
-              <NDescriptionsItem label="任务名称">
+              <NDescriptionsItem :label="t('setting.job.task_name')">
                 {{ detailData.taskName }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="任务编码">
+              <NDescriptionsItem :label="t('setting.job.task_code')">
                 {{ detailData.taskCode }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="任务分组">
+              <NDescriptionsItem :label="t('setting.job.task_group')">
                 {{ detailData.taskGroup || '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="任务描述">
+              <NDescriptionsItem :label="t('setting.job.task_description')">
                 {{ detailData.taskDescription || '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="任务类名">
+              <NDescriptionsItem :label="t('setting.job.task_class')">
                 {{ detailData.taskClass }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="任务方法">
+              <NDescriptionsItem :label="t('setting.job.task_method')">
                 {{ detailData.taskMethod || '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="任务参数">
+              <NDescriptionsItem :label="t('setting.job.task_params')">
                 <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
               </NDescriptionsItem>
-              <NDescriptionsItem label="触发类型">
+              <NDescriptionsItem :label="t('setting.job.trigger_type')">
                 {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="Cron 表达式">
+              <NDescriptionsItem :label="t('setting.job.cron_expression')">
                 {{ detailData.cronExpression || '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="运行状态">
+              <NDescriptionsItem :label="t('setting.job.run_status')">
                 <NTag :type="runStatusTag(detailData.runTaskStatus)" round size="small">
                   {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
                 </NTag>
               </NDescriptionsItem>
-              <NDescriptionsItem label="启停状态">
+              <NDescriptionsItem :label="t('setting.job.status')">
                 <NTag :type="statusTag(detailData.status)" round size="small">
                   {{ getOptionLabel(statusOptions, detailData.status) }}
                 </NTag>
               </NDescriptionsItem>
-              <NDescriptionsItem label="优先级">
+              <NDescriptionsItem :label="t('setting.job.priority')">
                 {{ detailData.priority }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="允许并发">
+              <NDescriptionsItem :label="t('setting.job.allow_concurrent')">
                 {{ formatBoolean(detailData.allowConcurrent) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="超时时间">
+              <NDescriptionsItem :label="t('setting.job.timeout_seconds')">
                 {{ detailData.timeoutSeconds }}s
               </NDescriptionsItem>
-              <NDescriptionsItem label="执行间隔">
+              <NDescriptionsItem :label="t('setting.job.interval_seconds')">
                 {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="执行统计">
-                已执行 {{ detailData.executedCount }} 次，重复 {{ detailData.repeatCount }} 次，重试 {{ detailData.retryCount }}/{{ detailData.maxRetryCount }}
+              <NDescriptionsItem :label="t('setting.job.exec_stats')">
+                {{ t('setting.job.exec_stats_value', { executed: detailData.executedCount, repeat: detailData.repeatCount, retry: detailData.retryCount, maxRetry: detailData.maxRetryCount }) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="开始时间">
+              <NDescriptionsItem :label="t('setting.job.start_time')">
                 {{ formatNullableDate(detailData.startTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="结束时间">
+              <NDescriptionsItem :label="t('setting.job.end_time')">
                 {{ formatNullableDate(detailData.endTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="下次执行">
+              <NDescriptionsItem :label="t('setting.job.next_run')">
                 {{ formatNullableDate(detailData.nextRunTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="上次执行">
+              <NDescriptionsItem :label="t('setting.job.last_run')">
                 {{ formatNullableDate(detailData.lastRunTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="创建时间">
+              <NDescriptionsItem :label="t('setting.job.created_time')">
                 {{ formatNullableDate(detailData.createdTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="修改时间">
+              <NDescriptionsItem :label="t('setting.job.modified_time')">
                 {{ formatNullableDate(detailData.modifiedTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem label="备注">
+              <NDescriptionsItem :label="t('setting.job.remark')">
                 {{ detailData.remark || '-' }}
               </NDescriptionsItem>
             </NDescriptions>
@@ -708,7 +710,7 @@ async function handleSubmit() {
               <template #icon>
                 <NIcon><Icon icon="lucide:history" /></NIcon>
               </template>
-              执行日志
+              {{ t('setting.job.logs') }}
             </NButton>
             <NButton
               type="primary"
@@ -718,7 +720,7 @@ async function handleSubmit() {
               <template #icon>
                 <NIcon><Icon icon="lucide:zap" /></NIcon>
               </template>
-              立即执行
+              {{ t('setting.job.trigger_immediate') }}
             </NButton>
             <NButton
               :type="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
@@ -728,7 +730,7 @@ async function handleSubmit() {
               <template #icon>
                 <NIcon><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></NIcon>
               </template>
-              {{ detailData.status === EnableStatus.Enabled ? '停用' : '启用' }}
+              {{ detailData.status === EnableStatus.Enabled ? t('setting.common.disable') : t('setting.common.enable') }}
             </NButton>
           </NSpace>
         </template>
@@ -739,7 +741,7 @@ async function handleSubmit() {
     <NDrawer v-model:show="logVisible" :width="860">
       <NDrawerContent
         closable
-        :title="`执行日志 - ${logTask?.taskName ?? ''}`"
+        :title="t('setting.job.log_title', { name: logTask?.taskName ?? '' })"
         :body-content-style="{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }"
       >
         <div class="xh-task-log-toolbar">
@@ -747,7 +749,7 @@ async function handleSubmit() {
             v-model:value="logStatusFilter"
             clearable
             :options="runTaskStatusOptions"
-            placeholder="任务状态"
+            :placeholder="t('setting.job.log_status_filter_placeholder')"
             size="small"
             style="width: 140px"
             @update:value="loadTaskLogs(1)"
@@ -755,7 +757,7 @@ async function handleSubmit() {
           <NInput
             v-model:value="logBatchFilter"
             clearable
-            placeholder="批次号"
+            :placeholder="t('setting.job.batch_number_placeholder')"
             size="small"
             style="width: 180px"
             @clear="loadTaskLogs(1)"
@@ -765,9 +767,9 @@ async function handleSubmit() {
             <template #icon>
               <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
             </template>
-            刷新
+            {{ t('setting.common.refresh') }}
           </NButton>
-          <span class="xh-task-log-tip">点击行查看执行结果与异常堆栈</span>
+          <span class="xh-task-log-tip">{{ t('setting.job.log_row_tip') }}</span>
         </div>
         <div class="xh-task-log-body">
           <NDataTable
@@ -798,71 +800,71 @@ async function handleSubmit() {
       :bordered="false"
       preset="card"
       style="width: 760px; max-width: 92vw"
-      title="执行日志详情"
+      :title="t('setting.job.log_detail_title')"
     >
       <NSpin :show="logDetailLoading">
-        <NEmpty v-if="!logDetailLoading && !logDetail" class="xh-detail-empty" description="暂无日志详情">
+        <NEmpty v-if="!logDetailLoading && !logDetail" class="xh-detail-empty" :description="t('setting.job.log_detail_empty')">
           <template #icon>
             <NIcon><Icon icon="lucide:inbox" /></NIcon>
           </template>
         </NEmpty>
         <NScrollbar v-else-if="logDetail" style="max-height: 70vh">
           <NDescriptions :column="2" bordered label-placement="left" size="small">
-            <NDescriptionsItem label="任务名称">
+            <NDescriptionsItem :label="t('setting.job.task_name')">
               {{ logDetail.taskName }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="任务编码">
+            <NDescriptionsItem :label="t('setting.job.task_code')">
               {{ logDetail.taskCode }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="批次号">
+            <NDescriptionsItem :label="t('setting.job.batch_number')">
               {{ logDetail.batchNumber || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="状态">
+            <NDescriptionsItem :label="t('setting.job.log_status')">
               <NTag :type="runStatusTag(logDetail.taskStatus)" round size="small">
                 {{ getOptionLabel(runTaskStatusOptions, logDetail.taskStatus) }}
               </NTag>
             </NDescriptionsItem>
-            <NDescriptionsItem label="触发方式">
+            <NDescriptionsItem :label="t('setting.job.trigger_mode')">
               {{ logDetail.triggerMode || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="重试次数">
+            <NDescriptionsItem :label="t('setting.job.retry_count')">
               {{ logDetail.retryCount }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="开始时间">
+            <NDescriptionsItem :label="t('setting.job.start_time')">
               {{ formatDate(logDetail.startTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="结束时间">
+            <NDescriptionsItem :label="t('setting.job.end_time')">
               {{ formatNullableDate(logDetail.endTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="执行耗时">
+            <NDescriptionsItem :label="t('setting.job.exec_duration')">
               {{ formatExecutionTime(logDetail.executionTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="备注">
+            <NDescriptionsItem :label="t('setting.job.remark')">
               {{ logDetail.remark || '-' }}
             </NDescriptionsItem>
           </NDescriptions>
 
           <template v-if="logDetail.executionResult">
             <div class="xh-task-log-section">
-              执行结果
+              {{ t('setting.job.exec_result') }}
             </div>
             <pre class="xh-task-log-pre">{{ logDetail.executionResult }}</pre>
           </template>
           <template v-if="logDetail.exceptionMessage">
             <div class="xh-task-log-section is-error">
-              异常信息
+              {{ t('setting.job.exception_message') }}
             </div>
             <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionMessage }}</pre>
           </template>
           <template v-if="logDetail.exceptionStackTrace">
             <div class="xh-task-log-section is-error">
-              异常堆栈
+              {{ t('setting.job.exception_stack') }}
             </div>
             <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionStackTrace }}</pre>
           </template>
           <template v-if="logDetail.outputLog">
             <div class="xh-task-log-section">
-              输出日志
+              {{ t('setting.job.output_log') }}
             </div>
             <pre class="xh-task-log-pre">{{ logDetail.outputLog }}</pre>
           </template>
@@ -879,70 +881,70 @@ async function handleSubmit() {
       style="width: 720px; max-width: 92vw"
     >
       <NForm :model="jobForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="任务编码" path="taskCode">
+        <NFormItem :label="t('setting.job.task_code')" path="taskCode">
           <NInput
             v-model:value="jobForm.taskCode"
             clearable
             :disabled="Boolean(jobForm.basicId)"
-            placeholder="如: SyncOrderJob"
+            :placeholder="t('setting.job.task_code_input_placeholder')"
           />
         </NFormItem>
-        <NFormItem label="任务名称" path="taskName">
-          <NInput v-model:value="jobForm.taskName" clearable placeholder="请输入任务名称" />
+        <NFormItem :label="t('setting.job.task_name')" path="taskName">
+          <NInput v-model:value="jobForm.taskName" clearable :placeholder="t('setting.job.task_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="任务分组" path="taskGroup">
-          <NInput v-model:value="jobForm.taskGroup" clearable placeholder="请输入任务分组" />
+        <NFormItem :label="t('setting.job.task_group')" path="taskGroup">
+          <NInput v-model:value="jobForm.taskGroup" clearable :placeholder="t('setting.job.task_group_input_placeholder')" />
         </NFormItem>
-        <NFormItem label="触发类型" path="triggerType">
+        <NFormItem :label="t('setting.job.trigger_type')" path="triggerType">
           <NSelect v-model:value="jobForm.triggerType" :options="triggerTypeOptions" />
         </NFormItem>
-        <NFormItem label="任务类名" path="taskClass">
-          <NInput v-model:value="jobForm.taskClass" clearable placeholder="如: XiHan.Jobs.SyncOrderJob" />
+        <NFormItem :label="t('setting.job.task_class')" path="taskClass">
+          <NInput v-model:value="jobForm.taskClass" clearable :placeholder="t('setting.job.task_class_placeholder')" />
         </NFormItem>
-        <NFormItem label="任务方法" path="taskMethod">
-          <NInput v-model:value="jobForm.taskMethod" clearable placeholder="如: Execute" />
+        <NFormItem :label="t('setting.job.task_method')" path="taskMethod">
+          <NInput v-model:value="jobForm.taskMethod" clearable :placeholder="t('setting.job.task_method_placeholder')" />
         </NFormItem>
-        <NFormItem label="Cron 表达式" path="cronExpression">
-          <NInput v-model:value="jobForm.cronExpression" clearable placeholder="如: 0 0/5 * * * ?" />
+        <NFormItem :label="t('setting.job.cron_expression')" path="cronExpression">
+          <NInput v-model:value="jobForm.cronExpression" clearable :placeholder="t('setting.job.cron_placeholder')" />
         </NFormItem>
-        <NFormItem label="执行间隔(秒)" path="intervalSeconds">
+        <NFormItem :label="t('setting.job.interval_label')" path="intervalSeconds">
           <NInputNumber v-model:value="jobForm.intervalSeconds" :min="0" clearable style="width: 100%" />
         </NFormItem>
-        <NFormItem label="优先级" path="priority">
+        <NFormItem :label="t('setting.job.priority')" path="priority">
           <NInputNumber v-model:value="jobForm.priority" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="超时时间(秒)" path="timeoutSeconds">
+        <NFormItem :label="t('setting.job.timeout_label')" path="timeoutSeconds">
           <NInputNumber v-model:value="jobForm.timeoutSeconds" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="最大重试次数" path="maxRetryCount">
+        <NFormItem :label="t('setting.job.max_retry_count')" path="maxRetryCount">
           <NInputNumber v-model:value="jobForm.maxRetryCount" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="允许并发" path="allowConcurrent">
+        <NFormItem :label="t('setting.job.allow_concurrent')" path="allowConcurrent">
           <NSwitch v-model:value="jobForm.allowConcurrent" />
         </NFormItem>
-        <NFormItem label="任务参数" path="taskParams">
+        <NFormItem :label="t('setting.job.task_params')" path="taskParams">
           <NInput
             v-model:value="jobForm.taskParams"
             clearable
-            placeholder="JSON 参数"
+            :placeholder="t('setting.job.task_params_placeholder')"
             :rows="3"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="任务描述" path="taskDescription">
+        <NFormItem :label="t('setting.job.task_description')" path="taskDescription">
           <NInput
             v-model:value="jobForm.taskDescription"
             clearable
-            placeholder="请输入任务描述"
+            :placeholder="t('setting.job.task_description_placeholder')"
             :rows="2"
             type="textarea"
           />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
+        <NFormItem :label="t('setting.job.remark')" path="remark">
           <NInput
             v-model:value="jobForm.remark"
             clearable
-            placeholder="请输入备注"
+            :placeholder="t('setting.job.remark_placeholder')"
             :rows="2"
             type="textarea"
           />
@@ -952,10 +954,10 @@ async function handleSubmit() {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('setting.common.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('setting.common.save') }}
           </NButton>
         </NSpace>
       </template>

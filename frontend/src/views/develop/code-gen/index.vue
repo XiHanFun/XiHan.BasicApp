@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { NTabPane, NTabs } from 'naive-ui'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DatasourcePanel from './components/datasource-panel.vue'
 import HistoryPanel from './components/history-panel.vue'
 import TablePanel from './components/table-panel.vue'
@@ -8,22 +9,24 @@ import TemplatePanel from './components/template-panel.vue'
 
 defineOptions({ name: 'DevelopCodeGenPage' })
 
+const { t } = useI18n()
+
 const activeTab = ref<'table' | 'datasource' | 'template' | 'history'>('table')
 </script>
 
 <template>
   <div class="code-gen">
     <NTabs v-model:value="activeTab" animated class="code-gen__tabs" type="line">
-      <NTabPane name="table" tab="表配置">
+      <NTabPane name="table" :tab="t('develop.code_gen.tabs.table')">
         <TablePanel />
       </NTabPane>
-      <NTabPane name="datasource" tab="数据源">
+      <NTabPane name="datasource" :tab="t('develop.code_gen.tabs.datasource')">
         <DatasourcePanel />
       </NTabPane>
-      <NTabPane name="template" tab="模板">
+      <NTabPane name="template" :tab="t('develop.code_gen.tabs.template')">
         <TemplatePanel />
       </NTabPane>
-      <NTabPane name="history" tab="生成历史">
+      <NTabPane name="history" :tab="t('develop.code_gen.tabs.history')">
         <HistoryPanel />
       </NTabPane>
     </NTabs>

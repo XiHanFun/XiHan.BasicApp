@@ -37,6 +37,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   EnableStatus,
@@ -57,6 +58,8 @@ import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
 
 defineOptions({ name: 'SystemUserPage' })
+
+const { t } = useI18n()
 
 const GENDER_TAG_TYPE: Record<UserGender, 'default' | 'info' | 'warning'> = {
   [UserGender.Unknown]: 'default',
@@ -127,7 +130,7 @@ const existingDepts = ref<UserDepartmentListItemDto[]>([])
 const userForm = ref<UserFormState>(createDefaultForm())
 
 const formTitle = computed(() =>
-  userForm.value.basicId ? `编辑用户 · ${userForm.value.userName}` : '新建用户',
+  userForm.value.basicId ? t('identity.user.form_edit_title', { name: userForm.value.userName }) : t('identity.user.form_create_title'),
 )
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -148,13 +151,13 @@ const detUser = computed(() => {
   if (sec) {
     badges.push(
       sec.emailVerified
-        ? { label: '邮箱已验证', cls: 'bdg-ok', icon: 'tabler:mail' }
-        : { label: '邮箱未验证', cls: 'bdg-gray', icon: 'tabler:mail' },
+        ? { label: t('identity.user.badge_email_verified'), cls: 'bdg-ok', icon: 'tabler:mail' }
+        : { label: t('identity.user.badge_email_unverified'), cls: 'bdg-gray', icon: 'tabler:mail' },
     )
     badges.push(
       sec.phoneVerified
-        ? { label: '手机已验证', cls: 'bdg-ok', icon: 'tabler:phone' }
-        : { label: '手机未验证', cls: 'bdg-gray', icon: 'tabler:phone' },
+        ? { label: t('identity.user.badge_phone_verified'), cls: 'bdg-ok', icon: 'tabler:phone' }
+        : { label: t('identity.user.badge_phone_unverified'), cls: 'bdg-gray', icon: 'tabler:phone' },
     )
     if (sec.twoFactorEnabled) {
       badges.push({
@@ -164,10 +167,10 @@ const detUser = computed(() => {
       })
     }
     if (sec.isLocked)
-      badges.push({ label: '账号已锁定', cls: 'bdg-no', icon: 'tabler:lock' })
+      badges.push({ label: t('identity.user.badge_account_locked'), cls: 'bdg-no', icon: 'tabler:lock' })
     if (sec.failedLoginAttempts > 0) {
       badges.push({
-        label: `失败登录 ${sec.failedLoginAttempts} 次`,
+        label: t('identity.user.badge_failed_login', { count: sec.failedLoginAttempts }),
         cls: 'bdg-warn',
         icon: 'tabler:alert-triangle',
       })
@@ -175,7 +178,7 @@ const detUser = computed(() => {
   }
   const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
   if (d.tenantMembership && !inviteAccepted) {
-    badges.push({ label: '未激活', cls: 'bdg-warn', icon: 'tabler:clock-pause' })
+    badges.push({ label: t('identity.user.badge_inactive'), cls: 'bdg-warn', icon: 'tabler:clock-pause' })
   }
   return {
     userName: u.userName,
@@ -192,26 +195,26 @@ const detUser = computed(() => {
     badges,
     metrics: [
       {
-        label: '登录次数',
+        label: t('identity.user.metric_login_count'),
         value: todayStat?.loginCount ?? 0,
         icon: 'tabler:login-2',
         cls: 'det-stat-primary',
       },
       {
-        label: '访问次数',
+        label: t('identity.user.metric_access_count'),
         value: todayStat?.accessCount ?? 0,
         icon: 'tabler:activity',
         cls: 'det-stat-info',
       },
       {
-        label: '在线时长',
+        label: t('identity.user.metric_online_time'),
         value: `${Math.round((todayStat?.onlineTime ?? 0) / 3600)}h`,
         icon: 'tabler:clock',
         cls: 'det-stat-warning',
       },
       {
-        label: '当前状态',
-        value: onlineSession ? '在线' : '离线',
+        label: t('identity.user.metric_current_status'),
+        value: onlineSession ? t('identity.user.detail_online') : t('identity.user.detail_offline'),
         icon: onlineSession ? 'tabler:wifi' : 'tabler:wifi-off',
         cls: onlineSession ? 'det-stat-info' : 'det-stat-muted',
       },
@@ -222,7 +225,7 @@ const detUser = computed(() => {
       ? formatDate(onlineSession.lastActivityTime)
       : formatNullableDate(u.lastLoginTime),
     sessionLabel: onlineSession
-      ? `${onlineSession.deviceName || '设备'} · ${onlineSession.browser || ''}`
+      ? `${onlineSession.deviceName || t('identity.user.device_default')} · ${onlineSession.browser || ''}`
       : '',
   }
 })
@@ -270,9 +273,9 @@ function formatTwoFa(method: number) {
   if (method & TwoFactorMethod.Totp)
     parts.push('TOTP')
   if (method & TwoFactorMethod.Email)
-    parts.push('邮箱')
+    parts.push(t('identity.user.twofa_email'))
   if (method & TwoFactorMethod.Phone)
-    parts.push('短信')
+    parts.push(t('identity.user.twofa_phone'))
   return parts.join('+') || '—'
 }
 
@@ -315,13 +318,13 @@ function buildUserQuery(params: SchemaQueryParams) {
 }
 
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索用户名、姓名、邮箱…', width: 240, order: 0 },
+  { key: 'keyword', title: t('identity.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.user.keyword_placeholder'), width: 240, order: 0 },
   // 头像（仅列）
   {
     key: 'avatar',
-    title: '头像',
+    title: t('identity.user.col_avatar'),
     dataType: 'string',
     width: 80,
     order: 1,
@@ -340,7 +343,7 @@ const fields: ListFieldSchema[] = [
   // 用户信息（仅列）
   {
     key: 'userName',
-    title: '用户信息',
+    title: t('identity.user.col_user_info'),
     dataType: 'string',
     minWidth: 180,
     order: 2,
@@ -352,7 +355,7 @@ const fields: ListFieldSchema[] = [
       return h('div', { class: 'tbl-cell-2l' }, [
         h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
           display,
-          r.isSystemAccount ? h('span', { class: 'sys-tag' }, '系统') : null,
+          r.isSystemAccount ? h('span', { class: 'sys-tag' }, t('identity.user.tag_system')) : null,
         ]),
         h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
       ])
@@ -361,11 +364,11 @@ const fields: ListFieldSchema[] = [
   // 性别（常用搜索 + 列）
   {
     key: 'gender',
-    title: '性别',
+    title: t('identity.user.col_gender'),
     dataType: 'enum',
     searchable: true,
     options: genderOptions,
-    searchPlaceholder: '全部性别',
+    searchPlaceholder: t('identity.user.gender_placeholder'),
     width: 80,
     order: 3,
     render: (row) => {
@@ -381,7 +384,7 @@ const fields: ListFieldSchema[] = [
   // 地区/语言（仅列）
   {
     key: 'locale',
-    title: '地区/语言',
+    title: t('identity.user.col_locale'),
     dataType: 'string',
     width: 140,
     order: 4,
@@ -397,11 +400,11 @@ const fields: ListFieldSchema[] = [
   // 账号状态（常用搜索 + 列）
   {
     key: 'status',
-    title: '账号状态',
+    title: t('identity.user.col_status'),
     dataType: 'enum',
     searchable: true,
     options: statusOptions,
-    searchPlaceholder: '全部状态',
+    searchPlaceholder: t('identity.user.status_placeholder'),
     width: 100,
     order: 5,
     render: (row) => {
@@ -414,14 +417,14 @@ const fields: ListFieldSchema[] = [
           bordered: false,
           style: { fontSize: '11px', fontWeight: 500 },
         },
-        () => (r.status === EnableStatus.Enabled ? '已启用' : '已禁用'),
+        () => (r.status === EnableStatus.Enabled ? t('identity.user.status_enabled') : t('identity.user.status_disabled')),
       )
     },
   },
   // 角色（仅列，来自后端批量聚合 roleNames）
   {
     key: 'roleNames',
-    title: '角色',
+    title: t('identity.user.col_roles'),
     dataType: 'string',
     minWidth: 160,
     order: 5.1,
@@ -438,7 +441,7 @@ const fields: ListFieldSchema[] = [
   // 部门（仅列，主部门名称）
   {
     key: 'departmentName',
-    title: '部门',
+    title: t('identity.user.col_department'),
     dataType: 'string',
     minWidth: 120,
     order: 5.2,
@@ -450,7 +453,7 @@ const fields: ListFieldSchema[] = [
   // 安全标记（仅列，锁定 / 双因素）
   {
     key: 'security',
-    title: '安全',
+    title: t('identity.user.col_security'),
     dataType: 'string',
     width: 120,
     order: 5.3,
@@ -458,13 +461,13 @@ const fields: ListFieldSchema[] = [
       const r = row as unknown as UserListItemDto
       const tags = []
       if (r.isLocked) {
-        tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'error', style: { fontSize: '11px' } }, () => '锁定'))
+        tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'error', style: { fontSize: '11px' } }, () => t('identity.user.security_locked')))
       }
       if (r.twoFactorEnabled) {
         tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'success', style: { fontSize: '11px' } }, () => '2FA'))
       }
       if (tags.length === 0) {
-        return h('span', { class: 'text-foreground/40' }, '正常')
+        return h('span', { class: 'text-foreground/40' }, t('identity.user.security_normal'))
       }
       return h('div', { class: 'flex flex-wrap gap-1' }, tags)
     },
@@ -472,7 +475,7 @@ const fields: ListFieldSchema[] = [
   // 最后登录（仅列）
   {
     key: 'lastLoginTime',
-    title: '最后登录',
+    title: t('identity.user.col_last_login'),
     dataType: 'datetime',
     minWidth: 150,
     order: 6,
@@ -484,7 +487,7 @@ const fields: ListFieldSchema[] = [
   // 最后登录 IP（仅列）
   {
     key: 'lastLoginIp',
-    title: '最后登录 IP',
+    title: t('identity.user.col_last_login_ip'),
     dataType: 'string',
     minWidth: 130,
     order: 6.1,
@@ -494,19 +497,19 @@ const fields: ListFieldSchema[] = [
     },
   },
   // 创建时间（仅列）
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, width: 170, order: 7 },
-]
+  { key: 'createdTime', title: t('identity.common.create_time'), dataType: 'datetime', sortable: true, width: 170, order: 7 },
+])
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'system.user',
   exportPermission: 'saas:user:export',
-  pageName: '用户管理',
+  pageName: t('identity.user.page_name'),
   batchRemovable: true,
   removePermission: 'saas:user:delete',
   statusPermission: 'saas:user:status',
   rowKey: 'basicId',
   scrollX: 1760,
-  fields,
+  fields: fields.value,
   resource: {
     page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
     remove: id => userManagementApi.delete(id),
@@ -514,29 +517,29 @@ const schema: PageSchema = {
     export: { businessType: 'system.user', buildQuery: buildUserQuery },
   },
   actions: [
-    { key: 'create', title: '新建用户', scope: 'page', type: 'primary', icon: 'tabler:plus' },
-    { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: '编辑', scope: 'row', icon: 'lucide:pencil' },
-    { key: 'grant', title: '权限直授', scope: 'row', icon: 'lucide:key-round' },
-    { key: 'lock', title: '锁定/解锁', scope: 'row', icon: 'lucide:lock' },
-    { key: 'resetPassword', title: '重置密码', scope: 'row', icon: 'lucide:key-square' },
+    { key: 'create', title: t('identity.user.action_create'), scope: 'page', type: 'primary', icon: 'tabler:plus' },
+    { key: 'view', title: t('identity.user.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'grant', title: t('identity.user.action_grant'), scope: 'row', icon: 'lucide:key-round' },
+    { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', icon: 'lucide:lock' },
+    { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', icon: 'lucide:key-square' },
     {
       key: 'resetOtp',
-      title: '重置 OTP',
+      title: t('identity.user.action_reset_otp'),
       scope: 'row',
       icon: 'lucide:shield-off',
       visible: row => (row as unknown as UserListItemDto).twoFactorEnabled,
     },
-    { key: 'logout', title: '强制下线', scope: 'row', icon: 'lucide:log-out' },
+    { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', icon: 'lucide:log-out' },
     {
       key: 'delete',
-      title: '删除',
+      title: t('identity.user.action_delete'),
       scope: 'row',
       icon: 'lucide:trash-2',
       visible: row => !(row as unknown as UserListItemDto).isSystemAccount,
     },
   ],
-}
+}))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as UserListItemDto | undefined
@@ -605,7 +608,7 @@ async function loadOptions() {
     deptFlatOptions.value = flattenDeptOptions(tree)
   }
   catch {
-    message.warning('加载角色或部门选项失败')
+    message.warning(t('identity.user.msg_load_options_failed'))
   }
 }
 
@@ -645,7 +648,7 @@ async function openEdit(id: ApiId) {
   try {
     const detail = await userManagementApi.detailView(id)
     if (!detail) {
-      message.warning('未找到用户')
+      message.warning(t('identity.user.msg_user_not_found'))
       return
     }
     await fillFormFromDetail(detail)
@@ -653,7 +656,7 @@ async function openEdit(id: ApiId) {
     showFormModal.value = true
   }
   catch {
-    message.error('加载用户信息失败')
+    message.error(t('identity.user.msg_load_user_failed'))
   }
 }
 
@@ -665,7 +668,7 @@ async function openDetail(id: ApiId) {
     currentDetail.value = await userManagementApi.detailView(id)
   }
   catch {
-    message.error('加载用户详情失败')
+    message.error(t('identity.user.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -723,12 +726,12 @@ async function syncDepartments(userId: ApiId) {
 async function saveUser() {
   const form = userForm.value
   if (!form.userName.trim()) {
-    message.warning('用户名不能为空')
+    message.warning(t('identity.user.msg_username_required'))
     formTab.value = '0'
     return
   }
   if (!form.basicId && !form.initialPassword.trim()) {
-    message.warning('请设置初始密码')
+    message.warning(t('identity.user.msg_initial_password_required'))
     formTab.value = '0'
     return
   }
@@ -796,12 +799,12 @@ async function saveUser() {
       await syncDepartments(userId)
     }
 
-    message.success('保存成功')
+    message.success(t('identity.common.save_success'))
     closeModals()
     reloadList()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('identity.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -817,11 +820,11 @@ async function toggleLock(row: UserListItemDto) {
       isLocked: !locked,
       lockoutEndTime: null,
     })
-    message.success(locked ? '账号已解锁' : '账号已锁定')
+    message.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
     reloadList()
   }
   catch {
-    message.error('操作失败')
+    message.error(t('identity.common.operation_failed'))
   }
 }
 
@@ -831,21 +834,21 @@ function displayName(row: UserListItemDto): string {
 
 function forceLogout(row: UserListItemDto) {
   dialog.warning({
-    title: '强制下线',
-    content: `将撤销用户「${displayName(row)}」的全部登录会话，其在线设备会立即被踢出。确认继续？`,
-    positiveText: '确认下线',
-    negativeText: '取消',
+    title: t('identity.user.logout_title'),
+    content: t('identity.user.logout_content', { name: displayName(row) }),
+    positiveText: t('identity.user.logout_confirm'),
+    negativeText: t('identity.common.cancel'),
     onPositiveClick: async () => {
       try {
         await userManagementApi.sessions.revokeUserSessions({
           userId: row.basicId,
-          reason: '管理员强制下线',
+          reason: t('identity.user.logout_reason'),
         })
-        message.success('已强制下线')
+        message.success(t('identity.user.logout_done'))
         reloadList()
       }
       catch {
-        message.error('强制下线失败')
+        message.error(t('identity.user.logout_failed'))
       }
     },
   })
@@ -876,36 +879,36 @@ function generateTempPassword(length = 12): string {
 function resetPassword(row: UserListItemDto) {
   const tempPassword = generateTempPassword()
   dialog.warning({
-    title: '重置密码',
-    content: `将为用户「${displayName(row)}」生成新的临时密码并立即生效，原密码作废、登录失败计数清零。确认继续？`,
-    positiveText: '确认重置',
-    negativeText: '取消',
+    title: t('identity.user.reset_password_title'),
+    content: t('identity.user.reset_password_content', { name: displayName(row) }),
+    positiveText: t('identity.user.reset_confirm'),
+    negativeText: t('identity.common.cancel'),
     onPositiveClick: async () => {
       try {
         await userManagementApi.security.resetPassword({
           userId: row.basicId,
           newPassword: tempPassword,
-          remark: '管理员重置密码',
+          remark: t('identity.user.reset_password_reason'),
         })
         dialog.success({
-          title: '密码已重置',
+          title: t('identity.user.reset_password_done_title'),
           content: () => h('div', { class: 'space-y-2' }, [
-            h('div', `用户「${displayName(row)}」的临时密码（仅本次显示，请立即转交并提醒用户修改）：`),
+            h('div', t('identity.user.reset_password_done_content', { name: displayName(row) })),
             h('div', {
               class: 'rounded bg-[hsl(var(--muted))] px-3 py-2 font-mono text-base font-semibold tracking-wider select-all',
             }, tempPassword),
           ]),
-          positiveText: '复制密码',
-          negativeText: '关闭',
+          positiveText: t('identity.user.reset_password_copy'),
+          negativeText: t('identity.common.close'),
           onPositiveClick: () => {
             void navigator.clipboard?.writeText(tempPassword)
-            message.success('临时密码已复制')
+            message.success(t('identity.user.reset_password_copied'))
             return false
           },
         })
       }
       catch {
-        message.error('重置密码失败')
+        message.error(t('identity.user.reset_password_failed'))
       }
     },
   })
@@ -913,21 +916,21 @@ function resetPassword(row: UserListItemDto) {
 
 function resetOtp(row: UserListItemDto) {
   dialog.warning({
-    title: '重置 OTP',
-    content: `将清除用户「${displayName(row)}」的双因素认证绑定（OTP），用户下次登录不再要求验证码，可在个人中心重新绑定。确认继续？`,
-    positiveText: '确认重置',
-    negativeText: '取消',
+    title: t('identity.user.reset_otp_title'),
+    content: t('identity.user.reset_otp_content', { name: displayName(row) }),
+    positiveText: t('identity.user.reset_confirm'),
+    negativeText: t('identity.common.cancel'),
     onPositiveClick: async () => {
       try {
         await userManagementApi.security.resetTwoFactor({
           userId: row.basicId,
-          remark: '管理员重置双因素认证',
+          remark: t('identity.user.reset_otp_reason'),
         })
-        message.success('OTP 已重置')
+        message.success(t('identity.user.reset_otp_done'))
         reloadList()
       }
       catch {
-        message.error('重置 OTP 失败')
+        message.error(t('identity.user.reset_otp_failed'))
       }
     },
   })
@@ -1003,7 +1006,7 @@ const grantPermGroups = computed(() => {
   const map = new Map<string, PermissionListItemDto[]>()
   for (const p of grantPermFiltered.value) {
     // 组码优先用后端定义的 groupCode；缺省回退资源段推导（兼容后端未重建时）
-    const key = p.groupCode || p.resourceName || grantPermResourceKey(p.permissionCode) || p.moduleCode || '其它'
+    const key = p.groupCode || p.resourceName || grantPermResourceKey(p.permissionCode) || p.moduleCode || t('identity.user.grant_perm_group_other')
     const arr = map.get(key) ?? []
     arr.push(p)
     map.set(key, arr)
@@ -1048,7 +1051,7 @@ async function openGrantDrawer(row: UserListItemDto) {
     await loadPermCatalog()
   }
   catch {
-    message.error('加载直授信息失败')
+    message.error(t('identity.user.grant_load_failed'))
   }
   finally {
     grantLoading.value = false
@@ -1063,19 +1066,19 @@ async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
   try {
     if (checked) {
       await userManagementApi.roles.grant({ userId: grantUser.value.basicId, roleId: role.basicId })
-      message.success(`已授角色：${role.roleName}`)
+      message.success(t('identity.user.grant_role_granted', { name: role.roleName }))
     }
     else {
       const bound = grantRoleByRoleId.value.get(role.basicId)
       if (bound) {
         await userManagementApi.roles.revoke(bound.basicId)
-        message.success(`已撤角色：${role.roleName}`)
+        message.success(t('identity.user.grant_role_revoked', { name: role.roleName }))
       }
     }
     grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
   }
   catch {
-    message.error('操作失败')
+    message.error(t('identity.common.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1106,7 +1109,7 @@ async function setPermGrant(permission: PermissionListItemDto, action: Permissio
     grantPermList.value = await userManagementApi.permissions.list(grantUser.value.basicId)
   }
   catch {
-    message.error('操作失败')
+    message.error(t('identity.common.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1118,12 +1121,12 @@ async function confirmDelete() {
     return
   try {
     await userManagementApi.delete(delTarget.value.id)
-    message.success('用户已删除')
+    message.success(t('identity.user.msg_user_deleted'))
     closeModals()
     reloadList()
   }
   catch {
-    message.error('删除失败')
+    message.error(t('identity.common.delete_failed'))
   }
 }
 </script>
@@ -1142,84 +1145,84 @@ async function confirmDelete() {
     >
       <NConfigProvider size="small" abstract>
         <NTabs v-model:value="formTab" type="line" animated>
-          <NTabPane name="0" tab="基本信息" display-directive="show">
+          <NTabPane name="0" :tab="t('identity.user.tab_basic')" display-directive="show">
             <div class="form-grid">
               <NFormItem
-                label="用户名 *"
+                :label="t('identity.user.label_username')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
                 <NInput
                   v-model:value="userForm.userName"
-                  placeholder="请输入用户名"
+                  :placeholder="t('identity.user.ph_username')"
                   :disabled="!!userForm.basicId"
                 />
               </NFormItem>
               <NFormItem
-                label="真实姓名"
+                :label="t('identity.user.label_real_name')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NInput v-model:value="userForm.realName" placeholder="请输入真实姓名" />
+                <NInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
               </NFormItem>
               <NFormItem
-                label="昵称"
+                :label="t('identity.user.label_nickname')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NInput v-model:value="userForm.nickName" placeholder="请输入昵称" />
+                <NInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
               </NFormItem>
               <NFormItem
-                label="邮箱"
+                :label="t('identity.user.label_email')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NInput v-model:value="userForm.email" placeholder="请输入邮箱" />
+                <NInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" />
               </NFormItem>
               <NFormItem
-                label="手机号"
+                :label="t('identity.user.label_phone')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NInput v-model:value="userForm.phone" placeholder="请输入手机号" />
+                <NInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" />
               </NFormItem>
               <NFormItem
-                label="性别"
+                :label="t('identity.user.label_gender')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
                 <NSelect v-model:value="userForm.gender" :options="genderOptions" />
               </NFormItem>
               <NFormItem
-                label="生日"
+                :label="t('identity.user.label_birthday')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
                 <NDatePicker v-model:value="userForm.birthday" type="date" class="w-full" />
               </NFormItem>
               <NFormItem
-                label="语言"
+                :label="t('identity.user.label_language')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
                 <NSelect v-model:value="userForm.language" :options="languageOptions" />
               </NFormItem>
               <NFormItem
-                label="国家/地区"
+                :label="t('identity.user.label_country')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NInput v-model:value="userForm.country" placeholder="如：CN" />
+                <NInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
               </NFormItem>
               <NFormItem
-                label="时区"
+                :label="t('identity.user.label_timezone')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
                 <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
               </NFormItem>
               <NFormItem
-                label="账号状态"
+                :label="t('identity.user.label_status')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
@@ -1227,19 +1230,19 @@ async function confirmDelete() {
               </NFormItem>
               <NFormItem
                 v-if="!userForm.basicId"
-                label="初始密码 *"
+                :label="t('identity.user.label_initial_password')"
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
                 <NInput
                   v-model:value="userForm.initialPassword"
                   type="password"
-                  placeholder="请输入初始密码"
+                  :placeholder="t('identity.user.ph_initial_password')"
                 />
               </NFormItem>
             </div>
             <NFormItem
-              label="备注"
+              :label="t('identity.user.label_remark')"
               :show-feedback="false"
               label-style="font-size:11px;font-weight:500"
               class="mt-1"
@@ -1248,27 +1251,27 @@ async function confirmDelete() {
                 v-model:value="userForm.remark"
                 type="textarea"
                 :rows="2"
-                placeholder="请输入备注信息"
+                :placeholder="t('identity.user.ph_remark')"
               />
             </NFormItem>
           </NTabPane>
 
-          <NTabPane name="1" tab="安全设置" display-directive="show">
+          <NTabPane name="1" :tab="t('identity.user.tab_security')" display-directive="show">
             <div class="sec-panel">
               <div class="sec-block">
                 <div class="sec-block-hd">
                   <Icon icon="tabler:shield-lock" :size="14" />
-                  <span>账号安全</span>
+                  <span>{{ t('identity.user.sec_account_security') }}</span>
                 </div>
                 <div class="form-row">
                   <div class="form-row-main">
                     <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
                     <div>
                       <div class="lbl">
-                        账号锁定
+                        {{ t('identity.user.sec_account_lock') }}
                       </div>
                       <div class="sub">
-                        锁定后用户无法登录
+                        {{ t('identity.user.sec_account_lock_hint') }}
                       </div>
                     </div>
                   </div>
@@ -1278,17 +1281,17 @@ async function confirmDelete() {
               <div class="sec-block">
                 <div class="sec-block-hd">
                   <Icon icon="tabler:devices" :size="14" />
-                  <span>登录会话</span>
+                  <span>{{ t('identity.user.sec_login_session') }}</span>
                 </div>
                 <div class="form-row">
                   <div class="form-row-main">
                     <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
                     <div>
                       <div class="lbl">
-                        允许多端登录
+                        {{ t('identity.user.sec_allow_multi_login') }}
                       </div>
                       <div class="sub">
-                        关闭后新登录会踢出旧会话
+                        {{ t('identity.user.sec_allow_multi_login_hint') }}
                       </div>
                     </div>
                   </div>
@@ -1299,10 +1302,10 @@ async function confirmDelete() {
                     <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
                     <div>
                       <div class="lbl">
-                        最大登录设备数
+                        {{ t('identity.user.sec_max_devices') }}
                       </div>
                       <div class="sub">
-                        0 = 不限
+                        {{ t('identity.user.sec_max_devices_hint') }}
                       </div>
                     </div>
                   </div>
@@ -1319,15 +1322,15 @@ async function confirmDelete() {
             </div>
           </NTabPane>
 
-          <NTabPane name="2" tab="角色权限" display-directive="show">
+          <NTabPane name="2" :tab="t('identity.user.tab_roles')" display-directive="show">
             <div class="pick-panel">
               <p class="pick-desc">
-                选择要分配的角色，可多选
+                {{ t('identity.user.pick_roles_desc') }}
               </p>
               <p v-if="selRoleIds.length" class="pick-summary">
-                已选
+                {{ t('identity.user.pick_selected') }}
                 <strong>{{ selRoleIds.length }}</strong>
-                个
+                {{ t('identity.user.pick_selected_unit') }}
               </p>
               <div class="pick-grid">
                 <button
@@ -1344,15 +1347,15 @@ async function confirmDelete() {
             </div>
           </NTabPane>
 
-          <NTabPane name="3" tab="所属部门" display-directive="show">
+          <NTabPane name="3" :tab="t('identity.user.tab_departments')" display-directive="show">
             <div class="pick-panel">
               <p class="pick-desc">
-                选择所属部门，可多选
+                {{ t('identity.user.pick_depts_desc') }}
               </p>
               <p v-if="selDeptIds.length" class="pick-summary">
-                已选
+                {{ t('identity.user.pick_selected') }}
                 <strong>{{ selDeptIds.length }}</strong>
-                个
+                {{ t('identity.user.pick_selected_unit') }}
               </p>
               <div class="pick-grid">
                 <button
@@ -1374,10 +1377,10 @@ async function confirmDelete() {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="closeModals">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="saveUser">
-            保存
+            {{ t('identity.common.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -1390,7 +1393,7 @@ async function confirmDelete() {
       :auto-focus="false"
       :bordered="false"
       preset="card"
-      title="用户详情"
+      :title="t('identity.user.detail_title')"
       style="width: 640px; max-width: calc(100vw - 32px)"
     >
       <template v-if="detUser" #header>
@@ -1410,46 +1413,46 @@ async function confirmDelete() {
       </template>
 
       <div v-if="detailLoading" class="modal-loading">
-        加载中…
+        {{ t('identity.common.loading') }}
       </div>
       <template v-else-if="detUser">
         <div class="det-info-grid">
           <div>
-            <span class="muted">语言/时区：</span>
+            <span class="muted">{{ t('identity.user.detail_language_timezone') }}</span>
             {{ detUser.language }} / {{ detUser.timeZone }}
           </div>
           <div>
-            <span class="muted">国家：</span>
+            <span class="muted">{{ t('identity.user.detail_country') }}</span>
             {{ detUser.country }}
           </div>
           <div>
-            <span class="muted">性别：</span>
+            <span class="muted">{{ t('identity.user.detail_gender') }}</span>
             {{ detUser.gender }}
           </div>
           <div>
-            <span class="muted">角色：</span>
+            <span class="muted">{{ t('identity.user.detail_roles') }}</span>
             {{ detUser.roles.join('、') || '—' }}
           </div>
           <div>
-            <span class="muted">部门：</span>
+            <span class="muted">{{ t('identity.user.detail_depts') }}</span>
             {{ detUser.depts.join('、') || '—' }}
           </div>
           <div v-if="detUser.remark" class="col-span-2">
-            <span class="muted">备注：</span>
+            <span class="muted">{{ t('identity.user.detail_remark') }}</span>
             {{ detUser.remark }}
           </div>
         </div>
         <div class="det-badges">
-          <span v-for="t in detUser.badges" :key="t.label" class="bdg" :class="[t.cls]">
-            <Icon :icon="t.icon" :size="12" />
-            {{ t.label }}
+          <span v-for="badge in detUser.badges" :key="badge.label" class="bdg" :class="[badge.cls]">
+            <Icon :icon="badge.icon" :size="12" />
+            {{ badge.label }}
           </span>
         </div>
         <div class="det-divider" />
         <div class="det-sec">
           <div class="det-sec-hd">
             <Icon icon="tabler:chart-bar" :size="14" />
-            <span>行为统计（今日）</span>
+            <span>{{ t('identity.user.detail_stats_today') }}</span>
           </div>
           <div class="det-stat-grid">
             <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
@@ -1465,7 +1468,7 @@ async function confirmDelete() {
         </div>
         <div class="det-sec-hd">
           <Icon icon="tabler:device-desktop" :size="14" />
-          <span>登录会话</span>
+          <span>{{ t('identity.user.detail_login_session') }}</span>
         </div>
         <div v-if="detUser.online" class="s-row">
           <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
@@ -1477,17 +1480,17 @@ async function confirmDelete() {
               {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
             </div>
           </div>
-          <span class="bdg bdg-ok">在线</span>
+          <span class="bdg bdg-ok">{{ t('identity.user.detail_online') }}</span>
         </div>
         <div v-else class="session-empty">
-          暂无活跃会话
+          {{ t('identity.user.detail_no_active_session') }}
         </div>
       </template>
 
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="closeModals">
-            关闭
+            {{ t('identity.common.close') }}
           </NButton>
         </NSpace>
       </template>
@@ -1500,19 +1503,19 @@ async function confirmDelete() {
       :auto-focus="false"
       :bordered="false"
       preset="card"
-      title="确认删除"
+      :title="t('identity.user.del_title')"
       style="width: 420px; max-width: calc(100vw - 32px)"
     >
       <div class="del-body">
         <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
         <div>
           <p class="del-title">
-            确定要删除用户 "
+            {{ t('identity.user.del_confirm_prefix') }}
             <span class="name">{{ delTarget?.name }}</span>
-            " 吗？
+            {{ t('identity.user.del_confirm_suffix') }}
           </p>
           <p class="del-desc">
-            此操作为软删除，保留审计记录；删除前将吊销该用户全部会话。
+            {{ t('identity.user.del_desc') }}
           </p>
         </div>
       </div>
@@ -1520,10 +1523,10 @@ async function confirmDelete() {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="closeModals">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton size="small" type="error" @click="confirmDelete">
-            确认删除
+            {{ t('identity.user.del_confirm_btn') }}
           </NButton>
         </NSpace>
       </template>
@@ -1531,12 +1534,12 @@ async function confirmDelete() {
 
     <!-- 权限直授抽屉 -->
     <NDrawer v-model:show="grantVisible" :width="720">
-      <NDrawerContent closable :title="`权限直授 · ${grantUser?.userName ?? ''}`">
+      <NDrawerContent closable :title="t('identity.user.grant_title', { name: grantUser?.userName ?? '' })">
         <NSpin :show="grantLoading">
           <NTabs v-model:value="grantTab" animated type="line">
-            <NTabPane name="role" tab="角色直授">
+            <NTabPane name="role" :tab="t('identity.user.grant_tab_role')">
               <p class="grant-desc">
-                勾选即把角色直接授予该用户（绕过分组）。
+                {{ t('identity.user.grant_role_desc') }}
               </p>
               <div class="grant-role-grid">
                 <label
@@ -1553,14 +1556,14 @@ async function confirmDelete() {
                 </label>
               </div>
             </NTabPane>
-            <NTabPane name="perm" tab="权限直授">
+            <NTabPane name="perm" :tab="t('identity.user.grant_tab_perm')">
               <div class="grant-toolbar">
-                <NInput v-model:value="grantKeyword" clearable placeholder="搜索权限名称 / 编码" style="width: 240px" />
+                <NInput v-model:value="grantKeyword" clearable :placeholder="t('identity.user.grant_perm_search')" style="width: 240px" />
                 <NTag :bordered="false" round type="success">
-                  已直授 {{ grantPermList.length }} 项
+                  {{ t('identity.user.grant_perm_granted_count', { count: grantPermList.length }) }}
                 </NTag>
               </div>
-              <NEmpty v-if="grantPermGroups.length === 0" class="grant-empty" description="无匹配权限" />
+              <NEmpty v-if="grantPermGroups.length === 0" class="grant-empty" :description="t('identity.user.grant_perm_empty')" />
               <div v-else class="grant-perm-groups">
                 <section v-for="group in grantPermGroups" :key="group.name" class="grant-perm-group">
                   <div class="grant-perm-head">
@@ -1584,7 +1587,7 @@ async function confirmDelete() {
                           :type="grantPermByPermId.get(permission.basicId)?.permissionAction === PermissionAction.Grant ? 'success' : 'default'"
                           @click="setPermGrant(permission, PermissionAction.Grant)"
                         >
-                          授予
+                          {{ t('identity.user.grant_perm_allow') }}
                         </NButton>
                         <NButton
                           :disabled="grantBusyId === permission.basicId"
@@ -1592,7 +1595,7 @@ async function confirmDelete() {
                           :type="grantPermByPermId.get(permission.basicId)?.permissionAction === PermissionAction.Deny ? 'error' : 'default'"
                           @click="setPermGrant(permission, PermissionAction.Deny)"
                         >
-                          拒绝
+                          {{ t('identity.user.grant_perm_deny') }}
                         </NButton>
                       </NSpace>
                     </div>

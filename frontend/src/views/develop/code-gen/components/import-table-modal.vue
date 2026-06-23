@@ -12,6 +12,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenerationApi,
   DATABASE_TYPE_OPTIONS,
@@ -30,6 +31,7 @@ const emit = defineEmits<{
   'imported': []
 }>()
 
+const { t } = useI18n()
 const message = useMessage()
 
 const step = ref<1 | 2>(1)
@@ -86,7 +88,7 @@ async function loadTables() {
     tableOptions.value = (tables ?? []).map(name => ({ label: name, value: name }))
   }
   catch {
-    message.error('加载数据库表失败')
+    message.error(t('develop.code_gen.import.load_tables_failed'))
     tableOptions.value = []
   }
   finally {
@@ -104,7 +106,7 @@ function toPascalCase(name: string) {
 
 function handleNext() {
   if (!selectedTable.value) {
-    message.warning('请选择要导入的数据库表')
+    message.warning(t('develop.code_gen.import.validate_select_table'))
     return
   }
   const pascal = toPascalCase(selectedTable.value)
@@ -115,11 +117,11 @@ function handleNext() {
 
 async function handleSubmit() {
   if (!selectedTable.value) {
-    message.warning('请选择要导入的数据库表')
+    message.warning(t('develop.code_gen.import.validate_select_table'))
     return
   }
   if (!form.value.className.trim()) {
-    message.warning('请输入实体类名')
+    message.warning(t('develop.code_gen.import.validate_class_name'))
     return
   }
   submitLoading.value = true
@@ -135,12 +137,12 @@ async function handleSubmit() {
       author: form.value.author?.trim() || undefined,
       databaseType: databaseType.value,
     })
-    message.success('导入成功')
+    message.success(t('develop.code_gen.import.import_success'))
     emit('imported')
     emit('update:show', false)
   }
   catch {
-    message.error('导入失败')
+    message.error(t('develop.code_gen.import.import_failed'))
   }
   finally {
     submitLoading.value = false
@@ -159,7 +161,7 @@ function handleClose() {
     preset="card"
     :show="show"
     style="width: 680px; max-width: 92vw"
-    title="导入数据库表"
+    :title="t('develop.code_gen.import.title')"
     @update:show="emit('update:show', $event)"
   >
     <template v-if="step === 1">
@@ -168,14 +170,14 @@ function handleClose() {
           v-model:value="connectionConfigId"
           class="import-filters__item"
           clearable
-          placeholder="连接配置标识（留空为主库）"
+          :placeholder="t('develop.code_gen.import.connection_placeholder')"
           size="small"
         />
         <NInput
           v-model:value="queryKeyword"
           class="import-filters__item"
           clearable
-          placeholder="表名关键字"
+          :placeholder="t('develop.code_gen.import.keyword_placeholder')"
           size="small"
           @keyup.enter="loadTables"
         />
@@ -183,21 +185,21 @@ function handleClose() {
           <template #icon>
             <NIcon><Icon icon="lucide:search" /></NIcon>
           </template>
-          查询
+          {{ t('develop.code_gen.common.search') }}
         </NButton>
       </div>
       <NForm label-placement="top">
-        <NFormItem label="数据库类型">
+        <NFormItem :label="t('develop.code_gen.import.form_database_type')">
           <NSelect v-model:value="databaseType" :options="DATABASE_TYPE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="选择数据库表">
+        <NFormItem :label="t('develop.code_gen.import.form_select_table')">
           <NSelect
             v-model:value="selectedTable"
             clearable
             filterable
             :loading="tableLoading"
             :options="tableOptions"
-            placeholder="请选择要导入的表"
+            :placeholder="t('develop.code_gen.import.select_table_placeholder')"
           />
         </NFormItem>
       </NForm>
@@ -205,25 +207,25 @@ function handleClose() {
 
     <template v-else>
       <NForm class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="数据库表">
+        <NFormItem :label="t('develop.code_gen.import.form_table')">
           <NInput :value="selectedTable ?? ''" disabled />
         </NFormItem>
-        <NFormItem label="实体类名">
-          <NInput v-model:value="form.className" clearable placeholder="如: SysUser" />
+        <NFormItem :label="t('develop.code_gen.import.form_class_name')">
+          <NInput v-model:value="form.className" clearable :placeholder="t('develop.code_gen.import.form_class_name_placeholder')" />
         </NFormItem>
-        <NFormItem label="命名空间">
+        <NFormItem :label="t('develop.code_gen.import.form_namespace')">
           <NInput v-model:value="form.namespace" clearable />
         </NFormItem>
-        <NFormItem label="模块名">
+        <NFormItem :label="t('develop.code_gen.import.form_module_name')">
           <NInput v-model:value="form.moduleName" clearable />
         </NFormItem>
-        <NFormItem label="业务名">
+        <NFormItem :label="t('develop.code_gen.import.form_business_name')">
           <NInput v-model:value="form.businessName" clearable />
         </NFormItem>
-        <NFormItem label="功能名">
+        <NFormItem :label="t('develop.code_gen.import.form_function_name')">
           <NInput v-model:value="form.functionName" clearable />
         </NFormItem>
-        <NFormItem label="作者">
+        <NFormItem :label="t('develop.code_gen.import.form_author')">
           <NInput v-model:value="form.author" clearable />
         </NFormItem>
       </NForm>
@@ -232,18 +234,18 @@ function handleClose() {
     <template #footer>
       <NSpace justify="space-between">
         <NButton v-if="step === 2" @click="step = 1">
-          上一步
+          {{ t('develop.code_gen.common.prev_step') }}
         </NButton>
         <span v-else />
         <NSpace>
           <NButton @click="handleClose">
-            取消
+            {{ t('develop.code_gen.common.cancel') }}
           </NButton>
           <NButton v-if="step === 1" type="primary" @click="handleNext">
-            下一步
+            {{ t('develop.code_gen.common.next_step') }}
           </NButton>
           <NButton v-else :loading="submitLoading" type="primary" @click="handleSubmit">
-            导入
+            {{ t('develop.code_gen.import.action_import') }}
           </NButton>
         </NSpace>
       </NSpace>

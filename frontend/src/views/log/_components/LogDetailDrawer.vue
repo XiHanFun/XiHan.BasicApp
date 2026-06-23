@@ -9,6 +9,7 @@ import {
   NSpin,
 } from 'naive-ui'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatDate, getOptionLabel } from '~/utils'
 
 const props = withDefaults(
@@ -30,6 +31,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   (event: 'update:show', value: boolean): void
 }>()
+
+const { t } = useI18n()
 
 const visible = computed({
   get: () => props.show,
@@ -89,7 +92,7 @@ function formatValue(field: LogDetailField) {
 
   switch (field.type) {
     case 'boolean':
-      return value ? field.trueText ?? '是' : field.falseText ?? '否'
+      return value ? field.trueText ?? t('log.common.yes') : field.falseText ?? t('log.common.no')
     case 'bytes':
       return formatSize(value)
     case 'code':

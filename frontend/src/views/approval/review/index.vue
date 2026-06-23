@@ -15,7 +15,8 @@ import {
   NTag,
   useMessage,
 } from 'naive-ui'
-import { h, ref } from 'vue'
+import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
@@ -25,6 +26,7 @@ defineOptions({ name: 'PlatformApprovalPage' })
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
+const { t } = useI18n()
 const message = useMessage()
 const statusOptions = STATUS_OPTIONS
 
@@ -33,19 +35,19 @@ function reload() {
   void schemaPageRef.value?.reload()
 }
 
-const reviewStatusOptions = [
-  { label: '待审核', value: AuditStatus.Pending },
-  { label: '审核中', value: AuditStatus.InProgress },
-  { label: '审核通过', value: AuditStatus.Approved },
-  { label: '审核拒绝', value: AuditStatus.Rejected },
-  { label: '已撤回', value: AuditStatus.Withdrawn },
-]
+const reviewStatusOptions = computed(() => [
+  { label: t('approval.review.status_pending'), value: AuditStatus.Pending },
+  { label: t('approval.review.status_in_progress'), value: AuditStatus.InProgress },
+  { label: t('approval.review.status_approved'), value: AuditStatus.Approved },
+  { label: t('approval.review.status_rejected'), value: AuditStatus.Rejected },
+  { label: t('approval.review.status_withdrawn'), value: AuditStatus.Withdrawn },
+])
 
-const reviewResultOptions = [
-  { label: '通过', value: AuditResult.Pass },
-  { label: '拒绝', value: AuditResult.Reject },
-  { label: '退回修改', value: AuditResult.Return },
-]
+const reviewResultOptions = computed(() => [
+  { label: t('approval.review.result_pass'), value: AuditResult.Pass },
+  { label: t('approval.review.result_reject'), value: AuditResult.Reject },
+  { label: t('approval.review.result_return'), value: AuditResult.Return },
+])
 
 function reviewStatusTag(status: AuditStatus): TagType {
   switch (status) {
@@ -89,45 +91,45 @@ function toStr(v: unknown): string | undefined {
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索标题/编码/业务', width: 240, order: 0 },
+  { key: 'keyword', title: t('approval.review.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('approval.review.keyword_placeholder'), width: 240, order: 0 },
   // 常用搜索 + 列
   {
     key: 'reviewStatus',
-    title: '审批状态',
+    title: t('approval.review.review_status'),
     dataType: 'enum',
     searchable: true,
-    options: reviewStatusOptions,
-    searchPlaceholder: '审批状态',
+    options: reviewStatusOptions.value,
+    searchPlaceholder: t('approval.review.review_status_placeholder'),
     width: 120,
     order: 1,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewStatusTag(r.reviewStatus) }, () => getOptionLabel(reviewStatusOptions, r.reviewStatus))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewStatusTag(r.reviewStatus) }, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus))
     },
   },
   {
     key: 'reviewResult',
-    title: '审批结果',
+    title: t('approval.review.review_result'),
     dataType: 'enum',
     searchable: true,
-    options: reviewResultOptions,
-    searchPlaceholder: '审批结果',
+    options: reviewResultOptions.value,
+    searchPlaceholder: t('approval.review.review_result_placeholder'),
     width: 120,
     order: 2,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewResultTag(r.reviewResult) }, () => (r.reviewResult === null || r.reviewResult === undefined ? '未出结果' : getOptionLabel(reviewResultOptions, r.reviewResult)))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewResultTag(r.reviewResult) }, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult)))
     },
   },
   {
     key: 'status',
-    title: '启停状态',
+    title: t('approval.review.enable_status'),
     dataType: 'enum',
     searchable: true,
     options: statusOptions,
-    searchPlaceholder: '启停状态',
+    searchPlaceholder: t('approval.review.enable_status_placeholder'),
     width: 100,
     order: 3,
     render: (row) => {
@@ -136,28 +138,28 @@ const fields: ListFieldSchema[] = [
     },
   },
   // 仅列（不搜索）
-  { key: 'reviewTitle', title: '审批标题', dataType: 'string', minWidth: 220, order: 10 },
-  { key: 'reviewCode', title: '审批编码', dataType: 'string', minWidth: 160, order: 11 },
-  { key: 'reviewType', title: '审批类型', dataType: 'string', minWidth: 130, order: 12 },
-  { key: 'entityType', title: '业务实体', dataType: 'string', minWidth: 130, order: 13 },
-  { key: 'entityId', title: '业务主键', dataType: 'string', minWidth: 150, order: 14 },
-  { key: 'priority', title: '优先级', dataType: 'number', sortable: true, width: 90, order: 15 },
-  { key: 'reviewLevel', title: '审批级别', dataType: 'number', width: 100, order: 16 },
-  { key: 'currentLevel', title: '当前级别', dataType: 'number', width: 110, order: 17 },
-  { key: 'submitUserId', title: '提交人', dataType: 'string', minWidth: 110, order: 18 },
-  { key: 'submitTime', title: '提交时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 20 },
-]
+  { key: 'reviewTitle', title: t('approval.review.review_title'), dataType: 'string', minWidth: 220, order: 10 },
+  { key: 'reviewCode', title: t('approval.review.review_code'), dataType: 'string', minWidth: 160, order: 11 },
+  { key: 'reviewType', title: t('approval.review.review_type'), dataType: 'string', minWidth: 130, order: 12 },
+  { key: 'entityType', title: t('approval.review.entity_type'), dataType: 'string', minWidth: 130, order: 13 },
+  { key: 'entityId', title: t('approval.review.entity_id'), dataType: 'string', minWidth: 150, order: 14 },
+  { key: 'priority', title: t('approval.review.priority'), dataType: 'number', sortable: true, width: 90, order: 15 },
+  { key: 'reviewLevel', title: t('approval.review.review_level'), dataType: 'number', width: 100, order: 16 },
+  { key: 'currentLevel', title: t('approval.review.current_level'), dataType: 'number', width: 110, order: 17 },
+  { key: 'submitUserId', title: t('approval.review.submit_user'), dataType: 'string', minWidth: 110, order: 18 },
+  { key: 'submitTime', title: t('approval.review.submit_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
+  { key: 'createdTime', title: t('approval.review.created_time'), dataType: 'datetime', minWidth: 170, order: 20 },
+])
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.approval',
   exportPermission: 'saas:review:export',
-  pageName: '审批中心',
+  pageName: t('approval.review.page_name'),
   batchRemovable: true,
   removePermission: 'saas:review:delete',
   rowKey: 'basicId',
   scrollX: 2000,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -172,13 +174,13 @@ const schema: PageSchema = {
     remove: id => approvalManagementApi.delete(id),
   },
   actions: [
-    { key: 'view', title: '查看流程', scope: 'row', icon: 'lucide:eye' },
-    { key: 'approve', title: '通过', scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
-    { key: 'reject', title: '拒绝', scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
-    { key: 'toggle', title: '启用/停用', scope: 'row' },
-    { key: 'delete', title: '删除', scope: 'row', type: 'error' },
+    { key: 'view', title: t('approval.review.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'approve', title: t('approval.review.action_approve'), scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
+    { key: 'reject', title: t('approval.review.action_reject'), scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
+    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row' },
+    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', type: 'error' },
   ],
-}
+}))
 
 function canAuditRow(row: ReviewListItemDto) {
   return row.reviewStatus === AuditStatus.Pending || row.reviewStatus === AuditStatus.InProgress
@@ -215,7 +217,7 @@ async function handleDetail(row: ReviewListItemDto) {
     detailData.value = await approvalManagementApi.detail(row.basicId) ?? null
   }
   catch {
-    message.error('加载审批详情失败')
+    message.error(t('approval.review.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -245,13 +247,13 @@ async function handleAudit() {
       reviewResult: auditResult.value,
       reviewComment: auditComment.value.trim() || undefined,
     })
-    message.success(auditResult.value === AuditResult.Pass ? '已通过' : auditResult.value === AuditResult.Reject ? '已拒绝' : '已退回')
+    message.success(auditResult.value === AuditResult.Pass ? t('approval.review.msg_passed') : auditResult.value === AuditResult.Reject ? t('approval.review.msg_rejected') : t('approval.review.msg_returned'))
     approveVisible.value = false
     detailVisible.value = false
     reload()
   }
   catch {
-    message.error('审核操作失败')
+    message.error(t('approval.review.err_audit'))
   }
   finally {
     actionLoading.value = false
@@ -264,12 +266,12 @@ async function handleWithdraw() {
   actionLoading.value = true
   try {
     await approvalManagementApi.withdraw({ basicId: detailData.value.basicId })
-    message.success('已撤回')
+    message.success(t('approval.review.msg_withdrawn'))
     detailVisible.value = false
     reload()
   }
   catch {
-    message.error('撤回失败')
+    message.error(t('approval.review.err_withdraw'))
   }
   finally {
     actionLoading.value = false
@@ -280,22 +282,22 @@ async function handleToggleStatus(row: ReviewListItemDto) {
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
     await approvalManagementApi.updateStatus({ basicId: row.basicId, status: newStatus })
-    message.success(newStatus === EnableStatus.Enabled ? '已启用' : '已停用')
+    message.success(newStatus === EnableStatus.Enabled ? t('approval.review.msg_enabled') : t('approval.review.msg_disabled'))
     reload()
   }
   catch {
-    message.error('更新状态失败')
+    message.error(t('approval.review.err_update_status'))
   }
 }
 
 async function handleDelete(row: ReviewListItemDto) {
   try {
     await approvalManagementApi.delete(row.basicId)
-    message.success('已删除')
+    message.success(t('approval.review.msg_deleted'))
     reload()
   }
   catch {
-    message.error('删除失败')
+    message.error(t('approval.review.err_delete'))
   }
 }
 
@@ -329,112 +331,112 @@ function onAction(payload: SchemaActionPayload) {
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <NDrawer v-model:show="detailVisible" :width="660">
-      <NDrawerContent closable title="审批详情">
+      <NDrawerContent closable :title="t('approval.review.detail_title')">
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
-          正在加载...
+          {{ t('approval.review.loading') }}
         </div>
         <NDescriptions v-else-if="detailData" :column="1" bordered label-placement="left" size="small">
-          <NDescriptionsItem label="审批标题">
+          <NDescriptionsItem :label="t('approval.review.review_title')">
             {{ detailData.reviewTitle }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批编码">
+          <NDescriptionsItem :label="t('approval.review.review_code')">
             {{ detailData.reviewCode }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批类型">
+          <NDescriptionsItem :label="t('approval.review.review_type')">
             {{ detailData.reviewType }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="业务实体">
+          <NDescriptionsItem :label="t('approval.review.entity_type')">
             {{ detailData.entityType || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="业务主键">
+          <NDescriptionsItem :label="t('approval.review.entity_id')">
             {{ detailData.entityId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批状态">
+          <NDescriptionsItem :label="t('approval.review.review_status')">
             <NTag :type="reviewStatusTag(detailData.reviewStatus)" round size="small">
               {{ getOptionLabel(reviewStatusOptions, detailData.reviewStatus) }}
             </NTag>
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批结果">
+          <NDescriptionsItem :label="t('approval.review.review_result')">
             <NTag v-if="detailData.reviewResult !== null && detailData.reviewResult !== undefined" :type="reviewResultTag(detailData.reviewResult)" round size="small">
               {{ getOptionLabel(reviewResultOptions, detailData.reviewResult) }}
             </NTag>
-            <span v-else>未出结果</span>
+            <span v-else>{{ t('approval.review.no_result') }}</span>
           </NDescriptionsItem>
-          <NDescriptionsItem label="启停状态">
+          <NDescriptionsItem :label="t('approval.review.enable_status')">
             <NTag :type="statusTag(detailData.status)" round size="small">
               {{ getOptionLabel(statusOptions, detailData.status) }}
             </NTag>
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批级别">
-            {{ detailData.currentLevel }} / {{ detailData.reviewLevel }} 级
+          <NDescriptionsItem :label="t('approval.review.review_level')">
+            {{ t('approval.review.level_unit', { current: detailData.currentLevel, total: detailData.reviewLevel }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="优先级">
+          <NDescriptionsItem :label="t('approval.review.priority')">
             {{ detailData.priority }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="提交人">
+          <NDescriptionsItem :label="t('approval.review.submit_user')">
             {{ detailData.submitUserId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="当前审批人">
+          <NDescriptionsItem :label="t('approval.review.current_review_user')">
             {{ detailData.currentReviewUserId || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批人列表">
+          <NDescriptionsItem :label="t('approval.review.review_user_ids')">
             {{ detailData.reviewUserIds || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="提交时间">
+          <NDescriptionsItem :label="t('approval.review.submit_time')">
             {{ formatDate(detailData.submitTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="开始时间">
+          <NDescriptionsItem :label="t('approval.review.review_start_time')">
             {{ formatNullableDate(detailData.reviewStartTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="结束时间">
+          <NDescriptionsItem :label="t('approval.review.review_end_time')">
             {{ formatNullableDate(detailData.reviewEndTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批描述">
+          <NDescriptionsItem :label="t('approval.review.review_description')">
             {{ detailData.reviewDescription || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="审批内容">
+          <NDescriptionsItem :label="t('approval.review.review_content')">
             <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.reviewContent || '-' }}</pre>
           </NDescriptionsItem>
-          <NDescriptionsItem label="业务数据">
+          <NDescriptionsItem :label="t('approval.review.business_data')">
             <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.businessData || '-' }}</pre>
           </NDescriptionsItem>
-          <NDescriptionsItem label="创建时间">
+          <NDescriptionsItem :label="t('approval.review.created_time')">
             {{ formatNullableDate(detailData.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="修改时间">
+          <NDescriptionsItem :label="t('approval.review.modified_time')">
             {{ formatNullableDate(detailData.modifiedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="备注">
+          <NDescriptionsItem :label="t('approval.review.remark')">
             {{ detailData.remark || '-' }}
           </NDescriptionsItem>
         </NDescriptions>
         <div v-else class="py-8 text-center text-gray-400">
-          暂无审批详情
+          {{ t('approval.review.empty_detail') }}
         </div>
 
         <template v-if="detailData && !detailLoading" #footer>
           <NDivider style="margin: 12px 0" />
           <div class="text-sm font-medium mb-2">
-            审批操作
+            {{ t('approval.review.review_operation') }}
           </div>
           <NSpace justify="start" :size="8">
             <NButton type="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
               <template #icon>
                 <NIcon><Icon icon="lucide:check" /></NIcon>
               </template>
-              通过
+              {{ t('approval.review.btn_pass') }}
             </NButton>
             <NButton type="error" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
               <template #icon>
                 <NIcon><Icon icon="lucide:x" /></NIcon>
               </template>
-              拒绝
+              {{ t('approval.review.btn_reject') }}
             </NButton>
             <NButton type="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
               <template #icon>
                 <NIcon><Icon icon="lucide:corner-down-left" /></NIcon>
               </template>
-              退回修改
+              {{ t('approval.review.btn_return') }}
             </NButton>
             <NPopconfirm @positive-click="handleWithdraw">
               <template #trigger>
@@ -442,10 +444,10 @@ function onAction(payload: SchemaActionPayload) {
                   <template #icon>
                     <NIcon><Icon icon="lucide:undo-2" /></NIcon>
                   </template>
-                  撤回
+                  {{ t('approval.review.btn_withdraw') }}
                 </NButton>
               </template>
-              确定撤回该审批？
+              {{ t('approval.review.withdraw_confirm') }}
             </NPopconfirm>
           </NSpace>
         </template>
@@ -453,11 +455,11 @@ function onAction(payload: SchemaActionPayload) {
     </NDrawer>
 
     <NDrawer v-model:show="approveVisible" :width="420">
-      <NDrawerContent closable :title="auditResult === AuditResult.Pass ? '通过审批' : auditResult === AuditResult.Reject ? '拒绝审批' : '退回修改'">
+      <NDrawerContent closable :title="auditResult === AuditResult.Pass ? t('approval.review.approve_dialog_pass') : auditResult === AuditResult.Reject ? t('approval.review.approve_dialog_reject') : t('approval.review.approve_dialog_return')">
         <NSpace vertical>
           <NInput
             v-model:value="auditComment"
-            placeholder="审批意见（可选）"
+            :placeholder="t('approval.review.comment_placeholder')"
             type="textarea"
             :autosize="{ minRows: 2, maxRows: 6 }"
           />
@@ -470,7 +472,7 @@ function onAction(payload: SchemaActionPayload) {
             <template #icon>
               <NIcon><Icon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" /></NIcon>
             </template>
-            确认{{ auditResult === AuditResult.Pass ? '通过' : auditResult === AuditResult.Reject ? '拒绝' : '退回' }}
+            {{ auditResult === AuditResult.Pass ? t('approval.review.confirm_pass') : auditResult === AuditResult.Reject ? t('approval.review.confirm_reject') : t('approval.review.confirm_return') }}
           </NButton>
         </NSpace>
       </NDrawerContent>

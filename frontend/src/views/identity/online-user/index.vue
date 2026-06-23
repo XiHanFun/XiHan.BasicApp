@@ -2,13 +2,15 @@
 import type { OnlineUserListItemDto, OnlineUserSummaryDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import { NTag, useDialog, useMessage } from 'naive-ui'
-import { h, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createPageRequest, DeviceType, onlineUserApi, userSessionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'IdentityOnlineUserPage' })
 
+const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
@@ -41,37 +43,37 @@ onBeforeUnmount(() => {
 })
 
 // ── 列表 ─────────────────────────────────────────────────────────
-const deviceTypeOptions = [
-  { label: '未知', value: DeviceType.Unknown },
+const deviceTypeOptions = computed(() => [
+  { label: t('identity.online_user.device_unknown'), value: DeviceType.Unknown },
   { label: 'Web', value: DeviceType.Web },
   { label: 'iOS', value: DeviceType.iOS },
   { label: 'Android', value: DeviceType.Android },
   { label: 'Windows', value: DeviceType.Windows },
   { label: 'macOS', value: DeviceType.macOS },
   { label: 'Linux', value: DeviceType.Linux },
-  { label: '平板', value: DeviceType.Tablet },
-  { label: '小程序', value: DeviceType.MiniProgram },
+  { label: t('identity.online_user.device_tablet'), value: DeviceType.Tablet },
+  { label: t('identity.online_user.device_miniprogram'), value: DeviceType.MiniProgram },
   { label: 'API', value: DeviceType.Api },
-]
+])
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) {
-    return `${seconds} 秒`
+    return t('identity.online_user.duration_seconds', { n: seconds })
   }
   if (seconds < 3600) {
-    return `${Math.floor(seconds / 60)} 分钟`
+    return t('identity.online_user.duration_minutes', { n: Math.floor(seconds / 60) })
   }
   if (seconds < 86400) {
-    return `${Math.floor(seconds / 3600)} 小时 ${Math.floor((seconds % 3600) / 60)} 分`
+    return t('identity.online_user.duration_hours', { h: Math.floor(seconds / 3600), m: Math.floor((seconds % 3600) / 60) })
   }
-  return `${Math.floor(seconds / 86400)} 天 ${Math.floor((seconds % 86400) / 3600)} 小时`
+  return t('identity.online_user.duration_days', { d: Math.floor(seconds / 86400), h: Math.floor((seconds % 86400) / 3600) })
 }
 
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索会话/设备/系统/浏览器', order: 0 },
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('identity.online_user.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.online_user.keyword_placeholder'), order: 0 },
   {
     key: 'userName',
-    title: '用户',
+    title: t('identity.online_user.col_user'),
     dataType: 'string',
     minWidth: 140,
     order: 10,
@@ -86,7 +88,7 @@ const fields: ListFieldSchema[] = [
   },
   {
     key: 'isRealtimeOnline',
-    title: '实时连接',
+    title: t('identity.online_user.col_realtime'),
     dataType: 'boolean',
     width: 100,
     order: 11,
@@ -95,55 +97,55 @@ const fields: ListFieldSchema[] = [
       return h(
         NTag,
         { size: 'small', round: true, bordered: false, type: online ? 'success' : 'default' },
-        () => online ? '在线' : '登录态',
+        () => online ? t('identity.online_user.realtime_online') : t('identity.online_user.realtime_logged'),
       )
     },
   },
   {
     key: 'deviceType',
-    title: '设备类型',
+    title: t('identity.online_user.col_device_type'),
     dataType: 'enum',
     searchable: true,
-    options: deviceTypeOptions,
-    searchPlaceholder: '设备类型',
+    options: deviceTypeOptions.value,
+    searchPlaceholder: t('identity.online_user.device_type_placeholder'),
     width: 100,
     order: 12,
     render: row => h(
       NTag,
       { size: 'small', round: true, bordered: false, type: 'info' },
-      () => getOptionLabel(deviceTypeOptions, (row as unknown as OnlineUserListItemDto).deviceType),
+      () => getOptionLabel(deviceTypeOptions.value, (row as unknown as OnlineUserListItemDto).deviceType),
     ),
   },
-  { key: 'deviceName', title: '设备名称', dataType: 'string', minWidth: 120, order: 13 },
-  { key: 'operatingSystem', title: '操作系统', dataType: 'string', minWidth: 110, order: 14 },
-  { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 110, order: 15 },
-  { key: 'ipAddressMasked', title: 'IP 地址', dataType: 'string', minWidth: 120, order: 16 },
-  { key: 'location', title: '登录地点', dataType: 'string', minWidth: 140, order: 17 },
-  { key: 'loginTime', title: '登录时间', dataType: 'datetime', minWidth: 170, order: 18 },
-  { key: 'lastActivityTime', title: '最后活动', dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
+  { key: 'deviceName', title: t('identity.online_user.col_device_name'), dataType: 'string', minWidth: 120, order: 13 },
+  { key: 'operatingSystem', title: t('identity.online_user.col_os'), dataType: 'string', minWidth: 110, order: 14 },
+  { key: 'browser', title: t('identity.online_user.col_browser'), dataType: 'string', minWidth: 110, order: 15 },
+  { key: 'ipAddressMasked', title: t('identity.online_user.col_ip'), dataType: 'string', minWidth: 120, order: 16 },
+  { key: 'location', title: t('identity.online_user.col_location'), dataType: 'string', minWidth: 140, order: 17 },
+  { key: 'loginTime', title: t('identity.online_user.col_login_time'), dataType: 'datetime', minWidth: 170, order: 18 },
+  { key: 'lastActivityTime', title: t('identity.online_user.col_last_activity'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
   {
     key: 'onlineDurationSeconds',
-    title: '在线时长',
+    title: t('identity.online_user.col_online_duration'),
     dataType: 'string',
     width: 130,
     order: 20,
     render: row => h('span', formatDuration((row as unknown as OnlineUserListItemDto).onlineDurationSeconds)),
   },
-  { key: 'userSessionId', title: '会话标识', dataType: 'string', visible: false, minWidth: 180, order: 21 },
-  { key: 'userId', title: '用户主键', dataType: 'string', visible: false, advancedSearch: true, order: 30 },
-]
+  { key: 'userSessionId', title: t('identity.online_user.col_session_id'), dataType: 'string', visible: false, minWidth: 180, order: 21 },
+  { key: 'userId', title: t('identity.online_user.col_user_id'), dataType: 'string', visible: false, advancedSearch: true, order: 30 },
+])
 
 function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
 }
 
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'identity.online-user',
   exportPermission: 'saas:user-session:export',
-  pageName: '在线用户',
+  pageName: t('identity.online_user.page_name'),
   rowKey: 'basicId',
   scrollX: 1700,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -156,9 +158,9 @@ const schema: PageSchema = {
     },
   },
   actions: [
-    { key: 'revoke', title: '强制下线', scope: 'row', icon: 'lucide:log-out', type: 'error', permission: 'saas:user-session:revoke' },
+    { key: 'revoke', title: t('identity.online_user.action_revoke'), scope: 'row', icon: 'lucide:log-out', type: 'error', permission: 'saas:user-session:revoke' },
   ],
-}
+}))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as OnlineUserListItemDto | undefined
@@ -170,19 +172,19 @@ function onAction(payload: SchemaActionPayload) {
 function confirmRevoke(row: OnlineUserListItemDto) {
   const name = row.nickName || row.userName || `#${row.userId}`
   dialog.warning({
-    title: '强制下线',
-    content: `确定将「${name}」的该会话强制下线吗？对方将立即收到下线通知并退出登录。`,
-    positiveText: '强制下线',
-    negativeText: '取消',
+    title: t('identity.online_user.revoke_title'),
+    content: t('identity.online_user.revoke_content', { name }),
+    positiveText: t('identity.online_user.revoke_confirm'),
+    negativeText: t('identity.common.cancel'),
     onPositiveClick: async () => {
       try {
-        await userSessionApi.revokeSession({ basicId: row.basicId, reason: '管理员强制下线' })
-        message.success('已强制下线')
+        await userSessionApi.revokeSession({ basicId: row.basicId, reason: t('identity.online_user.revoke_reason') })
+        message.success(t('identity.online_user.revoke_done'))
         void loadSummary()
         void schemaPageRef.value?.reload()
       }
       catch (e) {
-        message.error((e as Error).message || '强制下线失败')
+        message.error((e as Error).message || t('identity.online_user.revoke_failed'))
       }
     },
   })
@@ -198,7 +200,7 @@ function confirmRevoke(row: OnlineUserListItemDto) {
         </span>
         <div class="ou-card__body">
           <span class="ou-card__value">{{ summary?.realtimeOnlineUsers ?? '–' }}</span>
-          <span class="ou-card__label">实时在线用户</span>
+          <span class="ou-card__label">{{ t('identity.online_user.summary_realtime_online') }}</span>
         </div>
       </div>
       <div class="ou-card">
@@ -207,7 +209,7 @@ function confirmRevoke(row: OnlineUserListItemDto) {
         </span>
         <div class="ou-card__body">
           <span class="ou-card__value">{{ summary?.activeSessions ?? '–' }}</span>
-          <span class="ou-card__label">活跃会话</span>
+          <span class="ou-card__label">{{ t('identity.online_user.summary_active_sessions') }}</span>
         </div>
       </div>
       <div class="ou-card">
@@ -216,7 +218,7 @@ function confirmRevoke(row: OnlineUserListItemDto) {
         </span>
         <div class="ou-card__body">
           <span class="ou-card__value">{{ summary?.activeUsers ?? '–' }}</span>
-          <span class="ou-card__label">活跃用户</span>
+          <span class="ou-card__label">{{ t('identity.online_user.summary_active_users') }}</span>
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   codeGenTemplateApi,
   createPageRequest,
@@ -57,6 +58,7 @@ interface TemplateFormModel {
   remark?: string | null
 }
 
+const { t } = useI18n()
 const message = useMessage()
 
 const loading = ref(false)
@@ -85,7 +87,7 @@ async function fetchData() {
     total.value = result.page.totalCount
   }
   catch {
-    message.error('查询模板失败')
+    message.error(t('develop.code_gen.template.query_failed'))
     list.value = []
     total.value = 0
   }
@@ -113,49 +115,49 @@ function handlePageSizeChange(value: number) {
 const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
   {
     key: 'templateName',
-    title: '模板名称',
+    title: t('develop.code_gen.template.col_template_name'),
     minWidth: 160,
     ellipsis: { tooltip: true },
     render: (row: CodeGenTemplateListItemDto) =>
       h('div', { class: 'tpl-name' }, [
         h('span', { class: 'tpl-name__text' }, row.templateName),
         row.isBuiltIn
-          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => '内置')
+          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => t('develop.code_gen.common.builtin_tag'))
           : null,
       ]),
   },
   {
     key: 'templateCode',
-    title: '编码',
+    title: t('develop.code_gen.template.col_template_code'),
     minWidth: 150,
     ellipsis: { tooltip: true },
   },
   {
     key: 'templateGroup',
-    title: '分组',
+    title: t('develop.code_gen.template.col_template_group'),
     width: 120,
     ellipsis: { tooltip: true },
   },
   {
     key: 'templateType',
-    title: '类型',
+    title: t('develop.code_gen.template.col_template_type'),
     width: 90,
     render: (row: CodeGenTemplateListItemDto) => getOptionLabel(TEMPLATE_TYPE_OPTIONS, row.templateType),
   },
   {
     key: 'templateEngine',
-    title: '引擎',
+    title: t('develop.code_gen.template.col_template_engine'),
     width: 90,
     render: (row: CodeGenTemplateListItemDto) => getOptionLabel(TEMPLATE_ENGINE_OPTIONS, row.templateEngine),
   },
   {
     key: 'fileExtension',
-    title: '扩展名',
+    title: t('develop.code_gen.template.col_file_extension'),
     width: 90,
   },
   {
     key: 'isEnabled',
-    title: '启用',
+    title: t('develop.code_gen.template.col_enabled'),
     width: 72,
     align: 'center',
     render: (row: CodeGenTemplateListItemDto) =>
@@ -164,11 +166,11 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
         round: true,
         bordered: false,
         type: row.isEnabled ? 'success' : 'default',
-      }, () => (row.isEnabled ? '是' : '否')),
+      }, () => (row.isEnabled ? t('develop.code_gen.common.yes') : t('develop.code_gen.common.no'))),
   },
   {
     key: 'status',
-    title: '状态',
+    title: t('develop.code_gen.common.status'),
     width: 72,
     align: 'center',
     render: (row: CodeGenTemplateListItemDto) =>
@@ -181,13 +183,13 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
   },
   {
     key: 'actions',
-    title: '操作',
+    title: t('develop.code_gen.common.actions'),
     width: 110,
     align: 'center',
     render: (row: CodeGenTemplateListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
         h(NButton, {
-          ariaLabel: '编辑',
+          ariaLabel: t('develop.code_gen.common.edit'),
           circle: true,
           quaternary: true,
           size: 'small',
@@ -196,7 +198,7 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
         }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row), disabled: row.isBuiltIn }, {
           trigger: () => h(NButton, {
-            ariaLabel: '删除',
+            ariaLabel: t('develop.code_gen.common.delete'),
             circle: true,
             quaternary: true,
             size: 'small',
@@ -204,11 +206,11 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
             disabled: row.isBuiltIn,
             onClick: () => {
               if (row.isBuiltIn) {
-                message.warning('内置模板不可删除')
+                message.warning(t('develop.code_gen.template.builtin_cannot_delete'))
               }
             },
           }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => '确认删除该模板？',
+          default: () => t('develop.code_gen.template.confirm_delete'),
         }),
       ]),
   },
@@ -216,16 +218,16 @@ const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
 
 async function handleDelete(row: CodeGenTemplateListItemDto) {
   if (row.isBuiltIn) {
-    message.warning('内置模板不可删除')
+    message.warning(t('develop.code_gen.template.builtin_cannot_delete'))
     return
   }
   try {
     await codeGenTemplateApi.delete(row.basicId)
-    message.success('删除成功')
+    message.success(t('develop.code_gen.common.delete_success'))
     fetchData()
   }
   catch {
-    message.error('删除失败')
+    message.error(t('develop.code_gen.common.delete_failed'))
   }
 }
 
@@ -235,7 +237,7 @@ const submitLoading = ref(false)
 const validating = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const form = ref<TemplateFormModel>(createDefaultForm())
-const modalTitle = computed(() => (form.value.basicId ? '编辑模板' : '新增模板'))
+const modalTitle = computed(() => (form.value.basicId ? t('develop.code_gen.template.modal_edit_title') : t('develop.code_gen.template.modal_add_title')))
 
 function createDefaultForm(): TemplateFormModel {
   return {
@@ -266,7 +268,7 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
   try {
     const detail = await codeGenTemplateApi.detail(row.basicId)
     if (!detail) {
-      message.error('模板不存在')
+      message.error(t('develop.code_gen.template.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -290,13 +292,13 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
     modalVisible.value = true
   }
   catch {
-    message.error('加载模板详情失败')
+    message.error(t('develop.code_gen.template.load_detail_failed'))
   }
 }
 
 async function handleValidate() {
   if (!form.value.templateContent?.trim()) {
-    message.warning('请先填写模板正文')
+    message.warning(t('develop.code_gen.template.validate_content_required'))
     return
   }
   validating.value = true
@@ -306,14 +308,14 @@ async function handleValidate() {
       templateEngine: form.value.templateEngine,
     })
     if (result.isValid) {
-      message.success('模板语法校验通过')
+      message.success(t('develop.code_gen.template.validate_pass'))
     }
     else {
-      message.error(`校验未通过：${result.errors.join('；') || '未知错误'}`)
+      message.error(t('develop.code_gen.template.validate_fail', { errors: result.errors.join('；') || t('develop.code_gen.template.validate_unknown_error') }))
     }
   }
   catch {
-    message.error('模板校验失败')
+    message.error(t('develop.code_gen.template.validate_error'))
   }
   finally {
     validating.value = false
@@ -322,11 +324,11 @@ async function handleValidate() {
 
 function validateForm() {
   if (!form.value.templateName.trim()) {
-    message.warning('请输入模板名称')
+    message.warning(t('develop.code_gen.template.validate_name_required'))
     return false
   }
   if (!form.value.basicId && !form.value.templateCode.trim()) {
-    message.warning('请输入模板编码')
+    message.warning(t('develop.code_gen.template.validate_code_required'))
     return false
   }
   return true
@@ -358,7 +360,7 @@ async function handleSubmit() {
       if (editingStatus.value !== form.value.status) {
         await codeGenTemplateApi.updateStatus({
           basicId: form.value.basicId,
-          remark: '前端更新模板状态',
+          remark: t('develop.code_gen.template.update_status_remark'),
           status: form.value.status,
         })
       }
@@ -381,12 +383,12 @@ async function handleSubmit() {
       }
       await codeGenTemplateApi.create(createInput)
     }
-    message.success('保存成功')
+    message.success(t('develop.code_gen.common.save_success'))
     modalVisible.value = false
     fetchData()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('develop.code_gen.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -403,7 +405,7 @@ onMounted(fetchData)
         v-model:value="queryParams.keyword"
         class="panel__kw"
         clearable
-        placeholder="搜索名称 / 编码 / 分组"
+        :placeholder="t('develop.code_gen.template.search_placeholder')"
         size="small"
         @clear="handleSearch"
         @keyup.enter="handleSearch"
@@ -413,7 +415,7 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="TEMPLATE_TYPE_OPTIONS"
-        placeholder="模板类型"
+        :placeholder="t('develop.code_gen.template.filter_template_type')"
         size="small"
         @update:value="handleSearch"
       />
@@ -422,7 +424,7 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="TEMPLATE_ENGINE_OPTIONS"
-        placeholder="模板引擎"
+        :placeholder="t('develop.code_gen.template.filter_template_engine')"
         size="small"
         @update:value="handleSearch"
       />
@@ -431,18 +433,18 @@ onMounted(fetchData)
         class="panel__filter"
         clearable
         :options="STATUS_OPTIONS"
-        placeholder="状态"
+        :placeholder="t('develop.code_gen.common.status')"
         size="small"
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        查询
+        {{ t('develop.code_gen.common.search') }}
       </NButton>
       <NButton class="panel__add" size="small" type="primary" @click="handleAdd">
         <template #icon>
           <NIcon><Icon icon="lucide:plus" /></NIcon>
         </template>
-        新增模板
+        {{ t('develop.code_gen.template.add') }}
       </NButton>
     </div>
 
@@ -480,48 +482,48 @@ onMounted(fetchData)
       style="width: 820px; max-width: 94vw"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="模板编码" path="templateCode">
+        <NFormItem :label="t('develop.code_gen.template.form_template_code')" path="templateCode">
           <NInput
             v-model:value="form.templateCode"
             clearable
             :disabled="Boolean(form.basicId)"
-            placeholder="如: Entity.cs.scriban"
+            :placeholder="t('develop.code_gen.template.form_template_code_placeholder')"
           />
         </NFormItem>
-        <NFormItem label="模板名称" path="templateName">
+        <NFormItem :label="t('develop.code_gen.template.form_template_name')" path="templateName">
           <NInput v-model:value="form.templateName" clearable />
         </NFormItem>
-        <NFormItem label="模板分组" path="templateGroup">
-          <NInput v-model:value="form.templateGroup" clearable placeholder="如: backend" />
+        <NFormItem :label="t('develop.code_gen.template.form_template_group')" path="templateGroup">
+          <NInput v-model:value="form.templateGroup" clearable :placeholder="t('develop.code_gen.template.form_template_group_placeholder')" />
         </NFormItem>
-        <NFormItem label="模板类型" path="templateType">
+        <NFormItem :label="t('develop.code_gen.template.form_template_type')" path="templateType">
           <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="模板引擎" path="templateEngine">
+        <NFormItem :label="t('develop.code_gen.template.form_template_engine')" path="templateEngine">
           <NSelect v-model:value="form.templateEngine" :options="TEMPLATE_ENGINE_OPTIONS" />
         </NFormItem>
-        <NFormItem label="文件扩展名" path="fileExtension">
-          <NInput v-model:value="form.fileExtension" clearable placeholder="如: .cs" />
+        <NFormItem :label="t('develop.code_gen.template.form_file_extension')" path="fileExtension">
+          <NInput v-model:value="form.fileExtension" clearable :placeholder="t('develop.code_gen.template.form_file_extension_placeholder')" />
         </NFormItem>
-        <NFormItem label="文件名表达式" path="fileNameExpression">
-          <NInput v-model:value="form.fileNameExpression" clearable placeholder="如: {{ className }}.cs" />
+        <NFormItem :label="t('develop.code_gen.template.form_file_name_expression')" path="fileNameExpression">
+          <NInput v-model:value="form.fileNameExpression" clearable :placeholder="t('develop.code_gen.template.form_file_name_expression_placeholder')" />
         </NFormItem>
-        <NFormItem label="文件路径表达式" path="filePathExpression">
+        <NFormItem :label="t('develop.code_gen.template.form_file_path_expression')" path="filePathExpression">
           <NInput v-model:value="form.filePathExpression" clearable />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('develop.code_gen.template.form_sort')" path="sort">
           <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem v-if="!form.basicId" label="状态" path="status">
+        <NFormItem v-if="!form.basicId" :label="t('develop.code_gen.common.status')" path="status">
           <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
         </NFormItem>
-        <NFormItem class="xh-form-full" label="模板描述" path="templateDescription">
+        <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_description')" path="templateDescription">
           <NInput v-model:value="form.templateDescription" clearable :rows="2" type="textarea" />
         </NFormItem>
-        <NFormItem class="xh-form-full" label="模板正文" path="templateContent">
+        <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_content')" path="templateContent">
           <NInput
             v-model:value="form.templateContent"
-            placeholder="Scriban / Razor / T4 模板正文…"
+            :placeholder="t('develop.code_gen.template.form_template_content_placeholder')"
             :rows="12"
             type="textarea"
           />
@@ -534,14 +536,14 @@ onMounted(fetchData)
             <template #icon>
               <NIcon><Icon icon="lucide:check-check" /></NIcon>
             </template>
-            校验语法
+            {{ t('develop.code_gen.template.validate_syntax') }}
           </NButton>
           <NSpace>
             <NButton @click="modalVisible = false">
-              取消
+              {{ t('develop.code_gen.common.cancel') }}
             </NButton>
             <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-              保存
+              {{ t('develop.code_gen.common.save') }}
             </NButton>
           </NSpace>
         </NSpace>

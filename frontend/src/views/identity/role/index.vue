@@ -41,6 +41,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   DataPermissionScope,
@@ -71,6 +72,7 @@ interface RoleFormModel extends RoleCreateDto {
   basicId?: RoleListItemDto['basicId']
 }
 
+const { t } = useI18n()
 const message = useMessage()
 
 const statusOptions = STATUS_OPTIONS
@@ -79,15 +81,15 @@ const dataScopeOptions = DATA_SCOPE_OPTIONS
 const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 const permissionActionOptions = PERMISSION_ACTION_OPTIONS
 
-const globalOptions = [
-  { label: '全局角色', value: 1 },
-  { label: '租户角色', value: 0 },
-]
+const globalOptions = computed(() => [
+  { label: t('identity.role.global_role'), value: 1 },
+  { label: t('identity.role.tenant_role'), value: 0 },
+])
 
-const maintainableRoleTypeOptions = [
-  { label: '业务角色', value: RoleType.Business },
-  { label: '自定义角色', value: RoleType.Custom },
-]
+const maintainableRoleTypeOptions = computed(() => [
+  { label: t('identity.role.role_type_business'), value: RoleType.Business },
+  { label: t('identity.role.role_type_custom'), value: RoleType.Custom },
+])
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -111,80 +113,80 @@ function canMaintainRole(row: RoleListItemDto) {
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
-const fields: ListFieldSchema[] = [
+const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不展示）
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索角色名称/编码', width: 240, order: 0 },
-  { key: 'roleName', title: '角色名称', dataType: 'string', sortable: true, minWidth: 150, order: 1 },
-  { key: 'roleCode', title: '角色编码', dataType: 'string', minWidth: 150, order: 2 },
-  { key: 'roleDescription', title: '描述', dataType: 'string', minWidth: 220, order: 3 },
+  { key: 'keyword', title: t('identity.role.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.role.keyword_placeholder'), width: 240, order: 0 },
+  { key: 'roleName', title: t('identity.role.col_role_name'), dataType: 'string', sortable: true, minWidth: 150, order: 1 },
+  { key: 'roleCode', title: t('identity.role.col_role_code'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'roleDescription', title: t('identity.role.col_description'), dataType: 'string', minWidth: 220, order: 3 },
   {
     key: 'roleType',
-    title: '角色类型',
+    title: t('identity.role.col_role_type'),
     dataType: 'enum',
     searchable: true,
     options: roleTypeOptions,
-    searchPlaceholder: '角色类型',
+    searchPlaceholder: t('identity.role.role_type_placeholder'),
     minWidth: 110,
     order: 4,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(roleTypeOptions, (row as unknown as RoleListItemDto).roleType)),
   },
   {
     key: 'isGlobal',
-    title: '全局',
+    title: t('identity.role.col_is_global'),
     dataType: 'boolean',
     searchable: true,
-    options: globalOptions,
-    searchPlaceholder: '全局',
+    options: globalOptions.value,
+    searchPlaceholder: t('identity.role.is_global_placeholder'),
     width: 82,
     order: 5,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'default', bordered: false }, () => (row as unknown as RoleListItemDto).isGlobal ? '是' : '否'),
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'default', bordered: false }, () => (row as unknown as RoleListItemDto).isGlobal ? t('identity.common.yes') : t('identity.common.no')),
   },
   {
     key: 'dataScope',
-    title: '数据范围',
+    title: t('identity.role.col_data_scope'),
     dataType: 'enum',
     searchable: true,
     options: dataScopeOptions,
-    searchPlaceholder: '数据范围',
+    searchPlaceholder: t('identity.role.data_scope_placeholder'),
     minWidth: 130,
     order: 6,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions, (row as unknown as RoleListItemDto).dataScope)),
   },
-  { key: 'maxMembers', title: '成员上限', dataType: 'number', minWidth: 100, order: 7 },
-  { key: 'sort', title: '排序', dataType: 'number', sortable: true, minWidth: 80, order: 8 },
+  { key: 'maxMembers', title: t('identity.role.col_max_members'), dataType: 'number', minWidth: 100, order: 7 },
+  { key: 'sort', title: t('identity.role.col_sort'), dataType: 'number', sortable: true, minWidth: 80, order: 8 },
   {
     key: 'status',
-    title: '状态',
+    title: t('identity.role.col_status'),
     dataType: 'enum',
     searchable: true,
     options: statusOptions,
-    searchPlaceholder: '状态',
+    searchPlaceholder: t('identity.role.status_placeholder'),
     width: 82,
     order: 9,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? '启用' : '禁用'),
+    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('identity.common.enabled') : t('identity.common.disabled')),
   },
   {
     key: 'createdTime',
-    title: '创建时间',
+    title: t('identity.role.col_create_time'),
     dataType: 'datetime',
     sortable: true,
     minWidth: 170,
     order: 10,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate((row as unknown as RoleListItemDto).createdTime)),
   },
-]
+])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
-const schema: PageSchema = {
+const schema = computed<PageSchema>(() => ({
   pageCode: 'system.role',
   exportPermission: 'saas:role:export',
-  pageName: '角色管理',
+  pageName: t('identity.role.page_name'),
   batchRemovable: true,
   removePermission: 'saas:role:delete',
   statusPermission: 'saas:role:status',
   rowKey: 'basicId',
   scrollX: 1600,
-  fields,
+  fields: fields.value,
   resource: {
     page: (params) => {
       const f = params.filters
@@ -199,19 +201,19 @@ const schema: PageSchema = {
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => roleManagementApi.delete(id),
-    updateStatus: (id, enabled) => roleManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? '批量启用角色' : '批量停用角色' }),
+    updateStatus: (id, enabled) => roleManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.role.batch_enable_remark') : t('identity.role.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: '新增角色', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'view', title: '查看详情', scope: 'row' },
-    { key: 'edit', title: '编辑', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'assignPermission', title: '权限分配', scope: 'row' },
-    { key: 'assignMenu', title: '菜单授权', scope: 'row' },
-    { key: 'assignDataScope', title: '数据范围', scope: 'row' },
-    { key: 'toggle', title: '启用/停用', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'delete', title: '删除', scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'create', title: t('identity.role.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'view', title: t('identity.role.action_view'), scope: 'row' },
+    { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row' },
+    { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row' },
+    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row' },
+    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
   ],
-}
+}))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -316,7 +318,7 @@ const permGroups = computed(() => {
   const map = new Map<string, PermissionListItemDto[]>()
   for (const permission of permFiltered.value) {
     // 组码优先用后端定义的 groupCode；缺省回退资源段推导（兼容后端未重建时）
-    const key = permission.groupCode || permission.resourceName || permResourceKey(permission.permissionCode) || permission.moduleCode || '其他'
+    const key = permission.groupCode || permission.resourceName || permResourceKey(permission.permissionCode) || permission.moduleCode || t('identity.role.perm_group_other')
     const list = map.get(key)
     if (list) {
       list.push(permission)
@@ -362,7 +364,7 @@ async function openPermissionDrawer(row: RoleListItemDto) {
     permGrants.value = grantsResult
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载权限失败')
+    message.error((e as Error)?.message || t('identity.role.perm_load_failed'))
   }
   finally {
     permLoading.value = false
@@ -381,19 +383,19 @@ async function togglePermission(permission: PermissionListItemDto, checked: bool
         permissionId: permission.basicId,
         permissionAction: PermissionAction.Grant,
       })
-      message.success(`已授权：${permission.permissionName}`)
+      message.success(t('identity.role.perm_grant_done', { name: permission.permissionName }))
     }
     else {
       const grant = permGrantByPermissionId.value.get(permission.basicId)
       if (grant) {
         await rolePermissionApi.revoke(grant.basicId)
-        message.success(`已收回：${permission.permissionName}`)
+        message.success(t('identity.role.perm_revoke_done', { name: permission.permissionName }))
       }
     }
     permGrants.value = await rolePermissionApi.list(permissionRole.value.basicId)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '操作失败')
+    message.error((e as Error)?.message || t('identity.common.operation_failed'))
   }
   finally {
     permTogglingId.value = null
@@ -556,7 +558,7 @@ async function openMenuDrawer(row: RoleListItemDto) {
     menuDirty.value = false
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载菜单失败')
+    message.error((e as Error)?.message || t('identity.role.menu_load_failed'))
   }
   finally {
     menuLoading.value = false
@@ -611,7 +613,7 @@ async function saveMenuGrants() {
   const toGrant = [...targetPermIds].filter(permId => !grantedPermIds.has(permId))
   const toRevoke = validGrants.filter(grant => !targetPermIds.has(grant.permissionId))
   if (toGrant.length === 0 && toRevoke.length === 0) {
-    message.info('授权无变化')
+    message.info(t('identity.role.menu_no_change'))
     menuDirty.value = false
     return
   }
@@ -626,10 +628,10 @@ async function saveMenuGrants() {
     menuGrants.value = await rolePermissionApi.list(role.basicId)
     deriveMenuChecked()
     menuDirty.value = false
-    message.success(`已保存（授权 ${toGrant.length} 项，收回 ${toRevoke.length} 项）`)
+    message.success(t('identity.role.menu_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '保存失败')
+    message.error((e as Error)?.message || t('identity.common.save_failed'))
   }
   finally {
     menuLoading.value = false
@@ -669,7 +671,7 @@ async function openScopeDrawer(row: RoleListItemDto) {
     scopeGrants.value = grants
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载数据范围失败')
+    message.error((e as Error)?.message || t('identity.role.scope_load_failed'))
   }
   finally {
     scopeLoading.value = false
@@ -678,7 +680,7 @@ async function openScopeDrawer(row: RoleListItemDto) {
 
 async function addScope() {
   if (!scopeRole.value || scopeSelectedDept.value == null) {
-    message.warning('请先选择部门')
+    message.warning(t('identity.role.scope_select_dept_required'))
     return
   }
   scopeSubmitting.value = true
@@ -688,12 +690,12 @@ async function addScope() {
       departmentId: scopeSelectedDept.value,
       includeChildren: scopeIncludeChildren.value,
     })
-    message.success('已添加数据范围')
+    message.success(t('identity.role.scope_added'))
     scopeSelectedDept.value = null
     scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '添加失败')
+    message.error((e as Error)?.message || t('identity.role.scope_add_failed'))
   }
   finally {
     scopeSubmitting.value = false
@@ -706,11 +708,11 @@ async function removeScope(grant: RoleDataScopeListItemDto) {
   }
   try {
     await roleDataScopeApi.revoke(grant.basicId)
-    message.success('已移除')
+    message.success(t('identity.role.scope_removed'))
     scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '移除失败')
+    message.error((e as Error)?.message || t('identity.role.scope_remove_failed'))
   }
 }
 
@@ -723,7 +725,7 @@ const detailLoading = ref(false)
 const currentDetail = ref<RoleManagementDetailDto | null>(null)
 const roleForm = ref<RoleFormModel>(createDefaultRoleForm())
 
-const modalTitle = computed(() => (roleForm.value.basicId ? '编辑角色' : '新增角色'))
+const modalTitle = computed(() => (roleForm.value.basicId ? t('identity.role.form_edit_title') : t('identity.role.form_create_title')))
 
 function createDefaultRoleForm(): RoleFormModel {
   return {
@@ -751,7 +753,7 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? '是' : '否'
+  return value ? t('identity.common.yes') : t('identity.common.no')
 }
 
 function formatStatus(value?: EnableStatus | null) {
@@ -793,11 +795,11 @@ async function handleView(row: RoleListItemDto) {
   try {
     currentDetail.value = await roleManagementApi.detailView(row.basicId)
     if (!currentDetail.value) {
-      message.warning('未查询到角色详情')
+      message.warning(t('identity.role.msg_detail_not_found'))
     }
   }
   catch {
-    message.error('加载角色详情失败')
+    message.error(t('identity.role.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -806,12 +808,12 @@ async function handleView(row: RoleListItemDto) {
 
 function validateRoleForm() {
   if (!roleForm.value.roleName.trim()) {
-    message.warning('请输入角色名称')
+    message.warning(t('identity.role.msg_role_name_required'))
     return false
   }
 
   if (!roleForm.value.basicId && !roleForm.value.roleCode.trim()) {
-    message.warning('请输入角色编码')
+    message.warning(t('identity.role.msg_role_code_required'))
     return false
   }
 
@@ -863,12 +865,12 @@ async function handleSubmit() {
       await roleManagementApi.create(createInput)
     }
 
-    message.success('保存成功')
+    message.success(t('identity.common.save_success'))
     modalVisible.value = false
     reloadRole()
   }
   catch {
-    message.error('保存失败')
+    message.error(t('identity.common.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -877,17 +879,17 @@ async function handleSubmit() {
 
 async function handleDelete(row: RoleListItemDto) {
   await roleManagementApi.delete(row.basicId)
-  message.success('删除成功')
+  message.success(t('identity.common.delete_success'))
   reloadRole()
 }
 
 async function handleToggleStatus(row: RoleListItemDto) {
   await roleManagementApi.updateStatus({
     basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? '前端停用角色' : '前端启用角色',
+    remark: row.status === EnableStatus.Enabled ? t('identity.role.front_disable_remark') : t('identity.role.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success('状态已更新')
+  message.success(t('identity.common.status_updated'))
   reloadRole()
 }
 </script>
@@ -899,65 +901,65 @@ async function handleToggleStatus(row: RoleListItemDto) {
     @action="onAction"
   >
     <NDrawer v-model:show="detailVisible" :width="900">
-      <NDrawerContent closable title="角色详情">
+      <NDrawerContent closable :title="t('identity.role.detail_title')">
         <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" description="暂无角色详情">
+          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" :description="t('identity.role.detail_empty')">
             <template #icon>
               <NIcon><Icon icon="lucide:inbox" /></NIcon>
             </template>
           </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
             <NTabs animated type="line">
-              <NTabPane name="overview" tab="概览">
+              <NTabPane name="overview" :tab="t('identity.role.tab_overview')">
                 <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem label="角色名称">
+                  <NDescriptionsItem :label="t('identity.role.label_role_name')">
                     {{ currentDetail.role.roleName }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="角色编码">
+                  <NDescriptionsItem :label="t('identity.role.label_role_code')">
                     {{ currentDetail.role.roleCode }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="角色类型">
+                  <NDescriptionsItem :label="t('identity.role.label_role_type')">
                     {{ getOptionLabel(roleTypeOptions, currentDetail.role.roleType) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="数据范围">
+                  <NDescriptionsItem :label="t('identity.role.label_data_scope')">
                     {{ getOptionLabel(dataScopeOptions, currentDetail.role.dataScope) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="全局角色">
+                  <NDescriptionsItem :label="t('identity.role.label_is_global')">
                     {{ formatBoolean(currentDetail.role.isGlobal) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="状态">
+                  <NDescriptionsItem :label="t('identity.role.label_status')">
                     {{ formatStatus(currentDetail.role.status) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="成员上限">
+                  <NDescriptionsItem :label="t('identity.role.label_max_members')">
                     {{ currentDetail.role.maxMembers }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="排序">
+                  <NDescriptionsItem :label="t('identity.role.label_sort')">
                     {{ currentDetail.role.sort }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="描述">
+                  <NDescriptionsItem :label="t('identity.role.label_description')">
                     {{ formatNullable(currentDetail.role.roleDescription) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="备注">
+                  <NDescriptionsItem :label="t('identity.role.label_remark')">
                     {{ formatNullable(currentDetail.role.remark) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="创建时间">
+                  <NDescriptionsItem :label="t('identity.role.label_create_time')">
                     {{ formatNullableDate(currentDetail.role.createdTime) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem label="聚合时间">
+                  <NDescriptionsItem :label="t('identity.role.label_generated_time')">
                     {{ formatNullableDate(currentDetail.generatedTime) }}
                   </NDescriptionsItem>
                 </NDescriptions>
               </NTabPane>
 
-              <NTabPane name="permissions" :tab="`权限 (${currentDetail.permissions.length})`">
+              <NTabPane name="permissions" :tab="t('identity.role.tab_permissions', { count: currentDetail.permissions.length })">
                 <table v-if="currentDetail.permissions.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>权限</th>
-                      <th>编码</th>
-                      <th>动作</th>
-                      <th>状态</th>
-                      <th>有效期</th>
+                      <th>{{ t('identity.role.th_permission') }}</th>
+                      <th>{{ t('identity.role.th_code') }}</th>
+                      <th>{{ t('identity.role.th_action') }}</th>
+                      <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_validity') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -966,22 +968,22 @@ async function handleToggleStatus(row: RoleListItemDto) {
                       <td>{{ formatNullable(item.permissionCode) }}</td>
                       <td>{{ getOptionLabel(permissionActionOptions, item.permissionAction) }}</td>
                       <td>{{ formatValidityStatus(item.status) }}</td>
-                      <td>{{ formatNullableDate(item.effectiveTime) }} 至 {{ formatNullableDate(item.expirationTime) }}</td>
+                      <td>{{ t('identity.role.validity_range', { from: formatNullableDate(item.effectiveTime), to: formatNullableDate(item.expirationTime) }) }}</td>
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无权限分配" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.role.empty_permissions')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="dataScopes" :tab="`数据范围 (${currentDetail.dataScopes.length})`">
+              <NTabPane name="dataScopes" :tab="t('identity.role.tab_data_scopes', { count: currentDetail.dataScopes.length })">
                 <table v-if="currentDetail.dataScopes.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>部门</th>
-                      <th>编码</th>
-                      <th>包含子部门</th>
-                      <th>状态</th>
-                      <th>有效期</th>
+                      <th>{{ t('identity.role.th_department') }}</th>
+                      <th>{{ t('identity.role.th_code') }}</th>
+                      <th>{{ t('identity.role.th_include_children') }}</th>
+                      <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_validity') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -990,22 +992,22 @@ async function handleToggleStatus(row: RoleListItemDto) {
                       <td>{{ formatNullable(item.departmentCode) }}</td>
                       <td>{{ formatBoolean(item.includeChildren) }}</td>
                       <td>{{ formatValidityStatus(item.status) }}</td>
-                      <td>{{ formatNullableDate(item.effectiveTime) }} 至 {{ formatNullableDate(item.expirationTime) }}</td>
+                      <td>{{ t('identity.role.validity_range', { from: formatNullableDate(item.effectiveTime), to: formatNullableDate(item.expirationTime) }) }}</td>
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无角色数据范围" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.role.empty_data_scopes')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="ancestors" :tab="`祖先链 (${currentDetail.ancestors.length})`">
+              <NTabPane name="ancestors" :tab="t('identity.role.tab_ancestors', { count: currentDetail.ancestors.length })">
                 <table v-if="currentDetail.ancestors.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>上级角色</th>
-                      <th>编码</th>
-                      <th>深度</th>
-                      <th>状态</th>
-                      <th>路径</th>
+                      <th>{{ t('identity.role.th_parent_role') }}</th>
+                      <th>{{ t('identity.role.th_code') }}</th>
+                      <th>{{ t('identity.role.th_depth') }}</th>
+                      <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_path') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1018,18 +1020,18 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无祖先角色" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.role.empty_ancestors')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="descendants" :tab="`后代链 (${currentDetail.descendants.length})`">
+              <NTabPane name="descendants" :tab="t('identity.role.tab_descendants', { count: currentDetail.descendants.length })">
                 <table v-if="currentDetail.descendants.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>下级角色</th>
-                      <th>编码</th>
-                      <th>深度</th>
-                      <th>状态</th>
-                      <th>路径</th>
+                      <th>{{ t('identity.role.th_child_role') }}</th>
+                      <th>{{ t('identity.role.th_code') }}</th>
+                      <th>{{ t('identity.role.th_depth') }}</th>
+                      <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_path') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1042,18 +1044,18 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无后代角色" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.role.empty_descendants')" style="padding: 40px 0" />
               </NTabPane>
 
-              <NTabPane name="grantedUsers" :tab="`授权用户 (${currentDetail.grantedUsers.length})`">
+              <NTabPane name="grantedUsers" :tab="t('identity.role.tab_granted_users', { count: currentDetail.grantedUsers.length })">
                 <table v-if="currentDetail.grantedUsers.length" class="xh-detail-table">
                   <thead>
                     <tr>
-                      <th>用户</th>
-                      <th>状态</th>
-                      <th>已过期</th>
-                      <th>授权原因</th>
-                      <th>有效期</th>
+                      <th>{{ t('identity.role.th_user') }}</th>
+                      <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_expired') }}</th>
+                      <th>{{ t('identity.role.th_grant_reason') }}</th>
+                      <th>{{ t('identity.role.th_validity') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1062,11 +1064,11 @@ async function handleToggleStatus(row: RoleListItemDto) {
                       <td>{{ formatValidityStatus(item.status) }}</td>
                       <td>{{ formatBoolean(item.isExpired) }}</td>
                       <td>{{ formatNullable(item.grantReason) }}</td>
-                      <td>{{ formatNullableDate(item.effectiveTime) }} 至 {{ formatNullableDate(item.expirationTime) }}</td>
+                      <td>{{ t('identity.role.validity_range', { from: formatNullableDate(item.effectiveTime), to: formatNullableDate(item.expirationTime) }) }}</td>
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else description="暂无授权用户" style="padding: 40px 0" />
+                <NEmpty v-else :description="t('identity.role.empty_granted_users')" style="padding: 40px 0" />
               </NTabPane>
             </NTabs>
           </NScrollbar>
@@ -1083,40 +1085,40 @@ async function handleToggleStatus(row: RoleListItemDto) {
       style="width: 680px; max-width: 92vw"
     >
       <NForm :model="roleForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem label="角色名称" path="roleName">
-          <NInput v-model:value="roleForm.roleName" clearable placeholder="请输入角色名称" />
+        <NFormItem :label="t('identity.role.label_role_name')" path="roleName">
+          <NInput v-model:value="roleForm.roleName" clearable :placeholder="t('identity.role.ph_role_name')" />
         </NFormItem>
-        <NFormItem label="角色编码" path="roleCode">
+        <NFormItem :label="t('identity.role.label_role_code')" path="roleCode">
           <NInput
             v-model:value="roleForm.roleCode"
             clearable
             :disabled="Boolean(roleForm.basicId)"
-            placeholder="如: business_admin"
+            :placeholder="t('identity.role.ph_role_code')"
           />
         </NFormItem>
-        <NFormItem label="角色类型" path="roleType">
+        <NFormItem :label="t('identity.role.label_role_type')" path="roleType">
           <NSelect v-model:value="roleForm.roleType" :options="maintainableRoleTypeOptions" />
         </NFormItem>
-        <NFormItem label="数据范围" path="dataScope">
+        <NFormItem :label="t('identity.role.label_data_scope')" path="dataScope">
           <NSelect v-model:value="roleForm.dataScope" :options="dataScopeOptions" />
         </NFormItem>
-        <NFormItem label="成员上限" path="maxMembers">
+        <NFormItem :label="t('identity.role.label_max_members')" path="maxMembers">
           <NInputNumber v-model:value="roleForm.maxMembers" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="排序" path="sort">
+        <NFormItem :label="t('identity.role.label_sort')" path="sort">
           <NInputNumber v-model:value="roleForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem label="状态" path="status">
+        <NFormItem :label="t('identity.role.label_status')" path="status">
           <NSelect v-model:value="roleForm.status" :options="statusOptions" />
         </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="roleForm.remark" clearable placeholder="请输入备注" />
+        <NFormItem :label="t('identity.role.label_remark')" path="remark">
+          <NInput v-model:value="roleForm.remark" clearable :placeholder="t('identity.role.ph_remark')" />
         </NFormItem>
-        <NFormItem label="描述" path="roleDescription">
+        <NFormItem :label="t('identity.role.label_description')" path="roleDescription">
           <NInput
             v-model:value="roleForm.roleDescription"
             clearable
-            placeholder="请输入角色描述"
+            :placeholder="t('identity.role.ph_description')"
             :rows="3"
             type="textarea"
           />
@@ -1126,25 +1128,25 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
+            {{ t('identity.common.save') }}
           </NButton>
         </NSpace>
       </template>
     </NModal>
 
     <NDrawer v-model:show="permissionVisible" :width="760">
-      <NDrawerContent closable :title="`权限分配 · ${permissionRole?.roleName ?? ''}`">
+      <NDrawerContent closable :title="t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' })">
         <div class="perm-toolbar">
-          <NInput v-model:value="permKeyword" clearable placeholder="搜索权限名称 / 编码" style="width: 240px" />
+          <NInput v-model:value="permKeyword" clearable :placeholder="t('identity.role.perm_search')" style="width: 240px" />
           <NTag round type="success" :bordered="false">
-            已授权 {{ permGrants.length }} 项
+            {{ t('identity.role.perm_granted_count', { count: permGrants.length }) }}
           </NTag>
         </div>
         <NSpin :show="permLoading">
-          <NEmpty v-if="permGroups.length === 0 && !permLoading" class="perm-empty" description="无匹配权限" />
+          <NEmpty v-if="permGroups.length === 0 && !permLoading" class="perm-empty" :description="t('identity.role.perm_no_match')" />
           <div v-else class="perm-groups">
             <section v-for="group in permGroups" :key="group.key" class="perm-group">
               <div class="perm-group-head">
@@ -1175,9 +1177,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
     </NDrawer>
 
     <NDrawer v-model:show="menuVisible" :width="520">
-      <NDrawerContent closable :title="`菜单授权 · ${menuRole?.roleName ?? ''}`">
+      <NDrawerContent closable :title="t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' })">
         <NSpin :show="menuLoading">
-          <NEmpty v-if="menuTreeData.length === 0 && !menuLoading" class="perm-empty" description="暂无菜单" />
+          <NEmpty v-if="menuTreeData.length === 0 && !menuLoading" class="perm-empty" :description="t('identity.role.menu_empty')" />
           <NTree
             v-else
             block-line
@@ -1194,51 +1196,51 @@ async function handleToggleStatus(row: RoleListItemDto) {
           />
         </NSpin>
         <p class="perm-tip">
-          勾选菜单授予其关联权限；勾选目录级联其下子菜单。改动需点「保存授权」统一提交。
+          {{ t('identity.role.menu_tip') }}
         </p>
         <template #footer>
           <NButton @click="menuVisible = false">
-            取消
+            {{ t('identity.common.cancel') }}
           </NButton>
           <NButton type="primary" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
-            保存授权
+            {{ t('identity.role.menu_save') }}
           </NButton>
         </template>
       </NDrawerContent>
     </NDrawer>
 
     <NDrawer v-model:show="scopeVisible" :width="560">
-      <NDrawerContent closable :title="`数据范围 · ${scopeRole?.roleName ?? ''}`">
+      <NDrawerContent closable :title="t('identity.role.scope_drawer_title', { name: scopeRole?.roleName ?? '' })">
         <div class="scope-add">
           <NTreeSelect
             v-model:value="scopeSelectedDept"
             clearable
             :options="scopeDeptOptions"
-            placeholder="选择部门"
+            :placeholder="t('identity.role.scope_select_dept')"
             style="flex: 1"
           />
           <NSwitch v-model:value="scopeIncludeChildren">
             <template #checked>
-              含子部门
+              {{ t('identity.role.scope_include_children') }}
             </template>
             <template #unchecked>
-              仅本部门
+              {{ t('identity.role.scope_only_self') }}
             </template>
           </NSwitch>
           <NButton :loading="scopeSubmitting" type="primary" @click="addScope">
-            添加
+            {{ t('identity.role.scope_add') }}
           </NButton>
         </div>
         <NSpin :show="scopeLoading">
-          <NEmpty v-if="scopeGrants.length === 0 && !scopeLoading" class="perm-empty" description="未配置数据范围" />
+          <NEmpty v-if="scopeGrants.length === 0 && !scopeLoading" class="perm-empty" :description="t('identity.role.scope_empty')" />
           <div v-else class="scope-list">
             <div v-for="grant in scopeGrants" :key="String(grant.basicId)" class="scope-row">
               <span class="scope-dept">{{ grant.departmentName || grant.departmentId }}</span>
               <NTag :bordered="false" size="small" :type="grant.includeChildren ? 'info' : 'default'">
-                {{ grant.includeChildren ? '含子部门' : '仅本部门' }}
+                {{ grant.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
               </NTag>
               <NButton quaternary size="small" type="error" @click="removeScope(grant)">
-                移除
+                {{ t('identity.role.scope_remove') }}
               </NButton>
             </div>
           </div>
