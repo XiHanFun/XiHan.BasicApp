@@ -152,6 +152,7 @@ export default {
   },
   schema_page: {
     actions_column: 'Actions',
+    more: 'More',
     batch_delete_title: 'Batch Delete',
     batch_delete_content: 'Confirm deleting {count} selected records? This action cannot be undone.',
     batch_action_title: 'Batch {label}',
