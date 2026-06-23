@@ -134,6 +134,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('message.notification.col_type'),
     dataType: 'enum',
     searchable: true,
+    dictionaryCode: 'NotificationType',
     options: notificationTypeOptions.value,
     searchPlaceholder: t('message.notification.search_type_placeholder'),
     width: 110,

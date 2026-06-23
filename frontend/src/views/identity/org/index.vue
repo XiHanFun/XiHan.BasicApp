@@ -119,6 +119,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     width: 80,
     order: 4,
+    dictionaryCode: 'EnableStatus',
     render: (row) => {
       const status = (row as unknown as DepartmentListItemDto).status
       return h(NTag, { size: 'small', round: true, type: status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => getOptionLabel(statusOptions, status))

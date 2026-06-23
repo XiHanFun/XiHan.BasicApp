@@ -63,6 +63,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.common.method'),
     dataType: 'enum',
     searchable: true,
+    dictionaryCode: 'HttpMethodType',
     options: methodOptions.value,
     searchPlaceholder: t('log.access.method_placeholder'),
     width: 100,

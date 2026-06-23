@@ -94,6 +94,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.exception.device_type'),
     dataType: 'enum',
     advancedSearch: true,
+    dictionaryCode: 'DeviceType',
     options: deviceTypeOptions.value,
     width: 100,
     order: 29,

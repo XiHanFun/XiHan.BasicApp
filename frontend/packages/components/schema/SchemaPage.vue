@@ -60,7 +60,8 @@ const dictionaries = useSchemaDictionaries(() => props.schema.fields)
 const resolvedFields = computed<ListFieldSchema[]>(() =>
   props.schema.fields.map((field) => {
     // 字典/枚举选项注入（字段脱敏已由服务端在响应里落地，前端不再二次打码）
-    if (field.options?.length || !field.dictionaryCode) {
+    // dictionaryCode 解析结果优先（本地化选项）；为空时回退字段静态 options 兜底
+    if (!field.dictionaryCode) {
       return field
     }
     const options = dictionaries.optionsMap.value[field.dictionaryCode]

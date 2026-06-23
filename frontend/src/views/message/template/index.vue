@@ -138,6 +138,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('message.template.col_status'),
     dataType: 'enum',
     searchable: true,
+    dictionaryCode: 'EnableStatus',
     options: statusOptions.value,
     searchPlaceholder: t('message.template.search_status_placeholder'),
     width: 90,

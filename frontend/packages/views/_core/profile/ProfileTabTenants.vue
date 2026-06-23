@@ -4,6 +4,7 @@ import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { tenantApi, TenantMemberType } from '@/api'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
+import { useEnumService } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAccessStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -12,6 +13,13 @@ defineOptions({ name: 'ProfileTabTenants' })
 
 const message = useMessage()
 const accessStore = useAccessStore()
+
+// 成员类型走后端枚举元数据（本地化），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
+const enumService = useEnumService()
+void enumService.ensureEnum('TenantMemberType')
+function memberTypeLabel(value: TenantSwitcherDto['memberType']) {
+  return enumService.getLabel('TenantMemberType', value, getOptionLabel(MEMBER_TYPE_OPTIONS, value))
+}
 
 const loading = ref(false)
 const loaded = ref(false)
@@ -124,7 +132,7 @@ onMounted(loadTenants)
                   </NTag>
                 </div>
                 <div class="pf-list-desc">
-                  {{ getOptionLabel(MEMBER_TYPE_OPTIONS, t.memberType) }}
+                  {{ memberTypeLabel(t.memberType) }}
                   <template v-if="t.joinedTime">
                     · 加入于 {{ formatDate(t.joinedTime, 'YYYY-MM-DD') }}
                   </template>
@@ -138,7 +146,7 @@ onMounted(loadTenants)
               </div>
               <div class="pf-tenant-actions">
                 <NTag :type="memberTagType(t.memberType)" size="small" round :bordered="false">
-                  {{ getOptionLabel(MEMBER_TYPE_OPTIONS, t.memberType) }}
+                  {{ memberTypeLabel(t.memberType) }}
                 </NTag>
                 <NButton
                   v-if="!t.isCurrent"

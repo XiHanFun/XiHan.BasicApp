@@ -90,7 +90,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   { key: 'apiPath', title: t('log.api.api_path'), dataType: 'string', advancedSearch: true, minWidth: 240, order: 19 },
   { key: 'apiName', title: t('log.api.api_name'), dataType: 'string', minWidth: 120, order: 20 },
-  { key: 'method', title: t('log.common.method'), dataType: 'enum', searchable: true, options: methodOptions.value, searchPlaceholder: t('log.api.method_placeholder'), width: 100, order: 21 },
+  { key: 'method', title: t('log.common.method'), dataType: 'enum', searchable: true, dictionaryCode: 'HttpMethodType', options: methodOptions.value, searchPlaceholder: t('log.api.method_placeholder'), width: 100, order: 21 },
   { key: 'controllerName', title: t('log.common.controller_name'), dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: t('log.common.action_name'), dataType: 'string', minWidth: 140, order: 23 },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, width: 100, order: 24 },

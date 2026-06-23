@@ -92,14 +92,14 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'configKey', title: t('setting.config.config_key'), dataType: 'string', importable: true, required: true, minWidth: 180, order: 2 },
   { key: 'configGroup', title: t('setting.config.config_group'), dataType: 'string', importable: true, minWidth: 100, order: 3 },
   // enum/boolean + options 由框架自动渲染为 NTag，无需自定义 render
-  { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', searchable: true, importable: true, options: configTypeOptions, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
-  { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', advancedSearch: true, importable: true, options: dataTypeOptions, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
+  { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', searchable: true, importable: true, dictionaryCode: 'ConfigType', options: configTypeOptions, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
+  { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', advancedSearch: true, importable: true, dictionaryCode: 'ConfigDataType', options: dataTypeOptions, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
   // 仅导入字段：配置值不在列表 DTO 中，visible:false 不进表格/列设置
   { key: 'configValue', title: t('setting.config.config_value'), dataType: 'text', visible: false, importable: true, order: 5.5 },
   { key: 'isGlobal', title: t('setting.config.is_global'), dataType: 'boolean', searchable: true, importable: true, options: globalOptions.value, searchPlaceholder: t('setting.config.is_global_placeholder'), width: 80, order: 6 },
   { key: 'isBuiltIn', title: t('setting.config.is_builtin'), dataType: 'boolean', width: 80, order: 7 },
   { key: 'isEncrypted', title: t('setting.config.is_encrypted'), dataType: 'boolean', width: 80, order: 8 },
-  { key: 'status', title: t('setting.config.status'), dataType: 'enum', searchable: true, importable: true, options: statusOptions, searchPlaceholder: t('setting.config.status_placeholder'), width: 90, order: 9 },
+  { key: 'status', title: t('setting.config.status'), dataType: 'enum', searchable: true, importable: true, dictionaryCode: 'EnableStatus', options: statusOptions, searchPlaceholder: t('setting.config.status_placeholder'), width: 90, order: 9 },
   { key: 'sort', title: t('setting.config.sort'), dataType: 'number', sortable: true, importable: true, width: 80, order: 10 },
   { key: 'createdTime', title: t('setting.config.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
 ])
