@@ -74,11 +74,6 @@ public class SysMenuSeeder : DataSeederBase
                 .ExecuteCommandAsync();
         }
 
-        // 回填国际化键：存量行（已建库）也补上 I18nKey，菜单标题由前端按该键翻译（te 命中则译，否则回退原文）。
-        // 按 MenuCode 等值分别更新，避免可空列 OR 在 PostgreSQL 上的翻译问题。
-        await client.Updateable<SysMenu>().SetColumns(m => m.I18nKey == "menu.develop").Where(m => m.MenuCode == "develop").ExecuteCommandAsync();
-        await client.Updateable<SysMenu>().SetColumns(m => m.I18nKey == "menu.code_gen").Where(m => m.MenuCode == "code_gen").ExecuteCommandAsync();
-
         // 代码生成前端与应用服务已就绪，菜单解除隐藏：把仍隐藏/停用的项置为可见且启用
         var showCount = await client.Updateable<SysMenu>()
             .SetColumns(m => m.IsVisible == true)
