@@ -106,6 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.online_user.col_device_type'),
     dataType: 'enum',
     searchable: true,
+    dictionaryCode: 'DeviceType',
     options: deviceTypeOptions.value,
     searchPlaceholder: t('identity.online_user.device_type_placeholder'),
     width: 100,

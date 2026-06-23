@@ -330,6 +330,7 @@ const schema = computed<PageSchema>(() => ({
       key: 'status',
       title: t('setting.menu.status'),
       dataType: 'enum',
+      dictionaryCode: 'EnableStatus',
       options: statusOptions.value,
       searchable: true,
       searchPlaceholder: t('setting.menu.status_placeholder'),

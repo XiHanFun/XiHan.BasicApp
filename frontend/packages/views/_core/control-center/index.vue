@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
 import { XUserAvatar } from '~/components'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
+import { useEnumService } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
@@ -18,6 +19,13 @@ const accessStore = useAccessStore()
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+
+// 成员类型走后端枚举元数据（本地化），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
+const enumService = useEnumService()
+void enumService.ensureEnum('TenantMemberType')
+function memberTypeLabel(value: TenantSwitcherDto['memberType']) {
+  return enumService.getLabel('TenantMemberType', value, getOptionLabel(MEMBER_TYPE_OPTIONS, value))
+}
 
 const loading = ref(false)
 const loaded = ref(false)
@@ -196,7 +204,7 @@ onMounted(loadTenants)
                   </div>
                   <div class="cc-tenant__meta">
                     <NTag :type="memberTagType(tenant.memberType)" size="tiny" round :bordered="false">
-                      {{ getOptionLabel(MEMBER_TYPE_OPTIONS, tenant.memberType) }}
+                      {{ memberTypeLabel(tenant.memberType) }}
                     </NTag>
                     <span class="cc-tenant__code">{{ tenant.tenantCode }}</span>
                   </div>
@@ -220,8 +228,7 @@ onMounted(loadTenants)
   color: hsl(var(--foreground));
   background:
     radial-gradient(1200px 500px at 80% -10%, hsl(var(--primary) / 10%), transparent 60%),
-    radial-gradient(900px 420px at -10% 110%, hsl(var(--primary) / 6%), transparent 55%),
-    hsl(var(--background));
+    radial-gradient(900px 420px at -10% 110%, hsl(var(--primary) / 6%), transparent 55%), hsl(var(--background));
 }
 
 .cc-topbar {
@@ -369,7 +376,10 @@ onMounted(loadTenants)
   background: transparent;
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .cc-tenant:hover:not(:disabled) {

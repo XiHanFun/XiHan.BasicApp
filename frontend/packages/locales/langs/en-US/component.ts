@@ -219,4 +219,7 @@ export default {
     hide_conditions: 'Hide conditions',
     advanced_search: 'Advanced search',
   },
+  http_method: {
+    all: 'All methods',
+  },
 }

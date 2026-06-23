@@ -39,6 +39,7 @@ import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   EnableStatus,
+  HttpMethodType,
   permissionCenterApi,
   PermissionType,
 } from '@/api'
@@ -93,7 +94,12 @@ const permissionTypeOptions = PERMISSION_TYPE_OPTIONS
 const validityStatusOptions = VALIDITY_STATUS_OPTIONS
 const resourceTypeOptions = RESOURCE_TYPE_OPTIONS
 const resourceAccessLevelOptions = RESOURCE_ACCESS_LEVEL_OPTIONS
-const httpMethodOptions = HTTP_METHOD_OPTIONS
+// HTTP 谓词为标识符无需翻译；仅合成项「所有方法」(ALL) 走本地 i18n
+const httpMethodOptions = computed(() =>
+  HTTP_METHOD_OPTIONS.map(o =>
+    o.value === HttpMethodType.ALL ? { ...o, label: t('component.http_method.all') } : o,
+  ),
+)
 const operationCategoryOptions = OPERATION_CATEGORY_OPTIONS
 const operationTypeOptions = OPERATION_TYPE_OPTIONS
 const conditionOperatorOptions = CONDITION_OPERATOR_OPTIONS
@@ -203,6 +209,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.permission.col_permission_type'),
     dataType: 'enum',
     searchable: true,
+    dictionaryCode: 'PermissionType',
     options: permissionTypeOptions,
     searchPlaceholder: t('identity.permission.permission_type_placeholder'),
     minWidth: 110,
@@ -237,6 +244,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.permission.col_status'),
     dataType: 'enum',
     searchable: true,
+    dictionaryCode: 'EnableStatus',
     options: STATUS_OPTIONS,
     searchPlaceholder: t('identity.permission.status_placeholder'),
     width: 90,

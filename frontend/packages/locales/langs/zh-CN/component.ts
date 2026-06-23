@@ -219,4 +219,7 @@ export default {
     hide_conditions: '隐藏条件',
     advanced_search: '高级搜索',
   },
+  http_method: {
+    all: '所有方法',
+  },
 }
