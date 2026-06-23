@@ -3,6 +3,7 @@ import type { DragEndEvent } from '@dnd-kit/vue'
 import type { SearchFieldSetting } from './useSearchSettings'
 import { DragDropProvider } from '@dnd-kit/vue'
 import { NButton, NCheckbox, NDivider, NIcon, NPopover, NSwitch, NTooltip } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 import { resolveSortMove } from '../common/sortable'
@@ -10,8 +11,6 @@ import SortableItem from '../common/SortableItem.vue'
 import SyncStatusBadge from '../common/SyncStatusBadge.vue'
 
 defineOptions({ name: 'SchemaSearchSettings' })
-
-const appStore = useAppStore()
 
 const props = defineProps<{
   /** 搜索字段设置（来自 useSearchSettings.settings） */
@@ -25,6 +24,9 @@ const emit = defineEmits<{
   reset: []
   save: []
 }>()
+
+const { t } = useI18n()
+const appStore = useAppStore()
 
 // ── 拖拽排序（@dnd-kit/vue，仅手柄可拖） ──────────────────────────
 function onDragEnd(event: DragEndEvent) {
@@ -40,28 +42,28 @@ function onDragEnd(event: DragEndEvent) {
     <template #trigger>
       <NTooltip>
         <template #trigger>
-          <NButton circle size="small" quaternary aria-label="搜索设置">
+          <NButton circle size="small" quaternary :aria-label="t('component.search_settings.title')">
             <template #icon>
               <NIcon><Icon icon="lucide:settings-2" /></NIcon>
             </template>
           </NButton>
         </template>
-        搜索设置
+        {{ t('component.search_settings.title') }}
       </NTooltip>
     </template>
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-base font-semibold text-foreground">搜索设置</span>
+          <span class="text-base font-semibold text-foreground">{{ t('component.search_settings.title') }}</span>
           <SyncStatusBadge :synced="appStore.searchSyncEnabled" />
         </div>
         <div class="flex gap-2">
           <NButton size="small" secondary @click="emit('reset')">
-            恢复默认
+            {{ t('component.search_settings.reset') }}
           </NButton>
           <NButton size="small" type="primary" @click="emit('save')">
-            保存
+            {{ t('component.search_settings.save') }}
           </NButton>
         </div>
       </div>
@@ -71,8 +73,8 @@ function onDragEnd(event: DragEndEvent) {
       <!-- 表头 -->
       <div class="xh-set-head flex gap-2 items-center">
         <span class="xh-set-head__handle" />
-        <span class="flex-1">搜索条件</span>
-        <span class="xh-set-head__col">常用 / 高级</span>
+        <span class="flex-1">{{ t('component.search_settings.column_header') }}</span>
+        <span class="xh-set-head__col">{{ t('component.search_settings.mode_header') }}</span>
       </div>
 
       <DragDropProvider @drag-end="onDragEnd">
@@ -85,7 +87,7 @@ function onDragEnd(event: DragEndEvent) {
             handle=".xh-set-drag-handle"
             class="xh-set-row flex gap-2 items-center"
           >
-            <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
+            <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" :title="t('component.search_settings.drag_sort')">
               <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
             </span>
             <NCheckbox
@@ -106,14 +108,14 @@ function onDragEnd(event: DragEndEvent) {
                   />
                 </span>
               </template>
-              {{ item.pinned ? '常用搜索区（始终展示）' : '高级搜索区（展开后展示）' }}
+              {{ item.pinned ? t('component.search_settings.tip_pinned') : t('component.search_settings.tip_advanced') }}
             </NTooltip>
           </SortableItem>
         </div>
       </DragDropProvider>
 
       <NDivider class="!my-1" />
-      <span class="text-xs text-foreground/40">勾选=显示该条件；开关切换「常用 / 高级」搜索区；拖拽手柄可排序</span>
+      <span class="text-xs text-foreground/40">{{ t('component.search_settings.hint') }}</span>
     </div>
   </NPopover>
 </template>

@@ -103,8 +103,8 @@ onBeforeUnmount(() => {
           type="button"
           class="fav-btn"
           :class="{ 'fav-btn--active': showPanel, 'fav-btn--pulse': pulsing }"
-          title="收藏夹"
-          aria-label="收藏夹"
+          :title="t('header.favorites.title')"
+          :aria-label="t('header.favorites.title')"
         >
           <Icon icon="lucide:star" width="18" height="18" />
           <span v-if="favoritesStore.count > 0" class="fav-btn__badge">
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
       <!-- 头部（与表格设置/搜索设置统一样式） -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-base font-semibold text-foreground">收藏夹</span>
+          <span class="text-base font-semibold text-foreground">{{ t('header.favorites.title') }}</span>
           <SyncStatusBadge :synced="appStore.favoritesSyncEnabled" />
         </div>
       </div>
@@ -130,7 +130,7 @@ onBeforeUnmount(() => {
       <NEmpty
         v-if="items.length === 0"
         size="small"
-        description="暂无收藏，右键标签页选择「收藏」即可添加"
+        :description="t('header.favorites.empty')"
         class="fav-empty"
       />
 
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
             <button
               type="button"
               class="fav-chip__close"
-              aria-label="移除收藏"
+              :aria-label="t('header.favorites.remove')"
               @click="(e) => handleRemove(item.path, e)"
               @keydown.enter.stop
             >
@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
 
       <div v-if="items.length > 0" class="fav-footer">
         <NDivider class="!my-1" />
-        <span class="text-xs text-foreground/40">点击导航到对应页面；拖拽可排序；× 移除收藏</span>
+        <span class="text-xs text-foreground/40">{{ t('header.favorites.hint') }}</span>
       </div>
     </div>
   </NPopover>

@@ -5,6 +5,12 @@ export default {
     switch_tenant: 'Switch Tenant',
     logout: 'Sign Out',
   },
+  favorites: {
+    title: 'Favorites',
+    empty: 'No favorites yet. Right-click a tab and choose "Favorite" to add one.',
+    remove: 'Remove favorite',
+    hint: 'Click to navigate; drag to reorder; × to remove.',
+  },
   locale: {
     zh_cn: '简体中文',
     en_us: 'English',

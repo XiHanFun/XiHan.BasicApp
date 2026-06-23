@@ -68,12 +68,12 @@ function nextFixed(current?: 'left' | 'right'): 'left' | 'right' | undefined {
 
 function fixedLabel(fixed?: 'left' | 'right'): string {
   if (fixed === 'left') {
-    return '左'
+    return t('component.schema_table_settings.fixed_left')
   }
   if (fixed === 'right') {
-    return '右'
+    return t('component.schema_table_settings.fixed_right')
   }
-  return '－'
+  return t('component.schema_table_settings.fixed_none')
 }
 
 // ── 拖拽排序（@dnd-kit/vue，仅手柄可拖） ──────────────────────────
@@ -90,28 +90,28 @@ function onDragEnd(event: DragEndEvent) {
     <template #trigger>
       <NTooltip>
         <template #trigger>
-          <NButton circle quaternary size="small" aria-label="表格设置">
+          <NButton circle quaternary size="small" :aria-label="t('component.schema_table_settings.title')">
             <template #icon>
               <NIcon><Icon icon="lucide:settings-2" /></NIcon>
             </template>
           </NButton>
         </template>
-        表格设置
+        {{ t('component.schema_table_settings.title') }}
       </NTooltip>
     </template>
 
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-base font-semibold text-foreground">表格设置</span>
+          <span class="text-base font-semibold text-foreground">{{ t('component.schema_table_settings.title') }}</span>
           <SyncStatusBadge :synced="appStore.tableSyncEnabled" />
         </div>
         <div class="flex gap-2">
           <NButton size="small" secondary @click="emit('reset')">
-            恢复默认
+            {{ t('component.schema_table_settings.reset') }}
           </NButton>
           <NButton size="small" type="primary" @click="emit('save')">
-            保存
+            {{ t('component.schema_table_settings.save') }}
           </NButton>
         </div>
       </div>
@@ -120,7 +120,7 @@ function onDragEnd(event: DragEndEvent) {
 
       <!-- 密度 -->
       <div class="flex gap-2 items-center justify-between">
-        <span class="text-xs text-foreground/60">表格密度</span>
+        <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.density_label') }}</span>
         <div class="flex gap-1">
           <NButton
             v-for="opt in densityOptions"
@@ -136,7 +136,7 @@ function onDragEnd(event: DragEndEvent) {
 
       <!-- 表格风格 -->
       <div class="flex gap-2 items-center justify-between">
-        <span class="text-xs text-foreground/60">表格风格</span>
+        <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.style_label') }}</span>
         <div class="flex gap-1">
           <NButton
             v-for="opt in styleOptions"
@@ -152,21 +152,21 @@ function onDragEnd(event: DragEndEvent) {
 
       <!-- 功能 -->
       <div class="flex gap-2 items-center justify-between">
-        <span class="text-xs text-foreground/60">功能</span>
+        <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.feature_label') }}</span>
         <div class="flex gap-1">
           <NButton
             size="tiny"
             :type="selectable ? 'primary' : 'default'"
             @click="emit('setSelectable', !selectable)"
           >
-            多选
+            {{ t('component.schema_table_settings.multi_select') }}
           </NButton>
           <NButton
             size="tiny"
             :type="showIndex ? 'primary' : 'default'"
             @click="emit('setShowIndex', !showIndex)"
           >
-            序号
+            {{ t('component.schema_table_settings.index') }}
           </NButton>
         </div>
       </div>
@@ -176,9 +176,9 @@ function onDragEnd(event: DragEndEvent) {
       <!-- 表头 -->
       <div class="xh-set-head flex gap-2 items-center">
         <span class="xh-set-head__handle" />
-        <span class="flex-1">列名</span>
-        <span class="xh-set-head__width">列宽</span>
-        <span class="xh-set-head__col">固定</span>
+        <span class="flex-1">{{ t('component.schema_table_settings.column_name') }}</span>
+        <span class="xh-set-head__width">{{ t('component.schema_table_settings.column_width') }}</span>
+        <span class="xh-set-head__col">{{ t('component.schema_table_settings.fixed') }}</span>
       </div>
 
       <DragDropProvider @drag-end="onDragEnd">
@@ -191,7 +191,7 @@ function onDragEnd(event: DragEndEvent) {
             handle=".xh-set-drag-handle"
             class="xh-set-row flex gap-2 items-center"
           >
-            <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" title="拖拽排序">
+            <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" :title="t('component.schema_table_settings.drag_sort')">
               <NIcon><Icon icon="lucide:grip-vertical" /></NIcon>
             </span>
             <NCheckbox
@@ -217,7 +217,7 @@ function onDragEnd(event: DragEndEvent) {
               <NButton
                 size="tiny"
                 quaternary
-                :title="`固定：${fixedLabel(col.fixed)}`"
+                :title="t('component.schema_table_settings.fixed_tip', { label: fixedLabel(col.fixed) })"
                 @click="emit('setFixed', col.key, nextFixed(col.fixed))"
               >
                 <template #icon>
@@ -231,7 +231,7 @@ function onDragEnd(event: DragEndEvent) {
       </DragDropProvider>
 
       <NDivider class="!my-1" />
-      <span class="text-xs text-foreground/40">勾选=显示该列；列宽可在此输入或拖动表头右边框调整（留空为自动）；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序</span>
+      <span class="text-xs text-foreground/40">{{ t('component.schema_table_settings.hint') }}</span>
     </div>
   </NPopover>
 </template>

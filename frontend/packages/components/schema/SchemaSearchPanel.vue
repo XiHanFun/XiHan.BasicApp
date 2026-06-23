@@ -3,6 +3,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { ListFieldSchema } from './types'
 import { NButton, NDatePicker, NIcon, NInput, NSelect, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 
@@ -21,6 +22,8 @@ const emit = defineEmits<{
   search: []
   reset: []
 }>()
+
+const { t } = useI18n()
 
 /** 主题变量：高级浮层背景/边框/文字随明暗主题切换（避免硬编码白底导致暗色模式露白） */
 const themeVars = useThemeVars()
@@ -98,35 +101,35 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
       <div class="xh-search__actions">
         <NTooltip>
           <template #trigger>
-            <NButton circle size="small" type="primary" aria-label="查询" @click="emit('search')">
+            <NButton circle size="small" type="primary" :aria-label="t('component.search_panel.search')" @click="emit('search')">
               <template #icon>
                 <NIcon><Icon icon="lucide:search" /></NIcon>
               </template>
             </NButton>
           </template>
-          查询
+          {{ t('component.search_panel.search') }}
         </NTooltip>
         <NTooltip>
           <template #trigger>
-            <NButton circle size="small" aria-label="重置" @click="emit('reset')">
+            <NButton circle size="small" :aria-label="t('component.search_panel.reset')" @click="emit('reset')">
               <template #icon>
                 <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
               </template>
             </NButton>
           </template>
-          重置
+          {{ t('component.search_panel.reset') }}
         </NTooltip>
         <!-- 搜索设置（排序/固定）插槽 -->
         <slot name="settings" />
         <NTooltip v-if="hasAdvanced">
           <template #trigger>
-            <NButton circle size="small" quaternary :aria-label="expanded ? '隐藏条件' : '高级搜索'" @click="toggleExpand">
+            <NButton circle size="small" quaternary :aria-label="expanded ? t('component.search_panel.hide_conditions') : t('component.search_panel.advanced_search')" @click="toggleExpand">
               <template #icon>
                 <NIcon><Icon :icon="expanded ? 'lucide:chevron-up' : 'lucide:sliders-horizontal'" /></NIcon>
               </template>
             </NButton>
           </template>
-          {{ expanded ? '隐藏条件' : '高级搜索' }}
+          {{ expanded ? t('component.search_panel.hide_conditions') : t('component.search_panel.advanced_search') }}
         </NTooltip>
       </div>
     </div>

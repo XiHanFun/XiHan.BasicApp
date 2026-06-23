@@ -5,6 +5,12 @@ export default {
     switch_tenant: '切换租户',
     logout: '退出登录',
   },
+  favorites: {
+    title: '收藏夹',
+    empty: '暂无收藏，右键标签页选择「收藏」即可添加',
+    remove: '移除收藏',
+    hint: '点击导航到对应页面；拖拽可排序；× 移除收藏',
+  },
   locale: {
     zh_cn: '简体中文',
     en_us: 'English',
