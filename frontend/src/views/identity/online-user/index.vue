@@ -175,7 +175,7 @@ function confirmRevoke(row: OnlineUserListItemDto) {
     title: t('identity.online_user.revoke_title'),
     content: t('identity.online_user.revoke_content', { name }),
     positiveText: t('identity.online_user.revoke_confirm'),
-    negativeText: t('identity.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await userSessionApi.revokeSession({ basicId: row.basicId, reason: t('identity.online_user.revoke_reason') })

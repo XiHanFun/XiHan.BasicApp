@@ -130,7 +130,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     width: 80,
     order: 15,
-    render: row => (row as unknown as MessageTemplateListItemDto).isHtml ? t('message.common.yes') : t('message.common.no'),
+    render: row => (row as unknown as MessageTemplateListItemDto).isHtml ? t('common.statuses.yes') : t('common.statuses.no'),
   },
   { key: 'description', title: t('message.template.col_description'), dataType: 'string', minWidth: 220, order: 16 },
   {
@@ -380,10 +380,10 @@ async function handleSubmit() {
       <template #footer>
         <div class="flex justify-end gap-2">
           <NButton size="small" @click="modalVisible = false">
-            {{ t('message.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ t('message.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </div>
       </template>

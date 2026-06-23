@@ -188,7 +188,7 @@ watch(visible, (open, was) => {
           <button
             tabindex="-1"
             class="close-btn"
-            :aria-label="t('common.close')"
+            :aria-label="t('common.actions.close')"
             @click="visible = false"
           >
             <NIcon size="16">

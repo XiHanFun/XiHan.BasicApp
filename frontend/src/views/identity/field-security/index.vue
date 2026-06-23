@@ -465,12 +465,12 @@ async function handleSubmit() {
       }
       await fieldLevelSecurityApi.create(createInput)
     }
-    message.success(t('identity.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch {
-    message.error(t('identity.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -479,7 +479,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: FieldLevelSecurityListItemDto) {
   await fieldLevelSecurityApi.delete(row.basicId)
-  message.success(t('identity.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadList()
 }
 
@@ -489,7 +489,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('identity.field_security.front_disable_remark') : t('identity.field_security.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('identity.common.status_updated'))
+  message.success(t('common.messages.status_updated'))
   reloadList()
 }
 </script>
@@ -580,10 +580,10 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="modalVisible = false">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('identity.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

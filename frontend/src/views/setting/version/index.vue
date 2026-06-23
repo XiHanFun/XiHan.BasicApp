@@ -123,7 +123,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'view', title: t('setting.version.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'startUpgrade', title: t('setting.version.start_upgrade'), scope: 'row', icon: 'lucide:rocket', permission: 'saas:version:upgrade', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
     { key: 'finishUpgrade', title: t('setting.version.finish_upgrade'), scope: 'row', icon: 'lucide:circle-check', permission: 'saas:version:upgrade', disabled: row => !(row as unknown as VersionListItemDto).isUpgrading },
-    { key: 'delete', title: t('setting.common.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:version:delete', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:version:delete', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
   ],
 }))
 
@@ -378,8 +378,8 @@ function handleDelete(row: VersionListItemDto) {
   dialog.warning({
     title: t('setting.version.delete_title'),
     content: t('setting.version.delete_content', { version: row.appVersion }),
-    positiveText: t('setting.common.delete'),
-    negativeText: t('setting.common.cancel'),
+    positiveText: t('common.actions.delete'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await versionApi.delete(row.basicId)
@@ -497,10 +497,10 @@ function handleDelete(row: VersionListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="createVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="createLoading" type="primary" @click="handleCreateSubmit">
-            {{ t('setting.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -524,7 +524,7 @@ function handleDelete(row: VersionListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="startVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="startLoading" type="warning" @click="handleStartSubmit">
             {{ t('setting.version.start_upgrade') }}
@@ -557,7 +557,7 @@ function handleDelete(row: VersionListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="finishVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton :loading="finishLoading" type="primary" @click="handleFinishSubmit">
             {{ t('setting.version.finish_upgrade') }}

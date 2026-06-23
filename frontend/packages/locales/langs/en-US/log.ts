@@ -1,7 +1,6 @@
 export default {
   // Shared field labels and common copy across log pages
   common: {
-    keyword: 'Keyword',
     basicId: 'Log ID',
     userId: 'User ID',
     userName: 'Username',
@@ -17,10 +16,7 @@ export default {
     controllerName: 'Controller',
     actionName: 'Action',
     executionTime: 'Duration',
-    createdTime: 'Created Time',
     createdId: 'Creator ID',
-    createdBy: 'Created By',
-    remark: 'Remark',
     userAgent: 'User-Agent',
     errorMessage: 'Error Message',
     exceptionMessage: 'Exception Message',
@@ -35,11 +31,6 @@ export default {
     endTime: 'End Time',
     minExecutionTime: 'Min Duration (ms)',
     maxExecutionTime: 'Max Duration (ms)',
-    success: 'Success',
-    failed: 'Failed',
-    yes: 'Yes',
-    no: 'No',
-    viewDetail: 'View Details',
   },
   // Request method options
   method: {

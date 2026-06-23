@@ -293,7 +293,7 @@ function confirmPublish(row: NotificationListItemDto) {
     title: t('message.notification.publish_dialog_title'),
     content: t('message.notification.publish_confirm_content', { title: row.title, target: targetText }),
     positiveText: t('message.notification.publish_positive'),
-    negativeText: t('message.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         const result = await notificationApi.publish({ basicId: row.basicId })
@@ -466,10 +466,10 @@ async function handleSubmit() {
       <template #footer>
         <div class="flex justify-end gap-2">
           <NButton size="small" @click="modalVisible = false">
-            {{ t('message.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ t('message.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </div>
       </template>
@@ -495,7 +495,7 @@ async function handleSubmit() {
               </NTag>
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail_label_need_confirm')">
-              {{ currentDetail.needConfirm ? t('message.common.yes') : t('message.common.no') }}
+              {{ currentDetail.needConfirm ? t('common.statuses.yes') : t('common.statuses.no') }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail_label_send_time')">
               {{ formatDate(currentDetail.sendTime) }}

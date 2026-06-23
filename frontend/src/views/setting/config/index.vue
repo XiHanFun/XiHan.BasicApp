@@ -65,8 +65,8 @@ const dataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
 
 // SchemaSelectOption.value 仅支持 string | number；布尔搜索项用 1/0，page() 里转回 boolean
 const globalOptions = computed(() => [
-  { label: t('setting.common.global'), value: 1 },
-  { label: t('setting.common.not_global'), value: 0 },
+  { label: t('common.statuses.global'), value: 1 },
+  { label: t('common.statuses.not_global'), value: 0 },
 ])
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -153,9 +153,9 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('setting.config.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: t('setting.config.view'), scope: 'row' },
-    { key: 'edit', title: t('setting.common.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
     { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
-    { key: 'delete', title: t('setting.common.delete'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
   ],
 }))
 
@@ -231,7 +231,7 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? t('setting.common.yes') : t('setting.common.no')
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
 function handleAdd() {
@@ -348,12 +348,12 @@ async function handleSubmit() {
       await configManagementApi.create(createInput)
     }
 
-    message.success(t('setting.common.save_success'))
+    message.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadConfig()
   }
   catch {
-    message.error(t('setting.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -362,7 +362,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: ConfigListItemDto) {
   await configManagementApi.delete(row.basicId)
-  message.success(t('setting.common.delete_success'))
+  message.success(t('common.messages.delete_success'))
   reloadConfig()
 }
 
@@ -372,7 +372,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('setting.config.frontend_disable_remark') : t('setting.config.frontend_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('setting.common.status_updated'))
+  message.success(t('common.messages.status_updated'))
   reloadConfig()
 }
 </script>
@@ -408,7 +408,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
       </template>
 
       <div v-if="detailLoading" class="modal-loading">
-        {{ t('setting.common.loading') }}
+        {{ t('common.statuses.loading') }}
       </div>
       <NTabs v-else-if="currentDetail" type="line" animated size="small">
         <NTabPane name="overview" :tab="t('setting.config.overview')">
@@ -489,7 +489,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="detailVisible = false">
-            {{ t('setting.common.close') }}
+            {{ t('common.actions.close') }}
           </NButton>
           <NButton
             v-if="currentDetail"
@@ -497,7 +497,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             type="primary"
             @click="detailVisible = false; handleEdit(currentDetail as ConfigListItemDto)"
           >
-            {{ t('setting.common.edit') }}
+            {{ t('common.actions.edit') }}
           </NButton>
         </NSpace>
       </template>
@@ -569,10 +569,10 @@ async function handleToggleStatus(row: ConfigListItemDto) {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="modalVisible = false">
-            {{ t('setting.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('setting.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

@@ -92,7 +92,7 @@ function formatValue(field: LogDetailField) {
 
   switch (field.type) {
     case 'boolean':
-      return value ? field.trueText ?? t('log.common.yes') : field.falseText ?? t('log.common.no')
+      return value ? field.trueText ?? t('common.statuses.yes') : field.falseText ?? t('common.statuses.no')
     case 'bytes':
       return formatSize(value)
     case 'code':

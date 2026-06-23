@@ -320,7 +320,7 @@ function buildUserQuery(params: SchemaQueryParams) {
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('identity.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.user.keyword_placeholder'), width: 240, order: 0 },
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.user.keyword_placeholder'), width: 240, order: 0 },
   // 头像（仅列）
   {
     key: 'avatar',
@@ -497,7 +497,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     },
   },
   // 创建时间（仅列）
-  { key: 'createdTime', title: t('identity.common.create_time'), dataType: 'datetime', sortable: true, width: 170, order: 7 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, width: 170, order: 7 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -799,12 +799,12 @@ async function saveUser() {
       await syncDepartments(userId)
     }
 
-    message.success(t('identity.common.save_success'))
+    message.success(t('common.messages.save_success'))
     closeModals()
     reloadList()
   }
   catch {
-    message.error(t('identity.common.save_failed'))
+    message.error(t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -824,7 +824,7 @@ async function toggleLock(row: UserListItemDto) {
     reloadList()
   }
   catch {
-    message.error(t('identity.common.operation_failed'))
+    message.error(t('common.messages.operation_failed'))
   }
 }
 
@@ -837,7 +837,7 @@ function forceLogout(row: UserListItemDto) {
     title: t('identity.user.logout_title'),
     content: t('identity.user.logout_content', { name: displayName(row) }),
     positiveText: t('identity.user.logout_confirm'),
-    negativeText: t('identity.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await userManagementApi.sessions.revokeUserSessions({
@@ -882,7 +882,7 @@ function resetPassword(row: UserListItemDto) {
     title: t('identity.user.reset_password_title'),
     content: t('identity.user.reset_password_content', { name: displayName(row) }),
     positiveText: t('identity.user.reset_confirm'),
-    negativeText: t('identity.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await userManagementApi.security.resetPassword({
@@ -899,7 +899,7 @@ function resetPassword(row: UserListItemDto) {
             }, tempPassword),
           ]),
           positiveText: t('identity.user.reset_password_copy'),
-          negativeText: t('identity.common.close'),
+          negativeText: t('common.actions.close'),
           onPositiveClick: () => {
             void navigator.clipboard?.writeText(tempPassword)
             message.success(t('identity.user.reset_password_copied'))
@@ -919,7 +919,7 @@ function resetOtp(row: UserListItemDto) {
     title: t('identity.user.reset_otp_title'),
     content: t('identity.user.reset_otp_content', { name: displayName(row) }),
     positiveText: t('identity.user.reset_confirm'),
-    negativeText: t('identity.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await userManagementApi.security.resetTwoFactor({
@@ -1078,7 +1078,7 @@ async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
     grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
   }
   catch {
-    message.error(t('identity.common.operation_failed'))
+    message.error(t('common.messages.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1109,7 +1109,7 @@ async function setPermGrant(permission: PermissionListItemDto, action: Permissio
     grantPermList.value = await userManagementApi.permissions.list(grantUser.value.basicId)
   }
   catch {
-    message.error(t('identity.common.operation_failed'))
+    message.error(t('common.messages.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1126,7 +1126,7 @@ async function confirmDelete() {
     reloadList()
   }
   catch {
-    message.error(t('identity.common.delete_failed'))
+    message.error(t('common.messages.delete_failed'))
   }
 }
 </script>
@@ -1377,10 +1377,10 @@ async function confirmDelete() {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="closeModals">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" type="primary" :loading="submitLoading" @click="saveUser">
-            {{ t('identity.common.save') }}
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>
@@ -1413,7 +1413,7 @@ async function confirmDelete() {
       </template>
 
       <div v-if="detailLoading" class="modal-loading">
-        {{ t('identity.common.loading') }}
+        {{ t('common.statuses.loading') }}
       </div>
       <template v-else-if="detUser">
         <div class="det-info-grid">
@@ -1490,7 +1490,7 @@ async function confirmDelete() {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="closeModals">
-            {{ t('identity.common.close') }}
+            {{ t('common.actions.close') }}
           </NButton>
         </NSpace>
       </template>
@@ -1523,7 +1523,7 @@ async function confirmDelete() {
       <template #footer>
         <NSpace justify="end">
           <NButton size="small" @click="closeModals">
-            {{ t('identity.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" type="error" @click="confirmDelete">
             {{ t('identity.user.del_confirm_btn') }}

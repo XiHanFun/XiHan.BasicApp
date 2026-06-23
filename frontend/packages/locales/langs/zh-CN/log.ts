@@ -1,7 +1,6 @@
 export default {
   // 跨日志页面共享的字段标签与通用文案
   common: {
-    keyword: '关键词',
     basicId: '日志主键',
     userId: '用户主键',
     userName: '用户名',
@@ -17,10 +16,7 @@ export default {
     controllerName: '控制器',
     actionName: '动作',
     executionTime: '执行耗时',
-    createdTime: '创建时间',
     createdId: '创建人主键',
-    createdBy: '创建人',
-    remark: '备注',
     userAgent: 'User-Agent',
     errorMessage: '错误消息',
     exceptionMessage: '异常消息',
@@ -35,11 +31,6 @@ export default {
     endTime: '结束时间',
     minExecutionTime: '最小耗时(ms)',
     maxExecutionTime: '最大耗时(ms)',
-    success: '成功',
-    failed: '失败',
-    yes: '是',
-    no: '否',
-    viewDetail: '查看详情',
   },
   // 请求方法选项
   method: {

@@ -551,7 +551,7 @@ function handleDestroyFile(row: FileListItemDto) {
     title: t('file.library.message.destroyTitle'),
     content: t('file.library.message.destroyContent', { name: row.originalName }),
     positiveText: t('file.library.actions.destroy'),
-    negativeText: t('file.common.cancel'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       actionLoading.value = true
       try {
@@ -1078,7 +1078,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
     <NDrawer v-model:show="detailVisible" :width="680">
       <NDrawerContent closable :title="detailTitle">
         <NSpace v-if="detailLoading" justify="center">
-          {{ t('file.common.loading') }}
+          {{ t('common.statuses.loading') }}
         </NSpace>
 
         <NDescriptions
@@ -1264,7 +1264,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
               <template #icon>
                 <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
               </template>
-              {{ t('file.common.refresh') }}
+              {{ t('common.actions.refresh') }}
             </NButton>
           </div>
           <NDataTable
@@ -1292,7 +1292,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         :class="{ 'is-text': isBlockPreview }"
       >
         <div v-if="previewLoading" class="text-gray-400">
-          {{ t('file.common.loading') }}
+          {{ t('common.statuses.loading') }}
         </div>
         <div v-else-if="previewTextError" class="text-gray-400">
           {{ previewTextError }}

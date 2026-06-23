@@ -176,7 +176,7 @@ const columns = computed<DataTableColumns<CodeGenHistoryListItemDto>>(() => [
   },
   {
     key: 'actions',
-    title: t('develop.code_gen.common.actions'),
+    title: t('common.fields.actions'),
     width: 80,
     align: 'center',
     render: (row: CodeGenHistoryListItemDto) =>
@@ -185,7 +185,7 @@ const columns = computed<DataTableColumns<CodeGenHistoryListItemDto>>(() => [
         size: 'small',
         type: 'primary',
         onClick: () => handleDetail(row),
-      }, () => t('develop.code_gen.common.detail')),
+      }, () => t('common.actions.detail')),
   },
 ])
 
@@ -253,7 +253,7 @@ onMounted(fetchData)
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('develop.code_gen.common.search') }}
+        {{ t('common.actions.search') }}
       </NButton>
     </div>
 
@@ -291,7 +291,7 @@ onMounted(fetchData)
       :title="t('develop.code_gen.history.detail_title')"
     >
       <NSpace v-if="detailLoading" justify="center">
-        {{ t('develop.code_gen.common.loading') }}
+        {{ t('common.statuses.loading') }}
       </NSpace>
       <template v-else-if="detail">
         <NDescriptions :column="2" label-placement="left" size="small">
@@ -354,13 +354,13 @@ onMounted(fetchData)
         </div>
       </template>
       <NSpace v-else justify="center">
-        {{ t('develop.code_gen.common.no_data') }}
+        {{ t('common.statuses.no_data') }}
       </NSpace>
 
       <template #footer>
         <NSpace justify="end">
           <NButton @click="detailVisible = false">
-            {{ t('develop.code_gen.common.close') }}
+            {{ t('common.actions.close') }}
           </NButton>
         </NSpace>
       </template>

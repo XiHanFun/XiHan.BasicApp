@@ -185,7 +185,7 @@ function handleClose() {
           <template #icon>
             <NIcon><Icon icon="lucide:search" /></NIcon>
           </template>
-          {{ t('develop.code_gen.common.search') }}
+          {{ t('common.actions.search') }}
         </NButton>
       </div>
       <NForm label-placement="top">
@@ -234,15 +234,15 @@ function handleClose() {
     <template #footer>
       <NSpace justify="space-between">
         <NButton v-if="step === 2" @click="step = 1">
-          {{ t('develop.code_gen.common.prev_step') }}
+          {{ t('common.actions.prev_step') }}
         </NButton>
         <span v-else />
         <NSpace>
           <NButton @click="handleClose">
-            {{ t('develop.code_gen.common.cancel') }}
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton v-if="step === 1" type="primary" @click="handleNext">
-            {{ t('develop.code_gen.common.next_step') }}
+            {{ t('common.actions.next_step') }}
           </NButton>
           <NButton v-else :loading="submitLoading" type="primary" @click="handleSubmit">
             {{ t('develop.code_gen.import.action_import') }}

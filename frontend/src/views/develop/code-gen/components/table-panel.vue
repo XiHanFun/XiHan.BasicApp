@@ -151,7 +151,7 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
   { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), minWidth: 170 },
   {
     key: 'actions',
-    title: t('develop.code_gen.common.actions'),
+    title: t('common.fields.actions'),
     width: 288,
     fixed: 'right',
     align: 'center',
@@ -181,13 +181,13 @@ const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
           quaternary: true,
           size: 'small',
           onClick: () => handleEdit(row),
-        }, () => t('develop.code_gen.common.edit')),
+        }, () => t('common.actions.edit')),
         h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
           trigger: () => h(NButton, {
             quaternary: true,
             size: 'small',
             type: 'error',
-          }, () => t('develop.code_gen.common.delete')),
+          }, () => t('common.actions.delete')),
           default: () => t('develop.code_gen.table.confirm_delete'),
         }),
       ]),
@@ -223,11 +223,11 @@ function handleRuntime(row: CodeGenTableListItemDto) {
 async function handleDelete(row: CodeGenTableListItemDto) {
   try {
     await codeGenTableApi.delete(row.basicId)
-    message.success(t('develop.code_gen.common.delete_success'))
+    message.success(t('common.messages.delete_success'))
     fetchData()
   }
   catch {
-    message.error(t('develop.code_gen.common.delete_failed'))
+    message.error(t('common.messages.delete_failed'))
   }
 }
 
@@ -274,7 +274,7 @@ onMounted(fetchData)
         @update:value="handleSearch"
       />
       <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('develop.code_gen.common.search') }}
+        {{ t('common.actions.search') }}
       </NButton>
       <NButton class="panel__add" size="small" type="primary" @click="handleImport">
         <template #icon>
