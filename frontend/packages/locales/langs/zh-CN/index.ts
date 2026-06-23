@@ -28,18 +28,16 @@ export default {
   page,
   island,
   error,
-  // 子页为顶层键的区模块：嵌套到区名下（如 develop.ts = { code_gen: {...} } → develop.code_gen.*）
   develop,
   log,
   message,
   tenant,
   openapi,
-  // 自身已包一层区名的区模块（如 setting.ts = { setting: {...} }）：展开合并，避免 setting.setting.* 双层嵌套
-  ...setting,
-  ...identity,
-  ...approval,
-  ...file,
-  ...workbench,
+  setting,
+  identity,
+  approval,
+  file,
+  workbench,
   checkUpdates: {
     title: '发现新版本',
     description: '检测到网页有更新，请刷新页面以加载最新版本。',
