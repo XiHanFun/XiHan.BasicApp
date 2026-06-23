@@ -480,48 +480,48 @@ async function handleSubmit() {
       <NDrawerContent :title="t('message.notification.detail_title')" closable>
         <template v-if="currentDetail">
           <NDescriptions :column="2" label-placement="left" bordered size="small">
-            <NDescriptionsItem :label="t('message.notification.detail_label_title')" :span="2">
+            <NDescriptionsItem :label="t('message.notification.detail.label.title')" :span="2">
               {{ currentDetail.title }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_type')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.type')">
               {{ getOptionLabel(notificationTypeOptions, currentDetail.notificationType) }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_target_type')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.target_type')">
               {{ getOptionLabel(targetTypeOptions, currentDetail.targetType) }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_is_published')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.is_published')">
               <NTag size="small" round :bordered="false" :type="currentDetail.isPublished ? 'success' : 'default'">
                 {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
               </NTag>
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_need_confirm')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.need_confirm')">
               {{ currentDetail.needConfirm ? t('common.statuses.yes') : t('common.statuses.no') }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_send_time')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.send_time')">
               {{ formatDate(currentDetail.sendTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_expiration_time')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.expiration_time')">
               {{ currentDetail.expirationTime ? formatDate(currentDetail.expirationTime) : t('message.notification.never_expire') }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_icon')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.icon')">
               {{ currentDetail.icon || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_link')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.link')">
               {{ currentDetail.link || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_business_type')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.business_type')">
               {{ currentDetail.businessType || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_business_id')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.business_id')">
               {{ currentDetail.businessId || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_creator')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.creator')">
               {{ currentDetail.createdBy || '-' }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_created_time')">
+            <NDescriptionsItem :label="t('message.notification.detail.label.created_time')">
               {{ formatDate(currentDetail.createdTime) }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail_label_remark')" :span="2">
+            <NDescriptionsItem :label="t('message.notification.detail.label.remark')" :span="2">
               {{ currentDetail.remark || '-' }}
             </NDescriptionsItem>
           </NDescriptions>

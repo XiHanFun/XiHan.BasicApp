@@ -20,9 +20,9 @@ const detailLoading = ref(false)
 const detailData = ref<OperationLogDetailDto | null>(null)
 
 const resultOptions = computed(() => [
-  { label: t('log.operation.resultSuccess'), value: OperationExecuteResult.Success },
-  { label: t('log.operation.resultFailed'), value: OperationExecuteResult.Failed },
-  { label: t('log.operation.resultPartialSuccess'), value: OperationExecuteResult.PartialSuccess },
+  { label: t('log.operation.result_success'), value: OperationExecuteResult.Success },
+  { label: t('log.operation.result_failed'), value: OperationExecuteResult.Failed },
+  { label: t('log.operation.result_partial_success'), value: OperationExecuteResult.PartialSuccess },
 ])
 
 function resultTagType(result: OperationExecuteResult) {
@@ -34,34 +34,34 @@ function resultTagType(result: OperationExecuteResult) {
 }
 
 const operationTypeOptions = computed(() => [
-  { label: t('log.operation.typeCreate'), value: OperationType.Create },
-  { label: t('log.operation.typeUpdate'), value: OperationType.Update },
-  { label: t('log.operation.typeDelete'), value: OperationType.Delete },
-  { label: t('log.operation.typeReview'), value: OperationType.Review },
-  { label: t('log.operation.typeImport'), value: OperationType.Import },
-  { label: t('log.operation.typeExport'), value: OperationType.Export },
-  { label: t('log.operation.typeApprove'), value: OperationType.Approve },
-  { label: t('log.operation.typeStartTask'), value: OperationType.StartTask },
-  { label: t('log.operation.typeExecute'), value: OperationType.Execute },
-  { label: t('log.operation.typeRestore'), value: OperationType.Restore },
-  { label: t('log.operation.typeOther'), value: OperationType.Other },
+  { label: t('log.operation.type_create'), value: OperationType.Create },
+  { label: t('log.operation.type_update'), value: OperationType.Update },
+  { label: t('log.operation.type_delete'), value: OperationType.Delete },
+  { label: t('log.operation.type_review'), value: OperationType.Review },
+  { label: t('log.operation.type_import'), value: OperationType.Import },
+  { label: t('log.operation.type_export'), value: OperationType.Export },
+  { label: t('log.operation.type_approve'), value: OperationType.Approve },
+  { label: t('log.operation.type_start_task'), value: OperationType.StartTask },
+  { label: t('log.operation.type_execute'), value: OperationType.Execute },
+  { label: t('log.operation.type_restore'), value: OperationType.Restore },
+  { label: t('log.operation.type_other'), value: OperationType.Other },
 ])
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.operation.keywordPlaceholder'), order: 0 },
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.operation.keyword_placeholder'), order: 0 },
   // 列（顺序对齐实体 SysOperationLog 属性声明）
-  { key: 'userId', title: t('log.common.userId'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: t('log.common.userName'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
-  { key: 'sessionId', title: t('log.common.sessionId'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
-  { key: 'traceId', title: t('log.common.traceId'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
+  { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
+  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
+  { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
   {
     key: 'operationType',
-    title: t('log.operation.operationType'),
+    title: t('log.operation.operation_type'),
     dataType: 'enum',
     searchable: true,
     options: operationTypeOptions.value,
-    searchPlaceholder: t('log.operation.operationTypePlaceholder'),
+    searchPlaceholder: t('log.operation.operation_type_placeholder'),
     width: 90,
     order: 14,
     render: row => getOptionLabel(operationTypeOptions.value, (row as unknown as OperationLogListItemDto).operationType),
@@ -71,10 +71,10 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'title', title: t('log.operation.title'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 17 },
   { key: 'description', title: t('log.operation.description'), dataType: 'string', minWidth: 220, order: 18 },
   { key: 'method', title: t('log.common.method'), dataType: 'string', advancedSearch: true, width: 90, order: 19 },
-  { key: 'requestUrl', title: t('log.operation.requestUrl'), dataType: 'string', minWidth: 240, order: 20 },
-  { key: 'executionTime', title: t('log.common.executionTime'), dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as OperationLogListItemDto).executionTime}ms` },
-  { key: 'operationIp', title: t('log.operation.operationIp'), dataType: 'string', searchable: true, searchPlaceholder: t('log.operation.operationIpPlaceholder'), minWidth: 130, order: 22 },
-  { key: 'operationLocation', title: t('log.operation.operationLocation'), dataType: 'string', minWidth: 160, order: 23 },
+  { key: 'requestUrl', title: t('log.operation.request_url'), dataType: 'string', minWidth: 240, order: 20 },
+  { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as OperationLogListItemDto).executionTime}ms` },
+  { key: 'operationIp', title: t('log.operation.operation_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.operation.operation_ip_placeholder'), minWidth: 130, order: 22 },
+  { key: 'operationLocation', title: t('log.operation.operation_location'), dataType: 'string', minWidth: 160, order: 23 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 24 },
   { key: 'os', title: t('log.common.os'), dataType: 'string', minWidth: 120, order: 25 },
   {
@@ -83,7 +83,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     searchable: true,
     options: resultOptions.value,
-    searchPlaceholder: t('log.operation.resultPlaceholder'),
+    searchPlaceholder: t('log.operation.result_placeholder'),
     width: 90,
     order: 26,
     render: row => h(
@@ -92,13 +92,13 @@ const fields = computed<ListFieldSchema[]>(() => [
       () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result),
     ),
   },
-  { key: 'operationTime', title: t('log.operation.operationTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
+  { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 28 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
-  { key: 'minExecutionTime', title: t('log.common.minExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.minExecutionTime'), order: 40 },
-  { key: 'maxExecutionTime', title: t('log.common.maxExecutionTime'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.maxExecutionTime'), order: 41 },
-  { key: 'operationTimeStart', title: t('log.common.startTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.startTime'), order: 42 },
-  { key: 'operationTimeEnd', title: t('log.common.endTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.endTime'), order: 43 },
+  { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 40 },
+  { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 41 },
+  { key: 'operationTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 42 },
+  { key: 'operationTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 43 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -138,7 +138,7 @@ function buildOperationQuery(params: SchemaQueryParams) {
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.operation',
   exportPermission: 'saas:operation-log:export',
-  pageName: t('log.operation.pageName'),
+  pageName: t('log.operation.page_name'),
   rowKey: 'basicId',
   scrollX: 2200,
   fields: fields.value,
@@ -152,30 +152,30 @@ const schema = computed<PageSchema>(() => ({
 }))
 
 const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basicId') },
-  { key: 'sessionId', label: t('log.common.sessionId') },
-  { key: 'traceId', label: t('log.common.traceId') },
-  { key: 'userName', label: t('log.common.userName') },
-  { key: 'userId', label: t('log.common.userId') },
-  { key: 'operationType', label: t('log.operation.operationType'), options: operationTypeOptions.value, type: 'enum' },
+  { key: 'basicId', label: t('log.common.basic_id') },
+  { key: 'sessionId', label: t('log.common.session_id') },
+  { key: 'traceId', label: t('log.common.trace_id') },
+  { key: 'userName', label: t('log.common.user_name') },
+  { key: 'userId', label: t('log.common.user_id') },
+  { key: 'operationType', label: t('log.operation.operation_type'), options: operationTypeOptions.value, type: 'enum' },
   { key: 'result', label: t('log.operation.result'), options: resultOptions.value, type: 'enum' },
   { key: 'module', label: t('log.operation.module') },
   { key: 'function', label: t('log.operation.function') },
   { key: 'title', label: t('log.operation.title'), span: 2 },
   { key: 'description', label: t('log.operation.description'), span: 2 },
   { key: 'method', label: t('log.common.method') },
-  { key: 'requestUrl', label: t('log.operation.requestUrl'), span: 2 },
-  { key: 'executionTime', label: t('log.common.executionTime'), type: 'duration' },
-  { key: 'operationIp', label: t('log.operation.operationIp') },
-  { key: 'operationLocation', label: t('log.operation.operationLocation') },
+  { key: 'requestUrl', label: t('log.operation.request_url'), span: 2 },
+  { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
+  { key: 'operationIp', label: t('log.operation.operation_ip') },
+  { key: 'operationLocation', label: t('log.operation.operation_location') },
   { key: 'browser', label: t('log.common.browser') },
   { key: 'os', label: t('log.common.os') },
-  { key: 'operationTime', label: t('log.operation.operationTime'), type: 'date' },
+  { key: 'operationTime', label: t('log.operation.operation_time'), type: 'date' },
   { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'createdId', label: t('log.common.createdId') },
+  { key: 'createdId', label: t('log.common.created_id') },
   { key: 'createdBy', label: t('common.fields.created_by') },
-  { key: 'userAgent', label: t('log.common.userAgent'), type: 'code' },
-  { key: 'errorMessage', label: t('log.common.errorMessage'), type: 'code' },
+  { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
+  { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
 ])
 
 function onAction(payload: SchemaActionPayload) {
@@ -193,7 +193,7 @@ async function handleDetail(row: OperationLogListItemDto) {
   }
   catch {
     detailData.value = row
-    message.error(t('log.operation.detailLoadFailed'))
+    message.error(t('log.operation.detail_load_failed'))
   }
   finally {
     detailLoading.value = false
@@ -208,7 +208,7 @@ async function handleDetail(row: OperationLogListItemDto) {
       :fields="detailFields"
       :loading="detailLoading"
       :record="detailData"
-      :title="t('log.operation.detailTitle')"
+      :title="t('log.operation.detail_title')"
     />
   </SchemaPage>
 </template>

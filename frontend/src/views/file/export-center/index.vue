@@ -40,16 +40,16 @@ onBeforeUnmount(() => {
 })
 
 const statusOptions = computed(() => [
-  { label: t('file.exportCenter.status.pending'), value: ExportTaskStatus.Pending },
-  { label: t('file.exportCenter.status.processing'), value: ExportTaskStatus.Processing },
-  { label: t('file.exportCenter.status.success'), value: ExportTaskStatus.Success },
-  { label: t('file.exportCenter.status.failed'), value: ExportTaskStatus.Failed },
+  { label: t('file.export_center.status.pending'), value: ExportTaskStatus.Pending },
+  { label: t('file.export_center.status.processing'), value: ExportTaskStatus.Processing },
+  { label: t('file.export_center.status.success'), value: ExportTaskStatus.Success },
+  { label: t('file.export_center.status.failed'), value: ExportTaskStatus.Failed },
 ])
 
 const scopeOptions = computed(() => [
-  { label: t('file.exportCenter.scope.currentPage'), value: ExportScope.CurrentPage },
-  { label: t('file.exportCenter.scope.searchResult'), value: ExportScope.SearchResult },
-  { label: t('file.exportCenter.scope.all'), value: ExportScope.All },
+  { label: t('file.export_center.scope.current_page'), value: ExportScope.CurrentPage },
+  { label: t('file.export_center.scope.search_result'), value: ExportScope.SearchResult },
+  { label: t('file.export_center.scope.all'), value: ExportScope.All },
 ])
 
 const formatOptions = [
@@ -81,11 +81,11 @@ function formatBytes(bytes: number): string {
 }
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'taskName', title: t('file.exportCenter.columns.taskName'), dataType: 'string', minWidth: 220, order: 10 },
-  { key: 'businessType', title: t('file.exportCenter.columns.businessType'), dataType: 'string', width: 150, order: 11 },
+  { key: 'taskName', title: t('file.export_center.columns.task_name'), dataType: 'string', minWidth: 220, order: 10 },
+  { key: 'businessType', title: t('file.export_center.columns.business_type'), dataType: 'string', width: 150, order: 11 },
   {
     key: 'status',
-    title: t('file.exportCenter.columns.status'),
+    title: t('file.export_center.columns.status'),
     dataType: 'enum',
     options: statusOptions.value,
     width: 100,
@@ -98,7 +98,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   {
     key: 'progress',
-    title: t('file.exportCenter.columns.progress'),
+    title: t('file.export_center.columns.progress'),
     dataType: 'number',
     width: 140,
     order: 13,
@@ -114,22 +114,22 @@ const fields = computed<ListFieldSchema[]>(() => [
         })
       }
       if (r.status === ExportTaskStatus.Success) {
-        return h('span', t('file.exportCenter.rows', { count: r.totalCount }))
+        return h('span', t('file.export_center.rows', { count: r.totalCount }))
       }
       return h('span', { style: 'opacity:.5' }, '–')
     },
   },
-  { key: 'scope', title: t('file.exportCenter.columns.scope'), dataType: 'enum', options: scopeOptions.value, width: 100, order: 14, render: row => getOptionLabel(scopeOptions.value, (row as unknown as ExportTaskDto).scope) },
-  { key: 'format', title: t('file.exportCenter.columns.format'), dataType: 'enum', options: formatOptions, width: 90, order: 15, render: row => getOptionLabel(formatOptions, (row as unknown as ExportTaskDto).format) },
-  { key: 'fileSize', title: t('file.exportCenter.columns.fileSize'), dataType: 'string', width: 110, order: 16, render: row => formatBytes((row as unknown as ExportTaskDto).fileSize) },
-  { key: 'createdTime', title: t('file.exportCenter.columns.createdTime'), dataType: 'datetime', minWidth: 170, order: 17 },
-  { key: 'finishedTime', title: t('file.exportCenter.columns.finishedTime'), dataType: 'datetime', minWidth: 170, order: 18 },
-  { key: 'errorMessage', title: t('file.exportCenter.columns.errorMessage'), dataType: 'text', visible: false, order: 30 },
+  { key: 'scope', title: t('file.export_center.columns.scope'), dataType: 'enum', options: scopeOptions.value, width: 100, order: 14, render: row => getOptionLabel(scopeOptions.value, (row as unknown as ExportTaskDto).scope) },
+  { key: 'format', title: t('file.export_center.columns.format'), dataType: 'enum', options: formatOptions, width: 90, order: 15, render: row => getOptionLabel(formatOptions, (row as unknown as ExportTaskDto).format) },
+  { key: 'fileSize', title: t('file.export_center.columns.file_size'), dataType: 'string', width: 110, order: 16, render: row => formatBytes((row as unknown as ExportTaskDto).fileSize) },
+  { key: 'createdTime', title: t('file.export_center.columns.created_time'), dataType: 'datetime', minWidth: 170, order: 17 },
+  { key: 'finishedTime', title: t('file.export_center.columns.finished_time'), dataType: 'datetime', minWidth: 170, order: 18 },
+  { key: 'errorMessage', title: t('file.export_center.columns.error_message'), dataType: 'text', visible: false, order: 30 },
 ])
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'file.export-center',
-  pageName: t('file.exportCenter.pageName'),
+  pageName: t('file.export_center.page_name'),
   rowKey: 'basicId',
   scrollX: 1400,
   fields: fields.value,
@@ -137,9 +137,9 @@ const schema = computed<PageSchema>(() => ({
     page: params => exportTaskApi.mine(params.page, params.pageSize) as unknown as Promise<PageResult<Record<string, unknown>>>,
   },
   actions: [
-    { key: 'download', title: t('file.exportCenter.actions.download'), scope: 'row', icon: 'lucide:download', type: 'primary', visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Success && !!(row as unknown as ExportTaskDto).fileId },
-    { key: 'cancel', title: t('file.exportCenter.actions.cancel'), scope: 'row', icon: 'lucide:circle-x', type: 'warning', visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Pending },
-    { key: 'delete', title: t('file.exportCenter.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error' },
+    { key: 'download', title: t('file.export_center.actions.download'), scope: 'row', icon: 'lucide:download', type: 'primary', visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Success && !!(row as unknown as ExportTaskDto).fileId },
+    { key: 'cancel', title: t('file.export_center.actions.cancel'), scope: 'row', icon: 'lucide:circle-x', type: 'warning', visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Pending },
+    { key: 'delete', title: t('file.export_center.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error' },
   ],
 }))
 
@@ -161,7 +161,7 @@ function onAction(payload: SchemaActionPayload) {
 
 async function handleDownload(row: ExportTaskDto) {
   if (!row.fileId) {
-    message.warning(t('file.exportCenter.productNotExist'))
+    message.warning(t('file.export_center.product_not_exist'))
     return
   }
   try {
@@ -169,35 +169,35 @@ async function handleDownload(row: ExportTaskDto) {
     downloadBlob(blob, row.fileName || `${row.taskName}.csv`)
   }
   catch (e) {
-    message.error((e as Error).message || t('file.exportCenter.downloadFailed'))
+    message.error((e as Error).message || t('file.export_center.download_failed'))
   }
 }
 
 async function handleCancel(row: ExportTaskDto) {
   try {
     await exportTaskApi.cancel(row.basicId)
-    message.success(t('file.exportCenter.canceled'))
+    message.success(t('file.export_center.canceled'))
     reload()
   }
   catch (e) {
-    message.error((e as Error).message || t('file.exportCenter.cancelFailed'))
+    message.error((e as Error).message || t('file.export_center.cancel_failed'))
   }
 }
 
 function handleDelete(row: ExportTaskDto) {
   dialog.warning({
-    title: t('file.exportCenter.deleteTitle'),
-    content: t('file.exportCenter.deleteContent', { name: row.taskName }),
-    positiveText: t('file.exportCenter.actions.delete'),
-    negativeText: t('file.exportCenter.actions.cancel'),
+    title: t('file.export_center.delete_title'),
+    content: t('file.export_center.delete_content', { name: row.taskName }),
+    positiveText: t('file.export_center.actions.delete'),
+    negativeText: t('file.export_center.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await exportTaskApi.remove(row.basicId)
-        message.success(t('file.exportCenter.deleted'))
+        message.success(t('file.export_center.deleted'))
         reload()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.exportCenter.deleteFailed'))
+        message.error((e as Error).message || t('file.export_center.delete_failed'))
       }
     },
   })

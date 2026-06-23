@@ -151,13 +151,13 @@ const detUser = computed(() => {
   if (sec) {
     badges.push(
       sec.emailVerified
-        ? { label: t('identity.user.badge_email_verified'), cls: 'bdg-ok', icon: 'tabler:mail' }
-        : { label: t('identity.user.badge_email_unverified'), cls: 'bdg-gray', icon: 'tabler:mail' },
+        ? { label: t('identity.user.badge.email_verified'), cls: 'bdg-ok', icon: 'tabler:mail' }
+        : { label: t('identity.user.badge.email_unverified'), cls: 'bdg-gray', icon: 'tabler:mail' },
     )
     badges.push(
       sec.phoneVerified
-        ? { label: t('identity.user.badge_phone_verified'), cls: 'bdg-ok', icon: 'tabler:phone' }
-        : { label: t('identity.user.badge_phone_unverified'), cls: 'bdg-gray', icon: 'tabler:phone' },
+        ? { label: t('identity.user.badge.phone_verified'), cls: 'bdg-ok', icon: 'tabler:phone' }
+        : { label: t('identity.user.badge.phone_unverified'), cls: 'bdg-gray', icon: 'tabler:phone' },
     )
     if (sec.twoFactorEnabled) {
       badges.push({
@@ -167,10 +167,10 @@ const detUser = computed(() => {
       })
     }
     if (sec.isLocked)
-      badges.push({ label: t('identity.user.badge_account_locked'), cls: 'bdg-no', icon: 'tabler:lock' })
+      badges.push({ label: t('identity.user.badge.account_locked'), cls: 'bdg-no', icon: 'tabler:lock' })
     if (sec.failedLoginAttempts > 0) {
       badges.push({
-        label: t('identity.user.badge_failed_login', { count: sec.failedLoginAttempts }),
+        label: t('identity.user.badge.failed_login', { count: sec.failedLoginAttempts }),
         cls: 'bdg-warn',
         icon: 'tabler:alert-triangle',
       })
@@ -178,7 +178,7 @@ const detUser = computed(() => {
   }
   const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
   if (d.tenantMembership && !inviteAccepted) {
-    badges.push({ label: t('identity.user.badge_inactive'), cls: 'bdg-warn', icon: 'tabler:clock-pause' })
+    badges.push({ label: t('identity.user.badge.inactive'), cls: 'bdg-warn', icon: 'tabler:clock-pause' })
   }
   return {
     userName: u.userName,
@@ -195,26 +195,26 @@ const detUser = computed(() => {
     badges,
     metrics: [
       {
-        label: t('identity.user.metric_login_count'),
+        label: t('identity.user.detail.metric.login_count'),
         value: todayStat?.loginCount ?? 0,
         icon: 'tabler:login-2',
         cls: 'det-stat-primary',
       },
       {
-        label: t('identity.user.metric_access_count'),
+        label: t('identity.user.detail.metric.access_count'),
         value: todayStat?.accessCount ?? 0,
         icon: 'tabler:activity',
         cls: 'det-stat-info',
       },
       {
-        label: t('identity.user.metric_online_time'),
+        label: t('identity.user.detail.metric.online_time'),
         value: `${Math.round((todayStat?.onlineTime ?? 0) / 3600)}h`,
         icon: 'tabler:clock',
         cls: 'det-stat-warning',
       },
       {
-        label: t('identity.user.metric_current_status'),
-        value: onlineSession ? t('identity.user.detail_online') : t('identity.user.detail_offline'),
+        label: t('identity.user.detail.metric.current_status'),
+        value: onlineSession ? t('identity.user.detail.online') : t('identity.user.detail.offline'),
         icon: onlineSession ? 'tabler:wifi' : 'tabler:wifi-off',
         cls: onlineSession ? 'det-stat-info' : 'det-stat-muted',
       },
@@ -1393,7 +1393,7 @@ async function confirmDelete() {
       :auto-focus="false"
       :bordered="false"
       preset="card"
-      :title="t('identity.user.detail_title')"
+      :title="t('identity.user.detail.title')"
       style="width: 640px; max-width: calc(100vw - 32px)"
     >
       <template v-if="detUser" #header>
@@ -1418,27 +1418,27 @@ async function confirmDelete() {
       <template v-else-if="detUser">
         <div class="det-info-grid">
           <div>
-            <span class="muted">{{ t('identity.user.detail_language_timezone') }}</span>
+            <span class="muted">{{ t('identity.user.detail.language_timezone') }}</span>
             {{ detUser.language }} / {{ detUser.timeZone }}
           </div>
           <div>
-            <span class="muted">{{ t('identity.user.detail_country') }}</span>
+            <span class="muted">{{ t('identity.user.detail.country') }}</span>
             {{ detUser.country }}
           </div>
           <div>
-            <span class="muted">{{ t('identity.user.detail_gender') }}</span>
+            <span class="muted">{{ t('identity.user.detail.gender') }}</span>
             {{ detUser.gender }}
           </div>
           <div>
-            <span class="muted">{{ t('identity.user.detail_roles') }}</span>
+            <span class="muted">{{ t('identity.user.detail.roles') }}</span>
             {{ detUser.roles.join('、') || '—' }}
           </div>
           <div>
-            <span class="muted">{{ t('identity.user.detail_depts') }}</span>
+            <span class="muted">{{ t('identity.user.detail.depts') }}</span>
             {{ detUser.depts.join('、') || '—' }}
           </div>
           <div v-if="detUser.remark" class="col-span-2">
-            <span class="muted">{{ t('identity.user.detail_remark') }}</span>
+            <span class="muted">{{ t('identity.user.detail.remark') }}</span>
             {{ detUser.remark }}
           </div>
         </div>
@@ -1452,7 +1452,7 @@ async function confirmDelete() {
         <div class="det-sec">
           <div class="det-sec-hd">
             <Icon icon="tabler:chart-bar" :size="14" />
-            <span>{{ t('identity.user.detail_stats_today') }}</span>
+            <span>{{ t('identity.user.detail.stats_today') }}</span>
           </div>
           <div class="det-stat-grid">
             <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
@@ -1468,7 +1468,7 @@ async function confirmDelete() {
         </div>
         <div class="det-sec-hd">
           <Icon icon="tabler:device-desktop" :size="14" />
-          <span>{{ t('identity.user.detail_login_session') }}</span>
+          <span>{{ t('identity.user.detail.login_session') }}</span>
         </div>
         <div v-if="detUser.online" class="s-row">
           <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
@@ -1480,10 +1480,10 @@ async function confirmDelete() {
               {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
             </div>
           </div>
-          <span class="bdg bdg-ok">{{ t('identity.user.detail_online') }}</span>
+          <span class="bdg bdg-ok">{{ t('identity.user.detail.online') }}</span>
         </div>
         <div v-else class="session-empty">
-          {{ t('identity.user.detail_no_active_session') }}
+          {{ t('identity.user.detail.no_active_session') }}
         </div>
       </template>
 

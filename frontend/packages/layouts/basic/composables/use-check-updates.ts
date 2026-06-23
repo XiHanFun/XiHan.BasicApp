@@ -52,8 +52,8 @@ export function useCheckUpdates() {
 
   function showUpdateNotification() {
     notification.info({
-      title: t('checkUpdates.title'),
-      content: t('checkUpdates.description'),
+      title: t('check_updates.title'),
+      content: t('check_updates.description'),
       action: () =>
         h(
           NButton,
@@ -62,7 +62,7 @@ export function useCheckUpdates() {
             size: 'small',
             onClick: () => window.location.reload(),
           },
-          { default: () => t('checkUpdates.refresh') },
+          { default: () => t('check_updates.refresh') },
         ),
       duration: 0,
       keepAliveOnHover: true,
