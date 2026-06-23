@@ -1,29 +1,27 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   CodeGenDataSourceCreateDto,
   CodeGenDataSourceListItemDto,
   CodeGenDataSourceUpdateDto,
   DatabaseType,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PageResult } from '~/types/contracts'
 import {
   NButton,
-  NDataTable,
   NForm,
   NFormItem,
-  NIcon,
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
-  NPopconfirm,
   NSelect,
   NSpace,
   NSwitch,
   NTag,
+  useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenDataSourceApi,
@@ -32,7 +30,7 @@ import {
   DatabaseType as DatabaseTypeEnum,
   EnableStatus,
 } from '@/api'
-import { Icon } from '~/components'
+import { SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { getOptionLabel } from '~/utils'
 
@@ -59,162 +57,138 @@ interface DatasourceFormModel {
 
 const { t } = useI18n()
 const message = useMessage()
+const dialog = useDialog()
 
-const loading = ref(false)
-const list = ref<CodeGenDataSourceListItemDto[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const queryParams = reactive({
-  keyword: '',
-  databaseType: null as DatabaseType | null,
-  status: null as EnableStatus | null,
-})
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+function reload() {
+  void schemaPageRef.value?.reload()
+}
 
 const testingId = ref<string | null>(null)
 
-async function fetchData() {
-  loading.value = true
-  try {
-    const result = await codeGenDataSourceApi.page({
-      ...createPageRequest({ page: { pageIndex: page.value, pageSize: pageSize.value } }),
-      databaseType: queryParams.databaseType ?? undefined,
-      keyword: queryParams.keyword?.trim() || undefined,
-      status: queryParams.status ?? undefined,
-    })
-    list.value = result.items
-    total.value = result.page.totalCount
-  }
-  catch {
-    message.error(t('develop.code_gen.datasource.query_failed'))
-    list.value = []
-    total.value = 0
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function handleSearch() {
-  page.value = 1
-  fetchData()
-}
-
-function handlePageChange(value: number) {
-  page.value = value
-  fetchData()
-}
-
-function handlePageSizeChange(value: number) {
-  pageSize.value = value
-  page.value = 1
-  fetchData()
-}
-
-const columns = computed<DataTableColumns<CodeGenDataSourceListItemDto>>(() => [
+const fields = computed<ListFieldSchema[]>(() => [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: t('develop.code_gen.datasource.col_source_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('develop.code_gen.datasource.search_placeholder'), order: 0 },
   {
     key: 'sourceName',
     title: t('develop.code_gen.datasource.col_source_name'),
+    dataType: 'string',
     minWidth: 160,
-    ellipsis: { tooltip: true },
-    render: (row: CodeGenDataSourceListItemDto) =>
-      h('div', { class: 'ds-name' }, [
-        h('span', { class: 'ds-name__text' }, row.sourceName),
-        row.isDefault
+    fixed: 'left',
+    order: 1,
+    render: (row) => {
+      const r = row as unknown as CodeGenDataSourceListItemDto
+      return h('div', { class: 'ds-name' }, [
+        h('span', { class: 'ds-name__text' }, r.sourceName),
+        r.isDefault
           ? h(NTag, { size: 'tiny', type: 'info', round: true, bordered: false }, () => t('common.statuses.default_tag'))
           : null,
-      ]),
+      ])
+    },
   },
   {
     key: 'databaseType',
     title: t('develop.code_gen.datasource.col_database'),
+    dataType: 'enum',
+    searchable: true,
+    options: DATABASE_TYPE_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.datasource.filter_database_type'),
     width: 110,
-    render: (row: CodeGenDataSourceListItemDto) => getOptionLabel(DATABASE_TYPE_OPTIONS, row.databaseType),
+    order: 2,
+    render: row => getOptionLabel(DATABASE_TYPE_OPTIONS, (row as unknown as CodeGenDataSourceListItemDto).databaseType),
   },
   {
     key: 'host',
     title: t('develop.code_gen.datasource.col_host'),
+    dataType: 'string',
     minWidth: 140,
-    ellipsis: { tooltip: true },
-    render: (row: CodeGenDataSourceListItemDto) => `${row.host}:${row.port}`,
+    order: 3,
+    render: (row) => {
+      const r = row as unknown as CodeGenDataSourceListItemDto
+      return `${r.host}:${r.port}`
+    },
   },
-  {
-    key: 'databaseName',
-    title: t('develop.code_gen.datasource.col_database_name'),
-    minWidth: 120,
-    ellipsis: { tooltip: true },
-  },
+  { key: 'databaseName', title: t('develop.code_gen.datasource.col_database_name'), dataType: 'string', minWidth: 120, order: 4 },
   {
     key: 'lastTestResult',
     title: t('develop.code_gen.datasource.col_connection'),
+    dataType: 'enum',
     width: 90,
-    align: 'center',
-    render: (row: CodeGenDataSourceListItemDto) =>
-      row.lastTestTime
-        ? h(NTag, {
-            size: 'small',
-            round: true,
-            bordered: false,
-            type: row.lastTestResult ? 'success' : 'error',
-          }, () => (row.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed')))
-        : h(NTag, { size: 'small', round: true, bordered: false, type: 'default' }, () => t('develop.code_gen.datasource.tag_untested')),
+    order: 5,
+    render: (row) => {
+      const r = row as unknown as CodeGenDataSourceListItemDto
+      return r.lastTestTime
+        ? h(NTag, { size: 'small', round: true, bordered: false, type: r.lastTestResult ? 'success' : 'error' }, () => (r.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed')))
+        : h(NTag, { size: 'small', round: true, bordered: false, type: 'default' }, () => t('develop.code_gen.datasource.tag_untested'))
+    },
   },
   {
     key: 'status',
     title: t('common.fields.status'),
-    width: 72,
-    align: 'center',
-    render: (row: CodeGenDataSourceListItemDto) =>
-      h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: row.status === EnableStatus.Enabled ? 'success' : 'error',
-      }, () => getOptionLabel(STATUS_OPTIONS, row.status)),
+    dataType: 'enum',
+    searchable: true,
+    options: STATUS_OPTIONS,
+    searchPlaceholder: t('common.fields.status'),
+    width: 90,
+    order: 6,
+    render: (row) => {
+      const r = row as unknown as CodeGenDataSourceListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
+    },
   },
-  {
-    key: 'sort',
-    title: t('common.fields.sort'),
-    width: 70,
-    align: 'center',
-  },
-  {
-    key: 'actions',
-    title: t('common.fields.actions'),
-    width: 150,
-    align: 'center',
-    render: (row: CodeGenDataSourceListItemDto) =>
-      h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
-        h(NButton, {
-          ariaLabel: t('develop.code_gen.datasource.action_test'),
-          circle: true,
-          quaternary: true,
-          size: 'small',
-          type: 'info',
-          loading: testingId.value === row.basicId,
-          onClick: () => handleTest(row),
-        }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:plug' })) }),
-        h(NButton, {
-          ariaLabel: t('common.actions.edit'),
-          circle: true,
-          quaternary: true,
-          size: 'small',
-          type: 'primary',
-          onClick: () => handleEdit(row),
-        }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () => h(NButton, {
-            ariaLabel: t('common.actions.delete'),
-            circle: true,
-            quaternary: true,
-            size: 'small',
-            type: 'error',
-          }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => t('develop.code_gen.datasource.confirm_delete'),
-        }),
-      ]),
-  },
+  { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, order: 7 },
 ])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'develop.codegen.datasource',
+  pageName: t('develop.code_gen.tabs.datasource'),
+  rowKey: 'basicId',
+  scrollX: 1100,
+  batchRemovable: true,
+  fields: fields.value,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return codeGenDataSourceApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: (f.keyword as string | undefined)?.trim() || undefined,
+        databaseType: (f.databaseType as DatabaseType | undefined) ?? undefined,
+        status: (f.status as EnableStatus | undefined) ?? undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => codeGenDataSourceApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: t('develop.code_gen.datasource.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'test', title: t('develop.code_gen.datasource.action_test'), scope: 'row', type: 'info', icon: 'lucide:plug' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+  ],
+}))
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as CodeGenDataSourceListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'test':
+      if (row) {
+        void handleTest(row)
+      }
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        handleDelete(row)
+      }
+      break
+  }
+}
 
 async function handleTest(row: CodeGenDataSourceListItemDto) {
   testingId.value = row.basicId
@@ -226,7 +200,7 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
     else {
       message.error(result.message || t('develop.code_gen.datasource.test_failed'))
     }
-    fetchData()
+    reload()
   }
   catch {
     message.error(t('develop.code_gen.datasource.test_error'))
@@ -236,15 +210,23 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
   }
 }
 
-async function handleDelete(row: CodeGenDataSourceListItemDto) {
-  try {
-    await codeGenDataSourceApi.delete(row.basicId)
-    message.success(t('common.messages.delete_success'))
-    fetchData()
-  }
-  catch {
-    message.error(t('common.messages.delete_failed'))
-  }
+function handleDelete(row: CodeGenDataSourceListItemDto) {
+  dialog.warning({
+    title: t('common.actions.delete'),
+    content: t('develop.code_gen.datasource.confirm_delete'),
+    positiveText: t('common.actions.confirm'),
+    negativeText: t('common.actions.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await codeGenDataSourceApi.delete(row.basicId)
+        message.success(t('common.messages.delete_success'))
+        reload()
+      }
+      catch {
+        message.error(t('common.messages.delete_failed'))
+      }
+    },
+  })
 }
 
 // ── 表单/弹窗 ───────────────────────────────────────────────────
@@ -384,7 +366,7 @@ async function handleSubmit() {
     }
     message.success(t('common.messages.save_success'))
     modalVisible.value = false
-    fetchData()
+    reload()
   }
   catch {
     message.error(t('common.messages.save_failed'))
@@ -393,76 +375,10 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <div class="panel">
-    <div class="panel__toolbar">
-      <NInput
-        v-model:value="queryParams.keyword"
-        class="panel__kw"
-        clearable
-        :placeholder="t('develop.code_gen.datasource.search_placeholder')"
-        size="small"
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.databaseType"
-        class="panel__filter"
-        clearable
-        :options="DATABASE_TYPE_OPTIONS"
-        :placeholder="t('develop.code_gen.datasource.filter_database_type')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.status"
-        class="panel__filter"
-        clearable
-        :options="STATUS_OPTIONS"
-        :placeholder="t('common.fields.status')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('common.actions.search') }}
-      </NButton>
-      <NButton class="panel__add" size="small" type="primary" @click="handleAdd">
-        <template #icon>
-          <NIcon><Icon icon="lucide:plus" /></NIcon>
-        </template>
-        {{ t('develop.code_gen.datasource.add') }}
-      </NButton>
-    </div>
-
-    <div class="panel__body">
-      <NDataTable
-        class="panel__table"
-        flex-height
-        :columns="columns"
-        :data="list"
-        :loading="loading"
-        :row-key="(row: CodeGenDataSourceListItemDto) => row.basicId"
-        :scroll-x="1100"
-        size="small"
-      />
-    </div>
-
-    <div class="panel__foot">
-      <NPagination
-        v-model:page="page"
-        v-model:page-size="pageSize"
-        :item-count="total"
-        :page-sizes="[10, 20, 50, 100]"
-        show-size-picker
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
-    </div>
-
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -530,58 +446,10 @@ onMounted(fetchData)
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>
-.panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-.panel__toolbar {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 10px;
-}
-
-.panel__kw {
-  width: 220px;
-}
-
-.panel__filter {
-  width: 130px;
-  flex-shrink: 0;
-}
-
-.panel__add {
-  margin-left: auto;
-}
-
-.panel__body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.panel__table {
-  flex: 1;
-  min-height: 0;
-}
-
-.panel__foot {
-  display: flex;
-  flex-shrink: 0;
-  justify-content: flex-end;
-  padding-top: 10px;
-}
-
 .ds-name {
   display: flex;
   align-items: center;

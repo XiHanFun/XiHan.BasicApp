@@ -1,24 +1,21 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   CodeGenHistoryDetailDto,
   CodeGenHistoryListItemDto,
   GenStatus,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PageResult } from '~/types/contracts'
 import {
   NButton,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
-  NInput,
   NModal,
-  NPagination,
-  NSelect,
   NSpace,
   NTag,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenHistoryApi,
@@ -27,22 +24,13 @@ import {
   GEN_TYPE_OPTIONS,
   GenStatus as GenStatusEnum,
 } from '@/api'
+import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'CodeGenHistoryPanel' })
 
 const { t } = useI18n()
 const message = useMessage()
-
-const loading = ref(false)
-const list = ref<CodeGenHistoryListItemDto[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const queryParams = reactive({
-  tableName: '',
-  genStatus: null as GenStatus | null,
-})
 
 function formatDuration(value: string) {
   const ms = Number(value)
@@ -66,43 +54,6 @@ function formatSize(value: string) {
   return `${bytes} B`
 }
 
-async function fetchData() {
-  loading.value = true
-  try {
-    const result = await codeGenHistoryApi.page({
-      ...createPageRequest({ page: { pageIndex: page.value, pageSize: pageSize.value } }),
-      genStatus: queryParams.genStatus ?? undefined,
-      tableName: queryParams.tableName?.trim() || undefined,
-    })
-    list.value = result.items
-    total.value = result.page.totalCount
-  }
-  catch {
-    message.error(t('develop.code_gen.history.query_failed'))
-    list.value = []
-    total.value = 0
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function handleSearch() {
-  page.value = 1
-  fetchData()
-}
-
-function handlePageChange(value: number) {
-  page.value = value
-  fetchData()
-}
-
-function handlePageSizeChange(value: number) {
-  pageSize.value = value
-  page.value = 1
-  fetchData()
-}
-
 function genStatusTagType(status: GenStatus) {
   if (status === GenStatusEnum.Generated) {
     return 'success'
@@ -113,81 +64,116 @@ function genStatusTagType(status: GenStatus) {
   return 'default'
 }
 
-const columns = computed<DataTableColumns<CodeGenHistoryListItemDto>>(() => [
+const fields = computed<ListFieldSchema[]>(() => [
   {
     key: 'tableName',
     title: t('develop.code_gen.history.col_table_name'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('develop.code_gen.history.search_placeholder'),
     minWidth: 150,
-    ellipsis: { tooltip: true },
+    order: 0,
   },
   {
     key: 'batchNumber',
     title: t('develop.code_gen.history.col_batch_number'),
+    dataType: 'string',
     minWidth: 160,
-    ellipsis: { tooltip: true },
+    order: 1,
   },
   {
     key: 'genStatus',
     title: t('develop.code_gen.history.col_status'),
+    dataType: 'enum',
+    searchable: true,
+    options: GEN_STATUS_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.history.filter_gen_status'),
     width: 90,
-    align: 'center',
-    render: (row: CodeGenHistoryListItemDto) =>
-      h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: genStatusTagType(row.genStatus),
-      }, () => getOptionLabel(GEN_STATUS_OPTIONS, row.genStatus)),
+    order: 2,
+    render: (row) => {
+      const r = row as unknown as CodeGenHistoryListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: genStatusTagType(r.genStatus) }, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus))
+    },
   },
   {
     key: 'genType',
     title: t('develop.code_gen.history.col_gen_type'),
+    dataType: 'enum',
+    options: GEN_TYPE_OPTIONS,
     width: 110,
-    render: (row: CodeGenHistoryListItemDto) => getOptionLabel(GEN_TYPE_OPTIONS, row.genType),
+    order: 3,
+    render: row => getOptionLabel(GEN_TYPE_OPTIONS, (row as unknown as CodeGenHistoryListItemDto).genType),
   },
   {
     key: 'fileCount',
     title: t('develop.code_gen.history.col_file_count'),
+    dataType: 'number',
     width: 80,
-    align: 'center',
+    order: 4,
   },
   {
     key: 'totalSize',
     title: t('develop.code_gen.history.col_total_size'),
+    dataType: 'string',
     width: 100,
-    render: (row: CodeGenHistoryListItemDto) => formatSize(row.totalSize),
+    order: 5,
+    render: row => formatSize((row as unknown as CodeGenHistoryListItemDto).totalSize),
   },
   {
     key: 'duration',
     title: t('develop.code_gen.history.col_duration'),
+    dataType: 'string',
     width: 90,
-    render: (row: CodeGenHistoryListItemDto) => formatDuration(row.duration),
+    order: 6,
+    render: row => formatDuration((row as unknown as CodeGenHistoryListItemDto).duration),
   },
   {
     key: 'operatorName',
     title: t('develop.code_gen.history.col_operator'),
+    dataType: 'string',
     width: 110,
-    ellipsis: { tooltip: true },
+    order: 7,
   },
   {
     key: 'genTime',
     title: t('develop.code_gen.history.col_gen_time'),
+    dataType: 'datetime',
     minWidth: 170,
-  },
-  {
-    key: 'actions',
-    title: t('common.fields.actions'),
-    width: 80,
-    align: 'center',
-    render: (row: CodeGenHistoryListItemDto) =>
-      h(NButton, {
-        quaternary: true,
-        size: 'small',
-        type: 'primary',
-        onClick: () => handleDetail(row),
-      }, () => t('common.actions.detail')),
+    order: 8,
   },
 ])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'develop.codegen.history',
+  pageName: t('develop.code_gen.tabs.history'),
+  rowKey: 'basicId',
+  scrollX: 1200,
+  fields: fields.value,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return codeGenHistoryApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        tableName: (f.tableName as string | undefined)?.trim() || undefined,
+        genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+  },
+  actions: [
+    { key: 'view', title: t('common.actions.detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
+  ],
+}))
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as CodeGenHistoryListItemDto | undefined
+  switch (payload.key) {
+    case 'view':
+      if (row) {
+        void handleDetail(row)
+      }
+      break
+  }
+}
 
 // ── 详情弹窗 ────────────────────────────────────────────────────
 const detailVisible = ref(false)
@@ -227,61 +213,10 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
     detailLoading.value = false
   }
 }
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <div class="panel">
-    <div class="panel__toolbar">
-      <NInput
-        v-model:value="queryParams.tableName"
-        class="panel__kw"
-        clearable
-        :placeholder="t('develop.code_gen.history.search_placeholder')"
-        size="small"
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.genStatus"
-        class="panel__filter"
-        clearable
-        :options="GEN_STATUS_OPTIONS"
-        :placeholder="t('develop.code_gen.history.filter_gen_status')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('common.actions.search') }}
-      </NButton>
-    </div>
-
-    <div class="panel__body">
-      <NDataTable
-        class="panel__table"
-        flex-height
-        :columns="columns"
-        :data="list"
-        :loading="loading"
-        :row-key="(row: CodeGenHistoryListItemDto) => row.basicId"
-        :scroll-x="1200"
-        size="small"
-      />
-    </div>
-
-    <div class="panel__foot">
-      <NPagination
-        v-model:page="page"
-        v-model:page-size="pageSize"
-        :item-count="total"
-        :page-sizes="[10, 20, 50, 100]"
-        show-size-picker
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
-    </div>
-
+  <SchemaPage :schema="schema" @action="onAction">
     <NModal
       v-model:show="detailVisible"
       :auto-focus="false"
@@ -365,54 +300,10 @@ onMounted(fetchData)
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>
-.panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-.panel__toolbar {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 10px;
-}
-
-.panel__kw {
-  width: 220px;
-}
-
-.panel__filter {
-  width: 130px;
-  flex-shrink: 0;
-}
-
-.panel__body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.panel__table {
-  flex: 1;
-  min-height: 0;
-}
-
-.panel__foot {
-  display: flex;
-  flex-shrink: 0;
-  justify-content: flex-end;
-  padding-top: 10px;
-}
-
 .detail-section {
   margin-top: 16px;
 }

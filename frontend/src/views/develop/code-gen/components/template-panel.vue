@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   CodeGenTemplateCreateDto,
   CodeGenTemplateListItemDto,
@@ -7,23 +6,23 @@ import type {
   TemplateEngine,
   TemplateType,
 } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PageResult } from '~/types/contracts'
 import {
   NButton,
-  NDataTable,
   NForm,
   NFormItem,
   NIcon,
   NInput,
   NInputNumber,
   NModal,
-  NPagination,
-  NPopconfirm,
   NSelect,
   NSpace,
   NTag,
+  useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenTemplateApi,
@@ -34,7 +33,7 @@ import {
   TemplateEngine as TemplateEngineEnum,
   TemplateType as TemplateTypeEnum,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { getOptionLabel } from '~/utils'
 
@@ -60,175 +59,153 @@ interface TemplateFormModel {
 
 const { t } = useI18n()
 const message = useMessage()
+const dialog = useDialog()
 
-const loading = ref(false)
-const list = ref<CodeGenTemplateListItemDto[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const queryParams = reactive({
-  keyword: '',
-  templateType: null as TemplateType | null,
-  templateEngine: null as TemplateEngine | null,
-  status: null as EnableStatus | null,
-})
-
-async function fetchData() {
-  loading.value = true
-  try {
-    const result = await codeGenTemplateApi.page({
-      ...createPageRequest({ page: { pageIndex: page.value, pageSize: pageSize.value } }),
-      keyword: queryParams.keyword?.trim() || undefined,
-      templateEngine: queryParams.templateEngine ?? undefined,
-      templateType: queryParams.templateType ?? undefined,
-      status: queryParams.status ?? undefined,
-    })
-    list.value = result.items
-    total.value = result.page.totalCount
-  }
-  catch {
-    message.error(t('develop.code_gen.template.query_failed'))
-    list.value = []
-    total.value = 0
-  }
-  finally {
-    loading.value = false
-  }
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+function reload() {
+  void schemaPageRef.value?.reload()
 }
 
-function handleSearch() {
-  page.value = 1
-  fetchData()
-}
-
-function handlePageChange(value: number) {
-  page.value = value
-  fetchData()
-}
-
-function handlePageSizeChange(value: number) {
-  pageSize.value = value
-  page.value = 1
-  fetchData()
-}
-
-const columns = computed<DataTableColumns<CodeGenTemplateListItemDto>>(() => [
+const fields = computed<ListFieldSchema[]>(() => [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: t('develop.code_gen.template.col_template_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('develop.code_gen.template.search_placeholder'), order: 0 },
   {
     key: 'templateName',
     title: t('develop.code_gen.template.col_template_name'),
+    dataType: 'string',
     minWidth: 160,
-    ellipsis: { tooltip: true },
-    render: (row: CodeGenTemplateListItemDto) =>
-      h('div', { class: 'tpl-name' }, [
-        h('span', { class: 'tpl-name__text' }, row.templateName),
-        row.isBuiltIn
+    fixed: 'left',
+    order: 1,
+    render: (row) => {
+      const r = row as unknown as CodeGenTemplateListItemDto
+      return h('div', { class: 'tpl-name' }, [
+        h('span', { class: 'tpl-name__text' }, r.templateName),
+        r.isBuiltIn
           ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => t('common.statuses.builtin_tag'))
           : null,
-      ]),
+      ])
+    },
   },
-  {
-    key: 'templateCode',
-    title: t('develop.code_gen.template.col_template_code'),
-    minWidth: 150,
-    ellipsis: { tooltip: true },
-  },
-  {
-    key: 'templateGroup',
-    title: t('develop.code_gen.template.col_template_group'),
-    width: 120,
-    ellipsis: { tooltip: true },
-  },
+  { key: 'templateCode', title: t('develop.code_gen.template.col_template_code'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'templateGroup', title: t('develop.code_gen.template.col_template_group'), dataType: 'string', width: 120, order: 3 },
   {
     key: 'templateType',
     title: t('develop.code_gen.template.col_template_type'),
+    dataType: 'enum',
+    searchable: true,
+    options: TEMPLATE_TYPE_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.template.filter_template_type'),
     width: 90,
-    render: (row: CodeGenTemplateListItemDto) => getOptionLabel(TEMPLATE_TYPE_OPTIONS, row.templateType),
+    order: 4,
+    render: row => getOptionLabel(TEMPLATE_TYPE_OPTIONS, (row as unknown as CodeGenTemplateListItemDto).templateType),
   },
   {
     key: 'templateEngine',
     title: t('develop.code_gen.template.col_template_engine'),
+    dataType: 'enum',
+    searchable: true,
+    options: TEMPLATE_ENGINE_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.template.filter_template_engine'),
     width: 90,
-    render: (row: CodeGenTemplateListItemDto) => getOptionLabel(TEMPLATE_ENGINE_OPTIONS, row.templateEngine),
+    order: 5,
+    render: row => getOptionLabel(TEMPLATE_ENGINE_OPTIONS, (row as unknown as CodeGenTemplateListItemDto).templateEngine),
   },
-  {
-    key: 'fileExtension',
-    title: t('develop.code_gen.template.col_file_extension'),
-    width: 90,
-  },
+  { key: 'fileExtension', title: t('develop.code_gen.template.col_file_extension'), dataType: 'string', width: 90, order: 6 },
   {
     key: 'isEnabled',
     title: t('develop.code_gen.template.col_enabled'),
-    width: 72,
-    align: 'center',
-    render: (row: CodeGenTemplateListItemDto) =>
-      h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: row.isEnabled ? 'success' : 'default',
-      }, () => (row.isEnabled ? t('common.statuses.yes') : t('common.statuses.no'))),
+    dataType: 'boolean',
+    width: 80,
+    order: 7,
+    render: (row) => {
+      const r = row as unknown as CodeGenTemplateListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isEnabled ? 'success' : 'default' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
+    },
   },
   {
     key: 'status',
     title: t('common.fields.status'),
-    width: 72,
-    align: 'center',
-    render: (row: CodeGenTemplateListItemDto) =>
-      h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: row.status === EnableStatus.Enabled ? 'success' : 'error',
-      }, () => getOptionLabel(STATUS_OPTIONS, row.status)),
+    dataType: 'enum',
+    searchable: true,
+    options: STATUS_OPTIONS,
+    searchPlaceholder: t('common.fields.status'),
+    width: 90,
+    order: 8,
+    render: (row) => {
+      const r = row as unknown as CodeGenTemplateListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
+    },
   },
-  {
-    key: 'actions',
-    title: t('common.fields.actions'),
-    width: 110,
-    align: 'center',
-    render: (row: CodeGenTemplateListItemDto) =>
-      h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
-        h(NButton, {
-          ariaLabel: t('common.actions.edit'),
-          circle: true,
-          quaternary: true,
-          size: 'small',
-          type: 'primary',
-          onClick: () => handleEdit(row),
-        }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row), disabled: row.isBuiltIn }, {
-          trigger: () => h(NButton, {
-            ariaLabel: t('common.actions.delete'),
-            circle: true,
-            quaternary: true,
-            size: 'small',
-            type: 'error',
-            disabled: row.isBuiltIn,
-            onClick: () => {
-              if (row.isBuiltIn) {
-                message.warning(t('develop.code_gen.template.builtin_cannot_delete'))
-              }
-            },
-          }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:trash-2' })) }),
-          default: () => t('develop.code_gen.template.confirm_delete'),
-        }),
-      ]),
-  },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 9 },
 ])
 
-async function handleDelete(row: CodeGenTemplateListItemDto) {
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'develop.codegen.template',
+  pageName: t('develop.code_gen.tabs.template'),
+  rowKey: 'basicId',
+  scrollX: 1180,
+  batchRemovable: true,
+  fields: fields.value,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return codeGenTemplateApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: (f.keyword as string | undefined)?.trim() || undefined,
+        templateType: (f.templateType as TemplateType | undefined) ?? undefined,
+        templateEngine: (f.templateEngine as TemplateEngine | undefined) ?? undefined,
+        status: (f.status as EnableStatus | undefined) ?? undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => codeGenTemplateApi.delete(id),
+  },
+  actions: [
+    { key: 'create', title: t('develop.code_gen.template.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', disabled: row => (row as unknown as CodeGenTemplateListItemDto).isBuiltIn },
+  ],
+}))
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as CodeGenTemplateListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        handleDelete(row)
+      }
+      break
+  }
+}
+
+function handleDelete(row: CodeGenTemplateListItemDto) {
   if (row.isBuiltIn) {
     message.warning(t('develop.code_gen.template.builtin_cannot_delete'))
     return
   }
-  try {
-    await codeGenTemplateApi.delete(row.basicId)
-    message.success(t('common.messages.delete_success'))
-    fetchData()
-  }
-  catch {
-    message.error(t('common.messages.delete_failed'))
-  }
+  dialog.warning({
+    title: t('common.actions.delete'),
+    content: t('develop.code_gen.template.confirm_delete'),
+    positiveText: t('common.actions.confirm'),
+    negativeText: t('common.actions.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await codeGenTemplateApi.delete(row.basicId)
+        message.success(t('common.messages.delete_success'))
+        reload()
+      }
+      catch {
+        message.error(t('common.messages.delete_failed'))
+      }
+    },
+  })
 }
 
 // ── 表单/弹窗 ───────────────────────────────────────────────────
@@ -385,7 +362,7 @@ async function handleSubmit() {
     }
     message.success(t('common.messages.save_success'))
     modalVisible.value = false
-    fetchData()
+    reload()
   }
   catch {
     message.error(t('common.messages.save_failed'))
@@ -394,85 +371,10 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
-
-onMounted(fetchData)
 </script>
 
 <template>
-  <div class="panel">
-    <div class="panel__toolbar">
-      <NInput
-        v-model:value="queryParams.keyword"
-        class="panel__kw"
-        clearable
-        :placeholder="t('develop.code_gen.template.search_placeholder')"
-        size="small"
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.templateType"
-        class="panel__filter"
-        clearable
-        :options="TEMPLATE_TYPE_OPTIONS"
-        :placeholder="t('develop.code_gen.template.filter_template_type')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.templateEngine"
-        class="panel__filter"
-        clearable
-        :options="TEMPLATE_ENGINE_OPTIONS"
-        :placeholder="t('develop.code_gen.template.filter_template_engine')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.status"
-        class="panel__filter"
-        clearable
-        :options="STATUS_OPTIONS"
-        :placeholder="t('common.fields.status')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('common.actions.search') }}
-      </NButton>
-      <NButton class="panel__add" size="small" type="primary" @click="handleAdd">
-        <template #icon>
-          <NIcon><Icon icon="lucide:plus" /></NIcon>
-        </template>
-        {{ t('develop.code_gen.template.add') }}
-      </NButton>
-    </div>
-
-    <div class="panel__body">
-      <NDataTable
-        class="panel__table"
-        flex-height
-        :columns="columns"
-        :data="list"
-        :loading="loading"
-        :row-key="(row: CodeGenTemplateListItemDto) => row.basicId"
-        :scroll-x="1200"
-        size="small"
-      />
-    </div>
-
-    <div class="panel__foot">
-      <NPagination
-        v-model:page="page"
-        v-model:page-size="pageSize"
-        :item-count="total"
-        :page-sizes="[10, 20, 50, 100]"
-        show-size-picker
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
-    </div>
-
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -549,58 +451,10 @@ onMounted(fetchData)
         </NSpace>
       </template>
     </NModal>
-  </div>
+  </SchemaPage>
 </template>
 
 <style scoped>
-.panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-.panel__toolbar {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 10px;
-}
-
-.panel__kw {
-  width: 220px;
-}
-
-.panel__filter {
-  width: 130px;
-  flex-shrink: 0;
-}
-
-.panel__add {
-  margin-left: auto;
-}
-
-.panel__body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.panel__table {
-  flex: 1;
-  min-height: 0;
-}
-
-.panel__foot {
-  display: flex;
-  flex-shrink: 0;
-  justify-content: flex-end;
-  padding-top: 10px;
-}
-
 .tpl-name {
   display: flex;
   align-items: center;
