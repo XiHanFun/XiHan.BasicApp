@@ -72,6 +72,32 @@ function routeTreeContainsMatched(
   )
 }
 
+/**
+ * 把「个人中心」注入工作台菜单末位。
+ * 个人中心是前端静态路由 /workbench/profile（后端菜单表按约定不登记静态路由），
+ * 动态模式侧栏菜单源自后端 accessRoutes 不含它，故在菜单装配层补一个指向它的菜单项（末位）；
+ * 路由与页面由 src/router/routes.ts 的静态路由提供，此处仅补菜单项、不安装路由。
+ */
+function injectProfileIntoWorkbench(records: LayoutRouteRecord[]): LayoutRouteRecord[] {
+  const workbenchPath = '/workbench'
+  const profilePath = '/workbench/profile'
+  return records.map((record) => {
+    if (record.path !== workbenchPath) {
+      return record
+    }
+    const children = record.children ?? []
+    if (children.some(child => child.path === profilePath)) {
+      return record
+    }
+    const profileNode = {
+      path: profilePath,
+      name: 'Profile',
+      meta: { title: 'menu.profile', icon: 'lucide:user' },
+    } as LayoutRouteRecord
+    return { ...record, children: [...children, profileNode] }
+  })
+}
+
 function buildMenuOptionsFromRoutes(
   routeList: LayoutRouteRecord[],
   config: BuildMenuOptionsConfig,
@@ -141,9 +167,10 @@ export function useLayoutMenuDomain() {
   })
 
   const baseMenuSource = computed<LayoutRouteRecord[]>(() => {
-    return accessStore.accessRoutes.length
+    const source = accessStore.accessRoutes.length
       ? normalizeMenuRoutes(accessStore.accessRoutes)
       : staticRootChildren.value
+    return injectProfileIntoWorkbench(source)
   })
 
   const visibleRootRoutes = computed(() => {

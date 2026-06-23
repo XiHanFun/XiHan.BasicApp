@@ -38,7 +38,7 @@ function onDragEnd(event: DragEndEvent) {
 </script>
 
 <template>
-  <NPopover trigger="click" placement="bottom-end" :width="300" display-directive="show">
+  <NPopover trigger="click" placement="bottom-end" :width="340" display-directive="show">
     <template #trigger>
       <NTooltip>
         <template #trigger>
