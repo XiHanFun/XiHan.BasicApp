@@ -26,6 +26,38 @@ export default {
   },
   notification: {
     pending: 'Notification feature coming soon',
+    bell: 'Notifications',
+    title: 'Notifications',
+    refresh: 'Refresh',
+    mark_all_read: 'Mark all read',
+    view_all: 'Go to Notification Center',
+    confirm: 'Confirm',
+    type_default: 'Notification',
+    tab: {
+      inbox: 'Inbox',
+      inbox_count: 'Inbox ({n})',
+      mention: 'Mentions',
+      mention_count: 'Mentions ({n})',
+    },
+    empty: {
+      inbox: 'No messages',
+      mention: 'No mentions',
+    },
+    time: {
+      just_now: 'just now',
+      minutes_ago: '{n} min ago',
+      hours_ago: '{n} hr ago',
+      days_ago: '{n} d ago',
+    },
+  },
+  toolbar: {
+    switch_language: 'Switch language',
+    switch_timezone: 'Switch timezone',
+    theme_to_light: 'Switch to light',
+    theme_to_dark: 'Switch to dark',
+    fullscreen_enter: 'Fullscreen',
+    fullscreen_exit: 'Exit fullscreen',
+    preferences: 'Preferences',
   },
   search: {
     placeholder: 'Command Palette',

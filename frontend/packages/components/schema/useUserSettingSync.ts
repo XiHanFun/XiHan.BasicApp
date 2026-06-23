@@ -1,16 +1,17 @@
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
 import { USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { i18n } from '~/locales'
 import { isSearchSyncEnabled, isTableSyncEnabled, useAppContext } from '~/stores'
 
-/** 分区 → 中文名（用于灵动岛同步提示） */
-const SECTION_NAMES: Record<string, string> = {
-  table: '表格设置',
-  search: '搜索设置',
-  views: '视图',
+/** 分区 → i18n 名称键（用于灵动岛同步提示） */
+const SECTION_NAME_KEYS: Record<string, string> = {
+  table: 'island.sync.name.table',
+  search: 'island.sync.name.search',
+  views: 'island.sync.name.views',
 }
 
 function sectionName(section: string): string {
-  return SECTION_NAMES[section] ?? '页面设置'
+  return i18n.global.t(SECTION_NAME_KEYS[section] ?? 'island.sync.name.page')
 }
 
 /**
@@ -59,7 +60,7 @@ async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
   let pending = loading.get(pageCode)
   if (!pending) {
     // 后台读取：灵动岛只在拉取期间显示「同步中」活动态，完成即静默消失（不弹成功提示，避免每次进页面刷屏）
-    const task = settingSyncIsland('page-load', '页面设置')
+    const task = settingSyncIsland('page-load', i18n.global.t('island.sync.name.page'))
     pending = resolveApi()
       .get({ scene: UserSettingScene.Page, settingKey: pageCode })
       .then((dto) => {

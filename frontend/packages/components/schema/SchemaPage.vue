@@ -450,7 +450,7 @@ async function submitExport(scope: number) {
   }
   const query = cfg.buildQuery ? cfg.buildQuery(params) : params
   submittingExport.value = true
-  const task = islandStart('export:submit', '提交导出…', { icon: 'lucide:download', progress: 0 })
+  const task = islandStart('export:submit', t('island.export.submitting'), { icon: 'lucide:download', progress: 0 })
   try {
     await appContext.apis.exportTaskApi.submit({
       businessType: cfg.businessType,
@@ -459,10 +459,10 @@ async function submitExport(scope: number) {
       querySnapshot: JSON.stringify(query),
       columns: buildExportColumns(),
     })
-    task.success('已提交导出', { detail: '可在导出中心查看进度与下载' })
+    task.success(t('island.export.submitted'), { detail: t('island.export.submitted_detail') })
   }
   catch (error) {
-    task.error('提交导出失败', { detail: (error as Error).message })
+    task.error(t('island.export.submit_failed'), { detail: (error as Error).message })
   }
   finally {
     submittingExport.value = false

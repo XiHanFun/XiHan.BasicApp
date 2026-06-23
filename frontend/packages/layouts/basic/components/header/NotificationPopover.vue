@@ -2,6 +2,7 @@
 import type { NotificationItem } from '~/stores'
 import { NButton, NEmpty, NNumberAnimation, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { Icon } from '~/iconify'
 import { NotificationStatus, NotificationType } from '~/types/enums'
@@ -24,6 +25,8 @@ const emit = defineEmits<{
   viewAll: []
   refresh: []
 }>()
+
+const { t } = useI18n()
 
 const showPopover = ref(false)
 const activeTab = ref('inbox')
@@ -78,19 +81,23 @@ function getTypeTag(type: NotificationType): TagType {
 function getTypeInfo(type: NotificationType) {
   const opt = NOTIFICATION_TYPE_OPTIONS.find(o => o.value === type)
   return {
-    label: opt?.label ?? '通知',
+    label: opt?.label ?? t('header.notification.type_default'),
     type: getTypeTag(type),
   }
 }
 
 const inboxTabLabel = computed(() => {
   const count = props.unreadAll.length
-  return count > 0 ? `站内信 (${count})` : '站内信'
+  return count > 0
+    ? t('header.notification.tab.inbox_count', { n: count })
+    : t('header.notification.tab.inbox')
 })
 
 const mentionTabLabel = computed(() => {
   const count = props.unreadMentioned.length
-  return count > 0 ? `提及我 (${count})` : '提及我'
+  return count > 0
+    ? t('header.notification.tab.mention_count', { n: count })
+    : t('header.notification.tab.mention')
 })
 
 function formatTime(time: string) {
@@ -103,15 +110,15 @@ function formatTime(time: string) {
   const diff = now.getTime() - date.getTime()
   const minutes = Math.floor(diff / 60000)
   if (minutes < 1)
-    return '刚刚'
+    return t('header.notification.time.just_now')
   if (minutes < 60)
-    return `${minutes} 分钟前`
+    return t('header.notification.time.minutes_ago', { n: minutes })
   const hours = Math.floor(minutes / 60)
   if (hours < 24)
-    return `${hours} 小时前`
+    return t('header.notification.time.hours_ago', { n: hours })
   const days = Math.floor(hours / 24)
   if (days < 7)
-    return `${days} 天前`
+    return t('header.notification.time.days_ago', { n: days })
   return `${date.getMonth() + 1}/${date.getDate()}`
 }
 
@@ -151,7 +158,7 @@ function handleClickOutside() {
           </span>
         </button>
       </template>
-      通知
+      {{ t('header.notification.bell') }}
     </NTooltip>
 
     <!-- 遮罩 + 下拉弹窗 Teleport 到 body，脱离 header 层叠上下文 -->
@@ -165,7 +172,7 @@ function handleClickOutside() {
           @click.stop
         >
           <div class="notification-dropdown-header">
-            <span class="notification-dropdown-title">通知中心</span>
+            <span class="notification-dropdown-title">{{ t('header.notification.title') }}</span>
             <div class="notification-dropdown-actions">
               <NTooltip>
                 <template #trigger>
@@ -173,7 +180,7 @@ function handleClickOutside() {
                     <Icon icon="lucide:refresh-cw" width="14" height="14" />
                   </button>
                 </template>
-                刷新
+                {{ t('header.notification.refresh') }}
               </NTooltip>
               <NButton
                 v-if="unreadCount > 0"
@@ -182,7 +189,7 @@ function handleClickOutside() {
                 type="primary"
                 @click="emit('markAllRead')"
               >
-                全部已读
+                {{ t('header.notification.mark_all_read') }}
               </NButton>
             </div>
           </div>
@@ -192,7 +199,7 @@ function handleClickOutside() {
               <NTabPane name="inbox" :tab="inboxTabLabel">
                 <NScrollbar style="max-height: 360px">
                   <div v-if="allItems.length === 0" class="notification-empty">
-                    <NEmpty description="暂无站内信" size="small" />
+                    <NEmpty :description="t('header.notification.empty.inbox')" size="small" />
                   </div>
                   <div
                     v-for="item in allItems"
@@ -221,7 +228,7 @@ function handleClickOutside() {
                           secondary
                           @click.stop="emit('confirm', item.basicId)"
                         >
-                          确认
+                          {{ t('header.notification.confirm') }}
                         </NButton>
                       </div>
                     </div>
@@ -232,7 +239,7 @@ function handleClickOutside() {
               <NTabPane name="mention" :tab="mentionTabLabel">
                 <NScrollbar style="max-height: 360px">
                   <div v-if="mentionedItems.length === 0" class="notification-empty">
-                    <NEmpty description="暂无提及" size="small" />
+                    <NEmpty :description="t('header.notification.empty.mention')" size="small" />
                   </div>
                   <div
                     v-for="item in mentionedItems"
@@ -261,7 +268,7 @@ function handleClickOutside() {
                           secondary
                           @click.stop="emit('confirm', item.basicId)"
                         >
-                          确认
+                          {{ t('header.notification.confirm') }}
                         </NButton>
                       </div>
                     </div>
@@ -273,7 +280,7 @@ function handleClickOutside() {
 
           <div class="notification-dropdown-footer">
             <NButton text type="primary" size="small" @click="emit('viewAll'); showPopover = false">
-              前往通知中心
+              {{ t('header.notification.view_all') }}
             </NButton>
           </div>
         </div>
