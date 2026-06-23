@@ -44,6 +44,8 @@ export default {
   about_project: '项目概览',
   about_github: 'Github',
   about_gitee: 'Gitee',
+  develop: '开发工具',
+  code_gen: '代码生成',
   // ==================== 通用 / 历史键 ====================
   dashboard: '仪表板',
   workspace: '工作台',
