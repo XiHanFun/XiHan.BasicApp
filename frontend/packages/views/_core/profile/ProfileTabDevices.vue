@@ -12,6 +12,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -20,6 +21,7 @@ defineOptions({ name: 'ProfileTabDevices' })
 
 const { apis } = useAppContext()
 const message = useMessage()
+const { t } = useI18n()
 const dialog = useDialog()
 
 const sessionsLoading = ref(false)
@@ -33,7 +35,7 @@ async function loadSessions() {
     sessionsLoaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载失败')
+    message.error((e as Error)?.message || t('component.profile.devices.err_load_failed'))
   }
   finally {
     sessionsLoading.value = false
@@ -43,18 +45,18 @@ async function loadSessions() {
 async function handleRevokeSession(sid: string) {
   try {
     await apis.revokeSessionApi(sid)
-    message.success('设备已登出')
+    message.success(t('component.profile.devices.msg_device_logged_out'))
     await loadSessions()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '操作失败')
+    message.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
   }
 }
 
 function handleRevokeOthers() {
   const cnt = sessions.value.filter(s => !s.isCurrent).length
   if (!cnt) {
-    message.info('没有其他在线设备')
+    message.info(t('component.profile.devices.info_no_other_devices'))
     return
   }
   dialog.warning({
@@ -65,11 +67,11 @@ function handleRevokeOthers() {
     onPositiveClick: async () => {
       try {
         await apis.revokeOtherSessionsApi()
-        message.success('已登出所有其他设备')
+        message.success(t('component.profile.devices.msg_others_logged_out'))
         await loadSessions()
       }
       catch (e: unknown) {
-        message.error((e as Error)?.message || '操作失败')
+        message.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
       }
     },
   })

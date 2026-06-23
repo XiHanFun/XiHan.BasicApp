@@ -181,7 +181,7 @@ async function handleLogin() {
 /** 用户选好方式后，发起带 twoFactorMethod 的登录请求 */
 async function handleSelectMethod() {
   if (!selectedMethod.value) {
-    message.warning('请选择验证方式')
+    message.warning(t('page.auth.select_method_required'))
     return
   }
 
@@ -219,7 +219,7 @@ async function handleResendCode() {
     const result = await authStore.login(buildLoginParams(), redirect.value)
     if (result?.codeSent) {
       codeSent.value = true
-      message.success('验证码已重新发送')
+      message.success(t('page.auth.code_resent'))
     }
   }
   catch (err: unknown) {
@@ -258,7 +258,7 @@ onMounted(async () => {
     await loadLoginConfig()
   }
   catch {
-    message.error('加载登录配置失败')
+    message.error(t('page.auth.load_config_failed'))
   }
 })
 </script>

@@ -75,6 +75,20 @@ export default {
     oauth_callback_failed: 'Third-party login failed, please try again',
     oauth_callback_missing_token: 'Login information missing, please login again',
     oauth_callback_redirect: 'Redirecting back to login page...',
+    oauth_bind_success: 'Third-party account linked successfully',
+    oauth_bind_failed: 'Binding failed',
+    oauth_bind_err_conflict: 'This third-party account is already linked to another user',
+    oauth_bind_err_ticket_invalid: 'The binding request has expired, please try again',
+    oauth_bind_err_profile_invalid: 'Failed to retrieve third-party account information',
+    // Two-factor: login page prompts
+    select_method_required: 'Please select a verification method',
+    code_resent: 'Verification code resent',
+    load_config_failed: 'Failed to load login configuration',
+    // Reset password
+    reset_token_invalid: 'The reset link is invalid or expired, please request a new one',
+    reset_success: 'Password reset successfully, please sign in with your new password',
+    reset_new_password_placeholder: 'New password (8-128 characters)',
+    reset_confirm_placeholder: 'Confirm new password',
     // Password strength
     strength_weak: 'Weak',
     strength_medium: 'Medium',

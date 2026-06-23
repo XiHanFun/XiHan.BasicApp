@@ -2,6 +2,7 @@
 import type { NotificationPreference } from '~/types'
 import { NButton, NSpin, NSwitch, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 
@@ -9,6 +10,7 @@ defineOptions({ name: 'ProfileTabNotifications' })
 
 const { apis } = useAppContext()
 const message = useMessage()
+const { t } = useI18n()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -53,7 +55,7 @@ async function loadPreference() {
     pref.value = await apis.getNotificationPreferenceApi()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载通知偏好失败')
+    message.error((e as Error)?.message || t('component.profile.notifications.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -64,10 +66,10 @@ async function savePreference() {
   saving.value = true
   try {
     pref.value = await apis.updateNotificationPreferenceApi(pref.value)
-    message.success('通知偏好已保存')
+    message.success(t('component.profile.notifications.msg_saved'))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '保存失败')
+    message.error((e as Error)?.message || t('component.profile.notifications.err_save_failed'))
   }
   finally {
     saving.value = false
@@ -124,22 +126,22 @@ onMounted(loadPreference)
         </div>
         <div class="pf-section__body">
           <div class="pf-list">
-            <div v-for="t in types" :key="t.key" class="pf-list-item">
+            <div v-for="item in types" :key="item.key" class="pf-list-item">
               <div class="pf-list-icon">
-                <Icon :icon="t.icon" width="16" />
+                <Icon :icon="item.icon" width="16" />
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
-                  {{ t.label }}
-                  <NTag v-if="t.marketing" size="tiny" :bordered="false">
+                  {{ item.label }}
+                  <NTag v-if="item.marketing" size="tiny" :bordered="false">
                     营销
                   </NTag>
                 </div>
                 <div class="pf-list-desc">
-                  {{ t.desc }}
+                  {{ item.desc }}
                 </div>
               </div>
-              <NSwitch v-model:value="pref[t.key]" />
+              <NSwitch v-model:value="pref[item.key]" />
             </div>
           </div>
         </div>

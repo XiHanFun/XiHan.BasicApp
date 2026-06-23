@@ -17,6 +17,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
@@ -24,6 +25,7 @@ import { copyToClipboard, formatDate } from '~/utils'
 const { apis } = useAppContext()
 const message = useMessage()
 const dialog = useDialog()
+const { t } = useI18n()
 
 // ── API 凭证 ─────────────────────────────────────────────────────
 const credentialsLoading = ref(false)
@@ -41,7 +43,7 @@ async function loadCredentials() {
     credentials.value = await apis.getApiCredentialsApi()
   }
   catch (e) {
-    message.error((e as Error).message || '加载 API 凭证失败')
+    message.error((e as Error).message || t('component.profile.developer.err_load_failed'))
   }
   finally {
     credentialsLoading.value = false
@@ -58,11 +60,11 @@ async function handleCreateCredential() {
   try {
     newSecret.value = await apis.createApiCredentialApi(createName.value.trim() || undefined)
     createModalVisible.value = false
-    message.success('凭证已创建，请立即保存 Secret')
+    message.success(t('component.profile.developer.msg_credential_created'))
     await loadCredentials()
   }
   catch (e) {
-    message.error((e as Error).message || '创建凭证失败')
+    message.error((e as Error).message || t('component.profile.developer.err_create_failed'))
   }
   finally {
     createSubmitting.value = false
@@ -78,11 +80,11 @@ function handleRotateSecret(cred: ApiCredentialItem) {
     onPositiveClick: async () => {
       try {
         newSecret.value = await apis.rotateApiCredentialSecretApi(cred.basicId)
-        message.success('密钥已滚动，请立即保存新 Secret')
+        message.success(t('component.profile.developer.msg_secret_rotated'))
         await loadCredentials()
       }
       catch (e) {
-        message.error((e as Error).message || '滚动密钥失败')
+        message.error((e as Error).message || t('component.profile.developer.err_rotate_failed'))
       }
     },
   })
@@ -91,11 +93,11 @@ function handleRotateSecret(cred: ApiCredentialItem) {
 async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
   try {
     await apis.updateApiCredentialStatusApi(cred.basicId, enabled ? 'Enabled' : 'Disabled')
-    message.success(enabled ? '凭证已启用' : '凭证已停用')
+    message.success(enabled ? t('component.profile.developer.msg_credential_enabled') : t('component.profile.developer.msg_credential_disabled'))
     await loadCredentials()
   }
   catch (e) {
-    message.error((e as Error).message || '更新凭证状态失败')
+    message.error((e as Error).message || t('component.profile.developer.err_update_status_failed'))
     await loadCredentials()
   }
 }
@@ -112,18 +114,18 @@ function handleDeleteCredential(cred: ApiCredentialItem) {
         if (newSecret.value?.basicId === cred.basicId) {
           newSecret.value = null
         }
-        message.success('凭证已删除')
+        message.success(t('component.profile.developer.msg_credential_deleted'))
         await loadCredentials()
       }
       catch (e) {
-        message.error((e as Error).message || '删除凭证失败')
+        message.error((e as Error).message || t('component.profile.developer.err_delete_failed'))
       }
     },
   })
 }
 
 function copyText(text: string) {
-  void copyToClipboard(text).then(() => message.success('已复制'))
+  void copyToClipboard(text).then(() => message.success(t('component.profile.developer.msg_copied')))
 }
 
 // ── 调用安全设置（签名算法 + IP 白名单，按 用户 × 设置键 持久化） ──
@@ -161,9 +163,9 @@ async function handleSaveOpenApiSettings() {
     .split('\n')
     .map(line => line.trim())
     .filter(Boolean)
-    .find(line => !/^\d{1,3}(\.\d{1,3}){3}(\/\d{1,2})?$/.test(line))
+    .find(line => !/^\d{1,3}(?:\.\d{1,3}){3}(?:\/\d{1,2})?$/.test(line))
   if (invalid) {
-    message.error(`IP 白名单格式无效：${invalid}`)
+    message.error(t('component.profile.developer.err_ip_whitelist_invalid', { value: invalid }))
     return
   }
 
@@ -175,10 +177,10 @@ async function handleSaveOpenApiSettings() {
       settingKey: OPENAPI_SETTING_KEY,
       settingValue: JSON.stringify(payload),
     })
-    message.success('调用安全设置已保存')
+    message.success(t('component.profile.developer.msg_settings_saved'))
   }
   catch (e) {
-    message.error((e as Error).message || '保存失败')
+    message.error((e as Error).message || t('component.profile.developer.err_save_failed'))
   }
   finally {
     settingsSaving.value = false
@@ -213,7 +215,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="pf-section__body">
-        <NAlert v-if="newSecret" type="warning" title="请立即保存 API Secret，此密钥仅显示一次" :bordered="false" class="pf-secret-alert">
+        <NAlert v-if="newSecret" type="warning" :title="t('component.profile.developer.secret_alert_title')" :bordered="false" class="pf-secret-alert">
           <div class="pf-secret-row">
             <span class="pf-secret-label">AppKey</span>
             <NInputGroup>
@@ -349,7 +351,7 @@ onMounted(() => {
     <NModal
       v-model:show="createModalVisible"
       preset="dialog"
-      title="创建 API 凭证"
+      :title="t('component.profile.developer.create_modal_title')"
       positive-text="创建"
       negative-text="取消"
       :loading="createSubmitting"
@@ -359,7 +361,7 @@ onMounted(() => {
         <div class="pf-create-form__tip">
           为凭证起个便于区分用途的名称（如「CI 流水线」「报表同步」）。
         </div>
-        <NInput v-model:value="createName" placeholder="凭证名称（可选，默认「默认凭证」）" maxlength="100" show-count @keydown.enter="handleCreateCredential" />
+        <NInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" maxlength="100" show-count @keydown.enter="handleCreateCredential" />
       </div>
     </NModal>
   </div>
