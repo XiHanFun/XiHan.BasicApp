@@ -181,6 +181,7 @@ export default {
       persist: '持久化',
       visit_history: '访问历史记录',
       max_count: '最大数量',
+      max_count_unit: '个',
       draggable: '拖拽排序',
       scroll_response: '纵向滚轮响应',
       middle_click_close: '鼠标中键关闭',

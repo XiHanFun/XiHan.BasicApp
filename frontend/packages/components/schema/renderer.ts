@@ -2,6 +2,7 @@ import type { VNodeChild } from 'vue'
 import type { ListFieldSchema } from './types'
 import { NTag } from 'naive-ui'
 import { h } from 'vue'
+import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
 
 /** 安全读取行字段值（兼容具名 DTO 接口，无索引签名） */
@@ -56,7 +57,7 @@ export function formatFieldText<TRow extends object>(
     case 'datetime':
       return formatDate(String(raw))
     case 'boolean':
-      return raw ? '是' : '否'
+      return raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no')
     case 'enum':
     case 'tag':
       return field.options
@@ -101,7 +102,7 @@ export function renderFieldCell<TRow extends object>(
     return h(
       NTag,
       { bordered: false, round: true, size: 'small', type: raw ? 'success' : 'default' },
-      () => (raw ? '是' : '否'),
+      () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no')),
     )
   }
 

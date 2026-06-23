@@ -3,6 +3,7 @@ import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'n
 import type { ListFieldSchema } from './types'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import SchemaRowPeek from './SchemaRowPeek.vue'
 import { toSortParams } from './selectors'
@@ -83,6 +84,7 @@ const emit = defineEmits<{
   'resizeColumn': [key: string, width: number]
 }>()
 
+const { t } = useI18n()
 const { isMobile } = useIsMobile()
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
@@ -140,7 +142,7 @@ const resolvedColumns = computed<DataTableColumn<TRow>[]>(() => {
   if (props.showIndex) {
     prefix.push({
       key: '__index__',
-      title: '序号',
+      title: t('component.schema_table.index'),
       width: props.tree ? 90 : 60,
       align: props.tree ? 'left' : 'center',
       render: (row: TRow, rowIndex: number) => indexLabel(row, rowIndex),
@@ -202,10 +204,10 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
       <div class="xh-table-panel__footer-left">
         <div class="xh-table__count">
           <template v-if="tree">
-            共 <strong>{{ total }}</strong> 条
+            {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}
           </template>
           <template v-else>
-            共 <strong>{{ total }}</strong> 条，第 <strong>{{ page }}</strong> / {{ pageCount }} 页
+            {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}{{ t('component.schema_table.page_sep') }} <strong>{{ page }}</strong> {{ t('component.schema_table.page_of', { pageCount }) }}
           </template>
         </div>
         <slot name="footer-actions" />

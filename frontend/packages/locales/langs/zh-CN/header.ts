@@ -11,6 +11,12 @@ export default {
     remove: '移除收藏',
     hint: '点击导航到对应页面；拖拽可排序；× 移除收藏',
   },
+  sidebar: {
+    pin: '固定侧边栏',
+    unpin: '取消固定（悬停展开）',
+    expand: '展开侧边栏',
+    collapse: '收起侧边栏',
+  },
   locale: {
     zh_cn: '简体中文',
     en_us: 'English',
@@ -58,6 +64,8 @@ export default {
     fullscreen_enter: '全屏',
     fullscreen_exit: '退出全屏',
     preferences: '偏好设置',
+    refresh_page: '刷新页面',
+    back_top: '回到顶部',
   },
   search: {
     placeholder: '命令面板',

@@ -11,6 +11,12 @@ export default {
     remove: 'Remove favorite',
     hint: 'Click to navigate; drag to reorder; × to remove.',
   },
+  sidebar: {
+    pin: 'Pin sidebar',
+    unpin: 'Unpin (hover to expand)',
+    expand: 'Expand sidebar',
+    collapse: 'Collapse sidebar',
+  },
   locale: {
     zh_cn: '简体中文',
     en_us: 'English',
@@ -58,6 +64,8 @@ export default {
     fullscreen_enter: 'Fullscreen',
     fullscreen_exit: 'Exit fullscreen',
     preferences: 'Preferences',
+    refresh_page: 'Refresh page',
+    back_top: 'Back to top',
   },
   search: {
     placeholder: 'Command Palette',

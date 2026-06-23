@@ -312,7 +312,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <div class="flex gap-2 items-center">
           <NInput v-model:value="linkUrl" placeholder="https://" size="small" style="width: 200px" />
           <NButton size="small" type="primary" @click="setLink">
-            确定
+            {{ t('common.actions.confirm') }}
           </NButton>
         </div>
       </NPopover>
@@ -325,9 +325,9 @@ const headingLevels = [1, 2, 3, 4] as const
           </NButton>
         </template>
         <div class="flex gap-2 items-center">
-          <NInput v-model:value="imageUrl" placeholder="图片地址" size="small" style="width: 200px" />
+          <NInput v-model:value="imageUrl" :placeholder="t('component.rich_text_editor.image_url_placeholder')" size="small" style="width: 200px" />
           <NButton size="small" type="primary" @click="addImage">
-            确定
+            {{ t('common.actions.confirm') }}
           </NButton>
         </div>
       </NPopover>

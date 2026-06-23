@@ -187,6 +187,7 @@ export default {
       persist: 'Persist',
       visit_history: 'Visit History',
       max_count: 'Max Count',
+      max_count_unit: 'tabs',
       draggable: 'Drag Sort',
       scroll_response: 'Scroll Response',
       middle_click_close: 'Middle Click to Close',

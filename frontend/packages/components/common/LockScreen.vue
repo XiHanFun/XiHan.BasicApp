@@ -86,7 +86,7 @@ const {
         <!-- ② 已锁定，输入锁屏密码 -->
         <template v-else-if="lockMode === 'locked'">
           <div class="lock-screen-hint">
-            {{ hasLockPwd ? t('component.lock_screen.input_password_hint') : '按下解锁按钮继续' }}
+            {{ hasLockPwd ? t('component.lock_screen.input_password_hint') : t('component.lock_screen.press_unlock_hint') }}
           </div>
           <form v-if="hasLockPwd" class="lock-screen-input-wrap" @submit.prevent="doUnlock">
             <NInput
