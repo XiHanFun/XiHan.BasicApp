@@ -287,8 +287,8 @@ function handleBatchRemove() {
   dialog.warning({
     title: t('component.schema_page.batch_delete_title'),
     content: t('component.schema_page.batch_delete_content', { count: targets.length }),
-    positiveText: '确认删除',
-    negativeText: '取消',
+    positiveText: t('component.schema_page.batch_delete_confirm'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       batchRemoving.value = true
       try {
@@ -297,10 +297,10 @@ function handleBatchRemove() {
         )
         const failed = results.filter(r => r.status === 'rejected').length
         if (failed === 0) {
-          message.success(`已删除 ${targets.length} 条`)
+          message.success(t('component.schema_page.deleted_count', { count: targets.length }))
         }
         else {
-          message.warning(`删除完成：成功 ${targets.length - failed} 条，失败 ${failed} 条`)
+          message.warning(t('component.schema_page.delete_partial', { success: targets.length - failed, failed }))
         }
         clearSelection()
         await table.load()
@@ -320,12 +320,12 @@ function handleBatchStatus(enabled: boolean) {
     return
   }
   const rowKey = props.schema.rowKey ?? 'basicId'
-  const label = enabled ? '启用' : '停用'
+  const label = enabled ? t('component.schema_page.label_enable') : t('component.schema_page.label_disable')
   dialog.warning({
     title: t('component.schema_page.batch_action_title', { label }),
     content: t('component.schema_page.batch_action_content', { label, count: targets.length }),
-    positiveText: `确认${label}`,
-    negativeText: '取消',
+    positiveText: t('component.schema_page.batch_status_confirm', { label }),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       batchStatusUpdating.value = true
       try {
@@ -334,10 +334,10 @@ function handleBatchStatus(enabled: boolean) {
         )
         const failed = results.filter(r => r.status === 'rejected').length
         if (failed === 0) {
-          message.success(`已${label} ${targets.length} 条`)
+          message.success(t('component.schema_page.status_done_count', { label, count: targets.length }))
         }
         else {
-          message.warning(`${label}完成：成功 ${targets.length - failed} 条，失败 ${failed} 条`)
+          message.warning(t('component.schema_page.status_partial', { label, success: targets.length - failed, failed }))
         }
         clearSelection()
         await table.load()
@@ -556,30 +556,30 @@ defineExpose({
           <!-- 内置工具：刷新 / 列设置 / 全屏 -->
           <NTooltip>
             <template #trigger>
-              <NButton circle quaternary size="small" aria-label="刷新" @click="reload">
+              <NButton circle quaternary size="small" :aria-label="t('common.actions.refresh')" @click="reload">
                 <template #icon>
                   <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
                 </template>
               </NButton>
             </template>
-            刷新
+            {{ t('common.actions.refresh') }}
           </NTooltip>
           <NTooltip v-if="canImport">
             <template #trigger>
-              <NButton circle quaternary size="small" aria-label="导入" @click="importVisible = true">
+              <NButton circle quaternary size="small" :aria-label="t('common.actions.import')" @click="importVisible = true">
                 <template #icon>
                   <NIcon><Icon icon="lucide:upload" /></NIcon>
                 </template>
               </NButton>
             </template>
-            导入（CSV）
+            {{ t('component.schema_page.import_csv') }}
           </NTooltip>
           <!-- 导出按钮：仅在页面声明 exportPermission 且用户有该权限时显示（精准门控）；
                已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口，否则本地同步 CSV -->
           <template v-if="effectiveExportFields.length && canExportPermitted">
             <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
             <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
-              <NButton circle quaternary size="small" aria-label="导出" :loading="exporting || submittingExport">
+              <NButton circle quaternary size="small" :aria-label="t('common.actions.export')" :loading="exporting || submittingExport">
                 <template #icon>
                   <NIcon><Icon icon="lucide:download" /></NIcon>
                 </template>
@@ -588,13 +588,13 @@ defineExpose({
             <!-- 未登记页面：维持本地同步 CSV 导出 -->
             <NTooltip v-else>
               <template #trigger>
-                <NButton circle quaternary size="small" aria-label="导出" :loading="exporting" @click="exportCsv">
+                <NButton circle quaternary size="small" :aria-label="t('common.actions.export')" :loading="exporting" @click="exportCsv">
                   <template #icon>
                     <NIcon><Icon icon="lucide:download" /></NIcon>
                   </template>
                 </NButton>
               </template>
-              导出（CSV）
+              {{ t('component.schema_page.export_csv') }}
             </NTooltip>
           </template>
           <SchemaTableSettings
@@ -616,13 +616,13 @@ defineExpose({
           />
           <NTooltip>
             <template #trigger>
-              <NButton circle quaternary size="small" aria-label="全屏" @click="toggleFullscreen">
+              <NButton circle quaternary size="small" :aria-label="t('component.schema_page.fullscreen')" @click="toggleFullscreen">
                 <template #icon>
                   <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
                 </template>
               </NButton>
             </template>
-            {{ isFullscreen ? '退出全屏' : '全屏' }}
+            {{ isFullscreen ? t('component.schema_page.exit_fullscreen') : t('component.schema_page.enter_fullscreen') }}
           </NTooltip>
         </template>
       </SchemaActionPanel>
@@ -666,9 +666,9 @@ defineExpose({
           <!-- 批量浮条：放在页脚，选中后不挤压表格空间 -->
           <template v-if="checkedKeys.length" #footer-actions>
             <div class="xh-batch-bar">
-              <span class="xh-batch-bar__count">已选择 <strong>{{ checkedKeys.length }}</strong> 条</span>
+              <span class="xh-batch-bar__count">{{ t('component.schema_page.selected_count_prefix') }} <strong>{{ checkedKeys.length }}</strong> {{ t('component.schema_page.selected_count_suffix') }}</span>
               <NButton quaternary size="small" @click="clearSelection">
-                清空选择
+                {{ t('component.schema_page.clear_selection') }}
               </NButton>
               <NButton
                 v-if="canBatchStatus"
@@ -677,7 +677,7 @@ defineExpose({
                 :loading="batchStatusUpdating"
                 @click="handleBatchStatus(true)"
               >
-                批量启用
+                {{ t('component.schema_page.batch_enable') }}
               </NButton>
               <NButton
                 v-if="canBatchStatus"
@@ -686,7 +686,7 @@ defineExpose({
                 :loading="batchStatusUpdating"
                 @click="handleBatchStatus(false)"
               >
-                批量停用
+                {{ t('component.schema_page.batch_disable') }}
               </NButton>
               <NButton
                 v-if="canBatchRemove"
@@ -695,7 +695,7 @@ defineExpose({
                 :loading="batchRemoving"
                 @click="handleBatchRemove"
               >
-                批量删除
+                {{ t('component.schema_page.batch_delete') }}
               </NButton>
               <NButton
                 v-for="action in batchActions"

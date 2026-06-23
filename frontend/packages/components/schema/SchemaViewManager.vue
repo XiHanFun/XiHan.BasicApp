@@ -115,10 +115,10 @@ function onManage(key: string) {
       <template #footer>
         <NSpace justify="end">
           <NButton @click="saveModalVisible = false">
-            取消
+            {{ t('common.actions.cancel') }}
           </NButton>
           <NButton type="primary" @click="confirmSave">
-            保存
+            {{ t('common.actions.save') }}
           </NButton>
         </NSpace>
       </template>

@@ -2,11 +2,13 @@
 import type { Component } from 'vue'
 import { NEmpty } from 'naive-ui'
 import { computed, defineAsyncComponent, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useSplitViewStore } from '~/stores'
 
 defineOptions({ name: 'SplitPane' })
 
+const { t } = useI18n()
 const splitView = useSplitViewStore()
 const router = useRouter()
 
@@ -57,7 +59,7 @@ defineExpose({ reload })
       v-if="paneComponent"
       :key="`${splitView.rightPath}#${reloadKey}`"
     />
-    <NEmpty v-else description="无法加载该页面" class="py-12" />
+    <NEmpty v-else :description="t('tabbar.split_load_failed')" class="py-12" />
   </div>
 </template>
 

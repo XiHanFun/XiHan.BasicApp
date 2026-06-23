@@ -15,6 +15,7 @@ import {
   NUploadDragger,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -40,6 +41,7 @@ const emit = defineEmits<{
 
 const show = defineModel<boolean>('show', { default: false })
 
+const { t } = useI18n()
 const importHistoryApi = useAppContext().apis.importHistoryApi
 
 const importer = useSchemaImport({
@@ -111,11 +113,11 @@ const errorItems = computed(() =>
   ),
 )
 
-const errorColumns = [
-  { key: 'row', title: '行号', width: 70 },
-  { key: 'field', title: '字段', width: 120 },
-  { key: 'message', title: '问题', ellipsis: { tooltip: true } },
-]
+const errorColumns = computed(() => [
+  { key: 'row', title: t('component.schema_import.col_row'), width: 70 },
+  { key: 'field', title: t('component.schema_import.col_field'), width: 120 },
+  { key: 'message', title: t('component.schema_import.col_problem'), ellipsis: { tooltip: true } },
+])
 
 const importPercent = computed(() =>
   validRows.value.length === 0 ? 0 : Math.round((progress.value / validRows.value.length) * 100),
@@ -141,7 +143,7 @@ function handleClose(): void {
   <NModal
     v-model:show="show"
     preset="card"
-    title="导入数据"
+    :title="t('component.schema_import.title')"
     :auto-focus="false"
     :bordered="false"
     :mask-closable="phase !== 'importing'"
@@ -152,12 +154,12 @@ function handleClose(): void {
       <!-- 模板说明 + 下载 -->
       <NAlert type="info" :show-icon="true" :bordered="false">
         <div class="xh-import-tip">
-          <span>请按模板表头填写 CSV 文件（首列以 # 开头的说明行会被自动忽略）。</span>
+          <span>{{ t('component.schema_import.tip') }}</span>
           <NButton size="tiny" quaternary type="primary" @click="importer.downloadTemplate">
             <template #icon>
               <NIcon><Icon icon="lucide:file-down" /></NIcon>
             </template>
-            下载模板
+            {{ t('component.schema_import.download_template') }}
           </NButton>
         </div>
       </NAlert>
@@ -174,7 +176,7 @@ function handleClose(): void {
             <NIcon :size="32" :depth="3">
               <Icon icon="lucide:upload" />
             </NIcon>
-            <span>点击或拖拽 CSV 文件到此处</span>
+            <span>{{ t('component.schema_import.dragger') }}</span>
           </div>
         </NUploadDragger>
       </NUpload>
@@ -187,13 +189,13 @@ function handleClose(): void {
       <!-- 解析结果汇总 -->
       <NSpace v-if="phase !== 'idle' && rows.length > 0" align="center" :size="8">
         <NTag size="small" :bordered="false">
-          共 {{ rows.length }} 行
+          {{ t('component.schema_import.total_rows', { count: rows.length }) }}
         </NTag>
         <NTag size="small" type="success" :bordered="false">
-          可导入 {{ validRows.length }} 行
+          {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
         </NTag>
         <NTag v-if="errorItems.length > 0" size="small" type="error" :bordered="false">
-          {{ phase === 'done' ? '失败' : '校验失败' }} {{ errorRows.length }} 行
+          {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
         </NTag>
       </NSpace>
 
@@ -222,25 +224,25 @@ function handleClose(): void {
         :type="summary.failed === 0 ? 'success' : 'warning'"
         :bordered="false"
       >
-        导入完成：成功 {{ summary.success }} 条，失败 {{ summary.failed }} 条。
+        {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
         <template v-if="summary.failed > 0">
-          可下载失败行修正后重新导入。
+          {{ t('component.schema_import.redownload_hint') }}
         </template>
       </NAlert>
 
       <!-- 最近导入（当前用户 × 当前页面） -->
       <div v-if="phase === 'idle' && recentImports.length > 0" class="xh-import-recent">
         <div class="xh-import-recent__title">
-          最近导入
+          {{ t('component.schema_import.recent_title') }}
         </div>
         <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
           <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
           <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
           <NTag size="tiny" type="success" :bordered="false">
-            成功 {{ item.successCount }}
+            {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
           </NTag>
           <NTag v-if="item.failCount > 0" size="tiny" type="error" :bordered="false">
-            失败 {{ item.failCount }}
+            {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
           </NTag>
         </div>
       </div>
@@ -256,10 +258,10 @@ function handleClose(): void {
           <template #icon>
             <NIcon><Icon icon="lucide:file-x" /></NIcon>
           </template>
-          下载失败行
+          {{ t('component.schema_import.download_errors') }}
         </NButton>
         <NButton size="small" :disabled="phase === 'importing'" @click="handleClose">
-          {{ phase === 'done' ? '完成' : '取消' }}
+          {{ phase === 'done' ? t('component.schema_import.done_btn') : t('common.actions.cancel') }}
         </NButton>
         <NButton
           v-if="phase !== 'done'"
@@ -269,7 +271,7 @@ function handleClose(): void {
           :loading="phase === 'importing'"
           @click="handleRun"
         >
-          开始导入
+          {{ t('component.schema_import.start_import') }}
         </NButton>
       </NSpace>
     </template>

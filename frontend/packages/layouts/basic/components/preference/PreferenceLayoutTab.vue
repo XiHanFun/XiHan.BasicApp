@@ -407,7 +407,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
             style="width: 120px"
             :disabled="!appStore.tabbarEnabled"
           />
-          <span class="unit-label">个</span>
+          <span class="unit-label">{{ t('preference.layout.tabbar.max_count_unit') }}</span>
         </div>
       </div>
       <div class="pref-row" :class="{ 'opacity-50': !appStore.tabbarEnabled }">

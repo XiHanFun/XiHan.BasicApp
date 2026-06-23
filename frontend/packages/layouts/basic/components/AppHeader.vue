@@ -433,7 +433,7 @@ watch(() => route.fullPath, () => {
   <XihanIconButton
     v-if="appStore.widgetRefresh"
     class="my-0 mr-1 rounded-md"
-    tooltip="刷新页面"
+    :tooltip="t('header.toolbar.refresh_page')"
     @click="handleReloadPage"
   >
     <Icon icon="lucide:refresh-cw" class="size-4" />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'XihanBackTop' })
@@ -14,6 +15,8 @@ interface XihanBackTopProps {
   threshold?: number
 }
 
+const { t } = useI18n()
+
 const visible = computed(() => props.scrollY > props.threshold)
 
 function scrollToTop() {
@@ -26,7 +29,7 @@ function scrollToTop() {
     <button
       v-if="visible"
       class="xihan-back-top"
-      aria-label="回到顶部"
+      :aria-label="t('header.toolbar.back_top')"
       @click="scrollToTop"
     >
       <Icon icon="lucide:chevron-up" width="18" height="18" />

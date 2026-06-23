@@ -3,6 +3,7 @@ import type { TabItem } from '~/types'
 import { useSortable } from '@dnd-kit/vue/sortable'
 import { NIcon } from 'naive-ui'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 
@@ -32,6 +33,8 @@ const emit = defineEmits<{
   togglePin: [path: string]
   middleClose: [path: string]
 }>()
+
+const { t } = useI18n()
 // ── 拖拽排序（@dnd-kit/vue）：固定标签 / 关闭拖拽时禁用 ──────────────
 const rootRef = ref<HTMLElement | null>(null)
 const { isDragging } = useSortable({
@@ -141,7 +144,7 @@ function onAuxClick(event: MouseEvent) {
             v-if="item.closable && !item.pinned"
             class="chrome-tab__close chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             type="button"
-            aria-label="关闭标签页"
+            :aria-label="t('tabbar.close_tab')"
             @click.stop="emit('close', item.path, $event)"
           >
             <NIcon size="12">
@@ -152,7 +155,7 @@ function onAuxClick(event: MouseEvent) {
             v-else-if="item.pinned && item.path !== HOME_PATH"
             class="chrome-tab__pin chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             type="button"
-            aria-label="取消固定"
+            :aria-label="t('tabbar.unpin')"
             @click.stop="emit('togglePin', item.path)"
           >
             <NIcon size="12">
@@ -163,7 +166,7 @@ function onAuxClick(event: MouseEvent) {
           <span
             v-else-if="item.pinned && item.path === HOME_PATH"
             class="chrome-tab__lock chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
-            aria-label="已固定"
+            :aria-label="t('tabbar.pinned')"
           >
             <NIcon size="12">
               <Icon icon="lucide:lock" />
@@ -191,7 +194,7 @@ function onAuxClick(event: MouseEvent) {
           v-if="item.closable && !item.pinned"
           class="flat-tab__close flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           type="button"
-          aria-label="关闭标签页"
+          :aria-label="t('tabbar.close_tab')"
           @click.stop="emit('close', item.path, $event)"
         >
           <NIcon size="12">
@@ -202,7 +205,7 @@ function onAuxClick(event: MouseEvent) {
           v-else-if="item.pinned && item.path !== HOME_PATH"
           class="flat-tab__pin flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           type="button"
-          aria-label="取消固定"
+          :aria-label="t('tabbar.unpin')"
           @click.stop="emit('togglePin', item.path)"
         >
           <NIcon size="12">
@@ -213,7 +216,7 @@ function onAuxClick(event: MouseEvent) {
         <span
           v-else-if="item.pinned && item.path === HOME_PATH"
           class="flat-tab__lock flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
-          aria-label="已固定"
+          :aria-label="t('tabbar.pinned')"
         >
           <NIcon size="12">
             <Icon icon="lucide:lock" />

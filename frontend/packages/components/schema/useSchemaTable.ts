@@ -1,8 +1,9 @@
 import type { Ref } from 'vue'
-import type { ApiId } from '~/types/contracts'
 import type { PageSchema, SchemaQueryParams } from './types'
+import type { ApiId } from '~/types/contracts'
 import { useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
+import { i18n } from '~/locales'
 
 /**
  * useSchemaTable 选项
@@ -87,7 +88,7 @@ export function useSchemaTable<TRow extends object>(
       total.value = result.page?.totalCount ?? 0
     }
     catch {
-      message.error(options.loadErrorText ?? '查询失败')
+      message.error(options.loadErrorText ?? i18n.global.t('component.schema_page.load_failed'))
       rows.value = []
       total.value = 0
     }
@@ -134,7 +135,7 @@ export function useSchemaTable<TRow extends object>(
       return
     }
     await schema.resource.remove(id)
-    message.success(options.removeSuccessText ?? '删除成功')
+    message.success(options.removeSuccessText ?? i18n.global.t('common.messages.delete_success'))
     void load()
   }
 

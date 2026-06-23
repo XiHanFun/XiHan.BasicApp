@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SidebarActions' })
@@ -9,6 +10,8 @@ const emit = defineEmits<{
   toggleCollapse: []
   togglePin: []
 }>()
+
+const { t } = useI18n()
 
 interface SidebarActionsProps {
   collapsed: boolean
@@ -34,7 +37,7 @@ interface SidebarActionsProps {
         v-if="props.sidebarFixedButton && !props.collapsed && (!props.floatingMode || props.floatingExpand)"
         type="button"
         class="absolute bottom-[48px] right-2 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-border/70 bg-background/85 p-[5px] text-muted-foreground outline-none transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus:outline-none"
-        :title="props.sidebarPinned ? '取消固定（悬停展开）' : '固定侧边栏'"
+        :title="props.sidebarPinned ? t('header.sidebar.unpin') : t('header.sidebar.pin')"
         @click.stop="emit('togglePin')"
       >
         <Icon
@@ -49,7 +52,7 @@ interface SidebarActionsProps {
       v-if="props.sidebarCollapseButton"
       type="button"
       class="flex h-[42px] w-full items-center justify-center border-t border-border bg-sidebar text-muted-foreground outline-none transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus:outline-none"
-      :title="props.collapsed ? '展开侧边栏' : '收起侧边栏'"
+      :title="props.collapsed ? t('header.sidebar.expand') : t('header.sidebar.collapse')"
       @click.stop="emit('toggleCollapse')"
     >
       <Icon

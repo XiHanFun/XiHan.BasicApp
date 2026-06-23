@@ -1,7 +1,13 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ListFieldSchema } from './types'
 import { computed, ref } from 'vue'
+import { i18n } from '~/locales'
 import { downloadText } from './useSchemaExport'
+
+/** 本地化便捷封装：保持 i18n.global 的 this 绑定 */
+function t(key: string, named?: Record<string, unknown>): string {
+  return named ? i18n.global.t(key, named) : i18n.global.t(key)
+}
 
 /**
  * Schema 同步导入（CSV → 预校验 → 逐行 create）。
@@ -116,23 +122,23 @@ export function parseCsv(text: string): string[][] {
 /** 字段的取值提示（模板说明行 / 校验错误提示共用） */
 function fieldHint(field: ListFieldSchema): string {
   if (field.options?.length) {
-    return `可选值: ${field.options.map(o => o.label).join('/')}`
+    return t('component.schema_import.hint_options', { values: field.options.map(o => o.label).join('/') })
   }
   switch (field.dataType) {
     case 'boolean':
-      return '是/否'
+      return t('component.schema_import.hint_boolean')
     case 'number':
     case 'money':
     case 'percent':
-      return '数字'
+      return t('component.schema_import.hint_number')
     case 'date':
-      return '日期(YYYY-MM-DD)'
+      return t('component.schema_import.hint_date')
     case 'datetime':
-      return '日期时间(YYYY-MM-DD HH:mm:ss)'
+      return t('component.schema_import.hint_datetime')
     case 'json':
-      return 'JSON 文本'
+      return t('component.schema_import.hint_json')
     default:
-      return '文本'
+      return t('component.schema_import.hint_text')
   }
 }
 
@@ -142,7 +148,10 @@ function fieldHint(field: ListFieldSchema): string {
 export function buildImportTemplate(fields: ListFieldSchema[]): string {
   const header = fields.map(f => csvCell(f.title)).join(',')
   const hints = fields
-    .map((f, i) => csvCell(`${i === 0 ? '#' : ''}${f.required ? '必填' : '选填'}，${fieldHint(f)}`))
+    .map((f, i) => {
+      const flag = f.required ? t('component.schema_import.flag_required') : t('component.schema_import.flag_optional')
+      return csvCell(`${i === 0 ? '#' : ''}${t('component.schema_import.template_cell', { flag, hint: fieldHint(f) })}`)
+    })
     .join(',')
   return `\uFEFF${header}\r\n${hints}`
 }
@@ -154,13 +163,13 @@ const FALSE_TOKENS = new Set(['否', 'false', '0', 'n', 'no'])
 function convertCell(field: ListFieldSchema, text: string): { value?: unknown, error?: string } {
   const trimmed = text.trim()
   if (trimmed === '') {
-    return field.required ? { error: '必填项为空' } : {}
+    return field.required ? { error: t('component.schema_import.err_required') } : {}
   }
   // 有选项的字段（enum/tag/带选项的 boolean 等）：按 label 或 value 反查
   if (field.options?.length) {
     const matched = field.options.find(o => o.label === trimmed || String(o.value) === trimmed)
     if (!matched) {
-      return { error: `无效选项「${trimmed}」（${fieldHint(field)}）` }
+      return { error: t('component.schema_import.err_invalid_option', { value: trimmed, hint: fieldHint(field) }) }
     }
     if (field.dataType === 'boolean') {
       return { value: Boolean(Number(matched.value)) }
@@ -176,18 +185,18 @@ function convertCell(field: ListFieldSchema, text: string): { value?: unknown, e
       if (FALSE_TOKENS.has(token)) {
         return { value: false }
       }
-      return { error: `无法识别的布尔值「${trimmed}」（是/否）` }
+      return { error: t('component.schema_import.err_invalid_boolean', { value: trimmed }) }
     }
     case 'number':
     case 'money':
     case 'percent': {
       const num = Number(trimmed.replace(/,/g, ''))
-      return Number.isNaN(num) ? { error: `无法识别的数字「${trimmed}」` } : { value: num }
+      return Number.isNaN(num) ? { error: t('component.schema_import.err_invalid_number', { value: trimmed }) } : { value: num }
     }
     case 'date':
     case 'datetime':
       return Number.isNaN(Date.parse(trimmed))
-        ? { error: `无法识别的日期「${trimmed}」` }
+        ? { error: t('component.schema_import.err_invalid_date', { value: trimmed }) }
         : { value: trimmed }
     case 'json':
       try {
@@ -195,7 +204,7 @@ function convertCell(field: ListFieldSchema, text: string): { value?: unknown, e
         return { value: trimmed }
       }
       catch {
-        return { error: '不是合法的 JSON 文本' }
+        return { error: t('component.schema_import.err_invalid_json') }
       }
     default:
       return { value: trimmed }
@@ -207,7 +216,7 @@ function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message
   }
-  return typeof error === 'string' && error ? error : '创建失败'
+  return typeof error === 'string' && error ? error : t('component.schema_import.err_create_failed')
 }
 
 export interface UseSchemaImportOptions {
@@ -271,7 +280,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
   }
 
   function downloadTemplate(): void {
-    downloadText(`${options.fileName()}-导入模板.csv`, buildImportTemplate(options.fields()))
+    downloadText(`${options.fileName()}${t('component.schema_import.template_filename_suffix')}.csv`, buildImportTemplate(options.fields()))
   }
 
   async function loadFile(file: File): Promise<void> {
@@ -282,7 +291,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     // 跳过以 # 开头的说明行
     const meaningful = matrix.filter(cells => !cells[0]?.trim().startsWith('#'))
     if (meaningful.length === 0) {
-      fileErrors.value = ['文件为空或仅包含说明行']
+      fileErrors.value = [t('component.schema_import.err_empty_file')]
       phase.value = 'ready'
       return
     }
@@ -296,10 +305,10 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     const missingRequired = fields.filter(f => f.required && !mappedKeys.has(f.key))
     const errors: string[] = []
     if (mappedKeys.size === 0) {
-      errors.push('未识别到任何模板列，请使用「下载模板」生成的表头')
+      errors.push(t('component.schema_import.err_no_columns'))
     }
     if (missingRequired.length > 0) {
-      errors.push(`缺少必填列：${missingRequired.map(f => f.title).join('、')}`)
+      errors.push(t('component.schema_import.err_missing_columns', { columns: missingRequired.map(f => f.title).join(t('component.schema_import.column_join')) }))
     }
     fileErrors.value = errors
 
@@ -369,15 +378,15 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     if (failed.length === 0) {
       return
     }
-    const header = [...fields.map(f => csvCell(f.title)), '错误原因'].join(',')
+    const header = [...fields.map(f => csvCell(f.title)), t('component.schema_import.error_reason_column')].join(',')
     const body = failed
       .map((row) => {
         const cells = fields.map(f => csvCell(row.raw[f.key] ?? ''))
-        const reason = row.errors.map(e => (e.field ? `${e.field}: ${e.message}` : e.message)).join('；')
+        const reason = row.errors.map(e => (e.field ? `${e.field}: ${e.message}` : e.message)).join(t('component.schema_import.error_reason_join'))
         return [...cells, csvCell(reason)].join(',')
       })
       .join('\r\n')
-    downloadText(`${options.fileName()}-导入失败行.csv`, `\uFEFF${header}\r\n${body}`)
+    downloadText(`${options.fileName()}${t('component.schema_import.errors_filename_suffix')}.csv`, `\uFEFF${header}\r\n${body}`)
   }
 
   return {
