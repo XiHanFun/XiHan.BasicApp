@@ -133,9 +133,15 @@ public sealed class TenantQueryService
         // 故此处不按成员关系、而是返回全部可用租户（正常态、未过期）作为可切换项，避免切换器对超管为空。
         if (_currentUser.IsInRole(SuperAdminRoleCode))
         {
-            var availableSpec = new AvailableTenantSpecification(now);
-            var allTenants = await _tenantRepository.GetListAsync(availableSpec.ToExpression(), cancellationToken);
-            return [.. allTenants
+            // 仅以状态下推 SQL；可用规约含"可空过期时间 OR"判断，直接下推会触发 SqlSugar 表达式翻译异常
+            // （丢失 OR 运算符 + 把 DateTimeOffset 渲染成 PostgreSQL 不识别的 N'' 字面量），
+            // 故先拉取正常态租户，再在内存套用规约过滤过期（软删由全局过滤自动附加）。
+            var isAvailable = new AvailableTenantSpecification(now).ToExpression().Compile();
+            var normalTenants = await _tenantRepository.GetListAsync(
+                tenant => tenant.TenantStatus == TenantStatus.Normal,
+                cancellationToken);
+            return [.. normalTenants
+                .Where(isAvailable)
                 .OrderBy(tenant => tenant.Sort)
                 .ThenBy(tenant => tenant.TenantName)
                 .Select(tenant => TenantApplicationMapper.ToSwitcherDto(tenant, _currentUser.TenantId))];
