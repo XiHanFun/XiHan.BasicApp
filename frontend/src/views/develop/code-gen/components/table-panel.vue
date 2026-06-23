@@ -1,24 +1,9 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
-import type {
-  ApiId,
-  CodeGenTableListItemDto,
-  GenStatus,
-  TemplateType,
-} from '@/api'
-import {
-  NButton,
-  NDataTable,
-  NIcon,
-  NInput,
-  NPagination,
-  NPopconfirm,
-  NSelect,
-  NSpace,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, reactive, ref } from 'vue'
+import type { ApiId, CodeGenTableListItemDto, GenStatus } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PageResult } from '~/types/contracts'
+import { NTag, useDialog, useMessage } from 'naive-ui'
+import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenTableApi,
@@ -28,7 +13,7 @@ import {
   GenStatus as GenStatusEnum,
   TEMPLATE_TYPE_OPTIONS,
 } from '@/api'
-import { Icon } from '~/components'
+import { SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { getOptionLabel } from '~/utils'
 import ColumnConfigModal from './column-config-modal.vue'
@@ -41,18 +26,12 @@ defineOptions({ name: 'CodeGenTablePanel' })
 
 const { t } = useI18n()
 const message = useMessage()
+const dialog = useDialog()
 
-const loading = ref(false)
-const list = ref<CodeGenTableListItemDto[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const queryParams = reactive({
-  keyword: '',
-  templateType: null as TemplateType | null,
-  genStatus: null as GenStatus | null,
-  status: null as EnableStatus | null,
-})
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+function reload() {
+  void schemaPageRef.value?.reload()
+}
 
 const importVisible = ref(false)
 const editVisible = ref(false)
@@ -61,45 +40,6 @@ const generateVisible = ref(false)
 const runtimeVisible = ref(false)
 const currentTableId = ref<ApiId | null>(null)
 const currentTableName = ref('')
-
-async function fetchData() {
-  loading.value = true
-  try {
-    const result = await codeGenTableApi.page({
-      ...createPageRequest({ page: { pageIndex: page.value, pageSize: pageSize.value } }),
-      genStatus: queryParams.genStatus ?? undefined,
-      keyword: queryParams.keyword?.trim() || undefined,
-      status: queryParams.status ?? undefined,
-      templateType: queryParams.templateType ?? undefined,
-    })
-    list.value = result.items
-    total.value = result.page.totalCount
-  }
-  catch {
-    message.error(t('develop.code_gen.table.query_failed'))
-    list.value = []
-    total.value = 0
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function handleSearch() {
-  page.value = 1
-  fetchData()
-}
-
-function handlePageChange(value: number) {
-  page.value = value
-  fetchData()
-}
-
-function handlePageSizeChange(value: number) {
-  pageSize.value = value
-  page.value = 1
-  fetchData()
-}
 
 function genStatusTagType(status: GenStatus) {
   if (status === GenStatusEnum.Generated) {
@@ -111,267 +51,160 @@ function genStatusTagType(status: GenStatus) {
   return 'default'
 }
 
-const columns = computed<DataTableColumns<CodeGenTableListItemDto>>(() => [
-  { key: 'tableName', title: t('develop.code_gen.table.col_table_name'), minWidth: 170, fixed: 'left', ellipsis: { tooltip: true } },
-  { key: 'className', title: t('develop.code_gen.table.col_class_name'), minWidth: 150, ellipsis: { tooltip: true } },
-  { key: 'tableComment', title: t('develop.code_gen.table.col_table_comment'), minWidth: 140, ellipsis: { tooltip: true } },
-  { key: 'moduleName', title: t('develop.code_gen.table.col_module'), width: 120, ellipsis: { tooltip: true } },
+const fields = computed<ListFieldSchema[]>(() => [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: t('develop.code_gen.table.col_table_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('develop.code_gen.table.search_placeholder'), order: 0 },
+  { key: 'tableName', title: t('develop.code_gen.table.col_table_name'), dataType: 'string', minWidth: 170, fixed: 'left', order: 1 },
+  { key: 'className', title: t('develop.code_gen.table.col_class_name'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'tableComment', title: t('develop.code_gen.table.col_table_comment'), dataType: 'string', minWidth: 140, order: 3 },
+  { key: 'moduleName', title: t('develop.code_gen.table.col_module'), dataType: 'string', width: 120, order: 4 },
   {
     key: 'templateType',
     title: t('develop.code_gen.table.col_template_type'),
-    width: 100,
-    render: (row: CodeGenTableListItemDto) => getOptionLabel(TEMPLATE_TYPE_OPTIONS, row.templateType),
+    dataType: 'enum',
+    searchable: true,
+    options: TEMPLATE_TYPE_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.table.filter_template_type'),
+    width: 110,
+    order: 5,
+    render: row => getOptionLabel(TEMPLATE_TYPE_OPTIONS, (row as unknown as CodeGenTableListItemDto).templateType),
   },
   {
     key: 'genStatus',
     title: t('develop.code_gen.table.col_gen_status'),
-    width: 100,
-    align: 'center',
-    render: (row: CodeGenTableListItemDto) =>
-      h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: genStatusTagType(row.genStatus),
-      }, () => getOptionLabel(GEN_STATUS_OPTIONS, row.genStatus)),
+    dataType: 'enum',
+    searchable: true,
+    options: GEN_STATUS_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.table.filter_gen_status'),
+    width: 110,
+    order: 6,
+    render: (row) => {
+      const r = row as unknown as CodeGenTableListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: genStatusTagType(r.genStatus) }, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus))
+    },
   },
   {
     key: 'status',
     title: t('develop.code_gen.table.col_status'),
-    width: 72,
-    align: 'center',
-    render: (row: CodeGenTableListItemDto) =>
-      h(NTag, {
-        size: 'small',
-        round: true,
-        bordered: false,
-        type: row.status === EnableStatus.Enabled ? 'success' : 'error',
-      }, () => getOptionLabel(STATUS_OPTIONS, row.status)),
+    dataType: 'enum',
+    searchable: true,
+    options: STATUS_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.table.filter_status'),
+    width: 90,
+    order: 7,
+    render: (row) => {
+      const r = row as unknown as CodeGenTableListItemDto
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
+    },
   },
-  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), minWidth: 170 },
-  {
-    key: 'actions',
-    title: t('common.fields.actions'),
-    width: 288,
-    fixed: 'right',
-    align: 'center',
-    render: (row: CodeGenTableListItemDto) =>
-      h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
-        h(NButton, {
-          circle: true,
-          quaternary: true,
-          size: 'small',
-          title: t('develop.code_gen.table.action_runtime'),
-          onClick: () => handleRuntime(row),
-        }, {
-          icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:database' })),
-        }),
-        h(NButton, {
-          quaternary: true,
-          size: 'small',
-          type: 'primary',
-          onClick: () => handleGenerate(row),
-        }, () => t('develop.code_gen.table.action_generate')),
-        h(NButton, {
-          quaternary: true,
-          size: 'small',
-          onClick: () => handleColumns(row),
-        }, () => t('develop.code_gen.table.action_columns')),
-        h(NButton, {
-          quaternary: true,
-          size: 'small',
-          onClick: () => handleEdit(row),
-        }, () => t('common.actions.edit')),
-        h(NPopconfirm, { onPositiveClick: () => handleDelete(row) }, {
-          trigger: () => h(NButton, {
-            quaternary: true,
-            size: 'small',
-            type: 'error',
-          }, () => t('common.actions.delete')),
-          default: () => t('develop.code_gen.table.confirm_delete'),
-        }),
-      ]),
-  },
+  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, order: 8 },
 ])
 
-function handleImport() {
-  importVisible.value = true
-}
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'develop.codegen.table',
+  pageName: t('develop.code_gen.tabs.table'),
+  rowKey: 'basicId',
+  scrollX: 1448,
+  batchRemovable: true,
+  fields: fields.value,
+  resource: {
+    page: (params) => {
+      const f = params.filters
+      return codeGenTableApi.page({
+        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        keyword: (f.keyword as string | undefined)?.trim() || undefined,
+        templateType: (f.templateType as CodeGenTableListItemDto['templateType'] | undefined) ?? undefined,
+        genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,
+        status: (f.status as EnableStatus | undefined) ?? undefined,
+      }) as unknown as Promise<PageResult<Record<string, unknown>>>
+    },
+    remove: id => codeGenTableApi.delete(id),
+  },
+  actions: [
+    { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database' },
+    { key: 'generate', title: t('develop.code_gen.table.action_generate'), scope: 'row', type: 'primary', icon: 'lucide:play' },
+    { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'runtime', title: t('develop.code_gen.table.action_runtime'), scope: 'row', icon: 'lucide:database' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+  ],
+}))
 
-function handleEdit(row: CodeGenTableListItemDto) {
-  currentTableId.value = row.basicId
-  editVisible.value = true
-}
-
-function handleColumns(row: CodeGenTableListItemDto) {
-  currentTableId.value = row.basicId
-  columnVisible.value = true
-}
-
-function handleGenerate(row: CodeGenTableListItemDto) {
-  currentTableId.value = row.basicId
-  currentTableName.value = row.tableName
-  generateVisible.value = true
-}
-
-function handleRuntime(row: CodeGenTableListItemDto) {
-  currentTableId.value = row.basicId
-  currentTableName.value = row.tableName
-  runtimeVisible.value = true
-}
-
-async function handleDelete(row: CodeGenTableListItemDto) {
-  try {
-    await codeGenTableApi.delete(row.basicId)
-    message.success(t('common.messages.delete_success'))
-    fetchData()
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as CodeGenTableListItemDto | undefined
+  switch (payload.key) {
+    case 'import':
+      importVisible.value = true
+      break
+    case 'generate':
+      if (row) {
+        currentTableId.value = row.basicId
+        currentTableName.value = row.tableName
+        generateVisible.value = true
+      }
+      break
+    case 'columns':
+      if (row) {
+        currentTableId.value = row.basicId
+        columnVisible.value = true
+      }
+      break
+    case 'edit':
+      if (row) {
+        currentTableId.value = row.basicId
+        editVisible.value = true
+      }
+      break
+    case 'runtime':
+      if (row) {
+        currentTableId.value = row.basicId
+        currentTableName.value = row.tableName
+        runtimeVisible.value = true
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
   }
-  catch {
-    message.error(t('common.messages.delete_failed'))
-  }
 }
 
-onMounted(fetchData)
+function handleDelete(row: CodeGenTableListItemDto) {
+  dialog.warning({
+    title: t('common.actions.delete'),
+    content: t('develop.code_gen.table.confirm_delete'),
+    positiveText: t('common.actions.confirm'),
+    negativeText: t('common.actions.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await codeGenTableApi.delete(row.basicId)
+        message.success(t('common.messages.delete_success'))
+        reload()
+      }
+      catch {
+        message.error(t('common.messages.delete_failed'))
+      }
+    },
+  })
+}
 </script>
 
 <template>
-  <div class="panel">
-    <div class="panel__toolbar">
-      <NInput
-        v-model:value="queryParams.keyword"
-        class="panel__kw"
-        clearable
-        :placeholder="t('develop.code_gen.table.search_placeholder')"
-        size="small"
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.templateType"
-        class="panel__filter"
-        clearable
-        :options="TEMPLATE_TYPE_OPTIONS"
-        :placeholder="t('develop.code_gen.table.filter_template_type')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.genStatus"
-        class="panel__filter"
-        clearable
-        :options="GEN_STATUS_OPTIONS"
-        :placeholder="t('develop.code_gen.table.filter_gen_status')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NSelect
-        v-model:value="queryParams.status"
-        class="panel__filter"
-        clearable
-        :options="STATUS_OPTIONS"
-        :placeholder="t('develop.code_gen.table.filter_status')"
-        size="small"
-        @update:value="handleSearch"
-      />
-      <NButton size="small" type="primary" @click="handleSearch">
-        {{ t('common.actions.search') }}
-      </NButton>
-      <NButton class="panel__add" size="small" type="primary" @click="handleImport">
-        <template #icon>
-          <NIcon><Icon icon="lucide:database" /></NIcon>
-        </template>
-        {{ t('develop.code_gen.table.import') }}
-      </NButton>
-    </div>
-
-    <div class="panel__body">
-      <NDataTable
-        class="panel__table"
-        flex-height
-        :columns="columns"
-        :data="list"
-        :loading="loading"
-        :row-key="(row: CodeGenTableListItemDto) => row.basicId"
-        :scroll-x="1448"
-        size="small"
-      />
-    </div>
-
-    <div class="panel__foot">
-      <NPagination
-        v-model:page="page"
-        v-model:page-size="pageSize"
-        :item-count="total"
-        :page-sizes="[10, 20, 50, 100]"
-        show-size-picker
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
-    </div>
-
-    <ImportTableModal v-model:show="importVisible" @imported="fetchData" />
-    <TableEditModal v-model:show="editVisible" :table-id="currentTableId" @saved="fetchData" />
-    <ColumnConfigModal v-model:show="columnVisible" :table-id="currentTableId" @saved="fetchData" />
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+    <ImportTableModal v-model:show="importVisible" @imported="reload" />
+    <TableEditModal v-model:show="editVisible" :table-id="currentTableId" @saved="reload" />
+    <ColumnConfigModal v-model:show="columnVisible" :table-id="currentTableId" @saved="reload" />
     <GenerateModal
       v-model:show="generateVisible"
       :table-id="currentTableId"
       :table-name="currentTableName"
-      @generated="fetchData"
+      @generated="reload"
     />
     <RuntimeDataModal
       v-model:show="runtimeVisible"
       :table-id="currentTableId"
       :table-name="currentTableName"
     />
-  </div>
+  </SchemaPage>
 </template>
-
-<style scoped>
-.panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-.panel__toolbar {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding-bottom: 10px;
-}
-
-.panel__kw {
-  width: 220px;
-}
-
-.panel__filter {
-  width: 130px;
-  flex-shrink: 0;
-}
-
-.panel__add {
-  margin-left: auto;
-}
-
-.panel__body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.panel__table {
-  flex: 1;
-  min-height: 0;
-}
-
-.panel__foot {
-  display: flex;
-  flex-shrink: 0;
-  justify-content: flex-end;
-  padding-top: 10px;
-}
-</style>
