@@ -97,24 +97,24 @@ function formatNullableDate(value?: string | null) {
 // ── 字段单一事实源 ──────────────────────────────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('openapi.app.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('openapi.app.keyword_placeholder'), width: 250, order: 0 },
-  { key: 'appName', title: t('openapi.app.appName'), dataType: 'string', sortable: true, minWidth: 160, order: 1 },
-  { key: 'clientId', title: t('openapi.app.clientId'), dataType: 'string', minWidth: 220, order: 2 },
+  { key: 'appName', title: t('openapi.app.app_name'), dataType: 'string', sortable: true, minWidth: 160, order: 1 },
+  { key: 'clientId', title: t('openapi.app.client_id'), dataType: 'string', minWidth: 220, order: 2 },
   {
     key: 'appType',
-    title: t('openapi.app.appType'),
+    title: t('openapi.app.app_type'),
     dataType: 'enum',
     searchable: true,
     options: appTypeOptions,
-    searchPlaceholder: t('openapi.app.appType_placeholder'),
+    searchPlaceholder: t('openapi.app.app_type_placeholder'),
     minWidth: 110,
     order: 3,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(appTypeOptions, (row as unknown as OAuthAppListItemDto).appType)),
   },
-  { key: 'grantTypes', title: t('openapi.app.grantTypes'), dataType: 'string', minWidth: 180, order: 4 },
+  { key: 'grantTypes', title: t('openapi.app.grant_types'), dataType: 'string', minWidth: 180, order: 4 },
   { key: 'scopes', title: t('openapi.app.scopes'), dataType: 'string', minWidth: 160, order: 5 },
   {
     key: 'accessTokenLifetime',
-    title: t('openapi.app.accessToken'),
+    title: t('openapi.app.access_token'),
     dataType: 'number',
     minWidth: 130,
     order: 6,
@@ -122,11 +122,11 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   {
     key: 'skipConsent',
-    title: t('openapi.app.skipConsent'),
+    title: t('openapi.app.skip_consent'),
     dataType: 'boolean',
     searchable: true,
     options: consentOptions.value,
-    searchPlaceholder: t('openapi.app.skipConsent_placeholder'),
+    searchPlaceholder: t('openapi.app.skip_consent_placeholder'),
     width: 110,
     order: 7,
     render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'default', bordered: false }, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm')),
@@ -141,14 +141,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 90,
     order: 8,
   },
-  { key: 'createdTime', title: t('openapi.app.createdTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 9 },
+  { key: 'createdTime', title: t('openapi.app.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 9 },
 ])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.app',
   exportPermission: 'saas:oauth-app:export',
-  pageName: t('openapi.app.pageName'),
+  pageName: t('openapi.app.page_name'),
   batchRemovable: true,
   removePermission: 'saas:oauth-app:delete',
   statusPermission: 'saas:oauth-app:status',
@@ -307,15 +307,15 @@ async function handleEdit(row: OAuthAppListItemDto) {
 
 function validateForm() {
   if (!appForm.value.appName.trim()) {
-    message.warning(t('openapi.app.msg_input_appName'))
+    message.warning(t('openapi.app.msg_input_app_name'))
     return false
   }
   if (!appForm.value.basicId && !appForm.value.clientId.trim()) {
-    message.warning(t('openapi.app.msg_input_clientId'))
+    message.warning(t('openapi.app.msg_input_client_id'))
     return false
   }
   if (!appForm.value.grantTypes.trim()) {
-    message.warning(t('openapi.app.msg_input_grantTypes'))
+    message.warning(t('openapi.app.msg_input_grant_types'))
     return false
   }
   if (!appForm.value.scopes.trim()) {
@@ -455,25 +455,25 @@ async function handleDelete(row: OAuthAppListItemDto) {
           </NEmpty>
           <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 180px)">
             <NDescriptions :column="1" bordered size="small">
-              <NDescriptionsItem :label="t('openapi.app.detail_appName')">
+              <NDescriptionsItem :label="t('openapi.app.detail_app_name')">
                 {{ currentDetail.appName }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_appDescription')">
+              <NDescriptionsItem :label="t('openapi.app.detail_app_description')">
                 {{ formatNullable(currentDetail.appDescription) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_clientId')">
+              <NDescriptionsItem :label="t('openapi.app.detail_client_id')">
                 {{ currentDetail.clientId }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_appType')">
+              <NDescriptionsItem :label="t('openapi.app.detail_app_type')">
                 {{ getOptionLabel(appTypeOptions, currentDetail.appType) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_grantTypes')">
+              <NDescriptionsItem :label="t('openapi.app.detail_grant_types')">
                 {{ formatNullable(currentDetail.grantTypes) }}
               </NDescriptionsItem>
               <NDescriptionsItem :label="t('openapi.app.detail_scopes')">
                 {{ formatNullable(currentDetail.scopes) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_redirectUris')">
+              <NDescriptionsItem :label="t('openapi.app.detail_redirect_uris')">
                 {{ formatNullable(currentDetail.redirectUris) }}
               </NDescriptionsItem>
               <NDescriptionsItem :label="t('openapi.app.detail_homepage')">
@@ -482,16 +482,16 @@ async function handleDelete(row: OAuthAppListItemDto) {
               <NDescriptionsItem :label="t('openapi.app.detail_logo')">
                 {{ formatNullable(currentDetail.logo) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_accessTokenLifetime')">
+              <NDescriptionsItem :label="t('openapi.app.detail_access_token_lifetime')">
                 {{ formatSeconds(currentDetail.accessTokenLifetime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_refreshTokenLifetime')">
+              <NDescriptionsItem :label="t('openapi.app.detail_refresh_token_lifetime')">
                 {{ formatSeconds(currentDetail.refreshTokenLifetime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_authorizationCodeLifetime')">
+              <NDescriptionsItem :label="t('openapi.app.detail_authorization_code_lifetime')">
                 {{ formatSeconds(currentDetail.authorizationCodeLifetime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_skipConsent')">
+              <NDescriptionsItem :label="t('openapi.app.detail_skip_consent')">
                 {{ currentDetail.skipConsent ? t('openapi.app.detail_skip_consent_yes') : t('openapi.app.detail_skip_consent_no') }}
               </NDescriptionsItem>
               <NDescriptionsItem :label="t('openapi.app.detail_status')">
@@ -500,10 +500,10 @@ async function handleDelete(row: OAuthAppListItemDto) {
               <NDescriptionsItem :label="t('openapi.app.detail_remark')">
                 {{ formatNullable(currentDetail.remark) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_createdTime')">
+              <NDescriptionsItem :label="t('openapi.app.detail_created_time')">
                 {{ formatNullableDate(currentDetail.createdTime) }}
               </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_modifiedTime')">
+              <NDescriptionsItem :label="t('openapi.app.detail_modified_time')">
                 {{ formatNullableDate(currentDetail.modifiedTime) }}
               </NDescriptionsItem>
             </NDescriptions>
@@ -522,26 +522,26 @@ async function handleDelete(row: OAuthAppListItemDto) {
       style="width: 680px; max-width: 92vw"
     >
       <NForm :model="appForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('openapi.app.form_appName')" path="appName">
-          <NInput v-model:value="appForm.appName" clearable :placeholder="t('openapi.app.form_appName_placeholder')" />
+        <NFormItem :label="t('openapi.app.form_app_name')" path="appName">
+          <NInput v-model:value="appForm.appName" clearable :placeholder="t('openapi.app.form_app_name_placeholder')" />
         </NFormItem>
-        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_clientId')" path="clientId">
-          <NInput v-model:value="appForm.clientId" clearable :placeholder="t('openapi.app.form_clientId_placeholder')" />
+        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_client_id')" path="clientId">
+          <NInput v-model:value="appForm.clientId" clearable :placeholder="t('openapi.app.form_client_id_placeholder')" />
         </NFormItem>
-        <NFormItem v-else :label="t('openapi.app.form_clientId')" path="clientId">
+        <NFormItem v-else :label="t('openapi.app.form_client_id')" path="clientId">
           <NInput v-model:value="appForm.clientId" disabled />
         </NFormItem>
-        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_appType')" path="appType">
+        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_app_type')" path="appType">
           <NSelect v-model:value="appForm.appType" :options="appTypeOptions" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_grantTypes')" path="grantTypes">
-          <NInput v-model:value="appForm.grantTypes" clearable :placeholder="t('openapi.app.form_grantTypes_placeholder')" />
+        <NFormItem :label="t('openapi.app.form_grant_types')" path="grantTypes">
+          <NInput v-model:value="appForm.grantTypes" clearable :placeholder="t('openapi.app.form_grant_types_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_scopes')" path="scopes">
           <NInput v-model:value="appForm.scopes" clearable :placeholder="t('openapi.app.form_scopes_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_redirectUris')" path="redirectUris">
-          <NInput v-model:value="appForm.redirectUris" clearable :placeholder="t('openapi.app.form_redirectUris_placeholder')" />
+        <NFormItem :label="t('openapi.app.form_redirect_uris')" path="redirectUris">
+          <NInput v-model:value="appForm.redirectUris" clearable :placeholder="t('openapi.app.form_redirect_uris_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_homepage')" path="homepage">
           <NInput v-model:value="appForm.homepage" clearable :placeholder="t('openapi.app.form_homepage_placeholder')" />
@@ -549,26 +549,26 @@ async function handleDelete(row: OAuthAppListItemDto) {
         <NFormItem :label="t('openapi.app.form_logo')" path="logo">
           <NInput v-model:value="appForm.logo" clearable :placeholder="t('openapi.app.form_logo_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_accessTokenLifetime')" path="accessTokenLifetime">
+        <NFormItem :label="t('openapi.app.form_access_token_lifetime')" path="accessTokenLifetime">
           <NInputNumber v-model:value="appForm.accessTokenLifetime" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_refreshTokenLifetime')" path="refreshTokenLifetime">
+        <NFormItem :label="t('openapi.app.form_refresh_token_lifetime')" path="refreshTokenLifetime">
           <NInputNumber v-model:value="appForm.refreshTokenLifetime" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_authorizationCodeLifetime')" path="authorizationCodeLifetime">
+        <NFormItem :label="t('openapi.app.form_authorization_code_lifetime')" path="authorizationCodeLifetime">
           <NInputNumber v-model:value="appForm.authorizationCodeLifetime" :min="0" style="width: 100%" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_skipConsent')" path="skipConsent">
+        <NFormItem :label="t('openapi.app.form_skip_consent')" path="skipConsent">
           <NSwitch v-model:value="appForm.skipConsent" />
         </NFormItem>
         <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_status')" path="status">
           <NSelect v-model:value="appForm.status" :options="statusOptions" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_appDescription')" path="appDescription">
+        <NFormItem :label="t('openapi.app.form_app_description')" path="appDescription">
           <NInput
             v-model:value="appForm.appDescription"
             clearable
-            :placeholder="t('openapi.app.form_appDescription_placeholder')"
+            :placeholder="t('openapi.app.form_app_description_placeholder')"
             :rows="2"
             type="textarea"
           />
@@ -601,10 +601,10 @@ async function handleDelete(row: OAuthAppListItemDto) {
       <NDrawerContent closable :title="t('openapi.app.secret_title')">
         <NSpace v-if="currentSecret" vertical>
           <NDescriptions :column="1" bordered size="small">
-            <NDescriptionsItem :label="t('openapi.app.secret_clientId')">
+            <NDescriptionsItem :label="t('openapi.app.secret_client_id')">
               {{ currentSecret.clientId }}
             </NDescriptionsItem>
-            <NDescriptionsItem :label="t('openapi.app.secret_clientSecret')">
+            <NDescriptionsItem :label="t('openapi.app.secret_client_secret')">
               <div class="p-3 font-mono text-sm break-all bg-gray-50 rounded dark:bg-gray-800">
                 {{ currentSecret.clientSecret }}
               </div>

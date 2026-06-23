@@ -38,7 +38,7 @@ export default {
   approval,
   file,
   workbench,
-  checkUpdates: {
+  check_updates: {
     title: 'New Version Available',
     description: 'A new version has been detected. Please refresh the page to load the latest version.',
     refresh: 'Refresh Now',

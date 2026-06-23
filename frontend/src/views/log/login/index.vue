@@ -20,19 +20,19 @@ const detailLoading = ref(false)
 const detailData = ref<LoginLogDetailDto | null>(null)
 
 const loginResultOptions = computed(() => [
-  { label: t('log.login.resultSuccess'), value: LoginResult.Success },
-  { label: t('log.login.resultInvalidCredentials'), value: LoginResult.InvalidCredentials },
-  { label: t('log.login.resultAccountLocked'), value: LoginResult.AccountLocked },
-  { label: t('log.login.resultAccountDisabled'), value: LoginResult.AccountDisabled },
-  { label: t('log.login.resultRequiresTwoFactor'), value: LoginResult.RequiresTwoFactor },
-  { label: t('log.login.resultTwoFactorFailed'), value: LoginResult.TwoFactorFailed },
-  { label: t('log.login.resultLogout'), value: LoginResult.Logout },
-  { label: t('log.login.resultTokenRefreshed'), value: LoginResult.TokenRefreshed },
-  { label: t('log.login.resultPasswordChanged'), value: LoginResult.PasswordChanged },
-  { label: t('log.login.resultPasswordReset'), value: LoginResult.PasswordReset },
-  { label: t('log.login.resultMfaBound'), value: LoginResult.MfaBound },
-  { label: t('log.login.resultMfaUnbound'), value: LoginResult.MfaUnbound },
-  { label: t('log.login.resultFailed'), value: LoginResult.Failed },
+  { label: t('log.login.result_success'), value: LoginResult.Success },
+  { label: t('log.login.result_invalid_credentials'), value: LoginResult.InvalidCredentials },
+  { label: t('log.login.result_account_locked'), value: LoginResult.AccountLocked },
+  { label: t('log.login.result_account_disabled'), value: LoginResult.AccountDisabled },
+  { label: t('log.login.result_requires_two_factor'), value: LoginResult.RequiresTwoFactor },
+  { label: t('log.login.result_two_factor_failed'), value: LoginResult.TwoFactorFailed },
+  { label: t('log.login.result_logout'), value: LoginResult.Logout },
+  { label: t('log.login.result_token_refreshed'), value: LoginResult.TokenRefreshed },
+  { label: t('log.login.result_password_changed'), value: LoginResult.PasswordChanged },
+  { label: t('log.login.result_password_reset'), value: LoginResult.PasswordReset },
+  { label: t('log.login.result_mfa_bound'), value: LoginResult.MfaBound },
+  { label: t('log.login.result_mfa_unbound'), value: LoginResult.MfaUnbound },
+  { label: t('log.login.result_failed'), value: LoginResult.Failed },
 ])
 
 const riskOptions = computed(() => [
@@ -61,21 +61,21 @@ function loginResultType(result: LoginResult) {
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.login.keywordPlaceholder'), order: 0 },
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.login.keyword_placeholder'), order: 0 },
   // 列（顺序对齐实体 SysLoginLog 属性声明）
-  { key: 'userId', title: t('log.common.userId'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: t('log.common.userName'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
-  { key: 'sessionId', title: t('log.common.sessionId'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
-  { key: 'traceId', title: t('log.common.traceId'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
-  { key: 'loginIp', title: t('log.login.loginIp'), dataType: 'string', searchable: true, searchPlaceholder: t('log.login.loginIpPlaceholder'), minWidth: 130, order: 14 },
-  { key: 'loginLocation', title: t('log.login.loginLocation'), dataType: 'string', minWidth: 160, order: 15 },
+  { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
+  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
+  { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
+  { key: 'loginIp', title: t('log.login.login_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.login.login_ip_placeholder'), minWidth: 130, order: 14 },
+  { key: 'loginLocation', title: t('log.login.login_location'), dataType: 'string', minWidth: 160, order: 15 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 16 },
   { key: 'os', title: t('log.common.os'), dataType: 'string', minWidth: 120, order: 17 },
   { key: 'device', title: t('log.common.device'), dataType: 'string', minWidth: 120, order: 18 },
-  { key: 'deviceId', title: t('log.common.deviceId'), dataType: 'string', minWidth: 160, order: 19 },
+  { key: 'deviceId', title: t('log.common.device_id'), dataType: 'string', minWidth: 160, order: 19 },
   {
     key: 'isRiskLogin',
-    title: t('log.login.isRiskLogin'),
+    title: t('log.login.is_risk_login'),
     dataType: 'boolean',
     advancedSearch: true,
     options: riskOptions.value,
@@ -85,21 +85,21 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   {
     key: 'loginResult',
-    title: t('log.login.loginResult'),
+    title: t('log.login.login_result'),
     dataType: 'enum',
     searchable: true,
     options: loginResultOptions.value,
-    searchPlaceholder: t('log.login.loginResultPlaceholder'),
+    searchPlaceholder: t('log.login.login_result_placeholder'),
     width: 120,
     order: 21,
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult)),
   },
   { key: 'message', title: t('log.login.message'), dataType: 'string', minWidth: 220, order: 22 },
-  { key: 'loginTime', title: t('log.login.loginTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
+  { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 24 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
-  { key: 'loginTimeStart', title: t('log.common.startTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.startTime'), order: 40 },
-  { key: 'loginTimeEnd', title: t('log.common.endTime'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.endTime'), order: 41 },
+  { key: 'loginTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 40 },
+  { key: 'loginTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 41 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -133,7 +133,7 @@ function buildLoginQuery(params: SchemaQueryParams) {
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.login',
   exportPermission: 'saas:login-log:export',
-  pageName: t('log.login.pageName'),
+  pageName: t('log.login.page_name'),
   rowKey: 'basicId',
   scrollX: 2000,
   fields: fields.value,
@@ -147,25 +147,25 @@ const schema = computed<PageSchema>(() => ({
 }))
 
 const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basicId') },
-  { key: 'sessionId', label: t('log.common.sessionId') },
-  { key: 'traceId', label: t('log.common.traceId') },
-  { key: 'userName', label: t('log.common.userName') },
-  { key: 'userId', label: t('log.common.userId') },
-  { key: 'loginIp', label: t('log.login.loginIp') },
-  { key: 'loginLocation', label: t('log.login.loginLocation') },
+  { key: 'basicId', label: t('log.common.basic_id') },
+  { key: 'sessionId', label: t('log.common.session_id') },
+  { key: 'traceId', label: t('log.common.trace_id') },
+  { key: 'userName', label: t('log.common.user_name') },
+  { key: 'userId', label: t('log.common.user_id') },
+  { key: 'loginIp', label: t('log.login.login_ip') },
+  { key: 'loginLocation', label: t('log.login.login_location') },
   { key: 'browser', label: t('log.common.browser') },
   { key: 'os', label: t('log.common.os') },
   { key: 'device', label: t('log.common.device') },
-  { key: 'deviceId', label: t('log.common.deviceId') },
-  { key: 'loginResult', label: t('log.login.loginResult'), options: loginResultOptions.value, type: 'enum' },
-  { key: 'isRiskLogin', falseText: t('common.statuses.no'), label: t('log.login.isRiskLogin'), trueText: t('common.statuses.yes'), type: 'boolean' },
-  { key: 'loginTime', label: t('log.login.loginTime'), type: 'date' },
+  { key: 'deviceId', label: t('log.common.device_id') },
+  { key: 'loginResult', label: t('log.login.login_result'), options: loginResultOptions.value, type: 'enum' },
+  { key: 'isRiskLogin', falseText: t('common.statuses.no'), label: t('log.login.is_risk_login'), trueText: t('common.statuses.yes'), type: 'boolean' },
+  { key: 'loginTime', label: t('log.login.login_time'), type: 'date' },
   { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'createdId', label: t('log.common.createdId') },
+  { key: 'createdId', label: t('log.common.created_id') },
   { key: 'createdBy', label: t('common.fields.created_by') },
   { key: 'message', label: t('log.login.message'), type: 'code' },
-  { key: 'userAgent', label: t('log.common.userAgent'), type: 'code' },
+  { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
 ])
 
 function onAction(payload: SchemaActionPayload) {
@@ -183,7 +183,7 @@ async function handleDetail(row: LoginLogListItemDto) {
   }
   catch {
     detailData.value = row
-    message.error(t('log.login.detailLoadFailed'))
+    message.error(t('log.login.detail_load_failed'))
   }
   finally {
     detailLoading.value = false
@@ -198,7 +198,7 @@ async function handleDetail(row: LoginLogListItemDto) {
       :fields="detailFields"
       :loading="detailLoading"
       :record="detailData"
-      :title="t('log.login.detailTitle')"
+      :title="t('log.login.detail_title')"
     />
   </SchemaPage>
 </template>

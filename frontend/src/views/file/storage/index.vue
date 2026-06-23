@@ -51,17 +51,17 @@ function reloadList() {
 }
 
 const storageTypeOptions = computed(() => [
-  { label: t('file.storage.storageType.local'), value: StorageConfigType.Local },
-  { label: t('file.storage.storageType.s3'), value: StorageConfigType.S3 },
-  { label: t('file.storage.storageType.oss'), value: StorageConfigType.OSS },
-  { label: t('file.storage.storageType.cos'), value: StorageConfigType.COS },
-  { label: t('file.storage.storageType.minio'), value: StorageConfigType.MinIO },
+  { label: t('file.storage.storage_type.local'), value: StorageConfigType.Local },
+  { label: t('file.storage.storage_type.s3'), value: StorageConfigType.S3 },
+  { label: t('file.storage.storage_type.oss'), value: StorageConfigType.OSS },
+  { label: t('file.storage.storage_type.cos'), value: StorageConfigType.COS },
+  { label: t('file.storage.storage_type.minio'), value: StorageConfigType.MinIO },
 ])
 
 // SchemaSelectOption.value 仅支持 string | number；布尔搜索项用 1/0，page() 里转回 boolean
 const defaultOptions = computed(() => [
-  { label: t('file.storage.default.isDefault'), value: 1 },
-  { label: t('file.storage.default.notDefault'), value: 0 },
+  { label: t('file.storage.default.is_default'), value: 1 },
+  { label: t('file.storage.default.not_default'), value: 0 },
 ])
 const enabledOptions = computed(() => [
   { label: t('file.storage.enabled.enabled'), value: 1 },
@@ -78,16 +78,16 @@ function pickBoolean(value: unknown): boolean | undefined {
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('file.storage.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('file.storage.columns.keywordPlaceholder'), order: 0 },
-  { key: 'configCode', title: t('file.storage.columns.configCode'), dataType: 'string', minWidth: 150, order: 1 },
-  { key: 'configName', title: t('file.storage.columns.configName'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'keyword', title: t('file.storage.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('file.storage.columns.keyword_placeholder'), order: 0 },
+  { key: 'configCode', title: t('file.storage.columns.config_code'), dataType: 'string', minWidth: 150, order: 1 },
+  { key: 'configName', title: t('file.storage.columns.config_name'), dataType: 'string', minWidth: 150, order: 2 },
   {
     key: 'storageType',
-    title: t('file.storage.columns.storageType'),
+    title: t('file.storage.columns.storage_type'),
     dataType: 'enum',
     searchable: true,
     options: storageTypeOptions.value,
-    searchPlaceholder: t('file.storage.columns.storageTypePlaceholder'),
+    searchPlaceholder: t('file.storage.columns.storage_type_placeholder'),
     width: 110,
     order: 3,
     render: row => h(
@@ -98,7 +98,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   {
     key: 'bucketName',
-    title: t('file.storage.columns.bucketName'),
+    title: t('file.storage.columns.bucket_name'),
     dataType: 'string',
     minWidth: 160,
     order: 4,
@@ -111,11 +111,11 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   {
     key: 'isDefault',
-    title: t('file.storage.columns.isDefault'),
+    title: t('file.storage.columns.is_default'),
     dataType: 'boolean',
     searchable: true,
     options: defaultOptions.value,
-    searchPlaceholder: t('file.storage.columns.isDefaultPlaceholder'),
+    searchPlaceholder: t('file.storage.columns.is_default_placeholder'),
     width: 90,
     order: 5,
     render: (row) => {
@@ -131,7 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'boolean',
     searchable: true,
     options: enabledOptions.value,
-    searchPlaceholder: t('file.storage.columns.statusPlaceholder'),
+    searchPlaceholder: t('file.storage.columns.status_placeholder'),
     width: 90,
     order: 6,
     render: (row) => {
@@ -144,13 +144,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     },
   },
   { key: 'sort', title: t('file.storage.columns.sort'), dataType: 'number', width: 80, order: 7 },
-  { key: 'createdTime', title: t('file.storage.columns.createdTime'), dataType: 'datetime', minWidth: 170, order: 8 },
+  { key: 'createdTime', title: t('file.storage.columns.created_time'), dataType: 'datetime', minWidth: 170, order: 8 },
 ])
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'file.storage',
   exportPermission: 'saas:storage-config:export',
-  pageName: t('file.storage.pageName'),
+  pageName: t('file.storage.page_name'),
   statusPermission: 'saas:storage-config:status',
   rowKey: 'basicId',
   scrollX: 1200,
@@ -174,7 +174,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'toggle', title: t('file.storage.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:storage-config:status' },
     {
       key: 'setDefault',
-      title: t('file.storage.actions.setDefault'),
+      title: t('file.storage.actions.set_default'),
       scope: 'row',
       icon: 'lucide:star',
       permission: 'saas:storage-config:update',
@@ -227,10 +227,10 @@ const submitLoading = ref(false)
 const editingHasSecret = ref(false)
 const form = ref<StorageConfigFormModel>(createDefaultForm())
 
-const modalTitle = computed(() => (form.value.basicId ? t('file.storage.form.editTitle') : t('file.storage.form.addTitle')))
+const modalTitle = computed(() => (form.value.basicId ? t('file.storage.form.edit_title') : t('file.storage.form.add_title')))
 const isObjectStorage = computed(() => form.value.storageType !== StorageConfigType.Local)
 const secretPlaceholder = computed(() =>
-  form.value.basicId && editingHasSecret.value ? t('file.storage.form.secretConfigured') : t('file.storage.form.secretPlaceholder'),
+  form.value.basicId && editingHasSecret.value ? t('file.storage.form.secret_configured') : t('file.storage.form.secret_placeholder'),
 )
 
 function createDefaultForm(): StorageConfigFormModel {
@@ -260,7 +260,7 @@ async function handleEdit(row: StorageConfigListItemDto) {
   try {
     const detail = await storageConfigApi.detail(row.basicId)
     if (!detail) {
-      message.warning(t('file.storage.message.detailNotFound'))
+      message.warning(t('file.storage.message.detail_not_found'))
       return
     }
 
@@ -283,34 +283,34 @@ async function handleEdit(row: StorageConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('file.storage.message.loadDetailFailed'))
+    message.error((e as Error).message || t('file.storage.message.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.basicId && !form.value.configCode.trim()) {
-    message.warning(t('file.storage.message.inputConfigCode'))
+    message.warning(t('file.storage.message.input_config_code'))
     return false
   }
 
   if (!form.value.configName.trim()) {
-    message.warning(t('file.storage.message.inputConfigName'))
+    message.warning(t('file.storage.message.input_config_name'))
     return false
   }
 
   if (isObjectStorage.value) {
     if (!form.value.bucketName?.trim()) {
-      message.warning(t('file.storage.message.inputBucketName'))
+      message.warning(t('file.storage.message.input_bucket_name'))
       return false
     }
 
     if (!form.value.accessKeyId?.trim()) {
-      message.warning(t('file.storage.message.inputAccessKeyId'))
+      message.warning(t('file.storage.message.input_access_key_id'))
       return false
     }
 
     if (!form.value.basicId && !form.value.secretAccessKey?.trim()) {
-      message.warning(t('file.storage.message.inputSecretAccessKey'))
+      message.warning(t('file.storage.message.input_secret_access_key'))
       return false
     }
   }
@@ -357,12 +357,12 @@ async function handleSubmit() {
       })
     }
 
-    message.success(t('file.storage.message.saveSuccess'))
+    message.success(t('file.storage.message.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (e) {
-    message.error((e as Error).message || t('file.storage.message.saveFailed'))
+    message.error((e as Error).message || t('file.storage.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -372,20 +372,20 @@ async function handleSubmit() {
 function handleToggleStatus(row: StorageConfigListItemDto) {
   const next = !row.isEnabled
   dialog.warning({
-    title: next ? t('file.storage.message.enableTitle') : t('file.storage.message.disableTitle'),
+    title: next ? t('file.storage.message.enable_title') : t('file.storage.message.disable_title'),
     content: next
-      ? t('file.storage.message.enableContent', { name: row.configName })
-      : t('file.storage.message.disableContent', { name: row.configName }),
+      ? t('file.storage.message.enable_content', { name: row.configName })
+      : t('file.storage.message.disable_content', { name: row.configName }),
     positiveText: next ? t('file.storage.message.enable') : t('file.storage.message.disable'),
     negativeText: t('file.storage.form.cancel'),
     onPositiveClick: async () => {
       try {
         await storageConfigApi.updateStatus({ basicId: row.basicId, isEnabled: next })
-        message.success(t('file.storage.message.statusUpdated'))
+        message.success(t('file.storage.message.status_updated'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.storage.message.statusUpdateFailed'))
+        message.error((e as Error).message || t('file.storage.message.status_update_failed'))
       }
     },
   })
@@ -393,18 +393,18 @@ function handleToggleStatus(row: StorageConfigListItemDto) {
 
 function handleSetDefault(row: StorageConfigListItemDto) {
   dialog.info({
-    title: t('file.storage.message.setDefaultTitle'),
-    content: t('file.storage.message.setDefaultContent', { name: row.configName }),
-    positiveText: t('file.storage.message.setDefault'),
+    title: t('file.storage.message.set_default_title'),
+    content: t('file.storage.message.set_default_content', { name: row.configName }),
+    positiveText: t('file.storage.message.set_default'),
     negativeText: t('file.storage.form.cancel'),
     onPositiveClick: async () => {
       try {
         await storageConfigApi.setDefault({ basicId: row.basicId })
-        message.success(t('file.storage.message.setDefaultSuccess'))
+        message.success(t('file.storage.message.set_default_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.storage.message.setDefaultFailed'))
+        message.error((e as Error).message || t('file.storage.message.set_default_failed'))
       }
     },
   })
@@ -412,18 +412,18 @@ function handleSetDefault(row: StorageConfigListItemDto) {
 
 function handleDelete(row: StorageConfigListItemDto) {
   dialog.warning({
-    title: t('file.storage.message.deleteTitle'),
-    content: t('file.storage.message.deleteContent', { name: row.configName }),
+    title: t('file.storage.message.delete_title'),
+    content: t('file.storage.message.delete_content', { name: row.configName }),
     positiveText: t('file.storage.message.delete'),
     negativeText: t('file.storage.form.cancel'),
     onPositiveClick: async () => {
       try {
         await storageConfigApi.delete(row.basicId)
-        message.success(t('file.storage.message.deleteSuccess'))
+        message.success(t('file.storage.message.delete_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.storage.message.deleteFailed'))
+        message.error((e as Error).message || t('file.storage.message.delete_failed'))
       }
     },
   })
@@ -446,18 +446,18 @@ function handleDelete(row: StorageConfigListItemDto) {
     >
       <NConfigProvider size="small" abstract>
         <NForm :model="form" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('file.storage.form.configCode')" path="configCode">
+          <NFormItem :label="t('file.storage.form.config_code')" path="configCode">
             <NInput
               v-model:value="form.configCode"
               clearable size="small"
               :disabled="Boolean(form.basicId)"
-              :placeholder="t('file.storage.form.configCodePlaceholder')"
+              :placeholder="t('file.storage.form.config_code_placeholder')"
             />
           </NFormItem>
-          <NFormItem :label="t('file.storage.form.configName')" path="configName">
-            <NInput v-model:value="form.configName" clearable size="small" :placeholder="t('file.storage.form.configNamePlaceholder')" />
+          <NFormItem :label="t('file.storage.form.config_name')" path="configName">
+            <NInput v-model:value="form.configName" clearable size="small" :placeholder="t('file.storage.form.config_name_placeholder')" />
           </NFormItem>
-          <NFormItem :label="t('file.storage.form.storageType')" path="storageType">
+          <NFormItem :label="t('file.storage.form.storage_type')" path="storageType">
             <NSelect v-model:value="form.storageType" :options="storageTypeOptions" />
           </NFormItem>
           <NFormItem :label="t('file.storage.form.sort')" path="sort">
@@ -466,18 +466,18 @@ function handleDelete(row: StorageConfigListItemDto) {
 
           <template v-if="isObjectStorage">
             <NFormItem :label="t('file.storage.form.endpoint')" path="endpoint">
-              <NInput v-model:value="form.endpoint" clearable size="small" :placeholder="t('file.storage.form.endpointPlaceholder')" />
+              <NInput v-model:value="form.endpoint" clearable size="small" :placeholder="t('file.storage.form.endpoint_placeholder')" />
             </NFormItem>
             <NFormItem :label="t('file.storage.form.region')" path="region">
-              <NInput v-model:value="form.region" clearable size="small" :placeholder="t('file.storage.form.regionPlaceholder')" />
+              <NInput v-model:value="form.region" clearable size="small" :placeholder="t('file.storage.form.region_placeholder')" />
             </NFormItem>
-            <NFormItem :label="t('file.storage.form.bucketName')" path="bucketName">
-              <NInput v-model:value="form.bucketName" clearable size="small" :placeholder="t('file.storage.form.bucketNamePlaceholder')" />
+            <NFormItem :label="t('file.storage.form.bucket_name')" path="bucketName">
+              <NInput v-model:value="form.bucketName" clearable size="small" :placeholder="t('file.storage.form.bucket_name_placeholder')" />
             </NFormItem>
-            <NFormItem :label="t('file.storage.form.accessKeyId')" path="accessKeyId">
+            <NFormItem :label="t('file.storage.form.access_key_id')" path="accessKeyId">
               <NInput v-model:value="form.accessKeyId" clearable size="small" placeholder="AccessKeyId" />
             </NFormItem>
-            <NFormItem :label="t('file.storage.form.secretAccessKey')" path="secretAccessKey" style="grid-column: span 2">
+            <NFormItem :label="t('file.storage.form.secret_access_key')" path="secretAccessKey" style="grid-column: span 2">
               <NInput
                 v-model:value="form.secretAccessKey"
                 size="small"
@@ -488,22 +488,22 @@ function handleDelete(row: StorageConfigListItemDto) {
             </NFormItem>
           </template>
           <template v-else>
-            <NFormItem :label="t('file.storage.form.rootPath')" path="bucketName" style="grid-column: span 2">
-              <NInput v-model:value="form.bucketName" clearable size="small" :placeholder="t('file.storage.form.rootPathPlaceholder')" />
+            <NFormItem :label="t('file.storage.form.root_path')" path="bucketName" style="grid-column: span 2">
+              <NInput v-model:value="form.bucketName" clearable size="small" :placeholder="t('file.storage.form.root_path_placeholder')" />
             </NFormItem>
           </template>
 
           <template v-if="!form.basicId">
-            <NFormItem :label="t('file.storage.form.isEnabled')" path="isEnabled">
+            <NFormItem :label="t('file.storage.form.is_enabled')" path="isEnabled">
               <NSwitch v-model:value="form.isEnabled" />
             </NFormItem>
-            <NFormItem :label="t('file.storage.form.isDefault')" path="isDefault">
+            <NFormItem :label="t('file.storage.form.is_default')" path="isDefault">
               <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
             </NFormItem>
           </template>
 
           <NFormItem :label="t('file.storage.form.remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="form.remark" clearable size="small" :placeholder="t('file.storage.form.remarkPlaceholder')" />
+            <NInput v-model:value="form.remark" clearable size="small" :placeholder="t('file.storage.form.remark_placeholder')" />
           </NFormItem>
         </NForm>
       </NConfigProvider>

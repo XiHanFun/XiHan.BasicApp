@@ -71,54 +71,54 @@ const booleanOptions = computed(() => [
 ])
 
 const fileTypeOptions = computed(() => [
-  { label: t('file.library.fileType.image'), value: FileType.Image },
-  { label: t('file.library.fileType.document'), value: FileType.Document },
-  { label: t('file.library.fileType.video'), value: FileType.Video },
-  { label: t('file.library.fileType.audio'), value: FileType.Audio },
-  { label: t('file.library.fileType.archive'), value: FileType.Archive },
-  { label: t('file.library.fileType.other'), value: FileType.Other },
+  { label: t('file.library.file_type.image'), value: FileType.Image },
+  { label: t('file.library.file_type.document'), value: FileType.Document },
+  { label: t('file.library.file_type.video'), value: FileType.Video },
+  { label: t('file.library.file_type.audio'), value: FileType.Audio },
+  { label: t('file.library.file_type.archive'), value: FileType.Archive },
+  { label: t('file.library.file_type.other'), value: FileType.Other },
 ])
 
 const fileStatusOptions = computed(() => [
-  { label: t('file.library.fileStatus.normal'), value: FileStatus.Normal },
-  { label: t('file.library.fileStatus.uploading'), value: FileStatus.Uploading },
-  { label: t('file.library.fileStatus.uploadFailed'), value: FileStatus.UploadFailed },
-  { label: t('file.library.fileStatus.processing'), value: FileStatus.Processing },
-  { label: t('file.library.fileStatus.deleted'), value: FileStatus.Deleted },
-  { label: t('file.library.fileStatus.archived'), value: FileStatus.Archived },
-  { label: t('file.library.fileStatus.expired'), value: FileStatus.Expired },
-  { label: t('file.library.fileStatus.corrupted'), value: FileStatus.Corrupted },
-  { label: t('file.library.fileStatus.violation'), value: FileStatus.Violation },
+  { label: t('file.library.file_status.normal'), value: FileStatus.Normal },
+  { label: t('file.library.file_status.uploading'), value: FileStatus.Uploading },
+  { label: t('file.library.file_status.upload_failed'), value: FileStatus.UploadFailed },
+  { label: t('file.library.file_status.processing'), value: FileStatus.Processing },
+  { label: t('file.library.file_status.deleted'), value: FileStatus.Deleted },
+  { label: t('file.library.file_status.archived'), value: FileStatus.Archived },
+  { label: t('file.library.file_status.expired'), value: FileStatus.Expired },
+  { label: t('file.library.file_status.corrupted'), value: FileStatus.Corrupted },
+  { label: t('file.library.file_status.violation'), value: FileStatus.Violation },
 ])
 
 const accessLevelOptions = computed(() => [
-  { label: t('file.library.accessLevel.public'), value: ResourceAccessLevel.Public },
-  { label: t('file.library.accessLevel.authenticated'), value: ResourceAccessLevel.Authenticated },
-  { label: t('file.library.accessLevel.authorized'), value: ResourceAccessLevel.Authorized },
+  { label: t('file.library.access_level.public'), value: ResourceAccessLevel.Public },
+  { label: t('file.library.access_level.authenticated'), value: ResourceAccessLevel.Authenticated },
+  { label: t('file.library.access_level.authorized'), value: ResourceAccessLevel.Authorized },
 ])
 
 const storageTypeOptions = computed(() => [
-  { label: t('file.library.storageType.local'), value: FileStorageType.Local },
-  { label: t('file.library.storageType.aliyunOss'), value: FileStorageType.AliyunOss },
-  { label: t('file.library.storageType.tencentCos'), value: FileStorageType.TencentCos },
-  { label: t('file.library.storageType.minio'), value: FileStorageType.Minio },
-  { label: t('file.library.storageType.ftp'), value: FileStorageType.Ftp },
-  { label: t('file.library.storageType.sftp'), value: FileStorageType.Sftp },
-  { label: t('file.library.storageType.webdav'), value: FileStorageType.WebDav },
-  { label: t('file.library.storageType.custom'), value: FileStorageType.Custom },
+  { label: t('file.library.storage_type.local'), value: FileStorageType.Local },
+  { label: t('file.library.storage_type.aliyun_oss'), value: FileStorageType.AliyunOss },
+  { label: t('file.library.storage_type.tencent_cos'), value: FileStorageType.TencentCos },
+  { label: t('file.library.storage_type.minio'), value: FileStorageType.Minio },
+  { label: t('file.library.storage_type.ftp'), value: FileStorageType.Ftp },
+  { label: t('file.library.storage_type.sftp'), value: FileStorageType.Sftp },
+  { label: t('file.library.storage_type.webdav'), value: FileStorageType.WebDav },
+  { label: t('file.library.storage_type.custom'), value: FileStorageType.Custom },
 ])
 
 const storageStatusOptions = computed(() => [
-  { label: t('file.library.storageStatus.normal'), value: FileStorageStatus.Normal },
-  { label: t('file.library.storageStatus.uploading'), value: FileStorageStatus.Uploading },
-  { label: t('file.library.storageStatus.uploadFailed'), value: FileStorageStatus.UploadFailed },
-  { label: t('file.library.storageStatus.syncing'), value: FileStorageStatus.Syncing },
-  { label: t('file.library.storageStatus.syncFailed'), value: FileStorageStatus.SyncFailed },
-  { label: t('file.library.storageStatus.pendingVerification'), value: FileStorageStatus.PendingVerification },
-  { label: t('file.library.storageStatus.verificationFailed'), value: FileStorageStatus.VerificationFailed },
-  { label: t('file.library.storageStatus.expired'), value: FileStorageStatus.Expired },
-  { label: t('file.library.storageStatus.deleted'), value: FileStorageStatus.Deleted },
-  { label: t('file.library.storageStatus.unavailable'), value: FileStorageStatus.Unavailable },
+  { label: t('file.library.storage_status.normal'), value: FileStorageStatus.Normal },
+  { label: t('file.library.storage_status.uploading'), value: FileStorageStatus.Uploading },
+  { label: t('file.library.storage_status.upload_failed'), value: FileStorageStatus.UploadFailed },
+  { label: t('file.library.storage_status.syncing'), value: FileStorageStatus.Syncing },
+  { label: t('file.library.storage_status.sync_failed'), value: FileStorageStatus.SyncFailed },
+  { label: t('file.library.storage_status.pending_verification'), value: FileStorageStatus.PendingVerification },
+  { label: t('file.library.storage_status.verification_failed'), value: FileStorageStatus.VerificationFailed },
+  { label: t('file.library.storage_status.expired'), value: FileStorageStatus.Expired },
+  { label: t('file.library.storage_status.deleted'), value: FileStorageStatus.Deleted },
+  { label: t('file.library.storage_status.unavailable'), value: FileStorageStatus.Unavailable },
 ])
 
 // ── 过滤值清洗辅助 ──────────────────────────────────────────────
@@ -233,30 +233,30 @@ function canPreview(row: FileListItemDto): boolean {
 // ── 字段单一事实源 ──────────────────────────────────────────────
 // 后端 FilePageQueryDto 支持：keyword/fileType/status/accessLevel/isTemporary/isEncrypted/fileExtension/mimeType
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('file.library.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('file.library.columns.keywordPlaceholder'), width: 220, order: 0 },
+  { key: 'keyword', title: t('file.library.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('file.library.columns.keyword_placeholder'), width: 220, order: 0 },
   {
     key: 'originalName',
-    title: t('file.library.columns.originalName'),
+    title: t('file.library.columns.original_name'),
     dataType: 'string',
     minWidth: 220,
     fixed: 'left',
     order: 1,
   },
-  { key: 'fileName', title: t('file.library.columns.fileName'), dataType: 'string', minWidth: 220, order: 2 },
+  { key: 'fileName', title: t('file.library.columns.file_name'), dataType: 'string', minWidth: 220, order: 2 },
   {
     key: 'fileType',
-    title: t('file.library.columns.fileType'),
+    title: t('file.library.columns.file_type'),
     dataType: 'enum',
     searchable: true,
     options: fileTypeOptions.value,
-    searchPlaceholder: t('file.library.columns.fileTypePlaceholder'),
+    searchPlaceholder: t('file.library.columns.file_type_placeholder'),
     width: 110,
     order: 3,
     render: row => h(NTag, { round: true, size: 'small' }, () => getOptionLabel(fileTypeOptions.value, (row as unknown as FileListItemDto).fileType)),
   },
   {
     key: 'fileSize',
-    title: t('file.library.columns.fileSize'),
+    title: t('file.library.columns.file_size'),
     dataType: 'number',
     minWidth: 110,
     order: 4,
@@ -268,53 +268,53 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     searchable: true,
     options: fileStatusOptions.value,
-    searchPlaceholder: t('file.library.columns.statusPlaceholder'),
+    searchPlaceholder: t('file.library.columns.status_placeholder'),
     width: 110,
     order: 5,
     render: row => h(NTag, { type: getFileStatusTagType((row as unknown as FileListItemDto).status), round: true, size: 'small' }, () => getOptionLabel(fileStatusOptions.value, (row as unknown as FileListItemDto).status)),
   },
   {
     key: 'accessLevel',
-    title: t('file.library.columns.accessLevel'),
+    title: t('file.library.columns.access_level'),
     dataType: 'enum',
     searchable: true,
     options: accessLevelOptions.value,
-    searchPlaceholder: t('file.library.columns.accessLevelPlaceholder'),
+    searchPlaceholder: t('file.library.columns.access_level_placeholder'),
     minWidth: 110,
     order: 6,
     render: row => getOptionLabel(accessLevelOptions.value, (row as unknown as FileListItemDto).accessLevel),
   },
   {
     key: 'isTemporary',
-    title: t('file.library.columns.isTemporary'),
+    title: t('file.library.columns.is_temporary'),
     dataType: 'boolean',
     searchable: true,
     options: booleanOptions.value,
-    searchPlaceholder: t('file.library.columns.isTemporaryPlaceholder'),
+    searchPlaceholder: t('file.library.columns.is_temporary_placeholder'),
     width: 82,
     order: 7,
   },
   {
     key: 'isEncrypted',
-    title: t('file.library.columns.isEncrypted'),
+    title: t('file.library.columns.is_encrypted'),
     dataType: 'boolean',
     searchable: true,
     options: booleanOptions.value,
-    searchPlaceholder: t('file.library.columns.isEncryptedPlaceholder'),
+    searchPlaceholder: t('file.library.columns.is_encrypted_placeholder'),
     width: 82,
     order: 8,
   },
-  { key: 'fileExtension', title: t('file.library.columns.fileExtension'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('file.library.columns.fileExtensionPlaceholder'), minWidth: 90, order: 9 },
-  { key: 'mimeType', title: t('file.library.columns.mimeType'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('file.library.columns.mimeTypePlaceholder'), minWidth: 160, order: 10 },
-  { key: 'downloadCount', title: t('file.library.columns.downloadCount'), dataType: 'number', minWidth: 90, order: 11 },
-  { key: 'viewCount', title: t('file.library.columns.viewCount'), dataType: 'number', minWidth: 90, order: 12 },
-  { key: 'createdTime', title: t('file.library.columns.createdTime'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
+  { key: 'fileExtension', title: t('file.library.columns.file_extension'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('file.library.columns.file_extension_placeholder'), minWidth: 90, order: 9 },
+  { key: 'mimeType', title: t('file.library.columns.mime_type'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('file.library.columns.mime_type_placeholder'), minWidth: 160, order: 10 },
+  { key: 'downloadCount', title: t('file.library.columns.download_count'), dataType: 'number', minWidth: 90, order: 11 },
+  { key: 'viewCount', title: t('file.library.columns.view_count'), dataType: 'number', minWidth: 90, order: 12 },
+  { key: 'createdTime', title: t('file.library.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
 ])
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.file',
   exportPermission: 'saas:file:export',
-  pageName: t('file.library.pageName'),
+  pageName: t('file.library.page_name'),
   rowKey: 'basicId',
   scrollX: 1800,
   fields: fields.value,
@@ -404,7 +404,7 @@ const detailLoading = ref(false)
 const detailKind = ref<DetailKind>('file')
 const currentFileDetail = ref<FileDetailDto | null>(null)
 const currentStorageDetail = ref<FileStorageDetailDto | null>(null)
-const detailTitle = computed(() => detailKind.value === 'file' ? t('file.library.detail.fileTitle') : t('file.library.detail.storageTitle'))
+const detailTitle = computed(() => detailKind.value === 'file' ? t('file.library.detail.file_title') : t('file.library.detail.storage_title'))
 
 /**
  * 尺寸/时长智能文案：图片显「宽 × 高」、音视频显时长；文档等无此信息时返回空（详情中整行隐藏，不再显示「- x - / -」）。
@@ -523,14 +523,14 @@ async function handleSaveMetadata() {
     reload()
   }
   catch {
-    message.error(t('file.library.metadata.updateFailed'))
+    message.error(t('file.library.metadata.update_failed'))
   }
   finally {
     metadataLoading.value = false
   }
 }
 
-async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, successText = t('file.library.message.fileStatusUpdated')) {
+async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, successText = t('file.library.message.file_status_updated')) {
   actionLoading.value = true
   try {
     await fileManagementApi.updateStatus({ basicId: row.basicId, status })
@@ -538,7 +538,7 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, 
     reload()
   }
   catch {
-    message.error(t('file.library.message.operationFailed'))
+    message.error(t('file.library.message.operation_failed'))
   }
   finally {
     actionLoading.value = false
@@ -548,8 +548,8 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, 
 /** 彻底删除：物理删除记录 + 物理文件，不可恢复，强二次确认 */
 function handleDestroyFile(row: FileListItemDto) {
   dialog.error({
-    title: t('file.library.message.destroyTitle'),
-    content: t('file.library.message.destroyContent', { name: row.originalName }),
+    title: t('file.library.message.destroy_title'),
+    content: t('file.library.message.destroy_content', { name: row.originalName }),
     positiveText: t('file.library.actions.destroy'),
     negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
@@ -560,7 +560,7 @@ function handleDestroyFile(row: FileListItemDto) {
         reload()
       }
       catch {
-        message.error(t('file.library.message.destroyFailed'))
+        message.error(t('file.library.message.destroy_failed'))
       }
       finally {
         actionLoading.value = false
@@ -599,13 +599,13 @@ async function handleUploadRequest(options: UploadCustomRequestOptions) {
     )
     options.onProgress({ percent: 100 })
     options.onFinish()
-    task.success(t('file.library.upload.uploadSuccess'), { detail: rawFile.name })
+    task.success(t('file.library.upload.upload_success'), { detail: rawFile.name })
     await nextTick()
     reload()
   }
   catch {
     options.onError()
-    task.error(t('file.library.upload.uploadFailed'), { detail: rawFile.name })
+    task.error(t('file.library.upload.upload_failed'), { detail: rawFile.name })
   }
   finally {
     uploadLoading.value = false
@@ -622,7 +622,7 @@ async function handleFileDetail(row: FileListItemDto) {
   }
   catch {
     currentFileDetail.value = null
-    message.error(t('file.library.message.fileDetailFailed'))
+    message.error(t('file.library.message.file_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -659,7 +659,7 @@ async function copyPreviewText() {
     message.success(t('file.library.preview.copied'))
   }
   catch {
-    message.error(t('file.library.preview.copyFailed'))
+    message.error(t('file.library.preview.copy_failed'))
   }
 }
 
@@ -686,7 +686,7 @@ async function handlePreview(row: FileListItemDto) {
   previewLoading.value = true
   try {
     if ((kind === 'markdown' || kind === 'text') && row.fileSize > PREVIEW_TEXT_MAX_BYTES) {
-      previewTextError.value = t('file.library.preview.textTooLarge')
+      previewTextError.value = t('file.library.preview.text_too_large')
       return
     }
     const blob = await fileManagementApi.download(row.basicId)
@@ -705,7 +705,7 @@ async function handlePreview(row: FileListItemDto) {
     }
   }
   catch (error) {
-    const reason = (error as Error).message || t('file.library.preview.loadFailed')
+    const reason = (error as Error).message || t('file.library.preview.load_failed')
     if (kind === 'markdown' || kind === 'text') {
       previewTextError.value = reason
     }
@@ -725,7 +725,7 @@ function parseCsv(text: string) {
   }
   const header = rows[0] ?? []
   csvColumns.value = header.map((title, index) => ({
-    title: title || t('file.library.preview.csvColumn', { index: index + 1 }),
+    title: title || t('file.library.preview.csv_column', { index: index + 1 }),
     key: String(index),
     resizable: true,
     ellipsis: { tooltip: true },
@@ -749,7 +749,7 @@ async function handleDownload(row: FileListItemDto) {
     downloadBlob(blob, row.originalName)
   }
   catch (error) {
-    message.error((error as Error).message || t('file.library.message.downloadFailed'))
+    message.error((error as Error).message || t('file.library.message.download_failed'))
   }
 }
 
@@ -803,7 +803,7 @@ async function loadStorageRows() {
   }
   catch {
     storageRows.value = []
-    message.error(t('file.library.storageList.loadFailed'))
+    message.error(t('file.library.storage_list.load_failed'))
   }
   finally {
     storageListLoading.value = false
@@ -822,7 +822,7 @@ async function viewStorageDetail(storageId: string) {
   }
   catch {
     currentStorageDetail.value = null
-    message.error(t('file.library.message.storageDetailFailed'))
+    message.error(t('file.library.message.storage_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -838,11 +838,11 @@ async function handleSwitchPrimary(storage: FileStorageListItemDto) {
   actionLoading.value = true
   try {
     await fileManagementApi.switchPrimaryStorage({ basicId: file.basicId, storageId: storage.basicId })
-    message.success(t('file.library.message.setPrimary'))
+    message.success(t('file.library.message.set_primary'))
     await loadStorageRows()
   }
   catch {
-    message.error(t('file.library.message.setPrimaryFailed'))
+    message.error(t('file.library.message.set_primary_failed'))
   }
   finally {
     actionLoading.value = false
@@ -854,11 +854,11 @@ async function handleVerifyStorage(storage: FileStorageListItemDto) {
   actionLoading.value = true
   try {
     await fileManagementApi.verifyStorage({ basicId: storage.basicId })
-    message.success(t('file.library.message.verifyTriggered'))
+    message.success(t('file.library.message.verify_triggered'))
     await loadStorageRows()
   }
   catch {
-    message.error(t('file.library.message.verifyFailed'))
+    message.error(t('file.library.message.verify_failed'))
   }
   finally {
     actionLoading.value = false
@@ -873,11 +873,11 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
   actionLoading.value = true
   try {
     await fileManagementApi.updateStorageStatus({ basicId: storage.basicId, status: nextStatus })
-    message.success(t('file.library.message.storageStatusUpdated'))
+    message.success(t('file.library.message.storage_status_updated'))
     await loadStorageRows()
   }
   catch {
-    message.error(t('file.library.message.storageStatusFailed'))
+    message.error(t('file.library.message.storage_status_failed'))
   }
   finally {
     actionLoading.value = false
@@ -887,20 +887,20 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
 const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => [
   {
     key: 'storageType',
-    title: t('file.library.storageList.columns.storageType'),
+    title: t('file.library.storage_list.columns.storage_type'),
     minWidth: 110,
     render: row => getOptionLabel(storageTypeOptions.value, row.storageType),
   },
   {
     key: 'storageProvider',
-    title: t('file.library.storageList.columns.provider'),
+    title: t('file.library.storage_list.columns.provider'),
     minWidth: 140,
     ellipsis: { tooltip: true },
     render: row => `${row.storageProvider || '-'} / ${row.storageRegion || '-'}`,
   },
   {
     key: 'isPrimary',
-    title: t('file.library.storageList.columns.isPrimary'),
+    title: t('file.library.storage_list.columns.is_primary'),
     width: 80,
     render: row => row.isPrimary
       ? h(NTag, { size: 'small', type: 'info', round: true, bordered: false }, () => t('file.library.flag.primary'))
@@ -908,40 +908,40 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
   },
   {
     key: 'flags',
-    title: t('file.library.storageList.columns.verifySync'),
+    title: t('file.library.storage_list.columns.verify_sync'),
     width: 110,
     render: row => `${formatFlag(row.isVerified)} / ${formatFlag(row.isSynced)}`,
   },
   {
     key: 'status',
-    title: t('file.library.storageList.columns.status'),
+    title: t('file.library.storage_list.columns.status'),
     width: 100,
     render: row => h(NTag, { size: 'small', round: true, type: getStorageStatusTagType(row.status) }, () => getOptionLabel(storageStatusOptions.value, row.status)),
   },
   {
     key: 'actions',
-    title: t('file.library.storageList.columns.actions'),
+    title: t('file.library.storage_list.columns.actions'),
     width: 150,
     fixed: 'right',
     render: row => h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
       h(NTooltip, null, {
         trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, onClick: () => viewStorageDetail(row.basicId) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:eye' })) }),
-        default: () => t('file.library.storageList.tooltip.detail'),
+        default: () => t('file.library.storage_list.tooltip.detail'),
       }),
       h(NTooltip, null, {
         trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'primary', disabled: row.isPrimary, onClick: () => handleSwitchPrimary(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:star' })) }),
-        default: () => row.isPrimary ? t('file.library.storageList.tooltip.isPrimary') : t('file.library.storageList.tooltip.setPrimary'),
+        default: () => row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'),
       }),
       h(NTooltip, null, {
         trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: 'info', onClick: () => handleVerifyStorage(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:shield-check' })) }),
-        default: () => t('file.library.storageList.tooltip.verify'),
+        default: () => t('file.library.storage_list.tooltip.verify'),
       }),
       h(NPopconfirm, { onPositiveClick: () => handleToggleStorageStatus(row) }, {
         trigger: () => h(NTooltip, null, {
           trigger: () => h(NButton, { size: 'small', quaternary: true, circle: true, type: row.status === FileStorageStatus.Normal ? 'warning' : 'success' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === FileStorageStatus.Normal ? 'lucide:ban' : 'lucide:circle-check' })) }),
-          default: () => row.status === FileStorageStatus.Normal ? t('file.library.storageList.tooltip.disable') : t('file.library.storageList.tooltip.enable'),
+          default: () => row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
         }),
-        default: () => t('file.library.storageList.confirmToggle', { action: row.status === FileStorageStatus.Normal ? t('file.library.storageList.tooltip.disable') : t('file.library.storageList.tooltip.enable') }),
+        default: () => t('file.library.storage_list.confirm_toggle', { action: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable') }),
       }),
     ]),
   },
@@ -976,10 +976,10 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
                 <Icon icon="lucide:cloud-upload" />
               </NIcon>
               <div class="file-upload-dragger__text">
-                {{ t('file.library.upload.draggerText') }}
+                {{ t('file.library.upload.dragger_text') }}
               </div>
               <div class="file-upload-dragger__hint">
-                {{ t('file.library.upload.draggerHint') }}
+                {{ t('file.library.upload.dragger_hint') }}
               </div>
             </div>
           </NUploadDragger>
@@ -987,12 +987,12 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
         <!-- 访问级别 -->
         <div class="file-upload-field">
-          <span class="file-upload-field__label">{{ t('file.library.upload.accessLevel') }}</span>
+          <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
           <NSelect
             v-model:value="uploadForm.accessLevel"
             :options="accessLevelOptions"
             :disabled="uploadLoading"
-            :placeholder="t('file.library.upload.accessLevelPlaceholder')"
+            :placeholder="t('file.library.upload.access_level_placeholder')"
           />
         </div>
 
@@ -1014,18 +1014,18 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
         <!-- 保留天数：仅临时文件需要 -->
         <div v-if="uploadForm.isTemporary" class="file-upload-field">
-          <span class="file-upload-field__label">{{ t('file.library.upload.retentionDays') }}</span>
+          <span class="file-upload-field__label">{{ t('file.library.upload.retention_days') }}</span>
           <NInputNumber
             v-model:value="uploadForm.retentionDays"
             :min="1"
             :disabled="uploadLoading"
-            :placeholder="t('file.library.upload.retentionPlaceholder')"
+            :placeholder="t('file.library.upload.retention_placeholder')"
             style="width: 100%"
           />
         </div>
 
-        <NInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tagsPlaceholder')" />
-        <NInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remarkPlaceholder')" type="textarea" :rows="2" />
+        <NInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tags_placeholder')" />
+        <NInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
       </NSpace>
     </NModal>
 
@@ -1033,11 +1033,11 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
       <NDrawerContent closable :title="t('file.library.metadata.title')">
         <NSpace vertical :size="16">
           <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.upload.accessLevel') }}</span>
+            <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
             <NSelect
               v-model:value="metadataForm.accessLevel"
               :options="accessLevelOptions"
-              :placeholder="t('file.library.upload.accessLevelPlaceholder')"
+              :placeholder="t('file.library.upload.access_level_placeholder')"
             />
           </div>
 
@@ -1053,17 +1053,17 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           </div>
 
           <div v-if="metadataForm.isTemporary" class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.upload.retentionDays') }}</span>
+            <span class="file-upload-field__label">{{ t('file.library.upload.retention_days') }}</span>
             <NInputNumber
               v-model:value="metadataForm.retentionDays"
               :min="1"
-              :placeholder="t('file.library.upload.retentionPlaceholder')"
+              :placeholder="t('file.library.upload.retention_placeholder')"
               style="width: 100%"
             />
           </div>
 
-          <NInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tagsPlaceholder')" />
-          <NInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remarkPlaceholder')" type="textarea" :rows="2" />
+          <NInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tags_placeholder')" />
+          <NInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
 
           <NButton block :loading="metadataLoading" type="primary" @click="handleSaveMetadata">
             <template #icon>
@@ -1088,13 +1088,13 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           bordered
           size="small"
         >
-          <NDescriptionsItem :label="t('file.library.detail.originalName')" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.original_name')" :span="2">
             {{ currentFileDetail.originalName }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.fileType')">
+          <NDescriptionsItem :label="t('file.library.detail.file_type')">
             {{ getOptionLabel(fileTypeOptions, currentFileDetail.fileType) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.fileSize')">
+          <NDescriptionsItem :label="t('file.library.detail.file_size')">
             {{ formatFileSize(Number(currentFileDetail.fileSize || 0)) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('file.library.detail.mime')">
@@ -1103,7 +1103,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           <NDescriptionsItem v-if="dimensionText" :label="t('file.library.detail.dimension')">
             {{ dimensionText }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.accessLevel')">
+          <NDescriptionsItem :label="t('file.library.detail.access_level')">
             {{ getOptionLabel(accessLevelOptions, currentFileDetail.accessLevel) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('file.library.detail.status')">
@@ -1115,19 +1115,19 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           <NDescriptionsItem :label="t('file.library.detail.temporary')">
             {{ formatFlag(currentFileDetail.isTemporary) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.downloadCount')">
+          <NDescriptionsItem :label="t('file.library.detail.download_count')">
             {{ currentFileDetail.downloadCount }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.viewCount')">
+          <NDescriptionsItem :label="t('file.library.detail.view_count')">
             {{ currentFileDetail.viewCount }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.createdTime')">
+          <NDescriptionsItem :label="t('file.library.detail.created_time')">
             {{ formatDateTime(currentFileDetail.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.modifiedTime')">
+          <NDescriptionsItem :label="t('file.library.detail.modified_time')">
             {{ formatDateTime(currentFileDetail.modifiedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="currentFileDetail.isTemporary" :label="t('file.library.detail.expirationTime')" :span="2">
+          <NDescriptionsItem v-if="currentFileDetail.isTemporary" :label="t('file.library.detail.expiration_time')" :span="2">
             {{ formatDateTime(currentFileDetail.expirationTime) }}
           </NDescriptionsItem>
           <NDescriptionsItem v-if="currentFileDetail.tags" :label="t('file.library.detail.tags')" :span="2">
@@ -1138,23 +1138,23 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
               {{ currentFileDetail.remark }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem v-if="currentFileDetail.accessPermissions" :label="t('file.library.detail.accessPermissions')" :span="2">
+          <NDescriptionsItem v-if="currentFileDetail.accessPermissions" :label="t('file.library.detail.access_permissions')" :span="2">
             <div class="file-detail-content">
               {{ currentFileDetail.accessPermissions }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.uploadSource')" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.upload_source')" :span="2">
             {{ currentFileDetail.uploadIp || '-' }} / {{ currentFileDetail.uploadSource || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.fileName')" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.file_name')" :span="2">
             {{ currentFileDetail.fileName }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.fileHash')" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.file_hash')" :span="2">
             <div class="file-detail-content">
               {{ currentFileDetail.fileHash || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.basicId')" :span="2">
+          <NDescriptionsItem :label="t('file.library.detail.basic_id')" :span="2">
             {{ currentFileDetail.basicId }}
           </NDescriptionsItem>
         </NDescriptions>
@@ -1165,13 +1165,13 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           bordered
           size="small"
         >
-          <NDescriptionsItem :label="t('file.library.detail.storageBasicId')">
+          <NDescriptionsItem :label="t('file.library.detail.storage_basic_id')">
             {{ currentStorageDetail.basicId }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.fileId')">
+          <NDescriptionsItem :label="t('file.library.detail.file_id')">
             {{ currentStorageDetail.fileId }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.storageType')">
+          <NDescriptionsItem :label="t('file.library.detail.storage_type')">
             {{ getOptionLabel(storageTypeOptions, currentStorageDetail.storageType) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('file.library.detail.provider')">
@@ -1180,22 +1180,22 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           <NDescriptionsItem :label="t('file.library.detail.bucket')">
             {{ currentStorageDetail.bucketName || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.storagePath')">
+          <NDescriptionsItem :label="t('file.library.detail.storage_path')">
             <div class="file-detail-content">
               {{ currentStorageDetail.storagePath || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.fullPath')">
+          <NDescriptionsItem :label="t('file.library.detail.full_path')">
             <div class="file-detail-content">
               {{ currentStorageDetail.fullPath || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.accessUrl')">
+          <NDescriptionsItem :label="t('file.library.detail.access_url')">
             <div class="file-detail-content">
               {{ currentStorageDetail.externalUrl || currentStorageDetail.internalUrl || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.cdnUrl')">
+          <NDescriptionsItem :label="t('file.library.detail.cdn_url')">
             <div class="file-detail-content">
               {{ currentStorageDetail.cdnUrl || '-' }}
             </div>
@@ -1204,24 +1204,24 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
             {{ getOptionLabel(storageStatusOptions, currentStorageDetail.status) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('file.library.detail.flags')">
-            {{ t('file.library.detail.flagsValue', { primary: formatFlag(currentStorageDetail.isPrimary), backup: formatFlag(currentStorageDetail.isBackup), cdn: formatFlag(currentStorageDetail.enableCdn) }) }}
+            {{ t('file.library.detail.flags_value', { primary: formatFlag(currentStorageDetail.isPrimary), backup: formatFlag(currentStorageDetail.isBackup), cdn: formatFlag(currentStorageDetail.enableCdn) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.verifySync')">
-            {{ t('file.library.detail.verifySyncValue', { verified: formatFlag(currentStorageDetail.isVerified), synced: formatFlag(currentStorageDetail.isSynced) }) }}
+          <NDescriptionsItem :label="t('file.library.detail.verify_sync')">
+            {{ t('file.library.detail.verify_sync_value', { verified: formatFlag(currentStorageDetail.isVerified), synced: formatFlag(currentStorageDetail.isSynced) }) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.accessControl')">
+          <NDescriptionsItem :label="t('file.library.detail.access_control')">
             {{ currentStorageDetail.accessControl || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.storageClass')">
+          <NDescriptionsItem :label="t('file.library.detail.storage_class')">
             {{ currentStorageDetail.storageClass || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.cacheControl')">
+          <NDescriptionsItem :label="t('file.library.detail.cache_control')">
             {{ currentStorageDetail.cacheControl || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.uploadDuration')">
+          <NDescriptionsItem :label="t('file.library.detail.upload_duration')">
             {{ formatUploadDuration(currentStorageDetail.uploadDuration) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.failureReason')">
+          <NDescriptionsItem :label="t('file.library.detail.failure_reason')">
             <div class="file-detail-content">
               {{ currentStorageDetail.uploadFailureReason || '-' }}
             </div>
@@ -1231,19 +1231,19 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
               {{ currentStorageDetail.remark || '-' }}
             </div>
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.uploadedTime')">
+          <NDescriptionsItem :label="t('file.library.detail.uploaded_time')">
             {{ formatDateTime(currentStorageDetail.uploadedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.lastVerifiedTime')">
+          <NDescriptionsItem :label="t('file.library.detail.last_verified_time')">
             {{ formatDateTime(currentStorageDetail.lastVerifiedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.syncedTime')">
+          <NDescriptionsItem :label="t('file.library.detail.synced_time')">
             {{ formatDateTime(currentStorageDetail.syncedTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.createdTime')">
+          <NDescriptionsItem :label="t('file.library.detail.created_time')">
             {{ formatDateTime(currentStorageDetail.createdTime) }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('file.library.detail.modifiedTime')">
+          <NDescriptionsItem :label="t('file.library.detail.modified_time')">
             {{ formatDateTime(currentStorageDetail.modifiedTime) }}
           </NDescriptionsItem>
         </NDescriptions>
@@ -1256,10 +1256,10 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
 
     <!-- 存储副本列表抽屉：列出该文件全部副本，支持 详情/设主副本/校验/启停 -->
     <NDrawer v-model:show="storageListVisible" :width="760">
-      <NDrawerContent closable :title="t('file.library.storageList.title', { name: storageFile?.originalName ?? '' })">
+      <NDrawerContent closable :title="t('file.library.storage_list.title', { name: storageFile?.originalName ?? '' })">
         <NSpace vertical :size="12">
           <div class="flex items-center justify-between">
-            <span class="text-sm text-foreground/60">{{ t('file.library.storageList.total', { count: storageRows.length }) }}</span>
+            <span class="text-sm text-foreground/60">{{ t('file.library.storage_list.total', { count: storageRows.length }) }}</span>
             <NButton size="small" :loading="storageListLoading" @click="loadStorageRows">
               <template #icon>
                 <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
@@ -1305,7 +1305,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
         />
         <div v-else-if="previewKind === 'text'" class="file-preview-code-wrap">
           <button type="button" class="file-preview-copy" @click="copyPreviewText">
-            {{ t('file.library.preview.copyCode') }}
+            {{ t('file.library.preview.copy_code') }}
           </button>
           <div class="file-preview-code-scroll">
             <NCode
@@ -1326,7 +1326,7 @@ const storageColumns = computed<DataTableColumns<FileStorageListItemDto>>(() => 
           class="file-preview-csv"
         />
         <div v-else-if="!previewUrl" class="text-gray-400">
-          {{ t('file.library.preview.cannotPreview') }}
+          {{ t('file.library.preview.cannot_preview') }}
         </div>
         <img
           v-else-if="previewKind === 'image'"
