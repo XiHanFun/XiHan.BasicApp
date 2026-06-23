@@ -45,7 +45,7 @@ const usernameHint = computed(() => {
     const next = new Date(props.profile.lastUserNameChangeTime)
     next.setDate(next.getDate() + 90)
     const remaining = Math.ceil((next.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    return `还需等待 ${remaining} 天后可修改`
+    return t('component.profile.info.username_change_cooldown', { days: remaining })
   }
   return ''
 })
@@ -54,12 +54,12 @@ function handleChangeUserName() {
   newUserNameInput.value = props.profile?.userName ?? ''
   newUserNamePassword.value = ''
   dialog.create({
-    title: '修改用户名',
+    title: t('component.profile.info.change_username_title'),
     content: () => h('div', { style: 'display:flex;flex-direction:column;gap:12px' }, [
-      h('p', { style: 'margin:0;color:var(--text-secondary);font-size:13px' }, '修改后 90 天内不可再次修改，请谨慎操作。'),
+      h('p', { style: 'margin:0;color:var(--text-secondary);font-size:13px' }, t('component.profile.info.change_username_hint')),
       h(NInput, {
         'value': newUserNameInput.value,
-        'placeholder': '新用户名（3~30位，字母/数字/下划线）',
+        'placeholder': t('component.profile.info.new_username_placeholder'),
         'onUpdate:value': (v: string) => {
           newUserNameInput.value = v
         },
@@ -74,8 +74,8 @@ function handleChangeUserName() {
         },
       }),
     ]),
-    positiveText: '确认修改',
-    negativeText: '取消',
+    positiveText: t('component.profile.info.confirm_change'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       if (!newUserNameInput.value.trim()) {
         message.warning(t('component.profile.info.msg_username_required'))
@@ -120,11 +120,11 @@ const profileForm = ref({
   timeZone: '',
 })
 
-const genderOptions = [
-  { label: '未设置', value: 0 },
-  { label: '男', value: 1 },
-  { label: '女', value: 2 },
-]
+const genderOptions = computed(() => [
+  { label: t('component.profile.info.gender_unset'), value: 0 },
+  { label: t('common.gender.male'), value: 1 },
+  { label: t('common.gender.female'), value: 2 },
+])
 
 // ==================== 头像上传 / 删除 ====================
 
@@ -208,10 +208,10 @@ function handleAvatarRemove() {
     return
   }
   dialog.warning({
-    title: '删除头像',
-    content: '确定要删除当前头像吗？删除后将显示默认头像。',
-    positiveText: '确认删除',
-    negativeText: '取消',
+    title: t('component.profile.info.remove_avatar_title'),
+    content: t('component.profile.info.remove_avatar_content'),
+    positiveText: t('component.profile.info.confirm_remove'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       avatarRemoving.value = true
       try {
@@ -463,10 +463,10 @@ function cancelChange() {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:id-card" width="16" />
-            <span>账户资料</span>
+            <span>{{ t('component.profile.info.section_account_profile') }}</span>
           </div>
           <div class="pf-section__desc">
-            头像、账户标识与联系方式
+            {{ t('component.profile.info.section_account_profile_desc') }}
           </div>
         </div>
       </div>
@@ -480,10 +480,10 @@ function cancelChange() {
             />
             <div class="pf-avatar-info">
               <div class="pf-setting-row__label">
-                个人头像
+                {{ t('component.profile.info.avatar_label') }}
               </div>
               <div class="pf-setting-row__desc">
-                支持 JPG、PNG，不超过 2MB，建议正方形图片
+                {{ t('component.profile.info.avatar_desc') }}
               </div>
             </div>
           </div>
@@ -501,7 +501,7 @@ function cancelChange() {
               :loading="avatarUploading"
               @click="triggerAvatarUpload"
             >
-              上传
+              {{ t('component.profile.info.btn_upload') }}
             </NButton>
             <NButton
               size="small"
@@ -510,7 +510,7 @@ function cancelChange() {
               :disabled="!currentAvatar"
               @click="handleAvatarRemove"
             >
-              删除
+              {{ t('component.profile.info.btn_remove') }}
             </NButton>
           </div>
         </div>
@@ -519,16 +519,16 @@ function cancelChange() {
         <div class="pf-cols-2">
           <div class="pf-subgroup">
             <div class="pf-subgroup__title">
-              账户标识
+              {{ t('component.profile.info.subgroup_account_id') }}
             </div>
             <div class="pf-setting-list">
               <!-- 用户名 -->
               <div class="pf-setting-row">
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
-                    用户名
+                    {{ t('component.profile.info.field_username') }}
                     <NTag v-if="profile?.isSystemAccount" type="info" size="tiny" :bordered="false">
-                      系统账号
+                      {{ t('component.profile.info.tag_system_account') }}
                     </NTag>
                     <NTag v-else-if="!profile?.canChangeUserName && usernameHint" type="warning" size="tiny" :bordered="false">
                       {{ usernameHint }}
@@ -547,7 +547,7 @@ function cancelChange() {
                     :loading="usernameChangeLoading"
                     @click="handleChangeUserName"
                   >
-                    修改
+                    {{ t('component.profile.info.btn_modify') }}
                   </NButton>
                 </div>
               </div>
@@ -556,10 +556,10 @@ function cancelChange() {
               <div class="pf-setting-row">
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
-                    显示名称
+                    {{ t('component.profile.info.field_display_name') }}
                   </div>
                   <div class="pf-setting-row__desc">
-                    展示在系统中的昵称
+                    {{ t('component.profile.info.field_display_name_desc') }}
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
@@ -571,28 +571,28 @@ function cancelChange() {
 
           <div class="pf-subgroup">
             <div class="pf-subgroup__title">
-              联系方式
+              {{ t('component.profile.info.subgroup_contact') }}
             </div>
             <div class="pf-setting-list">
               <!-- 电子邮箱 -->
               <div class="pf-setting-row pf-setting-row--wrap">
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
-                    电子邮箱
+                    {{ t('component.profile.info.field_email') }}
                     <NTag v-if="profile?.emailVerified" type="success" size="tiny" :bordered="false">
-                      已验证
+                      {{ t('component.profile.info.tag_verified') }}
                     </NTag>
                     <NTag v-else-if="profile?.email" type="warning" size="tiny" :bordered="false">
-                      未验证
+                      {{ t('component.profile.info.tag_unverified') }}
                     </NTag>
                   </div>
                   <div class="pf-setting-row__desc">
-                    {{ profile?.email || '未设置' }}
+                    {{ profile?.email || t('component.profile.info.value_not_set') }}
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
                   <NButton size="small" ghost type="primary" @click="openChangeDialog('email')">
-                    {{ profile?.email ? '修改' : '绑定' }}
+                    {{ profile?.email ? t('component.profile.info.btn_modify') : t('component.profile.info.btn_bind') }}
                   </NButton>
                   <NButton
                     v-if="profile?.email && !profile?.emailVerified"
@@ -601,19 +601,19 @@ function cancelChange() {
                     :loading="verifyLoading && verifyTarget === 'email'"
                     @click="sendVerifyCode('email')"
                   >
-                    验证
+                    {{ t('component.profile.info.btn_verify') }}
                   </NButton>
                 </div>
                 <div v-if="verifyTarget === 'email'" class="pf-inline-form">
                   <NInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :maxlength="6" class="pf-field" />
                   <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
-                    确认
+                    {{ t('common.actions.confirm') }}
                   </NButton>
                   <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('email')">
-                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
+                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : t('common.actions.resend') }}
                   </NButton>
                   <NButton quaternary @click="cancelVerify">
-                    取消
+                    {{ t('common.actions.cancel') }}
                   </NButton>
                 </div>
               </div>
@@ -622,21 +622,21 @@ function cancelChange() {
               <div class="pf-setting-row pf-setting-row--wrap">
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
-                    手机号码
+                    {{ t('component.profile.info.field_phone') }}
                     <NTag v-if="profile?.phoneVerified" type="success" size="tiny" :bordered="false">
-                      已验证
+                      {{ t('component.profile.info.tag_verified') }}
                     </NTag>
                     <NTag v-else-if="profile?.phone" type="warning" size="tiny" :bordered="false">
-                      未验证
+                      {{ t('component.profile.info.tag_unverified') }}
                     </NTag>
                   </div>
                   <div class="pf-setting-row__desc">
-                    {{ profile?.phone || '未设置' }}
+                    {{ profile?.phone || t('component.profile.info.value_not_set') }}
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
                   <NButton size="small" ghost type="primary" @click="openChangeDialog('phone')">
-                    {{ profile?.phone ? '修改' : '绑定' }}
+                    {{ profile?.phone ? t('component.profile.info.btn_modify') : t('component.profile.info.btn_bind') }}
                   </NButton>
                   <NButton
                     v-if="profile?.phone && !profile?.phoneVerified"
@@ -645,19 +645,19 @@ function cancelChange() {
                     :loading="verifyLoading && verifyTarget === 'phone'"
                     @click="sendVerifyCode('phone')"
                   >
-                    验证
+                    {{ t('component.profile.info.btn_verify') }}
                   </NButton>
                 </div>
                 <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
                   <NInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :maxlength="6" class="pf-field" />
                   <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
-                    确认
+                    {{ t('common.actions.confirm') }}
                   </NButton>
                   <NButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('phone')">
-                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : '重发' }}
+                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : t('common.actions.resend') }}
                   </NButton>
                   <NButton quaternary @click="cancelVerify">
-                    取消
+                    {{ t('common.actions.cancel') }}
                   </NButton>
                 </div>
               </div>
@@ -673,18 +673,18 @@ function cancelChange() {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:contact" width="16" />
-            <span>个人信息</span>
+            <span>{{ t('component.profile.info.section_personal_info') }}</span>
           </div>
         </div>
       </div>
       <div class="pf-section__body">
         <div class="pf-field-grid">
           <div class="pf-field-card">
-            <span class="pf-field-card__label">真实姓名</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_real_name') }}</span>
             <NInput v-model:value="profileForm.realName" :placeholder="t('component.profile.info.real_name_placeholder')" :maxlength="50" />
           </div>
           <div class="pf-field-card">
-            <span class="pf-field-card__label">生日</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_birthday') }}</span>
             <NDatePicker
               v-model:value="profileForm.birthday"
               type="date"
@@ -695,23 +695,23 @@ function cancelChange() {
             />
           </div>
           <div class="pf-field-card">
-            <span class="pf-field-card__label">性别</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_gender') }}</span>
             <NSelect v-model:value="profileForm.gender" :options="genderOptions" />
           </div>
           <div class="pf-field-card">
-            <span class="pf-field-card__label">国家 / 地区</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_country') }}</span>
             <NInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" />
           </div>
           <div class="pf-field-card">
-            <span class="pf-field-card__label">语言</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_language') }}</span>
             <LocaleSwitcher v-model:value="profileForm.language" variant="select" />
           </div>
           <div class="pf-field-card">
-            <span class="pf-field-card__label">时区</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_timezone') }}</span>
             <TimezoneSwitcher v-model:value="profileForm.timeZone" variant="select" />
           </div>
           <div class="pf-field-card pf-field-card--block">
-            <span class="pf-field-card__label">个人简介</span>
+            <span class="pf-field-card__label">{{ t('component.profile.info.field_bio') }}</span>
             <NInput
               v-model:value="profileForm.remark"
               type="textarea"
@@ -725,7 +725,7 @@ function cancelChange() {
       </div>
       <div class="pf-section__actions">
         <NButton @click="syncProfileForm">
-          取消
+          {{ t('common.actions.cancel') }}
         </NButton>
         <NButton type="primary" :loading="profileSaving" @click="saveProfile">
           <template #icon>
@@ -733,7 +733,7 @@ function cancelChange() {
               <Icon icon="lucide:save" />
             </NIcon>
           </template>
-          保存更改
+          {{ t('component.profile.info.btn_save_changes') }}
         </NButton>
       </div>
     </section>
@@ -761,12 +761,12 @@ function cancelChange() {
                 show-password-on="click"
               />
               <NButton type="primary" block :loading="changeLoading" @click="sendChangeCode">
-                发送验证码
+                {{ t('component.profile.info.send_code') }}
               </NButton>
             </template>
             <template v-else>
               <p class="pf-change-hint">
-                验证码已发送至 <strong>{{ changeNewValue }}</strong>
+                {{ t('component.profile.info.code_sent_to') }} <strong>{{ changeNewValue }}</strong>
               </p>
               <NInput
                 v-model:value="changeCode"
@@ -775,10 +775,10 @@ function cancelChange() {
               />
               <NSpace :size="8">
                 <NButton type="primary" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
-                  确认
+                  {{ t('common.actions.confirm') }}
                 </NButton>
                 <NButton :disabled="changeCountdown > 0" quaternary @click="sendChangeCode">
-                  {{ changeCountdown > 0 ? `${changeCountdown}s 后重发` : '重新发送' }}
+                  {{ changeCountdown > 0 ? t('component.profile.info.resend_after', { seconds: changeCountdown }) : t('component.profile.info.resend_now') }}
                 </NButton>
               </NSpace>
             </template>

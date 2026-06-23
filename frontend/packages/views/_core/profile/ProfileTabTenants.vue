@@ -2,6 +2,7 @@
 import type { TenantSwitcherDto } from '@/api'
 import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumService } from '~/hooks'
@@ -13,6 +14,7 @@ defineOptions({ name: 'ProfileTabTenants' })
 
 const message = useMessage()
 const accessStore = useAccessStore()
+const { t } = useI18n()
 
 // 成员类型走后端枚举元数据（本地化），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
 const enumService = useEnumService()
@@ -33,7 +35,7 @@ async function loadTenants() {
     loaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载租户列表失败')
+    message.error((e as Error)?.message || t('component.profile.tenants.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -50,12 +52,12 @@ async function switchTo(tenantId: string, label: string) {
     const token = await tenantApi.switchTenant({ tenantId })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
-    message.success(`已切换到「${label}」`)
+    message.success(t('component.profile.tenants.msg_switched_to', { label }))
     // 新上下文的权限/菜单需重新引导，直接重载以确保一致
     window.location.reload()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '切换失败')
+    message.error((e as Error)?.message || t('component.profile.tenants.err_switch_failed'))
     switching.value = false
   }
 }
@@ -72,9 +74,9 @@ function memberTagType(type: TenantMemberType) {
 }
 
 /** 无 logo 时的占位首字符 */
-function tenantInitial(t: TenantSwitcherDto): string {
-  const name = t.tenantShortName || t.tenantName || ''
-  return name.trim().charAt(0) || '租'
+function tenantInitial(tenant: TenantSwitcherDto): string {
+  const name = tenant.tenantShortName || tenant.tenantName || ''
+  return name.trim().charAt(0) || t('component.profile.tenants.tenant_initial_fallback')
 }
 
 onMounted(loadTenants)
@@ -87,10 +89,10 @@ onMounted(loadTenants)
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:building-2" width="16" />
-            <span>我的租户</span>
+            <span>{{ t('component.profile.tenants.section_title') }}</span>
           </div>
           <div class="pf-section__desc">
-            您当前可访问的租户组织及其成员角色
+            {{ t('component.profile.tenants.section_desc') }}
           </div>
         </div>
         <div class="pf-section__extra">
@@ -104,58 +106,58 @@ onMounted(loadTenants)
       <div class="pf-section__body">
         <NSpin :show="loading">
           <div class="pf-list">
-            <NEmpty v-if="tenants.length === 0 && loaded" description="暂无可访问的租户" />
+            <NEmpty v-if="tenants.length === 0 && loaded" :description="t('component.profile.tenants.empty')" />
             <div
-              v-for="t in tenants"
-              :key="t.membershipId"
+              v-for="tenant in tenants"
+              :key="tenant.membershipId"
               class="pf-list-item"
-              :class="{ 'pf-list-item--active': t.isCurrent }"
+              :class="{ 'pf-list-item--active': tenant.isCurrent }"
             >
-              <div class="pf-list-icon pf-tenant-logo" :class="{ 'pf-list-icon--active': t.isCurrent }">
+              <div class="pf-list-icon pf-tenant-logo" :class="{ 'pf-list-icon--active': tenant.isCurrent }">
                 <NAvatar
-                  v-if="t.logo"
-                  :src="t.logo"
+                  v-if="tenant.logo"
+                  :src="tenant.logo"
                   :size="32"
                   object-fit="cover"
                   class="pf-tenant-avatar"
                 />
                 <template v-else>
-                  {{ tenantInitial(t) }}
+                  {{ tenantInitial(tenant) }}
                 </template>
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
-                  {{ t.tenantName }}
-                  <span v-if="t.tenantShortName" class="pf-tenant-short">{{ t.tenantShortName }}</span>
-                  <NTag v-if="t.isCurrent" type="success" size="tiny" :bordered="false">
-                    当前
+                  {{ tenant.tenantName }}
+                  <span v-if="tenant.tenantShortName" class="pf-tenant-short">{{ tenant.tenantShortName }}</span>
+                  <NTag v-if="tenant.isCurrent" type="success" size="tiny" :bordered="false">
+                    {{ t('component.profile.tenants.tag_current') }}
                   </NTag>
                 </div>
                 <div class="pf-list-desc">
-                  {{ memberTypeLabel(t.memberType) }}
-                  <template v-if="t.joinedTime">
-                    · 加入于 {{ formatDate(t.joinedTime, 'YYYY-MM-DD') }}
+                  {{ memberTypeLabel(tenant.memberType) }}
+                  <template v-if="tenant.joinedTime">
+                    · {{ t('component.profile.tenants.joined_at', { time: formatDate(tenant.joinedTime, 'YYYY-MM-DD') }) }}
                   </template>
-                  <template v-if="t.membershipExpirationTime">
-                    · 有效期至 {{ formatDate(t.membershipExpirationTime, 'YYYY-MM-DD') }}
+                  <template v-if="tenant.membershipExpirationTime">
+                    · {{ t('component.profile.tenants.valid_until', { time: formatDate(tenant.membershipExpirationTime, 'YYYY-MM-DD') }) }}
                   </template>
-                  <template v-else-if="t.domain">
-                    · {{ t.domain }}
+                  <template v-else-if="tenant.domain">
+                    · {{ tenant.domain }}
                   </template>
                 </div>
               </div>
               <div class="pf-tenant-actions">
-                <NTag :type="memberTagType(t.memberType)" size="small" round :bordered="false">
-                  {{ memberTypeLabel(t.memberType) }}
+                <NTag :type="memberTagType(tenant.memberType)" size="small" round :bordered="false">
+                  {{ memberTypeLabel(tenant.memberType) }}
                 </NTag>
                 <NButton
-                  v-if="!t.isCurrent"
+                  v-if="!tenant.isCurrent"
                   size="small"
                   secondary
                   :loading="switching"
-                  @click="switchTo(String(t.tenantId), t.tenantName)"
+                  @click="switchTo(String(tenant.tenantId), tenant.tenantName)"
                 >
-                  切换
+                  {{ t('component.profile.tenants.btn_switch') }}
                 </NButton>
               </div>
             </div>

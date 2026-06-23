@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { NCard, NTag, NText } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -30,7 +30,7 @@ const author
 
 const dependencyCount = Object.keys(dependencies).length
 const devDependencyCount = Object.keys(devDependencies).length
-const overviewItems = [
+const overviewItems = computed(() => [
   {
     icon: 'lucide:user-round',
     label: t('page.about.name_author'),
@@ -47,46 +47,46 @@ const overviewItems = [
     icon: 'lucide:calendar-clock',
     label: t('page.about.release_time'),
     value: lastBuildTime,
-    subValue: 'Build Time',
+    subValue: t('component.about.sub_build_time'),
   },
   {
     icon: 'lucide:globe',
     label: t('page.about.homepage'),
     value: homepage || '-',
-    subValue: 'Official Site',
+    subValue: t('component.about.sub_official_site'),
   },
   {
     icon: 'lucide:github',
     label: t('page.about.repository'),
     value: repository || '-',
-    subValue: 'Source Repository',
+    subValue: t('component.about.sub_source_repo'),
   },
-]
+])
 
-const coreCapabilities = [
+const coreCapabilities = computed(() => [
   {
     icon: 'lucide:shield',
-    title: '安全与权限',
-    desc: '内置 RBAC、会话与审计体系，满足企业级安全治理要求。',
+    title: t('component.about.cap_security_title'),
+    desc: t('component.about.cap_security_desc'),
   },
   {
     icon: 'lucide:zap',
-    title: '高效开发',
-    desc: '模块化架构与统一约定，显著降低业务落地与维护成本。',
+    title: t('component.about.cap_efficient_title'),
+    desc: t('component.about.cap_efficient_desc'),
   },
   {
     icon: 'lucide:workflow',
-    title: '灵活扩展',
-    desc: '前后端解耦并支持动态菜单与能力扩展，适应复杂场景演进。',
+    title: t('component.about.cap_extensible_title'),
+    desc: t('component.about.cap_extensible_desc'),
   },
-]
+])
 
-const governanceItems = [
-  { icon: 'lucide:activity', label: '稳定性', value: '生产可用' },
-  { icon: 'lucide:database', label: '数据层', value: '.NET + SqlSugar' },
-  { icon: 'lucide:globe', label: '国际化', value: '中英双语' },
-  { icon: 'lucide:layers', label: '架构模式', value: '模块化分层' },
-]
+const governanceItems = computed(() => [
+  { icon: 'lucide:activity', label: t('component.about.feature_stability_label'), value: t('component.about.feature_stability_value') },
+  { icon: 'lucide:database', label: t('component.about.feature_data_label'), value: '.NET + SqlSugar' },
+  { icon: 'lucide:globe', label: t('component.about.feature_i18n_label'), value: t('component.about.feature_i18n_value') },
+  { icon: 'lucide:layers', label: t('component.about.feature_architecture_label'), value: t('component.about.feature_architecture_value') },
+])
 
 const { apis } = useAppContext()
 const backendDependencies = ref<Array<{ packageName: string, packageVersion: string }>>([])
@@ -127,13 +127,13 @@ onMounted(() => {
           </div>
           <div class="ab-hero-line2">
             <NTag size="small" :bordered="false" type="primary">
-              Enterprise Ready
+              {{ t('component.about.tag_enterprise_ready') }}
             </NTag>
             <NTag size="small" :bordered="false" type="success">
-              Composable Architecture
+              {{ t('component.about.tag_composable') }}
             </NTag>
             <NTag size="small" :bordered="false" type="info">
-              Modern Stack
+              {{ t('component.about.tag_modern_stack') }}
             </NTag>
           </div>
         </div>
@@ -163,7 +163,7 @@ onMounted(() => {
         <template #header>
           <div class="ab-card-header">
             <Icon icon="lucide:sparkles" width="16" />
-            <span>核心能力</span>
+            <span>{{ t('component.about.core_capabilities') }}</span>
           </div>
         </template>
         <div class="ab-cap-grid">
@@ -187,7 +187,7 @@ onMounted(() => {
         <template #header>
           <div class="ab-card-header">
             <Icon icon="lucide:gem" width="16" />
-            <span>平台特性</span>
+            <span>{{ t('component.about.platform_features') }}</span>
           </div>
         </template>
         <div class="ab-governance">
@@ -208,14 +208,14 @@ onMounted(() => {
       <template #header>
         <div class="ab-card-header">
           <Icon icon="lucide:box" width="16" />
-          <span>后端生产环境依赖 (NuGet)</span>
+          <span>{{ t('component.about.backend_dependencies') }}</span>
           <NTag size="small" :bordered="false" type="info" class="ab-pkg-count">
             {{ backendDependencies.length }}
           </NTag>
         </div>
       </template>
       <div v-if="!backendDependencies.length" class="ab-empty">
-        暂无数据
+        {{ t('common.no_data') }}
       </div>
       <div v-else class="ab-pkg-grid">
         <div v-for="pkg in backendDependencies" :key="pkg.packageName" class="ab-pkg-item">
@@ -234,14 +234,14 @@ onMounted(() => {
       <template #header>
         <div class="ab-card-header">
           <Icon icon="lucide:box" width="16" />
-          <span>前端生产环境依赖 (NPM)</span>
+          <span>{{ t('component.about.frontend_dependencies') }}</span>
           <NTag size="small" :bordered="false" type="info" class="ab-pkg-count">
             {{ dependencyCount }}
           </NTag>
         </div>
       </template>
       <div v-if="!dependencyCount" class="ab-empty">
-        暂无数据
+        {{ t('common.no_data') }}
       </div>
       <div v-else class="ab-pkg-grid">
         <div v-for="(value, key) in dependencies" :key="String(key)" class="ab-pkg-item">
@@ -260,14 +260,14 @@ onMounted(() => {
       <template #header>
         <div class="ab-card-header">
           <Icon icon="lucide:wrench" width="16" />
-          <span>前端开发环境依赖 (NPM)</span>
+          <span>{{ t('component.about.frontend_dev_dependencies') }}</span>
           <NTag size="small" :bordered="false" type="info" class="ab-pkg-count">
             {{ devDependencyCount }}
           </NTag>
         </div>
       </template>
       <div v-if="!devDependencyCount" class="ab-empty">
-        暂无数据
+        {{ t('common.no_data') }}
       </div>
       <div v-else class="ab-pkg-grid">
         <div v-for="(value, key) in devDependencies" :key="String(key)" class="ab-pkg-item">

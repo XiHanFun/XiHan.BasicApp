@@ -118,10 +118,10 @@ onMounted(() => {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:link" width="16" />
-            <span>关联第三方账号</span>
+            <span>{{ t('component.profile.binding.section_title') }}</span>
           </div>
           <div class="pf-section__desc">
-            绑定第三方账号后，可使用其快速登录
+            {{ t('component.profile.binding.section_desc') }}
           </div>
         </div>
         <div class="pf-section__extra">
@@ -134,7 +134,7 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <NSpin :show="loading">
-          <NEmpty v-if="providers.length === 0 && loaded" description="暂无可绑定的第三方渠道" />
+          <NEmpty v-if="providers.length === 0 && loaded" :description="t('component.profile.binding.empty')" />
           <div v-else class="pf-list">
             <div v-for="provider in providers" :key="provider.name" class="pf-list-item">
               <div class="pf-list-icon" :class="{ 'pf-list-icon--active': provider.linked }">
@@ -154,26 +154,26 @@ onMounted(() => {
                 </div>
                 <div class="pf-list-desc">
                   <template v-if="provider.linked">
-                    {{ provider.linked.email || '未关联邮箱' }}
+                    {{ provider.linked.email || t('component.profile.binding.no_email') }}
                     <template v-if="provider.linked.lastLoginTime">
-                      · 最后登录 {{ formatDate(provider.linked.lastLoginTime) }}
+                      · {{ t('component.profile.binding.last_login', { time: formatDate(provider.linked.lastLoginTime) }) }}
                     </template>
                   </template>
                   <template v-else>
-                    未绑定
+                    {{ t('component.profile.binding.unbound') }}
                   </template>
                 </div>
               </div>
               <NPopconfirm v-if="provider.linked" @positive-click="handleUnlinkAccount(provider.name)">
                 <template #trigger>
                   <NButton size="tiny" type="warning" text>
-                    解除绑定
+                    {{ t('component.profile.binding.btn_unbind') }}
                   </NButton>
                 </template>
-                确定解除与 {{ provider.displayName }} 的绑定？
+                {{ t('component.profile.binding.confirm_unbind', { name: provider.displayName }) }}
               </NPopconfirm>
               <NButton v-else size="tiny" type="primary" text @click="handleStartBind(provider.name)">
-                绑定
+                {{ t('component.profile.binding.btn_bind') }}
               </NButton>
             </div>
           </div>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { NotificationPreference } from '~/types'
 import { NButton, NSpin, NSwitch, NTag, useMessage } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -34,20 +34,20 @@ interface PrefItem {
   marketing?: boolean
 }
 
-const channels: PrefItem[] = [
-  { key: 'channelInApp', label: '站内信', desc: '系统内消息中心通知', icon: 'lucide:bell' },
-  { key: 'channelEmail', label: '邮箱通知', desc: '通过邮件接收重要消息', icon: 'lucide:mail' },
-  { key: 'channelSms', label: '短信通知', desc: '通过短信接收高优先级提醒', icon: 'lucide:smartphone' },
-  { key: 'channelPush', label: '推送通知', desc: '浏览器/客户端实时推送', icon: 'lucide:radio' },
-]
+const channels = computed<PrefItem[]>(() => [
+  { key: 'channelInApp', label: t('component.profile.notifications.channel_in_app'), desc: t('component.profile.notifications.channel_in_app_desc'), icon: 'lucide:bell' },
+  { key: 'channelEmail', label: t('component.profile.notifications.channel_email'), desc: t('component.profile.notifications.channel_email_desc'), icon: 'lucide:mail' },
+  { key: 'channelSms', label: t('component.profile.notifications.channel_sms'), desc: t('component.profile.notifications.channel_sms_desc'), icon: 'lucide:smartphone' },
+  { key: 'channelPush', label: t('component.profile.notifications.channel_push'), desc: t('component.profile.notifications.channel_push_desc'), icon: 'lucide:radio' },
+])
 
-const types: PrefItem[] = [
-  { key: 'typeAnnouncement', label: '系统公告', desc: '平台维护、版本更新等公告', icon: 'lucide:megaphone' },
-  { key: 'typeTask', label: '任务提醒', desc: '待办任务与到期提醒', icon: 'lucide:check-square' },
-  { key: 'typeApproval', label: '审批通知', desc: '审批待办与结果通知', icon: 'lucide:file-check' },
-  { key: 'typeSecurity', label: '安全告警', desc: '异常登录、密码变更等安全事件', icon: 'lucide:shield-alert' },
-  { key: 'typeMarketing', label: '营销消息', desc: '产品推广与优惠活动（可随时关闭）', icon: 'lucide:gift', marketing: true },
-]
+const types = computed<PrefItem[]>(() => [
+  { key: 'typeAnnouncement', label: t('component.profile.notifications.type_announcement'), desc: t('component.profile.notifications.type_announcement_desc'), icon: 'lucide:megaphone' },
+  { key: 'typeTask', label: t('component.profile.notifications.type_task'), desc: t('component.profile.notifications.type_task_desc'), icon: 'lucide:check-square' },
+  { key: 'typeApproval', label: t('component.profile.notifications.type_approval'), desc: t('component.profile.notifications.type_approval_desc'), icon: 'lucide:file-check' },
+  { key: 'typeSecurity', label: t('component.profile.notifications.type_security'), desc: t('component.profile.notifications.type_security_desc'), icon: 'lucide:shield-alert' },
+  { key: 'typeMarketing', label: t('component.profile.notifications.type_marketing'), desc: t('component.profile.notifications.type_marketing_desc'), icon: 'lucide:gift', marketing: true },
+])
 
 async function loadPreference() {
   loading.value = true
@@ -86,10 +86,10 @@ onMounted(loadPreference)
         <div class="pf-section__head">
           <div class="pf-section__heading">
             <div class="pf-section__title">
-              接收渠道
+              {{ t('component.profile.notifications.section_channels') }}
             </div>
             <div class="pf-section__desc">
-              选择接收通知的方式
+              {{ t('component.profile.notifications.section_channels_desc') }}
             </div>
           </div>
         </div>
@@ -117,10 +117,10 @@ onMounted(loadPreference)
         <div class="pf-section__head">
           <div class="pf-section__heading">
             <div class="pf-section__title">
-              通知类型
+              {{ t('component.profile.notifications.section_types') }}
             </div>
             <div class="pf-section__desc">
-              按消息类型订阅或退订
+              {{ t('component.profile.notifications.section_types_desc') }}
             </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ onMounted(loadPreference)
                 <div class="pf-list-title">
                   {{ item.label }}
                   <NTag v-if="item.marketing" size="tiny" :bordered="false">
-                    营销
+                    {{ t('component.profile.notifications.tag_marketing') }}
                   </NTag>
                 </div>
                 <div class="pf-list-desc">
@@ -147,13 +147,13 @@ onMounted(loadPreference)
         </div>
         <div class="pf-section__actions">
           <NButton @click="loadPreference">
-            重置
+            {{ t('common.actions.reset') }}
           </NButton>
           <NButton type="primary" :loading="saving" @click="savePreference">
             <template #icon>
               <Icon icon="lucide:save" width="16" />
             </template>
-            保存偏好
+            {{ t('component.profile.notifications.btn_save_preference') }}
           </NButton>
         </div>
       </section>

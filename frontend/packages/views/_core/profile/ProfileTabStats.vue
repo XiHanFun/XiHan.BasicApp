@@ -5,6 +5,7 @@ import { NSpin, useMessage } from 'naive-ui'
 // naive-ui 2.44.1 主入口尚未导出 Heatmap，子模块直引（无 exports 限制，可正常解析）
 import { NHeatmap } from 'naive-ui/es/heatmap'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -13,6 +14,7 @@ defineOptions({ name: 'ProfileTabStats' })
 
 const message = useMessage()
 const { apis } = useAppContext()
+const { t } = useI18n()
 
 const loading = ref(false)
 const activity = ref<UserActivity | null>(null)
@@ -23,7 +25,7 @@ async function loadActivity() {
     activity.value = await apis.getActivityApi()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载活跃度统计失败')
+    message.error((e as Error)?.message || t('component.profile.stats.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -35,24 +37,26 @@ onMounted(loadActivity)
 /** 在线时长（秒）→ 友好显示 */
 function formatOnline(seconds: number): string {
   if (!seconds || seconds <= 0) {
-    return '0 分钟'
+    return t('component.profile.stats.duration_zero')
   }
   const h = Math.floor(seconds / 3600)
   const m = Math.round((seconds % 3600) / 60)
   if (h > 0) {
-    return m > 0 ? `${h} 小时 ${m} 分` : `${h} 小时`
+    return m > 0
+      ? t('component.profile.stats.duration_hours_minutes', { hours: h, minutes: m })
+      : t('component.profile.stats.duration_hours', { hours: h })
   }
-  return `${m} 分钟`
+  return t('component.profile.stats.duration_minutes', { minutes: m })
 }
 
 /** 本月四大指标卡 */
 const statCards = computed(() => {
   const m = activity.value?.thisMonth
   return [
-    { key: 'login', label: '本月登录', icon: 'lucide:log-in', value: m?.loginCount ?? 0, tone: 'primary' },
-    { key: 'access', label: '本月访问', icon: 'lucide:eye', value: m?.accessCount ?? 0, tone: 'sky' },
-    { key: 'operation', label: '本月操作', icon: 'lucide:mouse-pointer-click', value: m?.operationCount ?? 0, tone: 'primary' },
-    { key: 'online', label: '本月在线', icon: 'lucide:clock', value: formatOnline(m?.onlineTime ?? 0), tone: 'amber', isText: true },
+    { key: 'login', label: t('component.profile.stats.card_login'), icon: 'lucide:log-in', value: m?.loginCount ?? 0, tone: 'primary' },
+    { key: 'access', label: t('component.profile.stats.card_access'), icon: 'lucide:eye', value: m?.accessCount ?? 0, tone: 'sky' },
+    { key: 'operation', label: t('component.profile.stats.card_operation'), icon: 'lucide:mouse-pointer-click', value: m?.operationCount ?? 0, tone: 'primary' },
+    { key: 'online', label: t('component.profile.stats.card_online'), icon: 'lucide:clock', value: formatOnline(m?.onlineTime ?? 0), tone: 'amber', isText: true },
   ]
 })
 
@@ -60,8 +64,8 @@ const statCards = computed(() => {
 const periodSummary = computed(() => {
   const a = activity.value
   return [
-    { key: 'today', label: '今日', period: a?.today },
-    { key: 'week', label: '本周', period: a?.thisWeek },
+    { key: 'today', label: t('component.profile.stats.period_today'), period: a?.today },
+    { key: 'week', label: t('component.profile.stats.period_week'), period: a?.thisWeek },
   ]
 })
 
@@ -105,9 +109,9 @@ const heatTotalOps = computed(() => trend.value.reduce((sum, t) => sum + t.opera
 const recentTimes = computed(() => {
   const a = activity.value
   return [
-    { key: 'login', label: '最后登录', value: a?.lastLoginTime ? formatDate(a.lastLoginTime) : '—' },
-    { key: 'access', label: '最后访问', value: a?.lastAccessTime ? formatDate(a.lastAccessTime) : '—' },
-    { key: 'operation', label: '最后操作', value: a?.lastOperationTime ? formatDate(a.lastOperationTime) : '—' },
+    { key: 'login', label: t('component.profile.stats.last_login'), value: a?.lastLoginTime ? formatDate(a.lastLoginTime) : '—' },
+    { key: 'access', label: t('component.profile.stats.last_access'), value: a?.lastAccessTime ? formatDate(a.lastAccessTime) : '—' },
+    { key: 'operation', label: t('component.profile.stats.last_operation'), value: a?.lastOperationTime ? formatDate(a.lastOperationTime) : '—' },
   ]
 })
 </script>
@@ -121,10 +125,10 @@ const recentTimes = computed(() => {
           <div class="pf-section__heading">
             <div class="pf-section__title">
               <Icon icon="lucide:calendar-range" width="16" />
-              <span>本月概览</span>
+              <span>{{ t('component.profile.stats.section_month_overview') }}</span>
             </div>
             <div class="pf-section__desc">
-              本月累计的登录、访问、操作次数与在线时长。
+              {{ t('component.profile.stats.section_month_overview_desc') }}
             </div>
           </div>
         </div>
@@ -158,10 +162,10 @@ const recentTimes = computed(() => {
           <div class="pf-section__heading">
             <div class="pf-section__title">
               <Icon icon="lucide:activity" width="16" />
-              <span>操作趋势</span>
+              <span>{{ t('component.profile.stats.section_trend') }}</span>
             </div>
             <div class="pf-section__desc">
-              近一年每日操作活跃度，颜色越深表示当日操作越多。
+              {{ t('component.profile.stats.section_trend_desc') }}
             </div>
           </div>
         </div>
@@ -180,7 +184,7 @@ const recentTimes = computed(() => {
               />
             </div>
             <div class="pf-heat__foot">
-              近一年共 {{ heatTotalOps }} 次操作 · {{ heatActiveDays }} 天活跃
+              {{ t('component.profile.stats.heat_foot', { ops: heatTotalOps, days: heatActiveDays }) }}
             </div>
           </div>
         </div>
@@ -192,10 +196,10 @@ const recentTimes = computed(() => {
           <div class="pf-section__heading">
             <div class="pf-section__title">
               <Icon icon="lucide:gauge" width="16" />
-              <span>活跃概要</span>
+              <span>{{ t('component.profile.stats.section_activity') }}</span>
             </div>
             <div class="pf-section__desc">
-              今日 / 本周活跃数据与最近活动时间。
+              {{ t('component.profile.stats.section_activity_desc') }}
             </div>
           </div>
         </div>
@@ -206,24 +210,24 @@ const recentTimes = computed(() => {
                 {{ item.label }}
               </div>
               <div class="pf-period__row">
-                <span>登录</span><b>{{ item.period?.loginCount ?? 0 }}</b>
+                <span>{{ t('component.profile.stats.stat_login') }}</span><b>{{ item.period?.loginCount ?? 0 }}</b>
               </div>
               <div class="pf-period__row">
-                <span>访问</span><b>{{ item.period?.accessCount ?? 0 }}</b>
+                <span>{{ t('component.profile.stats.stat_access') }}</span><b>{{ item.period?.accessCount ?? 0 }}</b>
               </div>
               <div class="pf-period__row">
-                <span>操作</span><b>{{ item.period?.operationCount ?? 0 }}</b>
+                <span>{{ t('component.profile.stats.stat_operation') }}</span><b>{{ item.period?.operationCount ?? 0 }}</b>
               </div>
               <div class="pf-period__row">
-                <span>在线</span><b>{{ formatOnline(item.period?.onlineTime ?? 0) }}</b>
+                <span>{{ t('component.profile.stats.stat_online') }}</span><b>{{ formatOnline(item.period?.onlineTime ?? 0) }}</b>
               </div>
             </div>
             <div class="pf-period">
               <div class="pf-period__title">
-                最近活动
+                {{ t('component.profile.stats.recent_activity') }}
               </div>
-              <div v-for="t in recentTimes" :key="t.key" class="pf-period__row">
-                <span>{{ t.label }}</span><b>{{ t.value }}</b>
+              <div v-for="row in recentTimes" :key="row.key" class="pf-period__row">
+                <span>{{ row.label }}</span><b>{{ row.value }}</b>
               </div>
             </div>
           </div>

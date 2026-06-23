@@ -3,6 +3,7 @@ import type { Component } from 'vue'
 import type { UserProfile } from '~/types'
 import { NSpin, useMessage } from 'naive-ui'
 import { computed, markRaw, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { XUserAvatar } from '~/components'
 import { PROFILE_ACTIVE_TAB_KEY } from '~/constants'
@@ -36,48 +37,49 @@ const message = useMessage()
 const { apis } = useAppContext()
 const userStore = useUserStore()
 const route = useRoute()
+const { t } = useI18n()
 
 const activeTab = ref('profile')
 const profileLoading = ref(false)
 const profile = ref<UserProfile | null>(null)
 
 /** GitHub 风格分组导航：顶部资料项 + 按主题分组 */
-const navGroups: ProfileNavGroup[] = [
+const navGroups = computed<ProfileNavGroup[]>(() => [
   {
     title: null,
     items: [
-      { key: 'profile', label: '个人资料', icon: 'lucide:contact' },
+      { key: 'profile', label: t('component.profile.nav.tab_profile'), icon: 'lucide:contact' },
     ],
   },
   {
-    title: '访问与安全',
+    title: t('component.profile.nav.group_access_security'),
     items: [
-      { key: 'security', label: '安全设置', icon: 'lucide:shield-check' },
-      { key: 'binding', label: '账号绑定', icon: 'lucide:link' },
-      { key: 'devices', label: '登录设备', icon: 'lucide:monitor-smartphone' },
-      { key: 'loginLogs', label: '登录日志', icon: 'lucide:file-clock' },
+      { key: 'security', label: t('component.profile.nav.tab_security'), icon: 'lucide:shield-check' },
+      { key: 'binding', label: t('component.profile.nav.tab_binding'), icon: 'lucide:link' },
+      { key: 'devices', label: t('component.profile.nav.tab_devices'), icon: 'lucide:monitor-smartphone' },
+      { key: 'loginLogs', label: t('component.profile.nav.tab_login_logs'), icon: 'lucide:file-clock' },
     ],
   },
   {
-    title: '偏好设置',
+    title: t('component.profile.nav.group_preferences'),
     items: [
-      { key: 'notifications', label: '通知偏好', icon: 'lucide:bell-ring' },
+      { key: 'notifications', label: t('component.profile.nav.tab_notifications'), icon: 'lucide:bell-ring' },
     ],
   },
   {
-    title: '租户与数据',
+    title: t('component.profile.nav.group_tenants_data'),
     items: [
-      { key: 'tenants', label: '我的租户', icon: 'lucide:building-2' },
-      { key: 'stats', label: '数据统计', icon: 'lucide:bar-chart-3' },
+      { key: 'tenants', label: t('component.profile.nav.tab_tenants'), icon: 'lucide:building-2' },
+      { key: 'stats', label: t('component.profile.nav.tab_stats'), icon: 'lucide:bar-chart-3' },
     ],
   },
   {
-    title: '开发者',
+    title: t('component.profile.nav.group_developer'),
     items: [
-      { key: 'developer', label: '开发者设置', icon: 'lucide:code-2' },
+      { key: 'developer', label: t('component.profile.nav.tab_developer'), icon: 'lucide:code-2' },
     ],
   },
-]
+])
 
 const tabComponents: Record<string, Component> = {
   profile: markRaw(ProfileTabInfo),
@@ -125,7 +127,7 @@ async function loadProfile() {
     profile.value = await apis.getProfileApi()
   }
   catch (error: unknown) {
-    message.error(error instanceof Error && error.message ? error.message : '加载个人资料失败')
+    message.error(error instanceof Error && error.message ? error.message : t('component.profile.msg_load_profile_failed'))
   }
   finally {
     profileLoading.value = false
@@ -151,12 +153,12 @@ onMounted(loadProfile)
               {{ userStore.nickname || userStore.username }}
             </div>
             <div class="pc__identity-sub">
-              @{{ userStore.username }} · 个人账号
+              @{{ userStore.username }} · {{ t('component.profile.identity_personal_account') }}
             </div>
           </div>
         </div>
 
-        <nav class="pc__nav" aria-label="个人中心导航">
+        <nav class="pc__nav" :aria-label="t('component.profile.nav.aria_nav')">
           <div
             v-for="(group, groupIndex) in navGroups"
             :key="groupIndex"

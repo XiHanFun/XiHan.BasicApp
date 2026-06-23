@@ -46,21 +46,21 @@ const pwdForm = ref({
   newPassword: '',
   confirmPassword: '',
 })
-const pwdRules: FormRules = {
-  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+const pwdRules = computed<FormRules>(() => ({
+  oldPassword: [{ required: true, message: t('component.profile.security.rule_old_password_required'), trigger: 'blur' }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 32, message: '密码长度 6～32 位', trigger: 'blur' },
+    { required: true, message: t('component.profile.security.rule_new_password_required'), trigger: 'blur' },
+    { min: 6, max: 32, message: t('component.profile.security.rule_password_length'), trigger: 'blur' },
   ],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
+    { required: true, message: t('component.profile.security.rule_confirm_password_required'), trigger: 'blur' },
     {
       validator: (_: unknown, v: string) => v === pwdForm.value.newPassword,
-      message: '两次输入密码不一致',
+      message: t('component.profile.security.rule_password_mismatch'),
       trigger: 'blur',
     },
   ],
-}
+}))
 async function changePassword() {
   await pwdFormRef.value?.validate()
   if (!props.profile)
@@ -358,9 +358,9 @@ const accountActionLoading = ref(false)
 function handleDeactivateAccount() {
   accountPassword.value = ''
   dialog.warning({
-    title: '停用账号',
+    title: t('component.profile.security.deactivate_title'),
     content: () => h('div', [
-      h('p', { style: 'margin-bottom: 12px' }, '停用后您将无法登录，但数据会保留。请输入密码确认：'),
+      h('p', { style: 'margin-bottom: 12px' }, t('component.profile.security.deactivate_content')),
       h(NInput, {
         'type': 'password',
         'value': accountPassword.value,
@@ -371,8 +371,8 @@ function handleDeactivateAccount() {
         },
       }),
     ]),
-    positiveText: '确认停用',
-    negativeText: '取消',
+    positiveText: t('component.profile.security.confirm_deactivate'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       if (!accountPassword.value) {
         message.warning(t('component.profile.security.warn_password_required'))
@@ -400,9 +400,9 @@ function handleDeactivateAccount() {
 function handleDeleteAccount() {
   accountPassword.value = ''
   dialog.error({
-    title: '注销账号',
+    title: t('component.profile.security.delete_title'),
     content: () => h('div', [
-      h('p', { style: 'margin-bottom: 12px; color: var(--color-error)' }, '注销后您的所有数据将被永久删除且无法恢复！请输入密码确认：'),
+      h('p', { style: 'margin-bottom: 12px; color: var(--color-error)' }, t('component.profile.security.delete_content')),
       h(NInput, {
         'type': 'password',
         'value': accountPassword.value,
@@ -413,8 +413,8 @@ function handleDeleteAccount() {
         },
       }),
     ]),
-    positiveText: '确认注销',
-    negativeText: '取消',
+    positiveText: t('component.profile.security.confirm_delete'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       if (!accountPassword.value) {
         message.warning(t('component.profile.security.warn_password_required'))
@@ -448,14 +448,14 @@ function handleDeleteAccount() {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:key-round" width="16" />
-            <span>修改密码</span>
+            <span>{{ t('component.profile.security.section_change_password') }}</span>
           </div>
           <div class="pf-section__desc">
-            定期更换密码以保护账号安全，建议使用大小写字母、数字与符号组合。
+            {{ t('component.profile.security.section_change_password_desc') }}
           </div>
         </div>
         <div v-if="profile?.lastPasswordChangeTime" class="pf-section__extra pf-hint">
-          上次修改：{{ formatDate(profile.lastPasswordChangeTime) }}
+          {{ t('component.profile.security.last_changed', { time: formatDate(profile.lastPasswordChangeTime) }) }}
         </div>
       </div>
       <div class="pf-section__body">
@@ -471,7 +471,7 @@ function handleDeleteAccount() {
               <NInput v-model:value="pwdForm.confirmPassword" type="password" :placeholder="t('component.profile.security.confirm_password_placeholder')" show-password-on="click" />
             </NFormItem>
             <NButton class="pf-pwd__submit" type="primary" :loading="pwdSaving" @click="changePassword">
-              更新密码
+              {{ t('component.profile.security.btn_update_password') }}
             </NButton>
           </NForm>
         </div>
@@ -484,15 +484,15 @@ function handleDeleteAccount() {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:shield-check" width="16" />
-            <span>两步验证</span>
+            <span>{{ t('component.profile.security.section_2fa') }}</span>
           </div>
           <div class="pf-section__desc">
-            您可以同时启用多种两步验证方式，登录时自由选择使用哪种。
+            {{ t('component.profile.security.section_2fa_desc') }}
           </div>
         </div>
         <div v-if="enabledCount > 0" class="pf-section__extra">
           <NTag type="success" size="small" :bordered="false">
-            {{ enabledCount }} 种已启用
+            {{ t('component.profile.security.enabled_count', { count: enabledCount }) }}
           </NTag>
         </div>
       </div>
@@ -502,13 +502,13 @@ function handleDeleteAccount() {
           <span class="pf-2fa-icon"><Icon icon="lucide:smartphone" width="18" /></span>
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
-              <span>Authenticator App (TOTP)</span>
+              <span>{{ t('component.profile.security.totp_method') }}</span>
               <NTag v-if="hasTotpEnabled" type="success" size="tiny" :bordered="false">
-                已启用
+                {{ t('component.profile.security.tag_enabled') }}
               </NTag>
             </div>
             <div class="pf-setting-row__desc">
-              使用验证器 App 生成动态口令，安全性最高。
+              {{ t('component.profile.security.totp_desc') }}
             </div>
           </div>
           <div class="pf-setting-row__control">
@@ -530,10 +530,10 @@ function handleDeleteAccount() {
                   background-color="transparent"
                   error-correction-level="M"
                 />
-                <span class="pf-hint">扫描二维码</span>
+                <span class="pf-hint">{{ t('component.profile.security.scan_qr') }}</span>
               </div>
               <div class="pf-2fa-manual">
-                <span class="pf-hint">手动输入密钥：</span>
+                <span class="pf-hint">{{ t('component.profile.security.manual_key') }}</span>
                 <div class="pf-secret-row">
                   <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
                   <NTooltip>
@@ -546,17 +546,17 @@ function handleDeleteAccount() {
                         </template>
                       </NButton>
                     </template>
-                    复制密钥
+                    {{ t('component.profile.security.copy_key') }}
                   </NTooltip>
                 </div>
-                <span class="pf-hint" style="margin-top: 10px; display: block">输入 6 位验证码：</span>
+                <span class="pf-hint" style="margin-top: 10px; display: block">{{ t('component.profile.security.enter_6_digit') }}</span>
                 <div class="pf-otp-row">
                   <NInputOtp v-model:value="tfTotpCode" :length="6" @complete="confirmEnableTotp" />
                   <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnableTotp">
-                    启用
+                    {{ t('component.profile.security.btn_enable') }}
                   </NButton>
                   <NButton size="small" quaternary @click="cancelTotpSetup">
-                    取消
+                    {{ t('common.actions.cancel') }}
                   </NButton>
                 </div>
               </div>
@@ -567,15 +567,15 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_TOTP">
             <div class="pf-inline-form">
               <NAlert type="warning" :bordered="false" class="pf-full">
-                请输入 Authenticator App 中的 6 位验证码以禁用
+                {{ t('component.profile.security.totp_disable_hint') }}
               </NAlert>
               <div class="pf-otp-row">
                 <NInputOtp v-model:value="tfDisableCode" :length="6" @complete="confirmDisable" />
                 <NButton type="error" size="small" :loading="tfLoading" @click="confirmDisable">
-                  禁用
+                  {{ t('component.profile.security.btn_disable') }}
                 </NButton>
                 <NButton size="small" quaternary @click="cancelDisable">
-                  取消
+                  {{ t('common.actions.cancel') }}
                 </NButton>
               </div>
             </div>
@@ -587,16 +587,16 @@ function handleDeleteAccount() {
           <span class="pf-2fa-icon"><Icon icon="lucide:mail" width="18" /></span>
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
-              <span>邮箱验证码</span>
+              <span>{{ t('component.profile.security.email_method') }}</span>
               <NTag v-if="hasEmailEnabled" type="success" size="tiny" :bordered="false">
-                已启用
+                {{ t('component.profile.security.tag_enabled') }}
               </NTag>
               <NTag v-else-if="!profile?.emailVerified" type="warning" size="tiny" :bordered="false">
-                未验证
+                {{ t('component.profile.security.tag_unverified') }}
               </NTag>
             </div>
             <div class="pf-setting-row__desc">
-              登录时通过邮箱接收一次性验证码。
+              {{ t('component.profile.security.email_method_desc') }}
             </div>
           </div>
           <div class="pf-setting-row__control">
@@ -612,22 +612,22 @@ function handleDeleteAccount() {
           <template v-if="tfEmailSettingUp && !hasEmailEnabled">
             <div class="pf-inline-form">
               <div class="pf-hint pf-full">
-                验证码已发送至 {{ profile?.email }}
+                {{ t('component.profile.security.code_sent_to', { target: profile?.email }) }}
               </div>
               <div class="pf-otp-row">
                 <NInputOtp v-model:value="tfEmailCode" :length="6" @complete="confirmEnableEmail" />
                 <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnableEmail">
-                  启用
+                  {{ t('component.profile.security.btn_enable') }}
                 </NButton>
                 <NButton
                   size="small" quaternary
                   :disabled="tfCodeCountdown > 0"
                   @click="sendSetupCode(TF_EMAIL)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
                 </NButton>
                 <NButton size="small" quaternary @click="cancelEmailSetup">
-                  取消
+                  {{ t('common.actions.cancel') }}
                 </NButton>
               </div>
             </div>
@@ -637,22 +637,22 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_EMAIL">
             <div class="pf-inline-form">
               <NAlert type="warning" :bordered="false" class="pf-full">
-                验证码已发送至邮箱，请输入 6 位验证码以禁用
+                {{ t('component.profile.security.email_disable_hint') }}
               </NAlert>
               <div class="pf-otp-row">
                 <NInputOtp v-model:value="tfDisableCode" :length="6" @complete="confirmDisable" />
                 <NButton type="error" size="small" :loading="tfLoading" @click="confirmDisable">
-                  禁用
+                  {{ t('component.profile.security.btn_disable') }}
                 </NButton>
                 <NButton
                   size="small" quaternary
                   :disabled="tfCodeCountdown > 0"
                   @click="sendDisableCode(TF_EMAIL)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
                 </NButton>
                 <NButton size="small" quaternary @click="cancelDisable">
-                  取消
+                  {{ t('common.actions.cancel') }}
                 </NButton>
               </div>
             </div>
@@ -664,16 +664,16 @@ function handleDeleteAccount() {
           <span class="pf-2fa-icon"><Icon icon="lucide:phone" width="18" /></span>
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
-              <span>手机短信验证码</span>
+              <span>{{ t('component.profile.security.sms_method') }}</span>
               <NTag v-if="hasPhoneEnabled" type="success" size="tiny" :bordered="false">
-                已启用
+                {{ t('component.profile.security.tag_enabled') }}
               </NTag>
               <NTag v-else-if="!profile?.phoneVerified" type="warning" size="tiny" :bordered="false">
-                未验证
+                {{ t('component.profile.security.tag_unverified') }}
               </NTag>
             </div>
             <div class="pf-setting-row__desc">
-              登录时通过短信接收一次性验证码。
+              {{ t('component.profile.security.sms_method_desc') }}
             </div>
           </div>
           <div class="pf-setting-row__control">
@@ -689,22 +689,22 @@ function handleDeleteAccount() {
           <template v-if="tfPhoneSettingUp && !hasPhoneEnabled">
             <div class="pf-inline-form">
               <div class="pf-hint pf-full">
-                验证码已发送至 {{ profile?.phone }}
+                {{ t('component.profile.security.code_sent_to', { target: profile?.phone }) }}
               </div>
               <div class="pf-otp-row">
                 <NInputOtp v-model:value="tfPhoneCode" :length="6" @complete="confirmEnablePhone" />
                 <NButton type="primary" size="small" :loading="tfLoading" @click="confirmEnablePhone">
-                  启用
+                  {{ t('component.profile.security.btn_enable') }}
                 </NButton>
                 <NButton
                   size="small" quaternary
                   :disabled="tfCodeCountdown > 0"
                   @click="sendSetupCode(TF_PHONE)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
                 </NButton>
                 <NButton size="small" quaternary @click="cancelPhoneSetup">
-                  取消
+                  {{ t('common.actions.cancel') }}
                 </NButton>
               </div>
             </div>
@@ -714,22 +714,22 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_PHONE">
             <div class="pf-inline-form">
               <NAlert type="warning" :bordered="false" class="pf-full">
-                验证码已发送至手机，请输入 6 位验证码以禁用
+                {{ t('component.profile.security.phone_disable_hint') }}
               </NAlert>
               <div class="pf-otp-row">
                 <NInputOtp v-model:value="tfDisableCode" :length="6" @complete="confirmDisable" />
                 <NButton type="error" size="small" :loading="tfLoading" @click="confirmDisable">
-                  禁用
+                  {{ t('component.profile.security.btn_disable') }}
                 </NButton>
                 <NButton
                   size="small" quaternary
                   :disabled="tfCodeCountdown > 0"
                   @click="sendDisableCode(TF_PHONE)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : '重发' }}
+                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
                 </NButton>
                 <NButton size="small" quaternary @click="cancelDisable">
-                  取消
+                  {{ t('common.actions.cancel') }}
                 </NButton>
               </div>
             </div>
@@ -744,43 +744,43 @@ function handleDeleteAccount() {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:shield-alert" width="16" />
-            <span>安全状态</span>
+            <span>{{ t('component.profile.security.section_security_status') }}</span>
           </div>
           <div class="pf-section__desc">
-            账号锁定、失败登录与关键变更时间的实时概览。
+            {{ t('component.profile.security.section_security_status_desc') }}
           </div>
         </div>
       </div>
       <div class="pf-section__body">
         <div class="pf-info-grid">
           <div class="pf-info-card">
-            <span class="pf-info-card__label">账号锁定</span>
+            <span class="pf-info-card__label">{{ t('component.profile.security.label_account_lock') }}</span>
             <span class="pf-info-card__value">
               <NTag :type="profile?.isLocked ? 'error' : 'success'" size="small" :bordered="false">
-                {{ profile?.isLocked ? '已锁定' : '正常' }}
+                {{ profile?.isLocked ? t('component.profile.security.value_locked') : t('component.profile.security.value_normal') }}
               </NTag>
             </span>
           </div>
           <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-info-card">
-            <span class="pf-info-card__label">锁定结束</span>
+            <span class="pf-info-card__label">{{ t('component.profile.security.label_lock_end') }}</span>
             <span class="pf-info-card__value">{{ formatDate(profile.lockoutEndTime) }}</span>
           </div>
           <div class="pf-info-card">
-            <span class="pf-info-card__label">连续失败登录</span>
+            <span class="pf-info-card__label">{{ t('component.profile.security.label_failed_logins') }}</span>
             <span class="pf-info-card__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
-              {{ profile?.failedLoginAttempts ?? 0 }} 次
+              {{ t('component.profile.security.failed_logins_count', { count: profile?.failedLoginAttempts ?? 0 }) }}
             </span>
           </div>
           <div v-if="profile?.lastFailedLoginTime" class="pf-info-card">
-            <span class="pf-info-card__label">最后失败登录</span>
+            <span class="pf-info-card__label">{{ t('component.profile.security.label_last_failed_login') }}</span>
             <span class="pf-info-card__value">{{ formatDate(profile.lastFailedLoginTime) }}</span>
           </div>
           <div class="pf-info-card">
-            <span class="pf-info-card__label">最后修改密码</span>
+            <span class="pf-info-card__label">{{ t('component.profile.security.label_last_password_change') }}</span>
             <span class="pf-info-card__value">{{ profile?.lastPasswordChangeTime ? formatDate(profile.lastPasswordChangeTime) : '—' }}</span>
           </div>
           <div class="pf-info-card">
-            <span class="pf-info-card__label">最后修改用户名</span>
+            <span class="pf-info-card__label">{{ t('component.profile.security.label_last_username_change') }}</span>
             <span class="pf-info-card__value">{{ profile?.lastUserNameChangeTime ? formatDate(profile.lastUserNameChangeTime) : '—' }}</span>
           </div>
         </div>
@@ -793,10 +793,10 @@ function handleDeleteAccount() {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:user-cog" width="16" />
-            <span>账号管理</span>
+            <span>{{ t('component.profile.security.section_account_mgmt') }}</span>
           </div>
           <div class="pf-section__desc">
-            停用或注销账号，请谨慎操作。
+            {{ t('component.profile.security.section_account_mgmt_desc') }}
           </div>
         </div>
       </div>
@@ -808,14 +808,14 @@ function handleDeleteAccount() {
             </div>
             <div class="pf-list-body">
               <div class="pf-list-title">
-                停用账号
+                {{ t('component.profile.security.deactivate_title') }}
               </div>
               <div class="pf-list-desc">
-                无法登录，数据保留，需管理员恢复
+                {{ t('component.profile.security.deactivate_desc') }}
               </div>
             </div>
             <NButton size="small" type="warning" ghost @click="handleDeactivateAccount">
-              停用
+              {{ t('component.profile.security.btn_deactivate') }}
             </NButton>
           </div>
           <div class="pf-list-item">
@@ -824,14 +824,14 @@ function handleDeleteAccount() {
             </div>
             <div class="pf-list-body">
               <div class="pf-list-title" style="color: var(--color-error)">
-                注销账号
+                {{ t('component.profile.security.delete_title') }}
               </div>
               <div class="pf-list-desc">
-                永久删除所有数据，此操作不可恢复
+                {{ t('component.profile.security.delete_desc') }}
               </div>
             </div>
             <NButton size="small" type="error" ghost @click="handleDeleteAccount">
-              注销
+              {{ t('component.profile.security.btn_delete') }}
             </NButton>
           </div>
         </div>
