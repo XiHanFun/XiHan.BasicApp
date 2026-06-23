@@ -56,7 +56,7 @@ export function createPreferencesSlice() {
   // 用户时区（IANA，如 Asia/Shanghai）：空串表示跟随浏览器；随请求头 X-Timezone 上行，后端按此换算返回时间
   const appTimezone = ref<string>(LocalStorage.get<string>(APP_TIMEZONE_KEY) ?? '')
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
-  const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 60)
+  const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 30)
 
   // ---- Widget ----
   const widgetThemeToggle = ref<boolean>(LocalStorage.get<boolean>(WIDGET_THEME_TOGGLE_KEY) ?? true)
@@ -112,7 +112,7 @@ export function createPreferencesSlice() {
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
   bindPersist(APP_TIMEZONE_KEY, appTimezone, '')
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
-  bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 60)
+  bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 30)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
   bindPersist(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, true)
   bindPersist(WIDGET_TIMEZONE_KEY, widgetTimezone, true)
