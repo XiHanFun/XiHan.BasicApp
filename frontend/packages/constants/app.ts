@@ -15,16 +15,6 @@ export const DEFAULT_LAYOUT_MODE = 'side'
 export const DEFAULT_UI_RADIUS = 0.25
 export const DEFAULT_FONT_SIZE = 14
 
-export const LAYOUT_MODE_OPTIONS = [
-  { label: '垂直', value: 'side' },
-  { label: '双列菜单', value: 'side-mixed' },
-  { label: '水平', value: 'top' },
-  { label: '侧边导航', value: 'header-sidebar' },
-  { label: '混合垂直', value: 'mix' },
-  { label: '混合双列', value: 'header-mix' },
-  { label: '内容全屏', value: 'full' },
-]
-
 // ==================== 主题颜色预设 ====================
 
 export interface ThemeColorPreset {
