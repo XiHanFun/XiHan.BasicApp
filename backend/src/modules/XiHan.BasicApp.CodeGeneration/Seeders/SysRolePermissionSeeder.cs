@@ -83,15 +83,20 @@ public class SysRolePermissionSeeder : DataSeederBase
             }
         }
 
-        // 2) 把"代码生成"菜单绑定到 code_gen:read 权限 → 仅有该权限者（=超管）可见；develop 目录无可见子菜单将被自动剪掉。
+        // 2) 把"开发工具"目录(develop)与"代码生成"菜单(code_gen)都绑定到 code_gen:read 权限
+        //    → 仅有该权限者（=超管 *）可见；非超管两者皆隐藏（目录直接受控，不依赖"空目录剪枝"）。
         // 菜单种子(Order=31)早于权限种子(Order=32)，故菜单建立时无法绑定，统一在此(Order=33)回填。
+        // 注意：Where 不可用 (PermissionId == null || PermissionId != x) 这种"可空列 OR"——SqlSugar 在
+        // PostgreSQL 上会错译(IS NULL + OR 丢失/语法错误)，导致更新 0 行、绑定不生效。改用 MenuCode IN(...)
+        // 无条件回填（幂等：重复设同值无副作用）。
         var readPermission = permissions.FirstOrDefault(p => p.PermissionCode == "code_gen:read");
         var menuBound = 0;
         if (readPermission is not null)
         {
+            var devMenuCodes = new[] { "develop", "code_gen" };
             menuBound = await client.Updateable<SysMenu>()
                 .SetColumns(m => m.PermissionId == readPermission.BasicId)
-                .Where(m => m.MenuCode == "code_gen" && (m.PermissionId == null || m.PermissionId != readPermission.BasicId))
+                .Where(m => devMenuCodes.Contains(m.MenuCode))
                 .ExecuteCommandAsync();
         }
 
