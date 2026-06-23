@@ -38,6 +38,7 @@ using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
@@ -383,7 +384,7 @@ public sealed class AuthAppService
 
         using var platformScope = _currentTenant.Change(null);
         var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
-            ?? throw new UserFriendlyException("用户不存在。");
+            ?? throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Auth.UserNotFound"), "用户不存在。");
 
         try
         {

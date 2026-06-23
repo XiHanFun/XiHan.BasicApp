@@ -1,0 +1,7 @@
+{
+  "resource": "Errors",
+  "culture": "zh-CN",
+  "texts": {
+    "Auth.UserNotFound": "用户不存在。"
+  }
+}
