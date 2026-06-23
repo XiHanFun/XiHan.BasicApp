@@ -3,6 +3,7 @@ import type { DropdownOption } from 'naive-ui'
 import type { ActionSchema } from './types'
 import { NButton, NDropdown, NIcon, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -23,6 +24,8 @@ const emit = defineEmits<{
 }>()
 
 const { hasPermission } = usePermission()
+
+const { t } = useI18n()
 
 /** 小屏断点（max-width:767px） */
 const { isMobile } = useIsMobile()
@@ -79,12 +82,12 @@ function onMoreSelect(key: string) {
     </NTooltip>
 
     <NDropdown v-if="moreOptions.length" :options="moreOptions" trigger="click" @select="onMoreSelect">
-      <NButton size="small" :circle="isMobile" aria-label="更多">
+      <NButton size="small" :circle="isMobile" :aria-label="t('component.schema_page.more')">
         <template #icon>
           <NIcon><Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" /></NIcon>
         </template>
         <template v-if="!isMobile">
-          更多
+          {{ t('component.schema_page.more') }}
         </template>
       </NButton>
     </NDropdown>

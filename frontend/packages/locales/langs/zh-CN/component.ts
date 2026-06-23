@@ -152,6 +152,7 @@ export default {
   },
   schema_page: {
     actions_column: '操作',
+    more: '更多',
     batch_delete_title: '批量删除',
     batch_delete_content: '确定删除选中的 {count} 条记录？此操作不可恢复。',
     batch_action_title: '批量{label}',

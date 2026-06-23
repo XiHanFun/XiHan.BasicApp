@@ -250,7 +250,7 @@ function renderRowActions(row: Row) {
     {
       default: () =>
         h(NButton, { quaternary: true, size: 'small' }, {
-          default: () => '更多',
+          default: () => t('component.schema_page.more'),
           icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:chevron-down' })),
         }),
     },
