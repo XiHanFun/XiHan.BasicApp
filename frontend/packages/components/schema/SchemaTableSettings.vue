@@ -3,6 +3,8 @@ import type { DragEndEvent } from '@dnd-kit/vue'
 import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
 import { DragDropProvider } from '@dnd-kit/vue'
 import { NButton, NCheckbox, NDivider, NIcon, NInputNumber, NPopover, NTooltip } from 'naive-ui'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 import { resolveSortMove } from '../common/sortable'
@@ -10,8 +12,6 @@ import SortableItem from '../common/SortableItem.vue'
 import SyncStatusBadge from '../common/SyncStatusBadge.vue'
 
 defineOptions({ name: 'SchemaTableSettings' })
-
-const appStore = useAppStore()
 
 const props = defineProps<{
   /** 列设置（来自 useTableSettings.columns） */
@@ -39,18 +39,21 @@ const emit = defineEmits<{
   save: []
 }>()
 
-const densityOptions: Array<{ label: string, value: TableDensity }> = [
-  { label: '紧凑', value: 'small' },
-  { label: '默认', value: 'medium' },
-  { label: '宽松', value: 'large' },
-]
+const { t } = useI18n()
+const appStore = useAppStore()
 
-const styleOptions: Array<{ label: string, key: keyof TableStyle, invert?: boolean }> = [
-  { label: '斑马纹', key: 'striped' },
-  { label: '边框', key: 'bordered' },
+const densityOptions = computed<Array<{ label: string, value: TableDensity }>>(() => [
+  { label: t('component.schema_table_settings.density_small'), value: 'small' },
+  { label: t('component.schema_table_settings.density_medium'), value: 'medium' },
+  { label: t('component.schema_table_settings.density_large'), value: 'large' },
+])
+
+const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, invert?: boolean }>>(() => [
+  { label: t('component.schema_table_settings.striped'), key: 'striped' },
+  { label: t('component.schema_table_settings.bordered'), key: 'bordered' },
   // Naive single-line=true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
-  { label: '单线', key: 'singleLine', invert: true },
-]
+  { label: t('component.schema_table_settings.single_line'), key: 'singleLine', invert: true },
+])
 
 /** 固定循环切换：无 → 左 → 右 → 无 */
 function nextFixed(current?: 'left' | 'right'): 'left' | 'right' | undefined {
@@ -206,7 +209,7 @@ function onDragEnd(event: DragEndEvent) {
                 :update-value-on-input="false"
                 :min="60"
                 :max="800"
-                placeholder="自动"
+                :placeholder="t('component.schema_table_settings.auto')"
                 @update:value="(value: number | null) => emit('setWidth', col.key, value ?? undefined)"
               />
             </span>

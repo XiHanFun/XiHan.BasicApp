@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { NIcon, NInput } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { useLockScreen } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
@@ -7,6 +8,7 @@ import UserAvatar from './UserAvatar.vue'
 
 defineOptions({ name: 'LockScreen' })
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const {
   lockMode,
@@ -39,14 +41,14 @@ const {
         <!-- ① 设置密码阶段 -->
         <template v-if="lockMode === 'setting'">
           <div class="lock-screen-hint">
-            设置本次锁屏密码（可留空跳过）
+            {{ t('component.lock_screen.setup_password_hint') }}
           </div>
           <form class="lock-screen-input-wrap" @submit.prevent="confirmLock">
             <NInput
               v-model:value="lockPwdNew"
               type="password"
               show-password-on="click"
-              placeholder="新密码（留空则无需密码）"
+              :placeholder="t('component.lock_screen.new_password_placeholder')"
               size="large"
               autocomplete="new-password"
             >
@@ -59,7 +61,7 @@ const {
               v-model:value="lockPwdConfirm"
               type="password"
               show-password-on="click"
-              placeholder="确认密码"
+              :placeholder="t('component.lock_screen.confirm_password_placeholder')"
               size="large"
               style="margin-top: 8px"
               :status="lockPwdError ? 'error' : undefined"
@@ -76,7 +78,7 @@ const {
               <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                 <Icon icon="lucide:lock" />
               </NIcon>
-              确认锁屏
+              {{ t('component.lock_screen.confirm_lock_btn') }}
             </button>
           </form>
         </template>
@@ -84,14 +86,14 @@ const {
         <!-- ② 已锁定，输入锁屏密码 -->
         <template v-else-if="lockMode === 'locked'">
           <div class="lock-screen-hint">
-            {{ hasLockPwd ? '请输入锁屏密码' : '按下解锁按钮继续' }}
+            {{ hasLockPwd ? t('component.lock_screen.input_password_hint') : '按下解锁按钮继续' }}
           </div>
           <form v-if="hasLockPwd" class="lock-screen-input-wrap" @submit.prevent="doUnlock">
             <NInput
               v-model:value="unlockPwd"
               type="password"
               show-password-on="click"
-              placeholder="锁屏密码"
+              :placeholder="t('component.lock_screen.password_placeholder')"
               size="large"
               :status="unlockError ? 'error' : undefined"
               autocomplete="current-password"
@@ -107,14 +109,14 @@ const {
               <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                 <Icon icon="lucide:lock-open" />
               </NIcon>
-              解锁
+              {{ t('component.lock_screen.unlock_btn') }}
             </button>
           </form>
           <button v-else class="unlock-btn" @click="doUnlock">
             <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
               <Icon icon="lucide:lock-open" />
             </NIcon>
-            解锁
+            {{ t('component.lock_screen.unlock_btn') }}
           </button>
         </template>
       </div>

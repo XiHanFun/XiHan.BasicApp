@@ -1,4 +1,5 @@
 import common from './common'
+import component from './component'
 import error from './error'
 import header from './header'
 import island from './island'
@@ -9,6 +10,7 @@ import tabbar from './tabbar'
 
 export default {
   common,
+  component,
   menu,
   header,
   tabbar,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ToolbarNames } from 'md-editor-v3'
 import { MdEditor as Editor, MdPreview } from 'md-editor-v3'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores'
 import 'md-editor-v3/lib/style.css'
 
@@ -33,7 +34,7 @@ const props = withDefaults(defineProps<{
   previewTheme: 'default',
   codeTheme: 'atom',
   language: 'zh-CN',
-  placeholder: '请输入 Markdown 内容...',
+  placeholder: undefined,
   showCodeRowNumber: true,
   editorId: 'x-md-editor',
   toolbarsExclude: () => [],
@@ -49,10 +50,14 @@ const emit = defineEmits<{
 
 const modelValue = defineModel<string>({ default: '' })
 
+const { t } = useI18n()
 const appStore = useAppStore()
 
 /** 跟随系统暗色模式，外部可通过 theme prop 强制覆盖 */
 const resolvedTheme = computed(() => props.theme ?? (appStore.isDark ? 'dark' : 'light'))
+
+/** 占位文本：外部未传时回落到 i18n 默认值 */
+const resolvedPlaceholder = computed(() => props.placeholder ?? t('component.md_editor.placeholder'))
 
 function handleSave(val: string) {
   emit('save', val)
@@ -82,7 +87,7 @@ function handleUploadImg(files: File[], callback: (urls: string[]) => void) {
     :preview-theme="props.previewTheme"
     :code-theme="props.codeTheme"
     :language="props.language"
-    :placeholder="props.placeholder"
+    :placeholder="resolvedPlaceholder"
     :show-code-row-number="props.showCodeRowNumber"
     :toolbars-exclude="props.toolbarsExclude"
     :disabled="props.disabled"

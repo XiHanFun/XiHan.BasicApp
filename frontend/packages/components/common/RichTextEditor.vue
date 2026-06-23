@@ -10,6 +10,7 @@ import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { NButton, NButtonGroup, NDivider, NInput, NPopover } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'XRichTextEditor' })
@@ -19,12 +20,17 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   minHeight?: string
 }>(), {
-  placeholder: '请输入内容...',
+  placeholder: undefined,
   disabled: false,
   minHeight: '200px',
 })
 
 const modelValue = defineModel<string>({ default: '' })
+
+const { t } = useI18n()
+
+/** 占位文本：外部未传时回落到 i18n 默认值 */
+const resolvedPlaceholder = props.placeholder ?? t('component.rich_text_editor.placeholder')
 
 const linkUrl = ref('')
 const imageUrl = ref('')
@@ -39,7 +45,7 @@ const editor = useEditor({
   editable: !props.disabled,
   extensions: [
     StarterKit,
-    Placeholder.configure({ placeholder: props.placeholder }),
+    Placeholder.configure({ placeholder: resolvedPlaceholder }),
     Underline,
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
     Link.configure({ openOnClick: false }),
@@ -130,7 +136,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('bold') ? 'primary' : 'default'"
           quaternary
-          title="粗体"
+          :title="t('component.rich_text_editor.bold')"
           @click="editor!.chain().focus().toggleBold().run()"
         >
           <Icon icon="lucide:bold" :width="16" />
@@ -138,7 +144,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('italic') ? 'primary' : 'default'"
           quaternary
-          title="斜体"
+          :title="t('component.rich_text_editor.italic')"
           @click="editor!.chain().focus().toggleItalic().run()"
         >
           <Icon icon="lucide:italic" :width="16" />
@@ -146,7 +152,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('underline') ? 'primary' : 'default'"
           quaternary
-          title="下划线"
+          :title="t('component.rich_text_editor.underline')"
           @click="editor!.chain().focus().toggleUnderline().run()"
         >
           <Icon icon="lucide:underline" :width="16" />
@@ -154,7 +160,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('strike') ? 'primary' : 'default'"
           quaternary
-          title="删除线"
+          :title="t('component.rich_text_editor.strikethrough')"
           @click="editor!.chain().focus().toggleStrike().run()"
         >
           <Icon icon="lucide:strikethrough" :width="16" />
@@ -166,7 +172,7 @@ const headingLevels = [1, 2, 3, 4] as const
       <!-- 文本颜色 -->
       <NPopover trigger="click" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton size="small" quaternary title="文字颜色">
+          <NButton size="small" quaternary :title="t('component.rich_text_editor.text_color')">
             <div class="flex flex-col items-center">
               <Icon icon="lucide:baseline" :width="16" />
               <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: textColor }" />
@@ -188,7 +194,7 @@ const headingLevels = [1, 2, 3, 4] as const
       <!-- 高亮色 -->
       <NPopover trigger="click" placement="bottom" :show-arrow="false">
         <template #trigger>
-          <NButton size="small" quaternary title="背景高亮">
+          <NButton size="small" quaternary :title="t('component.rich_text_editor.highlight')">
             <div class="flex flex-col items-center">
               <Icon icon="lucide:highlighter" :width="16" />
               <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: highlightColor === 'transparent' ? '#e5e7eb' : highlightColor }" />
@@ -202,7 +208,7 @@ const headingLevels = [1, 2, 3, 4] as const
             class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
             :class="{ 'ring-2 ring-blue-500 ring-offset-1': highlightColor === c }"
             :style="{ background: c === 'transparent' ? 'repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50%/8px 8px' : c }"
-            :title="c === 'transparent' ? '清除高亮' : c"
+            :title="c === 'transparent' ? t('component.rich_text_editor.clear_highlight') : c"
             @click="applyHighlight(c)"
           />
         </div>
@@ -215,7 +221,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive({ textAlign: 'left' }) ? 'primary' : 'default'"
           quaternary
-          title="左对齐"
+          :title="t('component.rich_text_editor.align_left')"
           @click="editor!.chain().focus().setTextAlign('left').run()"
         >
           <Icon icon="lucide:align-left" :width="16" />
@@ -223,7 +229,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive({ textAlign: 'center' }) ? 'primary' : 'default'"
           quaternary
-          title="居中"
+          :title="t('component.rich_text_editor.align_center')"
           @click="editor!.chain().focus().setTextAlign('center').run()"
         >
           <Icon icon="lucide:align-center" :width="16" />
@@ -231,7 +237,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive({ textAlign: 'right' }) ? 'primary' : 'default'"
           quaternary
-          title="右对齐"
+          :title="t('component.rich_text_editor.align_right')"
           @click="editor!.chain().focus().setTextAlign('right').run()"
         >
           <Icon icon="lucide:align-right" :width="16" />
@@ -245,7 +251,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('bulletList') ? 'primary' : 'default'"
           quaternary
-          title="无序列表"
+          :title="t('component.rich_text_editor.bullet_list')"
           @click="editor!.chain().focus().toggleBulletList().run()"
         >
           <Icon icon="lucide:list" :width="16" />
@@ -253,7 +259,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('orderedList') ? 'primary' : 'default'"
           quaternary
-          title="有序列表"
+          :title="t('component.rich_text_editor.ordered_list')"
           @click="editor!.chain().focus().toggleOrderedList().run()"
         >
           <Icon icon="lucide:list-ordered" :width="16" />
@@ -267,7 +273,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('blockquote') ? 'primary' : 'default'"
           quaternary
-          title="引用"
+          :title="t('component.rich_text_editor.blockquote')"
           @click="editor!.chain().focus().toggleBlockquote().run()"
         >
           <Icon icon="lucide:quote" :width="16" />
@@ -275,14 +281,14 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           :type="isActive('codeBlock') ? 'primary' : 'default'"
           quaternary
-          title="代码块"
+          :title="t('component.rich_text_editor.code_block')"
           @click="editor!.chain().focus().toggleCodeBlock().run()"
         >
           <Icon icon="lucide:code" :width="16" />
         </NButton>
         <NButton
           quaternary
-          title="分隔线"
+          :title="t('component.rich_text_editor.horizontal_rule')"
           @click="editor!.chain().focus().setHorizontalRule().run()"
         >
           <Icon icon="lucide:minus" :width="16" />
@@ -298,7 +304,7 @@ const headingLevels = [1, 2, 3, 4] as const
             size="small"
             :type="isActive('link') ? 'primary' : 'default'"
             quaternary
-            title="链接"
+            :title="t('component.rich_text_editor.link')"
           >
             <Icon icon="lucide:link" :width="16" />
           </NButton>
@@ -314,7 +320,7 @@ const headingLevels = [1, 2, 3, 4] as const
       <!-- 图片 -->
       <NPopover trigger="click" placement="bottom">
         <template #trigger>
-          <NButton size="small" quaternary title="图片">
+          <NButton size="small" quaternary :title="t('component.rich_text_editor.image')">
             <Icon icon="lucide:image" :width="16" />
           </NButton>
         </template>
@@ -333,7 +339,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           quaternary
           :disabled="!editor!.can().undo()"
-          title="撤销"
+          :title="t('component.rich_text_editor.undo')"
           @click="editor!.chain().focus().undo().run()"
         >
           <Icon icon="lucide:undo-2" :width="16" />
@@ -341,7 +347,7 @@ const headingLevels = [1, 2, 3, 4] as const
         <NButton
           quaternary
           :disabled="!editor!.can().redo()"
-          title="重做"
+          :title="t('component.rich_text_editor.redo')"
           @click="editor!.chain().focus().redo().run()"
         >
           <Icon icon="lucide:redo-2" :width="16" />
