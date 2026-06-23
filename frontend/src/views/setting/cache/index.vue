@@ -115,7 +115,12 @@ function renderTreeLabel({ option }: { option: TreeOption }) {
   }
   return h('span', { class: 'cache-tree-group' }, [
     h('span', null, String(node.label ?? '')),
-    h('span', { class: 'cache-tree-count' }, `(${node.leafCount ?? 0})`),
+    // 键数用徽标显示（与顶部「缓存键」计数同款 NTag），不再用括号
+    h(
+      NTag,
+      { size: 'tiny', type: 'info', bordered: false, round: true },
+      { default: () => String(node.leafCount ?? 0) },
+    ),
   ])
 }
 
@@ -650,11 +655,6 @@ onMounted(loadKeys)
   gap: 4px;
   align-items: center;
   font-size: 13px;
-}
-
-.cache-tree-count {
-  font-size: 12px;
-  color: var(--text-secondary, rgb(118 124 130));
 }
 
 .cache-batch-bar {
