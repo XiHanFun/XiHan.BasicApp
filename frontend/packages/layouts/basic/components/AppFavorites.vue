@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
     v-model:show="showPanel"
     trigger="click"
     placement="bottom-start"
-    :width="320"
+    :width="340"
     display-directive="show"
     :show-arrow="false"
   >

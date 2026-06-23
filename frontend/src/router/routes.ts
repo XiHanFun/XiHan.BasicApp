@@ -16,14 +16,14 @@ export const staticRoutes: RouteRecordRaw[] = [
     redirect: HOME_PATH,
     children: [
       {
-        // 个人中心：经 Header 头像下拉进入，不在侧边栏菜单展示（hidden），故作为静态隐藏路由
+        // 个人中心：前端静态路由（后端菜单表按约定不登记静态路由）。
+        // 菜单项由 use-layout-menu-domain 注入到「工作台」末位展示；也可经 Header 头像下拉进入。
         path: '/workbench/profile',
         name: 'Profile',
         component: ProfilePage,
         meta: {
           title: 'menu.profile',
           icon: 'lucide:user',
-          hidden: true,
         },
       },
       {
