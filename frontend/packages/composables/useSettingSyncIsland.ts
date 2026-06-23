@@ -1,3 +1,4 @@
+import { i18n } from '~/locales'
 import { islandStart } from './useDynamicIsland'
 
 /**
@@ -23,10 +24,10 @@ export interface SettingSyncIslandTask {
  * @param name 设置名称（如「偏好设置」「收藏夹」「表格设置」）
  */
 export function settingSyncIsland(id: string, name: string): SettingSyncIslandTask {
-  const task = islandStart(id, `正在同步${name}…`)
+  const task = islandStart(id, i18n.global.t('island.sync.syncing', { name }))
   return {
-    success: () => task.success(`${name}已同步`),
-    error: () => task.error(`${name}同步失败`),
+    success: () => task.success(i18n.global.t('island.sync.synced', { name })),
+    error: () => task.error(i18n.global.t('island.sync.failed', { name })),
     dismiss: () => task.dismiss(),
   }
 }
@@ -39,5 +40,6 @@ export function settingSyncIsland(id: string, name: string): SettingSyncIslandTa
  * @param name 设置名称
  */
 export function settingSyncRemoteApplied(id: string, name: string): void {
-  islandStart(id, `正在应用其他设备的${name}变更…`).success(`${name}已从其他设备同步`)
+  islandStart(id, i18n.global.t('island.sync.remote_applying', { name }))
+    .success(i18n.global.t('island.sync.remote_synced', { name }))
 }

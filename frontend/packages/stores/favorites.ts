@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
 import { FAVORITES_KEY, FAVORITES_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { i18n } from '~/locales'
 import { useAppContext } from '~/stores/app-context'
 import { isFavoritesSyncEnabled } from '~/stores/helpers'
 import { SetupStoreId } from '~/stores/store-ids'
@@ -38,7 +39,7 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     }
     saveTimer = setTimeout(() => {
       const settingValue = JSON.stringify(favorites.value)
-      const task = settingSyncIsland('favorites:save', '收藏夹')
+      const task = settingSyncIsland('favorites:save', i18n.global.t('island.sync.name.favorites'))
       void useAppContext()
         .apis
         .userSettingApi
@@ -120,7 +121,7 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
       return inflight
     }
     inflight = (async () => {
-      const task = settingSyncIsland('favorites:hydrate', '收藏夹')
+      const task = settingSyncIsland('favorites:hydrate', i18n.global.t('island.sync.name.favorites'))
       try {
         const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY })
         const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as unknown) : null
@@ -166,7 +167,7 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
       .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
     favorites.value = list
     LocalStorage.set(FAVORITES_KEY, list)
-    settingSyncRemoteApplied('favorites:remote', '收藏夹')
+    settingSyncRemoteApplied('favorites:remote', i18n.global.t('island.sync.name.favorites'))
   }
 
   return { favorites, count, has, add, remove, toggle, move, clear, hydrate, applyRemote }

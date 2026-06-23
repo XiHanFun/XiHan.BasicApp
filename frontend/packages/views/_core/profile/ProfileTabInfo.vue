@@ -180,7 +180,7 @@ async function handleAvatarChange(event: Event) {
   }
   avatarUploading.value = true
   // 灵动岛实时进度（确定性进度条）
-  const task = islandStart('avatar-upload', '正在上传头像…', { icon: 'lucide:image-up', progress: 0 })
+  const task = islandStart('avatar-upload', t('island.avatar.uploading'), { icon: 'lucide:image-up', progress: 0 })
   try {
     const detail = await fileApi.upload(
       {
@@ -192,10 +192,10 @@ async function handleAvatarChange(event: Event) {
     )
     // user.avatar 存文件主键(fileId)，显示时再换取预签名 URL
     await persistAvatar(detail.basicId)
-    task.success('头像已更新')
+    task.success(t('island.avatar.updated'))
   }
   catch (e: unknown) {
-    task.error((e as Error)?.message || '头像上传失败')
+    task.error((e as Error)?.message || t('island.avatar.upload_failed'))
   }
   finally {
     avatarUploading.value = false

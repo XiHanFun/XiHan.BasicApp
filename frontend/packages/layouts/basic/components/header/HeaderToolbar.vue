@@ -2,6 +2,7 @@
 import type { HeaderToolbarPropsContract } from '../../contracts'
 import type { NotificationItem } from '~/stores'
 import { NDropdown } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
@@ -34,6 +35,7 @@ const emit = defineEmits<{
   userAction: [key: string]
 }>()
 
+const { t } = useI18n()
 // 小屏（<768）：隐藏次要工具（语言/时区/全屏）与用户名文字，避免头部溢出裁切头像菜单
 const { isMobile } = useIsMobile()
 </script>
@@ -49,7 +51,7 @@ const { isMobile } = useIsMobile()
       variant="dropdown"
       apply
     >
-      <XihanIconButton class="mr-1" tooltip="切换语言">
+      <XihanIconButton class="mr-1" :tooltip="t('header.toolbar.switch_language')">
         <Icon icon="lucide:languages" width="16" height="16" />
       </XihanIconButton>
     </LocaleSwitcher>
@@ -60,7 +62,7 @@ const { isMobile } = useIsMobile()
       variant="dropdown"
       apply
     >
-      <XihanIconButton class="mr-1 mt-[2px]" tooltip="切换时区">
+      <XihanIconButton class="mr-1 mt-[2px]" :tooltip="t('header.toolbar.switch_timezone')">
         <Icon icon="lucide:clock-3" width="16" height="16" />
       </XihanIconButton>
     </TimezoneSwitcher>
@@ -69,7 +71,7 @@ const { isMobile } = useIsMobile()
     <XihanIconButton
       v-if="props.appStore.widgetThemeToggle"
       class="mr-1 mt-[2px]"
-      :tooltip="props.isDark ? '切换浅色' : '切换深色'"
+      :tooltip="props.isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
       @mousedown.prevent
       @click="(event: MouseEvent) => emit('themeToggle', event)"
     >
@@ -84,7 +86,7 @@ const { isMobile } = useIsMobile()
     <XihanIconButton
       v-if="props.appStore.widgetFullscreen && !isMobile"
       class="mr-1"
-      :tooltip="props.isFullscreen ? '退出全屏' : '全屏'"
+      :tooltip="props.isFullscreen ? t('header.toolbar.fullscreen_exit') : t('header.toolbar.fullscreen_enter')"
       @click="emit('fullscreenToggle')"
     >
       <Icon
@@ -98,7 +100,7 @@ const { isMobile } = useIsMobile()
     <XihanIconButton
       v-if="props.showPreferencesInHeader !== false"
       class="mr-1"
-      tooltip="偏好设置"
+      :tooltip="t('header.toolbar.preferences')"
       @mousedown.prevent
       @click="emit('preferencesOpen')"
     >

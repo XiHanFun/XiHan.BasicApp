@@ -13,6 +13,7 @@ import { ref } from 'vue'
 import { useSignalR } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
+import { i18n } from '~/locales'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { CORE_ROUTE_NAMES } from '~/router/routes/core'
 import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
@@ -28,7 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false)
 
   async function afterLogin(result: LoginToken, redirect?: string) {
-    const loginTask = islandStart('auth:login', '正在登录…')
+    const loginTask = islandStart('auth:login', i18n.global.t('island.auth.logging_in'))
     const ctx = useAppContext()
     const router = await ctx.getRouter()
 
@@ -46,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
     catch (error) {
       accessStore.$reset()
       userStore.$reset()
-      loginTask.error('登录失败')
+      loginTask.error(i18n.global.t('island.auth.login_failed'))
       throw error
     }
 
@@ -79,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
     // 已直进唯一租户 → 正常首页/重定向。
     if (!userInfo.tenantId) {
       await router.replace('/control-center')
-      loginTask.success('登录成功')
+      loginTask.success(i18n.global.t('island.auth.login_success'))
       return
     }
 
@@ -97,7 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
       await router.replace(homePath)
     }
 
-    loginTask.success('登录成功')
+    loginTask.success(i18n.global.t('island.auth.login_success'))
   }
 
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {

@@ -1,6 +1,7 @@
 import type { ListFieldSchema } from './types'
 import { ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
+import { i18n } from '~/locales'
 import { formatFieldText } from './renderer'
 
 /** CSV 单元格转义：含逗号/引号/换行时包裹双引号并转义内部引号 */
@@ -54,26 +55,26 @@ export function useSchemaExport<TRow extends object>(options: UseSchemaExportOpt
     }
     exporting.value = true
     // 灵动岛过程提示：拉取为不确定态；完成给出「再次导出」操作，失败给出「重试」
-    const task = islandStart('export', '正在导出数据…', { icon: 'lucide:download' })
+    const task = islandStart('export', i18n.global.t('island.export.exporting'), { icon: 'lucide:download' })
     try {
       const rows = await options.fetchRows()
       if (rows.length === 0) {
-        task.info('无可导出数据')
+        task.info(i18n.global.t('island.export.empty'))
         return
       }
       const fileName = `${options.fileName()}.csv`
       downloadText(fileName, toCsv(options.fields(), rows))
-      task.success(`已导出 ${rows.length} 条`, {
+      task.success(i18n.global.t('island.export.success', { n: rows.length }), {
         detail: fileName,
         actions: [
-          { key: 'again', label: '再次导出', icon: 'lucide:rotate-cw', handler: () => void exportCsv() },
+          { key: 'again', label: i18n.global.t('island.export.again'), icon: 'lucide:rotate-cw', handler: () => void exportCsv() },
         ],
       })
     }
     catch {
-      task.error('导出失败', {
+      task.error(i18n.global.t('island.export.failed'), {
         actions: [
-          { key: 'retry', label: '重试', icon: 'lucide:rotate-cw', tone: 'primary', handler: () => void exportCsv() },
+          { key: 'retry', label: i18n.global.t('island.export.retry'), icon: 'lucide:rotate-cw', tone: 'primary', handler: () => void exportCsv() },
         ],
       })
     }

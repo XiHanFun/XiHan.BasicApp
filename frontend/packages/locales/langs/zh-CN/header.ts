@@ -26,6 +26,38 @@ export default {
   },
   notification: {
     pending: '通知功能待接入',
+    bell: '通知',
+    title: '通知中心',
+    refresh: '刷新',
+    mark_all_read: '全部已读',
+    view_all: '前往通知中心',
+    confirm: '确认',
+    type_default: '通知',
+    tab: {
+      inbox: '站内信',
+      inbox_count: '站内信 ({n})',
+      mention: '提及我',
+      mention_count: '提及我 ({n})',
+    },
+    empty: {
+      inbox: '暂无站内信',
+      mention: '暂无提及',
+    },
+    time: {
+      just_now: '刚刚',
+      minutes_ago: '{n} 分钟前',
+      hours_ago: '{n} 小时前',
+      days_ago: '{n} 天前',
+    },
+  },
+  toolbar: {
+    switch_language: '切换语言',
+    switch_timezone: '切换时区',
+    theme_to_light: '切换浅色',
+    theme_to_dark: '切换深色',
+    fullscreen_enter: '全屏',
+    fullscreen_exit: '退出全屏',
+    preferences: '偏好设置',
   },
   search: {
     placeholder: '命令面板',

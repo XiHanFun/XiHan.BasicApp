@@ -1,6 +1,7 @@
 import { nextTick, ref, watch } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
 import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { i18n } from '~/locales'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 
@@ -103,7 +104,7 @@ function pushPreferencesToBackend(): void {
     return
   }
   const settingValue = buildPreferenceSnapshot()
-  const task = settingSyncIsland('pref:save', '偏好设置')
+  const task = settingSyncIsland('pref:save', i18n.global.t('island.sync.name.preferences'))
   void useAppContext()
     .apis
     .userSettingApi
@@ -247,7 +248,7 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
     return
   }
   // 登录流程由登录灵动岛统一覆盖，此处不重复提示；刷新恢复会话时则独立提示
-  const task = options?.showIsland === false ? null : settingSyncIsland('pref:hydrate', '偏好设置')
+  const task = options?.showIsland === false ? null : settingSyncIsland('pref:hydrate', i18n.global.t('island.sync.name.preferences'))
   // 应用远端期间暂停回写，避免把刚拉取的远端值原样回传
   backendSyncEnabled = false
   let needSeed = false
@@ -319,7 +320,7 @@ export async function applyRemotePreferenceSnapshot(settingValue?: null | string
   // 等本轮 watch flush（写本地、上行被门挡住）后恢复回写
   await nextTick()
   backendSyncEnabled = true
-  settingSyncRemoteApplied('pref:remote', '偏好设置')
+  settingSyncRemoteApplied('pref:remote', i18n.global.t('island.sync.name.preferences'))
 }
 
 /** 退出登录：停止后端回写、清空待发请求，允许下次登录重新水合 */
