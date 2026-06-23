@@ -16,6 +16,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Utils.Security;
 
@@ -175,13 +176,13 @@ public sealed partial class ProfileAppService
     {
         if (credentialId <= 0)
         {
-            throw new UserFriendlyException("凭证主键无效。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Profile.Credential.InvalidId"), "凭证主键无效。");
         }
 
         var credential = await _userApiCredentialRepository.GetByIdAsync(credentialId, cancellationToken);
         if (credential is null || credential.UserId != userId)
         {
-            throw new UserFriendlyException("凭证不存在或无权操作。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Profile.Credential.NotFoundOrNoPermission"), "凭证不存在或无权操作。");
         }
 
         return credential;

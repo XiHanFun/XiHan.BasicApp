@@ -2,6 +2,15 @@
   "resource": "Errors",
   "culture": "zh-CN",
   "texts": {
-    "Auth.UserNotFound": "用户不存在。"
+    "Auth.UserNotFound": "用户不存在。",
+    "Auth.InvalidOrExpiredResetLink": "重置链接无效或已过期，请重新申请找回密码。",
+    "Auth.InvalidPasswordLength": "新密码长度需为 8-128 位。",
+    "Profile.Credential.InvalidId": "凭证主键无效。",
+    "Profile.Credential.NotFoundOrNoPermission": "凭证不存在或无权操作。",
+    "CodeGeneration.TableNameRequired": "数据库表名不能为空。",
+    "CodeGeneration.TableAlreadyConfigured": "数据库表“{0}”已配置，请勿重复导入。",
+    "Tenant.CodeAlreadyExists": "租户编码已存在。",
+    "Authorization.Role.CodeAlreadyExists": "角色编码已存在。",
+    "Configuration.Dict.CodeAlreadyExists": "字典编码已存在。"
   }
 }

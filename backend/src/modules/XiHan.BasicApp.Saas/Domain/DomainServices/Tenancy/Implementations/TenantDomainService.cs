@@ -15,6 +15,8 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -58,7 +60,7 @@ public sealed class TenantDomainService
         var tenantCode = command.TenantCode.Trim();
         if (await _tenantRepository.ExistsTenantCodeAsync(tenantCode, cancellationToken: cancellationToken))
         {
-            throw new InvalidOperationException("租户编码已存在。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Tenant.CodeAlreadyExists"), "租户编码已存在。");
         }
 
         var domain = NormalizeNullable(command.Domain);

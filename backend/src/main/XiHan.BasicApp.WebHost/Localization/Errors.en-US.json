@@ -2,6 +2,15 @@
   "resource": "Errors",
   "culture": "en-US",
   "texts": {
-    "Auth.UserNotFound": "The user does not exist."
+    "Auth.UserNotFound": "The user does not exist.",
+    "Auth.InvalidOrExpiredResetLink": "The reset link is invalid or expired. Please reapply for password recovery.",
+    "Auth.InvalidPasswordLength": "Password length must be between 8 and 128 characters.",
+    "Profile.Credential.InvalidId": "Credential ID is invalid.",
+    "Profile.Credential.NotFoundOrNoPermission": "Credential does not exist or you do not have permission to operate.",
+    "CodeGeneration.TableNameRequired": "Database table name cannot be empty.",
+    "CodeGeneration.TableAlreadyConfigured": "Database table “{0}” already configured. Do not import again.",
+    "Tenant.CodeAlreadyExists": "Tenant code already exists.",
+    "Authorization.Role.CodeAlreadyExists": "Role code already exists.",
+    "Configuration.Dict.CodeAlreadyExists": "Dictionary code already exists."
   }
 }

@@ -16,6 +16,8 @@ using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Localization.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -51,7 +53,7 @@ public sealed class DictDomainService
         EnsureCodeHasNoWhitespace(dictCode, "字典编码不能包含空白字符。");
         if (await _dictRepository.AnyAsync(dict => dict.DictCode == dictCode, cancellationToken))
         {
-            throw new InvalidOperationException("字典编码已存在。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Configuration.Dict.CodeAlreadyExists"), "字典编码已存在。");
         }
 
         var dict = new SysDict
