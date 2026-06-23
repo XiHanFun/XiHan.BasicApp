@@ -21,6 +21,7 @@ using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Domain.Specifications;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -52,6 +53,11 @@ public sealed class TenantQueryService
     /// 当前用户
     /// </summary>
     private readonly ICurrentUser _currentUser;
+
+    /// <summary>
+    /// 超级管理员角色编码（与种子/授权快照/SwitchTenant 约定一致，运行时特判可进入任意租户）
+    /// </summary>
+    private const string SuperAdminRoleCode = "super_admin";
 
     /// <summary>
     /// 构造函数
@@ -122,6 +128,19 @@ public sealed class TenantQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var now = DateTimeOffset.UtcNow;
+
+        // 超级管理员是平台账号、无 SysTenantUser 成员关系，但设计上可进入任意租户（SwitchTenant 同样对其放行）。
+        // 故此处不按成员关系、而是返回全部可用租户（正常态、未过期）作为可切换项，避免切换器对超管为空。
+        if (_currentUser.IsInRole(SuperAdminRoleCode))
+        {
+            var availableSpec = new AvailableTenantSpecification(now);
+            var allTenants = await _tenantRepository.GetListAsync(availableSpec.ToExpression(), cancellationToken);
+            return [.. allTenants
+                .OrderBy(tenant => tenant.Sort)
+                .ThenBy(tenant => tenant.TenantName)
+                .Select(tenant => TenantApplicationMapper.ToSwitcherDto(tenant, _currentUser.TenantId))];
+        }
+
         var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(userId, now, cancellationToken);
         if (memberships.Count == 0)
         {
