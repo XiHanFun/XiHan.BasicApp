@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { LoginAuditResult, LoginLogItem } from '~/types'
 import { NButton, NPagination, NSpin, NTag, useMessage } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -10,6 +11,7 @@ defineOptions({ name: 'ProfileTabLoginLogs' })
 
 const { apis } = useAppContext()
 const message = useMessage()
+const { t } = useI18n()
 
 /** 紧凑行布局下一屏约可容纳的条数 */
 const PAGE_SIZE = 10
@@ -20,21 +22,21 @@ const page = ref(1)
 const loading = ref(false)
 
 /** 与后端 LoginResult 枚举（字符串序列化）一致，含认证审计事件 */
-const loginResultLabel: Record<LoginAuditResult, string> = {
-  Success: '成功',
-  InvalidCredentials: '密码错误',
-  AccountLocked: '账号锁定',
-  AccountDisabled: '账号禁用',
-  RequiresTwoFactor: '需二次验证',
-  TwoFactorFailed: '二次验证失败',
-  Logout: '登出',
-  TokenRefreshed: '令牌刷新',
-  PasswordChanged: '密码修改',
-  PasswordReset: '密码重置',
-  MfaBound: '绑定MFA',
-  MfaUnbound: '解绑MFA',
-  Failed: '其他失败',
-}
+const loginResultLabel = computed<Record<LoginAuditResult, string>>(() => ({
+  Success: t('component.profile.login_logs.result_success'),
+  InvalidCredentials: t('component.profile.login_logs.result_invalid_credentials'),
+  AccountLocked: t('component.profile.login_logs.result_account_locked'),
+  AccountDisabled: t('component.profile.login_logs.result_account_disabled'),
+  RequiresTwoFactor: t('component.profile.login_logs.result_requires_two_factor'),
+  TwoFactorFailed: t('component.profile.login_logs.result_two_factor_failed'),
+  Logout: t('component.profile.login_logs.result_logout'),
+  TokenRefreshed: t('component.profile.login_logs.result_token_refreshed'),
+  PasswordChanged: t('component.profile.login_logs.result_password_changed'),
+  PasswordReset: t('component.profile.login_logs.result_password_reset'),
+  MfaBound: t('component.profile.login_logs.result_mfa_bound'),
+  MfaUnbound: t('component.profile.login_logs.result_mfa_unbound'),
+  Failed: t('component.profile.login_logs.result_failed'),
+}))
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
@@ -79,7 +81,7 @@ async function loadLogs(nextPage = 1) {
   catch (e: unknown) {
     logs.value = []
     total.value = 0
-    message.error((e as Error)?.message || '加载登录日志失败')
+    message.error((e as Error)?.message || t('component.profile.login_logs.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -96,10 +98,10 @@ onMounted(() => loadLogs())
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:file-clock" width="16" />
-            <span>登录日志</span>
+            <span>{{ t('component.profile.login_logs.section_title') }}</span>
           </div>
           <div class="pf-section__desc">
-            最近的登录记录，发现异常请及时修改密码并登出可疑设备。
+            {{ t('component.profile.login_logs.section_desc') }}
           </div>
         </div>
         <div class="pf-section__extra">
@@ -114,7 +116,7 @@ onMounted(() => loadLogs())
         <NSpin :show="loading">
           <div v-if="logs.length === 0 && !loading" class="pf-empty">
             <span class="pf-empty__icon"><Icon icon="lucide:inbox" width="16" /></span>
-            <span>暂无登录记录</span>
+            <span>{{ t('component.profile.login_logs.empty') }}</span>
           </div>
           <div v-else class="pf-log-grid">
             <div v-for="(log, idx) in logs" :key="idx" class="pf-list-item pf-log-row">
@@ -124,12 +126,12 @@ onMounted(() => loadLogs())
               <div class="pf-list-body">
                 <div class="pf-list-title">
                   <NTag :type="resultTagType(log.loginResult)" size="tiny" :bordered="false">
-                    {{ loginResultLabel[log.loginResult] || `状态${log.loginResult}` }}
+                    {{ loginResultLabel[log.loginResult] || t('component.profile.login_logs.result_unknown', { result: log.loginResult }) }}
                   </NTag>
                   <span v-if="log.message" class="pf-log-message">{{ log.message }}</span>
                 </div>
                 <div class="pf-list-desc">
-                  {{ log.loginIp || '未知 IP' }}
+                  {{ log.loginIp || t('component.profile.login_logs.unknown_ip') }}
                   <template v-if="log.loginLocation">
                     · {{ log.loginLocation }}
                   </template>

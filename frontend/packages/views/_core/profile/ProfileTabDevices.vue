@@ -60,10 +60,10 @@ function handleRevokeOthers() {
     return
   }
   dialog.warning({
-    title: '登出所有设备',
-    content: `将下线除当前设备外的 ${cnt} 个设备，是否继续？`,
-    positiveText: '确认',
-    negativeText: '取消',
+    title: t('component.profile.devices.logout_all_title'),
+    content: t('component.profile.devices.logout_all_content', { count: cnt }),
+    positiveText: t('common.actions.confirm'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await apis.revokeOtherSessionsApi()
@@ -97,10 +97,10 @@ onMounted(loadSessions)
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:monitor-smartphone" width="16" />
-            <span>登录设备管理</span>
+            <span>{{ t('component.profile.devices.section_title') }}</span>
           </div>
           <div class="pf-section__desc">
-            查看当前账号已登录的设备，可远程登出可疑设备。
+            {{ t('component.profile.devices.section_desc') }}
           </div>
         </div>
         <div class="pf-section__extra">
@@ -113,14 +113,14 @@ onMounted(loadSessions)
               </template>
             </NButton>
             <NButton size="tiny" @click="handleRevokeOthers">
-              登出其他设备
+              {{ t('component.profile.devices.btn_logout_others') }}
             </NButton>
           </NSpace>
         </div>
       </div>
       <div class="pf-section__body">
         <NSpin :show="sessionsLoading">
-          <NEmpty v-if="sessions.length === 0 && sessionsLoaded" description="暂无在线设备" />
+          <NEmpty v-if="sessions.length === 0 && sessionsLoaded" :description="t('component.profile.devices.empty')" />
           <div v-else class="pf-list">
             <div
               v-for="s in sessions"
@@ -133,7 +133,7 @@ onMounted(loadSessions)
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
-                  {{ s.deviceName || s.browser || '未知设备' }}
+                  {{ s.deviceName || s.browser || t('component.profile.devices.unknown_device') }}
                 </div>
                 <div class="pf-list-desc">
                   {{ s.ipAddress }}
@@ -143,19 +143,19 @@ onMounted(loadSessions)
                   <template v-if="s.operatingSystem">
                     · {{ s.operatingSystem }}
                   </template>
-                  · {{ s.isCurrent ? '在线' : formatDate(s.lastActivityTime, 'MM-DD HH:mm') }}
+                  · {{ s.isCurrent ? t('component.profile.devices.status_online') : formatDate(s.lastActivityTime, 'MM-DD HH:mm') }}
                 </div>
               </div>
               <NTag v-if="s.isCurrent" type="success" size="small" :bordered="false">
-                当前
+                {{ t('component.profile.devices.tag_current') }}
               </NTag>
               <NPopconfirm v-else @positive-click="handleRevokeSession(s.sessionId)">
                 <template #trigger>
                   <NButton size="tiny" type="error" text>
-                    踢下线
+                    {{ t('component.profile.devices.btn_kick') }}
                   </NButton>
                 </template>
-                确定登出该设备？
+                {{ t('component.profile.devices.confirm_logout_device') }}
               </NPopconfirm>
             </div>
           </div>

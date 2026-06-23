@@ -73,10 +73,10 @@ async function handleCreateCredential() {
 
 function handleRotateSecret(cred: ApiCredentialItem) {
   dialog.warning({
-    title: '滚动密钥',
-    content: `生成新密钥后「${cred.credentialName}」的旧密钥将立即失效，确定继续？`,
-    positiveText: '确认滚动',
-    negativeText: '取消',
+    title: t('component.profile.developer.rotate_title'),
+    content: t('component.profile.developer.rotate_content', { name: cred.credentialName }),
+    positiveText: t('component.profile.developer.confirm_rotate'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         newSecret.value = await apis.rotateApiCredentialSecretApi(cred.basicId)
@@ -104,10 +104,10 @@ async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
 
 function handleDeleteCredential(cred: ApiCredentialItem) {
   dialog.error({
-    title: '删除凭证',
-    content: `删除后使用「${cred.credentialName}」（${cred.appKey}）的所有集成将立即失效，此操作不可恢复。`,
-    positiveText: '确认删除',
-    negativeText: '取消',
+    title: t('component.profile.developer.delete_title'),
+    content: t('component.profile.developer.delete_content', { name: cred.credentialName, key: cred.appKey }),
+    positiveText: t('component.profile.developer.confirm_delete'),
+    negativeText: t('common.actions.cancel'),
     onPositiveClick: async () => {
       try {
         await apis.deleteApiCredentialApi(cred.basicId)
@@ -200,17 +200,17 @@ onMounted(() => {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:key" width="16" />
-            <span>API 凭证</span>
+            <span>{{ t('component.profile.developer.section_credentials') }}</span>
           </div>
           <div class="pf-section__desc">
-            用于服务端调用 OpenAPI 的个人凭证（最多 5 个）。Secret 仅在创建/滚动时显示一次。
+            {{ t('component.profile.developer.section_credentials_desc') }}
           </div>
         </div>
         <div class="pf-section__extra">
           <NButton size="small" type="primary" @click="openCreateModal">
             <template #icon>
               <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>创建凭证
+            </template>{{ t('component.profile.developer.btn_create_credential') }}
           </NButton>
         </div>
       </div>
@@ -241,14 +241,14 @@ onMounted(() => {
         </NAlert>
 
         <NSpin :show="credentialsLoading">
-          <NEmpty v-if="credentials.length === 0 && !credentialsLoading" class="pf-empty" description="暂无 API 凭证，点击右上角「创建凭证」开始接入" />
+          <NEmpty v-if="credentials.length === 0 && !credentialsLoading" class="pf-empty" :description="t('component.profile.developer.empty_credentials')" />
           <div v-else class="pf-list">
             <div v-for="cred in credentials" :key="String(cred.basicId)" class="pf-list-item pf-credential">
               <div class="pf-list-body">
                 <div class="pf-list-title pf-credential__name">
                   <span>{{ cred.credentialName }}</span>
                   <NTag size="small" round :bordered="false" :type="cred.status === 'Enabled' ? 'success' : 'default'">
-                    {{ cred.status === 'Enabled' ? '已启用' : '已停用' }}
+                    {{ cred.status === 'Enabled' ? t('component.profile.developer.tag_enabled') : t('component.profile.developer.tag_disabled') }}
                   </NTag>
                 </div>
                 <div class="pf-credential__key">
@@ -260,12 +260,12 @@ onMounted(() => {
                   </NButton>
                 </div>
                 <div class="pf-list-desc">
-                  创建于 {{ formatDate(cred.createdTime) }}
+                  {{ t('component.profile.developer.created_at', { time: formatDate(cred.createdTime) }) }}
                   <template v-if="cred.lastUsedTime">
-                    · 最后使用 {{ formatDate(cred.lastUsedTime) }}
+                    · {{ t('component.profile.developer.last_used', { time: formatDate(cred.lastUsedTime) }) }}
                   </template>
                   <template v-else>
-                    · 从未使用
+                    · {{ t('component.profile.developer.never_used') }}
                   </template>
                 </div>
               </div>
@@ -277,7 +277,7 @@ onMounted(() => {
                       :value="cred.status === 'Enabled'"
                       @update:value="(v: boolean) => handleToggleStatus(cred, v)"
                     />
-                  </template>启用/停用
+                  </template>{{ t('component.profile.developer.tooltip_toggle_status') }}
                 </NTooltip>
                 <NTooltip>
                   <template #trigger>
@@ -286,7 +286,7 @@ onMounted(() => {
                         <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
                       </template>
                     </NButton>
-                  </template>滚动密钥
+                  </template>{{ t('component.profile.developer.tooltip_rotate') }}
                 </NTooltip>
                 <NTooltip>
                   <template #trigger>
@@ -295,7 +295,7 @@ onMounted(() => {
                         <NIcon><Icon icon="lucide:trash-2" /></NIcon>
                       </template>
                     </NButton>
-                  </template>删除凭证
+                  </template>{{ t('component.profile.developer.tooltip_delete') }}
                 </NTooltip>
               </div>
             </div>
@@ -309,10 +309,10 @@ onMounted(() => {
         <div class="pf-section__heading">
           <div class="pf-section__title">
             <Icon icon="lucide:shield-check" width="16" />
-            <span>调用安全设置</span>
+            <span>{{ t('component.profile.developer.section_call_security') }}</span>
           </div>
           <div class="pf-section__desc">
-            签名算法与 IP 白名单，修改后需同步更新客户端配置。
+            {{ t('component.profile.developer.section_call_security_desc') }}
           </div>
         </div>
       </div>
@@ -320,8 +320,12 @@ onMounted(() => {
         <div class="pf-setting-list">
           <div class="pf-setting-row">
             <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">签名算法</div>
-              <div class="pf-setting-row__desc">服务端校验请求签名使用的算法</div>
+              <div class="pf-setting-row__label">
+                {{ t('component.profile.developer.field_sign_algorithm') }}
+              </div>
+              <div class="pf-setting-row__desc">
+                {{ t('component.profile.developer.field_sign_algorithm_desc') }}
+              </div>
             </div>
             <div class="pf-setting-row__control">
               <NSelect v-model:value="signAlgorithm" :options="signAlgorithmOptions" class="pf-field" size="small" />
@@ -329,8 +333,12 @@ onMounted(() => {
           </div>
           <div class="pf-setting-row pf-setting-row--block">
             <div class="pf-setting-row__main">
-              <div class="pf-setting-row__label">IP 白名单</div>
-              <div class="pf-setting-row__desc">每行一个 IP 或 CIDR 网段，留空则不限制</div>
+              <div class="pf-setting-row__label">
+                {{ t('component.profile.developer.field_ip_whitelist') }}
+              </div>
+              <div class="pf-setting-row__desc">
+                {{ t('component.profile.developer.field_ip_whitelist_desc') }}
+              </div>
             </div>
             <NInput
               v-model:value="ipWhitelist"
@@ -343,7 +351,7 @@ onMounted(() => {
       </div>
       <div class="pf-section__actions">
         <NButton type="primary" size="small" :loading="settingsSaving" @click="handleSaveOpenApiSettings">
-          保存设置
+          {{ t('component.profile.developer.btn_save_settings') }}
         </NButton>
       </div>
     </section>
@@ -352,14 +360,14 @@ onMounted(() => {
       v-model:show="createModalVisible"
       preset="dialog"
       :title="t('component.profile.developer.create_modal_title')"
-      positive-text="创建"
-      negative-text="取消"
+      :positive-text="t('component.profile.developer.btn_create')"
+      :negative-text="t('common.actions.cancel')"
       :loading="createSubmitting"
       @positive-click="handleCreateCredential"
     >
       <div class="pf-create-form">
         <div class="pf-create-form__tip">
-          为凭证起个便于区分用途的名称（如「CI 流水线」「报表同步」）。
+          {{ t('component.profile.developer.create_form_tip') }}
         </div>
         <NInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" maxlength="100" show-count @keydown.enter="handleCreateCredential" />
       </div>
