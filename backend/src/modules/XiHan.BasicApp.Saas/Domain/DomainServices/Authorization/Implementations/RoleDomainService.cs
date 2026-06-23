@@ -15,6 +15,8 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -75,7 +77,7 @@ public sealed class RoleDomainService
         var roleCode = command.RoleCode.Trim();
         if (await _roleRepository.GetByCodeAsync(roleCode, cancellationToken) is not null)
         {
-            throw new InvalidOperationException("角色编码已存在。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Authorization.Role.CodeAlreadyExists"), "角色编码已存在。");
         }
 
         var role = new SysRole

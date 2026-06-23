@@ -23,6 +23,8 @@ using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 
@@ -83,13 +85,13 @@ public sealed class CodeGenerationAppService(
         var tableName = input.TableName?.Trim();
         if (string.IsNullOrWhiteSpace(tableName))
         {
-            throw new InvalidOperationException("数据库表名不能为空。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "CodeGeneration.TableNameRequired"), "数据库表名不能为空。");
         }
 
         // 1) 去重：同一目标表禁止重复配置
         if (await _tableRepository.ExistsTableNameAsync(tableName, null, cancellationToken))
         {
-            throw new InvalidOperationException($"数据库表“{tableName}”已配置，请勿重复导入。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "CodeGeneration.TableAlreadyConfigured", tableName), $"数据库表“{tableName}”已配置，请勿重复导入。");
         }
 
         // 2) 扫描库表结构

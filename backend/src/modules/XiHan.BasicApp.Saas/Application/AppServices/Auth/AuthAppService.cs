@@ -366,20 +366,20 @@ public sealed class AuthAppService
         var token = (input.Token ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(token))
         {
-            throw new UserFriendlyException("重置链接无效或已过期，请重新申请找回密码。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Auth.InvalidOrExpiredResetLink"), "重置链接无效或已过期，请重新申请找回密码。");
         }
 
         var newPassword = input.NewPassword ?? string.Empty;
         if (newPassword.Length is < 8 or > 128)
         {
-            throw new UserFriendlyException("新密码长度需为 8-128 位。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Auth.InvalidPasswordLength"), "新密码长度需为 8-128 位。");
         }
 
         var key = PasswordResetCacheKey(token);
         var userIdText = await _distributedCache.GetStringAsync(key, cancellationToken);
         if (string.IsNullOrWhiteSpace(userIdText) || !long.TryParse(userIdText, out var userId))
         {
-            throw new UserFriendlyException("重置链接无效或已过期，请重新申请找回密码。");
+            throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Auth.InvalidOrExpiredResetLink"), "重置链接无效或已过期，请重新申请找回密码。");
         }
 
         using var platformScope = _currentTenant.Change(null);
