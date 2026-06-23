@@ -4,6 +4,7 @@ import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } f
 import type { ApiId } from '~/types/contracts'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -39,6 +40,7 @@ const emit = defineEmits<{
 // eslint-disable-next-line ts/no-explicit-any
 type Row = Record<string, any>
 
+const { t } = useI18n()
 const { hasPermission } = usePermission()
 const appStore = useAppStore()
 const dialog = useDialog()
@@ -216,7 +218,7 @@ const columns = computed<DataTableColumn<Row>[]>(() => {
   }
   const actionColumn = {
     key: '__actions__',
-    title: '操作',
+    title: t('component.schema_page.actions_column'),
     width: 90,
     fixed: 'right',
     render: (row: Row) => renderRowActions(row),
@@ -282,8 +284,8 @@ function handleBatchRemove() {
   }
   const rowKey = props.schema.rowKey ?? 'basicId'
   dialog.warning({
-    title: '批量删除',
-    content: `确定删除选中的 ${targets.length} 条记录？此操作不可恢复。`,
+    title: t('component.schema_page.batch_delete_title'),
+    content: t('component.schema_page.batch_delete_content', { count: targets.length }),
     positiveText: '确认删除',
     negativeText: '取消',
     onPositiveClick: async () => {
@@ -319,8 +321,8 @@ function handleBatchStatus(enabled: boolean) {
   const rowKey = props.schema.rowKey ?? 'basicId'
   const label = enabled ? '启用' : '停用'
   dialog.warning({
-    title: `批量${label}`,
-    content: `确定${label}选中的 ${targets.length} 条记录？`,
+    title: t('component.schema_page.batch_action_title', { label }),
+    content: t('component.schema_page.batch_action_content', { label, count: targets.length }),
     positiveText: `确认${label}`,
     negativeText: '取消',
     onPositiveClick: async () => {
@@ -415,11 +417,11 @@ const canSubmitExport = computed(() => !!props.schema.resource.export)
 const submittingExport = ref(false)
 
 const exportMenuOptions = computed(() => [
-  { key: 'center:1', label: '导出查询结果（导出中心）' },
-  { key: 'center:0', label: '仅导出当前页（导出中心）' },
-  { key: 'center:2', label: '导出全部（导出中心）' },
+  { key: 'center:1', label: t('component.schema_page.export_results') },
+  { key: 'center:0', label: t('component.schema_page.export_current_page') },
+  { key: 'center:2', label: t('component.schema_page.export_all') },
   { key: 'divider', type: 'divider' },
-  { key: 'local', label: '本地导出 CSV' },
+  { key: 'local', label: t('component.schema_page.export_csv_local') },
 ])
 
 /** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */

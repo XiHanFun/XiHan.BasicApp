@@ -12,6 +12,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { fileApi, ResourceAccessLevel } from '@/api'
 import { XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
@@ -23,6 +24,7 @@ import { useAppContext, useUserStore } from '~/stores'
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const { apis } = useAppContext()
 const message = useMessage()
@@ -38,7 +40,7 @@ const usernameHint = computed(() => {
   if (!props.profile)
     return ''
   if (props.profile.isSystemAccount)
-    return '系统内置账号不可修改'
+    return t('component.profile.system_account_immutable')
   if (props.profile.lastUserNameChangeTime && !props.profile.canChangeUserName) {
     const next = new Date(props.profile.lastUserNameChangeTime)
     next.setDate(next.getDate() + 90)

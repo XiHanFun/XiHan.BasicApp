@@ -7,7 +7,8 @@ import type {
 import type { Router } from 'vue-router'
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
-import { APP_TIMEZONE_KEY, BIZ_CODE, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
+import { APP_TIMEZONE_KEY, BIZ_CODE, DEFAULT_LOCALE, LOCALE_KEY, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
+import { i18n } from '~/locales'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
 import {
   applyApiSecurityToRequest,
@@ -58,7 +59,7 @@ export function bindLogoutHook(hook: () => void) {
   _logoutHook = hook
 }
 
-/** HTTP 状态码 → 明确中文提示（按状态码统一化，区分权限/资源/服务端等） */
+/** HTTP 状态码 → 兜底中文文案（i18n 缺键时回退；正常走 error.http_<status> 键，随 locale 切换） */
 const HTTP_ERROR_MESSAGES: Record<number, string> = {
   400: '请求参数有误',
   401: '登录已过期，请重新登录',
@@ -72,6 +73,17 @@ const HTTP_ERROR_MESSAGES: Record<number, string> = {
   502: '网关错误',
   503: '服务暂时不可用',
   504: '网关超时',
+}
+
+/**
+ * 走 i18n 取兜底文案：用 i18n.global.t（非组件内 useI18n，请求层无组件上下文）按 key 取值；
+ * 缺键时 t 返回 key 本身，故回退到传入的中文 fallback，保证始终有可读文案。
+ */
+function tRequestError(key: string, fallback: string, params?: Record<string, unknown>): string {
+  const translated = params
+    ? i18n.global.t(`error.${key}`, params)
+    : i18n.global.t(`error.${key}`)
+  return translated === `error.${key}` ? fallback : translated
 }
 
 /** 从响应体提取后端业务错误消息（非二进制响应时优先采用） */
@@ -93,18 +105,24 @@ function resolveRequestErrorMessage(error: unknown): string {
   const err = error as { code?: string, message?: string, response?: { status: number, data?: unknown } }
   if (!err?.response) {
     if (err?.code === 'ECONNABORTED' || /timeout/i.test(err?.message ?? '')) {
-      return '请求超时，请稍后重试'
+      return tRequestError('timeout', '请求超时，请稍后重试')
     }
     if (err?.code === 'ERR_CANCELED') {
-      return '请求已取消'
+      return tRequestError('canceled', '请求已取消')
     }
-    return '网络连接失败，请检查网络后重试'
+    return tRequestError('network_error', '网络连接失败，请检查网络后重试')
   }
+  // 后端业务消息优先（extractBackendMessage 已优先读 data）；无后端消息时走 i18n 的 http 错误文案
   const backendMessage = extractBackendMessage(err.response.data)
   if (backendMessage) {
     return backendMessage
   }
-  return HTTP_ERROR_MESSAGES[err.response.status] ?? `请求失败（${err.response.status}）`
+  const { status } = err.response
+  const fallback = HTTP_ERROR_MESSAGES[status]
+  if (fallback) {
+    return tRequestError(`http_${status}`, fallback)
+  }
+  return tRequestError('request_failed', `请求失败（${status}）`, { status })
 }
 
 export class RequestClient {
@@ -191,6 +209,12 @@ export class RequestClient {
           || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : '')
         if (timezone) {
           config.headers['X-Timezone'] = timezone
+        }
+
+        // 用户语言（当前 locale，如 'zh-CN'/'en-US'）：后端据此返回本地化文案（取值方式同 X-Timezone）
+        const language = LocalStorage.get<string>(LOCALE_KEY) || DEFAULT_LOCALE
+        if (language) {
+          config.headers['X-Language'] = language
         }
 
         const existingMeta = this.tryExtractMeta(config)

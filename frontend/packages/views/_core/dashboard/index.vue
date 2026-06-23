@@ -8,6 +8,7 @@ import {
   NSkeleton,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
@@ -15,6 +16,7 @@ import { formatDate } from '~/utils'
 
 defineOptions({ name: 'WorkspacePage' })
 
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const { apis } = useAppContext()
@@ -28,28 +30,28 @@ const todayAccessCount = ref(0)
 const greeting = computed(() => {
   const h = new Date().getHours()
   if (h < 6)
-    return '夜深了'
+    return t('component.dashboard.greeting_night_deep')
   if (h < 9)
-    return '早上好'
+    return t('component.dashboard.greeting_morning')
   if (h < 12)
-    return '上午好'
+    return t('component.dashboard.greeting_morning_late')
   if (h < 14)
-    return '中午好'
+    return t('component.dashboard.greeting_noon')
   if (h < 18)
-    return '下午好'
+    return t('component.dashboard.greeting_afternoon')
   if (h < 22)
-    return '晚上好'
-  return '夜深了'
+    return t('component.dashboard.greeting_evening')
+  return t('component.dashboard.greeting_night_deep')
 })
 
-const quickLinks = [
-  { label: '用户管理', icon: 'lucide:users', to: '/system/user', color: '#18a058' },
-  { label: '角色管理', icon: 'lucide:shield', to: '/system/role', color: '#2080f0' },
-  { label: '菜单管理', icon: 'lucide:list-tree', to: '/platform/menu', color: '#f0a020' },
-  { label: '机构管理', icon: 'lucide:building-2', to: '/system/org', color: '#8b5cf6' },
-  { label: '操作日志', icon: 'lucide:history', to: '/log/operation', color: '#d03050' },
-  { label: '参数配置', icon: 'lucide:sliders-horizontal', to: '/platform/config', color: '#06b6d4' },
-]
+const quickLinks = computed(() => [
+  { label: t('component.dashboard.quick_links_user'), icon: 'lucide:users', to: '/system/user', color: '#18a058' },
+  { label: t('component.dashboard.quick_links_role'), icon: 'lucide:shield', to: '/system/role', color: '#2080f0' },
+  { label: t('component.dashboard.quick_links_menu'), icon: 'lucide:list-tree', to: '/platform/menu', color: '#f0a020' },
+  { label: t('component.dashboard.quick_links_org'), icon: 'lucide:building-2', to: '/system/org', color: '#8b5cf6' },
+  { label: t('component.dashboard.quick_links_operation_log'), icon: 'lucide:history', to: '/log/operation', color: '#d03050' },
+  { label: t('component.dashboard.quick_links_config'), icon: 'lucide:sliders-horizontal', to: '/platform/config', color: '#06b6d4' },
+])
 
 async function fetchDashboardData() {
   try {
