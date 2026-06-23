@@ -4,6 +4,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { PersonalView } from './useViewManager'
 import { NButton, NDropdown, NIcon, NInput, NModal, NSelect, NSpace, useMessage } from 'naive-ui'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaViewManager' })
@@ -16,13 +17,14 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'apply': [code: string]
-  'save': [name: string]
-  'remove': [code: string]
-  'setDefault': [code: string]
+  apply: [code: string]
+  save: [name: string]
+  remove: [code: string]
+  setDefault: [code: string]
 }>()
 
 const message = useMessage()
+const { t } = useI18n()
 
 const viewOptions = computed<SelectMixedOption[]>(() =>
   props.views.map((v): SelectMixedOption => ({
@@ -37,8 +39,8 @@ const manageOptions = computed<DropdownOption[]>(() => {
     return []
   }
   return [
-    { key: 'setDefault', label: '设为默认' },
-    { key: 'remove', label: '删除视图' },
+    { key: 'setDefault', label: t('component.schema_view_manager.set_default') },
+    { key: 'remove', label: t('component.schema_view_manager.remove_view') },
   ]
 })
 
@@ -57,7 +59,7 @@ function openSaveModal() {
 function confirmSave() {
   const name = newViewName.value.trim()
   if (!name) {
-    message.warning('请输入方案名称')
+    message.warning(t('component.schema_view_manager.warn_name_required'))
     return
   }
   emit('save', name)
@@ -83,7 +85,7 @@ function onManage(key: string) {
       :value="activeCode ?? null"
       :options="viewOptions"
       clearable
-      placeholder="搜索方案"
+      :placeholder="t('component.schema_view_manager.select_placeholder')"
       style="width: 160px"
       size="small"
       @update:value="(value) => value && onSelect(value as string)"
@@ -92,10 +94,10 @@ function onManage(key: string) {
       <template #icon>
         <NIcon><Icon icon="lucide:save" /></NIcon>
       </template>
-      保存方案
+      {{ t('component.schema_view_manager.save_view') }}
     </NButton>
     <NDropdown v-if="manageOptions.length" :options="manageOptions" trigger="click" @select="onManage">
-      <NButton size="small" quaternary circle aria-label="方案管理">
+      <NButton size="small" quaternary circle :aria-label="t('component.schema_view_manager.manage_aria')">
         <template #icon>
           <NIcon><Icon icon="lucide:more-horizontal" /></NIcon>
         </template>
@@ -105,11 +107,11 @@ function onManage(key: string) {
     <NModal
       v-model:show="saveModalVisible"
       preset="card"
-      title="保存搜索方案"
+      :title="t('component.schema_view_manager.save_modal_title')"
       style="width: 420px; max-width: 92vw"
       :auto-focus="false"
     >
-      <NInput v-model:value="newViewName" placeholder="请输入方案名称" clearable @keyup.enter="confirmSave" />
+      <NInput v-model:value="newViewName" :placeholder="t('component.schema_view_manager.name_placeholder')" clearable @keyup.enter="confirmSave" />
       <template #footer>
         <NSpace justify="end">
           <NButton @click="saveModalVisible = false">

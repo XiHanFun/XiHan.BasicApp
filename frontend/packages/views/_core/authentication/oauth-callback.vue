@@ -22,9 +22,9 @@ const loading = ref(true)
 const errorMsg = ref<string | null>(null)
 
 const BIND_ERROR_TEXT: Record<string, string> = {
-  conflict: '该第三方账号已被其他用户绑定',
-  ticket_invalid: '绑定请求已失效，请重新发起',
-  external_profile_invalid: '未能获取第三方账号信息',
+  conflict: t('page.auth.oauth_bind_err_conflict'),
+  ticket_invalid: t('page.auth.oauth_bind_err_ticket_invalid'),
+  external_profile_invalid: t('page.auth.oauth_bind_err_profile_invalid'),
 }
 
 onMounted(async () => {
@@ -35,10 +35,10 @@ onMounted(async () => {
   if (bind) {
     loading.value = false
     if (bind === 'success') {
-      message.success('第三方账号绑定成功')
+      message.success(t('page.auth.oauth_bind_success'))
     }
     else {
-      message.error(BIND_ERROR_TEXT[bind] ?? '绑定失败')
+      message.error(BIND_ERROR_TEXT[bind] ?? t('page.auth.oauth_bind_failed'))
     }
     setTimeout(() => {
       void router.push({ path: '/workbench/profile', query: { tab: 'binding' } })

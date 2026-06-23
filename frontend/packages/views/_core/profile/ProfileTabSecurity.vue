@@ -17,6 +17,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppContext, useUserStore } from '~/stores'
@@ -27,6 +28,7 @@ const emit = defineEmits<{ updated: [] }>()
 
 const message = useMessage()
 const dialog = useDialog()
+const { t } = useI18n()
 const { apis } = useAppContext()
 
 // ==================== 2FA flags 常量（与后端 [Flags] 枚举对应） ====================
@@ -69,7 +71,7 @@ async function changePassword() {
       oldPassword: pwdForm.value.oldPassword,
       newPassword: pwdForm.value.newPassword,
     })
-    message.success('密码已更新')
+    message.success(t('component.profile.security.msg_password_updated'))
     pwdForm.value = {
       oldPassword: '',
       newPassword: '',
@@ -78,7 +80,7 @@ async function changePassword() {
     emit('updated')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '密码修改失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_password_change_failed'))
   }
   finally {
     pwdSaving.value = false
@@ -159,7 +161,7 @@ async function startTotpSetup() {
     tfTotpSetup.value = await apis.setup2FAApi()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '初始化失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_init_failed'))
     tfTotpSettingUp.value = false
   }
   finally {
@@ -169,20 +171,20 @@ async function startTotpSetup() {
 
 async function confirmEnableTotp() {
   if (!tfTotpCodeStr.value || tfTotpCodeStr.value.length < 6) {
-    message.warning('请输入完整的 6 位验证码')
+    message.warning(t('component.profile.security.warn_code_incomplete'))
     return
   }
   tfLoading.value = true
   try {
     await apis.enable2FAApi(TF_TOTP, tfTotpCodeStr.value)
-    message.success('TOTP 已启用')
+    message.success(t('component.profile.security.msg_totp_enabled'))
     tfTotpSetup.value = null
     tfTotpCode.value = []
     tfTotpSettingUp.value = false
     emit('updated')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '启用失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -201,11 +203,11 @@ async function sendSetupCode(method: number) {
   tfLoading.value = true
   try {
     const res = await apis.send2FASetupCodeApi(method)
-    message.success(method === TF_EMAIL ? '验证码已发送至邮箱' : '验证码已发送至手机')
+    message.success(method === TF_EMAIL ? t('component.profile.security.msg_code_sent_email') : t('component.profile.security.msg_code_sent_phone'))
     startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发送失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
   }
   finally {
     tfLoading.value = false
@@ -228,20 +230,20 @@ function startPhoneSetup() {
 
 async function confirmEnableEmail() {
   if (!tfEmailCodeStr.value || tfEmailCodeStr.value.length < 6) {
-    message.warning('请输入完整的 6 位验证码')
+    message.warning(t('component.profile.security.warn_code_incomplete'))
     return
   }
   tfLoading.value = true
   try {
     await apis.enable2FAApi(TF_EMAIL, tfEmailCodeStr.value)
-    message.success('邮箱两步验证已启用')
+    message.success(t('component.profile.security.msg_email_2fa_enabled'))
     tfEmailSettingUp.value = false
     tfEmailCode.value = []
     clearCountdown()
     emit('updated')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '启用失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -250,20 +252,20 @@ async function confirmEnableEmail() {
 
 async function confirmEnablePhone() {
   if (!tfPhoneCodeStr.value || tfPhoneCodeStr.value.length < 6) {
-    message.warning('请输入完整的 6 位验证码')
+    message.warning(t('component.profile.security.warn_code_incomplete'))
     return
   }
   tfLoading.value = true
   try {
     await apis.enable2FAApi(TF_PHONE, tfPhoneCodeStr.value)
-    message.success('手机两步验证已启用')
+    message.success(t('component.profile.security.msg_phone_2fa_enabled'))
     tfPhoneSettingUp.value = false
     tfPhoneCode.value = []
     clearCountdown()
     emit('updated')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '启用失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -297,11 +299,11 @@ async function sendDisableCode(method: number) {
   tfLoading.value = true
   try {
     const res = await apis.send2FASetupCodeApi(method)
-    message.success('验证码已发送')
+    message.success(t('component.profile.security.msg_code_sent'))
     startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发送失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
   }
   finally {
     tfLoading.value = false
@@ -310,20 +312,20 @@ async function sendDisableCode(method: number) {
 
 async function confirmDisable() {
   if (!tfDisableCodeStr.value || tfDisableCodeStr.value.length < 6) {
-    message.warning('请输入完整的 6 位验证码')
+    message.warning(t('component.profile.security.warn_code_incomplete'))
     return
   }
   tfLoading.value = true
   try {
     await apis.disable2FAApi(tfDisableTarget.value, tfDisableCodeStr.value)
-    message.success('已禁用')
+    message.success(t('component.profile.security.msg_disabled'))
     tfDisableTarget.value = 0
     tfDisableCode.value = []
     clearCountdown()
     emit('updated')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '禁用失败')
+    message.error((e as Error)?.message || t('component.profile.security.err_disable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -362,7 +364,7 @@ function handleDeactivateAccount() {
       h(NInput, {
         'type': 'password',
         'value': accountPassword.value,
-        'placeholder': '请输入当前密码',
+        'placeholder': t('component.profile.security.current_password_placeholder'),
         'showPasswordOn': 'click',
         'onUpdate:value': (v: string) => {
           accountPassword.value = v
@@ -373,19 +375,19 @@ function handleDeactivateAccount() {
     negativeText: '取消',
     onPositiveClick: async () => {
       if (!accountPassword.value) {
-        message.warning('请输入密码')
+        message.warning(t('component.profile.security.warn_password_required'))
         return false
       }
       accountActionLoading.value = true
       try {
         await apis.deactivateAccountApi(accountPassword.value)
-        message.success('账号已停用，即将退出登录')
+        message.success(t('component.profile.security.msg_account_deactivated'))
         setTimeout(() => {
           cleanupAuthAndRedirect()
         }, 1500)
       }
       catch (e: unknown) {
-        message.error((e as Error)?.message || '停用失败')
+        message.error((e as Error)?.message || t('component.profile.security.err_deactivate_failed'))
         return false
       }
       finally {
@@ -404,7 +406,7 @@ function handleDeleteAccount() {
       h(NInput, {
         'type': 'password',
         'value': accountPassword.value,
-        'placeholder': '请输入当前密码',
+        'placeholder': t('component.profile.security.current_password_placeholder'),
         'showPasswordOn': 'click',
         'onUpdate:value': (v: string) => {
           accountPassword.value = v
@@ -415,19 +417,19 @@ function handleDeleteAccount() {
     negativeText: '取消',
     onPositiveClick: async () => {
       if (!accountPassword.value) {
-        message.warning('请输入密码')
+        message.warning(t('component.profile.security.warn_password_required'))
         return false
       }
       accountActionLoading.value = true
       try {
         await apis.deleteAccountApi(accountPassword.value)
-        message.success('账号已注销，即将退出')
+        message.success(t('component.profile.security.msg_account_deleted'))
         setTimeout(() => {
           cleanupAuthAndRedirect()
         }, 1500)
       }
       catch (e: unknown) {
-        message.error((e as Error)?.message || '注销失败')
+        message.error((e as Error)?.message || t('component.profile.security.err_delete_failed'))
         return false
       }
       finally {
@@ -460,13 +462,13 @@ function handleDeleteAccount() {
         <div class="pf-pwd">
           <NForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" class="pf-pwd__form">
             <NFormItem path="oldPassword" :show-label="false">
-              <NInput v-model:value="pwdForm.oldPassword" type="password" placeholder="当前密码" show-password-on="click" />
+              <NInput v-model:value="pwdForm.oldPassword" type="password" :placeholder="t('component.profile.security.old_password_placeholder')" show-password-on="click" />
             </NFormItem>
             <NFormItem path="newPassword" :show-label="false">
-              <NInput v-model:value="pwdForm.newPassword" type="password" placeholder="新密码" show-password-on="click" />
+              <NInput v-model:value="pwdForm.newPassword" type="password" :placeholder="t('component.profile.security.new_password_placeholder')" show-password-on="click" />
             </NFormItem>
             <NFormItem path="confirmPassword" :show-label="false">
-              <NInput v-model:value="pwdForm.confirmPassword" type="password" placeholder="确认新密码" show-password-on="click" />
+              <NInput v-model:value="pwdForm.confirmPassword" type="password" :placeholder="t('component.profile.security.confirm_password_placeholder')" show-password-on="click" />
             </NFormItem>
             <NButton class="pf-pwd__submit" type="primary" :loading="pwdSaving" @click="changePassword">
               更新密码
@@ -536,7 +538,7 @@ function handleDeleteAccount() {
                   <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
                   <NTooltip>
                     <template #trigger>
-                      <NButton size="small" quaternary @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => message.success('已复制'))">
+                      <NButton size="small" quaternary @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => message.success(t('component.profile.security.msg_copied')))">
                         <template #icon>
                           <NIcon>
                             <Icon icon="lucide:copy" />

@@ -8,6 +8,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -16,6 +17,7 @@ defineOptions({ name: 'ProfileTabBinding' })
 
 const { apis } = useAppContext()
 const message = useMessage()
+const { t } = useI18n()
 
 // ==================== 第三方账号 ====================
 
@@ -54,7 +56,7 @@ async function loadData() {
     loaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '加载失败')
+    message.error((e as Error)?.message || t('component.profile.binding.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -64,11 +66,11 @@ async function loadData() {
 async function handleUnlinkAccount(provider: string) {
   try {
     await apis.unlinkAccountApi(provider)
-    message.success('已解除绑定')
+    message.success(t('component.profile.binding.msg_unbound'))
     await loadData()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '操作失败')
+    message.error((e as Error)?.message || t('component.profile.binding.err_operation_failed'))
   }
 }
 
@@ -100,7 +102,7 @@ async function handleStartBind(provider: string) {
     window.location.href = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider)}&bindTicket=${encodeURIComponent(ticket)}`
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发起绑定失败')
+    message.error((e as Error)?.message || t('component.profile.binding.err_bind_start_failed'))
   }
 }
 

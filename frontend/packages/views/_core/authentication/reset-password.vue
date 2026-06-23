@@ -2,6 +2,7 @@
 import type { FormInst, FormItemRule, FormRules } from 'naive-ui'
 import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
@@ -13,6 +14,7 @@ const { isDark } = useTheme()
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
+const { t } = useI18n()
 const { apis } = useAppContext()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
@@ -42,14 +44,14 @@ const rules: FormRules = {
 
 async function handleSubmit() {
   if (!token.value) {
-    message.error('重置链接无效或已过期，请重新申请找回密码')
+    message.error(t('page.auth.reset_token_invalid'))
     return
   }
   try {
     await formRef.value?.validate()
     loading.value = true
     await apis.consumePasswordResetTokenApi(token.value, formData.value.newPassword)
-    message.success('密码已重置，请使用新密码登录')
+    message.success(t('page.auth.reset_success'))
     router.push(LOGIN_PATH)
   }
   catch (e: unknown) {
@@ -97,7 +99,7 @@ function handleKeydown(e: KeyboardEvent) {
           type="password"
           show-password-on="click"
           size="large"
-          placeholder="新密码（8-128 位）"
+          :placeholder="t('page.auth.reset_new_password_placeholder')"
           :input-props="{ autocomplete: 'new-password' }"
         />
       </NFormItem>
@@ -107,7 +109,7 @@ function handleKeydown(e: KeyboardEvent) {
           type="password"
           show-password-on="click"
           size="large"
-          placeholder="确认新密码"
+          :placeholder="t('page.auth.reset_confirm_placeholder')"
           :input-props="{ autocomplete: 'new-password' }"
         />
       </NFormItem>

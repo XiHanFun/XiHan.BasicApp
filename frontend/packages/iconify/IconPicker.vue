@@ -12,6 +12,7 @@ import {
   NTabs,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { ICON_SET_META, loadIconNames } from './offline'
 
@@ -19,7 +20,7 @@ defineOptions({ name: 'IconPicker' })
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  placeholder: '选择图标',
+  placeholder: '',
 })
 
 const emit = defineEmits<{
@@ -30,6 +31,11 @@ interface Props {
   modelValue?: string | null
   placeholder?: string
 }
+
+const { t } = useI18n()
+
+/** 未显式传入 placeholder 时回退到 i18n 默认文案 */
+const placeholderText = computed(() => props.placeholder || t('component.icon_picker.select_placeholder'))
 
 const visible = ref(false)
 const activePrefix = ref('lucide')
@@ -108,13 +114,13 @@ function handleClear() {
   <div class="icon-picker">
     <NButton quaternary block class="icon-picker-trigger" @click="openPicker">
       <Icon v-if="currentIconId" :icon="currentIconId" width="20" />
-      <span v-else class="icon-picker-placeholder">{{ placeholder }}</span>
+      <span v-else class="icon-picker-placeholder">{{ placeholderText }}</span>
     </NButton>
 
     <NModal
       v-model:show="visible"
       preset="card"
-      title="选择图标"
+      :title="t('component.icon_picker.modal_title')"
       class="icon-picker-modal"
       style="width: 560px; max-width: 95vw"
       :bordered="false"
@@ -124,7 +130,7 @@ function handleClear() {
         <NSpace class="mb-3" justify="space-between">
           <NInput
             v-model:value="searchKeyword"
-            placeholder="搜索图标名称..."
+            :placeholder="t('component.icon_picker.search_placeholder')"
             clearable
             style="flex: 1"
           >

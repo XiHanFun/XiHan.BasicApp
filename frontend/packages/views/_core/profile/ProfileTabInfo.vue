@@ -67,7 +67,7 @@ function handleChangeUserName() {
       h(NInput, {
         'type': 'password',
         'value': newUserNamePassword.value,
-        'placeholder': '输入当前密码确认身份',
+        'placeholder': t('component.profile.info.current_password_placeholder'),
         'showPasswordOn': 'click',
         'onUpdate:value': (v: string) => {
           newUserNamePassword.value = v
@@ -78,11 +78,11 @@ function handleChangeUserName() {
     negativeText: '取消',
     onPositiveClick: async () => {
       if (!newUserNameInput.value.trim()) {
-        message.warning('请输入用户名')
+        message.warning(t('component.profile.info.msg_username_required'))
         return false
       }
       if (!newUserNamePassword.value) {
-        message.warning('请输入密码')
+        message.warning(t('component.profile.info.msg_password_required'))
         return false
       }
       usernameChangeLoading.value = true
@@ -91,11 +91,11 @@ function handleChangeUserName() {
           userName: newUserNameInput.value.trim(),
           password: newUserNamePassword.value,
         })
-        message.success('用户名已修改')
+        message.success(t('component.profile.info.msg_username_updated'))
         emit('saved')
       }
       catch (e: unknown) {
-        message.error((e as Error)?.message || '修改失败')
+        message.error((e as Error)?.message || t('component.profile.info.err_username_update_failed'))
         return false
       }
       finally {
@@ -171,11 +171,11 @@ async function handleAvatarChange(event: Event) {
     return
   }
   if (!AVATAR_ACCEPT.includes(file.type)) {
-    message.warning('仅支持 JPG、PNG 格式的图片')
+    message.warning(t('component.profile.info.warn_avatar_format'))
     return
   }
   if (file.size > AVATAR_MAX_SIZE) {
-    message.warning('图片大小不能超过 2MB')
+    message.warning(t('component.profile.info.warn_avatar_size', { size: AVATAR_MAX_SIZE / 1024 / 1024 }))
     return
   }
   avatarUploading.value = true
@@ -204,7 +204,7 @@ async function handleAvatarChange(event: Event) {
 
 function handleAvatarRemove() {
   if (!currentAvatar.value) {
-    message.warning('当前没有可删除的头像')
+    message.warning(t('component.profile.info.warn_no_avatar_to_remove'))
     return
   }
   dialog.warning({
@@ -216,10 +216,10 @@ function handleAvatarRemove() {
       avatarRemoving.value = true
       try {
         await persistAvatar('')
-        message.success('头像已删除')
+        message.success(t('component.profile.info.msg_avatar_removed'))
       }
       catch (e: unknown) {
-        message.error((e as Error)?.message || '删除失败')
+        message.error((e as Error)?.message || t('component.profile.info.err_avatar_remove_failed'))
         return false
       }
       finally {
@@ -254,7 +254,7 @@ async function saveProfile() {
       ...profileForm.value,
       birthday: profileForm.value.birthday ? new Date(profileForm.value.birthday).toISOString() : undefined,
     })
-    message.success('个人资料已更新')
+    message.success(t('component.profile.info.msg_profile_updated'))
     if (userStore.userInfo) {
       userStore.setUserInfo({
         ...userStore.userInfo,
@@ -264,7 +264,7 @@ async function saveProfile() {
     emit('saved')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '保存失败')
+    message.error((e as Error)?.message || t('component.profile.info.err_profile_save_failed'))
   }
   finally {
     profileSaving.value = false
@@ -316,7 +316,7 @@ async function sendVerifyCode(type: ContactTarget) {
     const res = type === 'email'
       ? await apis.sendEmailVerifyCodeApi()
       : await apis.sendPhoneVerifyCodeApi()
-    message.success(type === 'email' ? '验证码已发送至邮箱' : '验证码已发送至手机')
+    message.success(type === 'email' ? t('component.profile.info.msg_code_sent_email') : t('component.profile.info.msg_code_sent_phone'))
     verifyTarget.value = type
     verifyCode.value = ''
     startTimer(
@@ -326,7 +326,7 @@ async function sendVerifyCode(type: ContactTarget) {
     )
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发送失败')
+    message.error((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
   }
   finally {
     verifyLoading.value = false
@@ -335,7 +335,7 @@ async function sendVerifyCode(type: ContactTarget) {
 
 async function confirmVerify() {
   if (verifyCode.value.length < 6) {
-    message.warning('请输入完整的 6 位验证码')
+    message.warning(t('component.profile.info.warn_code_incomplete'))
     return
   }
   verifyLoading.value = true
@@ -344,12 +344,12 @@ async function confirmVerify() {
       await apis.verifyEmailApi(verifyCode.value)
     else
       await apis.verifyPhoneApi(verifyCode.value)
-    message.success('验证成功')
+    message.success(t('component.profile.info.msg_verify_success'))
     cancelVerify()
     emit('saved')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '验证失败')
+    message.error((e as Error)?.message || t('component.profile.info.err_verify_failed'))
   }
   finally {
     verifyLoading.value = false
@@ -383,11 +383,11 @@ function openChangeDialog(type: ContactTarget) {
 
 async function sendChangeCode() {
   if (!changeNewValue.value.trim()) {
-    message.warning(changeTarget.value === 'email' ? '请输入新邮箱' : '请输入新手机号')
+    message.warning(changeTarget.value === 'email' ? t('component.profile.info.warn_new_email_required') : t('component.profile.info.warn_new_phone_required'))
     return
   }
   if (!changePassword.value) {
-    message.warning('请输入当前密码')
+    message.warning(t('component.profile.info.warn_password_required'))
     return
   }
   changeLoading.value = true
@@ -401,7 +401,7 @@ async function sendChangeCode() {
           newPhone: changeNewValue.value.trim(),
           password: changePassword.value,
         })
-    message.success('验证码已发送')
+    message.success(t('component.profile.info.msg_code_sent'))
     changeCodeSent.value = true
     changeCode.value = ''
     startTimer(
@@ -411,7 +411,7 @@ async function sendChangeCode() {
     )
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '发送失败')
+    message.error((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
   }
   finally {
     changeLoading.value = false
@@ -420,7 +420,7 @@ async function sendChangeCode() {
 
 async function confirmChange() {
   if (changeCode.value.length < 6) {
-    message.warning('请输入完整的 6 位验证码')
+    message.warning(t('component.profile.info.warn_code_incomplete'))
     return
   }
   changeLoading.value = true
@@ -429,12 +429,12 @@ async function confirmChange() {
       await apis.confirmChangeEmailApi(changeCode.value)
     else
       await apis.confirmChangePhoneApi(changeCode.value)
-    message.success(changeTarget.value === 'email' ? '邮箱已更新' : '手机号已更新')
+    message.success(changeTarget.value === 'email' ? t('component.profile.info.msg_email_updated') : t('component.profile.info.msg_phone_updated'))
     cancelChange()
     emit('saved')
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || '操作失败')
+    message.error((e as Error)?.message || t('component.profile.info.err_operation_failed'))
   }
   finally {
     changeLoading.value = false
@@ -563,7 +563,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <NInput v-model:value="profileForm.nickName" placeholder="您的昵称" class="pf-field" />
+                  <NInput v-model:value="profileForm.nickName" :placeholder="t('component.profile.info.nickname_placeholder')" class="pf-field" />
                 </div>
               </div>
             </div>
@@ -605,7 +605,7 @@ function cancelChange() {
                   </NButton>
                 </div>
                 <div v-if="verifyTarget === 'email'" class="pf-inline-form">
-                  <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" class="pf-field" />
+                  <NInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :maxlength="6" class="pf-field" />
                   <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     确认
                   </NButton>
@@ -649,7 +649,7 @@ function cancelChange() {
                   </NButton>
                 </div>
                 <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
-                  <NInput v-model:value="verifyCode" placeholder="请输入 6 位验证码" :maxlength="6" class="pf-field" />
+                  <NInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :maxlength="6" class="pf-field" />
                   <NButton type="primary" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     确认
                   </NButton>
@@ -681,14 +681,14 @@ function cancelChange() {
         <div class="pf-field-grid">
           <div class="pf-field-card">
             <span class="pf-field-card__label">真实姓名</span>
-            <NInput v-model:value="profileForm.realName" placeholder="您的真实姓名" :maxlength="50" />
+            <NInput v-model:value="profileForm.realName" :placeholder="t('component.profile.info.real_name_placeholder')" :maxlength="50" />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">生日</span>
             <NDatePicker
               v-model:value="profileForm.birthday"
               type="date"
-              placeholder="选择生日"
+              :placeholder="t('component.profile.info.birthday_placeholder')"
               clearable
               :is-date-disabled="(ts: number) => ts > Date.now()"
               style="width: 100%"
@@ -700,7 +700,7 @@ function cancelChange() {
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">国家 / 地区</span>
-            <NInput v-model:value="profileForm.country" placeholder="例如：中国" />
+            <NInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">语言</span>
@@ -715,7 +715,7 @@ function cancelChange() {
             <NInput
               v-model:value="profileForm.remark"
               type="textarea"
-              placeholder="介绍一下你自己..."
+              :placeholder="t('component.profile.info.bio_placeholder')"
               :autosize="{ minRows: 3, maxRows: 6 }"
               :maxlength="200"
               show-count
@@ -743,7 +743,7 @@ function cancelChange() {
       <div v-if="changeTarget" class="pf-change-overlay" @click.self="cancelChange">
         <NCard
           class="pf-change-dialog"
-          :title="changeTarget === 'email' ? '修改邮箱' : '修改手机号'"
+          :title="changeTarget === 'email' ? t('component.profile.info.change_email_title') : t('component.profile.info.change_phone_title')"
           size="small"
           closable
           @close="cancelChange"
@@ -752,12 +752,12 @@ function cancelChange() {
             <template v-if="!changeCodeSent">
               <NInput
                 v-model:value="changeNewValue"
-                :placeholder="changeTarget === 'email' ? '新邮箱地址' : '新手机号'"
+                :placeholder="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
               />
               <NInput
                 v-model:value="changePassword"
                 type="password"
-                placeholder="输入当前密码确认身份"
+                :placeholder="t('component.profile.info.current_password_placeholder')"
                 show-password-on="click"
               />
               <NButton type="primary" block :loading="changeLoading" @click="sendChangeCode">
@@ -770,7 +770,7 @@ function cancelChange() {
               </p>
               <NInput
                 v-model:value="changeCode"
-                placeholder="请输入 6 位验证码"
+                :placeholder="t('component.profile.info.verify_code_placeholder')"
                 :maxlength="6"
               />
               <NSpace :size="8">

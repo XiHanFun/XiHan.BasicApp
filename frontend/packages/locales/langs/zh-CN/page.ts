@@ -74,6 +74,20 @@ export default {
     oauth_callback_failed: '第三方登录失败，请重试',
     oauth_callback_missing_token: '登录信息缺失，请重新登录',
     oauth_callback_redirect: '即将返回登录页面...',
+    oauth_bind_success: '第三方账号绑定成功',
+    oauth_bind_failed: '绑定失败',
+    oauth_bind_err_conflict: '该第三方账号已被其他用户绑定',
+    oauth_bind_err_ticket_invalid: '绑定请求已失效，请重新发起',
+    oauth_bind_err_profile_invalid: '未能获取第三方账号信息',
+    // 双因素：登录页提示
+    select_method_required: '请选择验证方式',
+    code_resent: '验证码已重新发送',
+    load_config_failed: '加载登录配置失败',
+    // 重置密码
+    reset_token_invalid: '重置链接无效或已过期，请重新申请找回密码',
+    reset_success: '密码已重置，请使用新密码登录',
+    reset_new_password_placeholder: '新密码（8-128 位）',
+    reset_confirm_placeholder: '确认新密码',
     // 密码强度
     strength_weak: '弱',
     strength_medium: '中',
