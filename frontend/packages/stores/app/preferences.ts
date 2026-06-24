@@ -97,8 +97,8 @@ export function createPreferencesSlice() {
   // ---- 快捷键 ----
   const shortcutEnable = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
   const shortcutSearch = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_SEARCH_KEY) ?? true)
-  const shortcutLogout = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOGOUT_KEY) ?? false)
-  const shortcutLock = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOCK_KEY) ?? false)
+  const shortcutLogout = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOGOUT_KEY) ?? true)
+  const shortcutLock = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOCK_KEY) ?? true)
   const shortcutTabOverview = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_TAB_OVERVIEW_KEY) ?? true)
 
   // ---- 持久化绑定 ----
@@ -135,8 +135,8 @@ export function createPreferencesSlice() {
   bindPersist(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl, '')
   bindPersist(SHORTCUT_ENABLE_KEY, shortcutEnable, true)
   bindPersist(SHORTCUT_SEARCH_KEY, shortcutSearch, true)
-  bindPersist(SHORTCUT_LOGOUT_KEY, shortcutLogout, false)
-  bindPersist(SHORTCUT_LOCK_KEY, shortcutLock, false)
+  bindPersist(SHORTCUT_LOGOUT_KEY, shortcutLogout, true)
+  bindPersist(SHORTCUT_LOCK_KEY, shortcutLock, true)
   bindPersist(SHORTCUT_TAB_OVERVIEW_KEY, shortcutTabOverview, true)
 
   // ---- Actions ----
