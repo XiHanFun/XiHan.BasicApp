@@ -39,7 +39,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 操作人审计：IX_OpUsId
 /// - 按变更类型统计：IX_ChTy
 /// </remarks>
-[SugarTable("SysPermissionChangeLog_{year}{month}{day}", "权限变更日志表"), SplitTable(SplitType.Month)]
+[SugarTable(TableName = "Sys_Permission_Change_Log_{year}{month}{day}", TableDescription = "权限变更日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_OpUsId", nameof(OperatorUserId), OrderByType.Asc)]
@@ -54,67 +54,67 @@ public partial class SysPermissionChangeLog : BasicAppCreationEntity, ISplitTabl
     /// <summary>
     /// 操作人ID（执行授予/撤销动作的用户）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作人ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Operator_User_Id", ColumnDescription = "操作人ID", IsNullable = true)]
     public virtual long? OperatorUserId { get; set; }
 
     /// <summary>
     /// 目标用户ID（被授予/撤销权限的用户，用户级变更时填写）
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Target_User_Id", ColumnDescription = "目标用户ID", IsNullable = true)]
     public virtual long? TargetUserId { get; set; }
 
     /// <summary>
     /// 目标角色ID（被授予/撤销权限的角色，角色级变更时填写）
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标角色ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Target_Role_Id", ColumnDescription = "目标角色ID", IsNullable = true)]
     public virtual long? TargetRoleId { get; set; }
 
     /// <summary>
     /// 权限ID（被授予/撤销的权限，权限级变更时填写）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Permission_Id", ColumnDescription = "权限ID", IsNullable = true)]
     public virtual long? PermissionId { get; set; }
 
     /// <summary>
     /// 变更类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "变更类型")]
+    [SugarColumn(ColumnName = "Change_Type", ColumnDescription = "变更类型")]
     public virtual PermissionChangeType ChangeType { get; set; }
 
     /// <summary>
     /// 变更原因（关联审批单号、工单号等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "变更原因", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Change_Reason", ColumnDescription = "变更原因", Length = 500, IsNullable = true)]
     public virtual string? ChangeReason { get; set; }
 
     /// <summary>
     /// 变更描述（人类可读摘要）
     /// </summary>
-    [SugarColumn(ColumnDescription = "变更描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "变更描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 操作IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Operation_Ip", ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
     public virtual string? OperationIp { get; set; }
 
     /// <summary>
     /// 链路追踪ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    [SugarColumn(ColumnName = "Trace_Id", ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 变更时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "变更时间")]
+    [SugarColumn(ColumnName = "Change_Time", ColumnDescription = "变更时间")]
     public virtual DateTimeOffset ChangeTime { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SugarColumn(ColumnName = "Created_Time", IsNullable = false, ColumnDescription = "创建时间")]
     [SplitField]
     public override DateTimeOffset CreatedTime { get; set; }
 }

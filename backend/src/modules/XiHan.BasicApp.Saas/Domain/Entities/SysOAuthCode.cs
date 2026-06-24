@@ -44,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - OAuth2 标准授权码流程
 /// - PKCE 增强的 SPA/Mobile 授权
 /// </remarks>
-[SugarTable("SysOAuthCode", "系统OAuth授权码表")]
+[SugarTable(TableName = "Sys_OAuth_Code", TableDescription = "系统OAuth授权码表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_Co", nameof(Code), OrderByType.Asc, true)]
@@ -58,66 +58,66 @@ public partial class SysOAuthCode : BasicAppCreationEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "授权码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Code", ColumnDescription = "授权码", Length = 100, IsNullable = false)]
     public virtual string Code { get; set; } = string.Empty;
 
     /// <summary>
     /// 客户端ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "客户端ID", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Client_Id", ColumnDescription = "客户端ID", Length = 100, IsNullable = false)]
     public virtual string ClientId { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 重定向URI
     /// </summary>
-    [SugarColumn(ColumnDescription = "重定向URI", Length = 500, IsNullable = false)]
+    [SugarColumn(ColumnName = "Redirect_Uri", ColumnDescription = "重定向URI", Length = 500, IsNullable = false)]
     public virtual string RedirectUri { get; set; } = string.Empty;
 
     /// <summary>
     /// 权限范围
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限范围", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Scopes", ColumnDescription = "权限范围", Length = 500, IsNullable = true)]
     public virtual string? Scopes { get; set; }
 
     /// <summary>
     /// CSRF 状态参数（OAuth2 防 CSRF 的随机字符串，非业务状态）
     /// </summary>
-    [SugarColumn(ColumnDescription = "跨站请求伪造防护状态参数", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Csrf_State", ColumnDescription = "跨站请求伪造防护状态参数", Length = 200, IsNullable = true)]
     public virtual string? CsrfState { get; set; }
 
     /// <summary>
     /// 质询码
     /// </summary>
-    [SugarColumn(ColumnDescription = "质询码", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Code_Challenge", ColumnDescription = "质询码", Length = 100, IsNullable = true)]
     public virtual string? CodeChallenge { get; set; }
 
     /// <summary>
     /// 质询方法
     /// </summary>
-    [SugarColumn(ColumnDescription = "质询方法", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Code_Challenge_Method", ColumnDescription = "质询方法", Length = 20, IsNullable = true)]
     public virtual string? CodeChallengeMethod { get; set; }
 
     /// <summary>
     /// 过期时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "过期时间")]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间")]
     public virtual DateTimeOffset ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已使用
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否已使用")]
+    [SugarColumn(ColumnName = "Is_Used", ColumnDescription = "是否已使用")]
     public virtual bool IsUsed { get; set; } = false;
 
     /// <summary>
     /// 使用时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "使用时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Used_Time", ColumnDescription = "使用时间", IsNullable = true)]
     public virtual DateTimeOffset? UsedTime { get; set; }
 }

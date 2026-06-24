@@ -44,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 删除：
 /// - 仅软删；撤销委托通过 DelegationStatus=Revoked
 /// </remarks>
-[SugarTable("SysPermissionDelegation", "权限委托表")]
+[SugarTable(TableName = "Sys_Permission_Delegation", TableDescription = "权限委托表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -58,54 +58,54 @@ public partial class SysPermissionDelegation : BasicAppFullAuditedEntity
     /// <summary>
     /// 委托人ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "委托人ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Delegator_User_Id", ColumnDescription = "委托人ID", IsNullable = false)]
     public virtual long DelegatorUserId { get; set; }
 
     /// <summary>
     /// 被委托人ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "被委托人ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Delegatee_User_Id", ColumnDescription = "被委托人ID", IsNullable = false)]
     public virtual long DelegateeUserId { get; set; }
 
     /// <summary>
     /// 权限ID（为空表示委托全部权限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Permission_Id", ColumnDescription = "权限ID", IsNullable = true)]
     public virtual long? PermissionId { get; set; }
 
     /// <summary>
     /// 角色ID（为空表示不限角色）
     /// </summary>
-    [SugarColumn(ColumnDescription = "角色ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Role_Id", ColumnDescription = "角色ID", IsNullable = true)]
     public virtual long? RoleId { get; set; }
 
     /// <summary>
     /// 委托状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "委托状态")]
+    [SugarColumn(ColumnName = "Delegation_Status", ColumnDescription = "委托状态")]
     public virtual DelegationStatus DelegationStatus { get; set; } = DelegationStatus.Pending;
 
     /// <summary>
     /// 生效时间（为空表示立即生效）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Effective_Time", ColumnDescription = "生效时间", IsNullable = true)]
     public virtual DateTimeOffset? EffectiveTime { get; set; }
 
     /// <summary>
     /// 失效时间（必填，委托必须有截止时间）
     /// </summary>
-    [SugarColumn(ColumnDescription = "失效时间", IsNullable = false)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "失效时间", IsNullable = false)]
     public virtual DateTimeOffset ExpirationTime { get; set; }
 
     /// <summary>
     /// 委托原因
     /// </summary>
-    [SugarColumn(ColumnDescription = "委托原因", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Delegation_Reason", ColumnDescription = "委托原因", Length = 500, IsNullable = true)]
     public virtual string? DelegationReason { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

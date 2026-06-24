@@ -43,7 +43,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 场景：
 /// - 消息中心未读数、已读/未读切换、用户删除消息
 /// </remarks>
-[SugarTable("SysUserNotification", "用户通知接收状态表")]
+[SugarTable(TableName = "Sys_User_Notification", TableDescription = "用户通知接收状态表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_NoId_UsId", nameof(TenantId), OrderByType.Asc, nameof(NotificationId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
@@ -53,30 +53,30 @@ public partial class SysUserNotification : BasicAppCreationEntity
     /// <summary>
     /// 通知ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知ID")]
+    [SugarColumn(ColumnName = "Notification_Id", ColumnDescription = "通知ID")]
     public virtual long NotificationId { get; set; }
 
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID")]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID")]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 通知状态（未读/已读/已删除）
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知状态")]
+    [SugarColumn(ColumnName = "Notification_Status", ColumnDescription = "通知状态")]
     public virtual NotificationStatus NotificationStatus { get; set; } = NotificationStatus.Unread;
 
     /// <summary>
     /// 阅读时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "阅读时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Read_Time", ColumnDescription = "阅读时间", IsNullable = true)]
     public virtual DateTimeOffset? ReadTime { get; set; }
 
     /// <summary>
     /// 确认时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "确认时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Confirm_Time", ColumnDescription = "确认时间", IsNullable = true)]
     public virtual DateTimeOffset? ConfirmTime { get; set; }
 }

@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 查询：
 /// - 导入对话框「最近导入」：IX_TeId_UsId_PaCo + WHERE UserId=? AND PageCode=? ORDER BY CreatedTime DESC LIMIT N
 /// </remarks>
-[SugarTable("SysImportHistory", "导入历史表")]
+[SugarTable(TableName = "Sys_Import_History", TableDescription = "导入历史表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId_PaCo", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(PageCode), OrderByType.Asc)]
@@ -41,48 +41,48 @@ public partial class SysImportHistory : BasicAppCreationEntity
     /// <summary>
     /// 用户ID（执行导入的用户）
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 页面码（Schema 页面唯一码，如 platform.config）
     /// </summary>
-    [SugarColumn(ColumnDescription = "页面码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Page_Code", ColumnDescription = "页面码", Length = 100, IsNullable = false)]
     public virtual string PageCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 资源码（对应后端资源，可空）
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源码", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Resource_Code", ColumnDescription = "资源码", Length = 100, IsNullable = true)]
     public virtual string? ResourceCode { get; set; }
 
     /// <summary>
     /// 导入文件名（原始上传文件名）
     /// </summary>
-    [SugarColumn(ColumnDescription = "导入文件名", Length = 256, IsNullable = false)]
+    [SugarColumn(ColumnName = "File_Name", ColumnDescription = "导入文件名", Length = 256, IsNullable = false)]
     public virtual string FileName { get; set; } = string.Empty;
 
     /// <summary>
     /// 数据行总数
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据行总数", IsNullable = false)]
+    [SugarColumn(ColumnName = "Total_Count", ColumnDescription = "数据行总数", IsNullable = false)]
     public virtual int TotalCount { get; set; }
 
     /// <summary>
     /// 成功行数
     /// </summary>
-    [SugarColumn(ColumnDescription = "成功行数", IsNullable = false)]
+    [SugarColumn(ColumnName = "Success_Count", ColumnDescription = "成功行数", IsNullable = false)]
     public virtual int SuccessCount { get; set; }
 
     /// <summary>
     /// 失败行数（校验失败 + 创建失败）
     /// </summary>
-    [SugarColumn(ColumnDescription = "失败行数", IsNullable = false)]
+    [SugarColumn(ColumnName = "Fail_Count", ColumnDescription = "失败行数", IsNullable = false)]
     public virtual int FailCount { get; set; }
 
     /// <summary>
     /// 错误摘要（JSON，前端上报；服务端截断保护，后端不解释语义）
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误摘要(JSON)", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Summary", ColumnDescription = "错误摘要(JSON)", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ErrorSummary { get; set; }
 }

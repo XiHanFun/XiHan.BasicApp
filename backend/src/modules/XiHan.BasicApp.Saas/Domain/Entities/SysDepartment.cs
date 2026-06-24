@@ -49,7 +49,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 组织架构树渲染、用户归属、数据权限范围计算
 /// - 按部门汇总统计（销售额/工时/审批量）
 /// </remarks>
-[SugarTable("SysDepartment", "系统部门表")]
+[SugarTable(TableName = "Sys_Department", TableDescription = "系统部门表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -62,66 +62,66 @@ public partial class SysDepartment : BasicAppAggregateRoot
     /// <summary>
     /// 父级部门ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "父级部门ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Parent_Id", ColumnDescription = "父级部门ID", IsNullable = true)]
     public virtual long? ParentId { get; set; }
 
     /// <summary>
     /// 部门名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "部门名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Department_Name", ColumnDescription = "部门名称", Length = 100, IsNullable = false)]
     public virtual string DepartmentName { get; set; } = string.Empty;
 
     /// <summary>
     /// 部门编码
     /// </summary>
-    [SugarColumn(ColumnDescription = "部门编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Department_Code", ColumnDescription = "部门编码", Length = 100, IsNullable = false)]
     public virtual string DepartmentCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 部门类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "部门类型")]
+    [SugarColumn(ColumnName = "Department_Type", ColumnDescription = "部门类型")]
     public virtual DepartmentType DepartmentType { get; set; } = DepartmentType.Department;
 
     /// <summary>
     /// 负责人ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "负责人ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Leader_Id", ColumnDescription = "负责人ID", IsNullable = true)]
     public virtual long? LeaderId { get; set; }
 
     /// <summary>
     /// 联系电话
     /// </summary>
-    [SugarColumn(ColumnDescription = "联系电话", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Phone", ColumnDescription = "联系电话", Length = 20, IsNullable = true)]
     public virtual string? Phone { get; set; }
 
     /// <summary>
     /// 邮箱
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮箱", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Email", ColumnDescription = "邮箱", Length = 100, IsNullable = true)]
     public virtual string? Email { get; set; }
 
     /// <summary>
     /// 地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "地址", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Address", ColumnDescription = "地址", Length = 500, IsNullable = true)]
     public virtual string? Address { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

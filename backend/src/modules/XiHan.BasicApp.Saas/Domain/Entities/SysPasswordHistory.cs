@@ -35,7 +35,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 删除：
 /// - 硬删；可按保留策略清理超过 N 条的历史记录
 /// </remarks>
-[SugarTable("SysPasswordHistory", "密码历史表")]
+[SugarTable(TableName = "Sys_Password_History", TableDescription = "密码历史表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
@@ -44,7 +44,7 @@ public partial class SysPasswordHistory : BasicAppCreationEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
@@ -52,12 +52,12 @@ public partial class SysPasswordHistory : BasicAppCreationEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "密码哈希", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Password_Hash", ColumnDescription = "密码哈希", Length = 200, IsNullable = false)]
     public virtual string PasswordHash { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码修改时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "密码修改时间")]
+    [SugarColumn(ColumnName = "Changed_Time", ColumnDescription = "密码修改时间")]
     public virtual DateTimeOffset ChangedTime { get; set; }
 }

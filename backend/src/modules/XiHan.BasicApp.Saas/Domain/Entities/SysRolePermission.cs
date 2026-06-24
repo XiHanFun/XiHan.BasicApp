@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 角色级 Deny 语义：若角色 B 继承角色 A，B 对权限 P 标记 Deny，
 /// 则通过 B 不会获得 P；但用户若同时直接持有角色 A，仍可通过 A 获得 P。
 /// </remarks>
-[SugarTable("SysRolePermission", "系统角色权限关联表")]
+[SugarTable(TableName = "Sys_Role_Permission", TableDescription = "系统角色权限关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_RoId_PeId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
@@ -46,48 +46,48 @@ public partial class SysRolePermission : BasicAppCreationEntity
     /// <summary>
     /// 角色ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Role_Id", ColumnDescription = "角色ID", IsNullable = false)]
     public virtual long RoleId { get; set; }
 
     /// <summary>
     /// 权限ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Permission_Id", ColumnDescription = "权限ID", IsNullable = false)]
     public virtual long PermissionId { get; set; }
 
     /// <summary>
     /// 权限操作（授予/禁用，支持角色继承时覆盖父角色权限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限操作")]
+    [SugarColumn(ColumnName = "Permission_Action", ColumnDescription = "权限操作")]
     public virtual PermissionAction PermissionAction { get; set; } = PermissionAction.Grant;
 
     /// <summary>
     /// 生效时间（为空表示立即生效）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Effective_Time", ColumnDescription = "生效时间", IsNullable = true)]
     public virtual DateTimeOffset? EffectiveTime { get; set; }
 
     /// <summary>
     /// 失效时间（为空表示永不过期）
     /// </summary>
-    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "失效时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 授权原因（关联审批单号、工单号等，用于审计追溯）
     /// </summary>
-    [SugarColumn(ColumnDescription = "授权原因", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Grant_Reason", ColumnDescription = "授权原因", Length = 500, IsNullable = true)]
     public virtual string? GrantReason { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -39,7 +39,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 状态：
 /// - Status: 启用/停用（停用模板查找时跳过，回退全局或调用方内置内容）
 /// </remarks>
-[SugarTable("SysMessageTemplate", "系统消息模板表")]
+[SugarTable(TableName = "Sys_Message_Template", TableDescription = "系统消息模板表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -51,60 +51,60 @@ public partial class SysMessageTemplate : BasicAppFullAuditedEntity
     /// <summary>
     /// 模板编码（渠道内唯一标识，如 auth-email-login-code）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Template_Code", ColumnDescription = "模板编码", Length = 100, IsNullable = false)]
     public virtual string TemplateCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 消息渠道（站内通知/邮件/短信）
     /// </summary>
-    [SugarColumn(ColumnDescription = "消息渠道")]
+    [SugarColumn(ColumnName = "Channel", ColumnDescription = "消息渠道")]
     public virtual MessageChannel Channel { get; set; } = MessageChannel.Email;
 
     /// <summary>
     /// 模板名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Template_Name", ColumnDescription = "模板名称", Length = 100, IsNullable = false)]
     public virtual string TemplateName { get; set; } = string.Empty;
 
     /// <summary>
     /// 主题模板（邮件主题/通知标题，Scriban 语法；短信不使用）
     /// </summary>
-    [SugarColumn(ColumnDescription = "主题模板", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Subject", ColumnDescription = "主题模板", Length = 200, IsNullable = true)]
     public virtual string? Subject { get; set; }
 
     /// <summary>
     /// 内容模板（Scriban 语法）
     /// </summary>
-    [SugarColumn(ColumnDescription = "内容模板", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
+    [SugarColumn(ColumnName = "Content", ColumnDescription = "内容模板", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
     public virtual string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// 内容是否 HTML（邮件渠道有效）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否HTML")]
+    [SugarColumn(ColumnName = "Is_Html", ColumnDescription = "是否HTML")]
     public virtual bool IsHtml { get; set; }
 
     /// <summary>
     /// 模板描述（可用变量说明等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "模板描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -43,7 +43,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 社交登录：微信 / 支付宝 / GitHub / Google
 /// - 账号找回：通过已绑定邮箱/手机号辅助登录
 /// </remarks>
-[SugarTable("SysExternalLogin", "系统第三方登录绑定表")]
+[SugarTable(TableName = "Sys_External_Login", TableDescription = "系统第三方登录绑定表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -54,42 +54,42 @@ public partial class SysExternalLogin : BasicAppFullAuditedEntity
     /// <summary>
     /// 关联的内部用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 提供商名称（google、github、qq 等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "提供商名称", Length = 50, IsNullable = false)]
+    [SugarColumn(ColumnName = "Provider", ColumnDescription = "提供商名称", Length = 50, IsNullable = false)]
     public virtual string Provider { get; set; } = string.Empty;
 
     /// <summary>
     /// 提供商用户唯一标识
     /// </summary>
-    [SugarColumn(ColumnDescription = "提供商用户标识", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Provider_Key", ColumnDescription = "提供商用户标识", Length = 200, IsNullable = false)]
     public virtual string ProviderKey { get; set; } = string.Empty;
 
     /// <summary>
     /// 提供商显示名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "提供商显示名称", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Provider_Display_Name", ColumnDescription = "提供商显示名称", Length = 200, IsNullable = true)]
     public virtual string? ProviderDisplayName { get; set; }
 
     /// <summary>
     /// 三方邮箱
     /// </summary>
-    [SugarColumn(ColumnDescription = "三方邮箱", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Email", ColumnDescription = "三方邮箱", Length = 200, IsNullable = true)]
     public virtual string? Email { get; set; }
 
     /// <summary>
     /// 三方头像
     /// </summary>
-    [SugarColumn(ColumnDescription = "三方头像", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Avatar_Url", ColumnDescription = "三方头像", Length = 500, IsNullable = true)]
     public virtual string? AvatarUrl { get; set; }
 
     /// <summary>
     /// 最后登录时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后登录时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Login_Time", ColumnDescription = "最后登录时间", IsNullable = true)]
     public virtual DateTimeOffset? LastLoginTime { get; set; }
 }

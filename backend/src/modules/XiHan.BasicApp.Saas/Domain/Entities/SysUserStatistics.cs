@@ -42,7 +42,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 用户画像数据源
 /// - 异常行为检测（比平时 10x 操作量 → 告警）
 /// </remarks>
-[SugarTable("SysUserStatistics", "系统用户统计表")]
+[SugarTable(TableName = "Sys_User_Statistics", TableDescription = "系统用户统计表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -53,120 +53,120 @@ public partial class SysUserStatistics : BasicAppFullAuditedEntity
     /// <summary>
     /// 用户ID（0 表示全体用户汇总统计）
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID")]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID")]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 统计日期
     /// </summary>
-    [SugarColumn(ColumnDescription = "统计日期")]
+    [SugarColumn(ColumnName = "Statistics_Date", ColumnDescription = "统计日期")]
     public virtual DateOnly StatisticsDate { get; set; }
 
     /// <summary>
     /// 统计时间范围
     /// </summary>
-    [SugarColumn(ColumnDescription = "统计时间范围")]
+    [SugarColumn(ColumnName = "Period", ColumnDescription = "统计时间范围")]
     public virtual StatisticsPeriod Period { get; set; } = StatisticsPeriod.Today;
 
     /// <summary>
     /// 登录次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录次数")]
+    [SugarColumn(ColumnName = "Login_Count", ColumnDescription = "登录次数")]
     public virtual int LoginCount { get; set; } = 0;
 
     /// <summary>
     /// 访问次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问次数")]
+    [SugarColumn(ColumnName = "Access_Count", ColumnDescription = "访问次数")]
     public virtual int AccessCount { get; set; } = 0;
 
     /// <summary>
     /// 在线时长（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "在线时长（秒）")]
+    [SugarColumn(ColumnName = "Online_Time", ColumnDescription = "在线时长（秒）")]
     public virtual long OnlineTime { get; set; } = 0;
 
     /// <summary>
     /// 操作次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作次数")]
+    [SugarColumn(ColumnName = "Operation_Count", ColumnDescription = "操作次数")]
     public virtual int OperationCount { get; set; } = 0;
 
     /// <summary>
     /// 文件上传次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件上传次数")]
+    [SugarColumn(ColumnName = "File_Upload_Count", ColumnDescription = "文件上传次数")]
     public virtual int FileUploadCount { get; set; } = 0;
 
     /// <summary>
     /// 文件下载次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件下载次数")]
+    [SugarColumn(ColumnName = "File_Download_Count", ColumnDescription = "文件下载次数")]
     public virtual int FileDownloadCount { get; set; } = 0;
 
     /// <summary>
     /// 发送邮件次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "发送邮件次数")]
+    [SugarColumn(ColumnName = "Email_Sent_Count", ColumnDescription = "发送邮件次数")]
     public virtual int EmailSentCount { get; set; } = 0;
 
     /// <summary>
     /// 发送短信次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "发送短信次数")]
+    [SugarColumn(ColumnName = "Sms_Sent_Count", ColumnDescription = "发送短信次数")]
     public virtual int SmsSentCount { get; set; } = 0;
 
     /// <summary>
     /// 发送通知次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "发送通知次数")]
+    [SugarColumn(ColumnName = "Notification_Sent_Count", ColumnDescription = "发送通知次数")]
     public virtual int NotificationSentCount { get; set; } = 0;
 
     /// <summary>
     /// 接收通知次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "接收通知次数")]
+    [SugarColumn(ColumnName = "Notification_Received_Count", ColumnDescription = "接收通知次数")]
     public virtual int NotificationReceivedCount { get; set; } = 0;
 
     /// <summary>
     /// API调用次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "API调用次数")]
+    [SugarColumn(ColumnName = "Api_Call_Count", ColumnDescription = "API调用次数")]
     public virtual int ApiCallCount { get; set; } = 0;
 
     /// <summary>
     /// 错误操作次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误操作次数")]
+    [SugarColumn(ColumnName = "Error_Operation_Count", ColumnDescription = "错误操作次数")]
     public virtual int ErrorOperationCount { get; set; } = 0;
 
     /// <summary>
     /// 最后登录时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后登录时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Login_Time", ColumnDescription = "最后登录时间", IsNullable = true)]
     public virtual DateTimeOffset? LastLoginTime { get; set; }
 
     /// <summary>
     /// 最后访问时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后访问时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Access_Time", ColumnDescription = "最后访问时间", IsNullable = true)]
     public virtual DateTimeOffset? LastAccessTime { get; set; }
 
     /// <summary>
     /// 最后操作时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后操作时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Operation_Time", ColumnDescription = "最后操作时间", IsNullable = true)]
     public virtual DateTimeOffset? LastOperationTime { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

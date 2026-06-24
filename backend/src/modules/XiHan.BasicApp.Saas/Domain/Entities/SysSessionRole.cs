@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 敏感操作前临时激活特权角色，完成后立即 Deactivate
 /// - 凌晨自动扫描并失效 ExpirationTime 已过的会话角色
 /// </remarks>
-[SugarTable("SysSessionRole", "系统会话角色映射表")]
+[SugarTable(TableName = "Sys_Session_Role", TableDescription = "系统会话角色映射表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_SeId_RoId", nameof(TenantId), OrderByType.Asc, nameof(SessionId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
@@ -61,42 +61,42 @@ public partial class SysSessionRole : BasicAppCreationEntity
     /// <summary>
     /// 会话ID（SysUserSession 主键 FK，long 类型）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Session_Id", ColumnDescription = "会话ID", IsNullable = false)]
     public virtual long SessionId { get; set; }
 
     /// <summary>
     /// 角色ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Role_Id", ColumnDescription = "角色ID", IsNullable = false)]
     public virtual long RoleId { get; set; }
 
     /// <summary>
     /// 激活时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "激活时间")]
+    [SugarColumn(ColumnName = "Activated_Time", ColumnDescription = "激活时间")]
     public virtual DateTimeOffset ActivatedTime { get; set; }
 
     /// <summary>
     /// 停用时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "停用时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Deactivated_Time", ColumnDescription = "停用时间", IsNullable = true)]
     public virtual DateTimeOffset? DeactivatedTime { get; set; }
 
     /// <summary>
     /// 过期时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 会话角色状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual SessionRoleStatus Status { get; set; } = SessionRoleStatus.Active;
 
     /// <summary>
     /// 激活原因/备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "激活原因", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Reason", ColumnDescription = "激活原因", Length = 500, IsNullable = true)]
     public virtual string? Reason { get; set; }
 }

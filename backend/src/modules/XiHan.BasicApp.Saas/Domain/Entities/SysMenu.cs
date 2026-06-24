@@ -53,7 +53,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 登录后按用户权限集合过滤可见菜单树
 /// - 按钮级权限：MenuType=Button 配合 PermissionId 控制按钮显示
 /// </remarks>
-[SugarTable("SysMenu", "系统菜单表")]
+[SugarTable(TableName = "Sys_Menu", TableDescription = "系统菜单表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -73,145 +73,145 @@ public partial class SysMenu : BasicAppFullAuditedEntity
     /// 应创建组合权限点（如 user-dept:view）绑定到菜单，而非引入多对多关联表。
     /// 这样保证后端鉴权永远基于 Permission，菜单只是 UI 层的展示映射。
     /// </remarks>
-    [SugarColumn(ColumnDescription = "权限ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Permission_Id", ColumnDescription = "权限ID", IsNullable = true)]
     public virtual long? PermissionId { get; set; }
 
     /// <summary>
     /// 父级菜单ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "父级菜单ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Parent_Id", ColumnDescription = "父级菜单ID", IsNullable = true)]
     public virtual long? ParentId { get; set; }
 
     /// <summary>
     /// 菜单名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Menu_Name", ColumnDescription = "菜单名称", Length = 100, IsNullable = false)]
     public virtual string MenuName { get; set; } = string.Empty;
 
     /// <summary>
     /// 菜单编码（唯一标识）
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Menu_Code", ColumnDescription = "菜单编码", Length = 100, IsNullable = false)]
     public virtual string MenuCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 菜单类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单类型")]
+    [SugarColumn(ColumnName = "Menu_Type", ColumnDescription = "菜单类型")]
     public virtual MenuType MenuType { get; set; } = MenuType.Directory;
 
     /// <summary>
     /// 路由地址（前端路由路径）
     /// </summary>
-    [SugarColumn(ColumnDescription = "路由地址", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Path", ColumnDescription = "路由地址", Length = 200, IsNullable = true)]
     public virtual string? Path { get; set; }
 
     /// <summary>
     /// 组件路径（前端组件文件路径）
     /// </summary>
-    [SugarColumn(ColumnDescription = "组件路径", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Component", ColumnDescription = "组件路径", Length = 200, IsNullable = true)]
     public virtual string? Component { get; set; }
 
     /// <summary>
     /// 路由名称（用于 Vue Router 的 name 属性）
     /// </summary>
-    [SugarColumn(ColumnDescription = "路由名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Route_Name", ColumnDescription = "路由名称", Length = 100, IsNullable = true)]
     public virtual string? RouteName { get; set; }
 
     /// <summary>
     /// 重定向地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "重定向地址", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Redirect", ColumnDescription = "重定向地址", Length = 200, IsNullable = true)]
     public virtual string? Redirect { get; set; }
 
     /// <summary>
     /// 菜单图标
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单图标", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Icon", ColumnDescription = "菜单图标", Length = 100, IsNullable = true)]
     public virtual string? Icon { get; set; }
 
     /// <summary>
     /// 菜单标题（用于面包屑、标签页等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单标题", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Title", ColumnDescription = "菜单标题", Length = 100, IsNullable = true)]
     public virtual string? Title { get; set; }
 
     /// <summary>
     /// 国际化键（如 menu.identity_user；有值时前端按键翻译菜单标题，缺翻译回退 Title/MenuName）
     /// </summary>
-    [SugarColumn(ColumnDescription = "国际化键", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "I18n_Key", ColumnDescription = "国际化键", Length = 100, IsNullable = true)]
     public virtual string? I18nKey { get; set; }
 
     /// <summary>
     /// 是否外链
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否外链")]
+    [SugarColumn(ColumnName = "Is_External", ColumnDescription = "是否外链")]
     public virtual bool IsExternal { get; set; } = false;
 
     /// <summary>
     /// 外链地址（当 IsExternal=true 时使用）
     /// </summary>
-    [SugarColumn(ColumnDescription = "外链地址", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "External_Url", ColumnDescription = "外链地址", Length = 500, IsNullable = true)]
     public virtual string? ExternalUrl { get; set; }
 
     /// <summary>
     /// 是否缓存（Keep-Alive）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否缓存")]
+    [SugarColumn(ColumnName = "Is_Cache", ColumnDescription = "是否缓存")]
     public virtual bool IsCache { get; set; } = false;
 
     /// <summary>
     /// 是否显示在菜单中
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否显示")]
+    [SugarColumn(ColumnName = "Is_Visible", ColumnDescription = "是否显示")]
     public virtual bool IsVisible { get; set; } = true;
 
     /// <summary>
     /// 是否固定在标签页（不可关闭）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否固定标签")]
+    [SugarColumn(ColumnName = "Is_Affix", ColumnDescription = "是否固定标签")]
     public virtual bool IsAffix { get; set; } = false;
 
     /// <summary>
     /// 标签内容（如 "New"、"3" 等，显示在侧栏菜单项右侧）
     /// </summary>
-    [SugarColumn(ColumnDescription = "标签内容", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Badge", ColumnDescription = "标签内容", Length = 50, IsNullable = true)]
     public virtual string? Badge { get; set; }
 
     /// <summary>
     /// 标签类型（控制标签颜色：default/success/warning/error/info）
     /// </summary>
-    [SugarColumn(ColumnDescription = "标签类型", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Badge_Type", ColumnDescription = "标签类型", Length = 20, IsNullable = true)]
     public virtual string? BadgeType { get; set; }
 
     /// <summary>
     /// 是否仅显示标签圆点（为 true 时忽略标签内容，仅显示小圆点）
     /// </summary>
-    [SugarColumn(ColumnDescription = "标签圆点")]
+    [SugarColumn(ColumnName = "Badge_Dot", ColumnDescription = "标签圆点")]
     public virtual bool BadgeDot { get; set; } = false;
 
     /// <summary>
     /// 菜单元数据（JSON格式，存储额外配置）
     /// 例如：{"activeMenu": "/system/user"}
     /// </summary>
-    [SugarColumn(ColumnDescription = "菜单元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Metadata", ColumnDescription = "菜单元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Metadata { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

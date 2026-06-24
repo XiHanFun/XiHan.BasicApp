@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 用户注册验证、密码重置、订单通知、系统预警
 /// - 支持重试：失败后按指数退避策略重发
 /// </remarks>
-[SugarTable("SysEmail", "系统邮件表")]
+[SugarTable(TableName = "Sys_Email", TableDescription = "系统邮件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -59,138 +59,138 @@ public partial class SysEmail : BasicAppFullAuditedEntity
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Send_User_Id", ColumnDescription = "发送用户ID", IsNullable = true)]
     public virtual long? SendUserId { get; set; }
 
     /// <summary>
     /// 接收用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "接收用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Receive_User_Id", ColumnDescription = "接收用户ID", IsNullable = true)]
     public virtual long? ReceiveUserId { get; set; }
 
     /// <summary>
     /// 邮件类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮件类型")]
+    [SugarColumn(ColumnName = "Email_Type", ColumnDescription = "邮件类型")]
     public virtual EmailType EmailType { get; set; } = EmailType.System;
 
     /// <summary>
     /// 发件人邮箱
     /// </summary>
-    [SugarColumn(ColumnDescription = "发件人邮箱", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "From_Email", ColumnDescription = "发件人邮箱", Length = 100, IsNullable = false)]
     public virtual string FromEmail { get; set; } = string.Empty;
 
     /// <summary>
     /// 发件人姓名
     /// </summary>
-    [SugarColumn(ColumnDescription = "发件人姓名", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "From_Name", ColumnDescription = "发件人姓名", Length = 100, IsNullable = true)]
     public virtual string? FromName { get; set; }
 
     /// <summary>
     /// 收件人邮箱（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "收件人邮箱", Length = 1000, IsNullable = false)]
+    [SugarColumn(ColumnName = "To_Email", ColumnDescription = "收件人邮箱", Length = 1000, IsNullable = false)]
     public virtual string ToEmail { get; set; } = string.Empty;
 
     /// <summary>
     /// 抄送邮箱（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "抄送邮箱", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Cc_Email", ColumnDescription = "抄送邮箱", Length = 1000, IsNullable = true)]
     public virtual string? CcEmail { get; set; }
 
     /// <summary>
     /// 密送邮箱（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "密送邮箱", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Bcc_Email", ColumnDescription = "密送邮箱", Length = 1000, IsNullable = true)]
     public virtual string? BccEmail { get; set; }
 
     /// <summary>
     /// 邮件主题
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮件主题", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Subject", ColumnDescription = "邮件主题", Length = 200, IsNullable = false)]
     public virtual string Subject { get; set; } = string.Empty;
 
     /// <summary>
     /// 邮件内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮件内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Content", ColumnDescription = "邮件内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Content { get; set; }
 
     /// <summary>
     /// 是否HTML格式
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否HTML格式")]
+    [SugarColumn(ColumnName = "Is_Html", ColumnDescription = "是否HTML格式")]
     public virtual bool IsHtml { get; set; } = true;
 
     /// <summary>
     /// 附件路径（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "附件路径", Length = 2000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Attachments", ColumnDescription = "附件路径", Length = 2000, IsNullable = true)]
     public virtual string? Attachments { get; set; }
 
     /// <summary>
     /// 模板编码（关联 SysMessageTemplate.TemplateCode，发送时按编码查找模板渲染）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板编码", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Template_Code", ColumnDescription = "模板编码", Length = 100, IsNullable = true)]
     public virtual string? TemplateCode { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Template_Params", ColumnDescription = "模板参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TemplateParams { get; set; }
 
     /// <summary>
     /// 邮件状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮件状态")]
+    [SugarColumn(ColumnName = "Email_Status", ColumnDescription = "邮件状态")]
     public virtual EmailStatus EmailStatus { get; set; } = EmailStatus.Pending;
 
     /// <summary>
     /// 预定发送时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "预定发送时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Scheduled_Time", ColumnDescription = "预定发送时间", IsNullable = true)]
     public virtual DateTimeOffset? ScheduledTime { get; set; }
 
     /// <summary>
     /// 实际发送时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "实际发送时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Send_Time", ColumnDescription = "实际发送时间", IsNullable = true)]
     public virtual DateTimeOffset? SendTime { get; set; }
 
     /// <summary>
     /// 重试次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "重试次数")]
+    [SugarColumn(ColumnName = "Retry_Count", ColumnDescription = "重试次数")]
     public virtual int RetryCount { get; set; } = 0;
 
     /// <summary>
     /// 最大重试次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "最大重试次数")]
+    [SugarColumn(ColumnName = "Max_Retry_Count", ColumnDescription = "最大重试次数")]
     public virtual int MaxRetryCount { get; set; } = 3;
 
     /// <summary>
     /// 错误信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误信息", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Message", ColumnDescription = "错误信息", Length = 1000, IsNullable = true)]
     public virtual string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 业务类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Business_Type", ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
     public virtual string? BusinessType { get; set; }
 
     /// <summary>
     /// 业务ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Business_Id", ColumnDescription = "业务ID", IsNullable = true)]
     public virtual long? BusinessId { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -52,7 +52,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 管理员审查可疑行为
 /// - 行为分析驱动产品优化
 /// </remarks>
-[SugarTable("SysOperationLog_{year}{month}{day}", "系统操作日志表"), SplitTable(SplitType.Month)]
+[SugarTable(TableName = "Sys_Operation_Log_{year}{month}{day}", TableDescription = "系统操作日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -66,127 +66,127 @@ public partial class SysOperationLog : BasicAppCreationEntity, ISplitTableEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = true)]
     public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Name", ColumnDescription = "用户名", Length = 50, IsNullable = true)]
     public virtual string? UserName { get; set; }
 
     /// <summary>
     /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Session_Id", ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
     public virtual string? UserSessionId { get; set; }
 
     /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    [SugarColumn(ColumnName = "Trace_Id", ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 操作类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作类型")]
+    [SugarColumn(ColumnName = "Operation_Type", ColumnDescription = "操作类型")]
     public virtual OperationType OperationType { get; set; } = OperationType.Other;
 
     /// <summary>
     /// 操作模块
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作模块", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Module", ColumnDescription = "操作模块", Length = 50, IsNullable = true)]
     public virtual string? Module { get; set; }
 
     /// <summary>
     /// 操作功能
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作功能", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Function", ColumnDescription = "操作功能", Length = 50, IsNullable = true)]
     public virtual string? Function { get; set; }
 
     /// <summary>
     /// 操作标题
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作标题", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Title", ColumnDescription = "操作标题", Length = 200, IsNullable = true)]
     public virtual string? Title { get; set; }
 
     /// <summary>
     /// 操作描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "操作描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 请求方法
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求方法", Length = 10, IsNullable = true)]
+    [SugarColumn(ColumnName = "Method", ColumnDescription = "请求方法", Length = 10, IsNullable = true)]
     public virtual string? Method { get; set; }
 
     /// <summary>
     /// 请求URL
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求URL", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Url", ColumnDescription = "请求URL", Length = 500, IsNullable = true)]
     public virtual string? RequestUrl { get; set; }
 
     /// <summary>
     /// 执行时间（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行时间（毫秒）")]
+    [SugarColumn(ColumnName = "Execution_Time", ColumnDescription = "执行时间（毫秒）")]
     public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 操作IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Operation_Ip", ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
     public virtual string? OperationIp { get; set; }
 
     /// <summary>
     /// 操作地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作地址", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Operation_Location", ColumnDescription = "操作地址", Length = 200, IsNullable = true)]
     public virtual string? OperationLocation { get; set; }
 
     /// <summary>
     /// 浏览器类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Browser", ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
     public virtual string? Browser { get; set; }
 
     /// <summary>
     /// 操作系统
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Os", ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
     public virtual string? Os { get; set; }
 
     /// <summary>
     /// User-Agent
     /// </summary>
-    [SugarColumn(ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Agent", ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
     public virtual string? UserAgent { get; set; }
 
     /// <summary>
     /// 操作执行结果（成功/失败/部分成功）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作执行结果")]
+    [SugarColumn(ColumnName = "Result", ColumnDescription = "操作执行结果")]
     public virtual OperationExecuteResult Result { get; set; } = OperationExecuteResult.Success;
 
     /// <summary>
     /// 错误消息
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误消息", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Message", ColumnDescription = "错误消息", Length = 1000, IsNullable = true)]
     public virtual string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 操作时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作时间")]
+    [SugarColumn(ColumnName = "Operation_Time", ColumnDescription = "操作时间")]
     public virtual DateTimeOffset OperationTime { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SugarColumn(ColumnName = "Created_Time", IsNullable = false, ColumnDescription = "创建时间")]
     [SplitField]
     public override DateTimeOffset CreatedTime { get; set; }
 }

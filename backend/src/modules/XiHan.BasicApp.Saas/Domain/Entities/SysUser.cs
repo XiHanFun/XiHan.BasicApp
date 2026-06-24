@@ -59,7 +59,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 用户资料维护
 /// - 统一身份：同一自然人可通过 SysTenantUser 在多个租户拥有成员身份
 /// </remarks>
-[SugarTable("SysUser", "系统用户表")]
+[SugarTable(TableName = "Sys_User", TableDescription = "系统用户表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -74,97 +74,97 @@ public partial class SysUser : BasicAppAggregateRoot
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Name", ColumnDescription = "用户名", Length = 50, IsNullable = false)]
     public virtual string UserName { get; set; } = string.Empty;
 
     /// <summary>
     /// 真实姓名
     /// </summary>
-    [SugarColumn(ColumnDescription = "真实姓名", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Real_Name", ColumnDescription = "真实姓名", Length = 50, IsNullable = true)]
     public virtual string? RealName { get; set; }
 
     /// <summary>
     /// 昵称
     /// </summary>
-    [SugarColumn(ColumnDescription = "昵称", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Nick_Name", ColumnDescription = "昵称", Length = 50, IsNullable = true)]
     public virtual string? NickName { get; set; }
 
     /// <summary>
     /// 头像
     /// </summary>
-    [SugarColumn(ColumnDescription = "头像", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Avatar", ColumnDescription = "头像", Length = 500, IsNullable = true)]
     public virtual string? Avatar { get; set; }
 
     /// <summary>
     /// 邮箱
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮箱（登录身份标识，全平台唯一）", Length = 256, IsNullable = true)]
+    [SugarColumn(ColumnName = "Email", ColumnDescription = "邮箱（登录身份标识，全平台唯一）", Length = 256, IsNullable = true)]
     public virtual string? Email { get; set; }
 
     /// <summary>
     /// 手机号
     /// </summary>
-    [SugarColumn(ColumnDescription = "手机号", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Phone", ColumnDescription = "手机号", Length = 20, IsNullable = true)]
     public virtual string? Phone { get; set; }
 
     /// <summary>
     /// 性别
     /// </summary>
-    [SugarColumn(ColumnDescription = "性别")]
+    [SugarColumn(ColumnName = "Gender", ColumnDescription = "性别")]
     public virtual UserGender Gender { get; set; } = UserGender.Unknown;
 
     /// <summary>
     /// 生日
     /// </summary>
-    [SugarColumn(ColumnDescription = "生日", IsNullable = true)]
+    [SugarColumn(ColumnName = "Birthday", ColumnDescription = "生日", IsNullable = true)]
     public virtual DateTimeOffset? Birthday { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 是否已激活（IsActive=false表示邮箱/手机未验证，Status=Disabled表示管理员禁用）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否已激活")]
+    [SugarColumn(ColumnName = "Is_Active", ColumnDescription = "是否已激活")]
     public virtual bool IsActive { get; set; } = true;
 
     /// <summary>
     /// 最后登录时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后登录时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Login_Time", ColumnDescription = "最后登录时间", IsNullable = true)]
     public virtual DateTimeOffset? LastLoginTime { get; set; }
 
     /// <summary>
     /// 最后登录IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后登录IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Login_Ip", ColumnDescription = "最后登录IP", Length = 50, IsNullable = true)]
     public virtual string? LastLoginIp { get; set; }
 
     /// <summary>
     /// 时区
     /// </summary>
-    [SugarColumn(ColumnDescription = "时区", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Time_Zone", ColumnDescription = "时区", Length = 50, IsNullable = true)]
     public virtual string? TimeZone { get; set; }
 
     /// <summary>
     /// 语言
     /// </summary>
-    [SugarColumn(ColumnDescription = "语言", Length = 10, IsNullable = true)]
+    [SugarColumn(ColumnName = "Language", ColumnDescription = "语言", Length = 10, IsNullable = true)]
     public virtual string? Language { get; set; } = "zh-CN";
 
     /// <summary>
     /// 国家/地区
     /// </summary>
-    [SugarColumn(ColumnDescription = "国家/地区", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Country", ColumnDescription = "国家/地区", Length = 50, IsNullable = true)]
     public virtual string? Country { get; set; }
 
     /// <summary>
     /// 是否为系统内置账号（不可修改用户名）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否系统内置账号")]
+    [SugarColumn(ColumnName = "Is_System_Account", ColumnDescription = "是否系统内置账号")]
     public virtual bool IsSystemAccount { get; set; } = false;
 
     /// <summary>
@@ -175,12 +175,12 @@ public partial class SysUser : BasicAppAggregateRoot
     /// - 取值 Custom 时，须在 SysUserDataScope 中枚举可见部门集合
     /// - 禁止依赖枚举数值大小做权限合并，必须按 DataPermissionScope 注释中的显式语义解释
     /// </remarks>
-    [SugarColumn(ColumnDescription = "数据权限范围覆盖", IsNullable = true)]
+    [SugarColumn(ColumnName = "Data_Scope_Override", ColumnDescription = "数据权限范围覆盖", IsNullable = true)]
     public virtual DataPermissionScope? DataScopeOverride { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -51,7 +51,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 菜单按钮鉴权入口：SysMenu.PermissionId 反向绑定
 /// - 版本门控：SysTenantEditionPermission 限定租户可用权限集
 /// </remarks>
-[SugarTable("SysPermission", "系统权限表")]
+[SugarTable(TableName = "Sys_Permission", TableDescription = "系统权限表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -65,79 +65,79 @@ public partial class SysPermission : BasicAppAggregateRoot
     /// <summary>
     /// 权限类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限类型")]
+    [SugarColumn(ColumnName = "Permission_Type", ColumnDescription = "权限类型")]
     public virtual PermissionType PermissionType { get; set; } = PermissionType.ResourceBased;
 
     /// <summary>
     /// 资源ID（关联 SysResource 表，ResourceBased 类型必填）
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Resource_Id", ColumnDescription = "资源ID", IsNullable = true)]
     public virtual long? ResourceId { get; set; }
 
     /// <summary>
     /// 操作ID（关联 SysOperation 表，ResourceBased 类型必填）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Operation_Id", ColumnDescription = "操作ID", IsNullable = true)]
     public virtual long? OperationId { get; set; }
 
     /// <summary>
     /// 所属模块编码（支持三段式权限码 module:resource:action，如 saas/crm/billing）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模块编码", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Module_Code", ColumnDescription = "模块编码", Length = 50, IsNullable = true)]
     public virtual string? ModuleCode { get; set; }
 
     /// <summary>
     /// 权限编码（唯一标识，推荐三段式格式：模块编码:资源编码:操作编码，如：saas:user:create）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限编码", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Permission_Code", ColumnDescription = "权限编码", Length = 200, IsNullable = false)]
     public virtual string PermissionCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 权限名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Permission_Name", ColumnDescription = "权限名称", Length = 200, IsNullable = false)]
     public virtual string PermissionName { get; set; } = string.Empty;
 
     /// <summary>
     /// 权限描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Permission_Description", ColumnDescription = "权限描述", Length = 500, IsNullable = true)]
     public virtual string? PermissionDescription { get; set; }
 
     /// <summary>
     /// 权限标签（JSON 数组格式，如：["admin","sensitive","audit"]）
     /// 用于权限分类和快速筛选
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限标签", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Tags", ColumnDescription = "权限标签", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Tags { get; set; }
 
     /// <summary>
     /// 是否需要审计（操作此权限是否需要记录差异日志）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要审计")]
+    [SugarColumn(ColumnName = "Is_Require_Audit", ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
 
     /// <summary>
     /// 优先级（数字越大优先级越高；仅用于同级别 Grant/Deny 之间的排序，不参与 Grant vs Deny 的跨级覆盖决策——Deny 始终优先于 Grant）
     /// </summary>
-    [SugarColumn(ColumnDescription = "优先级")]
+    [SugarColumn(ColumnName = "Priority", ColumnDescription = "优先级")]
     public virtual int Priority { get; set; } = 0;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

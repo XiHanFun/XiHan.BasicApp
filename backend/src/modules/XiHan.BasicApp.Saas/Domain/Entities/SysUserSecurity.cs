@@ -50,7 +50,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 多因素认证（MFA/TOTP）开关与密钥管理
 /// - 密码最近修改时间、过期策略
 /// </remarks>
-[SugarTable("SysUserSecurity", "系统用户安全状态表")]
+[SugarTable(TableName = "Sys_User_Security", TableDescription = "系统用户安全状态表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -61,7 +61,7 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
@@ -69,61 +69,61 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "密码", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Password", ColumnDescription = "密码", Length = 200, IsNullable = false)]
     public virtual string Password { get; set; } = string.Empty;
 
     /// <summary>
     /// 最后修改密码时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后修改密码时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Password_Change_Time", ColumnDescription = "最后修改密码时间", IsNullable = true)]
     public virtual DateTimeOffset? LastPasswordChangeTime { get; set; }
 
     /// <summary>
     /// 密码过期时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "密码过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Password_Expiration_Time", ColumnDescription = "密码过期时间", IsNullable = true)]
     public virtual DateTimeOffset? PasswordExpirationTime { get; set; }
 
     /// <summary>
     /// 失败登录次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "失败登录次数")]
+    [SugarColumn(ColumnName = "Failed_Login_Attempts", ColumnDescription = "失败登录次数")]
     public virtual int FailedLoginAttempts { get; set; } = 0;
 
     /// <summary>
     /// 最后失败登录时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后失败登录时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Failed_Login_Time", ColumnDescription = "最后失败登录时间", IsNullable = true)]
     public virtual DateTimeOffset? LastFailedLoginTime { get; set; }
 
     /// <summary>
     /// 是否锁定
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否锁定")]
+    [SugarColumn(ColumnName = "Is_Locked", ColumnDescription = "是否锁定")]
     public virtual bool IsLocked { get; set; } = false;
 
     /// <summary>
     /// 锁定时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "锁定时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Lockout_Time", ColumnDescription = "锁定时间", IsNullable = true)]
     public virtual DateTimeOffset? LockoutTime { get; set; }
 
     /// <summary>
     /// 锁定结束时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "锁定结束时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Lockout_End_Time", ColumnDescription = "锁定结束时间", IsNullable = true)]
     public virtual DateTimeOffset? LockoutEndTime { get; set; }
 
     /// <summary>
     /// 是否启用双因素认证
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否启用双因素认证")]
+    [SugarColumn(ColumnName = "Two_Factor_Enabled", ColumnDescription = "是否启用双因素认证")]
     public virtual bool TwoFactorEnabled { get; set; } = false;
 
     /// <summary>
     /// 双因素认证方式
     /// </summary>
-    [SugarColumn(ColumnDescription = "双因素认证方式")]
+    [SugarColumn(ColumnName = "Two_Factor_Method", ColumnDescription = "双因素认证方式")]
     public virtual TwoFactorMethod TwoFactorMethod { get; set; } = TwoFactorMethod.None;
 
     /// <summary>
@@ -131,13 +131,13 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "双因素认证密钥", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Two_Factor_Secret", ColumnDescription = "双因素认证密钥", Length = 200, IsNullable = true)]
     public virtual string? TwoFactorSecret { get; set; }
 
     /// <summary>
     /// 最后修改用户名时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后修改用户名时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_User_Name_Change_Time", ColumnDescription = "最后修改用户名时间", IsNullable = true)]
     public virtual DateTimeOffset? LastUserNameChangeTime { get; set; }
 
     /// <summary>
@@ -145,42 +145,42 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "安全戳", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Security_Stamp", ColumnDescription = "安全戳", Length = 100, IsNullable = true)]
     public virtual string? SecurityStamp { get; set; }
 
     /// <summary>
     /// 邮箱是否验证
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮箱是否验证")]
+    [SugarColumn(ColumnName = "Email_Verified", ColumnDescription = "邮箱是否验证")]
     public virtual bool EmailVerified { get; set; } = false;
 
     /// <summary>
     /// 手机号是否验证
     /// </summary>
-    [SugarColumn(ColumnDescription = "手机号是否验证")]
+    [SugarColumn(ColumnName = "Phone_Verified", ColumnDescription = "手机号是否验证")]
     public virtual bool PhoneVerified { get; set; } = false;
 
     /// <summary>
     /// 是否允许多端登录
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否允许多端登录")]
+    [SugarColumn(ColumnName = "Allow_Multi_Login", ColumnDescription = "是否允许多端登录")]
     public virtual bool AllowMultiLogin { get; set; } = true;
 
     /// <summary>
     /// 最大登录设备数（0表示不限制）
     /// </summary>
-    [SugarColumn(ColumnDescription = "最大登录设备数")]
+    [SugarColumn(ColumnName = "Max_Login_Devices", ColumnDescription = "最大登录设备数")]
     public virtual int MaxLoginDevices { get; set; } = 0;
 
     /// <summary>
     /// 上次安全检查时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "上次安全检查时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Security_Check_Time", ColumnDescription = "上次安全检查时间", IsNullable = true)]
     public virtual DateTimeOffset? LastSecurityCheckTime { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

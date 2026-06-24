@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 下拉框选项加载
 /// - 多级联动选择（地区三级、组织架构选择）
 /// </remarks>
-[SugarTable("SysDictItem", "系统字典项表")]
+[SugarTable(TableName = "Sys_Dict_Item", TableDescription = "系统字典项表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -57,66 +57,66 @@ public partial class SysDictItem : BasicAppFullAuditedEntity
     /// <summary>
     /// 字典ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "字典ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Dict_Id", ColumnDescription = "字典ID", IsNullable = false)]
     public virtual long DictId { get; set; }
 
     /// <summary>
     /// 父级字典项ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "父级字典项ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Parent_Id", ColumnDescription = "父级字典项ID", IsNullable = true)]
     public virtual long? ParentId { get; set; }
 
     /// <summary>
     /// 字典项编码
     /// </summary>
-    [SugarColumn(ColumnDescription = "字典项编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Item_Code", ColumnDescription = "字典项编码", Length = 100, IsNullable = false)]
     public virtual string ItemCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 字典项名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "字典项名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Item_Name", ColumnDescription = "字典项名称", Length = 100, IsNullable = false)]
     public virtual string ItemName { get; set; } = string.Empty;
 
     /// <summary>
     /// 字典项值
     /// </summary>
-    [SugarColumn(ColumnDescription = "字典项值", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Item_Value", ColumnDescription = "字典项值", Length = 200, IsNullable = true)]
     public virtual string? ItemValue { get; set; }
 
     /// <summary>
     /// 字典项描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "字典项描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Item_Description", ColumnDescription = "字典项描述", Length = 500, IsNullable = true)]
     public virtual string? ItemDescription { get; set; }
 
     /// <summary>
     /// 扩展元数据（JSON格式，替代固定扩展列，支持自描述的灵活扩展）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Metadata", ColumnDescription = "扩展元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Metadata { get; set; }
 
     /// <summary>
     /// 是否默认
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否默认")]
+    [SugarColumn(ColumnName = "Is_Default", ColumnDescription = "是否默认")]
     public virtual bool IsDefault { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 职责：登录状态、多端控制、在线状态、会话撤销、设备管理。
 /// 不存储完整 Token/RefreshToken，仅通过 AccessTokenJti 与 Token 表关联，便于黑名单与撤销。
 /// </summary>
-[SugarTable("SysUserSession", "系统用户会话表")]
+[SugarTable(TableName = "Sys_User_Session", TableDescription = "系统用户会话表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -36,74 +36,74 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 当前访问令牌 JTI（JWT ID，用于黑名单/撤销校验，不存完整 Token）
     /// </summary>
-    [SugarColumn(ColumnDescription = "当前访问令牌JTI", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Current_Access_Token_Jti", ColumnDescription = "当前访问令牌JTI", Length = 200, IsNullable = true)]
     public virtual string? CurrentAccessTokenJti { get; set; }
 
     /// <summary>
     /// 会话标识（用于区分不同设备/端，在同一租户上下文内唯一）
     /// 同一自然人在不同租户同时登录时允许复用同一业务 SessionId，但会落成不同 TenantId 的独立会话记录
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Session_Id", ColumnDescription = "会话标识", Length = 100, IsNullable = false)]
     public virtual string UserSessionId { get; set; } = string.Empty;
 
     /// <summary>
     /// 设备类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "设备类型")]
+    [SugarColumn(ColumnName = "Device_Type", ColumnDescription = "设备类型")]
     public virtual DeviceType DeviceType { get; set; } = DeviceType.Unknown;
 
     /// <summary>
     /// 设备名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "设备名称", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Device_Name", ColumnDescription = "设备名称", Length = 200, IsNullable = true)]
     public virtual string? DeviceName { get; set; }
 
     /// <summary>
     /// 设备ID（设备唯一标识）
     /// </summary>
-    [SugarColumn(ColumnDescription = "设备ID", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Device_Id", ColumnDescription = "设备ID", Length = 200, IsNullable = true)]
     public virtual string? DeviceId { get; set; }
 
     /// <summary>
     /// 操作系统
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Operating_System", ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
     public virtual string? OperatingSystem { get; set; }
 
     /// <summary>
     /// 浏览器
     /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Browser", ColumnDescription = "浏览器", Length = 100, IsNullable = true)]
     public virtual string? Browser { get; set; }
 
     /// <summary>
     /// IP地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "IP地址", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Ip_Address", ColumnDescription = "IP地址", Length = 50, IsNullable = true)]
     public virtual string? IpAddress { get; set; }
 
     /// <summary>
     /// 登录位置
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录位置", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Location", ColumnDescription = "登录位置", Length = 200, IsNullable = true)]
     public virtual string? Location { get; set; }
 
     /// <summary>
     /// 登录时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录时间")]
+    [SugarColumn(ColumnName = "Login_Time", ColumnDescription = "登录时间")]
     public virtual DateTimeOffset LoginTime { get; set; }
 
     /// <summary>
     /// 最后活动时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后活动时间")]
+    [SugarColumn(ColumnName = "Last_Activity_Time", ColumnDescription = "最后活动时间")]
     public virtual DateTimeOffset LastActivityTime { get; set; }
 
     /// <summary>
@@ -117,36 +117,36 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     /// - 超过 ExpirationTime：Expired（定时任务扫描置位）
     /// 鉴权"会话有效"判定：Status == Active 且未软删。
     /// </remarks>
-    [SugarColumn(ColumnDescription = "会话状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "会话状态")]
     public virtual SessionStatus Status { get; set; } = SessionStatus.Active;
 
     /// <summary>
     /// 撤销时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "撤销时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Revoked_Time", ColumnDescription = "撤销时间", IsNullable = true)]
     public virtual DateTimeOffset? RevokedTime { get; set; }
 
     /// <summary>
     /// 撤销原因
     /// </summary>
-    [SugarColumn(ColumnDescription = "撤销原因", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Revoked_Reason", ColumnDescription = "撤销原因", Length = 200, IsNullable = true)]
     public virtual string? RevokedReason { get; set; }
 
     /// <summary>
     /// 登出时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "登出时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Logout_Time", ColumnDescription = "登出时间", IsNullable = true)]
     public virtual DateTimeOffset? LogoutTime { get; set; }
 
     /// <summary>
     /// 会话过期时间（绝对超时，如 24 小时强制重登；为空表示不限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "会话过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// - 失败重试入口
 /// - 清理历史产物文件
 /// </remarks>
-[SugarTable("SysCodeGenHistory", "系统代码生成历史记录表")]
+[SugarTable(TableName = "Sys_CodeGen_History", TableDescription = "系统代码生成历史记录表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -59,114 +59,114 @@ public partial class SysCodeGenHistory : BasicAppFullAuditedEntity
     /// <summary>
     /// 所属表ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "所属表ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Table_Id", ColumnDescription = "所属表ID", IsNullable = false)]
     public virtual long TableId { get; set; }
 
     /// <summary>
     /// 表名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "表名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Table_Name", ColumnDescription = "表名称", Length = 200, IsNullable = false)]
     public virtual string TableName { get; set; } = string.Empty;
 
     /// <summary>
     /// 生成批次号
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成批次号", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Batch_Number", ColumnDescription = "生成批次号", Length = 50, IsNullable = true)]
     public virtual string? BatchNumber { get; set; }
 
     /// <summary>
     /// 生成状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成状态")]
+    [SugarColumn(ColumnName = "Gen_Status", ColumnDescription = "生成状态")]
     public virtual GenStatus GenStatus { get; set; } = GenStatus.NotGenerated;
 
     /// <summary>
     /// 生成方式
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成方式")]
+    [SugarColumn(ColumnName = "Gen_Type", ColumnDescription = "生成方式")]
     public virtual GenType GenType { get; set; } = GenType.Zip;
 
     /// <summary>
     /// 生成时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成时间")]
+    [SugarColumn(ColumnName = "Gen_Time", ColumnDescription = "生成时间")]
     public virtual DateTimeOffset GenTime { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// 生成耗时（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成耗时（毫秒）")]
+    [SugarColumn(ColumnName = "Duration", ColumnDescription = "生成耗时（毫秒）")]
     public virtual long Duration { get; set; } = 0;
 
     /// <summary>
     /// 生成文件数量
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成文件数量")]
+    [SugarColumn(ColumnName = "File_Count", ColumnDescription = "生成文件数量")]
     public virtual int FileCount { get; set; } = 0;
 
     /// <summary>
     /// 生成文件总大小（字节）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成文件总大小（字节）")]
+    [SugarColumn(ColumnName = "Total_Size", ColumnDescription = "生成文件总大小（字节）")]
     public virtual long TotalSize { get; set; } = 0;
 
     /// <summary>
     /// 生成路径
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成路径", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Gen_Path", ColumnDescription = "生成路径", Length = 500, IsNullable = true)]
     public virtual string? GenPath { get; set; }
 
     /// <summary>
     /// 下载路径
     /// </summary>
-    [SugarColumn(ColumnDescription = "下载路径", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Download_Path", ColumnDescription = "下载路径", Length = 500, IsNullable = true)]
     public virtual string? DownloadPath { get; set; }
 
     /// <summary>
     /// 生成文件列表（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成文件列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Generated_Files", ColumnDescription = "生成文件列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? GeneratedFiles { get; set; }
 
     /// <summary>
     /// 使用的模板列表（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "使用的模板列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Used_Templates", ColumnDescription = "使用的模板列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? UsedTemplates { get; set; }
 
     /// <summary>
     /// 表配置快照（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "表配置快照", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Table_Snapshot", ColumnDescription = "表配置快照", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TableSnapshot { get; set; }
 
     /// <summary>
     /// 错误信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Message", ColumnDescription = "错误信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 操作用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Operator_Id", ColumnDescription = "操作用户ID", IsNullable = true)]
     public virtual long? OperatorId { get; set; }
 
     /// <summary>
     /// 操作用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作用户名", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Operator_Name", ColumnDescription = "操作用户名", Length = 100, IsNullable = true)]
     public virtual string? OperatorName { get; set; }
 
     /// <summary>
     /// 操作IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Operator_Ip", ColumnDescription = "操作IP", Length = 50, IsNullable = true)]
     public virtual string? OperatorIp { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -44,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 服务层写入时应校验：同一 AttributeName 在不同条件中的 ValueType 必须一致
 /// - 条件总数限制：单条权限关联最多 5 个条件组（ConditionGroup），每组最多 10 条条件，超出应拒绝写入
 /// </remarks>
-[SugarTable("SysPermissionCondition", "权限ABAC条件表")]
+[SugarTable(TableName = "Sys_Permission_Condition", TableDescription = "权限ABAC条件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -58,19 +58,19 @@ public partial class SysPermissionCondition : BasicAppFullAuditedEntity
     /// <summary>
     /// 角色权限关联ID（绑定到角色的权限时使用，与 UserPermissionId 二选一）
     /// </summary>
-    [SugarColumn(ColumnDescription = "角色权限关联ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Role_Permission_Id", ColumnDescription = "角色权限关联ID", IsNullable = true)]
     public virtual long? RolePermissionId { get; set; }
 
     /// <summary>
     /// 用户权限关联ID（绑定到用户直授权限时使用，与 RolePermissionId 二选一）
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户权限关联ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Permission_Id", ColumnDescription = "用户权限关联ID", IsNullable = true)]
     public virtual long? UserPermissionId { get; set; }
 
     /// <summary>
     /// 条件分组（同组内 AND，跨组 OR）
     /// </summary>
-    [SugarColumn(ColumnDescription = "条件分组")]
+    [SugarColumn(ColumnName = "Condition_Group", ColumnDescription = "条件分组")]
     public virtual int ConditionGroup { get; set; } = 0;
 
     /// <summary>
@@ -88,25 +88,25 @@ public partial class SysPermissionCondition : BasicAppFullAuditedEntity
     /// - environment.ip: 请求IP
     /// - environment.location: 请求位置
     /// </remarks>
-    [SugarColumn(ColumnDescription = "属性名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Attribute_Name", ColumnDescription = "属性名称", Length = 200, IsNullable = false)]
     public virtual string AttributeName { get; set; } = string.Empty;
 
     /// <summary>
     /// 操作符
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作符")]
+    [SugarColumn(ColumnName = "Operator", ColumnDescription = "操作符")]
     public virtual ConditionOperator Operator { get; set; } = ConditionOperator.Equals;
 
     /// <summary>
     /// 是否取反（true 时对 Operator 结果取反，如 Equals+IsNegated=NotEquals）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否取反")]
+    [SugarColumn(ColumnName = "Is_Negated", ColumnDescription = "是否取反")]
     public virtual bool IsNegated { get; set; } = false;
 
     /// <summary>
     /// 条件值类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "条件值类型")]
+    [SugarColumn(ColumnName = "Value_Type", ColumnDescription = "条件值类型")]
     public virtual ConfigDataType ValueType { get; set; } = ConfigDataType.String;
 
     /// <summary>
@@ -118,24 +118,24 @@ public partial class SysPermissionCondition : BasicAppFullAuditedEntity
     /// - 集合值：["east","west"]
     /// - 范围值：{"min":9,"max":18}
     /// </remarks>
-    [SugarColumn(ColumnDescription = "条件值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
+    [SugarColumn(ColumnName = "Condition_Value", ColumnDescription = "条件值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
     public virtual string ConditionValue { get; set; } = string.Empty;
 
     /// <summary>
     /// 条件说明
     /// </summary>
-    [SugarColumn(ColumnDescription = "条件说明", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "条件说明", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

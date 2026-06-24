@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 用户借调/兼职：多部门归属，IsMain 标识主归属用于组织架构展示
 /// - 数据范围计算：部门经理查看本部门及下级数据
 /// </remarks>
-[SugarTable("SysUserDepartment", "系统用户部门关联表")]
+[SugarTable(TableName = "Sys_User_Department", TableDescription = "系统用户部门关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_UsId_DeId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
@@ -60,30 +60,30 @@ public partial class SysUserDepartment : BasicAppCreationEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 部门ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "部门ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Department_Id", ColumnDescription = "部门ID", IsNullable = false)]
     public virtual long DepartmentId { get; set; }
 
     /// <summary>
     /// 是否主部门
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否主部门")]
+    [SugarColumn(ColumnName = "Is_Main", ColumnDescription = "是否主部门")]
     public virtual bool IsMain { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

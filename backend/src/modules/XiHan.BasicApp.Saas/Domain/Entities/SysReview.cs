@@ -56,7 +56,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 敏感操作审批：批量删除/数据导出 → 需二次确认
 /// - 多级审批、会签、驳回重提
 /// </remarks>
-[SugarTable("SysReview", "系统审查表")]
+[SugarTable(TableName = "Sys_Review", TableDescription = "系统审查表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -70,31 +70,31 @@ public partial class SysReview : BasicAppAggregateRoot
     /// <summary>
     /// 审查编码
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Review_Code", ColumnDescription = "审查编码", Length = 100, IsNullable = false)]
     public virtual string ReviewCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 审查标题
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查标题", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Review_Title", ColumnDescription = "审查标题", Length = 200, IsNullable = false)]
     public virtual string ReviewTitle { get; set; } = string.Empty;
 
     /// <summary>
     /// 审查类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查类型", Length = 50, IsNullable = false)]
+    [SugarColumn(ColumnName = "Review_Type", ColumnDescription = "审查类型", Length = 50, IsNullable = false)]
     public virtual string ReviewType { get; set; } = string.Empty;
 
     /// <summary>
     /// 审查内容（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Review_Content", ColumnDescription = "审查内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ReviewContent { get; set; }
 
     /// <summary>
     /// 审查描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查描述", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Review_Description", ColumnDescription = "审查描述", Length = 1000, IsNullable = true)]
     public virtual string? ReviewDescription { get; set; }
 
     /// <summary>
@@ -102,7 +102,7 @@ public partial class SysReview : BasicAppAggregateRoot
     /// 注意：本表使用 EntityType/EntityId（字符串）命名，与 SysEmail/SysSms/SysNotification 中 BusinessType/BusinessId（string+long）命名不一致。
     /// 两者语义相同（均指向被关联的业务主单据），但因历史原因命名未统一，保持现状不重命名以免破坏已有数据库结构。
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务实体类型", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Entity_Type", ColumnDescription = "业务实体类型", Length = 100, IsNullable = true)]
     public virtual string? EntityType { get; set; }
 
     /// <summary>
@@ -110,102 +110,102 @@ public partial class SysReview : BasicAppAggregateRoot
     /// 注意：本表使用 EntityId（字符串），与 SysEmail/SysSms/SysNotification 中 BusinessId（long?）类型不一致。
     /// SysReview.EntityId 设计为字符串以兼容多种主键类型（long/Guid/string），但也带来了类型安全性下降的代价。
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务实体ID", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Entity_Id", ColumnDescription = "业务实体ID", Length = 100, IsNullable = true)]
     public virtual string? EntityId { get; set; }
 
     /// <summary>
     /// 业务数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Business_Data", ColumnDescription = "业务数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? BusinessData { get; set; }
 
     /// <summary>
     /// 审查状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查状态")]
+    [SugarColumn(ColumnName = "Review_Status", ColumnDescription = "审查状态")]
     public virtual AuditStatus ReviewStatus { get; set; } = AuditStatus.Pending;
 
     /// <summary>
     /// 审查结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查结果", IsNullable = true)]
+    [SugarColumn(ColumnName = "Review_Result", ColumnDescription = "审查结果", IsNullable = true)]
     public virtual AuditResult? ReviewResult { get; set; }
 
     /// <summary>
     /// 优先级（数字越大优先级越高，与 SysPermission/SysConstraintRule/SysFieldLevelSecurity 方向一致）
     /// </summary>
-    [SugarColumn(ColumnDescription = "优先级")]
+    [SugarColumn(ColumnName = "Priority", ColumnDescription = "优先级")]
     public virtual int Priority { get; set; } = 0;
 
     /// <summary>
     /// 提交人ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "提交人ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Submit_User_Id", ColumnDescription = "提交人ID", IsNullable = true)]
     public virtual long? SubmitUserId { get; set; }
 
     /// <summary>
     /// 提交时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "提交时间")]
+    [SugarColumn(ColumnName = "Submit_Time", ColumnDescription = "提交时间")]
     public virtual DateTimeOffset SubmitTime { get; set; }
 
     /// <summary>
     /// 当前审查人ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "当前审查人ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Current_Review_User_Id", ColumnDescription = "当前审查人ID", IsNullable = true)]
     public virtual long? CurrentReviewUserId { get; set; }
 
     /// <summary>
     /// 审查人ID列表（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查人ID列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Review_User_Ids", ColumnDescription = "审查人ID列表", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ReviewUserIds { get; set; }
 
     /// <summary>
     /// 审查级别
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查级别")]
+    [SugarColumn(ColumnName = "Review_Level", ColumnDescription = "审查级别")]
     public virtual int ReviewLevel { get; set; } = 1;
 
     /// <summary>
     /// 当前审查级别
     /// </summary>
-    [SugarColumn(ColumnDescription = "当前审查级别")]
+    [SugarColumn(ColumnName = "Current_Level", ColumnDescription = "当前审查级别")]
     public virtual int CurrentLevel { get; set; } = 1;
 
     /// <summary>
     /// 审查开始时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查开始时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Review_Start_Time", ColumnDescription = "审查开始时间", IsNullable = true)]
     public virtual DateTimeOffset? ReviewStartTime { get; set; }
 
     /// <summary>
     /// 审查结束时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "审查结束时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Review_End_Time", ColumnDescription = "审查结束时间", IsNullable = true)]
     public virtual DateTimeOffset? ReviewEndTime { get; set; }
 
     /// <summary>
     /// 附件信息（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "附件信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Attachments", ColumnDescription = "附件信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Attachments { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 删除：
 /// - 硬删；变更继承关系时删除旧闭包记录并按新结构重建
 /// </remarks>
-[SugarTable("SysRoleHierarchy", "系统角色层级关系表")]
+[SugarTable(TableName = "Sys_Role_Hierarchy", TableDescription = "系统角色层级关系表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_AnId_DeId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
@@ -60,7 +60,7 @@ public partial class SysRoleHierarchy : BasicAppCreationEntity
     /// <remarks>
     /// 包含所有被继承的角色，包括自己（Depth=0）
     /// </remarks>
-    [SugarColumn(ColumnDescription = "祖先角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Ancestor_Id", ColumnDescription = "祖先角色ID", IsNullable = false)]
     public virtual long AncestorId { get; set; }
 
     /// <summary>
@@ -69,7 +69,7 @@ public partial class SysRoleHierarchy : BasicAppCreationEntity
     /// <remarks>
     /// 包含所有继承者角色，包括自己（Depth=0）
     /// </remarks>
-    [SugarColumn(ColumnDescription = "后代角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Descendant_Id", ColumnDescription = "后代角色ID", IsNullable = false)]
     public virtual long DescendantId { get; set; }
 
     /// <summary>
@@ -80,7 +80,7 @@ public partial class SysRoleHierarchy : BasicAppCreationEntity
     /// - 1: 直接继承
     /// - n: n级间接继承
     /// </remarks>
-    [SugarColumn(ColumnDescription = "继承深度")]
+    [SugarColumn(ColumnName = "Depth", ColumnDescription = "继承深度")]
     public virtual int Depth { get; set; } = 0;
 
     /// <summary>
@@ -91,12 +91,12 @@ public partial class SysRoleHierarchy : BasicAppCreationEntity
     /// 例如：1/3/5 表示角色5继承自角色3，角色3继承自角色1
     /// 用于快速显示角色继承链和权限追溯
     /// </remarks>
-    [SugarColumn(ColumnDescription = "继承路径", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Path", ColumnDescription = "继承路径", Length = 1000, IsNullable = true)]
     public virtual string? Path { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

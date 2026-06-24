@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 移动/SPA 应用授权
 /// - 对外开放 API 平台
 /// </remarks>
-[SugarTable("SysOAuthApp", "系统OAuth应用表")]
+[SugarTable(TableName = "Sys_OAuth_App", TableDescription = "系统OAuth应用表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -60,19 +60,19 @@ public partial class SysOAuthApp : BasicAppAggregateRoot
     /// <summary>
     /// 应用名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "App_Name", ColumnDescription = "应用名称", Length = 100, IsNullable = false)]
     public virtual string AppName { get; set; } = string.Empty;
 
     /// <summary>
     /// 应用描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "App_Description", ColumnDescription = "应用描述", Length = 500, IsNullable = true)]
     public virtual string? AppDescription { get; set; }
 
     /// <summary>
     /// 客户端ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "客户端ID", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Client_Id", ColumnDescription = "客户端ID", Length = 100, IsNullable = false)]
     public virtual string ClientId { get; set; } = string.Empty;
 
     /// <summary>
@@ -80,78 +80,78 @@ public partial class SysOAuthApp : BasicAppAggregateRoot
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "客户端密钥", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Client_Secret", ColumnDescription = "客户端密钥", Length = 200, IsNullable = false)]
     public virtual string ClientSecret { get; set; } = string.Empty;
 
     /// <summary>
     /// 应用类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用类型")]
+    [SugarColumn(ColumnName = "App_Type", ColumnDescription = "应用类型")]
     public virtual OAuthAppType AppType { get; set; } = OAuthAppType.Web;
 
     /// <summary>
     /// 支持的授权类型（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "支持的授权类型", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Grant_Types", ColumnDescription = "支持的授权类型", Length = 200, IsNullable = false)]
     public virtual string GrantTypes { get; set; } = string.Empty;
 
     /// <summary>
     /// 重定向URI（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "重定向URI", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Redirect_Uris", ColumnDescription = "重定向URI", Length = 1000, IsNullable = true)]
     public virtual string? RedirectUris { get; set; }
 
     /// <summary>
     /// 权限范围（多个用逗号分隔）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限范围", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Scopes", ColumnDescription = "权限范围", Length = 500, IsNullable = true)]
     public virtual string? Scopes { get; set; }
 
     /// <summary>
     /// 访问令牌有效期（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问令牌有效期（秒）")]
+    [SugarColumn(ColumnName = "Access_Token_Lifetime", ColumnDescription = "访问令牌有效期（秒）")]
     public virtual int AccessTokenLifetime { get; set; } = 3600;
 
     /// <summary>
     /// 刷新令牌有效期（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "刷新令牌有效期（秒）")]
+    [SugarColumn(ColumnName = "Refresh_Token_Lifetime", ColumnDescription = "刷新令牌有效期（秒）")]
     public virtual int RefreshTokenLifetime { get; set; } = 2592000;
 
     /// <summary>
     /// 授权码有效期（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "授权码有效期（秒）")]
+    [SugarColumn(ColumnName = "Authorization_Code_Lifetime", ColumnDescription = "授权码有效期（秒）")]
     public virtual int AuthorizationCodeLifetime { get; set; } = 300;
 
     /// <summary>
     /// 应用Logo
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用Logo", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Logo", ColumnDescription = "应用Logo", Length = 500, IsNullable = true)]
     public virtual string? Logo { get; set; }
 
     /// <summary>
     /// 应用主页
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用主页", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Homepage", ColumnDescription = "应用主页", Length = 200, IsNullable = true)]
     public virtual string? Homepage { get; set; }
 
     /// <summary>
     /// 是否跳过授权
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否跳过授权")]
+    [SugarColumn(ColumnName = "Skip_Consent", ColumnDescription = "是否跳过授权")]
     public virtual bool SkipConsent { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -62,7 +62,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 集团总部用户跨子公司访问（PlatformAdmin 或 Admin）
 /// - 登录后切换租户（类似 GitHub 切换 Org）
 /// </remarks>
-[SugarTable("SysTenantUser", "系统租户成员表")]
+[SugarTable(TableName = "Sys_Tenant_User", TableDescription = "系统租户成员表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -77,7 +77,7 @@ public partial class SysTenantUser : BasicAppFullAuditedEntity
     /// <summary>
     /// 用户ID（指向 SysUser，与当前 TenantId 共同定位一条租户成员关系）
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
@@ -89,72 +89,72 @@ public partial class SysTenantUser : BasicAppFullAuditedEntity
     /// 必须走 RBAC 权限链（SysUserRole → SysRolePermission → SysPermission）。
     /// MemberType 仅用于：成员列表展示分类、邀请流程控制、PlatformAdmin 创建权限校验。
     /// </remarks>
-    [SugarColumn(ColumnDescription = "成员类型")]
+    [SugarColumn(ColumnName = "Member_Type", ColumnDescription = "成员类型")]
     public virtual TenantMemberType MemberType { get; set; } = TenantMemberType.Member;
 
     /// <summary>
     /// 邀请状态（Pending/Accepted/Rejected/Revoked/Expired）
     /// </summary>
-    [SugarColumn(ColumnDescription = "邀请状态")]
+    [SugarColumn(ColumnName = "Invite_Status", ColumnDescription = "邀请状态")]
     public virtual TenantMemberInviteStatus InviteStatus { get; set; } = TenantMemberInviteStatus.Accepted;
 
     /// <summary>
     /// 邀请人ID（手动邀请时填写；系统自动创建时可为空）
     /// </summary>
-    [SugarColumn(ColumnDescription = "邀请人ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Invited_By", ColumnDescription = "邀请人ID", IsNullable = true)]
     public virtual long? InvitedBy { get; set; }
 
     /// <summary>
     /// 邀请时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "邀请时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Invited_Time", ColumnDescription = "邀请时间", IsNullable = true)]
     public virtual DateTimeOffset? InvitedTime { get; set; }
 
     /// <summary>
     /// 接受/响应时间（用户接受或拒绝邀请的时间）
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Responded_Time", ColumnDescription = "响应时间", IsNullable = true)]
     public virtual DateTimeOffset? RespondedTime { get; set; }
 
     /// <summary>
     /// 生效时间（为空表示立即生效）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Effective_Time", ColumnDescription = "生效时间", IsNullable = true)]
     public virtual DateTimeOffset? EffectiveTime { get; set; }
 
     /// <summary>
     /// 失效时间（为空表示永不过期；常用于外部协作者/访客的时效控制）
     /// </summary>
-    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "失效时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 最近活跃时间（用户在该租户上下文下最近一次登录或操作的时间，用于清理僵尸成员关系）
     /// </summary>
-    [SugarColumn(ColumnDescription = "最近活跃时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Active_Time", ColumnDescription = "最近活跃时间", IsNullable = true)]
     public virtual DateTimeOffset? LastActiveTime { get; set; }
 
     /// <summary>
     /// 在该租户的显示名（可覆盖 SysUser.RealName，如外部协作者在不同客户处使用不同称呼）
     /// </summary>
-    [SugarColumn(ColumnDescription = "租户内显示名", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Display_Name", ColumnDescription = "租户内显示名", Length = 100, IsNullable = true)]
     public virtual string? DisplayName { get; set; }
 
     /// <summary>
     /// 邀请备注（管理员填写的协作说明、权限说明等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "邀请备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Invite_Remark", ColumnDescription = "邀请备注", Length = 500, IsNullable = true)]
     public virtual string? InviteRemark { get; set; }
 
     /// <summary>
     /// 状态（Yes=有效 / No=暂停，暂停后不再生效但保留关系）
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - Pro 版：+ 高级报表、批量导出、审批流
 /// - Enterprise：+ SSO、审计报告、自定义字段等全部权限
 /// </remarks>
-[SugarTable("SysTenantEditionPermission", "租户版本可用权限映射表")]
+[SugarTable(TableName = "Sys_Tenant_Edition_Permission", TableDescription = "租户版本可用权限映射表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_EdId_PeId", nameof(EditionId), OrderByType.Asc, nameof(PermissionId), OrderByType.Asc, true)]
@@ -59,24 +59,24 @@ public partial class SysTenantEditionPermission : BasicAppCreationEntity
     /// <summary>
     /// 版本ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "版本ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Edition_Id", ColumnDescription = "版本ID", IsNullable = false)]
     public virtual long EditionId { get; set; }
 
     /// <summary>
     /// 权限ID（关联平台级全局权限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Permission_Id", ColumnDescription = "权限ID", IsNullable = false)]
     public virtual long PermissionId { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

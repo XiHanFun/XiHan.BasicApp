@@ -49,7 +49,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 风控：短时间大量失败 → 临时封禁 IP
 /// - 合规审计
 /// </remarks>
-[SugarTable("SysLoginLog_{year}{month}{day}", "系统登录日志表"), SplitTable(SplitType.Month)]
+[SugarTable(TableName = "Sys_Login_Log_{year}{month}{day}", TableDescription = "系统登录日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -66,97 +66,97 @@ public partial class SysLoginLog : BasicAppCreationEntity, ISplitTableEntity, IT
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = true)]
     public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Name", ColumnDescription = "用户名", Length = 50, IsNullable = true)]
     public virtual string? UserName { get; set; }
 
     /// <summary>
     /// 会话ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Session_Id", ColumnDescription = "会话ID", Length = 100, IsNullable = true)]
     public virtual string? SessionId { get; set; }
 
     /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    [SugarColumn(ColumnName = "Trace_Id", ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 登录IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Login_Ip", ColumnDescription = "登录IP", Length = 50, IsNullable = true)]
     public virtual string? LoginIp { get; set; }
 
     /// <summary>
     /// 登录地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录地址", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Login_Location", ColumnDescription = "登录地址", Length = 200, IsNullable = true)]
     public virtual string? LoginLocation { get; set; }
 
     /// <summary>
     /// 浏览器类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Browser", ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
     public virtual string? Browser { get; set; }
 
     /// <summary>
     /// 操作系统
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Os", ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
     public virtual string? Os { get; set; }
 
     /// <summary>
     /// User-Agent
     /// </summary>
-    [SugarColumn(ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Agent", ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
     public virtual string? UserAgent { get; set; }
 
     /// <summary>
     /// 设备类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "设备类型", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Device", ColumnDescription = "设备类型", Length = 50, IsNullable = true)]
     public virtual string? Device { get; set; }
 
     /// <summary>
     /// 设备唯一标识，用于设备指纹和异地登录检测
     /// </summary>
-    [SugarColumn(ColumnDescription = "设备唯一标识", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Device_Id", ColumnDescription = "设备唯一标识", Length = 200, IsNullable = true)]
     public virtual string? DeviceId { get; set; }
 
     /// <summary>
     /// 是否风险登录（异地登录、新设备登录等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否风险登录")]
+    [SugarColumn(ColumnName = "Is_Risk_Login", ColumnDescription = "是否风险登录")]
     public virtual bool IsRiskLogin { get; set; } = false;
 
     /// <summary>
     /// 登录状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录状态")]
+    [SugarColumn(ColumnName = "Login_Result", ColumnDescription = "登录状态")]
     public virtual LoginResult LoginResult { get; set; } = LoginResult.Success;
 
     /// <summary>
     /// 登录消息
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录消息", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Message", ColumnDescription = "登录消息", Length = 500, IsNullable = true)]
     public virtual string? Message { get; set; }
 
     /// <summary>
     /// 登录时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "登录时间")]
+    [SugarColumn(ColumnName = "Login_Time", ColumnDescription = "登录时间")]
     public virtual DateTimeOffset LoginTime { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SugarColumn(ColumnName = "Created_Time", IsNullable = false, ColumnDescription = "创建时间")]
     [SplitField]
     public override DateTimeOffset CreatedTime { get; set; }
 }

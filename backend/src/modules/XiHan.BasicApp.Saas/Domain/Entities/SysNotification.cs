@@ -50,7 +50,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 场景：
 /// - 系统公告、版本升级通知、营销活动、告警推送
 /// </remarks>
-[SugarTable("SysNotification", "系统通知表")]
+[SugarTable(TableName = "Sys_Notification", TableDescription = "系统通知表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -63,90 +63,90 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     /// <summary>
     /// 发送用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "发送用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Send_User_Id", ColumnDescription = "发送用户ID", IsNullable = true)]
     public virtual long? SendUserId { get; set; }
 
     /// <summary>
     /// 通知类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知类型")]
+    [SugarColumn(ColumnName = "Notification_Type", ColumnDescription = "通知类型")]
     public virtual NotificationType NotificationType { get; set; } = NotificationType.System;
 
     /// <summary>
     /// 通知标题
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知标题", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Title", ColumnDescription = "通知标题", Length = 200, IsNullable = false)]
     public virtual string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// 通知内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Content", ColumnDescription = "通知内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Content { get; set; }
 
     /// <summary>
     /// 通知图标
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知图标", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Icon", ColumnDescription = "通知图标", Length = 100, IsNullable = true)]
     public virtual string? Icon { get; set; }
 
     /// <summary>
     /// 跳转链接
     /// </summary>
-    [SugarColumn(ColumnDescription = "跳转链接", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Link", ColumnDescription = "跳转链接", Length = 500, IsNullable = true)]
     public virtual string? Link { get; set; }
 
     /// <summary>
     /// 业务类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Business_Type", ColumnDescription = "业务类型", Length = 50, IsNullable = true)]
     public virtual string? BusinessType { get; set; }
 
     /// <summary>
     /// 业务ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Business_Id", ColumnDescription = "业务ID", IsNullable = true)]
     public virtual long? BusinessId { get; set; }
 
     /// <summary>
     /// 发送时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "发送时间")]
+    [SugarColumn(ColumnName = "Send_Time", ColumnDescription = "发送时间")]
     public virtual DateTimeOffset SendTime { get; set; }
 
     /// <summary>
     /// 过期时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 通知目标类型（All=全员, Role=角色, Department=部门, User=指定用户）
     /// </summary>
-    [SugarColumn(ColumnDescription = "通知目标类型")]
+    [SugarColumn(ColumnName = "Target_Type", ColumnDescription = "通知目标类型")]
     public virtual NotificationTargetType TargetType { get; set; } = NotificationTargetType.All;
 
     /// <summary>
     /// 目标值（JSON格式，存储目标ID数组，如 [1,2,3]；TargetType=All时可为null）
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Target_Value", ColumnDescription = "目标值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TargetValue { get; set; }
 
     /// <summary>
     /// 是否需要确认
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要确认")]
+    [SugarColumn(ColumnName = "Need_Confirm", ColumnDescription = "是否需要确认")]
     public virtual bool NeedConfirm { get; set; } = false;
 
     /// <summary>
     /// 是否已发布（发布后不可编辑/删除）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否已发布")]
+    [SugarColumn(ColumnName = "Is_Published", ColumnDescription = "是否已发布")]
     public virtual bool IsPublished { get; set; } = false;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

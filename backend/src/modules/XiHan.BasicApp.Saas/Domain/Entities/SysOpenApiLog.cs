@@ -50,7 +50,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 第三方调用量计费（按 ClientId/AppId 聚合）
 /// - 异常请求追溯
 /// </remarks>
-[SugarTable("SysOpenApiLog_{year}{month}{day}", "系统开放接口日志表"), SplitTable(SplitType.Month)]
+[SugarTable(TableName = "Sys_OpenApi_Log_{year}{month}{day}", TableDescription = "系统开放接口日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -67,109 +67,109 @@ public partial class SysOpenApiLog : BasicAppCreationEntity, ISplitTableEntity, 
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = true)]
     public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Name", ColumnDescription = "用户名", Length = 50, IsNullable = true)]
     public virtual string? UserName { get; set; }
 
     /// <summary>
     /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Session_Id", ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
     public virtual string? UserSessionId { get; set; }
 
     /// <summary>
     /// 请求ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Id", ColumnDescription = "请求ID", Length = 100, IsNullable = true)]
     public virtual string? RequestId { get; set; }
 
     /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    [SugarColumn(ColumnName = "Trace_Id", ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 客户端标识，用于区分不同的 API 调用方
     /// </summary>
-    [SugarColumn(ColumnDescription = "客户端标识", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Client_Id", ColumnDescription = "客户端标识", Length = 100, IsNullable = true)]
     public virtual string? ClientId { get; set; }
 
     /// <summary>
     /// 应用标识，用于区分不同的接入应用
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用标识", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "App_Id", ColumnDescription = "应用标识", Length = 100, IsNullable = true)]
     public virtual string? AppId { get; set; }
 
     /// <summary>
     /// 签名是否有效
     /// </summary>
-    [SugarColumn(ColumnDescription = "签名是否有效")]
+    [SugarColumn(ColumnName = "Is_Signature_Valid", ColumnDescription = "签名是否有效")]
     public virtual bool IsSignatureValid { get; set; } = true;
 
     /// <summary>
     /// 签名类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "签名类型")]
+    [SugarColumn(ColumnName = "Signature_Type", ColumnDescription = "签名类型")]
     public virtual SignatureType SignatureType { get; set; } = SignatureType.None;
 
     /// <summary>
     /// API路径
     /// </summary>
-    [SugarColumn(ColumnDescription = "API路径", Length = 500, IsNullable = false)]
+    [SugarColumn(ColumnName = "Api_Path", ColumnDescription = "API路径", Length = 500, IsNullable = false)]
     public virtual string ApiPath { get; set; } = string.Empty;
 
     /// <summary>
     /// API名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "API名称", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Api_Name", ColumnDescription = "API名称", Length = 200, IsNullable = true)]
     public virtual string? ApiName { get; set; }
 
     /// <summary>
     /// 请求方法
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求方法", Length = 10, IsNullable = false)]
+    [SugarColumn(ColumnName = "Method", ColumnDescription = "请求方法", Length = 10, IsNullable = false)]
     public virtual string Method { get; set; } = string.Empty;
 
     /// <summary>
     /// 控制器名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "控制器名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Controller_Name", ColumnDescription = "控制器名称", Length = 100, IsNullable = true)]
     public virtual string? ControllerName { get; set; }
 
     /// <summary>
     /// 操作名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Action_Name", ColumnDescription = "操作名称", Length = 100, IsNullable = true)]
     public virtual string? ActionName { get; set; }
 
     /// <summary>
     /// 请求参数
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Params", ColumnDescription = "请求参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestParams { get; set; }
 
     /// <summary>
     /// 请求体
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求体", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Body", ColumnDescription = "请求体", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestBody { get; set; }
 
     /// <summary>
     /// 响应结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Response_Body", ColumnDescription = "响应结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseBody { get; set; }
 
     /// <summary>
     /// 响应状态码
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应状态码")]
+    [SugarColumn(ColumnName = "Status_Code", ColumnDescription = "响应状态码")]
     public virtual int StatusCode { get; set; } = 200;
 
     /// <summary>
@@ -177,7 +177,7 @@ public partial class SysOpenApiLog : BasicAppCreationEntity, ISplitTableEntity, 
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "请求头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Headers", ColumnDescription = "请求头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? RequestHeaders { get; set; }
 
     /// <summary>
@@ -185,109 +185,109 @@ public partial class SysOpenApiLog : BasicAppCreationEntity, ISplitTableEntity, 
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "响应头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Response_Headers", ColumnDescription = "响应头", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ResponseHeaders { get; set; }
 
     /// <summary>
     /// 请求IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Ip", ColumnDescription = "请求IP", Length = 50, IsNullable = true)]
     public virtual string? RequestIp { get; set; }
 
     /// <summary>
     /// 请求地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求地址", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Request_Location", ColumnDescription = "请求地址", Length = 200, IsNullable = true)]
     public virtual string? RequestLocation { get; set; }
 
     /// <summary>
     /// User-Agent
     /// </summary>
-    [SugarColumn(ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Agent", ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
     public virtual string? UserAgent { get; set; }
 
     /// <summary>
     /// 浏览器类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Browser", ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
     public virtual string? Browser { get; set; }
 
     /// <summary>
     /// 请求来源
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求来源", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Referer", ColumnDescription = "请求来源", Length = 500, IsNullable = true)]
     public virtual string? Referer { get; set; }
 
     /// <summary>
     /// 请求时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求时间")]
+    [SugarColumn(ColumnName = "Request_Time", ColumnDescription = "请求时间")]
     public virtual DateTimeOffset RequestTime { get; set; }
 
     /// <summary>
     /// 响应时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Response_Time", ColumnDescription = "响应时间", IsNullable = true)]
     public virtual DateTimeOffset? ResponseTime { get; set; }
 
     /// <summary>
     /// 执行时长（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
+    [SugarColumn(ColumnName = "Execution_Time", ColumnDescription = "执行时长（毫秒）")]
     public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 请求大小（字节）
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求大小（字节）")]
+    [SugarColumn(ColumnName = "Request_Size", ColumnDescription = "请求大小（字节）")]
     public virtual long RequestSize { get; set; } = 0;
 
     /// <summary>
     /// 响应大小（字节）
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应大小（字节）")]
+    [SugarColumn(ColumnName = "Response_Size", ColumnDescription = "响应大小（字节）")]
     public virtual long ResponseSize { get; set; } = 0;
 
     /// <summary>
     /// 是否成功
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否成功")]
+    [SugarColumn(ColumnName = "Is_Success", ColumnDescription = "是否成功")]
     public virtual bool IsSuccess { get; set; } = true;
 
     /// <summary>
     /// 错误信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误信息", Length = 2000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Message", ColumnDescription = "错误信息", Length = 2000, IsNullable = true)]
     public virtual string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 异常堆栈
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Exception_Stack_Trace", ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
 
     /// <summary>
     /// API版本
     /// </summary>
-    [SugarColumn(ColumnDescription = "API版本", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Api_Version", ColumnDescription = "API版本", Length = 20, IsNullable = true)]
     public virtual string? ApiVersion { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SugarColumn(ColumnName = "Created_Time", IsNullable = false, ColumnDescription = "创建时间")]
     [SplitField]
     public override DateTimeOffset CreatedTime { get; set; }
 }
