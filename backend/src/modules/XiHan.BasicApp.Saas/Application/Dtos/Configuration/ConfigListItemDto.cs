@@ -87,4 +87,19 @@ public class ConfigListItemDto : BasicAppDto
     /// 修改时间
     /// </summary>
     public DateTimeOffset? ModifiedTime { get; set; }
+
+    /// <summary>
+    /// 是否已配置当前值（ConfigValue 非空）
+    /// </summary>
+    public bool HasCurrentValue { get; set; }
+
+    /// <summary>
+    /// 是否已设置默认值（DefaultValue 非空）
+    /// </summary>
+    public bool HasFallbackValue { get; set; }
+
+    /// <summary>
+    /// 是否有备注（Remark 非空）
+    /// </summary>
+    public bool HasNote { get; set; }
 }

@@ -45,6 +45,11 @@ export interface ConfigListItemDto extends BasicDto {
 }
 
 export interface ConfigDetailDto extends ConfigListItemDto {
+  /** 当前配置值（加密项后端返回 null，前端以「已加密」提示替代） */
+  configValue?: string | null
+  /** 默认值（加密项后端返回 null） */
+  defaultValue?: string | null
+  remark?: string | null
   createdBy?: string | null
   createdId?: ApiId | null
   modifiedBy?: string | null

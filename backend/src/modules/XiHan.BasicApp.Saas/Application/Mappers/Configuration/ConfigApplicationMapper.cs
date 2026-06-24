@@ -101,7 +101,10 @@ public static class ConfigApplicationMapper
             Status = config.Status,
             Sort = config.Sort,
             CreatedTime = config.CreatedTime,
-            ModifiedTime = config.ModifiedTime
+            ModifiedTime = config.ModifiedTime,
+            HasCurrentValue = !string.IsNullOrWhiteSpace(config.ConfigValue),
+            HasFallbackValue = !string.IsNullOrWhiteSpace(config.DefaultValue),
+            HasNote = !string.IsNullOrWhiteSpace(config.Remark)
         };
     }
 
@@ -130,9 +133,16 @@ public static class ConfigApplicationMapper
             Status = item.Status,
             Sort = item.Sort,
             CreatedTime = item.CreatedTime,
+            ModifiedTime = item.ModifiedTime,
+            HasCurrentValue = item.HasCurrentValue,
+            HasFallbackValue = item.HasFallbackValue,
+            HasNote = item.HasNote,
+            // 加密项不回传明文，前端以「已加密」提示替代
+            ConfigValue = config.IsEncrypted ? null : config.ConfigValue,
+            DefaultValue = config.IsEncrypted ? null : config.DefaultValue,
+            Remark = config.Remark,
             CreatedId = config.CreatedId,
             CreatedBy = config.CreatedBy,
-            ModifiedTime = item.ModifiedTime,
             ModifiedId = config.ModifiedId,
             ModifiedBy = config.ModifiedBy
         };
