@@ -130,6 +130,34 @@ public sealed class FieldSecurityService : IFieldSecurityService
     }
 
     /// <inheritdoc />
+    public async Task GuardFiltersAsync(QueryConditions conditions, string resourceCode, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(conditions);
+        if (conditions.Filters.Count == 0)
+        {
+            return;
+        }
+
+        var rules = await ResolveAsync(resourceCode, cancellationToken);
+        if (rules.Count == 0)
+        {
+            return;
+        }
+
+        // 受保护 = 不可读 或 已脱敏。大小写不敏感匹配前端过滤字段键与 FLS 规则字段名。
+        var protectedFields = rules.Values
+            .Where(rule => !rule.IsReadable || rule.MaskStrategy != FieldMaskStrategy.None)
+            .Select(rule => rule.FieldName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (protectedFields.Count == 0)
+        {
+            return;
+        }
+
+        _ = conditions.Filters.RemoveAll(filter => !string.IsNullOrWhiteSpace(filter.Field) && protectedFields.Contains(filter.Field));
+    }
+
+    /// <inheritdoc />
     public async Task ApplyAsync<T>(string resourceCode, T? item, CancellationToken cancellationToken = default)
         where T : class
     {

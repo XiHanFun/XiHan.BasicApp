@@ -1,5 +1,7 @@
 import type { DataTableColumn } from 'naive-ui'
 import type { ListFieldSchema, PageSchema, SchemaSortRule } from './types'
+import type { QueryFilter } from '~/types/contracts'
+import { QueryOperator } from '~/types/contracts'
 import { renderFieldCell } from './renderer'
 
 /**
@@ -56,6 +58,41 @@ export function toImportFields<TRow extends object>(
   can: (code: string) => boolean,
 ): ListFieldSchema<TRow>[] {
   return byOrder(schema.fields.filter(f => f.importable && isFieldPermitted(f, can)))
+}
+
+/**
+ * 派生：由 searchRange/searchMultiple 字段的当前值生成后端通用过滤 conditions.filters。
+ * 区间 → Between（值为 ISO 字符串；date 粒度末值补到当天 23:59:59.999 以含整日）；多选 → In。
+ * 其余字段不在此处理（仍由各页 buildXxxQuery 映射为 DTO 顶层字段）。
+ */
+export function queryFiltersFromSchema<TRow extends object>(
+  fields: ReadonlyArray<ListFieldSchema<TRow>>,
+  values: Record<string, unknown>,
+): QueryFilter[] {
+  const result: QueryFilter[] = []
+  for (const field of fields) {
+    const value = values[field.key]
+    if (field.searchRange) {
+      if (Array.isArray(value) && value.length === 2 && value[0] != null && value[1] != null) {
+        const startIso = new Date(value[0] as number).toISOString()
+        const endRaw = value[1] as number
+        const endTs = field.dataType === 'date' ? endOfDayTimestamp(endRaw) : endRaw
+        result.push({ field: field.key, operator: QueryOperator.Between, values: [startIso, new Date(endTs).toISOString()] })
+      }
+    }
+    else if (field.searchMultiple) {
+      if (Array.isArray(value) && value.length > 0) {
+        result.push({ field: field.key, operator: QueryOperator.In, values: value as Array<string | number> })
+      }
+    }
+  }
+  return result
+}
+
+function endOfDayTimestamp(timestamp: number): number {
+  const date = new Date(timestamp)
+  date.setHours(23, 59, 59, 999)
+  return date.getTime()
 }
 
 /**

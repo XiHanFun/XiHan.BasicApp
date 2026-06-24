@@ -575,6 +575,16 @@ export default {
     hide_conditions: '隐藏条件',
     advanced_search: '高级搜索',
   },
+  search_date_range: {
+    start: '开始时间',
+    end: '结束时间',
+    today: '今天',
+    yesterday: '昨天',
+    last7: '近 7 天',
+    last30: '近 30 天',
+    this_month: '本月',
+    last_month: '上月',
+  },
   http_method: {
     all: '所有方法',
   },

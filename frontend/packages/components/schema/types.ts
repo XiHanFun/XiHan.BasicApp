@@ -1,6 +1,6 @@
 import type { DataTableColumn } from 'naive-ui'
 import type { VNodeChild } from 'vue'
-import type { ApiId, PageResult } from '~/types/contracts'
+import type { ApiId, PageResult, QueryFilter } from '~/types/contracts'
 
 /**
  * 下拉/标签选项（与 business 常量、Naive 选项结构兼容）
@@ -48,6 +48,10 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   searchable?: boolean
   /** 是否参与高级搜索 */
   advancedSearch?: boolean
+  /** 搜索时按区间筛选（date/datetime 字段：渲染区间选择器 + 便捷预设；下发 conditions.filters Between） */
+  searchRange?: boolean
+  /** 搜索时支持多选（enum/tag 字段：渲染多选下拉；下发 conditions.filters In） */
+  searchMultiple?: boolean
   /** 是否可排序（服务端排序） */
   sortable?: boolean
   /** 是否可作为筛选条件 */
@@ -178,6 +182,8 @@ export interface SchemaQueryParams {
   sorts?: SchemaSortRule[]
   /** 过滤条件（key → value，来源于 searchable/advancedSearch 字段） */
   filters: Record<string, unknown>
+  /** 由区间(searchRange)/多选(searchMultiple)字段派生的后端通用过滤（conditions.filters：Between/In），由框架统一应用 */
+  conditionFilters?: QueryFilter[]
 }
 
 /**

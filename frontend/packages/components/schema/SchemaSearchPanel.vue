@@ -1,11 +1,11 @@
 <script setup lang="ts" generic="TRow extends object">
-import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type { ListFieldSchema } from './types'
-import { NButton, NDatePicker, NIcon, NInput, NSelect, NTooltip, useThemeVars } from 'naive-ui'
+import { NButton, NIcon, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
+import SchemaSearchField from './SchemaSearchField.vue'
 
 defineOptions({ name: 'SchemaSearchPanel' })
 
@@ -46,17 +46,9 @@ function toggleExpand() {
   expanded.value = !expanded.value
 }
 
-/** 选项断言：业务 SelectOption 与 Naive 选项结构兼容 */
-function asOptions(field: ListFieldSchema<TRow>): SelectMixedOption[] {
-  return (field.options as unknown as SelectMixedOption[] | undefined) ?? []
-}
-
-function isSelect(field: ListFieldSchema<TRow>): boolean {
-  return (field.dataType === 'enum' || field.dataType === 'tag' || field.dataType === 'boolean') && !!field.options
-}
-
-function isDate(field: ListFieldSchema<TRow>): boolean {
-  return field.dataType === 'date' || field.dataType === 'datetime'
+/** 区间字段需要更宽的输入位（双端日期/时间），其余沿用标准宽度 */
+function isWide(field: ListFieldSchema<TRow>): boolean {
+  return !!field.searchRange
 }
 </script>
 
@@ -68,33 +60,10 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
         v-for="field in effectiveCommonFields"
         :key="field.key"
         class="xh-search__item"
+        :class="{ 'xh-search__item--wide': isWide(field) }"
       >
         <span class="xh-search__label">{{ field.title }}</span>
-        <NSelect
-          v-if="isSelect(field)"
-          v-model:value="(model[field.key] as string)"
-          clearable
-          size="small"
-          :options="asOptions(field)"
-          :placeholder="field.searchPlaceholder ?? field.title"
-        />
-        <NDatePicker
-          v-else-if="isDate(field)"
-          v-model:value="(model[field.key] as number)"
-          clearable
-          size="small"
-          class="w-full"
-          :type="field.dataType === 'datetime' ? 'datetime' : 'date'"
-          :placeholder="field.searchPlaceholder ?? field.title"
-        />
-        <NInput
-          v-else
-          v-model:value="(model[field.key] as string)"
-          clearable
-          size="small"
-          :placeholder="field.searchPlaceholder ?? field.title"
-          @keyup.enter="emit('search')"
-        />
+        <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
       </div>
 
       <!-- 操作按钮：纯图标 + tooltip，作为流的最后一项，margin-left:auto 推到所在行右侧 -->
@@ -141,33 +110,10 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
           v-for="field in effectiveAdvancedFields"
           :key="field.key"
           class="xh-search__item"
+          :class="{ 'xh-search__item--wide': isWide(field) }"
         >
           <span class="xh-search__label">{{ field.title }}</span>
-          <NSelect
-            v-if="isSelect(field)"
-            v-model:value="(model[field.key] as string)"
-            clearable
-            size="small"
-            :options="asOptions(field)"
-            :placeholder="field.searchPlaceholder ?? field.title"
-          />
-          <NDatePicker
-            v-else-if="isDate(field)"
-            v-model:value="(model[field.key] as number)"
-            clearable
-            size="small"
-            class="w-full"
-            :type="field.dataType === 'datetime' ? 'datetime' : 'date'"
-            :placeholder="field.searchPlaceholder ?? field.title"
-          />
-          <NInput
-            v-else
-            v-model:value="(model[field.key] as string)"
-            clearable
-            size="small"
-            :placeholder="field.searchPlaceholder ?? field.title"
-            @keyup.enter="emit('search')"
-          />
+          <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
         </div>
       </div>
     </Transition>
@@ -194,6 +140,11 @@ function isDate(field: ListFieldSchema<TRow>): boolean {
   flex-direction: column;
   gap: 2px;
   width: 180px;
+}
+
+/* 区间字段：双端日期/时间需要更宽的输入位 */
+.xh-search__item--wide {
+  width: 300px;
 }
 
 /* 搜索标题：小字号、紧靠控件 */
