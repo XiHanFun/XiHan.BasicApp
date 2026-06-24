@@ -20,6 +20,7 @@ import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformApprovalPage' })
@@ -29,6 +30,7 @@ type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 const { t } = useI18n()
 const message = useMessage()
 const statusOptions = STATUS_OPTIONS
+const enableStatusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 function reload() {
@@ -143,7 +145,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: statusTag(r.status) }, () => getOptionLabel(statusOptions, r.status))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: statusTag(r.status) }, () => getOptionLabel(enableStatusOptions.value, r.status))
     },
   },
   // 仅列（不搜索）
@@ -375,7 +377,7 @@ function onAction(payload: SchemaActionPayload) {
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('approval.review.enable_status')">
             <NTag :type="statusTag(detailData.status)" round size="small">
-              {{ getOptionLabel(statusOptions, detailData.status) }}
+              {{ getOptionLabel(enableStatusOptions, detailData.status) }}
             </NTag>
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('approval.review.review_level')">

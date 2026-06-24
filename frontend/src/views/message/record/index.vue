@@ -25,9 +25,16 @@ import { useI18n } from 'vue-i18n'
 import { createPageRequest, EmailStatus, messageCenterApi, querySortsFromSchema, SmsStatus } from '@/api'
 import { SchemaPage } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemMessagePage' })
+
+// 业务枚举本地化选项（挂载拉取后端元数据 + 切语言重取 + 空回退静态常量）
+const emailTypeOptions = useEnumOptions('EmailType', EMAIL_TYPE_OPTIONS)
+const emailStatusOptions = useEnumOptions('EmailStatus', EMAIL_STATUS_OPTIONS)
+const smsTypeOptions = useEnumOptions('SmsType', SMS_TYPE_OPTIONS)
+const smsStatusOptions = useEnumOptions('SmsStatus', SMS_STATUS_OPTIONS)
 
 type MessageTab = 'email' | 'sms'
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
@@ -104,7 +111,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.record.search_email_type_placeholder'),
     minWidth: 110,
     order: 2,
-    render: row => getOptionLabel(EMAIL_TYPE_OPTIONS, (row as unknown as EmailListItemDto).emailType),
+    render: row => getOptionLabel(emailTypeOptions.value, (row as unknown as EmailListItemDto).emailType),
   },
   {
     key: 'emailStatus',
@@ -120,7 +127,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as EmailListItemDto
-      return h(NTag, { type: getMessageStatusTagType(r.emailStatus), round: true, size: 'small' }, () => getOptionLabel(EMAIL_STATUS_OPTIONS, r.emailStatus))
+      return h(NTag, { type: getMessageStatusTagType(r.emailStatus), round: true, size: 'small' }, () => getOptionLabel(emailStatusOptions.value, r.emailStatus))
     },
   },
   {
@@ -257,7 +264,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.record.search_sms_type_placeholder'),
     minWidth: 110,
     order: 2,
-    render: row => getOptionLabel(SMS_TYPE_OPTIONS, (row as unknown as SmsListItemDto).smsType),
+    render: row => getOptionLabel(smsTypeOptions.value, (row as unknown as SmsListItemDto).smsType),
   },
   {
     key: 'smsStatus',
@@ -273,7 +280,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as SmsListItemDto
-      return h(NTag, { type: getMessageStatusTagType(r.smsStatus), round: true, size: 'small' }, () => getOptionLabel(SMS_STATUS_OPTIONS, r.smsStatus))
+      return h(NTag, { type: getMessageStatusTagType(r.smsStatus), round: true, size: 'small' }, () => getOptionLabel(smsStatusOptions.value, r.smsStatus))
     },
   },
   { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 4 },
@@ -408,10 +415,10 @@ async function deleteSms(row: SmsListItemDto) {
             {{ currentEmailDetail.subject }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_email_type')">
-            {{ getOptionLabel(EMAIL_TYPE_OPTIONS, currentEmailDetail.emailType) }}
+            {{ getOptionLabel(emailTypeOptions, currentEmailDetail.emailType) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_send_status')">
-            {{ getOptionLabel(EMAIL_STATUS_OPTIONS, currentEmailDetail.emailStatus) }}
+            {{ getOptionLabel(emailStatusOptions, currentEmailDetail.emailStatus) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_business_ref')">
             {{ currentEmailDetail.businessType || '-' }} / {{ currentEmailDetail.businessId || '-' }}
@@ -456,10 +463,10 @@ async function deleteSms(row: SmsListItemDto) {
             {{ currentSmsDetail.provider || '-' }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_sms_type')">
-            {{ getOptionLabel(SMS_TYPE_OPTIONS, currentSmsDetail.smsType) }}
+            {{ getOptionLabel(smsTypeOptions, currentSmsDetail.smsType) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_send_status')">
-            {{ getOptionLabel(SMS_STATUS_OPTIONS, currentSmsDetail.smsStatus) }}
+            {{ getOptionLabel(smsStatusOptions, currentSmsDetail.smsStatus) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_business_ref')">
             {{ currentSmsDetail.businessType || '-' }} / {{ currentSmsDetail.businessId || '-' }}

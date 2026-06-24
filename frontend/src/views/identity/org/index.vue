@@ -41,6 +41,7 @@ import {
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemOrgPage' })
@@ -52,8 +53,8 @@ interface DeptFormModel extends DepartmentCreateDto {
 }
 
 const message = useMessage()
-const statusOptions = STATUS_OPTIONS
-const deptTypeOptions = DEPARTMENT_TYPE_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const deptTypeOptions = useEnumOptions('DepartmentType', DEPARTMENT_TYPE_OPTIONS)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -111,7 +112,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 100,
     order: 3,
     render: row =>
-      h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(deptTypeOptions, (row as unknown as DepartmentListItemDto).departmentType)),
+      h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(deptTypeOptions.value, (row as unknown as DepartmentListItemDto).departmentType)),
   },
   {
     key: 'status',
@@ -122,7 +123,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dictionaryCode: 'EnableStatus',
     render: (row) => {
       const status = (row as unknown as DepartmentListItemDto).status
-      return h(NTag, { size: 'small', round: true, type: status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => getOptionLabel(statusOptions, status))
+      return h(NTag, { size: 'small', round: true, type: status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => getOptionLabel(statusOptions.value, status))
     },
   },
   { key: 'phone', title: t('identity.org.col_phone'), dataType: 'phone', minWidth: 130, order: 5 },
@@ -237,7 +238,7 @@ function formatNullableDate(value?: string | null) {
 }
 
 function formatStatus(value?: EnableStatus | null) {
-  return getOptionLabel(statusOptions, value)
+  return getOptionLabel(statusOptions.value, value)
 }
 
 function findDepartmentName(parentId: ApiId) {
@@ -265,7 +266,7 @@ const childDeptColumns = computed<DataTableColumns<DepartmentListItemDto>>(() =>
     title: t('identity.org.detail_table_type'),
     key: 'departmentType',
     width: 90,
-    render: row => getOptionLabel(deptTypeOptions, row.departmentType),
+    render: row => getOptionLabel(deptTypeOptions.value, row.departmentType),
   },
   {
     title: t('identity.org.detail_table_status'),

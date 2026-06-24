@@ -33,6 +33,7 @@ import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformAppPage' })
@@ -58,8 +59,8 @@ interface AppFormModel {
 
 const { t } = useI18n()
 const message = useMessage()
-const statusOptions = STATUS_OPTIONS
-const appTypeOptions = OAUTH_APP_TYPE_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const appTypeOptions = useEnumOptions('OAuthAppType', OAUTH_APP_TYPE_OPTIONS)
 
 // 布尔筛选项：SchemaSelectOption.value 仅支持 string|number，用 1/0 表示真假
 const consentOptions = computed(() => [
@@ -107,11 +108,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'OAuthAppType',
-    options: appTypeOptions,
+    options: appTypeOptions.value,
     searchPlaceholder: t('openapi.app.app_type_placeholder'),
     minWidth: 110,
     order: 3,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(appTypeOptions, (row as unknown as OAuthAppListItemDto).appType)),
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(appTypeOptions.value, (row as unknown as OAuthAppListItemDto).appType)),
   },
   { key: 'grantTypes', title: t('openapi.app.grant_types'), dataType: 'string', sortable: true, minWidth: 180, order: 4 },
   { key: 'scopes', title: t('openapi.app.scopes'), dataType: 'string', sortable: true, minWidth: 160, order: 5 },
@@ -144,7 +145,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
-    options: statusOptions,
+    options: statusOptions.value,
     searchPlaceholder: t('openapi.app.status_placeholder'),
     width: 90,
     order: 8,

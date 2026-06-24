@@ -30,6 +30,7 @@ import {
   TemplateType as TemplateTypeEnum,
 } from '@/api'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 
 defineOptions({ name: 'CodeGenTableEditModal' })
 
@@ -45,6 +46,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const message = useMessage()
+
+const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 interface TableFormModel {
   basicId: string
@@ -249,7 +252,7 @@ async function handleSubmit() {
         <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
       </NFormItem>
       <NFormItem :label="t('common.fields.status')" path="status">
-        <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
+        <NSelect v-model:value="form.status" :options="statusEnumOptions" />
       </NFormItem>
       <NFormItem class="xh-form-full" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
         <NInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />

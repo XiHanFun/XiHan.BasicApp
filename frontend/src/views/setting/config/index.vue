@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectOption } from 'naive-ui'
 import type {
   ConfigCreateDto,
   ConfigDetailDto,
@@ -36,6 +37,7 @@ import {
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformConfigPage' })
@@ -60,9 +62,9 @@ interface ConfigFormModel {
 
 const { t } = useI18n()
 const message = useMessage()
-const statusOptions = STATUS_OPTIONS
-const configTypeOptions = CONFIG_TYPE_OPTIONS
-const dataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const configTypeOptions = useEnumOptions('ConfigType', CONFIG_TYPE_OPTIONS)
+const dataTypeOptions = useEnumOptions('ConfigDataType', CONFIG_DATA_TYPE_OPTIONS)
 
 // SchemaSelectOption.value 仅支持 string | number；布尔搜索项用 1/0，page() 里转回 boolean
 const globalOptions = computed(() => [
@@ -87,15 +89,15 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'configKey', title: t('setting.config.config_key'), dataType: 'string', sortable: true, importable: true, required: true, minWidth: 180, order: 2 },
   { key: 'configGroup', title: t('setting.config.config_group'), dataType: 'string', sortable: true, importable: true, minWidth: 100, order: 3 },
   // enum/boolean + options 由框架自动渲染为 NTag，无需自定义 render
-  { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigType', options: configTypeOptions, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
-  { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', sortable: true, advancedSearch: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigDataType', options: dataTypeOptions, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
+  { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigType', options: configTypeOptions.value, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
+  { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', sortable: true, advancedSearch: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigDataType', options: dataTypeOptions.value, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
   // 仅导入字段：配置值不在列表 DTO 中，visible:false 不进表格/列设置
   { key: 'configValue', title: t('setting.config.config_value'), dataType: 'text', visible: false, importable: true, order: 5.5 },
   // isGlobal 为派生属性（TenantId==0），非实体列，不可服务端排序
   { key: 'isGlobal', title: t('setting.config.is_global'), dataType: 'boolean', searchable: true, importable: true, options: globalOptions.value, searchPlaceholder: t('setting.config.is_global_placeholder'), width: 80, order: 6 },
   { key: 'isBuiltIn', title: t('setting.config.is_builtin'), dataType: 'boolean', sortable: true, width: 80, order: 7 },
   { key: 'isEncrypted', title: t('setting.config.is_encrypted'), dataType: 'boolean', sortable: true, width: 80, order: 8 },
-  { key: 'status', title: t('setting.config.status'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'EnableStatus', options: statusOptions, searchPlaceholder: t('setting.config.status_placeholder'), width: 90, order: 9 },
+  { key: 'status', title: t('setting.config.status'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'EnableStatus', options: statusOptions.value, searchPlaceholder: t('setting.config.status_placeholder'), width: 90, order: 9 },
   { key: 'sort', title: t('setting.config.sort'), dataType: 'number', sortable: true, importable: true, width: 80, order: 10 },
   { key: 'createdTime', title: t('setting.config.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
 ])
@@ -547,10 +549,10 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <NInput v-model:value="configForm.configGroup" clearable size="small" :placeholder="t('setting.config.config_group_placeholder')" />
           </NFormItem>
           <NFormItem :label="t('setting.config.config_type')" path="configType">
-            <NSelect v-model:value="configForm.configType" :options="configTypeOptions" />
+            <NSelect v-model:value="configForm.configType" :options="(configTypeOptions as SelectOption[])" />
           </NFormItem>
           <NFormItem :label="t('setting.config.data_type')" path="dataType">
-            <NSelect v-model:value="configForm.dataType" :options="dataTypeOptions" />
+            <NSelect v-model:value="configForm.dataType" :options="(dataTypeOptions as SelectOption[])" />
           </NFormItem>
           <NFormItem :label="t('setting.config.config_value')" path="configValue" style="grid-column: span 2">
             <NInput
@@ -586,7 +588,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <NInput v-model:value="configForm.remark" clearable size="small" :placeholder="t('setting.config.remark_placeholder')" />
           </NFormItem>
           <NFormItem v-if="!configForm.basicId" :label="t('setting.config.status')" path="status">
-            <NSelect v-model:value="configForm.status" :options="statusOptions" />
+            <NSelect v-model:value="configForm.status" :options="(statusOptions as SelectOption[])" />
           </NFormItem>
         </NForm>
       </NConfigProvider>
