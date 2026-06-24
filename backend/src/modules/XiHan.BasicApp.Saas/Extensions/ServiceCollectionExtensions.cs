@@ -39,7 +39,7 @@ using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Web.Api.Logging.Writers;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Extensions;
+namespace XiHan.BasicApp.Saas.Extensions;
 
 /// <summary>
 /// SaaS 服务集合扩展方法
