@@ -9,9 +9,7 @@ import type {
   OAuthAppUpdateDto,
 } from './oauth-app.types'
 import {
-  appendDynamicApiParam,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -29,10 +27,7 @@ export const oauthAppApi = {
     return oauthAppReadApi.detail(id)
   },
   page(input: OAuthAppPageQueryDto) {
-    return oauthAppQueryApi.get<PageResult<OAuthAppListItemDto>>(
-      'OAuthAppPage',
-      toOAuthAppPageParams(input),
-    )
+    return oauthAppQueryApi.post<PageResult<OAuthAppListItemDto>>('OAuthAppPage', input)
   },
   // Commands
   create(input: OAuthAppCreateDto) {
@@ -50,15 +45,4 @@ export const oauthAppApi = {
   updateStatus(input: OAuthAppStatusUpdateDto) {
     return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppStatusUpdateDto>('OAuthAppStatus', input)
   },
-}
-
-function toOAuthAppPageParams(input: OAuthAppPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'AppType', input.appType)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'SkipConsent', input.skipConsent)
-  appendDynamicApiParam(params, 'Status', input.status)
-
-  return params
 }

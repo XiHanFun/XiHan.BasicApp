@@ -6,12 +6,7 @@ import type {
   CodeGenTableStatusUpdateDto,
   CodeGenTableUpdateDto,
 } from './table.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const command = createDynamicApiClient('CodeGenTable')
 const query = createDynamicApiClient('CodeGenTableQuery')
@@ -32,19 +27,9 @@ export const codeGenTableApi = {
     return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
   },
   page(input: CodeGenTablePageQueryDto) {
-    return query.get<PageResult<CodeGenTableListItemDto>>('Page', toPageParams(input))
+    return query.post<PageResult<CodeGenTableListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
     return query.get<CodeGenTableDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
   },
-}
-
-function toPageParams(input: CodeGenTablePageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'ModuleName', input.moduleName)
-  appendDynamicApiParam(params, 'TemplateType', input.templateType)
-  appendDynamicApiParam(params, 'GenStatus', input.genStatus)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

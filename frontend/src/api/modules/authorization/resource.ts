@@ -14,7 +14,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -44,7 +43,7 @@ export const resourceApi = {
     return resourceReadApi.detail(id)
   },
   page(input: ResourcePageQueryDto) {
-    return resourceQueryApi.get<PageResult<ResourceListItemDto>>('ResourcePage', toResourcePageParams(input))
+    return resourceQueryApi.post<PageResult<ResourceListItemDto>>('ResourcePage', input)
   },
   update(input: ResourceUpdateDto) {
     return resourceBaseCommandApi.update(input)
@@ -52,18 +51,6 @@ export const resourceApi = {
   updateStatus(input: ResourceStatusUpdateDto) {
     return resourceCommandApi.put<ResourceDetailDto, ResourceStatusUpdateDto>('ResourceStatus', input)
   },
-}
-
-function toResourcePageParams(input: ResourcePageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'AccessLevel', input.accessLevel)
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'ResourceType', input.resourceType)
-  appendDynamicApiParam(params, 'Status', input.status)
-
-  return params
 }
 
 function toResourceSelectParams(input: ResourceSelectQueryDto) {

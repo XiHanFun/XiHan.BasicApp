@@ -1,18 +1,14 @@
-import type { ApiId, ApiPrimitive, PageRequest, PageResult } from './types'
+import type { DynamicApiClient } from './base'
+import type { ApiId, PageRequest, PageResult } from './types'
 import {
-  appendDynamicApiParam,
   createDynamicApiClient,
-  createPageRequestParams,
   formatDynamicApiRouteValue,
 } from './base'
-import type { DynamicApiClient } from './base'
 
 /**
  * 资源工厂配置选项
- *
- * @template TQuery 分页查询请求类型，须继承 PageRequest
  */
-export interface ResourceOptions<TQuery extends PageRequest> {
+export interface ResourceOptions {
   /** 查询控制器名，如 'UserQuery' */
   query: string
   /** 命令控制器名，如 'User' */
@@ -22,11 +18,6 @@ export interface ResourceOptions<TQuery extends PageRequest> {
    * 默认等于 command。
    */
   resource?: string
-  /**
-   * 差异过滤字段映射函数。
-   * 仅需声明业务自定义字段，公共分页/排序/关键词已由工厂自动处理。
-   */
-  toParams?: (query: TQuery) => Record<string, ApiPrimitive | undefined>
 }
 
 /**
@@ -66,7 +57,6 @@ export interface ResourceApi<TList, TDetail, TCreate, TUpdate, TQuery extends Pa
  * export const userApi = defineResource<UserListItemDto, UserDetailDto, UserCreateDto, UserUpdateDto, UserPageRequest>({
  *   query: 'UserQuery',
  *   command: 'User',
- *   toParams: (q) => ({ 'Conditions.Status': q.status }),
  * })
  * ```
  *
@@ -82,7 +72,7 @@ export function defineResource<
   TCreate,
   TUpdate,
   TQuery extends PageRequest = PageRequest,
->(options: ResourceOptions<TQuery>): ResourceApi<TList, TDetail, TCreate, TUpdate, TQuery> {
+>(options: ResourceOptions): ResourceApi<TList, TDetail, TCreate, TUpdate, TQuery> {
   const queryClient = createDynamicApiClient(options.query)
   const commandClient = createDynamicApiClient(options.command)
   const resource = options.resource ?? options.command
@@ -99,14 +89,8 @@ export function defineResource<
      * 自动合并公共分页参数与业务差异过滤字段。
      */
     page(query: TQuery): Promise<PageResult<TList>> {
-      const params = createPageRequestParams(query)
-      if (options.toParams) {
-        const extra = options.toParams(query)
-        for (const key of Object.keys(extra)) {
-          appendDynamicApiParam(params, key, extra[key])
-        }
-      }
-      return queryClient.get<PageResult<TList>>(`${resource}Page`, params)
+      // 分页统一走 POST：整个查询对象作为 JSON body 上送（业务字段为对象自身属性，后端从 body 绑定）
+      return queryClient.post<PageResult<TList>, TQuery>(`${resource}Page`, query)
     },
 
     /** 查询单条详情 */

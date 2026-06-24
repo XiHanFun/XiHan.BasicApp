@@ -14,7 +14,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -47,10 +46,7 @@ export const permissionApi = {
     return permissionReadApi.detail(id)
   },
   page(input: PermissionPageQueryDto) {
-    return permissionQueryApi.get<PageResult<PermissionListItemDto>>(
-      'PermissionPage',
-      toPermissionPageParams(input),
-    )
+    return permissionQueryApi.post<PageResult<PermissionListItemDto>>('PermissionPage', input)
   },
   update(input: PermissionUpdateDto) {
     return permissionBaseCommandApi.update(input)
@@ -61,21 +57,6 @@ export const permissionApi = {
       input,
     )
   },
-}
-
-function toPermissionPageParams(input: PermissionPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'IsRequireAudit', input.isRequireAudit)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'ModuleCode', input.moduleCode)
-  appendDynamicApiParam(params, 'OperationId', input.operationId)
-  appendDynamicApiParam(params, 'PermissionType', input.permissionType)
-  appendDynamicApiParam(params, 'ResourceId', input.resourceId)
-  appendDynamicApiParam(params, 'Status', input.status)
-
-  return params
 }
 
 function toPermissionSelectParams(input: PermissionSelectQueryDto) {

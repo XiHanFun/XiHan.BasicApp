@@ -9,12 +9,7 @@ import type {
   CodeGenTemplateValidateDto,
   CodeGenTemplateValidateResultDto,
 } from './template.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const command = createDynamicApiClient('CodeGenTemplate')
 const query = createDynamicApiClient('CodeGenTemplateQuery')
@@ -36,21 +31,9 @@ export const codeGenTemplateApi = {
     return command.post<CodeGenTemplateValidateResultDto, CodeGenTemplateValidateDto>('Validate', input)
   },
   page(input: CodeGenTemplatePageQueryDto) {
-    return query.get<PageResult<CodeGenTemplateListItemDto>>('Page', toPageParams(input))
+    return query.post<PageResult<CodeGenTemplateListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
     return query.get<CodeGenTemplateDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
   },
-}
-
-function toPageParams(input: CodeGenTemplatePageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'TemplateGroup', input.templateGroup)
-  appendDynamicApiParam(params, 'TemplateType', input.templateType)
-  appendDynamicApiParam(params, 'TemplateEngine', input.templateEngine)
-  appendDynamicApiParam(params, 'IsBuiltIn', input.isBuiltIn)
-  appendDynamicApiParam(params, 'IsEnabled', input.isEnabled)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

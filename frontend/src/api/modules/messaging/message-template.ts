@@ -7,12 +7,7 @@ import type {
   MessageTemplateStatusUpdateDto,
   MessageTemplateUpdateDto,
 } from './message-template.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const messageTemplateQueryApi = createDynamicApiClient('MessageTemplateQuery')
 const messageTemplateCommandApi = createDynamicApiClient('MessageTemplate')
@@ -30,10 +25,7 @@ export const messageTemplateApi = {
     )
   },
   page(input: MessageTemplatePageQueryDto) {
-    return messageTemplateQueryApi.get<PageResult<MessageTemplateListItemDto>>(
-      'MessageTemplatePage',
-      toMessageTemplatePageParams(input),
-    )
+    return messageTemplateQueryApi.post<PageResult<MessageTemplateListItemDto>>('MessageTemplatePage', input)
   },
   update(input: MessageTemplateUpdateDto) {
     return messageTemplateCommandApi.put<MessageTemplateDetailDto, MessageTemplateUpdateDto>('MessageTemplate', input)
@@ -41,12 +33,4 @@ export const messageTemplateApi = {
   updateStatus(input: MessageTemplateStatusUpdateDto) {
     return messageTemplateCommandApi.put<MessageTemplateDetailDto, MessageTemplateStatusUpdateDto>('MessageTemplateStatus', input)
   },
-}
-
-function toMessageTemplatePageParams(input: MessageTemplatePageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'Channel', input.channel)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

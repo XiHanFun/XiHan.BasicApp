@@ -14,7 +14,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
 } from '../../base'
 
@@ -40,10 +39,7 @@ export const departmentApi = {
     return departmentReadApi.detail(id)
   },
   page(input: DepartmentPageQueryDto) {
-    return departmentQueryApi.get<PageResult<DepartmentListItemDto>>(
-      'DepartmentPage',
-      toDepartmentPageParams(input),
-    )
+    return departmentQueryApi.post<PageResult<DepartmentListItemDto>>('DepartmentPage', input)
   },
   tree(input: DepartmentTreeQueryDto) {
     const params: DynamicApiParams = {
@@ -61,14 +57,4 @@ export const departmentApi = {
   updateStatus(input: DepartmentStatusUpdateDto) {
     return departmentCommandApi.put<DepartmentDetailDto, DepartmentStatusUpdateDto>('DepartmentStatus', input)
   },
-}
-
-function toDepartmentPageParams(input: DepartmentPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'DepartmentType', input.departmentType)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'LeaderId', input.leaderId)
-  appendDynamicApiParam(params, 'ParentId', input.parentId)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

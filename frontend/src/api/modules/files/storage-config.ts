@@ -8,12 +8,7 @@ import type {
   StorageConfigStatusUpdateDto,
   StorageConfigUpdateDto,
 } from './storage-config.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const storageConfigQueryApi = createDynamicApiClient('StorageConfigQuery')
 const storageConfigCommandApi = createDynamicApiClient('StorageConfig')
@@ -31,10 +26,7 @@ export const storageConfigApi = {
     )
   },
   page(input: StorageConfigPageQueryDto) {
-    return storageConfigQueryApi.get<PageResult<StorageConfigListItemDto>>(
-      'StorageConfigPage',
-      toStorageConfigPageParams(input),
-    )
+    return storageConfigQueryApi.post<PageResult<StorageConfigListItemDto>>('StorageConfigPage', input)
   },
   setDefault(input: StorageConfigDefaultUpdateDto) {
     // 后端 SetDefaultStorageConfigAsync：Set 前缀不在动词约定表，保留完整方法名，默认 POST
@@ -49,13 +41,4 @@ export const storageConfigApi = {
   updateStatus(input: StorageConfigStatusUpdateDto) {
     return storageConfigCommandApi.put<StorageConfigDetailDto, StorageConfigStatusUpdateDto>('StorageConfigStatus', input)
   },
-}
-
-function toStorageConfigPageParams(input: StorageConfigPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'IsDefault', input.isDefault)
-  appendDynamicApiParam(params, 'IsEnabled', input.isEnabled)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'StorageType', input.storageType)
-  return params
 }

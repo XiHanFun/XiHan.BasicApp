@@ -8,10 +8,8 @@ import type {
   PermissionDelegationUpdateDto,
 } from './permission-delegation.types'
 import {
-  appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -40,9 +38,9 @@ export const permissionDelegationApi = {
     return permissionDelegationReadApi.detail(id)
   },
   page(input: PermissionDelegationPageQueryDto) {
-    return permissionDelegationQueryApi.get<PageResult<PermissionDelegationListItemDto>>(
+    return permissionDelegationQueryApi.post<PageResult<PermissionDelegationListItemDto>>(
       'PermissionDelegationPage',
-      toPermissionDelegationPageParams(input),
+      input,
     )
   },
   update(input: PermissionDelegationUpdateDto) {
@@ -54,17 +52,4 @@ export const permissionDelegationApi = {
       input,
     )
   },
-}
-
-function toPermissionDelegationPageParams(input: PermissionDelegationPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'DelegateeUserId', input.delegateeUserId)
-  appendDynamicApiParam(params, 'DelegationStatus', input.delegationStatus)
-  appendDynamicApiParam(params, 'DelegatorUserId', input.delegatorUserId)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'PermissionId', input.permissionId)
-  appendDynamicApiParam(params, 'RoleId', input.roleId)
-
-  return params
 }

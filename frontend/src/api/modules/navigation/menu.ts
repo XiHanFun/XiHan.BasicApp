@@ -15,7 +15,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
 } from '../../base'
 
@@ -35,7 +34,7 @@ export const menuApi = {
     return menuReadApi.detail(id)
   },
   page(input: MenuPageQueryDto) {
-    return menuQueryApi.get<PageResult<MenuListItemDto>>('MenuPage', toMenuPageParams(input))
+    return menuQueryApi.post<PageResult<MenuListItemDto>>('MenuPage', input)
   },
   list(input: MenuListQueryDto = {}) {
     const params: DynamicApiParams = {}
@@ -65,15 +64,4 @@ export const menuApi = {
   updateStatus(input: MenuStatusUpdateDto) {
     return menuCommandApi.put<MenuDetailDto, MenuStatusUpdateDto>('MenuStatus', input)
   },
-}
-
-function toMenuPageParams(input: MenuPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'MenuType', input.menuType)
-  appendDynamicApiParam(params, 'ParentId', input.parentId)
-  appendDynamicApiParam(params, 'PermissionId', input.permissionId)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }
