@@ -6,7 +6,6 @@ import { coreRoutes } from '~/router/routes/core'
 const AboutPage = () => import('~/views/_core/about/index.vue')
 const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
 const EditorDemoPage = () => import('~/views/_core/editor-demo/index.vue')
-const ProfilePage = () => import('~/views/_core/profile/index.vue')
 
 export const staticRoutes: RouteRecordRaw[] = [
   {
@@ -15,17 +14,6 @@ export const staticRoutes: RouteRecordRaw[] = [
     component: BasicLayout,
     redirect: HOME_PATH,
     children: [
-      {
-        // 个人中心：前端静态路由（后端菜单表按约定不登记静态路由）。
-        // 菜单项由 use-layout-menu-domain 注入到「工作台」末位展示；也可经 Header 头像下拉进入。
-        path: '/workbench/profile',
-        name: 'Profile',
-        component: ProfilePage,
-        meta: {
-          title: 'menu.profile',
-          icon: 'lucide:user',
-        },
-      },
       {
         path: '/about/project',
         name: 'AboutProject',

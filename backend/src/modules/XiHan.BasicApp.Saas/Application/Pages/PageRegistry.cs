@@ -22,9 +22,11 @@ namespace XiHan.BasicApp.Saas.Application.Pages;
 /// </summary>
 /// <remarks>
 /// 一致性约定（前后端同步的硬规则）：
-/// - Component 必须等于 Path 去掉前导斜杠后追加 "/index"（即前端 src/views 目录结构与路由路径一一对应）
-/// - I18nKey 命名为 menu.{Code 中 . 与 - 替换为 _}，并在前端 packages/locales/langs/{lang}/menu.ts 中维护双语文案
-/// - 静态路由（/about、/workbench/profile、/control-center 等）由前端 src/router/routes.ts 持有，不得登记到本表（避免路径/路由名冲突）
+/// - Component 通常等于 Path 去掉前导斜杠后追加 "/index"（前端 src/views 目录与路由路径一一对应）；
+///   _core 页面例外（如个人中心 _core/profile/index），由前端 dynamic.ts coreComponentMap 解析，无需 src/views 落盘
+/// - I18nKey 命名为 menu.{Code 中 . 与 - 替换为 _}，并在前端 packages/locales/langs/{lang}/menu.ts 中维护双语文案；
+///   个人中心复用既有键 menu.profile（顶栏头像下拉等共用）
+/// - 纯静态公共页（/about、/control-center、/editor-demo 等）由前端 src/router/routes.ts 持有，不登记本表
 /// </remarks>
 /// <param name="Code">页面唯一码</param>
 /// <param name="Title">页面标题（中文原文，I18nKey 缺失翻译时的回退展示）</param>
@@ -91,6 +93,8 @@ public static class PageRegistry
          new("workbench.dashboard", "仪表盘", "menu.workbench_dashboard", MenuType.Menu, "/workbench/dashboard", "WorkbenchDashboard", "workbench/dashboard/index", "workbench", SaasPermissionCodes.UserStatistics.Read, "lucide:gauge", 11, IsAffix: true),
         // [1.2] 我的消息
          new("workbench.inbox", "我的消息", "menu.workbench_inbox", MenuType.Menu, "/workbench/inbox", "WorkbenchInbox", "workbench/inbox/index", "workbench", null, "lucide:inbox", 12),
+        // [1.3] 个人中心（_core 页面：Component 用 _core/profile/index，前端 dynamic.ts coreComponentMap 解析；无权限码 → 所有登录用户可见）
+         new("workbench.profile", "个人中心", "menu.profile", MenuType.Menu, "/workbench/profile", "Profile", "_core/profile/index", "workbench", null, "lucide:user", 13),
 
         // [2] 身份权限
          new("identity", "身份权限", "menu.identity", MenuType.Directory, "/identity", "Identity", null, null, null, "lucide:shield-check", 100, "/identity/user"),
