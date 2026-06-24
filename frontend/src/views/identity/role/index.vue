@@ -126,6 +126,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     sortable: true,
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'RoleType',
     options: roleTypeOptions,
     searchPlaceholder: t('identity.role.role_type_placeholder'),
@@ -150,6 +151,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     sortable: true,
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'DataPermissionScope',
     options: dataScopeOptions,
     searchPlaceholder: t('identity.role.data_scope_placeholder'),
@@ -165,6 +167,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     sortable: true,
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
     searchPlaceholder: t('identity.role.status_placeholder'),
@@ -200,14 +203,12 @@ const schema = computed<PageSchema>(() => ({
       return roleManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(roleType/dataScope/status) 等通用过滤统一走 conditions.filters In
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword) ?? null,
-        // RoleType / DataPermissionScope / EnableStatus 均为后端字符串枚举，原样透传即可
-        roleType: (f.roleType as RoleType | undefined) || undefined,
-        dataScope: (f.dataScope as DataPermissionScope | undefined) || undefined,
+        // roleType / dataScope / status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
         isGlobal: toBool(f.isGlobal),
-        status: (f.status as EnableStatus | undefined) || undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => roleManagementApi.delete(id),

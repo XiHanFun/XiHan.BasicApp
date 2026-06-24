@@ -98,6 +98,13 @@ public sealed class OnlineUserQueryService
             _ = request.Conditions.AddSorts(sorts);
         }
 
+        // 过滤：前端区间(Between)/多选(In)等条件经 conditions.filters 下发，FLS 门控后由框架统一应用
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
+        }
+
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysUserSession", cancellationToken);
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysUserSession", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {

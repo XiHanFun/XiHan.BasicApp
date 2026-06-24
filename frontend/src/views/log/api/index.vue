@@ -84,6 +84,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.api.signature_type'),
     dataType: 'enum',
     advancedSearch: true,
+    searchMultiple: true,
     sortable: true,
     options: signatureTypeOptions.value,
     width: 120,
@@ -92,14 +93,14 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   { key: 'apiPath', title: t('log.api.api_path'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 240, order: 19 },
   { key: 'apiName', title: t('log.api.api_name'), dataType: 'string', sortable: true, minWidth: 120, order: 20 },
-  { key: 'method', title: t('log.common.method'), dataType: 'enum', searchable: true, sortable: true, dictionaryCode: 'HttpMethodType', options: methodOptions.value, searchPlaceholder: t('log.api.method_placeholder'), width: 100, order: 21 },
+  { key: 'method', title: t('log.common.method'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, dictionaryCode: 'HttpMethodType', options: methodOptions.value, searchPlaceholder: t('log.api.method_placeholder'), width: 100, order: 21 },
   { key: 'controllerName', title: t('log.common.controller_name'), dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: t('log.common.action_name'), dataType: 'string', minWidth: 140, order: 23 },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 24 },
   { key: 'requestIp', title: t('log.api.request_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.api.request_ip_placeholder'), minWidth: 130, order: 25 },
   { key: 'requestLocation', title: t('log.api.request_location'), dataType: 'string', minWidth: 160, order: 26 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 27 },
-  { key: 'requestTime', title: t('log.api.request_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },
+  { key: 'requestTime', title: t('log.api.request_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 28 },
   { key: 'responseTime', title: t('log.api.response_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 29 },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 30, render: row => `${(row as unknown as ApiLogListItemDto).executionTime}ms` },
   { key: 'requestSize', title: t('log.api.request_size'), dataType: 'number', sortable: true, width: 110, order: 31, render: row => formatSize((row as unknown as ApiLogListItemDto).requestSize) },
@@ -121,8 +122,6 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 50 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 51 },
-  { key: 'requestTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 52 },
-  { key: 'requestTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 53 },
 ])
 
 /** 过滤值辅助 */
@@ -135,9 +134,6 @@ function toNum(v: unknown): number | undefined {
 function toBool(v: unknown): boolean | undefined {
   return v == null || v === '' ? undefined : v === 1 || v === true
 }
-function toIso(v: unknown): string | undefined {
-  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
-}
 
 /** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
 function buildApiQuery(params: SchemaQueryParams) {
@@ -145,17 +141,16 @@ function buildApiQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      // 排序 + 区间(requestTime)/多选(method、signatureType) 等通用过滤统一走 conditions
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
     isSuccess: toBool(f.isSuccess),
-    method: toStr(f.method),
     userName: toStr(f.userName),
     userId: toStr(f.userId),
     apiPath: toStr(f.apiPath),
     requestIp: toStr(f.requestIp),
     statusCode: toNum(f.statusCode),
-    signatureType: (f.signatureType as SignatureType | undefined) ?? undefined,
     isSignatureValid: toBool(f.isSignatureValid),
     clientId: toStr(f.clientId),
     appId: toStr(f.appId),
@@ -165,8 +160,7 @@ function buildApiQuery(params: SchemaQueryParams) {
     sessionId: toStr(f.sessionId),
     minExecutionTime: toNum(f.minExecutionTime),
     maxExecutionTime: toNum(f.maxExecutionTime),
-    requestTimeStart: toIso(f.requestTimeStart),
-    requestTimeEnd: toIso(f.requestTimeEnd),
+    // method/signatureType 改多选、requestTime 改区间，均经 conditions.filters 下发
   }
 }
 

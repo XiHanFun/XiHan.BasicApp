@@ -3,11 +3,9 @@ import type {
   ApiId,
   EmailDetailDto,
   EmailListItemDto,
-  EmailType,
   PageResult,
   SmsDetailDto,
   SmsListItemDto,
-  SmsType,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
@@ -99,6 +97,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     title: t('message.record.col_email_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EmailType',
     options: EMAIL_TYPE_OPTIONS,
@@ -112,6 +111,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     title: t('message.record.col_email_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EmailStatus',
     options: EMAIL_STATUS_OPTIONS,
@@ -156,12 +156,11 @@ const emailSchema = computed<PageSchema>(() => ({
       return messageCenterApi.emailPage({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 区间/多选(emailType/emailStatus)统一走 conditions.filters（Between/In）
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         businessId: null,
         businessType: normalizeNullable(f.businessType),
-        emailStatus: (f.emailStatus ?? null) as EmailStatus | null,
-        emailType: (f.emailType ?? null) as EmailType | null,
         keyword: normalizeNullable(f.keyword),
         receiveUserId: normalizeId(f.receiveUserId),
         sendUserId: normalizeId(f.sendUserId),
@@ -251,6 +250,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     title: t('message.record.col_sms_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'SmsType',
     options: SMS_TYPE_OPTIONS,
@@ -264,6 +264,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     title: t('message.record.col_email_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'SmsStatus',
     options: SMS_STATUS_OPTIONS,
@@ -298,7 +299,8 @@ const smsSchema = computed<PageSchema>(() => ({
       return messageCenterApi.smsPage({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 区间/多选(smsType/smsStatus)统一走 conditions.filters（Between/In）
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         businessId: null,
         businessType: normalizeNullable(f.businessType),
@@ -306,8 +308,6 @@ const smsSchema = computed<PageSchema>(() => ({
         provider: normalizeNullable(f.provider),
         receiverId: normalizeId(f.receiverId),
         senderId: normalizeId(f.senderId),
-        smsStatus: (f.smsStatus ?? null) as SmsStatus | null,
-        smsType: (f.smsType ?? null) as SmsType | null,
         templateCode: normalizeTemplateCode(f.templateCode),
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },

@@ -15,7 +15,7 @@ import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import { toColumns, toExportFields, toImportFields } from './selectors'
+import { queryFiltersFromSchema, toColumns, toExportFields, toImportFields } from './selectors'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
@@ -403,6 +403,8 @@ async function fetchExportRows(): Promise<Row[]> {
       pageSize: size,
       sorts: [...sorts.value],
       filters: { ...filters },
+      // 导出复用列表的区间/多选过滤，保证导出范围与界面筛选一致
+      conditionFilters: queryFiltersFromSchema(props.schema.fields, filters),
     })
     const items = result.items ?? []
     if (items.length === 0) {
@@ -458,6 +460,8 @@ async function submitExport(scope: number) {
     pageSize: pageSize.value,
     sorts: [...sorts.value],
     filters: { ...filters },
+    // 导出复用列表的区间/多选过滤，保证导出范围与界面筛选一致
+    conditionFilters: queryFiltersFromSchema(props.schema.fields, filters),
   }
   const query = cfg.buildQuery ? cfg.buildQuery(params) : params
   submittingExport.value = true

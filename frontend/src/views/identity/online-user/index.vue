@@ -106,6 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.online_user.col_device_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'DeviceType',
     options: deviceTypeOptions.value,
@@ -154,10 +155,11 @@ const schema = computed<PageSchema>(() => ({
       return onlineUserApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(deviceType) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword),
-        deviceType: (f.deviceType as DeviceType | undefined) ?? undefined,
+        // deviceType 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
         userId: toStr(f.userId),
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },

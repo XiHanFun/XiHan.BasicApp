@@ -74,6 +74,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.exception.severity_level'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: severityOptions.value,
     searchPlaceholder: t('log.exception.severity_level_placeholder'),
@@ -95,6 +96,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.exception.device_type'),
     dataType: 'enum',
     advancedSearch: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'DeviceType',
     options: deviceTypeOptions.value,
@@ -124,9 +126,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'handledTime', title: t('log.exception.handled_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 38 },
   { key: 'errorCode', title: t('log.exception.error_code'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 39 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 40 },
-  // 仅高级搜索（不作为列，范围条件置于高级区末尾）
-  { key: 'exceptionTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 50 },
-  { key: 'exceptionTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 51 },
+  // 仅高级搜索（不作为列）：异常时间区间，经 conditions.filters Between 下发
+  { key: 'exceptionTime', title: t('log.exception.exception_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchRange: true, order: 50 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -138,9 +139,6 @@ function toNum(v: unknown): number | undefined {
 function toBool(v: unknown): boolean | undefined {
   return v == null || v === '' ? undefined : v === 1 || v === true
 }
-function toIso(v: unknown): string | undefined {
-  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
-}
 
 /** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
 function buildExceptionQuery(params: SchemaQueryParams) {
@@ -148,10 +146,10 @@ function buildExceptionQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      // 排序 + 区间(exceptionTime)/多选(severityLevel、deviceType) 等通用过滤统一走 conditions
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
-    severityLevel: toNum(f.severityLevel),
     isHandled: toBool(f.isHandled),
     userName: toStr(f.userName),
     userId: toStr(f.userId),
@@ -165,12 +163,10 @@ function buildExceptionQuery(params: SchemaQueryParams) {
     errorCode: toStr(f.errorCode),
     applicationName: toStr(f.applicationName),
     environmentName: toStr(f.environmentName),
-    deviceType: (f.deviceType as DeviceType | undefined) ?? undefined,
     traceId: toStr(f.traceId),
     requestId: toStr(f.requestId),
     sessionId: toStr(f.sessionId),
-    exceptionTimeStart: toIso(f.exceptionTimeStart),
-    exceptionTimeEnd: toIso(f.exceptionTimeEnd),
+    // severityLevel/deviceType 改为多选、exceptionTime 改为区间，均经 conditions.filters 下发（不再走 DTO 顶层单值）
   }
 }
 

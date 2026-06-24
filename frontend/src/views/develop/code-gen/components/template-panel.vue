@@ -95,6 +95,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.template.col_template_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: TEMPLATE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.template.filter_template_type'),
@@ -107,6 +108,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.template.col_template_engine'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: TEMPLATE_ENGINE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.template.filter_template_engine'),
@@ -132,6 +134,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('common.fields.status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: STATUS_OPTIONS,
     searchPlaceholder: t('common.fields.status'),
@@ -158,12 +161,10 @@ const schema = computed<PageSchema>(() => ({
       return codeGenTemplateApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(templateType/templateEngine/status) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
-        templateType: (f.templateType as TemplateType | undefined) ?? undefined,
-        templateEngine: (f.templateEngine as TemplateEngine | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => codeGenTemplateApi.delete(id),

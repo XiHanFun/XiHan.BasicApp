@@ -250,6 +250,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('file.library.columns.file_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'FileType',
     options: fileTypeOptions.value,
@@ -272,6 +273,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('file.library.columns.status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'FileStatus',
     options: fileStatusOptions.value,
@@ -285,6 +287,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('file.library.columns.access_level'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'ResourceAccessLevel',
     options: accessLevelOptions.value,
@@ -319,7 +322,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'mimeType', title: t('file.library.columns.mime_type'), dataType: 'string', sortable: true, advancedSearch: true, searchPlaceholder: t('file.library.columns.mime_type_placeholder'), minWidth: 160, order: 10 },
   { key: 'downloadCount', title: t('file.library.columns.download_count'), dataType: 'number', sortable: true, minWidth: 90, order: 11 },
   { key: 'viewCount', title: t('file.library.columns.view_count'), dataType: 'number', sortable: true, minWidth: 90, order: 12 },
-  { key: 'createdTime', title: t('file.library.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
+  { key: 'createdTime', title: t('file.library.columns.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 13 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -335,12 +338,11 @@ const schema = computed<PageSchema>(() => ({
       return fileManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 区间(createdTime)/多选(fileType/status/accessLevel) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword),
-        fileType: (f.fileType as FileType | undefined) ?? undefined,
-        status: (f.status as FileStatus | undefined) ?? undefined,
-        accessLevel: (f.accessLevel as ResourceAccessLevel | undefined) ?? undefined,
+        // fileType/status/accessLevel 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
         isTemporary: toBool(f.isTemporary),
         isEncrypted: toBool(f.isEncrypted),
         fileExtension: toStr(f.fileExtension),

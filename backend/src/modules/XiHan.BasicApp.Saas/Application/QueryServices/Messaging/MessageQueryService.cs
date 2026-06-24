@@ -44,7 +44,7 @@ public sealed class MessageQueryService
     private readonly ISmsRepository _smsRepository;
 
     /// <summary>
-    /// 字段级安全（排序门控）
+    /// 字段级安全（排序 / 过滤门控）
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
 
@@ -67,6 +67,9 @@ public sealed class MessageQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildEmailPageRequest(input);
+
+        // 过滤：前端区间(Between)/多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysEmail", cancellationToken);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysEmail", cancellationToken);
@@ -104,6 +107,9 @@ public sealed class MessageQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildSmsPageRequest(input);
+
+        // 过滤：前端区间(Between)/多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysSms", cancellationToken);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysSms", cancellationToken);
@@ -215,6 +221,12 @@ public sealed class MessageQueryService
         {
             _ = request.Conditions.AddSorts(sorts);
         }
+
+        // 前端区间(Between)/多选(In)等条件原样带入（FLS 门控在调用方处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
+        }
         return request;
     }
 
@@ -313,6 +325,12 @@ public sealed class MessageQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端区间(Between)/多选(In)等条件原样带入（FLS 门控在调用方处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

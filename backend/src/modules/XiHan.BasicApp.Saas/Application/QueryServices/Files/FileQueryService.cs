@@ -89,6 +89,9 @@ public sealed class FileQueryService
             ApplyFileSorts(request);
         }
 
+        // 过滤：前端区间(Between)/多选(In) 经 conditions.filters 下发，同样 FLS 门控剔除不可读/已脱敏字段
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysFile", cancellationToken);
+
         var files = await _fileRepository.GetPagedAsync(request, cancellationToken);
         return files.Map(FileApplicationMapper.ToListItemDto);
     }
@@ -224,6 +227,12 @@ public sealed class FileQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端区间/多选过滤原样带入（FLS 门控在调用方 GetFilePageAsync 处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

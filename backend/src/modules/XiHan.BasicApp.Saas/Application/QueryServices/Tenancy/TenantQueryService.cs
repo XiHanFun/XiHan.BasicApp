@@ -98,6 +98,8 @@ public sealed class TenantQueryService
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysTenant", cancellationToken);
+        // 过滤：FLS 门控剔除不可读/已脱敏字段（时间区间 Between / 枚举多选 In）
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysTenant", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyTenantSorts(request);
@@ -241,6 +243,12 @@ public sealed class TenantQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端下发的过滤原样带入（时间区间 / 枚举多选；FLS 门控在调用方处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

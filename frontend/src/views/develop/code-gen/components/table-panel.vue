@@ -64,6 +64,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.table.col_template_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: TEMPLATE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_template_type'),
@@ -76,6 +77,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.table.col_gen_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: GEN_STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_gen_status'),
@@ -91,6 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.table.col_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_status'),
@@ -117,12 +120,10 @@ const schema = computed<PageSchema>(() => ({
       return codeGenTableApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(templateType/genStatus/status) 等通用过滤统一走 conditions.filters In
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
-        templateType: (f.templateType as CodeGenTableListItemDto['templateType'] | undefined) ?? undefined,
-        genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => codeGenTableApi.delete(id),

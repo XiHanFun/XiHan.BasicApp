@@ -176,6 +176,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.edition.status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
@@ -220,10 +221,9 @@ const schema = computed<PageSchema>(() => ({
       return tenantEditionApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword) ?? null,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
         isFree: toBool(f.isFree) ?? null,
         isDefault: toBool(f.isDefault) ?? null,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>

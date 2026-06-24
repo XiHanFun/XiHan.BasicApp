@@ -79,6 +79,8 @@ public sealed class StorageConfigQueryService
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysStorageConfig", cancellationToken);
+        // 过滤：FLS 门控剔除不可读/已脱敏字段（枚举多选 In）
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysStorageConfig", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyStorageConfigSorts(request);
@@ -154,6 +156,12 @@ public sealed class StorageConfigQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端选择的通用过滤原样带入（枚举多选 In；FLS 门控在调用方处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
 
         return request;

@@ -39,7 +39,7 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
     private readonly ICodeGenTemplateRepository _templateRepository;
 
     /// <summary>
-    /// 字段级安全（排序门控）
+    /// 字段级安全（排序/过滤门控）
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
 
@@ -64,6 +64,8 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenTemplate", cancellationToken);
+        // 过滤：前端区间/多选下发，FLS 门控剔除不可读/已脱敏字段
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysCodeGenTemplate", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyTemplateSorts(request);
@@ -156,6 +158,12 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端下发的区间/多选过滤原样带入（FLS 门控在调用方 GetPageAsync 处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

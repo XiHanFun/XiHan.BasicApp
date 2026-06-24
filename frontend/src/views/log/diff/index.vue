@@ -72,6 +72,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.diff.operation_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: operationTypeOptions.value,
     searchPlaceholder: t('log.diff.operation_type_placeholder'),
@@ -85,6 +86,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.diff.risk_level'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: riskLevelOptions.value,
     searchPlaceholder: t('log.diff.risk_level_placeholder'),
@@ -115,8 +117,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅高级搜索
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 40 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 41 },
-  { key: 'auditTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 42 },
-  { key: 'auditTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 43 },
+  { key: 'auditTime', title: t('log.diff.audit_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchRange: true, searchPlaceholder: t('log.diff.audit_time'), order: 42 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -125,21 +126,16 @@ function toStr(v: unknown): string | undefined {
 function toNum(v: unknown): number | undefined {
   return v == null || v === '' ? undefined : Number(v)
 }
-function toIso(v: unknown): string | undefined {
-  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
-}
 
-/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+/** 查询构建（resource.page 与导出快照复用）。区间(auditTime)/多选(operationType/riskLevel)走 conditions.filters，FLS 门控后由框架统一应用 */
 function buildDiffQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
-    operationType: (f.operationType as AuditOperationType | undefined) ?? undefined,
-    riskLevel: (f.riskLevel as AuditRiskLevel | undefined) ?? undefined,
     isSuccess: f.isSuccess == null ? undefined : Number(f.isSuccess) === 1,
     userName: toStr(f.userName),
     userId: toStr(f.userId),
@@ -151,8 +147,6 @@ function buildDiffQuery(params: SchemaQueryParams) {
     traceId: toStr(f.traceId),
     minExecutionTime: toNum(f.minExecutionTime),
     maxExecutionTime: toNum(f.maxExecutionTime),
-    auditTimeStart: toIso(f.auditTimeStart),
-    auditTimeEnd: toIso(f.auditTimeEnd),
   }
 }
 

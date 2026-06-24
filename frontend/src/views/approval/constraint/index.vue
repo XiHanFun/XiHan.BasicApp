@@ -142,6 +142,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.constraint.constraint_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'ConstraintType',
     options: constraintTypeOptions,
     searchPlaceholder: t('approval.constraint.constraint_type_placeholder'),
@@ -186,6 +187,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.constraint.status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
@@ -237,11 +239,11 @@ const schema = computed<PageSchema>(() => ({
       return constraintRuleApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(constraintType/status) 等通用过滤统一走 conditions.filters In
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword) ?? null,
-        constraintType: (f.constraintType as ConstraintType | undefined) || undefined,
-        status: (f.status as EnableStatus | undefined) || undefined,
+        // constraintType / status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     updateStatus: (id, enabled) => constraintRuleApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('approval.constraint.remark_batch_enable') : t('approval.constraint.remark_batch_disable') }),

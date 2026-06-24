@@ -60,6 +60,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.operation.operation_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: operationTypeOptions.value,
     searchPlaceholder: t('log.operation.operation_type_placeholder'),
@@ -83,6 +84,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.operation.result'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: resultOptions.value,
     searchPlaceholder: t('log.operation.result_placeholder'),
@@ -99,8 +101,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 40 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 41 },
-  { key: 'operationTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 42 },
-  { key: 'operationTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 43 },
+  // 操作时间区间（合并原 Start/End；走 conditions.filters Between）
+  { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchRange: true, order: 42 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -109,9 +111,6 @@ function toStr(v: unknown): string | undefined {
 function toNum(v: unknown): number | undefined {
   return v == null || v === '' ? undefined : Number(v)
 }
-function toIso(v: unknown): string | undefined {
-  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
-}
 
 /** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化）。排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底 */
 function buildOperationQuery(params: SchemaQueryParams) {
@@ -119,11 +118,11 @@ function buildOperationQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      // 排序 + 区间(operationTime)/多选(operationType、result) 等通用过滤统一走 conditions
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
-    operationType: (f.operationType as OperationType | undefined) ?? undefined,
-    result: (f.result as OperationExecuteResult | undefined) ?? undefined,
+    // operationType、result 改为多选，operationTime 改为区间，均经 conditions.filters 下发（不再走 DTO 顶层单值）
     userName: toStr(f.userName),
     userId: toStr(f.userId),
     module: toStr(f.module),
@@ -135,8 +134,6 @@ function buildOperationQuery(params: SchemaQueryParams) {
     sessionId: toStr(f.sessionId),
     minExecutionTime: toNum(f.minExecutionTime),
     maxExecutionTime: toNum(f.maxExecutionTime),
-    operationTimeStart: toIso(f.operationTimeStart),
-    operationTimeEnd: toIso(f.operationTimeEnd),
   }
 }
 

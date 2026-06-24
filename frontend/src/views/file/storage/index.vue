@@ -68,10 +68,6 @@ const enabledOptions = computed(() => [
   { label: t('file.storage.enabled.disabled'), value: 0 },
 ])
 
-function pickEnum<T>(value: unknown): T | undefined {
-  return value === undefined || value === null || value === '' ? undefined : (value as T)
-}
-
 function pickBoolean(value: unknown): boolean | undefined {
   return value === undefined || value === null || value === '' ? undefined : Boolean(Number(value))
 }
@@ -86,6 +82,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('file.storage.columns.storage_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: storageTypeOptions.value,
     searchPlaceholder: t('file.storage.columns.storage_type_placeholder'),
@@ -164,12 +161,13 @@ const schema = computed<PageSchema>(() => ({
       return storageConfigApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(storageType) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         isDefault: pickBoolean(f.isDefault),
         isEnabled: pickBoolean(f.isEnabled),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
-        storageType: pickEnum<StorageConfigType>(f.storageType),
+        // storageType 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层 storageType 单值字段）
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     updateStatus: (id, enabled) => storageConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),

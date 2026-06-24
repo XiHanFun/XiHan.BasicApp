@@ -70,11 +70,13 @@ public sealed class AccessLogQueryService
 
         var predicate = BuildAccessLogPredicate(input);
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认按访问时间倒序
+        // 排序/过滤：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认按访问时间倒序
         await _fieldSecurity.GuardSortsAsync(input.Conditions, nameof(SysAccessLog), cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(input.Conditions, nameof(SysAccessLog), cancellationToken);
         var query = DbClient.Queryable<SysAccessLog>()
             .Where(predicate)
             .SplitTable();
+        query = query.ApplyFilters(input.Conditions.Filters);
         query = input.Conditions.Sorts.Count > 0
             ? query.ApplySorts(input.Conditions.Sorts)
             : query.OrderByDescending(x => x.AccessTime);

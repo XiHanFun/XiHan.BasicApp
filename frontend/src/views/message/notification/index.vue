@@ -135,6 +135,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('message.notification.col_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'NotificationType',
     options: notificationTypeOptions.value,
@@ -201,10 +202,11 @@ const schema = computed<PageSchema>(() => ({
       return notificationApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(notificationType)等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword),
-        notificationType: (f.notificationType as NotificationType | undefined) ?? undefined,
+        // notificationType 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
         isPublished: f.isPublished === undefined || f.isPublished === null || f.isPublished === ''
           ? undefined
           : Boolean(Number(f.isPublished)),

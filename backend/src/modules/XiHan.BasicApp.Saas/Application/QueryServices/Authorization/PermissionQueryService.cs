@@ -102,6 +102,8 @@ public sealed class PermissionQueryService
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysPermission", cancellationToken);
+        // 过滤：前端区间/多选下发 conditions.filters，FLS 门控剔除不可读/已脱敏字段后应用
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysPermission", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyPermissionSorts(request);
@@ -236,6 +238,12 @@ public sealed class PermissionQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端区间/多选过滤原样带入（FLS 门控在调用方 GetPermissionPageAsync 处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }
