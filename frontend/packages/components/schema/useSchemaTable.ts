@@ -104,8 +104,11 @@ export function useSchemaTable<TRow extends object>(
   }
 
   function reset() {
+    // 置 null 而非 delete：Naive 控件在交互时会更新内部 uncontrolledValue，
+    // 删除键使受控值变 undefined 会回退到该内部值（控件保留旧选择不清空）；
+    // 置 null 保持受控并清空，与 clearable 「×」行为一致。
     for (const key of Object.keys(filters)) {
-      delete filters[key]
+      filters[key] = null
     }
     sorts.value = []
     page.value = 1
