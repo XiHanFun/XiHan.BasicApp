@@ -211,6 +211,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     sortable: true,
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'PermissionType',
     options: permissionTypeOptions,
     searchPlaceholder: t('identity.permission.permission_type_placeholder'),
@@ -247,13 +248,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     sortable: true,
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'EnableStatus',
     options: STATUS_OPTIONS,
     searchPlaceholder: t('identity.permission.status_placeholder'),
     width: 90,
     order: 11,
   },
-  { key: 'createdTime', title: t('identity.permission.col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 12 },
+  { key: 'createdTime', title: t('identity.permission.col_create_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 12 },
 ])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
@@ -269,18 +271,18 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: {
     page: (params) => {
-      const { keyword, moduleCode, permissionType, isGlobal, isRequireAudit, status } = params.filters
+      const { keyword, moduleCode, isGlobal, isRequireAudit } = params.filters
       return permissionCenterApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 区间(createdTime)/多选(permissionType、status) 统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         isGlobal: toBool(isGlobal),
         isRequireAudit: toBool(isRequireAudit),
         keyword: toStr(keyword),
         moduleCode: toStr(moduleCode),
-        permissionType: permissionType as PermissionType | undefined,
-        status: status as EnableStatus | undefined,
+        // permissionType、status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => permissionCenterApi.delete(id),

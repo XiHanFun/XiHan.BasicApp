@@ -89,6 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.login.login_result'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: loginResultOptions.value,
     searchPlaceholder: t('log.login.login_result_placeholder'),
@@ -97,11 +98,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult)),
   },
   { key: 'message', title: t('log.login.message'), dataType: 'string', minWidth: 220, order: 22 },
-  { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
+  { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 23 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 24 },
-  // 仅高级搜索（不作为列，范围条件置于高级区末尾）
-  { key: 'loginTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 40 },
-  { key: 'loginTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 41 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -110,28 +108,22 @@ function toStr(v: unknown): string | undefined {
 function toBool(v: unknown): boolean | undefined {
   return v == null || v === '' ? undefined : v === 1 || v === true
 }
-function toIso(v: unknown): string | undefined {
-  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
-}
 
-/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+/** 查询构建（resource.page 与导出快照复用；时间区间/枚举多选经 conditions.filters 下发） */
 function buildLoginQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
-    loginResult: (f.loginResult as LoginResult | undefined) ?? undefined,
     userName: toStr(f.userName),
     userId: toStr(f.userId),
     isRiskLogin: toBool(f.isRiskLogin),
     sessionId: toStr(f.sessionId),
     traceId: toStr(f.traceId),
     loginIp: toStr(f.loginIp),
-    loginTimeStart: toIso(f.loginTimeStart),
-    loginTimeEnd: toIso(f.loginTimeEnd),
   }
 }
 

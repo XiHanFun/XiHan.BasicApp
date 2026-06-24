@@ -72,6 +72,8 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenHistory", cancellationToken);
+        // 过滤：前端下发的区间/多选过滤经 FLS 门控剔除不可读/已脱敏字段
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysCodeGenHistory", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyHistorySorts(request);
@@ -191,6 +193,12 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端下发的过滤（区间 Between/枚举多选 In）原样带入（FLS 门控在调用方 GetPageAsync 处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

@@ -80,12 +80,6 @@ function canMaintainConfig(row: ConfigListItemDto) {
   return !row.isBuiltIn
 }
 
-// 枚举筛选值（ConfigType/ConfigDataType/EnableStatus 均为后端字符串枚举）
-// 直接透传原值，仅把空值归一为 undefined，避免误把字符串枚举转成 NaN。
-function pickEnum<T>(value: unknown): T | undefined {
-  return value === undefined || value === null || value === '' ? undefined : (value as T)
-}
-
 // ── 字段单一事实源（列 + searchable/advancedSearch；仅搜索字段 visible:false；order 控顺序） ──
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('setting.config.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.config.keyword_placeholder'), width: 250, order: 0 },
@@ -93,15 +87,15 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'configKey', title: t('setting.config.config_key'), dataType: 'string', sortable: true, importable: true, required: true, minWidth: 180, order: 2 },
   { key: 'configGroup', title: t('setting.config.config_group'), dataType: 'string', sortable: true, importable: true, minWidth: 100, order: 3 },
   // enum/boolean + options 由框架自动渲染为 NTag，无需自定义 render
-  { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', sortable: true, searchable: true, importable: true, dictionaryCode: 'ConfigType', options: configTypeOptions, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
-  { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', sortable: true, advancedSearch: true, importable: true, dictionaryCode: 'ConfigDataType', options: dataTypeOptions, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
+  { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigType', options: configTypeOptions, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
+  { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', sortable: true, advancedSearch: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigDataType', options: dataTypeOptions, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
   // 仅导入字段：配置值不在列表 DTO 中，visible:false 不进表格/列设置
   { key: 'configValue', title: t('setting.config.config_value'), dataType: 'text', visible: false, importable: true, order: 5.5 },
   // isGlobal 为派生属性（TenantId==0），非实体列，不可服务端排序
   { key: 'isGlobal', title: t('setting.config.is_global'), dataType: 'boolean', searchable: true, importable: true, options: globalOptions.value, searchPlaceholder: t('setting.config.is_global_placeholder'), width: 80, order: 6 },
   { key: 'isBuiltIn', title: t('setting.config.is_builtin'), dataType: 'boolean', sortable: true, width: 80, order: 7 },
   { key: 'isEncrypted', title: t('setting.config.is_encrypted'), dataType: 'boolean', sortable: true, width: 80, order: 8 },
-  { key: 'status', title: t('setting.config.status'), dataType: 'enum', sortable: true, searchable: true, importable: true, dictionaryCode: 'EnableStatus', options: statusOptions, searchPlaceholder: t('setting.config.status_placeholder'), width: 90, order: 9 },
+  { key: 'status', title: t('setting.config.status'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'EnableStatus', options: statusOptions, searchPlaceholder: t('setting.config.status_placeholder'), width: 90, order: 9 },
   { key: 'sort', title: t('setting.config.sort'), dataType: 'number', sortable: true, importable: true, width: 80, order: 10 },
   { key: 'createdTime', title: t('setting.config.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
 ])
@@ -120,17 +114,15 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: {
     page: (params) => {
-      const { keyword, configType, dataType, isGlobal, status } = params.filters
+      const { keyword, isGlobal } = params.filters
       return configManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(configType/dataType/status)等通用过滤统一走 conditions（多选经 filters In 下发，不再走 DTO 单值字段）
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
-        configType: pickEnum<ConfigType>(configType),
-        dataType: pickEnum<ConfigDataType>(dataType),
         isGlobal: isGlobal === undefined || isGlobal === null || isGlobal === '' ? undefined : Boolean(Number(isGlobal)),
         keyword: (keyword as string | undefined)?.trim() || undefined,
-        status: pickEnum<EnableStatus>(status),
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => configManagementApi.delete(id),

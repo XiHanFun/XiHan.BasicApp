@@ -100,6 +100,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.review.review_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'AuditStatus',
     options: reviewStatusOptions.value,
@@ -116,6 +117,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.review.review_result'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'AuditResult',
     options: reviewResultOptions.value,
@@ -132,6 +134,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.review.enable_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
@@ -153,8 +156,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'reviewLevel', title: t('approval.review.review_level'), dataType: 'number', sortable: true, width: 100, order: 16 },
   { key: 'currentLevel', title: t('approval.review.current_level'), dataType: 'number', sortable: true, width: 110, order: 17 },
   { key: 'submitUserId', title: t('approval.review.submit_user'), dataType: 'string', minWidth: 110, order: 18 },
-  { key: 'submitTime', title: t('approval.review.submit_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
-  { key: 'createdTime', title: t('approval.review.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 20 },
+  { key: 'submitTime', title: t('approval.review.submit_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 19 },
+  { key: 'createdTime', title: t('approval.review.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 20 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -172,12 +175,11 @@ const schema = computed<PageSchema>(() => ({
       return approvalManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 区间(submitTime/createdTime)/多选(reviewStatus/reviewResult/status) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword),
-        reviewStatus: (f.reviewStatus as AuditStatus | undefined) ?? undefined,
-        reviewResult: (f.reviewResult as AuditResult | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
+        // reviewStatus/reviewResult/status 改为多选，经 conditions.filters In 下发（不再走 DTO 单值字段）
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => approvalManagementApi.delete(id),

@@ -79,6 +79,8 @@ public sealed class OAuthAppQueryService
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysOAuthApp", cancellationToken);
+        // 过滤：FLS 门控剔除不可读/已脱敏字段（区间/多选统一经 ApplyFilters 翻译）
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysOAuthApp", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyOAuthAppSorts(request);
@@ -152,6 +154,12 @@ public sealed class OAuthAppQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端选择的过滤（区间 Between / 多选 In）原样带入（FLS 门控在调用方处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

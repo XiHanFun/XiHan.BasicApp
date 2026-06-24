@@ -106,6 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('message.template.col_channel'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: channelOptions.value,
     searchPlaceholder: t('message.template.search_channel_placeholder'),
@@ -141,6 +142,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('message.template.col_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions.value,
@@ -170,11 +172,11 @@ const schema = computed<PageSchema>(() => ({
       return messageTemplateApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(channel/status) 等通用过滤统一走 conditions.filters In
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword),
-        channel: (f.channel as MessageChannel | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
+        // channel/status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     updateStatus: (id, enabled) => messageTemplateApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),

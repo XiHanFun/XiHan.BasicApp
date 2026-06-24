@@ -63,6 +63,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.common.method'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'HttpMethodType',
     options: methodOptions.value,
     searchPlaceholder: t('log.access.method_placeholder'),
@@ -76,6 +77,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.access.access_result'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: accessResultOptions.value,
     searchPlaceholder: t('log.access.access_result_placeholder'),
@@ -93,37 +95,31 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'os', title: t('log.common.os'), dataType: 'string', minWidth: 120, order: 23 },
   { key: 'device', title: t('log.common.device'), dataType: 'string', minWidth: 120, order: 24 },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 25, render: row => `${(row as unknown as AccessLogListItemDto).executionTime}ms` },
-  { key: 'accessTime', title: t('log.access.access_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 26 },
+  { key: 'accessTime', title: t('log.access.access_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 26 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 40 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 41 },
-  { key: 'accessTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 42 },
-  { key: 'accessTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 43 },
 ])
 
-/** 过滤值辅助：trim 字符串 / 转数字 / 时间戳转 ISO */
+/** 过滤值辅助：trim 字符串 / 转数字 */
 function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
 }
 function toNum(v: unknown): number | undefined {
   return v == null || v === '' ? undefined : Number(v)
 }
-function toIso(v: unknown): string | undefined {
-  return v == null || v === '' ? undefined : new Date(v as number).toISOString()
-}
 
-/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+/** 查询构建（resource.page 与导出快照复用）。排序 + 区间(accessTime)/多选(accessResult、method) 统一走 conditions */
 function buildAccessQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
-    accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
-    method: toStr(f.method),
+    // accessResult、method 改为多选，accessTime 改为区间，均经 conditions.filters 下发
     accessIp: toStr(f.accessIp),
     userName: toStr(f.userName),
     userId: toStr(f.userId),
@@ -134,8 +130,6 @@ function buildAccessQuery(params: SchemaQueryParams) {
     statusCode: toNum(f.statusCode),
     minExecutionTime: toNum(f.minExecutionTime),
     maxExecutionTime: toNum(f.maxExecutionTime),
-    accessTimeStart: toIso(f.accessTimeStart),
-    accessTimeEnd: toIso(f.accessTimeEnd),
   }
 }
 

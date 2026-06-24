@@ -89,6 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.history.col_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: GEN_STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.history.filter_gen_status'),
@@ -147,6 +148,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'genTime',
     title: t('develop.code_gen.history.col_gen_time'),
     dataType: 'datetime',
+    searchable: true,
+    searchRange: true,
     sortable: true,
     minWidth: 170,
     order: 8,
@@ -165,10 +168,9 @@ const schema = computed<PageSchema>(() => ({
       return codeGenHistoryApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         tableName: (f.tableName as string | undefined)?.trim() || undefined,
-        genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
   },

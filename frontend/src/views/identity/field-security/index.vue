@@ -246,6 +246,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.field_security.col_target_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'FieldSecurityTargetType',
     options: targetTypeOptions,
@@ -300,6 +301,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.field_security.col_mask_strategy'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'FieldMaskStrategy',
     options: maskStrategyOptions,
@@ -314,6 +316,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.field_security.col_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
     options: STATUS_OPTIONS,
@@ -336,16 +339,15 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: {
     page: (params) => {
-      const { keyword, targetType, maskStrategy, status } = params.filters
+      const { keyword } = params.filters
       return fieldLevelSecurityApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(targetType/maskStrategy/status) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(keyword),
-        targetType: targetType as FieldSecurityTargetType | undefined,
-        maskStrategy: maskStrategy as FieldMaskStrategy | undefined,
-        status: status as EnableStatus | undefined,
+        // targetType/maskStrategy/status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => fieldLevelSecurityApi.delete(id),

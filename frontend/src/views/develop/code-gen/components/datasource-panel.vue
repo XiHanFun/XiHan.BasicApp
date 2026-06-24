@@ -93,6 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.datasource.col_database'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: DATABASE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.datasource.filter_database_type'),
@@ -132,6 +133,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('common.fields.status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     options: STATUS_OPTIONS,
     searchPlaceholder: t('common.fields.status'),
@@ -158,11 +160,11 @@ const schema = computed<PageSchema>(() => ({
       return codeGenDataSourceApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 多选(databaseType/status) 等通用过滤统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
-        databaseType: (f.databaseType as DatabaseType | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
+        // databaseType/status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
     remove: id => codeGenDataSourceApi.delete(id),

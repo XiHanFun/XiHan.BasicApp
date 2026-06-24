@@ -54,7 +54,7 @@ public sealed class TenantEditionQueryService
     private readonly IDistributedCache<SaasEnabledEditionsCacheItem, string> _enabledEditionsCache;
 
     /// <summary>
-    /// 字段级安全（排序门控）
+    /// 字段级安全（排序/过滤门控）
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
 
@@ -88,6 +88,8 @@ public sealed class TenantEditionQueryService
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
         await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysTenantEdition", cancellationToken);
+        // 过滤：FLS 门控剔除不可读/已脱敏字段（时间区间 Between / 枚举多选 In）
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysTenantEdition", cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyTenantEditionSorts(request);
@@ -196,6 +198,12 @@ public sealed class TenantEditionQueryService
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端下发的过滤原样带入（时间区间 / 枚举多选；FLS 门控在调用方处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
         }
         return request;
     }

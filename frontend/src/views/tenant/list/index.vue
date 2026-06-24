@@ -151,6 +151,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.list.tenant_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'TenantStatus',
     options: tenantStatusOptions,
@@ -167,6 +168,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.list.config_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'TenantConfigStatus',
     options: configStatusOptions,
@@ -189,26 +191,15 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', sortable: true, minWidth: 100, order: 10 },
   { key: 'storageLimit', title: t('tenant.list.storage_limit'), dataType: 'number', sortable: true, minWidth: 120, order: 11 },
   { key: 'sort', title: t('tenant.list.sort'), dataType: 'number', sortable: true, minWidth: 80, order: 12 },
-  { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
+  { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 13 },
   { key: 'createdTime', title: t('tenant.list.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
   // 仅高级搜索(不作为列)
   { key: 'editionIdFilter', title: t('tenant.list.edition_id'), dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.edition_id_filter_placeholder'), order: 20 },
-  { key: 'expirationTimeStart', title: t('tenant.list.expiration_time_start'), dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.expiration_time_start'), order: 21 },
-  { key: 'expirationTimeEnd', title: t('tenant.list.expiration_time_end'), dataType: 'date', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.expiration_time_end'), order: 22 },
 ])
 
-/** 过滤值辅助:trim 字符串 / 时间戳转 yyyy-MM-dd */
+/** 过滤值辅助:trim 字符串 */
 function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
-}
-function toDate(v: unknown): string | null {
-  if (v == null || v === '') {
-    return null
-  }
-  if (typeof v === 'number') {
-    return formatDate(new Date(v).toISOString(), 'YYYY-MM-DD')
-  }
-  return String(v)
 }
 
 const schema = computed<PageSchema>(() => ({
@@ -224,14 +215,11 @@ const schema = computed<PageSchema>(() => ({
       return tenantManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          // 排序 + 区间(expirationTime)/多选(tenantStatus/configStatus) 统一走 conditions
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         keyword: toStr(f.keyword) ?? null,
-        tenantStatus: (f.tenantStatus as TenantStatus | undefined) ?? undefined,
-        configStatus: (f.configStatus as TenantConfigStatus | undefined) ?? undefined,
         editionId: toStr(f.editionIdFilter) ?? null,
-        expirationTimeStart: toDate(f.expirationTimeStart),
-        expirationTimeEnd: toDate(f.expirationTimeEnd),
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
   },

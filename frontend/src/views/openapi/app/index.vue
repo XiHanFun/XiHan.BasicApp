@@ -104,6 +104,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('openapi.app.app_type'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'OAuthAppType',
     options: appTypeOptions,
@@ -140,6 +141,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('openapi.app.status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
@@ -163,20 +165,17 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: {
     page: (params) => {
-      const { keyword, appType, skipConsent, status } = params.filters
+      const { keyword, skipConsent } = params.filters
       return appManagementApi.page({
-        // 排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底
+        // 排序 + 多选(appType/status)等通用过滤统一走 conditions；后端 FLS 门控 + 默认兜底
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sorts) },
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
-        // appType 为字符串枚举（option.value 直接是 OAuthAppType），透传即可
-        appType: (appType as OAuthAppType | undefined) ?? null,
         keyword: (keyword as string | undefined)?.trim() || null,
         // skipConsent 用 1/0 数值选项表示布尔，清洗为 boolean
         skipConsent: skipConsent === undefined || skipConsent === null || skipConsent === '' ? null : Boolean(Number(skipConsent)),
-        // status 为数值枚举（option.value 直接是 EnableStatus），透传即可
-        status: (status as EnableStatus | undefined) ?? null,
+        // appType/status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层单值字段）
       }) as unknown as Promise<import('@/api').PageResult<Record<string, unknown>>>
     },
     remove: id => appManagementApi.delete(id),

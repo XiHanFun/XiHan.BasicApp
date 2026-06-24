@@ -74,13 +74,17 @@ public sealed class LoginLogQueryService
 
         var predicate = BuildLoginLogPredicate(input);
 
+        // 过滤：前端区间(Between)/多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
+        await _fieldSecurity.GuardFiltersAsync(input.Conditions, "SysLoginLog", cancellationToken);
+
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序（登录时间倒序）
         await _fieldSecurity.GuardSortsAsync(input.Conditions, "SysLoginLog", cancellationToken);
 
         RefAsync<int> totalCount = 0;
         var query = DbClient.Queryable<SysLoginLog>()
             .Where(predicate)
-            .SplitTable();
+            .SplitTable()
+            .ApplyFilters(input.Conditions.Filters);
         query = input.Conditions.Sorts.Count > 0
             ? query.ApplySorts(input.Conditions.Sorts)
             : query.OrderByDescending(x => x.LoginTime);
