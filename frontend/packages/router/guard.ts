@@ -28,7 +28,7 @@ export function setupRouterGuard(router: Router) {
     }
   }
 
-  router.beforeEach(async (to, _from, next) => {
+  router.beforeEach(async (to) => {
     const accessStore = useAccessStore()
     const appStore = useAppStore()
     const userStore = useUserStore()
@@ -48,18 +48,18 @@ export function setupRouterGuard(router: Router) {
     // 未登录
     if (!accessStore.accessToken) {
       if (isWhiteListed) {
-        return next()
+        return true
       }
-      return next({
+      return {
         path: LOGIN_PATH,
         query: { redirect: to.fullPath },
         replace: true,
-      })
+      }
     }
 
     // 已登录访问认证页
     if (isAuthPage) {
-      return next({ path: accessStore.homePath || HOME_PATH, replace: true })
+      return { path: accessStore.homePath || HOME_PATH, replace: true }
     }
 
     // 已登录但用户上下文无效，重新拉取当前用户
@@ -80,11 +80,11 @@ export function setupRouterGuard(router: Router) {
       catch {
         accessStore.$reset()
         userStore.$reset()
-        return next({
+        return {
           path: LOGIN_PATH,
           query: { redirect: to.fullPath },
           replace: true,
-        })
+        }
       }
     }
 
@@ -123,7 +123,7 @@ export function setupRouterGuard(router: Router) {
         }
         // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁
         await hydratePreferencesFromBackend()
-        return next({ path: to.fullPath, replace: true })
+        return { path: to.fullPath, replace: true }
       }
       catch {
         accessStore.setAccessRoutes([])
@@ -132,16 +132,16 @@ export function setupRouterGuard(router: Router) {
 
     const resolvedHomePath = accessStore.homePath || HOME_PATH
     if (to.path === '/') {
-      return next({ path: resolvedHomePath, replace: true })
+      return { path: resolvedHomePath, replace: true }
     }
     const isNotFoundRoute = to.name === 'NotFound'
       || to.name === 'NotFoundCatchAll'
       || to.matched.length === 0
     if (to.path === HOME_PATH && resolvedHomePath !== HOME_PATH && isNotFoundRoute) {
-      return next({ path: resolvedHomePath, replace: true })
+      return { path: resolvedHomePath, replace: true }
     }
     if (isNotFoundRoute && to.path !== NOT_FOUND_PATH) {
-      return next({ path: NOT_FOUND_PATH, replace: true })
+      return { path: NOT_FOUND_PATH, replace: true }
     }
 
     // 权限检查
@@ -155,13 +155,13 @@ export function setupRouterGuard(router: Router) {
         || permissions?.some(p => userStore.hasPermission(p))
 
       if (!hasAccess) {
-        return next({ path: FORBIDDEN_PATH, replace: true })
+        return { path: FORBIDDEN_PATH, replace: true }
       }
     }
 
     // 独立公共页（控制中心等，meta.standalone）不挂主布局、不进入标签栏
     if (to.meta?.standalone) {
-      return next()
+      return true
     }
 
     const rawTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
@@ -187,7 +187,7 @@ export function setupRouterGuard(router: Router) {
       }
     }
 
-    next()
+    return true
   })
 
   router.afterEach((to) => {
