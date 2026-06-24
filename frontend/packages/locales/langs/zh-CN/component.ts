@@ -573,4 +573,9 @@ export default {
   http_method: {
     all: '所有方法',
   },
+  layout_align: {
+    left: '居左',
+    center: '居中',
+    right: '居右',
+  },
 }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { DropdownOption } from 'naive-ui'
-import { NButton, NDropdown, NIcon, NPopover } from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { NButton, NIcon, NPopover } from 'naive-ui'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import LayoutAlignSwitcher from '~/components/common/LayoutAlignSwitcher.vue'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import { DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
 import { useTheme } from '~/hooks'
@@ -43,28 +43,9 @@ function getLayoutIcon(align: LoginFormAlign) {
   return 'lucide:panel-right'
 }
 
-const layoutOptions = computed<DropdownOption[]>(() => [
-  {
-    key: 'left',
-    label: '居左',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:panel-left' }) }),
-  },
-  {
-    key: 'center',
-    label: '居中',
-    icon: () =>
-      h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:layout-panel-top' }) }),
-  },
-  {
-    key: 'right',
-    label: '居右',
-    icon: () => h(NIcon, { size: 14 }, { default: () => h(Icon, { icon: 'lucide:panel-right' }) }),
-  },
-])
-
-function handleLayoutSelect(key: string) {
-  currentAlign.value = key as LoginFormAlign
-  emit('layoutChange', key as LoginFormAlign)
+function onAlignChange(align: LoginFormAlign) {
+  currentAlign.value = align
+  emit('layoutChange', align)
 }
 </script>
 
@@ -105,8 +86,8 @@ function handleLayoutSelect(key: string) {
       </div>
     </NPopover>
 
-    <!-- 布局 -->
-    <NDropdown :options="layoutOptions" placement="bottom-end" @select="handleLayoutSelect">
+    <!-- 布局位置（封装组件，当前项高亮） -->
+    <LayoutAlignSwitcher :value="currentAlign" placement="bottom-end" @change="onAlignChange">
       <NButton quaternary circle size="small" class="toolbar-btn">
         <template #icon>
           <NIcon size="16">
@@ -114,7 +95,7 @@ function handleLayoutSelect(key: string) {
           </NIcon>
         </template>
       </NButton>
-    </NDropdown>
+    </LayoutAlignSwitcher>
 
     <!-- 语言 -->
     <LocaleSwitcher

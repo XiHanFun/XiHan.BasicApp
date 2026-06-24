@@ -573,4 +573,9 @@ export default {
   http_method: {
     all: 'All methods',
   },
+  layout_align: {
+    left: 'Left',
+    center: 'Center',
+    right: 'Right',
+  },
 }
