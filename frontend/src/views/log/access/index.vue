@@ -5,7 +5,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import { NTag, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AccessResult, createPageRequest, logManagementApi } from '@/api'
+import { AccessResult, createPageRequest, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -76,6 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.access.access_result'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: accessResultOptions.value,
     searchPlaceholder: t('log.access.access_result_placeholder'),
     width: 110,
@@ -85,7 +86,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { size: 'small', round: true, bordered: false, type: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions.value, r.accessResult))
     },
   },
-  { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, width: 100, order: 19 },
+  { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 19 },
   { key: 'accessIp', title: t('log.access.access_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.access.access_ip_placeholder'), minWidth: 130, order: 20 },
   { key: 'accessLocation', title: t('log.access.access_location'), dataType: 'string', minWidth: 160, order: 21 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 22 },
@@ -93,7 +94,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'device', title: t('log.common.device'), dataType: 'string', minWidth: 120, order: 24 },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 25, render: row => `${(row as unknown as AccessLogListItemDto).executionTime}ms` },
   { key: 'accessTime', title: t('log.access.access_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 26 },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 27 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 40 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 41 },
@@ -116,7 +117,10 @@ function toIso(v: unknown): string | undefined {
 function buildAccessQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
-    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+    }),
     keyword: toStr(f.keyword),
     accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
     method: toStr(f.method),

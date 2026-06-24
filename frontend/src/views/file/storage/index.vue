@@ -18,7 +18,7 @@ import {
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, storageConfigApi, StorageConfigType } from '@/api'
+import { createPageRequest, querySortsFromSchema, storageConfigApi, StorageConfigType } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 
@@ -79,13 +79,14 @@ function pickBoolean(value: unknown): boolean | undefined {
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序） ──
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('file.storage.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('file.storage.columns.keyword_placeholder'), order: 0 },
-  { key: 'configCode', title: t('file.storage.columns.config_code'), dataType: 'string', minWidth: 150, order: 1 },
-  { key: 'configName', title: t('file.storage.columns.config_name'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'configCode', title: t('file.storage.columns.config_code'), dataType: 'string', sortable: true, minWidth: 150, order: 1 },
+  { key: 'configName', title: t('file.storage.columns.config_name'), dataType: 'string', sortable: true, minWidth: 150, order: 2 },
   {
     key: 'storageType',
     title: t('file.storage.columns.storage_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: storageTypeOptions.value,
     searchPlaceholder: t('file.storage.columns.storage_type_placeholder'),
     width: 110,
@@ -114,6 +115,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('file.storage.columns.is_default'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: defaultOptions.value,
     searchPlaceholder: t('file.storage.columns.is_default_placeholder'),
     width: 90,
@@ -130,6 +132,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('file.storage.columns.status'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: enabledOptions.value,
     searchPlaceholder: t('file.storage.columns.status_placeholder'),
     width: 90,
@@ -143,8 +146,8 @@ const fields = computed<ListFieldSchema[]>(() => [
       )
     },
   },
-  { key: 'sort', title: t('file.storage.columns.sort'), dataType: 'number', width: 80, order: 7 },
-  { key: 'createdTime', title: t('file.storage.columns.created_time'), dataType: 'datetime', minWidth: 170, order: 8 },
+  { key: 'sort', title: t('file.storage.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 7 },
+  { key: 'createdTime', title: t('file.storage.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 8 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -159,7 +162,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return storageConfigApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         isDefault: pickBoolean(f.isDefault),
         isEnabled: pickBoolean(f.isEnabled),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,

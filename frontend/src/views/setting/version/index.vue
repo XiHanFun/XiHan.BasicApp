@@ -31,7 +31,7 @@ import {
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, versionApi } from '@/api'
+import { createPageRequest, querySortsFromSchema, versionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { formatDate } from '~/utils'
 
@@ -70,14 +70,15 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
   { key: 'keyword', title: t('setting.version.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.version.keyword_placeholder'), width: 240, order: 0 },
   // 列 + 搜索
-  { key: 'appVersion', title: t('setting.version.app_version'), dataType: 'string', searchable: true, searchPlaceholder: t('setting.version.app_version_placeholder'), minWidth: 130, order: 1 },
-  { key: 'dbVersion', title: t('setting.version.db_version'), dataType: 'string', searchable: true, searchPlaceholder: t('setting.version.db_version_placeholder'), minWidth: 130, order: 2 },
-  { key: 'minSupportVersion', title: t('setting.version.min_support_version'), dataType: 'string', minWidth: 130, order: 3 },
+  { key: 'appVersion', title: t('setting.version.app_version'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('setting.version.app_version_placeholder'), minWidth: 130, order: 1 },
+  { key: 'dbVersion', title: t('setting.version.db_version'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('setting.version.db_version_placeholder'), minWidth: 130, order: 2 },
+  { key: 'minSupportVersion', title: t('setting.version.min_support_version'), dataType: 'string', sortable: true, minWidth: 130, order: 3 },
   {
     key: 'isUpgrading',
     title: t('setting.version.upgrade_status'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: upgradingOptions.value,
     searchPlaceholder: t('setting.version.upgrade_status_placeholder'),
     width: 100,
@@ -91,9 +92,9 @@ const fields = computed<ListFieldSchema[]>(() => [
       )
     },
   },
-  { key: 'upgradeNode', title: t('setting.version.upgrade_node'), dataType: 'string', minWidth: 140, order: 5 },
-  { key: 'upgradeStartTime', title: t('setting.version.upgrade_start_time'), dataType: 'datetime', minWidth: 170, order: 6 },
-  { key: 'createdTime', title: t('setting.version.created_time'), dataType: 'datetime', minWidth: 170, order: 7 },
+  { key: 'upgradeNode', title: t('setting.version.upgrade_node'), dataType: 'string', sortable: true, minWidth: 140, order: 5 },
+  { key: 'upgradeStartTime', title: t('setting.version.upgrade_start_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
+  { key: 'createdTime', title: t('setting.version.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -109,7 +110,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return versionApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword),
         appVersion: toStr(f.appVersion),
         dbVersion: toStr(f.dbVersion),

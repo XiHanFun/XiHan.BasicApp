@@ -39,6 +39,7 @@ import { useI18n } from 'vue-i18n'
 import {
   createDefaultQueryBehavior,
   createPageRequest,
+  querySortsFromSchema,
   TenantConfigStatus,
   TenantIsolationMode,
   tenantManagementApi,
@@ -132,9 +133,9 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 160,
     order: 1,
   },
-  { key: 'tenantCode', title: t('tenant.list.tenant_code'), dataType: 'string', minWidth: 150, order: 2 },
-  { key: 'tenantShortName', title: t('tenant.list.tenant_short_name'), dataType: 'string', minWidth: 130, order: 3 },
-  { key: 'domain', title: t('tenant.list.domain'), dataType: 'string', minWidth: 180, order: 4 },
+  { key: 'tenantCode', title: t('tenant.list.tenant_code'), dataType: 'string', sortable: true, minWidth: 150, order: 2 },
+  { key: 'tenantShortName', title: t('tenant.list.tenant_short_name'), dataType: 'string', sortable: true, minWidth: 130, order: 3 },
+  { key: 'domain', title: t('tenant.list.domain'), dataType: 'string', sortable: true, minWidth: 180, order: 4 },
   {
     key: 'isolationMode',
     title: t('tenant.list.isolation_mode'),
@@ -150,6 +151,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.list.tenant_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'TenantStatus',
     options: tenantStatusOptions,
     searchPlaceholder: t('tenant.list.tenant_status_placeholder'),
@@ -165,6 +167,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.list.config_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'TenantConfigStatus',
     options: configStatusOptions,
     searchPlaceholder: t('tenant.list.config_status_placeholder'),
@@ -183,10 +186,10 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.isExpired ? 'error' : 'success' }, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no')))
     },
   },
-  { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', minWidth: 100, order: 10 },
-  { key: 'storageLimit', title: t('tenant.list.storage_limit'), dataType: 'number', minWidth: 120, order: 11 },
+  { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', sortable: true, minWidth: 100, order: 10 },
+  { key: 'storageLimit', title: t('tenant.list.storage_limit'), dataType: 'number', sortable: true, minWidth: 120, order: 11 },
   { key: 'sort', title: t('tenant.list.sort'), dataType: 'number', sortable: true, minWidth: 80, order: 12 },
-  { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', minWidth: 170, order: 13 },
+  { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 13 },
   { key: 'createdTime', title: t('tenant.list.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
   // 仅高级搜索(不作为列)
   { key: 'editionIdFilter', title: t('tenant.list.edition_id'), dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.edition_id_filter_placeholder'), order: 20 },
@@ -219,7 +222,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return tenantManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword) ?? null,
         tenantStatus: (f.tenantStatus as TenantStatus | undefined) ?? undefined,
         configStatus: (f.configStatus as TenantConfigStatus | undefined) ?? undefined,

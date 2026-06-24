@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -42,12 +43,18 @@ public sealed class MessageQueryService
     private readonly ISmsRepository _smsRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public MessageQueryService(IEmailRepository emailRepository, ISmsRepository smsRepository)
+    public MessageQueryService(IEmailRepository emailRepository, ISmsRepository smsRepository, IFieldSecurityService fieldSecurityService)
     {
         _emailRepository = emailRepository;
         _smsRepository = smsRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <inheritdoc />
@@ -57,7 +64,16 @@ public sealed class MessageQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var page = await _emailRepository.GetPagedAsync(BuildEmailPageRequest(input), cancellationToken);
+        var request = BuildEmailPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysEmail", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyEmailSorts(request);
+        }
+
+        var page = await _emailRepository.GetPagedAsync(request, cancellationToken);
         var items = page.Items.Select(MessageApplicationMapper.ToEmailListItemDto).ToList();
         return new PageResultDtoBase<EmailListItemDto>(items, page.Page);
     }
@@ -84,7 +100,16 @@ public sealed class MessageQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var page = await _smsRepository.GetPagedAsync(BuildSmsPageRequest(input), cancellationToken);
+        var request = BuildSmsPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysSms", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplySmsSorts(request);
+        }
+
+        var page = await _smsRepository.GetPagedAsync(request, cancellationToken);
         var items = page.Items.Select(MessageApplicationMapper.ToSmsListItemDto).ToList();
         return new PageResultDtoBase<SmsListItemDto>(items, page.Page);
     }
@@ -182,8 +207,20 @@ public sealed class MessageQueryService
             request.Conditions.AddFilter((SysEmail email) => email.SendTime, input.SendTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort((SysEmail email) => email.CreatedTime, SortDirection.Descending, 0);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
         return request;
+    }
+
+    /// <summary>
+    /// 应用邮件默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyEmailSorts(BasicAppPRDto request)
+    {
+        request.Conditions.AddSort((SysEmail email) => email.CreatedTime, SortDirection.Descending, 0);
     }
 
     /// <summary>
@@ -269,7 +306,19 @@ public sealed class MessageQueryService
             request.Conditions.AddFilter((SysSms sms) => sms.SendTime, input.SendTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort((SysSms sms) => sms.CreatedTime, SortDirection.Descending, 0);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
         return request;
+    }
+
+    /// <summary>
+    /// 应用短信默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplySmsSorts(BasicAppPRDto request)
+    {
+        request.Conditions.AddSort((SysSms sms) => sms.CreatedTime, SortDirection.Descending, 0);
     }
 }

@@ -20,6 +20,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -37,11 +38,17 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
     private readonly ICodeGenTemplateRepository _templateRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public CodeGenTemplateQueryService(ICodeGenTemplateRepository templateRepository)
+    public CodeGenTemplateQueryService(ICodeGenTemplateRepository templateRepository, IFieldSecurityService fieldSecurityService)
     {
         _templateRepository = templateRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <inheritdoc />
@@ -52,6 +59,14 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenTemplate", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyTemplateSorts(request);
+        }
+
         var templatePage = await _templateRepository.GetPagedAsync(request, cancellationToken);
         if (templatePage.Items.Count == 0)
         {
@@ -135,9 +150,21 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
             request.Conditions.AddFilter((SysCodeGenTemplate template) => template.Status, input.Status.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用模板默认排序
+    /// </summary>
+    private static void ApplyTemplateSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysCodeGenTemplate template) => template.TemplateGroup, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysCodeGenTemplate template) => template.Sort, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysCodeGenTemplate template) => template.TemplateCode, SortDirection.Ascending, 2);
-        return request;
     }
 }

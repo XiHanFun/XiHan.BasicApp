@@ -38,6 +38,7 @@ import {
   createPageRequest,
   EnableStatus,
   permissionApi,
+  querySortsFromSchema,
   roleApi,
   tenantMemberApi,
   ViolationAction,
@@ -134,8 +135,8 @@ function formatNullableDate(value?: string | null) {
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('approval.constraint.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('approval.constraint.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'ruleCode', title: t('approval.constraint.rule_code'), dataType: 'string', minWidth: 160, order: 1 },
-  { key: 'ruleName', title: t('approval.constraint.rule_name'), dataType: 'string', minWidth: 160, order: 2 },
+  { key: 'ruleCode', title: t('approval.constraint.rule_code'), dataType: 'string', sortable: true, minWidth: 160, order: 1 },
+  { key: 'ruleName', title: t('approval.constraint.rule_name'), dataType: 'string', sortable: true, minWidth: 160, order: 2 },
   {
     key: 'constraintType',
     title: t('approval.constraint.constraint_type'),
@@ -185,6 +186,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.constraint.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
     searchPlaceholder: t('approval.constraint.status_placeholder'),
@@ -233,7 +235,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return constraintRuleApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword) ?? null,
         constraintType: (f.constraintType as ConstraintType | undefined) || undefined,
         status: (f.status as EnableStatus | undefined) || undefined,

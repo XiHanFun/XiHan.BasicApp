@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -40,11 +41,19 @@ public sealed class MessageTemplateQueryService
     private readonly IMessageTemplateRepository _messageTemplateRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public MessageTemplateQueryService(IMessageTemplateRepository messageTemplateRepository)
+    public MessageTemplateQueryService(
+        IMessageTemplateRepository messageTemplateRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _messageTemplateRepository = messageTemplateRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -60,6 +69,14 @@ public sealed class MessageTemplateQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysMessageTemplate", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyTemplateSorts(request);
+        }
+
         var templates = await _messageTemplateRepository.GetPagedAsync(request, cancellationToken);
         var items = templates.Items
             .Select(MessageTemplateApplicationMapper.ToListItemDto)
@@ -123,9 +140,21 @@ public sealed class MessageTemplateQueryService
             request.Conditions.AddFilter((SysMessageTemplate template) => template.Status, input.Status.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用消息模板默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyTemplateSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysMessageTemplate template) => template.Channel, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysMessageTemplate template) => template.Sort, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysMessageTemplate template) => template.TemplateCode, SortDirection.Ascending, 2);
-        return request;
     }
 }

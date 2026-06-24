@@ -32,6 +32,7 @@ import {
   notificationApi,
   NotificationTargetType,
   NotificationType,
+  querySortsFromSchema,
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -128,12 +129,13 @@ const currentDetail = ref<NotificationDetailDto | null>(null)
 // ── 字段单一事实源：列 + 搜索 ────────────────────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('message.notification.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.notification.search_keyword_placeholder'), order: 0 },
-  { key: 'title', title: t('message.notification.col_title'), dataType: 'string', minWidth: 220, order: 10 },
+  { key: 'title', title: t('message.notification.col_title'), dataType: 'string', sortable: true, minWidth: 220, order: 10 },
   {
     key: 'notificationType',
     title: t('message.notification.col_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'NotificationType',
     options: notificationTypeOptions.value,
     searchPlaceholder: t('message.notification.search_type_placeholder'),
@@ -152,6 +154,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'targetType',
     title: t('message.notification.col_target_type'),
     dataType: 'enum',
+    sortable: true,
     options: targetTypeOptions.value,
     width: 110,
     order: 12,
@@ -162,6 +165,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('message.notification.col_is_published'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: publishedOptions.value,
     searchPlaceholder: t('message.notification.search_published_placeholder'),
     width: 100,
@@ -175,8 +179,8 @@ const fields = computed<ListFieldSchema[]>(() => [
       )
     },
   },
-  { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', minWidth: 170, order: 14 },
-  { key: 'expirationTime', title: t('message.notification.col_expiration_time'), dataType: 'datetime', minWidth: 170, order: 15 },
+  { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
+  { key: 'expirationTime', title: t('message.notification.col_expiration_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
   { key: 'createdTime', title: t('message.notification.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 16 },
 ])
 
@@ -195,7 +199,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return notificationApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword),
         notificationType: (f.notificationType as NotificationType | undefined) ?? undefined,
         isPublished: f.isPublished === undefined || f.isPublished === null || f.isPublished === ''

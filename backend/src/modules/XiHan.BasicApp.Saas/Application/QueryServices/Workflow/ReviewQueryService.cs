@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -43,11 +44,17 @@ public sealed class ReviewQueryService
     private readonly IReviewRepository _reviewRepository;
 
     /// <summary>
+    /// 字段级安全（读脱敏 / 写校验）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public ReviewQueryService(IReviewRepository reviewRepository)
+    public ReviewQueryService(IReviewRepository reviewRepository, IFieldSecurityService fieldSecurityService)
     {
         _reviewRepository = reviewRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -63,6 +70,13 @@ public sealed class ReviewQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildReviewPageRequest(input);
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysReview", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyReviewSorts(request);
+        }
+
         var reviews = await _reviewRepository.GetPagedAsync(request, cancellationToken);
         return reviews.Map(ReviewApplicationMapper.ToListItemDto);
     }
@@ -160,10 +174,23 @@ public sealed class ReviewQueryService
         AddTimeRange(request, nameof(SysReview.SubmitTime), input.SubmitTimeStart, input.SubmitTimeEnd);
         AddTimeRange(request, nameof(SysReview.ReviewStartTime), input.ReviewStartTimeStart, input.ReviewStartTimeEnd);
         AddTimeRange(request, nameof(SysReview.ReviewEndTime), input.ReviewEndTimeStart, input.ReviewEndTimeEnd);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetReviewPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        return request;
+    }
+
+    /// <summary>
+    /// 施加系统审查默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyReviewSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysReview review) => review.Priority, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysReview review) => review.SubmitTime, SortDirection.Descending, 1);
         request.Conditions.AddSort((SysReview review) => review.CreatedTime, SortDirection.Descending, 2);
-        return request;
     }
 
     /// <summary>

@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -43,11 +44,19 @@ public sealed class StorageConfigQueryService
     private readonly IStorageConfigRepository _storageConfigRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public StorageConfigQueryService(IStorageConfigRepository storageConfigRepository)
+    public StorageConfigQueryService(
+        IStorageConfigRepository storageConfigRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _storageConfigRepository = storageConfigRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -65,6 +74,14 @@ public sealed class StorageConfigQueryService
         ValidatePageInput(input);
 
         var request = BuildStorageConfigPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysStorageConfig", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyStorageConfigSorts(request);
+        }
+
         var configPage = await _storageConfigRepository.GetPagedAsync(request, cancellationToken);
         var items = configPage.Items
             .Select(StorageConfigApplicationMapper.ToListItemDto)
@@ -131,10 +148,24 @@ public sealed class StorageConfigQueryService
             request.Conditions.AddFilter((SysStorageConfig config) => config.IsEnabled, input.IsEnabled.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetStorageConfigPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        return request;
+    }
+
+    /// <summary>
+    /// 施加存储配置默认排序（无前端排序时的兜底）
+    /// </summary>
+    /// <param name="request">分页请求</param>
+    private static void ApplyStorageConfigSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysStorageConfig config) => config.IsDefault, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysStorageConfig config) => config.Sort, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysStorageConfig config) => config.CreatedTime, SortDirection.Descending, 2);
-        return request;
     }
 
     /// <summary>

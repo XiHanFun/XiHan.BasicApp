@@ -20,6 +20,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -38,15 +39,19 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
 
     private readonly ICodeGenTableColumnRepository _columnRepository;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public CodeGenTableQueryService(
         ICodeGenTableRepository tableRepository,
-        ICodeGenTableColumnRepository columnRepository)
+        ICodeGenTableColumnRepository columnRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _tableRepository = tableRepository;
         _columnRepository = columnRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <inheritdoc />
@@ -57,6 +62,14 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenTable", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyTableSorts(request);
+        }
+
         var tablePage = await _tableRepository.GetPagedAsync(request, cancellationToken);
         if (tablePage.Items.Count == 0)
         {
@@ -137,8 +150,20 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
             request.Conditions.AddFilter((SysCodeGenTable table) => table.Status, input.Status.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用表配置默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyTableSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysCodeGenTable table) => table.ModuleName, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysCodeGenTable table) => table.TableName, SortDirection.Ascending, 1);
-        return request;
     }
 }

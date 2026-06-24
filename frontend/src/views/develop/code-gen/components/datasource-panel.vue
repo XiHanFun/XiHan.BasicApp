@@ -29,6 +29,7 @@ import {
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
   EnableStatus,
+  querySortsFromSchema,
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
@@ -75,6 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'string',
     minWidth: 160,
     fixed: 'left',
+    sortable: true,
     order: 1,
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
@@ -91,6 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.datasource.col_database'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: DATABASE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.datasource.filter_database_type'),
     width: 110,
@@ -102,18 +105,20 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.datasource.col_host'),
     dataType: 'string',
     minWidth: 140,
+    sortable: true,
     order: 3,
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
       return `${r.host}:${r.port}`
     },
   },
-  { key: 'databaseName', title: t('develop.code_gen.datasource.col_database_name'), dataType: 'string', minWidth: 120, order: 4 },
+  { key: 'databaseName', title: t('develop.code_gen.datasource.col_database_name'), dataType: 'string', minWidth: 120, sortable: true, order: 4 },
   {
     key: 'lastTestResult',
     title: t('develop.code_gen.datasource.col_connection'),
     dataType: 'enum',
     width: 90,
+    sortable: true,
     order: 5,
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
@@ -127,6 +132,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('common.fields.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: STATUS_OPTIONS,
     searchPlaceholder: t('common.fields.status'),
     width: 90,
@@ -136,7 +142,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
     },
   },
-  { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, order: 7 },
+  { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -150,7 +156,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return codeGenDataSourceApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
         databaseType: (f.databaseType as DatabaseType | undefined) ?? undefined,
         status: (f.status as EnableStatus | undefined) ?? undefined,

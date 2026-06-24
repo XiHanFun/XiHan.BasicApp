@@ -5,7 +5,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import { NTag, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, LoginResult, logManagementApi } from '@/api'
+import { createPageRequest, LoginResult, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -64,10 +64,10 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.login.keyword_placeholder'), order: 0 },
   // 列（顺序对齐实体 SysLoginLog 属性声明）
   { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
   { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
-  { key: 'loginIp', title: t('log.login.login_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.login.login_ip_placeholder'), minWidth: 130, order: 14 },
+  { key: 'loginIp', title: t('log.login.login_ip'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('log.login.login_ip_placeholder'), minWidth: 130, order: 14 },
   { key: 'loginLocation', title: t('log.login.login_location'), dataType: 'string', minWidth: 160, order: 15 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 16 },
   { key: 'os', title: t('log.common.os'), dataType: 'string', minWidth: 120, order: 17 },
@@ -78,6 +78,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.login.is_risk_login'),
     dataType: 'boolean',
     advancedSearch: true,
+    sortable: true,
     options: riskOptions.value,
     width: 120,
     order: 20,
@@ -88,6 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.login.login_result'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: loginResultOptions.value,
     searchPlaceholder: t('log.login.login_result_placeholder'),
     width: 120,
@@ -96,7 +98,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   { key: 'message', title: t('log.login.message'), dataType: 'string', minWidth: 220, order: 22 },
   { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 24 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 24 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'loginTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 40 },
   { key: 'loginTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 41 },
@@ -116,7 +118,10 @@ function toIso(v: unknown): string | undefined {
 function buildLoginQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
-    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+    }),
     keyword: toStr(f.keyword),
     loginResult: (f.loginResult as LoginResult | undefined) ?? undefined,
     userName: toStr(f.userName),

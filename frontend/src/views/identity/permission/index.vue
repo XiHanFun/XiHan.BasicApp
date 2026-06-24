@@ -42,6 +42,7 @@ import {
   HttpMethodType,
   permissionCenterApi,
   PermissionType,
+  querySortsFromSchema,
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import {
@@ -201,13 +202,14 @@ function canMaintainPermission(row: PermissionListItemDto) {
 // ── 字段单一事实源 ──────────────────────────────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('identity.permission.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.permission.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'moduleCode', title: t('identity.permission.col_module'), dataType: 'string', searchable: true, searchPlaceholder: t('identity.permission.module_placeholder'), minWidth: 110, order: 1 },
+  { key: 'moduleCode', title: t('identity.permission.col_module'), dataType: 'string', sortable: true, searchable: true, searchPlaceholder: t('identity.permission.module_placeholder'), minWidth: 110, order: 1 },
   { key: 'permissionName', title: t('identity.permission.col_permission_name'), dataType: 'string', sortable: true, minWidth: 160, order: 2 },
-  { key: 'permissionCode', title: t('identity.permission.col_permission_code'), dataType: 'string', minWidth: 220, order: 3 },
+  { key: 'permissionCode', title: t('identity.permission.col_permission_code'), dataType: 'string', sortable: true, minWidth: 220, order: 3 },
   {
     key: 'permissionType',
     title: t('identity.permission.col_permission_type'),
     dataType: 'enum',
+    sortable: true,
     searchable: true,
     dictionaryCode: 'PermissionType',
     options: permissionTypeOptions,
@@ -243,6 +245,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'status',
     title: t('identity.permission.col_status'),
     dataType: 'enum',
+    sortable: true,
     searchable: true,
     dictionaryCode: 'EnableStatus',
     options: STATUS_OPTIONS,
@@ -268,7 +271,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const { keyword, moduleCode, permissionType, isGlobal, isRequireAudit, status } = params.filters
       return permissionCenterApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         isGlobal: toBool(isGlobal),
         isRequireAudit: toBool(isRequireAudit),
         keyword: toStr(keyword),

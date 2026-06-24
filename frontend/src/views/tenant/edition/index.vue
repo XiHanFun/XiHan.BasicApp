@@ -32,6 +32,7 @@ import {
   createPageRequest,
   EnableStatus,
   permissionApi,
+  querySortsFromSchema,
   tenantEditionApi,
   tenantEditionPermissionApi,
   ValidityStatus,
@@ -71,11 +72,12 @@ function reloadList() {
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
   { key: 'keyword', title: t('tenant.edition.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('tenant.edition.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'editionCode', title: t('tenant.edition.edition_code'), dataType: 'string', minWidth: 140, order: 1 },
+  { key: 'editionCode', title: t('tenant.edition.edition_code'), dataType: 'string', sortable: true, minWidth: 140, order: 1 },
   {
     key: 'editionName',
     title: t('tenant.edition.edition_name'),
     dataType: 'string',
+    sortable: true,
     minWidth: 150,
     order: 2,
     render: (row) => {
@@ -90,6 +92,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'price',
     title: t('tenant.edition.price'),
     dataType: 'money',
+    sortable: true,
     width: 110,
     order: 3,
     render: (row) => {
@@ -104,6 +107,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'billingPeriodMonths',
     title: t('tenant.edition.billing_period'),
     dataType: 'number',
+    sortable: true,
     width: 100,
     order: 4,
     render: (row) => {
@@ -115,6 +119,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'userLimit',
     title: t('tenant.edition.user_limit'),
     dataType: 'number',
+    sortable: true,
     width: 100,
     order: 5,
     render: (row) => {
@@ -126,6 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'storageLimit',
     title: t('tenant.edition.storage_limit'),
     dataType: 'number',
+    sortable: true,
     width: 110,
     order: 6,
     render: (row) => {
@@ -138,6 +144,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.edition.is_free'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: boolOptions.value,
     searchPlaceholder: t('tenant.edition.is_free_placeholder'),
     width: 86,
@@ -152,6 +159,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.edition.is_default'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: boolOptions.value,
     searchPlaceholder: t('tenant.edition.is_default_placeholder'),
     width: 86,
@@ -168,6 +176,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.edition.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
     searchPlaceholder: t('tenant.edition.status_placeholder'),
@@ -209,7 +218,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return tenantEditionApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword) ?? null,
         status: (f.status as EnableStatus | undefined) ?? undefined,
         isFree: toBool(f.isFree) ?? null,

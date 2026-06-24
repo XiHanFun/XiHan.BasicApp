@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -68,6 +69,11 @@ public sealed class FieldLevelSecurityQueryService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public FieldLevelSecurityQueryService(
@@ -76,7 +82,8 @@ public sealed class FieldLevelSecurityQueryService
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
         _resourceRepository = resourceRepository;
@@ -84,6 +91,7 @@ public sealed class FieldLevelSecurityQueryService
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
         _tenantUserRepository = tenantUserRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -99,6 +107,14 @@ public sealed class FieldLevelSecurityQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildFieldLevelSecurityPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysFieldLevelSecurity", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyFieldLevelSecuritySorts(request);
+        }
+
         var policies = await _fieldLevelSecurityRepository.GetPagedAsync(request, cancellationToken);
         if (policies.Items.Count == 0)
         {
@@ -219,11 +235,25 @@ public sealed class FieldLevelSecurityQueryService
             request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.Status, input.Status.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetFieldLevelSecurityPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        return request;
+    }
+
+    /// <summary>
+    /// 应用默认排序（无前端排序时的兜底）
+    /// </summary>
+    /// <param name="request">字段级安全分页请求</param>
+    private static void ApplyFieldLevelSecuritySorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.ResourceId, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.TargetType, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.Priority, SortDirection.Descending, 2);
         request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.FieldName, SortDirection.Ascending, 3);
-        return request;
     }
 
     /// <summary>

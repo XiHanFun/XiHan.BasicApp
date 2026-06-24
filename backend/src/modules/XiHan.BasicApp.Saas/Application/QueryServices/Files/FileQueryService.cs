@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -48,14 +49,21 @@ public sealed class FileQueryService
     private readonly IFileStorageRepository _fileStorageRepository;
 
     /// <summary>
+    /// 字段级安全服务
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public FileQueryService(
         IFileRepository fileRepository,
-        IFileStorageRepository fileStorageRepository)
+        IFileStorageRepository fileStorageRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _fileRepository = fileRepository;
         _fileStorageRepository = fileStorageRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -71,6 +79,14 @@ public sealed class FileQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildFilePageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段（防按受保护字段排序泄漏真实顺序）；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysFile", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyFileSorts(request);
+        }
+
         var files = await _fileRepository.GetPagedAsync(request, cancellationToken);
         return files.Map(FileApplicationMapper.ToListItemDto);
     }
@@ -201,10 +217,23 @@ public sealed class FileQueryService
             request.Conditions.AddFilter((SysFile file) => file.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetFilePageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 施加系统文件默认排序（无前端排序时的兜底）
+    /// </summary>
+    /// <param name="request">系统文件分页请求</param>
+    private static void ApplyFileSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysFile file) => file.CreatedTime, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysFile file) => file.FileType, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysFile file) => file.FileName, SortDirection.Ascending, 2);
-        return request;
     }
 
     /// <summary>

@@ -20,6 +20,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -35,13 +36,17 @@ namespace XiHan.BasicApp.CodeGeneration.Application.QueryServices;
 public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationService, ICodeGenDataSourceQueryService
 {
     private readonly ICodeGenDataSourceRepository _dataSourceRepository;
+    private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CodeGenDataSourceQueryService(ICodeGenDataSourceRepository dataSourceRepository)
+    public CodeGenDataSourceQueryService(
+        ICodeGenDataSourceRepository dataSourceRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _dataSourceRepository = dataSourceRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <inheritdoc />
@@ -52,6 +57,14 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenDataSource", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyDefaultSorts(request);
+        }
+
         var page = await _dataSourceRepository.GetPagedAsync(request, cancellationToken);
         if (page.Items.Count == 0)
         {
@@ -115,8 +128,21 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
             request.Conditions.AddFilter((SysCodeGenDataSource source) => source.Status, input.Status.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在 GetPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        return request;
+    }
+
+    /// <summary>
+    /// 应用数据源默认排序
+    /// </summary>
+    private static void ApplyDefaultSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysCodeGenDataSource source) => source.Sort, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysCodeGenDataSource source) => source.SourceName, SortDirection.Ascending, 1);
-        return request;
     }
 }

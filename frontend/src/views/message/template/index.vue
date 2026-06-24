@@ -27,6 +27,7 @@ import {
   EnableStatus,
   MessageChannel,
   messageTemplateApi,
+  querySortsFromSchema,
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { useUserStore } from '~/stores'
@@ -99,20 +100,21 @@ const currentDetail = ref<MessageTemplateDetailDto | null>(null)
 // ── 字段单一事实源：列 + 搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('message.template.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.template.search_keyword_placeholder'), order: 0 },
-  { key: 'templateCode', title: t('message.template.col_template_code'), dataType: 'string', minWidth: 200, order: 10 },
+  { key: 'templateCode', title: t('message.template.col_template_code'), dataType: 'string', minWidth: 200, order: 10, sortable: true },
   {
     key: 'channel',
     title: t('message.template.col_channel'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: channelOptions.value,
     searchPlaceholder: t('message.template.search_channel_placeholder'),
     width: 100,
     order: 11,
     render: row => getOptionLabel(channelOptions.value, (row as unknown as MessageTemplateListItemDto).channel),
   },
-  { key: 'templateName', title: t('message.template.col_template_name'), dataType: 'string', minWidth: 140, order: 12 },
-  { key: 'subject', title: t('message.template.col_subject'), dataType: 'string', minWidth: 200, order: 13 },
+  { key: 'templateName', title: t('message.template.col_template_name'), dataType: 'string', minWidth: 140, order: 12, sortable: true },
+  { key: 'subject', title: t('message.template.col_subject'), dataType: 'string', minWidth: 200, order: 13, sortable: true },
   {
     key: 'isGlobal',
     title: t('message.template.col_scope'),
@@ -128,16 +130,18 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'isHtml',
     title: t('message.template.col_is_html'),
     dataType: 'enum',
+    sortable: true,
     width: 80,
     order: 15,
     render: row => (row as unknown as MessageTemplateListItemDto).isHtml ? t('common.statuses.yes') : t('common.statuses.no'),
   },
-  { key: 'description', title: t('message.template.col_description'), dataType: 'string', minWidth: 220, order: 16 },
+  { key: 'description', title: t('message.template.col_description'), dataType: 'string', minWidth: 220, order: 16, sortable: true },
   {
     key: 'status',
     title: t('message.template.col_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions.value,
     searchPlaceholder: t('message.template.search_status_placeholder'),
@@ -145,7 +149,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 17,
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled')),
   },
-  { key: 'sort', title: t('message.template.col_sort'), dataType: 'number', width: 80, order: 18 },
+  { key: 'sort', title: t('message.template.col_sort'), dataType: 'number', width: 80, order: 18, sortable: true },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -164,7 +168,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return messageTemplateApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword),
         channel: (f.channel as MessageChannel | undefined) ?? undefined,
         status: (f.status as EnableStatus | undefined) ?? undefined,

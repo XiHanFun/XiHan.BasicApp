@@ -24,7 +24,7 @@ import {
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, EmailStatus, messageCenterApi, SmsStatus } from '@/api'
+import { createPageRequest, EmailStatus, messageCenterApi, querySortsFromSchema, SmsStatus } from '@/api'
 import { SchemaPage } from '~/components'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -93,12 +93,13 @@ function canResend(status: EmailStatus | SmsStatus) {
 // ── 系统邮件 ──────────────────────────────────────────────────
 const emailFields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('message.record.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.record.email_search_keyword_placeholder'), order: 0 },
-  { key: 'subject', title: t('message.record.col_subject'), dataType: 'string', minWidth: 220, order: 1 },
+  { key: 'subject', title: t('message.record.col_subject'), dataType: 'string', sortable: true, minWidth: 220, order: 1 },
   {
     key: 'emailType',
     title: t('message.record.col_email_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EmailType',
     options: EMAIL_TYPE_OPTIONS,
     searchPlaceholder: t('message.record.search_email_type_placeholder'),
@@ -111,6 +112,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     title: t('message.record.col_email_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EmailStatus',
     options: EMAIL_STATUS_OPTIONS,
     searchPlaceholder: t('message.record.search_status_placeholder'),
@@ -132,11 +134,11 @@ const emailFields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { type: r.isHtml ? 'info' : 'default', round: true, size: 'small' }, () => formatFlag(r.isHtml))
     },
   },
-  { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 5 },
-  { key: 'sendUserId', title: t('message.record.col_send_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_send_user_placeholder'), minWidth: 110, order: 6 },
-  { key: 'receiveUserId', title: t('message.record.col_receive_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_receive_user_placeholder'), minWidth: 110, order: 7 },
-  { key: 'templateCode', title: t('message.record.col_template_code'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_template_code_placeholder'), minWidth: 130, order: 8 },
-  { key: 'retryCount', title: t('message.record.col_retry'), dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as EmailListItemDto) },
+  { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 5 },
+  { key: 'sendUserId', title: t('message.record.col_send_user'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_send_user_placeholder'), minWidth: 110, order: 6 },
+  { key: 'receiveUserId', title: t('message.record.col_receive_user'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_receive_user_placeholder'), minWidth: 110, order: 7 },
+  { key: 'templateCode', title: t('message.record.col_template_code'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_template_code_placeholder'), minWidth: 130, order: 8 },
+  { key: 'retryCount', title: t('message.record.col_retry'), dataType: 'string', sortable: true, minWidth: 90, order: 9, render: row => formatRetry(row as unknown as EmailListItemDto) },
   { key: 'sendTime', title: t('message.record.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
   { key: 'createdTime', title: t('message.record.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
 ])
@@ -152,7 +154,10 @@ const emailSchema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return messageCenterApi.emailPage({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         businessId: null,
         businessType: normalizeNullable(f.businessType),
         emailStatus: (f.emailStatus ?? null) as EmailStatus | null,
@@ -240,12 +245,13 @@ async function deleteEmail(row: EmailListItemDto) {
 // ── 系统短信 ──────────────────────────────────────────────────
 const smsFields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('message.record.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('message.record.sms_search_keyword_placeholder'), order: 0 },
-  { key: 'provider', title: t('message.record.col_provider'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_provider_placeholder'), minWidth: 140, order: 1 },
+  { key: 'provider', title: t('message.record.col_provider'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_provider_placeholder'), minWidth: 140, order: 1 },
   {
     key: 'smsType',
     title: t('message.record.col_sms_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'SmsType',
     options: SMS_TYPE_OPTIONS,
     searchPlaceholder: t('message.record.search_sms_type_placeholder'),
@@ -258,6 +264,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     title: t('message.record.col_email_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'SmsStatus',
     options: SMS_STATUS_OPTIONS,
     searchPlaceholder: t('message.record.search_status_placeholder'),
@@ -268,12 +275,12 @@ const smsFields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { type: getMessageStatusTagType(r.smsStatus), round: true, size: 'small' }, () => getOptionLabel(SMS_STATUS_OPTIONS, r.smsStatus))
     },
   },
-  { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 4 },
-  { key: 'senderId', title: t('message.record.col_send_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_send_user_placeholder'), minWidth: 110, order: 5 },
-  { key: 'receiverId', title: t('message.record.col_receive_user'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_receive_user_placeholder'), minWidth: 110, order: 6 },
-  { key: 'templateCode', title: t('message.record.col_template_code'), dataType: 'string', searchable: true, searchPlaceholder: t('message.record.search_template_code_placeholder'), minWidth: 130, order: 7 },
-  { key: 'cost', title: t('message.record.col_cost'), dataType: 'string', minWidth: 90, order: 8 },
-  { key: 'retryCount', title: t('message.record.col_retry'), dataType: 'string', minWidth: 90, order: 9, render: row => formatRetry(row as unknown as SmsListItemDto) },
+  { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 4 },
+  { key: 'senderId', title: t('message.record.col_send_user'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_send_user_placeholder'), minWidth: 110, order: 5 },
+  { key: 'receiverId', title: t('message.record.col_receive_user'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_receive_user_placeholder'), minWidth: 110, order: 6 },
+  { key: 'templateCode', title: t('message.record.col_template_code'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_template_code_placeholder'), minWidth: 130, order: 7 },
+  { key: 'cost', title: t('message.record.col_cost'), dataType: 'string', sortable: true, minWidth: 90, order: 8 },
+  { key: 'retryCount', title: t('message.record.col_retry'), dataType: 'string', sortable: true, minWidth: 90, order: 9, render: row => formatRetry(row as unknown as SmsListItemDto) },
   { key: 'sendTime', title: t('message.record.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
   { key: 'createdTime', title: t('message.record.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 11 },
 ])
@@ -289,7 +296,10 @@ const smsSchema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return messageCenterApi.smsPage({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         businessId: null,
         businessType: normalizeNullable(f.businessType),
         keyword: normalizeNullable(f.keyword),

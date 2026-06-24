@@ -23,6 +23,7 @@ import {
   GEN_STATUS_OPTIONS,
   GEN_TYPE_OPTIONS,
   GenStatus as GenStatusEnum,
+  querySortsFromSchema,
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
@@ -70,6 +71,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.history.col_table_name'),
     dataType: 'string',
     searchable: true,
+    sortable: true,
     searchPlaceholder: t('develop.code_gen.history.search_placeholder'),
     minWidth: 150,
     order: 0,
@@ -78,6 +80,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'batchNumber',
     title: t('develop.code_gen.history.col_batch_number'),
     dataType: 'string',
+    sortable: true,
     minWidth: 160,
     order: 1,
   },
@@ -86,6 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.history.col_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: GEN_STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.history.filter_gen_status'),
     width: 90,
@@ -99,6 +103,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'genType',
     title: t('develop.code_gen.history.col_gen_type'),
     dataType: 'enum',
+    sortable: true,
     options: GEN_TYPE_OPTIONS,
     width: 110,
     order: 3,
@@ -108,6 +113,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'fileCount',
     title: t('develop.code_gen.history.col_file_count'),
     dataType: 'number',
+    sortable: true,
     width: 80,
     order: 4,
   },
@@ -115,6 +121,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'totalSize',
     title: t('develop.code_gen.history.col_total_size'),
     dataType: 'string',
+    sortable: true,
     width: 100,
     order: 5,
     render: row => formatSize((row as unknown as CodeGenHistoryListItemDto).totalSize),
@@ -123,6 +130,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'duration',
     title: t('develop.code_gen.history.col_duration'),
     dataType: 'string',
+    sortable: true,
     width: 90,
     order: 6,
     render: row => formatDuration((row as unknown as CodeGenHistoryListItemDto).duration),
@@ -131,6 +139,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'operatorName',
     title: t('develop.code_gen.history.col_operator'),
     dataType: 'string',
+    sortable: true,
     width: 110,
     order: 7,
   },
@@ -138,6 +147,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'genTime',
     title: t('develop.code_gen.history.col_gen_time'),
     dataType: 'datetime',
+    sortable: true,
     minWidth: 170,
     order: 8,
   },
@@ -153,7 +163,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return codeGenHistoryApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         tableName: (f.tableName as string | undefined)?.trim() || undefined,
         genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,
       }) as unknown as Promise<PageResult<Record<string, unknown>>>

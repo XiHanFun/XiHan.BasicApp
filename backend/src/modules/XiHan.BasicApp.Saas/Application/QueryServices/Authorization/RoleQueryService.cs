@@ -58,16 +58,23 @@ public sealed class RoleQueryService
     private readonly ISuperAdminProtector _superAdminProtector;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public RoleQueryService(
         IRoleRepository roleRepository,
         IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        IFieldSecurityService fieldSecurityService)
     {
         _roleRepository = roleRepository;
         _roleSelectCache = roleSelectCache;
         _superAdminProtector = superAdminProtector;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -88,6 +95,13 @@ public sealed class RoleQueryService
         if (!_superAdminProtector.IsCurrentUserSuperAdmin())
         {
             request.Conditions.AddFilter((SysRole role) => role.RoleCode, "super_admin", QueryOperator.NotEqual);
+        }
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysRole", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyRoleSorts(request);
         }
 
         var roles = await _roleRepository.GetPagedAsync(request, cancellationToken);
@@ -188,10 +202,22 @@ public sealed class RoleQueryService
             input.IsGlobal,
             input.Status);
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetRolePageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用角色默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyRoleSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysRole role) => role.RoleType, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysRole role) => role.Sort, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysRole role) => role.RoleCode, SortDirection.Ascending, 2);
-        return request;
     }
 
     /// <summary>

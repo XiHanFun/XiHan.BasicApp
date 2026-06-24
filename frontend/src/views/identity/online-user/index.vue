@@ -4,7 +4,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/compone
 import { NTag, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, DeviceType, onlineUserApi, userSessionApi } from '@/api'
+import { createPageRequest, DeviceType, onlineUserApi, querySortsFromSchema, userSessionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 
@@ -106,6 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.online_user.col_device_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'DeviceType',
     options: deviceTypeOptions.value,
     searchPlaceholder: t('identity.online_user.device_type_placeholder'),
@@ -117,12 +118,12 @@ const fields = computed<ListFieldSchema[]>(() => [
       () => getOptionLabel(deviceTypeOptions.value, (row as unknown as OnlineUserListItemDto).deviceType),
     ),
   },
-  { key: 'deviceName', title: t('identity.online_user.col_device_name'), dataType: 'string', minWidth: 120, order: 13 },
-  { key: 'operatingSystem', title: t('identity.online_user.col_os'), dataType: 'string', minWidth: 110, order: 14 },
-  { key: 'browser', title: t('identity.online_user.col_browser'), dataType: 'string', minWidth: 110, order: 15 },
+  { key: 'deviceName', title: t('identity.online_user.col_device_name'), dataType: 'string', sortable: true, minWidth: 120, order: 13 },
+  { key: 'operatingSystem', title: t('identity.online_user.col_os'), dataType: 'string', sortable: true, minWidth: 110, order: 14 },
+  { key: 'browser', title: t('identity.online_user.col_browser'), dataType: 'string', sortable: true, minWidth: 110, order: 15 },
   { key: 'ipAddressMasked', title: t('identity.online_user.col_ip'), dataType: 'string', minWidth: 120, order: 16 },
-  { key: 'location', title: t('identity.online_user.col_location'), dataType: 'string', minWidth: 140, order: 17 },
-  { key: 'loginTime', title: t('identity.online_user.col_login_time'), dataType: 'datetime', minWidth: 170, order: 18 },
+  { key: 'location', title: t('identity.online_user.col_location'), dataType: 'string', sortable: true, minWidth: 140, order: 17 },
+  { key: 'loginTime', title: t('identity.online_user.col_login_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 18 },
   { key: 'lastActivityTime', title: t('identity.online_user.col_last_activity'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
   {
     key: 'onlineDurationSeconds',
@@ -151,7 +152,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return onlineUserApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword),
         deviceType: (f.deviceType as DeviceType | undefined) ?? undefined,
         userId: toStr(f.userId),
