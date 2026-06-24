@@ -1,4 +1,5 @@
 import type { Router } from 'vue-router'
+import type { EnumMetadata } from '@/api/modules/metadata/enum-metadata'
 import type {
   ApiCredentialItem,
   ApiCredentialSecret,
@@ -33,6 +34,7 @@ import type {
 } from '~/types'
 import { fileApi } from '@/api/modules/files'
 import { logManagementApi } from '@/api/modules/log'
+import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
 import {
   appManagementApi,
   approvalManagementApi,
@@ -83,6 +85,29 @@ function emptyEnum(name: string): AppEnumDefinition {
     isFlags: false,
     items: [],
     underlyingTypeName: 'Int32',
+  }
+}
+
+// 将后端枚举元数据（EnumMetadata）映射为前端枚举定义（AppEnumDefinition）。
+// 后端业务枚举均为 Int32 底层、非 Flags；显示文案由后端按 X-Language 文化解析。
+function mapEnumMetadata(meta: EnumMetadata): AppEnumDefinition {
+  return {
+    cultureName: 'zh-CN',
+    displayName: meta.displayName || meta.enumTypeName,
+    enumName: meta.enumTypeName,
+    fullName: meta.enumTypeName,
+    isFlags: false,
+    underlyingTypeName: 'Int32',
+    items: (meta.items ?? []).map((item, index) => ({
+      name: item.name,
+      value: item.value,
+      valueText: String(item.value),
+      label: item.displayName || item.name,
+      description: item.description ?? '',
+      order: index,
+      disabled: false,
+      source: 'enum',
+    })),
   }
 }
 
@@ -262,15 +287,40 @@ function createShellApis() {
       },
     },
     enumApi: {
-      getBatch(query: AppEnumBatchQuery) {
-        const fallback = Object.fromEntries(
-          (query.enumNames ?? []).map(name => [name, emptyEnum(name)]),
-        )
-        return getWithFallback<Record<string, AppEnumDefinition>>('/Enum/Batch', fallback, { params: query })
+      // 复用既有可用端点 /EnumMetadata/AllEnums（DynamicApi 约定去掉 Get 前缀），按名筛选并映射为
+      // AppEnumDefinition；淘汰原先 404 的 /Enum/Batch、/Enum/ByName 重复实现。结果由 useEnumService 缓存。
+      async getBatch(query: AppEnumBatchQuery) {
+        const names = query.enumNames ?? []
+        const fallback = Object.fromEntries(names.map(name => [name, emptyEnum(name)]))
+        try {
+          const all = await enumMetadataApi.getAll()
+          const wanted = new Set(names)
+          const result: Record<string, AppEnumDefinition> = {}
+          for (const meta of all) {
+            if (wanted.size === 0 || wanted.has(meta.enumTypeName)) {
+              result[meta.enumTypeName] = mapEnumMetadata(meta)
+            }
+          }
+          // 保证请求的每个名称都有值（缺失回退空定义），维持「键齐全」契约
+          for (const name of names) {
+            result[name] ??= emptyEnum(name)
+          }
+          return result
+        }
+        catch {
+          return fallback
+        }
       },
-      getByName(query: AppEnumNameQuery) {
+      async getByName(query: AppEnumNameQuery) {
         const name = query.enumName
-        return getWithFallback<AppEnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
+        try {
+          const all = await enumMetadataApi.getAll()
+          const meta = all.find(item => item.enumTypeName === name)
+          return meta ? mapEnumMetadata(meta) : emptyEnum(name)
+        }
+        catch {
+          return emptyEnum(name)
+        }
       },
     },
     userSettingApi: {
