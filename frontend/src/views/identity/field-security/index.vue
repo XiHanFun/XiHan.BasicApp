@@ -340,7 +340,7 @@ const schema = computed<PageSchema>(() => ({
       return fieldLevelSecurityApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: toStr(keyword),
         targetType: targetType as FieldSecurityTargetType | undefined,

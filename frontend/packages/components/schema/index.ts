@@ -14,7 +14,6 @@ export {
   toExportFields,
   toImportFields,
   toSearchFields,
-  toSortParams,
 } from './selectors'
 
 export type {
@@ -28,6 +27,7 @@ export type {
   SchemaQueryParams,
   SchemaResource,
   SchemaSelectOption,
+  SchemaSortRule,
   ViewSchema,
 } from './types'
 

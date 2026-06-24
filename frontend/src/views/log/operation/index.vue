@@ -119,7 +119,7 @@ function buildOperationQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+      conditions: { sorts: querySortsFromSchema(params.sorts) },
     }),
     keyword: toStr(f.keyword),
     operationType: (f.operationType as OperationType | undefined) ?? undefined,

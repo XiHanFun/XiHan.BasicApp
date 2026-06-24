@@ -164,7 +164,7 @@ const schema = computed<PageSchema>(() => ({
       return storageConfigApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         isDefault: pickBoolean(f.isDefault),
         isEnabled: pickBoolean(f.isEnabled),

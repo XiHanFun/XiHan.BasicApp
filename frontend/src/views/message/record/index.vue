@@ -156,7 +156,7 @@ const emailSchema = computed<PageSchema>(() => ({
       return messageCenterApi.emailPage({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         businessId: null,
         businessType: normalizeNullable(f.businessType),
@@ -298,7 +298,7 @@ const smsSchema = computed<PageSchema>(() => ({
       return messageCenterApi.smsPage({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         businessId: null,
         businessType: normalizeNullable(f.businessType),

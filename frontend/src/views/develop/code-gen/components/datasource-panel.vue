@@ -158,7 +158,7 @@ const schema = computed<PageSchema>(() => ({
       return codeGenDataSourceApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
         databaseType: (f.databaseType as DatabaseType | undefined) ?? undefined,

@@ -117,7 +117,7 @@ const schema = computed<PageSchema>(() => ({
       return codeGenTableApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
         templateType: (f.templateType as CodeGenTableListItemDto['templateType'] | undefined) ?? undefined,

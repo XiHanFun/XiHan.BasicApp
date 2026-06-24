@@ -124,7 +124,7 @@ const schema = computed<PageSchema>(() => ({
       return configManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         configType: pickEnum<ConfigType>(configType),
         dataType: pickEnum<ConfigDataType>(dataType),

@@ -170,7 +170,7 @@ const schema = computed<PageSchema>(() => ({
       return messageTemplateApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: toStr(f.keyword),
         channel: (f.channel as MessageChannel | undefined) ?? undefined,

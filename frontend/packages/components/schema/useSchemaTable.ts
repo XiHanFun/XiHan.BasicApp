@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { PageSchema, SchemaQueryParams } from './types'
+import type { PageSchema, SchemaQueryParams, SchemaSortRule } from './types'
 import type { ApiId } from '~/types/contracts'
 import { useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
@@ -35,9 +35,8 @@ export function useSchemaTable<TRow extends object>(
 
   /** 当前搜索/筛选条件（key → value） */
   const filters = reactive<Record<string, unknown>>({})
-  /** 当前排序 */
-  const sortField = ref<string | undefined>(undefined)
-  const sortOrder = ref<'asc' | 'desc' | undefined>(undefined)
+  /** 当前多字段排序（数组顺序即优先级，0 为主排序） */
+  const sorts = ref<SchemaSortRule[]>([])
 
   /** 树形模式：存在 schema.tree 即启用，走 resource.tree、不分页 */
   const isTree = !!schema.tree
@@ -60,8 +59,7 @@ export function useSchemaTable<TRow extends object>(
     return {
       page: page.value,
       pageSize: pageSize.value,
-      sortField: sortField.value,
-      sortOrder: sortOrder.value,
+      sorts: [...sorts.value],
       filters: { ...filters },
     }
   }
@@ -106,8 +104,7 @@ export function useSchemaTable<TRow extends object>(
     for (const key of Object.keys(filters)) {
       delete filters[key]
     }
-    sortField.value = undefined
-    sortOrder.value = undefined
+    sorts.value = []
     page.value = 1
     void load()
   }
@@ -123,9 +120,8 @@ export function useSchemaTable<TRow extends object>(
     void load()
   }
 
-  function changeSort(field?: string, order?: 'asc' | 'desc') {
-    sortField.value = field
-    sortOrder.value = order
+  function changeSort(next: SchemaSortRule[]) {
+    sorts.value = next
     page.value = 1
     void load()
   }
@@ -146,8 +142,7 @@ export function useSchemaTable<TRow extends object>(
     page,
     pageSize,
     filters,
-    sortField,
-    sortOrder,
+    sorts,
     isTree,
     load,
     search,

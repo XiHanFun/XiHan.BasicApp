@@ -165,7 +165,7 @@ const schema = computed<PageSchema>(() => ({
       return codeGenHistoryApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         tableName: (f.tableName as string | undefined)?.trim() || undefined,
         genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,

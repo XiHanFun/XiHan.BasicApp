@@ -1,5 +1,5 @@
 import type { DataTableColumn } from 'naive-ui'
-import type { ListFieldSchema, PageSchema } from './types'
+import type { ListFieldSchema, PageSchema, SchemaSortRule } from './types'
 import { renderFieldCell } from './renderer'
 
 /**
@@ -73,10 +73,8 @@ export function toColumns<TRow extends object>(
     columnOrder?: string[]
     fixedMap?: Record<string, 'left' | 'right' | undefined>
     widthMap?: Record<string, number | undefined>
-    /** 当前排序字段（用于受控回显排序箭头） */
-    sortField?: string
-    /** 当前排序方向 */
-    sortOrder?: 'asc' | 'desc'
+    /** 当前多字段排序（用于受控回显各列排序箭头与优先级） */
+    sorts?: ReadonlyArray<SchemaSortRule>
   },
 ): DataTableColumn<TRow>[] {
   let fields = schema.fields.filter(f => f.visible !== false && isFieldPermitted(f, can))
@@ -131,11 +129,11 @@ export function toColumns<TRow extends object>(
       }
     }
     if (field.sortable) {
-      // 服务端排序：声明可排序（remote 模式下 Naive 不本地排序，仅上抛 update:sorter）。
-      // 受控 sortOrder 让箭头反映当前排序态（含「表格设置」的默认排序、方案恢复的排序）。
-      column.sorter = true
-      const active = options?.sortField === field.key
-      column.sortOrder = active ? (options?.sortOrder === 'asc' ? 'ascend' : 'descend') : false
+      // 多字段服务端排序：{ multiple } 让点多个列头累加排序（remote 模式 Naive 不本地排序，仅上抛 update:sorter 数组）。
+      // 受控 sortOrder 让各列箭头反映当前排序态（含「表格设置」的默认多字段排序、方案恢复的排序）；优先级由 sorts 顺序决定。
+      column.sorter = { multiple: 1 }
+      const rule = options?.sorts?.find(s => s.field === field.key)
+      column.sortOrder = rule ? (rule.order === 'asc' ? 'ascend' : 'descend') : false
     }
     // 列宽可拖拽调整（拖动表头右边框）；缺省 minWidth 给一个下限，避免拖到过窄
     column.resizable = true
@@ -144,19 +142,4 @@ export function toColumns<TRow extends object>(
     }
     return column as unknown as DataTableColumn<TRow>
   })
-}
-
-/**
- * 派生：将 Naive UI 排序状态转为归一化 sortField/sortOrder。
- */
-export function toSortParams(
-  sorter: { columnKey?: string | number, order?: 'ascend' | 'descend' | false } | null,
-): { sortField?: string, sortOrder?: 'asc' | 'desc' } {
-  if (!sorter || !sorter.order || sorter.columnKey == null) {
-    return {}
-  }
-  return {
-    sortField: String(sorter.columnKey),
-    sortOrder: sorter.order === 'ascend' ? 'asc' : 'desc',
-  }
 }
