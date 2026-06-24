@@ -90,6 +90,8 @@ function emptyEnum(name: string): AppEnumDefinition {
 
 // 将后端枚举元数据（EnumMetadata）映射为前端枚举定义（AppEnumDefinition）。
 // 后端业务枚举均为 Int32 底层、非 Flags；显示文案由后端按 X-Language 文化解析。
+// 关键：后端实例数据经 JsonStringEnumConverter 序列化为「成员名字符串」（如 "Field"/"Pending"），
+// 故选项 value 必须用成员名 item.name，才能与表格行数据匹配；item.value(整数)放入 valueText 备用。
 function mapEnumMetadata(meta: EnumMetadata): AppEnumDefinition {
   return {
     cultureName: 'zh-CN',
@@ -100,7 +102,7 @@ function mapEnumMetadata(meta: EnumMetadata): AppEnumDefinition {
     underlyingTypeName: 'Int32',
     items: (meta.items ?? []).map((item, index) => ({
       name: item.name,
-      value: item.value,
+      value: item.name,
       valueText: String(item.value),
       label: item.displayName || item.name,
       description: item.description ?? '',
