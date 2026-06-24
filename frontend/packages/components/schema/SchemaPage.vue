@@ -97,13 +97,8 @@ const peekFields = computed<ListFieldSchema[]>(() =>
     : [],
 )
 
-/** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */
-const autoSelectable = (props.schema.actions ?? []).some(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission)))
-  || (!!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
-  || (!!props.schema.resource.updateStatus && (!props.schema.statusPermission || hasPermission(props.schema.statusPermission)))
-
-/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化） */
-const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: autoSelectable })
+/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化）。多选默认打开 */
+const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: true })
 
 /**
  * 表格重挂载令牌：拖拽列宽会写入 Naive 内部缓存（覆盖 column.width），
