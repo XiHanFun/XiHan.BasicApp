@@ -18,6 +18,10 @@ export interface ColumnSetting {
   fixed?: 'left' | 'right'
   /** 列宽覆盖（px）；为空表示自动（沿用 schema 的 width/minWidth） */
   width?: number
+  /** 该列是否可排序（来自 schema field.sortable，派生不持久化） */
+  sortable?: boolean
+  /** 该列的默认排序方向（参与默认多字段排序；优先级 = 列在列表中的顺序） */
+  sort?: 'asc' | 'desc'
 }
 
 /** 表格密度 */
@@ -48,8 +52,8 @@ export interface TableDefaultSort {
  * 持久化结构（localStorage）
  */
 interface PersistedTableSettings {
-  /** 按顺序的列设置 */
-  columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number }>
+  /** 按顺序的列设置（含每列默认排序方向 sort） */
+  columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number, sort?: 'asc' | 'desc' }>
   /** 密度 */
   density: TableDensity
   /** 表格风格 */
@@ -58,9 +62,9 @@ interface PersistedTableSettings {
   selectable?: boolean
   /** 是否显示序号列 */
   showIndex?: boolean
-  /** 默认多字段排序（数组顺序即优先级；空表示无默认排序，沿用后端各自默认） */
+  /** @deprecated 旧版默认多字段排序，仅用于向后兼容迁移到列内 sort */
   defaultSorts?: TableDefaultSort[]
-  /** @deprecated 旧版单字段默认排序，仅用于向后兼容读取迁移 */
+  /** @deprecated 旧版单字段默认排序，仅用于向后兼容迁移 */
   defaultSort?: TableDefaultSort | null
 }
 
@@ -93,6 +97,7 @@ export function useTableSettings(
       visible: f.visible !== false,
       fixed: f.fixed,
       width: f.width,
+      sortable: f.sortable === true,
     }))
   }
 
@@ -101,18 +106,29 @@ export function useTableSettings(
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
-  const defaultSorts = ref<TableDefaultSort[]>([])
 
   /** 应用一份持久化设置（按 key 合并，丢弃已不存在的列、追加新列） */
   function applyPersisted(persisted: PersistedTableSettings) {
     const defaults = buildDefault()
     const defaultMap = new Map(defaults.map(c => [c.key, c]))
+    // 兼容旧版：默认排序曾独立存储（defaultSorts/defaultSort），迁移为各列内置 sort（按字段名匹配）
+    const legacySorts = persisted.defaultSorts ?? (persisted.defaultSort ? [persisted.defaultSort] : [])
+    const legacySortMap = new Map(legacySorts.map(s => [s.field, s.order]))
     const ordered: ColumnSetting[] = []
     // 先按持久化顺序恢复仍存在的列
     for (const p of persisted.columns) {
       const def = defaultMap.get(p.key)
       if (def) {
-        ordered.push({ key: p.key, title: def.title, visible: p.visible, fixed: p.fixed, width: p.width ?? def.width })
+        ordered.push({
+          key: p.key,
+          title: def.title,
+          visible: p.visible,
+          fixed: p.fixed,
+          width: p.width ?? def.width,
+          sortable: def.sortable,
+          // 列内 sort 优先；旧版独立默认排序按字段名迁移；仅可排序列保留
+          sort: def.sortable ? (p.sort ?? legacySortMap.get(p.key)) : undefined,
+        })
         defaultMap.delete(p.key)
       }
     }
@@ -127,8 +143,6 @@ export function useTableSettings(
     style.value = { ...DEFAULT_STYLE, ...persisted.style }
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
-    // 多字段优先；兼容旧版单字段默认排序迁移为单元素列表
-    defaultSorts.value = persisted.defaultSorts ?? (persisted.defaultSort ? [persisted.defaultSort] : [])
   }
 
   /** 从 localStorage 恢复 */
@@ -161,12 +175,11 @@ export function useTableSettings(
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {
     const data: PersistedTableSettings = {
-      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width })),
+      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width, sort: c.sort })),
       density: density.value,
       style: { ...style.value },
       selectable: selectable.value,
       showIndex: showIndex.value,
-      defaultSorts: defaultSorts.value,
     }
     storage.set(storageKey, data)
     sync.save('table', data)
@@ -192,6 +205,9 @@ export function useTableSettings(
     }
     return map
   })
+  /** 默认多字段排序：由各列内置 sort 派生，优先级 = 列在列表中的顺序（拖拽列即可调优先级） */
+  const defaultSorts = computed<TableDefaultSort[]>(() =>
+    columns.value.filter(c => c.sort).map(c => ({ field: c.key, order: c.sort! })))
 
   function toggleVisible(key: string, value: boolean) {
     const target = columns.value.find(c => c.key === key)
@@ -226,9 +242,13 @@ export function useTableSettings(
     showIndex.value = value
   }
 
-  /** 整体替换默认多字段排序（数组顺序即优先级；空数组表示无默认排序） */
-  function setDefaultSorts(rules: TableDefaultSort[]) {
-    defaultSorts.value = [...rules]
+  /** 循环切换某列的默认排序方向：无 → 升 → 降 → 无（仅可排序列生效；优先级由列顺序决定） */
+  function cycleSort(key: string) {
+    const target = columns.value.find(c => c.key === key)
+    if (!target?.sortable) {
+      return
+    }
+    target.sort = target.sort === undefined ? 'asc' : target.sort === 'asc' ? 'desc' : undefined
   }
 
   function move(fromIndex: number, toIndex: number) {
@@ -248,12 +268,12 @@ export function useTableSettings(
   }
 
   function resetDefault() {
+    // buildDefault 不含 sort，列重建后 defaultSorts 计算属性自然清空
     columns.value = buildDefault()
     density.value = 'small'
     style.value = { ...DEFAULT_STYLE }
     selectable.value = defaultSelectable
     showIndex.value = true
-    defaultSorts.value = []
   }
 
   // 字段变化（如权限变更导致列增减）时重建并尝试恢复
@@ -278,7 +298,7 @@ export function useTableSettings(
     setStyle,
     setSelectable,
     setShowIndex,
-    setDefaultSorts,
+    cycleSort,
     move,
     setDensity,
     resetDefault,
