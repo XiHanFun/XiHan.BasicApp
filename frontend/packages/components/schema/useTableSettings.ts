@@ -36,7 +36,7 @@ export interface TableStyle {
 /** 表格风格默认值（默认显示竖线：single-line=false） */
 const DEFAULT_STYLE: TableStyle = { striped: true, bordered: true, singleLine: false }
 
-/** 默认排序（列表打开时的初始排序；列头点击的临时排序会覆盖本次会话） */
+/** 默认排序单条规则（列表打开时的初始排序；列头点击的临时排序会覆盖本次会话） */
 export interface TableDefaultSort {
   /** 排序列字段键 */
   field: string
@@ -58,7 +58,9 @@ interface PersistedTableSettings {
   selectable?: boolean
   /** 是否显示序号列 */
   showIndex?: boolean
-  /** 默认排序（为空表示无默认排序，沿用后端各自默认） */
+  /** 默认多字段排序（数组顺序即优先级；空表示无默认排序，沿用后端各自默认） */
+  defaultSorts?: TableDefaultSort[]
+  /** @deprecated 旧版单字段默认排序，仅用于向后兼容读取迁移 */
   defaultSort?: TableDefaultSort | null
 }
 
@@ -99,7 +101,7 @@ export function useTableSettings(
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
-  const defaultSort = ref<TableDefaultSort | null>(null)
+  const defaultSorts = ref<TableDefaultSort[]>([])
 
   /** 应用一份持久化设置（按 key 合并，丢弃已不存在的列、追加新列） */
   function applyPersisted(persisted: PersistedTableSettings) {
@@ -125,7 +127,8 @@ export function useTableSettings(
     style.value = { ...DEFAULT_STYLE, ...persisted.style }
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
-    defaultSort.value = persisted.defaultSort ?? null
+    // 多字段优先；兼容旧版单字段默认排序迁移为单元素列表
+    defaultSorts.value = persisted.defaultSorts ?? (persisted.defaultSort ? [persisted.defaultSort] : [])
   }
 
   /** 从 localStorage 恢复 */
@@ -163,7 +166,7 @@ export function useTableSettings(
       style: { ...style.value },
       selectable: selectable.value,
       showIndex: showIndex.value,
-      defaultSort: defaultSort.value,
+      defaultSorts: defaultSorts.value,
     }
     storage.set(storageKey, data)
     sync.save('table', data)
@@ -223,9 +226,9 @@ export function useTableSettings(
     showIndex.value = value
   }
 
-  /** 设置/清除默认排序：传入 field 即设为该列排序（order 缺省升序），不传则清除 */
-  function setDefaultSort(field?: string, order?: 'asc' | 'desc') {
-    defaultSort.value = field ? { field, order: order ?? 'asc' } : null
+  /** 整体替换默认多字段排序（数组顺序即优先级；空数组表示无默认排序） */
+  function setDefaultSorts(rules: TableDefaultSort[]) {
+    defaultSorts.value = [...rules]
   }
 
   function move(fromIndex: number, toIndex: number) {
@@ -250,7 +253,7 @@ export function useTableSettings(
     style.value = { ...DEFAULT_STYLE }
     selectable.value = defaultSelectable
     showIndex.value = true
-    defaultSort.value = null
+    defaultSorts.value = []
   }
 
   // 字段变化（如权限变更导致列增减）时重建并尝试恢复
@@ -264,7 +267,7 @@ export function useTableSettings(
     style,
     selectable,
     showIndex,
-    defaultSort,
+    defaultSorts,
     visibleKeys,
     columnOrder,
     fixedMap,
@@ -275,7 +278,7 @@ export function useTableSettings(
     setStyle,
     setSelectable,
     setShowIndex,
-    setDefaultSort,
+    setDefaultSorts,
     move,
     setDensity,
     resetDefault,

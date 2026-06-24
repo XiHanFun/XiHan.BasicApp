@@ -26,8 +26,8 @@ const props = defineProps<{
   showIndex: boolean
   /** 可排序列（field.sortable 的列，作为默认排序候选） */
   sortableColumns: Array<{ key: string, title: string }>
-  /** 当前默认排序（为空表示无） */
-  defaultSort: TableDefaultSort | null
+  /** 当前默认多字段排序（数组顺序即优先级；空表示无） */
+  defaultSorts: TableDefaultSort[]
 }>()
 
 const emit = defineEmits<{
@@ -39,7 +39,7 @@ const emit = defineEmits<{
   setStyle: [key: keyof TableStyle, value: boolean]
   setSelectable: [value: boolean]
   setShowIndex: [value: boolean]
-  setDefaultSort: [field: string | undefined, order: 'asc' | 'desc' | undefined]
+  setDefaultSorts: [rules: TableDefaultSort[]]
   reset: []
   save: []
 }>()
@@ -60,8 +60,60 @@ const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, inve
   { label: t('component.schema_table_settings.single_line'), key: 'singleLine', invert: true },
 ])
 
-/** 默认排序候选列 */
-const sortFieldOptions = computed(() => props.sortableColumns.map(c => ({ label: c.title, value: c.key })))
+/** 某行的可选列：全部可排序列，但排除已被其它行占用的字段（每字段至多一条排序规则） */
+function rowFieldOptions(index: number) {
+  const usedByOthers = new Set(props.defaultSorts.filter((_, i) => i !== index).map(r => r.field))
+  return props.sortableColumns
+    .filter(c => !usedByOthers.has(c.key))
+    .map(c => ({ label: c.title, value: c.key }))
+}
+
+/** 尚未被任一行占用的可排序列（用于「添加排序」是否可用） */
+const unusedSortableColumns = computed(() => {
+  const used = new Set(props.defaultSorts.map(r => r.field))
+  return props.sortableColumns.filter(c => !used.has(c.key))
+})
+
+function emitSorts(rules: TableDefaultSort[]) {
+  emit('setDefaultSorts', rules)
+}
+
+/** 追加一条排序规则（默认取首个未占用列、升序） */
+function addSortRule() {
+  const next = unusedSortableColumns.value[0]
+  if (!next) {
+    return
+  }
+  emitSorts([...props.defaultSorts, { field: next.key, order: 'asc' }])
+}
+
+function setRuleField(index: number, field: string) {
+  emitSorts(props.defaultSorts.map((r, i) => (i === index ? { ...r, field } : r)))
+}
+
+function setRuleOrder(index: number, order: 'asc' | 'desc') {
+  emitSorts(props.defaultSorts.map((r, i) => (i === index ? { ...r, order } : r)))
+}
+
+function removeRule(index: number) {
+  emitSorts(props.defaultSorts.filter((_, i) => i !== index))
+}
+
+/** 调整优先级：与相邻行互换（offset = -1 上移 / +1 下移） */
+function moveRule(index: number, offset: number) {
+  const target = index + offset
+  if (target < 0 || target >= props.defaultSorts.length) {
+    return
+  }
+  const next = [...props.defaultSorts]
+  const moved = next[index]
+  if (!moved) {
+    return
+  }
+  next.splice(index, 1)
+  next.splice(target, 0, moved)
+  emitSorts(next)
+}
 
 /** 固定循环切换：无 → 左 → 右 → 无 */
 function nextFixed(current?: 'left' | 'right'): 'left' | 'right' | undefined {
@@ -179,34 +231,55 @@ function onDragEnd(event: DragEndEvent) {
         </div>
       </div>
 
-      <!-- 默认排序（列表打开时的初始排序；仅可排序列可选） -->
-      <div v-if="sortableColumns.length" class="flex gap-2 items-center justify-between">
-        <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.default_sort_label') }}</span>
-        <div class="flex gap-1 items-center">
-          <NSelect
-            :value="defaultSort?.field ?? null"
-            :options="sortFieldOptions"
-            size="tiny"
-            clearable
-            :placeholder="t('component.schema_table_settings.default_sort_none')"
-            style="width: 116px"
-            @update:value="(v: string | null) => emit('setDefaultSort', v ?? undefined, v ? (defaultSort?.order ?? 'asc') : undefined)"
-          />
+      <!-- 默认多字段排序（列表打开时的初始排序；自上而下为优先级；仅可排序列可选） -->
+      <div v-if="sortableColumns.length" class="flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.default_sort_label') }}</span>
           <NButton
             size="tiny"
-            :disabled="!defaultSort?.field"
-            :type="defaultSort?.order === 'asc' ? 'primary' : 'default'"
-            @click="emit('setDefaultSort', defaultSort?.field, 'asc')"
+            quaternary
+            :disabled="!unusedSortableColumns.length"
+            @click="addSortRule"
           >
+            <template #icon>
+              <NIcon><Icon icon="lucide:plus" /></NIcon>
+            </template>
+            {{ t('component.schema_table_settings.default_sort_add') }}
+          </NButton>
+        </div>
+        <div
+          v-for="(rule, index) in defaultSorts"
+          :key="rule.field"
+          class="flex gap-1 items-center"
+        >
+          <span class="xh-sort-prio text-xs text-foreground/40">{{ index + 1 }}</span>
+          <NSelect
+            :value="rule.field"
+            :options="rowFieldOptions(index)"
+            size="tiny"
+            class="flex-1"
+            @update:value="(v: string) => setRuleField(index, v)"
+          />
+          <NButton size="tiny" :type="rule.order === 'asc' ? 'primary' : 'default'" @click="setRuleOrder(index, 'asc')">
             {{ t('component.schema_table_settings.sort_asc') }}
           </NButton>
-          <NButton
-            size="tiny"
-            :disabled="!defaultSort?.field"
-            :type="defaultSort?.order === 'desc' ? 'primary' : 'default'"
-            @click="emit('setDefaultSort', defaultSort?.field, 'desc')"
-          >
+          <NButton size="tiny" :type="rule.order === 'desc' ? 'primary' : 'default'" @click="setRuleOrder(index, 'desc')">
             {{ t('component.schema_table_settings.sort_desc') }}
+          </NButton>
+          <NButton size="tiny" quaternary :disabled="index === 0" :title="t('component.schema_table_settings.sort_move_up')" @click="moveRule(index, -1)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:chevron-up" /></NIcon>
+            </template>
+          </NButton>
+          <NButton size="tiny" quaternary :disabled="index === defaultSorts.length - 1" :title="t('component.schema_table_settings.sort_move_down')" @click="moveRule(index, 1)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:chevron-down" /></NIcon>
+            </template>
+          </NButton>
+          <NButton size="tiny" quaternary :title="t('common.actions.delete')" @click="removeRule(index)">
+            <template #icon>
+              <NIcon><Icon icon="lucide:x" /></NIcon>
+            </template>
           </NButton>
         </div>
       </div>
@@ -287,6 +360,13 @@ function onDragEnd(event: DragEndEvent) {
 
 .xh-set-head__handle {
   width: 14px;
+  flex-shrink: 0;
+}
+
+/* 默认排序：优先级序号（与各行对齐） */
+.xh-sort-prio {
+  width: 12px;
+  text-align: center;
   flex-shrink: 0;
 }
 

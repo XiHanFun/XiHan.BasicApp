@@ -50,7 +50,7 @@ const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
 
 const table = useSchemaTable<Row>(props.schema)
-const { loading, rows, total, page, pageSize, filters, sortField, sortOrder, search, reset, changePage, changePageSize, changeSort, remove } = table
+const { loading, rows, total, page, pageSize, filters, sorts, search, reset, changePage, changePageSize, changeSort, remove } = table
 
 /**
  * 字典/枚举异步取值：按字段 dictionaryCode 拉取元数据并注入 field.options，
@@ -106,22 +106,21 @@ const sortableColumns = computed<Array<{ key: string, title: string }>>(() =>
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: true })
 
 // 初始默认排序：来自列设置本地持久化（restore 同步执行）；用户列头排序/方案应用会覆盖本会话
-if (settings.defaultSort.value) {
-  sortField.value = settings.defaultSort.value.field
-  sortOrder.value = settings.defaultSort.value.order
+if (settings.defaultSorts.value.length) {
+  sorts.value = [...settings.defaultSorts.value]
 }
 
 // 远端 hydrate 带来默认排序：仅当首屏已加载且用户尚未手动排序时应用并刷新（避免覆盖用户当前排序）
-watch(() => settings.defaultSort.value, (ds) => {
-  if (ds && firstLoaded.value && !sortField.value) {
-    changeSort(ds.field, ds.order)
+watch(() => settings.defaultSorts.value, (ds) => {
+  if (ds.length && firstLoaded.value && !sorts.value.length) {
+    changeSort([...ds])
   }
 })
 
-/** 设置/清除默认排序：写入列设置并立即应用到当前表格（重新取数） */
-function onSetDefaultSort(field?: string, order?: 'asc' | 'desc') {
-  settings.setDefaultSort(field, order)
-  changeSort(field, field ? (order ?? 'asc') : undefined)
+/** 设置默认多字段排序：写入列设置并立即应用到当前表格（重新取数） */
+function onSetDefaultSorts(rules: Array<{ field: string, order: 'asc' | 'desc' }>) {
+  settings.setDefaultSorts(rules)
+  changeSort([...rules])
 }
 
 /**
@@ -184,8 +183,7 @@ const viewManager = useViewManager(props.schema.pageCode)
 function saveView(name: string) {
   viewManager.addView(name, {
     filters: { ...filters },
-    sortField: sortField.value,
-    sortOrder: sortOrder.value,
+    sorts: [...sorts.value],
     pageSize: pageSize.value,
   })
 }
@@ -200,8 +198,7 @@ function applyView(code: string) {
     delete filters[key]
   }
   Object.assign(filters, snapshot.filters)
-  sortField.value = snapshot.sortField
-  sortOrder.value = snapshot.sortOrder
+  sorts.value = snapshot.sorts ? [...snapshot.sorts] : []
   if (snapshot.pageSize) {
     pageSize.value = snapshot.pageSize
   }
@@ -232,8 +229,7 @@ const columns = computed<DataTableColumn<Row>[]>(() => {
     columnOrder: settings.columnOrder.value,
     fixedMap: settings.fixedMap.value,
     widthMap: settings.widthMap.value,
-    sortField: sortField.value,
-    sortOrder: sortOrder.value,
+    sorts: sorts.value,
   })
   if (rowActions.value.length === 0) {
     return base
@@ -410,8 +406,7 @@ async function fetchExportRows(): Promise<Row[]> {
     const result = await pageFn({
       page: current,
       pageSize: size,
-      sortField: sortField.value,
-      sortOrder: sortOrder.value,
+      sorts: [...sorts.value],
       filters: { ...filters },
     })
     const items = result.items ?? []
@@ -466,8 +461,7 @@ async function submitExport(scope: number) {
   const params = {
     page: page.value,
     pageSize: pageSize.value,
-    sortField: sortField.value,
-    sortOrder: sortOrder.value,
+    sorts: [...sorts.value],
     filters: { ...filters },
   }
   const query = cfg.buildQuery ? cfg.buildQuery(params) : params
@@ -625,7 +619,7 @@ defineExpose({
             :selectable="settings.selectable.value"
             :show-index="settings.showIndex.value"
             :sortable-columns="sortableColumns"
-            :default-sort="settings.defaultSort.value"
+            :default-sorts="settings.defaultSorts.value"
             @move="settings.move"
             @reset="onResetTableSettings"
             @set-density="settings.setDensity"
@@ -634,7 +628,7 @@ defineExpose({
             @set-style="settings.setStyle"
             @set-selectable="settings.setSelectable"
             @set-show-index="settings.setShowIndex"
-            @set-default-sort="onSetDefaultSort"
+            @set-default-sorts="onSetDefaultSorts"
             @toggle-visible="settings.toggleVisible"
             @save="onSaveTableSettings"
           />

@@ -1,3 +1,4 @@
+import type { SchemaSortRule } from './types'
 import { onScopeDispose, ref } from 'vue'
 import { storage } from '~/utils'
 import { useUserSettingSync } from './useUserSettingSync'
@@ -8,10 +9,8 @@ import { useUserSettingSync } from './useUserSettingSync'
 export interface ViewSnapshot {
   /** 筛选条件 */
   filters: Record<string, unknown>
-  /** 排序字段 */
-  sortField?: string
-  /** 排序方向 */
-  sortOrder?: 'asc' | 'desc'
+  /** 多字段排序（数组顺序即优先级） */
+  sorts?: SchemaSortRule[]
   /** 每页数量 */
   pageSize?: number
 }

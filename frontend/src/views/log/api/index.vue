@@ -145,7 +145,7 @@ function buildApiQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+      conditions: { sorts: querySortsFromSchema(params.sorts) },
     }),
     keyword: toStr(f.keyword),
     isSuccess: toBool(f.isSuccess),

@@ -157,6 +157,14 @@ export interface ViewSchema {
   isDefault?: boolean
 }
 
+/** 单条排序规则（字段 + 方向；数组顺序即优先级，越靠前优先级越高） */
+export interface SchemaSortRule {
+  /** 排序字段（列 key，须可大小写不敏感对应后端实体属性名） */
+  field: string
+  /** 排序方向 */
+  order: 'asc' | 'desc'
+}
+
 /**
  * 归一化查询参数 —— 框架向资源层传递的统一查询契约。
  * 页面侧资源适配器负责将其映射为具体后端 API 的入参。
@@ -166,10 +174,8 @@ export interface SchemaQueryParams {
   page: number
   /** 每页数量 */
   pageSize: number
-  /** 排序字段 */
-  sortField?: string
-  /** 排序方向 */
-  sortOrder?: 'asc' | 'desc'
+  /** 多字段排序（数组顺序即优先级；空表示无排序，后端回退默认） */
+  sorts?: SchemaSortRule[]
   /** 过滤条件（key → value，来源于 searchable/advancedSearch 字段） */
   filters: Record<string, unknown>
 }

@@ -220,7 +220,7 @@ const schema = computed<PageSchema>(() => ({
       return tenantEditionApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: toStr(f.keyword) ?? null,
         status: (f.status as EnableStatus | undefined) ?? undefined,

@@ -200,7 +200,7 @@ const schema = computed<PageSchema>(() => ({
       return roleManagementApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: toStr(f.keyword) ?? null,
         // RoleType / DataPermissionScope / EnableStatus 均为后端字符串枚举，原样透传即可

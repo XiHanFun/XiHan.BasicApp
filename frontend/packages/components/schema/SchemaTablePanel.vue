@@ -1,12 +1,11 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'naive-ui'
-import type { ListFieldSchema } from './types'
+import type { ListFieldSchema, SchemaSortRule } from './types'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import SchemaRowPeek from './SchemaRowPeek.vue'
-import { toSortParams } from './selectors'
 import { useRowPeek } from './useRowPeek'
 
 defineOptions({ name: 'SchemaTablePanel' })
@@ -80,7 +79,7 @@ const emit = defineEmits<{
   'update:page': [value: number]
   'update:pageSize': [value: number]
   'update:checkedKeys': [keys: Array<string | number>]
-  'sort': [field: string | undefined, order: 'asc' | 'desc' | undefined]
+  'sort': [sorts: SchemaSortRule[]]
   'resizeColumn': [key: string, width: number]
 }>()
 
@@ -154,10 +153,17 @@ const resolvedColumns = computed<DataTableColumn<TRow>[]>(() => {
   return [...prefix, ...props.columns]
 })
 
+// 多字段排序：Naive 在 { multiple } 列上抛出 SortState 数组（数组顺序即列顺序，作为优先级）；
+// 过滤掉 order=false（取消排序）的项，归一化为 { field, order } 列表上交。
 function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
-  const single = Array.isArray(sorter) ? sorter[0] ?? null : sorter
-  const { sortField, sortOrder } = toSortParams(single)
-  emit('sort', sortField, sortOrder)
+  const list = sorter == null ? [] : Array.isArray(sorter) ? sorter : [sorter]
+  const sorts: SchemaSortRule[] = list
+    .filter(state => state.order)
+    .map(state => ({
+      field: String(state.columnKey),
+      order: state.order === 'ascend' ? 'asc' : 'desc',
+    }))
+  emit('sort', sorts)
 }
 
 /** 列宽拖拽：Naive 在拖动中持续回调，取 clamp 后的宽度回写列设置（即时生效、待「保存」落库） */

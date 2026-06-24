@@ -273,7 +273,7 @@ const schema = computed<PageSchema>(() => ({
       return permissionCenterApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         isGlobal: toBool(isGlobal),
         isRequireAudit: toBool(isRequireAudit),

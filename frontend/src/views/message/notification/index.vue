@@ -201,7 +201,7 @@ const schema = computed<PageSchema>(() => ({
       return notificationApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         keyword: toStr(f.keyword),
         notificationType: (f.notificationType as NotificationType | undefined) ?? undefined,

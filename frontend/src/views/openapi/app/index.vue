@@ -168,7 +168,7 @@ const schema = computed<PageSchema>(() => ({
         // 排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+          conditions: { sorts: querySortsFromSchema(params.sorts) },
         }),
         // appType 为字符串枚举（option.value 直接是 OAuthAppType），透传即可
         appType: (appType as OAuthAppType | undefined) ?? null,

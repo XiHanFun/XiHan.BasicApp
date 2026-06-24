@@ -313,7 +313,7 @@ function buildUserQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+      conditions: { sorts: querySortsFromSchema(params.sorts) },
     }),
     keyword: toStr(f.keyword),
     gender: toStr(f.gender) as UserGender | undefined,
