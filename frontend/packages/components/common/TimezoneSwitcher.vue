@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownOption, DropdownProps } from 'naive-ui'
 import { NDropdown, NSelect, useMessage } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores'
 
@@ -54,7 +54,17 @@ const TIMEZONES = [
 const current = computed(() => (props.apply ? appStore.appTimezone : (props.value ?? appStore.appTimezone)))
 
 const selectOptions = computed(() => TIMEZONES.map(z => ({ value: z.value, label: t(z.labelKey) })))
-const dropdownOptions = computed<DropdownOption[]>(() => TIMEZONES.map(z => ({ key: z.value, label: t(z.labelKey) })))
+const dropdownOptions = computed<DropdownOption[]>(() =>
+  TIMEZONES.map((z) => {
+    const active = z.value === current.value
+    return {
+      key: z.value,
+      // 当前选中项高亮：主色 + 加粗（内联样式，确保 teleport 弹层生效）
+      label: () => h('span', {
+        style: active ? { color: 'hsl(var(--primary))', fontWeight: 600 } : undefined,
+      }, t(z.labelKey)),
+    }
+  }))
 
 const selectStyle = computed(() =>
   props.selectWidth == null

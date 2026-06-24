@@ -53,7 +53,17 @@ const current = computed(() => (props.apply ? appStore.locale : (props.value ?? 
 
 const selectOptions = computed(() => LOCALES.map(l => ({ value: l.value, label: t(l.labelKey) })))
 const dropdownOptions = computed<DropdownOption[]>(() =>
-  LOCALES.map(l => ({ key: l.value, label: t(l.labelKey), icon: () => h(LocaleFlag, { locale: l.value }) })))
+  LOCALES.map((l) => {
+    const active = l.value === current.value
+    return {
+      key: l.value,
+      icon: () => h(LocaleFlag, { locale: l.value }),
+      // 当前选中项高亮：主色 + 加粗（内联样式，确保 teleport 弹层生效）
+      label: () => h('span', {
+        style: active ? { color: 'hsl(var(--primary))', fontWeight: 600 } : undefined,
+      }, t(l.labelKey)),
+    }
+  }))
 
 const selectStyle = computed(() =>
   props.selectWidth == null
