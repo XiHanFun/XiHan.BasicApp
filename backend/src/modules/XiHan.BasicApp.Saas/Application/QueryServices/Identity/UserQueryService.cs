@@ -140,6 +140,13 @@ public sealed class UserQueryService
             }
         }
 
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段（防按受保护字段排序泄漏真实顺序）；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysUser", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyUserSorts(request);
+        }
+
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
 
         if (users.Items.Count == 0)
@@ -262,7 +269,11 @@ public sealed class UserQueryService
             input.IsSystemAccount,
             input.Language,
             input.Country);
-        ApplyUserSorts(request);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetUserPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
         return request;
     }
 

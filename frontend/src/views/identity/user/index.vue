@@ -43,6 +43,7 @@ import {
   EnableStatus,
   PermissionAction,
   permissionApi,
+  querySortsFromSchema,
   roleApi,
   SessionStatus,
   StatisticsPeriod,
@@ -306,11 +307,14 @@ function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
 }
 
-/** 查询构建（resource.page 与导出快照复用） */
+/** 查询构建（resource.page 与导出快照复用）。排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底 */
 function buildUserQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
-    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+    }),
     keyword: toStr(f.keyword),
     gender: toStr(f.gender) as UserGender | undefined,
     status: toStr(f.status) as EnableStatus | undefined,
