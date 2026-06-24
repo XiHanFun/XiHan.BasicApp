@@ -88,6 +88,17 @@ function nextFixed(current?: 'left' | 'right'): 'left' | 'right' | undefined {
   return undefined
 }
 
+/** 固定图标（单图标循环，与排序同款；方向用「钉到左/右边」隐喻，无文字） */
+function fixedIcon(fixed?: 'left' | 'right'): string {
+  if (fixed === 'left') {
+    return 'lucide:arrow-left-to-line'
+  }
+  if (fixed === 'right') {
+    return 'lucide:arrow-right-to-line'
+  }
+  return 'lucide:pin'
+}
+
 function fixedLabel(fixed?: 'left' | 'right'): string {
   if (fixed === 'left') {
     return t('component.schema_table_settings.fixed_left')
@@ -219,7 +230,8 @@ function onDragEnd(event: DragEndEvent) {
             </span>
             <NCheckbox
               :checked="col.visible"
-              class="flex-1 min-w-0"
+              class="xh-set-row__name flex-1 min-w-0"
+              :title="col.title"
               @update:checked="(value) => emit('toggleVisible', col.key, value)"
             >
               {{ col.title }}
@@ -255,13 +267,13 @@ function onDragEnd(event: DragEndEvent) {
               <NButton
                 size="tiny"
                 quaternary
+                :type="col.fixed ? 'primary' : 'default'"
                 :title="t('component.schema_table_settings.fixed_tip', { label: fixedLabel(col.fixed) })"
                 @click="emit('setFixed', col.key, nextFixed(col.fixed))"
               >
                 <template #icon>
-                  <NIcon><Icon icon="lucide:pin" /></NIcon>
+                  <NIcon><Icon :icon="fixedIcon(col.fixed)" /></NIcon>
                 </template>
-                {{ fixedLabel(col.fixed) }}
               </NButton>
             </span>
           </SortableItem>
@@ -289,34 +301,35 @@ function onDragEnd(event: DragEndEvent) {
 }
 
 .xh-set-head__width {
-  width: 72px;
+  width: 58px;
   text-align: center;
   flex-shrink: 0;
 }
 
+/* 排序/固定表头：窄列（单图标按钮），与行内对齐 */
 .xh-set-head__col {
-  width: 56px;
+  width: 30px;
   text-align: center;
   flex-shrink: 0;
 }
 
-/* 列宽输入：与表头「列宽」列等宽 */
+/* 列宽输入：与表头「列宽」列等宽（收窄给列名让位，「自动」/三位数仍可容纳） */
 .xh-set-row__width {
-  width: 72px;
+  width: 58px;
   flex-shrink: 0;
 }
 
-/* 排序列：与表头「排序」列等宽居中对齐（单图标，同固定列样式） */
+/* 排序列：单图标按钮，窄列居中（与固定同款） */
 .xh-set-row__sort {
-  width: 56px;
+  width: 30px;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
 }
 
-/* 固定列：与表头「固定」列等宽居中对齐 */
+/* 固定列：单图标按钮，窄列居中 */
 .xh-set-row__fixed {
-  width: 56px;
+  width: 30px;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
@@ -328,9 +341,12 @@ function onDragEnd(event: DragEndEvent) {
   border-radius: 6px;
 }
 
-/* 复选框标题钉死 14px，与搜索设置行标题字号一致 */
+/* 复选框标题钉死 14px，与搜索设置行标题字号一致；超长列名单行省略（不换行、不撑高），完整名见悬停 title */
 .xh-set-row :deep(.n-checkbox__label) {
   font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .xh-set-row:hover {
