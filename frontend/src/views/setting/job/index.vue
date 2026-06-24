@@ -38,6 +38,7 @@ import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskL
 import { Icon, SchemaPage } from '~/components'
 import CronExpression from '~/components/common/CronExpression.vue'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformJobPage' })
@@ -69,7 +70,7 @@ interface JobFormModel {
 
 const { t } = useI18n()
 const message = useMessage()
-const statusOptions = STATUS_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const triggerTypeOptions = computed(() => [
   { label: t('setting.job.trigger_immediate'), value: TriggerType.Immediate },
@@ -184,13 +185,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     searchable: true,
     dictionaryCode: 'EnableStatus',
-    options: statusOptions,
+    options: statusOptions.value,
     searchPlaceholder: t('setting.job.status_placeholder'),
     width: 100,
     order: 6,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: statusTag(r.status), bordered: false }, () => getOptionLabel(statusOptions, r.status))
+      return h(NTag, { size: 'small', round: true, type: statusTag(r.status), bordered: false }, () => getOptionLabel(statusOptions.value, r.status))
     },
   },
   {
