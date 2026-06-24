@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -48,14 +49,21 @@ public sealed class VersionQueryService
     private readonly IMigrationHistoryRepository _migrationHistoryRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public VersionQueryService(
         IVersionRepository versionRepository,
-        IMigrationHistoryRepository migrationHistoryRepository)
+        IMigrationHistoryRepository migrationHistoryRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _versionRepository = versionRepository;
         _migrationHistoryRepository = migrationHistoryRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -71,6 +79,14 @@ public sealed class VersionQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildVersionPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysVersion", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyVersionSorts(request);
+        }
+
         var versions = await _versionRepository.GetPagedAsync(request, cancellationToken);
         return versions.Map(VersionApplicationMapper.ToListItemDto);
     }
@@ -191,9 +207,21 @@ public sealed class VersionQueryService
             request.Conditions.AddFilter((SysVersion version) => version.UpgradeStartTime, input.UpgradeStartTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetVersionPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用系统版本默认排序
+    /// </summary>
+    private static void ApplyVersionSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysVersion version) => version.CreatedTime, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysVersion version) => version.AppVersion, SortDirection.Descending, 1);
-        return request;
     }
 
     /// <summary>

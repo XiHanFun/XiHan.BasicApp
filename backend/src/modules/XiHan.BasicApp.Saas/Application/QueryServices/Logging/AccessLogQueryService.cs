@@ -18,11 +18,13 @@ using System.Linq.Expressions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Models;
 
@@ -37,13 +39,15 @@ public sealed class AccessLogQueryService
     : SaasApplicationService, IAccessLogQueryService
 {
     private readonly ISqlSugarClientResolver _clientResolver;
+    private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public AccessLogQueryService(ISqlSugarClientResolver clientResolver)
+    public AccessLogQueryService(ISqlSugarClientResolver clientResolver, IFieldSecurityService fieldSecurity)
     {
         _clientResolver = clientResolver;
+        _fieldSecurity = fieldSecurity;
     }
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
@@ -63,11 +67,18 @@ public sealed class AccessLogQueryService
         ValidatePageInput(input);
 
         var predicate = BuildAccessLogPredicate(input);
-        RefAsync<int> totalCount = 0;
-        var entities = await DbClient.Queryable<SysAccessLog>()
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认按访问时间倒序
+        await _fieldSecurity.GuardSortsAsync(input.Conditions, nameof(SysAccessLog), cancellationToken);
+        var query = DbClient.Queryable<SysAccessLog>()
             .Where(predicate)
-            .SplitTable()
-            .OrderByDescending(x => x.AccessTime)
+            .SplitTable();
+        query = input.Conditions.Sorts.Count > 0
+            ? query.ApplySorts(input.Conditions.Sorts)
+            : query.OrderByDescending(x => x.AccessTime);
+
+        RefAsync<int> totalCount = 0;
+        var entities = await query
             .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
         var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);

@@ -14,15 +14,20 @@
 
 using Microsoft.AspNetCore.Authorization;
 using System.Linq.Expressions;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Enums;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Utils.Linq.Expressions;
 using XiHan.Framework.Web.RealTime.Services;
 
@@ -48,17 +53,21 @@ public sealed class OnlineUserQueryService
 
     private readonly IConnectionManager _connectionManager;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public OnlineUserQueryService(
         IUserSessionRepository userSessionRepository,
         IUserRepository userRepository,
-        IConnectionManager connectionManager)
+        IConnectionManager connectionManager,
+        IFieldSecurityService fieldSecurityService)
     {
         _userSessionRepository = userSessionRepository;
         _userRepository = userRepository;
         _connectionManager = connectionManager;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <inheritdoc />
@@ -74,12 +83,28 @@ public sealed class OnlineUserQueryService
         }
 
         var now = DateTimeOffset.UtcNow;
+        var request = new BasicAppPRDto
+        {
+            Page = input.Page,
+            Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+
+        // 排序：前端选择原样带入，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认（最后活动时间倒序）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysUserSession", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            request.Conditions.AddSort((SysUserSession session) => session.LastActivityTime, SortDirection.Descending);
+        }
+
         var sessionPage = await _userSessionRepository.GetPagedAsync(
-            input.Page.PageIndex,
-            input.Page.PageSize,
+            request,
             BuildPredicate(input, now),
-            session => session.LastActivityTime,
-            isAscending: false,
             cancellationToken);
         if (sessionPage.Items.Count == 0)
         {

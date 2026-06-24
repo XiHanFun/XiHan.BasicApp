@@ -18,11 +18,13 @@ using System.Linq.Expressions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Models;
 
@@ -39,11 +41,19 @@ public sealed class OperationLogQueryService
     private readonly ISqlSugarClientResolver _clientResolver;
 
     /// <summary>
+    /// 字段级安全（排序门控：剔除不可读/已脱敏字段）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public OperationLogQueryService(ISqlSugarClientResolver clientResolver)
+    public OperationLogQueryService(
+        ISqlSugarClientResolver clientResolver,
+        IFieldSecurityService fieldSecurityService)
     {
         _clientResolver = clientResolver;
+        _fieldSecurity = fieldSecurityService;
     }
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
@@ -63,11 +73,18 @@ public sealed class OperationLogQueryService
         ValidatePageInput(input);
 
         var predicate = BuildOperationLogPredicate(input);
-        RefAsync<int> totalCount = 0;
-        var entities = await DbClient.Queryable<SysOperationLog>()
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认按操作时间倒序
+        await _fieldSecurity.GuardSortsAsync(input.Conditions, "SysOperationLog", cancellationToken);
+        var query = DbClient.Queryable<SysOperationLog>()
             .Where(predicate)
-            .SplitTable()
-            .OrderByDescending(x => x.OperationTime)
+            .SplitTable();
+        query = input.Conditions.Sorts.Count > 0
+            ? query.ApplySorts(input.Conditions.Sorts)
+            : query.OrderByDescending(x => x.OperationTime);
+
+        RefAsync<int> totalCount = 0;
+        var entities = await query
             .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
         var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);

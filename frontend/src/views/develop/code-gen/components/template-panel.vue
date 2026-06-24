@@ -28,6 +28,7 @@ import {
   codeGenTemplateApi,
   createPageRequest,
   EnableStatus,
+  querySortsFromSchema,
   TEMPLATE_ENGINE_OPTIONS,
   TEMPLATE_TYPE_OPTIONS,
   TemplateEngine as TemplateEngineEnum,
@@ -75,6 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'string',
     minWidth: 160,
     fixed: 'left',
+    sortable: true,
     order: 1,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
@@ -86,13 +88,14 @@ const fields = computed<ListFieldSchema[]>(() => [
       ])
     },
   },
-  { key: 'templateCode', title: t('develop.code_gen.template.col_template_code'), dataType: 'string', minWidth: 150, order: 2 },
-  { key: 'templateGroup', title: t('develop.code_gen.template.col_template_group'), dataType: 'string', width: 120, order: 3 },
+  { key: 'templateCode', title: t('develop.code_gen.template.col_template_code'), dataType: 'string', minWidth: 150, sortable: true, order: 2 },
+  { key: 'templateGroup', title: t('develop.code_gen.template.col_template_group'), dataType: 'string', width: 120, sortable: true, order: 3 },
   {
     key: 'templateType',
     title: t('develop.code_gen.template.col_template_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: TEMPLATE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.template.filter_template_type'),
     width: 90,
@@ -104,18 +107,20 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.template.col_template_engine'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: TEMPLATE_ENGINE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.template.filter_template_engine'),
     width: 90,
     order: 5,
     render: row => getOptionLabel(TEMPLATE_ENGINE_OPTIONS, (row as unknown as CodeGenTemplateListItemDto).templateEngine),
   },
-  { key: 'fileExtension', title: t('develop.code_gen.template.col_file_extension'), dataType: 'string', width: 90, order: 6 },
+  { key: 'fileExtension', title: t('develop.code_gen.template.col_file_extension'), dataType: 'string', width: 90, sortable: true, order: 6 },
   {
     key: 'isEnabled',
     title: t('develop.code_gen.template.col_enabled'),
     dataType: 'boolean',
     width: 80,
+    sortable: true,
     order: 7,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
@@ -127,6 +132,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('common.fields.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: STATUS_OPTIONS,
     searchPlaceholder: t('common.fields.status'),
     width: 90,
@@ -136,7 +142,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
     },
   },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 9 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -150,7 +156,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return codeGenTemplateApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
         templateType: (f.templateType as TemplateType | undefined) ?? undefined,
         templateEngine: (f.templateEngine as TemplateEngine | undefined) ?? undefined,

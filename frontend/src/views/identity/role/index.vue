@@ -50,6 +50,7 @@ import {
   menuApi,
   PermissionAction,
   permissionApi,
+  querySortsFromSchema,
   roleDataScopeApi,
   roleManagementApi,
   rolePermissionApi,
@@ -117,12 +118,13 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不展示）
   { key: 'keyword', title: t('identity.role.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.role.keyword_placeholder'), width: 240, order: 0 },
   { key: 'roleName', title: t('identity.role.col_role_name'), dataType: 'string', sortable: true, minWidth: 150, order: 1 },
-  { key: 'roleCode', title: t('identity.role.col_role_code'), dataType: 'string', minWidth: 150, order: 2 },
+  { key: 'roleCode', title: t('identity.role.col_role_code'), dataType: 'string', sortable: true, minWidth: 150, order: 2 },
   { key: 'roleDescription', title: t('identity.role.col_description'), dataType: 'string', minWidth: 220, order: 3 },
   {
     key: 'roleType',
     title: t('identity.role.col_role_type'),
     dataType: 'enum',
+    sortable: true,
     searchable: true,
     dictionaryCode: 'RoleType',
     options: roleTypeOptions,
@@ -146,6 +148,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'dataScope',
     title: t('identity.role.col_data_scope'),
     dataType: 'enum',
+    sortable: true,
     searchable: true,
     dictionaryCode: 'DataPermissionScope',
     options: dataScopeOptions,
@@ -154,12 +157,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions, (row as unknown as RoleListItemDto).dataScope)),
   },
-  { key: 'maxMembers', title: t('identity.role.col_max_members'), dataType: 'number', minWidth: 100, order: 7 },
+  { key: 'maxMembers', title: t('identity.role.col_max_members'), dataType: 'number', sortable: true, minWidth: 100, order: 7 },
   { key: 'sort', title: t('identity.role.col_sort'), dataType: 'number', sortable: true, minWidth: 80, order: 8 },
   {
     key: 'status',
     title: t('identity.role.col_status'),
     dataType: 'enum',
+    sortable: true,
     searchable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
@@ -194,7 +198,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return roleManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword) ?? null,
         // RoleType / DataPermissionScope / EnableStatus 均为后端字符串枚举，原样透传即可
         roleType: (f.roleType as RoleType | undefined) || undefined,

@@ -11,6 +11,7 @@ import {
   EnableStatus,
   GEN_STATUS_OPTIONS,
   GenStatus as GenStatusEnum,
+  querySortsFromSchema,
   TEMPLATE_TYPE_OPTIONS,
 } from '@/api'
 import { SchemaPage } from '~/components'
@@ -54,15 +55,16 @@ function genStatusTagType(status: GenStatus) {
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
   { key: 'keyword', title: t('develop.code_gen.table.col_table_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('develop.code_gen.table.search_placeholder'), order: 0 },
-  { key: 'tableName', title: t('develop.code_gen.table.col_table_name'), dataType: 'string', minWidth: 170, fixed: 'left', order: 1 },
-  { key: 'className', title: t('develop.code_gen.table.col_class_name'), dataType: 'string', minWidth: 150, order: 2 },
-  { key: 'tableComment', title: t('develop.code_gen.table.col_table_comment'), dataType: 'string', minWidth: 140, order: 3 },
-  { key: 'moduleName', title: t('develop.code_gen.table.col_module'), dataType: 'string', width: 120, order: 4 },
+  { key: 'tableName', title: t('develop.code_gen.table.col_table_name'), dataType: 'string', minWidth: 170, fixed: 'left', sortable: true, order: 1 },
+  { key: 'className', title: t('develop.code_gen.table.col_class_name'), dataType: 'string', minWidth: 150, sortable: true, order: 2 },
+  { key: 'tableComment', title: t('develop.code_gen.table.col_table_comment'), dataType: 'string', minWidth: 140, sortable: true, order: 3 },
+  { key: 'moduleName', title: t('develop.code_gen.table.col_module'), dataType: 'string', width: 120, sortable: true, order: 4 },
   {
     key: 'templateType',
     title: t('develop.code_gen.table.col_template_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: TEMPLATE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_template_type'),
     width: 110,
@@ -74,6 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.table.col_gen_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: GEN_STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_gen_status'),
     width: 110,
@@ -88,6 +91,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('develop.code_gen.table.col_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_status'),
     width: 90,
@@ -97,7 +101,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
     },
   },
-  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, order: 8 },
+  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 8 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -111,7 +115,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return codeGenTableApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: (f.keyword as string | undefined)?.trim() || undefined,
         templateType: (f.templateType as CodeGenTableListItemDto['templateType'] | undefined) ?? undefined,
         genStatus: (f.genStatus as GenStatus | undefined) ?? undefined,

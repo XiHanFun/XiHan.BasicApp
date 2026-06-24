@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -63,6 +64,11 @@ public sealed class ConstraintRuleQueryService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public ConstraintRuleQueryService(
@@ -70,13 +76,15 @@ public sealed class ConstraintRuleQueryService
         IConstraintRuleItemRepository constraintRuleItemRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _constraintRuleRepository = constraintRuleRepository;
         _constraintRuleItemRepository = constraintRuleItemRepository;
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
         _tenantUserRepository = tenantUserRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -92,6 +100,14 @@ public sealed class ConstraintRuleQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildConstraintRulePageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysConstraintRule", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyConstraintRuleSorts(request);
+        }
+
         var rules = await _constraintRuleRepository.GetPagedAsync(request, cancellationToken);
         if (rules.Items.Count == 0)
         {
@@ -201,9 +217,21 @@ public sealed class ConstraintRuleQueryService
             request.Conditions.AddFilter((SysConstraintRule rule) => rule.Status, input.Status.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetConstraintRulePageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用约束规则默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyConstraintRuleSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysConstraintRule rule) => rule.Priority, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysConstraintRule rule) => rule.CreatedTime, SortDirection.Descending, 1);
-        return request;
     }
 
     /// <summary>

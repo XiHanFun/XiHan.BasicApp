@@ -30,7 +30,7 @@ import {
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType } from '@/api'
+import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -98,12 +98,13 @@ function formatNullableDate(value?: string | null) {
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('openapi.app.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('openapi.app.keyword_placeholder'), width: 250, order: 0 },
   { key: 'appName', title: t('openapi.app.app_name'), dataType: 'string', sortable: true, minWidth: 160, order: 1 },
-  { key: 'clientId', title: t('openapi.app.client_id'), dataType: 'string', minWidth: 220, order: 2 },
+  { key: 'clientId', title: t('openapi.app.client_id'), dataType: 'string', sortable: true, minWidth: 220, order: 2 },
   {
     key: 'appType',
     title: t('openapi.app.app_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'OAuthAppType',
     options: appTypeOptions,
     searchPlaceholder: t('openapi.app.app_type_placeholder'),
@@ -111,12 +112,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(appTypeOptions, (row as unknown as OAuthAppListItemDto).appType)),
   },
-  { key: 'grantTypes', title: t('openapi.app.grant_types'), dataType: 'string', minWidth: 180, order: 4 },
-  { key: 'scopes', title: t('openapi.app.scopes'), dataType: 'string', minWidth: 160, order: 5 },
+  { key: 'grantTypes', title: t('openapi.app.grant_types'), dataType: 'string', sortable: true, minWidth: 180, order: 4 },
+  { key: 'scopes', title: t('openapi.app.scopes'), dataType: 'string', sortable: true, minWidth: 160, order: 5 },
   {
     key: 'accessTokenLifetime',
     title: t('openapi.app.access_token'),
     dataType: 'number',
+    sortable: true,
     minWidth: 130,
     order: 6,
     render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatSeconds(Number((row as unknown as OAuthAppListItemDto).accessTokenLifetime || 0))),
@@ -126,6 +128,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('openapi.app.skip_consent'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: consentOptions.value,
     searchPlaceholder: t('openapi.app.skip_consent_placeholder'),
     width: 110,
@@ -137,6 +140,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('openapi.app.status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
     searchPlaceholder: t('openapi.app.status_placeholder'),
@@ -161,7 +165,11 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const { keyword, appType, skipConsent, status } = params.filters
       return appManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        // 排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         // appType 为字符串枚举（option.value 直接是 OAuthAppType），透传即可
         appType: (appType as OAuthAppType | undefined) ?? null,
         keyword: (keyword as string | undefined)?.trim() || null,

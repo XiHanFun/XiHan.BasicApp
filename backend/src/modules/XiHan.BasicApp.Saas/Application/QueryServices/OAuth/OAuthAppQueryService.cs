@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -43,11 +44,19 @@ public sealed class OAuthAppQueryService
     private readonly IOAuthAppRepository _oauthAppRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public OAuthAppQueryService(IOAuthAppRepository oauthAppRepository)
+    public OAuthAppQueryService(
+        IOAuthAppRepository oauthAppRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _oauthAppRepository = oauthAppRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -65,6 +74,14 @@ public sealed class OAuthAppQueryService
         ValidatePageInput(input);
 
         var request = BuildOAuthAppPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysOAuthApp", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyOAuthAppSorts(request);
+        }
+
         var apps = await _oauthAppRepository.GetPagedAsync(request, cancellationToken);
         return apps.Map(OAuthAppApplicationMapper.ToListItemDto);
     }
@@ -129,10 +146,22 @@ public sealed class OAuthAppQueryService
             request.Conditions.AddFilter((SysOAuthApp app) => app.SkipConsent, input.SkipConsent.Value);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetOAuthAppPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用 OAuth 应用默认排序
+    /// </summary>
+    private static void ApplyOAuthAppSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysOAuthApp app) => app.Status, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysOAuthApp app) => app.CreatedTime, SortDirection.Descending, 1);
         request.Conditions.AddSort((SysOAuthApp app) => app.AppName, SortDirection.Ascending, 2);
-        return request;
     }
 
     /// <summary>

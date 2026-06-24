@@ -30,6 +30,7 @@ import {
   FieldMaskStrategy,
   FieldSecurityTargetType,
   permissionApi,
+  querySortsFromSchema,
   resourceApi,
   roleApi,
   userManagementApi,
@@ -245,6 +246,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.field_security.col_target_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'FieldSecurityTargetType',
     options: targetTypeOptions,
     searchPlaceholder: t('identity.field_security.target_type_placeholder'),
@@ -274,11 +276,12 @@ const fields = computed<ListFieldSchema[]>(() => [
       return r.resourceName || r.resourceCode || String(r.resourceId)
     },
   },
-  { key: 'fieldName', title: t('identity.field_security.col_field_name'), dataType: 'string', minWidth: 150, order: 4 },
+  { key: 'fieldName', title: t('identity.field_security.col_field_name'), dataType: 'string', sortable: true, minWidth: 150, order: 4 },
   {
     key: 'isReadable',
     title: t('identity.field_security.col_readable'),
     dataType: 'boolean',
+    sortable: true,
     width: 84,
     order: 5,
     render: row => boolTag((row as unknown as FieldLevelSecurityListItemDto).isReadable, t('identity.field_security.readable_on'), t('identity.field_security.readable_off')),
@@ -287,6 +290,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'isEditable',
     title: t('identity.field_security.col_editable'),
     dataType: 'boolean',
+    sortable: true,
     width: 90,
     order: 6,
     render: row => boolTag((row as unknown as FieldLevelSecurityListItemDto).isEditable, t('identity.field_security.editable_on'), t('identity.field_security.editable_off')),
@@ -296,6 +300,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.field_security.col_mask_strategy'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'FieldMaskStrategy',
     options: maskStrategyOptions,
     searchPlaceholder: t('identity.field_security.mask_strategy_placeholder'),
@@ -309,6 +314,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.field_security.col_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EnableStatus',
     options: STATUS_OPTIONS,
     searchPlaceholder: t('identity.field_security.status_placeholder'),
@@ -332,7 +338,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const { keyword, targetType, maskStrategy, status } = params.filters
       return fieldLevelSecurityApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(keyword),
         targetType: targetType as FieldSecurityTargetType | undefined,
         maskStrategy: maskStrategy as FieldMaskStrategy | undefined,

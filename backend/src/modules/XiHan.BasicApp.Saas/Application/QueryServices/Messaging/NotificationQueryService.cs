@@ -19,6 +19,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -49,14 +50,21 @@ public sealed class NotificationQueryService
     private readonly IUserNotificationRepository _userNotificationRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public NotificationQueryService(
         INotificationRepository notificationRepository,
-        IUserNotificationRepository userNotificationRepository)
+        IUserNotificationRepository userNotificationRepository,
+        IFieldSecurityService fieldSecurityService)
     {
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -72,6 +80,14 @@ public sealed class NotificationQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildNotificationPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysNotification", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyNotificationSorts(request);
+        }
+
         var notifications = await _notificationRepository.GetPagedAsync(request, cancellationToken);
         return notifications.Map(NotificationApplicationMapper.ToListItemDto);
     }
@@ -209,9 +225,21 @@ public sealed class NotificationQueryService
 
         AddTimeRange(request, nameof(SysNotification.SendTime), input.SendTimeStart, input.SendTimeEnd);
         AddTimeRange(request, nameof(SysNotification.ExpirationTime), input.ExpirationTimeStart, input.ExpirationTimeEnd);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetNotificationPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用系统通知默认排序
+    /// </summary>
+    private static void ApplyNotificationSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysNotification notification) => notification.SendTime, SortDirection.Descending, 0);
         request.Conditions.AddSort((SysNotification notification) => notification.CreatedTime, SortDirection.Descending, 1);
-        return request;
     }
 
     /// <summary>

@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -55,6 +56,11 @@ public sealed class TenantQueryService
     private readonly ICurrentUser _currentUser;
 
     /// <summary>
+    /// 字段级安全（读脱敏 / 写校验 / 排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 超级管理员角色编码（与种子/授权快照/SwitchTenant 约定一致，运行时特判可进入任意租户）
     /// </summary>
     private const string SuperAdminRoleCode = "super_admin";
@@ -65,11 +71,13 @@ public sealed class TenantQueryService
     public TenantQueryService(
         ITenantUserRepository tenantUserRepository,
         ITenantRepository tenantRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IFieldSecurityService fieldSecurityService)
     {
         _tenantUserRepository = tenantUserRepository;
         _tenantRepository = tenantRepository;
         _currentUser = currentUser;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -85,6 +93,14 @@ public sealed class TenantQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildTenantPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysTenant", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyTenantSorts(request);
+        }
+
         var tenants = await _tenantRepository.GetPagedAsync(request, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
@@ -219,8 +235,20 @@ public sealed class TenantQueryService
             request.Conditions.AddFilter((SysTenant tenant) => tenant.ExpirationTime, input.ExpirationTimeEnd.Value, QueryOperator.LessThanOrEqual);
         }
 
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetTenantPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+        return request;
+    }
+
+    /// <summary>
+    /// 应用租户默认排序（无前端排序时的兜底）
+    /// </summary>
+    private static void ApplyTenantSorts(BasicAppPRDto request)
+    {
         request.Conditions.AddSort((SysTenant tenant) => tenant.Sort, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysTenant tenant) => tenant.CreatedTime, SortDirection.Descending, 1);
-        return request;
     }
 }

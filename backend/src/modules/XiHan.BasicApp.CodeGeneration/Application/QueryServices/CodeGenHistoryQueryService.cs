@@ -20,6 +20,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -40,11 +41,17 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
     private readonly ICodeGenHistoryRepository _historyRepository;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public CodeGenHistoryQueryService(ICodeGenHistoryRepository historyRepository)
+    public CodeGenHistoryQueryService(ICodeGenHistoryRepository historyRepository, IFieldSecurityService fieldSecurityService)
     {
         _historyRepository = historyRepository;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -60,6 +67,14 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildPageRequest(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenHistory", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyHistorySorts(request);
+        }
+
         var historyPage = await _historyRepository.GetPagedAsync(request, cancellationToken);
         if (historyPage.Items.Count == 0)
         {
@@ -170,7 +185,19 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
                 QueryOperator.LessThanOrEqual);
         }
 
-        request.Conditions.AddSort((SysCodeGenHistory history) => history.GenTime, SortDirection.Descending, 0);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
         return request;
+    }
+
+    /// <summary>
+    /// 应用历史默认排序
+    /// </summary>
+    private static void ApplyHistorySorts(BasicAppPRDto request)
+    {
+        request.Conditions.AddSort((SysCodeGenHistory history) => history.GenTime, SortDirection.Descending, 0);
     }
 }

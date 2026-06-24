@@ -5,7 +5,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import { NTag, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, logManagementApi, SignatureType } from '@/api'
+import { createPageRequest, logManagementApi, querySortsFromSchema, SignatureType } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -61,8 +61,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索
   { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.api.keyword_placeholder'), order: 0 },
   // 列（顺序对齐实体 SysOpenApiLog 属性声明）
-  { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 90, order: 10 },
+  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
   { key: 'requestId', title: t('log.common.request_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
   { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
@@ -73,6 +73,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.api.is_signature_valid'),
     dataType: 'boolean',
     advancedSearch: true,
+    sortable: true,
     options: [{ label: t('log.api.signature_valid'), value: 1 }, { label: t('log.api.signature_invalid'), value: 0 }],
     width: 120,
     order: 17,
@@ -83,38 +84,40 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.api.signature_type'),
     dataType: 'enum',
     advancedSearch: true,
+    sortable: true,
     options: signatureTypeOptions.value,
     width: 120,
     order: 18,
     render: row => getOptionLabel(signatureTypeOptions.value, (row as unknown as ApiLogListItemDto).signatureType),
   },
-  { key: 'apiPath', title: t('log.api.api_path'), dataType: 'string', advancedSearch: true, minWidth: 240, order: 19 },
-  { key: 'apiName', title: t('log.api.api_name'), dataType: 'string', minWidth: 120, order: 20 },
-  { key: 'method', title: t('log.common.method'), dataType: 'enum', searchable: true, dictionaryCode: 'HttpMethodType', options: methodOptions.value, searchPlaceholder: t('log.api.method_placeholder'), width: 100, order: 21 },
+  { key: 'apiPath', title: t('log.api.api_path'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 240, order: 19 },
+  { key: 'apiName', title: t('log.api.api_name'), dataType: 'string', sortable: true, minWidth: 120, order: 20 },
+  { key: 'method', title: t('log.common.method'), dataType: 'enum', searchable: true, sortable: true, dictionaryCode: 'HttpMethodType', options: methodOptions.value, searchPlaceholder: t('log.api.method_placeholder'), width: 100, order: 21 },
   { key: 'controllerName', title: t('log.common.controller_name'), dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: t('log.common.action_name'), dataType: 'string', minWidth: 140, order: 23 },
-  { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, width: 100, order: 24 },
+  { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 24 },
   { key: 'requestIp', title: t('log.api.request_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.api.request_ip_placeholder'), minWidth: 130, order: 25 },
   { key: 'requestLocation', title: t('log.api.request_location'), dataType: 'string', minWidth: 160, order: 26 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 27 },
   { key: 'requestTime', title: t('log.api.request_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },
-  { key: 'responseTime', title: t('log.api.response_time'), dataType: 'datetime', minWidth: 170, order: 29 },
+  { key: 'responseTime', title: t('log.api.response_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 29 },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 30, render: row => `${(row as unknown as ApiLogListItemDto).executionTime}ms` },
-  { key: 'requestSize', title: t('log.api.request_size'), dataType: 'number', width: 110, order: 31, render: row => formatSize((row as unknown as ApiLogListItemDto).requestSize) },
-  { key: 'responseSize', title: t('log.api.response_size'), dataType: 'number', width: 110, order: 32, render: row => formatSize((row as unknown as ApiLogListItemDto).responseSize) },
+  { key: 'requestSize', title: t('log.api.request_size'), dataType: 'number', sortable: true, width: 110, order: 31, render: row => formatSize((row as unknown as ApiLogListItemDto).requestSize) },
+  { key: 'responseSize', title: t('log.api.response_size'), dataType: 'number', sortable: true, width: 110, order: 32, render: row => formatSize((row as unknown as ApiLogListItemDto).responseSize) },
   {
     key: 'isSuccess',
     title: t('log.api.is_success'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: successOptions.value,
     searchPlaceholder: t('log.api.success_placeholder'),
     width: 100,
     order: 33,
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as ApiLogListItemDto).isSuccess ? 'success' : 'error' }, () => (row as unknown as ApiLogListItemDto).isSuccess ? t('common.statuses.success') : t('common.statuses.failed')),
   },
-  { key: 'apiVersion', title: t('log.api.api_version'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 34 },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 35 },
+  { key: 'apiVersion', title: t('log.api.api_version'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 90, order: 34 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 35 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 50 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 51 },
@@ -140,7 +143,10 @@ function toIso(v: unknown): string | undefined {
 function buildApiQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
-    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+    }),
     keyword: toStr(f.keyword),
     isSuccess: toBool(f.isSuccess),
     method: toStr(f.method),

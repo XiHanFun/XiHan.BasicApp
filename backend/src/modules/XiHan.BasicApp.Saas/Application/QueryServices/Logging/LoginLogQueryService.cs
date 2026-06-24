@@ -18,11 +18,13 @@ using System.Linq.Expressions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Models;
 
@@ -39,11 +41,17 @@ public sealed class LoginLogQueryService
     private readonly ISqlSugarClientResolver _clientResolver;
 
     /// <summary>
+    /// 字段级安全（排序门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public LoginLogQueryService(ISqlSugarClientResolver clientResolver)
+    public LoginLogQueryService(ISqlSugarClientResolver clientResolver, IFieldSecurityService fieldSecurityService)
     {
         _clientResolver = clientResolver;
+        _fieldSecurity = fieldSecurityService;
     }
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
@@ -63,11 +71,18 @@ public sealed class LoginLogQueryService
         ValidatePageInput(input);
 
         var predicate = BuildLoginLogPredicate(input);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序（登录时间倒序）
+        await _fieldSecurity.GuardSortsAsync(input.Conditions, "SysLoginLog", cancellationToken);
+
         RefAsync<int> totalCount = 0;
-        var entities = await DbClient.Queryable<SysLoginLog>()
+        var query = DbClient.Queryable<SysLoginLog>()
             .Where(predicate)
-            .SplitTable()
-            .OrderByDescending(x => x.LoginTime)
+            .SplitTable();
+        query = input.Conditions.Sorts.Count > 0
+            ? query.ApplySorts(input.Conditions.Sorts)
+            : query.OrderByDescending(x => x.LoginTime);
+        var entities = await query
             .ToPageListAsync(input.Page.PageIndex, input.Page.PageSize, totalCount, cancellationToken);
 
         var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);

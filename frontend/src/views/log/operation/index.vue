@@ -5,7 +5,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import { NTag, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType } from '@/api'
+import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -52,7 +52,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.operation.keyword_placeholder'), order: 0 },
   // 列（顺序对齐实体 SysOperationLog 属性声明）
   { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
   { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
   {
@@ -60,17 +60,18 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.operation.operation_type'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: operationTypeOptions.value,
     searchPlaceholder: t('log.operation.operation_type_placeholder'),
     width: 90,
     order: 14,
     render: row => getOptionLabel(operationTypeOptions.value, (row as unknown as OperationLogListItemDto).operationType),
   },
-  { key: 'module', title: t('log.operation.module'), dataType: 'string', advancedSearch: true, minWidth: 120, order: 15 },
-  { key: 'function', title: t('log.operation.function'), dataType: 'string', advancedSearch: true, minWidth: 120, order: 16 },
-  { key: 'title', title: t('log.operation.title'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 17 },
+  { key: 'module', title: t('log.operation.module'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 120, order: 15 },
+  { key: 'function', title: t('log.operation.function'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 120, order: 16 },
+  { key: 'title', title: t('log.operation.title'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 160, order: 17 },
   { key: 'description', title: t('log.operation.description'), dataType: 'string', minWidth: 220, order: 18 },
-  { key: 'method', title: t('log.common.method'), dataType: 'string', advancedSearch: true, width: 90, order: 19 },
+  { key: 'method', title: t('log.common.method'), dataType: 'string', sortable: true, advancedSearch: true, width: 90, order: 19 },
   { key: 'requestUrl', title: t('log.operation.request_url'), dataType: 'string', minWidth: 240, order: 20 },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as OperationLogListItemDto).executionTime}ms` },
   { key: 'operationIp', title: t('log.operation.operation_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.operation.operation_ip_placeholder'), minWidth: 130, order: 22 },
@@ -82,6 +83,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.operation.result'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: resultOptions.value,
     searchPlaceholder: t('log.operation.result_placeholder'),
     width: 90,
@@ -93,7 +95,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     ),
   },
   { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 28 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'minExecutionTime', title: t('log.common.min_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.min_execution_time'), order: 40 },
   { key: 'maxExecutionTime', title: t('log.common.max_execution_time'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.max_execution_time'), order: 41 },
@@ -111,11 +113,14 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
-/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化）。排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底 */
 function buildOperationQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
-    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+    }),
     keyword: toStr(f.keyword),
     operationType: (f.operationType as OperationType | undefined) ?? undefined,
     result: (f.result as OperationExecuteResult | undefined) ?? undefined,

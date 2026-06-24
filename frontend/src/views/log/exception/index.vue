@@ -5,7 +5,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import { NTag, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, DeviceType, logManagementApi } from '@/api'
+import { createPageRequest, DeviceType, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -61,11 +61,11 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.exception.keyword_placeholder'), order: 0 },
   // 列（顺序对齐实体 SysExceptionLog 属性声明）
   { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, minWidth: 90, order: 10 },
-  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
+  { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
   { key: 'requestId', title: t('log.common.request_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
   { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
-  { key: 'exceptionType', title: t('log.exception.exception_type'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 15 },
+  { key: 'exceptionType', title: t('log.exception.exception_type'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 160, order: 15 },
   { key: 'exceptionMessage', title: t('log.exception.exception_message'), dataType: 'string', minWidth: 260, order: 16 },
   { key: 'exceptionSource', title: t('log.exception.exception_source'), dataType: 'string', advancedSearch: true, minWidth: 140, order: 17 },
   { key: 'exceptionLocation', title: t('log.exception.exception_location'), dataType: 'string', advancedSearch: true, minWidth: 200, order: 18 },
@@ -74,6 +74,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.exception.severity_level'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     options: severityOptions.value,
     searchPlaceholder: t('log.exception.severity_level_placeholder'),
     width: 90,
@@ -81,10 +82,10 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel)),
   },
   { key: 'requestPath', title: t('log.exception.request_path'), dataType: 'string', advancedSearch: true, minWidth: 200, order: 20 },
-  { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, width: 90, order: 21 },
+  { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, sortable: true, width: 90, order: 21 },
   { key: 'controllerName', title: t('log.common.controller_name'), dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: t('log.common.action_name'), dataType: 'string', minWidth: 140, order: 23 },
-  { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, width: 100, order: 24 },
+  { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 24 },
   { key: 'operationIp', title: t('log.exception.operation_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.exception.operation_ip_placeholder'), minWidth: 130, order: 25 },
   { key: 'operationLocation', title: t('log.exception.operation_location'), dataType: 'string', minWidth: 160, order: 26 },
   { key: 'browser', title: t('log.common.browser'), dataType: 'string', minWidth: 120, order: 27 },
@@ -94,33 +95,35 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('log.exception.device_type'),
     dataType: 'enum',
     advancedSearch: true,
+    sortable: true,
     dictionaryCode: 'DeviceType',
     options: deviceTypeOptions.value,
     width: 100,
     order: 29,
     render: row => getOptionLabel(deviceTypeOptions.value, (row as unknown as ExceptionLogListItemDto).deviceType),
   },
-  { key: 'applicationName', title: t('log.exception.application_name'), dataType: 'string', advancedSearch: true, minWidth: 130, order: 30 },
-  { key: 'applicationVersion', title: t('log.exception.application_version'), dataType: 'string', minWidth: 120, order: 31 },
-  { key: 'environmentName', title: t('log.exception.environment_name'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 32 },
-  { key: 'serverHostName', title: t('log.exception.server_host_name'), dataType: 'string', minWidth: 140, order: 33 },
-  { key: 'threadId', title: t('log.exception.thread_id'), dataType: 'number', width: 90, order: 34 },
-  { key: 'processId', title: t('log.exception.process_id'), dataType: 'number', width: 90, order: 35 },
+  { key: 'applicationName', title: t('log.exception.application_name'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 130, order: 30 },
+  { key: 'applicationVersion', title: t('log.exception.application_version'), dataType: 'string', sortable: true, minWidth: 120, order: 31 },
+  { key: 'environmentName', title: t('log.exception.environment_name'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 32 },
+  { key: 'serverHostName', title: t('log.exception.server_host_name'), dataType: 'string', sortable: true, minWidth: 140, order: 33 },
+  { key: 'threadId', title: t('log.exception.thread_id'), dataType: 'number', sortable: true, width: 90, order: 34 },
+  { key: 'processId', title: t('log.exception.process_id'), dataType: 'number', sortable: true, width: 90, order: 35 },
   { key: 'exceptionTime', title: t('log.exception.exception_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 36 },
   {
     key: 'isHandled',
     title: t('log.exception.is_handled'),
     dataType: 'boolean',
     searchable: true,
+    sortable: true,
     options: handledOptions.value,
     searchPlaceholder: t('log.exception.is_handled_placeholder'),
     width: 100,
     order: 37,
     render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as ExceptionLogListItemDto).isHandled ? 'success' : 'warning' }, () => (row as unknown as ExceptionLogListItemDto).isHandled ? t('log.exception.handled') : t('log.exception.unhandled')),
   },
-  { key: 'handledTime', title: t('log.exception.handled_time'), dataType: 'datetime', minWidth: 170, order: 38 },
-  { key: 'errorCode', title: t('log.exception.error_code'), dataType: 'string', advancedSearch: true, minWidth: 100, order: 39 },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, order: 40 },
+  { key: 'handledTime', title: t('log.exception.handled_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 38 },
+  { key: 'errorCode', title: t('log.exception.error_code'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 39 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 40 },
   // 仅高级搜索（不作为列，范围条件置于高级区末尾）
   { key: 'exceptionTimeStart', title: t('log.common.start_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.start_time'), order: 50 },
   { key: 'exceptionTimeEnd', title: t('log.common.end_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchPlaceholder: t('log.common.end_time'), order: 51 },
@@ -143,7 +146,10 @@ function toIso(v: unknown): string | undefined {
 function buildExceptionQuery(params: SchemaQueryParams) {
   const f = params.filters
   return {
-    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+    }),
     keyword: toStr(f.keyword),
     severityLevel: toNum(f.severityLevel),
     isHandled: toBool(f.isHandled),

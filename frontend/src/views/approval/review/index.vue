@@ -17,7 +17,7 @@ import {
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus } from '@/api'
+import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -100,6 +100,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.review.review_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'AuditStatus',
     options: reviewStatusOptions.value,
     searchPlaceholder: t('approval.review.review_status_placeholder'),
@@ -115,6 +116,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.review.review_result'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'AuditResult',
     options: reviewResultOptions.value,
     searchPlaceholder: t('approval.review.review_result_placeholder'),
@@ -130,6 +132,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.review.enable_status'),
     dataType: 'enum',
     searchable: true,
+    sortable: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
     searchPlaceholder: t('approval.review.enable_status_placeholder'),
@@ -141,17 +144,17 @@ const fields = computed<ListFieldSchema[]>(() => [
     },
   },
   // 仅列（不搜索）
-  { key: 'reviewTitle', title: t('approval.review.review_title'), dataType: 'string', minWidth: 220, order: 10 },
-  { key: 'reviewCode', title: t('approval.review.review_code'), dataType: 'string', minWidth: 160, order: 11 },
-  { key: 'reviewType', title: t('approval.review.review_type'), dataType: 'string', minWidth: 130, order: 12 },
+  { key: 'reviewTitle', title: t('approval.review.review_title'), dataType: 'string', sortable: true, minWidth: 220, order: 10 },
+  { key: 'reviewCode', title: t('approval.review.review_code'), dataType: 'string', sortable: true, minWidth: 160, order: 11 },
+  { key: 'reviewType', title: t('approval.review.review_type'), dataType: 'string', sortable: true, minWidth: 130, order: 12 },
   { key: 'entityType', title: t('approval.review.entity_type'), dataType: 'string', minWidth: 130, order: 13 },
   { key: 'entityId', title: t('approval.review.entity_id'), dataType: 'string', minWidth: 150, order: 14 },
   { key: 'priority', title: t('approval.review.priority'), dataType: 'number', sortable: true, width: 90, order: 15 },
-  { key: 'reviewLevel', title: t('approval.review.review_level'), dataType: 'number', width: 100, order: 16 },
-  { key: 'currentLevel', title: t('approval.review.current_level'), dataType: 'number', width: 110, order: 17 },
+  { key: 'reviewLevel', title: t('approval.review.review_level'), dataType: 'number', sortable: true, width: 100, order: 16 },
+  { key: 'currentLevel', title: t('approval.review.current_level'), dataType: 'number', sortable: true, width: 110, order: 17 },
   { key: 'submitUserId', title: t('approval.review.submit_user'), dataType: 'string', minWidth: 110, order: 18 },
   { key: 'submitTime', title: t('approval.review.submit_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
-  { key: 'createdTime', title: t('approval.review.created_time'), dataType: 'datetime', minWidth: 170, order: 20 },
+  { key: 'createdTime', title: t('approval.review.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 20 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -167,7 +170,10 @@ const schema = computed<PageSchema>(() => ({
     page: (params) => {
       const f = params.filters
       return approvalManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          conditions: { sorts: querySortsFromSchema(params.sortField, params.sortOrder) },
+        }),
         keyword: toStr(f.keyword),
         reviewStatus: (f.reviewStatus as AuditStatus | undefined) ?? undefined,
         reviewResult: (f.reviewResult as AuditResult | undefined) ?? undefined,
