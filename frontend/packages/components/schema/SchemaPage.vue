@@ -97,12 +97,7 @@ const peekFields = computed<ListFieldSchema[]>(() =>
     : [],
 )
 
-/** 可排序列（field.sortable 且有权限），作为「默认排序」候选 */
-const sortableColumns = computed<Array<{ key: string, title: string }>>(() =>
-  columnFields.value.filter(f => f.sortable).map(f => ({ key: f.key, title: f.title })),
-)
-
-/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽/默认排序，按 pageCode 持久化）。多选默认打开 */
+/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽/每列默认排序，按 pageCode 持久化）。多选默认打开 */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: true })
 
 // 初始默认排序：来自列设置本地持久化（restore 同步执行）；用户列头排序/方案应用会覆盖本会话
@@ -117,10 +112,10 @@ watch(() => settings.defaultSorts.value, (ds) => {
   }
 })
 
-/** 设置默认多字段排序：写入列设置并立即应用到当前表格（重新取数） */
-function onSetDefaultSorts(rules: Array<{ field: string, order: 'asc' | 'desc' }>) {
-  settings.setDefaultSorts(rules)
-  changeSort([...rules])
+/** 列内排序图标循环（无→升→降）：更新列设置并立即应用到当前表格（优先级=列顺序，重新取数） */
+function onCycleSort(key: string) {
+  settings.cycleSort(key)
+  changeSort([...settings.defaultSorts.value])
 }
 
 /**
@@ -618,8 +613,6 @@ defineExpose({
             :table-style="settings.style.value"
             :selectable="settings.selectable.value"
             :show-index="settings.showIndex.value"
-            :sortable-columns="sortableColumns"
-            :default-sorts="settings.defaultSorts.value"
             @move="settings.move"
             @reset="onResetTableSettings"
             @set-density="settings.setDensity"
@@ -628,7 +621,7 @@ defineExpose({
             @set-style="settings.setStyle"
             @set-selectable="settings.setSelectable"
             @set-show-index="settings.setShowIndex"
-            @set-default-sorts="onSetDefaultSorts"
+            @cycle-sort="onCycleSort"
             @toggle-visible="settings.toggleVisible"
             @save="onSaveTableSettings"
           />
