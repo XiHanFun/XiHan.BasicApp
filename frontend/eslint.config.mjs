@@ -31,6 +31,7 @@ export default antfu(
       'packages/constants/business.ts',
       'packages/views/_core/profile/ProfileTabTenants.vue',
       'packages/views/_core/profile/ProfileTabInfo.vue',
+      'packages/views/_core/control-center/index.vue',
     ],
     rules: {
       'no-restricted-imports': ['error', {
