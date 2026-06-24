@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { ListFieldSchema, SchemaSortRule } from './types'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
@@ -53,6 +54,10 @@ const props = withDefaults(defineProps<{
   remountKey?: number
   /** 悬停速览字段（提供即启用：悬停行 ~450ms 浮出全字段详情卡） */
   peekFields?: ListFieldSchema<TRow>[]
+  /** 行展开渲染（提供即启用：行前出现展开箭头，展开后显示自定义内容） */
+  renderExpand?: (row: TRow) => VNodeChild
+  /** 行是否可展开（默认全部可展开） */
+  rowExpandable?: (row: TRow) => boolean
 }>(), {
   loading: false,
   rowKey: 'basicId',
@@ -73,6 +78,8 @@ const props = withDefaults(defineProps<{
   defaultExpandAll: true,
   remountKey: 0,
   peekFields: undefined,
+  renderExpand: undefined,
+  rowExpandable: undefined,
 })
 
 const emit = defineEmits<{
@@ -135,6 +142,13 @@ function indexLabel(row: TRow, rowIndex: number): string | number {
 /** 列首前缀：多选列、序号列（按需依次插入到数据列之前） */
 const resolvedColumns = computed<DataTableColumn<TRow>[]>(() => {
   const prefix: DataTableColumn<TRow>[] = []
+  if (props.renderExpand) {
+    prefix.push({
+      type: 'expand',
+      renderExpand: props.renderExpand,
+      expandable: props.rowExpandable,
+    } as unknown as DataTableColumn<TRow>)
+  }
   if (props.selectable) {
     prefix.push({ type: 'selection' } as unknown as DataTableColumn<TRow>)
   }
