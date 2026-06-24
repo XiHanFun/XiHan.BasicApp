@@ -65,6 +65,7 @@ import {
   STATUS_OPTIONS,
   VALIDITY_STATUS_OPTIONS,
 } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemRolePage' })
@@ -76,11 +77,11 @@ interface RoleFormModel extends RoleCreateDto {
 const { t } = useI18n()
 const message = useMessage()
 
-const statusOptions = STATUS_OPTIONS
-const roleTypeOptions = ROLE_TYPE_OPTIONS
-const dataScopeOptions = DATA_SCOPE_OPTIONS
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
-const permissionActionOptions = PERMISSION_ACTION_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const roleTypeOptions = useEnumOptions('RoleType', ROLE_TYPE_OPTIONS)
+const dataScopeOptions = useEnumOptions('DataPermissionScope', DATA_SCOPE_OPTIONS)
+const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
+const permissionActionOptions = useEnumOptions('PermissionAction', PERMISSION_ACTION_OPTIONS)
 
 const globalOptions = computed(() => [
   { label: t('identity.role.global_role'), value: 1 },
@@ -128,11 +129,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     dictionaryCode: 'RoleType',
-    options: roleTypeOptions,
+    options: roleTypeOptions.value,
     searchPlaceholder: t('identity.role.role_type_placeholder'),
     minWidth: 110,
     order: 4,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(roleTypeOptions, (row as unknown as RoleListItemDto).roleType)),
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(roleTypeOptions.value, (row as unknown as RoleListItemDto).roleType)),
   },
   {
     key: 'isGlobal',
@@ -153,11 +154,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     dictionaryCode: 'DataPermissionScope',
-    options: dataScopeOptions,
+    options: dataScopeOptions.value,
     searchPlaceholder: t('identity.role.data_scope_placeholder'),
     minWidth: 130,
     order: 6,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions, (row as unknown as RoleListItemDto).dataScope)),
+    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions.value, (row as unknown as RoleListItemDto).dataScope)),
   },
   { key: 'maxMembers', title: t('identity.role.col_max_members'), dataType: 'number', sortable: true, minWidth: 100, order: 7 },
   { key: 'sort', title: t('identity.role.col_sort'), dataType: 'number', sortable: true, minWidth: 80, order: 8 },
@@ -169,7 +170,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     dictionaryCode: 'EnableStatus',
-    options: statusOptions,
+    options: statusOptions.value,
     searchPlaceholder: t('identity.role.status_placeholder'),
     width: 82,
     order: 9,
@@ -768,11 +769,11 @@ function formatBoolean(value?: boolean | null) {
 }
 
 function formatStatus(value?: EnableStatus | null) {
-  return getOptionLabel(statusOptions, value)
+  return getOptionLabel(statusOptions.value, value)
 }
 
 function formatValidityStatus(value?: ValidityStatus | null) {
-  return getOptionLabel(validityStatusOptions, value)
+  return getOptionLabel(validityStatusOptions.value, value)
 }
 
 function handleAdd() {

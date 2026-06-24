@@ -39,7 +39,7 @@ import {
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { PERMISSION_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '~/constants'
-import { usePermission } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'TenantEditionPage' })
@@ -53,9 +53,9 @@ const dialog = useDialog()
 const { hasPermission } = usePermission()
 const { t } = useI18n()
 
-const statusOptions = STATUS_OPTIONS
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
-const permissionTypeOptions = PERMISSION_TYPE_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
+const permissionTypeOptions = useEnumOptions('PermissionType', PERMISSION_TYPE_OPTIONS)
 
 const boolOptions = computed(() => [
   { label: t('tenant.edition.yes'), value: 1 },
@@ -179,7 +179,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
-    options: statusOptions,
+    options: statusOptions.value,
     searchPlaceholder: t('tenant.edition.status_placeholder'),
     width: 90,
     order: 9,
@@ -188,7 +188,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(
         NTag,
         { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' },
-        () => getOptionLabel(statusOptions, r.status),
+        () => getOptionLabel(statusOptions.value, r.status),
       )
     },
   },

@@ -4,6 +4,7 @@ import { NButton, NEmpty, NNumberAnimation, NScrollbar, NSpin, NTabPane, NTabs, 
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { NotificationStatus, NotificationType } from '~/types/enums'
 
@@ -27,6 +28,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+// 通知类型标签：以后端枚举元数据为本地化单一事实源，切语言响应式重取，空回退静态常量
+const notificationTypeOptions = useEnumOptions('NotificationType', NOTIFICATION_TYPE_OPTIONS)
 
 const showPopover = ref(false)
 const activeTab = ref('inbox')
@@ -79,7 +83,7 @@ function getTypeTag(type: NotificationType): TagType {
 }
 
 function getTypeInfo(type: NotificationType) {
-  const opt = NOTIFICATION_TYPE_OPTIONS.find(o => o.value === type)
+  const opt = notificationTypeOptions.value.find(o => o.value === type)
   return {
     label: opt?.label ?? t('header.notification.type_default'),
     type: getTypeTag(type),

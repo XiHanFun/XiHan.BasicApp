@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type {
   ApiId,
   ConstraintRuleDetailDto,
@@ -45,6 +46,7 @@ import {
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ApprovalConstraintPage' })
@@ -82,9 +84,9 @@ const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 
-const statusOptions = STATUS_OPTIONS
-const constraintTypeOptions = CONSTRAINT_TYPE_OPTIONS
-const violationActionOptions = VIOLATION_ACTION_OPTIONS
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const constraintTypeOptions = useEnumOptions('ConstraintType', CONSTRAINT_TYPE_OPTIONS)
+const violationActionOptions = useEnumOptions('ViolationAction', VIOLATION_ACTION_OPTIONS)
 
 const targetTypeOptions = computed(() => [
   { label: t('approval.constraint.target_role'), value: ConstraintTargetType.Role },
@@ -144,14 +146,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     dictionaryCode: 'ConstraintType',
-    options: constraintTypeOptions,
+    options: constraintTypeOptions.value,
     searchPlaceholder: t('approval.constraint.constraint_type_placeholder'),
     minWidth: 130,
     order: 3,
     render: row => h(
       NTag,
       { size: 'small', round: true, bordered: false, type: 'info' },
-      () => getOptionLabel(constraintTypeOptions, (row as unknown as ConstraintRuleListItemDto).constraintType),
+      () => getOptionLabel(constraintTypeOptions.value, (row as unknown as ConstraintRuleListItemDto).constraintType),
     ),
   },
   {
@@ -168,7 +170,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('approval.constraint.violation_action'),
     dataType: 'enum',
     dictionaryCode: 'ViolationAction',
-    options: violationActionOptions,
+    options: violationActionOptions.value,
     width: 110,
     order: 5,
     render: (row) => {
@@ -176,7 +178,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(
         NTag,
         { size: 'small', round: true, bordered: false, type: VIOLATION_TAG_TYPE[r.violationAction] ?? 'default' },
-        () => getOptionLabel(violationActionOptions, r.violationAction),
+        () => getOptionLabel(violationActionOptions.value, r.violationAction),
       )
     },
   },
@@ -190,7 +192,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
-    options: statusOptions,
+    options: statusOptions.value,
     searchPlaceholder: t('approval.constraint.status_placeholder'),
     width: 82,
     order: 8,
@@ -795,7 +797,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
         <NFormItem :label="t('approval.constraint.label_constraint_type')" path="constraintType">
           <NSelect
             v-model:value="ruleForm.constraintType"
-            :options="constraintTypeOptions"
+            :options="constraintTypeOptions as unknown as SelectMixedOption[]"
             @update:value="onConstraintTypeChange"
           />
         </NFormItem>
@@ -807,13 +809,13 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_violation_action')" path="violationAction">
-          <NSelect v-model:value="ruleForm.violationAction" :options="violationActionOptions" />
+          <NSelect v-model:value="ruleForm.violationAction" :options="violationActionOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_priority')" path="priority">
           <NInputNumber v-model:value="ruleForm.priority" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_status')" path="status">
-          <NSelect v-model:value="ruleForm.status" :options="statusOptions" />
+          <NSelect v-model:value="ruleForm.status" :options="statusOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_remark')" path="remark">
           <NInput v-model:value="ruleForm.remark" clearable :placeholder="t('approval.constraint.placeholder_remark')" />

@@ -31,6 +31,7 @@ import { useI18n } from 'vue-i18n'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
 import { Icon } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformDictPage' })
@@ -60,7 +61,7 @@ interface DictItemFormModel {
 
 const { t } = useI18n()
 const message = useMessage()
-const statusOptions = STATUS_OPTIONS
+const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const builtInOptions = computed(() => [
   { label: t('setting.dict.builtin'), value: 1 },
@@ -204,7 +205,7 @@ const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
     width: 72,
     align: 'center',
     render: (row: DictListItemDto) =>
-      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small', bordered: false }, () => getOptionLabel(statusOptions, row.status)),
+      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small', bordered: false }, () => getOptionLabel(statusEnumOptions.value, row.status)),
   },
   {
     key: 'actions',
@@ -304,7 +305,7 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
     title: t('setting.dict.status'),
     width: 80,
     render: (row: DictItemListItemDto) =>
-      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusOptions, row.status)),
+      h(NTag, { type: row.status === EnableStatus.Enabled ? 'success' : 'error', round: true, size: 'small' }, () => getOptionLabel(statusEnumOptions.value, row.status)),
   },
   {
     key: 'sort',
@@ -715,7 +716,7 @@ onMounted(fetchDictData)
           v-model:value="dictQueryParams.status"
           class="pane__filter-select"
           clearable
-          :options="statusOptions"
+          :options="statusEnumOptions"
           :placeholder="t('setting.dict.status_placeholder')"
           size="small"
           @update:value="handleDictSearch"
@@ -900,7 +901,7 @@ onMounted(fetchDictData)
           <NInputNumber v-model:value="dictForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem v-if="!dictForm.basicId" :label="t('setting.dict.status')" path="status">
-          <NSelect v-model:value="dictForm.status" :options="statusOptions" />
+          <NSelect v-model:value="dictForm.status" :options="statusEnumOptions" />
         </NFormItem>
       </NForm>
 
@@ -956,7 +957,7 @@ onMounted(fetchDictData)
           <NInputNumber v-model:value="itemForm.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem v-if="!itemForm.basicId" :label="t('setting.dict.status')" path="status">
-          <NSelect v-model:value="itemForm.status" :options="statusOptions" />
+          <NSelect v-model:value="itemForm.status" :options="statusEnumOptions" />
         </NFormItem>
       </NForm>
 

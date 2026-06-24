@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type {
   CodeGenDataSourceCreateDto,
   CodeGenDataSourceListItemDto,
@@ -33,6 +34,7 @@ import {
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'CodeGenDatasourcePanel' })
@@ -59,6 +61,8 @@ interface DatasourceFormModel {
 const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
+
+const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 function reload() {
@@ -135,13 +139,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     sortable: true,
+    dictionaryCode: 'EnableStatus',
     options: STATUS_OPTIONS,
     searchPlaceholder: t('common.fields.status'),
     width: 90,
     order: 6,
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
@@ -430,7 +435,7 @@ async function handleSubmit() {
           <NSwitch v-model:value="form.isDefault" />
         </NFormItem>
         <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
-          <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
         <NFormItem class="xh-form-full" :label="t('develop.code_gen.datasource.form_connection_string')" path="connectionString">
           <NInput

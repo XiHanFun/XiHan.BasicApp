@@ -57,6 +57,7 @@ import {
   TENANT_STATUS_OPTIONS,
   VALIDITY_STATUS_OPTIONS,
 } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformTenantPage' })
@@ -69,12 +70,12 @@ interface TenantFormModel extends TenantCreateDto {
 const message = useMessage()
 const { t } = useI18n()
 
-const tenantStatusOptions = TENANT_STATUS_OPTIONS
-const configStatusOptions = TENANT_CONFIG_STATUS_OPTIONS
-const isolationModeOptions = TENANT_ISOLATION_MODE_OPTIONS
-const memberTypeOptions = MEMBER_TYPE_OPTIONS
-const inviteStatusOptions = MEMBER_INVITE_STATUS_OPTIONS
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
+const tenantStatusOptions = useEnumOptions('TenantStatus', TENANT_STATUS_OPTIONS)
+const configStatusOptions = useEnumOptions('TenantConfigStatus', TENANT_CONFIG_STATUS_OPTIONS)
+const isolationModeOptions = useEnumOptions('TenantIsolationMode', TENANT_ISOLATION_MODE_OPTIONS)
+const memberTypeOptions = useEnumOptions('TenantMemberType', MEMBER_TYPE_OPTIONS)
+const inviteStatusOptions = useEnumOptions('TenantMemberInviteStatus', MEMBER_INVITE_STATUS_OPTIONS)
+const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
 
 const expiredOptions = computed(() => [
   { label: t('tenant.list.yes'), value: 1 },
@@ -141,7 +142,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('tenant.list.isolation_mode'),
     dataType: 'enum',
     dictionaryCode: 'TenantIsolationMode',
-    options: isolationModeOptions,
+    options: isolationModeOptions.value,
     minWidth: 120,
     order: 5,
   },
@@ -154,13 +155,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'TenantStatus',
-    options: tenantStatusOptions,
+    options: tenantStatusOptions.value,
     searchPlaceholder: t('tenant.list.tenant_status_placeholder'),
     width: 100,
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: getTenantStatusTagType(r.tenantStatus) }, () => getOptionLabel(tenantStatusOptions, r.tenantStatus))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: getTenantStatusTagType(r.tenantStatus) }, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus))
     },
   },
   {
@@ -171,7 +172,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'TenantConfigStatus',
-    options: configStatusOptions,
+    options: configStatusOptions.value,
     searchPlaceholder: t('tenant.list.config_status_placeholder'),
     minWidth: 110,
     order: 8,

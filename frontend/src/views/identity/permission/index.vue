@@ -62,6 +62,7 @@ import {
   STATUS_OPTIONS,
   VALIDITY_STATUS_OPTIONS,
 } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
@@ -91,25 +92,27 @@ const operationOptions = ref<NumericSelectOption[]>([])
 
 const modalVisible = ref(false)
 
-const permissionTypeOptions = PERMISSION_TYPE_OPTIONS
-const validityStatusOptions = VALIDITY_STATUS_OPTIONS
-const resourceTypeOptions = RESOURCE_TYPE_OPTIONS
-const resourceAccessLevelOptions = RESOURCE_ACCESS_LEVEL_OPTIONS
+const permissionTypeOptions = useEnumOptions('PermissionType', PERMISSION_TYPE_OPTIONS)
+const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
+const resourceTypeOptions = useEnumOptions('ResourceType', RESOURCE_TYPE_OPTIONS)
+const resourceAccessLevelOptions = useEnumOptions('ResourceAccessLevel', RESOURCE_ACCESS_LEVEL_OPTIONS)
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const httpMethodTypeOptions = useEnumOptions('HttpMethodType', HTTP_METHOD_OPTIONS)
 // HTTP 谓词为标识符无需翻译；仅合成项「所有方法」(ALL) 走本地 i18n
 const httpMethodOptions = computed(() =>
-  HTTP_METHOD_OPTIONS.map(o =>
+  httpMethodTypeOptions.value.map(o =>
     o.value === HttpMethodType.ALL ? { ...o, label: t('component.http_method.all') } : o,
   ),
 )
-const operationCategoryOptions = OPERATION_CATEGORY_OPTIONS
-const operationTypeOptions = OPERATION_TYPE_OPTIONS
-const conditionOperatorOptions = CONDITION_OPERATOR_OPTIONS
-const configDataTypeOptions = CONFIG_DATA_TYPE_OPTIONS
-const delegationStatusOptions = DELEGATION_STATUS_OPTIONS
-const requestStatusOptions = PERMISSION_REQUEST_STATUS_OPTIONS
-const fieldMaskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
-const fieldSecurityTargetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
-const changeTypeOptions = PERMISSION_CHANGE_TYPE_OPTIONS
+const operationCategoryOptions = useEnumOptions('OperationCategory', OPERATION_CATEGORY_OPTIONS)
+const operationTypeOptions = useEnumOptions('OperationTypeCode', OPERATION_TYPE_OPTIONS)
+const conditionOperatorOptions = useEnumOptions('ConditionOperator', CONDITION_OPERATOR_OPTIONS)
+const configDataTypeOptions = useEnumOptions('ConfigDataType', CONFIG_DATA_TYPE_OPTIONS)
+const delegationStatusOptions = useEnumOptions('DelegationStatus', DELEGATION_STATUS_OPTIONS)
+const requestStatusOptions = useEnumOptions('PermissionRequestStatus', PERMISSION_REQUEST_STATUS_OPTIONS)
+const fieldMaskStrategyOptions = useEnumOptions('FieldMaskStrategy', FIELD_MASK_STRATEGY_OPTIONS)
+const fieldSecurityTargetTypeOptions = useEnumOptions('FieldSecurityTargetType', FIELD_SECURITY_TARGET_TYPE_OPTIONS)
+const changeTypeOptions = useEnumOptions('PermissionChangeType', PERMISSION_CHANGE_TYPE_OPTIONS)
 
 const globalOptions = computed(() => [
   { label: t('identity.permission.global_permission'), value: 1 },
@@ -188,11 +191,11 @@ function formatBoolean(value?: boolean | null) {
 }
 
 function formatStatus(value?: EnableStatus | null) {
-  return getOptionLabel(STATUS_OPTIONS, value)
+  return getOptionLabel(statusOptions.value, value)
 }
 
 function formatValidityStatus(value?: ValidityStatus | null) {
-  return getOptionLabel(validityStatusOptions, value)
+  return getOptionLabel(validityStatusOptions.value, value)
 }
 
 function canMaintainPermission(row: PermissionListItemDto) {
@@ -213,7 +216,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     dictionaryCode: 'PermissionType',
-    options: permissionTypeOptions,
+    options: permissionTypeOptions.value,
     searchPlaceholder: t('identity.permission.permission_type_placeholder'),
     minWidth: 110,
     order: 4,
@@ -880,7 +883,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
           <NSwitch v-model:value="permissionForm.isRequireAudit" />
         </NFormItem>
         <NFormItem v-if="!permissionForm.basicId" :label="t('identity.permission.label_form_status')" path="status">
-          <NSelect v-model:value="permissionForm.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="permissionForm.status" :options="statusOptions" />
         </NFormItem>
         <NFormItem :label="t('identity.permission.label_form_priority')" path="priority">
           <NInputNumber v-model:value="permissionForm.priority" :min="0" style="width: 100%" />

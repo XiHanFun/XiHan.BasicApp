@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
 import { XUserAvatar } from '~/components'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
-import { useEnumService } from '~/hooks'
+import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
@@ -20,11 +20,10 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 
-// 成员类型走后端枚举元数据（本地化），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
-const enumService = useEnumService()
-void enumService.ensureEnum('TenantMemberType')
+// 成员类型走后端枚举元数据（本地化、切语言响应式重取），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
+const memberTypeOptions = useEnumOptions('TenantMemberType', MEMBER_TYPE_OPTIONS)
 function memberTypeLabel(value: TenantSwitcherDto['memberType']) {
-  return enumService.getLabel('TenantMemberType', value, getOptionLabel(MEMBER_TYPE_OPTIONS, value))
+  return getOptionLabel(memberTypeOptions.value, value)
 }
 
 const loading = ref(false)

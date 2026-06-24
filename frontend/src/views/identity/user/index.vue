@@ -55,6 +55,7 @@ import {
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
 
@@ -111,6 +112,10 @@ const timezoneOptions = [
 // 搜索/表单选项
 const statusOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
 const genderOptions = GENDER_OPTIONS
+
+// 响应式枚举选项（后端本地化单一事实源，切语言自动重取；静态常量作兜底）
+const genderEnumOptions = useEnumOptions('UserGender', GENDER_OPTIONS)
+const statusEnumOptions = useEnumOptions('EnableStatus', statusOptions)
 
 const showFormModal = ref(false)
 const showDetModal = ref(false)
@@ -189,7 +194,7 @@ const detUser = computed(() => {
     language: u.language ?? '—',
     timeZone: u.timeZone ?? '—',
     country: u.country ?? '—',
-    gender: getOptionLabel(GENDER_OPTIONS, u.gender),
+    gender: getOptionLabel(genderEnumOptions.value, u.gender),
     roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
     depts: d.departments.map(dep => dep.departmentName ?? '').filter(Boolean),
     remark: u.remark,
@@ -379,7 +384,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as UserListItemDto
-      const label = getOptionLabel(GENDER_OPTIONS, r.gender)
+      const label = getOptionLabel(genderEnumOptions.value, r.gender)
       return h(
         NTag,
         { size: 'small', type: GENDER_TAG_TYPE[r.gender] ?? 'default', bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
@@ -1199,7 +1204,7 @@ async function confirmDelete() {
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NSelect v-model:value="userForm.gender" :options="genderOptions" />
+                <NSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
               </NFormItem>
               <NFormItem
                 :label="t('identity.user.label_birthday')"
@@ -1234,7 +1239,7 @@ async function confirmDelete() {
                 :show-feedback="false"
                 label-style="font-size:11px;font-weight:500"
               >
-                <NSelect v-model:value="userForm.status" :options="statusOptions" />
+                <NSelect v-model:value="userForm.status" :options="statusEnumOptions" />
               </NFormItem>
               <NFormItem
                 v-if="!userForm.basicId"

@@ -36,6 +36,7 @@ import {
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'CodeGenTemplatePanel' })
@@ -61,6 +62,8 @@ interface TemplateFormModel {
 const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
+
+const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 function reload() {
@@ -133,6 +136,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'status',
     title: t('common.fields.status'),
     dataType: 'enum',
+    dictionaryCode: 'EnableStatus',
     searchable: true,
     searchMultiple: true,
     sortable: true,
@@ -142,7 +146,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 8,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
@@ -427,7 +431,7 @@ async function handleSubmit() {
           <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
-          <NSelect v-model:value="form.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="form.status" :options="statusEnumOptions" />
         </NFormItem>
         <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_description')" path="templateDescription">
           <NInput v-model:value="form.templateDescription" clearable :rows="2" type="textarea" />

@@ -41,6 +41,7 @@ import {
   FIELD_SECURITY_TARGET_TYPE_OPTIONS,
   STATUS_OPTIONS,
 } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemFieldSecurityPage' })
@@ -67,8 +68,9 @@ const targetLoading = ref(false)
 const resourceOptions = ref<NumericSelectOption[]>([])
 const resourceLoading = ref(false)
 
-const maskStrategyOptions = FIELD_MASK_STRATEGY_OPTIONS
-const targetTypeOptions = FIELD_SECURITY_TARGET_TYPE_OPTIONS
+const maskStrategyOptions = useEnumOptions('FieldMaskStrategy', FIELD_MASK_STRATEGY_OPTIONS)
+const targetTypeOptions = useEnumOptions('FieldSecurityTargetType', FIELD_SECURITY_TARGET_TYPE_OPTIONS)
+const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const modalTitle = computed(() => (flsForm.value.basicId ? t('identity.field_security.form_edit_title') : t('identity.field_security.form_create_title')))
 const needMaskPattern = computed(() =>
@@ -249,11 +251,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'FieldSecurityTargetType',
-    options: targetTypeOptions,
+    options: targetTypeOptions.value,
     searchPlaceholder: t('identity.field_security.target_type_placeholder'),
     width: 110,
     order: 1,
-    render: row => getOptionLabel(targetTypeOptions, (row as unknown as FieldLevelSecurityListItemDto).targetType),
+    render: row => getOptionLabel(targetTypeOptions.value, (row as unknown as FieldLevelSecurityListItemDto).targetType),
   },
   {
     key: 'targetName',
@@ -304,11 +306,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'FieldMaskStrategy',
-    options: maskStrategyOptions,
+    options: maskStrategyOptions.value,
     searchPlaceholder: t('identity.field_security.mask_strategy_placeholder'),
     minWidth: 110,
     order: 7,
-    render: row => getOptionLabel(maskStrategyOptions, (row as unknown as FieldLevelSecurityListItemDto).maskStrategy),
+    render: row => getOptionLabel(maskStrategyOptions.value, (row as unknown as FieldLevelSecurityListItemDto).maskStrategy),
   },
   { key: 'priority', title: t('identity.field_security.col_priority'), dataType: 'number', sortable: true, width: 90, order: 8 },
   {
@@ -319,7 +321,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchMultiple: true,
     sortable: true,
     dictionaryCode: 'EnableStatus',
-    options: STATUS_OPTIONS,
+    options: statusEnumOptions.value,
     searchPlaceholder: t('identity.field_security.status_placeholder'),
     width: 90,
     order: 9,
@@ -575,7 +577,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
           <NInputNumber v-model:value="flsForm.priority" :min="0" style="width: 100%" />
         </NFormItem>
         <NFormItem v-if="!flsForm.basicId" :label="t('identity.field_security.label_status')" path="status">
-          <NSelect v-model:value="flsForm.status" :options="STATUS_OPTIONS" />
+          <NSelect v-model:value="flsForm.status" :options="statusEnumOptions" />
         </NFormItem>
         <NFormItem :label="t('identity.field_security.label_description')" path="description">
           <NInput

@@ -37,6 +37,7 @@ import {
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemAuthorizationPage' })
@@ -62,8 +63,8 @@ interface DelegationFormModel {
 const message = useMessage()
 
 const activeTab = ref('request')
-const requestStatusOptions = PERMISSION_REQUEST_STATUS_OPTIONS
-const delegationStatusOptions = DELEGATION_STATUS_OPTIONS
+const requestStatusOptions = useEnumOptions('PermissionRequestStatus', PERMISSION_REQUEST_STATUS_OPTIONS)
+const delegationStatusOptions = useEnumOptions('DelegationStatus', DELEGATION_STATUS_OPTIONS)
 
 const requestPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 const delegationPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -200,7 +201,7 @@ const requestFields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     searchable: true,
     dictionaryCode: 'PermissionRequestStatus',
-    options: requestStatusOptions,
+    options: requestStatusOptions.value,
     searchPlaceholder: t('identity.authorization.req_status_placeholder'),
     width: 100,
     order: 4,
@@ -209,7 +210,7 @@ const requestFields = computed<ListFieldSchema[]>(() => [
       return h(
         NTag,
         { size: 'small', bordered: false, type: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'default', style: { fontSize: '11px' } },
-        () => getOptionLabel(requestStatusOptions, r.requestStatus),
+        () => getOptionLabel(requestStatusOptions.value, r.requestStatus),
       )
     },
   },
@@ -342,7 +343,7 @@ const delegationFields = computed<ListFieldSchema[]>(() => [
     dataType: 'enum',
     searchable: true,
     dictionaryCode: 'DelegationStatus',
-    options: delegationStatusOptions,
+    options: delegationStatusOptions.value,
     searchPlaceholder: t('identity.authorization.del_status_placeholder'),
     width: 100,
     order: 4,
@@ -351,7 +352,7 @@ const delegationFields = computed<ListFieldSchema[]>(() => [
       return h(
         NTag,
         { size: 'small', bordered: false, type: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'default', style: { fontSize: '11px' } },
-        () => getOptionLabel(delegationStatusOptions, r.delegationStatus),
+        () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus),
       )
     },
   },

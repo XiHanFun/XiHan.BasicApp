@@ -16,6 +16,7 @@ import {
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { STATUS_OPTIONS } from '~/constants'
+import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import ColumnConfigModal from './column-config-modal.vue'
 import GenerateModal from './generate-modal.vue'
@@ -28,6 +29,8 @@ defineOptions({ name: 'CodeGenTablePanel' })
 const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
+
+const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 function reload() {
@@ -92,6 +95,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'status',
     title: t('develop.code_gen.table.col_status'),
     dataType: 'enum',
+    dictionaryCode: 'EnableStatus',
     searchable: true,
     searchMultiple: true,
     sortable: true,
@@ -101,7 +105,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(STATUS_OPTIONS, r.status))
+      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 8 },
