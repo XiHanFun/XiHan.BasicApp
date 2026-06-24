@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using System.Linq.Expressions;
@@ -55,6 +56,7 @@ public sealed class TaskLogQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>任务日志分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.TaskLog.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<TaskLogListItemDto>> GetTaskLogPageAsync(TaskLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

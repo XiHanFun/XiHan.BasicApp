@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq.Expressions;
 using XiHan.BasicApp.Core.Dtos;
@@ -72,6 +73,7 @@ public sealed class OnlineUserQueryService
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.UserSession.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<OnlineUserListItemDto>> GetOnlineUserPageAsync(OnlineUserPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using System.Linq.Expressions;
@@ -63,6 +64,7 @@ public sealed class DiffLogQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>差异日志分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.DiffLog.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<DiffLogListItemDto>> GetDiffLogPageAsync(DiffLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

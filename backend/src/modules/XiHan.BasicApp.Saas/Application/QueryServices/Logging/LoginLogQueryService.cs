@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using System.Linq.Expressions;
@@ -63,6 +64,7 @@ public sealed class LoginLogQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>登录日志分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.LoginLog.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<LoginLogListItemDto>> GetLoginLogPageAsync(LoginLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

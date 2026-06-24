@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -65,6 +66,7 @@ public sealed class PasswordHistoryQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>密码历史分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.PasswordHistory.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<PasswordHistoryListItemDto>> GetPasswordHistoryPageAsync(PasswordHistoryPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using System.Linq.Expressions;
@@ -55,6 +56,7 @@ public sealed class PermissionChangeLogQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>权限变更日志分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.PermissionChangeLog.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<PermissionChangeLogListItemDto>> GetPermissionChangeLogPageAsync(PermissionChangeLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

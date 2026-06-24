@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Application.Mappers;
@@ -61,6 +62,7 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>代码生成历史分页列表</returns>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<CodeGenHistoryListItemDto>> GetPageAsync(CodeGenHistoryPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

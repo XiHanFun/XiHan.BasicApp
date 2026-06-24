@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -73,6 +74,7 @@ public sealed class VersionQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统版本分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Version.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<VersionListItemDto>> GetVersionPageAsync(VersionPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -118,6 +120,7 @@ public sealed class VersionQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统迁移历史分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Version.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<MigrationHistoryListItemDto>> GetMigrationHistoryPageAsync(MigrationHistoryPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

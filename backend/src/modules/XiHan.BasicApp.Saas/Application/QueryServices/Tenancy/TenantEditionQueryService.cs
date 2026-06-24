@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
@@ -77,6 +78,7 @@ public sealed class TenantEditionQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>租户版本分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.TenantEdition.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<TenantEditionListItemDto>> GetTenantEditionPageAsync(TenantEditionPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

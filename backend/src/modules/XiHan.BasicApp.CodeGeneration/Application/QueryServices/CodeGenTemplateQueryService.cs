@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Application.Mappers;
@@ -53,6 +54,7 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
 
     /// <inheritdoc />
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<CodeGenTemplateListItemDto>> GetPageAsync(CodeGenTemplatePageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

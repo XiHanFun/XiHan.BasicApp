@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using XiHan.BasicApp.Core.Dtos;
@@ -74,6 +75,7 @@ public sealed class NotificationQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统通知分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<NotificationListItemDto>> GetNotificationPageAsync(NotificationPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -119,6 +121,7 @@ public sealed class NotificationQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户通知分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<UserNotificationListItemDto>> GetUserNotificationPageAsync(UserNotificationPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

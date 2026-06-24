@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -64,6 +65,7 @@ public sealed class ConfigQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统配置分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Config.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<ConfigListItemDto>> GetConfigPageAsync(ConfigPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

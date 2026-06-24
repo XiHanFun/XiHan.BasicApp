@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -79,6 +80,7 @@ public sealed class SessionRoleQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>会话角色分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.SessionRole.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<SessionRoleListItemDto>> GetSessionRolePageAsync(SessionRolePageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

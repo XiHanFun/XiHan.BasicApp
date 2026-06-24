@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -65,6 +66,7 @@ public sealed class UserSessionQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户会话分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.UserSession.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<UserSessionListItemDto>> GetUserSessionPageAsync(UserSessionPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
