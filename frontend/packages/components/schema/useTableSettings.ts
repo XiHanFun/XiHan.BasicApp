@@ -71,7 +71,7 @@ export function useTableSettings(
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
   const sync = useUserSettingSync(pageCode)
-  const defaultSelectable = options?.defaultSelectable ?? false
+  const defaultSelectable = options?.defaultSelectable ?? true
 
   /** 由 schema 字段生成的默认列设置 */
   function buildDefault(): ColumnSetting[] {
@@ -88,7 +88,7 @@ export function useTableSettings(
   const density = ref<TableDensity>('small')
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const selectable = ref<boolean>(defaultSelectable)
-  const showIndex = ref<boolean>(false)
+  const showIndex = ref<boolean>(true)
 
   /** 应用一份持久化设置（按 key 合并，丢弃已不存在的列、追加新列） */
   function applyPersisted(persisted: PersistedTableSettings) {
@@ -113,7 +113,7 @@ export function useTableSettings(
     density.value = persisted.density ?? 'small'
     style.value = { ...DEFAULT_STYLE, ...persisted.style }
     selectable.value = persisted.selectable ?? defaultSelectable
-    showIndex.value = persisted.showIndex ?? false
+    showIndex.value = persisted.showIndex ?? true
   }
 
   /** 从 localStorage 恢复 */
@@ -231,7 +231,7 @@ export function useTableSettings(
     density.value = 'small'
     style.value = { ...DEFAULT_STYLE }
     selectable.value = defaultSelectable
-    showIndex.value = false
+    showIndex.value = true
   }
 
   // 字段变化（如权限变更导致列增减）时重建并尝试恢复
