@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { DragEndEvent } from '@dnd-kit/vue'
-import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
+import type { ColumnSetting, TableDefaultSort, TableDensity, TableStyle } from './useTableSettings'
 import { DragDropProvider } from '@dnd-kit/vue'
-import { NButton, NCheckbox, NDivider, NIcon, NInputNumber, NPopover, NTooltip } from 'naive-ui'
+import { NButton, NCheckbox, NDivider, NIcon, NInputNumber, NPopover, NSelect, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -24,6 +24,10 @@ const props = defineProps<{
   selectable: boolean
   /** 是否显示序号列 */
   showIndex: boolean
+  /** 可排序列（field.sortable 的列，作为默认排序候选） */
+  sortableColumns: Array<{ key: string, title: string }>
+  /** 当前默认排序（为空表示无） */
+  defaultSort: TableDefaultSort | null
 }>()
 
 const emit = defineEmits<{
@@ -35,6 +39,7 @@ const emit = defineEmits<{
   setStyle: [key: keyof TableStyle, value: boolean]
   setSelectable: [value: boolean]
   setShowIndex: [value: boolean]
+  setDefaultSort: [field: string | undefined, order: 'asc' | 'desc' | undefined]
   reset: []
   save: []
 }>()
@@ -54,6 +59,9 @@ const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, inve
   // Naive single-line=true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
   { label: t('component.schema_table_settings.single_line'), key: 'singleLine', invert: true },
 ])
+
+/** 默认排序候选列 */
+const sortFieldOptions = computed(() => props.sortableColumns.map(c => ({ label: c.title, value: c.key })))
 
 /** 固定循环切换：无 → 左 → 右 → 无 */
 function nextFixed(current?: 'left' | 'right'): 'left' | 'right' | undefined {
@@ -167,6 +175,38 @@ function onDragEnd(event: DragEndEvent) {
             @click="emit('setShowIndex', !showIndex)"
           >
             {{ t('component.schema_table_settings.index') }}
+          </NButton>
+        </div>
+      </div>
+
+      <!-- 默认排序（列表打开时的初始排序；仅可排序列可选） -->
+      <div v-if="sortableColumns.length" class="flex gap-2 items-center justify-between">
+        <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.default_sort_label') }}</span>
+        <div class="flex gap-1 items-center">
+          <NSelect
+            :value="defaultSort?.field ?? null"
+            :options="sortFieldOptions"
+            size="tiny"
+            clearable
+            :placeholder="t('component.schema_table_settings.default_sort_none')"
+            style="width: 116px"
+            @update:value="(v: string | null) => emit('setDefaultSort', v ?? undefined, v ? (defaultSort?.order ?? 'asc') : undefined)"
+          />
+          <NButton
+            size="tiny"
+            :disabled="!defaultSort?.field"
+            :type="defaultSort?.order === 'asc' ? 'primary' : 'default'"
+            @click="emit('setDefaultSort', defaultSort?.field, 'asc')"
+          >
+            {{ t('component.schema_table_settings.sort_asc') }}
+          </NButton>
+          <NButton
+            size="tiny"
+            :disabled="!defaultSort?.field"
+            :type="defaultSort?.order === 'desc' ? 'primary' : 'default'"
+            @click="emit('setDefaultSort', defaultSort?.field, 'desc')"
+          >
+            {{ t('component.schema_table_settings.sort_desc') }}
           </NButton>
         </div>
       </div>

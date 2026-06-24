@@ -6,8 +6,8 @@ import type {
   QueryFilter,
   QueryKeyword,
   QuerySort,
-  SortDirection,
 } from './types'
+import { SortDirection } from './types'
 
 export function createDefaultQueryBehavior(input: Partial<QueryBehavior> = {}): QueryBehavior {
   return {
@@ -30,7 +30,11 @@ export function createDefaultQueryConditions(input: Partial<QueryConditions> = {
   }
 }
 
-export function createPageRequest(input: Partial<PageRequest> = {}): PageRequest {
+export function createPageRequest(input: {
+  behavior?: Partial<QueryBehavior>
+  conditions?: Partial<QueryConditions>
+  page?: { pageIndex?: number, pageSize?: number }
+} = {}): PageRequest {
   return {
     behavior: createDefaultQueryBehavior(input.behavior),
     conditions: createDefaultQueryConditions(input.conditions),
@@ -71,6 +75,17 @@ export function querySort(field: string, direction: SortDirection, priority = 0)
     field,
     priority,
   }
+}
+
+/**
+ * 由 SchemaPage 的归一化排序（sortField + 'asc'|'desc'）构建后端 conditions.sorts 数组。
+ * 无排序字段时返回空数组（后端据此回退各自的默认排序）。
+ */
+export function querySortsFromSchema(field?: string, order?: 'asc' | 'desc'): QuerySort[] {
+  if (!field) {
+    return []
+  }
+  return [querySort(field, order === 'desc' ? SortDirection.Descending : SortDirection.Ascending)]
 }
 
 export function compactRecord<T extends Record<string, unknown>>(input: T): Partial<T> {

@@ -73,6 +73,10 @@ export function toColumns<TRow extends object>(
     columnOrder?: string[]
     fixedMap?: Record<string, 'left' | 'right' | undefined>
     widthMap?: Record<string, number | undefined>
+    /** 当前排序字段（用于受控回显排序箭头） */
+    sortField?: string
+    /** 当前排序方向 */
+    sortOrder?: 'asc' | 'desc'
   },
 ): DataTableColumn<TRow>[] {
   let fields = schema.fields.filter(f => f.visible !== false && isFieldPermitted(f, can))
@@ -127,8 +131,11 @@ export function toColumns<TRow extends object>(
       }
     }
     if (field.sortable) {
-      // 服务端排序：仅声明可排序，排序事件由表格上抛
-      column.sorter = false
+      // 服务端排序：声明可排序（remote 模式下 Naive 不本地排序，仅上抛 update:sorter）。
+      // 受控 sortOrder 让箭头反映当前排序态（含「表格设置」的默认排序、方案恢复的排序）。
+      column.sorter = true
+      const active = options?.sortField === field.key
+      column.sortOrder = active ? (options?.sortOrder === 'asc' ? 'ascend' : 'descend') : false
     }
     // 列宽可拖拽调整（拖动表头右边框）；缺省 minWidth 给一个下限，避免拖到过窄
     column.resizable = true

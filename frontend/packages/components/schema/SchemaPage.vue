@@ -3,7 +3,7 @@ import type { DataTableColumn, DropdownOption } from 'naive-ui'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
 import type { ApiId } from '~/types/contracts'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
-import { computed, h, onMounted, ref } from 'vue'
+import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
@@ -97,8 +97,32 @@ const peekFields = computed<ListFieldSchema[]>(() =>
     : [],
 )
 
-/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化）。多选默认打开 */
+/** 可排序列（field.sortable 且有权限），作为「默认排序」候选 */
+const sortableColumns = computed<Array<{ key: string, title: string }>>(() =>
+  columnFields.value.filter(f => f.sortable).map(f => ({ key: f.key, title: f.title })),
+)
+
+/** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽/默认排序，按 pageCode 持久化）。多选默认打开 */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: true })
+
+// 初始默认排序：来自列设置本地持久化（restore 同步执行）；用户列头排序/方案应用会覆盖本会话
+if (settings.defaultSort.value) {
+  sortField.value = settings.defaultSort.value.field
+  sortOrder.value = settings.defaultSort.value.order
+}
+
+// 远端 hydrate 带来默认排序：仅当首屏已加载且用户尚未手动排序时应用并刷新（避免覆盖用户当前排序）
+watch(() => settings.defaultSort.value, (ds) => {
+  if (ds && firstLoaded.value && !sortField.value) {
+    changeSort(ds.field, ds.order)
+  }
+})
+
+/** 设置/清除默认排序：写入列设置并立即应用到当前表格（重新取数） */
+function onSetDefaultSort(field?: string, order?: 'asc' | 'desc') {
+  settings.setDefaultSort(field, order)
+  changeSort(field, field ? (order ?? 'asc') : undefined)
+}
 
 /**
  * 表格重挂载令牌：拖拽列宽会写入 Naive 内部缓存（覆盖 column.width），
@@ -208,6 +232,8 @@ const columns = computed<DataTableColumn<Row>[]>(() => {
     columnOrder: settings.columnOrder.value,
     fixedMap: settings.fixedMap.value,
     widthMap: settings.widthMap.value,
+    sortField: sortField.value,
+    sortOrder: sortOrder.value,
   })
   if (rowActions.value.length === 0) {
     return base
@@ -598,6 +624,8 @@ defineExpose({
             :table-style="settings.style.value"
             :selectable="settings.selectable.value"
             :show-index="settings.showIndex.value"
+            :sortable-columns="sortableColumns"
+            :default-sort="settings.defaultSort.value"
             @move="settings.move"
             @reset="onResetTableSettings"
             @set-density="settings.setDensity"
@@ -606,6 +634,7 @@ defineExpose({
             @set-style="settings.setStyle"
             @set-selectable="settings.setSelectable"
             @set-show-index="settings.setShowIndex"
+            @set-default-sort="onSetDefaultSort"
             @toggle-visible="settings.toggleVisible"
             @save="onSaveTableSettings"
           />

@@ -36,6 +36,14 @@ export interface TableStyle {
 /** 表格风格默认值（默认显示竖线：single-line=false） */
 const DEFAULT_STYLE: TableStyle = { striped: true, bordered: true, singleLine: false }
 
+/** 默认排序（列表打开时的初始排序；列头点击的临时排序会覆盖本次会话） */
+export interface TableDefaultSort {
+  /** 排序列字段键 */
+  field: string
+  /** 排序方向 */
+  order: 'asc' | 'desc'
+}
+
 /**
  * 持久化结构（localStorage）
  */
@@ -50,6 +58,8 @@ interface PersistedTableSettings {
   selectable?: boolean
   /** 是否显示序号列 */
   showIndex?: boolean
+  /** 默认排序（为空表示无默认排序，沿用后端各自默认） */
+  defaultSort?: TableDefaultSort | null
 }
 
 const STORAGE_PREFIX = 'xh:table-settings:'
@@ -89,6 +99,7 @@ export function useTableSettings(
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
+  const defaultSort = ref<TableDefaultSort | null>(null)
 
   /** 应用一份持久化设置（按 key 合并，丢弃已不存在的列、追加新列） */
   function applyPersisted(persisted: PersistedTableSettings) {
@@ -114,6 +125,7 @@ export function useTableSettings(
     style.value = { ...DEFAULT_STYLE, ...persisted.style }
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
+    defaultSort.value = persisted.defaultSort ?? null
   }
 
   /** 从 localStorage 恢复 */
@@ -151,6 +163,7 @@ export function useTableSettings(
       style: { ...style.value },
       selectable: selectable.value,
       showIndex: showIndex.value,
+      defaultSort: defaultSort.value,
     }
     storage.set(storageKey, data)
     sync.save('table', data)
@@ -210,6 +223,11 @@ export function useTableSettings(
     showIndex.value = value
   }
 
+  /** 设置/清除默认排序：传入 field 即设为该列排序（order 缺省升序），不传则清除 */
+  function setDefaultSort(field?: string, order?: 'asc' | 'desc') {
+    defaultSort.value = field ? { field, order: order ?? 'asc' } : null
+  }
+
   function move(fromIndex: number, toIndex: number) {
     if (fromIndex < 0 || toIndex < 0 || fromIndex >= columns.value.length || toIndex >= columns.value.length) {
       return
@@ -232,6 +250,7 @@ export function useTableSettings(
     style.value = { ...DEFAULT_STYLE }
     selectable.value = defaultSelectable
     showIndex.value = true
+    defaultSort.value = null
   }
 
   // 字段变化（如权限变更导致列增减）时重建并尝试恢复
@@ -245,6 +264,7 @@ export function useTableSettings(
     style,
     selectable,
     showIndex,
+    defaultSort,
     visibleKeys,
     columnOrder,
     fixedMap,
@@ -255,6 +275,7 @@ export function useTableSettings(
     setStyle,
     setSelectable,
     setShowIndex,
+    setDefaultSort,
     move,
     setDensity,
     resetDefault,

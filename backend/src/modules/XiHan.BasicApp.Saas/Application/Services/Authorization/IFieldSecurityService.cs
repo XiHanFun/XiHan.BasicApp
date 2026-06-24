@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
@@ -67,6 +68,13 @@ public interface IFieldSecurityService
     /// 对返回对象集合按有效规则就地脱敏。
     /// </summary>
     Task ApplyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default) where T : class;
+
+    /// <summary>
+    /// 排序字段 FLS 门控：就地剔除当前用户在该资源上「不可读或已脱敏」的排序字段。
+    /// 防止按受保护字段排序时——排序在 SQL 层按真实值进行、展示却被脱敏——通过结果顺序反推被保护的值。
+    /// 字段名按大小写不敏感匹配（前端列键多为 camelCase，FLS 规则名为实体属性名 PascalCase）；无显式规则的字段默认放行。
+    /// </summary>
+    Task GuardSortsAsync(QueryConditions conditions, string resourceCode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 校验本次更新涉及的字段均可编辑；命中不可编辑字段则抛出异常。
