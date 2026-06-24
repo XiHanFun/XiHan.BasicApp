@@ -3,7 +3,7 @@ import type { DataTableColumn, DropdownOption } from 'naive-ui'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
 import type { ApiId } from '~/types/contracts'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
-import { computed, h, onMounted, ref, watch } from 'vue'
+import { computed, h, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
@@ -239,6 +239,10 @@ const columns = computed<DataTableColumn<Row>[]>(() => {
   } as unknown as DataTableColumn<Row>
   return [...base, actionColumn]
 })
+
+/** 行展开：页面提供 #expand 作用域插槽时启用（行前出现展开箭头，展开渲染该插槽内容） */
+const slots = useSlots()
+const renderExpand = computed(() => (slots.expand ? (row: Row) => slots.expand!({ row }) : undefined))
 
 function visibleRowActions(row: Row): ActionSchema<Row>[] {
   return rowActions.value.filter(a => !a.visible || a.visible(row))
@@ -674,6 +678,7 @@ defineExpose({
           :default-expand-all="schema.tree?.defaultExpandAll ?? true"
           :remount-key="tableRemountKey"
           :peek-fields="peekFields"
+          :render-expand="renderExpand"
           @sort="changeSort"
           @update:page="changePage"
           @update:page-size="changePageSize"

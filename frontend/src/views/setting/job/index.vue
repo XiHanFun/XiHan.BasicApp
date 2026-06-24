@@ -36,6 +36,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
 import { Icon, SchemaPage } from '~/components'
+import CronExpression from '~/components/common/CronExpression.vue'
 import { STATUS_OPTIONS } from '~/constants'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -135,6 +136,11 @@ function formatBoolean(value?: boolean | null) {
     return '-'
   }
   return value ? t('common.statuses.yes') : t('common.statuses.no')
+}
+
+/** 行展开插槽的行对象在 SchemaPage 边界为宽松类型，这里收敛回具名 DTO */
+function asTask(row: unknown): TaskListItemDto {
+  return row as TaskListItemDto
 }
 
 // ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────
@@ -621,6 +627,44 @@ async function handleSubmit() {
     :schema="schema"
     @action="onAction"
   >
+    <!-- 行下拉展开：触发器信息（触发类型 / Cron / 间隔 / 运行态 / 上下次执行 / 起止 / 执行统计） -->
+    <template #expand="{ row }">
+      <div class="xh-trigger-expand">
+        <NDescriptions :column="3" label-placement="left" size="small" bordered>
+          <NDescriptionsItem :label="t('setting.job.trigger_type')">
+            {{ getOptionLabel(triggerTypeOptions, asTask(row).triggerType) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.cron_expression')">
+            <code v-if="asTask(row).cronExpression">{{ asTask(row).cronExpression }}</code>
+            <span v-else>-</span>
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.interval_label')">
+            {{ asTask(row).intervalSeconds ? `${asTask(row).intervalSeconds}s` : '-' }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.run_status')">
+            <NTag size="small" round :bordered="false" :type="runStatusTag(asTask(row).runTaskStatus)">
+              {{ getOptionLabel(runTaskStatusOptions, asTask(row).runTaskStatus) }}
+            </NTag>
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.next_run')">
+            {{ formatNullableDate(asTask(row).nextRunTime) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.last_run')">
+            {{ formatNullableDate(asTask(row).lastRunTime) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.start_time')">
+            {{ formatNullableDate(asTask(row).startTime) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.end_time')">
+            {{ formatNullableDate(asTask(row).endTime) }}
+          </NDescriptionsItem>
+          <NDescriptionsItem :label="t('setting.job.exec_stats')">
+            {{ t('setting.job.exec_stats_value', { executed: asTask(row).executedCount, repeat: asTask(row).repeatCount, retry: asTask(row).retryCount, maxRetry: asTask(row).maxRetryCount }) }}
+          </NDescriptionsItem>
+        </NDescriptions>
+      </div>
+    </template>
+
     <NDrawer v-model:show="detailVisible" :width="640">
       <NDrawerContent closable :title="t('setting.job.detail_title')">
         <NSpin :show="detailLoading">
@@ -907,8 +951,8 @@ async function handleSubmit() {
         <NFormItem :label="t('setting.job.task_method')" path="taskMethod">
           <NInput v-model:value="jobForm.taskMethod" clearable :placeholder="t('setting.job.task_method_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('setting.job.cron_expression')" path="cronExpression">
-          <NInput v-model:value="jobForm.cronExpression" clearable :placeholder="t('setting.job.cron_placeholder')" />
+        <NFormItem :label="t('setting.job.cron_expression')" path="cronExpression" class="xh-form-full-row">
+          <CronExpression v-model:value="jobForm.cronExpression" />
         </NFormItem>
         <NFormItem :label="t('setting.job.interval_label')" path="intervalSeconds">
           <NInputNumber v-model:value="jobForm.intervalSeconds" :min="0" clearable style="width: 100%" />
@@ -971,6 +1015,16 @@ async function handleSubmit() {
 <style scoped>
 .xh-detail-empty {
   padding: 48px 0;
+}
+
+.xh-trigger-expand {
+  padding: 4px 2px;
+}
+
+.xh-trigger-expand code {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 12px;
+  color: var(--n-text-color);
 }
 
 .xh-task-log-toolbar {
