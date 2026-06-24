@@ -206,17 +206,13 @@ function onDragEnd(event: DragEndEvent) {
 
       <NDivider class="!my-1" />
 
-      <!-- 表头（排序/固定列窄，用图标表头，避免多语言文字换行；语义见悬停提示） -->
+      <!-- 表头 -->
       <div class="xh-set-head flex gap-2 items-center">
         <span class="xh-set-head__handle" />
         <span class="flex-1">{{ t('component.schema_table_settings.column_name') }}</span>
         <span class="xh-set-head__width">{{ t('component.schema_table_settings.column_width') }}</span>
-        <span class="xh-set-head__col" :title="t('component.schema_table_settings.sort')">
-          <NIcon><Icon icon="lucide:arrow-up-down" /></NIcon>
-        </span>
-        <span class="xh-set-head__col" :title="t('component.schema_table_settings.fixed')">
-          <NIcon><Icon icon="lucide:pin" /></NIcon>
-        </span>
+        <span class="xh-set-head__col">{{ t('component.schema_table_settings.sort') }}</span>
+        <span class="xh-set-head__col">{{ t('component.schema_table_settings.fixed') }}</span>
       </div>
 
       <DragDropProvider @drag-end="onDragEnd">
@@ -310,12 +306,11 @@ function onDragEnd(event: DragEndEvent) {
   flex-shrink: 0;
 }
 
-/* 排序/固定表头：窄列图标，与行内单图标按钮居中对齐 */
+/* 排序/固定表头：文字单行不换行（兼容中英文 排序/固定 · Sort/Fixed），与行内单图标按钮对齐 */
 .xh-set-head__col {
-  width: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 40px;
+  text-align: center;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
@@ -325,17 +320,17 @@ function onDragEnd(event: DragEndEvent) {
   flex-shrink: 0;
 }
 
-/* 排序列：单图标按钮，窄列居中（与固定同款） */
+/* 排序列：单图标按钮，居中（与表头「排序」列等宽对齐） */
 .xh-set-row__sort {
-  width: 30px;
+  width: 40px;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
 }
 
-/* 固定列：单图标按钮，窄列居中 */
+/* 固定列：单图标按钮，居中（与表头「固定」列等宽对齐） */
 .xh-set-row__fixed {
-  width: 30px;
+  width: 40px;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
