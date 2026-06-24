@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -59,6 +60,7 @@ public sealed class MessageQueryService
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<EmailListItemDto>> GetEmailPageAsync(EmailPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -95,6 +97,7 @@ public sealed class MessageQueryService
 
     /// <inheritdoc />
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<SmsListItemDto>> GetSmsPageAsync(SmsPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

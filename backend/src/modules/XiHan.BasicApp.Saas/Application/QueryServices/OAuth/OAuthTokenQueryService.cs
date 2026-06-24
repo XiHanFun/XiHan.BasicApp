@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -79,6 +80,7 @@ public sealed class OAuthTokenQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>OAuth Token 分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.OAuthToken.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<OAuthTokenListItemDto>> GetOAuthTokenPageAsync(OAuthTokenPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

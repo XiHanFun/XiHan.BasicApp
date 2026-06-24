@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
@@ -84,6 +85,7 @@ public sealed class RoleQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>角色分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Role.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<RoleListItemDto>> GetRolePageAsync(RolePageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

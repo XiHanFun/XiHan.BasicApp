@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
@@ -69,6 +70,7 @@ public sealed class ResourceQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>资源分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Resource.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<ResourceListItemDto>> GetResourcePageAsync(ResourcePageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

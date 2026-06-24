@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using System.Linq.Expressions;
@@ -63,6 +64,7 @@ public sealed class ApiLogQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>API 日志分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.ApiLog.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<ApiLogListItemDto>> GetApiLogPageAsync(ApiLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

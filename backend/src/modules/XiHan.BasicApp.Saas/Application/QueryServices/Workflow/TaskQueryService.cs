@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -57,6 +58,7 @@ public sealed class TaskQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统任务分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Task.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<TaskListItemDto>> GetTaskPageAsync(TaskPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

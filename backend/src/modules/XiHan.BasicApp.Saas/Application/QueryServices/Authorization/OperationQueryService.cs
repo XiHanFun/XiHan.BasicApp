@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
@@ -69,6 +70,7 @@ public sealed class OperationQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>操作分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Operation.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<OperationListItemDto>> GetOperationPageAsync(OperationPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

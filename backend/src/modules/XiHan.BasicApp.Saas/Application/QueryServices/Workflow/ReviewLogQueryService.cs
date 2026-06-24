@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
 using System.Linq.Expressions;
@@ -55,6 +56,7 @@ public sealed class ReviewLogQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>审查日志分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.ReviewLog.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<ReviewLogListItemDto>> GetReviewLogPageAsync(ReviewLogPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

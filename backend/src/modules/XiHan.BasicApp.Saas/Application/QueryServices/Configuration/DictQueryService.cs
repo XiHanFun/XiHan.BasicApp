@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Saas.Application.Caching;
@@ -84,6 +85,7 @@ public sealed class DictQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统字典分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Dict.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<DictListItemDto>> GetDictPageAsync(DictPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -121,6 +123,7 @@ public sealed class DictQueryService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统字典项分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Dict.Read)]
+    [HttpPost]
     public async Task<PageResultDtoBase<DictItemListItemDto>> GetDictItemPageAsync(DictItemPageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
