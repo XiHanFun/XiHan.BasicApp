@@ -53,8 +53,8 @@ export function createPreferencesSlice() {
   const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? true)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
-  // 用户时区（IANA，如 Asia/Shanghai）：空串表示跟随浏览器；随请求头 X-Timezone 上行，后端按此换算返回时间
-  const appTimezone = ref<string>(LocalStorage.get<string>(APP_TIMEZONE_KEY) ?? '')
+  // 用户时区（IANA，如 Asia/Shanghai）：默认北京时间 Asia/Shanghai（空串表示跟随浏览器）；随请求头 X-Timezone 上行，后端按此换算返回时间
+  const appTimezone = ref<string>(LocalStorage.get<string>(APP_TIMEZONE_KEY) ?? 'Asia/Shanghai')
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 30)
 
@@ -110,7 +110,7 @@ export function createPreferencesSlice() {
   bindPersist(SEARCH_SYNC_KEY, searchSyncEnabled, true)
   bindPersist(TABLE_SYNC_KEY, tableSyncEnabled, true)
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
-  bindPersist(APP_TIMEZONE_KEY, appTimezone, '')
+  bindPersist(APP_TIMEZONE_KEY, appTimezone, 'Asia/Shanghai')
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 30)
   bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
