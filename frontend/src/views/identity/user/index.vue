@@ -313,11 +313,12 @@ function buildUserQuery(params: SchemaQueryParams) {
   return {
     ...createPageRequest({
       page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: { sorts: querySortsFromSchema(params.sorts) },
+      // 排序 + 区间(createdTime)/多选(status) 等通用过滤统一走 conditions
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
     }),
     keyword: toStr(f.keyword),
     gender: toStr(f.gender) as UserGender | undefined,
-    status: toStr(f.status) as EnableStatus | undefined,
+    // status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层 status 单值字段）
   }
 }
 
@@ -408,6 +409,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     title: t('identity.user.col_status'),
     dataType: 'enum',
     searchable: true,
+    searchMultiple: true,
     dictionaryCode: 'EnableStatus',
     options: statusOptions,
     searchPlaceholder: t('identity.user.status_placeholder'),
@@ -503,7 +505,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     },
   },
   // 创建时间（仅列）
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, width: 170, order: 7 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, width: 170, order: 7 },
 ])
 
 const schema = computed<PageSchema>(() => ({

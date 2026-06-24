@@ -77,6 +77,12 @@ public interface IFieldSecurityService
     Task GuardSortsAsync(QueryConditions conditions, string resourceCode, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 过滤字段 FLS 门控：就地剔除当前用户在该资源上「不可读或已脱敏」的过滤条件（conditions.filters）。
+    /// 与排序门控同理：防止按受保护字段过滤来探测被脱敏/隐藏的值。字段名大小写不敏感匹配；无显式规则的字段默认放行。
+    /// </summary>
+    Task GuardFiltersAsync(QueryConditions conditions, string resourceCode, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 校验本次更新涉及的字段均可编辑；命中不可编辑字段则抛出异常。
     /// </summary>
     Task EnsureEditableAsync(string resourceCode, IEnumerable<string> changingFields, CancellationToken cancellationToken = default);

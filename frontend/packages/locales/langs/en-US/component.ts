@@ -575,6 +575,16 @@ export default {
     hide_conditions: 'Hide conditions',
     advanced_search: 'Advanced search',
   },
+  search_date_range: {
+    start: 'Start',
+    end: 'End',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    last7: 'Last 7 days',
+    last30: 'Last 30 days',
+    this_month: 'This month',
+    last_month: 'Last month',
+  },
   http_method: {
     all: 'All methods',
   },

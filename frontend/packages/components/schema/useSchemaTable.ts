@@ -4,6 +4,7 @@ import type { ApiId } from '~/types/contracts'
 import { useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import { i18n } from '~/locales'
+import { queryFiltersFromSchema } from './selectors'
 
 /**
  * useSchemaTable 选项
@@ -61,6 +62,8 @@ export function useSchemaTable<TRow extends object>(
       pageSize: pageSize.value,
       sorts: [...sorts.value],
       filters: { ...filters },
+      // 区间/多选字段 → 后端通用过滤 conditions.filters（Between/In），由各页适配器并入 conditions
+      conditionFilters: queryFiltersFromSchema(schema.fields, filters),
     }
   }
 
