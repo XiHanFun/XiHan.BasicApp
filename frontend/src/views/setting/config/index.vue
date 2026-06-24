@@ -561,8 +561,14 @@ async function handleToggleStatus(row: ConfigListItemDto) {
               type="textarea"
             />
           </NFormItem>
-          <NFormItem :label="t('setting.config.default_value')" path="defaultValue">
-            <NInput v-model:value="configForm.defaultValue" clearable size="small" :placeholder="t('setting.config.default_value_placeholder')" />
+          <NFormItem :label="t('setting.config.default_value')" path="defaultValue" style="grid-column: span 2">
+            <NInput
+              v-model:value="configForm.defaultValue"
+              :rows="3"
+              clearable size="small"
+              :placeholder="t('setting.config.default_value_placeholder')"
+              type="textarea"
+            />
           </NFormItem>
           <NFormItem :label="t('setting.config.is_global_field')" path="isGlobal">
             <NSwitch v-model:value="configForm.isGlobal" />
