@@ -36,7 +36,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 偏好设置（Preference）：主题/外观/布局/组件/快捷键，设置键固定（如 "global"）
 /// - 页面设置（Page）：列设置（显隐/顺序/固定/列宽）、密度、个人视图（筛选+排序+分页快照），设置键为 pageCode
 /// </remarks>
-[SugarTable("SysUserSetting", "系统用户设置表")]
+[SugarTable(TableName = "Sys_User_Setting", TableDescription = "系统用户设置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -46,24 +46,24 @@ public partial class SysUserSetting : BasicAppFullAuditedEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 设置场景（偏好设置 / 页面设置 …）
     /// </summary>
-    [SugarColumn(ColumnDescription = "设置场景", IsNullable = false)]
+    [SugarColumn(ColumnName = "Scene", ColumnDescription = "设置场景", IsNullable = false)]
     public virtual UserSettingScene Scene { get; set; } = UserSettingScene.Preference;
 
     /// <summary>
     /// 设置键（偏好设置场景为固定标识；页面设置场景为 pageCode）
     /// </summary>
-    [SugarColumn(ColumnDescription = "设置键", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Setting_Key", ColumnDescription = "设置键", Length = 100, IsNullable = false)]
     public virtual string SettingKey { get; set; } = string.Empty;
 
     /// <summary>
     /// 设置载荷（JSON；后端不解释语义，由前端按版本兼容解析）
     /// </summary>
-    [SugarColumn(ColumnDescription = "设置载荷(JSON)", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Setting_Value", ColumnDescription = "设置载荷(JSON)", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? SettingValue { get; set; }
 }

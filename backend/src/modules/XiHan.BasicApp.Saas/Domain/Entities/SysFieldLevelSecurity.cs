@@ -44,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 客服场景：角色"客服"对 SysUser.Phone 字段 → IsReadable=true, MaskStrategy=PartialMask, MaskPattern="keep:3,4"（可读脱敏值 138****1234）
 /// - 财务场景：用户 U100 对 SysOrder.Amount → Priority=100 覆盖角色级限制允许可编辑
 /// </remarks>
-[SugarTable("SysFieldLevelSecurity", "系统字段级安全表")]
+[SugarTable(TableName = "Sys_Field_Level_Security", TableDescription = "系统字段级安全表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -57,43 +57,43 @@ public partial class SysFieldLevelSecurity : BasicAppFullAuditedEntity
     /// <summary>
     /// 目标类型（策略绑定到角色/用户/权限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标类型")]
+    [SugarColumn(ColumnName = "Target_Type", ColumnDescription = "目标类型")]
     public virtual FieldSecurityTargetType TargetType { get; set; } = FieldSecurityTargetType.Role;
 
     /// <summary>
     /// 目标ID（角色ID/用户ID/权限ID，具体对应 TargetType）
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Target_Id", ColumnDescription = "目标ID", IsNullable = false)]
     public virtual long TargetId { get; set; }
 
     /// <summary>
     /// 资源ID（关联 SysResource，标识受控对象）
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Resource_Id", ColumnDescription = "资源ID", IsNullable = false)]
     public virtual long ResourceId { get; set; }
 
     /// <summary>
     /// 字段名（资源对应数据结构的列/属性名，区分大小写）
     /// </summary>
-    [SugarColumn(ColumnDescription = "字段名", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Field_Name", ColumnDescription = "字段名", Length = 100, IsNullable = false)]
     public virtual string FieldName { get; set; } = string.Empty;
 
     /// <summary>
     /// 是否可读（false 时返回值按 MaskStrategy 处理）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否可读")]
+    [SugarColumn(ColumnName = "Is_Readable", ColumnDescription = "是否可读")]
     public virtual bool IsReadable { get; set; } = true;
 
     /// <summary>
     /// 是否可编辑（false 时前端只读，后端写操作拒绝）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否可编辑")]
+    [SugarColumn(ColumnName = "Is_Editable", ColumnDescription = "是否可编辑")]
     public virtual bool IsEditable { get; set; } = true;
 
     /// <summary>
     /// 脱敏策略（IsReadable=true 时对可读值脱敏；IsReadable=false 时对不可读值脱敏/隐藏）
     /// </summary>
-    [SugarColumn(ColumnDescription = "脱敏策略")]
+    [SugarColumn(ColumnName = "Mask_Strategy", ColumnDescription = "脱敏策略")]
     public virtual FieldMaskStrategy MaskStrategy { get; set; } = FieldMaskStrategy.None;
 
     /// <summary>
@@ -105,31 +105,31 @@ public partial class SysFieldLevelSecurity : BasicAppFullAuditedEntity
     /// - Redact: "[已脱敏]" → 固定替换串
     /// - Custom: 自定义规则字符串，由应用层解析
     /// </remarks>
-    [SugarColumn(ColumnDescription = "脱敏模式", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Mask_Pattern", ColumnDescription = "脱敏模式", Length = 500, IsNullable = true)]
     public virtual string? MaskPattern { get; set; }
 
     /// <summary>
     /// 优先级（数字越大优先级越高，与 SysPermission.Priority 方向一致）
     /// 用于冲突合并时覆盖低优先级规则（如用户级白名单覆盖角色级限制）
     /// </summary>
-    [SugarColumn(ColumnDescription = "优先级")]
+    [SugarColumn(ColumnName = "Priority", ColumnDescription = "优先级")]
     public virtual int Priority { get; set; } = 0;
 
     /// <summary>
     /// 策略描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "策略描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "策略描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

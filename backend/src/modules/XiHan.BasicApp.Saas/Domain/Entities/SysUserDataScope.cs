@@ -44,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 删除：
 /// - 硬删；撤销用户级覆盖或删除部门时直接删除相关记录
 /// </remarks>
-[SugarTable("SysUserDataScope", "用户自定义数据权限范围表")]
+[SugarTable(TableName = "Sys_User_Data_Scope", TableDescription = "用户自定义数据权限范围表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_UsId_DeId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
@@ -56,30 +56,30 @@ public partial class SysUserDataScope : BasicAppCreationEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 部门ID（用户级 Custom 范围可访问的部门）
     /// </summary>
-    [SugarColumn(ColumnDescription = "部门ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Department_Id", ColumnDescription = "部门ID", IsNullable = false)]
     public virtual long DepartmentId { get; set; }
 
     /// <summary>
     /// 是否包含子部门
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否包含子部门")]
+    [SugarColumn(ColumnName = "Include_Children", ColumnDescription = "是否包含子部门")]
     public virtual bool IncludeChildren { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

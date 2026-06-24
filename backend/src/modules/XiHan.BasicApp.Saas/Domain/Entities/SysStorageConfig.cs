@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 按地域就近接入
 /// - 冷热数据分层存储
 /// </remarks>
-[SugarTable("SysStorageConfig", "系统存储配置表")]
+[SugarTable(TableName = "Sys_Storage_Config", TableDescription = "系统存储配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -59,72 +59,72 @@ public partial class SysStorageConfig : BasicAppFullAuditedEntity
     /// <summary>
     /// 配置编码（租户内唯一标识）
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Config_Code", ColumnDescription = "配置编码", Length = 100, IsNullable = false)]
     public virtual string ConfigCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 配置名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Config_Name", ColumnDescription = "配置名称", Length = 200, IsNullable = false)]
     public virtual string ConfigName { get; set; } = string.Empty;
 
     /// <summary>
     /// 存储类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储类型")]
+    [SugarColumn(ColumnName = "Storage_Type", ColumnDescription = "存储类型")]
     public virtual StorageConfigType StorageType { get; set; } = StorageConfigType.Local;
 
     /// <summary>
     /// 端点URL（S3兼容接口地址）
     /// </summary>
-    [SugarColumn(ColumnDescription = "端点URL", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Endpoint", ColumnDescription = "端点URL", Length = 500, IsNullable = true)]
     public virtual string? Endpoint { get; set; }
 
     /// <summary>
     /// 区域/地域
     /// </summary>
-    [SugarColumn(ColumnDescription = "区域", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Region", ColumnDescription = "区域", Length = 100, IsNullable = true)]
     public virtual string? Region { get; set; }
 
     /// <summary>
     /// 存储桶名称（Bucket/Container）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储桶名称", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Bucket_Name", ColumnDescription = "存储桶名称", Length = 200, IsNullable = true)]
     public virtual string? BucketName { get; set; }
 
     /// <summary>
     /// 访问密钥ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问密钥ID", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Access_Key_Id", ColumnDescription = "访问密钥ID", Length = 200, IsNullable = true)]
     public virtual string? AccessKeyId { get; set; }
 
     /// <summary>
     /// 访问密钥（敏感字段，传输/显示时需脱敏）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问密钥", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Secret_Access_Key", ColumnDescription = "访问密钥", Length = 500, IsNullable = true)]
     public virtual string? SecretAccessKey { get; set; }
 
     /// <summary>
     /// 是否默认存储（同一租户有且仅有一条为true）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否默认存储")]
+    [SugarColumn(ColumnName = "Is_Default", ColumnDescription = "是否默认存储")]
     public virtual bool IsDefault { get; set; } = false;
 
     /// <summary>
     /// 是否启用
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否启用")]
+    [SugarColumn(ColumnName = "Is_Enabled", ColumnDescription = "是否启用")]
     public virtual bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 排序（数字越小越靠前）
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

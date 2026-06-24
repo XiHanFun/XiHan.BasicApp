@@ -41,7 +41,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 灰度发布前检查数据库版本是否已迁移到目标版本
 /// - 客户端强制升级提示
 /// </remarks>
-[SugarTable("SysVersion", "系统版本表")]
+[SugarTable(TableName = "Sys_Version", TableDescription = "系统版本表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ApVe", nameof(AppVersion), OrderByType.Asc)]
@@ -52,36 +52,36 @@ public partial class SysVersion : BasicAppCreationEntity
     /// <summary>
     /// 应用版本
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用版本", Length = 64)]
+    [SugarColumn(ColumnName = "App_Version", ColumnDescription = "应用版本", Length = 64)]
     public virtual string AppVersion { get; set; } = string.Empty;
 
     /// <summary>
     /// 数据库版本
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据库版本", Length = 64)]
+    [SugarColumn(ColumnName = "Db_Version", ColumnDescription = "数据库版本", Length = 64)]
     public virtual string DbVersion { get; set; } = "0.0.0";
 
     /// <summary>
     /// 最小支持版本
     /// </summary>
-    [SugarColumn(ColumnDescription = "最小支持版本", Length = 64, IsNullable = true)]
+    [SugarColumn(ColumnName = "Min_Support_Version", ColumnDescription = "最小支持版本", Length = 64, IsNullable = true)]
     public virtual string? MinSupportVersion { get; set; }
 
     /// <summary>
     /// 是否升级中
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否升级中")]
+    [SugarColumn(ColumnName = "Is_Upgrading", ColumnDescription = "是否升级中")]
     public virtual bool IsUpgrading { get; set; }
 
     /// <summary>
     /// 升级节点
     /// </summary>
-    [SugarColumn(ColumnDescription = "升级节点", Length = 128, IsNullable = true)]
+    [SugarColumn(ColumnName = "Upgrade_Node", ColumnDescription = "升级节点", Length = 128, IsNullable = true)]
     public virtual string? UpgradeNode { get; set; }
 
     /// <summary>
     /// 升级开始时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "升级开始时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Upgrade_Start_Time", ColumnDescription = "升级开始时间", IsNullable = true)]
     public virtual DateTimeOffset? UpgradeStartTime { get; set; }
 }

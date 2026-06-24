@@ -46,7 +46,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 个人中心"通知偏好"设置：渠道（站内信/邮箱/短信/推送）× 类型（公告/任务/审批/安全/营销）
 /// - 营销类可随时关闭（GDPR 合规）；安全告警建议始终开启
 /// </remarks>
-[SugarTable("SysUserNotificationPreference", "系统用户通知偏好表")]
+[SugarTable(TableName = "Sys_User_Notification_Preference", TableDescription = "系统用户通知偏好表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -56,7 +56,7 @@ public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     // ── 接收渠道总开关 ──────────────────────────────
@@ -64,25 +64,25 @@ public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity
     /// <summary>
     /// 站内信通知
     /// </summary>
-    [SugarColumn(ColumnDescription = "站内信通知")]
+    [SugarColumn(ColumnName = "Channel_In_App", ColumnDescription = "站内信通知")]
     public virtual bool ChannelInApp { get; set; } = true;
 
     /// <summary>
     /// 邮箱通知
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮箱通知")]
+    [SugarColumn(ColumnName = "Channel_Email", ColumnDescription = "邮箱通知")]
     public virtual bool ChannelEmail { get; set; } = true;
 
     /// <summary>
     /// 短信通知
     /// </summary>
-    [SugarColumn(ColumnDescription = "短信通知")]
+    [SugarColumn(ColumnName = "Channel_Sms", ColumnDescription = "短信通知")]
     public virtual bool ChannelSms { get; set; } = false;
 
     /// <summary>
     /// 推送通知
     /// </summary>
-    [SugarColumn(ColumnDescription = "推送通知")]
+    [SugarColumn(ColumnName = "Channel_Push", ColumnDescription = "推送通知")]
     public virtual bool ChannelPush { get; set; } = true;
 
     // ── 通知类型开关 ──────────────────────────────
@@ -90,36 +90,36 @@ public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity
     /// <summary>
     /// 系统公告
     /// </summary>
-    [SugarColumn(ColumnDescription = "系统公告")]
+    [SugarColumn(ColumnName = "Type_Announcement", ColumnDescription = "系统公告")]
     public virtual bool TypeAnnouncement { get; set; } = true;
 
     /// <summary>
     /// 任务提醒
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务提醒")]
+    [SugarColumn(ColumnName = "Type_Task", ColumnDescription = "任务提醒")]
     public virtual bool TypeTask { get; set; } = true;
 
     /// <summary>
     /// 审批通知
     /// </summary>
-    [SugarColumn(ColumnDescription = "审批通知")]
+    [SugarColumn(ColumnName = "Type_Approval", ColumnDescription = "审批通知")]
     public virtual bool TypeApproval { get; set; } = true;
 
     /// <summary>
     /// 安全告警
     /// </summary>
-    [SugarColumn(ColumnDescription = "安全告警")]
+    [SugarColumn(ColumnName = "Type_Security", ColumnDescription = "安全告警")]
     public virtual bool TypeSecurity { get; set; } = true;
 
     /// <summary>
     /// 营销消息
     /// </summary>
-    [SugarColumn(ColumnDescription = "营销消息")]
+    [SugarColumn(ColumnName = "Type_Marketing", ColumnDescription = "营销消息")]
     public virtual bool TypeMarketing { get; set; } = false;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

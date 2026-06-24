@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - CDN 回源：主存储 + CDN 缓存记录
 /// - 存储迁移：阿里云 → AWS 平滑切换
 /// </remarks>
-[SugarTable("SysFileStorage", "系统文件存储表")]
+[SugarTable(TableName = "Sys_File_Storage", TableDescription = "系统文件存储表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -62,7 +62,7 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 文件ID（外键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "File_Id", ColumnDescription = "文件ID", IsNullable = false)]
     public virtual long FileId { get; set; }
 
     #endregion
@@ -72,25 +72,25 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 存储类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储类型")]
+    [SugarColumn(ColumnName = "Storage_Type", ColumnDescription = "存储类型")]
     public virtual FileStorageType StorageType { get; set; } = FileStorageType.Local;
 
     /// <summary>
     /// 存储提供商（Aliyun、Tencent、AWS、Minio等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储提供商", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Storage_Provider", ColumnDescription = "存储提供商", Length = 50, IsNullable = true)]
     public virtual string? StorageProvider { get; set; }
 
     /// <summary>
     /// 存储配置ID（关联存储配置表）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储配置ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Storage_Config_Id", ColumnDescription = "存储配置ID", IsNullable = true)]
     public virtual long? StorageConfigId { get; set; }
 
     /// <summary>
     /// 存储区域（地域）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储区域", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Storage_Region", ColumnDescription = "存储区域", Length = 50, IsNullable = true)]
     public virtual string? StorageRegion { get; set; }
 
     #endregion
@@ -100,19 +100,19 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 存储桶名称（Bucket/Container）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储桶名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Bucket_Name", ColumnDescription = "存储桶名称", Length = 100, IsNullable = true)]
     public virtual string? BucketName { get; set; }
 
     /// <summary>
     /// 存储路径（相对路径，如 uploads/2025/01/10/xxx.jpg）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储路径", Length = 500, IsNullable = false)]
+    [SugarColumn(ColumnName = "Storage_Path", ColumnDescription = "存储路径", Length = 500, IsNullable = false)]
     public virtual string StoragePath { get; set; } = string.Empty;
 
     /// <summary>
     /// 完整路径（绝对路径，仅本地存储使用）
     /// </summary>
-    [SugarColumn(ColumnDescription = "完整路径", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Full_Path", ColumnDescription = "完整路径", Length = 1000, IsNullable = true)]
     public virtual string? FullPath { get; set; }
 
     #endregion
@@ -122,19 +122,19 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 内部访问URL（内网地址）
     /// </summary>
-    [SugarColumn(ColumnDescription = "内部访问URL", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Internal_Url", ColumnDescription = "内部访问URL", Length = 1000, IsNullable = true)]
     public virtual string? InternalUrl { get; set; }
 
     /// <summary>
     /// 外部访问URL（公网地址）
     /// </summary>
-    [SugarColumn(ColumnDescription = "外部访问URL", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "External_Url", ColumnDescription = "外部访问URL", Length = 1000, IsNullable = true)]
     public virtual string? ExternalUrl { get; set; }
 
     /// <summary>
     /// CDN访问URL
     /// </summary>
-    [SugarColumn(ColumnDescription = "CDN访问URL", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Cdn_Url", ColumnDescription = "CDN访问URL", Length = 1000, IsNullable = true)]
     public virtual string? CdnUrl { get; set; }
 
     #endregion
@@ -144,31 +144,31 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 是否为主存储
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否为主存储")]
+    [SugarColumn(ColumnName = "Is_Primary", ColumnDescription = "是否为主存储")]
     public virtual bool IsPrimary { get; set; } = true;
 
     /// <summary>
     /// 是否为备份存储
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否为备份存储")]
+    [SugarColumn(ColumnName = "Is_Backup", ColumnDescription = "是否为备份存储")]
     public virtual bool IsBackup { get; set; } = false;
 
     /// <summary>
     /// 是否启用CDN加速
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否启用CDN加速")]
+    [SugarColumn(ColumnName = "Enable_Cdn", ColumnDescription = "是否启用CDN加速")]
     public virtual bool EnableCdn { get; set; } = false;
 
     /// <summary>
     /// 是否压缩存储
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否压缩存储")]
+    [SugarColumn(ColumnName = "Is_Compressed", ColumnDescription = "是否压缩存储")]
     public virtual bool IsCompressed { get; set; } = false;
 
     /// <summary>
     /// 压缩率（百分比）
     /// </summary>
-    [SugarColumn(ColumnDescription = "压缩率", IsNullable = true)]
+    [SugarColumn(ColumnName = "Compression_Ratio", ColumnDescription = "压缩率", IsNullable = true)]
     public virtual decimal? CompressionRatio { get; set; }
 
     #endregion
@@ -178,43 +178,43 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 存储状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "存储状态")]
     public virtual FileStorageStatus Status { get; set; } = FileStorageStatus.Normal;
 
     /// <summary>
     /// 上传时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "上传时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Uploaded_Time", ColumnDescription = "上传时间", IsNullable = true)]
     public virtual DateTimeOffset? UploadedTime { get; set; }
 
     /// <summary>
     /// 上传耗时（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "上传耗时（毫秒）", IsNullable = true)]
+    [SugarColumn(ColumnName = "Upload_Duration", ColumnDescription = "上传耗时（毫秒）", IsNullable = true)]
     public virtual long? UploadDuration { get; set; }
 
     /// <summary>
     /// 上传失败原因
     /// </summary>
-    [SugarColumn(ColumnDescription = "上传失败原因", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Upload_Failure_Reason", ColumnDescription = "上传失败原因", Length = 500, IsNullable = true)]
     public virtual string? UploadFailureReason { get; set; }
 
     /// <summary>
     /// 重试次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "重试次数")]
+    [SugarColumn(ColumnName = "Retry_Count", ColumnDescription = "重试次数")]
     public virtual int RetryCount { get; set; } = 0;
 
     /// <summary>
     /// 最后验证时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后验证时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Verified_Time", ColumnDescription = "最后验证时间", IsNullable = true)]
     public virtual DateTimeOffset? LastVerifiedTime { get; set; }
 
     /// <summary>
     /// 验证状态（文件完整性）
     /// </summary>
-    [SugarColumn(ColumnDescription = "验证状态")]
+    [SugarColumn(ColumnName = "Is_Verified", ColumnDescription = "验证状态")]
     public virtual bool IsVerified { get; set; } = false;
 
     #endregion
@@ -224,19 +224,19 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 是否已同步
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否已同步")]
+    [SugarColumn(ColumnName = "Is_Synced", ColumnDescription = "是否已同步")]
     public virtual bool IsSynced { get; set; } = true;
 
     /// <summary>
     /// 同步时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "同步时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Synced_Time", ColumnDescription = "同步时间", IsNullable = true)]
     public virtual DateTimeOffset? SyncedTime { get; set; }
 
     /// <summary>
     /// 同步源存储ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "同步源存储ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Sync_Source_Id", ColumnDescription = "同步源存储ID", IsNullable = true)]
     public virtual long? SyncSourceId { get; set; }
 
     #endregion
@@ -246,19 +246,19 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 访问权限（private、public-read、public-read-write等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问权限", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Access_Control", ColumnDescription = "访问权限", Length = 50, IsNullable = true)]
     public virtual string? AccessControl { get; set; }
 
     /// <summary>
     /// 存储类别（标准、低频、归档等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储类别", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Storage_Class", ColumnDescription = "存储类别", Length = 50, IsNullable = true)]
     public virtual string? StorageClass { get; set; }
 
     /// <summary>
     /// 缓存控制
     /// </summary>
-    [SugarColumn(ColumnDescription = "缓存控制", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Cache_Control", ColumnDescription = "缓存控制", Length = 100, IsNullable = true)]
     public virtual string? CacheControl { get; set; }
 
     #endregion
@@ -268,19 +268,19 @@ public partial class SysFileStorage : BasicAppFullAuditedEntity
     /// <summary>
     /// 排序号（用于多存储优先级）
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序号")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序号")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     #endregion

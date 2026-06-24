@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// - 多风格模板（CRUD 简化版 / 完整版 / 只读展示版）
 /// - 模板版本化管理
 /// </remarks>
-[SugarTable("SysCodeGenTemplate", "系统代码生成模板表")]
+[SugarTable(TableName = "Sys_CodeGen_Template", TableDescription = "系统代码生成模板表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -59,96 +59,96 @@ public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
     /// <summary>
     /// 模板编码
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Template_Code", ColumnDescription = "模板编码", Length = 100, IsNullable = false)]
     public virtual string TemplateCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 模板名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Template_Name", ColumnDescription = "模板名称", Length = 200, IsNullable = false)]
     public virtual string TemplateName { get; set; } = string.Empty;
 
     /// <summary>
     /// 模板描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Template_Description", ColumnDescription = "模板描述", Length = 500, IsNullable = true)]
     public virtual string? TemplateDescription { get; set; }
 
     /// <summary>
     /// 模板分组
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板分组", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Template_Group", ColumnDescription = "模板分组", Length = 100, IsNullable = true)]
     public virtual string? TemplateGroup { get; set; }
 
     /// <summary>
     /// 模板类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板类型")]
+    [SugarColumn(ColumnName = "Template_Type", ColumnDescription = "模板类型")]
     public virtual TemplateType TemplateType { get; set; } = TemplateType.Single;
 
     /// <summary>
     /// 模板引擎
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板引擎")]
+    [SugarColumn(ColumnName = "Template_Engine", ColumnDescription = "模板引擎")]
     public virtual TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Razor;
 
     /// <summary>
     /// 模板内容
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Template_Content", ColumnDescription = "模板内容", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? TemplateContent { get; set; }
 
     /// <summary>
     /// 模板路径
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板路径", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Template_Path", ColumnDescription = "模板路径", Length = 500, IsNullable = true)]
     public virtual string? TemplatePath { get; set; }
 
     /// <summary>
     /// 生成文件名表达式
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成文件名表达式", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "File_Name_Expression", ColumnDescription = "生成文件名表达式", Length = 500, IsNullable = true)]
     public virtual string? FileNameExpression { get; set; }
 
     /// <summary>
     /// 生成文件路径表达式
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成文件路径表达式", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "File_Path_Expression", ColumnDescription = "生成文件路径表达式", Length = 500, IsNullable = true)]
     public virtual string? FilePathExpression { get; set; }
 
     /// <summary>
     /// 文件扩展名
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件扩展名", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "File_Extension", ColumnDescription = "文件扩展名", Length = 20, IsNullable = true)]
     public virtual string? FileExtension { get; set; }
 
     /// <summary>
     /// 是否内置
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否内置")]
+    [SugarColumn(ColumnName = "Is_Built_In", ColumnDescription = "是否内置")]
     public virtual bool IsBuiltIn { get; set; } = false;
 
     /// <summary>
     /// 是否启用
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否启用")]
+    [SugarColumn(ColumnName = "Is_Enabled", ColumnDescription = "是否启用")]
     public virtual bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

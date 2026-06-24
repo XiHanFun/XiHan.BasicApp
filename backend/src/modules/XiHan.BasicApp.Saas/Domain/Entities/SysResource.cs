@@ -52,7 +52,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 接口自动扫描注册：程序启动时将控制器 Action 注册为 API 类资源
 /// - 动态资源：管理端定义自定义资源类型（报表/数据表/业务对象等）
 /// </remarks>
-[SugarTable("SysResource", "系统资源表")]
+[SugarTable(TableName = "Sys_Resource", TableDescription = "系统资源表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -64,61 +64,61 @@ public partial class SysResource : BasicAppAggregateRoot
     /// <summary>
     /// 资源编码（唯一标识，如：user, order, department）
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Resource_Code", ColumnDescription = "资源编码", Length = 100, IsNullable = false)]
     public virtual string ResourceCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 资源名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Resource_Name", ColumnDescription = "资源名称", Length = 100, IsNullable = false)]
     public virtual string ResourceName { get; set; } = string.Empty;
 
     /// <summary>
     /// 资源类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源类型")]
+    [SugarColumn(ColumnName = "Resource_Type", ColumnDescription = "资源类型")]
     public virtual ResourceType ResourceType { get; set; } = ResourceType.Api;
 
     /// <summary>
     /// 资源路径（URL/文件路径/API路径等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源路径", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Resource_Path", ColumnDescription = "资源路径", Length = 500, IsNullable = true)]
     public virtual string? ResourcePath { get; set; }
 
     /// <summary>
     /// 资源描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "资源描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 资源元数据（JSON格式，存储扩展信息）
     /// 例如：{"method": "GET", "controller": "UserController", "action": "GetList"}
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Metadata", ColumnDescription = "资源元数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Metadata { get; set; }
 
     /// <summary>
     /// 资源访问级别（替代原 IsRequireAuth+IsPublic，消除无效布尔组合）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问级别")]
+    [SugarColumn(ColumnName = "Access_Level", ColumnDescription = "访问级别")]
     public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

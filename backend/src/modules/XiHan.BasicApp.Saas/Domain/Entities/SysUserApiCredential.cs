@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 个人中心「开发者设置」自助管理
 /// - OpenAPI 网关 HMAC 签名调用方身份（配合签名算法与 IP 白名单）
 /// </remarks>
-[SugarTable("SysUserApiCredential", "系统用户API凭证表")]
+[SugarTable(TableName = "Sys_User_Api_Credential", TableDescription = "系统用户API凭证表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -56,19 +56,19 @@ public partial class SysUserApiCredential : BasicAppFullAuditedEntity
     /// <summary>
     /// 所属用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = false)]
     public virtual long UserId { get; set; }
 
     /// <summary>
     /// 凭证名称（用途备注，便于区分多凭证）
     /// </summary>
-    [SugarColumn(ColumnDescription = "凭证名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Credential_Name", ColumnDescription = "凭证名称", Length = 100, IsNullable = false)]
     public virtual string CredentialName { get; set; } = string.Empty;
 
     /// <summary>
     /// 应用键（调用方身份标识，全局唯一）
     /// </summary>
-    [SugarColumn(ColumnDescription = "应用键", Length = 64, IsNullable = false)]
+    [SugarColumn(ColumnName = "App_Key", ColumnDescription = "应用键", Length = 64, IsNullable = false)]
     public virtual string AppKey { get; set; } = string.Empty;
 
     /// <summary>
@@ -76,30 +76,30 @@ public partial class SysUserApiCredential : BasicAppFullAuditedEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "应用密钥哈希", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Secret_Hash", ColumnDescription = "应用密钥哈希", Length = 200, IsNullable = false)]
     public virtual string SecretHash { get; set; } = string.Empty;
 
     /// <summary>
     /// 最后使用时间（开放接口鉴权成功时刷新）
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后使用时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Used_Time", ColumnDescription = "最后使用时间", IsNullable = true)]
     public virtual DateTimeOffset? LastUsedTime { get; set; }
 
     /// <summary>
     /// 过期时间（为空表示永不过期）
     /// </summary>
-    [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 区域经理：角色 DataScope=Custom + 配置可见多个地区部门（IncludeChildren=true）
 /// - 跨部门协作：项目组长角色配置能看几个非下属部门的数据
 /// </remarks>
-[SugarTable("SysRoleDataScope", "系统角色自定义数据权限范围表")]
+[SugarTable(TableName = "Sys_Role_Data_Scope", TableDescription = "系统角色自定义数据权限范围表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_RoId_DeId", nameof(TenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
@@ -60,42 +60,42 @@ public partial class SysRoleDataScope : BasicAppCreationEntity
     /// <summary>
     /// 角色ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Role_Id", ColumnDescription = "角色ID", IsNullable = false)]
     public virtual long RoleId { get; set; }
 
     /// <summary>
     /// 部门ID（自定义数据权限可访问的部门）
     /// </summary>
-    [SugarColumn(ColumnDescription = "部门ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Department_Id", ColumnDescription = "部门ID", IsNullable = false)]
     public virtual long DepartmentId { get; set; }
 
     /// <summary>
     /// 是否包含子部门（true 时自动包含该部门的所有下级，新增子部门自动纳入范围）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否包含子部门")]
+    [SugarColumn(ColumnName = "Include_Children", ColumnDescription = "是否包含子部门")]
     public virtual bool IncludeChildren { get; set; } = false;
 
     /// <summary>
     /// 生效时间（为空表示立即生效）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Effective_Time", ColumnDescription = "生效时间", IsNullable = true)]
     public virtual DateTimeOffset? EffectiveTime { get; set; }
 
     /// <summary>
     /// 失效时间（为空表示永不过期）
     /// </summary>
-    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "失效时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual ValidityStatus Status { get; set; } = ValidityStatus.Valid;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

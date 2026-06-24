@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 邮件/短信/OSS 等第三方连接配置
 /// - 业务阈值（审批金额、并发限额）
 /// </remarks>
-[SugarTable("SysConfig", "系统配置表")]
+[SugarTable(TableName = "Sys_Config", TableDescription = "系统配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -61,78 +61,78 @@ public partial class SysConfig : BasicAppFullAuditedEntity
     /// <summary>
     /// 配置名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Config_Name", ColumnDescription = "配置名称", Length = 100, IsNullable = false)]
     public virtual string ConfigName { get; set; } = string.Empty;
 
     /// <summary>
     /// 配置分组
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置分组", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Config_Group", ColumnDescription = "配置分组", Length = 100, IsNullable = true)]
     public virtual string? ConfigGroup { get; set; }
 
     /// <summary>
     /// 配置键
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置键", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Config_Key", ColumnDescription = "配置键", Length = 100, IsNullable = false)]
     public virtual string ConfigKey { get; set; } = string.Empty;
 
     /// <summary>
     /// 配置值
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Config_Value", ColumnDescription = "配置值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ConfigValue { get; set; }
 
     /// <summary>
     /// 默认值
     /// </summary>
-    [SugarColumn(ColumnDescription = "默认值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Default_Value", ColumnDescription = "默认值", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? DefaultValue { get; set; }
 
     /// <summary>
     /// 配置类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置类型")]
+    [SugarColumn(ColumnName = "Config_Type", ColumnDescription = "配置类型")]
     public virtual ConfigType ConfigType { get; set; } = ConfigType.Feature;
 
     /// <summary>
     /// 数据类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据类型")]
+    [SugarColumn(ColumnName = "Data_Type", ColumnDescription = "数据类型")]
     public virtual ConfigDataType DataType { get; set; } = ConfigDataType.String;
 
     /// <summary>
     /// 配置描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "配置描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Config_Description", ColumnDescription = "配置描述", Length = 500, IsNullable = true)]
     public virtual string? ConfigDescription { get; set; }
 
     /// <summary>
     /// 是否内置
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否内置")]
+    [SugarColumn(ColumnName = "Is_Built_In", ColumnDescription = "是否内置")]
     public virtual bool IsBuiltIn { get; set; } = false;
 
     /// <summary>
     /// 是否加密
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否加密")]
+    [SugarColumn(ColumnName = "Is_Encrypted", ColumnDescription = "是否加密")]
     public virtual bool IsEncrypted { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

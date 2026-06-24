@@ -49,7 +49,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 业务附件绑定（订单附件、审批附件）
 /// - 存量文件管理与清理
 /// </remarks>
-[SugarTable("SysFile", "系统文件表")]
+[SugarTable(TableName = "Sys_File", TableDescription = "系统文件表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -66,37 +66,37 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 文件名（系统生成的唯一文件名）
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件名", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "File_Name", ColumnDescription = "文件名", Length = 200, IsNullable = false)]
     public virtual string FileName { get; set; } = string.Empty;
 
     /// <summary>
     /// 原始文件名（用户上传时的文件名）
     /// </summary>
-    [SugarColumn(ColumnDescription = "原始文件名", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Original_Name", ColumnDescription = "原始文件名", Length = 200, IsNullable = false)]
     public virtual string OriginalName { get; set; } = string.Empty;
 
     /// <summary>
     /// 文件扩展名（含点，如：.jpg）
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件扩展名", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "File_Extension", ColumnDescription = "文件扩展名", Length = 20, IsNullable = true)]
     public virtual string? FileExtension { get; set; }
 
     /// <summary>
     /// 文件类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件类型")]
+    [SugarColumn(ColumnName = "File_Type", ColumnDescription = "文件类型")]
     public virtual FileType FileType { get; set; } = FileType.Other;
 
     /// <summary>
     /// MIME类型（如：image/jpeg）
     /// </summary>
-    [SugarColumn(ColumnDescription = "MIME类型", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Mime_Type", ColumnDescription = "MIME类型", Length = 100, IsNullable = true)]
     public virtual string? MimeType { get; set; }
 
     /// <summary>
     /// 文件大小（字节）
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件大小（字节）")]
+    [SugarColumn(ColumnName = "File_Size", ColumnDescription = "文件大小（字节）")]
     public virtual long FileSize { get; set; } = 0;
 
     /// <summary>
@@ -105,13 +105,13 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <remarks>
     /// 建议使用 SHA256 或 MD5
     /// </remarks>
-    [SugarColumn(ColumnDescription = "文件哈希值", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "File_Hash", ColumnDescription = "文件哈希值", Length = 100, IsNullable = true)]
     public virtual string? FileHash { get; set; }
 
     /// <summary>
     /// 哈希算法类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "哈希算法类型", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Hash_Algorithm", ColumnDescription = "哈希算法类型", Length = 20, IsNullable = true)]
     public virtual string? HashAlgorithm { get; set; }
 
     #endregion
@@ -121,25 +121,25 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 图片/视频宽度
     /// </summary>
-    [SugarColumn(ColumnDescription = "宽度", IsNullable = true)]
+    [SugarColumn(ColumnName = "Width", ColumnDescription = "宽度", IsNullable = true)]
     public virtual int? Width { get; set; }
 
     /// <summary>
     /// 图片/视频高度
     /// </summary>
-    [SugarColumn(ColumnDescription = "高度", IsNullable = true)]
+    [SugarColumn(ColumnName = "Height", ColumnDescription = "高度", IsNullable = true)]
     public virtual int? Height { get; set; }
 
     /// <summary>
     /// 视频/音频时长（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "时长（秒）", IsNullable = true)]
+    [SugarColumn(ColumnName = "Duration", ColumnDescription = "时长（秒）", IsNullable = true)]
     public virtual int? Duration { get; set; }
 
     /// <summary>
     /// 缩略图文件ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "缩略图文件ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Thumbnail_File_Id", ColumnDescription = "缩略图文件ID", IsNullable = true)]
     public virtual long? ThumbnailFileId { get; set; }
 
     #endregion
@@ -149,13 +149,13 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 上传IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "上传IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Upload_Ip", ColumnDescription = "上传IP", Length = 50, IsNullable = true)]
     public virtual string? UploadIp { get; set; }
 
     /// <summary>
     /// 上传来源（Web、App、API等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "上传来源", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Upload_Source", ColumnDescription = "上传来源", Length = 50, IsNullable = true)]
     public virtual string? UploadSource { get; set; }
 
     #endregion
@@ -165,25 +165,25 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 下载次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "下载次数")]
+    [SugarColumn(ColumnName = "Download_Count", ColumnDescription = "下载次数")]
     public virtual int DownloadCount { get; set; } = 0;
 
     /// <summary>
     /// 访问次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问次数")]
+    [SugarColumn(ColumnName = "View_Count", ColumnDescription = "访问次数")]
     public virtual int ViewCount { get; set; } = 0;
 
     /// <summary>
     /// 最后下载时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后下载时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Download_Time", ColumnDescription = "最后下载时间", IsNullable = true)]
     public virtual DateTimeOffset? LastDownloadTime { get; set; }
 
     /// <summary>
     /// 最后访问时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后访问时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Access_Time", ColumnDescription = "最后访问时间", IsNullable = true)]
     public virtual DateTimeOffset? LastAccessTime { get; set; }
 
     #endregion
@@ -193,25 +193,25 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 文件访问级别（替代原 IsPublic+RequireAuth 布尔组合，消除无效组合）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问级别")]
+    [SugarColumn(ColumnName = "Access_Level", ColumnDescription = "访问级别")]
     public virtual ResourceAccessLevel AccessLevel { get; set; } = ResourceAccessLevel.Authorized;
 
     /// <summary>
     /// 访问权限（角色、用户等）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问权限", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Access_Permissions", ColumnDescription = "访问权限", Length = 500, IsNullable = true)]
     public virtual string? AccessPermissions { get; set; }
 
     /// <summary>
     /// 是否加密存储
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否加密存储")]
+    [SugarColumn(ColumnName = "Is_Encrypted", ColumnDescription = "是否加密存储")]
     public virtual bool IsEncrypted { get; set; } = false;
 
     /// <summary>
     /// 加密密钥ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "加密密钥ID", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Encryption_Key_Id", ColumnDescription = "加密密钥ID", Length = 100, IsNullable = true)]
     public virtual string? EncryptionKeyId { get; set; }
 
     #endregion
@@ -221,19 +221,19 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 过期时间（用于临时文件）
     /// </summary>
-    [SugarColumn(ColumnDescription = "过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 是否为临时文件
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否为临时文件")]
+    [SugarColumn(ColumnName = "Is_Temporary", ColumnDescription = "是否为临时文件")]
     public virtual bool IsTemporary { get; set; } = false;
 
     /// <summary>
     /// 保留天数（0表示永久保留）
     /// </summary>
-    [SugarColumn(ColumnDescription = "保留天数")]
+    [SugarColumn(ColumnName = "Retention_Days", ColumnDescription = "保留天数")]
     public virtual int RetentionDays { get; set; } = 0;
 
     #endregion
@@ -243,25 +243,25 @@ public partial class SysFile : BasicAppFullAuditedEntity
     /// <summary>
     /// 文件状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "文件状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "文件状态")]
     public virtual FileStatus Status { get; set; } = FileStatus.Normal;
 
     /// <summary>
     /// 标签（用于分类和搜索）
     /// </summary>
-    [SugarColumn(ColumnDescription = "标签", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Tags", ColumnDescription = "标签", Length = 500, IsNullable = true)]
     public virtual string? Tags { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", Length = 2000, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     #endregion

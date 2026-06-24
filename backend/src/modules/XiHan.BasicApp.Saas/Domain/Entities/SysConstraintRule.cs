@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - No：规则停用/归档
 /// 服务层判断"规则是否生效"：Status == Yes AND 当前时间在有效期内
 /// </remarks>
-[SugarTable("SysConstraintRule", "系统约束规则表")]
+[SugarTable(TableName = "Sys_Constraint_Rule", TableDescription = "系统约束规则表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -40,19 +40,19 @@ public partial class SysConstraintRule : BasicAppAggregateRoot
     /// <summary>
     /// 规则编码（唯一标识）
     /// </summary>
-    [SugarColumn(ColumnDescription = "规则编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Rule_Code", ColumnDescription = "规则编码", Length = 100, IsNullable = false)]
     public virtual string RuleCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 规则名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "规则名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Rule_Name", ColumnDescription = "规则名称", Length = 200, IsNullable = false)]
     public virtual string RuleName { get; set; } = string.Empty;
 
     /// <summary>
     /// 约束类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束类型")]
+    [SugarColumn(ColumnName = "Constraint_Type", ColumnDescription = "约束类型")]
     public virtual ConstraintType ConstraintType { get; set; } = ConstraintType.SSD;
 
     /// <summary>
@@ -65,7 +65,7 @@ public partial class SysConstraintRule : BasicAppAggregateRoot
     /// - 非 Prerequisite 约束：Item.TargetType 必须等于 Rule.TargetType
     /// - Prerequisite 约束：允许混合，Rule.TargetType 仅表示主目标分类
     /// </remarks>
-    [SugarColumn(ColumnDescription = "约束目标类型")]
+    [SugarColumn(ColumnName = "Target_Type", ColumnDescription = "约束目标类型")]
     public virtual ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
 
     /// <summary>
@@ -76,48 +76,48 @@ public partial class SysConstraintRule : BasicAppAggregateRoot
     /// Cardinality: { "maxCount": 5 }
     /// Temporal: { "allowedHours": "09:00-18:00", "allowedDays": "Mon-Fri" }
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Parameters", ColumnDescription = "约束参数", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Parameters { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 违规处理方式
     /// </summary>
-    [SugarColumn(ColumnDescription = "违规处理方式")]
+    [SugarColumn(ColumnName = "Violation_Action", ColumnDescription = "违规处理方式")]
     public virtual ViolationAction ViolationAction { get; set; } = ViolationAction.Deny;
 
     /// <summary>
     /// 规则描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "规则描述", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "规则描述", Length = 1000, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 规则优先级（数字越大优先级越高，与 SysPermission.Priority 方向一致）
     /// </summary>
-    [SugarColumn(ColumnDescription = "规则优先级")]
+    [SugarColumn(ColumnName = "Priority", ColumnDescription = "规则优先级")]
     public virtual int Priority { get; set; } = 0;
 
     /// <summary>
     /// 生效时间（与 SysUserRole/SysUserPermission/SysTenantUser 命名一致）
     /// </summary>
-    [SugarColumn(ColumnDescription = "生效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Effective_Time", ColumnDescription = "生效时间", IsNullable = true)]
     public virtual DateTimeOffset? EffectiveTime { get; set; }
 
     /// <summary>
     /// 失效时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "失效时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "失效时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

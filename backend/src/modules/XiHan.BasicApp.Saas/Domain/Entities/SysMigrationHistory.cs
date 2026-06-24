@@ -41,7 +41,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 应用启动时自动发现未执行脚本并顺序执行
 /// - 灰度/回滚场景下记录分支迁移路径
 /// </remarks>
-[SugarTable("SysMigrationHistory", "系统迁移历史表")]
+[SugarTable(TableName = "Sys_Migration_History", TableDescription = "系统迁移历史表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ve", nameof(Version), OrderByType.Asc)]
@@ -50,36 +50,36 @@ public partial class SysMigrationHistory : BasicAppCreationEntity
     /// <summary>
     /// 版本
     /// </summary>
-    [SugarColumn(ColumnDescription = "版本", Length = 64)]
+    [SugarColumn(ColumnName = "Version", ColumnDescription = "版本", Length = 64)]
     public virtual string Version { get; set; } = string.Empty;
 
     /// <summary>
     /// 脚本名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "脚本名称", Length = 256)]
+    [SugarColumn(ColumnName = "Script_Name", ColumnDescription = "脚本名称", Length = 256)]
     public virtual string ScriptName { get; set; } = string.Empty;
 
     /// <summary>
     /// 执行时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行时间")]
+    [SugarColumn(ColumnName = "Executed_Time", ColumnDescription = "执行时间")]
     public virtual DateTimeOffset ExecutedTime { get; set; }
 
     /// <summary>
     /// 是否成功
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否成功")]
+    [SugarColumn(ColumnName = "Success", ColumnDescription = "是否成功")]
     public virtual bool Success { get; set; }
 
     /// <summary>
     /// 节点名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "节点名称", Length = 128, IsNullable = true)]
+    [SugarColumn(ColumnName = "Node_Name", ColumnDescription = "节点名称", Length = 128, IsNullable = true)]
     public virtual string? NodeName { get; set; }
 
     /// <summary>
     /// 错误信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误信息", Length = 1024, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Message", ColumnDescription = "错误信息", Length = 1024, IsNullable = true)]
     public virtual string? ErrorMessage { get; set; }
 }

@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 用户同时拥有 C 和 B 时应触发 SSD 违规。
 /// 服务层在检查 SSD/DSD 时须通过 SysRoleHierarchy 展开用户所有角色的完整继承链。
 /// </remarks>
-[SugarTable("SysConstraintRuleItem", "约束规则目标项表")]
+[SugarTable(TableName = "Sys_Constraint_Rule_Item", TableDescription = "约束规则目标项表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_RuId_TaTy_TaId", nameof(TenantId), OrderByType.Asc, nameof(ConstraintRuleId), OrderByType.Asc, nameof(TargetType), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, true)]
@@ -41,30 +41,30 @@ public partial class SysConstraintRuleItem : BasicAppCreationEntity
     /// <summary>
     /// 约束规则ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束规则ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Constraint_Rule_Id", ColumnDescription = "约束规则ID", IsNullable = false)]
     public virtual long ConstraintRuleId { get; set; }
 
     /// <summary>
     /// 目标类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标类型")]
+    [SugarColumn(ColumnName = "Target_Type", ColumnDescription = "目标类型")]
     public virtual ConstraintTargetType TargetType { get; set; } = ConstraintTargetType.Role;
 
     /// <summary>
     /// 目标ID（角色/权限/用户的 ID）
     /// </summary>
-    [SugarColumn(ColumnDescription = "目标ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Target_Id", ColumnDescription = "目标ID", IsNullable = false)]
     public virtual long TargetId { get; set; }
 
     /// <summary>
     /// 约束分组（同组为互斥集合；先决条件约束中 0=必备项、1=目标项）
     /// </summary>
-    [SugarColumn(ColumnDescription = "约束分组")]
+    [SugarColumn(ColumnName = "Constraint_Group", ColumnDescription = "约束分组")]
     public virtual int ConstraintGroup { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

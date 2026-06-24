@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 失败重试决策依据
 /// - 按任务码统计成功率/平均耗时
 /// </remarks>
-[SugarTable("SysTaskLog_{year}{month}{day}", "系统任务日志表"), SplitTable(SplitType.Month)]
+[SugarTable(TableName = "Sys_Task_Log_{year}{month}{day}", TableDescription = "系统任务日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TaSt", nameof(TaskStatus), OrderByType.Asc)]
@@ -61,103 +61,103 @@ public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity
     /// <summary>
     /// 任务ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Task_Id", ColumnDescription = "任务ID", IsNullable = false)]
     public virtual long TaskId { get; set; }
 
     /// <summary>
     /// 任务编码
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务编码", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Task_Code", ColumnDescription = "任务编码", Length = 100, IsNullable = false)]
     public virtual string TaskCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 任务名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Task_Name", ColumnDescription = "任务名称", Length = 200, IsNullable = false)]
     public virtual string TaskName { get; set; } = string.Empty;
 
     /// <summary>
     /// 执行批次号
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行批次号", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Batch_Number", ColumnDescription = "执行批次号", Length = 50, IsNullable = true)]
     public virtual string? BatchNumber { get; set; }
 
     /// <summary>
     /// 任务状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "任务状态")]
+    [SugarColumn(ColumnName = "Task_Status", ColumnDescription = "任务状态")]
     public virtual RunTaskStatus TaskStatus { get; set; } = RunTaskStatus.Running;
 
     /// <summary>
     /// 开始时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "开始时间")]
+    [SugarColumn(ColumnName = "Start_Time", ColumnDescription = "开始时间")]
     public virtual DateTimeOffset StartTime { get; set; }
 
     /// <summary>
     /// 结束时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "结束时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "End_Time", ColumnDescription = "结束时间", IsNullable = true)]
     public virtual DateTimeOffset? EndTime { get; set; }
 
     /// <summary>
     /// 执行时长（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行时长（毫秒）")]
+    [SugarColumn(ColumnName = "Execution_Time", ColumnDescription = "执行时长（毫秒）")]
     public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 执行结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Execution_Result", ColumnDescription = "执行结果", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExecutionResult { get; set; }
 
     /// <summary>
     /// 异常信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Exception_Message", ColumnDescription = "异常信息", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionMessage { get; set; }
 
     /// <summary>
     /// 异常堆栈
     /// </summary>
-    [SugarColumn(ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Exception_Stack_Trace", ColumnDescription = "异常堆栈", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExceptionStackTrace { get; set; }
 
     /// <summary>
     /// 输出日志
     /// </summary>
-    [SugarColumn(ColumnDescription = "输出日志", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Output_Log", ColumnDescription = "输出日志", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? OutputLog { get; set; }
 
     /// <summary>
     /// 重试次数
     /// </summary>
-    [SugarColumn(ColumnDescription = "重试次数")]
+    [SugarColumn(ColumnName = "Retry_Count", ColumnDescription = "重试次数")]
     public virtual int RetryCount { get; set; } = 0;
 
     /// <summary>
     /// 触发方式
     /// </summary>
-    [SugarColumn(ColumnDescription = "触发方式", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Trigger_Mode", ColumnDescription = "触发方式", Length = 50, IsNullable = true)]
     public virtual string? TriggerMode { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SugarColumn(ColumnName = "Created_Time", IsNullable = false, ColumnDescription = "创建时间")]
     [SplitField]
     public override DateTimeOffset CreatedTime { get; set; }
 }

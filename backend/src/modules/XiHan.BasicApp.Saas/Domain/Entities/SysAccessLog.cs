@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 安全审计、合规报告（SOC2/ISO27001）
 /// - 权限问题定位（"为什么我没权限"）
 /// </remarks>
-[SugarTable("SysAccessLog_{year}{month}{day}", "系统访问日志表"), SplitTable(SplitType.Month)]
+[SugarTable(TableName = "Sys_Access_Log_{year}{month}{day}", TableDescription = "系统访问日志表"), SplitTable(SplitType.Month)]
 [SugarIndex("IX_{split_table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_UsId", nameof(UserId), OrderByType.Asc)]
@@ -61,139 +61,139 @@ public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, I
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = true)]
     public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Name", ColumnDescription = "用户名", Length = 50, IsNullable = true)]
     public virtual string? UserName { get; set; }
 
     /// <summary>
     /// 会话标识（对应 SysUserSession.UserSessionId 业务标识，非数据库主键）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Session_Id", ColumnDescription = "会话标识", Length = 100, IsNullable = true)]
     public virtual string? UserSessionId { get; set; }
 
     /// <summary>
     /// 链路追踪ID，用于串联整个请求生命周期
     /// </summary>
-    [SugarColumn(ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
+    [SugarColumn(ColumnName = "Trace_Id", ColumnDescription = "链路追踪ID", Length = 64, IsNullable = true)]
     public virtual string? TraceId { get; set; }
 
     /// <summary>
     /// 访问资源路径
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问资源路径", Length = 500, IsNullable = false)]
+    [SugarColumn(ColumnName = "Resource_Path", ColumnDescription = "访问资源路径", Length = 500, IsNullable = false)]
     public virtual string ResourcePath { get; set; } = string.Empty;
 
     /// <summary>
     /// 资源名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源名称", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Resource_Name", ColumnDescription = "资源名称", Length = 200, IsNullable = true)]
     public virtual string? ResourceName { get; set; }
 
     /// <summary>
     /// 资源类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "资源类型", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Resource_Type", ColumnDescription = "资源类型", Length = 50, IsNullable = true)]
     public virtual string? ResourceType { get; set; }
 
     /// <summary>
     /// 请求方法
     /// </summary>
-    [SugarColumn(ColumnDescription = "请求方法", Length = 10, IsNullable = true)]
+    [SugarColumn(ColumnName = "Method", ColumnDescription = "请求方法", Length = 10, IsNullable = true)]
     public virtual string? Method { get; set; }
 
     /// <summary>
     /// 访问结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问结果")]
+    [SugarColumn(ColumnName = "Access_Result", ColumnDescription = "访问结果")]
     public virtual AccessResult AccessResult { get; set; } = AccessResult.Success;
 
     /// <summary>
     /// 响应状态码
     /// </summary>
-    [SugarColumn(ColumnDescription = "响应状态码")]
+    [SugarColumn(ColumnName = "Status_Code", ColumnDescription = "响应状态码")]
     public virtual int StatusCode { get; set; } = 200;
 
     /// <summary>
     /// 访问IP
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问IP", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Access_Ip", ColumnDescription = "访问IP", Length = 50, IsNullable = true)]
     public virtual string? AccessIp { get; set; }
 
     /// <summary>
     /// 访问地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问地址", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Access_Location", ColumnDescription = "访问地址", Length = 200, IsNullable = true)]
     public virtual string? AccessLocation { get; set; }
 
     /// <summary>
     /// User-Agent
     /// </summary>
-    [SugarColumn(ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Agent", ColumnDescription = "User-Agent", Length = 500, IsNullable = true)]
     public virtual string? UserAgent { get; set; }
 
     /// <summary>
     /// 浏览器类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Browser", ColumnDescription = "浏览器类型", Length = 100, IsNullable = true)]
     public virtual string? Browser { get; set; }
 
     /// <summary>
     /// 操作系统
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Os", ColumnDescription = "操作系统", Length = 100, IsNullable = true)]
     public virtual string? Os { get; set; }
 
     /// <summary>
     /// 设备类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "设备类型", Length = 50, IsNullable = true)]
+    [SugarColumn(ColumnName = "Device", ColumnDescription = "设备类型", Length = 50, IsNullable = true)]
     public virtual string? Device { get; set; }
 
     /// <summary>
     /// 访问来源
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问来源", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Referer", ColumnDescription = "访问来源", Length = 500, IsNullable = true)]
     public virtual string? Referer { get; set; }
 
     /// <summary>
     /// 执行耗时（毫秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "执行耗时（毫秒）")]
+    [SugarColumn(ColumnName = "Execution_Time", ColumnDescription = "执行耗时（毫秒）")]
     public virtual long ExecutionTime { get; set; } = 0;
 
     /// <summary>
     /// 访问时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问时间")]
+    [SugarColumn(ColumnName = "Access_Time", ColumnDescription = "访问时间")]
     public virtual DateTimeOffset AccessTime { get; set; }
 
     /// <summary>
     /// 错误信息
     /// </summary>
-    [SugarColumn(ColumnDescription = "错误信息", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Error_Message", ColumnDescription = "错误信息", Length = 1000, IsNullable = true)]
     public virtual string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 扩展数据（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extend_Data", ColumnDescription = "扩展数据", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? ExtendData { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
-    [SugarColumn(IsNullable = false, ColumnDescription = "创建时间")]
+    [SugarColumn(ColumnName = "Created_Time", IsNullable = false, ColumnDescription = "创建时间")]
     [SplitField]
     public override DateTimeOffset CreatedTime { get; set; }
 }

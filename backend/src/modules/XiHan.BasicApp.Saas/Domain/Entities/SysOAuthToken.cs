@@ -53,7 +53,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - RefreshToken 轮换与重放检测
 /// - 强制多端下线、会话吊销
 /// </remarks>
-[SugarTable("SysOAuthToken", "系统OAuth令牌表")]
+[SugarTable(TableName = "Sys_OAuth_Token", TableDescription = "系统OAuth令牌表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
@@ -69,13 +69,13 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     /// <summary>
     /// 会话ID（关联 SysUserSession，用于多端控制与撤销）
     /// </summary>
-    [SugarColumn(ColumnDescription = "会话ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Session_Id", ColumnDescription = "会话ID", IsNullable = true)]
     public virtual long? SessionId { get; set; }
 
     /// <summary>
     /// 访问令牌 JTI（JWT ID，用于黑名单与重放检测；非 JWT 时可与 AccessToken 同值）
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问令牌JTI", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Access_Token_Jti", ColumnDescription = "访问令牌JTI", Length = 200, IsNullable = false)]
     public virtual string AccessTokenJti { get; set; } = string.Empty;
 
     /// <summary>
@@ -83,7 +83,7 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "访问令牌", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Access_Token", ColumnDescription = "访问令牌", Length = 1000, IsNullable = true)]
     public virtual string? AccessToken { get; set; }
 
     /// <summary>
@@ -91,80 +91,80 @@ public partial class SysOAuthToken : BasicAppCreationEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnDescription = "刷新令牌", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Refresh_Token", ColumnDescription = "刷新令牌", Length = 1000, IsNullable = true)]
     public virtual string? RefreshToken { get; set; }
 
     /// <summary>
     /// 被替换后的新 Token 的 RefreshToken 或 JTI（正向链：当前 Token 替换后指向的新 Token 标识）
     /// 轮换检测：若 IsRevoked=true 且 ReplacedByToken 非空时再次被使用，视为重放攻击，需撤销整会话
     /// </summary>
-    [SugarColumn(ColumnDescription = "被替换为的Token标识", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Replaced_By_Token", ColumnDescription = "被替换为的Token标识", Length = 200, IsNullable = true)]
     public virtual string? ReplacedByToken { get; set; }
 
     /// <summary>
     /// 父 Token ID（反向链：本 Token 由哪一条父 Token 轮换而来；初次颁发时为空）
     /// 配合 ReplacedByToken 构成双向链路，支持 O(1) 按父查子 + 完整链路溯源
     /// </summary>
-    [SugarColumn(ColumnDescription = "父TokenID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Parent_Token_Id", ColumnDescription = "父TokenID", IsNullable = true)]
     public virtual long? ParentTokenId { get; set; }
 
     /// <summary>
     /// 令牌类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "令牌类型", Length = 20, IsNullable = false)]
+    [SugarColumn(ColumnName = "Token_Type", ColumnDescription = "令牌类型", Length = 20, IsNullable = false)]
     public virtual string TokenType { get; set; } = "Bearer";
 
     /// <summary>
     /// 客户端ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "客户端ID", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Client_Id", ColumnDescription = "客户端ID", Length = 100, IsNullable = false)]
     public virtual string ClientId { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Id", ColumnDescription = "用户ID", IsNullable = true)]
     public virtual long? UserId { get; set; }
 
     /// <summary>
     /// 授权类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "授权类型")]
+    [SugarColumn(ColumnName = "Grant_Type", ColumnDescription = "授权类型")]
     public virtual GrantType GrantType { get; set; } = GrantType.AuthorizationCode;
 
     /// <summary>
     /// 权限范围
     /// </summary>
-    [SugarColumn(ColumnDescription = "权限范围", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Scopes", ColumnDescription = "权限范围", Length = 500, IsNullable = true)]
     public virtual string? Scopes { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 访问令牌过期时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "访问令牌过期时间")]
+    [SugarColumn(ColumnName = "Access_Token_Expiration_Time", ColumnDescription = "访问令牌过期时间")]
     public virtual DateTimeOffset AccessTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 刷新令牌过期时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "刷新令牌过期时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Refresh_Token_Expiration_Time", ColumnDescription = "刷新令牌过期时间", IsNullable = true)]
     public virtual DateTimeOffset? RefreshTokenExpirationTime { get; set; }
 
     /// <summary>
     /// 是否已撤销
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否已撤销")]
+    [SugarColumn(ColumnName = "Is_Revoked", ColumnDescription = "是否已撤销")]
     public virtual bool IsRevoked { get; set; } = false;
 
     /// <summary>
     /// 撤销时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "撤销时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Revoked_Time", ColumnDescription = "撤销时间", IsNullable = true)]
     public virtual DateTimeOffset? RevokedTime { get; set; }
 }

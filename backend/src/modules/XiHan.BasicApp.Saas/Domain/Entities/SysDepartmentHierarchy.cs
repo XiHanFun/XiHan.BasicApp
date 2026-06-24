@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 组织架构树快速渲染
 /// - 部门变更时 Path 刷新
 /// </remarks>
-[SugarTable("SysDepartmentHierarchy", "系统部门继承关系表")]
+[SugarTable(TableName = "Sys_Department_Hierarchy", TableDescription = "系统部门继承关系表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_AnId_DeId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
@@ -64,7 +64,7 @@ public partial class SysDepartmentHierarchy : BasicAppCreationEntity
     /// <remarks>
     /// 包含所有上级部门，包括自己（Depth=0）
     /// </remarks>
-    [SugarColumn(ColumnDescription = "祖先部门ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Ancestor_Id", ColumnDescription = "祖先部门ID", IsNullable = false)]
     public virtual long AncestorId { get; set; }
 
     /// <summary>
@@ -73,7 +73,7 @@ public partial class SysDepartmentHierarchy : BasicAppCreationEntity
     /// <remarks>
     /// 包含所有下级部门，包括自己（Depth=0）
     /// </remarks>
-    [SugarColumn(ColumnDescription = "后代部门ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Descendant_Id", ColumnDescription = "后代部门ID", IsNullable = false)]
     public virtual long DescendantId { get; set; }
 
     /// <summary>
@@ -85,7 +85,7 @@ public partial class SysDepartmentHierarchy : BasicAppCreationEntity
     /// - 2: 孙部门
     /// - n: n级子部门
     /// </remarks>
-    [SugarColumn(ColumnDescription = "层级深度")]
+    [SugarColumn(ColumnName = "Depth", ColumnDescription = "层级深度")]
     public virtual int Depth { get; set; } = 0;
 
     /// <summary>
@@ -96,7 +96,7 @@ public partial class SysDepartmentHierarchy : BasicAppCreationEntity
     /// 例如：1/3/5/7 表示从部门1到部门7的路径
     /// 用于快速显示部门层级关系和面包屑导航
     /// </remarks>
-    [SugarColumn(ColumnDescription = "路径", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Path", ColumnDescription = "路径", Length = 1000, IsNullable = true)]
     public virtual string? Path { get; set; }
 
     /// <summary>
@@ -107,12 +107,12 @@ public partial class SysDepartmentHierarchy : BasicAppCreationEntity
     /// 例如：集团总部/华东大区/上海分公司/技术部
     /// 冗余字段，便于直接显示完整路径
     /// </remarks>
-    [SugarColumn(ColumnDescription = "路径名称", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Path_Name", ColumnDescription = "路径名称", Length = 1000, IsNullable = true)]
     public virtual string? PathName { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

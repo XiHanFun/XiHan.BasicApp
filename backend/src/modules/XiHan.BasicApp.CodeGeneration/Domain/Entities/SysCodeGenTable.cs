@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// - 数据库表 → 实体/DTO/API/前端页面全栈生成
 /// - 重复生成前保留历史配置
 /// </remarks>
-[SugarTable("SysCodeGenTable", "系统代码生成表配置表")]
+[SugarTable(TableName = "Sys_CodeGen_Table", TableDescription = "系统代码生成表配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -61,144 +61,144 @@ public partial class SysCodeGenTable : BasicAppFullAuditedEntity
     /// <summary>
     /// 数据库表名
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据库表名", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Table_Name", ColumnDescription = "数据库表名", Length = 200, IsNullable = false)]
     public virtual string TableName { get; set; } = string.Empty;
 
     /// <summary>
     /// 表描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "表描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Table_Comment", ColumnDescription = "表描述", Length = 500, IsNullable = true)]
     public virtual string? TableComment { get; set; }
 
     /// <summary>
     /// 实体类名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "实体类名称", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Class_Name", ColumnDescription = "实体类名称", Length = 200, IsNullable = false)]
     public virtual string ClassName { get; set; } = string.Empty;
 
     /// <summary>
     /// 命名空间
     /// </summary>
-    [SugarColumn(ColumnDescription = "命名空间", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Namespace", ColumnDescription = "命名空间", Length = 500, IsNullable = true)]
     public virtual string? Namespace { get; set; }
 
     /// <summary>
     /// 模块名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "模块名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Module_Name", ColumnDescription = "模块名称", Length = 100, IsNullable = true)]
     public virtual string? ModuleName { get; set; }
 
     /// <summary>
     /// 业务名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "业务名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Business_Name", ColumnDescription = "业务名称", Length = 100, IsNullable = true)]
     public virtual string? BusinessName { get; set; }
 
     /// <summary>
     /// 功能名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "功能名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Function_Name", ColumnDescription = "功能名称", Length = 100, IsNullable = true)]
     public virtual string? FunctionName { get; set; }
 
     /// <summary>
     /// 作者
     /// </summary>
-    [SugarColumn(ColumnDescription = "作者", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Author", ColumnDescription = "作者", Length = 100, IsNullable = true)]
     public virtual string? Author { get; set; }
 
     /// <summary>
     /// 模板类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板类型")]
+    [SugarColumn(ColumnName = "Template_Type", ColumnDescription = "模板类型")]
     public virtual TemplateType TemplateType { get; set; } = TemplateType.Single;
 
     /// <summary>
     /// 生成代码方式
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成代码方式")]
+    [SugarColumn(ColumnName = "Gen_Type", ColumnDescription = "生成代码方式")]
     public virtual GenType GenType { get; set; } = GenType.Zip;
 
     /// <summary>
     /// 生成路径
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成路径", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Gen_Path", ColumnDescription = "生成路径", Length = 500, IsNullable = true)]
     public virtual string? GenPath { get; set; }
 
     /// <summary>
     /// 父菜单ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "父菜单ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Parent_Menu_Id", ColumnDescription = "父菜单ID", IsNullable = true)]
     public virtual long? ParentMenuId { get; set; }
 
     /// <summary>
     /// 主键列名
     /// </summary>
-    [SugarColumn(ColumnDescription = "主键列名", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Primary_Key_Column", ColumnDescription = "主键列名", Length = 100, IsNullable = true)]
     public virtual string? PrimaryKeyColumn { get; set; }
 
     /// <summary>
     /// 树表父级字段
     /// </summary>
-    [SugarColumn(ColumnDescription = "树表父级字段", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Tree_Parent_Column", ColumnDescription = "树表父级字段", Length = 100, IsNullable = true)]
     public virtual string? TreeParentColumn { get; set; }
 
     /// <summary>
     /// 树表名称字段
     /// </summary>
-    [SugarColumn(ColumnDescription = "树表名称字段", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Tree_Name_Column", ColumnDescription = "树表名称字段", Length = 100, IsNullable = true)]
     public virtual string? TreeNameColumn { get; set; }
 
     /// <summary>
     /// 主子表关联主表ID
     /// </summary>
-    [SugarColumn(ColumnDescription = "主子表关联主表ID", IsNullable = true)]
+    [SugarColumn(ColumnName = "Master_Table_Id", ColumnDescription = "主子表关联主表ID", IsNullable = true)]
     public virtual long? MasterTableId { get; set; }
 
     /// <summary>
     /// 主子表关联外键列
     /// </summary>
-    [SugarColumn(ColumnDescription = "主子表关联外键列", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Master_Foreign_Key", ColumnDescription = "主子表关联外键列", Length = 100, IsNullable = true)]
     public virtual string? MasterForeignKey { get; set; }
 
     /// <summary>
     /// 数据库类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据库类型")]
+    [SugarColumn(ColumnName = "Database_Type", ColumnDescription = "数据库类型")]
     public virtual DatabaseType DatabaseType { get; set; } = DatabaseType.MySql;
 
     /// <summary>
     /// 数据库连接名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据库连接名称", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Db_Connection_Name", ColumnDescription = "数据库连接名称", Length = 100, IsNullable = true)]
     public virtual string? DbConnectionName { get; set; }
 
     /// <summary>
     /// 生成状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "生成状态")]
+    [SugarColumn(ColumnName = "Gen_Status", ColumnDescription = "生成状态")]
     public virtual GenStatus GenStatus { get; set; } = GenStatus.NotGenerated;
 
     /// <summary>
     /// 最后生成时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后生成时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Gen_Time", ColumnDescription = "最后生成时间", IsNullable = true)]
     public virtual DateTimeOffset? LastGenTime { get; set; }
 
     /// <summary>
     /// 扩展选项（JSON格式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "扩展选项", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    [SugarColumn(ColumnName = "Options", ColumnDescription = "扩展选项", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
     public virtual string? Options { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

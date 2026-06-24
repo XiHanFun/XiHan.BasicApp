@@ -47,7 +47,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// - 多库代码生成（主库 + 报表库 + 业务库）
 /// - 逆向工程（已有数据库 → 生成代码）
 /// </remarks>
-[SugarTable("SysCodeGenDataSource", "系统代码生成数据源表")]
+[SugarTable(TableName = "Sys_CodeGen_DataSource", TableDescription = "系统代码生成数据源表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -59,108 +59,108 @@ public partial class SysCodeGenDataSource : BasicAppFullAuditedEntity
     /// <summary>
     /// 数据源名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据源名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Source_Name", ColumnDescription = "数据源名称", Length = 100, IsNullable = false)]
     public virtual string SourceName { get; set; } = string.Empty;
 
     /// <summary>
     /// 数据源描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据源描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Source_Description", ColumnDescription = "数据源描述", Length = 500, IsNullable = true)]
     public virtual string? SourceDescription { get; set; }
 
     /// <summary>
     /// 数据库类型
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据库类型")]
+    [SugarColumn(ColumnName = "Database_Type", ColumnDescription = "数据库类型")]
     public virtual DatabaseType DatabaseType { get; set; } = DatabaseType.MySql;
 
     /// <summary>
     /// 主机地址
     /// </summary>
-    [SugarColumn(ColumnDescription = "主机地址", Length = 200, IsNullable = false)]
+    [SugarColumn(ColumnName = "Host", ColumnDescription = "主机地址", Length = 200, IsNullable = false)]
     public virtual string Host { get; set; } = string.Empty;
 
     /// <summary>
     /// 端口
     /// </summary>
-    [SugarColumn(ColumnDescription = "端口")]
+    [SugarColumn(ColumnName = "Port", ColumnDescription = "端口")]
     public virtual int Port { get; set; } = 3306;
 
     /// <summary>
     /// 数据库名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "数据库名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Database_Name", ColumnDescription = "数据库名称", Length = 100, IsNullable = false)]
     public virtual string DatabaseName { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户名
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户名", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "User_Name", ColumnDescription = "用户名", Length = 100, IsNullable = false)]
     public virtual string UserName { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码（加密存储）
     /// </summary>
-    [SugarColumn(ColumnDescription = "密码", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Password", ColumnDescription = "密码", Length = 500, IsNullable = true)]
     public virtual string? Password { get; set; }
 
     /// <summary>
     /// 连接字符串
     /// </summary>
-    [SugarColumn(ColumnDescription = "连接字符串", Length = 1000, IsNullable = true)]
+    [SugarColumn(ColumnName = "Connection_String", ColumnDescription = "连接字符串", Length = 1000, IsNullable = true)]
     public virtual string? ConnectionString { get; set; }
 
     /// <summary>
     /// 额外参数
     /// </summary>
-    [SugarColumn(ColumnDescription = "额外参数", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Extra_Params", ColumnDescription = "额外参数", Length = 500, IsNullable = true)]
     public virtual string? ExtraParams { get; set; }
 
     /// <summary>
     /// 连接超时时间（秒）
     /// </summary>
-    [SugarColumn(ColumnDescription = "连接超时时间（秒）")]
+    [SugarColumn(ColumnName = "Connection_Timeout", ColumnDescription = "连接超时时间（秒）")]
     public virtual int ConnectionTimeout { get; set; } = 30;
 
     /// <summary>
     /// 是否默认数据源
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否默认数据源")]
+    [SugarColumn(ColumnName = "Is_Default", ColumnDescription = "是否默认数据源")]
     public virtual bool IsDefault { get; set; } = false;
 
     /// <summary>
     /// 最后测试时间
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后测试时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Test_Time", ColumnDescription = "最后测试时间", IsNullable = true)]
     public virtual DateTimeOffset? LastTestTime { get; set; }
 
     /// <summary>
     /// 最后测试结果
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后测试结果")]
+    [SugarColumn(ColumnName = "Last_Test_Result", ColumnDescription = "最后测试结果")]
     public virtual bool LastTestResult { get; set; } = false;
 
     /// <summary>
     /// 最后测试消息
     /// </summary>
-    [SugarColumn(ColumnDescription = "最后测试消息", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Last_Test_Message", ColumnDescription = "最后测试消息", Length = 500, IsNullable = true)]
     public virtual string? LastTestMessage { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

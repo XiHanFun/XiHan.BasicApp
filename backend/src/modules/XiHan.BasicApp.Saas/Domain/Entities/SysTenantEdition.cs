@@ -51,7 +51,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 版本升级：修改 SysTenant.EditionId 并刷新权限缓存
 /// - 价格调整：维护 Price + BillingPeriodMonths
 /// </remarks>
-[SugarTable("SysTenantEdition", "租户版本套餐表")]
+[SugarTable(TableName = "Sys_Tenant_Edition", TableDescription = "租户版本套餐表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -63,49 +63,49 @@ public partial class SysTenantEdition : BasicAppFullAuditedEntity
     /// <summary>
     /// 版本编码（唯一标识，如：free, basic, pro, enterprise）
     /// </summary>
-    [SugarColumn(ColumnDescription = "版本编码", Length = 50, IsNullable = false)]
+    [SugarColumn(ColumnName = "Edition_Code", ColumnDescription = "版本编码", Length = 50, IsNullable = false)]
     public virtual string EditionCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 版本名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "版本名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Edition_Name", ColumnDescription = "版本名称", Length = 100, IsNullable = false)]
     public virtual string EditionName { get; set; } = string.Empty;
 
     /// <summary>
     /// 版本描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "版本描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "版本描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 用户数限制（为空表示不限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "用户数限制", IsNullable = true)]
+    [SugarColumn(ColumnName = "User_Limit", ColumnDescription = "用户数限制", IsNullable = true)]
     public virtual int? UserLimit { get; set; }
 
     /// <summary>
     /// 存储空间限制(MB)（为空表示不限）
     /// </summary>
-    [SugarColumn(ColumnDescription = "存储空间限制(MB)", IsNullable = true)]
+    [SugarColumn(ColumnName = "Storage_Limit", ColumnDescription = "存储空间限制(MB)", IsNullable = true)]
     public virtual long? StorageLimit { get; set; }
 
     /// <summary>
     /// 价格（元/周期）
     /// </summary>
-    [SugarColumn(ColumnDescription = "价格", DecimalDigits = 2, IsNullable = true)]
+    [SugarColumn(ColumnName = "Price", ColumnDescription = "价格", DecimalDigits = 2, IsNullable = true)]
     public virtual decimal? Price { get; set; }
 
     /// <summary>
     /// 计费周期（月）
     /// </summary>
-    [SugarColumn(ColumnDescription = "计费周期(月)", IsNullable = true)]
+    [SugarColumn(ColumnName = "Billing_Period_Months", ColumnDescription = "计费周期(月)", IsNullable = true)]
     public virtual int? BillingPeriodMonths { get; set; }
 
     /// <summary>
     /// 是否免费版本
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否免费")]
+    [SugarColumn(ColumnName = "Is_Free", ColumnDescription = "是否免费")]
     public virtual bool IsFree { get; set; } = false;
 
     /// <summary>
@@ -116,24 +116,24 @@ public partial class SysTenantEdition : BasicAppFullAuditedEntity
     /// 服务层写入时必须：在事务内先将原 IsDefault=true 的记录置 false，再设置新记录为 true，
     /// 或使用乐观锁 / 分布式锁防止并发冲突。
     /// </remarks>
-    [SugarColumn(ColumnDescription = "是否默认版本")]
+    [SugarColumn(ColumnName = "Is_Default", ColumnDescription = "是否默认版本")]
     public virtual bool IsDefault { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }

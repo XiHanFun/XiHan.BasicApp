@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 按 Category 分组渲染前端权限矩阵
 /// - HttpMethod 字段用于 API 类资源的接口 Method 匹配
 /// </remarks>
-[SugarTable("SysOperation", "系统操作表")]
+[SugarTable(TableName = "Sys_Operation", TableDescription = "系统操作表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
@@ -61,78 +61,78 @@ public partial class SysOperation : BasicAppAggregateRoot
     /// <summary>
     /// 操作编码（唯一标识，如：create, read, update, delete, approve）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作编码", Length = 50, IsNullable = false)]
+    [SugarColumn(ColumnName = "Operation_Code", ColumnDescription = "操作编码", Length = 50, IsNullable = false)]
     public virtual string OperationCode { get; set; } = string.Empty;
 
     /// <summary>
     /// 操作名称
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作名称", Length = 100, IsNullable = false)]
+    [SugarColumn(ColumnName = "Operation_Name", ColumnDescription = "操作名称", Length = 100, IsNullable = false)]
     public virtual string OperationName { get; set; } = string.Empty;
 
     /// <summary>
     /// 操作类型代码
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作类型代码")]
+    [SugarColumn(ColumnName = "Operation_Type_Code", ColumnDescription = "操作类型代码")]
     public virtual OperationTypeCode OperationTypeCode { get; set; } = OperationTypeCode.Read;
 
     /// <summary>
     /// 操作分类
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作分类")]
+    [SugarColumn(ColumnName = "Category", ColumnDescription = "操作分类")]
     public virtual OperationCategory Category { get; set; } = OperationCategory.Crud;
 
     /// <summary>
     /// HTTP方法（针对API资源）
     /// </summary>
-    [SugarColumn(ColumnDescription = "HTTP方法", IsNullable = true)]
+    [SugarColumn(ColumnName = "Http_Method", ColumnDescription = "HTTP方法", IsNullable = true)]
     public virtual HttpMethodType? HttpMethod { get; set; }
 
     /// <summary>
     /// 操作描述
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作描述", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "操作描述", Length = 500, IsNullable = true)]
     public virtual string? Description { get; set; }
 
     /// <summary>
     /// 操作图标
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作图标", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnName = "Icon", ColumnDescription = "操作图标", Length = 100, IsNullable = true)]
     public virtual string? Icon { get; set; }
 
     /// <summary>
     /// 操作颜色（前端按钮样式）
     /// </summary>
-    [SugarColumn(ColumnDescription = "操作颜色", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Color", ColumnDescription = "操作颜色", Length = 20, IsNullable = true)]
     public virtual string? Color { get; set; }
 
     /// <summary>
     /// 是否危险操作（需要二次确认）
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否危险操作")]
+    [SugarColumn(ColumnName = "Is_Dangerous", ColumnDescription = "是否危险操作")]
     public virtual bool IsDangerous { get; set; } = false;
 
     /// <summary>
     /// 是否需要差异日志
     /// </summary>
-    [SugarColumn(ColumnDescription = "是否需要审计")]
+    [SugarColumn(ColumnName = "Is_Require_Audit", ColumnDescription = "是否需要审计")]
     public virtual bool IsRequireAudit { get; set; } = false;
 
     /// <summary>
     /// 状态
     /// </summary>
-    [SugarColumn(ColumnDescription = "状态")]
+    [SugarColumn(ColumnName = "Status", ColumnDescription = "状态")]
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
     /// 排序
     /// </summary>
-    [SugarColumn(ColumnDescription = "排序")]
+    [SugarColumn(ColumnName = "Sort", ColumnDescription = "排序")]
     public virtual int Sort { get; set; } = 0;
 
     /// <summary>
     /// 备注
     /// </summary>
-    [SugarColumn(ColumnDescription = "备注", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]
     public virtual string? Remark { get; set; }
 }
