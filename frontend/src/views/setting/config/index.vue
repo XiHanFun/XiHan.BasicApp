@@ -170,7 +170,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row) {
-        handleEdit(row)
+        void handleEdit(row)
       }
       break
     case 'toggle':
@@ -237,8 +237,18 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: ConfigListItemDto) {
+async function handleEdit(row: ConfigListItemDto) {
   editingStatus.value = row.status
+  // 列表不回传配置值；编辑前取详情拿原始 configValue/defaultValue/remark，
+  // 否则保存时会把值置空（后端更新为整体替换）。加密项详情返回 null，需重新录入。
+  let detail: ConfigDetailDto | null = null
+  try {
+    detail = await configManagementApi.detail(row.basicId)
+  }
+  catch {
+    message.error(t('setting.config.load_detail_failed'))
+    return
+  }
   configForm.value = {
     basicId: row.basicId,
     configDescription: row.configDescription ?? null,
@@ -246,17 +256,36 @@ function handleEdit(row: ConfigListItemDto) {
     configKey: row.configKey,
     configName: row.configName,
     configType: row.configType,
-    configValue: null,
+    configValue: detail?.configValue ?? null,
     dataType: row.dataType,
-    defaultValue: null,
+    defaultValue: detail?.defaultValue ?? null,
     isBuiltIn: row.isBuiltIn,
     isEncrypted: row.isEncrypted,
     isGlobal: row.isGlobal,
-    remark: null,
+    remark: detail?.remark ?? null,
     sort: row.sort,
     status: row.status,
   }
   modalVisible.value = true
+}
+
+/**
+ * 配置值展示：JSON（数组/对象）美化缩进，其余原样返回。
+ */
+function formatConfigValue(value?: string | null): string {
+  if (value == null || value === '') {
+    return ''
+  }
+  const trimmed = value.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      return JSON.stringify(JSON.parse(trimmed), null, 2)
+    }
+    catch {
+      return value
+    }
+  }
+  return value
 }
 
 async function handleView(row: ConfigListItemDto) {
@@ -456,28 +485,21 @@ async function handleToggleStatus(row: ConfigListItemDto) {
         <NTabPane name="values" :tab="t('setting.config.values')">
           <NDescriptions :column="1" bordered size="small">
             <NDescriptionsItem :label="t('setting.config.current_value')">
-              <NSpace align="center" size="small">
-                <NTag v-if="currentDetail.hasCurrentValue" size="small" type="success" :bordered="false">
-                  {{ t('setting.config.configured') }}
-                </NTag>
-                <NTag v-else size="small" :bordered="false">
-                  {{ t('setting.config.not_configured') }}
-                </NTag>
-                <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:var(--n-text-color-3)">{{ t('setting.config.encrypted_hint') }}</span>
-              </NSpace>
+              <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:var(--n-text-color-3)">{{ t('setting.config.encrypted_hint') }}</span>
+              <pre v-else-if="currentDetail.hasCurrentValue" class="config-value-block">{{ formatConfigValue(currentDetail.configValue) }}</pre>
+              <NTag v-else size="small" :bordered="false">
+                {{ t('setting.config.not_configured') }}
+              </NTag>
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('setting.config.default_value')">
-              <NSpace align="center" size="small">
-                <NTag v-if="currentDetail.hasFallbackValue" size="small" type="info" :bordered="false">
-                  {{ t('setting.config.value_set') }}
-                </NTag>
-                <NTag v-else size="small" :bordered="false">
-                  {{ t('setting.config.value_unset') }}
-                </NTag>
-              </NSpace>
+              <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:var(--n-text-color-3)">{{ t('setting.config.encrypted_hint') }}</span>
+              <pre v-else-if="currentDetail.hasFallbackValue" class="config-value-block">{{ formatConfigValue(currentDetail.defaultValue) }}</pre>
+              <NTag v-else size="small" :bordered="false">
+                {{ t('setting.config.value_unset') }}
+              </NTag>
             </NDescriptionsItem>
             <NDescriptionsItem v-if="currentDetail.hasNote" :label="t('setting.config.note')">
-              {{ t('setting.config.note_hint') }}
+              {{ currentDetail.remark }}
             </NDescriptionsItem>
           </NDescriptions>
         </NTabPane>
@@ -580,5 +602,19 @@ async function handleToggleStatus(row: ConfigListItemDto) {
 <style scoped>
 .xh-detail-empty {
   padding: 48px 0;
+}
+
+.config-value-block {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--n-color-modal, rgba(128, 128, 128, 0.08));
+  font-family: var(--font-family-mono, monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>
