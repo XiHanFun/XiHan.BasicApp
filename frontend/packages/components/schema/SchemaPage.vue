@@ -189,8 +189,9 @@ function applyView(code: string) {
   if (!snapshot) {
     return
   }
+  // 置 null 而非 delete：保持搜索控件受控，避免 Naive 回退内部值而残留旧选择（同 reset）
   for (const key of Object.keys(filters)) {
-    delete filters[key]
+    filters[key] = null
   }
   Object.assign(filters, snapshot.filters)
   sorts.value = snapshot.sorts ? [...snapshot.sorts] : []
