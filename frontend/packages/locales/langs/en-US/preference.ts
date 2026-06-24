@@ -252,7 +252,7 @@ export default {
     timezone: 'Timezone',
     dynamic_title: 'Dynamic Title',
     dynamic_island: 'Dynamic Island',
-    table_row_peek: 'Row Peek on Hover',
+    table_row_peek: 'Peek Card',
     preference_sync: 'Preferences',
     favorites_sync: 'Favorites',
     search_sync: 'Search Settings',

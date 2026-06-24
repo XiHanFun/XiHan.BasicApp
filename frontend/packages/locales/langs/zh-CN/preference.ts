@@ -244,7 +244,7 @@ export default {
     timezone: '时区',
     dynamic_title: '动态标题',
     dynamic_island: '灵动岛',
-    table_row_peek: '表格悬停速览',
+    table_row_peek: '速览卡',
     preference_sync: '偏好设置',
     favorites_sync: '收藏夹设置',
     search_sync: '搜索设置',
