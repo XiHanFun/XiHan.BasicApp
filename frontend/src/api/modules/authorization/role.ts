@@ -14,7 +14,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -38,7 +37,7 @@ export const roleApi = {
     return roleQueryApi.get<RoleSelectItemDto[]>('EnabledRoles', toRoleSelectParams(input))
   },
   page(input: RolePageQueryDto) {
-    return roleQueryApi.get<PageResult<RoleListItemDto>>('RolePage', toRolePageParams(input))
+    return roleQueryApi.post<PageResult<RoleListItemDto>>('RolePage', input)
   },
   update(input: RoleUpdateDto) {
     return roleBaseCommandApi.update(input)
@@ -46,18 +45,6 @@ export const roleApi = {
   updateStatus(input: RoleStatusUpdateDto) {
     return roleCommandApi.put<RoleDetailDto, RoleStatusUpdateDto>('RoleStatus', input)
   },
-}
-
-function toRolePageParams(input: RolePageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'DataScope', input.dataScope)
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'RoleType', input.roleType)
-  appendDynamicApiParam(params, 'Status', input.status)
-
-  return params
 }
 
 function toRoleSelectParams(input: RoleSelectQueryDto) {

@@ -7,14 +7,7 @@ import type {
   PermissionRequestStatusUpdateDto,
   PermissionRequestUpdateDto,
 } from './permission-request.types'
-import {
-  appendDynamicApiParam,
-  createCommandApi,
-  createDynamicApiClient,
-  createPageRequestParams,
-  createReadApi,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createCommandApi, createDynamicApiClient, createReadApi, formatDynamicApiRouteValue } from '../../base'
 
 const permissionRequestQueryApi = createDynamicApiClient('PermissionRequestQuery')
 const permissionRequestCommandApi = createDynamicApiClient('PermissionRequest')
@@ -51,10 +44,7 @@ export const permissionRequestApi = {
     return permissionRequestReadApi.detail(id)
   },
   page(input: PermissionRequestPageQueryDto) {
-    return permissionRequestQueryApi.get<PageResult<PermissionRequestListItemDto>>(
-      'PermissionRequestPage',
-      toPermissionRequestPageParams(input),
-    )
+    return permissionRequestQueryApi.post<PageResult<PermissionRequestListItemDto>>('PermissionRequestPage', input)
   },
   reject(input: PermissionRequestApprovalDto) {
     return permissionRequestCommandApi.post<PermissionRequestDetailDto, PermissionRequestApprovalDto>(
@@ -71,17 +61,4 @@ export const permissionRequestApi = {
       input,
     )
   },
-}
-
-function toPermissionRequestPageParams(input: PermissionRequestPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'PermissionId', input.permissionId)
-  appendDynamicApiParam(params, 'RequestStatus', input.requestStatus)
-  appendDynamicApiParam(params, 'RequestUserId', input.requestUserId)
-  appendDynamicApiParam(params, 'ReviewId', input.reviewId)
-  appendDynamicApiParam(params, 'RoleId', input.roleId)
-
-  return params
 }

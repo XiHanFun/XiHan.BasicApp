@@ -8,12 +8,7 @@ import type {
   CodeGenDataSourceStatusUpdateDto,
   CodeGenDataSourceUpdateDto,
 } from './datasource.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const command = createDynamicApiClient('CodeGenDataSource')
 const query = createDynamicApiClient('CodeGenDataSourceQuery')
@@ -35,17 +30,9 @@ export const codeGenDataSourceApi = {
     return command.post<CodeGenConnectionTestResultDto>(`TestConnection/${formatDynamicApiRouteValue(id)}`)
   },
   page(input: CodeGenDataSourcePageQueryDto) {
-    return query.get<PageResult<CodeGenDataSourceListItemDto>>('Page', toPageParams(input))
+    return query.post<PageResult<CodeGenDataSourceListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
     return query.get<CodeGenDataSourceDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
   },
-}
-
-function toPageParams(input: CodeGenDataSourcePageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'DatabaseType', input.databaseType)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

@@ -9,9 +9,7 @@ import type {
   TaskUpdateDto,
 } from './task.types'
 import {
-  appendDynamicApiParam,
   createDynamicApiClient,
-  createPageRequestParams,
   formatDynamicApiRouteValue,
 } from '../../base'
 
@@ -26,10 +24,7 @@ export const taskApi = {
     )
   },
   page(input: TaskPageQueryDto) {
-    return taskQueryApi.get<PageResult<TaskListItemDto>>(
-      'TaskPage',
-      toTaskPageParams(input),
-    )
+    return taskQueryApi.post<PageResult<TaskListItemDto>>('TaskPage', input)
   },
   // Commands（动态 API 会剥离方法名动词前缀 Create/Update/Delete：实际路由不含动词）
   create(input: TaskCreateDto) {
@@ -51,20 +46,4 @@ export const taskApi = {
   run(id: ApiId) {
     return taskCommandApi.post<{ instanceId: string }, { basicId: ApiId }>('RunTask', { basicId: id })
   },
-}
-
-function toTaskPageParams(input: TaskPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'AllowConcurrent', input.allowConcurrent)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'LastRunTimeEnd', input.lastRunTimeEnd)
-  appendDynamicApiParam(params, 'LastRunTimeStart', input.lastRunTimeStart)
-  appendDynamicApiParam(params, 'NextRunTimeEnd', input.nextRunTimeEnd)
-  appendDynamicApiParam(params, 'NextRunTimeStart', input.nextRunTimeStart)
-  appendDynamicApiParam(params, 'RunTaskStatus', input.runTaskStatus)
-  appendDynamicApiParam(params, 'Status', input.status)
-  appendDynamicApiParam(params, 'TaskCode', input.taskCode)
-  appendDynamicApiParam(params, 'TaskGroup', input.taskGroup)
-  appendDynamicApiParam(params, 'TriggerType', input.triggerType)
-  return params
 }

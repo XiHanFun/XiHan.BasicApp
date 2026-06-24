@@ -8,10 +8,8 @@ import type {
   FieldLevelSecurityUpdateDto,
 } from './field-level-security.types'
 import {
-  appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -40,9 +38,9 @@ export const fieldLevelSecurityApi = {
     return fieldLevelSecurityReadApi.detail(id)
   },
   page(input: FieldLevelSecurityPageQueryDto) {
-    return fieldLevelSecurityQueryApi.get<PageResult<FieldLevelSecurityListItemDto>>(
+    return fieldLevelSecurityQueryApi.post<PageResult<FieldLevelSecurityListItemDto>>(
       'FieldLevelSecurityPage',
-      toFieldLevelSecurityPageParams(input),
+      input,
     )
   },
   update(input: FieldLevelSecurityUpdateDto) {
@@ -54,17 +52,4 @@ export const fieldLevelSecurityApi = {
       input,
     )
   },
-}
-
-function toFieldLevelSecurityPageParams(input: FieldLevelSecurityPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'MaskStrategy', input.maskStrategy)
-  appendDynamicApiParam(params, 'ResourceId', input.resourceId)
-  appendDynamicApiParam(params, 'Status', input.status)
-  appendDynamicApiParam(params, 'TargetId', input.targetId)
-  appendDynamicApiParam(params, 'TargetType', input.targetType)
-
-  return params
 }

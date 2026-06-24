@@ -53,7 +53,8 @@ export function createReadApi<TListItem, TDetail, TQuery extends PageRequest = P
 
   return {
     page(input: TQuery) {
-      return api.get<PageResult<TListItem>>(`${normalizedResourceName}Page`, createPageRequestParams(input))
+      // 分页统一走 POST：整个请求对象作为 JSON body 上送（后端复杂参数自动从 body 绑定）
+      return api.post<PageResult<TListItem>, TQuery>(`${normalizedResourceName}Page`, input)
     },
     detail(id: ApiId) {
       return api.get<TDetail | null>(`${normalizedResourceName}Detail/${formatDynamicApiRouteValue(id)}`)
@@ -82,57 +83,15 @@ function buildActionUrl(controllerName: string, action: string) {
   return `/${controllerName}/${normalizeSegment(action)}`
 }
 
-export function createPageRequestParams(input: PageRequest): DynamicApiParams {
-  const params: DynamicApiParams = {
-    'Behavior.DisableDefaultSort': input.behavior.disableDefaultSort,
-    'Behavior.DisablePaging': input.behavior.disablePaging,
-    'Behavior.EnableSplitQuery': input.behavior.enableSplitQuery,
-    'Behavior.IgnoreSoftDelete': input.behavior.ignoreSoftDelete,
-    'Behavior.IgnoreTenant': input.behavior.ignoreTenant,
-    'Page.PageIndex': input.page.pageIndex,
-    'Page.PageSize': input.page.pageSize,
-  }
-
-  appendDynamicApiParam(params, 'Behavior.QueryTimeout', input.behavior.queryTimeout)
-  appendKeywordParams(params, input)
-  appendFilterParams(params, input)
-  appendSortParams(params, input)
-
-  return params
-}
-
+// 分页查询已统一改走 POST（整个查询对象作 JSON body 上送），旧的「查询串序列化」函数
+// （createPageRequestParams / appendKeyword/Filter/Sort Params）已移除。
+// appendDynamicApiParam 仍保留：供非分页的下拉/统计等 GET 接口拼装简单查询参数。
 export function appendDynamicApiParam(params: DynamicApiParams, key: string, value: ApiPrimitive | undefined) {
   if (value === undefined || value === null || value === '') {
     return
   }
 
   params[key] = value
-}
-
-function appendKeywordParams(params: DynamicApiParams, input: PageRequest) {
-  appendDynamicApiParam(params, 'Conditions.Keyword.Value', input.conditions.keyword?.value)
-  input.conditions.keyword?.fields.forEach((field, index) => {
-    appendDynamicApiParam(params, `Conditions.Keyword.Fields[${index}]`, field)
-  })
-}
-
-function appendFilterParams(params: DynamicApiParams, input: PageRequest) {
-  input.conditions.filters.forEach((filter, index) => {
-    appendDynamicApiParam(params, `Conditions.Filters[${index}].Field`, filter.field)
-    appendDynamicApiParam(params, `Conditions.Filters[${index}].Operator`, filter.operator)
-    appendDynamicApiParam(params, `Conditions.Filters[${index}].Value`, filter.value)
-    filter.values?.forEach((value, valueIndex) => {
-      appendDynamicApiParam(params, `Conditions.Filters[${index}].Values[${valueIndex}]`, value)
-    })
-  })
-}
-
-function appendSortParams(params: DynamicApiParams, input: PageRequest) {
-  input.conditions.sorts.forEach((sort, index) => {
-    appendDynamicApiParam(params, `Conditions.Sorts[${index}].Direction`, sort.direction)
-    appendDynamicApiParam(params, `Conditions.Sorts[${index}].Field`, sort.field)
-    appendDynamicApiParam(params, `Conditions.Sorts[${index}].Priority`, sort.priority)
-  })
 }
 
 export function formatDynamicApiRouteValue(value: ApiId) {

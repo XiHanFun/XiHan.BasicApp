@@ -4,12 +4,7 @@ import type {
   UserStatisticsListItemDto,
   UserStatisticsPageQueryDto,
 } from './user-statistics.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const userStatisticsQueryApi = createDynamicApiClient('UserStatisticsQuery')
 
@@ -20,18 +15,6 @@ export const userStatisticsApi = {
     )
   },
   page(input: UserStatisticsPageQueryDto) {
-    return userStatisticsQueryApi.get<PageResult<UserStatisticsListItemDto>>(
-      'UserStatisticsPage',
-      toUserStatisticsPageParams(input),
-    )
+    return userStatisticsQueryApi.post<PageResult<UserStatisticsListItemDto>>('UserStatisticsPage', input)
   },
-}
-
-function toUserStatisticsPageParams(input: UserStatisticsPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'UserId', input.userId)
-  appendDynamicApiParam(params, 'Period', input.period)
-  appendDynamicApiParam(params, 'StatisticsDateStart', input.statisticsDateStart)
-  appendDynamicApiParam(params, 'StatisticsDateEnd', input.statisticsDateEnd)
-  return params
 }

@@ -15,7 +15,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
 } from '../../base'
 
@@ -37,7 +36,7 @@ export const userApi = {
     return userReadApi.detail(id)
   },
   page(input: UserPageQueryDto) {
-    return userQueryApi.get<PageResult<UserListItemDto>>('UserPage', toUserPageParams(input))
+    return userQueryApi.post<PageResult<UserListItemDto>, UserPageQueryDto>('UserPage', input)
   },
   resetPassword(input: UserPasswordResetDto) {
     // 后端为 UserSecurityAppService.ResetUserPasswordAsync：Reset 前缀不剥离、动词 POST
@@ -56,15 +55,4 @@ export const userApi = {
   updateStatus(input: UserStatusUpdateDto) {
     return userCommandApi.put<UserDetailDto, UserStatusUpdateDto>('UserStatus', input)
   },
-}
-
-function toUserPageParams(input: UserPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'Country', input.country)
-  appendDynamicApiParam(params, 'Gender', input.gender)
-  appendDynamicApiParam(params, 'IsSystemAccount', input.isSystemAccount)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Language', input.language)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

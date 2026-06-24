@@ -1,4 +1,3 @@
-import type { DynamicApiParams } from '../../base'
 import type { ApiId, PageResult } from '../../types'
 import type {
   UserSessionDetailDto,
@@ -7,12 +6,7 @@ import type {
   UserSessionRevokeDto,
   UserSessionsRevokeDto,
 } from './user-session.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  createReadApi,
-} from '../../base'
+import { createDynamicApiClient, createReadApi } from '../../base'
 
 const userSessionQueryApi = createDynamicApiClient('UserSessionQuery')
 const userSessionCommandApi = createDynamicApiClient('UserSession')
@@ -27,10 +21,7 @@ export const userSessionApi = {
     return userSessionReadApi.detail(id)
   },
   page(input: UserSessionPageQueryDto) {
-    return userSessionQueryApi.get<PageResult<UserSessionListItemDto>>(
-      'UserSessionPage',
-      toUserSessionPageParams(input),
-    )
+    return userSessionQueryApi.post<PageResult<UserSessionListItemDto>>('UserSessionPage', input)
   },
   revokeSession(input: UserSessionRevokeDto) {
     // Revoke 前缀不在动态 API 动词表内：路由保留完整方法名（POST RevokeUserSession）
@@ -42,19 +33,4 @@ export const userSessionApi = {
   revokeUserSessions(input: UserSessionsRevokeDto) {
     return userSessionCommandApi.post<number, UserSessionsRevokeDto>('RevokeUserSessions', input)
   },
-}
-
-function toUserSessionPageParams(input: UserSessionPageQueryDto) {
-  const params: DynamicApiParams = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'DeviceType', input.deviceType)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Status', input.status)
-  appendDynamicApiParam(params, 'LastActivityTimeEnd', input.lastActivityTimeEnd)
-  appendDynamicApiParam(params, 'LastActivityTimeStart', input.lastActivityTimeStart)
-  appendDynamicApiParam(params, 'LoginTimeEnd', input.loginTimeEnd)
-  appendDynamicApiParam(params, 'LoginTimeStart', input.loginTimeStart)
-  appendDynamicApiParam(params, 'UserId', input.userId)
-
-  return params
 }

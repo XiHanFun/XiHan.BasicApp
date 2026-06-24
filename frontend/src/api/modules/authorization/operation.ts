@@ -14,7 +14,6 @@ import {
   appendDynamicApiParam,
   createCommandApi,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -47,7 +46,7 @@ export const operationApi = {
     return operationReadApi.detail(id)
   },
   page(input: OperationPageQueryDto) {
-    return operationQueryApi.get<PageResult<OperationListItemDto>>('OperationPage', toOperationPageParams(input))
+    return operationQueryApi.post<PageResult<OperationListItemDto>>('OperationPage', input)
   },
   update(input: OperationUpdateDto) {
     return operationBaseCommandApi.update(input)
@@ -55,21 +54,6 @@ export const operationApi = {
   updateStatus(input: OperationStatusUpdateDto) {
     return operationCommandApi.put<OperationDetailDto, OperationStatusUpdateDto>('OperationStatus', input)
   },
-}
-
-function toOperationPageParams(input: OperationPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'Category', input.category)
-  appendDynamicApiParam(params, 'HttpMethod', input.httpMethod)
-  appendDynamicApiParam(params, 'IsDangerous', input.isDangerous)
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'IsRequireAudit', input.isRequireAudit)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'OperationTypeCode', input.operationTypeCode)
-  appendDynamicApiParam(params, 'Status', input.status)
-
-  return params
 }
 
 function toOperationSelectParams(input: OperationSelectQueryDto) {

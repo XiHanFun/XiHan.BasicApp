@@ -8,9 +8,7 @@ import type {
   ConfigUpdateDto,
 } from './config.types'
 import {
-  appendDynamicApiParam,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -30,7 +28,7 @@ export const configApi = {
     return configReadApi.detail(id)
   },
   page(input: ConfigPageQueryDto) {
-    return configQueryApi.get<PageResult<ConfigListItemDto>>('ConfigPage', toConfigPageParams(input))
+    return configQueryApi.post<PageResult<ConfigListItemDto>>('ConfigPage', input)
   },
   update(input: ConfigUpdateDto) {
     return configCommandApi.put<ConfigDetailDto, ConfigUpdateDto>('Config', input)
@@ -38,17 +36,4 @@ export const configApi = {
   updateStatus(input: ConfigStatusUpdateDto) {
     return configCommandApi.put<ConfigDetailDto, ConfigStatusUpdateDto>('ConfigStatus', input)
   },
-}
-
-function toConfigPageParams(input: ConfigPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'ConfigGroup', input.configGroup)
-  appendDynamicApiParam(params, 'ConfigType', input.configType)
-  appendDynamicApiParam(params, 'DataType', input.dataType)
-  appendDynamicApiParam(params, 'IsBuiltIn', input.isBuiltIn)
-  appendDynamicApiParam(params, 'IsEncrypted', input.isEncrypted)
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
 }

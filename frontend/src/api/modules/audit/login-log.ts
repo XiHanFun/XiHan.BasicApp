@@ -1,11 +1,6 @@
 import type { ApiId, PageResult } from '../../types'
 import type { LoginLogDetailDto, LoginLogListItemDto, LoginLogPageQueryDto } from './login-log.types'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  formatDynamicApiRouteValue,
-} from '../../base'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const loginLogQueryApi = createDynamicApiClient('LoginLogQuery')
 
@@ -16,23 +11,6 @@ export const loginLogApi = {
     )
   },
   page(input: LoginLogPageQueryDto) {
-    return loginLogQueryApi.get<PageResult<LoginLogListItemDto>>(
-      'LoginLogPage',
-      toLoginLogPageParams(input),
-    )
+    return loginLogQueryApi.post<PageResult<LoginLogListItemDto>>('LoginLogPage', input)
   },
-}
-
-function toLoginLogPageParams(input: LoginLogPageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'IsRiskLogin', input.isRiskLogin)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'LoginResult', input.loginResult)
-  appendDynamicApiParam(params, 'LoginTimeEnd', input.loginTimeEnd)
-  appendDynamicApiParam(params, 'LoginTimeStart', input.loginTimeStart)
-  appendDynamicApiParam(params, 'SessionId', input.sessionId)
-  appendDynamicApiParam(params, 'TraceId', input.traceId)
-  appendDynamicApiParam(params, 'UserId', input.userId)
-  appendDynamicApiParam(params, 'UserName', input.userName)
-  return params
 }

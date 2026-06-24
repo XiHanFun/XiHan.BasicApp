@@ -15,9 +15,7 @@ import type {
   FileUploadInput,
 } from './file.types'
 import {
-  appendDynamicApiParam,
   createDynamicApiClient,
-  createPageRequestParams,
   formatDynamicApiRouteValue,
 } from '../../base'
 
@@ -60,16 +58,13 @@ export const fileApi = {
     )
   },
   page(input: FilePageQueryDto) {
-    return fileQueryApi.get<PageResult<FileListItemDto>>('FilePage', toFilePageParams(input))
+    return fileQueryApi.post<PageResult<FileListItemDto>>('FilePage', input)
   },
   storageDetail(id: ApiId) {
     return fileQueryApi.get<FileStorageDetailDto | null>(`FileStorageDetail/${formatDynamicApiRouteValue(id)}`)
   },
   storagePage(input: FileStoragePageQueryDto) {
-    return fileQueryApi.get<PageResult<FileStorageListItemDto>>(
-      'FileStoragePage',
-      toFileStoragePageParams(input),
-    )
+    return fileQueryApi.post<PageResult<FileStorageListItemDto>>('FileStoragePage', input)
   },
   switchPrimaryStorage(input: FilePrimaryStorageSwitchDto) {
     return fileCommandApi.post<FileStorageDetailDto, FilePrimaryStorageSwitchDto>('SwitchPrimaryStorage', input)
@@ -93,37 +88,6 @@ export const fileApi = {
   verifyStorage(input: FileStorageVerifyDto) {
     return fileCommandApi.post<FileStorageDetailDto, FileStorageVerifyDto>('VerifyFileStorage', input)
   },
-}
-
-function toFilePageParams(input: FilePageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'AccessLevel', input.accessLevel)
-  appendDynamicApiParam(params, 'ExpirationTimeEnd', input.expirationTimeEnd)
-  appendDynamicApiParam(params, 'ExpirationTimeStart', input.expirationTimeStart)
-  appendDynamicApiParam(params, 'FileExtension', input.fileExtension)
-  appendDynamicApiParam(params, 'FileType', input.fileType)
-  appendDynamicApiParam(params, 'IsEncrypted', input.isEncrypted)
-  appendDynamicApiParam(params, 'IsTemporary', input.isTemporary)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'MimeType', input.mimeType)
-  appendDynamicApiParam(params, 'Status', input.status)
-  return params
-}
-
-function toFileStoragePageParams(input: FileStoragePageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'EnableCdn', input.enableCdn)
-  appendDynamicApiParam(params, 'FileId', input.fileId)
-  appendDynamicApiParam(params, 'IsBackup', input.isBackup)
-  appendDynamicApiParam(params, 'IsPrimary', input.isPrimary)
-  appendDynamicApiParam(params, 'IsSynced', input.isSynced)
-  appendDynamicApiParam(params, 'IsVerified', input.isVerified)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Status', input.status)
-  appendDynamicApiParam(params, 'StorageType', input.storageType)
-  appendDynamicApiParam(params, 'UploadedTimeEnd', input.uploadedTimeEnd)
-  appendDynamicApiParam(params, 'UploadedTimeStart', input.uploadedTimeStart)
-  return params
 }
 
 function toFileUploadFormData(input: FileUploadInput) {

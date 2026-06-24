@@ -8,9 +8,7 @@ import type {
   TenantMemberUpdateDto,
 } from './tenant-member.types'
 import {
-  appendDynamicApiParam,
   createDynamicApiClient,
-  createPageRequestParams,
   createReadApi,
   formatDynamicApiRouteValue,
 } from '../../base'
@@ -27,10 +25,7 @@ export const tenantMemberApi = {
     return tenantMemberReadApi.detail(id)
   },
   page(input: TenantMemberPageQueryDto) {
-    return tenantMemberQueryApi.get<PageResult<TenantMemberListItemDto>>(
-      'TenantMemberPage',
-      toTenantMemberPageParams(input),
-    )
+    return tenantMemberQueryApi.post<PageResult<TenantMemberListItemDto>>('TenantMemberPage', input)
   },
   revoke(id: ApiId) {
     return tenantMemberCommandApi.delete(`TenantMember/${formatDynamicApiRouteValue(id)}`)
@@ -50,18 +45,4 @@ export const tenantMemberApi = {
       input,
     )
   },
-}
-
-function toTenantMemberPageParams(input: TenantMemberPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'ExpirationTimeEnd', input.expirationTimeEnd)
-  appendDynamicApiParam(params, 'ExpirationTimeStart', input.expirationTimeStart)
-  appendDynamicApiParam(params, 'InviteStatus', input.inviteStatus)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'MemberType', input.memberType)
-  appendDynamicApiParam(params, 'Status', input.status)
-  appendDynamicApiParam(params, 'UserId', input.userId)
-
-  return params
 }

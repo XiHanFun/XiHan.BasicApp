@@ -1,12 +1,6 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest, PageResult } from '../types'
 import type { EnableStatus } from './shared'
-import {
-  appendDynamicApiParam,
-  createDynamicApiClient,
-  createPageRequestParams,
-  createReadApi,
-  formatDynamicApiRouteValue,
-} from '../base'
+import { createDynamicApiClient, createReadApi, formatDynamicApiRouteValue } from '../base'
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConstraintTargetType {
@@ -146,9 +140,9 @@ export const constraintRuleApi = {
     return constraintRuleReadApi.detail(id)
   },
   page(input: ConstraintRulePageQueryDto) {
-    return constraintRuleQueryApi.get<PageResult<ConstraintRuleListItemDto>>(
+    return constraintRuleQueryApi.post<PageResult<ConstraintRuleListItemDto>>(
       'ConstraintRulePage',
-      toConstraintRulePageParams(input),
+      input,
     )
   },
   update(input: ConstraintRuleUpdateDto) {
@@ -163,17 +157,4 @@ export const constraintRuleApi = {
       input,
     )
   },
-}
-
-function toConstraintRulePageParams(input: ConstraintRulePageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'ConstraintType', input.constraintType)
-  appendDynamicApiParam(params, 'IsGlobal', input.isGlobal)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Status', input.status)
-  appendDynamicApiParam(params, 'TargetType', input.targetType)
-  appendDynamicApiParam(params, 'ViolationAction', input.violationAction)
-
-  return params
 }

@@ -8,13 +8,7 @@ import type {
   TenantEditionStatusUpdateDto,
   TenantEditionUpdateDto,
 } from './tenant-edition.types'
-import {
-  appendDynamicApiParam,
-  createCommandApi,
-  createDynamicApiClient,
-  createPageRequestParams,
-  createReadApi,
-} from '../../base'
+import { createCommandApi, createDynamicApiClient, createReadApi } from '../../base'
 
 const tenantEditionQueryApi = createDynamicApiClient('TenantEditionQuery')
 const tenantEditionCommandApi = createDynamicApiClient('TenantEdition')
@@ -39,10 +33,7 @@ export const tenantEditionApi = {
     return tenantEditionQueryApi.get<TenantEditionListItemDto[]>('EnabledTenantEditions')
   },
   page(input: TenantEditionPageQueryDto) {
-    return tenantEditionQueryApi.get<PageResult<TenantEditionListItemDto>>(
-      'TenantEditionPage',
-      toTenantEditionPageParams(input),
-    )
+    return tenantEditionQueryApi.post<PageResult<TenantEditionListItemDto>>('TenantEditionPage', input)
   },
   update(input: TenantEditionUpdateDto) {
     return tenantEditionBaseCommandApi.update(input)
@@ -59,15 +50,4 @@ export const tenantEditionApi = {
       input,
     )
   },
-}
-
-function toTenantEditionPageParams(input: TenantEditionPageQueryDto) {
-  const params = createPageRequestParams(input)
-
-  appendDynamicApiParam(params, 'IsDefault', input.isDefault)
-  appendDynamicApiParam(params, 'IsFree', input.isFree)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-  appendDynamicApiParam(params, 'Status', input.status)
-
-  return params
 }
