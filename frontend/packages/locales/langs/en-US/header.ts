@@ -55,6 +55,15 @@ export default {
       hours_ago: '{n} hr ago',
       days_ago: '{n} d ago',
     },
+    gate: {
+      banner_more: '{n} more',
+      banner_detail: 'View details',
+      banner_close: 'Close',
+      mandatory_title: 'Please read the following required announcements',
+      mandatory_read: 'I have read it',
+      popup_ok: 'Got it',
+      no_content: 'No content',
+    },
   },
   toolbar: {
     switch_language: 'Switch language',

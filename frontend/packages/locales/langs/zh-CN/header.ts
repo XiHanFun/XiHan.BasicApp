@@ -55,6 +55,15 @@ export default {
       hours_ago: '{n} 小时前',
       days_ago: '{n} 天前',
     },
+    gate: {
+      banner_more: '还有 {n} 条',
+      banner_detail: '查看详情',
+      banner_close: '关闭',
+      mandatory_title: '请先阅读以下必读公告',
+      mandatory_read: '我已阅读',
+      popup_ok: '我知道了',
+      no_content: '暂无内容',
+    },
   },
   toolbar: {
     switch_language: '切换语言',

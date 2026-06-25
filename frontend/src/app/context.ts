@@ -379,17 +379,29 @@ function createShellApis() {
       },
     },
     userInboxApi: {
+      banner() {
+        return workbenchApi.inbox.banner()
+      },
       confirm(id: string, _userId?: string, _tenantId?: null | string) {
         return workbenchApi.inbox.confirm(id)
       },
       list(_userId?: string, unreadOnly = false, _tenantId?: null | string) {
         return workbenchApi.inbox.list(unreadOnly)
       },
+      mandatoryUnread() {
+        return workbenchApi.inbox.mandatoryUnread()
+      },
       markAllRead(_userId?: string, _tenantId?: null | string) {
         return workbenchApi.inbox.markAllRead()
       },
+      markPopupShown(id: string) {
+        return workbenchApi.inbox.markPopupShown(id)
+      },
       markRead(id: string, _userId?: string, _tenantId?: null | string) {
         return workbenchApi.inbox.markRead(id)
+      },
+      popup() {
+        return workbenchApi.inbox.popup()
       },
     },
     userSessionApi: {
