@@ -46,7 +46,7 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { NotificationContent, SchemaPage, XMdEditor } from '~/components'
+import { IconPicker, NotificationContent, SchemaPage, XMdEditor } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
 
@@ -708,7 +708,7 @@ async function handleSubmit() {
         </NFormItem>
         <div class="grid grid-cols-2 gap-x-4">
           <NFormItem :label="t('message.notification.form_icon')" path="icon">
-            <NInput v-model:value="notificationForm.icon" clearable :maxlength="100" :placeholder="t('message.notification.form_icon_placeholder')" />
+            <IconPicker v-model="notificationForm.icon" :placeholder="t('message.notification.form_icon_placeholder')" />
           </NFormItem>
           <NFormItem :label="t('message.notification.form_link')" path="link">
             <NInput v-model:value="notificationForm.link" clearable :maxlength="500" :placeholder="t('message.notification.form_link_placeholder')" />
