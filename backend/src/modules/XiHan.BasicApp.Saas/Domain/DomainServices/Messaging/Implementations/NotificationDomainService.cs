@@ -31,17 +31,29 @@ public sealed class NotificationDomainService
 
     private readonly IUserRepository _userRepository;
 
+    private readonly IUserRoleRepository _userRoleRepository;
+
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+
+    private readonly IUserNotificationPreferenceRepository _preferenceRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public NotificationDomainService(
         INotificationRepository notificationRepository,
         IUserNotificationRepository userNotificationRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IUserRoleRepository userRoleRepository,
+        IUserDepartmentRepository userDepartmentRepository,
+        IUserNotificationPreferenceRepository preferenceRepository)
     {
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
         _userRepository = userRepository;
+        _userRoleRepository = userRoleRepository;
+        _userDepartmentRepository = userDepartmentRepository;
+        _preferenceRepository = preferenceRepository;
     }
 
     /// <inheritdoc />
@@ -109,7 +121,9 @@ public sealed class NotificationDomainService
         var notification = await GetNotificationOrThrowAsync(command.BasicId, cancellationToken);
         var targetType = command.TargetType ?? notification.TargetType;
         IReadOnlyList<long> targetUserIds = command.UserIds ?? [];
-        if (targetType == NotificationTargetType.User && targetUserIds.Count == 0 && !string.IsNullOrWhiteSpace(notification.TargetValue))
+        // 定向类型(用户/角色/部门)未显式传目标时，从 TargetValue 还原原目标 ID
+        if (targetType is NotificationTargetType.User or NotificationTargetType.Role or NotificationTargetType.Department
+            && targetUserIds.Count == 0 && !string.IsNullOrWhiteSpace(notification.TargetValue))
         {
             targetUserIds = JsonSerializer.Deserialize<long[]>(notification.TargetValue) ?? [];
         }
@@ -187,10 +201,6 @@ public sealed class NotificationDomainService
     {
         EnsureEnum(notificationType, nameof(notificationType));
         EnsureEnum(targetType, nameof(targetType));
-        if (targetType is not NotificationTargetType.All and not NotificationTargetType.User)
-        {
-            throw new NotSupportedException("系统通知暂只支持全员或指定用户目标。");
-        }
 
         _ = Required(title, 200, nameof(title), "通知标题不能超过 200 个字符。");
         _ = Optional(icon, 100, nameof(icon), "通知图标不能超过 100 个字符。");
@@ -282,9 +292,12 @@ public sealed class NotificationDomainService
             throw new InvalidOperationException("系统通知没有有效接收用户。");
         }
 
+        // 偏好门控（强制/紧急不受门控）；门控后可能少于解析结果，但仅当目标解析为 0 才视为无效
+        var deliverIds = await FilterByPreferenceAsync(recipientIds, notification, cancellationToken);
+
         var existingItems = await _userNotificationRepository.GetListAsync(item => item.NotificationId == notification.BasicId, cancellationToken);
         var existingUserIds = existingItems.Select(item => item.UserId).ToHashSet();
-        var addItems = recipientIds
+        var addItems = deliverIds
             .Where(userId => !existingUserIds.Contains(userId))
             .Select(userId => new SysUserNotification
             {
@@ -301,23 +314,86 @@ public sealed class NotificationDomainService
         notification.IsPublished = true;
         notification.SendTime = notification.SendTime == default ? DateTimeOffset.UtcNow : notification.SendTime;
         notification.TargetType = targetType;
-        notification.TargetValue = targetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(recipientIds);
-        return recipientIds.Count;
+        // TargetValue 存「目标 ID」(角色/部门/用户)，全员为 null；供重新发布时还原目标
+        notification.TargetValue = targetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(NormalizeUserIds(inputUserIds));
+        return deliverIds.Count;
     }
 
-    private async Task<IReadOnlyCollection<long>> ResolveRecipientIdsAsync(IReadOnlyList<long> inputUserIds, NotificationTargetType targetType, CancellationToken cancellationToken)
+    /// <summary>
+    /// 解析收件人：按目标类型把「目标 ID（全员无 / 角色 ID / 部门 ID / 用户 ID）」展开为去重用户 ID 集合
+    /// </summary>
+    private async Task<IReadOnlyCollection<long>> ResolveRecipientIdsAsync(IReadOnlyList<long> inputTargetIds, NotificationTargetType targetType, CancellationToken cancellationToken)
     {
-        if (targetType == NotificationTargetType.All)
+        switch (targetType)
         {
-            var users = await _userRepository.GetListAsync(user => user.Status == EnableStatus.Enabled, cancellationToken);
-            return users.Select(user => user.BasicId).Distinct().ToArray();
+            case NotificationTargetType.All:
+                {
+                    var users = await _userRepository.GetListAsync(user => user.Status == EnableStatus.Enabled, cancellationToken);
+                    return users.Select(user => user.BasicId).Distinct().ToArray();
+                }
+
+            case NotificationTargetType.Role:
+                {
+                    var roleIds = NormalizeUserIds(inputTargetIds);
+                    if (roleIds.Length == 0)
+                    {
+                        return [];
+                    }
+
+                    var userRoles = await _userRoleRepository.GetListAsync(userRole => roleIds.Contains(userRole.RoleId), cancellationToken);
+                    return userRoles.Select(userRole => userRole.UserId).Distinct().ToArray();
+                }
+
+            case NotificationTargetType.Department:
+                {
+                    var departmentIds = NormalizeUserIds(inputTargetIds);
+                    if (departmentIds.Length == 0)
+                    {
+                        return [];
+                    }
+
+                    var userIds = await _userDepartmentRepository.GetUserIdsByDepartmentIdsAsync(departmentIds, cancellationToken);
+                    return userIds.Distinct().ToArray();
+                }
+
+            case NotificationTargetType.User:
+            default:
+                return NormalizeUserIds(inputTargetIds);
+        }
+    }
+
+    /// <summary>
+    /// 偏好门控：按用户站内信偏好（渠道 + 类型开关）过滤收件人；强制阅读 / 紧急通知一律送达，不受门控
+    /// </summary>
+    private async Task<IReadOnlyCollection<long>> FilterByPreferenceAsync(IReadOnlyCollection<long> userIds, SysNotification notification, CancellationToken cancellationToken)
+    {
+        if (userIds.Count == 0 || notification.IsMandatory || notification.NotificationType == NotificationType.Emergency)
+        {
+            return userIds;
         }
 
-        if (targetType != NotificationTargetType.User)
+        var preferences = await _preferenceRepository.GetListAsync(preference => userIds.Contains(preference.UserId), cancellationToken);
+        var preferenceMap = preferences.ToDictionary(preference => preference.UserId);
+        return userIds.Where(userId =>
         {
-            throw new NotSupportedException("系统通知发布暂只支持全员或指定用户目标。");
-        }
+            // 无偏好记录 = 默认全收
+            if (!preferenceMap.TryGetValue(userId, out var preference))
+            {
+                return true;
+            }
 
-        return NormalizeUserIds(inputUserIds);
+            // 关闭站内信渠道则不投递站内记录
+            if (!preference.ChannelInApp)
+            {
+                return false;
+            }
+
+            return notification.NotificationType switch
+            {
+                NotificationType.Security => preference.TypeSecurity,
+                NotificationType.Todo => preference.TypeTask,
+                _ => preference.TypeAnnouncement
+            };
+        }).ToArray();
     }
 }
