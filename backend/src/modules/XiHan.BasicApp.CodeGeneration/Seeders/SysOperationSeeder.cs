@@ -1,0 +1,106 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:SysOperationSeeder
+// Guid:1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f
+// Author:zhaifanhua
+// Email:me@zhaifanhua.com
+// CreateTime:2026/06/26 00:00:00
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Seeders;
+
+namespace XiHan.BasicApp.CodeGeneration.Seeders;
+
+/// <summary>
+/// 系统操作种子数据
+/// </summary>
+/// <remarks>
+/// 播种通用操作字典（read/create/update/delete/export/import/execute），作为权限点的"动作"维度。
+/// 必须先于 <see cref="SysPermissionSeeder"/>（Order=31）执行：后者按「资源 × 操作」派生 code_gen:* 权限，
+/// 若本表为空则整条代码生成权限/菜单/授权链在干净库上静默跳过。
+/// </remarks>
+public class SysOperationSeeder : DataSeederBase
+{
+    /// <summary>
+    /// 内置通用操作定义（操作编码与 <see cref="SysPermissionSeeder"/> 的目标操作集一致）
+    /// </summary>
+    private static readonly (string Code, string Name, OperationTypeCode Type, OperationCategory Category, HttpMethodType Http, bool Audit, bool Dangerous, int Sort)[] BuiltInOperations =
+    [
+        ("read", "读取", OperationTypeCode.Read, OperationCategory.Crud, HttpMethodType.GET, false, false, 1),
+        ("create", "创建", OperationTypeCode.Create, OperationCategory.Crud, HttpMethodType.POST, true, false, 2),
+        ("update", "更新", OperationTypeCode.Update, OperationCategory.Crud, HttpMethodType.PUT, true, false, 3),
+        ("delete", "删除", OperationTypeCode.Delete, OperationCategory.Crud, HttpMethodType.DELETE, true, true, 4),
+        ("export", "导出", OperationTypeCode.Export, OperationCategory.Business, HttpMethodType.GET, false, false, 5),
+        ("import", "导入", OperationTypeCode.Import, OperationCategory.Business, HttpMethodType.POST, true, false, 6),
+        ("execute", "执行", OperationTypeCode.Execute, OperationCategory.Business, HttpMethodType.POST, true, false, 7)
+    ];
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public SysOperationSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysOperationSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
+    {
+    }
+
+    /// <summary>
+    /// 种子数据优先级（须先于 SysResourceSeeder=19 / SysPermissionSeeder=31，操作字典为权限派生前置）
+    /// </summary>
+    public override int Order => 18;
+
+    /// <summary>
+    /// 种子数据名称
+    /// </summary>
+    public override string Name => "[CodeGeneration]系统操作种子数据";
+
+    /// <summary>
+    /// 种子数据实现
+    /// </summary>
+    protected override async Task SeedInternalAsync()
+    {
+        var client = DbClient;
+        var codes = BuiltInOperations.Select(o => o.Code).ToList();
+        var existingCodes = (await client.Queryable<SysOperation>()
+                .Where(o => codes.Contains(o.OperationCode))
+                .ToListAsync())
+            .Select(o => o.OperationCode)
+            .ToHashSet();
+
+        var addList = BuiltInOperations
+            .Where(o => !existingCodes.Contains(o.Code))
+            .Select(o => new SysOperation
+            {
+                TenantId = 0,
+                OperationCode = o.Code,
+                OperationName = o.Name,
+                OperationTypeCode = o.Type,
+                Category = o.Category,
+                HttpMethod = o.Http,
+                IsRequireAudit = o.Audit,
+                IsDangerous = o.Dangerous,
+                Status = EnableStatus.Enabled,
+                Sort = o.Sort,
+                Description = $"通用{o.Name}操作",
+                Remark = "系统内置操作（权限点动作维度）"
+            })
+            .ToList();
+
+        if (addList.Count == 0)
+        {
+            Logger.LogInformation("系统操作数据已存在，跳过种子数据");
+            return;
+        }
+
+        await BulkInsertAsync(addList);
+        Logger.LogInformation("成功初始化 {Count} 个系统操作", addList.Count);
+    }
+}

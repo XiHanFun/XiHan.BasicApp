@@ -33,10 +33,11 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddCodeGenerationDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SysResourceSeeder>();       // Order = 30
-        services.AddDataSeeder<SysMenuSeeder>();           // Order = 31
-        services.AddDataSeeder<SysPermissionSeeder>();     // Order = 32
-        services.AddDataSeeder<SysRolePermissionSeeder>(); // Order = 33
+        services.AddDataSeeder<SysOperationSeeder>();        // Order = 18（操作字典，权限派生前置）
+        services.AddDataSeeder<SysResourceSeeder>();        // Order = 19（资源，权限派生前置）
+        services.AddDataSeeder<SysPermissionSeeder>();      // Order = 31（资源 × 操作 → code_gen:* 权限）
+        services.AddDataSeeder<SysMenuSeeder>();            // Order = 32
+        services.AddDataSeeder<SysRolePermissionSeeder>();  // Order = 33
         services.AddDataSeeder<SysCodeGenTemplateSeeder>(); // Order = 34
         return services;
     }

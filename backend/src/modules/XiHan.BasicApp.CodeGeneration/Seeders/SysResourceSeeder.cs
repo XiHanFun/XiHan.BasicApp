@@ -34,9 +34,9 @@ public class SysResourceSeeder : DataSeederBase
     }
 
     /// <summary>
-    /// 种子数据优先级
+    /// 种子数据优先级（须先于 SysPermissionSeeder=31；避开与 SaasOrganizationSeeder 的 Order=30）
     /// </summary>
-    public override int Order => 30;
+    public override int Order => 19;
 
     /// <summary>
     /// 种子数据名称
