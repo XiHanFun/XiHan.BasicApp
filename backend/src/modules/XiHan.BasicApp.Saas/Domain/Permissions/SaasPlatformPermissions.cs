@@ -18,9 +18,9 @@ namespace XiHan.BasicApp.Saas.Domain.Permissions;
 /// SaaS 平台级权限划分（单一事实源）
 /// </summary>
 /// <remarks>
-/// 集中维护「平台专属」与「开发工具」两类权限码，供多处复用，避免在各种子里复制粘贴造成口径漂移：
+/// 集中维护「平台专属」权限码并界定「可授予租户」的范围，供多处复用，避免各种子复制粘贴造成口径漂移：
 /// - 租户版本(Enterprise)白名单排除：全部权限减去 <see cref="PlatformOnlyCodes"/>；
-/// - 租户管理员(tenant_admin)授权：全部权限减去平台专属与开发工具（见 <see cref="IsTenantGrantable"/>）。
+/// - 租户管理员(tenant_admin)授权：仅 Saas 模块自身权限再减去平台专属（见 <see cref="IsTenantGrantable"/>）。
 /// </remarks>
 public static class SaasPlatformPermissions
 {
@@ -59,21 +59,15 @@ public static class SaasPlatformPermissions
     };
 
     /// <summary>
-    /// 是否开发工具权限（代码生成）：平台级开发功能，仅超级管理员可拥有，租户管理员的「全部权限」亦排除之。
+    /// 该权限码是否可授予租户：仅 Saas 模块自身权限（以模块前缀界定）且非平台专属。
     /// </summary>
-    /// <param name="code">权限码</param>
-    public static bool IsDevelopmentToolCode(string code)
-    {
-        return code.StartsWith("code_gen:", StringComparison.OrdinalIgnoreCase)
-            || code.StartsWith("code_gen_api:", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 该权限码是否可授予租户（排除平台专属与开发工具）。
-    /// </summary>
+    /// <remarks>
+    /// 以 Saas 模块前缀界定，天然排除其它模块的权限——Saas 无需知晓任何外部模块的权限命名。
+    /// </remarks>
     /// <param name="code">权限码</param>
     public static bool IsTenantGrantable(string code)
     {
-        return !PlatformOnlyCodes.Contains(code) && !IsDevelopmentToolCode(code);
+        return code.StartsWith(SaasPermissionCodes.Module + ":", StringComparison.OrdinalIgnoreCase)
+            && !PlatformOnlyCodes.Contains(code);
     }
 }

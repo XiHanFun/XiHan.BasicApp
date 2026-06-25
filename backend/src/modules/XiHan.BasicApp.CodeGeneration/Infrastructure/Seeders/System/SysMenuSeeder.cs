@@ -18,14 +18,14 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
-namespace XiHan.BasicApp.CodeGeneration.Seeders;
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 系统菜单种子数据
 /// </summary>
 /// <remarks>
 /// 开发工具（develop 目录 + code_gen 菜单）属平台级开发工具，仅对拥有 code_gen:read 者（=超管通配 *）可见。
-/// 故菜单建立即绑定 code_gen:read 权限：因权限种子（SysPermissionSeeder Order=31）先行，本种子（Order=32）可解析到该权限，
+/// 故菜单建立即绑定 code_gen:read 权限：因权限种子（SysPermissionSeeder）先行，本种子可解析到该权限，
 /// 在 INSERT 时即写入 PermissionId（新库直接到位，不依赖后置回填）；对既有库再幂等纠正一次（自愈）。
 /// 非超管两者皆被 MenuRouteQueryService 按权限过滤掉（目录亦直接受控，不依赖空目录剪枝）。
 /// </remarks>
@@ -37,9 +37,9 @@ public class SysMenuSeeder : DataSeederBase
     public SysMenuSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysMenuSeeder> logger, IServiceProvider serviceProvider) : base(clientResolver, logger, serviceProvider) { }
 
     /// <summary>
-    /// 种子数据优先级（置于 SysPermissionSeeder=31 之后，确保建菜单时 code_gen:read 已存在）
+    /// 种子数据优先级（置于 SysPermissionSeeder 之后，确保建菜单时 code_gen:read 已存在）
     /// </summary>
-    public override int Order => 32;
+    public override int Order => 103;
 
     /// <summary>
     /// 种子数据名称
@@ -53,7 +53,7 @@ public class SysMenuSeeder : DataSeederBase
     {
         var client = DbClient;
 
-        // 开发工具仅对 code_gen:read 拥有者可见。权限种子(Order=31)先行，此处解析其 Id，建菜单即绑定。
+        // 开发工具仅对 code_gen:read 拥有者可见。权限种子先行，此处解析其 Id，建菜单即绑定。
         var readPermission = await client.Queryable<SysPermission>().FirstAsync(p => p.PermissionCode == "code_gen:read");
         if (readPermission is null)
         {

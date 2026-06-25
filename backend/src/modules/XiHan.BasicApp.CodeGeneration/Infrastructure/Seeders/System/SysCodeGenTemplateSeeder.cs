@@ -19,7 +19,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
-namespace XiHan.BasicApp.CodeGeneration.Seeders;
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 代码生成内置模板种子数据
@@ -73,7 +73,7 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 34;
+    public override int Order => 105;
 
     /// <summary>
     /// 种子数据名称
