@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import type { SelectOption } from 'naive-ui'
+import type { DataTableColumns, SelectOption } from 'naive-ui'
 import type {
   ApiId,
   DateTimeString,
   NotificationDetailDto,
   NotificationListItemDto,
+  NotificationReadStatsDto,
+  NotificationUnreadUserDto,
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
+  NDataTable,
   NDatePicker,
   NDescriptions,
   NDescriptionsItem,
@@ -20,7 +23,11 @@ import {
   NFormItem,
   NInput,
   NModal,
+  NPagination,
+  NPopconfirm,
+  NProgress,
   NSelect,
+  NStatistic,
   NSwitch,
   NTag,
   useDialog,
@@ -41,7 +48,7 @@ import {
 } from '@/api'
 import { SchemaPage, XMdEditor } from '~/components'
 import { useEnumOptions } from '~/hooks'
-import { formatDate, getOptionLabel } from '~/utils'
+import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'MessageNotificationPage' })
 
@@ -280,6 +287,7 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('message.notification.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:message:create' },
     { key: 'view', title: t('message.notification.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'stats', title: t('message.notification.action_stats'), scope: 'row', icon: 'lucide:bar-chart-3', permission: 'saas:message:read', visible: isPublished },
     { key: 'edit', title: t('message.notification.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'saas:message:update', visible: isUnpublished },
     { key: 'publish', title: t('message.notification.action_publish'), scope: 'row', type: 'primary', icon: 'lucide:send', permission: 'saas:message:publish', visible: isUnpublished },
     { key: 'delete', title: t('message.notification.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:message:delete', confirm: true, confirmText: t('message.notification.confirm_delete') },
@@ -288,6 +296,10 @@ const schema = computed<PageSchema>(() => ({
 
 function isUnpublished(row: unknown): boolean {
   return !(row as NotificationListItemDto).isPublished
+}
+
+function isPublished(row: unknown): boolean {
+  return (row as NotificationListItemDto).isPublished === true
 }
 
 function onAction(payload: SchemaActionPayload) {
@@ -301,6 +313,8 @@ function onAction(payload: SchemaActionPayload) {
   if (payload.scope === 'row' && row) {
     if (payload.key === 'view')
       void openDetail(row)
+    else if (payload.key === 'stats')
+      void openStats(row)
     else if (payload.key === 'edit')
       void openEdit(row)
     else if (payload.key === 'publish')
@@ -398,6 +412,140 @@ async function removeRow(row: NotificationListItemDto) {
   }
   catch (e) {
     message.error((e as Error).message || t('message.notification.msg_delete_failed'))
+  }
+}
+
+// ── 运营数据（抽屉） ─────────────────────────────────────────────
+const STATS_PAGE_SIZE = 10
+const STATS_EXPORT_LIMIT = 1000
+
+const statsVisible = ref(false)
+const statsLoading = ref(false)
+const statsRow = ref<{ id: ApiId, title: string } | null>(null)
+const readStats = ref<NotificationReadStatsDto | null>(null)
+const unreadUsers = ref<NotificationUnreadUserDto[]>([])
+const unreadTotal = ref(0)
+const unreadPage = ref(1)
+const remindLoading = ref(false)
+const exportLoading = ref(false)
+
+const readRate = computed(() => {
+  const stats = readStats.value
+  if (!stats || stats.recipientCount <= 0) {
+    return 0
+  }
+  return Math.round((stats.readCount / stats.recipientCount) * 100)
+})
+
+const unreadColumns = computed<DataTableColumns<NotificationUnreadUserDto>>(() => [
+  { key: 'userName', title: t('message.notification.col_user_name'), minWidth: 140 },
+  { key: 'realName', title: t('message.notification.col_real_name'), minWidth: 120, render: row => row.realName || '-' },
+  { key: 'receivedTime', title: t('message.notification.col_received_time'), minWidth: 170, render: row => formatDate(row.receivedTime) },
+])
+
+async function loadUnreadUsers(id: ApiId, page: number) {
+  const result = await notificationApi.unreadUserPage({
+    ...createPageRequest({ page: { pageIndex: page, pageSize: STATS_PAGE_SIZE } }),
+    notificationId: id,
+  })
+  unreadUsers.value = result.items
+  unreadTotal.value = result.page.totalCount
+}
+
+async function openStats(row: NotificationListItemDto) {
+  statsRow.value = { id: row.basicId, title: row.title }
+  readStats.value = null
+  unreadUsers.value = []
+  unreadTotal.value = 0
+  unreadPage.value = 1
+  statsVisible.value = true
+  statsLoading.value = true
+  try {
+    const [stats] = await Promise.all([
+      notificationApi.readStats(row.basicId),
+      loadUnreadUsers(row.basicId, 1),
+    ])
+    readStats.value = stats
+  }
+  catch (e) {
+    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+  }
+  finally {
+    statsLoading.value = false
+  }
+}
+
+async function handleUnreadPageChange(page: number) {
+  if (!statsRow.value) {
+    return
+  }
+  unreadPage.value = page
+  statsLoading.value = true
+  try {
+    await loadUnreadUsers(statsRow.value.id, page)
+  }
+  catch (e) {
+    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+  }
+  finally {
+    statsLoading.value = false
+  }
+}
+
+async function confirmRemind() {
+  const row = statsRow.value
+  if (!row) {
+    return
+  }
+  remindLoading.value = true
+  try {
+    const result = await notificationApi.remind(row.id)
+    message.success(t('message.notification.stats_remind_success', { count: result.recipientCount }))
+    readStats.value = await notificationApi.readStats(row.id)
+  }
+  catch (e) {
+    message.error((e as Error).message || t('message.notification.msg_publish_failed'))
+  }
+  finally {
+    remindLoading.value = false
+  }
+}
+
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`
+}
+
+async function exportUnread() {
+  const row = statsRow.value
+  if (!row) {
+    return
+  }
+  exportLoading.value = true
+  try {
+    const result = await notificationApi.unreadUserPage({
+      ...createPageRequest({ page: { pageIndex: 1, pageSize: STATS_EXPORT_LIMIT } }),
+      notificationId: row.id,
+    })
+    if (result.page.totalCount > STATS_EXPORT_LIMIT) {
+      message.warning(t('message.notification.stats_export_truncated'))
+    }
+    const header = [
+      t('message.notification.col_user_name'),
+      t('message.notification.col_real_name'),
+      t('message.notification.col_received_time'),
+    ]
+    const lines = [header, ...result.items.map(u => [u.userName, u.realName || '-', formatDate(u.receivedTime)])]
+      .map(cols => cols.map(csvCell).join(','))
+    // 加 UTF-8 BOM 防中文乱码
+    const bom = String.fromCharCode(0xFEFF)
+    const csv = `${bom}${lines.join('\r\n')}`
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `unread-users-${row.id}.csv`)
+  }
+  catch (e) {
+    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+  }
+  finally {
+    exportLoading.value = false
   }
 }
 
@@ -693,6 +841,60 @@ async function handleSubmit() {
         </template>
       </NDrawerContent>
     </NDrawer>
+
+    <!-- 运营数据（抽屉） -->
+    <NDrawer v-model:show="statsVisible" :width="640">
+      <NDrawerContent :title="statsRow ? `${t('message.notification.stats_title')} · ${statsRow.title}` : t('message.notification.stats_title')" closable>
+        <div v-if="readStats" class="stats">
+          <!-- 统计区 -->
+          <div class="stats__cards">
+            <NStatistic :label="t('message.notification.stats_recipient')" :value="readStats.recipientCount" />
+            <NStatistic :label="t('message.notification.stats_read')" :value="readStats.readCount" />
+            <NStatistic :label="t('message.notification.stats_unread')" :value="readStats.unreadCount" />
+            <NStatistic v-if="readStats.needConfirm" :label="t('message.notification.stats_confirm')" :value="readStats.confirmCount" />
+          </div>
+          <div class="stats__rate">
+            <span class="stats__rate-label">{{ t('message.notification.stats_read_rate') }}</span>
+            <NProgress type="line" :percentage="readRate" :height="12" />
+          </div>
+          <!-- 操作区 -->
+          <div class="stats__ops">
+            <NPopconfirm @positive-click="confirmRemind">
+              <template #trigger>
+                <NButton size="small" type="primary" :loading="remindLoading">
+                  {{ t('message.notification.stats_remind') }}
+                </NButton>
+              </template>
+              {{ t('message.notification.stats_remind_confirm', { count: readStats.unreadCount }) }}
+            </NPopconfirm>
+            <NButton size="small" :loading="exportLoading" @click="exportUnread">
+              {{ t('message.notification.stats_export') }}
+            </NButton>
+          </div>
+          <!-- 未读人员区 -->
+          <div class="stats__section-title">
+            {{ t('message.notification.stats_unread_users') }}
+          </div>
+          <NDataTable
+            :columns="unreadColumns"
+            :data="unreadUsers"
+            :loading="statsLoading"
+            :row-key="(row: NotificationUnreadUserDto) => String(row.userId)"
+            size="small"
+          />
+          <div class="stats__pager">
+            <NPagination
+              :page="unreadPage"
+              :item-count="unreadTotal"
+              :page-size="STATS_PAGE_SIZE"
+              :page-slot="5"
+              size="small"
+              @update:page="handleUnreadPageChange"
+            />
+          </div>
+        </div>
+      </NDrawerContent>
+    </NDrawer>
   </SchemaPage>
 </template>
 
@@ -701,5 +903,44 @@ async function handleSubmit() {
   margin: 0 0 8px;
   font-size: 12px;
   color: hsl(var(--warning, 38 92% 50%));
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stats__cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stats__rate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stats__rate-label {
+  flex: none;
+  font-size: 13px;
+  color: var(--text-color-3, #999);
+}
+
+.stats__ops {
+  display: flex;
+  gap: 8px;
+}
+
+.stats__section-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stats__pager {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
