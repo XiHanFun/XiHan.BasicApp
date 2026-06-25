@@ -162,4 +162,42 @@
   --color-warning: hsl(var(--warning));
   --color-info: hsl(var(--info));
   --color-error: hsl(var(--destructive));
+
+  /* Tailwind 颜色令牌（与 @theme 同名）：在 :root 与 .dark 两处都按「当前上下文」重解析 --x，
+   * 使「深色侧边栏 / 子栏 / 顶栏」等嵌套 .dark 容器内的 bg-* / text-* / border-* 工具类
+   * 与整体暗色模式表现一致。
+   * 原因：@theme 生成的 --color-* 只在 :root 解析一次，嵌套 .dark 只改 --x 不会让其重算；
+   * 在 .dark 选择器上重新声明 --color-*，即可像根节点切暗色那样按区域重解析。 */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-background-deep: hsl(var(--background-deep));
+  --color-foreground: hsl(var(--foreground));
+  --color-overlay: hsl(var(--overlay));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-deep: hsl(var(--sidebar-deep));
+  --color-header: hsl(var(--header));
+  --color-menu: hsl(var(--menu));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-success-surface: hsl(var(--success-surface));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-warning-surface: hsl(var(--warning-surface));
+  --color-info-foreground: hsl(var(--info-foreground));
+  --color-info-surface: hsl(var(--info-surface));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-surface: hsl(var(--destructive-surface));
 }
