@@ -49,8 +49,9 @@ public class XiHanBasicAppSaasModule : XiHanModule
     {
         var services = context.Services;
 
-        // 注册 SaaS 模块种子数据
+        // 注册 SaaS 模块种子数据（系统基线始终播种；演示数据由 Saas:Seed:EnableDemoData 控制）
         services.AddSaasDataSeeders();
+        services.AddSaasDemoDataSeeders();
 
         // 注册 SaaS 领域服务
         services.AddSaasDomainServices();
