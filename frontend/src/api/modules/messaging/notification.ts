@@ -41,7 +41,9 @@ export const notificationApi = {
     return notificationQueryApi.get<NotificationReadStatsDto>(`NotificationReadStats/${formatDynamicApiRouteValue(id)}`)
   },
   remind(id: ApiId) {
-    return notificationCommandApi.post<NotificationPublishResultDto>(`Remind/${formatDynamicApiRouteValue(id)}`)
+    // RemindAsync(long id)：非 CRUD 前缀 → 默认 POST，POST 不把 id 拼进路由段，
+    // 故 id 走 query（同 export Cancel 模式），route 为 /Notification/Remind?id=
+    return notificationCommandApi.post<NotificationPublishResultDto>('Remind', undefined, { params: { id } })
   },
   unreadUserPage(input: NotificationUnreadUserPageQueryDto) {
     return notificationQueryApi.post<PageResult<NotificationUnreadUserDto>>('NotificationUnreadUserPage', input)
