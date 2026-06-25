@@ -20,17 +20,17 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 
 /// <summary>
-/// SaaS 组织架构种子数据（默认租户正式组织结构：总公司 + 6 个一级部门，并维护闭包表）
+/// SaaS 组织架构种子数据（默认租户演示组织结构：总公司 + 6 个一级部门，并维护闭包表；受演示开关控制）
 /// </summary>
 public sealed class SaasOrganizationSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasOrganizationSeeder> logger,
     IServiceProvider serviceProvider,
     ICurrentTenant currentTenant)
-    : DataSeederBase(clientResolver, logger, serviceProvider)
+    : SaasDemoSeederBase(clientResolver, logger, serviceProvider)
 {
     private const string DefaultTenantCode = "default";
     private const string RootDepartmentCode = "xihan";
@@ -52,6 +52,11 @@ public sealed class SaasOrganizationSeeder(
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        if (TrySkipWhenDemoDisabled())
+        {
+            return;
+        }
+
         var tenantId = await ResolveTenantIdAsync();
         if (tenantId == 0)
         {

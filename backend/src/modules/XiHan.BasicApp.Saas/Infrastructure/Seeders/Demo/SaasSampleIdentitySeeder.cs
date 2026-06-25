@@ -22,7 +22,7 @@ using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Password;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 
 /// <summary>
 /// SaaS 演示身份种子数据（默认租户内的示例角色与账号）
@@ -40,7 +40,7 @@ public sealed class SaasSampleIdentitySeeder(
     IServiceProvider serviceProvider,
     ICurrentTenant currentTenant,
     IPasswordHasher passwordHasher)
-    : DataSeederBase(clientResolver, logger, serviceProvider)
+    : SaasDemoSeederBase(clientResolver, logger, serviceProvider)
 {
     private const string DefaultTenantCode = "default";
 
@@ -181,6 +181,11 @@ public sealed class SaasSampleIdentitySeeder(
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        if (TrySkipWhenDemoDisabled())
+        {
+            return;
+        }
+
         long tenantId;
         Dictionary<string, long> permissionIdByCode;
 

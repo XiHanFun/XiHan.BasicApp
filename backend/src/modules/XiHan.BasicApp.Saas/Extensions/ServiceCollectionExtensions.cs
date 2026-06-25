@@ -25,6 +25,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Authentication.OAuth;
@@ -174,7 +175,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 SaaS 种子数据提供者
+    /// 添加 SaaS 系统基线种子数据提供者（身份/权限/版本/配置/字典/菜单/通知/存储/任务等，始终播种）
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
@@ -188,13 +189,27 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasMenuSeeder>();
         services.AddDataSeeder<SaasMessageTemplateSeeder>();
         services.AddDataSeeder<SaasOAuthAppSeeder>();
+        services.AddDataSeeder<SaasNotificationSeeder>();
+        services.AddDataSeeder<SaasStorageConfigSeeder>();
+        services.AddDataSeeder<SaasTaskSeeder>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 SaaS 演示种子数据提供者（示例组织/演示账号/演示业务租户）
+    /// </summary>
+    /// <remarks>
+    /// 与系统基线种子分离：这批数据由配置开关 <c>Saas:Seed:EnableDemoData</c> 控制是否真正播种
+    /// （缺省/true 播种，显式 false 整体跳过），切换仅需改配置 + 重启。执行顺序仍按各自 Order。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasDemoDataSeeders(this IServiceCollection services)
+    {
         services.AddDataSeeder<SaasOrganizationSeeder>();
         services.AddDataSeeder<SaasSampleIdentitySeeder>();
         // 必须在演示身份之后执行（Order=37 > 35）：跨租户成员依赖默认租户样例用户（zhangsan/lisi）。
         services.AddDataSeeder<SaasBusinessTenantSeeder>();
-        services.AddDataSeeder<SaasNotificationSeeder>();
-        services.AddDataSeeder<SaasStorageConfigSeeder>();
-        services.AddDataSeeder<SaasTaskSeeder>();
         return services;
     }
 
