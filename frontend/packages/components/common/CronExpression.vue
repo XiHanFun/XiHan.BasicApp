@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NButton, NInput, NInputGroup, NInputNumber, NModal, NRadio, NRadioGroup, NSelect, NSwitch, NTabPane, NTabs, NTag } from 'naive-ui'
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
@@ -275,44 +275,77 @@ function fieldAllowed(f: FieldState, def: FieldDef): Set<number> | null {
       return set
     }
     case 'specific':
-      return new Set(f.values)
+      // 未选值时视为通配（与 fieldToStr 输出 '*' 一致），避免空集导致永不匹配的长循环
+      return f.values.length ? new Set(f.values) : null
     default:
       return null
   }
 }
 
-const nextRuns = computed<Date[]>(() => {
-  if (!builderVisible.value) {
-    return []
-  }
+const nextRuns = ref<Date[]>([])
+let previewTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * 计算最近 N 次执行。性能要点：
+ * 1) 任一字段为空集 → 永不匹配，立即返回，避免空转；
+ * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环。
+ */
+function computeNextRuns(): Date[] {
   const sec = hasSeconds.value ? fieldAllowed(fields.second, defOf('second')) : new Set([0])
   const min = fieldAllowed(fields.minute, defOf('minute'))
   const hour = fieldAllowed(fields.hour, defOf('hour'))
   const day = fieldAllowed(fields.day, defOf('day'))
   const month = fieldAllowed(fields.month, defOf('month'))
   const week = fieldAllowed(fields.week, defOf('week'))
+  if ([sec, min, hour, day, month, week].some(s => s !== null && s.size === 0)) {
+    return []
+  }
   const hit = (set: Set<number> | null, v: number): boolean => set === null || set.has(v)
 
   const results: Date[] = []
-  const cursor = new Date()
-  cursor.setMilliseconds(0)
-  cursor.setSeconds(cursor.getSeconds() + 1)
-  // 上限：约 1 年的秒级 / 分级步进，覆盖常见表达式且防止死循环
-  const maxIter = hasSeconds.value ? 366 * 24 * 60 * 60 : 366 * 24 * 60
-  for (let i = 0; i < maxIter && results.length < props.previewCount; i++) {
+  const now = new Date()
+  const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), 0, 0)
+  const startSecond = now.getSeconds() + 1
+  const maxMinutes = 366 * 24 * 60 * 5 // 最多查约 5 年的分钟（防死循环）
+  for (let m = 0; m < maxMinutes && results.length < props.previewCount; m++) {
     if (
       hit(month, cursor.getMonth() + 1)
       && hit(day, cursor.getDate())
       && hit(week, cursor.getDay())
       && hit(hour, cursor.getHours())
       && hit(min, cursor.getMinutes())
-      && hit(sec, cursor.getSeconds())
     ) {
-      results.push(new Date(cursor))
+      const fromSec = m === 0 ? startSecond : 0
+      for (let s = fromSec; s <= 59 && results.length < props.previewCount; s++) {
+        if (hit(sec, s)) {
+          results.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), cursor.getHours(), cursor.getMinutes(), s))
+        }
+      }
     }
-    cursor.setSeconds(cursor.getSeconds() + (hasSeconds.value ? 1 : 60))
+    cursor.setMinutes(cursor.getMinutes() + 1)
   }
   return results
+}
+
+// 预览防抖：仅弹窗打开时计算，并合并快速连续修改，避免点击切换时卡顿
+watch([builderVisible, expression], () => {
+  if (previewTimer) {
+    clearTimeout(previewTimer)
+    previewTimer = null
+  }
+  if (!builderVisible.value) {
+    nextRuns.value = []
+    return
+  }
+  previewTimer = setTimeout(() => {
+    nextRuns.value = computeNextRuns()
+  }, 200)
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (previewTimer) {
+    clearTimeout(previewTimer)
+  }
 })
 
 function fmt(d: Date): string {
