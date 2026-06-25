@@ -25,6 +25,7 @@ public interface ICodeGenTableColumnAppService : IApplicationService
     /// <summary>按表整体保存列配置（前端表格批量提交）</summary>
     Task BatchSaveAsync(CodeGenTableColumnBatchSaveDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>更新单列配置</summary>
     Task<CodeGenTableColumnListItemDto> UpdateAsync(CodeGenTableColumnUpdateDto input, CancellationToken cancellationToken = default);
 }
 

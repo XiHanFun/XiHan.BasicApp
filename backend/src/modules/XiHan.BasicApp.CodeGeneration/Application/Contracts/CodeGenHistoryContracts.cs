@@ -23,9 +23,18 @@ namespace XiHan.BasicApp.CodeGeneration.Application.Contracts;
 /// </summary>
 public interface ICodeGenHistoryQueryService : IApplicationService
 {
+    /// <summary>
+    /// 获取代码生成历史分页列表
+    /// </summary>
     Task<PageResultDtoBase<CodeGenHistoryListItemDto>> GetPageAsync(CodeGenHistoryPageQueryDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 获取代码生成历史详情
+    /// </summary>
     Task<CodeGenHistoryDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 按表获取代码生成历史列表
+    /// </summary>
     Task<IReadOnlyList<CodeGenHistoryListItemDto>> GetByTableAsync(long tableId, CancellationToken cancellationToken = default);
 }

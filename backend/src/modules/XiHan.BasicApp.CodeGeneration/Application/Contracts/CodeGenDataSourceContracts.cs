@@ -23,12 +23,16 @@ namespace XiHan.BasicApp.CodeGeneration.Application.Contracts;
 /// </summary>
 public interface ICodeGenDataSourceAppService : IApplicationService
 {
+    /// <summary>创建数据源</summary>
     Task<CodeGenDataSourceDetailDto> CreateAsync(CodeGenDataSourceCreateDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>更新数据源</summary>
     Task<CodeGenDataSourceDetailDto> UpdateAsync(CodeGenDataSourceUpdateDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>更新数据源状态</summary>
     Task<CodeGenDataSourceDetailDto> UpdateStatusAsync(CodeGenDataSourceStatusUpdateDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>删除数据源</summary>
     Task DeleteAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>测试数据源连接（测试通过方可启用/保存）</summary>
@@ -40,7 +44,9 @@ public interface ICodeGenDataSourceAppService : IApplicationService
 /// </summary>
 public interface ICodeGenDataSourceQueryService : IApplicationService
 {
+    /// <summary>获取数据源分页列表</summary>
     Task<PageResultDtoBase<CodeGenDataSourceListItemDto>> GetPageAsync(CodeGenDataSourcePageQueryDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>获取数据源详情</summary>
     Task<CodeGenDataSourceDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default);
 }
