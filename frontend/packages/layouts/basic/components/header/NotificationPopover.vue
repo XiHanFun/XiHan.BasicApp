@@ -3,6 +3,7 @@ import type { NotificationItem } from '~/stores'
 import { NButton, NEmpty, NNumberAnimation, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { NotificationContent } from '~/components'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -223,7 +224,7 @@ function handleClickOutside() {
                         </NTag>
                       </div>
                       <div v-if="item.content" class="notification-item-content">
-                        {{ item.content }}
+                        <NotificationContent :content="item.content" :format="item.contentFormat" />
                       </div>
                       <div class="notification-item-footer">
                         <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
@@ -263,7 +264,7 @@ function handleClickOutside() {
                         </NTag>
                       </div>
                       <div v-if="item.content" class="notification-item-content">
-                        {{ item.content }}
+                        <NotificationContent :content="item.content" :format="item.contentFormat" />
                       </div>
                       <div class="notification-item-footer">
                         <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
@@ -484,6 +485,8 @@ function handleClickOutside() {
 
 .notification-item-content {
   margin-top: 4px;
+  max-height: 96px;
+  overflow: hidden;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
   line-height: 1.5;

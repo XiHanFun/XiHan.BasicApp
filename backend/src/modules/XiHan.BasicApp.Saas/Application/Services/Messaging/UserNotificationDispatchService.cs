@@ -128,6 +128,7 @@ public sealed class UserNotificationDispatchService
                     type = ToRealtimeType(item.NotificationType),
                     title = item.Title,
                     content = item.Content,
+                    contentFormat = item.ContentFormat,
                     basicId = item.BasicId,
                     notificationId = item.NotificationId,
                     notificationType = item.NotificationType,

@@ -123,6 +123,7 @@ function syncHeaderStore(list = items.value) {
     basicId: item.basicId,
     confirmTime: item.confirmTime ?? undefined,
     content: item.content ?? undefined,
+    contentFormat: item.contentFormat,
     icon: item.icon ?? undefined,
     isGlobal: item.isGlobal,
     link: item.link ?? undefined,
