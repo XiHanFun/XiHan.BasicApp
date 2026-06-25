@@ -41,7 +41,7 @@ const editorId = `notif-md-${useId()}`
 .notif-content-text {
   margin: 0;
   font-family: inherit;
-  white-space: pre-wrap;
+  white-space: pre-line;
   word-break: break-word;
 }
 

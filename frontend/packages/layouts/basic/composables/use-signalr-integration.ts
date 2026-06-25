@@ -1,9 +1,10 @@
 import type { ServerTaskProgressPayload } from '~/composables'
 import type { UserSettingChangedPayload } from '~/constants'
+import type { NotificationContentFormat } from '~/types/enums'
 import { useDialog, useNotification } from 'naive-ui'
-import { onMounted, onUnmounted, watch } from 'vue'
+import { h, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { applyRemotePageSetting } from '~/components'
+import { applyRemotePageSetting, NotificationContent } from '~/components'
 import { applyServerTaskProgress, islandStatus, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
@@ -84,6 +85,7 @@ export function useSignalRIntegration() {
     type?: string
     title?: string
     content?: string
+    contentFormat?: string
   }) {
     const typeMap: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
       Info: 'info',
@@ -95,7 +97,12 @@ export function useSignalRIntegration() {
 
     notification[nType]({
       title: payload?.title || t('page.signalr.new_notification'),
-      content: payload?.content || '',
+      content: () => h('div', { style: 'max-height:160px;overflow:auto' }, [
+        h(NotificationContent, {
+          content: payload?.content ?? '',
+          format: payload?.contentFormat as NotificationContentFormat,
+        }),
+      ]),
       duration: 5000,
       closable: false,
     })

@@ -290,6 +290,7 @@ async function loadNotifications() {
       basicId: n.basicId,
       title: n.title,
       content: n.content ?? undefined,
+      contentFormat: n.contentFormat,
       notificationType: n.notificationType,
       notificationStatus: n.notificationStatus,
       sendTime: n.sendTime,

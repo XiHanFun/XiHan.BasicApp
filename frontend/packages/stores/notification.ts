@@ -1,12 +1,13 @@
-import type { NotificationStatus, NotificationType } from '~/types/enums'
-import { NotificationStatus as NotificationStatusEnum } from '~/types/enums'
+import type { NotificationContentFormat, NotificationStatus, NotificationType } from '~/types/enums'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { NotificationStatus as NotificationStatusEnum } from '~/types/enums'
 
 export interface NotificationItem {
   basicId: string
   title: string
   content?: string
+  contentFormat?: NotificationContentFormat
   notificationType: NotificationType
   notificationStatus: NotificationStatus
   sendTime: string

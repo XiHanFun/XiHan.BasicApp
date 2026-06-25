@@ -87,6 +87,7 @@ export interface AppUserInboxItem {
   basicId: string
   title: string
   content?: null | string
+  contentFormat?: NotificationContentFormat
   notificationType: NotificationType
   notificationStatus: NotificationStatus
   sendTime: string
