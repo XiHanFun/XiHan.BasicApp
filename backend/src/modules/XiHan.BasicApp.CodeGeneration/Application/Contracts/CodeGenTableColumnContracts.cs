@@ -22,10 +22,14 @@ namespace XiHan.BasicApp.CodeGeneration.Application.Contracts;
 /// </summary>
 public interface ICodeGenTableColumnAppService : IApplicationService
 {
-    /// <summary>按表整体保存列配置（前端表格批量提交）</summary>
+    /// <summary>
+    /// 按表整体保存列配置（前端表格批量提交）
+    /// </summary>
     Task BatchSaveAsync(CodeGenTableColumnBatchSaveDto input, CancellationToken cancellationToken = default);
 
-    /// <summary>更新单列配置</summary>
+    /// <summary>
+    /// 更新单列配置
+    /// </summary>
     Task<CodeGenTableColumnListItemDto> UpdateAsync(CodeGenTableColumnUpdateDto input, CancellationToken cancellationToken = default);
 }
 
@@ -34,6 +38,8 @@ public interface ICodeGenTableColumnAppService : IApplicationService
 /// </summary>
 public interface ICodeGenTableColumnQueryService : IApplicationService
 {
-    /// <summary>获取指定表的全部列配置</summary>
+    /// <summary>
+    /// 获取指定表的全部列配置
+    /// </summary>
     Task<IReadOnlyList<CodeGenTableColumnListItemDto>> GetByTableAsync(long tableId, CancellationToken cancellationToken = default);
 }

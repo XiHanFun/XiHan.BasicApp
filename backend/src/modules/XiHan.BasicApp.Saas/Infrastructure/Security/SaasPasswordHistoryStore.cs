@@ -39,7 +39,7 @@ public sealed class SaasPasswordHistoryStore : IPasswordHistoryStore
 
         if (userId <= 0 || count <= 0)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var history = await _passwordHistoryRepository.GetRecentByUserIdAsync(userId, count, ct);

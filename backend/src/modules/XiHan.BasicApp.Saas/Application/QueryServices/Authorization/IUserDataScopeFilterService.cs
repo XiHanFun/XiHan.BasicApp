@@ -24,7 +24,7 @@ public sealed record UserDataScopeFilter(bool Unrestricted, IReadOnlyCollection<
     /// <summary>
     /// 不限制数据范围
     /// </summary>
-    public static UserDataScopeFilter Unlimited { get; } = new(true, Array.Empty<long>());
+    public static UserDataScopeFilter Unlimited { get; } = new(true, []);
 }
 
 /// <summary>
