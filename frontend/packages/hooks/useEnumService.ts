@@ -3,7 +3,7 @@ import type {
   AppEnumDefinition as EnumDefinition,
   AppEnumOption as EnumOption,
 } from '~/types'
-import { computed, ref } from 'vue'
+import { computed, effectScope, ref, watch } from 'vue'
 import { useAppStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
 
@@ -24,8 +24,17 @@ export interface EnumSelectOption {
   disabled?: boolean
 }
 
+// 全量枚举元数据缓存（键=枚举类型名）。后端 AllEnums 一次返回全量，且 app-context 里
+// getByName/getBatch 实际都打 AllEnums——故统一「整库取一次、按语言缓存」，杜绝按枚举各取。
 const enumState = ref<Record<string, EnumDefinition>>({})
+// enumState 当前持有的语言；切语言后由全局监听整库重取一次。
+const loadedLang = ref<string | null>(null)
 const loading = ref(false)
+// 同语言并发去重：多个消费者/首屏多个下拉同时 ensure 时只发一次请求。
+let inflight: Promise<Record<string, EnumDefinition>> | null = null
+let inflightLang: string | null = null
+// 全局语言监听只装一次（应用级，脱离组件作用域）。
+let localeWatcherInstalled = false
 
 export function useEnumService() {
   const appStore = useAppStore()
@@ -37,55 +46,61 @@ export function useEnumService() {
     return language ?? appStore.locale ?? 'zh-CN'
   }
 
+  /**
+   * 整库取一次：getBatch({ enumNames: [] }) 在 app-context 返回全量映射。
+   * 按语言缓存 + 同语言并发去重 → 一个页面无论多少枚举下拉，只触发一次 AllEnums 请求。
+   */
+  async function ensureAll(language?: string): Promise<Record<string, EnumDefinition>> {
+    const lang = resolveLanguage(language)
+    if (loadedLang.value === lang && Object.keys(enumState.value).length > 0) {
+      return enumState.value
+    }
+    if (inflight && inflightLang === lang) {
+      return inflight
+    }
+    inflightLang = lang
+    loading.value = true
+    inflight = ctx.apis.enumApi
+      .getBatch({ enumNames: [], language: lang, includeHidden: false, includeDict: true })
+      .then((all) => {
+        enumState.value = all
+        loadedLang.value = lang
+        return all
+      })
+      .finally(() => {
+        inflight = null
+        inflightLang = null
+        loading.value = false
+      })
+    return inflight
+  }
+
+  // 全局语言监听（装一次）：切语言后整库重取一次，避免每个 useEnumOptions/useSchemaDictionaries
+  // 各自监听各自重取造成 N 次请求。脱离组件作用域以存活整个应用生命周期。
+  if (!localeWatcherInstalled) {
+    localeWatcherInstalled = true
+    const scope = effectScope(true)
+    scope.run(() => {
+      watch(() => appStore.locale, (lang) => {
+        // 仅在已加载过枚举时重取，避免无谓请求。
+        if (loadedLang.value !== null) {
+          void ensureAll(lang)
+        }
+      })
+    })
+  }
+
   async function ensureEnum(enumName: string, options: UseEnumOptions = {}) {
     if (!enumName) {
       return null
     }
-
-    loading.value = true
-    try {
-      const definition = await ctx.apis.enumApi.getByName({
-        enumName,
-        language: resolveLanguage(options.language),
-        includeHidden: options.includeHidden ?? false,
-        includeDict: options.includeDict ?? false,
-        dictCode: options.dictCode,
-        tenantId: options.tenantId,
-      })
-      enumState.value[enumName] = definition
-      return definition
-    }
-    finally {
-      loading.value = false
-    }
+    await ensureAll(options.language)
+    return enumState.value[enumName] ?? null
   }
 
-  async function ensureBatch(enumNames: string[], options: UseEnumOptions = {}) {
-    const names = Array.from(new Set(enumNames.filter(Boolean)))
-    if (names.length === 0) {
-      return {}
-    }
-
-    loading.value = true
-    try {
-      const query: EnumBatchQuery = {
-        enumNames: names,
-        language: resolveLanguage(options.language),
-        includeHidden: options.includeHidden ?? false,
-        includeDict: options.includeDict ?? false,
-        dictCodes: options.dictCodes,
-        tenantId: options.tenantId,
-      }
-      const result = await ctx.apis.enumApi.getBatch(query)
-      enumState.value = {
-        ...enumState.value,
-        ...result,
-      }
-      return result
-    }
-    finally {
-      loading.value = false
-    }
+  async function ensureBatch(_enumNames: string[], options: UseEnumOptions = {}) {
+    await ensureAll(options.language)
+    return enumState.value
   }
 
   function getDefinition(enumName: string) {
