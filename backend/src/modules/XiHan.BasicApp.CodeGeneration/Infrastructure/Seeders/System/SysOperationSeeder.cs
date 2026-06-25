@@ -18,14 +18,14 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
-namespace XiHan.BasicApp.CodeGeneration.Seeders;
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 系统操作种子数据
 /// </summary>
 /// <remarks>
 /// 播种通用操作字典（read/create/update/delete/export/import/execute），作为权限点的"动作"维度。
-/// 必须先于 <see cref="SysPermissionSeeder"/>（Order=31）执行：后者按「资源 × 操作」派生 code_gen:* 权限，
+/// 必须先于 <see cref="SysPermissionSeeder"/> 执行：后者按「资源 × 操作」派生 code_gen:* 权限，
 /// 若本表为空则整条代码生成权限/菜单/授权链在干净库上静默跳过。
 /// </remarks>
 public class SysOperationSeeder : DataSeederBase
@@ -53,9 +53,9 @@ public class SysOperationSeeder : DataSeederBase
     }
 
     /// <summary>
-    /// 种子数据优先级（须先于 SysResourceSeeder=19 / SysPermissionSeeder=31，操作字典为权限派生前置）
+    /// 种子数据优先级（代码生成种子统一在 Order 100+ 独立段，与 Saas 不交叠；操作字典须先于 SysPermissionSeeder）
     /// </summary>
-    public override int Order => 18;
+    public override int Order => 100;
 
     /// <summary>
     /// 种子数据名称

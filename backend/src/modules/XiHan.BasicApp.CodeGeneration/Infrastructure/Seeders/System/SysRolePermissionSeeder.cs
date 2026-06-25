@@ -17,7 +17,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
-namespace XiHan.BasicApp.CodeGeneration.Seeders;
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 系统角色权限种子数据
@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.CodeGeneration.Seeders;
 /// <remarks>
 /// 开发功能（代码生成）属平台级开发工具：仅授予超级管理员角色，其它任何角色都不得拥有，
 /// 故其它租户/角色既看不到也调不动开发功能。
-/// 菜单可见性的绑定（develop/code_gen → code_gen:read）已前移至 SysMenuSeeder（Order=32，建菜单即绑定），本种子只负责角色授权。
+/// 菜单可见性的绑定（develop/code_gen → code_gen:read）已前移至 SysMenuSeeder（建菜单即绑定），本种子只负责角色授权。
 /// </remarks>
 public class SysRolePermissionSeeder : DataSeederBase
 {
@@ -40,7 +40,7 @@ public class SysRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 种子数据优先级
     /// </summary>
-    public override int Order => 33;
+    public override int Order => 104;
 
     /// <summary>
     /// 种子数据名称

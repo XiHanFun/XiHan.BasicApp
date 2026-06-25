@@ -18,7 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
-namespace XiHan.BasicApp.CodeGeneration.Seeders;
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 系统资源种子数据
@@ -34,9 +34,9 @@ public class SysResourceSeeder : DataSeederBase
     }
 
     /// <summary>
-    /// 种子数据优先级（须先于 SysPermissionSeeder=31；避开与 SaasOrganizationSeeder 的 Order=30）
+    /// 种子数据优先级（代码生成种子统一在 Order 100+ 独立段，与 Saas 不交叠；须先于 SysPermissionSeeder）
     /// </summary>
-    public override int Order => 19;
+    public override int Order => 101;
 
     /// <summary>
     /// 种子数据名称

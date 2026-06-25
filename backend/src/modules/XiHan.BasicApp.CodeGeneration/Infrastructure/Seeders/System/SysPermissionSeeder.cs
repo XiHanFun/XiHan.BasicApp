@@ -18,7 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
-namespace XiHan.BasicApp.CodeGeneration.Seeders;
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 系统权限种子数据
@@ -34,9 +34,9 @@ public class SysPermissionSeeder : DataSeederBase
     }
 
     /// <summary>
-    /// 种子数据优先级（须先于 SysMenuSeeder=32，菜单建立时即可解析 code_gen:read 绑定可见性）
+    /// 种子数据优先级（须先于 SysMenuSeeder，菜单建立时即可解析 code_gen:read 绑定可见性）
     /// </summary>
-    public override int Order => 31;
+    public override int Order => 102;
 
     /// <summary>
     /// 种子数据名称
