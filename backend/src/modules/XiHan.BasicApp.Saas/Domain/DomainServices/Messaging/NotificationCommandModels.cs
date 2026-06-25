@@ -34,6 +34,12 @@ public sealed record NotificationCreateCommand(
     NotificationTargetType TargetType,
     IReadOnlyList<long>? UserIds,
     bool NeedConfirm,
+    NotificationPriority Priority,
+    NotificationContentFormat ContentFormat,
+    DateTimeOffset? StartTime,
+    bool IsMandatory,
+    bool IsBanner,
+    bool IsPopup,
     bool PublishImmediately,
     string? Remark);
 
@@ -54,6 +60,12 @@ public sealed record NotificationUpdateCommand(
     NotificationTargetType TargetType,
     IReadOnlyList<long>? UserIds,
     bool NeedConfirm,
+    NotificationPriority Priority,
+    NotificationContentFormat ContentFormat,
+    DateTimeOffset? StartTime,
+    bool IsMandatory,
+    bool IsBanner,
+    bool IsPopup,
     string? Remark);
 
 /// <summary>

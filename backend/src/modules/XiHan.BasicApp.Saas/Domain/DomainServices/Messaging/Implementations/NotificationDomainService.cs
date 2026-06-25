@@ -67,6 +67,12 @@ public sealed class NotificationDomainService
             TargetType = command.TargetType,
             TargetValue = command.TargetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(targetUserIds),
             NeedConfirm = command.NeedConfirm,
+            Priority = command.Priority,
+            ContentFormat = command.ContentFormat,
+            StartTime = command.StartTime,
+            IsMandatory = command.IsMandatory,
+            IsBanner = command.IsBanner,
+            IsPopup = command.IsPopup,
             IsPublished = false,
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
@@ -141,6 +147,12 @@ public sealed class NotificationDomainService
         notification.TargetType = command.TargetType;
         notification.TargetValue = command.TargetType == NotificationTargetType.All ? null : JsonSerializer.Serialize(targetUserIds);
         notification.NeedConfirm = command.NeedConfirm;
+        notification.Priority = command.Priority;
+        notification.ContentFormat = command.ContentFormat;
+        notification.StartTime = command.StartTime;
+        notification.IsMandatory = command.IsMandatory;
+        notification.IsBanner = command.IsBanner;
+        notification.IsPopup = command.IsPopup;
         notification.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。");
 
         return new NotificationCommandResult(await _notificationRepository.UpdateAsync(notification, cancellationToken));

@@ -83,6 +83,36 @@ public class NotificationListItemDto : BasicAppDto
     public bool NeedConfirm { get; set; }
 
     /// <summary>
+    /// 优先级
+    /// </summary>
+    public NotificationPriority Priority { get; set; }
+
+    /// <summary>
+    /// 正文格式
+    /// </summary>
+    public NotificationContentFormat ContentFormat { get; set; }
+
+    /// <summary>
+    /// 生效开始时间
+    /// </summary>
+    public DateTimeOffset? StartTime { get; set; }
+
+    /// <summary>
+    /// 是否强制阅读
+    /// </summary>
+    public bool IsMandatory { get; set; }
+
+    /// <summary>
+    /// 是否顶部横幅
+    /// </summary>
+    public bool IsBanner { get; set; }
+
+    /// <summary>
+    /// 是否登录后弹窗
+    /// </summary>
+    public bool IsPopup { get; set; }
+
+    /// <summary>
     /// 是否已发布
     /// </summary>
     public bool IsPublished { get; set; }
