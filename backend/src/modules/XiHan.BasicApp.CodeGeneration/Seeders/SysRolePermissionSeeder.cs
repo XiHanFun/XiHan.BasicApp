@@ -54,7 +54,7 @@ public class SysRolePermissionSeeder : DataSeederBase
     {
         var client = DbClient;
         var permissions = await client.Queryable<SysPermission>()
-            .Where(p => p.PermissionCode.StartsWith("code_gen:") || p.PermissionCode.StartsWith("code_gen_api:"))
+            .Where(p => p.PermissionCode.StartsWith("code_gen:"))
             .ToListAsync();
         if (permissions.Count == 0)
         {
