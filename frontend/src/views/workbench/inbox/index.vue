@@ -434,38 +434,39 @@ onMounted(loadNotifications)
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
+  /* 行式列表：靠分隔线区分条目，不留间隙(同通知中心) */
+  gap: 0;
   min-height: 0;
   overflow-y: auto;
-  /* 滚动时底部留白，避免最后一条贴边 */
-  padding-bottom: 4px;
 }
 
+/* 与通知中心(铃铛面板)一致：清爽行式 —— 无卡片边框/底色，分隔线 + 悬停高亮 */
 .inbox-item {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
   align-items: start;
-  padding: 14px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  background: var(--bg-surface);
-  transition:
-    border-color 0.16s ease,
-    background 0.16s ease,
-    box-shadow 0.16s ease;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--border) / 50%);
+  transition: background 0.15s ease;
+}
+
+.inbox-item:last-child {
+  border-bottom: none;
 }
 
 .inbox-item:hover {
-  border-color: hsl(var(--primary) / 40%);
-  box-shadow: 0 1px 6px hsl(var(--primary) / 8%);
+  background: hsl(var(--accent) / 60%);
 }
 
-/* 待处理：左侧主色指示条 + 轻微底色，弱于整行高亮 */
+/* 未读/待处理：仅轻微主色底，无卡片/左条 */
 .inbox-item--attention {
-  background: color-mix(in srgb, hsl(var(--primary)) 5%, var(--bg-surface));
-  box-shadow: inset 3px 0 0 hsl(var(--primary));
+  background: hsl(var(--primary) / 4%);
+}
+
+.inbox-item--attention:hover {
+  background: hsl(var(--primary) / 8%);
 }
 
 .inbox-item-icon {
