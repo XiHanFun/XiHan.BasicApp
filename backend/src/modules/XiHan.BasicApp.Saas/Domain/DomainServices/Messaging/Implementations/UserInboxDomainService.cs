@@ -62,6 +62,8 @@ public sealed class UserInboxDomainService
             TargetType = NotificationTargetType.User,
             TargetValue = $"[{command.UserId}]",
             NeedConfirm = command.NeedConfirm,
+            // 自动派生的账号通知均为纯文本（登录/登出/改密等），按纯文本渲染，避免被当 Markdown
+            ContentFormat = NotificationContentFormat.Text,
             IsPublished = true
         }, cancellationToken);
 

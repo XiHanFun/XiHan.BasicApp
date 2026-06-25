@@ -17,13 +17,10 @@ const editorId = `notif-md-${useId()}`
 </script>
 
 <template>
-  <MdEditor
-    v-if="props.format === undefined || props.format === NotificationContentFormat.Markdown"
-    class="notif-content-md"
-    preview-only
-    :editor-id="editorId"
-    :model-value="props.content ?? ''"
-  />
+  <!-- 包一层 div：class 落在外层，:deep(.md-editor) 才能命中 MdPreview 根(否则 class 与 .md-editor 同元素，选择器不匹配，底色去不掉) -->
+  <div v-if="props.format === undefined || props.format === NotificationContentFormat.Markdown" class="notif-content-md">
+    <MdEditor preview-only :editor-id="editorId" :model-value="props.content ?? ''" />
+  </div>
   <!-- eslint-disable-next-line vue/no-v-html -->
   <div v-else-if="props.format === NotificationContentFormat.Html" class="notif-content-html" v-html="props.content ?? ''" />
   <pre v-else class="notif-content-text">{{ props.content }}</pre>
