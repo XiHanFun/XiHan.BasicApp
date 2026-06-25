@@ -29,7 +29,7 @@ public sealed class ExportContext
     /// <summary>
     /// 业务类型（= pageCode）
     /// </summary>
-    public string BusinessType { get; init; }
+    public required string BusinessType { get; init; }
 
     /// <summary>
     /// 导出范围
@@ -44,7 +44,7 @@ public sealed class ExportContext
     /// <summary>
     /// 导出列（按顺序）
     /// </summary>
-    public IReadOnlyList<ExportColumnDto> Columns { get; init; }
+    public required IReadOnlyList<ExportColumnDto> Columns { get; init; }
 
     /// <summary>
     /// 发起人用户ID
