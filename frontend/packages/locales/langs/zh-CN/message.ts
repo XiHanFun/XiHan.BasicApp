@@ -4,11 +4,11 @@ export default {
     add_title: '新增公告',
     edit_title: '编辑公告',
     // 通知类型
-    type_system: '系统通知',
-    type_user: '用户通知',
-    type_announcement: '公告',
-    type_warning: '警告',
-    type_error: '错误',
+    type_system: '系统公告',
+    type_security: '安全通知',
+    type_business: '业务通知',
+    type_todo: '待办通知',
+    type_emergency: '紧急通知',
     // 目标类型
     target_all: '全员',
     target_role: '角色',

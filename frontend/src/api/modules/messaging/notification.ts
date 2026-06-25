@@ -6,6 +6,9 @@ import type {
   NotificationPageQueryDto,
   NotificationPublishDto,
   NotificationPublishResultDto,
+  NotificationReadStatsDto,
+  NotificationUnreadUserDto,
+  NotificationUnreadUserPageQueryDto,
   NotificationUpdateDto,
   UserNotificationDetailDto,
   UserNotificationListItemDto,
@@ -33,6 +36,15 @@ export const notificationApi = {
   },
   publish(input: NotificationPublishDto) {
     return notificationCommandApi.post<NotificationPublishResultDto, NotificationPublishDto>('PublishNotification', input)
+  },
+  readStats(id: ApiId) {
+    return notificationQueryApi.get<NotificationReadStatsDto>(`NotificationReadStats/${formatDynamicApiRouteValue(id)}`)
+  },
+  remind(id: ApiId) {
+    return notificationCommandApi.post<NotificationPublishResultDto>(`Remind/${formatDynamicApiRouteValue(id)}`)
+  },
+  unreadUserPage(input: NotificationUnreadUserPageQueryDto) {
+    return notificationQueryApi.post<PageResult<NotificationUnreadUserDto>>('NotificationUnreadUserPage', input)
   },
   update(input: NotificationUpdateDto) {
     return notificationCommandApi.put<NotificationDetailDto, NotificationUpdateDto>('Notification', input)

@@ -30,6 +30,8 @@ import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   notificationApi,
+  NotificationContentFormat,
+  NotificationPriority,
   NotificationTargetType,
   NotificationType,
   querySortsFromSchema,
@@ -49,18 +51,18 @@ type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 // ── 选项 ─────────────────────────────────────────────────────────
 const notificationTypeOptions = computed(() => [
   { label: t('message.notification.type_system'), value: NotificationType.System },
-  { label: t('message.notification.type_user'), value: NotificationType.User },
-  { label: t('message.notification.type_announcement'), value: NotificationType.Announcement },
-  { label: t('message.notification.type_warning'), value: NotificationType.Warning },
-  { label: t('message.notification.type_error'), value: NotificationType.Error },
+  { label: t('message.notification.type_security'), value: NotificationType.Security },
+  { label: t('message.notification.type_business'), value: NotificationType.Business },
+  { label: t('message.notification.type_todo'), value: NotificationType.Todo },
+  { label: t('message.notification.type_emergency'), value: NotificationType.Emergency },
 ])
 
 const NOTIFICATION_TYPE_TAG: Record<string, TagType> = {
   [NotificationType.System]: 'info',
-  [NotificationType.User]: 'default',
-  [NotificationType.Announcement]: 'success',
-  [NotificationType.Warning]: 'warning',
-  [NotificationType.Error]: 'error',
+  [NotificationType.Security]: 'warning',
+  [NotificationType.Business]: 'success',
+  [NotificationType.Todo]: 'default',
+  [NotificationType.Emergency]: 'error',
 }
 
 /** 展示用全集（历史数据可能含角色/部门） */
@@ -88,12 +90,18 @@ interface NotificationFormModel {
   title: string
   content: string | null
   notificationType: NotificationType
+  priority: NotificationPriority
+  contentFormat: NotificationContentFormat
   targetType: NotificationTargetType
   userIds: string[]
   icon: string | null
   link: string | null
+  startTime: number | null
   expirationTime: number | null
   needConfirm: boolean
+  isMandatory: boolean
+  isBanner: boolean
+  isPopup: boolean
   // 编辑透传字段（表单不暴露，保持原值不被覆盖丢失）
   businessType: string | null
   businessId: ApiId | null
@@ -104,13 +112,19 @@ function createDefaultForm(): NotificationFormModel {
   return {
     title: '',
     content: null,
-    notificationType: NotificationType.Announcement,
+    notificationType: NotificationType.System,
+    priority: NotificationPriority.Normal,
+    contentFormat: NotificationContentFormat.Markdown,
     targetType: NotificationTargetType.All,
     userIds: [],
     icon: null,
     link: null,
+    startTime: null,
     expirationTime: null,
     needConfirm: false,
+    isMandatory: false,
+    isBanner: false,
+    isPopup: false,
     businessType: null,
     businessId: null,
     remark: null,
@@ -277,12 +291,18 @@ async function openEdit(row: NotificationListItemDto) {
       title: detail.title,
       content: detail.content ?? null,
       notificationType: detail.notificationType,
+      priority: detail.priority,
+      contentFormat: detail.contentFormat,
       targetType: detail.targetType,
       userIds: [],
       icon: detail.icon ?? null,
       link: detail.link ?? null,
+      startTime: detail.startTime ? new Date(detail.startTime).getTime() : null,
       expirationTime: detail.expirationTime ? new Date(detail.expirationTime).getTime() : null,
       needConfirm: detail.needConfirm,
+      isMandatory: detail.isMandatory,
+      isBanner: detail.isBanner,
+      isPopup: detail.isPopup,
       businessType: detail.businessType ?? null,
       businessId: detail.businessId ?? null,
       remark: detail.remark ?? null,
@@ -360,6 +380,9 @@ async function handleSubmit() {
   const expirationTime: DateTimeString | null = form.expirationTime
     ? new Date(form.expirationTime).toISOString()
     : null
+  const startTime: DateTimeString | null = form.startTime
+    ? new Date(form.startTime).toISOString()
+    : null
 
   submitLoading.value = true
   try {
@@ -369,13 +392,19 @@ async function handleSubmit() {
         title: form.title.trim(),
         content: toStr(form.content) ?? null,
         notificationType: form.notificationType,
+        priority: form.priority,
+        contentFormat: form.contentFormat,
         targetType: form.targetType,
         userIds,
         icon: toStr(form.icon) ?? null,
         link: toStr(form.link) ?? null,
         sendTime: null,
+        startTime,
         expirationTime,
         needConfirm: form.needConfirm,
+        isMandatory: form.isMandatory,
+        isBanner: form.isBanner,
+        isPopup: form.isPopup,
         businessType: form.businessType,
         businessId: form.businessId,
         remark: form.remark,
@@ -387,13 +416,19 @@ async function handleSubmit() {
         title: form.title.trim(),
         content: toStr(form.content) ?? null,
         notificationType: form.notificationType,
+        priority: form.priority,
+        contentFormat: form.contentFormat,
         targetType: form.targetType,
         userIds,
         icon: toStr(form.icon) ?? null,
         link: toStr(form.link) ?? null,
         sendTime: null,
+        startTime,
         expirationTime,
         needConfirm: form.needConfirm,
+        isMandatory: form.isMandatory,
+        isBanner: form.isBanner,
+        isPopup: form.isPopup,
         templateCode: null,
         templateParams: null,
         publishImmediately: false,
