@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectOption } from 'naive-ui'
 import type {
   ApiId,
   DateTimeString,
@@ -29,14 +30,17 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
+  departmentApi,
   notificationApi,
   NotificationContentFormat,
   NotificationPriority,
   NotificationTargetType,
   NotificationType,
   querySortsFromSchema,
+  roleApi,
 } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XMdEditor } from '~/components'
+import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'MessageNotificationPage' })
@@ -73,9 +77,11 @@ const targetTypeOptions = computed(() => [
   { label: t('message.notification.target_user'), value: NotificationTargetType.User },
 ])
 
-/** 表单可选目标（后端发布仅支持全员/指定用户） */
+/** 表单可选目标（全员 / 角色 / 部门 / 指定用户） */
 const targetTypeFormOptions = computed(() => [
   { label: t('message.notification.target_all'), value: NotificationTargetType.All },
+  { label: t('message.notification.target_role'), value: NotificationTargetType.Role },
+  { label: t('message.notification.target_department'), value: NotificationTargetType.Department },
   { label: t('message.notification.target_user'), value: NotificationTargetType.User },
 ])
 
@@ -83,6 +89,42 @@ const publishedOptions = computed(() => [
   { label: t('message.notification.published'), value: 1 },
   { label: t('message.notification.unpublished'), value: 0 },
 ])
+
+// ── 表单枚举下拉（响应式 i18n + 静态兜底） ───────────────────────
+const priorityOptions = useEnumOptions('NotificationPriority', [
+  { label: '低', value: NotificationPriority.Low },
+  { label: '普通', value: NotificationPriority.Normal },
+  { label: '高', value: NotificationPriority.High },
+  { label: '紧急', value: NotificationPriority.Urgent },
+])
+const contentFormatOptions = useEnumOptions('NotificationContentFormat', [
+  { label: '纯文本', value: NotificationContentFormat.Text },
+  { label: 'Markdown', value: NotificationContentFormat.Markdown },
+  { label: 'HTML', value: NotificationContentFormat.Html },
+])
+
+// ── 角色/部门定向选项（打开弹窗时按需加载一次） ─────────────────
+const roleOptions = ref<SelectOption[]>([])
+const departmentOptions = ref<SelectOption[]>([])
+const targetOptionsLoaded = ref(false)
+
+async function loadTargetOptions() {
+  if (targetOptionsLoaded.value) {
+    return
+  }
+  try {
+    const [roles, departments] = await Promise.all([
+      roleApi.enabledList({ limit: 200 }),
+      departmentApi.page(createPageRequest({ page: { pageIndex: 1, pageSize: 200 } })),
+    ])
+    roleOptions.value = roles.map(r => ({ label: r.roleName, value: String(r.basicId) }))
+    departmentOptions.value = departments.items.map(d => ({ label: d.departmentName, value: String(d.basicId) }))
+    targetOptionsLoaded.value = true
+  }
+  catch (e) {
+    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+  }
+}
 
 // ── 表单 ─────────────────────────────────────────────────────────
 interface NotificationFormModel {
@@ -136,6 +178,14 @@ const submitLoading = ref(false)
 const notificationForm = ref<NotificationFormModel>(createDefaultForm())
 const modalTitle = computed(() => (notificationForm.value.basicId ? t('message.notification.edit_title') : t('message.notification.add_title')))
 const isUserTarget = computed(() => notificationForm.value.targetType === NotificationTargetType.User)
+const isRoleTarget = computed(() => notificationForm.value.targetType === NotificationTargetType.Role)
+const isDepartmentTarget = computed(() => notificationForm.value.targetType === NotificationTargetType.Department)
+const isMarkdownContent = computed(() => notificationForm.value.contentFormat === NotificationContentFormat.Markdown)
+/** XMdEditor 需要 string；表单 content 为 string|null，做空值适配 */
+const markdownContent = computed<string>({
+  get: () => notificationForm.value.content ?? '',
+  set: (v) => { notificationForm.value.content = v || null },
+})
 
 const detailVisible = ref(false)
 const currentDetail = ref<NotificationDetailDto | null>(null)
@@ -244,6 +294,7 @@ function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as NotificationListItemDto | undefined
   if (payload.scope === 'page' && payload.key === 'create') {
     notificationForm.value = createDefaultForm()
+    void loadTargetOptions()
     modalVisible.value = true
     return
   }
@@ -307,6 +358,7 @@ async function openEdit(row: NotificationListItemDto) {
       businessId: detail.businessId ?? null,
       remark: detail.remark ?? null,
     }
+    void loadTargetOptions()
     modalVisible.value = true
   }
   catch (e) {
@@ -355,12 +407,17 @@ function validateForm(form: NotificationFormModel): boolean {
     message.warning(t('message.notification.msg_title_required'))
     return false
   }
-  if (form.targetType === NotificationTargetType.User) {
+  const needTarget = form.targetType === NotificationTargetType.User
+    || form.targetType === NotificationTargetType.Role
+    || form.targetType === NotificationTargetType.Department
+  if (needTarget) {
     if (form.userIds.length === 0) {
       message.warning(t('message.notification.msg_user_required'))
       return false
     }
-    if (form.userIds.some(id => !/^[1-9]\d*$/.test(id.trim()))) {
+    // 手填用户 ID 才校验正整数；角色/部门为选择来的 ID，非空即可
+    if (form.targetType === NotificationTargetType.User
+      && form.userIds.some(id => !/^[1-9]\d*$/.test(id.trim()))) {
       message.warning(t('message.notification.msg_user_id_invalid'))
       return false
     }
@@ -374,7 +431,10 @@ async function handleSubmit() {
     return
   }
 
+  // userIds 复用为「目标 ID 列表」：User=手填用户ID，Role/Department=所选角色/部门ID
   const userIds = form.targetType === NotificationTargetType.User
+    || form.targetType === NotificationTargetType.Role
+    || form.targetType === NotificationTargetType.Department
     ? form.userIds.map(id => id.trim())
     : []
   const expirationTime: DateTimeString | null = form.expirationTime
@@ -463,8 +523,18 @@ async function handleSubmit() {
         <NFormItem :label="t('message.notification.form_title')" path="title">
           <NInput v-model:value="notificationForm.title" clearable :maxlength="200" :placeholder="t('message.notification.form_title_placeholder')" />
         </NFormItem>
+        <div class="grid grid-cols-2 gap-x-4">
+          <NFormItem :label="t('message.notification.form_priority')" path="priority">
+            <NSelect v-model:value="notificationForm.priority" :options="priorityOptions" />
+          </NFormItem>
+          <NFormItem :label="t('message.notification.form_content_format')" path="contentFormat">
+            <NSelect v-model:value="notificationForm.contentFormat" :options="contentFormatOptions" />
+          </NFormItem>
+        </div>
         <NFormItem :label="t('message.notification.form_content')" path="content">
+          <XMdEditor v-if="isMarkdownContent" v-model="markdownContent" />
           <NInput
+            v-else
             v-model:value="notificationForm.content"
             type="textarea"
             :autosize="{ minRows: 5, maxRows: 12 }"
@@ -482,6 +552,12 @@ async function handleSubmit() {
         <NFormItem v-if="isUserTarget" :label="t('message.notification.form_user_ids')" path="userIds">
           <NDynamicTags v-model:value="notificationForm.userIds" />
         </NFormItem>
+        <NFormItem v-else-if="isRoleTarget" :label="t('message.notification.form_role_ids')" path="userIds">
+          <NSelect v-model:value="notificationForm.userIds" multiple :options="roleOptions" />
+        </NFormItem>
+        <NFormItem v-else-if="isDepartmentTarget" :label="t('message.notification.form_department_ids')" path="userIds">
+          <NSelect v-model:value="notificationForm.userIds" multiple :options="departmentOptions" />
+        </NFormItem>
         <div class="grid grid-cols-2 gap-x-4">
           <NFormItem :label="t('message.notification.form_icon')" path="icon">
             <NInput v-model:value="notificationForm.icon" clearable :maxlength="100" :placeholder="t('message.notification.form_icon_placeholder')" />
@@ -491,6 +567,14 @@ async function handleSubmit() {
           </NFormItem>
         </div>
         <div class="grid grid-cols-2 gap-x-4">
+          <NFormItem :label="t('message.notification.form_start_time')" path="startTime">
+            <NDatePicker
+              v-model:value="notificationForm.startTime"
+              type="datetime"
+              clearable
+              style="width: 100%"
+            />
+          </NFormItem>
           <NFormItem :label="t('message.notification.form_expiration_time')" path="expirationTime">
             <NDatePicker
               v-model:value="notificationForm.expirationTime"
@@ -500,8 +584,19 @@ async function handleSubmit() {
               :placeholder="t('message.notification.form_expiration_placeholder')"
             />
           </NFormItem>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4">
           <NFormItem :label="t('message.notification.form_need_confirm')" path="needConfirm">
             <NSwitch v-model:value="notificationForm.needConfirm" />
+          </NFormItem>
+          <NFormItem :label="t('message.notification.form_mandatory')" path="isMandatory">
+            <NSwitch v-model:value="notificationForm.isMandatory" />
+          </NFormItem>
+          <NFormItem :label="t('message.notification.form_banner')" path="isBanner">
+            <NSwitch v-model:value="notificationForm.isBanner" />
+          </NFormItem>
+          <NFormItem :label="t('message.notification.form_popup')" path="isPopup">
+            <NSwitch v-model:value="notificationForm.isPopup" />
           </NFormItem>
         </div>
         <p v-if="isUserTarget && notificationForm.basicId" class="form-hint">
@@ -539,8 +634,23 @@ async function handleSubmit() {
                 {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
               </NTag>
             </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.priority')">
+              {{ getOptionLabel(priorityOptions, currentDetail.priority) }}
+            </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail.label.need_confirm')">
               {{ currentDetail.needConfirm ? t('common.statuses.yes') : t('common.statuses.no') }}
+            </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.mandatory')">
+              {{ currentDetail.isMandatory ? t('common.statuses.yes') : t('common.statuses.no') }}
+            </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.banner')">
+              {{ currentDetail.isBanner ? t('common.statuses.yes') : t('common.statuses.no') }}
+            </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.popup')">
+              {{ currentDetail.isPopup ? t('common.statuses.yes') : t('common.statuses.no') }}
+            </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.start_time')">
+              {{ currentDetail.startTime ? formatDate(currentDetail.startTime) : '-' }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail.label.send_time')">
               {{ formatDate(currentDetail.sendTime) }}
@@ -569,11 +679,17 @@ async function handleSubmit() {
             <NDescriptionsItem :label="t('message.notification.detail.label.remark')" :span="2">
               {{ currentDetail.remark || '-' }}
             </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.content')" :span="2">
+              <XMdEditor
+                v-if="currentDetail.contentFormat === NotificationContentFormat.Markdown"
+                preview-only
+                :model-value="currentDetail.content ?? ''"
+              />
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div v-else-if="currentDetail.contentFormat === NotificationContentFormat.Html" v-html="currentDetail.content ?? ''" />
+              <pre v-else style="white-space: pre-wrap; margin: 0">{{ currentDetail.content || t('message.notification.detail_no_content') }}</pre>
+            </NDescriptionsItem>
           </NDescriptions>
-          <div class="mt-3 text-xs opacity-70">
-            {{ t('message.notification.detail_content_title') }}
-          </div>
-          <pre class="detail-content">{{ currentDetail.content || t('message.notification.detail_no_content') }}</pre>
         </template>
       </NDrawerContent>
     </NDrawer>
@@ -585,19 +701,5 @@ async function handleSubmit() {
   margin: 0 0 8px;
   font-size: 12px;
   color: hsl(var(--warning, 38 92% 50%));
-}
-
-.detail-content {
-  margin-top: 4px;
-  max-height: 320px;
-  overflow: auto;
-  padding: 12px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-  background: hsl(var(--muted) / 40%);
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 </style>
