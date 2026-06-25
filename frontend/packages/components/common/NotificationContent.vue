@@ -8,7 +8,7 @@ defineOptions({ name: 'NotificationContent' })
 const props = defineProps<{
   /** 正文内容 */
   content?: string | null
-  /** 正文格式，为空时按 Markdown 渲染 */
+  /** 正文格式，为空/未知时按纯文本渲染（纯文本账号通知若误当 Markdown，会因首段 <p> 外边距出现整行空白） */
   format?: NotificationContentFormat
 }>()
 
@@ -26,8 +26,9 @@ const textContent = computed(() =>
 </script>
 
 <template>
+  <!-- 仅显式 Markdown 才走预览渲染；缺省(undefined)与 Text 一律走纯文本兜底，避免纯文本被当 Markdown 渲出整行空白 -->
   <!-- 包一层 div：class 落在外层，:deep(.md-editor) 才能命中 MdPreview 根(否则 class 与 .md-editor 同元素，选择器不匹配，底色去不掉) -->
-  <div v-if="props.format === undefined || props.format === NotificationContentFormat.Markdown" class="notif-content-md">
+  <div v-if="props.format === NotificationContentFormat.Markdown" class="notif-content-md">
     <MdEditor preview-only :editor-id="editorId" :model-value="props.content ?? ''" />
   </div>
   <!-- eslint-disable-next-line vue/no-v-html -->
