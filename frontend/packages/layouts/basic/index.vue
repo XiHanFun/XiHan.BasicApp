@@ -13,6 +13,8 @@ import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
 import AppTabOverview from './components/AppTabOverview.vue'
+import NotificationBanner from './components/NotificationBanner.vue'
+import NotificationGate from './components/NotificationGate.vue'
 import SplitPane from './components/SplitPane.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
@@ -342,6 +344,9 @@ const sidebarEnableState = computed(
         </div>
       </div>
 
+      <!-- 通知横幅（顶栏之下、页面内容之上，块级推下内容） -->
+      <NotificationBanner />
+
       <!-- Page content -->
       <div class="flex-1 overflow-hidden transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
         <!-- 普通内容 -->
@@ -500,6 +505,9 @@ const sidebarEnableState = computed(
     <AppPreferenceDrawer />
     <AppTabOverview />
     <XihanBackTop :scroll-y="shell.scrollY.value" />
+
+    <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
+    <NotificationGate />
 
     <!-- Mobile mask -->
     <div

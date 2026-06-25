@@ -11,7 +11,7 @@ import type {
   UserInfo,
   VerificationCodeResult,
 } from './auth'
-import type { NotificationStatus, NotificationType } from './enums'
+import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from './enums'
 import type {
   ApiCredentialItem,
   ApiCredentialSecret,
@@ -98,6 +98,16 @@ export interface AppUserInboxItem {
   link?: null | string
 }
 
+/** 展示分级（横幅 / 弹窗 / 强制阅读）所需的收件箱条目，较 AppUserInboxItem 多带优先级与正文格式等展示字段 */
+export interface AppUserInboxDisplayItem extends AppUserInboxItem {
+  notificationId: string
+  priority: NotificationPriority
+  contentFormat: NotificationContentFormat
+  isMandatory: boolean
+  isBanner: boolean
+  isPopup: boolean
+}
+
 export interface AppContextApis extends Record<string, unknown> {
   accessLogApi: {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
@@ -180,10 +190,14 @@ export interface AppContextApis extends Record<string, unknown> {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
   }
   userInboxApi: {
+    banner: () => Promise<AppUserInboxDisplayItem[]>
     confirm: (id: string, userId?: string, tenantId?: null | string) => Promise<unknown>
     list: (userId?: string, unreadOnly?: boolean, tenantId?: null | string) => Promise<AppUserInboxItem[]>
+    mandatoryUnread: () => Promise<AppUserInboxDisplayItem[]>
     markAllRead: (userId?: string, tenantId?: null | string) => Promise<unknown>
+    markPopupShown: (id: string) => Promise<unknown>
     markRead: (id: string, userId?: string, tenantId?: null | string) => Promise<unknown>
+    popup: () => Promise<AppUserInboxDisplayItem[]>
   }
   userSessionApi: {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
