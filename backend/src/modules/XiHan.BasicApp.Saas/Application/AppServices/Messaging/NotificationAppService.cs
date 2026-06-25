@@ -22,6 +22,7 @@ using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -50,6 +51,10 @@ public sealed class NotificationAppService
 
     private readonly ICurrentUser _currentUser;
 
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
     private readonly ILogger<NotificationAppService> _logger;
 
     /// <summary>
@@ -61,6 +66,8 @@ public sealed class NotificationAppService
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
         IUserTaskProgressNotifier taskProgressNotifier,
         ICurrentUser currentUser,
+        INotificationRepository notificationRepository,
+        IUserNotificationRepository userNotificationRepository,
         ILogger<NotificationAppService> logger)
     {
         _notificationDomainService = notificationDomainService;
@@ -68,6 +75,8 @@ public sealed class NotificationAppService
         _realtimeNotificationService = realtimeNotificationService;
         _taskProgressNotifier = taskProgressNotifier;
         _currentUser = currentUser;
+        _notificationRepository = notificationRepository;
+        _userNotificationRepository = userNotificationRepository;
         _logger = logger;
     }
 
@@ -165,6 +174,58 @@ public sealed class NotificationAppService
 
         var result = await _notificationDomainService.UpdateNotificationAsync(NotificationApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return NotificationApplicationMapper.ToDetailDto(result.Notification);
+    }
+
+    /// <summary>
+    /// 催办：对未读人员重新实时推送（不改库；在线者即时再提醒）
+    /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Message.Publish)]
+    public async Task<NotificationPublishResultDto> RemindAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "系统通知主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var notification = await _notificationRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统通知不存在。");
+        var unread = await _userNotificationRepository.GetListAsync(
+            item => item.NotificationId == id && item.NotificationStatus == NotificationStatus.Unread,
+            cancellationToken);
+        var unreadUserIds = unread.Select(item => item.UserId).Distinct().ToArray();
+        if (unreadUserIds.Length > 0)
+        {
+            try
+            {
+                var payload = new
+                {
+                    type = (int)notification.NotificationType,
+                    title = notification.Title,
+                    content = notification.Content,
+                    basicId = notification.BasicId,
+                    notificationId = notification.BasicId,
+                    notificationType = (int)notification.NotificationType,
+                    sendTime = notification.SendTime
+                };
+                await _realtimeNotificationService.SendToUsersAsync(
+                    [.. unreadUserIds.Select(userId => userId.ToString())],
+                    SignalRConstants.ClientMethods.ReceiveNotification,
+                    payload);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "催办实时推送失败，NotificationId={NotificationId}", notification.BasicId);
+            }
+        }
+
+        return new NotificationPublishResultDto
+        {
+            BasicId = id,
+            RecipientCount = unreadUserIds.Length,
+            SendTime = DateTimeOffset.UtcNow
+        };
     }
 
     /// <summary>

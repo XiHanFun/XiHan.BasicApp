@@ -51,6 +51,11 @@ public sealed class NotificationQueryService
     private readonly IUserNotificationRepository _userNotificationRepository;
 
     /// <summary>
+    /// 用户仓储（未读人员姓名解析）
+    /// </summary>
+    private readonly IUserRepository _userRepository;
+
+    /// <summary>
     /// 字段级安全（排序门控）
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
@@ -61,10 +66,12 @@ public sealed class NotificationQueryService
     public NotificationQueryService(
         INotificationRepository notificationRepository,
         IUserNotificationRepository userNotificationRepository,
+        IUserRepository userRepository,
         IFieldSecurityService fieldSecurityService)
     {
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
+        _userRepository = userRepository;
         _fieldSecurity = fieldSecurityService;
     }
 
@@ -169,6 +176,84 @@ public sealed class NotificationQueryService
 
         var notification = await _notificationRepository.GetByIdAsync(userNotification.NotificationId, cancellationToken);
         return NotificationApplicationMapper.ToUserDetailDto(userNotification, notification);
+    }
+
+    /// <summary>
+    /// 获取通知阅读统计（发 N / 已读 M / 已确认 K）
+    /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    public async Task<NotificationReadStatsDto> GetNotificationReadStatsAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "系统通知主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var notification = await _notificationRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统通知不存在。");
+        var userNotifications = await _userNotificationRepository.GetListAsync(
+            item => item.NotificationId == id && item.NotificationStatus != NotificationStatus.Deleted,
+            cancellationToken);
+        var readCount = userNotifications.Count(item => item.NotificationStatus == NotificationStatus.Read);
+        return new NotificationReadStatsDto
+        {
+            NotificationId = id,
+            RecipientCount = userNotifications.Count,
+            ReadCount = readCount,
+            UnreadCount = userNotifications.Count - readCount,
+            ConfirmCount = userNotifications.Count(item => item.ConfirmTime.HasValue),
+            NeedConfirm = notification.NeedConfirm
+        };
+    }
+
+    /// <summary>
+    /// 获取通知未读人员分页（前端可经导出机制导 CSV）
+    /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [HttpPost]
+    public async Task<PageResultDtoBase<NotificationUnreadUserDto>> GetNotificationUnreadUserPageAsync(NotificationUnreadUserPageQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (input.NotificationId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "系统通知主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = new BasicAppPRDto
+        {
+            Page = input.Page,
+            Behavior = input.Behavior,
+            Conditions = new QueryConditions()
+        };
+        request.Conditions.AddFilter((SysUserNotification userNotification) => userNotification.NotificationId, input.NotificationId);
+        request.Conditions.AddFilter((SysUserNotification userNotification) => userNotification.NotificationStatus, NotificationStatus.Unread);
+        request.Conditions.AddSort((SysUserNotification userNotification) => userNotification.CreatedTime, SortDirection.Descending, 0);
+
+        var paged = await _userNotificationRepository.GetPagedAsync(request, cancellationToken);
+        if (paged.Items.Count == 0)
+        {
+            return new PageResultDtoBase<NotificationUnreadUserDto>([], paged.Page);
+        }
+
+        var userIds = paged.Items.Select(item => item.UserId).Distinct().ToArray();
+        var users = await _userRepository.GetListAsync(user => SqlFunc.ContainsArray(userIds, user.BasicId), cancellationToken);
+        var userMap = users.ToDictionary(user => user.BasicId);
+        var items = paged.Items.Select(item =>
+        {
+            var user = userMap.GetValueOrDefault(item.UserId);
+            return new NotificationUnreadUserDto
+            {
+                UserId = item.UserId,
+                UserName = user?.UserName ?? string.Empty,
+                RealName = user?.RealName,
+                ReceivedTime = item.CreatedTime
+            };
+        }).ToList();
+        return new PageResultDtoBase<NotificationUnreadUserDto>(items, paged.Page);
     }
 
     /// <summary>

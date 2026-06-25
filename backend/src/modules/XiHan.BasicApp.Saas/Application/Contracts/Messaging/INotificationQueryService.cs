@@ -54,4 +54,14 @@ public interface INotificationQueryService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户通知详情</returns>
     Task<UserNotificationDetailDto?> GetUserNotificationDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取通知阅读统计（发 N / 已读 M / 已确认 K）
+    /// </summary>
+    Task<NotificationReadStatsDto> GetNotificationReadStatsAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取通知未读人员分页
+    /// </summary>
+    Task<PageResultDtoBase<NotificationUnreadUserDto>> GetNotificationUnreadUserPageAsync(NotificationUnreadUserPageQueryDto input, CancellationToken cancellationToken = default);
 }
