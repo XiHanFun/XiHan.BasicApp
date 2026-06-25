@@ -14,6 +14,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { NotificationStatus, NotificationType, workbenchApi } from '@/api'
+import { NotificationContent } from '~/components'
 import { Icon } from '~/iconify'
 import { useNotificationStore } from '~/stores'
 import { formatDate } from '~/utils'
@@ -306,8 +307,14 @@ onMounted(loadNotifications)
             </div>
           </div>
 
-          <p class="inbox-item-content">
-            {{ item.content || t('workbench.inbox.no_content') }}
+          <NotificationContent
+            v-if="item.content"
+            class="inbox-item-content"
+            :content="item.content"
+            :format="item.contentFormat"
+          />
+          <p v-else class="inbox-item-content">
+            {{ t('workbench.inbox.no_content') }}
           </p>
 
           <div class="inbox-item-foot">

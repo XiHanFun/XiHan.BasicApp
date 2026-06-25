@@ -5,6 +5,7 @@ import { defineAsyncComponent } from 'vue'
 export const XJsonEditor = defineAsyncComponent(() => import('./JsonEditor.vue'))
 export { default as XJsonViewer } from './JsonViewer.vue'
 export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
+export const NotificationContent = defineAsyncComponent(() => import('./NotificationContent.vue'))
 export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'))
 
 export { resolveSortMove } from './sortable'

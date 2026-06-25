@@ -46,7 +46,7 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { SchemaPage, XMdEditor } from '~/components'
+import { NotificationContent, SchemaPage, XMdEditor } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
 
@@ -828,14 +828,12 @@ async function handleSubmit() {
               {{ currentDetail.remark || '-' }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail.label.content')" :span="2">
-              <XMdEditor
-                v-if="currentDetail.contentFormat === NotificationContentFormat.Markdown"
-                preview-only
-                :model-value="currentDetail.content ?? ''"
+              <NotificationContent
+                v-if="currentDetail.content"
+                :content="currentDetail.content"
+                :format="currentDetail.contentFormat"
               />
-              <!-- eslint-disable-next-line vue/no-v-html -->
-              <div v-else-if="currentDetail.contentFormat === NotificationContentFormat.Html" v-html="currentDetail.content ?? ''" />
-              <pre v-else style="white-space: pre-wrap; margin: 0">{{ currentDetail.content || t('message.notification.detail_no_content') }}</pre>
+              <span v-else>{{ t('message.notification.detail_no_content') }}</span>
             </NDescriptionsItem>
           </NDescriptions>
         </template>
