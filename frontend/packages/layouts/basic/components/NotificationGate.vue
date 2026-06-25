@@ -3,9 +3,8 @@ import type { AppUserInboxDisplayItem } from '~/types'
 import { NButton, NModal } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XMdEditor } from '~/components'
+import { NotificationContent } from '~/components'
 import { useAppContext } from '~/stores'
-import { NotificationContentFormat } from '~/types/enums'
 
 defineOptions({ name: 'NotificationGate' })
 
@@ -86,14 +85,12 @@ onMounted(async () => {
           {{ item.title }}
         </div>
         <div class="notif-gate-item__content">
-          <XMdEditor
-            v-if="item.contentFormat === NotificationContentFormat.Markdown"
-            preview-only
-            :model-value="item.content ?? ''"
+          <NotificationContent
+            v-if="item.content"
+            :content="item.content"
+            :format="item.contentFormat"
           />
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <div v-else-if="item.contentFormat === NotificationContentFormat.Html" v-html="item.content ?? ''" />
-          <pre v-else class="notif-gate-item__text">{{ item.content || t('header.notification.gate.no_content') }}</pre>
+          <pre v-else class="notif-gate-item__text">{{ t('header.notification.gate.no_content') }}</pre>
         </div>
         <div class="notif-gate-item__footer">
           <NButton
@@ -120,14 +117,12 @@ onMounted(async () => {
     @close="onPopupConfirm(currentPopup)"
   >
     <div class="notif-gate-item__content">
-      <XMdEditor
-        v-if="currentPopup.contentFormat === NotificationContentFormat.Markdown"
-        preview-only
-        :model-value="currentPopup.content ?? ''"
+      <NotificationContent
+        v-if="currentPopup.content"
+        :content="currentPopup.content"
+        :format="currentPopup.contentFormat"
       />
-      <!-- eslint-disable-next-line vue/no-v-html -->
-      <div v-else-if="currentPopup.contentFormat === NotificationContentFormat.Html" v-html="currentPopup.content ?? ''" />
-      <pre v-else class="notif-gate-item__text">{{ currentPopup.content || t('header.notification.gate.no_content') }}</pre>
+      <pre v-else class="notif-gate-item__text">{{ t('header.notification.gate.no_content') }}</pre>
     </div>
     <template #footer>
       <div class="flex justify-end">
