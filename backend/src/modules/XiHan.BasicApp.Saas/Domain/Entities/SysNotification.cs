@@ -58,6 +58,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TaTy", nameof(TargetType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsPu", nameof(IsPublished), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_SeTi", nameof(TenantId), OrderByType.Asc, nameof(SendTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_TeId_IsMa", nameof(TenantId), OrderByType.Asc, nameof(IsMandatory), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsBa", nameof(TenantId), OrderByType.Asc, nameof(IsBanner), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_IsPo", nameof(TenantId), OrderByType.Asc, nameof(IsPopup), OrderByType.Asc)]
 public partial class SysNotification : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -71,6 +74,18 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "Notification_Type", ColumnDescription = "通知类型")]
     public virtual NotificationType NotificationType { get; set; } = NotificationType.System;
+
+    /// <summary>
+    /// 优先级（与类型正交，决定排序权重/紧急置顶/分级推送）
+    /// </summary>
+    [SugarColumn(ColumnName = "Priority", ColumnDescription = "优先级")]
+    public virtual NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
+
+    /// <summary>
+    /// 正文格式（纯文本/Markdown/HTML，决定前端渲染方式）
+    /// </summary>
+    [SugarColumn(ColumnName = "Content_Format", ColumnDescription = "正文格式")]
+    public virtual NotificationContentFormat ContentFormat { get; set; } = NotificationContentFormat.Markdown;
 
     /// <summary>
     /// 通知标题
@@ -115,7 +130,13 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     public virtual DateTimeOffset SendTime { get; set; }
 
     /// <summary>
-    /// 过期时间
+    /// 生效开始时间（有效期起点；null=发布即生效）
+    /// </summary>
+    [SugarColumn(ColumnName = "Start_Time", ColumnDescription = "生效开始时间", IsNullable = true)]
+    public virtual DateTimeOffset? StartTime { get; set; }
+
+    /// <summary>
+    /// 过期时间（有效期终点；到期自动隐藏）
     /// </summary>
     [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
@@ -133,10 +154,28 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     public virtual string? TargetValue { get; set; }
 
     /// <summary>
-    /// 是否需要确认
+    /// 是否需要确认（可选确认，记录 ConfirmTime；不阻断进入系统）
     /// </summary>
     [SugarColumn(ColumnName = "Need_Confirm", ColumnDescription = "是否需要确认")]
     public virtual bool NeedConfirm { get; set; } = false;
+
+    /// <summary>
+    /// 是否强制阅读（必读公告：有未读则路由守卫/中间件拦截，须读毕方可进入系统）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Mandatory", ColumnDescription = "是否强制阅读")]
+    public virtual bool IsMandatory { get; set; } = false;
+
+    /// <summary>
+    /// 是否顶部横幅展示（系统维护/版本升级等，置于页面顶部通知条）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Banner", ColumnDescription = "是否顶部横幅")]
+    public virtual bool IsBanner { get; set; } = false;
+
+    /// <summary>
+    /// 是否登录后弹窗展示（重要公告，每用户仅弹一次，由 SysUserNotification.PopupShownTime 记录）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Popup", ColumnDescription = "是否登录后弹窗")]
+    public virtual bool IsPopup { get; set; } = false;
 
     /// <summary>
     /// 是否已发布（发布后不可编辑/删除）

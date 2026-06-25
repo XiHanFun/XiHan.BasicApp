@@ -989,7 +989,7 @@ public sealed class AuthAppService
                 userId,
                 "第三方账号绑定成功",
                 content,
-                NotificationType.User,
+                NotificationType.Business,
                 businessType: "auth.external.bind",
                 businessId: userId,
                 link: "/workbench/profile",

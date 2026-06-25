@@ -141,7 +141,7 @@ public sealed partial class ProfileAppService
             result.User.BasicId,
             "用户名已修改",
             $"您的账号用户名已修改为 {result.User.UserName}。",
-            NotificationType.User,
+            NotificationType.Business,
             "profile.username.changed",
             result.User.BasicId,
             cancellationToken: cancellationToken);

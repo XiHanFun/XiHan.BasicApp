@@ -158,7 +158,7 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
 
             var notification = new SysNotification
             {
-                NotificationType = NotificationType.User,
+                NotificationType = NotificationType.Security,
                 Title = "会话已撤销",
                 Content = string.IsNullOrEmpty(eventData.Reason)
                     ? "您的登录会话已被管理员撤销，请重新登录。"

@@ -18,38 +18,95 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 通知类型枚举
+/// 内容分类（与展示分级/优先级正交）：用于按类筛选、按类推送策略、图标着色
 /// </summary>
 public enum NotificationType
 {
     /// <summary>
-    /// 系统通知
+    /// 系统公告（升级、停机维护）
     /// </summary>
-    [Description("系统通知")]
-    System = 0,
+    [Description("系统公告")]
+    System = 1,
 
     /// <summary>
-    /// 用户通知
+    /// 安全通知（密码策略、风险提醒）
     /// </summary>
-    [Description("用户通知")]
-    User = 1,
+    [Description("安全通知")]
+    Security = 2,
 
     /// <summary>
-    /// 公告
+    /// 业务通知（新功能上线、运营活动）
     /// </summary>
-    [Description("公告")]
-    Announcement = 2,
+    [Description("业务通知")]
+    Business = 3,
 
     /// <summary>
-    /// 警告
+    /// 待办通知（审批、任务）
     /// </summary>
-    [Description("警告")]
-    Warning = 3,
+    [Description("待办通知")]
+    Todo = 4,
 
     /// <summary>
-    /// 错误
+    /// 紧急通知（故障、攻击、停服）
     /// </summary>
-    [Description("错误")]
-    Error = 4
+    [Description("紧急通知")]
+    Emergency = 5
+}
+
+/// <summary>
+/// 通知优先级枚举
+/// 与类型正交：决定排序权重、紧急置顶、分级推送强度
+/// </summary>
+public enum NotificationPriority
+{
+    /// <summary>
+    /// 低
+    /// </summary>
+    [Description("低")]
+    Low = 1,
+
+    /// <summary>
+    /// 普通
+    /// </summary>
+    [Description("普通")]
+    Normal = 2,
+
+    /// <summary>
+    /// 高
+    /// </summary>
+    [Description("高")]
+    High = 3,
+
+    /// <summary>
+    /// 紧急（置顶 + 强提醒）
+    /// </summary>
+    [Description("紧急")]
+    Urgent = 4
+}
+
+/// <summary>
+/// 通知正文格式枚举
+/// 决定前端如何渲染 Content：纯文本 / Markdown / HTML
+/// </summary>
+public enum NotificationContentFormat
+{
+    /// <summary>
+    /// 纯文本
+    /// </summary>
+    [Description("纯文本")]
+    Text = 1,
+
+    /// <summary>
+    /// Markdown（默认，配合 MdEditor）
+    /// </summary>
+    [Description("Markdown")]
+    Markdown = 2,
+
+    /// <summary>
+    /// HTML
+    /// </summary>
+    [Description("HTML")]
+    Html = 3
 }
 
 /// <summary>
