@@ -69,14 +69,16 @@ type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 function getTypeTag(type: NotificationType): TagType {
   switch (type) {
-    case NotificationType.Error:
-      return 'error'
-    case NotificationType.Warning:
-      return 'warning'
-    case NotificationType.Announcement:
+    case NotificationType.System:
       return 'info'
-    case NotificationType.User:
+    case NotificationType.Security:
+      return 'warning'
+    case NotificationType.Business:
       return 'success'
+    case NotificationType.Todo:
+      return 'default'
+    case NotificationType.Emergency:
+      return 'error'
     default:
       return 'default'
   }

@@ -4,11 +4,11 @@ export default {
     add_title: 'New Announcement',
     edit_title: 'Edit Announcement',
     // Notification types
-    type_system: 'System Notification',
-    type_user: 'User Notification',
-    type_announcement: 'Announcement',
-    type_warning: 'Warning',
-    type_error: 'Error',
+    type_system: 'System Announcement',
+    type_security: 'Security Notice',
+    type_business: 'Business Notice',
+    type_todo: 'To-Do Notice',
+    type_emergency: 'Emergency Notice',
     // Target types
     target_all: 'All Users',
     target_role: 'Role',

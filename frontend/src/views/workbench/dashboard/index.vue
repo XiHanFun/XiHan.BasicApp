@@ -70,13 +70,13 @@ const quickLinks = computed(() =>
 
 /** 通知类型 → 标签 key + 渐变配色 */
 interface TypeMeta { label: string, from: string, to: string }
-const DEFAULT_META: TypeMeta = { label: 'workbench.dashboard.type_announcement', from: '#2563eb', to: '#4f46e5' }
+const DEFAULT_META: TypeMeta = { label: 'workbench.dashboard.type_system', from: '#3b82f6', to: '#2563eb' }
 const TYPE_META: Record<string, TypeMeta> = {
-  Announcement: DEFAULT_META,
-  System: { label: 'workbench.dashboard.type_system', from: '#0ea5e9', to: '#2563eb' },
-  Warning: { label: 'workbench.dashboard.type_warning', from: '#f59e0b', to: '#ea580c' },
-  Error: { label: 'workbench.dashboard.type_error', from: '#ef4444', to: '#b91c1c' },
-  User: { label: 'workbench.dashboard.type_user', from: '#10b981', to: '#059669' },
+  System: DEFAULT_META,
+  Security: { label: 'workbench.dashboard.type_security', from: '#f59e0b', to: '#ea580c' },
+  Business: { label: 'workbench.dashboard.type_business', from: '#22c55e', to: '#059669' },
+  Todo: { label: 'workbench.dashboard.type_todo', from: '#8b5cf6', to: '#6d28d9' },
+  Emergency: { label: 'workbench.dashboard.type_emergency', from: '#ef4444', to: '#b91c1c' },
 }
 
 function metaOf(type?: NotificationType | null): TypeMeta {
@@ -155,7 +155,7 @@ async function fetchAnnouncements() {
     const result = await notificationApi.page({
       ...createPageRequest({ page: { pageIndex: 1, pageSize: 6 } }),
       isPublished: true,
-      notificationType: NotificationType.Announcement,
+      notificationType: NotificationType.System,
     })
     announcements.value = result.items ?? []
   }

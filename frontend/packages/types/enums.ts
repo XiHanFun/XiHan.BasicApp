@@ -12,10 +12,25 @@
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum NotificationType {
   System = 'System',
-  User = 'User',
-  Announcement = 'Announcement',
-  Warning = 'Warning',
-  Error = 'Error',
+  Security = 'Security',
+  Business = 'Business',
+  Todo = 'Todo',
+  Emergency = 'Emergency',
+}
+
+/** 通知优先级（与后端 JsonStringEnumConverter 序列化值一致） */
+export enum NotificationPriority {
+  Low = 'Low',
+  Normal = 'Normal',
+  High = 'High',
+  Urgent = 'Urgent',
+}
+
+/** 通知正文格式（与后端 JsonStringEnumConverter 序列化值一致） */
+export enum NotificationContentFormat {
+  Text = 'Text',
+  Markdown = 'Markdown',
+  Html = 'Html',
 }
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */

@@ -35,10 +35,10 @@ const items = ref<UserInboxItemDto[]>([])
 const notificationTypeOptions = computed(() => [
   { label: t('workbench.inbox.type_all'), value: undefined },
   { label: t('workbench.inbox.type_system'), value: NotificationType.System },
-  { label: t('workbench.inbox.type_user'), value: NotificationType.User },
-  { label: t('workbench.inbox.type_announcement'), value: NotificationType.Announcement },
-  { label: t('workbench.inbox.type_warning'), value: NotificationType.Warning },
-  { label: t('workbench.inbox.type_error'), value: NotificationType.Error },
+  { label: t('workbench.inbox.type_security'), value: NotificationType.Security },
+  { label: t('workbench.inbox.type_business'), value: NotificationType.Business },
+  { label: t('workbench.inbox.type_todo'), value: NotificationType.Todo },
+  { label: t('workbench.inbox.type_emergency'), value: NotificationType.Emergency },
 ])
 
 const scopeOptions = computed(() => [
@@ -75,14 +75,14 @@ function needsAttention(item: UserInboxItemDto) {
 
 function notificationTypeLabel(type: NotificationType) {
   switch (type) {
-    case NotificationType.User:
-      return t('workbench.inbox.type_user')
-    case NotificationType.Announcement:
-      return t('workbench.inbox.type_announcement')
-    case NotificationType.Warning:
-      return t('workbench.inbox.type_warning')
-    case NotificationType.Error:
-      return t('workbench.inbox.type_error')
+    case NotificationType.Security:
+      return t('workbench.inbox.type_security')
+    case NotificationType.Business:
+      return t('workbench.inbox.type_business')
+    case NotificationType.Todo:
+      return t('workbench.inbox.type_todo')
+    case NotificationType.Emergency:
+      return t('workbench.inbox.type_emergency')
     default:
       return t('workbench.inbox.type_system')
   }
@@ -90,13 +90,13 @@ function notificationTypeLabel(type: NotificationType) {
 
 function notificationTypeTag(type: NotificationType): TagType {
   switch (type) {
-    case NotificationType.Error:
+    case NotificationType.Emergency:
       return 'error'
-    case NotificationType.Warning:
+    case NotificationType.Security:
       return 'warning'
-    case NotificationType.Announcement:
+    case NotificationType.System:
       return 'info'
-    case NotificationType.User:
+    case NotificationType.Business:
       return 'success'
     default:
       return 'default'
@@ -105,11 +105,11 @@ function notificationTypeTag(type: NotificationType): TagType {
 
 /** 按通知类型给图标着色（主题无关的语义色 + 同色低透明度底） */
 const TYPE_COLOR: Record<string, string> = {
-  [NotificationType.System]: '#64748b',
-  [NotificationType.User]: '#22c55e',
-  [NotificationType.Announcement]: '#3b82f6',
-  [NotificationType.Warning]: '#f59e0b',
-  [NotificationType.Error]: '#ef4444',
+  [NotificationType.System]: '#3b82f6',
+  [NotificationType.Security]: '#f59e0b',
+  [NotificationType.Business]: '#22c55e',
+  [NotificationType.Todo]: '#8b5cf6',
+  [NotificationType.Emergency]: '#ef4444',
 }
 
 function iconStyle(item: UserInboxItemDto) {

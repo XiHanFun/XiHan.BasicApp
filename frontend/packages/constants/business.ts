@@ -493,11 +493,11 @@ export const VIOLATION_ACTION_OPTIONS = [
 // ==================== 通知 ====================
 
 export const NOTIFICATION_TYPE_OPTIONS = [
-  { label: '系统通知', value: NotificationType.System },
-  { label: '用户通知', value: NotificationType.User },
-  { label: '公告', value: NotificationType.Announcement },
-  { label: '警告', value: NotificationType.Warning },
-  { label: '错误', value: NotificationType.Error },
+  { label: '系统公告', value: NotificationType.System },
+  { label: '安全通知', value: NotificationType.Security },
+  { label: '业务通知', value: NotificationType.Business },
+  { label: '待办通知', value: NotificationType.Todo },
+  { label: '紧急通知', value: NotificationType.Emergency },
 ]
 
 export const NOTIFICATION_STATUS_OPTIONS = [
