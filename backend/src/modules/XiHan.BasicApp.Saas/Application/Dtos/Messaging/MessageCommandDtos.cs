@@ -44,6 +44,12 @@ public sealed class NotificationCreateDto
     public DateTimeOffset? ExpirationTime { get; set; }
     public NotificationTargetType TargetType { get; set; } = NotificationTargetType.User;
     public bool NeedConfirm { get; set; }
+    public NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
+    public NotificationContentFormat ContentFormat { get; set; } = NotificationContentFormat.Markdown;
+    public DateTimeOffset? StartTime { get; set; }
+    public bool IsMandatory { get; set; }
+    public bool IsBanner { get; set; }
+    public bool IsPopup { get; set; }
     public IReadOnlyList<long> UserIds { get; set; } = [];
     public bool PublishImmediately { get; set; }
     public string? Remark { get; set; }
@@ -62,6 +68,12 @@ public sealed class NotificationUpdateDto : BasicAppUDto
     public DateTimeOffset? ExpirationTime { get; set; }
     public NotificationTargetType TargetType { get; set; } = NotificationTargetType.User;
     public bool NeedConfirm { get; set; }
+    public NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
+    public NotificationContentFormat ContentFormat { get; set; } = NotificationContentFormat.Markdown;
+    public DateTimeOffset? StartTime { get; set; }
+    public bool IsMandatory { get; set; }
+    public bool IsBanner { get; set; }
+    public bool IsPopup { get; set; }
     public IReadOnlyList<long> UserIds { get; set; } = [];
     public string? Remark { get; set; }
 }
