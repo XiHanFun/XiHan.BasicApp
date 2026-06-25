@@ -14,6 +14,7 @@ const appContext = useAppContext()
 // ── 强制阅读：未读必读公告（最高优先级，遮罩拦截，逐条「我已阅读」） ──
 const mandatoryList = ref<AppUserInboxDisplayItem[]>([])
 const mandatoryVisible = computed(() => mandatoryList.value.length > 0)
+const currentMandatory = computed<AppUserInboxDisplayItem | null>(() => mandatoryList.value[0] ?? null)
 const markingId = ref<string | null>(null)
 
 // ── 登录后弹窗：处理完强制阅读后逐条弹出 ──
@@ -67,43 +68,35 @@ onMounted(async () => {
 <template>
   <!-- 强制阅读（不可关闭，遮罩拦截系统操作；逐条「我已阅读」清空后自动关闭） -->
   <NModal
+    v-if="currentMandatory"
     :show="mandatoryVisible"
     preset="card"
-    :title="t('header.notification.gate.mandatory_title')"
+    :title="currentMandatory.title"
     :mask-closable="false"
     :closable="false"
     :close-on-esc="false"
-    style="width: 640px; max-width: 92vw"
+    style="width: 600px; max-width: 92vw"
   >
-    <div class="notif-gate-list">
-      <div
-        v-for="item in mandatoryList"
-        :key="item.basicId"
-        class="notif-gate-item"
-      >
-        <div class="notif-gate-item__title">
-          {{ item.title }}
-        </div>
-        <div class="notif-gate-item__content">
-          <NotificationContent
-            v-if="item.content"
-            :content="item.content"
-            :format="item.contentFormat"
-          />
-          <pre v-else class="notif-gate-item__text">{{ t('header.notification.gate.no_content') }}</pre>
-        </div>
-        <div class="notif-gate-item__footer">
-          <NButton
-            size="small"
-            type="primary"
-            :loading="markingId === item.basicId"
-            @click="onMandatoryRead(item)"
-          >
-            {{ t('header.notification.gate.mandatory_read') }}
-          </NButton>
-        </div>
-      </div>
+    <div class="notif-gate-body">
+      <NotificationContent
+        v-if="currentMandatory.content"
+        :content="currentMandatory.content"
+        :format="currentMandatory.contentFormat"
+      />
+      <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
     </div>
+    <template #footer>
+      <div class="flex justify-end">
+        <NButton
+          size="small"
+          type="primary"
+          :loading="markingId === currentMandatory.basicId"
+          @click="onMandatoryRead(currentMandatory)"
+        >
+          {{ t('header.notification.gate.mandatory_read') }}
+        </NButton>
+      </div>
+    </template>
   </NModal>
 
   <!-- 登录后弹窗（逐条；点「我知道了」标记已展示并弹下一条） -->
@@ -116,13 +109,13 @@ onMounted(async () => {
     style="width: 560px; max-width: 92vw"
     @close="onPopupConfirm(currentPopup)"
   >
-    <div class="notif-gate-item__content">
+    <div class="notif-gate-body">
       <NotificationContent
         v-if="currentPopup.content"
         :content="currentPopup.content"
         :format="currentPopup.contentFormat"
       />
-      <pre v-else class="notif-gate-item__text">{{ t('header.notification.gate.no_content') }}</pre>
+      <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
     </div>
     <template #footer>
       <div class="flex justify-end">
@@ -135,44 +128,14 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.notif-gate-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-height: 64vh;
+.notif-gate-body {
+  max-height: 60vh;
   overflow-y: auto;
-}
-
-.notif-gate-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.notif-gate-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.notif-gate-item__title {
-  font-size: 15px;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-}
-
-.notif-gate-item__content {
   font-size: 14px;
   color: hsl(var(--foreground) / 85%);
 }
 
-.notif-gate-item__footer {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.notif-gate-item__text {
+.notif-gate-text {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
