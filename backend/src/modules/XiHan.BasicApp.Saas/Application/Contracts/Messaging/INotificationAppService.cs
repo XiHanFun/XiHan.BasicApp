@@ -28,4 +28,9 @@ public interface INotificationAppService : IApplicationService
     Task<NotificationPublishResultDto> PublishNotificationAsync(NotificationPublishDto input, CancellationToken cancellationToken = default);
 
     Task DeleteNotificationAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 催办：对未读人员重新实时推送
+    /// </summary>
+    Task<NotificationPublishResultDto> RemindAsync(long id, CancellationToken cancellationToken = default);
 }
