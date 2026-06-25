@@ -37,37 +37,6 @@ public sealed class SaasTenantEditionSeeder(
     private const string FreeEditionCode = "free";
     private const string EnterpriseEditionCode = "enterprise";
 
-    private static readonly HashSet<string> PlatformAdministrationPermissionCodes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        SaasPermissionCodes.Tenant.Create,
-        SaasPermissionCodes.Tenant.Update,
-        SaasPermissionCodes.Tenant.Status,
-        SaasPermissionCodes.TenantEdition.Read,
-        SaasPermissionCodes.TenantEdition.Create,
-        SaasPermissionCodes.TenantEdition.Update,
-        SaasPermissionCodes.TenantEdition.Status,
-        SaasPermissionCodes.TenantEdition.Default,
-        SaasPermissionCodes.TenantEditionPermission.Read,
-        SaasPermissionCodes.TenantEditionPermission.Grant,
-        SaasPermissionCodes.TenantEditionPermission.Update,
-        SaasPermissionCodes.TenantEditionPermission.Revoke,
-        SaasPermissionCodes.Resource.Create,
-        SaasPermissionCodes.Resource.Update,
-        SaasPermissionCodes.Resource.Status,
-        SaasPermissionCodes.Resource.Delete,
-        SaasPermissionCodes.Operation.Create,
-        SaasPermissionCodes.Operation.Update,
-        SaasPermissionCodes.Operation.Status,
-        SaasPermissionCodes.Operation.Delete,
-        SaasPermissionCodes.Menu.Create,
-        SaasPermissionCodes.Menu.Update,
-        SaasPermissionCodes.Menu.Status,
-        SaasPermissionCodes.Menu.Delete,
-        SaasPermissionCodes.Cache.Read,
-        SaasPermissionCodes.Cache.Clear,
-        SaasPermissionCodes.Server.Read
-    };
-
     private readonly ICurrentTenant _currentTenant = currentTenant;
 
     /// <summary>
@@ -321,7 +290,7 @@ public sealed class SaasTenantEditionSeeder(
 
         return permissions
             .Select(permission => permission.PermissionCode)
-            .Where(code => !PlatformAdministrationPermissionCodes.Contains(code))
+            .Where(code => !SaasPlatformPermissions.PlatformOnlyCodes.Contains(code))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
