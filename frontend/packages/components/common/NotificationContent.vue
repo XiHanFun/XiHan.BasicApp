@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { useId } from 'vue'
 import { NotificationContentFormat } from '~/types/enums'
 import MdEditor from './MdEditor.vue'
 
@@ -14,15 +14,6 @@ const props = defineProps<{
 
 // md-editor-v3 要求每个实例 editorId 唯一（收件箱等会同时渲染多条，复用同一 id 会串扰/渲染异常）
 const editorId = `notif-md-${useId()}`
-
-// 纯文本：统一换行、折叠连续空行、去行尾空白，避免出现多余空行
-const textContent = computed(() =>
-  (props.content ?? '')
-    .replace(/\r\n?/g, '\n')
-    .replace(/\n{2,}/g, '\n')
-    .replace(/[ \t]+$/gm, '')
-    .trim(),
-)
 </script>
 
 <template>
@@ -33,7 +24,7 @@ const textContent = computed(() =>
   </div>
   <!-- eslint-disable-next-line vue/no-v-html -->
   <div v-else-if="props.format === NotificationContentFormat.Html" class="notif-content-html" v-html="props.content ?? ''" />
-  <pre v-else class="notif-content-text">{{ textContent }}</pre>
+  <pre v-else class="notif-content-text">{{ props.content }}</pre>
 </template>
 
 <style scoped>
@@ -46,23 +37,6 @@ const textContent = computed(() =>
 
 .notif-content-md :deep(.md-editor-preview-wrapper) {
   padding: 0;
-}
-
-/* 收紧段落间距：通知场景下消除「首段后一整行空白」，块间仅留极小间隔 */
-.notif-content-md :deep(.md-editor-preview p),
-.notif-content-md :deep(.md-editor-preview ul),
-.notif-content-md :deep(.md-editor-preview ol),
-.notif-content-md :deep(.md-editor-preview pre),
-.notif-content-md :deep(.md-editor-preview blockquote),
-.notif-content-md :deep(.md-editor-preview h1),
-.notif-content-md :deep(.md-editor-preview h2),
-.notif-content-md :deep(.md-editor-preview h3),
-.notif-content-md :deep(.md-editor-preview h4) {
-  margin: 0;
-}
-
-.notif-content-md :deep(.md-editor-preview > * + *) {
-  margin-top: 0.4em;
 }
 
 .notif-content-text {
