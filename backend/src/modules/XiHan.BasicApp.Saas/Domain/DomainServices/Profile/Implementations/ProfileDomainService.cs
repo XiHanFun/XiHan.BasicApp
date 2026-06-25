@@ -290,14 +290,14 @@ public sealed class ProfileDomainService
             return new ProfileSessionRevokeResult([]);
         }
 
-        const string reason = "用户在个人中心撤销其他会话";
+        const string Reason = "用户在个人中心撤销其他会话";
         foreach (var session in sessions)
         {
-            RevokeSession(session, reason);
+            RevokeSession(session, Reason);
         }
 
         _ = await _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken);
-        return new ProfileSessionRevokeResult([.. sessions.Select(session => BuildSessionRevokedEvent(session, false, command.OperatorUserId, reason))]);
+        return new ProfileSessionRevokeResult([.. sessions.Select(session => BuildSessionRevokedEvent(session, false, command.OperatorUserId, Reason))]);
     }
 
     /// <inheritdoc />
@@ -322,10 +322,10 @@ public sealed class ProfileDomainService
             cancellationToken)
             ?? throw new InvalidOperationException("会话不存在。");
 
-        const string reason = "用户在个人中心撤销会话";
-        RevokeSession(session, reason);
+        const string Reason = "用户在个人中心撤销会话";
+        RevokeSession(session, Reason);
         session = await _userSessionRepository.UpdateAsync(session, cancellationToken);
-        return new ProfileSessionRevokeResult([BuildSessionRevokedEvent(session, false, command.OperatorUserId, reason)]);
+        return new ProfileSessionRevokeResult([BuildSessionRevokedEvent(session, false, command.OperatorUserId, Reason)]);
     }
 
     /// <inheritdoc />

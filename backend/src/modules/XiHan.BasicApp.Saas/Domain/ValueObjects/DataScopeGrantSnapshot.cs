@@ -43,7 +43,7 @@ public sealed record DataScopeDecision(
     /// </summary>
     public static DataScopeDecision All()
     {
-        return new DataScopeDecision(true, false, Array.Empty<long>(), Array.Empty<long>());
+        return new DataScopeDecision(true, false, [], []);
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public sealed record DataScopeDecision(
     /// </summary>
     public static DataScopeDecision SelfOnly()
     {
-        return new DataScopeDecision(false, true, Array.Empty<long>(), Array.Empty<long>());
+        return new DataScopeDecision(false, true, [], []);
     }
 
     /// <summary>

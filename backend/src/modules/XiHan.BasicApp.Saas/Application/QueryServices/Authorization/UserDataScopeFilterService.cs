@@ -97,7 +97,7 @@ public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
                 role.BasicId,
                 AuthorizationGrantSource.Role,
                 role.DataScope,
-                Array.Empty<long>(),
+                [],
                 IncludeChildren: false,
                 EffectivePeriod.Always));
         }

@@ -63,7 +63,7 @@ public sealed class NotificationDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidateNotificationInput(command.NotificationType, command.TargetType, command.Title, command.Icon, command.Link, command.BusinessType, command.BusinessId, command.SendTime, command.ExpirationTime, command.Remark);
-        var targetUserIds = command.TargetType == NotificationTargetType.All ? Array.Empty<long>() : NormalizeUserIds(command.UserIds);
+        var targetUserIds = command.TargetType == NotificationTargetType.All ? [] : NormalizeUserIds(command.UserIds);
         var notification = new SysNotification
         {
             SendUserId = command.SendUserId,
@@ -141,7 +141,7 @@ public sealed class NotificationDomainService
 
         EnsureId(command.BasicId, "系统通知主键必须大于 0。");
         ValidateNotificationInput(command.NotificationType, command.TargetType, command.Title, command.Icon, command.Link, command.BusinessType, command.BusinessId, command.SendTime, command.ExpirationTime, command.Remark);
-        var targetUserIds = command.TargetType == NotificationTargetType.All ? Array.Empty<long>() : NormalizeUserIds(command.UserIds);
+        var targetUserIds = command.TargetType == NotificationTargetType.All ? [] : NormalizeUserIds(command.UserIds);
 
         var notification = await GetNotificationOrThrowAsync(command.BasicId, cancellationToken);
         if (notification.IsPublished)
