@@ -327,12 +327,18 @@ const sidebarEnableState = computed(
           </NConfigProvider>
         </header>
 
-        <!-- Tabbar -->
+        <!-- Tabbar：随「深色顶栏」一起暗化（与 header 同款：本地 dark class + Naive 暗色） -->
         <div
           v-if="shell.appStore.tabbarEnabled && !shell.isFullContent.value"
+          :class="headerTheme"
           :style="shell.tabbarStyle.value"
         >
-          <AppTabbar />
+          <NConfigProvider
+            :theme="headerForceDark ? darkTheme : undefined"
+            :theme-overrides="themeOverrides"
+          >
+            <AppTabbar />
+          </NConfigProvider>
         </div>
       </div>
 
