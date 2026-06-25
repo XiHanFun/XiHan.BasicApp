@@ -150,6 +150,7 @@ export default {
       title: 'Header',
       show: 'Show',
       mode: 'Mode',
+      mode_tip: 'Fixed: the header stays pinned to the top and remains visible while scrolling. Static: the header scrolls away together with the page content.',
       mode_fixed: 'Fixed',
       mode_static: 'Static',
       menu_align: 'Menu Align',

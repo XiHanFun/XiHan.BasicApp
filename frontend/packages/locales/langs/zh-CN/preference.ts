@@ -145,6 +145,7 @@ export default {
       title: '顶栏',
       show: '显示',
       mode: '模式',
+      mode_tip: '固定：顶栏始终吸顶，滚动内容时保持可见；静态：顶栏随页面一起滚动、不吸顶。',
       mode_fixed: '固定',
       mode_static: '静态',
       menu_align: '菜单位置',

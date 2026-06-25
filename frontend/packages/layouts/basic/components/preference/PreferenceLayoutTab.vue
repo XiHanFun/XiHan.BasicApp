@@ -265,7 +265,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <NSwitch v-model:value="appStore.headerShow" :disabled="headerDisabled" />
       </div>
       <div class="pref-row" :class="{ 'opacity-50': headerItemDisabled }">
-        <span>{{ t('preference.layout.header.mode') }}</span>
+        <div class="flex items-center gap-1">
+          <span>{{ t('preference.layout.header.mode') }}</span>
+          <PrefTip :content="t('preference.layout.header.mode_tip')" />
+        </div>
         <NRadioGroup v-model:value="appStore.headerMode" size="small" :disabled="headerItemDisabled">
           <NSpace :size="0">
             <NRadioButton value="fixed">
