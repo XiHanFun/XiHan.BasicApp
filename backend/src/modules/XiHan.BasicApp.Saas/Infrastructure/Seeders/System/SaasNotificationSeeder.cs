@@ -62,7 +62,7 @@ public sealed class SaasNotificationSeeder(
         var notifications = new List<SysNotification>
         {
             CreateNotification(
-                NotificationType.Announcement,
+                NotificationType.System,
                 "欢迎使用 XiHan BasicApp",
                 "感谢您选择 XiHan BasicApp 平台。系统已成功初始化，您可以开始使用各项功能。如有任何问题，请联系系统管理员。",
                 "lucide:party-popper",
@@ -70,7 +70,7 @@ public sealed class SaasNotificationSeeder(
                 isPublished: true,
                 sort: 10),
             CreateNotification(
-                NotificationType.Warning,
+                NotificationType.Security,
                 "请及时修改默认密码",
                 "为了保障您的账户安全，请及时修改默认密码，并设置符合安全策略的强密码。建议密码包含大小写字母、数字和特殊字符，长度不少于8位。",
                 "lucide:shield-alert",
@@ -78,7 +78,7 @@ public sealed class SaasNotificationSeeder(
                 isPublished: true,
                 sort: 20),
             CreateNotification(
-                NotificationType.Announcement,
+                NotificationType.System,
                 "系统初始化完成",
                 "XiHan BasicApp 平台初始化已完成，所有核心模块已就绪。平台提供多租户管理、权限控制、文件存储等功能，请根据业务需求进行配置。",
                 "lucide:check-circle",

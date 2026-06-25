@@ -214,7 +214,7 @@ public sealed partial class ProfileAppService
             userId,
             title,
             content,
-            NotificationType.User,
+            NotificationType.Business,
             ApiCredentialBusinessType,
             credentialId,
             link: "/workbench/profile",

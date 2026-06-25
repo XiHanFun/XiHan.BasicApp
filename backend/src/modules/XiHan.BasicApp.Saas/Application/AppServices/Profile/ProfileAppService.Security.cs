@@ -45,7 +45,7 @@ public sealed partial class ProfileAppService
             result.User.BasicId,
             "密码已修改",
             "您的账号密码已更新，如非本人操作，请立即联系管理员。",
-            NotificationType.Warning,
+            NotificationType.Security,
             "profile.password.changed",
             result.User.BasicId,
             cancellationToken: cancellationToken);

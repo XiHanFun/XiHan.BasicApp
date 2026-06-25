@@ -101,9 +101,9 @@ public sealed class UserNotificationDispatchService
     {
         return notificationType switch
         {
-            NotificationType.Warning => "Warning",
-            NotificationType.Error => "Error",
-            NotificationType.User => "Success",
+            NotificationType.Emergency => "Error",
+            NotificationType.Security => "Warning",
+            NotificationType.Business => "Success",
             _ => "Info"
         };
     }

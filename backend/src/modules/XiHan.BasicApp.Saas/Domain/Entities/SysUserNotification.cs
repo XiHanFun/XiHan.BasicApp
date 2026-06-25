@@ -79,4 +79,10 @@ public partial class SysUserNotification : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnName = "Confirm_Time", ColumnDescription = "确认时间", IsNullable = true)]
     public virtual DateTimeOffset? ConfirmTime { get; set; }
+
+    /// <summary>
+    /// 弹窗展示时间（登录后弹窗"仅弹一次"：非空即已弹过，不再弹）
+    /// </summary>
+    [SugarColumn(ColumnName = "Popup_Shown_Time", ColumnDescription = "弹窗展示时间", IsNullable = true)]
+    public virtual DateTimeOffset? PopupShownTime { get; set; }
 }
