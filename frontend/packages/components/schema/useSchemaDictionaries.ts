@@ -1,8 +1,7 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import type { ListFieldSchema, SchemaSelectOption } from './types'
-import { computed, toValue, watch } from 'vue'
+import { computed, toValue } from 'vue'
 import { useEnumService } from '~/hooks'
-import { useAppStore } from '~/stores'
 
 /**
  * Schema 字典/枚举异步取值。
@@ -25,7 +24,6 @@ export function useSchemaDictionaries(
   fields: MaybeRefOrGetter<ListFieldSchema[]>,
 ): UseSchemaDictionaries {
   const enumService = useEnumService()
-  const appStore = useAppStore()
 
   /** 需要异步解析的字典码：所有声明了 dictionaryCode 的字段（含同时带静态 options 兜底者） */
   const codes = computed(() => {
@@ -60,18 +58,13 @@ export function useSchemaDictionaries(
     return field.options
   }
 
+  // 触发整库拉取（并发去重）。切语言由 useEnumService 全局监听整库重取一次，
+  // optionsMap 读响应式 enumState 自动更新，故此处无需再各自监听 locale（否则每页各发一次请求）。
   async function resolve(): Promise<void> {
     if (codes.value.length > 0) {
       await enumService.ensureBatch(codes.value, { includeDict: true })
     }
   }
-
-  // 语言切换后重新拉取枚举元数据：enumState 仅按枚举名缓存、不含语言，
-  // 切换语言若不重取会残留旧语言标签（表格/搜索下拉需刷新页面才正常）。
-  // 重取后 enumState 被新语言覆盖，optionsMap → field.options 响应式更新，免刷新即切换。
-  watch(() => appStore.locale, () => {
-    void resolve()
-  })
 
   return { optionsMap, optionsFor, resolve }
 }

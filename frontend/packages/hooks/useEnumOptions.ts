@@ -1,6 +1,5 @@
 import type { ComputedRef } from 'vue'
-import { computed, onMounted, watch } from 'vue'
-import { useAppStore } from '~/stores'
+import { computed, onMounted } from 'vue'
 import { useEnumService } from './useEnumService'
 
 export interface EnumOptionItem {
@@ -28,15 +27,10 @@ export function useEnumOptions(
   fallback: ReadonlyArray<EnumOptionItem> = [],
 ): ComputedRef<EnumOptionItem[]> {
   const enumService = useEnumService()
-  const appStore = useAppStore()
 
-  function load() {
-    void enumService.ensureEnum(enumName)
-  }
-
-  onMounted(load)
-  // 语言切换后按新语言重取（enumState 仅按枚举名缓存、不含语言，不重取会残留旧语言）
-  watch(() => appStore.locale, load)
+  // 挂载时触发整库拉取（并发去重）；切语言由 useEnumService 全局监听整库重取一次，
+  // 本组合式只读响应式 enumState，无需各自监听 locale（否则每个下拉各发一次请求）。
+  onMounted(() => void enumService.ensureEnum(enumName))
 
   return computed<EnumOptionItem[]>(() => {
     const resolved = enumService
