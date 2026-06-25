@@ -38,4 +38,9 @@ public interface IUserInboxDomainService
     /// 标记已读
     /// </summary>
     Task MarkReadAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 标记登录后弹窗已展示（仅弹一次，幂等：已弹过不重复写）
+    /// </summary>
+    Task MarkPopupShownAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default);
 }

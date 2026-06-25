@@ -66,6 +66,37 @@ public sealed class UserInboxAppService
     }
 
     /// <inheritdoc />
+    public async Task<List<UserInboxItemDto>> GetMandatoryUnreadAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return await _userInboxQueryService.GetMandatoryUnreadAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<UserInboxItemDto>> GetBannerAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return await _userInboxQueryService.GetBannerAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<UserInboxItemDto>> GetPopupAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return await _userInboxQueryService.GetPopupAsync(GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task MarkPopupShownAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await _userInboxDomainService.MarkPopupShownAsync(input.BasicId, GetCurrentUserIdOrThrow(), cancellationToken);
+    }
+
+    /// <inheritdoc />
     [UnitOfWork(true)]
     public async Task MarkAllReadAsync(CancellationToken cancellationToken = default)
     {

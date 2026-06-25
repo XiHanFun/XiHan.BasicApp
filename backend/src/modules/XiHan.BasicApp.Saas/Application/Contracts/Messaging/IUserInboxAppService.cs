@@ -41,4 +41,24 @@ public interface IUserInboxAppService : IApplicationService
     /// 确认通知
     /// </summary>
     Task ConfirmAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户未读的强制阅读通知（路由守卫用）
+    /// </summary>
+    Task<List<UserInboxItemDto>> GetMandatoryUnreadAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户当前生效的顶部横幅通知
+    /// </summary>
+    Task<List<UserInboxItemDto>> GetBannerAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取当前用户待弹出的登录后弹窗通知（仅弹一次）
+    /// </summary>
+    Task<List<UserInboxItemDto>> GetPopupAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 标记登录后弹窗已展示
+    /// </summary>
+    Task MarkPopupShownAsync(UserInboxUpdateDto input, CancellationToken cancellationToken = default);
 }

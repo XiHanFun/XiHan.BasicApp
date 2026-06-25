@@ -128,6 +128,20 @@ public sealed class UserInboxDomainService
         _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task MarkPopupShownAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userNotification = await GetUserNotificationOrThrowAsync(userNotificationId, userId, cancellationToken);
+        // 仅弹一次：已弹过不重复写
+        if (userNotification.PopupShownTime is null)
+        {
+            userNotification.PopupShownTime = DateTimeOffset.UtcNow;
+            _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
+        }
+    }
+
     private static void MarkRead(SysUserNotification userNotification, DateTimeOffset now)
     {
         if (userNotification.NotificationStatus == NotificationStatus.Unread)

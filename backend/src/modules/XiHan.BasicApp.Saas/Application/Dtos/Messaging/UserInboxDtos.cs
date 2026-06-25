@@ -47,6 +47,31 @@ public sealed class UserInboxItemDto
     public NotificationType NotificationType { get; set; }
 
     /// <summary>
+    /// 优先级
+    /// </summary>
+    public NotificationPriority Priority { get; set; }
+
+    /// <summary>
+    /// 正文格式
+    /// </summary>
+    public NotificationContentFormat ContentFormat { get; set; }
+
+    /// <summary>
+    /// 是否强制阅读
+    /// </summary>
+    public bool IsMandatory { get; set; }
+
+    /// <summary>
+    /// 是否顶部横幅
+    /// </summary>
+    public bool IsBanner { get; set; }
+
+    /// <summary>
+    /// 是否登录后弹窗
+    /// </summary>
+    public bool IsPopup { get; set; }
+
+    /// <summary>
     /// 通知状态（枚举序列化为字符串，与前端契约一致）
     /// </summary>
     public NotificationStatus NotificationStatus { get; set; }
