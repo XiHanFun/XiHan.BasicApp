@@ -35,10 +35,10 @@ const emit = defineEmits<{
   blur: []
 }>()
 
-/** 绑定 JSON 对象类型数据 */
-const jsonModel = defineModel<Record<string, unknown> | unknown[] | null>('json', { default: undefined })
-/** 绑定 JSON 字符串类型数据 */
-const textModel = defineModel<string>('text', { default: undefined })
+/** 绑定 JSON 对象类型数据（不传则为 undefined，与 text 二选一使用） */
+const jsonModel = defineModel<Record<string, unknown> | unknown[] | null>('json')
+/** 绑定 JSON 字符串类型数据（不传则为 undefined，与 json 二选一使用） */
+const textModel = defineModel<string>('text')
 
 const appStore = useAppStore()
 
