@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:CodeGenDataSourceDomainService
-// Guid:c0de9e00-0a03-4a00-9000-000000000a03
+// Guid:0355a32d-e532-417c-b8d6-bb0b0a51939e
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/06/20 10:00:00

@@ -80,7 +80,8 @@ public sealed class SaasCacheInvalidator
         _editionGateCache = editionGateCache;
         _dictItemTreeCache = dictItemTreeCache;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
     {
         var pattern = string.IsNullOrWhiteSpace(configKey)

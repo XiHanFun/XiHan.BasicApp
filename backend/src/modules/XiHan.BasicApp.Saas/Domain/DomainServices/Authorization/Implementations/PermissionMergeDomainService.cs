@@ -47,7 +47,8 @@ public sealed class PermissionMergeDomainService
         _permissionDelegationRepository = permissionDelegationRepository;
         _permissionRepository = permissionRepository;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PermissionGrantSnapshot>> MergePermissionGrantsAsync(
         long userId,
         IEnumerable<long> roleIds,

@@ -42,7 +42,8 @@ public sealed class UserNotificationDispatchService
         _userInboxDomainService = userInboxDomainService;
         _realtimeNotificationService = realtimeNotificationService;
     }
-    /// <summary>
+
+    /// <summary>
     /// 构造站内信 DTO
     /// </summary>
     public static UserInboxItemDto ToInboxItem(SysUserNotification userNotification, SysNotification notification)

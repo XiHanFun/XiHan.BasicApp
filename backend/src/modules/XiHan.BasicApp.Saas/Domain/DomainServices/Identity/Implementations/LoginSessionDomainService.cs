@@ -53,7 +53,8 @@ public sealed class LoginSessionDomainService
         _userSessionRepository = userSessionRepository;
         _oauthTokenRepository = oauthTokenRepository;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public async Task<LoginSessionIssueResult> IssuePasswordLoginAsync(
         SysUser user,
         SysUserSecurity? security,

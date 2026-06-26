@@ -31,7 +31,8 @@ public sealed class RoleHierarchyDomainService
     {
         _roleHierarchyRepository = roleHierarchyRepository;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public async Task<bool> WouldCreateCycleAsync(long parentRoleId, long childRoleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

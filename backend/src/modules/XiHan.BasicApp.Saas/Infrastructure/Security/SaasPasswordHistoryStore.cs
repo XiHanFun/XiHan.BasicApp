@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SaasPasswordHistoryStore
-// Guid:3c4d5e6f-7a8b-9012-cdef-2345678903
+// Guid:a76e2573-d5ec-4e5c-a486-7973542834c1
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/05/12 00:00:00
