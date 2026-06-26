@@ -37,6 +37,7 @@ import {
   WIDGET_SIDEBAR_TOGGLE_KEY,
   WIDGET_THEME_TOGGLE_KEY,
   WIDGET_TIMEZONE_KEY,
+  WIDGETS_SYNC_KEY,
 } from '~/constants'
 import { LocalStorage } from '~/utils'
 import { bindPersist, save } from '../helpers'
@@ -51,6 +52,7 @@ export function createPreferencesSlice() {
   const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
   const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? true)
   const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? true)
+  const widgetsSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(WIDGETS_SYNC_KEY) ?? true)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
   // 用户时区（IANA，如 Asia/Shanghai）：默认北京时间 Asia/Shanghai（空串表示跟随浏览器）；随请求头 X-Timezone 上行，后端按此换算返回时间
@@ -109,6 +111,7 @@ export function createPreferencesSlice() {
   bindPersist(FAVORITES_SYNC_KEY, favoritesSyncEnabled, true)
   bindPersist(SEARCH_SYNC_KEY, searchSyncEnabled, true)
   bindPersist(TABLE_SYNC_KEY, tableSyncEnabled, true)
+  bindPersist(WIDGETS_SYNC_KEY, widgetsSyncEnabled, true)
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
   bindPersist(APP_TIMEZONE_KEY, appTimezone, 'Asia/Shanghai')
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
@@ -160,6 +163,9 @@ export function createPreferencesSlice() {
   }
   function setTableSyncEnabled(v: boolean) {
     save(TABLE_SYNC_KEY, tableSyncEnabled, v)
+  }
+  function setWidgetsSyncEnabled(v: boolean) {
+    save(WIDGETS_SYNC_KEY, widgetsSyncEnabled, v)
   }
   function setTableRowPeek(v: boolean) {
     save(TABLE_ROW_PEEK_KEY, tableRowPeek, v)
@@ -257,6 +263,7 @@ export function createPreferencesSlice() {
     favoritesSyncEnabled,
     searchSyncEnabled,
     tableSyncEnabled,
+    widgetsSyncEnabled,
     tableRowPeek,
     appTimezone,
     enableCheckUpdates,
@@ -293,6 +300,7 @@ export function createPreferencesSlice() {
     setFavoritesSyncEnabled,
     setSearchSyncEnabled,
     setTableSyncEnabled,
+    setWidgetsSyncEnabled,
     setTableRowPeek,
     setAppTimezone,
     setEnableCheckUpdates,

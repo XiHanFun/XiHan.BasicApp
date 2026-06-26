@@ -49,6 +49,13 @@ const { t } = useI18n()
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.widgets_sync') }}</span>
+          <PrefTip :content="t('preference.general.widgets_sync_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.widgetsSyncEnabled" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.favorites_sync') }}</span>
           <PrefTip :content="t('preference.general.favorites_sync_tip')" />
         </div>

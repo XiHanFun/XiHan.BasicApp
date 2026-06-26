@@ -258,6 +258,7 @@ export default {
     favorites_sync: 'Favorites',
     search_sync: 'Search Settings',
     table_sync: 'Table Settings',
+    widgets_sync: 'Widgets',
     watermark: 'Watermark',
     watermark_content: 'Content',
     watermark_text: 'Watermark Text',
@@ -278,6 +279,8 @@ export default {
       'On by default — per-page search settings sync to your account on save and are pushed in real time to your other online devices. When off, they are stored on this device only.',
     table_sync_tip:
       'On by default — per-page table columns and saved views sync to your account on save and are pushed in real time to your other online devices. When off, they are stored on this device only.',
+    widgets_sync_tip:
+      'On by default — the workbench widget board layout (order and width) syncs to your account on save and is pushed in real time to your other online devices. When off, it is stored on this device only.',
     watermark_tip: 'Display a semi-transparent watermark text overlay on the page content area',
     check_updates_tip:
       'Periodically check for new versions and show a notification when an update is available',
