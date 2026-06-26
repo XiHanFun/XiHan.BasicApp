@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Identity;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Web.Core.Clients;
@@ -104,10 +105,10 @@ public sealed class LoginSessionDomainService
             AccessToken = null,
             RefreshToken = tokenResult.RefreshToken,
             TokenType = tokenResult.TokenType,
-            ClientId = "basicapp-web",
+            ClientId = SaasOAuthClientIds.Web,
             UserId = user.BasicId,
             GrantType = GrantType.Password,
-            Scopes = "basicapp",
+            Scopes = SaasOAuthClientIds.DefaultScope,
             Status = EnableStatus.Enabled,
             AccessTokenExpirationTime = ToDateTimeOffset(tokenResult.ExpiresAt),
             RefreshTokenExpirationTime = now.AddDays(7),

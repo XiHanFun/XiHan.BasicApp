@@ -1,2 +1,10 @@
 packages:
   - 'packages/*'
+allowBuilds:
+  simple-git-hooks: true
+minimumReleaseAgeExclude:
+  - '@iconify-json/lucide@1.2.113'
+# 不在每次 `pnpm run <script>` 前重跑 install 校验:依赖已就位且锁定,
+# 该预检会触发 pnpm 11 的 minimumReleaseAge 门禁导致 dev/build 无法启动。
+# 供应链门禁在真正的 `pnpm install` / `pnpm upgrade` 时仍然生效。
+verifyDepsBeforeRun: false

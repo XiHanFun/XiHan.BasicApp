@@ -136,5 +136,4 @@ public sealed class ResourceAppService
     }
 
     #endregion Resource
-
 }

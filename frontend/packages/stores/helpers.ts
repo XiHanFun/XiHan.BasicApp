@@ -1,18 +1,10 @@
-import { nextTick, watch } from 'vue'
-import { islandStart } from '~/composables/useDynamicIsland'
-import { STORAGE_PREFIX } from '~/constants'
+import { nextTick, ref, watch } from 'vue'
+import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
+import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 
 const BUILD_TIME_KEY = `${STORAGE_PREFIX}build_time`
-
-/**
- * 偏好设置在 PagePreference 中的保留页面码（全局，按当前用户维度）。
- * 与收藏夹 [[favorites]] 同源：后端不解释 Payload 语义，仅按 (UserId, PageCode) 存取，零后端改动。
- */
-const PREFERENCES_PAGE_CODE = '__app:preferences__'
-/** PagePreference 载荷分区名（payload = {"preferences":{ storageKey: value, ... }}） */
-const PREFERENCES_SECTION = 'preferences'
 
 /**
  * 所有经 bindPersist 注册的偏好 (storageKey → ref)。
@@ -27,6 +19,16 @@ let backendSyncEnabled = false
 /** 一次会话仅水合一次（登录或刷新后），退出登录时重置 */
 let hydrated = false
 let syncTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * 偏好草稿模式：偏好设置抽屉打开期间为 true，此时偏好变更只更新内存 ref（实时预览），
+ * 不落地 localStorage / 不上行后端；点击「保存」才提交，关闭抽屉若未保存则还原。
+ */
+let persistSuspended = false
+/** 草稿基线快照（storageKey → 进入草稿/最近一次保存时的值），用于「取消」还原 */
+let draftSnapshot: Map<string, unknown> | null = null
+/** 草稿模式下是否存在未保存变更（响应式，供「保存」按钮启用判定） */
+export const preferenceDraftDirty = ref(false)
 
 /**
  * BUILD_TIME 缓存失效：
@@ -53,26 +55,76 @@ export function invalidateCacheIfBuildTimeChanged() {
   LocalStorage.set(BUILD_TIME_KEY, currentBuildTime)
 }
 
+/**
+ * 同步开关本身为「设备本地」维度：仅本地存储，不随偏好快照上行后端、也不被远端覆盖。
+ */
+const DEVICE_LOCAL_KEYS = new Set<string>([
+  PREFERENCE_SYNC_KEY,
+  FAVORITES_SYNC_KEY,
+  SEARCH_SYNC_KEY,
+  TABLE_SYNC_KEY,
+])
+
+/** 偏好后端同步是否启用（用户开关，默认开启=上行后端并实时推送多端）。读自注册表中的同步开关偏好。 */
+export function isPreferenceSyncEnabled(): boolean {
+  return registry.get(PREFERENCE_SYNC_KEY)?.value === true
+}
+
+/** 收藏夹后端同步是否启用（默认开启；关闭后仅本地存储） */
+export function isFavoritesSyncEnabled(): boolean {
+  return registry.get(FAVORITES_SYNC_KEY)?.value === true
+}
+
+/** 搜索设置后端同步是否启用（默认开启；关闭后仅本地存储） */
+export function isSearchSyncEnabled(): boolean {
+  return registry.get(SEARCH_SYNC_KEY)?.value === true
+}
+
+/** 表格/视图设置后端同步是否启用（默认开启；关闭后仅本地存储） */
+export function isTableSyncEnabled(): boolean {
+  return registry.get(TABLE_SYNC_KEY)?.value === true
+}
+
+/** 构建整份偏好快照（排除同步开关本身——设备本地维度，不上行） */
+function buildPreferenceSnapshot(): string {
+  const snapshot: Record<string, unknown> = {}
+  registry.forEach((source, key) => {
+    if (DEVICE_LOCAL_KEYS.has(key)) {
+      return
+    }
+    snapshot[key] = source.value
+  })
+  return JSON.stringify(snapshot)
+}
+
+/** 立即把整份偏好快照上行后端（尽力而为，失败静默；仅在已开启同步时执行） */
+function pushPreferencesToBackend(): void {
+  if (!isPreferenceSyncEnabled()) {
+    return
+  }
+  const settingValue = buildPreferenceSnapshot()
+  const task = settingSyncIsland('pref:save', '偏好设置')
+  void useAppContext()
+    .apis
+    .userSettingApi
+    .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID })
+    .then(() => task.success())
+    .catch(() => task.error())
+}
+
 /** 防抖把整份偏好快照上行后端（尽力而为，失败静默） */
 function scheduleBackendSync() {
-  if (!backendSyncEnabled)
+  // 草稿模式 / 会话回写未就绪 / 用户未开启后端同步：不上行
+  if (persistSuspended || !backendSyncEnabled || !isPreferenceSyncEnabled())
     return
   if (syncTimer) {
     clearTimeout(syncTimer)
   }
   syncTimer = setTimeout(() => {
-    const snapshot: Record<string, unknown> = {}
-    registry.forEach((source, key) => {
-      snapshot[key] = source.value
-    })
-    const payload = JSON.stringify({ [PREFERENCES_SECTION]: snapshot })
-    const task = islandStart('pref:save', '正在同步偏好设置…')
-    void useAppContext()
-      .apis
-      .pagePreferenceApi
-      .save({ pageCode: PREFERENCES_PAGE_CODE, payload })
-      .then(() => task.success('偏好设置已同步'))
-      .catch(() => task.error('偏好设置同步失败'))
+    // 防抖期间可能被关闭，触发时再确认
+    if (!isPreferenceSyncEnabled())
+      return
+    pushPreferencesToBackend()
   }, 800)
 }
 
@@ -86,6 +138,11 @@ export function bindPersist<T>(key: string, source: { value: T }, defaultValue?:
     defaults.set(key, defaultValue)
   }
   watch(source, (value) => {
+    // 草稿模式：仅内存预览，不落地；标记存在未保存变更
+    if (persistSuspended) {
+      preferenceDraftDirty.value = true
+      return
+    }
     LocalStorage.set(key, value)
     scheduleBackendSync()
   })
@@ -104,9 +161,73 @@ export function resetRegisteredPreferences(): void {
   })
 }
 
+/**
+ * 进入偏好草稿模式（偏好设置抽屉打开时调用）。
+ * 暂停落地（变更仅内存预览），并快照当前已保存值作为「取消」还原的基线。
+ */
+export function beginPreferenceDraft(): void {
+  draftSnapshot = new Map()
+  registry.forEach((source, key) => draftSnapshot!.set(key, source.value))
+  preferenceDraftDirty.value = false
+  persistSuspended = true
+}
+
+/**
+ * 保存草稿（点击「保存」时调用）。
+ * 将当前内存值落地 localStorage，并立即按开关上行后端；更新还原基线，dirty 复位。
+ */
+export function commitPreferenceDraft(): void {
+  if (!draftSnapshot) {
+    return
+  }
+  registry.forEach((source, key) => {
+    LocalStorage.set(key, source.value)
+    draftSnapshot!.set(key, source.value)
+  })
+  preferenceDraftDirty.value = false
+  pushPreferencesToBackend()
+}
+
+/**
+ * 放弃草稿（关闭抽屉时调用）。
+ * 还原到基线（最近一次保存或打开时的值），结束草稿模式恢复正常落地。
+ * 由于 commit 会更新基线，已保存的变更不会被还原。
+ */
+export function discardPreferenceDraft(): void {
+  const snapshot = draftSnapshot
+  draftSnapshot = null
+  preferenceDraftDirty.value = false
+  if (!snapshot) {
+    persistSuspended = false
+    return
+  }
+  let reverted = false
+  snapshot.forEach((original, key) => {
+    const source = registry.get(key)
+    if (source && source.value !== original) {
+      source.value = original
+      reverted = true
+    }
+  })
+  // 还原触发的 watch 回调在下一微任务才 flush；需等其跑完（此时 persistSuspended 仍为 true，不落地）
+  // 再解除暂停，避免把还原值又写回 localStorage / 上行后端
+  if (reverted) {
+    void nextTick(() => {
+      persistSuspended = false
+    })
+  }
+  else {
+    persistSuspended = false
+  }
+}
+
 /** 立即更新 ref 并写入 localStorage（ref 变化亦会经 bindPersist 的 watch 触发后端同步） */
 export function save<T>(key: string, target: { value: T }, value: T) {
   target.value = value
+  // 草稿模式：仅预览（dirty 由 bindPersist 的 watch 标记），不落地
+  if (persistSuspended) {
+    return
+  }
   LocalStorage.set(key, value)
 }
 
@@ -120,18 +241,26 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
   if (hydrated)
     return
   hydrated = true
+  // 未开启后端同步：本地模式，不拉取后端；仍开启回写门以便用户随后启用同步时即时生效
+  if (!isPreferenceSyncEnabled()) {
+    backendSyncEnabled = true
+    return
+  }
   // 登录流程由登录灵动岛统一覆盖，此处不重复提示；刷新恢复会话时则独立提示
-  const task = options?.showIsland === false ? null : islandStart('pref:hydrate', '正在同步偏好设置…')
+  const task = options?.showIsland === false ? null : settingSyncIsland('pref:hydrate', '偏好设置')
   // 应用远端期间暂停回写，避免把刚拉取的远端值原样回传
   backendSyncEnabled = false
   let needSeed = false
   try {
-    const dto = await useAppContext().apis.pagePreferenceApi.get(PREFERENCES_PAGE_CODE)
-    const parsed = dto?.payload ? (JSON.parse(dto.payload) as Record<string, unknown>) : null
-    const remote = parsed ? parsed[PREFERENCES_SECTION] : null
+    const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY })
+    const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as Record<string, unknown>) : null
     if (remote && typeof remote === 'object') {
       const map = remote as Record<string, unknown>
       registry.forEach((source, key) => {
+        // 同步开关为设备本地维度，不受远端覆盖
+        if (DEVICE_LOCAL_KEYS.has(key)) {
+          return
+        }
         if (key in map && map[key] !== undefined) {
           source.value = map[key]
         }
@@ -141,7 +270,7 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
       // 后端无偏好记录：登录后以本地当前偏好播种
       needSeed = true
     }
-    task?.success('偏好设置已同步')
+    task?.success()
   }
   catch {
     // 静默：保留本地
@@ -155,6 +284,42 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
       scheduleBackendSync()
     }
   }
+}
+
+/**
+ * 应用来自其它在线设备的偏好变更推送（SignalR UserSettingChanged，scene=Preference / settingKey=global）。
+ * 仅在已开启偏好同步、非草稿编辑中、会话回写已就绪（已水合）时应用；
+ * 应用期间暂停回写：watch 照常落地 localStorage，但不把远端值回环上行。
+ * 草稿模式（偏好抽屉打开）期间忽略远端推送，避免编辑中界面跳变——按「最后保存者赢」收敛。
+ */
+export async function applyRemotePreferenceSnapshot(settingValue?: null | string): Promise<void> {
+  if (!settingValue || !isPreferenceSyncEnabled() || persistSuspended || !backendSyncEnabled) {
+    return
+  }
+  let remote: Record<string, unknown>
+  try {
+    remote = JSON.parse(settingValue) as Record<string, unknown>
+  }
+  catch {
+    return
+  }
+  if (!remote || typeof remote !== 'object') {
+    return
+  }
+  backendSyncEnabled = false
+  registry.forEach((source, key) => {
+    // 同步开关为设备本地维度，不受远端覆盖
+    if (DEVICE_LOCAL_KEYS.has(key)) {
+      return
+    }
+    if (key in remote && remote[key] !== undefined) {
+      source.value = remote[key]
+    }
+  })
+  // 等本轮 watch flush（写本地、上行被门挡住）后恢复回写
+  await nextTick()
+  backendSyncEnabled = true
+  settingSyncRemoteApplied('pref:remote', '偏好设置')
 }
 
 /** 退出登录：停止后端回写、清空待发请求，允许下次登录重新水合 */

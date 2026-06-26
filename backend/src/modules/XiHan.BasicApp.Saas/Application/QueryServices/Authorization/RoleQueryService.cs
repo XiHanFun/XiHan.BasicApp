@@ -145,17 +145,6 @@ public sealed class RoleQueryService
     }
 
     /// <summary>
-    /// 实时查询已启用角色选择项（缓存未命中或带关键字时执行）。
-    /// </summary>
-    private async Task<IReadOnlyList<RoleSelectItemDto>> QueryEnabledRolesAsync(RoleSelectQueryDto input, CancellationToken cancellationToken)
-    {
-        var request = BuildRoleSelectRequest(input);
-        var roles = await _roleRepository.GetPagedAsync(request, cancellationToken);
-
-        return [.. roles.Items.Select(RoleApplicationMapper.ToSelectItemDto)];
-    }
-
-    /// <summary>
     /// 构建角色分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
@@ -255,5 +244,16 @@ public sealed class RoleQueryService
         {
             request.Conditions.AddFilter((SysRole role) => role.Status, status.Value);
         }
+    }
+
+    /// <summary>
+    /// 实时查询已启用角色选择项（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<RoleSelectItemDto>> QueryEnabledRolesAsync(RoleSelectQueryDto input, CancellationToken cancellationToken)
+    {
+        var request = BuildRoleSelectRequest(input);
+        var roles = await _roleRepository.GetPagedAsync(request, cancellationToken);
+
+        return [.. roles.Items.Select(RoleApplicationMapper.ToSelectItemDto)];
     }
 }

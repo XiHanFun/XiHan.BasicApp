@@ -1,9 +1,12 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'naive-ui'
+import type { ListFieldSchema } from './types'
 import { NDataTable, NPagination } from 'naive-ui'
 import { computed } from 'vue'
 import { useIsMobile } from '~/composables'
+import SchemaRowPeek from './SchemaRowPeek.vue'
 import { toSortParams } from './selectors'
+import { useRowPeek } from './useRowPeek'
 
 defineOptions({ name: 'SchemaTablePanel' })
 
@@ -48,6 +51,8 @@ const props = withDefaults(defineProps<{
   defaultExpandAll?: boolean
   /** 重挂载令牌：变化即重建表格（用于清空 Naive 内部列宽拖拽缓存，如「恢复默认」） */
   remountKey?: number
+  /** 悬停速览字段（提供即启用：悬停行 ~450ms 浮出全字段详情卡） */
+  peekFields?: ListFieldSchema<TRow>[]
 }>(), {
   loading: false,
   rowKey: 'basicId',
@@ -67,6 +72,7 @@ const props = withDefaults(defineProps<{
   childrenKey: 'children',
   defaultExpandAll: true,
   remountKey: 0,
+  peekFields: undefined,
 })
 
 const emit = defineEmits<{
@@ -80,6 +86,14 @@ const emit = defineEmits<{
 const { isMobile } = useIsMobile()
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
+
+// ── 悬停速览（Peek & Pop）：移动端 / 未提供字段时禁用 ──────────────
+const peek = useRowPeek<TRow>({
+  enabled: () => !isMobile.value && (props.peekFields?.length ?? 0) > 0,
+})
+const peekRowProps = computed(() =>
+  (props.peekFields?.length ?? 0) > 0 ? (row: TRow) => peek.rowProps(row) : undefined,
+)
 
 function rowKeyGetter(row: TRow) {
   return (row as Record<string, unknown>)[props.rowKey] as string | number
@@ -170,9 +184,18 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
       :striped="striped"
       :bordered="bordered"
       :single-line="singleLine"
+      :row-props="peekRowProps"
       :on-unstable-column-resize="onColumnResize"
       @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
       @update:sorter="onSort"
+    />
+    <!-- 悬停速览卡（Teleport 到 body，pointer-events none 不干扰交互） -->
+    <SchemaRowPeek
+      :visible="peek.visible.value"
+      :row="peek.row.value"
+      :fields="peekFields ?? []"
+      :x="peek.x.value"
+      :y="peek.y.value"
     />
     <div class="xh-table-panel__footer">
       <!-- 底部左侧：数据量/页码提示 + 批量操作浮条（选中后在此展示，避免挤压表格） -->

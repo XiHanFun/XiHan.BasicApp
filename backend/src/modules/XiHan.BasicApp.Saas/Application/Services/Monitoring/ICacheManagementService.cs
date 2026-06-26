@@ -16,6 +16,7 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
 /// 缓存管理应用服务
+/// 仅基于分布式缓存抽象（IDistributedCache）提供「查询 / 改字符串值 / 删除」三类运维能力，不直连 Redis 原生类型。
 /// </summary>
 public interface ICacheManagementService
 {
@@ -33,6 +34,11 @@ public interface ICacheManagementService
     /// 获取缓存字符串值
     /// </summary>
     string? GetString(string key);
+
+    /// <summary>
+    /// 更新缓存字符串值（鉴权关键命名空间禁止改写）
+    /// </summary>
+    void SetString(string key, string? value);
 
     /// <summary>
     /// 删除指定缓存键

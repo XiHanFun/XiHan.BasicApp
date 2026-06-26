@@ -8,9 +8,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
+import { usePlatform } from '~/composables/usePlatform'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useFavoritesStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import { useAppStore, useFavoritesStore, useLayoutBridgeStore, useSplitViewStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
   flyToFavorites,
@@ -29,11 +30,34 @@ const appStore = useAppStore()
 const tabbarPreferences = useTabbarPreferences()
 const tabbarStore = useTabbarStore()
 const favoritesStore = useFavoritesStore()
+const splitViewStore = useSplitViewStore()
+const layoutBridgeStore = useLayoutBridgeStore()
+const { formatShortcut } = usePlatform()
 
-const visibleTabs = computed(() => tabbarStore.tabs)
+// 隐藏被合并到右侧分屏的标签（视为已并入分屏锚定标签）
+const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStore.isMergedTab(tab.path)))
 const localizedTabs = computed(() => {
   return visibleTabs.value.map((tab) => {
     const translated = te(tab.title) ? t(tab.title) : tab.title
+    // 分屏锚定标签：视觉合并为「左icon 左标题 | 右icon 右标题」（顺序跟随视觉反转）
+    if (splitViewStore.isSplitTab(tab.path)) {
+      const right = tabbarStore.tabs.find(item => item.path === splitViewStore.rightPath)
+      if (right) {
+        const rightTitle = te(right.title) ? t(right.title) : right.title
+        const rightIcon = right.meta?.icon as string | undefined
+        const anchorIcon = tab.meta?.icon as string | undefined
+        const rev = splitViewStore.reversed
+        return {
+          ...tab,
+          meta: { ...tab.meta, icon: rev ? rightIcon : anchorIcon },
+          displayTitle: rev ? rightTitle : translated,
+          splitRight: {
+            title: rev ? translated : rightTitle,
+            icon: rev ? anchorIcon : rightIcon,
+          },
+        }
+      }
+    }
     return {
       ...tab,
       displayTitle: translated,
@@ -50,7 +74,6 @@ const contextTabClosable = ref(false)
 const contextTabPinned = ref(false)
 // 收藏「飞入」动画的起点矩形（右键时捕获被点中标签的 DOM 位置）
 const contextTabRect = ref<DOMRect | null>(null)
-const tabsContainerRef = ref<HTMLElement | null>(null)
 const scrollViewportRef = ref<HTMLElement | null>(null)
 
 // ---- 溢出滚动按钮 ----
@@ -68,12 +91,18 @@ const tabThemeVars = computed(() => {
   }
 })
 const contextMenuOptions = computed(() => {
+  // 分屏子菜单候选：其它已打开标签（排除被右键的标签自身）
+  const splitTargets = localizedTabs.value
+    .filter(tab => tab.path !== contextTabPath.value)
+    .map(tab => ({ path: tab.path, title: tab.displayTitle }))
   return buildTabContextOptions({
     path: contextTabPath.value,
     closable: contextTabClosable.value,
     pinned: contextTabPinned.value,
     favorited: favoritesStore.has(contextTabPath.value),
     favoritesEnabled: appStore.widgetFavorites,
+    isSplitTab: splitViewStore.isSplitTab(contextTabPath.value),
+    splitTargets,
     tabs: visibleTabs.value,
     isContentMaximized: isContentMaximized.value,
     t,
@@ -89,6 +118,10 @@ function handleJump(path: string) {
 
 function handleClose(path: string, e: MouseEvent) {
   e.stopPropagation()
+  // 关闭分屏锚定标签 → 一并关闭分屏（右标签随后恢复可见，再被本次关闭逻辑处理）
+  if (splitViewStore.isSplitTab(path)) {
+    splitViewStore.close()
+  }
   tabbarStore.removeTab(path)
   if (route.fullPath === path) {
     router.push(tabbarStore.activeTab)
@@ -103,6 +136,16 @@ function handleCloseOthers(path: string) {
 }
 
 function handleContextMenuSelect(key: string, tabPath: string) {
+  // 分屏：选择某个已打开标签 → 与当前标签合并为分屏（左=当前标签，右=所选标签）
+  if (key.startsWith('split:')) {
+    const right = key.slice('split:'.length)
+    splitViewStore.open(tabPath, right)
+    tabbarStore.setActiveTab(tabPath)
+    if (route.fullPath !== tabPath) {
+      router.push(tabPath)
+    }
+    return
+  }
   switch (key) {
     case 'close':
       tabbarStore.removeTab(tabPath)
@@ -137,6 +180,9 @@ function handleContextMenuSelect(key: string, tabPath: string) {
       break
     case 'open':
       openTabInNewWindow(tabPath)
+      break
+    case 'splitClose':
+      splitViewStore.close()
       break
     case 'favorite': {
       const target = getTabByPath(visibleTabs.value, tabPath)
@@ -397,6 +443,18 @@ watch(() => appStore.tabbarStyle, () => {
 watch(() => route.fullPath, () => {
   nextTick(scrollToActive)
 })
+
+// 分屏安全收尾：左/右任一标签缺失（关闭标签/「关闭其他/全部」/刷新后标签未持久化）则自动关闭分屏
+// immediate：分屏状态会随 SessionStorage 恢复，启动时即校验标签是否齐全
+watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
+  if (!splitViewStore.active) {
+    return
+  }
+  const paths = new Set(tabbarStore.tabs.map(tab => tab.path))
+  if (!paths.has(splitViewStore.leftPath) || !paths.has(splitViewStore.rightPath)) {
+    splitViewStore.close()
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -433,7 +491,6 @@ watch(() => route.fullPath, () => {
         class="tabbar-viewport h-full overflow-x-auto"
       >
         <div
-          ref="tabsContainerRef"
           class="pr-2"
           :class="appStore.tabbarStyle === 'chrome'
             ? 'flex h-full min-w-max items-end'
@@ -509,6 +566,20 @@ watch(() => route.fullPath, () => {
       <template #icon>
         <NIcon>
           <Icon icon="lucide:layout-grid" width="14" />
+        </NIcon>
+      </template>
+    </NButton>
+    <span v-if="tabbarPreferences.tabbarShowOverview.value" class="tab-divider" />
+    <NButton
+      v-if="tabbarPreferences.tabbarShowOverview.value"
+      quaternary
+      size="tiny"
+      :title="`${t('tabbar.overview')} (${formatShortcut('Alt+B')})`"
+      @click="layoutBridgeStore.requestOpenTabOverview()"
+    >
+      <template #icon>
+        <NIcon>
+          <Icon icon="lucide:layers" width="14" />
         </NIcon>
       </template>
     </NButton>

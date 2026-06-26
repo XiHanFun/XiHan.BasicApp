@@ -106,6 +106,9 @@ public sealed class FileAppService
 
         var storage = await _fileRecordQueryService.GetPrimaryStorageOrThrowAsync(fileId, "文件缺少可用主存储，无法下载。", cancellationToken);
 
+        // 计入下载次数（用户发起下载即记一次）
+        await _fileDomainService.IncrementDownloadCountAsync(fileId, cancellationToken);
+
         return await _fileTransferService.DownloadAsync(storage, cancellationToken);
     }
 
@@ -133,6 +136,9 @@ public sealed class FileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var storage = await _fileRecordQueryService.GetPrimaryStorageOrThrowAsync(fileId, "文件缺少可用主存储，无法生成访问链接。", cancellationToken);
+
+        // 计入访问次数（生成预签名访问链接即记一次）
+        await _fileDomainService.IncrementViewCountAsync(fileId, cancellationToken);
 
         return await _fileTransferService.GeneratePresignedUrlAsync(storage, expiresIn, cancellationToken);
     }

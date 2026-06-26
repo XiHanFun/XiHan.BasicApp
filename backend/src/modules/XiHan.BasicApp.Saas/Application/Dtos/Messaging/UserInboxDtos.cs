@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Domain.Entities;
+
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
@@ -42,12 +44,12 @@ public sealed class UserInboxItemDto
     /// <summary>
     /// 通知类型
     /// </summary>
-    public int NotificationType { get; set; }
+    public NotificationType NotificationType { get; set; }
 
     /// <summary>
-    /// 通知状态
+    /// 通知状态（枚举序列化为字符串，与前端契约一致）
     /// </summary>
-    public int NotificationStatus { get; set; }
+    public NotificationStatus NotificationStatus { get; set; }
 
     /// <summary>
     /// 发送时间

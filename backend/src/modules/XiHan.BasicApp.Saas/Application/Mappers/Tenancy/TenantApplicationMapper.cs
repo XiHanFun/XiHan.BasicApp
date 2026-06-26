@@ -104,6 +104,7 @@ public static class TenantApplicationMapper
             MemberType = membership.MemberType,
             InviteStatus = membership.InviteStatus,
             MembershipExpirationTime = membership.ExpirationTime,
+            JoinedTime = membership.RespondedTime ?? membership.CreatedTime,
             IsCurrent = currentTenantId == tenant.BasicId
         };
     }

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { DragDropProvider } from '@dnd-kit/vue'
-import { NEmpty, NPopover } from 'naive-ui'
+import { NDivider, NEmpty, NNumberAnimation, NPopover } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
 import SortableItem from '~/components/common/SortableItem.vue'
+import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { Icon } from '~/iconify'
-import { useFavoritesStore } from '~/stores'
+import { useAppStore, useFavoritesStore } from '~/stores'
 import { registerFavoritesAnchor, useFavoritesPulse } from '../composables/use-favorites-fly'
 
 defineOptions({ name: 'AppFavorites' })
@@ -17,6 +18,7 @@ const route = useRoute()
 const router = useRouter()
 const { t, te } = useI18n()
 const favoritesStore = useFavoritesStore()
+const appStore = useAppStore()
 
 const showPanel = ref(false)
 const anchorRef = ref<HTMLElement | null>(null)
@@ -105,24 +107,31 @@ onBeforeUnmount(() => {
           aria-label="收藏夹"
         >
           <Icon icon="lucide:star" width="18" height="18" />
-          <span v-if="favoritesStore.count > 0" class="fav-btn__badge">{{ favoritesStore.count }}</span>
+          <span v-if="favoritesStore.count > 0" class="fav-btn__badge">
+            <NNumberAnimation :to="Math.min(favoritesStore.count, 99)" :duration="500" :precision="0" />
+            <span v-if="favoritesStore.count > 99">+</span>
+          </span>
         </button>
       </span>
     </template>
 
-    <div class="flex flex-col gap-2">
-      <!-- 头部 -->
+    <div class="fav-panel flex flex-col gap-2">
+      <!-- 头部（与表格设置/搜索设置统一样式） -->
       <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold text-foreground">收藏夹</span>
-        <span class="text-xs text-foreground/40">可拖拽排序</span>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-semibold text-foreground">收藏夹</span>
+          <SyncStatusBadge :synced="appStore.favoritesSyncEnabled" />
+        </div>
       </div>
+
+      <NDivider class="!my-1" />
 
       <!-- 空态 -->
       <NEmpty
         v-if="items.length === 0"
         size="small"
         description="暂无收藏，右键标签页选择「收藏」即可添加"
-        class="py-3"
+        class="fav-empty"
       />
 
       <!-- 收藏药丸（可拖拽排序，点击导航，× 移除） -->
@@ -155,6 +164,11 @@ onBeforeUnmount(() => {
           </SortableItem>
         </div>
       </DragDropProvider>
+
+      <div v-if="items.length > 0" class="fav-footer">
+        <NDivider class="!my-1" />
+        <span class="text-xs text-foreground/40">点击导航到对应页面；拖拽可排序；× 移除收藏</span>
+      </div>
     </div>
   </NPopover>
 </template>
@@ -195,6 +209,9 @@ onBeforeUnmount(() => {
   position: absolute;
   top: -1px;
   right: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 14px;
   height: 14px;
   padding: 0 3px;
@@ -231,9 +248,28 @@ onBeforeUnmount(() => {
   }
 }
 
+/* 面板内容区：保底高度，避免空态/少量收藏时面板过矮 */
+.fav-panel {
+  min-height: 200px;
+}
+
+/* 空态居中填满保底高度 */
+.fav-empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+/* 页脚（分割线 + 提示语）：钉在弹层底部 */
+.fav-footer {
+  margin-top: auto;
+}
+
 /* 收藏药丸 */
 .fav-list {
-  max-height: 320px;
+  max-height: 480px;
   overflow-y: auto;
 }
 

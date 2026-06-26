@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -20,14 +22,15 @@ using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -52,7 +55,15 @@ public sealed partial class ProfileAppService
 
     private readonly IProfileVerificationService _profileVerificationService;
 
-    private readonly IUserPreferenceRepository _userPreferenceRepository;
+    private readonly IUserNotificationPreferenceRepository _notificationPreferenceRepository;
+
+    private readonly IUserApiCredentialRepository _userApiCredentialRepository;
+
+    private readonly IPasswordHasher _passwordHasher;
+
+    private readonly IClientInfoProvider _clientInfoProvider;
+
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <summary>
     /// 构造函数
@@ -63,16 +74,24 @@ public sealed partial class ProfileAppService
         IProfileVerificationService profileVerificationService,
         ILocalEventBus localEventBus,
         IUserNotificationDispatchService notificationDispatchService,
-        IUserPreferenceRepository userPreferenceRepository,
-        ICurrentUser currentUser)
+        IUserNotificationPreferenceRepository notificationPreferenceRepository,
+        IUserApiCredentialRepository userApiCredentialRepository,
+        IPasswordHasher passwordHasher,
+        ICurrentUser currentUser,
+        IClientInfoProvider clientInfoProvider,
+        IHttpContextAccessor httpContextAccessor)
     {
         _profileDomainService = profileDomainService;
         _profileQueryService = profileQueryService;
         _profileVerificationService = profileVerificationService;
         _localEventBus = localEventBus;
         _notificationDispatchService = notificationDispatchService;
-        _userPreferenceRepository = userPreferenceRepository;
+        _notificationPreferenceRepository = notificationPreferenceRepository;
+        _userApiCredentialRepository = userApiCredentialRepository;
+        _passwordHasher = passwordHasher;
         _currentUser = currentUser;
+        _clientInfoProvider = clientInfoProvider;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <inheritdoc />
@@ -89,18 +108,18 @@ public sealed partial class ProfileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();
-        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
         if (preference is null)
         {
             // 惰性创建
-            preference = new SysUserPreference { UserId = userId };
+            preference = new SysUserNotificationPreference { UserId = userId };
             ApplyPreference(preference, input);
-            await _userPreferenceRepository.AddAsync(preference, cancellationToken);
+            await _notificationPreferenceRepository.AddAsync(preference, cancellationToken);
         }
         else
         {
             ApplyPreference(preference, input);
-            await _userPreferenceRepository.UpdateAsync(preference, cancellationToken);
+            await _notificationPreferenceRepository.UpdateAsync(preference, cancellationToken);
         }
 
         return ProfileQueryService.ToPreferenceDto(preference);
@@ -143,6 +162,12 @@ public sealed partial class ProfileAppService
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// 显式锁定 POST /Profile/DeleteAccount：按动词剥离约定本方法会推断成 DELETE /Profile/Account，
+    /// 带密码确认 body 的 DELETE 不符合习惯，前端也按 POST 完整方法名调用。
+    /// </remarks>
+    [HttpPost]
+    [DynamicApi(Name = "DeleteAccount")]
     [UnitOfWork(true)]
     public async Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {
@@ -204,7 +229,7 @@ public sealed partial class ProfileAppService
     /// <summary>
     /// 将 DTO 写入偏好实体
     /// </summary>
-    private static void ApplyPreference(SysUserPreference preference, ProfileNotificationPreferenceDto input)
+    private static void ApplyPreference(SysUserNotificationPreference preference, ProfileNotificationPreferenceDto input)
     {
         preference.ChannelInApp = input.ChannelInApp;
         preference.ChannelEmail = input.ChannelEmail;
@@ -226,6 +251,25 @@ public sealed partial class ProfileAppService
             (int)TwoFactorMethod.Phone => TwoFactorMethod.Phone,
             _ => throw new ArgumentOutOfRangeException(nameof(method), "双因素方式无效。")
         };
+    }
+
+    /// <summary>
+    /// 发布认证安全审计事件（密码修改/绑定解绑MFA 等），统一落登录日志
+    /// </summary>
+    private async Task PublishSecurityAuditAsync(LoginResult auditResult, string message)
+    {
+        var client = _clientInfoProvider.GetCurrent();
+        await _localEventBus.PublishAsync(
+            new AuthSecurityAuditDomainEvent(
+                _currentUser.TenantId,
+                _currentUser.UserId,
+                _currentUser.UserName,
+                auditResult,
+                message,
+                DateTimeOffset.UtcNow,
+                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                client.IpAddress,
+                client.UserAgent));
     }
 
     private string? GetCurrentSessionId()

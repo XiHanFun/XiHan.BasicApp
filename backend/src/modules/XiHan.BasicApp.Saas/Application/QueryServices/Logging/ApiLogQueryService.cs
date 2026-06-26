@@ -188,6 +188,12 @@ public sealed class ApiLogQueryService
             predicate = And(predicate, apiLog => apiLog.ApiPath.Contains(apiPath));
         }
 
+        if (!string.IsNullOrWhiteSpace(input.RequestIp))
+        {
+            var requestIp = input.RequestIp.Trim();
+            predicate = And(predicate, apiLog => apiLog.RequestIp != null && apiLog.RequestIp.Contains(requestIp));
+        }
+
         if (!string.IsNullOrWhiteSpace(input.Method))
         {
             var method = input.Method.Trim().ToUpperInvariant();
@@ -271,6 +277,7 @@ public sealed class ApiLogQueryService
         ValidateMaxLength(input.ClientId, 100, nameof(input.ClientId), "客户端标识长度不能超过 100。");
         ValidateMaxLength(input.AppId, 100, nameof(input.AppId), "应用标识长度不能超过 100。");
         ValidateMaxLength(input.ApiPath, 500, nameof(input.ApiPath), "API 路径长度不能超过 500。");
+        ValidateMaxLength(input.RequestIp, 64, nameof(input.RequestIp), "请求 IP 长度不能超过 64。");
         ValidateMaxLength(input.Method, 10, nameof(input.Method), "请求方法长度不能超过 10。");
         ValidateMaxLength(input.ApiVersion, 20, nameof(input.ApiVersion), "API 版本长度不能超过 20。");
         ValidateStatusCode(input.StatusCode);

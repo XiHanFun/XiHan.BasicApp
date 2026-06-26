@@ -81,11 +81,6 @@ public sealed class ProfileDomainService
         ArgumentException.ThrowIfNullOrWhiteSpace(command.NewPassword);
 
         var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
-        if (command.InputUserId != user.BasicId)
-        {
-            throw new InvalidOperationException("只能修改当前用户密码。");
-        }
-
         EnsurePasswordMatches(security, command.OldPassword);
         await EnsurePasswordMeetsPolicyAsync(user, command.NewPassword, cancellationToken);
 
@@ -149,6 +144,12 @@ public sealed class ProfileDomainService
         var target = NormalizeContact(command.ContactKind, command.Target);
         if (command.ContactKind == ProfileContactKind.Email)
         {
+            // 邮箱为登录身份标识，须全平台唯一
+            if (await _userRepository.ExistsEmailGloballyAsync(target, user.BasicId, cancellationToken))
+            {
+                throw new InvalidOperationException("邮箱已被其他账号使用。");
+            }
+
             user.Email = target;
             security.EmailVerified = true;
         }
@@ -356,6 +357,22 @@ public sealed class ProfileDomainService
             cancellationToken)
             ?? throw new InvalidOperationException("第三方账号绑定不存在。");
 
+        // 解绑前防锁死：若这是用户最后一个三方绑定，且账号没有可找回密码的真实邮箱，拒绝解绑。
+        // （自动建号的三方用户密码随机、不可知，占位邮箱 @external.local 又无法找回 → 解绑即永久失去全部登录入口）
+        var hasOtherBinding = await _externalLoginRepository.GetFirstAsync(
+            item => item.UserId == command.UserId && item.Provider != provider,
+            cancellationToken) is not null;
+        if (!hasOtherBinding)
+        {
+            var (user, _) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
+            var hasRecoverableEmail = !string.IsNullOrWhiteSpace(user.Email)
+                && !user.Email.EndsWith("@external.local", StringComparison.OrdinalIgnoreCase);
+            if (!hasRecoverableEmail)
+            {
+                throw new InvalidOperationException("这是您当前唯一的登录方式，且账号没有可用于找回密码的邮箱，无法解除绑定。请先绑定有效邮箱或设置其它登录方式。");
+            }
+        }
+
         account.IsDeleted = true;
         account.DeletedTime = DateTimeOffset.UtcNow;
         _ = await _externalLoginRepository.UpdateAsync(account, cancellationToken);
@@ -557,12 +574,20 @@ public sealed class ProfileDomainService
         }
     }
 
+    /// <summary>
+    /// 校验用户不是任何租户的所有者（跨租户检查）
+    /// </summary>
+    /// <remarks>
+    /// 多租户成员场景：仅查当前租户上下文会漏掉用户在其他租户的 Owner 身份，
+    /// 注销后该租户将失去所有者。故按用户跨全部租户的有效成员关系检查，
+    /// 任一租户为 Owner 即拒绝，提示先移交所有权。
+    /// </remarks>
     private async Task EnsureCurrentUserIsNotTenantOwnerAsync(SysUser user, CancellationToken cancellationToken)
     {
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, DateTimeOffset.UtcNow, cancellationToken);
+        if (memberships.Any(membership => membership.MemberType == TenantMemberType.Owner))
         {
-            throw new InvalidOperationException("租户所有者账号不能在个人中心自助关闭。");
+            throw new InvalidOperationException("当前账号仍是租户所有者，不能自助关闭；请先在对应租户移交所有权。");
         }
     }
 

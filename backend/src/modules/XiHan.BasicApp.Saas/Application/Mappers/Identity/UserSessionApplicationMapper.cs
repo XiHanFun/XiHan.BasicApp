@@ -61,6 +61,39 @@ public static class UserSessionApplicationMapper
     }
 
     /// <summary>
+    /// 映射在线用户列表项（一行 = 一个活跃会话，复用会话脱敏规则）
+    /// </summary>
+    /// <param name="session">用户会话实体</param>
+    /// <param name="user">用户实体</param>
+    /// <param name="isRealtimeOnline">是否持有实时（SignalR）连接</param>
+    /// <param name="now">当前时间</param>
+    /// <returns>在线用户列表项 DTO</returns>
+    public static OnlineUserListItemDto ToOnlineUserListItemDto(SysUserSession session, SysUser? user, bool isRealtimeOnline, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        return new OnlineUserListItemDto
+        {
+            BasicId = session.BasicId,
+            UserId = session.UserId,
+            UserName = user?.UserName,
+            NickName = user?.NickName,
+            Avatar = user?.Avatar,
+            UserSessionId = session.UserSessionId,
+            DeviceType = session.DeviceType,
+            DeviceName = session.DeviceName,
+            OperatingSystem = session.OperatingSystem,
+            Browser = session.Browser,
+            IpAddressMasked = MaskIpAddress(session.IpAddress),
+            Location = session.Location,
+            LoginTime = session.LoginTime,
+            LastActivityTime = session.LastActivityTime,
+            OnlineDurationSeconds = Math.Max(0, (long)(now - session.LoginTime).TotalSeconds),
+            IsRealtimeOnline = isRealtimeOnline
+        };
+    }
+
+    /// <summary>
     /// 映射用户会话详情
     /// </summary>
     /// <param name="session">用户会话实体</param>

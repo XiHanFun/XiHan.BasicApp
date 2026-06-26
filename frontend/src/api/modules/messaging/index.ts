@@ -1,4 +1,6 @@
 export * from './message'
+export * from './message-template'
+export * from './message-template.types'
 export * from './message.types'
 export * from './notification'
 export * from './notification.types'

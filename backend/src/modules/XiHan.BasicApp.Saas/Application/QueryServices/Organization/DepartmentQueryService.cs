@@ -153,24 +153,6 @@ public sealed class DepartmentQueryService
     }
 
     /// <summary>
-    /// 实时查询部门树（缓存未命中或带关键字时执行）。
-    /// </summary>
-    private async Task<IReadOnlyList<DepartmentTreeNodeDto>> QueryDepartmentTreeAsync(DepartmentTreeQueryDto input, CancellationToken cancellationToken)
-    {
-        var request = BuildDepartmentTreeRequest(input);
-        var departments = await _departmentRepository.GetPagedAsync(request, cancellationToken);
-        if (departments.Items.Count == 0)
-        {
-            return [];
-        }
-
-        var nodes = departments.Items
-            .Select(DepartmentApplicationMapper.ToTreeNodeDto)
-            .ToList();
-        return BuildTree(nodes);
-    }
-
-    /// <summary>
     /// 构建部门分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
@@ -295,5 +277,23 @@ public sealed class DepartmentQueryService
         }
 
         return roots;
+    }
+
+    /// <summary>
+    /// 实时查询部门树（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<DepartmentTreeNodeDto>> QueryDepartmentTreeAsync(DepartmentTreeQueryDto input, CancellationToken cancellationToken)
+    {
+        var request = BuildDepartmentTreeRequest(input);
+        var departments = await _departmentRepository.GetPagedAsync(request, cancellationToken);
+        if (departments.Items.Count == 0)
+        {
+            return [];
+        }
+
+        var nodes = departments.Items
+            .Select(DepartmentApplicationMapper.ToTreeNodeDto)
+            .ToList();
+        return BuildTree(nodes);
     }
 }

@@ -50,7 +50,7 @@ public class EmailListItemDto : BasicAppDto
     /// <summary>
     /// 模板主键
     /// </summary>
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
 
     /// <summary>
     /// 邮件状态

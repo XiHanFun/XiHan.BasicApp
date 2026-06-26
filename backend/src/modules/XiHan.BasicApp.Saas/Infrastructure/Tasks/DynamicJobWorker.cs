@@ -70,13 +70,13 @@ public sealed class DynamicJobWorker : IJobWorker
             using var scope = _scopeFactory.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<ITaskRepository>();
 
-            // 通过 TaskCode 查找 SysTask
+            // 通过 TaskCode 查找 SysTask。
+            // 注意：谓词不能写成 (cond ? 列条件 : true) 的三元式——SqlSugar 会把布尔常量分支
+            // 翻译成 boolean = integer 比较，PostgreSQL 直接报 42883。
             long? tenantId = context.TenantId;
-            var tasks = await repository.GetListAsync(
-                task => task.TaskCode == jobName &&
-                        (tenantId.HasValue && tenantId.Value > 0
-                            ? task.TenantId == tenantId.Value
-                            : true));
+            var tasks = tenantId is > 0
+                ? await repository.GetListAsync(task => task.TaskCode == jobName && task.TenantId == tenantId.Value)
+                : await repository.GetListAsync(task => task.TaskCode == jobName);
 
             var sysTask = tasks.FirstOrDefault();
             if (sysTask is null)
@@ -189,15 +189,21 @@ public sealed class DynamicJobWorker : IJobWorker
                             {
                                 return JsonSerializer.Deserialize(element.GetRawText(), p.ParameterType)!;
                             }
-                            return p.DefaultValue;
+
+                            // 无匹配参数：有缺省值用缺省值（p.DefaultValue 在无缺省值时是 DBNull，
+                            // 直传必炸）；值类型给零值，引用类型给 null
+                            return p.HasDefaultValue
+                                ? p.DefaultValue
+                                : p.ParameterType.IsValueType ? Activator.CreateInstance(p.ParameterType) : null;
                         }).ToArray();
                     }
                 }
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-                // JSON 解析失败时，将整个字符串作为单个参数
-                methodParams = [sysTask.TaskParams];
+                // JSON 非法时按"无参数"继续（原实现把整串塞成唯一参数，几乎必然导致找不到方法）
+                _logger.LogWarning(ex, "任务 {TaskCode} 的 TaskParams 不是合法 JSON，已按无参调用处理", sysTask.TaskCode);
+                methodParams = [];
             }
         }
 

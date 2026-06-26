@@ -196,6 +196,41 @@ export function useLayoutMenuDomain() {
     return visibleRootRoutes.value.find(item => toRouteNameKey(item.name) === activeRootKey.value)
   })
 
+  // 外链菜单（meta.link）按菜单键（路径与路由名两种）索引，供点击处理统一识别后新标签打开。
+  const externalLinkByKey = computed(() => {
+    const map = new Map<string, string>()
+    const walk = (nodes: MenuRoute[], parentPath = '') => {
+      for (const node of nodes) {
+        const fullPath = resolveFullPath(node.path, parentPath)
+        const link = node.meta?.link
+        if (link) {
+          if (fullPath) {
+            map.set(fullPath, link)
+          }
+          const nameKey = toRouteNameKey(node.name)
+          if (nameKey) {
+            map.set(nameKey, link)
+          }
+        }
+        if (node.children?.length) {
+          walk(node.children, fullPath)
+        }
+      }
+    }
+    walk(accessStore.accessRoutes)
+    return map
+  })
+
+  /** 若菜单键对应外链菜单则新标签打开并返回 true（命中后调用方应中止路由跳转） */
+  function openExternalIfMatch(key: string): boolean {
+    const link = externalLinkByKey.value.get(key)
+    if (!link) {
+      return false
+    }
+    window.open(link, '_blank', 'noopener,noreferrer')
+    return true
+  }
+
   return {
     route,
     router,
@@ -211,5 +246,6 @@ export function useLayoutMenuDomain() {
     findMatchedRouteNameKey,
     findMatchedRoutePath,
     resolveFirstNavigablePath: resolveFirstNavigableRoutePath,
+    openExternalIfMatch,
   }
 }

@@ -43,7 +43,7 @@ public sealed class ProfileQueryService
 
     private readonly IUserStatisticsRepository _userStatisticsRepository;
 
-    private readonly IUserPreferenceRepository _userPreferenceRepository;
+    private readonly IUserNotificationPreferenceRepository _notificationPreferenceRepository;
 
     /// <summary>
     /// 构造函数
@@ -54,16 +54,37 @@ public sealed class ProfileQueryService
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
         IUserStatisticsRepository userStatisticsRepository,
-        IUserPreferenceRepository userPreferenceRepository,
+        IUserNotificationPreferenceRepository notificationPreferenceRepository,
         ISqlSugarClientResolver clientResolver)
     {
-        _userPreferenceRepository = userPreferenceRepository;
+        _notificationPreferenceRepository = notificationPreferenceRepository;
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
         _userSessionRepository = userSessionRepository;
         _externalLoginRepository = externalLoginRepository;
         _userStatisticsRepository = userStatisticsRepository;
         _clientResolver = clientResolver;
+    }
+
+    /// <summary>
+    /// 偏好实体 → DTO
+    /// </summary>
+    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserNotificationPreference preference)
+    {
+        ArgumentNullException.ThrowIfNull(preference);
+
+        return new ProfileNotificationPreferenceDto
+        {
+            ChannelInApp = preference.ChannelInApp,
+            ChannelEmail = preference.ChannelEmail,
+            ChannelSms = preference.ChannelSms,
+            ChannelPush = preference.ChannelPush,
+            TypeAnnouncement = preference.TypeAnnouncement,
+            TypeTask = preference.TypeTask,
+            TypeApproval = preference.TypeApproval,
+            TypeSecurity = preference.TypeSecurity,
+            TypeMarketing = preference.TypeMarketing
+        };
     }
 
     /// <inheritdoc />
@@ -134,16 +155,23 @@ public sealed class ProfileQueryService
             .GroupBy(item => DateOnly.FromDateTime(item.AccessTime.UtcDateTime))
             .ToDictionary(group => group.Key, group => group.Count());
 
+        // 每日在线分钟取自当日 Today 周期快照（聚合任务按日 upsert，天然形成逐日历史）
+        var onlineByDate = stats
+            .Where(item => item.Period == StatisticsPeriod.Today && item.StatisticsDate >= startDate)
+            .GroupBy(item => item.StatisticsDate)
+            .ToDictionary(group => group.Key, group => group.Max(item => item.OnlineTime) / 60);
+
         // 仅返回有活跃记录的日期（稀疏），前端日历自行补齐空白格
         result.Trend = [.. operationByDate.Keys
             .Union(accessByDate.Keys)
+            .Union(onlineByDate.Keys)
             .OrderBy(date => date)
             .Select(date => new ProfileActivityTrendPointDto
             {
                 Date = date,
                 OperationCount = operationByDate.GetValueOrDefault(date),
                 AccessCount = accessByDate.GetValueOrDefault(date),
-                OnlineMinutes = 0
+                OnlineMinutes = onlineByDate.GetValueOrDefault(date)
             })];
 
         // 统计快照缺失时，用原始日志兜底最后行为时间，避免概要全为空
@@ -211,7 +239,7 @@ public sealed class ProfileQueryService
                 LoginLocation = log.LoginLocation,
                 Browser = log.Browser,
                 Os = log.Os,
-                LoginResult = (int)log.LoginResult,
+                LoginResult = log.LoginResult,
                 Message = log.Message
             })],
             Total = total
@@ -261,6 +289,21 @@ public sealed class ProfileQueryService
             })];
     }
 
+    /// <inheritdoc />
+    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        // 无记录时返回默认偏好（不落库，写入时再惰性创建）
+        return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
+    }
+
     private static SysUserStatistics? GetLatestSnapshot(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
     {
         return stats
@@ -282,42 +325,6 @@ public sealed class ProfileQueryService
             AccessCount = stats.AccessCount,
             OperationCount = stats.OperationCount,
             OnlineTime = stats.OnlineTime
-        };
-    }
-
-    /// <inheritdoc />
-    public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default)
-    {
-        if (userId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var preference = await _userPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
-        // 无记录时返回默认偏好（不落库，写入时再惰性创建）
-        return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
-    }
-
-    /// <summary>
-    /// 偏好实体 → DTO
-    /// </summary>
-    public static ProfileNotificationPreferenceDto ToPreferenceDto(SysUserPreference preference)
-    {
-        ArgumentNullException.ThrowIfNull(preference);
-
-        return new ProfileNotificationPreferenceDto
-        {
-            ChannelInApp = preference.ChannelInApp,
-            ChannelEmail = preference.ChannelEmail,
-            ChannelSms = preference.ChannelSms,
-            ChannelPush = preference.ChannelPush,
-            TypeAnnouncement = preference.TypeAnnouncement,
-            TypeTask = preference.TypeTask,
-            TypeApproval = preference.TypeApproval,
-            TypeSecurity = preference.TypeSecurity,
-            TypeMarketing = preference.TypeMarketing
         };
     }
 

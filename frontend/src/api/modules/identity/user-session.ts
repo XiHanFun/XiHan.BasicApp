@@ -33,13 +33,14 @@ export const userSessionApi = {
     )
   },
   revokeSession(input: UserSessionRevokeDto) {
+    // Revoke 前缀不在动态 API 动词表内：路由保留完整方法名（POST RevokeUserSession）
     return userSessionCommandApi.post<UserSessionDetailDto, UserSessionRevokeDto>(
-      'UserSession',
+      'RevokeUserSession',
       input,
     )
   },
   revokeUserSessions(input: UserSessionsRevokeDto) {
-    return userSessionCommandApi.post<number, UserSessionsRevokeDto>('UserSessions', input)
+    return userSessionCommandApi.post<number, UserSessionsRevokeDto>('RevokeUserSessions', input)
   },
 }
 
@@ -47,9 +48,8 @@ function toUserSessionPageParams(input: UserSessionPageQueryDto) {
   const params: DynamicApiParams = createPageRequestParams(input)
 
   appendDynamicApiParam(params, 'DeviceType', input.deviceType)
-  appendDynamicApiParam(params, 'IsOnline', input.isOnline)
-  appendDynamicApiParam(params, 'IsRevoked', input.isRevoked)
   appendDynamicApiParam(params, 'Keyword', input.keyword)
+  appendDynamicApiParam(params, 'Status', input.status)
   appendDynamicApiParam(params, 'LastActivityTimeEnd', input.lastActivityTimeEnd)
   appendDynamicApiParam(params, 'LastActivityTimeStart', input.lastActivityTimeStart)
   appendDynamicApiParam(params, 'LoginTimeEnd', input.loginTimeEnd)

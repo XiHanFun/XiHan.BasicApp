@@ -42,6 +42,13 @@ const localeOptions = [
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.dynamic_island') }}</span>
+          <PrefTip :content="t('preference.general.dynamic_island_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.widgetDynamicIsland" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.frosted_glass') }}</span>
           <PrefTip :content="t('preference.general.frosted_glass_tip')" />
         </div>
@@ -73,6 +80,48 @@ const localeOptions = [
           style="width: 150px"
           :placeholder="t('preference.general.watermark_text')"
         />
+      </div>
+    </NCard>
+
+    <!-- 同步 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
+        {{ t('preference.general.sync_title') }}
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.preference_sync') }}</span>
+          <PrefTip :content="t('preference.general.preference_sync_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.preferenceSyncEnabled" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.favorites_sync') }}</span>
+          <PrefTip :content="t('preference.general.favorites_sync_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.favoritesSyncEnabled" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.search_sync') }}</span>
+          <PrefTip :content="t('preference.general.search_sync_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.searchSyncEnabled" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.table_sync') }}</span>
+          <PrefTip :content="t('preference.general.table_sync_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.tableSyncEnabled" />
+      </div>
+    </NCard>
+
+    <!-- 更新 -->
+    <NCard size="small" :bordered="false">
+      <div class="section-title">
+        {{ t('preference.general.update_title') }}
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">

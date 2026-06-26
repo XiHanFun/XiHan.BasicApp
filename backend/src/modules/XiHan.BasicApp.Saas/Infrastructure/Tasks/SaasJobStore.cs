@@ -104,6 +104,19 @@ public sealed class SaasJobStore : IJobStore
         }
 
         task.RunTaskStatus = MapToRunTaskStatus(status);
+
+        // 终态回写执行统计与下次执行时间（调度器内存态 → 数据库可观测；
+        // 惰性从 scope 解析 IJobScheduler，规避与调度器构造期的循环依赖）
+        if (status is JobStatus.Succeeded or JobStatus.Failed or JobStatus.Canceled)
+        {
+            task.ExecutedCount++;
+            var jobScheduler = scope.ServiceProvider.GetService<IJobScheduler>();
+            if (jobScheduler is not null)
+            {
+                task.NextRunTime = jobScheduler.GetNextFireTime(task.TaskCode);
+            }
+        }
+
         await repository.UpdateAsync(task);
     }
 
@@ -218,6 +231,14 @@ public sealed class SaasJobStore : IJobStore
         var tasks = await repository.GetListAsync(
             task => task.TaskCode == jobName && task.RunTaskStatus == RunTaskStatus.Running);
 
+        // 崩溃残留防护：进程异常退出可能把 Running 状态永久留在库里，导致
+        // AllowConcurrent=false 的任务此后每次触发都被"不允许并发执行"跳过。
+        // Running 超过 任务超时 + 60s 宽限 视为僵尸实例，不再计入运行中。
+        var now = DateTimeOffset.UtcNow;
+        tasks = [.. tasks.Where(task =>
+            task.LastRunTime.HasValue
+            && task.LastRunTime.Value.AddSeconds(task.TimeoutSeconds + 60) > now)];
+
         return tasks.Select(task => new JobInstance
         {
             InstanceId = task.BasicId.ToString(),
@@ -270,10 +291,12 @@ public sealed class SaasJobStore : IJobStore
 
     private static async Task<SysTask?> FindTaskByCodeAsync(ITaskRepository repository, string taskCode, long? tenantId)
     {
-        // TaskCode 为全局唯一，按 TaskCode 精确查找
-        var tasks = await repository.GetListAsync(task =>
-            task.TaskCode == taskCode &&
-            (tenantId.HasValue ? task.TenantId == tenantId.Value : true));
+        // TaskCode 为全局唯一，按 TaskCode 精确查找。
+        // 注意：谓词不能写成 (cond ? 列条件 : true) 的三元式——SqlSugar 会把布尔常量分支
+        // 翻译成 boolean = integer 比较，PostgreSQL 直接报 42883（任务执行曾因此全量失败）。
+        var tasks = tenantId.HasValue
+            ? await repository.GetListAsync(task => task.TaskCode == taskCode && task.TenantId == tenantId.Value)
+            : await repository.GetListAsync(task => task.TaskCode == taskCode);
 
         return tasks.FirstOrDefault();
     }

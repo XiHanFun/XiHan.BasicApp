@@ -32,17 +32,18 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 反向：SysTenantUser.UserId（多对多成员关系）、SysUserRole/SysUserPermission/SysUserDepartment（按 TenantId + UserId 分别作用于不同租户上下文）、SysUserSession/SysUserSecurity/SysUserStatistics
 ///
 /// 写入：
-/// - TenantId + UserName 在主归属租户内唯一（UX_TeId_UsNa）
+/// - TenantId + UserName 在主归属租户内唯一（UX_TeId_UsNa）；Email 全平台唯一（UX_Em，登录身份标识，可空但有值必唯一）
 /// - Password 必须先经应用层加密（Argon2/BCrypt），严禁明文落库
 /// - IsSystemAccount=true 的账号禁止修改 UserName / 禁止被软删
-/// - 创建时必须同步：(1) SysUserSecurity 一对一扩展 (2) 一条 SysTenantUser 记录（TenantId=SysUser.TenantId + MemberType=Owner/Member + InviteStatus=Accepted）
+/// - 创建时必须同步：(1) SysUserSecurity 一对一扩展 (2) 一条 SysTenantUser 记录（TenantId=SysUser.TenantId + MemberType=Owner/Member + InviteStatus=Accepted）；平台账号（TenantId=0）不建成员关系
 ///
 /// 查询：
-/// - 登录流程（两段式）：(1) 用户先选择目标租户（输入 TenantCode / 子域名 / 下拉）→ 定位 TenantId
-///                        (2) 输入 UserName + Password → WHERE TenantId=? AND UserName=? 唯一定位（走 UX_TeId_UsNa）
-///                        (3) 登录成功后若用户在其它租户也有 SysTenantUser，展示"切换租户"入口
+/// - 登录流程（先登录后选租户）：(1) 输入 Email + Password → WHERE Email=? 全局唯一定位（走 UX_Em）；
+///                                平台账号也可用 UserName 登录（WHERE TenantId=0 AND UserName=?）
+///                              (2) 登录成功后按成员关系决定落点：超管/平台→控制中心(平台态)；恰一个租户→直进；多个→控制中心选择
+///                              (3) 进入租户后可随时通过 SwitchTenant 切换租户 / 返回平台态
 /// - 鉴权决策：UserId + 当前会话 TenantId → 查 SysTenantUser 校验成员身份 → 再查 SysUserRole 加载角色
-/// - 联系方式查询走 IX_Em / IX_Ph（非唯一，仅作辅助找回/验证，不用于登录定位）
+/// - 手机查询走 IX_Ph（非唯一，仅作辅助找回/验证）
 /// - 按激活状态筛选：IX_TeId_St_IsAc
 ///
 /// 删除：
@@ -64,7 +65,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_UsNa", nameof(TenantId), OrderByType.Asc, nameof(UserName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsNa", nameof(UserName), OrderByType.Asc)]
-[SugarIndex("IX_{table}_Em", nameof(Email), OrderByType.Asc)]
+[SugarIndex("UX_{table}_Em", nameof(Email), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_Ph", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St_IsAc", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsActive), OrderByType.Asc)]
@@ -97,7 +98,7 @@ public partial class SysUser : BasicAppAggregateRoot
     /// <summary>
     /// 邮箱
     /// </summary>
-    [SugarColumn(ColumnDescription = "邮箱", Length = 100, IsNullable = true)]
+    [SugarColumn(ColumnDescription = "邮箱（登录身份标识，全平台唯一）", Length = 256, IsNullable = true)]
     public virtual string? Email { get; set; }
 
     /// <summary>

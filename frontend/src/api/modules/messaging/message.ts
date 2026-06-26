@@ -45,29 +45,29 @@ export const messageApi = {
   },
   // Email commands
   createEmail(input: EmailCreateDto) {
-    return messageCommandApi.post<EmailDetailDto, EmailCreateDto>('CreateEmail', input)
+    return messageCommandApi.post<EmailDetailDto, EmailCreateDto>('Email', input)
   },
   deleteEmail(id: EmailDetailDto['basicId']) {
-    return messageCommandApi.delete(`DeleteEmail/${formatDynamicApiRouteValue(id)}`)
+    return messageCommandApi.delete(`Email/${formatDynamicApiRouteValue(id)}`)
   },
   updateEmail(input: EmailUpdateDto) {
-    return messageCommandApi.put<EmailDetailDto, EmailUpdateDto>('UpdateEmail', input)
+    return messageCommandApi.put<EmailDetailDto, EmailUpdateDto>('Email', input)
   },
   updateEmailStatus(input: EmailStatusUpdateDto) {
-    return messageCommandApi.put<EmailDetailDto, EmailStatusUpdateDto>('UpdateEmailStatus', input)
+    return messageCommandApi.put<EmailDetailDto, EmailStatusUpdateDto>('EmailStatus', input)
   },
   // SMS commands
   createSms(input: SmsCreateDto) {
-    return messageCommandApi.post<SmsDetailDto, SmsCreateDto>('CreateSms', input)
+    return messageCommandApi.post<SmsDetailDto, SmsCreateDto>('Sms', input)
   },
   deleteSms(id: SmsDetailDto['basicId']) {
-    return messageCommandApi.delete(`DeleteSms/${formatDynamicApiRouteValue(id)}`)
+    return messageCommandApi.delete(`Sms/${formatDynamicApiRouteValue(id)}`)
   },
   updateSms(input: SmsUpdateDto) {
-    return messageCommandApi.put<SmsDetailDto, SmsUpdateDto>('UpdateSms', input)
+    return messageCommandApi.put<SmsDetailDto, SmsUpdateDto>('Sms', input)
   },
   updateSmsStatus(input: SmsStatusUpdateDto) {
-    return messageCommandApi.put<SmsDetailDto, SmsStatusUpdateDto>('UpdateSmsStatus', input)
+    return messageCommandApi.put<SmsDetailDto, SmsStatusUpdateDto>('SmsStatus', input)
   },
 }
 
@@ -85,7 +85,7 @@ function toEmailPageParams(input: EmailPageQueryDto) {
   appendDynamicApiParam(params, 'SendTimeEnd', input.sendTimeEnd)
   appendDynamicApiParam(params, 'SendTimeStart', input.sendTimeStart)
   appendDynamicApiParam(params, 'SendUserId', input.sendUserId)
-  appendDynamicApiParam(params, 'TemplateId', input.templateId)
+  appendDynamicApiParam(params, 'TemplateCode', input.templateCode)
 
   return params
 }
@@ -105,7 +105,7 @@ function toSmsPageParams(input: SmsPageQueryDto) {
   appendDynamicApiParam(params, 'SenderId', input.senderId)
   appendDynamicApiParam(params, 'SmsStatus', input.smsStatus)
   appendDynamicApiParam(params, 'SmsType', input.smsType)
-  appendDynamicApiParam(params, 'TemplateId', input.templateId)
+  appendDynamicApiParam(params, 'TemplateCode', input.templateCode)
 
   return params
 }

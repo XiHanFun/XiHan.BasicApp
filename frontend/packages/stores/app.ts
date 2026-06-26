@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { createLayoutSlice } from './app/layout'
 import { createPreferencesSlice } from './app/preferences'
 import { createThemeSlice } from './app/theme'
-import { resetRegisteredPreferences } from './helpers'
+import { beginPreferenceDraft, commitPreferenceDraft, discardPreferenceDraft, preferenceDraftDirty, resetRegisteredPreferences } from './helpers'
 import { SetupStoreId } from './store-ids'
 
 /**
@@ -25,5 +25,10 @@ export const useAppStore = defineStore(SetupStoreId.App, () => {
     ...layout,
     ...preferences,
     resetPreferences,
+    // 偏好草稿：抽屉打开预览、点击保存提交、关闭未保存还原
+    preferenceDraftDirty,
+    beginPreferenceDraft,
+    commitPreferenceDraft,
+    discardPreferenceDraft,
   }
 })

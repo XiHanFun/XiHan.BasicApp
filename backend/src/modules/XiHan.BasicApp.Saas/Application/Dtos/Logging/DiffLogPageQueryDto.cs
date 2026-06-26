@@ -83,6 +83,11 @@ public sealed class DiffLogPageQueryDto : BasicAppPRDto
     public string? TableName { get; set; }
 
     /// <summary>
+    /// 操作 IP（模糊匹配）
+    /// </summary>
+    public string? OperationIp { get; set; }
+
+    /// <summary>
     /// 是否成功
     /// </summary>
     public bool? IsSuccess { get; set; }

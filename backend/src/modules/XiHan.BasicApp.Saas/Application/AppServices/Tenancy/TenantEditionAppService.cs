@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -35,14 +36,20 @@ public sealed class TenantEditionAppService
 {
     private readonly ITenantEditionDomainService _tenantEditionDomainService;
 
+    private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
+
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public TenantEditionAppService(ITenantEditionDomainService tenantEditionDomainService, ISaasCacheInvalidator cacheInvalidator)
+    public TenantEditionAppService(
+        ITenantEditionDomainService tenantEditionDomainService,
+        ITenantProvisionDomainService tenantProvisionDomainService,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _tenantEditionDomainService = tenantEditionDomainService;
+        _tenantProvisionDomainService = tenantProvisionDomainService;
         _cacheInvalidator = cacheInvalidator;
     }
 
@@ -135,6 +142,8 @@ public sealed class TenantEditionAppService
         var result = await _tenantEditionDomainService.GrantTenantEditionPermissionAsync(
             TenantEditionPermissionApplicationMapper.ToGrantCommand(input),
             cancellationToken);
+        // 版本白名单变更：失效版本门控缓存（鉴权快照热路径，事务提交后生效）
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
         return TenantEditionPermissionApplicationMapper.ToDetailDto(result.EditionPermission, result.Permission);
     }
 
@@ -146,7 +155,10 @@ public sealed class TenantEditionAppService
     public async Task RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await _tenantEditionDomainService.RevokeTenantEditionPermissionAsync(id, cancellationToken);
+        var result = await _tenantEditionDomainService.RevokeTenantEditionPermissionAsync(id, cancellationToken);
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
+        // 白名单收窄：回收该版本下各租户超出白名单的存量角色/用户直授权限行（REQ-5.3）
+        _ = await _tenantProvisionDomainService.ReconcileEditionTenantsAuthorizationAsync(result.EditionPermission.EditionId, cancellationToken);
     }
 
     /// <summary>
@@ -162,6 +174,14 @@ public sealed class TenantEditionAppService
         var result = await _tenantEditionDomainService.UpdateTenantEditionPermissionStatusAsync(
             TenantEditionPermissionApplicationMapper.ToStatusCommand(input),
             cancellationToken);
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
+
+        // 映射停用等同白名单收窄：回收该版本下各租户的越界存量授权（REQ-5.3）；恢复有效无需回收
+        if (result.EditionPermission.Status != ValidityStatus.Valid)
+        {
+            _ = await _tenantProvisionDomainService.ReconcileEditionTenantsAuthorizationAsync(result.EditionPermission.EditionId, cancellationToken);
+        }
+
         return TenantEditionPermissionApplicationMapper.ToDetailDto(result.EditionPermission, result.Permission);
     }
 }

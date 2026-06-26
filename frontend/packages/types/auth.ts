@@ -35,14 +35,15 @@ export interface OAuthProviderItem {
 
 export interface LoginConfig {
   loginMethods: string[]
-  tenantEnabled: boolean
-  oauthProviders: OAuthProviderItem[]
+  // 与后端序列化键一致：OAuthProviders 经 camelCase 策略输出为 oAuthProviders
+  oAuthProviders: OAuthProviderItem[]
 }
 
+/** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
 export interface LoginParams {
+  /** 登录账号（邮箱，全平台唯一；平台账号也可用用户名） */
   username: string
   password: string
-  tenantId?: null | string
   /** 双因素验证码（开启 2FA 时必填） */
   twoFactorCode?: string
   /** 用户选择的双因素方式（totp/email/phone） */
@@ -55,21 +56,20 @@ export interface RegisterParams {
   username: string
   password: string
   nickName?: string
-  email?: string
+  /** 邮箱（必填，全平台唯一的登录身份标识） */
+  email: string
   phone?: string
-  tenantId?: null | string
 }
 
 export interface PhoneLoginParams {
   phone: string
   code: string
-  tenantId?: null | string
 }
 
 export interface EmailLoginParams {
   email: string
   code: string
-  tenantId?: null | string
+  deviceId?: string
 }
 
 export interface VerificationCodeResult {
@@ -79,7 +79,12 @@ export interface VerificationCodeResult {
 
 export interface PasswordResetResult {
   accepted: boolean
-  temporaryPassword?: string
+  /** 一次性重置链接，仅开发环境回显，便于本地无邮件时联调 */
+  debugResetUrl?: string
+}
+
+export interface PasswordResetConfirmResult {
+  success: boolean
 }
 
 /** 登录响应（区分正常登录与双因素验证挑战） */

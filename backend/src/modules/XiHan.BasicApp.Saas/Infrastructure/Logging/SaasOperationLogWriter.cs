@@ -32,6 +32,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 /// </summary>
 public class SaasOperationLogWriter : IOperationLogWriter
 {
+    /// <summary>
+    /// 认证类动作集合：登录/登出/令牌等认证行为由登录日志承担审计，不重复落操作日志
+    /// </summary>
+    private static readonly HashSet<string> AuthAuditActions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Login", "Logout", "EmailLogin", "EmailLoginCode", "PhoneLogin", "PhoneLoginCode",
+        "RefreshToken", "Register", "PasswordResetRequest", "LoginConfig", "SwitchTenant"
+    };
+
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ICurrentTenant _currentTenant;
     private readonly IClientInfoProvider _clientInfoProvider;
@@ -61,8 +70,21 @@ public class SaasOperationLogWriter : IOperationLogWriter
     {
         ArgumentNullException.ThrowIfNull(record);
 
+        // 操作日志只记录业务行为：查询类动作不记录；认证类动作由登录日志负责审计
+        var operationType = SaasLogMappingHelper.ResolveOperationTypeByAction(record.ActionName, record.Method);
+        if (operationType == OperationType.Query)
+        {
+            return;
+        }
+
+        if (string.Equals(record.ControllerName, "Auth", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(record.ActionName)
+            && AuthAuditActions.Contains(record.ActionName))
+        {
+            return;
+        }
+
         var clientInfo = _clientInfoProvider.GetCurrent();
-        var operationType = SaasLogMappingHelper.ResolveOperationTypeByHttpMethod(record.Method);
         var elapsedMilliseconds = SaasLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
         var title = BuildTitle(record);
         var description = BuildDescription(record);

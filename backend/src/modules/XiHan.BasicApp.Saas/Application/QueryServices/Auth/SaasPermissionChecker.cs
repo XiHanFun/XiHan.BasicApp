@@ -41,6 +41,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
 
     // 请求级（Scoped 实例生命周期=单次请求）记忆化：一个请求内多次鉴权只构建/取一次快照、只校验一次会话
     private readonly Dictionary<long, AuthorizationSnapshot> _requestSnapshots = [];
+
     private bool? _currentSessionValid;
 
     /// <summary>
@@ -125,6 +126,18 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         return Task.FromResult(!string.IsNullOrWhiteSpace(permissionName));
     }
 
+    private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)
+    {
+        return snapshot.Permissions.Contains(WildcardPermission, StringComparer.OrdinalIgnoreCase)
+            || snapshot.Permissions.Contains(permissionName.Trim(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool TryResolveUserId(string? userId, out long id)
+    {
+        id = 0;
+        return !string.IsNullOrWhiteSpace(userId) && long.TryParse(userId, out id) && id > 0;
+    }
+
     private async Task<AuthorizationSnapshot> BuildSnapshotAsync(long userId, CancellationToken cancellationToken)
     {
         if (_requestSnapshots.TryGetValue(userId, out var cached))
@@ -180,17 +193,5 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             // 会话校验异常（瞬时故障等）放行，避免误锁全员
             return true;
         }
-    }
-
-    private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)
-    {
-        return snapshot.Permissions.Contains(WildcardPermission, StringComparer.OrdinalIgnoreCase)
-            || snapshot.Permissions.Contains(permissionName.Trim(), StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static bool TryResolveUserId(string? userId, out long id)
-    {
-        id = 0;
-        return !string.IsNullOrWhiteSpace(userId) && long.TryParse(userId, out id) && id > 0;
     }
 }

@@ -59,6 +59,20 @@ public sealed class UserSecurityAppService
     }
 
     /// <summary>
+    /// 重置用户双因素认证（清除 OTP 绑定）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserSecurity.ResetTwoFactor)]
+    public async Task<UserSecurityDetailDto> ResetUserTwoFactorAsync(UserTwoFactorResetDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _userDomainService.ResetUserTwoFactorAsync(UserSecurityApplicationMapper.ToTwoFactorResetCommand(input), cancellationToken);
+        return UserSecurityApplicationMapper.ToDetailDto(result.Security, result.User, result.Now);
+    }
+
+    /// <summary>
     /// 更新用户锁定状态
     /// </summary>
     [UnitOfWork(true)]
@@ -87,5 +101,4 @@ public sealed class UserSecurityAppService
     }
 
     #endregion
-
 }

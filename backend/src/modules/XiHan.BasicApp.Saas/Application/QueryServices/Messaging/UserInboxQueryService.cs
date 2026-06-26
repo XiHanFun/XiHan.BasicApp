@@ -16,7 +16,6 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -29,6 +28,10 @@ public sealed class UserInboxQueryService
 {
     private const int MaxInboxItems = 100;
 
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,9 +42,6 @@ public sealed class UserInboxQueryService
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
     }
-
-    private readonly INotificationRepository _notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository;
 
     /// <inheritdoc />
     public async Task<List<UserInboxItemDto>> GetListAsync(long userId, bool unreadOnly = false, CancellationToken cancellationToken = default)
@@ -89,7 +89,7 @@ public sealed class UserInboxQueryService
         return [.. userNotifications
             .Where(item => notificationMap.ContainsKey(item.NotificationId))
             .Select(item => UserNotificationDispatchService.ToInboxItem(item, notificationMap[item.NotificationId]))
-            .Where(item => !unreadOnly || item.NotificationStatus == (int)NotificationStatus.Unread || (item.NeedConfirm && !item.ConfirmTime.HasValue))
+            .Where(item => !unreadOnly || item.NotificationStatus == NotificationStatus.Unread || (item.NeedConfirm && !item.ConfirmTime.HasValue))
             .OrderByDescending(item => item.SendTime)
             .ThenByDescending(item => item.BasicId)
             .Take(MaxInboxItems)];

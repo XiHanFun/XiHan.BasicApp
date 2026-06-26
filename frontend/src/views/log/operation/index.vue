@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { OperationLogDetailDto, OperationLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
-import { createPageRequest, EnableStatus, logManagementApi, OperationType } from '@/api'
+import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -17,20 +17,31 @@ const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<OperationLogDetailDto | null>(null)
 
-const statusOptions = [
-  { label: '成功', value: EnableStatus.Enabled },
-  { label: '失败', value: EnableStatus.Disabled },
+const resultOptions = [
+  { label: '成功', value: OperationExecuteResult.Success },
+  { label: '失败', value: OperationExecuteResult.Failed },
+  { label: '部分成功', value: OperationExecuteResult.PartialSuccess },
 ]
 
+function resultTagType(result: OperationExecuteResult) {
+  switch (result) {
+    case OperationExecuteResult.Success: return 'success'
+    case OperationExecuteResult.PartialSuccess: return 'warning'
+    default: return 'error'
+  }
+}
+
 const operationTypeOptions = [
-  { label: '登录', value: OperationType.Login },
-  { label: '登出', value: OperationType.Logout },
-  { label: '查询', value: OperationType.Query },
   { label: '新增', value: OperationType.Create },
   { label: '修改', value: OperationType.Update },
   { label: '删除', value: OperationType.Delete },
+  { label: '审核', value: OperationType.Review },
   { label: '导入', value: OperationType.Import },
   { label: '导出', value: OperationType.Export },
+  { label: '审批', value: OperationType.Approve },
+  { label: '发起任务', value: OperationType.StartTask },
+  { label: '执行命令', value: OperationType.Execute },
+  { label: '恢复', value: OperationType.Restore },
   { label: '其他', value: OperationType.Other },
 ]
 
@@ -60,20 +71,24 @@ const fields: ListFieldSchema[] = [
   { key: 'method', title: '请求方法', dataType: 'string', advancedSearch: true, width: 90, order: 19 },
   { key: 'requestUrl', title: '请求地址', dataType: 'string', minWidth: 240, order: 20 },
   { key: 'executionTime', title: '执行耗时', dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as OperationLogListItemDto).executionTime}ms` },
-  { key: 'operationIp', title: '操作 IP', dataType: 'string', minWidth: 130, order: 22 },
+  { key: 'operationIp', title: '操作 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索操作 IP', minWidth: 130, order: 22 },
   { key: 'operationLocation', title: '操作位置', dataType: 'string', minWidth: 160, order: 23 },
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 24 },
   { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 25 },
   {
-    key: 'status',
+    key: 'result',
     title: '操作状态',
     dataType: 'enum',
     searchable: true,
-    options: statusOptions,
+    options: resultOptions,
     searchPlaceholder: '状态',
     width: 90,
     order: 26,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as OperationLogListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => (row as unknown as OperationLogListItemDto).status === EnableStatus.Enabled ? '成功' : '失败'),
+    render: row => h(
+      NTag,
+      { size: 'small', round: true, bordered: false, type: resultTagType((row as unknown as OperationLogListItemDto).result) },
+      () => getOptionLabel(resultOptions, (row as unknown as OperationLogListItemDto).result),
+    ),
   },
   { key: 'operationTime', title: '操作时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 28 },
@@ -94,34 +109,40 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildOperationQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    operationType: (f.operationType as OperationType | undefined) ?? undefined,
+    result: (f.result as OperationExecuteResult | undefined) ?? undefined,
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    module: toStr(f.module),
+    function: toStr(f.function),
+    title: toStr(f.title),
+    method: toStr(f.method),
+    operationIp: toStr(f.operationIp),
+    traceId: toStr(f.traceId),
+    sessionId: toStr(f.sessionId),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    operationTimeStart: toIso(f.operationTimeStart),
+    operationTimeEnd: toIso(f.operationTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.operation',
+  exportPermission: 'saas:operation-log:export',
   pageName: '操作日志',
   rowKey: 'basicId',
   scrollX: 2200,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.operation.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        operationType: (f.operationType as OperationType | undefined) ?? undefined,
-        status: (f.status as EnableStatus | undefined) ?? undefined,
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        module: toStr(f.module),
-        function: toStr(f.function),
-        title: toStr(f.title),
-        method: toStr(f.method),
-        traceId: toStr(f.traceId),
-        sessionId: toStr(f.sessionId),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        operationTimeStart: toIso(f.operationTimeStart),
-        operationTimeEnd: toIso(f.operationTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.operation.page(buildOperationQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.operation', buildQuery: buildOperationQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },
@@ -135,7 +156,7 @@ const detailFields: LogDetailField[] = [
   { key: 'userName', label: '用户名' },
   { key: 'userId', label: '用户主键' },
   { key: 'operationType', label: '操作类型', options: operationTypeOptions, type: 'enum' },
-  { key: 'status', label: '操作状态', options: statusOptions, type: 'enum' },
+  { key: 'result', label: '操作状态', options: resultOptions, type: 'enum' },
   { key: 'module', label: '操作模块' },
   { key: 'function', label: '操作功能' },
   { key: 'title', label: '操作标题', span: 2 },

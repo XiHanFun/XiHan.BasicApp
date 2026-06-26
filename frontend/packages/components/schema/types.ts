@@ -13,23 +13,23 @@ export interface SchemaSelectOption<TValue extends string | number = string | nu
 /**
  * 字段数据类型（决定渲染器与默认搜索控件）
  */
-export type SchemaFieldDataType =
-  | 'string'
-  | 'text'
-  | 'number'
-  | 'boolean'
-  | 'enum'
-  | 'date'
-  | 'datetime'
-  | 'money'
-  | 'percent'
-  | 'tag'
-  | 'json'
-  | 'image'
-  | 'avatar'
-  | 'email'
-  | 'phone'
-  | 'url'
+export type SchemaFieldDataType
+  = | 'string'
+    | 'text'
+    | 'number'
+    | 'boolean'
+    | 'enum'
+    | 'date'
+    | 'datetime'
+    | 'money'
+    | 'percent'
+    | 'tag'
+    | 'json'
+    | 'image'
+    | 'avatar'
+    | 'email'
+    | 'phone'
+    | 'url'
 
 /**
  * 列表字段 Schema —— 页面字段的单一事实源。
@@ -188,6 +188,25 @@ export interface SchemaResource<TRow> {
   tree?: (params: SchemaQueryParams) => Promise<TRow[]>
   /** 删除单条（行级/批量删除依赖） */
   remove?: (id: ApiId) => Promise<void>
+  /**
+   * 启停单条（批量启用/停用依赖）—— 框架按行调用，enabled=true 启用 / false 停用；
+   * 页面适配器负责映射为后端状态更新 API（status 枚举/remark 等由页面填充）。
+   */
+  updateStatus?: (id: ApiId, enabled: boolean) => Promise<unknown>
+  /**
+   * 新增单条（导入闭环依赖）—— 接收按 importable 字段组装的记录（field.key → 归一化值），
+   * 页面适配器负责映射为后端 CreateDto（补默认值/裁剪字段）。
+   */
+  create?: (record: Record<string, unknown>) => Promise<unknown>
+  /**
+   * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口。
+   * businessType 须匹配后端 IExportProvider.BusinessType；buildQuery 复用页面适配器的查询构建，
+   * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（枚举须为数值以兼容 JSON 反序列化）。
+   */
+  export?: {
+    businessType: string
+    buildQuery?: (params: SchemaQueryParams) => unknown
+  }
 }
 
 /**
@@ -202,6 +221,10 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   permissions?: string[]
   /** 对应后端资源码（用于字段脱敏 FLS 规则匹配；缺省则不拉取脱敏规则） */
   resourceCode?: string
+  /** 导出按钮所需权限码（精准门控：声明后导出按钮仅在用户拥有该权限时显示；未声明则该页不显示导出） */
+  exportPermission?: string
+  /** 导入按钮所需权限码（声明后导入按钮仅在用户拥有该权限时显示；缺省则不限制） */
+  importPermission?: string
   /** 数据资源 */
   resource: SchemaResource<TRow>
   /** 字段单一事实源 */
@@ -214,6 +237,10 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   rowKey?: string
   /** 启用内置批量删除（依赖 resource.remove；选中后批量浮条出现「批量删除」，框架统一确认/并发删除/刷新） */
   batchRemovable?: boolean
+  /** 批量删除所需权限码（声明后多选批量删除仅在用户拥有该权限时可用；缺省则不限制） */
+  removePermission?: string
+  /** 批量启停所需权限码（声明后多选「批量启用/停用」仅在用户拥有该权限时可用；依赖 resource.updateStatus） */
+  statusPermission?: string
   /** 表格横向滚动宽度 */
   scrollX?: number
   /** 默认每页数量 */

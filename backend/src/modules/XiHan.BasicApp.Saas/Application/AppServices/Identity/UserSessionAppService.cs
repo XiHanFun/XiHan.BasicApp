@@ -102,5 +102,4 @@ public sealed class UserSessionAppService
         cancellationToken.ThrowIfCancellationRequested();
         await _localEventBus.PublishAsync(domainEvent);
     }
-
 }

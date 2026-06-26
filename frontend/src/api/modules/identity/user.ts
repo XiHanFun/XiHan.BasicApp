@@ -21,6 +21,8 @@ import {
 
 const userQueryApi = createDynamicApiClient('UserQuery')
 const userCommandApi = createDynamicApiClient('User')
+// 安全类命令在 UserSecurityAppService（控制器 UserSecurity）
+const userSecurityCommandApi = createDynamicApiClient('UserSecurity')
 const userReadApi = createReadApi<UserListItemDto, UserDetailDto, UserPageQueryDto>('UserQuery', 'User')
 const userBaseCommandApi = createCommandApi<UserCreateDto, UserUpdateDto, UserDetailDto>('User', 'User')
 
@@ -38,7 +40,8 @@ export const userApi = {
     return userQueryApi.get<PageResult<UserListItemDto>>('UserPage', toUserPageParams(input))
   },
   resetPassword(input: UserPasswordResetDto) {
-    return userCommandApi.put<UserDetailDto, UserPasswordResetDto>('UserPassword', input)
+    // 后端为 UserSecurityAppService.ResetUserPasswordAsync：Reset 前缀不剥离、动词 POST
+    return userSecurityCommandApi.post<UserDetailDto, UserPasswordResetDto>('ResetUserPassword', input)
   },
   select(input: UserSelectQueryDto) {
     const params: DynamicApiParams = { Limit: input.limit }

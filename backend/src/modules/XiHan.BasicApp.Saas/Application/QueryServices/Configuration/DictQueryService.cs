@@ -13,6 +13,8 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -24,9 +26,11 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -49,14 +53,28 @@ public sealed class DictQueryService
     private readonly IDictItemRepository _dictItemRepository;
 
     /// <summary>
+    /// 当前租户
+    /// </summary>
+    private readonly ICurrentTenant _currentTenant;
+
+    /// <summary>
+    /// 字典项树缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasDictItemTreeCacheItem, string> _dictItemTreeCache;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public DictQueryService(
         IDictRepository dictRepository,
-        IDictItemRepository dictItemRepository)
+        IDictItemRepository dictItemRepository,
+        ICurrentTenant currentTenant,
+        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache)
     {
         _dictRepository = dictRepository;
         _dictItemRepository = dictItemRepository;
+        _currentTenant = currentTenant;
+        _dictItemTreeCache = dictItemTreeCache;
     }
 
     /// <summary>
@@ -150,17 +168,32 @@ public sealed class DictQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var request = BuildDictItemTreeRequest(input);
-        var dictItems = await _dictItemRepository.GetPagedAsync(request, cancellationToken);
-        if (dictItems.Items.Count == 0)
-        {
-            return [];
-        }
+        // 字典项树为高频读取（字典驱动的下拉/选项渲染），走分布式缓存；
+        // 字典/字典项写路径调 InvalidateDictionaryAsync 整体失效（considerUow 事务提交后生效）
+        var cacheKey = SaasCacheKeys.DictItemTree(_currentTenant.Id, input.DictId, input.OnlyEnabled, input.Limit);
+        var cached = await _dictItemTreeCache.GetOrAddAsync(
+            cacheKey,
+            async () =>
+            {
+                var request = BuildDictItemTreeRequest(input);
+                var dictItems = await _dictItemRepository.GetPagedAsync(request, cancellationToken);
+                var nodes = dictItems.Items
+                    .Select(DictApplicationMapper.ToItemTreeNodeDto)
+                    .ToList();
+                return new SaasDictItemTreeCacheItem
+                {
+                    Nodes = [.. BuildItemTree(nodes)],
+                    CachedAt = DateTimeOffset.UtcNow
+                };
+            },
+            static () => new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+            },
+            hideErrors: true,
+            token: cancellationToken);
 
-        var nodes = dictItems.Items
-            .Select(DictApplicationMapper.ToItemTreeNodeDto)
-            .ToList();
-        return BuildItemTree(nodes);
+        return cached?.Nodes ?? [];
     }
 
     /// <summary>

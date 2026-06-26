@@ -47,7 +47,8 @@ export interface EmailPageQueryDto extends PageRequest {
   sendTimeEnd?: DateTimeString | null
   sendTimeStart?: DateTimeString | null
   sendUserId?: ApiId | null
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
 }
 
 export interface EmailListItemDto extends BasicDto {
@@ -74,7 +75,8 @@ export interface EmailListItemDto extends BasicDto {
   sendTime?: DateTimeString | null
   sendUserId?: ApiId | null
   subject: string
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
 }
 
 export interface EmailDetailDto extends EmailListItemDto {
@@ -97,7 +99,8 @@ export interface SmsPageQueryDto extends PageRequest {
   senderId?: ApiId | null
   smsStatus?: SmsStatus | null
   smsType?: SmsType | null
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
 }
 
 export interface SmsListItemDto extends BasicDto {
@@ -121,7 +124,8 @@ export interface SmsListItemDto extends BasicDto {
   senderId?: ApiId | null
   smsStatus: SmsStatus
   smsType: SmsType
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
 }
 
 export interface SmsDetailDto extends SmsListItemDto {
@@ -146,7 +150,8 @@ export interface EmailCreateDto {
   content?: string | null
   isHtml: boolean
   attachments?: string | null
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
   templateParams?: string | null
   scheduledTime?: DateTimeString | null
   maxRetryCount: number
@@ -167,7 +172,8 @@ export interface EmailUpdateDto extends BasicDto {
   content?: string | null
   isHtml: boolean
   attachments?: string | null
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
   templateParams?: string | null
   scheduledTime?: DateTimeString | null
   maxRetryCount: number
@@ -191,7 +197,8 @@ export interface SmsCreateDto {
   smsType: SmsType
   toPhone: string
   content: string
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
   templateParams?: string | null
   provider?: string | null
   scheduledTime?: DateTimeString | null
@@ -206,7 +213,8 @@ export interface SmsUpdateDto extends BasicDto {
   smsType: SmsType
   toPhone: string
   content: string
-  templateId?: ApiId | null
+  /** 模板编码（关联消息模板，发送时按编码渲染） */
+  templateCode?: string | null
   templateParams?: string | null
   provider?: string | null
   scheduledTime?: DateTimeString | null

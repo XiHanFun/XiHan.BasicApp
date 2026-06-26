@@ -25,11 +25,6 @@ public sealed class LoginConfigDto
     public List<string> LoginMethods { get; set; } = ["password"];
 
     /// <summary>
-    /// 是否启用租户选择
-    /// </summary>
-    public bool TenantEnabled { get; set; } = true;
-
-    /// <summary>
     /// OAuth 提供商
     /// </summary>
     public List<OAuthProviderItemDto> OAuthProviders { get; set; } = [];
@@ -57,7 +52,7 @@ public sealed class OAuthProviderItemDto
 public sealed class LoginRequestDto
 {
     /// <summary>
-    /// 用户名
+    /// 登录账号（邮箱，全平台唯一；平台账号也可使用用户名）
     /// </summary>
     public string Username { get; set; } = string.Empty;
 
@@ -65,11 +60,6 @@ public sealed class LoginRequestDto
     /// 密码
     /// </summary>
     public string Password { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 初始登录租户标识，仅用于登录前建立租户上下文
-    /// </summary>
-    public long? TenantId { get; set; }
 
     /// <summary>
     /// 双因素验证码
@@ -160,14 +150,9 @@ public sealed class LoginTokenDto
 public sealed class EmailLoginCodeRequestDto
 {
     /// <summary>
-    /// 邮箱地址
+    /// 邮箱地址（全平台唯一的登录身份标识）
     /// </summary>
     public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 登录租户标识，仅用于登录前建立租户上下文
-    /// </summary>
-    public long? TenantId { get; set; }
 }
 
 /// <summary>
@@ -184,11 +169,6 @@ public sealed class EmailLoginRequestDto
     /// 邮箱验证码
     /// </summary>
     public string Code { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 登录租户标识，仅用于登录前建立租户上下文
-    /// </summary>
-    public long? TenantId { get; set; }
 
     /// <summary>
     /// 设备标识
@@ -265,7 +245,7 @@ public sealed class RegisterRequestDto
     public string? NickName { get; set; }
 
     /// <summary>
-    /// 邮箱（可选）
+    /// 邮箱（必填，全平台唯一的登录身份标识）
     /// </summary>
     public string? Email { get; set; }
 }
@@ -292,18 +272,13 @@ public sealed class RegisterResultDto
 public sealed class PasswordResetRequestDto
 {
     /// <summary>
-    /// 注册邮箱
+    /// 注册邮箱（全平台唯一，按邮箱全局定位账号）
     /// </summary>
     public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 范围标识（租户标识，缺省取默认租户）
-    /// </summary>
-    public string? ScopeId { get; set; }
 }
 
 /// <summary>
-/// 密码重置结果 DTO
+/// 密码重置申请结果 DTO
 /// </summary>
 public sealed class PasswordResetResultDto
 {
@@ -313,9 +288,36 @@ public sealed class PasswordResetResultDto
     public bool Accepted { get; set; }
 
     /// <summary>
-    /// 临时密码，仅在未接入真实邮件通道时回显，便于本地联调；生产接入真实通道后应置空
+    /// 一次性重置链接，仅开发环境回显便于本地联调；生产绝不回显
     /// </summary>
-    public string? TemporaryPassword { get; set; }
+    public string? DebugResetUrl { get; set; }
+}
+
+/// <summary>
+/// 密码重置确认（消费一次性链接并设置新密码）请求 DTO
+/// </summary>
+public sealed class PasswordResetConfirmDto
+{
+    /// <summary>
+    /// 一次性重置令牌（来自找回密码邮件链接）
+    /// </summary>
+    public string Token { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 新密码
+    /// </summary>
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 密码重置确认结果 DTO
+/// </summary>
+public sealed class PasswordResetConfirmResultDto
+{
+    /// <summary>
+    /// 是否重置成功
+    /// </summary>
+    public bool Success { get; set; }
 }
 
 /// <summary>

@@ -145,17 +145,6 @@ public sealed class OperationQueryService
     }
 
     /// <summary>
-    /// 实时查询可选全局操作列表（缓存未命中或带关键字时执行）。
-    /// </summary>
-    private async Task<IReadOnlyList<OperationSelectItemDto>> QueryAvailableGlobalOperationsAsync(OperationSelectQueryDto input, CancellationToken cancellationToken)
-    {
-        var request = BuildOperationSelectRequest(input);
-        var operations = await _operationRepository.GetPagedAsync(request, cancellationToken);
-
-        return [.. operations.Items.Select(OperationApplicationMapper.ToSelectItemDto)];
-    }
-
-    /// <summary>
     /// 构建操作分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
@@ -280,5 +269,16 @@ public sealed class OperationQueryService
         {
             request.Conditions.AddFilter((SysOperation operation) => operation.Status, status.Value);
         }
+    }
+
+    /// <summary>
+    /// 实时查询可选全局操作列表（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<OperationSelectItemDto>> QueryAvailableGlobalOperationsAsync(OperationSelectQueryDto input, CancellationToken cancellationToken)
+    {
+        var request = BuildOperationSelectRequest(input);
+        var operations = await _operationRepository.GetPagedAsync(request, cancellationToken);
+
+        return [.. operations.Items.Select(OperationApplicationMapper.ToSelectItemDto)];
     }
 }

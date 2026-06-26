@@ -37,16 +37,16 @@ export const reviewApi = {
     return reviewCommandApi.post<ReviewDetailDto, ReviewAuditDto>('AuditReview', input)
   },
   create(input: ReviewCreateDto) {
-    return reviewCommandApi.post<ReviewDetailDto, ReviewCreateDto>('CreateReview', input)
+    return reviewCommandApi.post<ReviewDetailDto, ReviewCreateDto>('Review', input)
   },
   delete(id: ApiId) {
-    return reviewCommandApi.delete(`DeleteReview/${formatDynamicApiRouteValue(id)}`)
+    return reviewCommandApi.delete(`Review/${formatDynamicApiRouteValue(id)}`)
   },
   update(input: ReviewUpdateDto) {
-    return reviewCommandApi.put<ReviewDetailDto, ReviewUpdateDto>('UpdateReview', input)
+    return reviewCommandApi.put<ReviewDetailDto, ReviewUpdateDto>('Review', input)
   },
   updateStatus(input: ReviewStatusUpdateDto) {
-    return reviewCommandApi.put<ReviewDetailDto, ReviewStatusUpdateDto>('UpdateReviewStatus', input)
+    return reviewCommandApi.put<ReviewDetailDto, ReviewStatusUpdateDto>('ReviewStatus', input)
   },
   withdraw(input: ReviewWithdrawDto) {
     return reviewCommandApi.post<ReviewDetailDto, ReviewWithdrawDto>('WithdrawReview', input)

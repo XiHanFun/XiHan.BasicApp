@@ -106,5 +106,4 @@ public sealed class UserRoleAppService
     }
 
     #endregion
-
 }

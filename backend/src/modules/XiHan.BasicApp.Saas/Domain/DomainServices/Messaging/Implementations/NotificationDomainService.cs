@@ -25,6 +25,12 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class NotificationDomainService
     : INotificationDomainService
 {
+    private readonly INotificationRepository _notificationRepository;
+
+    private readonly IUserNotificationRepository _userNotificationRepository;
+
+    private readonly IUserRepository _userRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -37,10 +43,6 @@ public sealed class NotificationDomainService
         _userNotificationRepository = userNotificationRepository;
         _userRepository = userRepository;
     }
-
-    private readonly INotificationRepository _notificationRepository;
-    private readonly IUserNotificationRepository _userNotificationRepository;
-    private readonly IUserRepository _userRepository;
 
     /// <inheritdoc />
     public async Task<NotificationCommandResult> CreateNotificationAsync(NotificationCreateCommand command, CancellationToken cancellationToken = default)
@@ -190,6 +192,64 @@ public sealed class NotificationDomainService
         }
     }
 
+    private static void EnsureEnum<TEnum>(TEnum value, string paramName)
+        where TEnum : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    private static void EnsureId(long id, string message)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), message);
+        }
+    }
+
+    private static void EnsureOptionalId(long? id, string paramName, string message)
+    {
+        if (id is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static string? Optional(string? value, int maxLength, string paramName, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+
+        return normalized;
+    }
+
+    private static string Required(string? value, int maxLength, string paramName, string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        var normalized = value.Trim();
+        if (normalized.Length > maxLength)
+        {
+            throw new ArgumentOutOfRangeException(paramName, message);
+        }
+
+        return normalized;
+    }
+
     private async Task<SysNotification> GetNotificationOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "系统通知主键必须大于 0。");
@@ -247,63 +307,5 @@ public sealed class NotificationDomainService
         }
 
         return NormalizeUserIds(inputUserIds);
-    }
-
-    private static void EnsureEnum<TEnum>(TEnum value, string paramName)
-        where TEnum : struct, Enum
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
-        }
-    }
-
-    private static void EnsureId(long id, string message)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), message);
-        }
-    }
-
-    private static void EnsureOptionalId(long? id, string paramName, string message)
-    {
-        if (id is <= 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-    }
-
-    private static string? NormalizeNullable(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
-
-    private static string? Optional(string? value, int maxLength, string paramName, string message)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-
-        return normalized;
-    }
-
-    private static string Required(string? value, int maxLength, string paramName, string message)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(value);
-        var normalized = value.Trim();
-        if (normalized.Length > maxLength)
-        {
-            throw new ArgumentOutOfRangeException(paramName, message);
-        }
-
-        return normalized;
     }
 }

@@ -4,6 +4,7 @@ import BasicLayout from '~/layouts/basic/index.vue'
 import { coreRoutes } from '~/router/routes/core'
 
 const AboutPage = () => import('~/views/_core/about/index.vue')
+const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
 const EditorDemoPage = () => import('~/views/_core/editor-demo/index.vue')
 const ProfilePage = () => import('~/views/_core/profile/index.vue')
 
@@ -26,11 +27,11 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
-        path: '/about',
-        name: 'About',
+        path: '/about/project',
+        name: 'AboutProject',
         component: AboutPage,
         meta: {
-          title: 'menu.about',
+          title: 'menu.about_project',
           icon: 'lucide:info',
         },
       },
@@ -44,6 +45,20 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
     ],
+  },
+  {
+    // 控制中心：登录后未进入租户（平台态）的全屏独立落点页——选择租户进入 / 平台管理入口；
+    // 不挂载主布局（此时无菜单/标签栏），与认证页同级的顶层路由
+    path: '/control-center',
+    name: 'ControlCenter',
+    component: ControlCenterPage,
+    meta: {
+      title: 'menu.control_center',
+      icon: 'lucide:layout-grid',
+      hidden: true,
+      // 独立公共页：不挂主布局、不进入标签栏（同认证页定位）
+      standalone: true,
+    },
   },
   ...coreRoutes,
 ]

@@ -88,6 +88,11 @@ public sealed class TenantSwitcherDto
     public DateTimeOffset? MembershipExpirationTime { get; set; }
 
     /// <summary>
+    /// 加入时间（受邀响应时间，缺省为成员关系创建时间）
+    /// </summary>
+    public DateTimeOffset JoinedTime { get; set; }
+
+    /// <summary>
     /// 是否当前租户上下文
     /// </summary>
     public bool IsCurrent { get; set; }

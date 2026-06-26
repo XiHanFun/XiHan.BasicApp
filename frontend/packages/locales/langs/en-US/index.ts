@@ -1,6 +1,7 @@
 import common from './common'
 import error from './error'
 import header from './header'
+import island from './island'
 import menu from './menu'
 import page from './page'
 import preference from './preference'
@@ -13,6 +14,7 @@ export default {
   tabbar,
   preference,
   page,
+  island,
   error,
   checkUpdates: {
     title: 'New Version Available',

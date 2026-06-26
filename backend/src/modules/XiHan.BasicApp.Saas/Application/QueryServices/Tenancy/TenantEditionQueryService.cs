@@ -137,23 +137,6 @@ public sealed class TenantEditionQueryService
     }
 
     /// <summary>
-    /// 实时查询已启用租户版本列表（缓存未命中时执行）。
-    /// </summary>
-    private async Task<IReadOnlyList<TenantEditionListItemDto>> QueryEnabledTenantEditionsAsync(CancellationToken cancellationToken)
-    {
-        var editions = await _tenantEditionRepository.GetListAsync(
-            edition => edition.Status == EnableStatus.Enabled,
-            edition => edition.Sort,
-            cancellationToken);
-
-        return [.. editions
-            .OrderByDescending(edition => edition.IsDefault)
-            .ThenBy(edition => edition.Sort)
-            .ThenBy(edition => edition.EditionName)
-            .Select(TenantEditionApplicationMapper.ToListItemDto)];
-    }
-
-    /// <summary>
     /// 构建租户版本分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
@@ -195,5 +178,22 @@ public sealed class TenantEditionQueryService
         request.Conditions.AddSort((SysTenantEdition edition) => edition.Sort, SortDirection.Ascending, 1);
         request.Conditions.AddSort((SysTenantEdition edition) => edition.CreatedTime, SortDirection.Descending, 2);
         return request;
+    }
+
+    /// <summary>
+    /// 实时查询已启用租户版本列表（缓存未命中时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<TenantEditionListItemDto>> QueryEnabledTenantEditionsAsync(CancellationToken cancellationToken)
+    {
+        var editions = await _tenantEditionRepository.GetListAsync(
+            edition => edition.Status == EnableStatus.Enabled,
+            edition => edition.Sort,
+            cancellationToken);
+
+        return [.. editions
+            .OrderByDescending(edition => edition.IsDefault)
+            .ThenBy(edition => edition.Sort)
+            .ThenBy(edition => edition.EditionName)
+            .Select(TenantEditionApplicationMapper.ToListItemDto)];
     }
 }

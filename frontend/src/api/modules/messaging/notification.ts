@@ -1,8 +1,12 @@
-import type { PageResult } from '../../types'
+import type { ApiId, PageResult } from '../../types'
 import type {
+  NotificationCreateDto,
   NotificationDetailDto,
   NotificationListItemDto,
   NotificationPageQueryDto,
+  NotificationPublishDto,
+  NotificationPublishResultDto,
+  NotificationUpdateDto,
   UserNotificationDetailDto,
   UserNotificationListItemDto,
   UserNotificationPageQueryDto,
@@ -15,8 +19,15 @@ import {
 } from '../../base'
 
 const notificationQueryApi = createDynamicApiClient('NotificationQuery')
+const notificationCommandApi = createDynamicApiClient('Notification')
 
 export const notificationApi = {
+  create(input: NotificationCreateDto) {
+    return notificationCommandApi.post<NotificationDetailDto, NotificationCreateDto>('Notification', input)
+  },
+  delete(id: ApiId) {
+    return notificationCommandApi.delete(`Notification/${formatDynamicApiRouteValue(id)}`)
+  },
   detail(id: NotificationDetailDto['basicId']) {
     return notificationQueryApi.get<NotificationDetailDto | null>(
       `NotificationDetail/${formatDynamicApiRouteValue(id)}`,
@@ -27,6 +38,12 @@ export const notificationApi = {
       'NotificationPage',
       toNotificationPageParams(input),
     )
+  },
+  publish(input: NotificationPublishDto) {
+    return notificationCommandApi.post<NotificationPublishResultDto, NotificationPublishDto>('PublishNotification', input)
+  },
+  update(input: NotificationUpdateDto) {
+    return notificationCommandApi.put<NotificationDetailDto, NotificationUpdateDto>('Notification', input)
   },
   userDetail(id: UserNotificationDetailDto['basicId']) {
     return notificationQueryApi.get<UserNotificationDetailDto | null>(

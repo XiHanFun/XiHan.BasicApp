@@ -16,7 +16,6 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Uow.Attributes;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -34,7 +33,7 @@ public sealed partial class ProfileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();
-        var pendingEmail = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.ChangeEmail, input.Code);
+        var pendingEmail = await _profileVerificationService.ConsumeCodeAsync(userId, ProfileVerificationPurpose.ChangeEmail, input.Code, cancellationToken);
         await _profileDomainService.ConfirmContactAsync(
             ProfileApplicationMapper.ToConfirmContactCommand(userId, ProfileContactKind.Email, pendingEmail),
             cancellationToken);
@@ -48,7 +47,7 @@ public sealed partial class ProfileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();
-        var pendingPhone = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.ChangePhone, input.Code);
+        var pendingPhone = await _profileVerificationService.ConsumeCodeAsync(userId, ProfileVerificationPurpose.ChangePhone, input.Code, cancellationToken);
         await _profileDomainService.ConfirmContactAsync(
             ProfileApplicationMapper.ToConfirmContactCommand(userId, ProfileContactKind.Phone, pendingPhone),
             cancellationToken);
@@ -112,7 +111,7 @@ public sealed partial class ProfileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();
-        _ = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.VerifyEmail, input.Code);
+        _ = await _profileVerificationService.ConsumeCodeAsync(userId, ProfileVerificationPurpose.VerifyEmail, input.Code, cancellationToken);
         await _profileDomainService.VerifyContactAsync(
             ProfileApplicationMapper.ToVerifyContactCommand(userId, ProfileContactKind.Email),
             cancellationToken);
@@ -126,7 +125,7 @@ public sealed partial class ProfileAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();
-        _ = _profileVerificationService.ConsumeCode(userId, ProfileVerificationPurpose.VerifyPhone, input.Code);
+        _ = await _profileVerificationService.ConsumeCodeAsync(userId, ProfileVerificationPurpose.VerifyPhone, input.Code, cancellationToken);
         await _profileDomainService.VerifyContactAsync(
             ProfileApplicationMapper.ToVerifyContactCommand(userId, ProfileContactKind.Phone),
             cancellationToken);

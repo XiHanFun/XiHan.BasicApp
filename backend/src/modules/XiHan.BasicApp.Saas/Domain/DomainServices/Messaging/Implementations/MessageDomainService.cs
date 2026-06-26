@@ -24,6 +24,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class MessageDomainService
     : IMessageDomainService
 {
+    private readonly IEmailRepository _emailRepository;
+
+    private readonly ISmsRepository _smsRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -32,9 +36,6 @@ public sealed class MessageDomainService
         _emailRepository = emailRepository;
         _smsRepository = smsRepository;
     }
-
-    private readonly IEmailRepository _emailRepository;
-    private readonly ISmsRepository _smsRepository;
 
     /// <inheritdoc />
     public async Task<EmailCommandResult> CreateOutboxEmailAsync(EmailCreateCommand command, CancellationToken cancellationToken = default)
@@ -57,7 +58,7 @@ public sealed class MessageDomainService
             Content = NormalizeNullable(command.Content),
             IsHtml = command.IsHtml,
             Attachments = OptionalJson(command.Attachments, "邮件附件必须是合法 JSON。"),
-            TemplateId = command.TemplateId,
+            TemplateCode = command.TemplateCode,
             TemplateParams = OptionalJson(command.TemplateParams, "邮件模板参数必须是合法 JSON。"),
             EmailStatus = EmailStatus.Pending,
             ScheduledTime = command.ScheduledTime,
@@ -109,7 +110,7 @@ public sealed class MessageDomainService
         email.Content = NormalizeNullable(command.Content);
         email.IsHtml = command.IsHtml;
         email.Attachments = OptionalJson(command.Attachments, "邮件附件必须是合法 JSON。");
-        email.TemplateId = command.TemplateId;
+        email.TemplateCode = command.TemplateCode;
         email.TemplateParams = OptionalJson(command.TemplateParams, "邮件模板参数必须是合法 JSON。");
         email.ScheduledTime = command.ScheduledTime;
         email.MaxRetryCount = command.MaxRetryCount;
@@ -132,11 +133,21 @@ public sealed class MessageDomainService
         var email = await GetEmailOrThrowAsync(command.BasicId, cancellationToken);
 
         email.EmailStatus = command.EmailStatus;
-        email.SendTime = command.EmailStatus == EmailStatus.Success
-            ? command.SendTime ?? DateTimeOffset.UtcNow
-            : command.SendTime;
-        email.RetryCount = command.RetryCount ?? email.RetryCount;
-        email.ErrorMessage = Optional(command.ErrorMessage, 1000, nameof(command.ErrorMessage), "错误信息不能超过 1000 个字符。");
+        if (command.EmailStatus == EmailStatus.Pending)
+        {
+            // 重新入队（重发）：给一份全新的重试预算、清空上次错误与发送时间，由发件箱后台重新投递
+            email.RetryCount = command.RetryCount ?? 0;
+            email.ErrorMessage = null;
+            email.SendTime = null;
+        }
+        else
+        {
+            email.SendTime = command.EmailStatus == EmailStatus.Success
+                ? command.SendTime ?? DateTimeOffset.UtcNow
+                : command.SendTime;
+            email.RetryCount = command.RetryCount ?? email.RetryCount;
+            email.ErrorMessage = Optional(command.ErrorMessage, 1000, nameof(command.ErrorMessage), "错误信息不能超过 1000 个字符。");
+        }
         email.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。") ?? email.Remark;
 
         return new EmailCommandResult(await _emailRepository.UpdateAsync(email, cancellationToken));
@@ -156,7 +167,7 @@ public sealed class MessageDomainService
             SmsType = command.SmsType,
             ToPhone = Required(command.ToPhone, 50, nameof(command.ToPhone), "手机号不能超过 50 个字符。"),
             Content = Required(command.Content, 1000, nameof(command.Content), "短信内容不能超过 1000 个字符。"),
-            TemplateId = command.TemplateId,
+            TemplateCode = command.TemplateCode,
             TemplateParams = OptionalJson(command.TemplateParams, "短信模板参数必须是合法 JSON。"),
             Provider = Optional(command.Provider, 50, nameof(command.Provider), "短信服务商不能超过 50 个字符。"),
             SmsStatus = SmsStatus.Pending,
@@ -202,7 +213,7 @@ public sealed class MessageDomainService
         sms.SmsType = command.SmsType;
         sms.ToPhone = Required(command.ToPhone, 50, nameof(command.ToPhone), "手机号不能超过 50 个字符。");
         sms.Content = Required(command.Content, 1000, nameof(command.Content), "短信内容不能超过 1000 个字符。");
-        sms.TemplateId = command.TemplateId;
+        sms.TemplateCode = command.TemplateCode;
         sms.TemplateParams = OptionalJson(command.TemplateParams, "短信模板参数必须是合法 JSON。");
         sms.Provider = Optional(command.Provider, 50, nameof(command.Provider), "短信服务商不能超过 50 个字符。");
         sms.ScheduledTime = command.ScheduledTime;
@@ -301,20 +312,6 @@ public sealed class MessageDomainService
         EnsureNonNegative(maxRetryCount, nameof(maxRetryCount), "最大重试次数不能小于 0。");
     }
 
-    private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统邮件主键必须大于 0。");
-        return await _emailRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统邮件不存在。");
-    }
-
-    private async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统短信主键必须大于 0。");
-        return await _smsRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统短信不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -407,5 +404,19 @@ public sealed class MessageDomainService
         }
 
         return normalized;
+    }
+
+    private async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统邮件主键必须大于 0。");
+        return await _emailRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统邮件不存在。");
+    }
+
+    private async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统短信主键必须大于 0。");
+        return await _smsRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统短信不存在。");
     }
 }

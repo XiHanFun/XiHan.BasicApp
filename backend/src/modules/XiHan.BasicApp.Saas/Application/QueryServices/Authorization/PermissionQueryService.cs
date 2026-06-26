@@ -190,17 +190,6 @@ public sealed class PermissionQueryService
     }
 
     /// <summary>
-    /// 实时查询可选全局权限列表（缓存未命中或带关键字时执行）。
-    /// </summary>
-    private async Task<IReadOnlyList<PermissionSelectItemDto>> QueryAvailableGlobalPermissionsAsync(PermissionSelectQueryDto input, CancellationToken cancellationToken)
-    {
-        var request = BuildPermissionSelectRequest(input);
-        var permissions = await _permissionRepository.GetPagedAsync(request, cancellationToken);
-
-        return [.. permissions.Items.Select(PermissionApplicationMapper.ToSelectItemDto)];
-    }
-
-    /// <summary>
     /// 构建权限分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
@@ -333,6 +322,17 @@ public sealed class PermissionQueryService
         where TValue : class
     {
         return id.HasValue && map.TryGetValue(id.Value, out var value) ? value : null;
+    }
+
+    /// <summary>
+    /// 实时查询可选全局权限列表（缓存未命中或带关键字时执行）。
+    /// </summary>
+    private async Task<IReadOnlyList<PermissionSelectItemDto>> QueryAvailableGlobalPermissionsAsync(PermissionSelectQueryDto input, CancellationToken cancellationToken)
+    {
+        var request = BuildPermissionSelectRequest(input);
+        var permissions = await _permissionRepository.GetPagedAsync(request, cancellationToken);
+
+        return [.. permissions.Items.Select(PermissionApplicationMapper.ToSelectItemDto)];
     }
 
     /// <summary>

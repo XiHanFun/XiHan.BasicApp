@@ -1,244 +1,252 @@
 <script setup lang="ts">
+import type { NotificationListItemDto, UserInboxItemDto } from '@/api'
 import {
   NCard,
+  NCarousel,
+  NEmpty,
   NGrid,
   NGridItem,
   NIcon,
-  NProgress,
-  NSkeleton,
-  NStatistic,
-  NTag,
   NTimeline,
   NTimelineItem,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { workbenchApi, serverManagementApi } from '@/api'
+import { createPageRequest, notificationApi, NotificationType, workbenchApi } from '@/api'
 import { Icon } from '~/iconify'
-import { usePermission } from '~/hooks'
-import { useUserStore } from '~/stores'
+import { useFavoritesStore } from '~/stores'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'WorkbenchDashboardPage' })
 
 const router = useRouter()
-const userStore = useUserStore()
-const { hasPermission } = usePermission()
+const favoritesStore = useFavoritesStore()
+const { t, te } = useI18n()
 
-const loading = ref(true)
-const loginCount = ref(0)
+// ── 统计（全部来自后端 DashboardSummary，真实数据） ───────────────
 const accessCount = ref(0)
 const operationCount = ref(0)
+const loginCount = ref(0)
 const apiCallCount = ref(0)
-const onlineTime = ref(0)
-const unreadCount = ref(0)
-const pendingConfirmCount = ref(0)
-const lastLoginTime = ref<string | null>(null)
-const serverCpu = ref(0)
-const serverMemory = ref(0)
-const serverDisk = ref(0)
 
-const greeting = computed(() => {
-  const h = new Date().getHours()
-  if (h < 6) return '夜深了'
-  if (h < 9) return '早上好'
-  if (h < 12) return '上午好'
-  if (h < 14) return '中午好'
-  if (h < 18) return '下午好'
-  if (h < 22) return '晚上好'
-  return '夜深了'
-})
+// ── 最近动态（真实：站内信最新消息） ───────────────────────────
+const latestItems = ref<UserInboxItemDto[]>([])
 
-const onlineTimeText = computed(() => formatDuration(onlineTime.value))
-const lastLoginText = computed(() => lastLoginTime.value ? formatDate(lastLoginTime.value) : '暂无记录')
+// ── 轮播公告（真实：已发布的「公告」类型通知） ─────────────────
+const announcements = ref<NotificationListItemDto[]>([])
 
 const statCards = computed(() => [
-  {
-    label: '登录次数',
-    value: loginCount.value,
-    sub: '今日登录行为',
-    icon: 'lucide:log-in',
-    color: '#3b82f6',
-    bg: 'rgba(59,130,246,0.1)',
-  },
-  {
-    label: '访问次数',
-    value: accessCount.value,
-    sub: '今日页面访问',
-    icon: 'lucide:activity',
-    color: '#22c55e',
-    bg: 'rgba(34,197,94,0.1)',
-  },
-  {
-    label: '操作次数',
-    value: operationCount.value,
-    sub: '今日业务操作',
-    icon: 'lucide:clipboard-list',
-    color: '#ef4444',
-    bg: 'rgba(239,68,68,0.1)',
-  },
-  {
-    label: 'API 调用',
-    value: apiCallCount.value,
-    sub: '今日接口调用',
-    icon: 'lucide:globe',
-    color: '#f59e0b',
-    bg: 'rgba(245,158,11,0.1)',
-  },
+  { key: 'access', label: '今日访问', value: accessCount.value, icon: 'lucide:mouse-pointer-click', color: '#3b82f6' },
+  { key: 'operation', label: '操作次数', value: operationCount.value, icon: 'lucide:activity', color: '#22c55e' },
+  { key: 'login', label: '登录次数', value: loginCount.value, icon: 'lucide:log-in', color: '#8b5cf6' },
+  { key: 'api', label: '接口调用', value: apiCallCount.value, icon: 'lucide:webhook', color: '#f59e0b' },
 ])
 
-const systemMetrics = computed(() => [
-  { label: 'CPU', value: serverCpu.value, color: '#3b82f6' },
-  { label: '内存', value: serverMemory.value, color: '#22c55e' },
-  { label: '磁盘', value: serverDisk.value, color: '#f59e0b' },
-])
+// 快捷入口复用「收藏夹」数据：用户右键标签收藏的常用菜单
+const QUICK_PALETTE = ['#3b82f6', '#22c55e', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6']
 
-// TODO: 确认各快捷入口的权限码与后台权限中心一致，当前为基于模块命名约定的占位码。
-const quickLinkDefinitions = [
-  { label: '站内信', desc: '查看系统消息', icon: 'lucide:inbox', to: '/workbench/inbox', color: '#3b82f6', permission: 'workbench:inbox:view' },
-  { label: '用户管理', desc: '账号与权限', icon: 'lucide:users', to: '/system/user', color: '#22c55e', permission: 'saas:user:read' },
-  { label: '角色管理', desc: '角色与授权', icon: 'lucide:shield-user', to: '/system/role', color: '#8b5cf6', permission: 'saas:role:read' },
-  { label: '菜单管理', desc: '导航配置', icon: 'lucide:list-tree', to: '/platform/menu', color: '#f59e0b', permission: 'platform:menu:view' },
-  { label: '日志管理', desc: '审计与追踪', icon: 'lucide:file-search', to: '/log/login', color: '#ef4444', permission: 'log:login:view' },
-  { label: '个人中心', desc: '资料与安全', icon: 'lucide:user-round-cog', to: '/workbench/profile', color: '#06b6d4', permission: null },
-] as const
+/** 收藏标题多为 i18n key（如 menu.user），渲染时翻译；非 key 原样展示 */
+function displayTitle(title: string) {
+  return te(title) ? t(title) : title
+}
+
+function resolveIcon(icon?: string | null) {
+  if (!icon) {
+    return 'lucide:bookmark'
+  }
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
 
 const quickLinks = computed(() =>
-  quickLinkDefinitions.filter(link => !link.permission || hasPermission(link.permission)),
+  favoritesStore.favorites.map((fav, index) => ({
+    key: fav.path,
+    label: displayTitle(fav.title),
+    icon: resolveIcon(fav.icon),
+    to: fav.path,
+    color: QUICK_PALETTE[index % QUICK_PALETTE.length] ?? '#3b82f6',
+  })),
 )
 
-// TODO: Replace with API call when backend provides ActivityFeed endpoint
-// const recentActivities = await workbenchApi.dashboard.recentActivities()
-const recentActivities = [
-  { time: '10 分钟前', text: '超级管理员 更新了角色权限配置' },
-  { time: '30 分钟前', text: '系统 执行了数据备份任务' },
-  { time: '1 小时前', text: '超级管理员 创建了新用户' },
-  { time: '2 小时前', text: '系统 完成日志归档' },
-]
+/** 通知类型 → 标签 + 渐变配色 */
+interface TypeMeta { label: string, from: string, to: string }
+const DEFAULT_META: TypeMeta = { label: '公告', from: '#2563eb', to: '#4f46e5' }
+const TYPE_META: Record<string, TypeMeta> = {
+  Announcement: DEFAULT_META,
+  System: { label: '系统', from: '#0ea5e9', to: '#2563eb' },
+  Warning: { label: '提醒', from: '#f59e0b', to: '#ea580c' },
+  Error: { label: '警告', from: '#ef4444', to: '#b91c1c' },
+  User: { label: '消息', from: '#10b981', to: '#059669' },
+}
+
+function metaOf(type?: NotificationType | null): TypeMeta {
+  return (type && TYPE_META[type]) || DEFAULT_META
+}
+
+function slideStyle(item: NotificationListItemDto) {
+  const accent = metaOf(item.notificationType).from
+  // 浅色「纯色」背景：所有列同色，避免相邻幻灯片边缘透出导致的发丝缝
+  return { background: `color-mix(in srgb, ${accent} 7%, hsl(var(--card)))` }
+}
+
+function badgeStyle(item: NotificationListItemDto) {
+  const accent = metaOf(item.notificationType).from
+  return { color: accent, background: `color-mix(in srgb, ${accent} 14%, transparent)` }
+}
+
+function openAnnouncement(item: NotificationListItemDto) {
+  if (item.link) {
+    if (/^https?:\/\//.test(item.link)) {
+      window.open(item.link, '_blank', 'noopener,noreferrer')
+    }
+    else {
+      void router.push(item.link)
+    }
+    return
+  }
+  void router.push('/workbench/inbox')
+}
+
+function formatRelative(value?: string | null) {
+  if (!value) {
+    return '-'
+  }
+  const diff = Date.now() - new Date(value).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) {
+    return '刚刚'
+  }
+  if (minutes < 60) {
+    return `${minutes} 分钟前`
+  }
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) {
+    return `${hours} 小时前`
+  }
+  const days = Math.floor(hours / 24)
+  if (days < 7) {
+    return `${days} 天前`
+  }
+  return formatDate(value, 'MM-DD HH:mm')
+}
 
 async function fetchDashboardData() {
   try {
     const summary = await workbenchApi.dashboard.summary()
-    loginCount.value = summary.statistics.loginCount
     accessCount.value = summary.statistics.accessCount
     operationCount.value = summary.statistics.operationCount
+    loginCount.value = summary.statistics.loginCount
     apiCallCount.value = summary.statistics.apiCallCount
-    onlineTime.value = summary.statistics.onlineTime
-    lastLoginTime.value = summary.statistics.lastLoginTime ?? null
-    unreadCount.value = summary.inbox.unreadCount
-    pendingConfirmCount.value = summary.inbox.pendingConfirmCount
+    latestItems.value = summary.inbox.latestItems ?? []
   }
   catch {
-    resetStats()
-  }
-  finally {
-    loading.value = false
+    accessCount.value = 0
+    operationCount.value = 0
+    loginCount.value = 0
+    apiCallCount.value = 0
+    latestItems.value = []
   }
 }
 
-async function fetchServerMetrics() {
+async function fetchAnnouncements() {
   try {
-    const [cpu, memory, disks] = await Promise.all([
-      serverManagementApi.getCpuInfo(),
-      serverManagementApi.getMemoryInfo(),
-      serverManagementApi.getDiskInfo(),
-    ])
-    serverCpu.value = Math.round(cpu.usagePercentage)
-    serverMemory.value = Math.round(memory.usagePercentage)
-    const avgDisk = disks.length > 0
-      ? Math.round(disks.reduce((sum, d) => sum + (100 - d.availableRate), 0) / disks.length)
-      : 0
-    serverDisk.value = avgDisk
+    // 与「通知公告」管理页同源：已发布的「公告」类型通知（非仅当前用户已收）
+    const result = await notificationApi.page({
+      ...createPageRequest({ page: { pageIndex: 1, pageSize: 6 } }),
+      isPublished: true,
+      notificationType: NotificationType.Announcement,
+    })
+    announcements.value = result.items ?? []
   }
   catch {
-    serverCpu.value = 0
-    serverMemory.value = 0
-    serverDisk.value = 0
+    announcements.value = []
   }
-}
-
-function resetStats() {
-  loginCount.value = 0
-  accessCount.value = 0
-  operationCount.value = 0
-  apiCallCount.value = 0
-  onlineTime.value = 0
-  unreadCount.value = 0
-  pendingConfirmCount.value = 0
-  lastLoginTime.value = null
-}
-
-function formatDuration(seconds: number) {
-  if (seconds <= 0) return '0 分钟'
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  if (hours > 0) return `${hours} 小时 ${minutes} 分钟`
-  return `${Math.max(minutes, 1)} 分钟`
-}
-
-function getProgressStatus(value: number) {
-  if (value >= 90) return 'error'
-  if (value >= 70) return 'warning'
-  return 'success'
 }
 
 onMounted(() => {
   fetchDashboardData()
-  // TODO: Replace with workbenchApi.serverMetrics() when backend provides aggregated endpoint
-  fetchServerMetrics()
+  fetchAnnouncements()
+  // 跨端同步：拉取后端收藏夹覆盖本地（尽力而为，端点未就绪/离线静默回退本地）
+  void favoritesStore.hydrate()
 })
 </script>
 
 <template>
   <div class="dashboard">
-    <NCard :bordered="false" class="welcome-card">
-      <div class="welcome-inner">
-        <div class="welcome-info">
-          <h2 class="welcome-title">
-            {{ greeting }}，{{ userStore.nickname || userStore.username }}
-          </h2>
-          <p class="welcome-sub">
-            {{ formatDate(new Date(), 'YYYY年MM月DD日 dddd') }}
-          </p>
-          <div class="welcome-tags">
-            <NTag :bordered="false" round size="small" type="info">
-              今日在线 {{ onlineTimeText }}
-            </NTag>
-            <NTag :bordered="false" round size="small" type="default">
-              最后登录 {{ lastLoginText }}
-            </NTag>
-          </div>
+    <!-- 轮播公告（真实通知数据，自定义箭头与控制点） -->
+    <NCarousel
+      v-if="announcements.length"
+      autoplay
+      show-arrow
+      :interval="5000"
+      class="dash-carousel"
+    >
+      <div
+        v-for="item in announcements"
+        :key="item.basicId"
+        class="carousel-slide"
+        :style="slideStyle(item)"
+        @click="openAnnouncement(item)"
+      >
+        <NIcon class="slide-deco" :size="150" :style="{ color: metaOf(item.notificationType).from }">
+          <Icon icon="lucide:megaphone" />
+        </NIcon>
+        <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
+        <div class="slide-title">
+          {{ item.title || '系统通知' }}
         </div>
-        <div class="welcome-stats">
-          <div class="welcome-stat">
-            <span class="welcome-stat-value">{{ unreadCount }}</span>
-            <span class="welcome-stat-label">未读消息</span>
-          </div>
-          <div class="welcome-stat">
-            <span class="welcome-stat-value">{{ pendingConfirmCount }}</span>
-            <span class="welcome-stat-label">待确认</span>
-          </div>
+        <div v-if="item.content" class="slide-content">
+          {{ item.content }}
+        </div>
+        <div class="slide-time">
+          <NIcon size="13">
+            <Icon icon="lucide:clock" />
+          </NIcon>
+          {{ item.sendTime ? formatDate(item.sendTime, 'YYYY-MM-DD HH:mm') : '' }}
         </div>
       </div>
-    </NCard>
 
+      <template #arrow="{ prev, next }">
+        <div class="carousel-arrows">
+          <button class="carousel-arrow" type="button" @click.stop="prev">
+            <NIcon size="18">
+              <Icon icon="lucide:arrow-left" />
+            </NIcon>
+          </button>
+          <button class="carousel-arrow" type="button" @click.stop="next">
+            <NIcon size="18">
+              <Icon icon="lucide:arrow-right" />
+            </NIcon>
+          </button>
+        </div>
+      </template>
+
+      <template #dots="{ total, currentIndex, to }">
+        <ul class="carousel-dots">
+          <li
+            v-for="index of total"
+            :key="index"
+            class="carousel-dot"
+            :class="{ 'is-active': currentIndex === index - 1 }"
+            @click="to(index - 1)"
+          />
+        </ul>
+      </template>
+    </NCarousel>
+
+    <!-- 真实统计卡片 -->
     <NGrid :cols="4" :item-responsive="true" :x-gap="14" :y-gap="14" responsive="screen">
-      <NGridItem v-for="card in statCards" :key="card.label" span="4 s:2 m:1">
+      <NGridItem v-for="stat in statCards" :key="stat.key" span="2 m:1">
         <NCard :bordered="false" class="stat-card">
-          <NSkeleton v-if="loading" :height="88" :width="'100%'" />
-          <div v-else class="stat-inner">
-            <div class="stat-icon" :style="{ backgroundColor: card.bg }">
-              <NIcon :color="card.color" size="24">
-                <Icon :icon="card.icon" />
+          <div class="stat-inner">
+            <div class="stat-icon" :style="{ backgroundColor: `${stat.color}18` }">
+              <NIcon :style="{ color: stat.color }" size="22">
+                <Icon :icon="stat.icon" />
               </NIcon>
             </div>
-            <div class="stat-body">
-              <NStatistic :value="card.value" class="stat-value">
-                <template #suffix>
-                  <span class="stat-sub">{{ card.sub }}</span>
-                </template>
-              </NStatistic>
-              <span class="stat-label">{{ card.label }}</span>
+            <div class="stat-text">
+              <span class="stat-value">{{ stat.value }}</span>
+              <span class="stat-label">{{ stat.label }}</span>
             </div>
           </div>
         </NCard>
@@ -256,10 +264,10 @@ onMounted(() => {
               <span>快捷入口</span>
             </div>
           </template>
-          <div class="quick-grid">
+          <div v-if="quickLinks.length" class="quick-grid">
             <button
               v-for="link in quickLinks"
-              :key="link.label"
+              :key="link.key"
               class="quick-item"
               type="button"
               @click="router.push(link.to)"
@@ -271,39 +279,14 @@ onMounted(() => {
               </div>
               <div class="quick-text">
                 <span class="quick-label">{{ link.label }}</span>
-                <span class="quick-desc">{{ link.desc }}</span>
               </div>
             </button>
           </div>
-        </NCard>
-      </NGridItem>
-
-      <NGridItem span="3 m:1">
-        <NCard :bordered="false" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <NIcon class="section-icon" size="16">
-                <Icon icon="lucide:cpu" />
-              </NIcon>
-              <span>系统状态</span>
-            </div>
-          </template>
-          <div class="metrics-list">
-            <div v-for="metric in systemMetrics" :key="metric.label" class="metric-item">
-              <div class="metric-header">
-                <span class="metric-label">{{ metric.label }}</span>
-                <span class="metric-value" :style="{ color: metric.color }">{{ metric.value }}%</span>
-              </div>
-              <NProgress
-                :color="metric.color"
-                :percentage="metric.value"
-                :processing="metric.value > 70"
-                :status="getProgressStatus(metric.value)"
-                :height="6"
-                border-radius="3px"
-              />
-            </div>
-          </div>
+          <NEmpty v-else class="quick-empty" description="暂无收藏，右键标签页选择「收藏」即可添加">
+            <template #icon>
+              <NIcon><Icon icon="lucide:star" /></NIcon>
+            </template>
+          </NEmpty>
         </NCard>
       </NGridItem>
 
@@ -317,17 +300,27 @@ onMounted(() => {
               <span>最近动态</span>
             </div>
           </template>
-          <NTimeline>
+          <NTimeline v-if="latestItems.length">
             <NTimelineItem
-              v-for="(item, index) in recentActivities"
-              :key="index"
+              v-for="(item, index) in latestItems"
+              :key="item.basicId"
               :color="index === 0 ? '#3b82f6' : undefined"
-              :time="item.time"
+              :time="formatRelative(item.sendTime)"
               line-type="dashed"
             >
-              {{ item.text }}
+              <div class="activity-title">
+                {{ item.title }}
+              </div>
+              <div v-if="item.content" class="activity-desc">
+                {{ item.content }}
+              </div>
             </NTimelineItem>
           </NTimeline>
+          <NEmpty v-else class="activity-empty" description="暂无最新动态">
+            <template #icon>
+              <NIcon><Icon icon="lucide:inbox" /></NIcon>
+            </template>
+          </NEmpty>
         </NCard>
       </NGridItem>
     </NGrid>
@@ -345,133 +338,199 @@ onMounted(() => {
   width: 100%;
 }
 
-/* Welcome Card */
-.welcome-card {
-  background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--primary) / 0.02)) !important;
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 12px !important;
+/* Carousel（浅色主题） */
+.dash-carousel {
+  height: 190px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--card));
+  overflow: hidden;
 }
 
-.welcome-card :deep(.n-card__content) {
-  padding: 20px 24px !important;
+/* 只铺满高度；宽度交给 NCarousel 自身按像素计算
+   （强行设 width:100% 会让 flex 轨道挤窄当前页、露出相邻幻灯片缝隙） */
+.dash-carousel :deep(.n-carousel__slide) {
+  height: 100%;
 }
 
-.welcome-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.welcome-title {
-  margin: 0;
-  color: hsl(var(--foreground));
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.welcome-sub {
-  margin: 4px 0 10px;
-  color: hsl(var(--muted-foreground));
-  font-size: 13px;
-}
-
-.welcome-tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.welcome-stats {
-  display: none;
-  gap: 24px;
-  flex-shrink: 0;
-}
-
-@media (min-width: 768px) {
-  .welcome-stats {
-    display: flex;
-  }
-}
-
-.welcome-stat {
+.carousel-slide {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.welcome-stat-value {
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 24px 28px;
+  box-sizing: border-box;
   color: hsl(var(--foreground));
-  font-size: 24px;
-  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
 }
 
-.welcome-stat-label {
+/* 右侧装饰大图标：填充空白、点缀但不抢内容 */
+.slide-deco {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.slide-badge {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 999px;
+}
+
+.slide-title {
+  position: relative;
+  z-index: 1;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 82%;
+}
+
+.slide-content {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  line-height: 1.5;
   color: hsl(var(--muted-foreground));
-  font-size: 11px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 82%;
+}
+
+.slide-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 自定义箭头：右下角 */
+.carousel-arrows {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.carousel-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.carousel-arrow:hover {
+  background: hsl(var(--accent));
+}
+
+/* 自定义控制点：左下角 */
+.carousel-dots {
+  position: absolute;
+  left: 24px;
+  bottom: 22px;
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 2;
+}
+
+.carousel-dot {
+  width: 16px;
+  height: 4px;
+  background: hsl(var(--border));
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
+}
+
+.carousel-dot.is-active {
+  width: 28px;
+  background: hsl(var(--primary));
 }
 
 /* Stat Cards */
 .stat-card {
+  border: 1px solid hsl(var(--border)) !important;
   border-radius: 12px !important;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .stat-card :deep(.n-card__content) {
-  padding: 18px 20px !important;
-}
-
-.stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px hsl(var(--foreground) / 0.06);
+  padding: 16px 18px !important;
 }
 
 .stat-inner {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .stat-icon {
   display: flex;
-  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
-.stat-body {
-  min-width: 0;
-  flex: 1;
-}
-
-.stat-value :deep(.n-statistic__value) {
+.stat-text {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.stat-value :deep(.n-statistic__value__suffix) {
-  font-size: 12px;
+.stat-value {
+  color: hsl(var(--foreground));
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
 .stat-label {
-  color: hsl(var(--muted-foreground));
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.stat-sub {
   color: hsl(var(--muted-foreground));
   font-size: 12px;
 }
 
 /* Section Card */
 .section-card {
+  border: 1px solid hsl(var(--border)) !important;
   border-radius: 12px !important;
   height: 100%;
 }
@@ -504,12 +563,6 @@ onMounted(() => {
   gap: 4px;
 }
 
-@media (min-width: 900px) {
-  .quick-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
 .quick-item {
   display: flex;
   align-items: center;
@@ -521,12 +574,15 @@ onMounted(() => {
   background: transparent;
   cursor: pointer;
   outline: none;
-  transition: background 0.15s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
   text-align: center;
 }
 
 .quick-item:hover {
   background: hsl(var(--accent));
+  transform: translateY(-1px);
 }
 
 .quick-icon {
@@ -550,39 +606,30 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.quick-desc {
-  color: hsl(var(--muted-foreground));
-  font-size: 10px;
+.quick-empty {
+  padding: 32px 0;
 }
 
-/* System Metrics */
-.metrics-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.metric-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.metric-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.metric-label {
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
+/* Recent Activity */
+.activity-title {
+  color: hsl(var(--foreground));
+  font-size: 13px;
   font-weight: 500;
 }
 
-.metric-value {
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.activity-desc {
+  margin-top: 2px;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.activity-empty {
+  padding: 28px 0;
 }
 </style>

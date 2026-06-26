@@ -4,14 +4,17 @@ import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } f
 import type { ApiId } from '~/types/contracts'
 import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onMounted, ref } from 'vue'
+import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useAppContext } from '~/stores'
 import SchemaActionPanel from './SchemaActionPanel.vue'
+import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import { toColumns, toExportFields } from './selectors'
+import { toColumns, toExportFields, toImportFields } from './selectors'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
@@ -80,9 +83,15 @@ const columnFields = computed<ListFieldSchema[]>(() =>
   resolvedFields.value.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
 
+/** 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地 */
+const peekFields = computed<ListFieldSchema[]>(() =>
+  resolvedFields.value.filter(f => !f.permission || hasPermission(f.permission)),
+)
+
 /** 是否存在批量能力（批量操作或内置批量删除）—— 作为「多选」默认开关 */
 const autoSelectable = (props.schema.actions ?? []).some(a => a.scope === 'batch' && (!a.permission || hasPermission(a.permission)))
-  || (!!props.schema.batchRemovable && !!props.schema.resource.remove)
+  || (!!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
+  || (!!props.schema.resource.updateStatus && (!props.schema.statusPermission || hasPermission(props.schema.statusPermission)))
 
 /** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽，按 pageCode 持久化） */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: autoSelectable })
@@ -252,8 +261,12 @@ function clearSelection() {
 }
 
 /** 内置批量删除：依赖 resource.remove + schema.batchRemovable */
-const canBatchRemove = computed(() => !!props.schema.batchRemovable && !!props.schema.resource.remove)
+const canBatchRemove = computed(() => !!props.schema.batchRemovable && !!props.schema.resource.remove && (!props.schema.removePermission || hasPermission(props.schema.removePermission)))
 const batchRemoving = ref(false)
+
+/** 批量启停：依赖 resource.updateStatus，按 statusPermission 门控 */
+const canBatchStatus = computed(() => !!props.schema.resource.updateStatus && (!props.schema.statusPermission || hasPermission(props.schema.statusPermission)))
+const batchStatusUpdating = ref(false)
 
 function handleBatchRemove() {
   const targets = selectedRows.value
@@ -290,12 +303,52 @@ function handleBatchRemove() {
   })
 }
 
+/** 批量启停：对选中行逐个调用 resource.updateStatus(id, enabled)，并发执行后汇总 */
+function handleBatchStatus(enabled: boolean) {
+  const targets = selectedRows.value
+  const updateFn = props.schema.resource.updateStatus
+  if (targets.length === 0 || !updateFn) {
+    return
+  }
+  const rowKey = props.schema.rowKey ?? 'basicId'
+  const label = enabled ? '启用' : '停用'
+  dialog.warning({
+    title: `批量${label}`,
+    content: `确定${label}选中的 ${targets.length} 条记录？`,
+    positiveText: `确认${label}`,
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      batchStatusUpdating.value = true
+      try {
+        const results = await Promise.allSettled(
+          targets.map(row => updateFn((row as Record<string, unknown>)[rowKey] as ApiId, enabled)),
+        )
+        const failed = results.filter(r => r.status === 'rejected').length
+        if (failed === 0) {
+          message.success(`已${label} ${targets.length} 条`)
+        }
+        else {
+          message.warning(`${label}完成：成功 ${targets.length - failed} 条，失败 ${failed} 条`)
+        }
+        clearSelection()
+        await table.load()
+      }
+      finally {
+        batchStatusUpdating.value = false
+      }
+    },
+  })
+}
+
 function reload() {
   return table.load()
 }
 
 /** 导出字段（exportable + 权限） */
 const exportFields = computed(() => toExportFields(resolvedSchema.value, hasPermission))
+
+/** 有效导出列：页面声明了 exportable 则用之，否则回退为当前可见列（"导出所见"） */
+const effectiveExportFields = computed(() => exportFields.value.length ? exportFields.value : columnFields.value)
 
 /** 取导出行：列表模式翻页拉全集（受安全上限约束）；树形模式展平当前树 */
 async function fetchExportRows(): Promise<Row[]> {
@@ -345,10 +398,95 @@ async function fetchExportRows(): Promise<Row[]> {
 }
 
 const { exporting, exportCsv } = useSchemaExport<Row>({
-  fields: () => exportFields.value,
+  fields: () => effectiveExportFields.value,
   fileName: () => props.schema.pageCode,
   fetchRows: fetchExportRows,
 })
+
+// ── 导出中心：提交异步导出（resource.export 存在时启用「提交到导出中心」入口） ──
+const appContext = useAppContext()
+const canSubmitExport = computed(() => !!props.schema.resource.export)
+const submittingExport = ref(false)
+
+const exportMenuOptions = computed(() => [
+  { key: 'center:1', label: '导出查询结果（导出中心）' },
+  { key: 'center:0', label: '仅导出当前页（导出中心）' },
+  { key: 'center:2', label: '导出全部（导出中心）' },
+  { key: 'divider', type: 'divider' },
+  { key: 'local', label: '本地导出 CSV' },
+])
+
+/** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
+function buildExportColumns() {
+  return effectiveExportFields.value.map((field) => {
+    const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: field.key, title: field.title }
+    if (field.options?.length) {
+      column.valueMap = Object.fromEntries(field.options.map(option => [String(option.value), option.label]))
+    }
+    return column
+  })
+}
+
+/** 提交导出任务到导出中心（scope：0 当前页 / 1 查询结果 / 2 全部） */
+async function submitExport(scope: number) {
+  const cfg = props.schema.resource.export
+  if (!cfg) {
+    return
+  }
+  const params = {
+    page: page.value,
+    pageSize: pageSize.value,
+    sortField: sortField.value,
+    sortOrder: sortOrder.value,
+    filters: { ...filters },
+  }
+  const query = cfg.buildQuery ? cfg.buildQuery(params) : params
+  submittingExport.value = true
+  const task = islandStart('export:submit', '提交导出…', { icon: 'lucide:download', progress: 0 })
+  try {
+    await appContext.apis.exportTaskApi.submit({
+      businessType: cfg.businessType,
+      scope,
+      format: 0,
+      querySnapshot: JSON.stringify(query),
+      columns: buildExportColumns(),
+    })
+    task.success('已提交导出', { detail: '可在导出中心查看进度与下载' })
+  }
+  catch (error) {
+    task.error('提交导出失败', { detail: (error as Error).message })
+  }
+  finally {
+    submittingExport.value = false
+  }
+}
+
+function onExportSelect(key: string) {
+  if (key === 'local') {
+    void exportCsv()
+    return
+  }
+  if (key.startsWith('center:')) {
+    void submitExport(Number(key.slice('center:'.length)))
+  }
+}
+
+/** 导出按钮权限门控（严格）：仅在页面声明了 exportPermission 且当前用户拥有该权限时才显示导出 */
+const canExportPermitted = computed(() => !!props.schema.exportPermission && hasPermission(props.schema.exportPermission))
+/** 导入按钮权限门控：声明了 importPermission 则需有权限才显示（导入仅在 resource.create + importable 时存在） */
+const canImportPermitted = computed(() => !props.schema.importPermission || hasPermission(props.schema.importPermission))
+
+/** 导入：字段含 importable 且 resource.create 存在 + 导入权限通过时，工具栏出现内置导入按钮 */
+const importFields = computed(() => toImportFields(resolvedSchema.value, hasPermission))
+const canImport = computed(() => importFields.value.length > 0 && !!props.schema.resource.create && canImportPermitted.value)
+const importVisible = ref(false)
+
+/** 导入完毕：有成功行则刷新列表 */
+function onImportFinished(summary: { total: number, success: number, failed: number }) {
+  if (summary.success > 0) {
+    void table.load()
+  }
+}
 
 onMounted(async () => {
   void dictionaries.resolve()
@@ -417,16 +555,39 @@ defineExpose({
             </template>
             刷新
           </NTooltip>
-          <NTooltip v-if="exportFields.length">
+          <NTooltip v-if="canImport">
             <template #trigger>
-              <NButton circle quaternary size="small" aria-label="导出" :loading="exporting" @click="exportCsv">
+              <NButton circle quaternary size="small" aria-label="导入" @click="importVisible = true">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:upload" /></NIcon>
+                </template>
+              </NButton>
+            </template>
+            导入（CSV）
+          </NTooltip>
+          <!-- 导出按钮：仅在页面声明 exportPermission 且用户有该权限时显示（精准门控）；
+               已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口，否则本地同步 CSV -->
+          <template v-if="effectiveExportFields.length && canExportPermitted">
+            <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
+            <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
+              <NButton circle quaternary size="small" aria-label="导出" :loading="exporting || submittingExport">
                 <template #icon>
                   <NIcon><Icon icon="lucide:download" /></NIcon>
                 </template>
               </NButton>
-            </template>
-            导出（CSV）
-          </NTooltip>
+            </NDropdown>
+            <!-- 未登记页面：维持本地同步 CSV 导出 -->
+            <NTooltip v-else>
+              <template #trigger>
+                <NButton circle quaternary size="small" aria-label="导出" :loading="exporting" @click="exportCsv">
+                  <template #icon>
+                    <NIcon><Icon icon="lucide:download" /></NIcon>
+                  </template>
+                </NButton>
+              </template>
+              导出（CSV）
+            </NTooltip>
+          </template>
           <SchemaTableSettings
             :columns="settings.columns.value"
             :density="settings.density.value"
@@ -487,6 +648,7 @@ defineExpose({
           :children-key="schema.tree?.childrenKey ?? 'children'"
           :default-expand-all="schema.tree?.defaultExpandAll ?? true"
           :remount-key="tableRemountKey"
+          :peek-fields="peekFields"
           @sort="changeSort"
           @update:page="changePage"
           @update:page-size="changePageSize"
@@ -498,6 +660,24 @@ defineExpose({
               <span class="xh-batch-bar__count">已选择 <strong>{{ checkedKeys.length }}</strong> 条</span>
               <NButton quaternary size="small" @click="clearSelection">
                 清空选择
+              </NButton>
+              <NButton
+                v-if="canBatchStatus"
+                size="small"
+                type="success"
+                :loading="batchStatusUpdating"
+                @click="handleBatchStatus(true)"
+              >
+                批量启用
+              </NButton>
+              <NButton
+                v-if="canBatchStatus"
+                size="small"
+                type="warning"
+                :loading="batchStatusUpdating"
+                @click="handleBatchStatus(false)"
+              >
+                批量停用
               </NButton>
               <NButton
                 v-if="canBatchRemove"
@@ -522,6 +702,17 @@ defineExpose({
         </SchemaTablePanel>
       </template>
     </NCard>
+
+    <!-- 内置导入对话框（模板下载/解析/预校验/批量创建） -->
+    <SchemaImportDialog
+      v-if="canImport"
+      v-model:show="importVisible"
+      :create="schema.resource.create!"
+      :fields="importFields"
+      :page-code="schema.pageCode"
+      :resource-code="schema.resourceCode"
+      @finished="onImportFinished"
+    />
 
     <!-- 默认插槽：承载页面自有弹窗/抽屉 -->
     <slot :reload="reload" />

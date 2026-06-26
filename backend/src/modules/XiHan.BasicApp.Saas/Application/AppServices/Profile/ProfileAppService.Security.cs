@@ -38,6 +38,9 @@ public sealed partial class ProfileAppService
             ProfileApplicationMapper.ToChangePasswordCommand(input, currentUserId),
             cancellationToken);
 
+        // 认证审计：密码修改落登录日志
+        await PublishSecurityAuditAsync(LoginResult.PasswordChanged, "用户修改密码");
+
         await _notificationDispatchService.DispatchToUserAsync(
             result.User.BasicId,
             "密码已修改",
@@ -63,8 +66,11 @@ public sealed partial class ProfileAppService
             return;
         }
 
-        _profileVerificationService.EnsureTwoFactorCodeValid(context, method, input.Code);
+        await _profileVerificationService.EnsureTwoFactorCodeValidAsync(context, method, input.Code, cancellationToken);
         await _profileDomainService.DisableTwoFactorAsync(ProfileApplicationMapper.ToTwoFactorCommand(userId, method), cancellationToken);
+
+        // 认证审计：解绑 MFA 落登录日志
+        await PublishSecurityAuditAsync(LoginResult.MfaUnbound, $"解绑两步验证（{method}）");
     }
 
     /// <inheritdoc />
@@ -77,8 +83,11 @@ public sealed partial class ProfileAppService
         var userId = GetCurrentUserIdOrThrow();
         var context = await _profileQueryService.GetSecurityContextAsync(userId, cancellationToken);
         var method = ToTwoFactorMethod(input.Method);
-        _profileVerificationService.EnsureTwoFactorCodeValid(context, method, input.Code);
+        await _profileVerificationService.EnsureTwoFactorCodeValidAsync(context, method, input.Code, cancellationToken);
         await _profileDomainService.EnableTwoFactorAsync(ProfileApplicationMapper.ToTwoFactorCommand(userId, method), cancellationToken);
+
+        // 认证审计：绑定 MFA 落登录日志
+        await PublishSecurityAuditAsync(LoginResult.MfaBound, $"绑定两步验证（{method}）");
     }
 
     /// <inheritdoc />

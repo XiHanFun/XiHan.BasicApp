@@ -74,6 +74,16 @@ public sealed class PermissionListItemDto : BasicAppDto
     public string PermissionName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 功能分组码（资源段，权限分配 UI 据此归组）
+    /// </summary>
+    public string GroupCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 功能分组显示名
+    /// </summary>
+    public string GroupName { get; set; } = string.Empty;
+
+    /// <summary>
     /// 权限描述
     /// </summary>
     public string? PermissionDescription { get; set; }
