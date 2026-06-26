@@ -45,7 +45,8 @@ public sealed class DictAppService
         _dictDomainService = dictDomainService;
         _cacheInvalidator = cacheInvalidator;
     }
-    /// <summary>
+
+    /// <summary>
     /// 创建系统字典
     /// </summary>
     [UnitOfWork(true)]

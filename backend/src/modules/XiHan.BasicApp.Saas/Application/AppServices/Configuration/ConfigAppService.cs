@@ -45,7 +45,8 @@ public sealed class ConfigAppService
         _configDomainService = configDomainService;
         _cacheInvalidator = cacheInvalidator;
     }
-    /// <summary>
+
+    /// <summary>
     /// 创建系统配置
     /// </summary>
     [UnitOfWork(true)]

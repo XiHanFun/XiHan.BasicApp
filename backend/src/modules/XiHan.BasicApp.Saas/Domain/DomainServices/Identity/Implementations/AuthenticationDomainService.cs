@@ -47,7 +47,8 @@ public sealed class AuthenticationDomainService
         _userSecurityRepository = userSecurityRepository;
         _tenantUserRepository = tenantUserRepository;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public async Task<LoginAuthenticationResult> AuthenticatePasswordLoginAsync(
         string userName,
         string password,

@@ -31,7 +31,8 @@ public sealed class DepartmentHierarchyDomainService
     {
         _departmentHierarchyRepository = departmentHierarchyRepository;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public async Task<bool> WouldCreateCycleAsync(long departmentId, long? newParentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

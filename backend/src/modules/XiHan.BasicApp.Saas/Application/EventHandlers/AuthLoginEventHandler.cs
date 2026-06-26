@@ -55,7 +55,8 @@ public sealed class AuthLoginEventHandler
         _clientResolver = clientResolver;
         _logger = logger;
     }
-    /// <inheritdoc />
+
+    /// <inheritdoc />
     public async Task HandleEventAsync(AuthLoginSucceededDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);

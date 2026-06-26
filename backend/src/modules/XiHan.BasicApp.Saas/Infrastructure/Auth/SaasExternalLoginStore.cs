@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SaasExternalLoginStore
-// Guid:2b3c4d5e-6f7a-8901-bcde-f1234567802
+// Guid:7a0100cb-7581-4c66-905f-13cec9db3e93
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/05/12 00:00:00

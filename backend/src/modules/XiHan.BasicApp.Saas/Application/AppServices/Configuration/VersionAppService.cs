@@ -41,7 +41,8 @@ public sealed class VersionAppService
     {
         _versionDomainService = versionDomainService;
     }
-    /// <summary>
+
+    /// <summary>
     /// 创建系统版本
     /// </summary>
     [UnitOfWork(true)]
