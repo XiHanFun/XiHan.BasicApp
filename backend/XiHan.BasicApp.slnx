@@ -23,7 +23,6 @@
     <File Path="props/common.props" />
     <File Path="props/netcore.props" />
     <File Path="props/nuget.props" />
-    <File Path="props/online.props" />
     <File Path="props/version.props" />
   </Folder>
   <Folder Name="/3.others/2.Scripts/" />
