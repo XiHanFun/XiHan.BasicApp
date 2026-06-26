@@ -4,7 +4,6 @@
     <Import Project="..\..\..\props\common.props" />
     <Import Project="..\..\..\props\version.props" />
     <Import Project="..\..\..\props\nuget.props" />
-    <Import Project="..\..\..\props\online.props" />
 
     <PropertyGroup>
         <Title>XiHan.BasicApp.Web.Core</Title>
@@ -15,14 +14,13 @@
         <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     </PropertyGroup>
 
-    <!-- 正式发布：引用线上 XiHan.Framework.Web.* NuGet 包（版本见 props\online.props） -->
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.Web.Api" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Web.Core" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Web.Docs" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Web.Gateway" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Web.Grpc" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Web.RealTime" Version="$(XiHanFrameworkVersion)" />
+        <PackageReference Include="XiHan.Framework.Web.Api" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Web.Core" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Web.Docs" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Web.Gateway" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Web.Grpc" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Web.RealTime" Version="3.0.1" />
     </ItemGroup>
 
     <ItemGroup>

@@ -4,7 +4,6 @@
     <Import Project="..\..\..\props\common.props" />
     <Import Project="..\..\..\props\version.props" />
     <Import Project="..\..\..\props\nuget.props" />
-    <Import Project="..\..\..\props\online.props" />
 
     <PropertyGroup>
         <Title>XiHan.BasicApp.Core</Title>
@@ -14,51 +13,50 @@
         <OutputType>Library</OutputType>
     </PropertyGroup>
 
-    <!-- 正式发布：引用线上 XiHan.Framework NuGet 包（版本见 props\online.props） -->
     <ItemGroup>
-        <PackageReference Include="XiHan.Framework.AI" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Application" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Application.Contracts" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Authentication" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Authorization" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Bot" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Caching" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Castle" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Core" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Data" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.DevTools" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.DistributedIds" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Domain" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Domain.Shared" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.EventBus" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.EventBus.Abstractions" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Http" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Localization" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Localization.Abstractions" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Logging" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Messaging" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Metadata" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.MultiTenancy" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.MultiTenancy.Abstractions" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.ObjectMapping" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.ObjectStorage" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Observability" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Script" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.SearchEngines" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Security" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Serialization" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Settings" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Tasks" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Templating" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Threading" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Timing" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Traffic" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Uow" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Upgrade" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Utils" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Validation" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.Validation.Abstractions" Version="$(XiHanFrameworkVersion)" />
-        <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="$(XiHanFrameworkVersion)" />
+        <PackageReference Include="XiHan.Framework.AI" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Application" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Application.Contracts" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Authentication" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Authorization" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Caching" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Castle" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Core" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Data" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.DevTools" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.DistributedIds" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Domain" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Domain.Shared" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.EventBus" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.EventBus.Abstractions" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Http" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Localization" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Localization.Abstractions" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Logging" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Messaging" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Metadata" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.MultiTenancy" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.MultiTenancy.Abstractions" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.ObjectMapping" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.ObjectStorage" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Observability" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Script" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.SearchEngines" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Security" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Serialization" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Settings" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Tasks" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Templating" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Threading" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Timing" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Traffic" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Uow" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Upgrade" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Utils" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Validation" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Validation.Abstractions" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.VirtualFileSystem" Version="3.0.1" />
     </ItemGroup>
 
 </Project>
