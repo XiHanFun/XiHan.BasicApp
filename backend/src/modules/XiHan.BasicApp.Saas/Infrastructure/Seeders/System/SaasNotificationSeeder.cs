@@ -37,68 +37,6 @@ public sealed class SaasNotificationSeeder(
 {
     private const string AnnouncementTitle = "XiHan BasicApp 系统功能总览与上手指南";
 
-    private readonly ICurrentTenant _currentTenant = currentTenant;
-
-    /// <summary>
-    /// 种子数据优先级
-    /// </summary>
-    public override int Order => 26;
-
-    /// <summary>
-    /// 种子数据名称
-    /// </summary>
-    public override string Name => "[SaaS]系统通知种子数据";
-
-    /// <summary>
-    /// 种子数据实现
-    /// </summary>
-    protected override async Task SeedInternalAsync()
-    {
-        using var platformScope = _currentTenant.Change(null);
-        var client = DbClient;
-
-        var exists = await client.Queryable<SysNotification>()
-            .Where(notification => notification.TenantId == 0 && notification.Title == AnnouncementTitle && !notification.IsDeleted)
-            .AnyAsync();
-        if (exists)
-        {
-            Logger.LogInformation("平台系统公告已存在，跳过种子数据");
-            return;
-        }
-
-        // 发件人取平台超级管理员（查不到则置 null，不阻断主流程）
-        var senderId = await client.Queryable<SysUser>()
-            .Where(user => user.TenantId == 0 && user.UserName == "superadmin" && !user.IsDeleted)
-            .Select(user => user.BasicId)
-            .FirstAsync();
-
-        var now = DateTimeOffset.UtcNow;
-        var announcement = new SysNotification
-        {
-            TenantId = 0,
-            NotificationType = NotificationType.System,
-            Priority = NotificationPriority.High,
-            ContentFormat = NotificationContentFormat.Markdown,
-            Title = AnnouncementTitle,
-            Content = SystemOverviewContent,
-            Icon = "lucide:book-open",
-            TargetType = NotificationTargetType.All,
-            TargetValue = null,
-            NeedConfirm = false,
-            IsMandatory = false,
-            IsBanner = false,
-            // 登录后弹一次欢迎指南（每用户仅弹一次，由 SysUserNotification.PopupShownTime 记录）
-            IsPopup = true,
-            IsPublished = true,
-            SendUserId = senderId == 0 ? null : senderId,
-            SendTime = now,
-            Remark = "系统初始化内置公告"
-        };
-
-        _ = await client.Insertable(announcement).ExecuteReturnEntityAsync();
-        Logger.LogInformation("成功初始化平台系统公告（系统功能总览与上手指南）");
-    }
-
     /// <summary>
     /// 系统功能总览公告正文（Markdown）。仅描述当前真实存在并可用的模块能力。
     /// </summary>
@@ -179,4 +117,66 @@ public sealed class SaasNotificationSeeder(
 
         > 如需帮助，请查阅「关于」中的文档与仓库地址，或联系系统管理员。
         """;
+
+    private readonly ICurrentTenant _currentTenant = currentTenant;
+
+    /// <summary>
+    /// 种子数据优先级
+    /// </summary>
+    public override int Order => 26;
+
+    /// <summary>
+    /// 种子数据名称
+    /// </summary>
+    public override string Name => "[SaaS]系统通知种子数据";
+
+    /// <summary>
+    /// 种子数据实现
+    /// </summary>
+    protected override async Task SeedInternalAsync()
+    {
+        using var platformScope = _currentTenant.Change(null);
+        var client = DbClient;
+
+        var exists = await client.Queryable<SysNotification>()
+            .Where(notification => notification.TenantId == 0 && notification.Title == AnnouncementTitle && !notification.IsDeleted)
+            .AnyAsync();
+        if (exists)
+        {
+            Logger.LogInformation("平台系统公告已存在，跳过种子数据");
+            return;
+        }
+
+        // 发件人取平台超级管理员（查不到则置 null，不阻断主流程）
+        var senderId = await client.Queryable<SysUser>()
+            .Where(user => user.TenantId == 0 && user.UserName == "superadmin" && !user.IsDeleted)
+            .Select(user => user.BasicId)
+            .FirstAsync();
+
+        var now = DateTimeOffset.UtcNow;
+        var announcement = new SysNotification
+        {
+            TenantId = 0,
+            NotificationType = NotificationType.System,
+            Priority = NotificationPriority.High,
+            ContentFormat = NotificationContentFormat.Markdown,
+            Title = AnnouncementTitle,
+            Content = SystemOverviewContent,
+            Icon = "lucide:book-open",
+            TargetType = NotificationTargetType.All,
+            TargetValue = null,
+            NeedConfirm = true,
+            IsMandatory = true,
+            IsBanner = true,
+            // 登录后弹一次欢迎指南（每用户仅弹一次，由 SysUserNotification.PopupShownTime 记录）
+            IsPopup = true,
+            IsPublished = false,
+            SendUserId = senderId == 0 ? null : senderId,
+            SendTime = now,
+            Remark = "系统初始化内置公告"
+        };
+
+        _ = await client.Insertable(announcement).ExecuteReturnEntityAsync();
+        Logger.LogInformation("成功初始化平台系统公告（系统功能总览与上手指南）");
+    }
 }
