@@ -15,8 +15,11 @@
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
+using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Web.RealTime.Constants;
+using XiHan.Framework.Web.RealTime.Services;
 
 namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 
@@ -24,11 +27,12 @@ namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 /// 用户会话撤销事件处理器
 /// </summary>
 /// <remarks>
-/// 当用户会话被撤销时，写入登录日志并发送通知给用户。
+/// 当用户会话被撤销时，写入登录日志、发送通知给用户，并向其在线连接实时推送 ForceLogout 强制下线。
 /// </remarks>
 public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSessionRevokedDomainEvent>
 {
     private readonly ISqlSugarClientResolver _clientResolver;
+    private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
     private readonly ILogger<UserSessionRevokedEventHandler> _logger;
 
     /// <summary>
@@ -36,9 +40,11 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
     /// </summary>
     public UserSessionRevokedEventHandler(
         ISqlSugarClientResolver clientResolver,
+        IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
         ILogger<UserSessionRevokedEventHandler> logger)
     {
         _clientResolver = clientResolver ?? throw new ArgumentNullException(nameof(clientResolver));
+        _realtimeNotificationService = realtimeNotificationService ?? throw new ArgumentNullException(nameof(realtimeNotificationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -60,6 +66,38 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
 
         // 发送通知给用户
         await SendNotificationAsync(eventData);
+
+        // 实时推送强制下线（被踢设备立即登出，而非等到下次请求才失效）
+        await PushForceLogoutAsync(eventData);
+    }
+
+    /// <summary>
+    /// 向用户在线连接推送 ForceLogout。
+    /// 单会话撤销带 targetSessionIds（前端按 JWT session_id 匹配，仅目标会话登出）；
+    /// 全部撤销不带目标列表（该用户所有在线连接立即登出）。
+    /// </summary>
+    private async Task PushForceLogoutAsync(UserSessionRevokedDomainEvent eventData)
+    {
+        try
+        {
+            var payload = new
+            {
+                reason = string.IsNullOrWhiteSpace(eventData.Reason) ? "您的登录会话已被管理员撤销。" : eventData.Reason,
+                targetSessionIds = eventData.RevokeAllUserSessions || string.IsNullOrWhiteSpace(eventData.UserSessionId)
+                    ? null
+                    : new[] { eventData.UserSessionId },
+            };
+            await _realtimeNotificationService.SendToUserAsync(
+                eventData.UserId.ToString(),
+                SignalRConstants.ClientMethods.ForceLogout,
+                payload);
+        }
+        catch (Exception ex)
+        {
+            // 实时推送失败不影响撤销主流程（令牌校验仍会拒绝已撤销会话）
+            _logger.LogError(ex,
+                "[UserSessionRevoked] Failed to push ForceLogout to user {UserId}", eventData.UserId);
+        }
     }
 
     /// <summary>

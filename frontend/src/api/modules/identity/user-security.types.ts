@@ -18,3 +18,9 @@ export interface UserLoginPolicyUpdateDto {
   maxLoginDevices: number
   remark?: string | null
 }
+
+/** 用户双因素认证重置（清除 OTP 绑定） */
+export interface UserTwoFactorResetDto {
+  userId: ApiId
+  remark?: string | null
+}

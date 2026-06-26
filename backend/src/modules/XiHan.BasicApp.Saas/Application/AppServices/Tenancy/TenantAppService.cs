@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -36,6 +37,7 @@ public sealed class TenantAppService
 {
     private readonly ICurrentUser _currentUser;
     private readonly ITenantDomainService _tenantDomainService;
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
     private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
     private readonly IPasswordHasher _passwordHasher;
 
@@ -46,12 +48,14 @@ public sealed class TenantAppService
         ITenantDomainService tenantDomainService,
         ITenantProvisionDomainService tenantProvisionDomainService,
         IPasswordHasher passwordHasher,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ISaasCacheInvalidator cacheInvalidator)
     {
         _tenantDomainService = tenantDomainService;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _passwordHasher = passwordHasher;
         _currentUser = currentUser;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -66,13 +70,20 @@ public sealed class TenantAppService
 
         var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
 
-        // 同时提供管理员账号密码时，一站式开通：管理员 + Owner 角色 + 按版本白名单授权
+        // 同时提供管理员账号信息时，一站式开通：管理员 + Owner 角色 + 按版本白名单授权
         if (!string.IsNullOrWhiteSpace(input.AdminUserName) && !string.IsNullOrWhiteSpace(input.AdminPassword))
         {
+            // 邮箱是全平台唯一的登录身份标识，开通管理员时必填
+            if (string.IsNullOrWhiteSpace(input.AdminEmail) || !input.AdminEmail.Contains('@'))
+            {
+                throw new ArgumentException("租户管理员邮箱不能为空且格式必须有效。");
+            }
+
             var passwordHash = _passwordHasher.HashPassword(input.AdminPassword.Trim());
             _ = await _tenantProvisionDomainService.ProvisionTenantAdminAsync(
                 result.Tenant,
                 input.AdminUserName.Trim(),
+                input.AdminEmail.Trim(),
                 passwordHash,
                 cancellationToken);
         }
@@ -91,6 +102,8 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _tenantDomainService.UpdateTenantAsync(TenantApplicationMapper.ToUpdateCommand(input), cancellationToken);
+        // 租户可能更换版本：失效版本门控缓存（事务提交后生效）
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
 

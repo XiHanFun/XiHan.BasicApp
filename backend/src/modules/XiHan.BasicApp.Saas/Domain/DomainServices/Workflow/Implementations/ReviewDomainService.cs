@@ -25,6 +25,10 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class ReviewDomainService
     : IReviewDomainService
 {
+    private readonly IReviewLogRepository _reviewLogRepository;
+
+    private readonly IReviewRepository _reviewRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -35,9 +39,6 @@ public sealed class ReviewDomainService
         _reviewRepository = reviewRepository;
         _reviewLogRepository = reviewLogRepository;
     }
-
-    private readonly IReviewLogRepository _reviewLogRepository;
-    private readonly IReviewRepository _reviewRepository;
 
     /// <inheritdoc />
     public async Task<ReviewCommandResult> AuditReviewAsync(ReviewAuditCommand command, CancellationToken cancellationToken = default)
@@ -383,43 +384,6 @@ public sealed class ReviewDomainService
             null);
     }
 
-    private async Task AddReviewLogAsync(
-        SysReview review,
-        ReviewAuditCommand command,
-        AuditStatus originalStatus,
-        AuditStatus newStatus,
-        DateTimeOffset reviewTime,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var reviewLog = new SysReviewLog
-        {
-            ReviewId = review.BasicId,
-            ReviewLevel = review.CurrentLevel,
-            ReviewUserId = command.ReviewUserId ?? command.CurrentUserId,
-            OriginalStatus = originalStatus,
-            NewStatus = newStatus,
-            ReviewResult = command.ReviewResult,
-            ReviewComment = Optional(command.ReviewComment, 1000, nameof(command.ReviewComment), "审查意见不能超过 1000 个字符。"),
-            ReviewAction = Optional(command.ReviewAction, 50, nameof(command.ReviewAction), "审查动作不能超过 50 个字符。")
-                ?? ResolveDefaultReviewAction(command.ReviewResult),
-            Attachments = OptionalJson(command.Attachments, "审查日志附件信息必须是有效 JSON。"),
-            ReviewTime = reviewTime,
-            ExtendData = OptionalJson(command.ExtendData, "审查日志扩展数据必须是有效 JSON。"),
-            Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
-        };
-
-        await _reviewLogRepository.AddLogAsync(reviewLog, cancellationToken);
-    }
-
-    private async Task<SysReview> GetReviewOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "系统审查主键必须大于 0。");
-        return await _reviewRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("系统审查不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -496,5 +460,42 @@ public sealed class ReviewDomainService
         }
 
         return normalized;
+    }
+
+    private async Task AddReviewLogAsync(
+                                    SysReview review,
+        ReviewAuditCommand command,
+        AuditStatus originalStatus,
+        AuditStatus newStatus,
+        DateTimeOffset reviewTime,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var reviewLog = new SysReviewLog
+        {
+            ReviewId = review.BasicId,
+            ReviewLevel = review.CurrentLevel,
+            ReviewUserId = command.ReviewUserId ?? command.CurrentUserId,
+            OriginalStatus = originalStatus,
+            NewStatus = newStatus,
+            ReviewResult = command.ReviewResult,
+            ReviewComment = Optional(command.ReviewComment, 1000, nameof(command.ReviewComment), "审查意见不能超过 1000 个字符。"),
+            ReviewAction = Optional(command.ReviewAction, 50, nameof(command.ReviewAction), "审查动作不能超过 50 个字符。")
+                ?? ResolveDefaultReviewAction(command.ReviewResult),
+            Attachments = OptionalJson(command.Attachments, "审查日志附件信息必须是有效 JSON。"),
+            ReviewTime = reviewTime,
+            ExtendData = OptionalJson(command.ExtendData, "审查日志扩展数据必须是有效 JSON。"),
+            Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
+        };
+
+        await _reviewLogRepository.AddLogAsync(reviewLog, cancellationToken);
+    }
+
+    private async Task<SysReview> GetReviewOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "系统审查主键必须大于 0。");
+        return await _reviewRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("系统审查不存在。");
     }
 }

@@ -12,52 +12,41 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.Options;
 using System.Text.Json;
-using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
-using XiHan.Framework.Messaging.Abstractions;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Messaging.Models;
-using XiHan.Framework.Messaging.Options;
-using XiHan.Framework.Templating.Services;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
 /// 系统消息投递服务实现
 /// </summary>
+/// <remarks>
+/// 统一异步：先渲染模板、落 SysEmail/SysSms 为 Pending，再把消息入业务层发件箱（Redis 延迟队列），由后台拉取发送，不阻塞调用接口。
+/// 框架 Messaging 仅负责路由；发送编排（发件箱）在业务层（见 <see cref="DbMessageOutbox"/> + MessageOutboxHostedService）。
+/// </remarks>
 public sealed class MessageDeliveryService
     : IMessageDeliveryService
 {
-    private readonly IMessageDispatcher _messageDispatcher;
-
     private readonly IMessageDomainService _messageDomainService;
 
-    private readonly IMessageOutbox _messageOutbox;
+    private readonly DbMessageOutbox _outbox;
 
-    private readonly IMessageRecordQueryService _messageQueryService;
-
-    private readonly XiHanMessagingOptions _messagingOptions;
-
-    private readonly ITemplateService _templateService;
+    private readonly IMessageTemplateRenderer _messageTemplateRenderer;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public MessageDeliveryService(
         IMessageDomainService messageDomainService,
-        IMessageRecordQueryService messageQueryService,
-        IMessageDispatcher messageDispatcher,
-        IMessageOutbox messageOutbox,
-        ITemplateService templateService,
-        IOptions<XiHanMessagingOptions> messagingOptions)
+        DbMessageOutbox outbox,
+        IMessageTemplateRenderer messageTemplateRenderer)
     {
         _messageDomainService = messageDomainService;
-        _messageQueryService = messageQueryService;
-        _messageDispatcher = messageDispatcher;
-        _messageOutbox = messageOutbox;
-        _templateService = templateService;
-        _messagingOptions = messagingOptions.Value;
+        _outbox = outbox;
+        _messageTemplateRenderer = messageTemplateRenderer;
     }
 
     /// <inheritdoc />
@@ -70,22 +59,10 @@ public sealed class MessageDeliveryService
         await RenderTemplateAsync(envelope);
         var renderedCommand = command with { Content = envelope.Content ?? command.Content };
 
-        if (_messagingOptions.OutboxEnabled)
-        {
-            var result = await _messageDomainService.CreateOutboxEmailAsync(renderedCommand, cancellationToken);
-            envelope.Metadata["EntityId"] = result.Email.BasicId.ToString();
-            await _messageOutbox.EnqueueAsync(envelope, cancellationToken);
-            return result;
-        }
-
-        var dispatchResult = await DispatchOneAsync(envelope, "邮件", cancellationToken);
-        if (!long.TryParse(dispatchResult.ProviderMessageId, out var emailId) || emailId <= 0)
-        {
-            throw new InvalidOperationException("邮件分发未返回有效记录 ID。");
-        }
-
-        var savedEmail = await _messageQueryService.GetEmailOrThrowAsync(emailId, cancellationToken);
-        return new EmailCommandResult(savedEmail);
+        // 落库为 Pending，再入业务发件箱（事务提交后）由后台异步发送
+        var result = await _messageDomainService.CreateOutboxEmailAsync(renderedCommand, cancellationToken);
+        await _outbox.EnqueueAsync("email", result.Email.BasicId, cancellationToken);
+        return result;
     }
 
     /// <inheritdoc />
@@ -98,22 +75,10 @@ public sealed class MessageDeliveryService
         await RenderTemplateAsync(envelope);
         var renderedCommand = command with { Content = envelope.Content ?? command.Content };
 
-        if (_messagingOptions.OutboxEnabled)
-        {
-            var result = await _messageDomainService.CreateOutboxSmsAsync(renderedCommand, cancellationToken);
-            envelope.Metadata["EntityId"] = result.Sms.BasicId.ToString();
-            await _messageOutbox.EnqueueAsync(envelope, cancellationToken);
-            return result;
-        }
-
-        var dispatchResult = await DispatchOneAsync(envelope, "短信", cancellationToken);
-        if (!long.TryParse(dispatchResult.ProviderMessageId, out var smsId) || smsId <= 0)
-        {
-            throw new InvalidOperationException("短信分发未返回有效记录 ID。");
-        }
-
-        var savedSms = await _messageQueryService.GetSmsOrThrowAsync(smsId, cancellationToken);
-        return new SmsCommandResult(savedSms);
+        // 落库为 Pending，再入业务发件箱（事务提交后）由后台异步发送
+        var result = await _messageDomainService.CreateOutboxSmsAsync(renderedCommand, cancellationToken);
+        await _outbox.EnqueueAsync("sms", result.Sms.BasicId, cancellationToken);
+        return result;
     }
 
     private static MessageEnvelope BuildEmailEnvelope(EmailCreateCommand command)
@@ -124,7 +89,7 @@ public sealed class MessageDeliveryService
             TenantId = null,
             Subject = command.Subject ?? string.Empty,
             Content = command.Content,
-            TemplateCode = command.TemplateId?.ToString(),
+            TemplateCode = command.TemplateCode,
             TemplateParams = ParseTemplateParams(command.TemplateParams),
             ScheduledTime = command.ScheduledTime,
             Recipients =
@@ -134,25 +99,7 @@ public sealed class MessageDeliveryService
                     Address = command.ToEmail,
                     DisplayName = command.ToEmail
                 }
-            ],
-            Metadata = new Dictionary<string, string?>
-            {
-                ["FromEmail"] = command.FromEmail,
-                ["FromName"] = command.FromName,
-                ["IsHtml"] = command.IsHtml.ToString(),
-                ["CcEmail"] = command.CcEmail,
-                ["BccEmail"] = command.BccEmail,
-                ["Attachments"] = command.Attachments,
-                ["EmailType"] = command.EmailType.ToString(),
-                ["SendUserId"] = command.SendUserId?.ToString(),
-                ["ReceiveUserId"] = command.ReceiveUserId?.ToString(),
-                ["TemplateId"] = command.TemplateId?.ToString(),
-                ["TemplateParams"] = command.TemplateParams,
-                ["MaxRetryCount"] = command.MaxRetryCount.ToString(),
-                ["BusinessType"] = command.BusinessType,
-                ["BusinessId"] = command.BusinessId?.ToString(),
-                ["Remark"] = command.Remark
-            }
+            ]
         };
     }
 
@@ -164,7 +111,7 @@ public sealed class MessageDeliveryService
             TenantId = null,
             Subject = string.Empty,
             Content = command.Content,
-            TemplateCode = command.TemplateId?.ToString(),
+            TemplateCode = command.TemplateCode,
             TemplateParams = ParseTemplateParams(command.TemplateParams),
             ScheduledTime = command.ScheduledTime,
             Recipients =
@@ -174,38 +121,8 @@ public sealed class MessageDeliveryService
                     Address = command.ToPhone,
                     DisplayName = command.ToPhone
                 }
-            ],
-            Metadata = new Dictionary<string, string?>
-            {
-                ["SmsType"] = command.SmsType.ToString(),
-                ["Provider"] = command.Provider,
-                ["SenderId"] = command.SenderId?.ToString(),
-                ["ReceiverId"] = command.ReceiverId?.ToString(),
-                ["TemplateId"] = command.TemplateId?.ToString(),
-                ["TemplateParams"] = command.TemplateParams,
-                ["MaxRetryCount"] = command.MaxRetryCount.ToString(),
-                ["BusinessType"] = command.BusinessType,
-                ["BusinessId"] = command.BusinessId?.ToString(),
-                ["Remark"] = command.Remark
-            }
+            ]
         };
-    }
-
-    private async Task<MessageSendResult> DispatchOneAsync(
-        MessageEnvelope envelope,
-        string messageName,
-        CancellationToken cancellationToken)
-    {
-        var results = await _messageDispatcher.DispatchAsync(envelope, cancellationToken);
-        var result = results.FirstOrDefault()
-            ?? throw new InvalidOperationException($"{messageName}分发未返回结果。");
-
-        if (!result.IsSuccess)
-        {
-            throw new InvalidOperationException($"{messageName}分发失败: {result.ErrorMessage ?? "未知错误"}");
-        }
-
-        return result;
     }
 
     private static Dictionary<string, string?> ParseTemplateParams(string? templateParamsJson)
@@ -226,23 +143,42 @@ public sealed class MessageDeliveryService
         }
     }
 
+    /// <summary>
+    /// 信封渠道字符串映射为消息渠道枚举
+    /// </summary>
+    private static MessageChannel MapChannel(string channel)
+    {
+        return channel.ToLowerInvariant() switch
+        {
+            "email" => MessageChannel.Email,
+            "sms" => MessageChannel.Sms,
+            _ => MessageChannel.SiteNotification
+        };
+    }
+
+    /// <summary>
+    /// 按 TemplateCode 从模板库查找并渲染信封内容（租户模板优先回退全局；模板缺失/损坏保留原始内容）。
+    /// </summary>
     private async Task RenderTemplateAsync(MessageEnvelope envelope)
     {
-        if (string.IsNullOrWhiteSpace(envelope.TemplateCode) ||
-            envelope.TemplateParams is null ||
-            envelope.TemplateParams.Count == 0)
+        if (string.IsNullOrWhiteSpace(envelope.TemplateCode))
         {
             return;
         }
 
+        var channel = MapChannel(envelope.Channel);
         var variables = envelope.TemplateParams.ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value);
-        try
+        var rendered = await _messageTemplateRenderer.RenderAsync(channel, envelope.TemplateCode, variables);
+        if (rendered is null)
         {
-            envelope.Content = await _templateService.RenderAsync(envelope.TemplateCode, variables);
+            // 模板不存在/停用/渲染失败：保留原始内容，由发送链路继续处理
+            return;
         }
-        catch
+
+        envelope.Content = rendered.Content;
+        if (!string.IsNullOrWhiteSpace(rendered.Subject))
         {
-            // 模板渲染失败时保留原始内容，后续由消息发送链路处理。
+            envelope.Subject = rendered.Subject;
         }
     }
 }

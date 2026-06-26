@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { AccessLogDetailDto, AccessLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { AccessResult, createPageRequest, logManagementApi } from '@/api'
@@ -65,6 +65,8 @@ const fields: ListFieldSchema[] = [
     searchPlaceholder: '请求方法',
     width: 100,
     order: 17,
+    // 直接展示原始方法字符串：OPTIONS/HEAD 等不在搜索选项内，避免按枚举映射后显示为空
+    render: row => (row as unknown as AccessLogListItemDto).method || '-',
   },
   {
     key: 'accessResult',
@@ -81,7 +83,7 @@ const fields: ListFieldSchema[] = [
     },
   },
   { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 19 },
-  { key: 'accessIp', title: '访问 IP', dataType: 'string', minWidth: 130, order: 20 },
+  { key: 'accessIp', title: '访问 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索访问 IP', minWidth: 130, order: 20 },
   { key: 'accessLocation', title: '访问位置', dataType: 'string', minWidth: 160, order: 21 },
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 22 },
   { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 23 },
@@ -107,33 +109,39 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildAccessQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
+    method: toStr(f.method),
+    accessIp: toStr(f.accessIp),
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    resourcePath: toStr(f.resourcePath),
+    resourceType: toStr(f.resourceType),
+    sessionId: toStr(f.sessionId),
+    traceId: toStr(f.traceId),
+    statusCode: toNum(f.statusCode),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    accessTimeStart: toIso(f.accessTimeStart),
+    accessTimeEnd: toIso(f.accessTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.access',
+  exportPermission: 'saas:access-log:export',
   pageName: '访问日志',
   rowKey: 'basicId',
   scrollX: 2200,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.access.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        accessResult: (f.accessResult as AccessResult | undefined) ?? undefined,
-        method: toStr(f.method),
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        resourcePath: toStr(f.resourcePath),
-        resourceType: toStr(f.resourceType),
-        sessionId: toStr(f.sessionId),
-        traceId: toStr(f.traceId),
-        statusCode: toNum(f.statusCode),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        accessTimeStart: toIso(f.accessTimeStart),
-        accessTimeEnd: toIso(f.accessTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.access.page(buildAccessQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.access', buildQuery: buildAccessQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },

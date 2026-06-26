@@ -605,14 +605,6 @@ public sealed class RoleDomainService
         }
     }
 
-    private void EnsureRoleCanBeMaintained(SysRole role)
-    {
-        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-    }
-
     private static void ValidateRolePermissionGrantCommand(RolePermissionGrantCommand command)
     {
         if (command.RoleId <= 0)
@@ -680,14 +672,6 @@ public sealed class RoleDomainService
         if (command.AncestorId == command.DescendantId)
         {
             throw new InvalidOperationException("角色不能继承自己。");
-        }
-    }
-
-    private void EnsureDescendantCanBeMaintainedForHierarchy(SysRole descendant)
-    {
-        if ((descendant.IsGlobal || descendant.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护继承关系，请切换到平台运维后操作。");
         }
     }
 
@@ -812,6 +796,22 @@ public sealed class RoleDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private void EnsureRoleCanBeMaintained(SysRole role)
+    {
+        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护，请切换到平台运维后操作。");
+        }
+    }
+
+    private void EnsureDescendantCanBeMaintainedForHierarchy(SysRole descendant)
+    {
+        if ((descendant.IsGlobal || descendant.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护继承关系，请切换到平台运维后操作。");
+        }
     }
 
     private async Task<SysRole> GetEditableRoleOrThrowAsync(long id, CancellationToken cancellationToken)

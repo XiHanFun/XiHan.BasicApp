@@ -25,6 +25,17 @@ public sealed class NotificationCreateDto
     public NotificationType NotificationType { get; set; } = NotificationType.System;
     public string Title { get; set; } = string.Empty;
     public string? Content { get; set; }
+
+    /// <summary>
+    /// 模板编码（站内通知渠道；提供时按模板渲染覆盖 Title/Content，缺失回退原值）
+    /// </summary>
+    public string? TemplateCode { get; set; }
+
+    /// <summary>
+    /// 模板变量
+    /// </summary>
+    public Dictionary<string, string>? TemplateParams { get; set; }
+
     public string? Icon { get; set; }
     public string? Link { get; set; }
     public string? BusinessType { get; set; }
@@ -82,7 +93,7 @@ public sealed class EmailCreateDto
     public string? Content { get; set; }
     public bool IsHtml { get; set; } = true;
     public string? Attachments { get; set; }
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }
     public int MaxRetryCount { get; set; } = 3;
@@ -104,7 +115,7 @@ public sealed class EmailUpdateDto : BasicAppUDto
     public string? Content { get; set; }
     public bool IsHtml { get; set; } = true;
     public string? Attachments { get; set; }
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }
     public int MaxRetryCount { get; set; } = 3;
@@ -129,7 +140,7 @@ public sealed class SmsCreateDto
     public SmsType SmsType { get; set; } = SmsType.Notification;
     public string ToPhone { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public string? Provider { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }
@@ -145,7 +156,7 @@ public sealed class SmsUpdateDto : BasicAppUDto
     public SmsType SmsType { get; set; } = SmsType.Notification;
     public string ToPhone { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    public long? TemplateId { get; set; }
+    public string? TemplateCode { get; set; }
     public string? TemplateParams { get; set; }
     public string? Provider { get; set; }
     public DateTimeOffset? ScheduledTime { get; set; }

@@ -96,7 +96,8 @@ function resolveView(component?: string) {
 
 export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
   return menuRoutes
-    .filter(item => !!item.path)
+    // 外链菜单（meta.link）不生成路由——由侧边栏/顶栏菜单点击新标签直接打开
+    .filter(item => !!item.path && !item.meta?.link)
     .map((item) => {
       const component = resolveView(item.component)
       const route = {

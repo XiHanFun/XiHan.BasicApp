@@ -1,2 +1,82 @@
-@import '~/design/global.css';
+/* ============================================================================
+ * Tailwind CSS v4 入口（CSS-first 配置，取代旧 tailwind.config.mjs）
+ * 由 main.ts 唯一导入；@tailwindcss/vite 插件统一处理整个 CSS 依赖图。
+ * ========================================================================== */
+
+/* 声明层级顺序：仅引入 theme + utilities，不引入 preflight。
+ * 基础重置由 Naive UI 与 design/global.css 中的最小重置负责，避免冲突。 */
+@layer theme, base, components, utilities;
+
+/* 设计令牌（运行时 CSS 变量，含明暗主题），需在 @theme 之前提供 --border 等变量 */
+@import '../../packages/design/variables.css';
+
+/* Tailwind v4 核心 */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* 设计系统层（global.css 使用 @apply，依赖上面的 utilities） */
+@import '../../packages/design/global.css';
+@import '../../packages/design/transition.css';
+@import '../../packages/design/scrollbar.css';
+@import '../../packages/design/ui.css';
+@import '../../packages/design/naive.css';
 @import './admin-page.css';
+
+/* ---------------------------------------------------------------------------
+ * 自定义主题颜色（取代 tailwind.config.mjs 的 theme.extend.colors）
+ * 颜色值引用 variables.css 中的运行时 HSL 令牌，保持明暗主题动态切换能力。
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-background: hsl(var(--background));
+  --color-background-deep: hsl(var(--background-deep));
+  --color-foreground: hsl(var(--foreground));
+  --color-overlay: hsl(var(--overlay));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-deep: hsl(var(--sidebar-deep));
+  --color-header: hsl(var(--header));
+  --color-menu: hsl(var(--menu));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-success-surface: hsl(var(--success-surface));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-warning-surface: hsl(var(--warning-surface));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+  --color-info-surface: hsl(var(--info-surface));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-surface: hsl(var(--destructive-surface));
+
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* 暗色模式：class 策略（取代 darkMode: 'class'），匹配 .dark 容器内的元素 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 内容扫描范围（取代 config.content） */
+@source '../../src';
+@source '../../packages';
+@source '../../index.html';

@@ -45,6 +45,11 @@ public interface IUserDomainService
     Task<UserSecurityCommandResult> ResetUserPasswordAsync(UserPasswordResetCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 重置用户双因素认证（清除 OTP 绑定）
+    /// </summary>
+    Task<UserSecurityCommandResult> ResetUserTwoFactorAsync(UserTwoFactorResetCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新用户锁定状态
     /// </summary>
     Task<UserSecurityCommandResult> UpdateUserLockAsync(UserLockChangeCommand command, CancellationToken cancellationToken = default);

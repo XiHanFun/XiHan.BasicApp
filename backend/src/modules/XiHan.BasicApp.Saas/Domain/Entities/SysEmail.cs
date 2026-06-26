@@ -129,10 +129,10 @@ public partial class SysEmail : BasicAppFullAuditedEntity
     public virtual string? Attachments { get; set; }
 
     /// <summary>
-    /// 模板ID
+    /// 模板编码（关联 SysMessageTemplate.TemplateCode，发送时按编码查找模板渲染）
     /// </summary>
-    [SugarColumn(ColumnDescription = "模板ID", IsNullable = true)]
-    public virtual long? TemplateId { get; set; }
+    [SugarColumn(ColumnDescription = "模板编码", Length = 100, IsNullable = true)]
+    public virtual string? TemplateCode { get; set; }
 
     /// <summary>
     /// 模板参数（JSON格式）

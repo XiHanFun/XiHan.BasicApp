@@ -68,6 +68,7 @@ public sealed class SaasDomainEventHandler
         _clientResolver = clientResolver;
         _currentTenant = currentTenant;
     }
+
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <inheritdoc />

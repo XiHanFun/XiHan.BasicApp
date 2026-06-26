@@ -24,6 +24,7 @@ const agreePolicy = ref(false)
 
 const formData = ref({
   username: '',
+  email: '',
   password: '',
   confirmPassword: '',
 })
@@ -62,8 +63,12 @@ const strengthColor = computed(() => {
 
 const rules: FormRules = {
   username: [
-    { required: true, message: () => t('page.login.username_placeholder'), trigger: 'blur' },
+    { required: true, message: () => t('page.auth.username_placeholder'), trigger: 'blur' },
     { min: 3, message: () => t('page.auth.username_min_length'), trigger: 'blur' },
+  ],
+  email: [
+    { required: true, message: () => t('page.auth.email_placeholder'), trigger: 'blur' },
+    { type: 'email', message: () => t('page.auth.email_invalid'), trigger: 'blur' },
   ],
   password: [
     { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
@@ -110,6 +115,7 @@ async function handleRegister() {
     loading.value = true
     await apis.registerApi({
       username: formData.value.username,
+      email: formData.value.email,
       password: formData.value.password,
       nickName: formData.value.username,
     })
@@ -160,8 +166,16 @@ function handleKeydown(e: KeyboardEvent) {
         <NInput
           v-model:value="formData.username"
           size="large"
-          :placeholder="t('page.login.username_placeholder')"
+          :placeholder="t('page.auth.username_placeholder')"
           :input-props="{ autocomplete: 'username' }"
+        />
+      </NFormItem>
+      <NFormItem path="email" :show-feedback="false" class="!mb-6">
+        <NInput
+          v-model:value="formData.email"
+          size="large"
+          :placeholder="`${t('page.auth.email_placeholder')}（${t('page.auth.register_email_tip')}）`"
+          :input-props="{ autocomplete: 'email', type: 'email' }"
         />
       </NFormItem>
       <NFormItem path="password" :show-feedback="false" class="!mb-3">

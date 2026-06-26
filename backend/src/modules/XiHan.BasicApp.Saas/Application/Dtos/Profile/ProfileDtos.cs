@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Domain.Entities;
+
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
@@ -217,17 +219,12 @@ public sealed class ProfileUpdateDto
 public sealed class ProfileChangePasswordDto
 {
     /// <summary>
-    /// 用户主键
-    /// </summary>
-    public long UserId { get; set; }
-
-    /// <summary>
     /// 旧密码
     /// </summary>
     public string OldPassword { get; set; } = string.Empty;
 
     /// <summary>
-    /// 新密码
+    /// 新密码（目标用户始终为当前登录用户，服务端自取）
     /// </summary>
     public string NewPassword { get; set; } = string.Empty;
 }
@@ -443,9 +440,9 @@ public sealed class ProfileLoginLogItemDto
     public string? Os { get; set; }
 
     /// <summary>
-    /// 登录结果
+    /// 登录结果（枚举序列化为字符串，与前端契约一致）
     /// </summary>
-    public int LoginResult { get; set; }
+    public LoginResult LoginResult { get; set; }
 
     /// <summary>
     /// 消息

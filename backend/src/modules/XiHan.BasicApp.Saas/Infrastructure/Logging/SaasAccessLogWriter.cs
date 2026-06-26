@@ -92,21 +92,17 @@ public class SaasAccessLogWriter : IAccessLogWriter
 
     private static string? BuildExtendData(AccessLogRecord record)
     {
-        if (string.IsNullOrWhiteSpace(record.QueryString) && string.IsNullOrWhiteSpace(record.RequestBody))
+        // 访问日志记录所有 HTTP 请求的访问行为，不记录完整请求体（敏感信息防泄露），
+        // 仅保留查询串（已在请求日志中间件捕获点统一脱敏）
+        if (string.IsNullOrWhiteSpace(record.QueryString))
         {
             return null;
         }
 
-        var payload = new Dictionary<string, string?>();
-        if (!string.IsNullOrWhiteSpace(record.QueryString))
+        var payload = new Dictionary<string, string?>
         {
-            payload["query"] = record.QueryString;
-        }
-
-        if (!string.IsNullOrWhiteSpace(record.RequestBody))
-        {
-            payload["body"] = record.RequestBody;
-        }
+            ["query"] = record.QueryString
+        };
 
         try
         {

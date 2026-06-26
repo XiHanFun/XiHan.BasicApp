@@ -14,6 +14,10 @@ export interface PermissionPageQueryDto extends PageRequest {
 
 export interface PermissionListItemDto extends BasicDto {
   createdTime: DateTimeString
+  /** 功能分组码（资源段，后端定义，UI 按此归组） */
+  groupCode?: string
+  /** 功能分组显示名（后端定义） */
+  groupName?: string
   isGlobal: boolean
   isRequireAudit: boolean
   modifiedTime?: DateTimeString | null

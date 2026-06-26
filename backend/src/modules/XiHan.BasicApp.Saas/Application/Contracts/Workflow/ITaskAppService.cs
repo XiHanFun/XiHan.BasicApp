@@ -43,6 +43,11 @@ public interface ITaskAppService : IApplicationService
     Task<TaskDetailDto> UpdateTaskRunStatusAsync(TaskRunStatusUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 立即执行一次系统任务（不影响既有调度计划）
+    /// </summary>
+    Task<TaskRunResultDto> RunTaskAsync(TaskRunDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 删除系统任务
     /// </summary>
     Task DeleteTaskAsync(long id, CancellationToken cancellationToken = default);

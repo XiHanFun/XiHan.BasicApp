@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
-import { computed, ref, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { storage } from '~/utils'
-import { usePagePreferenceSync } from './usePagePreferenceSync'
+import { useUserSettingSync } from './useUserSettingSync'
 
 /**
  * 单列设置项（显隐 / 固定 / 列宽）
@@ -70,7 +70,7 @@ export function useTableSettings(
   },
 ) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
-  const sync = usePagePreferenceSync(pageCode)
+  const sync = useUserSettingSync(pageCode)
   const defaultSelectable = options?.defaultSelectable ?? false
 
   /** 由 schema 字段生成的默认列设置 */
@@ -132,6 +132,16 @@ export function useTableSettings(
       applyPersisted(remote)
     }
   })
+
+  // 其它在线设备保存表格设置时实时应用（SignalR 推送），并落地本地保持刷新后一致
+  const unsubscribeRemote = sync.subscribeRemote('table', (value) => {
+    const remote = value as PersistedTableSettings
+    if (remote && Array.isArray(remote.columns) && remote.columns.length > 0) {
+      applyPersisted(remote)
+      storage.set(storageKey, remote)
+    }
+  })
+  onScopeDispose(unsubscribeRemote)
 
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {

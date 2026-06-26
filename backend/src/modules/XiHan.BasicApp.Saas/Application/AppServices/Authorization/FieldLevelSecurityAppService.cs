@@ -32,6 +32,8 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class FieldLevelSecurityAppService
     : SaasApplicationService, IFieldLevelSecurityAppService
 {
+    private readonly IFieldLevelSecurityDomainService _fieldLevelSecurityDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,8 +41,6 @@ public sealed class FieldLevelSecurityAppService
     {
         _fieldLevelSecurityDomainService = fieldLevelSecurityDomainService;
     }
-
-    private readonly IFieldLevelSecurityDomainService _fieldLevelSecurityDomainService;
 
     /// <summary>
     /// 创建字段级安全策略

@@ -5,7 +5,7 @@ import type { LayoutRouteRecord } from '../contracts'
 import { NMenu, useMessage } from 'naive-ui'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocale, useRefresh, useTheme } from '~/hooks'
+import { useLocale, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { NotificationStatus } from '~/types/enums'
@@ -32,7 +32,6 @@ const { t, te } = useI18n()
 const message = useMessage()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { setLocale } = useLocale()
-const { refresh: doRefresh } = useRefresh()
 const {
   route,
   router,
@@ -42,6 +41,7 @@ const {
   resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
+  openExternalIfMatch,
 } = useLayoutMenuDomain()
 
 // 偏好设置入口可见性：头部按钮与悬浮 FAB 互斥（auto 模式窄屏走 FAB，头部按钮隐藏）
@@ -187,6 +187,12 @@ const userOptions = computed<DropdownOption[]>(() => [
     key: 'profile',
     icon: () => h(Icon, { icon: 'lucide:user' }),
   },
+  {
+    // 切换租户 / 平台管理：打开控制中心（独立公共页，不进标签栏）
+    label: t('header.user.switch_tenant'),
+    key: 'control-center',
+    icon: () => h(Icon, { icon: 'lucide:building-2' }),
+  },
   ...(appStore.widgetLockScreen
     ? [
         {
@@ -239,6 +245,10 @@ async function handleUserAction(key: string) {
     router.push('/workbench/profile')
     return
   }
+  if (key === 'control-center') {
+    router.push('/control-center')
+    return
+  }
   if (key === 'lock') {
     layoutBridgeStore.requestLockScreen()
   }
@@ -268,6 +278,9 @@ function handleTopMenuSelect(path: string) {
   if (!path || path === route.path) {
     return
   }
+  if (openExternalIfMatch(path)) {
+    return
+  }
   if (!isSplitMode.value) {
     router.push(path)
     return
@@ -282,8 +295,9 @@ function handleTopMenuSelect(path: string) {
   }
 }
 
-function handleRefreshCurrentTab() {
-  doRefresh()
+/** 整页刷新（等效浏览器刷新 / F5），区别于标签页级的软刷新 */
+function handleReloadPage() {
+  window.location.reload()
 }
 
 function openPreferenceDrawer() {
@@ -448,11 +462,12 @@ watch(() => route.fullPath, () => {
     </XihanIconButton>
   </template>
 
-  <!-- Refresh button (left widget) -->
+  <!-- Refresh button (left widget) — 整页刷新，等效浏览器 F5 -->
   <XihanIconButton
     v-if="appStore.widgetRefresh"
     class="my-0 mr-1 rounded-md"
-    @click="handleRefreshCurrentTab"
+    tooltip="刷新页面"
+    @click="handleReloadPage"
   >
     <Icon icon="lucide:refresh-cw" class="size-4" />
   </XihanIconButton>

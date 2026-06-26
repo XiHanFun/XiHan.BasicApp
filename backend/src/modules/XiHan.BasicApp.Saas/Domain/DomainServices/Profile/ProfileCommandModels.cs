@@ -51,7 +51,7 @@ public sealed record ProfileUpdateCommand(
 /// <summary>
 /// 当前用户密码修改命令
 /// </summary>
-public sealed record ProfileChangePasswordCommand(long UserId, long InputUserId, string? OldPassword, string? NewPassword);
+public sealed record ProfileChangePasswordCommand(long UserId, string? OldPassword, string? NewPassword);
 
 /// <summary>
 /// 当前用户名修改命令

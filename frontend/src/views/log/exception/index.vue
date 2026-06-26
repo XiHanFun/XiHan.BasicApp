@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { ExceptionLogDetailDto, ExceptionLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { createPageRequest, DeviceType, logManagementApi } from '@/api'
@@ -83,7 +83,7 @@ const fields: ListFieldSchema[] = [
   { key: 'controllerName', title: '控制器', dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: '动作', dataType: 'string', minWidth: 140, order: 23 },
   { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 24 },
-  { key: 'operationIp', title: '操作 IP', dataType: 'string', minWidth: 130, order: 25 },
+  { key: 'operationIp', title: '操作 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索操作 IP', minWidth: 130, order: 25 },
   { key: 'operationLocation', title: '操作位置', dataType: 'string', minWidth: 160, order: 26 },
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 27 },
   { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 28 },
@@ -136,39 +136,45 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildExceptionQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    severityLevel: toNum(f.severityLevel),
+    isHandled: toBool(f.isHandled),
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    exceptionType: toStr(f.exceptionType),
+    exceptionSource: toStr(f.exceptionSource),
+    exceptionLocation: toStr(f.exceptionLocation),
+    requestPath: toStr(f.requestPath),
+    requestMethod: toStr(f.requestMethod),
+    statusCode: toNum(f.statusCode),
+    operationIp: toStr(f.operationIp),
+    errorCode: toStr(f.errorCode),
+    applicationName: toStr(f.applicationName),
+    environmentName: toStr(f.environmentName),
+    deviceType: (f.deviceType as DeviceType | undefined) ?? undefined,
+    traceId: toStr(f.traceId),
+    requestId: toStr(f.requestId),
+    sessionId: toStr(f.sessionId),
+    exceptionTimeStart: toIso(f.exceptionTimeStart),
+    exceptionTimeEnd: toIso(f.exceptionTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.exception',
+  exportPermission: 'saas:exception-log:export',
   pageName: '异常日志',
   rowKey: 'basicId',
   scrollX: 2800,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.exception.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        severityLevel: toNum(f.severityLevel),
-        isHandled: toBool(f.isHandled),
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        exceptionType: toStr(f.exceptionType),
-        exceptionSource: toStr(f.exceptionSource),
-        exceptionLocation: toStr(f.exceptionLocation),
-        requestPath: toStr(f.requestPath),
-        requestMethod: toStr(f.requestMethod),
-        statusCode: toNum(f.statusCode),
-        errorCode: toStr(f.errorCode),
-        applicationName: toStr(f.applicationName),
-        environmentName: toStr(f.environmentName),
-        deviceType: (f.deviceType as DeviceType | undefined) ?? undefined,
-        traceId: toStr(f.traceId),
-        requestId: toStr(f.requestId),
-        sessionId: toStr(f.sessionId),
-        exceptionTimeStart: toIso(f.exceptionTimeStart),
-        exceptionTimeEnd: toIso(f.exceptionTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.exception.page(buildExceptionQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.exception', buildQuery: buildExceptionQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },

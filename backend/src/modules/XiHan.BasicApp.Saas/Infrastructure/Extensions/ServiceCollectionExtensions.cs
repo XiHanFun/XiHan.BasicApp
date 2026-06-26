@@ -16,14 +16,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
+using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
+using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Authentication.OAuth;
@@ -31,9 +32,11 @@ using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
+using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Web.Api.Logging.Writers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Extensions;
@@ -68,6 +71,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConstraintRuleDomainService, ConstraintRuleDomainService>();
         services.AddScoped<IFieldLevelSecurityDomainService, FieldLevelSecurityDomainService>();
         services.AddScoped<IFileDomainService, FileDomainService>();
+        services.AddScoped<IStorageConfigDomainService, StorageConfigDomainService>();
         services.AddScoped<IConfigDomainService, ConfigDomainService>();
         services.AddScoped<IDictDomainService, DictDomainService>();
         services.AddScoped<IVersionDomainService, VersionDomainService>();
@@ -85,6 +89,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReviewDomainService, ReviewDomainService>();
         services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();
         services.AddScoped<IMessageDomainService, MessageDomainService>();
+        services.AddScoped<IMessageTemplateDomainService, MessageTemplateDomainService>();
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();
@@ -115,6 +120,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnumMetadataQueryService, EnumMetadataQueryService>();
         services.AddScoped<IServerInfoQueryService, ServerInfoQueryService>();
         services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
+        services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
@@ -131,7 +137,9 @@ public static class ServiceCollectionExtensions
     /// 添加 SaaS 领域事件处理器
     /// </summary>
     /// <remarks>
-    /// 事件处理器注册为 Transient，由事件总线框架通过 <c>OnRegistered</c> 钩子自动发现并订阅。
+    /// 事件总线的 <c>OnRegistered</c> 自动发现仅覆盖以接口为服务类型的注册（由 Castle 动态代理扫描触发），
+    /// 具体类注册不会被发现。因此这里在注册的同时显式将处理器加入
+    /// <see cref="XiHanLocalEventBusOptions.Handlers"/>，确保 LocalEventBus 完成订阅。
     /// Transient 生命周期确保每次事件发布时获取新实例，避免并发冲突。
     /// </remarks>
     /// <param name="services">服务集合</param>
@@ -139,27 +147,27 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSaasEventHandlers(this IServiceCollection services)
     {
         // 租户事件
-        services.AddTransient<TenantStatusChangedEventHandler>();
-        services.AddTransient<TenantMembershipChangedEventHandler>();
+        services.AddSaasLocalEventHandler<TenantStatusChangedEventHandler>();
+        services.AddSaasLocalEventHandler<TenantMembershipChangedEventHandler>();
 
         // 用户会话事件
-        services.AddTransient<UserSessionRevokedEventHandler>();
+        services.AddSaasLocalEventHandler<UserSessionRevokedEventHandler>();
 
         // 认证事件
-        services.AddTransient<AuthLoginEventHandler>();
+        services.AddSaasLocalEventHandler<AuthLoginEventHandler>();
 
         // 文件事件
-        services.AddTransient<FileUploadedEventHandler>();
-        services.AddTransient<FileDeletedEventHandler>();
-        services.AddTransient<FilePrimaryStorageChangedEventHandler>();
+        services.AddSaasLocalEventHandler<FileUploadedEventHandler>();
+        services.AddSaasLocalEventHandler<FileDeletedEventHandler>();
+        services.AddSaasLocalEventHandler<FilePrimaryStorageChangedEventHandler>();
 
         // 授权事件
-        services.AddTransient<AuthorizationChangedEventHandler>();
-        services.AddTransient<DataScopeChangedEventHandler>();
-        services.AddTransient<FieldLevelSecurityChangedEventHandler>();
+        services.AddSaasLocalEventHandler<AuthorizationChangedEventHandler>();
+        services.AddSaasLocalEventHandler<DataScopeChangedEventHandler>();
+        services.AddSaasLocalEventHandler<FieldLevelSecurityChangedEventHandler>();
 
         // 组织层级事件
-        services.AddTransient<HierarchyChangedEventHandler>();
+        services.AddSaasLocalEventHandler<HierarchyChangedEventHandler>();
 
         return services;
     }
@@ -176,10 +184,14 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasTenantEditionSeeder>();
         services.AddDataSeeder<SaasConfigurationSeeder>();
         services.AddDataSeeder<SaasDictSeeder>();
-        services.AddDataSeeder<SaasIdentityPermissionSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
-        services.AddDataSeeder<SaasDepartmentSeeder>();
-        services.AddDataSeeder<SaasDemoUserSeeder>();
+        services.AddDataSeeder<SaasMessageTemplateSeeder>();
+        services.AddDataSeeder<SaasOAuthAppSeeder>();
+        services.AddDataSeeder<SaasOrganizationSeeder>();
+        services.AddDataSeeder<SaasSampleIdentitySeeder>();
+        services.AddDataSeeder<SaasNotificationSeeder>();
+        services.AddDataSeeder<SaasStorageConfigSeeder>();
+        services.AddDataSeeder<SaasTaskSeeder>();
         return services;
     }
 
@@ -233,6 +245,13 @@ public static class ServiceCollectionExtensions
         services.AddOptions<EmailSenderOptions>().BindConfiguration(EmailSenderOptions.SectionName);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, EmailMessageSender>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, SmsMessageSender>());
+
+        // 业务层发件箱（框架 Messaging 仅负责路由，发件箱在业务层）：先落 SysEmail/SysSms 为 Pending，
+        // 入 Redis 延迟队列后由后台服务拉取发送（拉不到等待、拉到消费、可并发；失败延迟重投）。
+        services.AddSingleton<DbMessageOutbox>();
+        // 注意：MessageOutboxHostedService 继承 XiHanBackgroundServiceBase（IBackgroundWorker:ISingletonDependency）
+        // 且类名以 HostedService 结尾，已被约定注册自动暴露为 IHostedService 托管。切勿再 AddHostedService（否则重复托管、重复消费）。
+
         return services;
     }
 
@@ -253,6 +272,52 @@ public static class ServiceCollectionExtensions
         // 注册动态任务执行器（桥接 SysTask.TaskClass/TaskMethod 反射模型，同时实现 IJobWorker）
         services.AddTransient<DynamicJobWorker>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 SaaS 导出中心基础设施
+    /// </summary>
+    /// <remarks>
+    /// 导出引擎：执行器 + CSV 写出器 + 逐资源登记的 <see cref="IExportProvider"/>（首版 system.user / log.operation）；
+    /// 后台 <see cref="ExportTaskHostedService"/> 轮询 Pending 任务异步执行。
+    /// 导出任务仓储（<c>IExportTaskRepository</c>）随 <c>SaasRepository</c> 的 <c>IScopedDependency</c> 自动注册。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasExportInfrastructure(this IServiceCollection services)
+    {
+        // 导出引擎
+        services.AddScoped<IExportExecutor, ExportExecutor>();
+        services.AddSingleton<IExportWriter, CsvExportWriter>();
+
+        // 导出 Provider（逐资源登记；新增资源在此追加一行）
+        services.AddScoped<IExportProvider, UserExportProvider>();
+        services.AddScoped<IExportProvider, OperationLogExportProvider>();
+        services.AddScoped<IExportProvider, AccessLogExportProvider>();
+        services.AddScoped<IExportProvider, ApiLogExportProvider>();
+        services.AddScoped<IExportProvider, LoginLogExportProvider>();
+        services.AddScoped<IExportProvider, ExceptionLogExportProvider>();
+        services.AddScoped<IExportProvider, DiffLogExportProvider>();
+
+        // 后台执行 worker：从 Redis 延迟队列拉取任务执行（拉不到等待、拉到消费、可并发）。
+        // 注意：ExportTaskHostedService 继承 XiHanBackgroundServiceBase（IBackgroundWorker:ISingletonDependency）
+        // 且类名以 HostedService 结尾，已被约定注册自动暴露为 IHostedService 托管。切勿再 AddHostedService（否则重复托管、重复消费）。
+
+        return services;
+    }
+
+    /// <summary>
+    /// 注册本地事件处理器并加入事件总线订阅列表
+    /// </summary>
+    /// <typeparam name="THandler">事件处理器类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    private static IServiceCollection AddSaasLocalEventHandler<THandler>(this IServiceCollection services)
+        where THandler : class
+    {
+        services.AddTransient<THandler>();
+        services.Configure<XiHanLocalEventBusOptions>(options => options.Handlers.AddIfNotContains(typeof(THandler)));
         return services;
     }
 }

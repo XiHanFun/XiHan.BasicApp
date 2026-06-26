@@ -19,6 +19,11 @@ export enum AuditOperationType {
   Delete = 'Delete',
   Import = 'Import',
   Export = 'Export',
+  Review = 'Review',
+  Approve = 'Approve',
+  StartTask = 'StartTask',
+  Execute = 'Execute',
+  Restore = 'Restore',
   Other = 'Other',
 }
 

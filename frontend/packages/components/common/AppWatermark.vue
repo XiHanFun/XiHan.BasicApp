@@ -23,5 +23,6 @@ const appStore = useAppStore()
     :y-offset="60"
     :rotate="-25"
     font-color="rgb(128, 128, 128, 0.18)"
+    :z-index="1500"
   />
 </template>

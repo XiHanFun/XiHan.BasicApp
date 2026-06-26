@@ -2,6 +2,7 @@ export default {
   user: {
     profile: '个人中心',
     lock: '锁屏',
+    switch_tenant: '切换租户',
     logout: '退出登录',
   },
   locale: {
@@ -22,7 +23,32 @@ export default {
   },
   search: {
     placeholder: '命令面板',
-    input_hint: '搜索菜单、操作，或输入关键词快速跳转',
+    input_hint: '搜索菜单、操作，支持拼音/首字母，或输入关键词快速跳转',
     empty: '未找到匹配项',
+    tag_action: '操作',
+    group: {
+      recent: '最近访问',
+      favorite: '收藏夹',
+      action: '操作',
+      menu: '菜单',
+    },
+    action: {
+      theme_light: '切换到浅色主题',
+      theme_dark: '切换到深色主题',
+      preferences: '打开偏好设置',
+      favorite_add: '收藏当前页',
+      favorite_remove: '取消收藏当前页',
+      fullscreen_enter: '进入全屏',
+      fullscreen_exit: '退出全屏',
+      refresh: '刷新当前页',
+      sidebar_toggle: '折叠 / 展开侧栏',
+      lock: '锁定屏幕',
+      logout: '退出登录',
+    },
+    footer: {
+      select: '选择',
+      open: '打开',
+      close: '关闭',
+    },
   },
 }

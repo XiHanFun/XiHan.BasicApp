@@ -22,9 +22,14 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public interface IAuthContextQueryService
 {
     /// <summary>
-    /// 获取登录租户上下文
+    /// 获取登录租户上下文（租户不可用时抛出带原因的异常，用于显式切换租户等需要明确报错的场景）
     /// </summary>
     Task<LoginTenantContext?> GetLoginTenantOrThrowAsync(long? tenantId, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 查找可登录的租户上下文（租户不存在或不可用时返回 null，不抛异常，用于登录落点判定）
+    /// </summary>
+    Task<LoginTenantContext?> FindAvailableLoginTenantAsync(long tenantId, DateTimeOffset now, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取当前用户信息

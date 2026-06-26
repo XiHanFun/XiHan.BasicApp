@@ -63,4 +63,24 @@ public static class SaasCacheNames
     /// 部门树缓存。
     /// </summary>
     public const string DepartmentTree = "basicapp:saas:organization:dept-tree";
+
+    /// <summary>
+    /// 用户设置缓存（全场景偏好/页面设置同步）。
+    /// </summary>
+    public const string UserSetting = "basicapp:saas:user:setting";
+
+    /// <summary>
+    /// 消息模板缓存（渠道+编码 → 模板内容，发送链路高频读取）。
+    /// </summary>
+    public const string MessageTemplate = "basicapp:saas:message:template";
+
+    /// <summary>
+    /// 版本门控缓存（租户 → 版本权限白名单，鉴权快照热路径）。
+    /// </summary>
+    public const string EditionGate = "basicapp:saas:tenancy:edition-gate";
+
+    /// <summary>
+    /// 字典项树缓存（字典驱动的下拉/选项高频读取）。
+    /// </summary>
+    public const string DictItemTree = "basicapp:saas:configuration:dict-tree";
 }

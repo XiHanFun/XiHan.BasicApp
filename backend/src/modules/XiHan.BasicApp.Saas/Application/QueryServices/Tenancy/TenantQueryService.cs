@@ -108,9 +108,12 @@ public sealed class TenantQueryService
     /// <summary>
     /// 获取当前用户可进入的租户列表
     /// </summary>
+    /// <remarks>
+    /// 仅要求登录（不挂权限码）：数据自限定于当前用户自身的有效成员关系；
+    /// 登录后控制中心选租户阶段用户尚未进入任何租户、不持有任何权限码，挂权限码会直接阻断选择流程。
+    /// </remarks>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>当前用户可进入的租户列表</returns>
-    [PermissionAuthorize(SaasPermissionCodes.Tenant.Read)]
     public async Task<IReadOnlyList<TenantSwitcherDto>> GetMyAvailableTenantsAsync(CancellationToken cancellationToken = default)
     {
         var userId = _currentUser.UserId

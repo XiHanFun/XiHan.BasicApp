@@ -4,6 +4,7 @@ import type {
   LoginParams,
   LoginResponse,
   LoginToken,
+  PasswordResetConfirmResult,
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
@@ -12,6 +13,8 @@ import type {
 } from './auth'
 import type { NotificationStatus, NotificationType } from './enums'
 import type {
+  ApiCredentialItem,
+  ApiCredentialSecret,
   ChangeEmailParams,
   ChangePasswordParams,
   ChangePhoneParams,
@@ -111,16 +114,31 @@ export interface AppContextApis extends Record<string, unknown> {
     getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
     getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
   }
-  /** 页面偏好（按用户 × pageCode 跨端同步列设置/视图，载荷为 JSON 字符串） */
-  pagePreferenceApi: {
-    get: (pageCode: string) => Promise<{ pageCode: string, payload?: null | string }>
-    save: (input: { pageCode: string, payload?: null | string }) => Promise<{ pageCode: string, payload?: null | string }>
+  /** 用户设置（按 用户 × 场景 × 设置键 全场景跨端同步，载荷为 JSON 字符串；clientId 供后端推送回显过滤） */
+  userSettingApi: {
+    get: (input: { scene: number, settingKey: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
+    save: (input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
   }
   /** 字段权限（按资源下发当前用户的有效 FLS 规则：可读/可编辑/脱敏策略） */
   fieldSecurityApi: {
     getMine: (resourceCode: string) => Promise<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>
   }
+  /** 导入历史（Schema 页面导入留痕：执行完毕上报 + 当前用户最近导入记录） */
+  importHistoryApi: {
+    create: (input: { pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string }) => Promise<unknown>
+    recent: (pageCode: string, count?: number) => Promise<Array<{ basicId: number | string, pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string, createdTime: string }>>
+  }
+  /** 导出中心（提交异步导出任务，后台 worker 执行；进度经灵动岛、产物在导出中心下载） */
+  exportTaskApi: {
+    submit: (input: { businessType: string, taskName?: string, scope: number, format: number, querySnapshot?: null | string, columns: Array<{ key: string, title: string, valueMap?: Record<string, string> }> }) => Promise<unknown>
+  }
   getActivityApi: () => Promise<UserActivity>
+  /** 个人 API 凭证（开发者设置；Secret 明文仅创建/滚动时返回一次） */
+  getApiCredentialsApi: () => Promise<ApiCredentialItem[]>
+  createApiCredentialApi: (credentialName?: string) => Promise<ApiCredentialSecret>
+  rotateApiCredentialSecretApi: (id: number | string) => Promise<ApiCredentialSecret>
+  updateApiCredentialStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<ApiCredentialItem>
+  deleteApiCredentialApi: (id: number | string) => Promise<unknown>
   getNotificationPreferenceApi: () => Promise<NotificationPreference>
   updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>
   /** 由文件主键(fileId)换取对象存储预签名访问 URL（<img> 可直接用、无需 token，会过期） */
@@ -139,16 +157,18 @@ export interface AppContextApis extends Record<string, unknown> {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
   }
   phoneLoginApi: (input: PhoneLoginParams) => Promise<LoginToken>
-  sendEmailLoginCodeApi: (email: string, tenantId?: null | string) => Promise<VerificationCodeResult>
+  sendEmailLoginCodeApi: (email: string) => Promise<VerificationCodeResult>
   registerApi: (input: unknown) => Promise<unknown>
-  requestPasswordResetApi: (email: string, scopeId?: string) => Promise<PasswordResetResult>
+  createOAuthBindTicketApi: () => Promise<string>
+  requestPasswordResetApi: (email: string) => Promise<PasswordResetResult>
+  consumePasswordResetTokenApi: (token: string, newPassword: string) => Promise<PasswordResetConfirmResult>
   revokeOtherSessionsApi: () => Promise<unknown>
   revokeSessionApi: (sessionId: string) => Promise<unknown>
   send2FASetupCodeApi: (method: number | string) => Promise<VerificationCodeResult>
   sendChangeEmailCodeApi: (input: ChangeEmailParams) => Promise<VerificationCodeResult>
   sendChangePhoneCodeApi: (input: ChangePhoneParams) => Promise<VerificationCodeResult>
   sendEmailVerifyCodeApi: () => Promise<VerificationCodeResult>
-  sendPhoneLoginCodeApi: (phone: string, scopeId?: string) => Promise<VerificationCodeResult>
+  sendPhoneLoginCodeApi: (phone: string) => Promise<VerificationCodeResult>
   sendPhoneVerifyCodeApi: () => Promise<VerificationCodeResult>
   serverApi: {
     getNuGetPackages: () => Promise<AppBackendDependency[]>

@@ -9,6 +9,8 @@ import {
   FROSTED_GLASS_ENABLED_KEY,
   FROSTED_GLASS_INTENSITY_KEY,
   GRAYSCALE_ENABLED_KEY,
+  LOADING_FIXED_COLOR_KEY,
+  LOADING_NAME_KEY,
   THEME_ANIMATION_ENABLED_KEY,
   THEME_AUTO,
   THEME_COLOR_KEY,
@@ -41,13 +43,17 @@ export function createThemeSlice() {
   )
   const transitionEnable = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_ENABLE_KEY) ?? true)
   const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'scale-up')
+  // 页面加载动画（数学曲线加载器）
+  const loadingName = ref<string>(LocalStorage.get<string>(LOADING_NAME_KEY) ?? 'lissajous-drift')
+  // 加载动画固定颜色：开启后用前景色（暗色主题亮、亮色主题暗），不跟随主题色
+  const loadingFixedColor = ref<boolean>(LocalStorage.get<boolean>(LOADING_FIXED_COLOR_KEY) ?? false)
   const transitionProgress = ref<boolean>(
     LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true,
   )
   const transitionLoading = ref<boolean>(LocalStorage.get<boolean>(TRANSITION_LOADING_KEY) ?? true)
 
   const frostedGlassEnabled = ref<boolean>(LocalStorage.get<boolean>(FROSTED_GLASS_ENABLED_KEY) ?? false)
-  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 20)
+  const frostedGlassIntensity = ref<number>(LocalStorage.get<number>(FROSTED_GLASS_INTENSITY_KEY) ?? 10)
 
   const grayscaleEnabled = ref<boolean>(LocalStorage.get<boolean>(GRAYSCALE_ENABLED_KEY) ?? false)
   const colorWeaknessEnabled = ref<boolean>(
@@ -68,10 +74,12 @@ export function createThemeSlice() {
   bindPersist(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, true)
   bindPersist(TRANSITION_ENABLE_KEY, transitionEnable, true)
   bindPersist(TRANSITION_NAME_KEY, transitionName, 'scale-up')
+  bindPersist(LOADING_NAME_KEY, loadingName, 'lissajous-drift')
+  bindPersist(LOADING_FIXED_COLOR_KEY, loadingFixedColor, false)
   bindPersist(TRANSITION_PROGRESS_KEY, transitionProgress, true)
   bindPersist(TRANSITION_LOADING_KEY, transitionLoading, true)
   bindPersist(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled, false)
-  bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, 20)
+  bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, 10)
   bindPersist(GRAYSCALE_ENABLED_KEY, grayscaleEnabled, false)
   bindPersist(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled, false)
   bindPersist(WATERMARK_ENABLED_KEY, watermarkEnabled, false)
@@ -106,6 +114,12 @@ export function createThemeSlice() {
   }
   function setTransitionName(v: string) {
     save(TRANSITION_NAME_KEY, transitionName, v)
+  }
+  function setLoadingName(v: string) {
+    save(LOADING_NAME_KEY, loadingName, v)
+  }
+  function setLoadingFixedColor(v: boolean) {
+    save(LOADING_FIXED_COLOR_KEY, loadingFixedColor, v)
   }
   function setTransitionProgress(v: boolean) {
     save(TRANSITION_PROGRESS_KEY, transitionProgress, v)
@@ -142,6 +156,8 @@ export function createThemeSlice() {
     themeAnimationEnabled,
     transitionEnable,
     transitionName,
+    loadingName,
+    loadingFixedColor,
     transitionProgress,
     transitionLoading,
     frostedGlassEnabled,
@@ -160,6 +176,8 @@ export function createThemeSlice() {
     setThemeAnimationEnabled,
     setTransitionEnable,
     setTransitionName,
+    setLoadingName,
+    setLoadingFixedColor,
     setTransitionProgress,
     setTransitionLoading,
     setFrostedGlassEnabled,

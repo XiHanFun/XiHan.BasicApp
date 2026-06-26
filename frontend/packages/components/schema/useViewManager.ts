@@ -1,6 +1,6 @@
-import { ref } from 'vue'
+import { onScopeDispose, ref } from 'vue'
 import { storage } from '~/utils'
-import { usePagePreferenceSync } from './usePagePreferenceSync'
+import { useUserSettingSync } from './useUserSettingSync'
 
 /**
  * 视图快照 —— 捕获一套可复用的列表状态。
@@ -40,7 +40,7 @@ const STORAGE_PREFIX = 'xh:views:'
  */
 export function useViewManager(pageCode: string) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
-  const sync = usePagePreferenceSync(pageCode)
+  const sync = useUserSettingSync(pageCode)
 
   const views = ref<PersonalView[]>(storage.get<PersonalView[]>(storageKey) ?? [])
   const activeCode = ref<string | undefined>(views.value.find(v => v.isDefault)?.code)
@@ -52,6 +52,17 @@ export function useViewManager(pageCode: string) {
       activeCode.value = remote.find(v => v.isDefault)?.code
     }
   })
+
+  // 其它在线设备保存视图时实时应用（SignalR 推送），并落地本地保持刷新后一致
+  const unsubscribeRemote = sync.subscribeRemote('views', (value) => {
+    if (Array.isArray(value)) {
+      const remote = value as PersonalView[]
+      views.value = remote
+      activeCode.value = remote.find(v => v.isDefault)?.code
+      storage.set(storageKey, remote)
+    }
+  })
+  onScopeDispose(unsubscribeRemote)
 
   function persist() {
     storage.set(storageKey, views.value)

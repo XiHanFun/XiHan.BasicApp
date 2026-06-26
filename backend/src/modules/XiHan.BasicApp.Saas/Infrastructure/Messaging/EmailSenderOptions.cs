@@ -60,9 +60,14 @@ public sealed class EmailSenderOptions
     public string UserName { get; set; } = string.Empty;
 
     /// <summary>
-    /// SMTP 认证密码
+    /// SMTP 认证密码（直接配置于 <c>XiHan:Email:Password</c>；为空则不进行认证）。
     /// </summary>
     public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 是否接受无效/自签 TLS 证书（默认 false，生产务必保持 false；仅本地自签 SMTP 联调时置 true）
+    /// </summary>
+    public bool AcceptInvalidCertificate { get; set; }
 
     /// <summary>
     /// 是否已具备发送条件（启用且配置了 SMTP 主机）

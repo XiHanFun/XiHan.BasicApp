@@ -40,6 +40,14 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasDepartmentTreeCacheItem, string> _departmentTreeCache;
 
+    private readonly IDistributedCache<SaasUserSettingCacheItem, string> _userSettingCache;
+
+    private readonly IDistributedCache<SaasMessageTemplateCacheItem, string> _messageTemplateCache;
+
+    private readonly IDistributedCache<SaasEditionGateCacheItem, string> _editionGateCache;
+
+    private readonly IDistributedCache<SaasDictItemTreeCacheItem, string> _dictItemTreeCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -52,7 +60,11 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasEnabledEditionsCacheItem, string> tenantEditionCache,
         IDistributedCache<SaasResourceSelectCacheItem, string> resourceSelectCache,
         IDistributedCache<SaasOperationSelectCacheItem, string> operationSelectCache,
-        IDistributedCache<SaasDepartmentTreeCacheItem, string> departmentTreeCache)
+        IDistributedCache<SaasDepartmentTreeCacheItem, string> departmentTreeCache,
+        IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache,
+        IDistributedCache<SaasMessageTemplateCacheItem, string> messageTemplateCache,
+        IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache,
+        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
@@ -63,6 +75,10 @@ public sealed class SaasCacheInvalidator
         _resourceSelectCache = resourceSelectCache;
         _operationSelectCache = operationSelectCache;
         _departmentTreeCache = departmentTreeCache;
+        _userSettingCache = userSettingCache;
+        _messageTemplateCache = messageTemplateCache;
+        _editionGateCache = editionGateCache;
+        _dictItemTreeCache = dictItemTreeCache;
     }
     /// <inheritdoc />
     public Task InvalidateConfigurationAsync(string? configKey = null, CancellationToken cancellationToken = default)
@@ -77,7 +93,7 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateAuthorizationAsync(long? userId = null, CancellationToken cancellationToken = default)
     {
         return userId.HasValue
-            ? _authorizationSnapshotCache.RemoveAsync(SaasCacheKeys.AuthorizationSnapshot(userId.Value), hideErrors: true, considerUow: true, token: cancellationToken)
+            ? _authorizationSnapshotCache.RemoveByPatternAsync(SaasCacheKeys.AuthorizationSnapshotPattern(userId.Value), hideErrors: true, considerUow: true, token: cancellationToken)
             : _authorizationSnapshotCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
     }
 
@@ -121,5 +137,29 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateOrganizationAsync(CancellationToken cancellationToken = default)
     {
         return _departmentTreeCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateUserSettingAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        return _userSettingCache.RemoveByPatternAsync(SaasCacheKeys.UserSettingPattern(userId), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateMessageTemplateAsync(CancellationToken cancellationToken = default)
+    {
+        return _messageTemplateCache.RemoveByPatternAsync(SaasCacheKeys.AllMessageTemplatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateEditionGateAsync(CancellationToken cancellationToken = default)
+    {
+        return _editionGateCache.RemoveByPatternAsync(SaasCacheKeys.AllEditionGatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateDictionaryAsync(CancellationToken cancellationToken = default)
+    {
+        return _dictItemTreeCache.RemoveByPatternAsync(SaasCacheKeys.AllDictItemTreesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

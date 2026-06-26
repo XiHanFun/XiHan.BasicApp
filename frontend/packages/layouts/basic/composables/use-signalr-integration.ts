@@ -1,10 +1,16 @@
+import type { ServerTaskProgressPayload } from '~/composables'
+import type { UserSettingChangedPayload } from '~/constants'
 import { useDialog, useNotification } from 'naive-ui'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSignalR } from '~/composables'
-import { useAccessStore, useAuthStore } from '~/stores'
+import { applyRemotePageSetting } from '~/components'
+import { applyServerTaskProgress, islandStatus, useSignalR } from '~/composables'
+import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 
 const SIGNALR_RECONNECT_INTERVAL_MS = 15000
+// 断开提示宽限期：持续断开超过此时长仍未恢复才弹横幅，避免自动重连期间的瞬断噪音（频繁显示）
+const REALTIME_LOST_GRACE_MS = 12000
 const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
 
 /**
@@ -114,12 +120,38 @@ export function useSignalRIntegration() {
     }, SIGNALR_RECONNECT_INTERVAL_MS)
   }
 
+  /**
+   * 同账号其它设备保存设置后的实时推送：按场景分发应用。
+   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值。
+   */
+  function handleUserSettingChanged(payload: UserSettingChangedPayload) {
+    if (!payload || payload.sourceClientId === USER_SETTING_CLIENT_ID) {
+      return
+    }
+    if (payload.scene === UserSettingScene.Preference) {
+      if (payload.settingKey === PREFERENCE_SETTING_KEY) {
+        void applyRemotePreferenceSnapshot(payload.settingValue)
+      }
+      else if (payload.settingKey === FAVORITES_SETTING_KEY) {
+        useFavoritesStore().applyRemote(payload.settingValue)
+      }
+      return
+    }
+    if (payload.scene === UserSettingScene.Page && payload.settingKey) {
+      applyRemotePageSetting(payload.settingKey, payload.settingValue)
+    }
+  }
+
   function setupListeners() {
     if (isListenersBound) {
       return
     }
     signalR.on('ForceLogout', handleForceLogout)
     signalR.on('ReceiveNotification', handleReceiveNotification)
+    // 服务端后台任务进度 → 灵动岛（同 taskId 复用同一条，刷新后由会话级持久化恢复）
+    signalR.on('TaskProgress', payload => applyServerTaskProgress(payload as ServerTaskProgressPayload))
+    // 用户设置多端实时同步（偏好/收藏夹/页面设置）
+    signalR.on('UserSettingChanged', payload => handleUserSettingChanged(payload as UserSettingChangedPayload))
     isListenersBound = true
   }
 
@@ -151,19 +183,51 @@ export function useSignalRIntegration() {
     },
   )
 
+  // 实时连接状态进灵动岛：仅在「持续断开超过宽限期仍未恢复」时出现，避免自动重连期间瞬断导致的频繁提示
+  let realtimeHandle: ReturnType<typeof islandStatus> | null = null
+  let realtimeLostTimer: ReturnType<typeof setTimeout> | null = null
+
+  function clearRealtimeLostTimer() {
+    if (realtimeLostTimer) {
+      clearTimeout(realtimeLostTimer)
+      realtimeLostTimer = null
+    }
+  }
+
   const stopConnectedWatch = watch(
     () => signalR.connected.value,
     (isConnected) => {
       if (!accessStore.accessToken) {
         clearReconnectTimer()
+        clearRealtimeLostTimer()
+        realtimeHandle?.dismiss()
+        realtimeHandle = null
         return
       }
       if (isConnected) {
         clearReconnectTimer()
+        clearRealtimeLostTimer()
+        if (realtimeHandle) {
+          realtimeHandle.success(t('island.realtime_restored'))
+          realtimeHandle = null
+        }
+        return
       }
-      else {
-        ensureReconnectTimer()
+      // 断开：启动重连兜底；延后宽限期再判断，仍未恢复才提示（瞬断/自动重连期间不弹）
+      ensureReconnectTimer()
+      if (realtimeHandle || realtimeLostTimer) {
+        return
       }
+      realtimeLostTimer = setTimeout(() => {
+        realtimeLostTimer = null
+        if (!signalR.connected.value && accessStore.accessToken) {
+          realtimeHandle = islandStatus('sys:realtime', t('island.realtime_lost'), {
+            state: 'error',
+            icon: 'lucide:plug-zap',
+            detail: t('island.realtime_lost_detail'),
+          })
+        }
+      }, REALTIME_LOST_GRACE_MS)
     },
   )
 
@@ -175,6 +239,9 @@ export function useSignalRIntegration() {
     stopTokenWatch()
     stopConnectedWatch()
     clearReconnectTimer()
+    clearRealtimeLostTimer()
+    realtimeHandle?.dismiss()
+    realtimeHandle = null
     isListenersBound = false
     void signalR.destroy()
   })

@@ -26,6 +26,18 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class ConstraintRuleDomainService
     : IConstraintRuleDomainService
 {
+    private readonly ICurrentTenant _currentTenant;
+
+    private readonly IConstraintRuleItemRepository _constraintRuleItemRepository;
+
+    private readonly IConstraintRuleRepository _constraintRuleRepository;
+
+    private readonly IPermissionRepository _permissionRepository;
+
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -44,13 +56,6 @@ public sealed class ConstraintRuleDomainService
         _tenantUserRepository = tenantUserRepository;
         _currentTenant = currentTenant;
     }
-
-    private readonly ICurrentTenant _currentTenant;
-    private readonly IConstraintRuleItemRepository _constraintRuleItemRepository;
-    private readonly IConstraintRuleRepository _constraintRuleRepository;
-    private readonly IPermissionRepository _permissionRepository;
-    private readonly IRoleRepository _roleRepository;
-    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <inheritdoc />
     public async Task<ConstraintRuleCommandResult> CreateConstraintRuleAsync(ConstraintRuleCreateCommand command, CancellationToken cancellationToken = default)
@@ -157,14 +162,6 @@ public sealed class ConstraintRuleDomainService
         rule.Remark = NormalizeNullable(command.Remark) ?? rule.Remark;
         var savedRule = await _constraintRuleRepository.UpdateAsync(rule, cancellationToken);
         return new ConstraintRuleCommandResult(savedRule.BasicId);
-    }
-
-    private void EnsureRuleCanBeMaintained(SysConstraintRule rule)
-    {
-        if (rule.IsGlobal && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台级全局约束规则仅平台运维态可维护，请切换到平台运维后操作。");
-        }
     }
 
     private static string? NormalizeNullable(string? value)
@@ -361,6 +358,14 @@ public sealed class ConstraintRuleDomainService
             command.ExpirationTime,
             command.Remark,
             now);
+    }
+
+    private void EnsureRuleCanBeMaintained(SysConstraintRule rule)
+    {
+        if (rule.IsGlobal && !_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("平台级全局约束规则仅平台运维态可维护，请切换到平台运维后操作。");
+        }
     }
 
     private async Task EnsureRuleCodeNotExistsAsync(string ruleCode, long? excludeId, CancellationToken cancellationToken)

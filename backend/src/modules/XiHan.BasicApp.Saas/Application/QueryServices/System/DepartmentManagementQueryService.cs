@@ -82,6 +82,22 @@ public sealed class DepartmentManagementQueryService
         };
     }
 
+    private static DepartmentManagementMemberDto ToMemberDto(SysUserDepartment userDepartment, SysUser? user)
+    {
+        return new DepartmentManagementMemberDto
+        {
+            BasicId = userDepartment.BasicId,
+            UserId = userDepartment.UserId,
+            UserName = user?.UserName,
+            RealName = user?.RealName,
+            NickName = user?.NickName,
+            IsMain = userDepartment.IsMain,
+            Status = userDepartment.Status,
+            Remark = userDepartment.Remark,
+            CreatedTime = userDepartment.CreatedTime,
+        };
+    }
+
     private async Task<List<DepartmentListItemDto>> GetChildDepartmentsAsync(long departmentId, CancellationToken cancellationToken)
     {
         var children = await _departmentRepository.GetListAsync(
@@ -117,21 +133,5 @@ public sealed class DepartmentManagementQueryService
             .OrderByDescending(item => item.IsMain)
             .ThenBy(item => item.UserName)
             .Take(MaxMemberCount)];
-    }
-
-    private static DepartmentManagementMemberDto ToMemberDto(SysUserDepartment userDepartment, SysUser? user)
-    {
-        return new DepartmentManagementMemberDto
-        {
-            BasicId = userDepartment.BasicId,
-            UserId = userDepartment.UserId,
-            UserName = user?.UserName,
-            RealName = user?.RealName,
-            NickName = user?.NickName,
-            IsMain = userDepartment.IsMain,
-            Status = userDepartment.Status,
-            Remark = userDepartment.Remark,
-            CreatedTime = userDepartment.CreatedTime,
-        };
     }
 }

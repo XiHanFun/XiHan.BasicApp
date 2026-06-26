@@ -55,6 +55,8 @@ export interface MenuListItemDto extends BasicDto {
   sort: number
   status: EnableStatus
   title?: string | null
+  /** 国际化键（如 menu.identity_user，有值时前端按键翻译菜单标题） */
+  i18nKey?: string | null
 }
 
 export interface MenuDetailDto extends MenuListItemDto {
@@ -93,6 +95,8 @@ export interface MenuCreateDto {
   sort: number
   status: EnableStatus
   title?: string | null
+  /** 国际化键（如 menu.identity_user，有值时前端按键翻译菜单标题） */
+  i18nKey?: string | null
 }
 
 export interface MenuUpdateDto extends BasicUpdateDto {
@@ -117,6 +121,8 @@ export interface MenuUpdateDto extends BasicUpdateDto {
   routeName?: string | null
   sort: number
   title?: string | null
+  /** 国际化键（如 menu.identity_user，有值时前端按键翻译菜单标题） */
+  i18nKey?: string | null
 }
 
 export interface MenuStatusUpdateDto extends BasicUpdateDto {
@@ -145,4 +151,6 @@ export interface MenuTreeNodeDto extends BasicDto {
   sort: number
   status: EnableStatus
   title?: string | null
+  /** 国际化键（如 menu.identity_user，有值时前端按键翻译菜单标题） */
+  i18nKey?: string | null
 }

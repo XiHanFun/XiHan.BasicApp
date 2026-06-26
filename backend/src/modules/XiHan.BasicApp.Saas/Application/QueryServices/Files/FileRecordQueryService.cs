@@ -23,6 +23,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class FileRecordQueryService
     : IFileRecordQueryService
 {
+    private readonly IFileRepository _fileRepository;
+
+    private readonly IFileStorageRepository _fileStorageRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -31,9 +35,6 @@ public sealed class FileRecordQueryService
         _fileRepository = fileRepository;
         _fileStorageRepository = fileStorageRepository;
     }
-
-    private readonly IFileRepository _fileRepository;
-    private readonly IFileStorageRepository _fileStorageRepository;
 
     /// <inheritdoc />
     public async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken = default)

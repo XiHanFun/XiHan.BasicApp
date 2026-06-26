@@ -55,6 +55,11 @@ const fontSize = computed(() => `${Math.max(12, Math.round(props.size * 0.4))}px
 </template>
 
 <style scoped>
+/* 作为 flex 子项时不被横向压缩，保证任何布局下始终为正圆 */
+.xh-user-avatar {
+  flex-shrink: 0;
+}
+
 .xh-user-avatar__initials {
   font-weight: 700;
   line-height: 1;

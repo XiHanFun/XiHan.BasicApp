@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { ApiLogDetailDto, ApiLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { createPageRequest, logManagementApi, SignatureType } from '@/api'
@@ -92,7 +92,7 @@ const fields: ListFieldSchema[] = [
   { key: 'controllerName', title: '控制器', dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: '动作', dataType: 'string', minWidth: 140, order: 23 },
   { key: 'statusCode', title: '响应状态码', dataType: 'number', advancedSearch: true, width: 100, order: 24 },
-  { key: 'requestIp', title: '请求 IP', dataType: 'string', minWidth: 130, order: 25 },
+  { key: 'requestIp', title: '请求 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索请求 IP', minWidth: 130, order: 25 },
   { key: 'requestLocation', title: '请求位置', dataType: 'string', minWidth: 160, order: 26 },
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 27 },
   { key: 'requestTime', title: '请求时间', dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },
@@ -134,38 +134,44 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildApiQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    isSuccess: toBool(f.isSuccess),
+    method: toStr(f.method),
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    apiPath: toStr(f.apiPath),
+    requestIp: toStr(f.requestIp),
+    statusCode: toNum(f.statusCode),
+    signatureType: (f.signatureType as SignatureType | undefined) ?? undefined,
+    isSignatureValid: toBool(f.isSignatureValid),
+    clientId: toStr(f.clientId),
+    appId: toStr(f.appId),
+    apiVersion: toStr(f.apiVersion),
+    traceId: toStr(f.traceId),
+    requestId: toStr(f.requestId),
+    sessionId: toStr(f.sessionId),
+    minExecutionTime: toNum(f.minExecutionTime),
+    maxExecutionTime: toNum(f.maxExecutionTime),
+    requestTimeStart: toIso(f.requestTimeStart),
+    requestTimeEnd: toIso(f.requestTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.api',
-  pageName: '接口日志',
+  exportPermission: 'saas:api-log:export',
+  pageName: '开放接口日志',
   rowKey: 'basicId',
   scrollX: 2400,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.api.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        isSuccess: toBool(f.isSuccess),
-        method: toStr(f.method),
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        apiPath: toStr(f.apiPath),
-        statusCode: toNum(f.statusCode),
-        signatureType: (f.signatureType as SignatureType | undefined) ?? undefined,
-        isSignatureValid: toBool(f.isSignatureValid),
-        clientId: toStr(f.clientId),
-        appId: toStr(f.appId),
-        apiVersion: toStr(f.apiVersion),
-        traceId: toStr(f.traceId),
-        requestId: toStr(f.requestId),
-        sessionId: toStr(f.sessionId),
-        minExecutionTime: toNum(f.minExecutionTime),
-        maxExecutionTime: toNum(f.maxExecutionTime),
-        requestTimeStart: toIso(f.requestTimeStart),
-        requestTimeEnd: toIso(f.requestTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.api.page(buildApiQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.api', buildQuery: buildApiQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },

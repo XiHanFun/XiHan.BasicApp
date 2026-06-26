@@ -24,6 +24,8 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class TaskSchedulerQueryService
     : ITaskSchedulerQueryService
 {
+    private readonly ITaskRepository _taskRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -31,8 +33,6 @@ public sealed class TaskSchedulerQueryService
     {
         _taskRepository = taskRepository;
     }
-
-    private readonly ITaskRepository _taskRepository;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<SysTask>> GetEnabledTasksAsync(CancellationToken cancellationToken = default)

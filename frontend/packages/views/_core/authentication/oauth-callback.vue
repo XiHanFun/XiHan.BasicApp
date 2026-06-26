@@ -3,7 +3,7 @@ import type { LoginToken } from '~/types'
 import { NIcon, NSpin, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -14,14 +14,38 @@ defineOptions({ name: 'OAuthCallbackPage' })
 const { isDark } = useTheme()
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const message = useMessage()
 
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
 
+const BIND_ERROR_TEXT: Record<string, string> = {
+  conflict: '该第三方账号已被其他用户绑定',
+  ticket_invalid: '绑定请求已失效，请重新发起',
+  external_profile_invalid: '未能获取第三方账号信息',
+}
+
 onMounted(async () => {
   const query = route.query
+
+  // 绑定回调（已登录用户从个人中心发起）：提示后回到个人中心「账号绑定」
+  const bind = query.bind as string | undefined
+  if (bind) {
+    loading.value = false
+    if (bind === 'success') {
+      message.success('第三方账号绑定成功')
+    }
+    else {
+      message.error(BIND_ERROR_TEXT[bind] ?? '绑定失败')
+    }
+    setTimeout(() => {
+      void router.push({ path: '/workbench/profile', query: { tab: 'binding' } })
+    }, 1200)
+    return
+  }
+
   const error = query.error as string | undefined
   if (error) {
     errorMsg.value = decodeURIComponent(error)

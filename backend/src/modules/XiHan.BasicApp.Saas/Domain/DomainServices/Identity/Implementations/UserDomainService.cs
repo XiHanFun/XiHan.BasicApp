@@ -177,6 +177,7 @@ public sealed class UserDomainService
             throw new InvalidOperationException("用户名已存在。");
         }
 
+        await EnsureEmailUniqueAsync(NormalizeNullable(command.Email), excludeUserId: null, cancellationToken);
         await EnsurePasswordMeetsPolicyAsync(command, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
@@ -223,6 +224,11 @@ public sealed class UserDomainService
         var normalizedPhone = NormalizeNullable(command.Phone);
         var emailChanged = !string.Equals(user.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase);
         var phoneChanged = !string.Equals(user.Phone, normalizedPhone, StringComparison.Ordinal);
+
+        if (emailChanged)
+        {
+            await EnsureEmailUniqueAsync(normalizedEmail, user.BasicId, cancellationToken);
+        }
 
         user.RealName = NormalizeNullable(command.RealName);
         user.NickName = NormalizeNullable(command.NickName);
@@ -332,6 +338,38 @@ public sealed class UserDomainService
         security.PasswordExpirationTime = command.PasswordExpirationTime;
         security.FailedLoginAttempts = 0;
         security.LastFailedLoginTime = null;
+        security.SecurityStamp = NewSecurityStamp();
+        security.Remark = NormalizeNullable(command.Remark);
+
+        var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        return new UserSecurityCommandResult(savedSecurity, user, now);
+    }
+
+    /// <summary>
+    /// 重置用户双因素认证（清除 OTP 绑定）
+    /// </summary>
+    /// <remarks>
+    /// 清除双因素开关、方式与密钥并刷新安全戳；用户下次登录不再要求 OTP，可在个人中心重新绑定。
+    /// </remarks>
+    /// <param name="command">双因素重置参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户安全详情</returns>
+    public async Task<UserSecurityCommandResult> ResetUserTwoFactorAsync(UserTwoFactorResetCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.UserId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
+        }
+
+        var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
+
+        var now = DateTimeOffset.UtcNow;
+        security.TwoFactorEnabled = false;
+        security.TwoFactorMethod = TwoFactorMethod.None;
+        security.TwoFactorSecret = null;
         security.SecurityStamp = NewSecurityStamp();
         security.Remark = NormalizeNullable(command.Remark);
 
@@ -1474,6 +1512,22 @@ public sealed class UserDomainService
 
         return await _userRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("用户不存在。");
+    }
+
+    /// <summary>
+    /// 校验邮箱全平台唯一（邮箱为登录身份标识；为空跳过）
+    /// </summary>
+    private async Task EnsureEmailUniqueAsync(string? email, long? excludeUserId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
+        if (await _userRepository.ExistsEmailGloballyAsync(email, excludeUserId, cancellationToken))
+        {
+            throw new InvalidOperationException("邮箱已被其他账号使用。");
+        }
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
 
+import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import AutoImport from 'unplugin-auto-import/vite'
@@ -153,6 +154,7 @@ export default defineConfig(({ mode }) => {
       __APP_AUTHOR_URL__: JSON.stringify(pkg.author?.url ?? ''),
     },
     plugins: [
+      tailwindcss(),
       vue(),
       vueJsx(),
       AutoImport({

@@ -107,6 +107,36 @@ public enum OperationType
     Export = 7,
 
     /// <summary>
+    /// 审核
+    /// </summary>
+    [Description("审核")]
+    Review = 8,
+
+    /// <summary>
+    /// 审批
+    /// </summary>
+    [Description("审批")]
+    Approve = 9,
+
+    /// <summary>
+    /// 发起任务
+    /// </summary>
+    [Description("发起任务")]
+    StartTask = 10,
+
+    /// <summary>
+    /// 执行命令
+    /// </summary>
+    [Description("执行命令")]
+    Execute = 11,
+
+    /// <summary>
+    /// 恢复（软删除还原）
+    /// </summary>
+    [Description("恢复")]
+    Restore = 12,
+
+    /// <summary>
     /// 其他
     /// </summary>
     [Description("其他")]

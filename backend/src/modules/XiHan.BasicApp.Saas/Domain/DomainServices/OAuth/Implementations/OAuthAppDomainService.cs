@@ -24,6 +24,12 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class OAuthAppDomainService
     : IOAuthAppDomainService
 {
+    private readonly IOAuthAppRepository _oauthAppRepository;
+
+    private readonly IOAuthCodeRepository _oauthCodeRepository;
+
+    private readonly IOAuthTokenRepository _oauthTokenRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -36,10 +42,6 @@ public sealed class OAuthAppDomainService
         _oauthCodeRepository = oauthCodeRepository;
         _oauthTokenRepository = oauthTokenRepository;
     }
-
-    private readonly IOAuthAppRepository _oauthAppRepository;
-    private readonly IOAuthCodeRepository _oauthCodeRepository;
-    private readonly IOAuthTokenRepository _oauthTokenRepository;
 
     /// <inheritdoc />
     public async Task<OAuthAppCommandResult> CreateOAuthAppAsync(OAuthAppCreateCommand command, CancellationToken cancellationToken = default)
@@ -205,13 +207,6 @@ public sealed class OAuthAppDomainService
         EnsurePositive(authorizationCodeLifetime, nameof(authorizationCodeLifetime), "授权码有效期必须大于 0。");
     }
 
-    private async Task<SysOAuthApp> GetOAuthAppOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        EnsureId(id, "OAuth 应用主键必须大于 0。");
-        return await _oauthAppRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("OAuth 应用不存在。");
-    }
-
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)
         where TEnum : struct, Enum
     {
@@ -255,5 +250,12 @@ public sealed class OAuthAppDomainService
         }
 
         return normalized;
+    }
+
+    private async Task<SysOAuthApp> GetOAuthAppOrThrowAsync(long id, CancellationToken cancellationToken)
+    {
+        EnsureId(id, "OAuth 应用主键必须大于 0。");
+        return await _oauthAppRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("OAuth 应用不存在。");
     }
 }

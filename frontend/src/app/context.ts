@@ -1,5 +1,7 @@
 import type { Router } from 'vue-router'
 import type {
+  ApiCredentialItem,
+  ApiCredentialSecret,
   AppBackendDependency,
   AppEnumBatchQuery,
   AppEnumDefinition,
@@ -17,6 +19,7 @@ import type {
   LoginResponse,
   LoginToken,
   NotificationPreference,
+  PasswordResetConfirmResult,
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
@@ -59,8 +62,7 @@ const viewModules = import.meta.glob('/src/views/**/*.vue')
 
 const defaultLoginConfig: LoginConfig = {
   loginMethods: ['password'],
-  oauthProviders: [],
-  tenantEnabled: true,
+  oAuthProviders: [],
 }
 
 function emptyPage(input?: { page?: number, pageSize?: number }): AppPageSummary {
@@ -125,17 +127,24 @@ function createAuthApis() {
     emailLoginApi(input: EmailLoginParams) {
       return requestClient.post<LoginToken>('/Auth/EmailLogin', input)
     },
-    sendEmailLoginCodeApi(email: string, tenantId?: null | string) {
-      return requestClient.post<VerificationCodeResult>('/Auth/EmailLoginCode', { email, tenantId })
+    sendEmailLoginCodeApi(email: string) {
+      return requestClient.post<VerificationCodeResult>('/Auth/EmailLoginCode', { email })
     },
     registerApi(input: unknown) {
       return requestClient.post('/Auth/Register', input)
     },
-    requestPasswordResetApi(email: string, scopeId?: string) {
-      return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email, scopeId })
+    createOAuthBindTicketApi() {
+      // 动态 API 约定会剥离方法名的 Create 前缀，实际路由为 /Auth/OAuthBindTicket
+      return requestClient.post<string>('/Auth/OAuthBindTicket')
     },
-    sendPhoneLoginCodeApi(phone: string, scopeId?: string) {
-      return requestClient.post<VerificationCodeResult>('/Auth/PhoneLoginCode', { phone, scopeId })
+    requestPasswordResetApi(email: string) {
+      return requestClient.post<PasswordResetResult>('/Auth/PasswordResetRequest', { email })
+    },
+    consumePasswordResetTokenApi(token: string, newPassword: string) {
+      return requestClient.post<PasswordResetConfirmResult>('/Auth/ConsumePasswordResetToken', { token, newPassword })
+    },
+    sendPhoneLoginCodeApi(phone: string) {
+      return requestClient.post<VerificationCodeResult>('/Auth/PhoneLoginCode', { phone })
     },
   }
 }
@@ -169,6 +178,21 @@ function createProfileApis() {
     getActivityApi() {
       return requestClient.get<UserActivity>('/Profile/Activity')
     },
+    getApiCredentialsApi() {
+      return requestClient.get<ApiCredentialItem[]>('/Profile/ApiCredentials')
+    },
+    createApiCredentialApi(credentialName?: string) {
+      return requestClient.post<ApiCredentialSecret>('/Profile/ApiCredential', { credentialName })
+    },
+    rotateApiCredentialSecretApi(id: number | string) {
+      return requestClient.post<ApiCredentialSecret>('/Profile/RotateApiCredentialSecret', { basicId: id })
+    },
+    updateApiCredentialStatusApi(id: number | string, status: 'Disabled' | 'Enabled') {
+      return requestClient.put<ApiCredentialItem>('/Profile/ApiCredentialStatus', { basicId: id, status })
+    },
+    deleteApiCredentialApi(id: number | string) {
+      return requestClient.delete(`/Profile/ApiCredential/${id}`)
+    },
     getNotificationPreferenceApi() {
       return requestClient.get<NotificationPreference>('/Profile/NotificationPreference')
     },
@@ -179,17 +203,17 @@ function createProfileApis() {
       return fileApi.generatePresignedUrl(fileId)
     },
     getLinkedAccountsApi() {
-      return getWithFallback<ExternalLoginItem[]>('/Profile/LinkedAccounts', [])
+      return requestClient.get<ExternalLoginItem[]>('/Profile/LinkedAccounts')
     },
     getLoginLogsApi(page: number, pageSize: number) {
-      return getWithFallback<LoginLogPage>('/Profile/LoginLogs', { items: [], total: 0 }, { params: { page, pageSize } })
+      return requestClient.get<LoginLogPage>('/Profile/LoginLogs', { params: { page, pageSize } })
         .then(result => ({ ...result, page, pageSize }))
     },
     getProfileApi() {
       return requestClient.get<UserProfile>('/Profile/Profile')
     },
     getSessionsApi() {
-      return getWithFallback<UserSessionItem[]>('/Profile/Sessions', [])
+      return requestClient.get<UserSessionItem[]>('/Profile/Sessions')
     },
     revokeOtherSessionsApi() {
       return requestClient.post('/Profile/RevokeOtherSessions')
@@ -249,25 +273,42 @@ function createShellApis() {
         return getWithFallback<AppEnumDefinition>('/Enum/ByName', emptyEnum(name), { params: query })
       },
     },
-    pagePreferenceApi: {
-      get(pageCode: string) {
-        return getWithFallback<{ pageCode: string, payload?: null | string }>(
-          '/PagePreference/Get',
-          { pageCode, payload: null },
-          { params: { pageCode } },
+    userSettingApi: {
+      get(input: { scene: number, settingKey: string }) {
+        return getWithFallback<{ scene: number, settingKey: string, settingValue?: null | string }>(
+          '/UserSettingQuery/Get',
+          { scene: input.scene, settingKey: input.settingKey, settingValue: null },
+          { params: input },
         )
       },
-      save(input: { pageCode: string, payload?: null | string }) {
-        return requestClient.post<{ pageCode: string, payload?: null | string }>('/PagePreference/Save', input)
+      save(input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string }) {
+        return requestClient.post<{ scene: number, settingKey: string, settingValue?: null | string }>('/UserSetting/Save', input)
       },
     },
     fieldSecurityApi: {
       getMine(resourceCode: string) {
         return getWithFallback<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>(
-          '/MyFieldSecurity/GetMine',
+          '/MyFieldSecurity/Mine',
           [],
           { params: { resourceCode } },
         )
+      },
+    },
+    importHistoryApi: {
+      create(input: { pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string }) {
+        return requestClient.post<unknown>('/ImportHistory/Create', input)
+      },
+      recent(pageCode: string, count = 10) {
+        return getWithFallback<Array<{ basicId: number | string, pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string, createdTime: string }>>(
+          '/ImportHistoryQuery/Mine',
+          [],
+          { params: { pageCode, count } },
+        )
+      },
+    },
+    exportTaskApi: {
+      submit(input: { businessType: string, taskName?: string, scope: number, format: number, querySnapshot?: null | string, columns: Array<{ key: string, title: string, valueMap?: Record<string, string> }> }) {
+        return requestClient.post<unknown>('/ExportTask/Submit', input)
       },
     },
     operationLogApi: {

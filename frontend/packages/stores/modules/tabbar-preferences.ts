@@ -28,6 +28,10 @@ export function useTabbarPreferences() {
     get: () => appStore.tabbarShowMaximize,
     set: value => appStore.setTabbarShowMaximize(value),
   })
+  const tabbarShowOverview = computed({
+    get: () => appStore.tabbarShowOverview,
+    set: value => appStore.setTabbarShowOverview(value),
+  })
   const tabbarMaxCount = computed({
     get: () => appStore.tabbarMaxCount,
     set: value => appStore.setTabbarMaxCount(value),
@@ -40,6 +44,7 @@ export function useTabbarPreferences() {
     tabbarDraggable,
     tabbarShowMore,
     tabbarShowMaximize,
+    tabbarShowOverview,
     tabbarMaxCount,
   }
 }

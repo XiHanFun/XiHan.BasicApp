@@ -21,7 +21,7 @@ export const tenantEditionPermissionApi = {
     return tenantEditionPermissionCommandApi.post<
       TenantEditionPermissionDetailDto,
       TenantEditionPermissionGrantDto
-    >('TenantEditionPermission', input)
+    >('GrantTenantEditionPermission', input)
   },
   list(editionId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}
@@ -34,8 +34,9 @@ export const tenantEditionPermissionApi = {
     )
   },
   revoke(id: ApiId) {
-    return tenantEditionPermissionCommandApi.delete(
-      `TenantEditionPermission/${formatDynamicApiRouteValue(id)}`,
+    // Revoke 前缀不在动态 API 动词表内：路由保留完整方法名且默认 POST
+    return tenantEditionPermissionCommandApi.post(
+      `RevokeTenantEditionPermission/${formatDynamicApiRouteValue(id)}`,
     )
   },
   updateStatus(input: TenantEditionPermissionStatusUpdateDto) {

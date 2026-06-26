@@ -33,8 +33,7 @@ const rememberMe = ref(true)
 const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
-  tenantEnabled: true,
-  oauthProviders: [],
+  oAuthProviders: [],
 })
 
 // ==================== 2FA 三阶段状态 ====================
@@ -60,9 +59,8 @@ const methodIcons: Record<string, string> = {
 }
 
 const formData = ref({
-  username: 'superadmin',
-  password: 'SuperAdmin@123',
-  tenantId: '1',
+  username: '',
+  password: '',
 })
 
 const rules: FormRules = {
@@ -72,38 +70,42 @@ const rules: FormRules = {
   password: [
     { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
   ],
-  tenantId: [
-    {
-      trigger: 'blur',
-      validator: (_rule: unknown, value: string) => {
-        if (!loginConfig.value.tenantEnabled)
-          return true
-        if (!value?.trim())
-          return new Error('请输入租户ID')
-        return true
-      },
-    },
-  ],
+}
+
+// 快捷登录账号（种子数据内置，默认租户成员；用于演示不同权限层级）
+// 注：租户用户在「先登录后选租户」模型下需以邮箱登录（邮箱全平台唯一定位），故此处用邮箱作为登录标识。
+const quickAccounts = [
+  { label: '系统管理员', login: 'admin@xihan.fun', password: 'Admin@123' },
+  { label: '普通用户', login: 'user@xihan.fun', password: 'User@123' },
+  { label: '游客', login: 'guest@xihan.fun', password: 'Guest@123' },
+]
+
+/** 填入对应账号并直接登录 */
+function quickLogin(account: { login: string, password: string }) {
+  formData.value.username = account.login
+  formData.value.password = account.password
+  handleLogin()
 }
 
 const redirect = computed(() => {
   return (route.query.redirect as string) || undefined
 })
 
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi）
 const oauthProviderIcons: Record<string, string> = {
-  github: 'lucide:github',
-  google: 'lucide:globe',
-  qq: 'lucide:message-circle',
+  github: 'mdi:github',
+  google: 'mdi:google',
+  qq: 'mdi:qqchat',
 }
 
-const oauthProviders = computed(() => loginConfig.value.oauthProviders ?? [])
+const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
 
 function getOauthProviderIcon(name: string) {
   return oauthProviderIcons[name.toLowerCase()] ?? 'lucide:link-2'
 }
 
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
-  authStore.startOAuthLogin(provider, resolveTenantId())
+  authStore.startOAuthLogin(provider)
 }
 
 async function loadLoginConfig() {
@@ -117,15 +119,10 @@ onMounted(async () => {
   cachedDeviceId.value = await generateDeviceFingerprint()
 })
 
-function resolveTenantId() {
-  return loginConfig.value.tenantEnabled ? formData.value.tenantId.trim() || undefined : undefined
-}
-
 function buildLoginParams() {
   return {
     username: formData.value.username,
     password: formData.value.password,
-    tenantId: resolveTenantId(),
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     deviceId: cachedDeviceId.value || undefined,
@@ -453,14 +450,6 @@ onMounted(async () => {
               </template>
             </NInput>
           </NFormItem>
-          <NFormItem
-            v-if="loginConfig.tenantEnabled"
-            path="tenantId"
-            :show-feedback="false"
-            class="!mb-6"
-          >
-            <NInput v-model:value="formData.tenantId" size="large" placeholder="请输入租户ID" />
-          </NFormItem>
           <div class="flex justify-between items-center mb-5 text-sm">
             <NCheckbox v-model:checked="rememberMe">
               {{ t('page.login.remember_me') }}
@@ -479,7 +468,31 @@ onMounted(async () => {
           >
             {{ t('page.login.login_btn') }}
           </NButton>
+
+          <!-- 快捷登录：内置演示账号，一键填入并登录 -->
+          <div class="grid grid-cols-3 gap-2 mt-3">
+            <NButton
+              v-for="acc in quickAccounts"
+              :key="acc.login"
+              secondary
+              class="!h-10 !rounded-xl !text-sm"
+              :disabled="authStore.loginLoading"
+              @click="quickLogin(acc)"
+            >
+              {{ acc.label }}
+            </NButton>
+          </div>
         </NForm>
+
+        <p
+          class="mt-6 text-sm text-center"
+          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
+        >
+          {{ t('page.auth.no_account') }}
+          <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
+            {{ t('page.login.register') }}
+          </span>
+        </p>
 
         <NDivider
           v-if="oauthProviders.length > 0"
@@ -501,16 +514,6 @@ onMounted(async () => {
             {{ provider.displayName }}
           </NButton>
         </div>
-
-        <p
-          class="mt-6 text-sm text-center"
-          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
-        >
-          {{ t('page.auth.no_account') }}
-          <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
-            {{ t('page.login.register') }}
-          </span>
-        </p>
       </div>
     </Transition>
   </div>

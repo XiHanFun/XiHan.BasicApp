@@ -65,10 +65,7 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (info is null)
-        {
-            throw new ArgumentNullException(nameof(info));
-        }
+        ArgumentNullException.ThrowIfNull(info);
 
         var db = _clientResolver.GetCurrentClient();
         var effectiveTenantId = tenantId ?? _currentTenant.Id ?? 0;

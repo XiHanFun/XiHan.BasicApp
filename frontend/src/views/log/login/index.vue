@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { LoginLogDetailDto, LoginLogListItemDto, PageResult } from '@/api'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { NTag, useMessage } from 'naive-ui'
 import { h, ref } from 'vue'
 import { createPageRequest, LoginResult, logManagementApi } from '@/api'
@@ -25,6 +25,11 @@ const loginResultOptions = [
   { label: '需二次验证', value: LoginResult.RequiresTwoFactor },
   { label: '二次验证失败', value: LoginResult.TwoFactorFailed },
   { label: '登出', value: LoginResult.Logout },
+  { label: '令牌刷新', value: LoginResult.TokenRefreshed },
+  { label: '密码修改', value: LoginResult.PasswordChanged },
+  { label: '密码重置', value: LoginResult.PasswordReset },
+  { label: '绑定MFA', value: LoginResult.MfaBound },
+  { label: '解绑MFA', value: LoginResult.MfaUnbound },
   { label: '其他失败', value: LoginResult.Failed },
 ]
 
@@ -36,13 +41,18 @@ const riskOptions = [
 function loginResultType(result: LoginResult) {
   switch (result) {
     case LoginResult.Success: return 'success'
-    case LoginResult.Logout: return 'info'
+    case LoginResult.Logout:
+    case LoginResult.TokenRefreshed: return 'info'
     case LoginResult.InvalidCredentials:
     case LoginResult.TwoFactorFailed:
     case LoginResult.Failed: return 'error'
     case LoginResult.AccountLocked:
     case LoginResult.AccountDisabled:
-    case LoginResult.RequiresTwoFactor: return 'warning'
+    case LoginResult.RequiresTwoFactor:
+    case LoginResult.PasswordChanged:
+    case LoginResult.PasswordReset:
+    case LoginResult.MfaBound:
+    case LoginResult.MfaUnbound: return 'warning'
     default: return 'default'
   }
 }
@@ -55,7 +65,7 @@ const fields: ListFieldSchema[] = [
   { key: 'userName', title: '用户名', dataType: 'string', advancedSearch: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: '会话标识', dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
   { key: 'traceId', title: '链路追踪 ID', dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
-  { key: 'loginIp', title: '登录 IP', dataType: 'string', minWidth: 130, order: 14 },
+  { key: 'loginIp', title: '登录 IP', dataType: 'string', searchable: true, searchPlaceholder: '搜索登录 IP', minWidth: 130, order: 14 },
   { key: 'loginLocation', title: '登录位置', dataType: 'string', minWidth: 160, order: 15 },
   { key: 'browser', title: '浏览器', dataType: 'string', minWidth: 120, order: 16 },
   { key: 'os', title: '操作系统', dataType: 'string', minWidth: 120, order: 17 },
@@ -100,28 +110,34 @@ function toIso(v: unknown): string | undefined {
   return v == null || v === '' ? undefined : new Date(v as number).toISOString()
 }
 
+/** 查询构建（resource.page 与导出快照复用；枚举保持数值以兼容服务端 JSON 反序列化） */
+function buildLoginQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
+    keyword: toStr(f.keyword),
+    loginResult: (f.loginResult as LoginResult | undefined) ?? undefined,
+    userName: toStr(f.userName),
+    userId: toStr(f.userId),
+    isRiskLogin: toBool(f.isRiskLogin),
+    sessionId: toStr(f.sessionId),
+    traceId: toStr(f.traceId),
+    loginIp: toStr(f.loginIp),
+    loginTimeStart: toIso(f.loginTimeStart),
+    loginTimeEnd: toIso(f.loginTimeEnd),
+  }
+}
+
 const schema: PageSchema = {
   pageCode: 'log.login',
+  exportPermission: 'saas:login-log:export',
   pageName: '登录日志',
   rowKey: 'basicId',
   scrollX: 2000,
   fields,
   resource: {
-    page: (params) => {
-      const f = params.filters
-      return logManagementApi.login.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: toStr(f.keyword),
-        loginResult: (f.loginResult as LoginResult | undefined) ?? undefined,
-        userName: toStr(f.userName),
-        userId: toStr(f.userId),
-        isRiskLogin: toBool(f.isRiskLogin),
-        sessionId: toStr(f.sessionId),
-        traceId: toStr(f.traceId),
-        loginTimeStart: toIso(f.loginTimeStart),
-        loginTimeEnd: toIso(f.loginTimeEnd),
-      }) as unknown as Promise<PageResult<Record<string, unknown>>>
-    },
+    page: params => logManagementApi.login.page(buildLoginQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    export: { businessType: 'log.login', buildQuery: buildLoginQuery },
   },
   actions: [
     { key: 'view', title: '查看详情', scope: 'row', icon: 'lucide:eye' },

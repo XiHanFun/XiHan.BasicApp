@@ -214,6 +214,12 @@ public sealed class ExceptionLogQueryService
             predicate = And(predicate, exceptionLog => exceptionLog.StatusCode == statusCode);
         }
 
+        if (!string.IsNullOrWhiteSpace(input.OperationIp))
+        {
+            var operationIp = input.OperationIp.Trim();
+            predicate = And(predicate, exceptionLog => exceptionLog.OperationIp != null && exceptionLog.OperationIp.Contains(operationIp));
+        }
+
         if (input.DeviceType.HasValue)
         {
             var deviceType = input.DeviceType.Value;
@@ -298,6 +304,7 @@ public sealed class ExceptionLogQueryService
         ValidateMaxLength(input.ApplicationVersion, 50, nameof(input.ApplicationVersion), "应用程序版本长度不能超过 50。");
         ValidateMaxLength(input.EnvironmentName, 50, nameof(input.EnvironmentName), "环境名称长度不能超过 50。");
         ValidateMaxLength(input.ErrorCode, 50, nameof(input.ErrorCode), "错误代码长度不能超过 50。");
+        ValidateMaxLength(input.OperationIp, 64, nameof(input.OperationIp), "操作 IP 长度不能超过 64。");
         ValidateStatusCode(input.StatusCode);
 
         if (input.SeverityLevel is < 1 or > 5)

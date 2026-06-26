@@ -36,6 +36,13 @@ export function useGlobalShortcuts() {
       if (appStore.widgetLockScreen) {
         layoutBridgeStore.requestLockScreen()
       }
+      return
+    }
+
+    // Alt/Option + B：标签卡片总览（避开 Alt+W 等浏览器内置快捷键）
+    if (appStore.shortcutTabOverview && e.altKey && (e.code === 'KeyB' || e.key.toLowerCase() === 'b')) {
+      e.preventDefault()
+      layoutBridgeStore.requestOpenTabOverview()
     }
   }
 

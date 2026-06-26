@@ -25,6 +25,16 @@ public interface IFileDomainService
     Task<FileDeleteCommandResult> DeleteFileAsync(FileDeleteCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 增加文件下载次数（自增 DownloadCount 并记录最后下载时间）
+    /// </summary>
+    Task IncrementDownloadCountAsync(long fileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 增加文件访问次数（自增 ViewCount 并记录最后访问时间）
+    /// </summary>
+    Task IncrementViewCountAsync(long fileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 秒传文件
     /// </summary>
     Task<FileCommandResult> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default);
