@@ -1,13 +1,14 @@
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
 import { USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { i18n } from '~/locales'
-import { isSearchSyncEnabled, isTableSyncEnabled, useAppContext } from '~/stores'
+import { isSearchSyncEnabled, isTableSyncEnabled, isWidgetsSyncEnabled, useAppContext } from '~/stores'
 
 /** 分区 → i18n 名称键（用于灵动岛同步提示） */
 const SECTION_NAME_KEYS: Record<string, string> = {
   table: 'island.sync.name.table',
   search: 'island.sync.name.search',
   views: 'island.sync.name.views',
+  board: 'island.sync.name.widgets',
 }
 
 function sectionName(section: string): string {
@@ -24,6 +25,9 @@ function isSectionSyncEnabled(section: string): boolean {
   }
   if (section === 'table' || section === 'views') {
     return isTableSyncEnabled()
+  }
+  if (section === 'board') {
+    return isWidgetsSyncEnabled()
   }
   return true
 }

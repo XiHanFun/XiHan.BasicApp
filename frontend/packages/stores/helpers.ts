@@ -1,6 +1,6 @@
 import { nextTick, ref, watch } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
-import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, USER_SETTING_CLIENT_ID, UserSettingScene, WIDGETS_SYNC_KEY } from '~/constants'
 import { i18n } from '~/locales'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
@@ -64,6 +64,7 @@ const DEVICE_LOCAL_KEYS = new Set<string>([
   FAVORITES_SYNC_KEY,
   SEARCH_SYNC_KEY,
   TABLE_SYNC_KEY,
+  WIDGETS_SYNC_KEY,
 ])
 
 /** 偏好后端同步是否启用（用户开关，默认开启=上行后端并实时推送多端）。读自注册表中的同步开关偏好。 */
@@ -84,6 +85,11 @@ export function isSearchSyncEnabled(): boolean {
 /** 表格/视图设置后端同步是否启用（默认开启；关闭后仅本地存储） */
 export function isTableSyncEnabled(): boolean {
   return registry.get(TABLE_SYNC_KEY)?.value === true
+}
+
+/** 小组件看板后端同步是否启用（默认开启；关闭后仅本地存储） */
+export function isWidgetsSyncEnabled(): boolean {
+  return registry.get(WIDGETS_SYNC_KEY)?.value === true
 }
 
 /** 构建整份偏好快照（排除同步开关本身——设备本地维度，不上行） */
