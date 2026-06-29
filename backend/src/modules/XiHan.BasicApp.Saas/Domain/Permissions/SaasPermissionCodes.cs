@@ -72,6 +72,11 @@ public static class SaasPermissionCodes
         Department.Update,
         Department.Status,
         Department.Delete,
+        Position.Read,
+        Position.Create,
+        Position.Update,
+        Position.Status,
+        Position.Delete,
         User.Read,
         User.Create,
         User.Update,
@@ -236,6 +241,7 @@ public static class SaasPermissionCodes
         Config.Import,
         Role.Export,
         Department.Export,
+        Position.Export,
         Permission.Export,
         FieldLevelSecurity.Export,
         PermissionRequest.Export,
@@ -594,6 +600,47 @@ public static class SaasPermissionCodes
         /// 导出部门
         /// </summary>
         public const string Export = "saas:department:export";
+    }
+
+    /// <summary>
+    /// 岗位权限码
+    /// </summary>
+    public static class Position
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "position";
+
+        /// <summary>
+        /// 查看岗位
+        /// </summary>
+        public const string Read = "saas:position:read";
+
+        /// <summary>
+        /// 创建岗位
+        /// </summary>
+        public const string Create = "saas:position:create";
+
+        /// <summary>
+        /// 更新岗位
+        /// </summary>
+        public const string Update = "saas:position:update";
+
+        /// <summary>
+        /// 更新岗位状态
+        /// </summary>
+        public const string Status = "saas:position:status";
+
+        /// <summary>
+        /// 删除岗位
+        /// </summary>
+        public const string Delete = "saas:position:delete";
+
+        /// <summary>
+        /// 导出岗位
+        /// </summary>
+        public const string Export = "saas:position:export";
     }
 
     /// <summary>

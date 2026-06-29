@@ -106,6 +106,8 @@ public static class PageRegistry
          new("identity.role", "角色管理", "menu.identity_role", MenuType.Menu, "/identity/role", "IdentityRole", "identity/role/index", "identity", SaasPermissionCodes.Role.Read, "lucide:shield-user", 120),
         // [2.3] 组织机构
          new("identity.org", "组织机构", "menu.identity_org", MenuType.Menu, "/identity/org", "IdentityOrg", "identity/org/index", "identity", SaasPermissionCodes.Department.Read, "lucide:network", 130),
+        // [2.3.1] 岗位管理（紧邻组织机构）
+         new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu, "/identity/position", "IdentityPosition", "identity/position/index", "identity", SaasPermissionCodes.Position.Read, "lucide:briefcase", 135),
         // [2.4] 权限管理
          new("identity.permission", "权限管理", "menu.identity_permission", MenuType.Menu, "/identity/permission", "IdentityPermission", "identity/permission/index", "identity", SaasPermissionCodes.Permission.Read, "lucide:key-round", 140),
         // [2.5] 字段安全（字段级读写与脱敏策略）
@@ -221,6 +223,13 @@ public static class PageRegistry
          new("identity.org.delete", "删除", "identity.org", SaasPermissionCodes.Department.Delete, 3),
          new("identity.org.status", "启停", "identity.org", SaasPermissionCodes.Department.Status, 4),
          new("identity.org.export", "导出", "identity.org", SaasPermissionCodes.Department.Export, 9),
+
+        // [2.3.1] 岗位管理
+         new("identity.position.create", "新增", "identity.position", SaasPermissionCodes.Position.Create, 1),
+         new("identity.position.update", "编辑", "identity.position", SaasPermissionCodes.Position.Update, 2),
+         new("identity.position.delete", "删除", "identity.position", SaasPermissionCodes.Position.Delete, 3),
+         new("identity.position.status", "启停", "identity.position", SaasPermissionCodes.Position.Status, 4),
+         new("identity.position.export", "导出", "identity.position", SaasPermissionCodes.Position.Export, 9),
 
         // [2.4] 权限管理
          new("identity.permission.create", "新增", "identity.permission", SaasPermissionCodes.Permission.Create, 1),

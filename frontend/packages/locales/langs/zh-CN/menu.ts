@@ -8,6 +8,7 @@ export default {
   identity_user: '用户管理',
   identity_role: '角色管理',
   identity_org: '组织机构',
+  identity_position: '岗位管理',
   identity_permission: '权限管理',
   identity_field_security: '字段安全',
   identity_authorization: '授权申请',

@@ -200,6 +200,15 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Department.Delete, "部门删除", "删除当前租户部门", true, 504),
             new(SaasPermissionCodes.Department.Export, "部门导出", "导出当前数据范围内的部门列表数据", false, 2550),
         ]),
+        new(SaasPermissionCodes.Position.Group, "岗位",
+        [
+            new(SaasPermissionCodes.Position.Read, "岗位查看", "查看岗位列表和详情", false, 505),
+            new(SaasPermissionCodes.Position.Create, "岗位创建", "创建当前租户岗位", true, 506),
+            new(SaasPermissionCodes.Position.Update, "岗位更新", "更新当前租户岗位资料", true, 507),
+            new(SaasPermissionCodes.Position.Status, "岗位状态", "更新当前租户岗位状态", true, 508),
+            new(SaasPermissionCodes.Position.Delete, "岗位删除", "删除当前租户岗位", true, 509),
+            new(SaasPermissionCodes.Position.Export, "岗位导出", "导出当前数据范围内的岗位列表数据", false, 2555),
+        ]),
         new(SaasPermissionCodes.UserDepartment.Group, "用户部门",
         [
             new(SaasPermissionCodes.UserDepartment.Read, "用户部门归属查看", "查看用户部门归属和部门成员归属", false, 510),

@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
@@ -34,12 +35,15 @@ public sealed class UserDepartmentAppService
 {
     private readonly IUserDomainService _userDomainService;
 
+    private readonly IPositionRepository _positionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public UserDepartmentAppService(IUserDomainService userDomainService)
+    public UserDepartmentAppService(IUserDomainService userDomainService, IPositionRepository positionRepository)
     {
         _userDomainService = userDomainService;
+        _positionRepository = positionRepository;
     }
 
     #region 用户部门
@@ -54,6 +58,7 @@ public sealed class UserDepartmentAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await EnsurePositionExistsAsync(input.PositionId, cancellationToken);
         var result = await _userDomainService.CreateUserDepartmentAsync(UserDepartmentApplicationMapper.ToAssignCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
     }
@@ -79,6 +84,7 @@ public sealed class UserDepartmentAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await EnsurePositionExistsAsync(input.PositionId, cancellationToken);
         var result = await _userDomainService.UpdateUserDepartmentAsync(UserDepartmentApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
     }
@@ -95,6 +101,20 @@ public sealed class UserDepartmentAppService
 
         var result = await _userDomainService.UpdateUserDepartmentStatusAsync(UserDepartmentApplicationMapper.ToStatusCommand(input), cancellationToken);
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
+    }
+
+    /// <summary>
+    /// 校验岗位存在（仅在指定岗位时校验；岗位仓储自带租户过滤，跨租户岗位视为不存在）
+    /// </summary>
+    private async Task EnsurePositionExistsAsync(long? positionId, CancellationToken cancellationToken)
+    {
+        if (positionId is not > 0)
+        {
+            return;
+        }
+
+        _ = await _positionRepository.GetByIdAsync(positionId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("岗位不存在。");
     }
 
     #endregion

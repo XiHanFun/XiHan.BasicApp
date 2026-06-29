@@ -23,7 +23,7 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 
 /// <summary>
-/// SaaS 组织架构种子数据（默认租户演示组织结构：总公司 + 6 个一级部门，并维护闭包表；受演示开关控制）
+/// SaaS 组织架构种子数据（默认租户演示组织结构：总公司 + 6 个一级部门并维护闭包表，外加演示岗位字典；受演示开关控制）
 /// </summary>
 public sealed class SaasOrganizationSeeder(
     ISqlSugarClientResolver clientResolver,
@@ -82,10 +82,48 @@ public sealed class SaasOrganizationSeeder(
 
         await RebuildDepartmentHierarchyAsync(client, tenantId);
 
+        var positionsCreated = 0;
+        positionsCreated += (await EnsurePositionAsync(client, tenantId, "总经理", "gm", 10, "公司最高管理岗位")).Created ? 1 : 0;
+        positionsCreated += (await EnsurePositionAsync(client, tenantId, "部门经理", "manager", 20, "部门负责人")).Created ? 1 : 0;
+        positionsCreated += (await EnsurePositionAsync(client, tenantId, "主管", "supervisor", 30, "团队主管")).Created ? 1 : 0;
+        positionsCreated += (await EnsurePositionAsync(client, tenantId, "高级工程师", "senior_engineer", 40, "资深技术岗位")).Created ? 1 : 0;
+        positionsCreated += (await EnsurePositionAsync(client, tenantId, "工程师", "engineer", 50, "技术岗位")).Created ? 1 : 0;
+        positionsCreated += (await EnsurePositionAsync(client, tenantId, "专员", "specialist", 60, "职能专员岗位")).Created ? 1 : 0;
+
         Logger.LogInformation(
-            "默认租户部门结构已就绪（本次新增 {Created} 个，编码标记 {Marker}）",
+            "默认租户组织结构已就绪（本次新增部门 {Created} 个、岗位 {PositionsCreated} 个，编码标记 {Marker}）",
             created,
+            positionsCreated,
             RootDepartmentCode);
+    }
+
+    private static async Task<(SysPosition Position, bool Created)> EnsurePositionAsync(
+        ISqlSugarClient client,
+        long tenantId,
+        string name,
+        string code,
+        int sort,
+        string remark)
+    {
+        var existing = await client.Queryable<SysPosition>()
+            .FirstAsync(position => position.TenantId == tenantId && position.PositionCode == code && !position.IsDeleted);
+        if (existing is not null)
+        {
+            return (existing, false);
+        }
+
+        var position = new SysPosition
+        {
+            TenantId = tenantId,
+            PositionName = name,
+            PositionCode = code,
+            Status = EnableStatus.Enabled,
+            Sort = sort,
+            Remark = remark,
+        };
+
+        var saved = await client.Insertable(position).ExecuteReturnEntityAsync();
+        return (saved, true);
     }
 
     private static async Task<(SysDepartment Department, bool Created)> EnsureDepartmentAsync(

@@ -16,6 +16,7 @@ import {
   NCascader,
   NConfigProvider,
   NDataTable,
+  NDatePicker,
   NDescriptions,
   NDescriptionsItem,
   NEmpty,
@@ -34,9 +35,12 @@ import {
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  createPageRequest,
   DepartmentType,
   EnableStatus,
   orgManagementApi,
+  positionApi,
+  userDepartmentApi,
   ValidityStatus,
 } from '@/api'
 import { Icon, SchemaPage } from '~/components'
@@ -284,6 +288,8 @@ const memberColumns = computed<DataTableColumns<DepartmentManagementMemberDto>>(
     render: row => row.realName || row.nickName || row.userName || String(row.userId),
   },
   { title: t('identity.org.detail_table_username'), key: 'userName', width: 110, ellipsis: { tooltip: true }, render: row => row.userName ?? '—' },
+  { title: t('identity.org.detail_table_position'), key: 'positionName', width: 120, ellipsis: { tooltip: true }, render: row => row.positionName ?? '—' },
+  { title: t('identity.org.detail_table_job_number'), key: 'jobNumber', width: 100, ellipsis: { tooltip: true }, render: row => row.jobNumber ?? '—' },
   {
     title: t('identity.org.detail_table_is_main'),
     key: 'isMain',
@@ -302,6 +308,12 @@ const memberColumns = computed<DataTableColumns<DepartmentManagementMemberDto>>(
       type: row.status === ValidityStatus.Valid ? 'success' : 'default',
       bordered: false,
     }, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid'))),
+  },
+  {
+    title: t('identity.org.detail_table_actions'),
+    key: 'actions',
+    width: 90,
+    render: row => h(NButton, { size: 'tiny', text: true, type: 'primary', onClick: () => openEditMembership(row) }, () => t('identity.org.action_edit_membership')),
   },
 ])
 
@@ -347,10 +359,14 @@ async function handleView(row: DepartmentListItemDto) {
   managementDetail.value = null
 
   try {
-    managementDetail.value = await orgManagementApi.detailView(row.basicId)
-    if (!managementDetail.value) {
+    const detail = await orgManagementApi.detailView(row.basicId)
+    // 后端异常时可能返回非 DTO 形状（缺少 department/childDepartments/members），按未找到处理，避免渲染崩溃
+    if (!detail || !detail.department) {
+      managementDetail.value = null
       message.warning(t('identity.org.msg_detail_not_found'))
+      return
     }
+    managementDetail.value = detail
   }
   catch {
     message.error(t('identity.org.msg_load_detail_failed'))
@@ -369,6 +385,92 @@ async function handleToggleStatus(row: DepartmentListItemDto) {
   }
   catch {
     message.error(t('identity.org.msg_status_failed'))
+  }
+}
+
+// ── 成员任职（岗位/工号/职级/入职日期）编辑 ──────────────────
+const positionOptions = ref<{ label: string, value: ApiId }[]>([])
+
+async function loadPositionOptions() {
+  try {
+    const res = await positionApi.page({
+      ...createPageRequest({ page: { pageIndex: 1, pageSize: 500 } }),
+      status: EnableStatus.Enabled,
+    })
+    positionOptions.value = res.items.map(item => ({ label: item.positionName, value: item.basicId }))
+  }
+  catch {
+    positionOptions.value = []
+  }
+}
+
+interface MembershipFormModel {
+  basicId: ApiId
+  isMain: boolean
+  jobLevel: string | null
+  jobNumber: string | null
+  joinTime: number | null
+  positionId: ApiId | null
+  remark: string | null
+}
+
+const membershipVisible = ref(false)
+const membershipLoading = ref(false)
+const membershipMemberName = ref('')
+const membershipForm = ref<MembershipFormModel>(createDefaultMembershipForm())
+
+function createDefaultMembershipForm(): MembershipFormModel {
+  return { basicId: '', isMain: false, jobLevel: null, jobNumber: null, joinTime: null, positionId: null, remark: null }
+}
+
+function openEditMembership(member: DepartmentManagementMemberDto) {
+  membershipMemberName.value = member.realName || member.nickName || member.userName || String(member.userId)
+  membershipForm.value = {
+    basicId: member.basicId,
+    isMain: member.isMain,
+    jobLevel: member.jobLevel ?? null,
+    jobNumber: member.jobNumber ?? null,
+    joinTime: member.joinTime ? new Date(member.joinTime).getTime() : null,
+    positionId: member.positionId ?? null,
+    remark: member.remark ?? null,
+  }
+  membershipVisible.value = true
+}
+
+async function refreshManagementDetail() {
+  const deptId = managementDetail.value?.department.basicId
+  if (!deptId) {
+    return
+  }
+  try {
+    managementDetail.value = await orgManagementApi.detailView(deptId)
+  }
+  catch {
+    // 静默：保留旧详情
+  }
+}
+
+async function submitMembership() {
+  membershipLoading.value = true
+  try {
+    await userDepartmentApi.update({
+      basicId: membershipForm.value.basicId,
+      isMain: membershipForm.value.isMain,
+      jobLevel: toStr(membershipForm.value.jobLevel),
+      jobNumber: toStr(membershipForm.value.jobNumber),
+      joinTime: membershipForm.value.joinTime ? new Date(membershipForm.value.joinTime).toISOString() : null,
+      positionId: membershipForm.value.positionId,
+      remark: toStr(membershipForm.value.remark),
+    })
+    message.success(t('common.messages.save_success'))
+    membershipVisible.value = false
+    await refreshManagementDetail()
+  }
+  catch {
+    message.error(t('common.messages.save_failed'))
+  }
+  finally {
+    membershipLoading.value = false
   }
 }
 
@@ -438,6 +540,7 @@ async function handleSubmit() {
 
 onMounted(() => {
   void loadCascaderTree()
+  void loadPositionOptions()
 })
 </script>
 
@@ -474,7 +577,7 @@ onMounted(() => {
       <div v-if="detailLoading" class="modal-loading">
         {{ t('common.statuses.loading') }}
       </div>
-      <NTabs v-else-if="managementDetail" type="line" animated size="small">
+      <NTabs v-else-if="managementDetail && detDept" type="line" animated size="small">
         <NTabPane name="overview" :tab="t('identity.org.tab_overview')">
           <NDescriptions :column="2" bordered size="small">
             <NDescriptionsItem :label="t('identity.org.label_department_type')">
@@ -511,10 +614,10 @@ onMounted(() => {
             </NDescriptionsItem>
           </NDescriptions>
         </NTabPane>
-        <NTabPane name="children" :tab="t('identity.org.tab_children', { count: managementDetail.childDepartments.length })">
+        <NTabPane name="children" :tab="t('identity.org.tab_children', { count: managementDetail.childDepartments?.length ?? 0 })">
           <div class="xh-detail-table-wrap">
             <NDataTable
-              v-if="managementDetail.childDepartments.length"
+              v-if="managementDetail.childDepartments?.length"
               :columns="childDeptColumns"
               :data="managementDetail.childDepartments"
               :bordered="false"
@@ -524,10 +627,10 @@ onMounted(() => {
             <NEmpty v-else :description="t('identity.org.empty_children')" style="padding: 32px 0" />
           </div>
         </NTabPane>
-        <NTabPane name="members" :tab="t('identity.org.tab_members', { count: managementDetail.members.length })">
+        <NTabPane name="members" :tab="t('identity.org.tab_members', { count: managementDetail.members?.length ?? 0 })">
           <div class="xh-detail-table-wrap">
             <NDataTable
-              v-if="managementDetail.members.length"
+              v-if="managementDetail.members?.length"
               :columns="memberColumns"
               :data="managementDetail.members"
               :bordered="false"
@@ -538,6 +641,7 @@ onMounted(() => {
           </div>
         </NTabPane>
       </NTabs>
+      <NEmpty v-else :description="t('identity.org.msg_detail_not_found')" style="padding: 48px 0" />
 
       <template #footer>
         <NSpace justify="end">
@@ -564,7 +668,7 @@ onMounted(() => {
       preset="card"
       style="width: 720px; max-width: 92vw"
     >
-      <NConfigProvider size="small" abstract>
+      <NConfigProvider abstract>
         <NForm :model="deptForm" size="small" class="xh-edit-form-grid" label-placement="top">
           <NFormItem :label="t('identity.org.label_department_name')" path="departmentName">
             <NInput v-model:value="deptForm.departmentName" clearable :placeholder="t('identity.org.ph_department_name')" />
@@ -614,6 +718,52 @@ onMounted(() => {
             {{ t('common.actions.cancel') }}
           </NButton>
           <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
+            {{ t('common.actions.save') }}
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+
+    <NModal
+      v-model:show="membershipVisible"
+      :auto-focus="false"
+      :bordered="false"
+      :title="t('identity.org.membership_title', { name: membershipMemberName })"
+      preset="card"
+      style="width: 560px; max-width: 92vw"
+    >
+      <NConfigProvider abstract>
+        <NForm :model="membershipForm" size="small" class="xh-edit-form-grid" label-placement="top">
+          <NFormItem :label="t('identity.org.label_position')" path="positionId">
+            <NSelect
+              v-model:value="membershipForm.positionId"
+              :options="positionOptions"
+              clearable
+              filterable
+              :placeholder="t('identity.org.ph_position')"
+            />
+          </NFormItem>
+          <NFormItem :label="t('identity.org.label_job_number')" path="jobNumber">
+            <NInput v-model:value="membershipForm.jobNumber" clearable :placeholder="t('identity.org.ph_job_number')" />
+          </NFormItem>
+          <NFormItem :label="t('identity.org.label_job_level')" path="jobLevel">
+            <NInput v-model:value="membershipForm.jobLevel" clearable :placeholder="t('identity.org.ph_job_level')" />
+          </NFormItem>
+          <NFormItem :label="t('identity.org.label_join_time')" path="joinTime">
+            <NDatePicker v-model:value="membershipForm.joinTime" type="date" clearable style="width: 100%" />
+          </NFormItem>
+          <NFormItem :label="t('identity.org.label_remark')" path="remark" style="grid-column: span 2">
+            <NInput v-model:value="membershipForm.remark" clearable :rows="2" type="textarea" :placeholder="t('identity.org.ph_remark')" />
+          </NFormItem>
+        </NForm>
+      </NConfigProvider>
+
+      <template #footer>
+        <NSpace justify="end">
+          <NButton size="small" @click="membershipVisible = false">
+            {{ t('common.actions.cancel') }}
+          </NButton>
+          <NButton size="small" :loading="membershipLoading" type="primary" @click="submitMembership">
             {{ t('common.actions.save') }}
           </NButton>
         </NSpace>

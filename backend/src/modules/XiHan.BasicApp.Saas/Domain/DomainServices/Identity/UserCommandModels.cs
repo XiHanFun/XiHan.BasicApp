@@ -164,12 +164,27 @@ public sealed record UserDataScopeStatusChangeCommand(long BasicId, ValidityStat
 /// <summary>
 /// 用户部门归属分配命令
 /// </summary>
-public sealed record UserDepartmentAssignCommand(long UserId, long DepartmentId, bool IsMain, string? Remark);
+public sealed record UserDepartmentAssignCommand(
+    long UserId,
+    long DepartmentId,
+    bool IsMain,
+    string? Remark,
+    long? PositionId = null,
+    string? JobNumber = null,
+    string? JobLevel = null,
+    DateTimeOffset? JoinTime = null);
 
 /// <summary>
 /// 用户部门归属更新命令
 /// </summary>
-public sealed record UserDepartmentUpdateCommand(long BasicId, bool IsMain, string? Remark);
+public sealed record UserDepartmentUpdateCommand(
+    long BasicId,
+    bool IsMain,
+    string? Remark,
+    long? PositionId = null,
+    string? JobNumber = null,
+    string? JobLevel = null,
+    DateTimeOffset? JoinTime = null);
 
 /// <summary>
 /// 用户部门归属状态变更命令

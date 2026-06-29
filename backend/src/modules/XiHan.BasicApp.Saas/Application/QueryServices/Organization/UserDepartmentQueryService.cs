@@ -54,18 +54,25 @@ public sealed class UserDepartmentQueryService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
+    /// 岗位仓储
+    /// </summary>
+    private readonly IPositionRepository _positionRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserDepartmentQueryService(
         IUserDepartmentRepository userDepartmentRepository,
         IDepartmentRepository departmentRepository,
         IDepartmentHierarchyRepository departmentHierarchyRepository,
-        ITenantUserRepository tenantUserRepository)
+        ITenantUserRepository tenantUserRepository,
+        IPositionRepository positionRepository)
     {
         _userDepartmentRepository = userDepartmentRepository;
         _departmentRepository = departmentRepository;
         _departmentHierarchyRepository = departmentHierarchyRepository;
         _tenantUserRepository = tenantUserRepository;
+        _positionRepository = positionRepository;
     }
 
     /// <summary>
@@ -156,7 +163,10 @@ public sealed class UserDepartmentQueryService
         }
 
         var department = await _departmentRepository.GetByIdAsync(userDepartment.DepartmentId, cancellationToken);
-        return UserDepartmentApplicationMapper.ToDetailDto(userDepartment, department);
+        var position = userDepartment.PositionId is > 0
+            ? await _positionRepository.GetByIdAsync(userDepartment.PositionId.Value, cancellationToken)
+            : null;
+        return UserDepartmentApplicationMapper.ToDetailDto(userDepartment, department, position);
     }
 
     /// <summary>
@@ -184,15 +194,40 @@ public sealed class UserDepartmentQueryService
         }
 
         var departmentMap = await BuildDepartmentMapAsync(userDepartments.Select(userDepartment => userDepartment.DepartmentId), cancellationToken);
+        var positionMap = await BuildPositionMapAsync(userDepartments.Select(userDepartment => userDepartment.PositionId), cancellationToken);
 
         return [.. userDepartments
             .Select(userDepartment => UserDepartmentApplicationMapper.ToListItemDto(
                 userDepartment,
-                departmentMap.GetValueOrDefault(userDepartment.DepartmentId)))
+                departmentMap.GetValueOrDefault(userDepartment.DepartmentId),
+                userDepartment.PositionId is > 0 ? positionMap.GetValueOrDefault(userDepartment.PositionId.Value) : null))
             .OrderByDescending(item => item.IsMain)
             .ThenBy(item => item.DepartmentCode)
             .ThenBy(item => item.DepartmentId)
             .ThenBy(item => item.UserId)];
+    }
+
+    /// <summary>
+    /// 构建岗位映射
+    /// </summary>
+    /// <param name="positionIds">岗位主键集合（可空项忽略）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>岗位映射</returns>
+    private async Task<IReadOnlyDictionary<long, SysPosition>> BuildPositionMapAsync(IEnumerable<long?> positionIds, CancellationToken cancellationToken)
+    {
+        var ids = positionIds
+            .Where(positionId => positionId is > 0)
+            .Select(positionId => positionId!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysPosition>();
+        }
+
+        var positions = await _positionRepository.GetByIdsAsync(ids, cancellationToken);
+        return positions.ToDictionary(position => position.BasicId);
     }
 
     /// <summary>

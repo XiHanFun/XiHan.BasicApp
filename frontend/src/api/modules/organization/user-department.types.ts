@@ -10,7 +10,12 @@ export interface UserDepartmentListItemDto extends BasicDto {
   departmentStatus?: EnableStatus | null
   departmentType?: DepartmentType | null
   isMain: boolean
+  jobLevel?: string | null
+  jobNumber?: string | null
+  joinTime?: DateTimeString | null
   parentId?: ApiId | null
+  positionId?: ApiId | null
+  positionName?: string | null
   remark?: string | null
   status: ValidityStatus
   userId: ApiId
@@ -20,11 +25,19 @@ export interface UserDepartmentAssignDto {
   userId: ApiId
   departmentId: ApiId
   isMain: boolean
+  jobLevel?: string | null
+  jobNumber?: string | null
+  joinTime?: DateTimeString | null
+  positionId?: ApiId | null
   remark?: string | null
 }
 
 export interface UserDepartmentUpdateDto extends BasicUpdateDto {
   isMain: boolean
+  jobLevel?: string | null
+  jobNumber?: string | null
+  joinTime?: DateTimeString | null
+  positionId?: ApiId | null
   remark?: string | null
 }
 

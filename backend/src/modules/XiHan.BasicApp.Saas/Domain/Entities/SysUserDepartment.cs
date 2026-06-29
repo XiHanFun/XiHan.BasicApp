@@ -53,6 +53,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_UsId_DeId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DeId", nameof(DepartmentId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_PoId", nameof(PositionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsMa", nameof(IsMain), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysUserDepartment : BasicAppCreationEntity
@@ -68,6 +69,30 @@ public partial class SysUserDepartment : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnName = "Department_Id", ColumnDescription = "部门ID", IsNullable = false)]
     public virtual long DepartmentId { get; set; }
+
+    /// <summary>
+    /// 岗位ID（用户在该部门担任的岗位，可空）
+    /// </summary>
+    [SugarColumn(ColumnName = "Position_Id", ColumnDescription = "岗位ID", IsNullable = true)]
+    public virtual long? PositionId { get; set; }
+
+    /// <summary>
+    /// 工号
+    /// </summary>
+    [SugarColumn(ColumnName = "Job_Number", ColumnDescription = "工号", Length = 64, IsNullable = true)]
+    public virtual string? JobNumber { get; set; }
+
+    /// <summary>
+    /// 职级
+    /// </summary>
+    [SugarColumn(ColumnName = "Job_Level", ColumnDescription = "职级", Length = 64, IsNullable = true)]
+    public virtual string? JobLevel { get; set; }
+
+    /// <summary>
+    /// 入职日期
+    /// </summary>
+    [SugarColumn(ColumnName = "Join_Time", ColumnDescription = "入职日期", IsNullable = true)]
+    public virtual DateTimeOffset? JoinTime { get; set; }
 
     /// <summary>
     /// 是否主部门

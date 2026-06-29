@@ -8,6 +8,7 @@ export default {
   identity_user: 'Users',
   identity_role: 'Roles',
   identity_org: 'Organization',
+  identity_position: 'Positions',
   identity_permission: 'Permissions',
   identity_field_security: 'Field Security',
   identity_authorization: 'Access Requests',
