@@ -842,6 +842,10 @@ public sealed class UserDomainService
             {
                 UserId = command.UserId,
                 DepartmentId = command.DepartmentId,
+                PositionId = NormalizePositionId(command.PositionId),
+                JobNumber = NormalizeNullable(command.JobNumber),
+                JobLevel = NormalizeNullable(command.JobLevel),
+                JoinTime = command.JoinTime,
                 IsMain = shouldBeMain,
                 Status = ValidityStatus.Valid,
                 Remark = NormalizeNullable(command.Remark)
@@ -851,6 +855,10 @@ public sealed class UserDomainService
             return new UserDepartmentCommandResult(savedUserDepartment, department);
         }
 
+        userDepartment.PositionId = NormalizePositionId(command.PositionId);
+        userDepartment.JobNumber = NormalizeNullable(command.JobNumber);
+        userDepartment.JobLevel = NormalizeNullable(command.JobLevel);
+        userDepartment.JoinTime = command.JoinTime;
         userDepartment.IsMain = shouldBeMain;
         userDepartment.Status = ValidityStatus.Valid;
         userDepartment.Remark = NormalizeNullable(command.Remark);
@@ -886,6 +894,10 @@ public sealed class UserDomainService
             await ClearOtherMainDepartmentsAsync(userDepartment.UserId, userDepartment.BasicId, cancellationToken);
         }
 
+        userDepartment.PositionId = NormalizePositionId(command.PositionId);
+        userDepartment.JobNumber = NormalizeNullable(command.JobNumber);
+        userDepartment.JobLevel = NormalizeNullable(command.JobLevel);
+        userDepartment.JoinTime = command.JoinTime;
         userDepartment.IsMain = command.IsMain;
         userDepartment.Remark = NormalizeNullable(command.Remark);
 
@@ -1443,6 +1455,14 @@ public sealed class UserDomainService
     }
 
     /// <summary>
+    /// 归一化岗位主键（0 或负值视为未设置）
+    /// </summary>
+    private static long? NormalizePositionId(long? positionId)
+    {
+        return positionId is > 0 ? positionId : null;
+    }
+
+    /// <summary>
     /// 创建安全戳
     /// </summary>
     private static string NewSecurityStamp()
@@ -1857,20 +1877,24 @@ public sealed class UserDomainService
     /// </summary>
     private async Task ClearOtherMainDepartmentsAsync(long userId, long? excludeId, CancellationToken cancellationToken)
     {
+        // 仅下推列谓词（UserId + IsMain）；排除项含可空闭包的 OR 一旦下推会被 SqlSugar 误译为非法 SQL（PostgreSQL 42601），故在内存中排除
         var mainDepartments = await _userDepartmentRepository.GetListAsync(
-            relation => relation.UserId == userId && relation.IsMain && (!excludeId.HasValue || relation.BasicId != excludeId.Value),
+            relation => relation.UserId == userId && relation.IsMain,
             cancellationToken);
-        if (mainDepartments.Count == 0)
+        var targets = excludeId.HasValue
+            ? mainDepartments.Where(relation => relation.BasicId != excludeId.Value).ToList()
+            : mainDepartments.ToList();
+        if (targets.Count == 0)
         {
             return;
         }
 
-        foreach (var mainDepartment in mainDepartments)
+        foreach (var mainDepartment in targets)
         {
             mainDepartment.IsMain = false;
         }
 
-        await _userDepartmentRepository.UpdateRangeAsync(mainDepartments, cancellationToken);
+        await _userDepartmentRepository.UpdateRangeAsync(targets, cancellationToken);
     }
 
     /// <summary>

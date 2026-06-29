@@ -13,12 +13,13 @@ import {
 } from '../../base'
 
 const userDepartmentQueryApi = createDynamicApiClient('UserDepartmentQuery')
-const userCommandApi = createDynamicApiClient('User')
+// 命令端控制器为 UserDepartmentAppService → 动态 API 控制器名 "UserDepartment"（此前误写为 "User" 导致 404）
+const userDepartmentCommandApi = createDynamicApiClient('UserDepartment')
 
 /** 用户部门归属接口 */
 export const userDepartmentApi = {
   assign(input: UserDepartmentAssignDto) {
-    return userCommandApi.post<UserDepartmentListItemDto, UserDepartmentAssignDto>('UserDepartment', input)
+    return userDepartmentCommandApi.post<UserDepartmentListItemDto, UserDepartmentAssignDto>('UserDepartment', input)
   },
   departmentUsers(departmentId: ApiId, includeChildren = true, onlyValid = true) {
     const params: DynamicApiParams = {}
@@ -38,13 +39,13 @@ export const userDepartmentApi = {
     )
   },
   revoke(id: ApiId) {
-    return userCommandApi.delete(`UserDepartment/${formatDynamicApiRouteValue(id)}`)
+    return userDepartmentCommandApi.delete(`UserDepartment/${formatDynamicApiRouteValue(id)}`)
   },
   update(input: UserDepartmentUpdateDto) {
-    return userCommandApi.put<UserDepartmentListItemDto, UserDepartmentUpdateDto>('UserDepartment', input)
+    return userDepartmentCommandApi.put<UserDepartmentListItemDto, UserDepartmentUpdateDto>('UserDepartment', input)
   },
   updateStatus(input: UserDepartmentStatusUpdateDto) {
-    return userCommandApi.put<UserDepartmentListItemDto, UserDepartmentStatusUpdateDto>(
+    return userDepartmentCommandApi.put<UserDepartmentListItemDto, UserDepartmentStatusUpdateDto>(
       'UserDepartmentStatus',
       input,
     )

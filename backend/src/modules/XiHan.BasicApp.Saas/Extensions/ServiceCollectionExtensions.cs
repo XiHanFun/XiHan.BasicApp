@@ -86,6 +86,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProfileDomainService, ProfileDomainService>();
         services.AddScoped<IDepartmentDomainService, DepartmentDomainService>();
         services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
+        services.AddScoped<IPositionDomainService, PositionDomainService>();
         services.AddScoped<ITaskDomainService, TaskDomainService>();
         services.AddScoped<IReviewDomainService, ReviewDomainService>();
         services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();

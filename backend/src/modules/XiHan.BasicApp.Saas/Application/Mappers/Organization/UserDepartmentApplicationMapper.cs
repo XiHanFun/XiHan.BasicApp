@@ -29,7 +29,15 @@ public static class UserDepartmentApplicationMapper
     public static UserDepartmentAssignCommand ToAssignCommand(UserDepartmentAssignDto input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return new UserDepartmentAssignCommand(input.UserId, input.DepartmentId, input.IsMain, input.Remark);
+        return new UserDepartmentAssignCommand(
+            input.UserId,
+            input.DepartmentId,
+            input.IsMain,
+            input.Remark,
+            input.PositionId,
+            input.JobNumber,
+            input.JobLevel,
+            input.JoinTime);
     }
 
     /// <summary>
@@ -37,8 +45,9 @@ public static class UserDepartmentApplicationMapper
     /// </summary>
     /// <param name="userDepartment">用户部门归属</param>
     /// <param name="department">部门</param>
+    /// <param name="position">岗位（用于回填岗位名称，可空）</param>
     /// <returns>用户部门归属列表项 DTO</returns>
-    public static UserDepartmentListItemDto ToListItemDto(SysUserDepartment userDepartment, SysDepartment? department)
+    public static UserDepartmentListItemDto ToListItemDto(SysUserDepartment userDepartment, SysDepartment? department, SysPosition? position = null)
     {
         ArgumentNullException.ThrowIfNull(userDepartment);
 
@@ -52,6 +61,11 @@ public static class UserDepartmentApplicationMapper
             ParentId = department?.ParentId,
             DepartmentType = department?.DepartmentType,
             DepartmentStatus = department?.Status,
+            PositionId = userDepartment.PositionId,
+            PositionName = position?.PositionName,
+            JobNumber = userDepartment.JobNumber,
+            JobLevel = userDepartment.JobLevel,
+            JoinTime = userDepartment.JoinTime,
             IsMain = userDepartment.IsMain,
             Status = userDepartment.Status,
             Remark = userDepartment.Remark,
@@ -64,8 +78,9 @@ public static class UserDepartmentApplicationMapper
     /// </summary>
     /// <param name="userDepartment">用户部门归属</param>
     /// <param name="department">部门</param>
+    /// <param name="position">岗位（用于回填岗位名称，可空）</param>
     /// <returns>用户部门归属详情 DTO</returns>
-    public static UserDepartmentDetailDto ToDetailDto(SysUserDepartment userDepartment, SysDepartment? department)
+    public static UserDepartmentDetailDto ToDetailDto(SysUserDepartment userDepartment, SysDepartment? department, SysPosition? position = null)
     {
         ArgumentNullException.ThrowIfNull(userDepartment);
 
@@ -79,6 +94,11 @@ public static class UserDepartmentApplicationMapper
             ParentId = department?.ParentId,
             DepartmentType = department?.DepartmentType,
             DepartmentStatus = department?.Status,
+            PositionId = userDepartment.PositionId,
+            PositionName = position?.PositionName,
+            JobNumber = userDepartment.JobNumber,
+            JobLevel = userDepartment.JobLevel,
+            JoinTime = userDepartment.JoinTime,
             IsMain = userDepartment.IsMain,
             Status = userDepartment.Status,
             Remark = userDepartment.Remark,
@@ -103,6 +123,13 @@ public static class UserDepartmentApplicationMapper
     public static UserDepartmentUpdateCommand ToUpdateCommand(UserDepartmentUpdateDto input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return new UserDepartmentUpdateCommand(input.BasicId, input.IsMain, input.Remark);
+        return new UserDepartmentUpdateCommand(
+            input.BasicId,
+            input.IsMain,
+            input.Remark,
+            input.PositionId,
+            input.JobNumber,
+            input.JobLevel,
+            input.JoinTime);
     }
 }

@@ -30,6 +30,26 @@ public sealed class UserDepartmentAssignDto
     public long DepartmentId { get; set; }
 
     /// <summary>
+    /// 岗位主键（用户在该部门担任的岗位，可空）
+    /// </summary>
+    public long? PositionId { get; set; }
+
+    /// <summary>
+    /// 工号
+    /// </summary>
+    public string? JobNumber { get; set; }
+
+    /// <summary>
+    /// 职级
+    /// </summary>
+    public string? JobLevel { get; set; }
+
+    /// <summary>
+    /// 入职日期
+    /// </summary>
+    public DateTimeOffset? JoinTime { get; set; }
+
+    /// <summary>
     /// 是否主部门
     /// </summary>
     public bool IsMain { get; set; }

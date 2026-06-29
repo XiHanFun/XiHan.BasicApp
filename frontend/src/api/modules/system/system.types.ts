@@ -132,7 +132,12 @@ export interface DepartmentManagementMemberDto {
   basicId: ApiId
   createdTime: DateTimeString
   isMain: boolean
+  jobLevel?: string | null
+  jobNumber?: string | null
+  joinTime?: DateTimeString | null
   nickName?: string | null
+  positionId?: ApiId | null
+  positionName?: string | null
   realName?: string | null
   remark?: string | null
   status: ValidityStatus

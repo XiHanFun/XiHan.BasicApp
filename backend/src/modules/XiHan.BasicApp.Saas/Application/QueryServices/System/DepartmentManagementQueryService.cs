@@ -43,17 +43,21 @@ public sealed class DepartmentManagementQueryService
 
     private readonly IUserRepository _userRepository;
 
+    private readonly IPositionRepository _positionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public DepartmentManagementQueryService(
         IDepartmentRepository departmentRepository,
         IUserDepartmentRepository userDepartmentRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IPositionRepository positionRepository)
     {
         _departmentRepository = departmentRepository;
         _userDepartmentRepository = userDepartmentRepository;
         _userRepository = userRepository;
+        _positionRepository = positionRepository;
     }
 
     /// <inheritdoc />
@@ -84,7 +88,7 @@ public sealed class DepartmentManagementQueryService
         };
     }
 
-    private static DepartmentManagementMemberDto ToMemberDto(SysUserDepartment userDepartment, SysUser? user)
+    private static DepartmentManagementMemberDto ToMemberDto(SysUserDepartment userDepartment, SysUser? user, SysPosition? position)
     {
         return new DepartmentManagementMemberDto
         {
@@ -93,6 +97,11 @@ public sealed class DepartmentManagementQueryService
             UserName = user?.UserName,
             RealName = user?.RealName,
             NickName = user?.NickName,
+            PositionId = userDepartment.PositionId,
+            PositionName = position?.PositionName,
+            JobNumber = userDepartment.JobNumber,
+            JobLevel = userDepartment.JobLevel,
+            JoinTime = userDepartment.JoinTime,
             IsMain = userDepartment.IsMain,
             Status = userDepartment.Status,
             Remark = userDepartment.Remark,
@@ -130,8 +139,20 @@ public sealed class DepartmentManagementQueryService
         var users = await _userRepository.GetByIdsAsync(userIds, cancellationToken);
         var userMap = users.ToDictionary(user => user.BasicId);
 
+        var positionIds = userDepartments
+            .Where(item => item.PositionId is > 0)
+            .Select(item => item.PositionId!.Value)
+            .Distinct()
+            .ToArray();
+        var positionMap = positionIds.Length == 0
+            ? new Dictionary<long, SysPosition>()
+            : (await _positionRepository.GetByIdsAsync(positionIds, cancellationToken)).ToDictionary(position => position.BasicId);
+
         return [.. userDepartments
-            .Select(item => ToMemberDto(item, userMap.GetValueOrDefault(item.UserId)))
+            .Select(item => ToMemberDto(
+                item,
+                userMap.GetValueOrDefault(item.UserId),
+                item.PositionId is > 0 ? positionMap.GetValueOrDefault(item.PositionId.Value) : null))
             .OrderByDescending(item => item.IsMain)
             .ThenBy(item => item.UserName)
             .Take(MaxMemberCount)];
