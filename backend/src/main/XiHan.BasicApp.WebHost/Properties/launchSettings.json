@@ -19,16 +19,6 @@
         "ASPNETCORE_ENVIRONMENT": "Production"
       },
       "dotnetRunMessages": true
-    },
-    "Test": {
-      "commandName": "Project",
-      "launchBrowser": false,
-      "applicationUrl": "http://127.0.0.1:9710",
-      "launchUrl": "scalar",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Test"
-      },
-      "dotnetRunMessages": true
     }
   }
 }
