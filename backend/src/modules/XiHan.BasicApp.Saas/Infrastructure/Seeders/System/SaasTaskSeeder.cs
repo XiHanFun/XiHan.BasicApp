@@ -54,21 +54,12 @@ public sealed class SaasTaskSeeder(
     protected override async Task SeedInternalAsync()
     {
         using var platformScope = _currentTenant.Change(null);
-        var client = DbClient;
 
-        const string taskCode = "user-statistics-aggregation";
-        var existing = await client.Queryable<SysTask>()
-            .FirstAsync(task => task.TaskCode == taskCode);
-        if (existing is not null)
-        {
-            Logger.LogInformation("内建定时任务 {TaskCode} 已存在，跳过种子数据", taskCode);
-            return;
-        }
-
-        var task = new SysTask
+        // 用户统计聚合
+        await SeedTaskAsync(new SysTask
         {
             TenantId = 0,
-            TaskCode = taskCode,
+            TaskCode = "user-statistics-aggregation",
             TaskName = "用户统计聚合",
             TaskDescription = "按今日/本周/本月周期把登录、访问、操作日志与会话在线时长聚合为用户统计快照（个人中心数据统计/工作台数据源）",
             TaskGroup = "system",
@@ -81,9 +72,42 @@ public sealed class SaasTaskSeeder(
             MaxRetryCount = 3,
             Status = EnableStatus.Enabled,
             Remark = "系统初始化内建任务"
-        };
+        });
 
-        _ = await client.Insertable(task).ExecuteReturnEntityAsync();
-        Logger.LogInformation("成功初始化内建定时任务 {TaskCode}", taskCode);
+        // 日志保留清理
+        await SeedTaskAsync(new SysTask
+        {
+            TenantId = 0,
+            TaskCode = "log-retention-cleanup",
+            TaskName = "日志保留清理",
+            TaskDescription = "按保留期（全局配置 saas:log:retention-days，默认 180 天）删除访问/操作/异常/登录/差异/开放接口/权限变更 7 类按月分表日志的过期行，防止分月表无限增长",
+            TaskGroup = "system",
+            TaskClass = typeof(LogRetentionCleanupTask).FullName!,
+            TaskMethod = nameof(LogRetentionCleanupTask.ExecuteAsync),
+            TriggerType = TriggerType.Cron,
+            CronExpression = "30 3 * * *",
+            TimeoutSeconds = 1800,
+            AllowConcurrent = false,
+            MaxRetryCount = 1,
+            Status = EnableStatus.Enabled,
+            Remark = "系统初始化内建任务"
+        });
+    }
+
+    /// <summary>
+    /// 落地单个内建任务（已存在不覆盖：Cron/启停等允许运营调整）
+    /// </summary>
+    private async Task SeedTaskAsync(SysTask task)
+    {
+        var existing = await DbClient.Queryable<SysTask>()
+            .FirstAsync(item => item.TaskCode == task.TaskCode);
+        if (existing is not null)
+        {
+            Logger.LogInformation("内建定时任务 {TaskCode} 已存在，跳过种子数据", task.TaskCode);
+            return;
+        }
+
+        _ = await DbClient.Insertable(task).ExecuteReturnEntityAsync();
+        Logger.LogInformation("成功初始化内建定时任务 {TaskCode}", task.TaskCode);
     }
 }
