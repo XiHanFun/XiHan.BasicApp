@@ -330,6 +330,7 @@ public sealed class UserDomainService
         ValidatePasswordResetCommand(command);
 
         var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
+        await EnsureUserCanBeResetAsync(user, cancellationToken);
         await EnsurePasswordMeetsPolicyAsync(user, command.NewPassword, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
@@ -1677,6 +1678,23 @@ public sealed class UserDomainService
         if (membership?.MemberType == TenantMemberType.Owner)
         {
             throw new InvalidOperationException("租户所有者账号不能通过用户安全服务锁定。");
+        }
+    }
+
+    /// <summary>
+    /// 校验用户能否被重置密码
+    /// </summary>
+    private async Task EnsureUserCanBeResetAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        if (user.IsSystemAccount)
+        {
+            throw new InvalidOperationException("系统内置账号不能通过用户安全服务重置密码。");
+        }
+
+        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
+        if (membership?.MemberType == TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者账号不能通过用户安全服务重置密码。");
         }
     }
 
