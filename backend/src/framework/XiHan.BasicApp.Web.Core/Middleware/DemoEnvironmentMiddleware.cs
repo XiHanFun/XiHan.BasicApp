@@ -27,7 +27,7 @@ public class DemoEnvironmentMiddleware
 {
     private static readonly HashSet<string> ModifyingMethods = new(StringComparer.OrdinalIgnoreCase)
     {
-        "PUT", "PATCH", "DELETE"
+        "POST", "PUT", "PATCH", "DELETE"
     };
 
     private readonly RequestDelegate _next;
