@@ -40,7 +40,7 @@ public sealed class FileTransferService
 
     private readonly IFileStorageDomainService _fileStorageDomainService;
 
-    private readonly IFileStorageRouter _fileStorageRouter;
+    private readonly IStorageProviderResolver _storageProviderResolver;
 
     /// <summary>
     /// 构造函数
@@ -48,13 +48,13 @@ public sealed class FileTransferService
     public FileTransferService(
         IFileDomainService fileDomainService,
         IFileRecordQueryService fileRecordQueryService,
-        IFileStorageRouter fileStorageRouter,
+        IStorageProviderResolver storageProviderResolver,
         IFileStorageDomainService fileStorageDomainService,
         IClientInfoProvider clientInfoProvider)
     {
         _fileDomainService = fileDomainService;
         _fileRecordQueryService = fileRecordQueryService;
-        _fileStorageRouter = fileStorageRouter;
+        _storageProviderResolver = storageProviderResolver;
         _fileStorageDomainService = fileStorageDomainService;
         _clientInfoProvider = clientInfoProvider;
     }
@@ -67,7 +67,7 @@ public sealed class FileTransferService
 
         foreach (var storage in storages)
         {
-            var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+            var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
             await provider.DeleteAsync(storage.StoragePath, storage.BucketName, cancellationToken);
         }
     }
@@ -78,7 +78,7 @@ public sealed class FileTransferService
         ArgumentNullException.ThrowIfNull(storage);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
         return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
     }
 
@@ -88,7 +88,7 @@ public sealed class FileTransferService
         ArgumentNullException.ThrowIfNull(storage);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
         return await provider.GeneratePresignedUrlAsync(storage.StoragePath, expiresIn ?? TimeSpan.FromMinutes(30), cancellationToken);
     }
 
@@ -98,7 +98,7 @@ public sealed class FileTransferService
         ArgumentNullException.ThrowIfNull(storage);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var provider = _fileStorageRouter.Route(providerName: storage.StorageProvider);
+        var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
         var exists = await provider.ExistsAsync(storage.StoragePath, storage.BucketName, cancellationToken);
         FileMetadata? metadata = null;
 
@@ -126,8 +126,8 @@ public sealed class FileTransferService
         }
 
         var now = DateTimeOffset.UtcNow;
-        var resolvedProviderName = _fileStorageRouter.ResolveProviderName(input.RouteKey, input.ProviderName);
-        var provider = _fileStorageRouter.Route(input.RouteKey, resolvedProviderName);
+        var resolvedProviderName = _storageProviderResolver.ResolveProviderName(input.RouteKey, input.ProviderName);
+        var provider = await _storageProviderResolver.RouteForUploadAsync(input.RouteKey, resolvedProviderName, cancellationToken);
         var storedFileName = _fileStorageDomainService.BuildStoredFileName(originalName, fileHash);
         var storagePath = _fileStorageDomainService.BuildStoragePath(storedFileName, input.Directory, now);
         var accessControl = _fileStorageDomainService.ResolveAccessControl(input.AccessLevel, input.AccessControl);

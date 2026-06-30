@@ -126,6 +126,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
+        services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
