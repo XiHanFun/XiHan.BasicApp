@@ -74,6 +74,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFieldLevelSecurityDomainService, FieldLevelSecurityDomainService>();
         services.AddScoped<IFileDomainService, FileDomainService>();
         services.AddScoped<IStorageConfigDomainService, StorageConfigDomainService>();
+        services.AddSingleton<IStorageSecretProtector, DataProtectionStorageSecretProtector>();
         services.AddScoped<IConfigDomainService, ConfigDomainService>();
         services.AddScoped<IDictDomainService, DictDomainService>();
         services.AddScoped<IVersionDomainService, VersionDomainService>();

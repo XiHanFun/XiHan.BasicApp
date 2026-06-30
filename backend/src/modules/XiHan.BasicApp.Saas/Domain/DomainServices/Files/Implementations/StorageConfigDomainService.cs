@@ -27,15 +27,19 @@ public sealed class StorageConfigDomainService
 
     private readonly IStorageConfigRepository _storageConfigRepository;
 
+    private readonly IStorageSecretProtector _secretProtector;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public StorageConfigDomainService(
         IStorageConfigRepository storageConfigRepository,
-        IFileStorageRepository fileStorageRepository)
+        IFileStorageRepository fileStorageRepository,
+        IStorageSecretProtector secretProtector)
     {
         _storageConfigRepository = storageConfigRepository;
         _fileStorageRepository = fileStorageRepository;
+        _secretProtector = secretProtector;
     }
 
     /// <inheritdoc />
@@ -66,7 +70,7 @@ public sealed class StorageConfigDomainService
             Region = NormalizeNullable(command.Region),
             BucketName = NormalizeNullable(command.BucketName),
             AccessKeyId = NormalizeNullable(command.AccessKeyId),
-            SecretAccessKey = NormalizeNullable(command.SecretAccessKey),
+            SecretAccessKey = _secretProtector.Protect(NormalizeNullable(command.SecretAccessKey)),
             IsDefault = command.IsDefault,
             IsEnabled = command.IsEnabled,
             Sort = command.Sort,
@@ -94,11 +98,11 @@ public sealed class StorageConfigDomainService
         config.Sort = command.Sort;
         config.Remark = NormalizeNullable(command.Remark);
 
-        // 密钥为空表示保留原密钥（前端脱敏不回显）
+        // 密钥为空表示保留原密钥（前端脱敏不回显）；提供则加密落库
         var secretAccessKey = NormalizeNullable(command.SecretAccessKey);
         if (secretAccessKey is not null)
         {
-            config.SecretAccessKey = secretAccessKey;
+            config.SecretAccessKey = _secretProtector.Protect(secretAccessKey);
         }
 
         return new StorageConfigCommandResult(await _storageConfigRepository.UpdateAsync(config, cancellationToken));
