@@ -13,9 +13,15 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Web.Core.Middleware;
+using XiHan.BasicApp.Web.Core.Options;
+using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Data.SqlSugar.Options;
 using XiHan.Framework.Web.Api;
 using XiHan.Framework.Web.Core;
+using XiHan.Framework.Web.Core.Extensions;
 using XiHan.Framework.Web.Docs;
 using XiHan.Framework.Web.Gateway;
 using XiHan.Framework.Web.RealTime;
@@ -39,7 +45,22 @@ public class XiHanBasicAppWebCoreModule : XiHanModule
     /// 服务配置
     /// </summary>
     /// <param name="context"></param>
-    public override void ConfigureServices(ServiceConfigurationContext context)
+    public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+        var services = context.Services;
+        var config = services.GetConfiguration();
+
+        services.Configure<DemoEnvironmentOptions>(config.GetSection(DemoEnvironmentOptions.SectionName));
+    }
+
+    /// <summary>
+    /// 应用初始化
+    /// </summary>
+    /// <param name="context"></param>
+    public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var app = context.GetApplicationBuilder();
+
+        app.UseMiddleware<DemoEnvironmentMiddleware>();
     }
 }
