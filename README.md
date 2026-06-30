@@ -245,6 +245,17 @@ sudo systemctl start XiHan.BasicApp
 
 后端与前端当前版本：v2.3.1。
 
+## 捐赠
+
+<table>
+  <tr>
+    <td align="center"><img src="./assets/alipay.png" width="200" /><br/>支付宝</td>
+    <td align="center"><img src="./assets/weixinpay.png" width="200" /><br/>微信</td>
+  </tr>
+</table>
+
+
 ## 协议
 
 [MIT License](./LICENSE) © 2021-Present XiHanFun, ZhaiFanhua
+
