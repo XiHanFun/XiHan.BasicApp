@@ -112,6 +112,11 @@ public sealed class UserDomainService
     private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
+    /// 密码历史领域服务
+    /// </summary>
+    private readonly IPasswordHistoryDomainService _passwordHistoryDomainService;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserDomainService(
@@ -128,7 +133,8 @@ public sealed class UserDomainService
         IDepartmentRepository departmentRepository,
         IUserDepartmentRepository userDepartmentRepository,
         IUserSessionRepository userSessionRepository,
-        ICurrentTenant currentTenant)
+        ICurrentTenant currentTenant,
+        IPasswordHistoryDomainService passwordHistoryDomainService)
     {
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
@@ -144,6 +150,7 @@ public sealed class UserDomainService
         _userDepartmentRepository = userDepartmentRepository;
         _userSessionRepository = userSessionRepository;
         _currentTenant = currentTenant;
+        _passwordHistoryDomainService = passwordHistoryDomainService;
     }
 
     // ================================================================
@@ -332,6 +339,7 @@ public sealed class UserDomainService
         var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
         await EnsureUserCanBeResetAsync(user, cancellationToken);
         await EnsurePasswordMeetsPolicyAsync(user, command.NewPassword, cancellationToken);
+        await _passwordHistoryDomainService.EnsureNotReusedAsync(user.BasicId, command.NewPassword, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         security.Password = _passwordHasher.HashPassword(command.NewPassword);
@@ -343,6 +351,7 @@ public sealed class UserDomainService
         security.Remark = NormalizeNullable(command.Remark);
 
         var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        await _passwordHistoryDomainService.RecordAsync(user.BasicId, security.Password, now, cancellationToken);
         return new UserSecurityCommandResult(savedSecurity, user, now);
     }
 
@@ -1476,10 +1485,11 @@ public sealed class UserDomainService
     /// </summary>
     private async Task CreateUserSecurityAsync(long userId, string password, DateTimeOffset now, string? remark, CancellationToken cancellationToken)
     {
+        var passwordHash = _passwordHasher.HashPassword(password);
         var userSecurity = new SysUserSecurity
         {
             UserId = userId,
-            Password = _passwordHasher.HashPassword(password),
+            Password = passwordHash,
             LastPasswordChangeTime = now,
             FailedLoginAttempts = 0,
             IsLocked = false,
@@ -1495,6 +1505,7 @@ public sealed class UserDomainService
         };
 
         _ = await _userSecurityRepository.AddAsync(userSecurity, cancellationToken);
+        await _passwordHistoryDomainService.RecordAsync(userId, passwordHash, now, cancellationToken);
     }
 
     /// <summary>

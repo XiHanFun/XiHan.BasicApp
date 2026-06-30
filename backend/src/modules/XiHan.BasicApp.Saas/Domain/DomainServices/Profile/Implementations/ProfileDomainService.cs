@@ -41,6 +41,8 @@ public sealed class ProfileDomainService
 
     private readonly IPasswordHasher _passwordHasher;
 
+    private readonly IPasswordHistoryDomainService _passwordHistoryDomainService;
+
     private readonly ITenantUserRepository _tenantUserRepository;
 
     private readonly IUserRepository _userRepository;
@@ -60,7 +62,8 @@ public sealed class ProfileDomainService
         ITenantUserRepository tenantUserRepository,
         IPasswordHasher passwordHasher,
         IAuthenticationService authenticationService,
-        IOtpService otpService)
+        IOtpService otpService,
+        IPasswordHistoryDomainService passwordHistoryDomainService)
     {
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
@@ -70,6 +73,7 @@ public sealed class ProfileDomainService
         _passwordHasher = passwordHasher;
         _authenticationService = authenticationService;
         _otpService = otpService;
+        _passwordHistoryDomainService = passwordHistoryDomainService;
     }
 
     /// <inheritdoc />
@@ -83,6 +87,7 @@ public sealed class ProfileDomainService
         var (user, security) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
         EnsurePasswordMatches(security, command.OldPassword);
         await EnsurePasswordMeetsPolicyAsync(user, command.NewPassword, cancellationToken);
+        await _passwordHistoryDomainService.EnsureNotReusedAsync(user.BasicId, command.NewPassword, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         security.Password = _passwordHasher.HashPassword(command.NewPassword);
@@ -93,6 +98,7 @@ public sealed class ProfileDomainService
         security.LastFailedLoginTime = null;
 
         var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        await _passwordHistoryDomainService.RecordAsync(user.BasicId, security.Password, now, cancellationToken);
         return new ProfileUserSecurityResult(user, savedSecurity);
     }
 
