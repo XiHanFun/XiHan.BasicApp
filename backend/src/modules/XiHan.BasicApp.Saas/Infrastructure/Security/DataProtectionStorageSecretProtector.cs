@@ -26,16 +26,6 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Security;
 /// </remarks>
 public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtector
 {
-    /// <summary>
-    /// 保护用途（隔离密钥）
-    /// </summary>
-    private const string Purpose = "XiHan.BasicApp.Saas.StorageConfig.SecretAccessKey.v1";
-
-    /// <summary>
-    /// 密文前缀标记：用于区分已加密值与历史明文
-    /// </summary>
-    private const string CipherPrefix = "dp:";
-
     private readonly IDataProtector _protector;
 
     /// <summary>
@@ -43,7 +33,7 @@ public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtect
     /// </summary>
     public DataProtectionStorageSecretProtector(IDataProtectionProvider dataProtectionProvider)
     {
-        _protector = dataProtectionProvider.CreateProtector(Purpose);
+        _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.StorageSecretAccessKey);
     }
 
     /// <inheritdoc />
@@ -55,18 +45,18 @@ public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtect
         }
 
         // 已是密文则不重复加密（幂等）
-        if (plaintext.StartsWith(CipherPrefix, StringComparison.Ordinal))
+        if (plaintext.StartsWith(SaasSecretProtectionPurposes.CipherPrefix, StringComparison.Ordinal))
         {
             return plaintext;
         }
 
-        return CipherPrefix + _protector.Protect(plaintext);
+        return SaasSecretProtectionPurposes.CipherPrefix + _protector.Protect(plaintext);
     }
 
     /// <inheritdoc />
     public string? Unprotect(string? value)
     {
-        if (string.IsNullOrEmpty(value) || !value.StartsWith(CipherPrefix, StringComparison.Ordinal))
+        if (string.IsNullOrEmpty(value) || !value.StartsWith(SaasSecretProtectionPurposes.CipherPrefix, StringComparison.Ordinal))
         {
             // 历史明文：原样返回
             return value;
@@ -74,7 +64,7 @@ public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtect
 
         try
         {
-            return _protector.Unprotect(value[CipherPrefix.Length..]);
+            return _protector.Unprotect(value[SaasSecretProtectionPurposes.CipherPrefix.Length..]);
         }
         catch
         {
