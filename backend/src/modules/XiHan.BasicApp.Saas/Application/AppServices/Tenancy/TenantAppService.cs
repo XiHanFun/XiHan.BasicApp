@@ -132,11 +132,12 @@ public sealed class TenantAppService
     /// </summary>
     /// <remarks>
     /// 非事务：DDL（建库）不可在事务内执行；建库/建表/种子在租户独立库上进行，配置状态写回平台库。
+    /// 动态 API 约定：POST 不自动把 id 拼进路由，须显式 [FromRoute] 才生成 InitializeDatabase/{id}。
     /// </remarks>
     [UnitOfWork(false)]
     [HttpPost]
     [PermissionAuthorize(SaasPermissionCodes.Tenant.InitDb)]
-    public async Task<TenantDetailDto> InitializeDatabaseAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<TenantDetailDto> InitializeDatabaseAsync([FromRoute] long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
