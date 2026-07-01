@@ -37,4 +37,15 @@ public sealed class OAuthAppRepository(
             .Where(app => app.ClientId == clientId)
             .FirstAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<SysOAuthApp?> GetByClientIdIgnoreTenantAsync(string clientId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(app => app.ClientId == clientId)
+            .FirstAsync(cancellationToken);
+    }
 }

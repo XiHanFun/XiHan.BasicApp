@@ -47,6 +47,28 @@ public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <inheritdoc />
+    public async Task<SysOAuthToken?> GetByAccessTokenIgnoreTenantAsync(string accessTokenJti, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accessTokenJti);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(t => t.AccessTokenJti == accessTokenJti)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<SysOAuthToken?> GetByRefreshTokenIgnoreTenantAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(t => t.RefreshToken == refreshToken)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -54,6 +76,19 @@ public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
         return await DbClient.Updateable<SysOAuthToken>()
             .SetColumns(t => t.IsRevoked == true)
             .Where(t => t.UserId == userId && !t.IsRevoked)
+            .ExecuteCommandAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> RevokeFamilyAsync(long userId, string clientId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 条件更新不受租户查询过滤影响；按 用户 × 客户端 吊销全部未撤销令牌（重放检测时吊销整个令牌族）
+        return await DbClient.Updateable<SysOAuthToken>()
+            .SetColumns(t => new SysOAuthToken { IsRevoked = true, RevokedTime = now })
+            .Where(t => t.UserId == userId && t.ClientId == clientId && !t.IsRevoked)
             .ExecuteCommandAsync(cancellationToken);
     }
 }

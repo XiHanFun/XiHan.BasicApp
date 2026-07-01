@@ -32,7 +32,22 @@ public interface IOAuthTokenRepository : ISaasRepository<SysOAuthToken>
     Task<SysOAuthToken?> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 根据访问令牌JTI跨租户获取（供匿名 /connect/revoke 无租户上下文场景使用）
+    /// </summary>
+    Task<SysOAuthToken?> GetByAccessTokenIgnoreTenantAsync(string accessTokenJti, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据刷新令牌跨租户获取（RefreshToken 全局唯一；供匿名 /connect/token、/connect/revoke 使用）
+    /// </summary>
+    Task<SysOAuthToken?> GetByRefreshTokenIgnoreTenantAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 吊销用户所有令牌
     /// </summary>
     Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 跨租户吊销某用户在某客户端下的全部未撤销令牌（刷新令牌重放检测时吊销整个令牌族）
+    /// </summary>
+    Task<int> RevokeFamilyAsync(long userId, string clientId, DateTimeOffset now, CancellationToken cancellationToken = default);
 }

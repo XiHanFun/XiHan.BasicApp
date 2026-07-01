@@ -87,6 +87,7 @@ public static class OAuthAppApplicationMapper
     /// 映射 OAuth 应用密钥响应
     /// </summary>
     /// <param name="app">OAuth 应用实体</param>
+    /// <param name="clientSecret">明文客户端密钥（仅创建/重置时返回一次）</param>
     /// <returns>OAuth 应用密钥 DTO</returns>
     public static OAuthAppSecretDto ToSecretDto(SysOAuthApp app, string clientSecret)
     {
