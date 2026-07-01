@@ -64,15 +64,24 @@ public sealed class OAuthAppDomainService
             throw new InvalidOperationException("客户端主键已存在。");
         }
 
-        var clientSecret = string.IsNullOrWhiteSpace(command.ClientSecret)
-            ? GenerateSecret()
-            : Required(command.ClientSecret, 200, nameof(command.ClientSecret), "客户端密钥不能超过 200 个字符。");
+        // 公开客户端（SPA/移动端，IsPublic=true）：不落密钥（存空串），依赖 PKCE；机密客户端生成/哈希密钥。
+        // 明文密钥仅在机密客户端创建时返回一次（公开客户端返回 null）。
+        string? plaintextSecret = null;
+        var storedSecret = string.Empty;
+        if (!command.IsPublic)
+        {
+            plaintextSecret = string.IsNullOrWhiteSpace(command.ClientSecret)
+                ? GenerateSecret()
+                : Required(command.ClientSecret, 200, nameof(command.ClientSecret), "客户端密钥不能超过 200 个字符。");
+            storedSecret = _passwordHasher.HashPassword(plaintextSecret);
+        }
+
         var app = new SysOAuthApp
         {
             AppName = Required(command.AppName, 100, nameof(command.AppName), "应用名称不能超过 100 个字符。"),
             AppDescription = Optional(command.AppDescription, 500, nameof(command.AppDescription), "应用描述不能超过 500 个字符。"),
             ClientId = clientId,
-            ClientSecret = _passwordHasher.HashPassword(clientSecret),
+            ClientSecret = storedSecret,
             AppType = command.AppType,
             GrantTypes = Required(command.GrantTypes, 500, nameof(command.GrantTypes), "授权类型不能超过 500 个字符。"),
             RedirectUris = Optional(command.RedirectUris, 2000, nameof(command.RedirectUris), "回调地址不能超过 2000 个字符。"),
@@ -87,7 +96,7 @@ public sealed class OAuthAppDomainService
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
 
-        return new OAuthAppCommandResult(await _oauthAppRepository.AddAsync(app, cancellationToken), clientSecret);
+        return new OAuthAppCommandResult(await _oauthAppRepository.AddAsync(app, cancellationToken), plaintextSecret);
     }
 
     /// <inheritdoc />

@@ -19,6 +19,10 @@ import type {
   LoginParams,
   LoginResponse,
   LoginToken,
+  MyOAuthAppCreateInput,
+  MyOAuthAppItem,
+  MyOAuthAppSecret,
+  MyOAuthAppUpdateInput,
   NotificationPreference,
   PasswordResetConfirmResult,
   PasswordResetResult,
@@ -219,6 +223,24 @@ function createProfileApis() {
     },
     deleteApiCredentialApi(id: number | string) {
       return requestClient.delete(`/Profile/ApiCredential/${id}`)
+    },
+    getMyOAuthAppsApi() {
+      return requestClient.get<MyOAuthAppItem[]>('/MyOAuthApp/MyOAuthApps')
+    },
+    createMyOAuthAppApi(input: MyOAuthAppCreateInput) {
+      return requestClient.post<MyOAuthAppSecret>('/MyOAuthApp/MyOAuthApp', input)
+    },
+    updateMyOAuthAppApi(input: MyOAuthAppUpdateInput) {
+      return requestClient.put<MyOAuthAppItem>('/MyOAuthApp/MyOAuthApp', input)
+    },
+    regenerateMyOAuthAppSecretApi(id: number | string) {
+      return requestClient.post<MyOAuthAppSecret>(`/MyOAuthApp/RegenerateMyOAuthAppSecret/${id}`)
+    },
+    updateMyOAuthAppStatusApi(id: number | string, status: 'Disabled' | 'Enabled') {
+      return requestClient.put<MyOAuthAppItem>('/MyOAuthApp/MyOAuthAppStatus', { basicId: id, status })
+    },
+    deleteMyOAuthAppApi(id: number | string) {
+      return requestClient.delete(`/MyOAuthApp/MyOAuthApp/${id}`)
     },
     getNotificationPreferenceApi() {
       return requestClient.get<NotificationPreference>('/Profile/NotificationPreference')

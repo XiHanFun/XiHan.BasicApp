@@ -16,6 +16,7 @@ import ProfileTabDevices from './ProfileTabDevices.vue'
 import ProfileTabInfo from './ProfileTabInfo.vue'
 import ProfileTabLoginLogs from './ProfileTabLoginLogs.vue'
 import ProfileTabNotifications from './ProfileTabNotifications.vue'
+import ProfileTabOAuth from './ProfileTabOAuth.vue'
 import ProfileTabSecurity from './ProfileTabSecurity.vue'
 import ProfileTabStats from './ProfileTabStats.vue'
 import ProfileTabTenants from './ProfileTabTenants.vue'
@@ -77,6 +78,7 @@ const navGroups = computed<ProfileNavGroup[]>(() => [
     title: t('component.profile.nav.group_developer'),
     items: [
       { key: 'developer', label: t('component.profile.nav.tab_developer'), icon: 'lucide:code-2' },
+      { key: 'oauth', label: t('component.profile.nav.tab_oauth'), icon: 'lucide:blocks' },
     ],
   },
 ])
@@ -91,6 +93,7 @@ const tabComponents: Record<string, Component> = {
   stats: markRaw(ProfileTabStats),
   notifications: markRaw(ProfileTabNotifications),
   developer: markRaw(ProfileTabDeveloper),
+  oauth: markRaw(ProfileTabOAuth),
 }
 
 // 初始选中页签：URL ?tab=（深链兼容）> 会话记忆 > 默认「个人资料」。

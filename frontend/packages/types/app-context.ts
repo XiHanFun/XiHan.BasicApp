@@ -21,6 +21,10 @@ import type {
   ChangeUserNameParams,
   ExternalLoginItem,
   LoginLogPage,
+  MyOAuthAppCreateInput,
+  MyOAuthAppItem,
+  MyOAuthAppSecret,
+  MyOAuthAppUpdateInput,
   NotificationPreference,
   TwoFactorSetupResult,
   UpdateProfileParams,
@@ -150,6 +154,13 @@ export interface AppContextApis extends Record<string, unknown> {
   rotateApiCredentialSecretApi: (id: number | string) => Promise<ApiCredentialSecret>
   updateApiCredentialStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<ApiCredentialItem>
   deleteApiCredentialApi: (id: number | string) => Promise<unknown>
+  /** 我的 OAuth 应用（开发者设置；ClientSecret 明文仅创建/重置机密客户端时返回一次） */
+  getMyOAuthAppsApi: () => Promise<MyOAuthAppItem[]>
+  createMyOAuthAppApi: (input: MyOAuthAppCreateInput) => Promise<MyOAuthAppSecret>
+  updateMyOAuthAppApi: (input: MyOAuthAppUpdateInput) => Promise<MyOAuthAppItem>
+  regenerateMyOAuthAppSecretApi: (id: number | string) => Promise<MyOAuthAppSecret>
+  updateMyOAuthAppStatusApi: (id: number | string, status: 'Disabled' | 'Enabled') => Promise<MyOAuthAppItem>
+  deleteMyOAuthAppApi: (id: number | string) => Promise<unknown>
   getNotificationPreferenceApi: () => Promise<NotificationPreference>
   updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>
   /** 由文件主键(fileId)换取对象存储预签名访问 URL（<img> 可直接用、无需 token，会过期） */
