@@ -116,6 +116,9 @@ public class XiHanBasicAppSaasModule : XiHanModule
 
             // 第三方登录（OAuth）端点：/api/OAuth/ExternalLogin（发起）+ /api/OAuth/Callback（回调）
             endpoints.MapOAuthEndpoints();
+
+            // OAuth2 授权服务端标准端点：/connect/authorize（跳同意页）+ /connect/token（令牌）+ /connect/revoke（撤销）
+            endpoints.MapOAuthConnectEndpoints();
         });
     }
 }

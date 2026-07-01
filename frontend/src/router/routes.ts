@@ -6,6 +6,7 @@ import { coreRoutes } from '~/router/routes/core'
 const AboutPage = () => import('~/views/_core/about/index.vue')
 const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
 const EditorDemoPage = () => import('~/views/_core/editor-demo/index.vue')
+const OAuthAuthorizePage = () => import('@/views/oauth/authorize.vue')
 
 export const staticRoutes: RouteRecordRaw[] = [
   {
@@ -45,6 +46,18 @@ export const staticRoutes: RouteRecordRaw[] = [
       icon: 'lucide:layout-grid',
       hidden: true,
       // 独立公共页：不挂主布局、不进入标签栏（同认证页定位）
+      standalone: true,
+    },
+  },
+  {
+    // OAuth2 授权同意页：第三方经 /connect/authorize 跳入的全屏独立页——需已登录（未登录由守卫跳登录再回跳）；
+    // 不挂主布局、不进入标签栏。后端令牌/授权码流程见 OAuthConnectEndpoints / OAuthConsentAppService
+    path: '/oauth/authorize',
+    name: 'OAuthAuthorize',
+    component: OAuthAuthorizePage,
+    meta: {
+      title: 'page.oauth.consent_title',
+      hidden: true,
       standalone: true,
     },
   },

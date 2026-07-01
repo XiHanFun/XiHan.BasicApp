@@ -129,6 +129,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
+        // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
+        services.AddScoped<IOAuthServerService, OAuthServerService>();
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
         services.AddScoped<IFieldSecurityService, FieldSecurityService>();
