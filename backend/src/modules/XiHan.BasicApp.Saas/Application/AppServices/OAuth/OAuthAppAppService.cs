@@ -53,7 +53,7 @@ public sealed class OAuthAppAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _oauthAppDomainService.CreateOAuthAppAsync(OAuthAppApplicationMapper.ToCreateCommand(input), cancellationToken);
-        return OAuthAppApplicationMapper.ToSecretDto(result.App);
+        return OAuthAppApplicationMapper.ToSecretDto(result.App, result.PlaintextSecret ?? string.Empty);
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public sealed class OAuthAppAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _oauthAppDomainService.RegenerateOAuthAppSecretAsync(id, cancellationToken);
-        return OAuthAppApplicationMapper.ToSecretDto(result.App);
+        return OAuthAppApplicationMapper.ToSecretDto(result.App, result.PlaintextSecret ?? string.Empty);
     }
 
     /// <summary>

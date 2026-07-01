@@ -88,7 +88,7 @@ public static class OAuthAppApplicationMapper
     /// </summary>
     /// <param name="app">OAuth 应用实体</param>
     /// <returns>OAuth 应用密钥 DTO</returns>
-    public static OAuthAppSecretDto ToSecretDto(SysOAuthApp app)
+    public static OAuthAppSecretDto ToSecretDto(SysOAuthApp app, string clientSecret)
     {
         ArgumentNullException.ThrowIfNull(app);
 
@@ -96,7 +96,7 @@ public static class OAuthAppApplicationMapper
         {
             BasicId = app.BasicId,
             ClientId = app.ClientId,
-            ClientSecret = app.ClientSecret
+            ClientSecret = clientSecret
         };
     }
 
