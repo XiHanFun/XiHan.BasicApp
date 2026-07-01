@@ -162,7 +162,7 @@ public partial class SysUser : BasicAppAggregateRoot
     public virtual string? Country { get; set; }
 
     /// <summary>
-    /// 是否为系统内置账号（不可修改用户名）
+    /// 是否为系统内置账号（不可修改用户名、锁定、重置密码）
     /// </summary>
     [SugarColumn(ColumnName = "Is_System_Account", ColumnDescription = "是否系统内置账号")]
     public virtual bool IsSystemAccount { get; set; } = false;
