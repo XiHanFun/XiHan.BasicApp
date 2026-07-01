@@ -105,6 +105,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();
+        services.AddScoped<ITenantDatabaseInitializer, TenantDatabaseInitializer>();
         services.AddScoped<ITenantEditionDomainService, TenantEditionDomainService>();
 
         return services;

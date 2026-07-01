@@ -46,6 +46,14 @@ public interface ITenantAppService : IApplicationService
     /// <returns>租户详情</returns>
     Task<TenantDetailDto> UpdateTenantStatusAsync(TenantStatusUpdateDto input, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 初始化租户数据库（仅库隔离租户：建库 → 建表 → 基线种子，幂等）
+    /// </summary>
+    /// <param name="id">租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户详情（含最新配置状态）</returns>
+    Task<TenantDetailDto> InitializeDatabaseAsync(long id, CancellationToken cancellationToken = default);
+
     #region TenantMembers
 
     /// <summary>

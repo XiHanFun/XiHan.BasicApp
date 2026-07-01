@@ -33,6 +33,7 @@ public static class SaasPermissionCodes
         Tenant.Create,
         Tenant.Update,
         Tenant.Status,
+        Tenant.InitDb,
         TenantMember.Read,
         TenantMember.Update,
         TenantMember.Status,
@@ -292,6 +293,11 @@ public static class SaasPermissionCodes
         /// 更新租户状态
         /// </summary>
         public const string Status = "saas:tenant:status";
+
+        /// <summary>
+        /// 初始化租户数据库（库隔离建库/建表/种子）
+        /// </summary>
+        public const string InitDb = "saas:tenant:initdb";
 
         /// <summary>
         /// 导出租户

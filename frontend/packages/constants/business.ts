@@ -38,6 +38,7 @@ import {
   SmsType,
   StatisticsPeriod,
   TenantConfigStatus,
+  TenantDatabaseType,
   TenantIsolationMode,
   TenantMemberInviteStatus,
   TenantMemberType,
@@ -117,6 +118,14 @@ export const TENANT_ISOLATION_MODE_OPTIONS = [
   { label: '字段隔离', value: TenantIsolationMode.Field },
   { label: '数据库隔离', value: TenantIsolationMode.Database },
   { label: 'Schema隔离', value: TenantIsolationMode.Schema },
+]
+
+export const TENANT_DATABASE_TYPE_OPTIONS = [
+  { label: 'SQL Server', value: TenantDatabaseType.SqlServer },
+  { label: 'MySql', value: TenantDatabaseType.MySql },
+  { label: 'PostgreSql', value: TenantDatabaseType.PostgreSql },
+  { label: 'SQLite', value: TenantDatabaseType.SQLite },
+  { label: 'Oracle', value: TenantDatabaseType.Oracle },
 ]
 
 export const TENANT_STATUS_OPTIONS = [

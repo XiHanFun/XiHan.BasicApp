@@ -73,6 +73,16 @@ public sealed class TenantCreateDto : BasicAppCDto
     public TenantIsolationMode IsolationMode { get; set; } = TenantIsolationMode.Field;
 
     /// <summary>
+    /// 数据库类型（隔离模式为 Database 时必填）
+    /// </summary>
+    public TenantDatabaseType? DatabaseType { get; set; }
+
+    /// <summary>
+    /// 数据库连接字符串（隔离模式为 Database 时必填；加密落库、绝不回显）
+    /// </summary>
+    public string? ConnectionString { get; set; }
+
+    /// <summary>
     /// 过期时间
     /// </summary>
     public DateTimeOffset? ExpirationTime { get; set; }

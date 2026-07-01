@@ -53,6 +53,7 @@ import {
   MEMBER_INVITE_STATUS_OPTIONS,
   MEMBER_TYPE_OPTIONS,
   TENANT_CONFIG_STATUS_OPTIONS,
+  TENANT_DATABASE_TYPE_OPTIONS,
   TENANT_ISOLATION_MODE_OPTIONS,
   TENANT_STATUS_OPTIONS,
   VALIDITY_STATUS_OPTIONS,
@@ -73,6 +74,7 @@ const { t } = useI18n()
 const tenantStatusOptions = useEnumOptions('TenantStatus', TENANT_STATUS_OPTIONS)
 const configStatusOptions = useEnumOptions('TenantConfigStatus', TENANT_CONFIG_STATUS_OPTIONS)
 const isolationModeOptions = useEnumOptions('TenantIsolationMode', TENANT_ISOLATION_MODE_OPTIONS)
+const databaseTypeOptions = useEnumOptions('TenantDatabaseType', TENANT_DATABASE_TYPE_OPTIONS)
 const memberTypeOptions = useEnumOptions('TenantMemberType', MEMBER_TYPE_OPTIONS)
 const inviteStatusOptions = useEnumOptions('TenantMemberInviteStatus', MEMBER_INVITE_STATUS_OPTIONS)
 const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
@@ -228,6 +230,17 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('tenant.list.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: t('tenant.list.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('tenant.list.edit'), scope: 'row' },
+    {
+      key: 'initdb',
+      title: t('tenant.list.init_db'),
+      scope: 'row',
+      icon: 'lucide:database',
+      permission: 'saas:tenant:initdb',
+      confirm: true,
+      confirmText: t('tenant.list.init_db_confirm'),
+      // 仅库隔离租户可初始化独立数据库
+      visible: row => (row as unknown as TenantListItemDto).isolationMode === TenantIsolationMode.Database,
+    },
   ],
 }))
 
@@ -248,6 +261,22 @@ function onAction(payload: SchemaActionPayload) {
         handleEdit(row)
       }
       break
+    case 'initdb':
+      if (row) {
+        void handleInitDb(row)
+      }
+      break
+  }
+}
+
+async function handleInitDb(row: TenantListItemDto) {
+  try {
+    await tenantManagementApi.initializeDatabase(row.basicId)
+    message.success(t('tenant.list.init_db_success'))
+    reloadTenant()
+  }
+  catch {
+    message.error(t('tenant.list.init_db_failed'))
   }
 }
 
@@ -256,6 +285,8 @@ function createDefaultForm(): TenantFormModel {
     adminEmail: null,
     adminPassword: null,
     adminUserName: null,
+    connectionString: null,
+    databaseType: null,
     domain: null,
     editionId: null,
     expirationTime: null,
@@ -302,6 +333,9 @@ function handleEdit(row: TenantListItemDto) {
   editingStatus.value = row.tenantStatus
   tenantForm.value = {
     basicId: row.basicId,
+    // 连接串敏感、绝不回显：编辑时留空表示保持不变
+    connectionString: null,
+    databaseType: row.databaseType ?? null,
     domain: row.domain ?? null,
     editionId: row.editionId ?? null,
     expirationTime: row.expirationTime ?? null,
@@ -464,6 +498,8 @@ async function handleSubmit() {
     if (tenantForm.value.basicId) {
       const updateInput: TenantUpdateDto = {
         basicId: tenantForm.value.basicId,
+        connectionString: normalizeNullable(tenantForm.value.connectionString),
+        databaseType: tenantForm.value.databaseType ?? null,
         domain: normalizeNullable(tenantForm.value.domain),
         editionId: tenantForm.value.editionId ?? null,
         expirationTime: tenantForm.value.expirationTime,
@@ -492,6 +528,8 @@ async function handleSubmit() {
         adminEmail: normalizeNullable(tenantForm.value.adminEmail),
         adminPassword: normalizeNullable(tenantForm.value.adminPassword),
         adminUserName: normalizeNullable(tenantForm.value.adminUserName),
+        connectionString: normalizeNullable(tenantForm.value.connectionString),
+        databaseType: tenantForm.value.databaseType ?? null,
         domain: normalizeNullable(tenantForm.value.domain),
         editionId: tenantForm.value.editionId ?? null,
         expirationTime: tenantForm.value.expirationTime,
@@ -564,6 +602,9 @@ async function handleSubmit() {
                   </NDescriptionsItem>
                   <NDescriptionsItem :label="t('tenant.list.isolation_mode')">
                     {{ getOptionLabel(isolationModeOptions, currentDetail.isolationMode) }}
+                  </NDescriptionsItem>
+                  <NDescriptionsItem v-if="currentDetail.databaseType" :label="t('tenant.list.database_type')">
+                    {{ getOptionLabel(databaseTypeOptions, currentDetail.databaseType) }}
                   </NDescriptionsItem>
                   <NDescriptionsItem :label="t('tenant.list.edition_id')">
                     {{ formatNullable(currentDetail.editionId) }}
@@ -703,6 +744,25 @@ async function handleSubmit() {
         <NFormItem :label="t('tenant.list.isolation_mode')" path="isolationMode">
           <NSelect v-model:value="tenantForm.isolationMode" :options="isolationModeOptions" />
         </NFormItem>
+        <template v-if="tenantForm.isolationMode === TenantIsolationMode.Database">
+          <NFormItem :label="t('tenant.list.database_type')" path="databaseType">
+            <NSelect
+              v-model:value="tenantForm.databaseType"
+              clearable
+              :options="databaseTypeOptions"
+              :placeholder="t('tenant.list.database_type_placeholder')"
+            />
+          </NFormItem>
+          <NFormItem :label="t('tenant.list.connection_string')" path="connectionString">
+            <NInput
+              v-model:value="tenantForm.connectionString"
+              clearable
+              :placeholder="t('tenant.list.connection_string_placeholder')"
+              :rows="2"
+              type="textarea"
+            />
+          </NFormItem>
+        </template>
         <NFormItem :label="t('tenant.list.edition_id')" path="editionId">
           <NInput v-model:value="tenantForm.editionId" clearable style="width: 100%" />
         </NFormItem>

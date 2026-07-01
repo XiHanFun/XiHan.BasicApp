@@ -58,6 +58,11 @@ public sealed class TenantListItemDto : BasicAppDto
     public TenantIsolationMode IsolationMode { get; set; }
 
     /// <summary>
+    /// 数据库类型（库隔离时有值；连接字符串为敏感信息，不在列表返回）
+    /// </summary>
+    public TenantDatabaseType? DatabaseType { get; set; }
+
+    /// <summary>
     /// 配置状态
     /// </summary>
     public TenantConfigStatus ConfigStatus { get; set; }
