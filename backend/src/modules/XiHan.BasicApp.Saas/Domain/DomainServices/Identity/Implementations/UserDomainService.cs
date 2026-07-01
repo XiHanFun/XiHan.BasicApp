@@ -34,9 +34,6 @@ public sealed class UserDomainService
     /// </summary>
     private readonly IUserRepository _userRepository;
 
-    // ================================================================
-    // 字段 — 用户核心
-    // ================================================================
     /// <summary>
     /// 用户安全仓储
     /// </summary>
@@ -62,9 +59,6 @@ public sealed class UserDomainService
     /// </summary>
     private readonly IUserRoleRepository _userRoleRepository;
 
-    // ================================================================
-    // 字段 — 用户角色
-    // ================================================================
     /// <summary>
     /// 角色仓储
     /// </summary>
@@ -75,9 +69,6 @@ public sealed class UserDomainService
     /// </summary>
     private readonly IUserPermissionRepository _userPermissionRepository;
 
-    // ================================================================
-    // 字段 — 用户直授权限
-    // ================================================================
     /// <summary>
     /// 权限仓储
     /// </summary>
@@ -88,9 +79,6 @@ public sealed class UserDomainService
     /// </summary>
     private readonly IUserDataScopeRepository _userDataScopeRepository;
 
-    // ================================================================
-    // 字段 — 用户数据范围
-    // ================================================================
     /// <summary>
     /// 部门仓储
     /// </summary>
@@ -152,16 +140,6 @@ public sealed class UserDomainService
         _currentTenant = currentTenant;
         _passwordHistoryDomainService = passwordHistoryDomainService;
     }
-
-    // ================================================================
-    // 字段 — 用户部门归属
-    // ================================================================
-    // ================================================================
-    // 字段 — 用户会话
-    // ================================================================
-    // ================================================================
-    // #region 用户核心 (原始 UserAppService 方法)
-    // ================================================================
 
     #region 用户核心
 
@@ -1050,10 +1028,6 @@ public sealed class UserDomainService
     }
 
     #endregion
-
-    // ================================================================
-    // #region 私有辅助方法 (统一管理)
-    // ================================================================
 
     #region 私有辅助方法
 
