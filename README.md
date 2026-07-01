@@ -245,7 +245,9 @@ sudo systemctl start XiHan.BasicApp
 
 后端与前端当前版本：v2.3.1。
 
-## 捐赠
+## 支持&赞助
+
+如果此项目对你的开发有助益，也欢迎请作者一杯咖啡。
 
 <table>
   <tr>
