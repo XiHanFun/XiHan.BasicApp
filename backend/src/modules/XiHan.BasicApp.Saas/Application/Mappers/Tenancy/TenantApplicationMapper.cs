@@ -42,7 +42,9 @@ public static class TenantApplicationMapper
             input.UserLimit,
             input.StorageLimit,
             input.Sort,
-            input.Remark);
+            input.Remark,
+            input.DatabaseType,
+            input.ConnectionString);
     }
 
     /// <summary>
@@ -64,7 +66,9 @@ public static class TenantApplicationMapper
             input.UserLimit,
             input.StorageLimit,
             input.Sort,
-            input.Remark);
+            input.Remark,
+            input.DatabaseType,
+            input.ConnectionString);
     }
 
     /// <summary>
@@ -163,6 +167,7 @@ public static class TenantApplicationMapper
             Domain = tenant.Domain,
             EditionId = tenant.EditionId,
             IsolationMode = tenant.IsolationMode,
+            DatabaseType = tenant.DatabaseType,
             ConfigStatus = tenant.ConfigStatus,
             TenantStatus = tenant.TenantStatus,
             ExpirationTime = tenant.ExpirationTime,
@@ -195,6 +200,7 @@ public static class TenantApplicationMapper
             Domain = tenant.Domain,
             EditionId = tenant.EditionId,
             IsolationMode = tenant.IsolationMode,
+            DatabaseType = tenant.DatabaseType,
             ConfigStatus = tenant.ConfigStatus,
             TenantStatus = tenant.TenantStatus,
             ExpirationTime = tenant.ExpirationTime,

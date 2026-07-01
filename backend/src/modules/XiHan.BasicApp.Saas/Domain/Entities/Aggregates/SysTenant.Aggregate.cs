@@ -39,4 +39,13 @@ public partial class SysTenant
 
         AddLocalEvent(new TenantStatusChangedDomainEvent(TenantId, BasicId, oldStatus, newStatus, operatorUserId, reason));
     }
+
+    /// <summary>
+    /// 标记配置（库隔离数据库初始化）状态
+    /// </summary>
+    /// <param name="configStatus">新的配置状态</param>
+    public void MarkConfigStatus(TenantConfigStatus configStatus)
+    {
+        ConfigStatus = configStatus;
+    }
 }

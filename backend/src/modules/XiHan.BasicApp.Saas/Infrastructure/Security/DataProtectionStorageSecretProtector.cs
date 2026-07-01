@@ -56,20 +56,12 @@ public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtect
     /// <inheritdoc />
     public string? Unprotect(string? value)
     {
-        if (string.IsNullOrEmpty(value) || !value.StartsWith(SaasSecretProtectionPurposes.CipherPrefix, StringComparison.Ordinal))
+        if (string.IsNullOrEmpty(value))
         {
-            // 历史明文：原样返回
             return value;
         }
 
-        try
-        {
-            return _protector.Unprotect(value[SaasSecretProtectionPurposes.CipherPrefix.Length..]);
-        }
-        catch
-        {
-            // 解密失败兜底（密钥环变更等），避免阻断；返回原值
-            return value;
-        }
+        // 密钥一律为本保护器写入的密文，去前缀直接解密；解密失败即抛（fail-closed，不做旧明文兼容）
+        return _protector.Unprotect(value[SaasSecretProtectionPurposes.CipherPrefix.Length..]);
     }
 }

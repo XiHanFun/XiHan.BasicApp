@@ -53,6 +53,16 @@ public sealed class TenantUpdateDto : BasicAppUDto
     public TenantIsolationMode IsolationMode { get; set; } = TenantIsolationMode.Field;
 
     /// <summary>
+    /// 数据库类型（隔离模式为 Database 时必填）
+    /// </summary>
+    public TenantDatabaseType? DatabaseType { get; set; }
+
+    /// <summary>
+    /// 数据库连接字符串（留空表示保持不变；填写则加密覆盖、绝不回显）
+    /// </summary>
+    public string? ConnectionString { get; set; }
+
+    /// <summary>
     /// 过期时间
     /// </summary>
     public DateTimeOffset? ExpirationTime { get; set; }

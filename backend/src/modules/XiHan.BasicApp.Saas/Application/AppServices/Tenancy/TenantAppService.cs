@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -39,6 +40,7 @@ public sealed class TenantAppService
     private readonly ITenantDomainService _tenantDomainService;
     private readonly ISaasCacheInvalidator _cacheInvalidator;
     private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
+    private readonly ITenantDatabaseInitializer _tenantDatabaseInitializer;
     private readonly IPasswordHasher _passwordHasher;
 
     /// <summary>
@@ -47,12 +49,14 @@ public sealed class TenantAppService
     public TenantAppService(
         ITenantDomainService tenantDomainService,
         ITenantProvisionDomainService tenantProvisionDomainService,
+        ITenantDatabaseInitializer tenantDatabaseInitializer,
         IPasswordHasher passwordHasher,
         ICurrentUser currentUser,
         ISaasCacheInvalidator cacheInvalidator)
     {
         _tenantDomainService = tenantDomainService;
         _tenantProvisionDomainService = tenantProvisionDomainService;
+        _tenantDatabaseInitializer = tenantDatabaseInitializer;
         _passwordHasher = passwordHasher;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
@@ -121,6 +125,23 @@ public sealed class TenantAppService
             TenantApplicationMapper.ToStatusCommand(input, _currentUser.UserId),
             cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
+    }
+
+    /// <summary>
+    /// 初始化租户数据库（仅库隔离租户：建库 → 建表 → 基线种子，幂等）
+    /// </summary>
+    /// <remarks>
+    /// 非事务：DDL（建库）不可在事务内执行；建库/建表/种子在租户独立库上进行，配置状态写回平台库。
+    /// </remarks>
+    [UnitOfWork(false)]
+    [HttpPost]
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.InitDb)]
+    public async Task<TenantDetailDto> InitializeDatabaseAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tenant = await _tenantDatabaseInitializer.InitializeAsync(id, cancellationToken);
+        return TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
     }
 
     /// <summary>

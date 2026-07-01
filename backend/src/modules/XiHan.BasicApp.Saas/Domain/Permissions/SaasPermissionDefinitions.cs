@@ -67,6 +67,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Tenant.Create, "租户创建", "创建租户基础资料", true, 110),
             new(SaasPermissionCodes.Tenant.Update, "租户更新", "更新租户基础资料", true, 120),
             new(SaasPermissionCodes.Tenant.Status, "租户状态", "更新租户生命周期状态", true, 130),
+            new(SaasPermissionCodes.Tenant.InitDb, "租户初始化数据库", "为库隔离租户创建独立数据库/表结构/基线种子", true, 135),
             new(SaasPermissionCodes.Tenant.Export, "租户导出", "导出当前数据范围内的租户列表数据", false, 2590),
         ]),
         new(SaasPermissionCodes.TenantMember.Group, "租户成员",

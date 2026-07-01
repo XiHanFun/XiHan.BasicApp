@@ -1,6 +1,7 @@
 import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type {
   TenantConfigStatus,
+  TenantDatabaseType,
   TenantIsolationMode,
   TenantMemberInviteStatus,
   TenantMemberType,
@@ -19,6 +20,7 @@ export interface TenantPageQueryDto extends PageRequest {
 export interface TenantListItemDto extends BasicDto {
   configStatus: TenantConfigStatus
   createdTime: DateTimeString
+  databaseType?: TenantDatabaseType | null
   domain?: string | null
   editionId?: ApiId | null
   expirationTime?: DateTimeString | null
@@ -49,6 +51,10 @@ export interface TenantCreateDto extends BasicCreateDto {
   adminEmail?: string | null
   /** 租户管理员初始密码 */
   adminPassword?: string | null
+  /** 数据库连接字符串（隔离模式为 Database 时必填；加密落库、绝不回显） */
+  connectionString?: string | null
+  /** 数据库类型（隔离模式为 Database 时必填） */
+  databaseType?: TenantDatabaseType | null
   domain?: string | null
   editionId?: ApiId | null
   expirationTime?: DateTimeString | null
@@ -64,6 +70,10 @@ export interface TenantCreateDto extends BasicCreateDto {
 }
 
 export interface TenantUpdateDto extends BasicUpdateDto {
+  /** 数据库连接字符串（留空表示保持不变；填写则加密覆盖、绝不回显） */
+  connectionString?: string | null
+  /** 数据库类型（隔离模式为 Database 时必填） */
+  databaseType?: TenantDatabaseType | null
   domain?: string | null
   editionId?: ApiId | null
   expirationTime?: DateTimeString | null

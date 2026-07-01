@@ -9,7 +9,7 @@ import type {
   TenantUpdateDto,
 } from './tenant.types'
 import type { LoginToken, SwitchTenantParams } from '~/types'
-import { createCommandApi, createDynamicApiClient, createReadApi } from '../../base'
+import { createCommandApi, createDynamicApiClient, createReadApi, formatDynamicApiRouteValue } from '../../base'
 
 const tenantQueryApi = createDynamicApiClient('TenantQuery')
 const tenantCommandApi = createDynamicApiClient('Tenant')
@@ -23,6 +23,10 @@ export const tenantApi = {
   },
   detail(id: TenantDetailDto['basicId']) {
     return tenantReadApi.detail(id)
+  },
+  initializeDatabase(id: TenantDetailDto['basicId']) {
+    // 仅库隔离租户：建库 → 建表 → 基线种子（POST /api/Tenant/InitializeDatabase/{id}）
+    return tenantCommandApi.post<TenantDetailDto>(`InitializeDatabase/${formatDynamicApiRouteValue(id)}`)
   },
   myAvailableTenants() {
     return tenantQueryApi.get<TenantSwitcherDto[]>('MyAvailableTenants')

@@ -32,7 +32,9 @@ public sealed record TenantCreateCommand(
     int? UserLimit,
     long? StorageLimit,
     int Sort,
-    string? Remark);
+    string? Remark,
+    TenantDatabaseType? DatabaseType,
+    string? ConnectionString);
 
 /// <summary>
 /// 租户更新命令
@@ -49,7 +51,9 @@ public sealed record TenantUpdateCommand(
     int? UserLimit,
     long? StorageLimit,
     int Sort,
-    string? Remark);
+    string? Remark,
+    TenantDatabaseType? DatabaseType,
+    string? ConnectionString);
 
 /// <summary>
 /// 租户状态变更命令

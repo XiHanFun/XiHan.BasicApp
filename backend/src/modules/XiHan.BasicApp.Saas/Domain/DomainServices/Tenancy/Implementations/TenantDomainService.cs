@@ -35,6 +35,10 @@ public sealed class TenantDomainService
 
     private readonly ICurrentTenant _currentTenant;
 
+    private readonly ITenantConnectionSecretProtector _connectionSecretProtector;
+
+    private readonly ITenantConnectionCacheInvalidator _connectionCacheInvalidator;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -42,12 +46,16 @@ public sealed class TenantDomainService
         ITenantRepository tenantRepository,
         ITenantUserRepository tenantUserRepository,
         ITenantProvisionDomainService tenantProvisionDomainService,
-        ICurrentTenant currentTenant)
+        ICurrentTenant currentTenant,
+        ITenantConnectionSecretProtector connectionSecretProtector,
+        ITenantConnectionCacheInvalidator connectionCacheInvalidator)
     {
         _tenantRepository = tenantRepository;
         _tenantUserRepository = tenantUserRepository;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _currentTenant = currentTenant;
+        _connectionSecretProtector = connectionSecretProtector;
+        _connectionCacheInvalidator = connectionCacheInvalidator;
     }
 
     /// <inheritdoc />
@@ -82,6 +90,8 @@ public sealed class TenantDomainService
             Sort = command.Sort,
             Remark = NormalizeNullable(command.Remark)
         };
+
+        ApplyConnectionSettings(tenant, command.DatabaseType, command.ConnectionString, requireConnectionString: true);
 
         return new TenantCommandResult(await _tenantRepository.AddAsync(tenant, cancellationToken), DateTimeOffset.UtcNow);
     }
@@ -126,7 +136,11 @@ public sealed class TenantDomainService
         tenant.Sort = command.Sort;
         tenant.Remark = NormalizeNullable(command.Remark);
 
+        // 连接串留空表示保持不变；隔离/连接可能变更，更新后失效运行时连接缓存
+        ApplyConnectionSettings(tenant, command.DatabaseType, command.ConnectionString, requireConnectionString: false);
+
         var updated = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
+        _connectionCacheInvalidator.Invalidate(tenant.BasicId);
 
         // 套餐变更（含降级）：回收超出新版本白名单的存量角色/用户直授权限行（REQ-5.3）
         if (previousEditionId != command.EditionId)
@@ -226,6 +240,43 @@ public sealed class TenantDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>
+    /// 应用库隔离连接设置：库隔离校验数据库类型/连接串并加密落库；非库隔离清空相关字段
+    /// </summary>
+    /// <param name="tenant">租户实体（IsolationMode 须已赋值）</param>
+    /// <param name="databaseType">数据库类型</param>
+    /// <param name="connectionString">连接字符串明文（留空表示保持不变）</param>
+    /// <param name="requireConnectionString">是否强制要求提供连接串（创建库隔离租户时为 true）</param>
+    private void ApplyConnectionSettings(SysTenant tenant, TenantDatabaseType? databaseType, string? connectionString, bool requireConnectionString)
+    {
+        if (tenant.IsolationMode != TenantIsolationMode.Database)
+        {
+            // 非库隔离：清空库隔离相关字段，避免残留脏连接
+            tenant.DatabaseType = null;
+            tenant.ConnectionString = null;
+            tenant.IsConnectionStringEncrypted = false;
+            return;
+        }
+
+        if (databaseType is null)
+        {
+            throw new InvalidOperationException("库隔离（Database）租户必须指定数据库类型。");
+        }
+
+        tenant.DatabaseType = databaseType;
+
+        var plaintext = NormalizeNullable(connectionString);
+        if (plaintext is not null)
+        {
+            tenant.ConnectionString = _connectionSecretProtector.Protect(plaintext);
+            tenant.IsConnectionStringEncrypted = true;
+        }
+        else if (requireConnectionString || string.IsNullOrWhiteSpace(tenant.ConnectionString))
+        {
+            throw new InvalidOperationException("库隔离（Database）租户必须提供数据库连接字符串。");
+        }
     }
 
     private static void ValidateCommonInput(TenantIsolationMode isolationMode, long? editionId, int? userLimit, long? storageLimit)
