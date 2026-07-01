@@ -24,6 +24,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
+using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
@@ -33,6 +34,7 @@ using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.Framework.Data.SqlSugar.Tenanting;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
@@ -75,6 +77,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileDomainService, FileDomainService>();
         services.AddScoped<IStorageConfigDomainService, StorageConfigDomainService>();
         services.AddSingleton<IStorageSecretProtector, DataProtectionStorageSecretProtector>();
+
+        // 租户库隔离：连接串保护器 + 运行时连接提供器（框架据此按 SysTenant 动态建连）
+        services.AddSingleton<ITenantConnectionSecretProtector, DataProtectionTenantConnectionSecretProtector>();
+        services.AddSingleton<SaasTenantConnectionProvider>();
+        services.AddSingleton<ISqlSugarTenantConnectionProvider>(sp => sp.GetRequiredService<SaasTenantConnectionProvider>());
+        services.AddSingleton<ITenantConnectionCacheInvalidator>(sp => sp.GetRequiredService<SaasTenantConnectionProvider>());
         services.AddScoped<IConfigDomainService, ConfigDomainService>();
         services.AddScoped<IDictDomainService, DictDomainService>();
         services.AddScoped<IVersionDomainService, VersionDomainService>();

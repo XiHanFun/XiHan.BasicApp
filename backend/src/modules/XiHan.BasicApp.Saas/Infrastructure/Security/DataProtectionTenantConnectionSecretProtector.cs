@@ -3,11 +3,11 @@
 // ----------------------------------------------------------------
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:DataProtectionStorageSecretProtector
-// Guid:d4e5f6a7-b8c9-4a31-bd4e-5f6a7b8c9d0e
+// FileName:DataProtectionTenantConnectionSecretProtector
+// Guid:9e5a1c73-4b28-4d16-8a90-2f6b3e8d4c17
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
-// CreateTime:2026/07/01 00:00:00
+// CreateTime:2026/07/02 10:00:00
 // ----------------------------------------------------------------
 
 #endregion <<版权版本注释>>
@@ -18,22 +18,22 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 namespace XiHan.BasicApp.Saas.Infrastructure.Security;
 
 /// <summary>
-/// 基于 ASP.NET Core Data Protection 的存储密钥保护器
+/// 基于 ASP.NET Core Data Protection 的租户连接字符串保护器
 /// </summary>
 /// <remarks>
-/// 多实例部署需共享 Data Protection 密钥环（持久化到共享存储），否则其它实例无法解密。
-/// 与 OAuth 回调 state 使用同一套 Data Protection 设施。
+/// 多实例部署需共享 Data Protection 密钥环（持久化到共享存储），否则其它实例无法解密租户连接串。
+/// 使用独立 Purpose，与存储密钥/OAuth state 的密钥互不影响。
 /// </remarks>
-public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtector
+public sealed class DataProtectionTenantConnectionSecretProtector : ITenantConnectionSecretProtector
 {
     private readonly IDataProtector _protector;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DataProtectionStorageSecretProtector(IDataProtectionProvider dataProtectionProvider)
+    public DataProtectionTenantConnectionSecretProtector(IDataProtectionProvider dataProtectionProvider)
     {
-        _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.StorageSecretAccessKey);
+        _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.TenantConnectionString);
     }
 
     /// <inheritdoc />
