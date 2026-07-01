@@ -36,7 +36,8 @@ public sealed record OAuthAppCreateCommand(
     string? Homepage,
     bool SkipConsent,
     EnableStatus Status,
-    string? Remark);
+    string? Remark,
+    bool IsPublic = false);
 
 /// <summary>
 /// OAuth 应用更新命令

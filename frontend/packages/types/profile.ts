@@ -181,3 +181,47 @@ export interface ApiCredentialSecret {
   appKey: string
   appSecret: string
 }
+
+/** 我的 OAuth 应用（个人中心开发者设置；与后端 MyOAuthAppItemDto 对应） */
+export interface MyOAuthAppItem {
+  basicId: number | string
+  clientId: string
+  appName: string
+  appDescription?: string | null
+  homepage?: string | null
+  logo?: string | null
+  redirectUris?: string | null
+  clientType: 'Confidential' | 'Public'
+  grantTypes: string
+  scopes?: string | null
+  status: 'Disabled' | 'Enabled'
+  createdTime: string
+}
+
+/** 我的 OAuth 应用密钥（明文仅创建/重置机密客户端时返回一次；公开客户端为空） */
+export interface MyOAuthAppSecret {
+  basicId: number | string
+  clientId: string
+  clientType: 'Confidential' | 'Public'
+  clientSecret: string
+}
+
+/** 创建我的 OAuth 应用入参（精简字段 + 客户端类型） */
+export interface MyOAuthAppCreateInput {
+  appName: string
+  clientType: 'Confidential' | 'Public'
+  homepage?: string | null
+  appDescription?: string | null
+  redirectUris: string
+  logo?: string | null
+}
+
+/** 更新我的 OAuth 应用入参 */
+export interface MyOAuthAppUpdateInput {
+  basicId: number | string
+  appName: string
+  homepage?: string | null
+  appDescription?: string | null
+  redirectUris: string
+  logo?: string | null
+}
