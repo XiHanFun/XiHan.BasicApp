@@ -65,4 +65,4 @@ public sealed record OAuthAppStatusChangeCommand(long BasicId, EnableStatus Stat
 /// <summary>
 /// OAuth 应用命令结果
 /// </summary>
-public sealed record OAuthAppCommandResult(SysOAuthApp App);
+public sealed record OAuthAppCommandResult(SysOAuthApp App, string? PlaintextSecret = null);

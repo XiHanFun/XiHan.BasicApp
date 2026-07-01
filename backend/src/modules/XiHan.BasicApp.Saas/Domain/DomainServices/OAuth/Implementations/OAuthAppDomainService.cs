@@ -15,6 +15,7 @@
 using System.Security.Cryptography;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Security.Password;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -30,17 +31,21 @@ public sealed class OAuthAppDomainService
 
     private readonly IOAuthTokenRepository _oauthTokenRepository;
 
+    private readonly IPasswordHasher _passwordHasher;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public OAuthAppDomainService(
         IOAuthAppRepository oauthAppRepository,
         IOAuthCodeRepository oauthCodeRepository,
-        IOAuthTokenRepository oauthTokenRepository)
+        IOAuthTokenRepository oauthTokenRepository,
+        IPasswordHasher passwordHasher)
     {
         _oauthAppRepository = oauthAppRepository;
         _oauthCodeRepository = oauthCodeRepository;
         _oauthTokenRepository = oauthTokenRepository;
+        _passwordHasher = passwordHasher;
     }
 
     /// <inheritdoc />
@@ -67,7 +72,7 @@ public sealed class OAuthAppDomainService
             AppName = Required(command.AppName, 100, nameof(command.AppName), "应用名称不能超过 100 个字符。"),
             AppDescription = Optional(command.AppDescription, 500, nameof(command.AppDescription), "应用描述不能超过 500 个字符。"),
             ClientId = clientId,
-            ClientSecret = clientSecret,
+            ClientSecret = _passwordHasher.HashPassword(clientSecret),
             AppType = command.AppType,
             GrantTypes = Required(command.GrantTypes, 500, nameof(command.GrantTypes), "授权类型不能超过 500 个字符。"),
             RedirectUris = Optional(command.RedirectUris, 2000, nameof(command.RedirectUris), "回调地址不能超过 2000 个字符。"),
@@ -82,7 +87,7 @@ public sealed class OAuthAppDomainService
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
 
-        return new OAuthAppCommandResult(await _oauthAppRepository.AddAsync(app, cancellationToken));
+        return new OAuthAppCommandResult(await _oauthAppRepository.AddAsync(app, cancellationToken), clientSecret);
     }
 
     /// <inheritdoc />
@@ -113,8 +118,9 @@ public sealed class OAuthAppDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
-        app.ClientSecret = GenerateSecret();
-        return new OAuthAppCommandResult(await _oauthAppRepository.UpdateAsync(app, cancellationToken));
+        var clientSecret = GenerateSecret();
+        app.ClientSecret = _passwordHasher.HashPassword(clientSecret);
+        return new OAuthAppCommandResult(await _oauthAppRepository.UpdateAsync(app, cancellationToken), clientSecret);
     }
 
     /// <inheritdoc />
