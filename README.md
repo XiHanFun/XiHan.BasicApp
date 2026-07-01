@@ -188,7 +188,7 @@ dotnet run --project src/main/XiHan.BasicApp.WebHost --launch-profile Developmen
 
 启动后访问 `http://127.0.0.1:9708/scalar` 查看 API 文档。
 
-各环境端口：Test `9707`、Development `9708`、Production `9709`。
+各环境端口：Development `9708`、Production `9709`。
 
 ### 前端
 
@@ -245,6 +245,23 @@ sudo systemctl start XiHan.BasicApp
 
 后端与前端当前版本：v2.3.1。
 
+## 诚挚致谢
+
+排名不分先后。
+
+| 项目                                                         | 致谢                                           |
+| ------------------------------------------------------------ | ---------------------------------------------- |
+| [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) | 作为本项目的后端底层框架支持                   |
+| [NaiveUI](https://github.com/tusen-ai/naive-ui)              | 作为本项目的前端 UI 组件支持                   |
+| [Blog.Core](https://github.com/anjoy8/Blog.Core)             | 作为部分后端架构、逻辑功能灵感来源（启蒙项目） |
+| [Admin.NET](https://gitee.com/zuohuaijun/Admin.NET)          | 作为部分后端功能灵感来源                       |
+| [ Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore)     | 作为部分后端功能灵感来源                       |
+| [YuebonCore](https://gitee.com/yuebon/YuebonNetCore)         | 作为部分后端功能灵感来源                       |
+| [VbenAdmin](https://github.com/vbenjs/vue-vben-admin)        | 作为部分前端架构、视觉功能灵感来源（启蒙项目） |
+| [SoybeanAdmin](https://github.com/soybeanjs/soybean-admin)   | 作为部分前端视觉功能灵感来源                   |
+| [LitheAdmin](https://github.com/tenianon/lithe-admin)        | 作为部分前端视觉功能灵感来源                   |
+| 其他第三方依赖                                               | 作为项目功能丰富与拓展的基石                   |
+
 ## 支持&赞助
 
 如果此项目对你的开发有助益，也欢迎请作者一杯咖啡。
@@ -255,9 +272,12 @@ sudo systemctl start XiHan.BasicApp
     <td align="center"><img src="./assets/weixinpay.png" width="200" /><br/>微信</td>
   </tr>
 </table>
+## 版权&授权
 
+Copyright (c) 2026 XiHanFun and ZhaiFanhua
 
-## 协议
+本项目采用 MIT 授权，详见 [License](./LICENSE)
 
-[MIT License](./LICENSE) © 2021-Present XiHanFun, ZhaiFanhua
+XiHan.BasicApp Logo、XiHan.BasicApp名称、界面视觉设计与原创视觉表达归作者所有，第三方依赖和第三方服务分别遵循其各自授权与服务条款。
 
+项目仅供学习参考，作者不承担任何软件的使用风险。
