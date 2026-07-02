@@ -49,6 +49,16 @@ public sealed class LogRetentionCleanupTask
     /// </summary>
     private const string RetentionConfigKey = "saas:log:retention-days";
 
+    /// <summary>
+    /// 聊天消息默认保留天数（未配置 saas:chat:retention-days 时使用）
+    /// </summary>
+    private const int DefaultChatRetentionDays = 365;
+
+    /// <summary>
+    /// 聊天消息保留期配置键（全局，TenantId=0；聊天与审计日志留存合规口径不同，独立配置）
+    /// </summary>
+    private const string ChatRetentionConfigKey = "saas:chat:retention-days";
+
     private readonly ISqlSugarClientResolver _clientResolver;
 
     private readonly ICurrentTenant _currentTenant;
@@ -77,7 +87,7 @@ public sealed class LogRetentionCleanupTask
         using var platformScope = _currentTenant.Change(null);
         var client = _clientResolver.GetCurrentClient();
 
-        var retentionDays = await ResolveRetentionDaysAsync(client);
+        var retentionDays = await ResolveRetentionDaysAsync(client, RetentionConfigKey, DefaultRetentionDays);
         var cutoff = DateTimeOffset.UtcNow.AddDays(-retentionDays);
 
         var jobs = new (string Name, Func<Task<int>> Run)[]
@@ -108,7 +118,24 @@ public sealed class LogRetentionCleanupTask
             }
         }
 
-        var summary = $"日志清理完成：保留 {retentionDays} 天（截止 {cutoff:yyyy-MM-dd}），共删除 {total} 行（{string.Join("，", parts)}）";
+        // 聊天消息：独立保留期（普通表，无需 SplitTable）
+        var chatRetentionDays = await ResolveRetentionDaysAsync(client, ChatRetentionConfigKey, DefaultChatRetentionDays);
+        var chatCutoff = DateTimeOffset.UtcNow.AddDays(-chatRetentionDays);
+        try
+        {
+            var chatCount = await client.Deleteable<SysChatMessage>()
+                .Where(message => message.CreatedTime < chatCutoff)
+                .ExecuteCommandAsync();
+            total += chatCount;
+            parts.Add($"聊天 {chatCount}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "清理聊天消息失败");
+            parts.Add("聊天 失败");
+        }
+
+        var summary = $"日志清理完成：日志保留 {retentionDays} 天（截止 {cutoff:yyyy-MM-dd}）、聊天保留 {chatRetentionDays} 天，共删除 {total} 行（{string.Join("，", parts)}）";
         _logger.LogInformation("{Summary}", summary);
         return summary;
     }
@@ -128,12 +155,12 @@ public sealed class LogRetentionCleanupTask
     /// <summary>
     /// 解析保留天数：全局配置优先，缺省/非法时回退默认值
     /// </summary>
-    private async Task<int> ResolveRetentionDaysAsync(ISqlSugarClient client)
+    private async Task<int> ResolveRetentionDaysAsync(ISqlSugarClient client, string configKey, int defaultDays)
     {
         try
         {
             var value = await client.Queryable<SysConfig>()
-                .Where(config => config.ConfigKey == RetentionConfigKey
+                .Where(config => config.ConfigKey == configKey
                     && config.TenantId == 0
                     && config.Status == EnableStatus.Enabled)
                 .Select(config => config.ConfigValue)
@@ -146,9 +173,9 @@ public sealed class LogRetentionCleanupTask
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "读取日志保留期配置 {Key} 失败，回退默认 {Default} 天", RetentionConfigKey, DefaultRetentionDays);
+            _logger.LogWarning(ex, "读取保留期配置 {Key} 失败，回退默认 {Default} 天", configKey, defaultDays);
         }
 
-        return DefaultRetentionDays;
+        return defaultDays;
     }
 }

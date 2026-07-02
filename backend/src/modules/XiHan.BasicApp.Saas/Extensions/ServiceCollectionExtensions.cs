@@ -230,6 +230,9 @@ public static class ServiceCollectionExtensions
         // 组织层级事件
         services.AddSaasLocalEventHandler<HierarchyChangedEventHandler>();
 
+        // 聊天：部门归属变更 → 部门群成员同步（入部门进群/移出踢群）
+        services.AddSaasLocalEventHandler<ChatDepartmentMemberSyncEventHandler>();
+
         return services;
     }
 

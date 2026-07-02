@@ -22,4 +22,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// 聊天消息仓储实现
 /// </summary>
 public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver)
-    : SaasRepository<SysChatMessage>(clientResolver), IChatMessageRepository;
+    : SaasRepository<SysChatMessage>(clientResolver), IChatMessageRepository
+{
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysChatMessage>> GetHistoryAsync(long conversationId, long? beforeMessageId, int take, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var query = CreateQueryable().Where(message => message.ConversationId == conversationId);
+        if (beforeMessageId is { } before && before > 0)
+        {
+            query = query.Where(message => message.BasicId < before);
+        }
+
+        return await query
+            .OrderByDescending(message => message.BasicId)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+}
