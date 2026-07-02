@@ -47,7 +47,8 @@ export const userApi = {
     appendDynamicApiParam(params, 'Keyword', input.keyword)
     appendDynamicApiParam(params, 'Gender', input.gender)
     appendDynamicApiParam(params, 'IsSystemAccount', input.isSystemAccount)
-    return userQueryApi.get<UserSelectItemDto[]>('UserSelect', params)
+    // 后端为 UserQueryService.GetEnabledUsersAsync(UserSelectQueryDto)：Get 前缀剥离 → GET /UserQuery/EnabledUsers，DTO 走 query 绑定
+    return userQueryApi.get<UserSelectItemDto[]>('EnabledUsers', params)
   },
   update(input: UserUpdateDto) {
     return userBaseCommandApi.update(input)
