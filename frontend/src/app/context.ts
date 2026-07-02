@@ -1,5 +1,6 @@
 import type { Router } from 'vue-router'
 import type { EnumMetadata } from '@/api/modules/metadata/enum-metadata'
+import type { DepartmentTreeNodeDto } from '@/api/modules/organization'
 import type {
   ApiCredentialItem,
   ApiCredentialSecret,
@@ -12,6 +13,8 @@ import type {
   ChangePasswordParams,
   ChangePhoneParams,
   ChangeUserNameParams,
+  ChatApiContract,
+  ChatDepartmentPickerNode,
   EmailLoginParams,
   ExternalLoginItem,
   LoginConfig,
@@ -37,8 +40,11 @@ import type {
   VerificationCodeResult,
 } from '~/types'
 import { fileApi } from '@/api/modules/files'
+import { userApi } from '@/api/modules/identity'
 import { logManagementApi } from '@/api/modules/log'
+import { chatApi } from '@/api/modules/messaging'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
+import { departmentApi } from '@/api/modules/organization'
 import {
   appManagementApi,
   approvalManagementApi,
@@ -434,6 +440,45 @@ function createShellApis() {
   }
 }
 
+function mapDepartmentNode(node: DepartmentTreeNodeDto): ChatDepartmentPickerNode {
+  return {
+    departmentId: node.basicId,
+    departmentName: node.departmentName,
+    children: node.children?.map(mapDepartmentNode) ?? null,
+  }
+}
+
+function createChatApis() {
+  const composed: ChatApiContract = {
+    ...chatApi,
+    async selectUsers(keyword: string, limit = 20) {
+      const items = await userApi.select({ keyword, limit })
+      return items.map(u => ({
+        userId: u.basicId,
+        userName: u.userName,
+        nickName: u.nickName ?? u.realName,
+        avatar: u.avatar,
+      }))
+    },
+    async departmentTree() {
+      const nodes = await departmentApi.tree({ limit: 500, onlyEnabled: true })
+      return nodes.map(mapDepartmentNode)
+    },
+    async uploadAttachment(file: File, onProgress?: (percent: number) => void) {
+      const detail = await fileApi.upload({ file, directory: 'chat' }, onProgress)
+      return {
+        fileId: detail.basicId,
+        fileName: detail.originalName || detail.fileName,
+        fileSize: detail.fileSize,
+      }
+    },
+    getFileUrl(fileId: string) {
+      return fileApi.generatePresignedUrl(fileId)
+    },
+  }
+  return { chatApi: composed }
+}
+
 function createMenuPageApis() {
   return {
     logManagementApi,
@@ -465,6 +510,7 @@ export function createApplicationApis() {
     ...createAuthApis(),
     ...createProfileApis(),
     ...createShellApis(),
+    ...createChatApis(),
     ...createMenuPageApis(),
   }
 }
