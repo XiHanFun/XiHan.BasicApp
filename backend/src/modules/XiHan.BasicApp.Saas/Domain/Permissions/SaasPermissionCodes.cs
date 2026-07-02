@@ -175,6 +175,16 @@ public static class SaasPermissionCodes
         SmsConfig.Update,
         SmsConfig.Status,
         SmsConfig.Delete,
+        BotConfig.Read,
+        BotConfig.Create,
+        BotConfig.Update,
+        BotConfig.Status,
+        BotConfig.Delete,
+        TelegramBot.Read,
+        TelegramBot.Create,
+        TelegramBot.Update,
+        TelegramBot.Status,
+        TelegramBot.Delete,
         Cache.Read,
         Cache.Clear,
         Server.Read,
@@ -273,7 +283,9 @@ public static class SaasPermissionCodes
         StorageConfig.Export,
         ConstraintRule.Export,
         EmailConfig.Export,
-        SmsConfig.Export
+        SmsConfig.Export,
+        BotConfig.Export,
+        TelegramBot.Export
     ];
 
     /// <summary>
@@ -1595,6 +1607,88 @@ public static class SaasPermissionCodes
         /// 导出短信配置
         /// </summary>
         public const string Export = "saas:sms-config:export";
+    }
+
+    /// <summary>
+    /// 机器人配置权限码（Webhook 型：钉钉/飞书/企业微信群机器人配置）
+    /// </summary>
+    public static class BotConfig
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "bot-config";
+
+        /// <summary>
+        /// 查看机器人配置
+        /// </summary>
+        public const string Read = "saas:bot-config:read";
+
+        /// <summary>
+        /// 创建机器人配置
+        /// </summary>
+        public const string Create = "saas:bot-config:create";
+
+        /// <summary>
+        /// 更新机器人配置
+        /// </summary>
+        public const string Update = "saas:bot-config:update";
+
+        /// <summary>
+        /// 更新机器人配置状态
+        /// </summary>
+        public const string Status = "saas:bot-config:status";
+
+        /// <summary>
+        /// 删除机器人配置
+        /// </summary>
+        public const string Delete = "saas:bot-config:delete";
+
+        /// <summary>
+        /// 导出机器人配置
+        /// </summary>
+        public const string Export = "saas:bot-config:export";
+    }
+
+    /// <summary>
+    /// Telegram 机器人权限码（多机器人专表管理）
+    /// </summary>
+    public static class TelegramBot
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "telegram-bot";
+
+        /// <summary>
+        /// 查看 Telegram 机器人
+        /// </summary>
+        public const string Read = "saas:telegram-bot:read";
+
+        /// <summary>
+        /// 创建 Telegram 机器人
+        /// </summary>
+        public const string Create = "saas:telegram-bot:create";
+
+        /// <summary>
+        /// 更新 Telegram 机器人
+        /// </summary>
+        public const string Update = "saas:telegram-bot:update";
+
+        /// <summary>
+        /// 更新 Telegram 机器人状态
+        /// </summary>
+        public const string Status = "saas:telegram-bot:status";
+
+        /// <summary>
+        /// 删除 Telegram 机器人
+        /// </summary>
+        public const string Delete = "saas:telegram-bot:delete";
+
+        /// <summary>
+        /// 导出 Telegram 机器人
+        /// </summary>
+        public const string Export = "saas:telegram-bot:export";
     }
 
     /// <summary>

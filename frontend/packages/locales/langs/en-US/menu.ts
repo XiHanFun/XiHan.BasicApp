@@ -21,6 +21,8 @@ export default {
   message_template: 'Message Templates',
   message_email_config: 'Email Config',
   message_sms_config: 'SMS Config',
+  message_bot_config: 'Bot Config',
+  message_telegram_bot: 'Telegram Bots',
   approval: 'Approval Rules',
   approval_review: 'Approval Center',
   approval_constraint: 'Constraint Rules',

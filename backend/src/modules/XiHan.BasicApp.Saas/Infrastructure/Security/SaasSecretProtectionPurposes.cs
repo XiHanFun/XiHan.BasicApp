@@ -47,4 +47,14 @@ public static class SaasSecretProtectionPurposes
     /// 邮件网关认证密码保护用途。
     /// </summary>
     public const string EmailConfigPassword = "XiHan.BasicApp.Saas.EmailConfig.Password.v1";
+
+    /// <summary>
+    /// 机器人配置签名秘钥保护用途（Webhook 型：钉钉/飞书）。
+    /// </summary>
+    public const string BotConfigSecret = "XiHan.BasicApp.Saas.BotConfig.Secret.v1";
+
+    /// <summary>
+    /// Telegram 机器人 Token 保护用途。
+    /// </summary>
+    public const string TelegramBotToken = "XiHan.BasicApp.Saas.TelegramBot.Token.v1";
 }

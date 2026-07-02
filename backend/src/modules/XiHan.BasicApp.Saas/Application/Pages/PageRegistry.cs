@@ -136,6 +136,10 @@ public static class PageRegistry
          new("message.email-config", "邮件配置", "menu.message_email_config", MenuType.Menu, "/message/email-config", "MessageEmailConfig", "message/email-config/index", "message", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 340),
         // [4.5] 短信配置
          new("message.sms-config", "短信配置", "menu.message_sms_config", MenuType.Menu, "/message/sms-config", "MessageSmsConfig", "message/sms-config/index", "message", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 350),
+        // [4.6] 机器人配置（Webhook 型：钉钉/飞书/企微）
+         new("message.bot-config", "机器人配置", "menu.message_bot_config", MenuType.Menu, "/message/bot-config", "MessageBotConfig", "message/bot-config/index", "message", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 360),
+        // [4.7] Telegram机器人
+         new("message.telegram-bot", "Telegram机器人", "menu.message_telegram_bot", MenuType.Menu, "/message/telegram-bot", "MessageTelegramBot", "message/telegram-bot/index", "message", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 370),
 
         // [5] 审批规则
          new("approval", "审批规则", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:clipboard-check", 400, "/approval/review"),
@@ -303,6 +307,20 @@ public static class PageRegistry
          new("message.sms-config.status", "启停", "message.sms-config", SaasPermissionCodes.SmsConfig.Status, 3),
          new("message.sms-config.delete", "删除", "message.sms-config", SaasPermissionCodes.SmsConfig.Delete, 4),
          new("message.sms-config.export", "导出", "message.sms-config", SaasPermissionCodes.SmsConfig.Export, 9),
+
+        // [4.6] 机器人配置
+         new("message.bot-config.create", "新增", "message.bot-config", SaasPermissionCodes.BotConfig.Create, 1),
+         new("message.bot-config.update", "编辑", "message.bot-config", SaasPermissionCodes.BotConfig.Update, 2),
+         new("message.bot-config.status", "启停", "message.bot-config", SaasPermissionCodes.BotConfig.Status, 3),
+         new("message.bot-config.delete", "删除", "message.bot-config", SaasPermissionCodes.BotConfig.Delete, 4),
+         new("message.bot-config.export", "导出", "message.bot-config", SaasPermissionCodes.BotConfig.Export, 9),
+
+        // [4.7] Telegram机器人
+         new("message.telegram-bot.create", "新增", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Create, 1),
+         new("message.telegram-bot.update", "编辑", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Update, 2),
+         new("message.telegram-bot.status", "启停", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Status, 3),
+         new("message.telegram-bot.delete", "删除", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Delete, 4),
+         new("message.telegram-bot.export", "导出", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Export, 9),
 
         // [5.1] 审批中心
          new("approval.review.audit", "审核", "approval.review", SaasPermissionCodes.Review.Audit, 1),
