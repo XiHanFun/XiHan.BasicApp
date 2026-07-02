@@ -88,6 +88,16 @@ public partial class SysNotification : BasicAppFullAuditedEntity
     public virtual NotificationContentFormat ContentFormat { get; set; } = NotificationContentFormat.Markdown;
 
     /// <summary>
+    /// 投递渠道（[Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人）
+    /// </summary>
+    /// <remarks>
+    /// 发布时按此扇出：站内信=SysUserNotification 行；邮箱/短信=经用户偏好门控后落 SysEmail/SysSms 走发件箱异步发送；
+    /// 机器人=通知级广播（无用户维度），UoW 提交后经框架 Bot 管道直发。
+    /// </remarks>
+    [SugarColumn(ColumnName = "Delivery_Channels", ColumnDescription = "投递渠道")]
+    public virtual MessageChannel DeliveryChannels { get; set; } = MessageChannel.SiteNotification;
+
+    /// <summary>
     /// 通知标题
     /// </summary>
     [SugarColumn(ColumnName = "Title", ColumnDescription = "通知标题", Length = 200, IsNullable = false)]

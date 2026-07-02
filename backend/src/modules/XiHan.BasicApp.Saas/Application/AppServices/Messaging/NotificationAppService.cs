@@ -43,6 +43,8 @@ public sealed class NotificationAppService
 {
     private readonly INotificationDomainService _notificationDomainService;
 
+    private readonly INotificationFanoutService _notificationFanoutService;
+
     private readonly IMessageTemplateRenderer _messageTemplateRenderer;
 
     private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
@@ -62,6 +64,7 @@ public sealed class NotificationAppService
     /// </summary>
     public NotificationAppService(
         INotificationDomainService notificationDomainService,
+        INotificationFanoutService notificationFanoutService,
         IMessageTemplateRenderer messageTemplateRenderer,
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
         IUserTaskProgressNotifier taskProgressNotifier,
@@ -71,6 +74,7 @@ public sealed class NotificationAppService
         ILogger<NotificationAppService> logger)
     {
         _notificationDomainService = notificationDomainService;
+        _notificationFanoutService = notificationFanoutService;
         _messageTemplateRenderer = messageTemplateRenderer;
         _realtimeNotificationService = realtimeNotificationService;
         _taskProgressNotifier = taskProgressNotifier;
@@ -107,6 +111,12 @@ public sealed class NotificationAppService
         }
 
         var result = await _notificationDomainService.CreateNotificationAsync(NotificationApplicationMapper.ToCreateCommand(input), cancellationToken);
+        if (result.Notification.IsPublished)
+        {
+            // 立即发布路径：与显式发布同语义，按投递渠道扇出到 邮箱/短信/机器人（站内信已由发布链路落行）
+            await _notificationFanoutService.FanoutAsync(result.Notification, cancellationToken);
+        }
+
         return NotificationApplicationMapper.ToDetailDto(result.Notification);
     }
 
@@ -143,6 +153,9 @@ public sealed class NotificationAppService
         try
         {
             result = await _notificationDomainService.PublishNotificationAsync(NotificationApplicationMapper.ToPublishCommand(input), cancellationToken);
+            // 多渠道扇出：邮箱/短信在发布事务内落行（发件箱异步发送），机器人为 UoW 提交后广播；
+            // 扇出落行失败与发布同事务回滚，保证渠道扇出与站内信原子一致
+            await _notificationFanoutService.FanoutAsync(result.Notification, cancellationToken);
         }
         catch (Exception ex)
         {

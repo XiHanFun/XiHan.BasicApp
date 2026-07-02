@@ -12,6 +12,8 @@ import type {
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
+  NCheckbox,
+  NCheckboxGroup,
   NDataTable,
   NDatePicker,
   NDescriptions,
@@ -38,6 +40,7 @@ import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   departmentApi,
+  MessageChannel,
   notificationApi,
   NotificationContentFormat,
   NotificationPriority,
@@ -97,6 +100,38 @@ const publishedOptions = computed(() => [
   { label: t('message.notification.unpublished'), value: 0 },
 ])
 
+// ── 投递渠道（MessageChannel [Flags]：站内信固定勾选禁用，可叠加邮箱/短信/机器人） ──
+const DELIVERY_CHANNEL_BITS = [
+  MessageChannel.SiteNotification,
+  MessageChannel.Email,
+  MessageChannel.Sms,
+  MessageChannel.Bot,
+] as const
+
+const deliveryChannelOptions = computed(() => [
+  { label: t('message.notification.channel_site'), value: MessageChannel.SiteNotification, disabled: true },
+  { label: t('message.notification.channel_email'), value: MessageChannel.Email, disabled: false },
+  { label: t('message.notification.channel_sms'), value: MessageChannel.Sms, disabled: false },
+  { label: t('message.notification.channel_bot'), value: MessageChannel.Bot, disabled: false },
+])
+
+/** 位掩码 → 勾选数组（渲染列表/回填编辑表单） */
+function channelsToArray(mask: MessageChannel): MessageChannel[] {
+  return DELIVERY_CHANNEL_BITS.filter(bit => (mask & bit) === bit)
+}
+
+/** 勾选数组 → 位掩码（提交；兜底强制并入站内信位） */
+function channelsToMask(values: MessageChannel[]): MessageChannel {
+  return values.reduce<MessageChannel>((mask, bit) => mask | bit, MessageChannel.SiteNotification)
+}
+
+/** 位掩码 → 渠道标签文本（详情展示） */
+function formatChannels(mask: MessageChannel): string {
+  return channelsToArray(mask)
+    .map(bit => getOptionLabel(deliveryChannelOptions.value, bit))
+    .join(' / ')
+}
+
 // ── 表单枚举下拉（响应式 i18n + 静态兜底） ───────────────────────
 const priorityOptions = useEnumOptions('NotificationPriority', [
   { label: '低', value: NotificationPriority.Low },
@@ -141,6 +176,8 @@ interface NotificationFormModel {
   notificationType: NotificationType
   priority: NotificationPriority
   contentFormat: NotificationContentFormat
+  /** 投递渠道勾选数组（提交时合成 MessageChannel 位掩码；站内信固定勾选） */
+  deliveryChannels: MessageChannel[]
   targetType: NotificationTargetType
   userIds: string[]
   icon: string | null
@@ -164,6 +201,7 @@ function createDefaultForm(): NotificationFormModel {
     notificationType: NotificationType.System,
     priority: NotificationPriority.Normal,
     contentFormat: NotificationContentFormat.Markdown,
+    deliveryChannels: [MessageChannel.SiteNotification],
     targetType: NotificationTargetType.All,
     userIds: [],
     icon: null,
@@ -233,6 +271,26 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: row => getOptionLabel(targetTypeOptions.value, (row as unknown as NotificationListItemDto).targetType),
   },
   {
+    key: 'deliveryChannels',
+    title: t('message.notification.col_delivery_channels'),
+    dataType: 'string',
+    width: 170,
+    order: 13,
+    render: (row) => {
+      const mask = (row as unknown as NotificationListItemDto).deliveryChannels ?? MessageChannel.SiteNotification
+      return h(
+        'div',
+        { style: 'display:flex;flex-wrap:wrap;gap:4px' },
+        channelsToArray(mask).map(bit =>
+          h(
+            NTag,
+            { key: bit, size: 'small', round: true, bordered: false, type: bit === MessageChannel.SiteNotification ? 'default' : 'info' },
+            () => getOptionLabel(deliveryChannelOptions.value, bit),
+          )),
+      )
+    },
+  },
+  {
     key: 'isPublished',
     title: t('message.notification.col_is_published'),
     dataType: 'boolean',
@@ -241,7 +299,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: publishedOptions.value,
     searchPlaceholder: t('message.notification.search_published_placeholder'),
     width: 100,
-    order: 13,
+    order: 14,
     render: (row) => {
       const published = (row as unknown as NotificationListItemDto).isPublished
       return h(
@@ -251,9 +309,9 @@ const fields = computed<ListFieldSchema[]>(() => [
       )
     },
   },
-  { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
-  { key: 'expirationTime', title: t('message.notification.col_expiration_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
-  { key: 'createdTime', title: t('message.notification.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 16 },
+  { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
+  { key: 'expirationTime', title: t('message.notification.col_expiration_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 16 },
+  { key: 'createdTime', title: t('message.notification.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 17 },
 ])
 
 function toStr(v: unknown): string | undefined {
@@ -265,7 +323,7 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:notification:export',
   pageName: t('message.notification.page_name'),
   rowKey: 'basicId',
-  scrollX: 1300,
+  scrollX: 1470,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -358,6 +416,7 @@ async function openEdit(row: NotificationListItemDto) {
       notificationType: detail.notificationType,
       priority: detail.priority,
       contentFormat: detail.contentFormat,
+      deliveryChannels: channelsToArray(detail.deliveryChannels ?? MessageChannel.SiteNotification),
       targetType: detail.targetType,
       userIds: [],
       icon: detail.icon ?? null,
@@ -602,6 +661,7 @@ async function handleSubmit() {
         notificationType: form.notificationType,
         priority: form.priority,
         contentFormat: form.contentFormat,
+        deliveryChannels: channelsToMask(form.deliveryChannels),
         targetType: form.targetType,
         userIds,
         icon: toStr(form.icon) ?? null,
@@ -626,6 +686,7 @@ async function handleSubmit() {
         notificationType: form.notificationType,
         priority: form.priority,
         contentFormat: form.contentFormat,
+        deliveryChannels: channelsToMask(form.deliveryChannels),
         targetType: form.targetType,
         userIds,
         icon: toStr(form.icon) ?? null,
@@ -697,6 +758,23 @@ async function handleSubmit() {
             <NSelect v-model:value="notificationForm.targetType" :options="targetTypeFormOptions" />
           </NFormItem>
         </div>
+        <NFormItem :label="t('message.notification.form_delivery_channels')" path="deliveryChannels">
+          <div>
+            <NCheckboxGroup v-model:value="notificationForm.deliveryChannels">
+              <NCheckbox
+                v-for="option in deliveryChannelOptions"
+                :key="option.value"
+                :value="option.value"
+                :disabled="option.disabled"
+              >
+                {{ option.label }}
+              </NCheckbox>
+            </NCheckboxGroup>
+            <p class="channel-hint">
+              {{ t('message.notification.form_delivery_channels_hint') }}
+            </p>
+          </div>
+        </NFormItem>
         <NFormItem v-if="isUserTarget" :label="t('message.notification.form_user_ids')" path="userIds">
           <NDynamicTags v-model:value="notificationForm.userIds" />
         </NFormItem>
@@ -776,6 +854,9 @@ async function handleSubmit() {
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail.label.target_type')">
               {{ getOptionLabel(targetTypeOptions, currentDetail.targetType) }}
+            </NDescriptionsItem>
+            <NDescriptionsItem :label="t('message.notification.detail.label.delivery_channels')">
+              {{ formatChannels(currentDetail.deliveryChannels ?? MessageChannel.SiteNotification) }}
             </NDescriptionsItem>
             <NDescriptionsItem :label="t('message.notification.detail.label.is_published')">
               <NTag size="small" round :bordered="false" :type="currentDetail.isPublished ? 'success' : 'default'">
@@ -901,6 +982,12 @@ async function handleSubmit() {
   margin: 0 0 8px;
   font-size: 12px;
   color: hsl(var(--warning, 38 92% 50%));
+}
+
+.channel-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-color-3, #999);
 }
 
 .stats {

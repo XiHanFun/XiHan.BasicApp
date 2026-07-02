@@ -58,4 +58,20 @@ public static class SaasMessageTemplateCodes
         /// </summary>
         public const string SmsVerificationCode = "auth-sms-verification-code";
     }
+
+    /// <summary>
+    /// 系统通知多渠道扇出模板
+    /// </summary>
+    public static class Notification
+    {
+        /// <summary>
+        /// 通知邮件（变量：title/content/brand）；模板缺失回退通知纯内容
+        /// </summary>
+        public const string Email = "notification-email";
+
+        /// <summary>
+        /// 通知短信（变量：title/brand）；云厂商发送须在短信配置 TemplateMap 中登记该编码到服务商模板码的映射
+        /// </summary>
+        public const string Sms = "notification-sms";
+    }
 }
