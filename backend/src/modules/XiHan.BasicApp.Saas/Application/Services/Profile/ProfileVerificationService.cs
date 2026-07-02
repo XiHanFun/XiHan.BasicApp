@@ -21,7 +21,8 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Authentication.OneTimeCode;
 using XiHan.Framework.Authentication.Otp;
-using XiHan.Framework.Bot.Email;
+using XiHan.Framework.Bot.Email.Abstractions;
+using XiHan.Framework.Bot.Email.Options;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 

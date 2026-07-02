@@ -16,7 +16,9 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.Framework.Bot.Email;
+using XiHan.Framework.Bot.Email.Abstractions;
+using XiHan.Framework.Bot.Email.Models;
+using XiHan.Framework.Bot.Email.Options;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 
