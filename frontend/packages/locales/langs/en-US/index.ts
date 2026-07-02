@@ -1,4 +1,5 @@
 import approval from './approval'
+import chat from './chat'
 import common from './common'
 import component from './component'
 import develop from './develop'
@@ -31,6 +32,7 @@ export default {
   develop,
   log,
   message,
+  chat,
   tenant,
   openapi,
   setting,
