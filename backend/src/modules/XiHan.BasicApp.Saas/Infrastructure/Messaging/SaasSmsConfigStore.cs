@@ -15,8 +15,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.Framework.Bot.Sms;
-using BotSmsProviderType = XiHan.Framework.Bot.Sms.SmsProviderType;
+using XiHan.Framework.Bot.Sms.Abstractions;
+using XiHan.Framework.Bot.Sms.Options;
+using BotSmsProviderType = XiHan.Framework.Bot.Sms.Enums.SmsProviderType;
 using SaasSmsProviderType = XiHan.BasicApp.Saas.Domain.Entities.SmsProviderType;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
