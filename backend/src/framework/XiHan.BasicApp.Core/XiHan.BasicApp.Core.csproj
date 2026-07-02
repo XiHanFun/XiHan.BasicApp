@@ -20,6 +20,11 @@
         <PackageReference Include="XiHan.Framework.Authentication" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Authorization" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Bot" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot.DingTalk" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot.Email" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot.Lark" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot.Telegram" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot.WeCom" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Caching" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Castle" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Core" Version="3.0.1" />

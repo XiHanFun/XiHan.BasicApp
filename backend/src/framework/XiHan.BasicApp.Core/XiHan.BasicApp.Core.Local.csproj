@@ -20,6 +20,11 @@
         <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Authentication\XiHan.Framework.Authentication.csproj" />
         <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Authorization\XiHan.Framework.Authorization.csproj" />
         <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot\XiHan.Framework.Bot.csproj" />
+        <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot.DingTalk\XiHan.Framework.Bot.DingTalk.csproj" />
+        <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot.Email\XiHan.Framework.Bot.Email.csproj" />
+        <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot.Lark\XiHan.Framework.Bot.Lark.csproj" />
+        <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot.Telegram\XiHan.Framework.Bot.Telegram.csproj" />
+        <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Bot.WeCom\XiHan.Framework.Bot.WeCom.csproj" />
         <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Caching\XiHan.Framework.Caching.csproj" />
         <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Core\XiHan.Framework.Core.csproj" />
         <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Data\XiHan.Framework.Data.csproj" />
