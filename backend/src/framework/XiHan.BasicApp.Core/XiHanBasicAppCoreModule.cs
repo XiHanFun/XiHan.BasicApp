@@ -17,6 +17,11 @@ using XiHan.Framework.Application;
 using XiHan.Framework.Authentication;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.Bot;
+using XiHan.Framework.Bot.DingTalk;
+using XiHan.Framework.Bot.Email;
+using XiHan.Framework.Bot.Lark;
+using XiHan.Framework.Bot.Telegram;
+using XiHan.Framework.Bot.WeCom;
 using XiHan.Framework.Caching;
 using XiHan.Framework.Castle;
 using XiHan.Framework.Core.Application;
@@ -57,6 +62,11 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanAuthorizationModule),
     typeof(XiHanTasksModule),
     typeof(XiHanBotModule),
+    typeof(XiHanBotDingTalkModule),
+    typeof(XiHanBotEmailModule),
+    typeof(XiHanBotLarkModule),
+    typeof(XiHanBotTelegramModule),
+    typeof(XiHanBotWeComModule),
     typeof(XiHanCachingModule),
     typeof(XiHanCastleModule),
     typeof(XiHanDataModule),
