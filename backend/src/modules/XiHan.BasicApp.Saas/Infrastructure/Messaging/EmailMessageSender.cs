@@ -259,7 +259,7 @@ public sealed class EmailMessageSender : IMessageSender
             BccMail = SplitAddresses(email.BccEmail)
         };
 
-        var sent = await new EmailBot(fromModel).SendMail(toModel);
+        var sent = await new EmailBot(fromModel).SendMail(toModel, cancellationToken);
         if (!sent)
         {
             throw new InvalidOperationException("SMTP 邮件发送失败，请检查邮件服务配置与网络。");
