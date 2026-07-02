@@ -125,6 +125,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITelegramBotTokenProtector, DataProtectionTelegramBotTokenProtector>();
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
+        services.AddScoped<IChatDomainService, ChatDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();
         services.AddScoped<ITenantDatabaseInitializer, TenantDatabaseInitializer>();
         services.AddScoped<ITenantEditionDomainService, TenantEditionDomainService>();
@@ -154,6 +155,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnumMetadataQueryService, EnumMetadataQueryService>();
         services.AddScoped<IServerInfoQueryService, ServerInfoQueryService>();
         services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
+        // 通知多渠道扇出：发布后按投递渠道扇出到 邮箱/短信（发件箱异步）与 机器人（UoW 提交后广播）
+        services.AddScoped<INotificationFanoutService, NotificationFanoutService>();
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();

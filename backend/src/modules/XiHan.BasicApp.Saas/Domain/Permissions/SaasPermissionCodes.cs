@@ -150,6 +150,9 @@ public static class SaasPermissionCodes
         Message.Status,
         Message.Publish,
         Message.Delete,
+        Chat.Read,
+        Chat.Send,
+        Chat.Manage,
         MessageTemplate.Read,
         MessageTemplate.Create,
         MessageTemplate.Update,
@@ -1402,6 +1405,32 @@ public static class SaasPermissionCodes
         /// 导出系统消息
         /// </summary>
         public const string Export = "saas:message:export";
+    }
+
+    /// <summary>
+    /// 在线聊天权限码（会话/消息/成员管理）
+    /// </summary>
+    public static class Chat
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "chat";
+
+        /// <summary>
+        /// 查看聊天（会话列表/消息历史）
+        /// </summary>
+        public const string Read = "saas:chat:read";
+
+        /// <summary>
+        /// 发送聊天消息（含撤回自己的消息）
+        /// </summary>
+        public const string Send = "saas:chat:send";
+
+        /// <summary>
+        /// 聊天会话管理（建群/成员管理）
+        /// </summary>
+        public const string Manage = "saas:chat:manage";
     }
 
     /// <summary>
