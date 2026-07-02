@@ -10,7 +10,7 @@ import type {
 } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useSignalR } from '~/composables'
+import { destroyAllSignalRConnections } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
@@ -173,8 +173,8 @@ export const useAuthStore = defineStore('auth', () => {
     const ctx = useAppContext()
     const router = await ctx.getRouter()
     try {
-      const signalR = useSignalR()
-      await signalR.destroy()
+      // 登出销毁全部 Hub 连接（通知/聊天等），不逐个枚举 hubPath
+      await destroyAllSignalRConnections()
     }
     catch {
       // ignore signalr destroy error

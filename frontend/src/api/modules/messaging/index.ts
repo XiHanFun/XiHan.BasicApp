@@ -1,5 +1,7 @@
 export * from './bot-config'
 export * from './bot-config.types'
+export * from './chat'
+export * from './chat.types'
 export * from './email-config'
 export * from './email-config.types'
 export * from './message'

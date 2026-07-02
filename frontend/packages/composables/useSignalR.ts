@@ -1,4 +1,5 @@
 import type { HubConnection } from '@microsoft/signalr'
+import type { Ref, ShallowRef } from 'vue'
 import {
   HttpTransportType,
   HubConnectionBuilder,
@@ -11,16 +12,36 @@ import { LocalStorage } from '~/utils'
 
 export type SignalREventHandler = Parameters<HubConnection['on']>[1]
 
-const connection = shallowRef<HubConnection | null>(null)
-const connected = ref(false)
+interface SignalRInstanceState {
+  connection: ShallowRef<HubConnection | null>
+  connected: Ref<boolean>
+  eventHandlers: Map<string, Set<SignalREventHandler>>
+}
 
-let eventHandlers: Map<string, Set<SignalREventHandler>> = new Map()
+// 按 hubPath 各持一条连接：通知 /hubs/notification 与聊天 /hubs/chat 互不干扰
+const instances = new Map<string, SignalRInstanceState>()
+
+function getInstanceState(hubPath: string): SignalRInstanceState {
+  let state = instances.get(hubPath)
+  if (!state) {
+    state = {
+      connection: shallowRef<HubConnection | null>(null),
+      connected: ref(false),
+      eventHandlers: new Map(),
+    }
+    instances.set(hubPath, state)
+  }
+  return state
+}
 
 /**
- * SignalR 连接管理（全局单例）
+ * SignalR 连接管理（按 hubPath 的全局单例注册表）
  * Hub 路径默认 /hubs/notification，认证时自动携带 JWT
  */
 export function useSignalR(hubPath = '/hubs/notification') {
+  const normalizedHubPath = hubPath.startsWith('/') ? hubPath : `/${hubPath}`
+  const state = getInstanceState(normalizedHubPath)
+
   function normalizeBaseForHub(rawBase: string): string {
     const base = (rawBase || '').trim().replace(/\/+$/g, '')
     if (!base) {
@@ -41,12 +62,11 @@ export function useSignalR(hubPath = '/hubs/notification') {
 
   function buildHubUrl(): string {
     const base = normalizeBaseForHub(import.meta.env.VITE_API_BASE_URL || '')
-    const normalizedHubPath = hubPath.startsWith('/') ? hubPath : `/${hubPath}`
     return `${base}${normalizedHubPath}`
   }
 
   async function start() {
-    if (connection.value && connection.value.state !== HubConnectionState.Disconnected) {
+    if (state.connection.value && state.connection.value.state !== HubConnectionState.Disconnected) {
       return
     }
 
@@ -81,30 +101,30 @@ export function useSignalR(hubPath = '/hubs/notification') {
       .build()
 
     conn.onreconnecting(() => {
-      connected.value = false
+      state.connected.value = false
     })
     conn.onreconnected(() => {
-      connected.value = true
+      state.connected.value = true
     })
     conn.onclose(() => {
-      connected.value = false
+      state.connected.value = false
     })
 
     // 服务端推送的 Connected 事件（空处理，避免控制台警告）
     conn.on('Connected', () => {})
 
     // 重新绑定已注册的事件监听
-    for (const [method, handlers] of eventHandlers) {
+    for (const [method, handlers] of state.eventHandlers) {
       for (const handler of handlers) {
         conn.on(method, handler)
       }
     }
 
-    connection.value = conn
+    state.connection.value = conn
 
     try {
       await conn.start()
-      connected.value = true
+      state.connected.value = true
     }
     catch (error) {
       if (import.meta.env.DEV) {
@@ -113,61 +133,81 @@ export function useSignalR(hubPath = '/hubs/notification') {
           error,
         })
       }
-      connected.value = false
-      connection.value = null
+      state.connected.value = false
+      state.connection.value = null
     }
   }
 
   async function stop() {
-    if (connection.value) {
+    if (state.connection.value) {
       try {
-        await connection.value.stop()
+        await state.connection.value.stop()
       }
       catch {
         // 忽略停止时的错误
       }
-      connection.value = null
-      connected.value = false
+      state.connection.value = null
+      state.connected.value = false
     }
   }
 
   function on(method: string, handler: SignalREventHandler) {
-    if (!eventHandlers.has(method)) {
-      eventHandlers.set(method, new Set())
+    if (!state.eventHandlers.has(method)) {
+      state.eventHandlers.set(method, new Set())
     }
-    eventHandlers.get(method)!.add(handler)
+    state.eventHandlers.get(method)!.add(handler)
 
-    if (connection.value) {
-      connection.value.on(method, handler)
+    if (state.connection.value) {
+      state.connection.value.on(method, handler)
     }
   }
 
   function off(method: string, handler?: SignalREventHandler) {
     if (handler) {
-      eventHandlers.get(method)?.delete(handler)
-      connection.value?.off(method, handler)
+      state.eventHandlers.get(method)?.delete(handler)
+      state.connection.value?.off(method, handler)
     }
     else {
-      eventHandlers.delete(method)
-      connection.value?.off(method)
+      state.eventHandlers.delete(method)
+      state.connection.value?.off(method)
     }
   }
 
   /**
-   * 销毁所有事件监听和连接（登出时调用）
+   * 调用服务端 Hub 方法（未连接时抛错，调用方自行 catch 降级）
+   */
+  async function invoke<TResult = unknown>(method: string, ...args: unknown[]): Promise<TResult> {
+    const conn = state.connection.value
+    if (!conn || conn.state !== HubConnectionState.Connected) {
+      throw new Error(`[SignalR] Hub ${normalizedHubPath} 未连接，无法调用 ${method}`)
+    }
+    return conn.invoke(method, ...args) as Promise<TResult>
+  }
+
+  /**
+   * 销毁本 Hub 的所有事件监听和连接
    */
   async function destroy() {
-    eventHandlers = new Map()
+    state.eventHandlers = new Map()
     await stop()
   }
 
   return {
-    connection,
-    connected,
+    connection: state.connection,
+    connected: state.connected,
     start,
     stop,
     destroy,
     on,
     off,
+    invoke,
   }
+}
+
+/**
+ * 销毁全部 Hub 连接（登出时调用，避免逐个枚举 hubPath）
+ */
+export async function destroyAllSignalRConnections() {
+  const paths = [...instances.keys()]
+  await Promise.all(paths.map(path => useSignalR(path).destroy()))
 }
