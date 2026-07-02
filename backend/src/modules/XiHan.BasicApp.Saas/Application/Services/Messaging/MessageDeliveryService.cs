@@ -15,6 +15,7 @@
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Messaging.Models;
 
@@ -61,7 +62,7 @@ public sealed class MessageDeliveryService
 
         // 落库为 Pending，再入业务发件箱（事务提交后）由后台异步发送
         var result = await _messageDomainService.CreateOutboxEmailAsync(renderedCommand, cancellationToken);
-        await _outbox.EnqueueAsync("email", result.Email.BasicId, cancellationToken);
+        await _outbox.EnqueueAsync(SaasMessageChannelNames.Email, result.Email.BasicId, cancellationToken);
         return result;
     }
 
@@ -77,7 +78,7 @@ public sealed class MessageDeliveryService
 
         // 落库为 Pending，再入业务发件箱（事务提交后）由后台异步发送
         var result = await _messageDomainService.CreateOutboxSmsAsync(renderedCommand, cancellationToken);
-        await _outbox.EnqueueAsync("sms", result.Sms.BasicId, cancellationToken);
+        await _outbox.EnqueueAsync(SaasMessageChannelNames.Sms, result.Sms.BasicId, cancellationToken);
         return result;
     }
 
@@ -85,7 +86,7 @@ public sealed class MessageDeliveryService
     {
         return new MessageEnvelope
         {
-            Channel = "email",
+            Channel = SaasMessageChannelNames.Email,
             TenantId = null,
             Subject = command.Subject ?? string.Empty,
             Content = command.Content,
@@ -107,7 +108,7 @@ public sealed class MessageDeliveryService
     {
         return new MessageEnvelope
         {
-            Channel = "sms",
+            Channel = SaasMessageChannelNames.Sms,
             TenantId = null,
             Subject = string.Empty,
             Content = command.Content,
@@ -150,8 +151,9 @@ public sealed class MessageDeliveryService
     {
         return channel.ToLowerInvariant() switch
         {
-            "email" => MessageChannel.Email,
-            "sms" => MessageChannel.Sms,
+            SaasMessageChannelNames.Email => MessageChannel.Email,
+            SaasMessageChannelNames.Sms => MessageChannel.Sms,
+            SaasMessageChannelNames.Bot => MessageChannel.Bot,
             _ => MessageChannel.SiteNotification
         };
     }

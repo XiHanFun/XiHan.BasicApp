@@ -18,7 +18,10 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
@@ -36,15 +39,19 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
 
     private readonly IMessageDomainService _messageDomainService;
 
+    private readonly DbMessageOutbox _messageOutbox;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public MessageAppService(
         IMessageDomainService messageDomainService,
-        IMessageDeliveryService messageDeliveryService)
+        IMessageDeliveryService messageDeliveryService,
+        DbMessageOutbox messageOutbox)
     {
         _messageDomainService = messageDomainService;
         _messageDeliveryService = messageDeliveryService;
+        _messageOutbox = messageOutbox;
     }
 
     #region 系统邮件
@@ -99,6 +106,14 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _messageDomainService.UpdateEmailStatusAsync(MessageApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 重发（状态置回 Pending）后必须重新入发件箱队列，否则 Pending 行只有服务重启恢复时才会被重投；
+        // EnqueueAsync 在 UoW 提交后才真正入队，保证后台拉到时状态行已可见
+        if (result.Email.EmailStatus == EmailStatus.Pending)
+        {
+            await _messageOutbox.EnqueueAsync(SaasMessageChannelNames.Email, result.Email.BasicId, cancellationToken);
+        }
+
         return MessageApplicationMapper.ToEmailDetailDto(result.Email);
     }
 
@@ -156,6 +171,14 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _messageDomainService.UpdateSmsStatusAsync(MessageApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 重发（状态置回 Pending）后必须重新入发件箱队列，否则 Pending 行只有服务重启恢复时才会被重投；
+        // EnqueueAsync 在 UoW 提交后才真正入队，保证后台拉到时状态行已可见
+        if (result.Sms.SmsStatus == SmsStatus.Pending)
+        {
+            await _messageOutbox.EnqueueAsync(SaasMessageChannelNames.Sms, result.Sms.BasicId, cancellationToken);
+        }
+
         return MessageApplicationMapper.ToSmsDetailDto(result.Sms);
     }
 

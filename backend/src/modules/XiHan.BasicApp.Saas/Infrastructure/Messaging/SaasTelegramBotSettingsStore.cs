@@ -63,7 +63,7 @@ public sealed class SaasTelegramBotSettingsStore : ITelegramBotSettingsStore
             Network = new TelegramBotNetworkOptions
             {
                 ProxyUrl = await configuration.GetStringAsync(SaasConfigKeys.Bot.Telegram.ProxyUrl, networkDefaults.ProxyUrl, cancellationToken) ?? string.Empty,
-                BaseUrl = networkDefaults.BaseUrl,
+                BaseUrl = await configuration.GetStringAsync(SaasConfigKeys.Bot.Telegram.BaseUrl, networkDefaults.BaseUrl, cancellationToken) ?? string.Empty,
                 TimeoutSeconds = await configuration.GetInt32Async(SaasConfigKeys.Bot.Telegram.TimeoutSeconds, networkDefaults.TimeoutSeconds, cancellationToken)
             }
         };

@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Uow;
@@ -56,7 +57,7 @@ public sealed class DbMessageOutbox
             return Task.CompletedTask;
         }
 
-        var normalized = string.IsNullOrWhiteSpace(channel) ? "email" : channel.Trim();
+        var normalized = string.IsNullOrWhiteSpace(channel) ? SaasMessageChannelNames.Email : channel.Trim();
         var message = new MessageOutboxMessage { Channel = normalized, EntityId = entityId, CreatedAt = DateTimeOffset.UtcNow };
 
         var uow = _unitOfWorkManager.Current;
@@ -78,7 +79,7 @@ public sealed class DbMessageOutbox
         await using var scope = _scopeFactory.CreateAsyncScope();
         var client = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>().GetCurrentClient();
 
-        if (string.Equals(channel, "sms", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(channel, SaasMessageChannelNames.Sms, StringComparison.OrdinalIgnoreCase))
         {
             return await client.Updateable<SysSms>()
                 .SetColumns(s => s.SmsStatus == SmsStatus.Sending)
@@ -121,7 +122,7 @@ public sealed class DbMessageOutbox
                 && (e.EmailStatus == EmailStatus.Pending || (e.EmailStatus == EmailStatus.Failed && e.RetryCount < e.MaxRetryCount)))
             .Select(e => e.BasicId)
             .ToListAsync(cancellationToken);
-        result.AddRange(emailIds.Select(id => new MessageOutboxMessage { Channel = "email", EntityId = id, CreatedAt = now }));
+        result.AddRange(emailIds.Select(id => new MessageOutboxMessage { Channel = SaasMessageChannelNames.Email, EntityId = id, CreatedAt = now }));
 
         var smsIds = await client.Queryable<SysSms>()
             .Where(s => !s.IsDeleted
@@ -129,7 +130,7 @@ public sealed class DbMessageOutbox
                 && (s.SmsStatus == SmsStatus.Pending || (s.SmsStatus == SmsStatus.Failed && s.RetryCount < s.MaxRetryCount)))
             .Select(s => s.BasicId)
             .ToListAsync(cancellationToken);
-        result.AddRange(smsIds.Select(id => new MessageOutboxMessage { Channel = "sms", EntityId = id, CreatedAt = now }));
+        result.AddRange(smsIds.Select(id => new MessageOutboxMessage { Channel = SaasMessageChannelNames.Sms, EntityId = id, CreatedAt = now }));
 
         return result;
     }

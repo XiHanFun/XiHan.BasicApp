@@ -15,6 +15,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Email.Messaging;
 using XiHan.Framework.Bot.Email.Models;
@@ -62,7 +63,7 @@ public sealed class EmailMessageSender : IMessageSender
     /// <returns>邮件通道返回 true</returns>
     public bool CanHandle(string channel)
     {
-        return string.Equals(channel?.Trim(), "email", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(channel?.Trim(), SaasMessageChannelNames.Email, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

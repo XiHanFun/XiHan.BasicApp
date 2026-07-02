@@ -57,15 +57,6 @@ export interface EmailListItemDto extends BasicDto {
   createdTime: DateTimeString
   emailStatus: EmailStatus
   emailType: EmailType
-  hasAttachment: boolean
-  hasBlindRecipient: boolean
-  hasBody: boolean
-  hasCopyRecipient: boolean
-  hasFailureDetail: boolean
-  hasNote: boolean
-  hasRecipientAddress: boolean
-  hasSenderAddress: boolean
-  hasTemplateData: boolean
   isHtml: boolean
   maxRetryCount: number
   modifiedTime?: DateTimeString | null
@@ -108,12 +99,6 @@ export interface SmsListItemDto extends BasicDto {
   businessType?: string | null
   cost?: number | null
   createdTime: DateTimeString
-  hasBody: boolean
-  hasFailureDetail: boolean
-  hasNote: boolean
-  hasProviderReceipt: boolean
-  hasRecipientPhone: boolean
-  hasTemplateData: boolean
   maxRetryCount: number
   modifiedTime?: DateTimeString | null
   provider?: string | null

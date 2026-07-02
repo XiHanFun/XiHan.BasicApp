@@ -74,6 +74,8 @@ public sealed class AuthAppService
 
     private readonly IAuthEmailLoginCodeService _emailLoginCodeService;
 
+    private readonly IProfileVerificationService _profileVerificationService;
+
     private readonly IMessageDeliveryService _messageDeliveryService;
 
     private readonly IOtpService _otpService;
@@ -126,6 +128,7 @@ public sealed class AuthAppService
         ISaasConfigurationService saasConfigurationService,
         IAuthTokenIssueService authTokenIssueService,
         IAuthEmailLoginCodeService emailLoginCodeService,
+        IProfileVerificationService profileVerificationService,
         IMessageDeliveryService messageDeliveryService,
         IOtpService otpService,
         IEmailConfigStore emailConfigStore,
@@ -152,6 +155,7 @@ public sealed class AuthAppService
         _saasConfigurationService = saasConfigurationService;
         _authTokenIssueService = authTokenIssueService;
         _emailLoginCodeService = emailLoginCodeService;
+        _profileVerificationService = profileVerificationService;
         _messageDeliveryService = messageDeliveryService;
         _otpService = otpService;
         _emailConfigStore = emailConfigStore;
@@ -468,7 +472,7 @@ public sealed class AuthAppService
         {
             var security = authResult.Security ?? throw new InvalidOperationException("用户双因素配置不存在。");
             var twoFactorUser = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
-            var availableMethods = ResolveTwoFactorMethods(security.TwoFactorMethod);
+            var availableMethods = ResolveTwoFactorMethods(twoFactorUser, security);
 
             // 尚未提交验证码：进入方式选择 / 验证码下发阶段（不签发令牌）
             if (string.IsNullOrWhiteSpace(input.TwoFactorCode))
@@ -799,6 +803,16 @@ public sealed class AuthAppService
         return user.Email.Trim();
     }
 
+    private static string RequireUserPhone(SysUser user)
+    {
+        if (string.IsNullOrWhiteSpace(user.Phone))
+        {
+            throw new InvalidOperationException("账号未绑定手机号，无法使用短信验证码。");
+        }
+
+        return user.Phone.Trim();
+    }
+
     private static string? NormalizeTwoFactorMethod(string? method)
     {
         return string.IsNullOrWhiteSpace(method) ? null : method.Trim().ToLowerInvariant();
@@ -844,8 +858,13 @@ public sealed class AuthAppService
 </div>";
     }
 
-    private static List<string> ResolveTwoFactorMethods(TwoFactorMethod method)
+    /// <summary>
+    /// 解析当前可用的双因素验证方式：短信方式要求账号已绑定且已验证手机号，
+    /// 否则不对外公布（防止选中后无法收码而被锁在登录之外）
+    /// </summary>
+    private static List<string> ResolveTwoFactorMethods(SysUser user, SysUserSecurity security)
     {
+        var method = security.TwoFactorMethod;
         var methods = new List<string>();
         if (method.HasFlag(TwoFactorMethod.Totp))
         {
@@ -857,7 +876,7 @@ public sealed class AuthAppService
             methods.Add("email");
         }
 
-        if (method.HasFlag(TwoFactorMethod.Phone))
+        if (method.HasFlag(TwoFactorMethod.Phone) && security.PhoneVerified && !string.IsNullOrWhiteSpace(user.Phone))
         {
             methods.Add("phone");
         }
@@ -1342,7 +1361,7 @@ public sealed class AuthAppService
     }
 
     /// <summary>
-    /// 构建双因素验证挑战响应：解析当前应使用的方式，邮箱方式在进入验证码输入前先下发验证码
+    /// 构建双因素验证挑战响应：解析当前应使用的方式，邮箱/短信方式在进入验证码输入前先下发验证码
     /// </summary>
     private async Task<LoginResponseDto> BuildTwoFactorChallengeAsync(
         SysUser user,
@@ -1357,11 +1376,16 @@ public sealed class AuthAppService
             ? selected
             : availableMethods.Count == 1 ? availableMethods[0] : null;
 
-        // 邮箱方式需要在进入验证码输入前先下发验证码（TOTP 由认证器本地生成，无需下发）
+        // 邮箱/短信方式需要在进入验证码输入前先下发验证码（TOTP 由认证器本地生成，无需下发）
         var codeSent = false;
         if (resolvedMethod == "email")
         {
             await SendEmailTwoFactorCodeAsync(user, tenantId, cancellationToken);
+            codeSent = true;
+        }
+        else if (resolvedMethod == "phone")
+        {
+            await SendPhoneTwoFactorCodeAsync(user, cancellationToken);
             codeSent = true;
         }
 
@@ -1406,6 +1430,7 @@ public sealed class AuthAppService
         {
             "totp" => VerifyTotpCode(security, trimmedCode),
             "email" => await _emailLoginCodeService.TryConsumeAsync(tenantId, RequireUserEmail(user), trimmedCode, cancellationToken),
+            "phone" => await TryConsumePhoneTwoFactorCodeAsync(user, trimmedCode, cancellationToken),
             _ => throw new InvalidOperationException("不支持的双因素验证方式。")
         };
 
@@ -1448,5 +1473,29 @@ public sealed class AuthAppService
     private Task SendEmailTwoFactorCodeAsync(SysUser user, long? tenantId, CancellationToken cancellationToken)
     {
         return IssueAndSendEmailLoginCodeAsync(RequireUserEmail(user), user.BasicId, tenantId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 向用户手机下发双因素登录短信验证码（复用一次性验证码服务的 TwoFactorPhone 用途 + 登录验证码短信模板）
+    /// </summary>
+    private Task SendPhoneTwoFactorCodeAsync(SysUser user, CancellationToken cancellationToken)
+    {
+        return _profileVerificationService.SendLoginTwoFactorSmsAsync(user, RequireUserPhone(user), cancellationToken);
+    }
+
+    /// <summary>
+    /// 消费手机双因素短信验证码（一次性，消费即销毁）；无效或过期返回 false，由调用方统一记录失败事件
+    /// </summary>
+    private async Task<bool> TryConsumePhoneTwoFactorCodeAsync(SysUser user, string code, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _ = await _profileVerificationService.ConsumeCodeAsync(user.BasicId, ProfileVerificationPurpose.TwoFactorPhone, code, cancellationToken);
+            return true;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
     }
 }

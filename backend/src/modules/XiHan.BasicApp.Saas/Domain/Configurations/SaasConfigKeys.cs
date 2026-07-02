@@ -149,6 +149,11 @@ public static class SaasConfigKeys
             public const string ProxyUrl = "saas.bot.telegram.proxy-url";
 
             /// <summary>
+            /// 自建 Bot API Server 基础地址（如 https://tg-api.example.com）；空 = 官方 api.telegram.org。
+            /// </summary>
+            public const string BaseUrl = "saas.bot.telegram.base-url";
+
+            /// <summary>
             /// 请求超时秒数。
             /// </summary>
             public const string TimeoutSeconds = "saas.bot.telegram.timeout-seconds";

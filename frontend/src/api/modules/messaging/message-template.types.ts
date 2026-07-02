@@ -1,7 +1,7 @@
 import type { ApiId, BasicDto, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared/types'
 
-/** 消息渠道（与后端 MessageChannel 数值一致） */
+/** 消息渠道（与后端 MessageChannel 数值一致，[Flags] 按位组合） */
 export enum MessageChannel {
   /** 站内通知 */
   SiteNotification = 1,
@@ -9,6 +9,8 @@ export enum MessageChannel {
   Email = 2,
   /** 短信 */
   Sms = 4,
+  /** 机器人 */
+  Bot = 8,
 }
 
 export interface MessageTemplateListItemDto extends BasicDto {

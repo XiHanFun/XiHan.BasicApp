@@ -165,7 +165,7 @@ public sealed class MessageDomainService
             SenderId = command.SenderId,
             ReceiverId = command.ReceiverId,
             SmsType = command.SmsType,
-            ToPhone = Required(command.ToPhone, 50, nameof(command.ToPhone), "手机号不能超过 50 个字符。"),
+            ToPhone = Required(command.ToPhone, 500, nameof(command.ToPhone), "手机号不能超过 500 个字符。"),
             Content = Required(command.Content, 1000, nameof(command.Content), "短信内容不能超过 1000 个字符。"),
             TemplateCode = command.TemplateCode,
             TemplateParams = OptionalJson(command.TemplateParams, "短信模板参数必须是合法 JSON。"),
@@ -211,7 +211,7 @@ public sealed class MessageDomainService
 
         sms.ReceiverId = command.ReceiverId;
         sms.SmsType = command.SmsType;
-        sms.ToPhone = Required(command.ToPhone, 50, nameof(command.ToPhone), "手机号不能超过 50 个字符。");
+        sms.ToPhone = Required(command.ToPhone, 500, nameof(command.ToPhone), "手机号不能超过 500 个字符。");
         sms.Content = Required(command.Content, 1000, nameof(command.Content), "短信内容不能超过 1000 个字符。");
         sms.TemplateCode = command.TemplateCode;
         sms.TemplateParams = OptionalJson(command.TemplateParams, "短信模板参数必须是合法 JSON。");
@@ -238,13 +238,24 @@ public sealed class MessageDomainService
         var sms = await GetSmsOrThrowAsync(command.BasicId, cancellationToken);
 
         sms.SmsStatus = command.SmsStatus;
-        sms.SendTime = command.SmsStatus == SmsStatus.Success
-            ? command.SendTime ?? DateTimeOffset.UtcNow
-            : command.SendTime;
-        sms.ProviderMessageId = Optional(command.ProviderMessageId, 100, nameof(command.ProviderMessageId), "服务商消息主键不能超过 100 个字符。");
-        sms.RetryCount = command.RetryCount ?? sms.RetryCount;
+        if (command.SmsStatus == SmsStatus.Pending)
+        {
+            // 重新入队（重发）：给一份全新的重试预算、清空上次错误/回执与发送时间，由发件箱后台重新投递（与邮件路径语义一致）
+            sms.RetryCount = command.RetryCount ?? 0;
+            sms.ErrorMessage = null;
+            sms.ProviderMessageId = null;
+            sms.SendTime = null;
+        }
+        else
+        {
+            sms.SendTime = command.SmsStatus == SmsStatus.Success
+                ? command.SendTime ?? DateTimeOffset.UtcNow
+                : command.SendTime;
+            sms.ProviderMessageId = Optional(command.ProviderMessageId, 100, nameof(command.ProviderMessageId), "服务商消息主键不能超过 100 个字符。");
+            sms.RetryCount = command.RetryCount ?? sms.RetryCount;
+            sms.ErrorMessage = Optional(command.ErrorMessage, 1000, nameof(command.ErrorMessage), "错误信息不能超过 1000 个字符。");
+        }
         sms.Cost = command.Cost ?? sms.Cost;
-        sms.ErrorMessage = Optional(command.ErrorMessage, 1000, nameof(command.ErrorMessage), "错误信息不能超过 1000 个字符。");
         sms.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。") ?? sms.Remark;
 
         return new SmsCommandResult(await _smsRepository.UpdateAsync(sms, cancellationToken));
@@ -303,7 +314,7 @@ public sealed class MessageDomainService
         string? remark)
     {
         EnsureEnum(smsType, nameof(smsType));
-        _ = Required(toPhone, 50, nameof(toPhone), "手机号不能超过 50 个字符。");
+        _ = Required(toPhone, 500, nameof(toPhone), "手机号不能超过 500 个字符。");
         _ = Required(content, 1000, nameof(content), "短信内容不能超过 1000 个字符。");
         _ = Optional(provider, 50, nameof(provider), "短信服务商不能超过 50 个字符。");
         _ = Optional(businessType, 100, nameof(businessType), "业务类型不能超过 100 个字符。");

@@ -37,6 +37,7 @@ public sealed class ProfileVerificationService
     : IProfileVerificationService
 {
     private const string VerificationCodeBusinessType = "profile.verification-code";
+    private const string SmsLoginCodeBusinessType = "auth.sms-login";
     private const string Purpose = "profile:verification";
     private const int VerificationCodeSeconds = 600;
 
@@ -132,8 +133,7 @@ public sealed class ProfileVerificationService
             cancellationToken);
 
         var emailConfig = await _emailConfigStore.GetAsync(cancellationToken);
-        var fromName = emailConfig?.From.FromName;
-        var brand = string.IsNullOrWhiteSpace(fromName) ? "XiHan BasicApp" : fromName;
+        var brand = ResolveBrand(emailConfig);
         var minutes = Math.Max(1, VerificationCodeSeconds / 60);
         // 纯文本兜底内容（模板缺失/损坏时使用）
         var content = $"验证码：{issued.Code}，{minutes} 分钟内有效。";
@@ -195,9 +195,72 @@ public sealed class ProfileVerificationService
         return new ProfileVerificationCodeResultDto { ExpiresInSeconds = VerificationCodeSeconds };
     }
 
+    /// <inheritdoc />
+    public async Task<ProfileVerificationCodeResultDto> SendLoginTwoFactorSmsAsync(
+        SysUser user,
+        string phone,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentException.ThrowIfNullOrWhiteSpace(phone);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var trimmedPhone = phone.Trim();
+
+        // 登录 2FA 与安全操作 2FA 共享 TwoFactorPhone 用途（同一在途码，重发覆盖旧码）；
+        // 负载暂存手机号以满足消费侧非空校验，与改绑场景语义保持一致
+        var issued = await _oneTimeCodeService.IssueAsync(
+            Purpose,
+            BuildTarget(user.BasicId, ProfileVerificationPurpose.TwoFactorPhone),
+            payload: trimmedPhone,
+            new OneTimeCodeOptions { CodeLength = 6, ExpiresInSeconds = VerificationCodeSeconds },
+            cancellationToken);
+
+        var emailConfig = await _emailConfigStore.GetAsync(cancellationToken);
+        var brand = ResolveBrand(emailConfig);
+        var minutes = Math.Max(1, VerificationCodeSeconds / 60);
+        // 纯文本兜底内容（模板缺失/损坏时使用）
+        var content = $"【{brand}】您的登录验证码为 {issued.Code}，{minutes} 分钟内有效，请勿泄露。";
+        var templateParams = JsonSerializer.Serialize(new Dictionary<string, string>
+        {
+            ["code"] = issued.Code,
+            ["minutes"] = minutes.ToString(),
+            ["brand"] = brand,
+        });
+
+        // 使用登录验证码短信模板（SmsLoginCode），模板优先、纯文本兜底；由发件箱异步发送
+        await _messageDeliveryService.CreateSmsAsync(
+            new SmsCreateCommand(
+                SenderId: null,
+                ReceiverId: user.BasicId,
+                SmsType: SmsType.VerificationCode,
+                ToPhone: trimmedPhone,
+                Content: content,
+                TemplateCode: SaasMessageTemplateCodes.Auth.SmsLoginCode,
+                TemplateParams: templateParams,
+                Provider: null,
+                ScheduledTime: null,
+                MaxRetryCount: 3,
+                BusinessType: SmsLoginCodeBusinessType,
+                BusinessId: user.BasicId,
+                Remark: null),
+            cancellationToken);
+
+        return new ProfileVerificationCodeResultDto { ExpiresInSeconds = VerificationCodeSeconds };
+    }
+
     private static string BuildTarget(long userId, ProfileVerificationPurpose purpose)
     {
         return $"{userId}:{purpose}";
+    }
+
+    /// <summary>
+    /// 解析品牌名（发件人显示名 FromName，未配置回退默认品牌）
+    /// </summary>
+    private static string ResolveBrand(EmailOptions? emailConfig)
+    {
+        var fromName = emailConfig?.From.FromName;
+        return string.IsNullOrWhiteSpace(fromName) ? "XiHan BasicApp" : fromName;
     }
 
     /// <summary>

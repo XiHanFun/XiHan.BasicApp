@@ -306,6 +306,8 @@ public static class ServiceCollectionExtensions
     {
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, EmailMessageSender>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, SmsMessageSender>());
+        // 机器人通道：仅直发（不落业务行、不支持发件箱重放），经框架 Bot 提供者投递
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, BotMessageSender>());
 
         // 业务层发件箱（框架 Messaging 仅负责路由，发件箱在业务层）：先落 SysEmail/SysSms 为 Pending，
         // 入 Redis 延迟队列后由后台服务拉取发送（拉不到等待、拉到消费、可并发；失败延迟重投）。
