@@ -17,6 +17,7 @@ export default {
   tenant_edition: '版本套餐',
   message: '消息中心',
   message_notification: '通知公告',
+  message_chat: '在线聊天',
   message_record: '邮件短信',
   message_template: '消息模板',
   message_email_config: '邮件配置',

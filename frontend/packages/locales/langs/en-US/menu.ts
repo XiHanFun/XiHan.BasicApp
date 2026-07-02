@@ -17,6 +17,7 @@ export default {
   tenant_edition: 'Editions & Plans',
   message: 'Message Center',
   message_notification: 'Announcements',
+  message_chat: 'Chat',
   message_record: 'Email & SMS',
   message_template: 'Message Templates',
   message_email_config: 'Email Config',
