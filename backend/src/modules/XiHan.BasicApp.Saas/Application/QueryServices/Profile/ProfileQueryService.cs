@@ -79,6 +79,7 @@ public sealed class ProfileQueryService
             ChannelEmail = preference.ChannelEmail,
             ChannelSms = preference.ChannelSms,
             ChannelPush = preference.ChannelPush,
+            ChannelBot = preference.ChannelBot,
             TypeAnnouncement = preference.TypeAnnouncement,
             TypeTask = preference.TypeTask,
             TypeApproval = preference.TypeApproval,

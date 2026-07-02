@@ -293,7 +293,7 @@ public sealed class NotificationDomainService
         }
 
         // 偏好门控（强制/紧急不受门控）；门控后可能少于解析结果，但仅当目标解析为 0 才视为无效
-        var deliverIds = await FilterByPreferenceAsync(recipientIds, notification, cancellationToken);
+        var deliverIds = await FilterByPreferenceAsync(recipientIds, notification, MessageChannel.SiteNotification, cancellationToken);
 
         var existingItems = await _userNotificationRepository.GetListAsync(item => item.NotificationId == notification.BasicId, cancellationToken);
         var existingUserIds = existingItems.Select(item => item.UserId).ToHashSet();
@@ -363,9 +363,13 @@ public sealed class NotificationDomainService
     }
 
     /// <summary>
-    /// 偏好门控：按用户站内信偏好（渠道 + 类型开关）过滤收件人；强制阅读 / 紧急通知一律送达，不受门控
+    /// 偏好门控：按用户对应渠道偏好（渠道 + 类型开关）过滤收件人；强制阅读 / 紧急通知一律送达，不受门控
     /// </summary>
-    private async Task<IReadOnlyCollection<long>> FilterByPreferenceAsync(IReadOnlyCollection<long> userIds, SysNotification notification, CancellationToken cancellationToken)
+    /// <remarks>
+    /// 渠道开关取用户偏好中该渠道的独立布尔列（站内信/邮箱/短信/机器人），豁免语义各渠道一致；
+    /// 站内信发布链路传 <see cref="MessageChannel.SiteNotification"/>，后续渠道扇出（如机器人）复用本门控传对应渠道。
+    /// </remarks>
+    private async Task<IReadOnlyCollection<long>> FilterByPreferenceAsync(IReadOnlyCollection<long> userIds, SysNotification notification, MessageChannel channel, CancellationToken cancellationToken)
     {
         if (userIds.Count == 0 || notification.IsMandatory || notification.NotificationType == NotificationType.Emergency)
         {
@@ -382,8 +386,8 @@ public sealed class NotificationDomainService
                 return true;
             }
 
-            // 关闭站内信渠道则不投递站内记录
-            if (!preference.ChannelInApp)
+            // 用户关闭该接收渠道则不投递（机器人与其它渠道同语义）
+            if (!IsChannelEnabled(preference, channel))
             {
                 return false;
             }
@@ -395,5 +399,20 @@ public sealed class NotificationDomainService
                 _ => preference.TypeAnnouncement
             };
         }).ToArray();
+    }
+
+    /// <summary>
+    /// 渠道开关映射：消息通道 → 用户偏好对应渠道布尔列（仅支持单一通道，组合位视为非法入参）
+    /// </summary>
+    private static bool IsChannelEnabled(SysUserNotificationPreference preference, MessageChannel channel)
+    {
+        return channel switch
+        {
+            MessageChannel.SiteNotification => preference.ChannelInApp,
+            MessageChannel.Email => preference.ChannelEmail,
+            MessageChannel.Sms => preference.ChannelSms,
+            MessageChannel.Bot => preference.ChannelBot,
+            _ => throw new ArgumentOutOfRangeException(nameof(channel), "偏好门控仅支持单一消息通道。")
+        };
     }
 }
