@@ -19,6 +19,7 @@ import SplitPane from './components/SplitPane.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
 import { openTabInNewWindow, useLayoutShellAdapter } from './composables'
+import { useChatIntegration } from './composables/use-chat-integration'
 import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
 import { LayoutContentRenderer } from './core'
@@ -35,6 +36,9 @@ const tabbarStore = useTabbarStore()
 
 // 初始化 SignalR 连接（实时通知 + 踢下线）
 useSignalRIntegration()
+
+// 初始化聊天实时链路（/hubs/chat 独立连接 + 会话预取供顶栏角标；无权限静默关闭）
+useChatIntegration()
 
 // 定时检查前端资源更新
 useCheckUpdates()
