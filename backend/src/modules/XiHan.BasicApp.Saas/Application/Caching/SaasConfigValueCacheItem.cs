@@ -33,7 +33,16 @@ public sealed class SaasConfigValueCacheItem
     /// <summary>
     /// 配置值。
     /// </summary>
+    /// <remarks>
+    /// 缓存内存的是「原始值」：加密配置（<see cref="IsEncrypted"/> 为 true）存密文，取出后再解密（最小泄漏面）；
+    /// 回退 <c>DefaultValue</c> 的值恒为明文（默认值不参与加密，加密配置不应设默认值）。
+    /// </remarks>
     public string? Value { get; set; }
+
+    /// <summary>
+    /// 值是否为密文（true 表示 <see cref="Value"/> 需经配置值保护器解密后使用）。
+    /// </summary>
+    public bool IsEncrypted { get; set; }
 
     /// <summary>
     /// 数据类型。

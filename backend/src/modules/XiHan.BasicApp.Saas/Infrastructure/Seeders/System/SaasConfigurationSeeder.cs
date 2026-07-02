@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Configurations;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Bot.Telegram.Options;
@@ -30,10 +31,12 @@ public sealed class SaasConfigurationSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasConfigurationSeeder> logger,
     IServiceProvider serviceProvider,
-    ICurrentTenant currentTenant)
+    ICurrentTenant currentTenant,
+    IConfigValueSecretProtector configValueSecretProtector)
     : DataSeederBase(clientResolver, logger, serviceProvider)
 {
     private readonly ICurrentTenant _currentTenant = currentTenant;
+    private readonly IConfigValueSecretProtector _configValueSecretProtector = configValueSecretProtector;
 
     /// <summary>
     /// 种子数据优先级
@@ -52,7 +55,12 @@ public sealed class SaasConfigurationSeeder(
     {
         using var platformScope = _currentTenant.Change(null);
         var client = DbClient;
-        var definitions = BuildDefinitions();
+        // 加密行的种子值落库前加密（DefaultValue 不参与加密；空值 Protect 幂等透传，当前 secret-token 种子值即为空串）
+        var definitions = BuildDefinitions()
+            .Select(definition => definition.IsEncrypted && !string.IsNullOrEmpty(definition.ConfigValue)
+                ? definition with { ConfigValue = _configValueSecretProtector.Protect(definition.ConfigValue)! }
+                : definition)
+            .ToArray();
         var configKeys = definitions
             .Select(static definition => definition.ConfigKey)
             .Distinct(StringComparer.OrdinalIgnoreCase)

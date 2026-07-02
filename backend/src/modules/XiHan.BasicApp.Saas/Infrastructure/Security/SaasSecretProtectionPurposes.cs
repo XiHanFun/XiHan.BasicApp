@@ -57,4 +57,9 @@ public static class SaasSecretProtectionPurposes
     /// Telegram 机器人 Token 保护用途。
     /// </summary>
     public const string TelegramBotToken = "XiHan.BasicApp.Saas.TelegramBot.Token.v1";
+
+    /// <summary>
+    /// 系统配置加密值（IsEncrypted 行的 ConfigValue）保护用途。
+    /// </summary>
+    public const string ConfigValue = "XiHan.BasicApp.Saas.Config.Value.v1";
 }

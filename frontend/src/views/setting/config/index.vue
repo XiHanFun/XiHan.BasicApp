@@ -242,7 +242,7 @@ function handleAdd() {
 async function handleEdit(row: ConfigListItemDto) {
   editingStatus.value = row.status
   // 列表不回传配置值；编辑前取详情拿原始 configValue/defaultValue/remark，
-  // 否则保存时会把值置空（后端更新为整体替换）。加密项详情返回 null，需重新录入。
+  // 否则保存时会把值置空（后端更新为整体替换）。加密项详情返回 null，编辑时留空即保留原值（后端约定）。
   let detail: ConfigDetailDto | null = null
   try {
     detail = await configManagementApi.detail(row.basicId)
@@ -559,7 +559,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
               v-model:value="configForm.configValue"
               :rows="5"
               clearable size="small"
-              :placeholder="t('setting.config.config_value_placeholder')"
+              :placeholder="configForm.isEncrypted && configForm.basicId ? t('setting.config.config_value_encrypted_placeholder') : t('setting.config.config_value_placeholder')"
               type="textarea"
             />
           </NFormItem>

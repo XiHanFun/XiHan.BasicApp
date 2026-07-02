@@ -20,17 +20,25 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// <summary>
 /// 参数配置领域服务实现
 /// </summary>
+/// <remarks>
+/// 加密约定：<c>IsEncrypted</c> 行的 <c>ConfigValue</c> 经 <see cref="IConfigValueSecretProtector"/> 加密落库；
+/// <c>DefaultValue</c> 不参与加密（加密配置不应设默认值，读侧回退默认值时按明文使用）。
+/// </remarks>
 public sealed class ConfigDomainService
     : IConfigDomainService
 {
     private readonly IConfigRepository _configRepository;
+    private readonly IConfigValueSecretProtector _configValueSecretProtector;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ConfigDomainService(IConfigRepository configRepository)
+    public ConfigDomainService(
+        IConfigRepository configRepository,
+        IConfigValueSecretProtector configValueSecretProtector)
     {
         _configRepository = configRepository;
+        _configValueSecretProtector = configValueSecretProtector;
     }
 
     /// <inheritdoc />
@@ -52,7 +60,10 @@ public sealed class ConfigDomainService
             ConfigName = Required(command.ConfigName, 100, nameof(command.ConfigName), "配置名称不能超过 100 个字符。"),
             ConfigGroup = Optional(command.ConfigGroup, 100, nameof(command.ConfigGroup), "配置分组不能超过 100 个字符。"),
             ConfigKey = configKey,
-            ConfigValue = NormalizeNullable(command.ConfigValue),
+            // 加密行明文进不了库：IsEncrypted 时写侧即加密（DefaultValue 不参与加密）
+            ConfigValue = command.IsEncrypted
+                ? _configValueSecretProtector.Protect(NormalizeNullable(command.ConfigValue))
+                : NormalizeNullable(command.ConfigValue),
             DefaultValue = NormalizeNullable(command.DefaultValue),
             ConfigType = command.ConfigType,
             DataType = command.DataType,
@@ -100,7 +111,7 @@ public sealed class ConfigDomainService
         var config = await GetConfigOrThrowAsync(command.BasicId, cancellationToken);
         config.ConfigName = Required(command.ConfigName, 100, nameof(command.ConfigName), "配置名称不能超过 100 个字符。");
         config.ConfigGroup = Optional(command.ConfigGroup, 100, nameof(command.ConfigGroup), "配置分组不能超过 100 个字符。");
-        config.ConfigValue = NormalizeNullable(command.ConfigValue);
+        config.ConfigValue = ResolveConfigValueOnUpdate(config, command);
         config.DefaultValue = NormalizeNullable(command.DefaultValue);
         config.ConfigType = command.ConfigType;
         config.DataType = command.DataType;
@@ -126,6 +137,37 @@ public sealed class ConfigDomainService
         config.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。") ?? config.Remark;
 
         return new ConfigCommandResult(await _configRepository.UpdateAsync(config, cancellationToken));
+    }
+
+    /// <summary>
+    /// 解析更新命令中的配置值（覆盖加密状态迁移的四种组合）
+    /// </summary>
+    /// <remarks>
+    /// - 加密行（目标 IsEncrypted=true）：非空新值加密写入；<b>空值=保留原值</b>（镜像「空密钥保留」约定，仅加密行适用），
+    ///   其中 false→true 迁移时把现存明文加密；
+    /// - 明文行（目标 IsEncrypted=false）：true→false 迁移且未提供新值时解密现存密文回明文，其余按常规空即置空处理。
+    /// </remarks>
+    private string? ResolveConfigValueOnUpdate(SysConfig config, ConfigUpdateCommand command)
+    {
+        var newValue = NormalizeNullable(command.ConfigValue);
+        if (command.IsEncrypted)
+        {
+            if (!string.IsNullOrEmpty(newValue))
+            {
+                return _configValueSecretProtector.Protect(newValue);
+            }
+
+            // 空值=保留原值：原为明文行（false→true）则把现值加密；原已加密则原样保留密文（Protect 幂等）
+            return _configValueSecretProtector.Protect(config.ConfigValue);
+        }
+
+        if (config.IsEncrypted && string.IsNullOrEmpty(newValue))
+        {
+            // true→false 且未提供新值：解密回明文（解密失败即抛，fail-closed）
+            return _configValueSecretProtector.Unprotect(config.ConfigValue);
+        }
+
+        return newValue;
     }
 
     private static void EnsureCodeHasNoWhitespace(string value, string message)
