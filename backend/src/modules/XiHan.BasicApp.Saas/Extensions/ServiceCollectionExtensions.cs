@@ -102,6 +102,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();
         services.AddScoped<IMessageDomainService, MessageDomainService>();
         services.AddScoped<IMessageTemplateDomainService, MessageTemplateDomainService>();
+        services.AddScoped<ISmsConfigDomainService, SmsConfigDomainService>();
+        // 短信网关密钥保护器（Data Protection，独立 Purpose）
+        services.AddSingleton<ISmsConfigSecretProtector, DataProtectionSmsConfigSecretProtector>();
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();

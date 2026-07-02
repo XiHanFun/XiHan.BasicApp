@@ -37,4 +37,9 @@ public static class SaasSecretProtectionPurposes
     /// 租户数据库连接字符串保护用途。
     /// </summary>
     public const string TenantConnectionString = "XiHan.BasicApp.Saas.Tenant.ConnectionString.v1";
+
+    /// <summary>
+    /// 短信网关访问密钥保护用途。
+    /// </summary>
+    public const string SmsConfigAccessKeySecret = "XiHan.BasicApp.Saas.SmsConfig.AccessKeySecret.v1";
 }
