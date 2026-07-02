@@ -56,40 +56,53 @@ public class BasicAppChatHub : XiHanHub
     /// <summary>
     /// 进入会话组（打开会话页时调用；成员校验通过才入组）
     /// </summary>
-    /// <param name="conversationId">会话ID</param>
-    public async Task JoinConversation(long conversationId)
+    /// <param name="conversationId">会话ID（字符串形态雪花 ID：JS number 超 2^53 精度丢失，客户端只能传 string）</param>
+    public async Task JoinConversation(string conversationId)
     {
-        if (!await IsMemberAsync(conversationId))
+        if (!TryParseConversationId(conversationId, out var id) || !await IsMemberAsync(id))
         {
             _logger.LogWarning("非会话成员尝试进组：ConversationId={ConversationId}, UserId={UserId}", conversationId, UserId);
             return;
         }
 
-        await Groups.AddToGroupAsync(ConnectionId!, ChatRealtimeMethods.ConversationGroup(conversationId));
+        await Groups.AddToGroupAsync(ConnectionId!, ChatRealtimeMethods.ConversationGroup(id));
     }
 
     /// <summary>
     /// 离开会话组（离开会话页时调用）
     /// </summary>
-    /// <param name="conversationId">会话ID</param>
-    public async Task LeaveConversation(long conversationId)
+    /// <param name="conversationId">会话ID（字符串形态雪花 ID）</param>
+    public async Task LeaveConversation(string conversationId)
     {
-        await Groups.RemoveFromGroupAsync(ConnectionId!, ChatRealtimeMethods.ConversationGroup(conversationId));
+        if (!TryParseConversationId(conversationId, out var id))
+        {
+            return;
+        }
+
+        await Groups.RemoveFromGroupAsync(ConnectionId!, ChatRealtimeMethods.ConversationGroup(id));
     }
 
     /// <summary>
     /// 输入中提示：向会话组内其他连接组播（不落库，前端节流调用）
     /// </summary>
-    /// <param name="conversationId">会话ID</param>
-    public async Task Typing(long conversationId)
+    /// <param name="conversationId">会话ID（字符串形态雪花 ID）</param>
+    public async Task Typing(string conversationId)
     {
-        if (!await IsMemberAsync(conversationId))
+        if (!TryParseConversationId(conversationId, out var id) || !await IsMemberAsync(id))
         {
             return;
         }
 
-        await Clients.OthersInGroup(ChatRealtimeMethods.ConversationGroup(conversationId))
+        await Clients.OthersInGroup(ChatRealtimeMethods.ConversationGroup(id))
             .SendAsync(ChatRealtimeMethods.ChatTyping, new { conversationId, userId = UserId, userName = UserName });
+    }
+
+    /// <summary>
+    /// 解析客户端上送的会话ID（fail-closed：非纯数字或非正数一律拒绝，组名不接受任意字符串）
+    /// </summary>
+    private static bool TryParseConversationId(string? conversationId, out long id)
+    {
+        return long.TryParse(conversationId, out id) && id > 0;
     }
 
     /// <summary>
@@ -97,7 +110,7 @@ public class BasicAppChatHub : XiHanHub
     /// </summary>
     private async Task<bool> IsMemberAsync(long conversationId)
     {
-        if (conversationId <= 0 || !long.TryParse(UserId, out var userId))
+        if (!long.TryParse(UserId, out var userId))
         {
             return false;
         }

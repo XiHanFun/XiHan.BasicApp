@@ -74,13 +74,29 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
 
         try
         {
+            // SignalR 的 PayloadSerializerOptions 只配了 camelCase，没有 REST 侧的雪花 ID→string 与枚举→成员名转换器；
+            // 载荷必须手动投影，否则 long 走 JSON number 超出 JS 2^53 精度、枚举变数字与 REST 契约漂移
             var payload = new
             {
-                message,
+                message = new
+                {
+                    messageId = message.MessageId.ToString(),
+                    conversationId = message.ConversationId.ToString(),
+                    senderUserId = message.SenderUserId.ToString(),
+                    senderUserName = message.SenderUserName,
+                    messageType = message.MessageType.ToString(),
+                    content = message.Content,
+                    fileId = message.FileId?.ToString(),
+                    fileName = message.FileName,
+                    fileSize = message.FileSize,
+                    isRecalled = message.IsRecalled,
+                    clientMessageId = message.ClientMessageId,
+                    createdTime = message.CreatedTime
+                },
                 conversation = new
                 {
-                    conversationId = conversation.BasicId,
-                    conversationType = conversation.ConversationType,
+                    conversationId = conversation.BasicId.ToString(),
+                    conversationType = conversation.ConversationType.ToString(),
                     conversationName = conversation.ConversationName,
                     lastMessageTime = conversation.LastMessageTime,
                     lastMessagePreview = conversation.LastMessagePreview
@@ -99,7 +115,8 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
     {
         try
         {
-            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatMessageRecalled, new { conversationId, messageId });
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatMessageRecalled,
+                new { conversationId = conversationId.ToString(), messageId = messageId.ToString() });
         }
         catch (Exception ex)
         {
@@ -112,7 +129,8 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
     {
         try
         {
-            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatConversationChanged, new { conversationId, changeType });
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatConversationChanged,
+                new { conversationId = conversationId.ToString(), changeType });
         }
         catch (Exception ex)
         {
