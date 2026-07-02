@@ -66,6 +66,7 @@ export default {
     delete_success: '删除成功',
     delete_failed: '删除失败',
     status_updated: '状态已更新',
+    status_failed: '状态更新失败',
     operation_failed: '操作失败',
     batch_delete_failed: '批量删除失败',
     batch_action_failed: '批量操作失败',

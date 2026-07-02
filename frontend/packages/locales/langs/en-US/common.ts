@@ -66,6 +66,7 @@ export default {
     delete_success: 'Deleted successfully',
     delete_failed: 'Delete failed',
     status_updated: 'Status updated',
+    status_failed: 'Status update failed',
     operation_failed: 'Operation failed',
     batch_delete_failed: 'Batch delete failed',
     batch_action_failed: 'Batch operation failed',
