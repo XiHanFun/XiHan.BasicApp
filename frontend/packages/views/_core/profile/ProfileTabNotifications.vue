@@ -19,6 +19,7 @@ const pref = ref<NotificationPreference>({
   channelEmail: true,
   channelSms: false,
   channelPush: true,
+  channelBot: false,
   typeAnnouncement: true,
   typeTask: true,
   typeApproval: true,
@@ -39,6 +40,7 @@ const channels = computed<PrefItem[]>(() => [
   { key: 'channelEmail', label: t('component.profile.notifications.channel_email'), desc: t('component.profile.notifications.channel_email_desc'), icon: 'lucide:mail' },
   { key: 'channelSms', label: t('component.profile.notifications.channel_sms'), desc: t('component.profile.notifications.channel_sms_desc'), icon: 'lucide:smartphone' },
   { key: 'channelPush', label: t('component.profile.notifications.channel_push'), desc: t('component.profile.notifications.channel_push_desc'), icon: 'lucide:radio' },
+  { key: 'channelBot', label: t('component.profile.notifications.channel_bot'), desc: t('component.profile.notifications.channel_bot_desc'), icon: 'lucide:bot' },
 ])
 
 const types = computed<PrefItem[]>(() => [

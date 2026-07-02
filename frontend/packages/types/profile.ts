@@ -123,6 +123,8 @@ export interface NotificationPreference {
   channelEmail: boolean
   channelSms: boolean
   channelPush: boolean
+  /** 机器人通知（钉钉/飞书/企微/Telegram，对应 Bot 通道整体；默认关闭） */
+  channelBot: boolean
   typeAnnouncement: boolean
   typeTask: boolean
   typeApproval: boolean

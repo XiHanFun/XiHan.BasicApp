@@ -333,6 +333,8 @@ export default {
       channel_sms_desc: 'Receive high-priority alerts by SMS',
       channel_push: 'Push',
       channel_push_desc: 'Real-time push to browser/client',
+      channel_bot: 'Bot',
+      channel_bot_desc: 'Receive via DingTalk/Lark/WeCom/Telegram bots',
       type_announcement: 'System Announcements',
       type_announcement_desc: 'Maintenance, version updates and other announcements',
       type_task: 'Task Reminders',

@@ -638,6 +638,11 @@ public sealed class ProfileNotificationPreferenceDto
     public bool ChannelPush { get; set; } = true;
 
     /// <summary>
+    /// 机器人通知（钉钉/飞书/企微/Telegram，对应 Bot 通道整体；默认关闭）
+    /// </summary>
+    public bool ChannelBot { get; set; }
+
+    /// <summary>
     /// 系统公告
     /// </summary>
     public bool TypeAnnouncement { get; set; } = true;

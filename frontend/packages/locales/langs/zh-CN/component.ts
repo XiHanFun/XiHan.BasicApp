@@ -333,6 +333,8 @@ export default {
       channel_sms_desc: '通过短信接收高优先级提醒',
       channel_push: '推送通知',
       channel_push_desc: '浏览器/客户端实时推送',
+      channel_bot: '机器人通知',
+      channel_bot_desc: '通过钉钉/飞书/企微/Telegram 机器人接收',
       type_announcement: '系统公告',
       type_announcement_desc: '平台维护、版本更新等公告',
       type_task: '任务提醒',

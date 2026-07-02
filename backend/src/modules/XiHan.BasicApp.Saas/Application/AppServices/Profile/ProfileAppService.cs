@@ -235,6 +235,7 @@ public sealed partial class ProfileAppService
         preference.ChannelEmail = input.ChannelEmail;
         preference.ChannelSms = input.ChannelSms;
         preference.ChannelPush = input.ChannelPush;
+        preference.ChannelBot = input.ChannelBot;
         preference.TypeAnnouncement = input.TypeAnnouncement;
         preference.TypeTask = input.TypeTask;
         preference.TypeApproval = input.TypeApproval;

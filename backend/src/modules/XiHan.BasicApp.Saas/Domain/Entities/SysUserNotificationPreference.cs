@@ -34,7 +34,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - UserId 唯一（UX_UsId）
-/// - 首次读取时若无记录，由应用层按默认值惰性创建（全部默认开启，营销默认关闭）
+/// - 首次读取时若无记录，由应用层按默认值惰性创建（默认开启，短信/机器人/营销默认关闭）
 ///
 /// 查询：
 /// - 个人中心通知偏好读取：按 UserId 查
@@ -43,7 +43,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 仅软删；随 SysUser 级联软删
 ///
 /// 场景：
-/// - 个人中心"通知偏好"设置：渠道（站内信/邮箱/短信/推送）× 类型（公告/任务/审批/安全/营销）
+/// - 个人中心"通知偏好"设置：渠道（站内信/邮箱/短信/推送/机器人）× 类型（公告/任务/审批/安全/营销）
 /// - 营销类可随时关闭（GDPR 合规）；安全告警建议始终开启
 /// </remarks>
 [SugarTable(TableName = "Sys_User_Notification_Preference", TableDescription = "系统用户通知偏好表")]
@@ -84,6 +84,13 @@ public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "Channel_Push", ColumnDescription = "推送通知")]
     public virtual bool ChannelPush { get; set; } = true;
+
+    /// <summary>
+    /// 机器人通知（钉钉/飞书/企微/Telegram，对应 <see cref="MessageChannel.Bot"/> 通道整体）
+    /// 默认关闭：机器人投递需用户侧存在可达绑定才有意义
+    /// </summary>
+    [SugarColumn(ColumnName = "Channel_Bot", ColumnDescription = "机器人通知")]
+    public virtual bool ChannelBot { get; set; } = false;
 
     // ── 通知类型开关 ──────────────────────────────
 
