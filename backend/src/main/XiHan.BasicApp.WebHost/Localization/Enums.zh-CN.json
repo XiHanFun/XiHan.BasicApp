@@ -309,6 +309,8 @@
     "SessionRoleStatus.Active": "已激活",
     "SessionRoleStatus.Inactive": "已停用",
     "SessionRoleStatus.Expired": "已过期",
+    "SmsProviderType.Aliyun": "阿里云",
+    "SmsProviderType.TencentCloud": "腾讯云",
     "SmsStatus.Pending": "待发送",
     "SmsStatus.Sending": "发送中",
     "SmsStatus.Success": "发送成功",

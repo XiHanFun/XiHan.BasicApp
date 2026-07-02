@@ -12,7 +12,6 @@
 
 #endregion <<版权版本注释>>
 
-using Microsoft.Extensions.Options;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
@@ -20,9 +19,9 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Messaging;
-using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Authentication.OneTimeCode;
 using XiHan.Framework.Authentication.Otp;
+using XiHan.Framework.Bot.Email;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
@@ -46,7 +45,7 @@ public sealed class ProfileVerificationService
 
     private readonly IOtpService _otpService;
 
-    private readonly IOptionsMonitor<EmailSenderOptions> _emailSenderOptions;
+    private readonly IEmailConfigStore _emailConfigStore;
 
     /// <summary>
     /// 构造函数
@@ -55,12 +54,12 @@ public sealed class ProfileVerificationService
         IOneTimeCodeService oneTimeCodeService,
         IOtpService otpService,
         IMessageDeliveryService messageDeliveryService,
-        IOptionsMonitor<EmailSenderOptions> emailSenderOptions)
+        IEmailConfigStore emailConfigStore)
     {
         _oneTimeCodeService = oneTimeCodeService;
         _otpService = otpService;
         _messageDeliveryService = messageDeliveryService;
-        _emailSenderOptions = emailSenderOptions;
+        _emailConfigStore = emailConfigStore;
     }
 
     /// <inheritdoc />
@@ -131,8 +130,9 @@ public sealed class ProfileVerificationService
             new OneTimeCodeOptions { CodeLength = 6, ExpiresInSeconds = VerificationCodeSeconds },
             cancellationToken);
 
-        var emailOptions = _emailSenderOptions.CurrentValue;
-        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        var emailConfig = await _emailConfigStore.GetAsync(cancellationToken);
+        var fromName = emailConfig?.From.FromName;
+        var brand = string.IsNullOrWhiteSpace(fromName) ? "XiHan BasicApp" : fromName;
         var minutes = Math.Max(1, VerificationCodeSeconds / 60);
         // 纯文本兜底内容（模板缺失/损坏时使用）
         var content = $"验证码：{issued.Code}，{minutes} 分钟内有效。";
@@ -171,8 +171,8 @@ public sealed class ProfileVerificationService
                     SendUserId: null,
                     ReceiveUserId: user.BasicId,
                     EmailType: EmailType.Verification,
-                    FromEmail: emailOptions.FromEmail,
-                    FromName: emailOptions.FromName,
+                    FromEmail: emailConfig?.From.FromMail ?? string.Empty,
+                    FromName: emailConfig?.From.FromName,
                     ToEmail: trimmedTarget,
                     CcEmail: null,
                     BccEmail: null,

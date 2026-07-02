@@ -14,7 +14,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Bot.Email;
 using XiHan.Framework.Data.SqlSugar.Clients;
@@ -35,22 +34,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 public sealed class EmailMessageSender : IMessageSender
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IOptionsMonitor<EmailSenderOptions> _options;
+    private readonly IEmailConfigStore _configStore;
     private readonly ILogger<EmailMessageSender> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="scopeFactory">服务作用域工厂（用于解析 Scoped 服务）</param>
-    /// <param name="options">邮件发送（SMTP）配置</param>
+    /// <param name="configStore">邮件配置存储（数据库 SysEmailConfig 实现）</param>
     /// <param name="logger">日志记录器</param>
     public EmailMessageSender(
         IServiceScopeFactory scopeFactory,
-        IOptionsMonitor<EmailSenderOptions> options,
+        IEmailConfigStore configStore,
         ILogger<EmailMessageSender> logger)
     {
         _scopeFactory = scopeFactory;
-        _options = options;
+        _configStore = configStore;
         _logger = logger;
     }
 
@@ -222,29 +221,29 @@ public sealed class EmailMessageSender : IMessageSender
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var options = _options.CurrentValue;
-        if (!options.IsConfigured)
+        var options = await _configStore.GetAsync(cancellationToken);
+        if (options is null || string.IsNullOrWhiteSpace(options.From.SmtpHost))
         {
-            throw new InvalidOperationException("邮件发送通道未配置 SMTP（请配置 XiHan:Email）。");
+            throw new InvalidOperationException("未配置默认邮件网关（SysEmailConfig），已拒绝发送。");
         }
 
-        var fromMail = !string.IsNullOrWhiteSpace(email.FromEmail) ? email.FromEmail : options.FromEmail;
+        var fromMail = !string.IsNullOrWhiteSpace(email.FromEmail) ? email.FromEmail : options.From.FromMail;
         if (string.IsNullOrWhiteSpace(fromMail))
         {
             throw new InvalidOperationException("邮件发送缺少发件邮箱（FromEmail）。");
         }
 
-        var fromName = !string.IsNullOrWhiteSpace(email.FromName) ? email.FromName : options.FromName;
+        var fromName = !string.IsNullOrWhiteSpace(email.FromName) ? email.FromName : options.From.FromName;
         var fromModel = new EmailFromModel
         {
-            SmtpHost = options.SmtpHost,
-            SmtpPort = options.SmtpPort,
-            UseSsl = options.UseSsl,
+            SmtpHost = options.From.SmtpHost,
+            SmtpPort = options.From.SmtpPort,
+            UseSsl = options.From.UseSsl,
             FromMail = fromMail,
             FromName = fromName,
-            FromUserName = options.UserName,
-            FromPassword = options.Password,
-            AcceptInvalidCertificate = options.AcceptInvalidCertificate
+            FromUserName = options.From.FromUserName,
+            FromPassword = options.From.FromPassword,
+            AcceptInvalidCertificate = options.From.AcceptInvalidCertificate
         };
 
         var toModel = new EmailToModel
