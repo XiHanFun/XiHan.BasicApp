@@ -115,8 +115,8 @@ public sealed class BotMessageSender : IMessageSender
         try
         {
             dispatchResult = channels.Count == 0
-                ? await _botClient.SendAsync(botMessage)
-                : await _botClient.SendAsync(botMessage, [.. channels]);
+                ? await _botClient.SendAsync(botMessage, cancellationToken)
+                : await _botClient.SendAsync(botMessage, channels, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
