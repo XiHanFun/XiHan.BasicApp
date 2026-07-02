@@ -1,3 +1,5 @@
+import type { DynamicApiParams } from '../../base'
+import type { UserSelectItemDto } from '../identity/user.types'
 import type {
   ChatConversationListItem,
   ChatConversationOpenResult,
@@ -7,7 +9,7 @@ import type {
   ChatMessageItem,
   ChatMessageSendInput,
 } from '~/types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const chatCommandApi = createDynamicApiClient('Chat')
 const chatQueryApi = createDynamicApiClient('ChatQuery')
@@ -62,5 +64,11 @@ export const chatApi = {
   /** GetMembersAsync(long conversationId)：GET 的 Id 参数拼路由段 → GET /ChatQuery/Members/{conversationId} */
   members(conversationId: string) {
     return chatQueryApi.get<ChatMemberItem[]>(`Members/${formatDynamicApiRouteValue(conversationId)}`)
+  },
+  /** GetUserOptionsAsync：Get 前缀剥离 → GET /ChatQuery/UserOptions；仅需 saas:chat:read 的轻量选人（启用用户+超管隐藏） */
+  userOptions(keyword: string, limit = 20) {
+    const params: DynamicApiParams = { Limit: limit }
+    appendDynamicApiParam(params, 'Keyword', keyword)
+    return chatQueryApi.get<UserSelectItemDto[]>('UserOptions', params)
   },
 }

@@ -36,4 +36,9 @@ public interface IChatQueryService : IApplicationService
     /// 获取会话成员列表（仅会话成员）
     /// </summary>
     Task<List<ChatMemberItemDto>> GetMembersAsync(long conversationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
+    /// </summary>
+    Task<IReadOnlyList<UserSelectItemDto>> GetUserOptionsAsync(UserSelectQueryDto input, CancellationToken cancellationToken = default);
 }

@@ -14,14 +14,20 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Domain.Shared.Paging.Enums;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -49,6 +55,8 @@ public sealed class ChatQueryService
 
     private readonly ICurrentUser _currentUser;
 
+    private readonly ISuperAdminProtector _superAdminProtector;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -57,13 +65,15 @@ public sealed class ChatQueryService
         IChatConversationMemberRepository memberRepository,
         IChatMessageRepository messageRepository,
         IUserRepository userRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ISuperAdminProtector superAdminProtector)
     {
         _conversationRepository = conversationRepository;
         _memberRepository = memberRepository;
         _messageRepository = messageRepository;
         _userRepository = userRepository;
         _currentUser = currentUser;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <inheritdoc />
@@ -180,6 +190,48 @@ public sealed class ChatQueryService
             .OrderBy(member => member.MemberRole)
             .ThenBy(member => member.JoinTime)
             .Select(member => ChatApplicationMapper.ToMemberItemDto(member, userMap.GetValueOrDefault(member.UserId)?.UserName))];
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// 仅需聊天查看权限的轻量选人端点（发起单聊/建群/加成员）：
+    /// 与用户管理 GetEnabledUsersAsync 同语义（固定启用用户 + 超管隐藏），
+    /// 但权限门槛为 saas:chat:read，避免普通聊天用户因缺 saas:user:read 而 403。
+    /// </remarks>
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<IReadOnlyList<UserSelectItemDto>> GetUserOptionsAsync(UserSelectQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var request = new BasicAppPRDto
+        {
+            Conditions = new QueryConditions()
+        };
+        request.Page.PageSize = Math.Clamp(input.Limit, 1, 500);
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            request.Conditions.SetKeyword(
+                input.Keyword.Trim(),
+                nameof(SysUser.UserName),
+                nameof(SysUser.RealName),
+                nameof(SysUser.NickName));
+        }
+        request.Conditions.AddFilter(nameof(SysUser.Status), EnableStatus.Enabled);
+        request.Conditions.AddSort(nameof(SysUser.CreatedTime), SortDirection.Descending, 0);
+
+        // 超管隐藏：非超管用户的选择项中排除超管用户（超管自身不受限）
+        if (!_superAdminProtector.IsCurrentUserSuperAdmin())
+        {
+            var protectedUserIds = await _superAdminProtector.GetProtectedUserIdsAsync(cancellationToken);
+            if (protectedUserIds.Count > 0)
+            {
+                request.Conditions.AddFilterIn<SysUser, long>(user => user.BasicId, protectedUserIds.Cast<object>(), QueryOperator.NotIn);
+            }
+        }
+
+        var users = await _userRepository.GetPagedAsync(request, cancellationToken);
+        return [.. users.Items.Select(UserApplicationMapper.ToSelectItemDto)];
     }
 
     private async Task EnsureMemberAsync(long conversationId, CancellationToken cancellationToken)

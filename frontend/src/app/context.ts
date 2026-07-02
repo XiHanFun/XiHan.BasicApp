@@ -40,7 +40,6 @@ import type {
   VerificationCodeResult,
 } from '~/types'
 import { fileApi } from '@/api/modules/files'
-import { userApi } from '@/api/modules/identity'
 import { logManagementApi } from '@/api/modules/log'
 import { chatApi } from '@/api/modules/messaging'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
@@ -452,7 +451,8 @@ function createChatApis() {
   const composed: ChatApiContract = {
     ...chatApi,
     async selectUsers(keyword: string, limit = 20) {
-      const items = await userApi.select({ keyword, limit })
+      // 走聊天专属选人端点（仅需 saas:chat:read）；用户管理的 UserSelect 端点要求 saas:user:read，普通聊天用户会 403
+      const items = await chatApi.userOptions(keyword, limit)
       return items.map(u => ({
         userId: u.basicId,
         userName: u.userName,
