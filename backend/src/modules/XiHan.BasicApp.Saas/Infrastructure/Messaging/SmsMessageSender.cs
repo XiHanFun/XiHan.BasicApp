@@ -33,18 +33,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 public sealed class SmsMessageSender : IMessageSender
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ISmsGatewayResolver _gatewayResolver;
     private readonly ILogger<SmsMessageSender> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="scopeFactory">服务作用域工厂（用于解析 Scoped 服务）</param>
+    /// <param name="gatewayResolver">短信网关解析器（按 SysSmsConfig 默认配置热构建客户端）</param>
     /// <param name="logger">日志记录器</param>
     public SmsMessageSender(
         IServiceScopeFactory scopeFactory,
+        ISmsGatewayResolver gatewayResolver,
         ILogger<SmsMessageSender> logger)
     {
         _scopeFactory = scopeFactory;
+        _gatewayResolver = gatewayResolver;
         _logger = logger;
     }
 
@@ -133,18 +137,39 @@ public sealed class SmsMessageSender : IMessageSender
 
         try
         {
-            // TODO: 集成短信网关发送逻辑
-            // 占位：调用短信服务商 API 发送短信
-            await Task.CompletedTask;
+            // fail-closed：无「默认且启用」网关配置即拒绝发送（记 Failed 走发件箱重试），杜绝假成功
+            var gateway = await _gatewayResolver.ResolveAsync(cancellationToken)
+                ?? throw new InvalidOperationException("未配置默认短信网关（SysSmsConfig），已拒绝发送。");
 
-            // 发送成功，更新状态
+            // 发件箱重放模式的信封收件人是 "outbox" 占位符，手机号一律以行数据 ToPhone 为准（多号逗号分隔）
+            var phones = (sms.ToPhone ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (phones.Length == 0)
+            {
+                throw new InvalidOperationException("短信记录缺少接收手机号。");
+            }
+
+            var gatewayResult = await gateway.SendAsync(
+                new SmsGatewayRequest(phones, sms.TemplateCode, sms.TemplateParams, sms.Content),
+                cancellationToken);
+            if (!gatewayResult.IsSuccess)
+            {
+                throw new InvalidOperationException(gatewayResult.ErrorMessage ?? "短信网关返回失败。");
+            }
+
+            // 发送成功，更新状态并回写服务商与回执ID
+            var providerName = gateway.Provider.ToString();
+            var providerMessageId = gatewayResult.ProviderMessageId;
             await client.Updateable<SysSms>()
                 .SetColumns(s => s.SmsStatus == SmsStatus.Success)
                 .SetColumns(s => s.SendTime == DateTimeOffset.UtcNow)
+                .SetColumns(s => s.Provider == providerName)
+                .SetColumns(s => s.ProviderMessageId == providerMessageId)
                 .Where(s => s.BasicId == sms.BasicId)
                 .ExecuteCommandAsync(cancellationToken);
 
-            _logger.LogInformation("短信发送成功。MessageId: {MessageId}, To: {To}", envelope.MessageId, recipient.Address);
+            _logger.LogInformation("短信发送成功。MessageId: {MessageId}, To: {To}, Provider: {Provider}, ProviderMessageId: {ProviderMessageId}",
+                envelope.MessageId, sms.ToPhone, providerName, providerMessageId);
 
             return new MessageSendResult
             {

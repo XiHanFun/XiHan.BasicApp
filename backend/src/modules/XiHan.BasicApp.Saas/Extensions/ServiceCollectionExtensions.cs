@@ -139,6 +139,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
+        services.AddSingleton<ISmsGatewayResolver, SmsGatewayResolver>();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
