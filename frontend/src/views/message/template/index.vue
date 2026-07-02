@@ -53,6 +53,7 @@ const channelOptions = computed(() => [
   { label: t('message.template.channel_site'), value: MessageChannel.SiteNotification },
   { label: t('message.template.channel_email'), value: MessageChannel.Email },
   { label: t('message.template.channel_sms'), value: MessageChannel.Sms },
+  { label: t('message.template.channel_bot'), value: MessageChannel.Bot },
 ])
 
 const statusOptions = computed(() => [

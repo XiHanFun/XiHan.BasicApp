@@ -43,4 +43,13 @@ public interface IProfileVerificationService
         string? target,
         string title,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 发送登录双因素短信验证码（用途与安全操作共用 <see cref="ProfileVerificationPurpose.TwoFactorPhone"/>，
+    /// 使用登录验证码短信模板；校验经 <see cref="ConsumeCodeAsync"/> 一次性消费）
+    /// </summary>
+    Task<ProfileVerificationCodeResultDto> SendLoginTwoFactorSmsAsync(
+        SysUser user,
+        string phone,
+        CancellationToken cancellationToken = default);
 }

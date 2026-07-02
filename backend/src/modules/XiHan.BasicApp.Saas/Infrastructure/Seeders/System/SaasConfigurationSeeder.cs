@@ -152,7 +152,8 @@ public sealed class SaasConfigurationSeeder(
             new("Telegram 配置缓存秒数", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.ConfigCacheSeconds, "5", "5", ConfigType.Feature, ConfigDataType.Number, "机器人配置列表的进程内缓存时长（秒）", 105),
             new("Telegram 兜底回复", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.EnableFallbackReply, "false", "false", ConfigType.Feature, ConfigDataType.Boolean, "无处理器命中普通消息时是否回复提示文案（与单机器人配置任一开启即生效）", 106),
             new("Telegram 代理地址", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.ProxyUrl, "", "", ConfigType.Feature, ConfigDataType.String, "访问 Telegram API 的代理地址（如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080）；留空直连", 107),
-            new("Telegram 请求超时秒数", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.TimeoutSeconds, "100", "100", ConfigType.Feature, ConfigDataType.Number, "Telegram API 请求超时（秒）", 108)
+            new("Telegram Bot API 基址", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.BaseUrl, "", "", ConfigType.Feature, ConfigDataType.String, "自建 Bot API Server 基础地址（如 https://tg-api.example.com）；留空使用官方 api.telegram.org", 108),
+            new("Telegram 请求超时秒数", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.TimeoutSeconds, "100", "100", ConfigType.Feature, ConfigDataType.Number, "Telegram API 请求超时（秒）", 109)
         ];
     }
 

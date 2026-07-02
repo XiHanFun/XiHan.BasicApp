@@ -38,5 +38,11 @@ public enum MessageChannel
     /// 短信
     /// </summary>
     [Description("短信")]
-    Sms = 4
+    Sms = 4,
+
+    /// <summary>
+    /// 机器人
+    /// </summary>
+    [Description("机器人")]
+    Bot = 8
 }

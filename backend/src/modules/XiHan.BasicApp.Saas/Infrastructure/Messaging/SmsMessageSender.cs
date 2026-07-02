@@ -15,6 +15,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Bot.Sms.Abstractions;
 using XiHan.Framework.Messaging.Abstractions;
@@ -60,7 +61,7 @@ public sealed class SmsMessageSender : IMessageSender
     /// <returns>短信通道返回 true</returns>
     public bool CanHandle(string channel)
     {
-        return string.Equals(channel?.Trim(), "sms", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(channel?.Trim(), SaasMessageChannelNames.Sms, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

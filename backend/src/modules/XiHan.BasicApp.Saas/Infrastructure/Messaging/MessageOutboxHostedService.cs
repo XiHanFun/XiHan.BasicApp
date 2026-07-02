@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
+using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Models;
@@ -29,9 +30,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 public sealed class MessageOutboxMessage : IBackgroundTaskItem
 {
     /// <summary>
-    /// 渠道：email / sms。
+    /// 渠道：email / sms（见 <see cref="SaasMessageChannelNames"/>）。
     /// </summary>
-    public string Channel { get; init; } = "email";
+    public string Channel { get; init; } = SaasMessageChannelNames.Email;
 
     /// <summary>
     /// 业务实体主键（SysEmail.BasicId / SysSms.BasicId）。

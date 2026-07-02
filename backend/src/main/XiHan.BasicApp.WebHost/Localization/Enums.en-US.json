@@ -33,6 +33,7 @@
     "MessageChannel.SiteNotification": "In-App Notification",
     "MessageChannel.Email": "Email",
     "MessageChannel.Sms": "SMS",
+    "MessageChannel.Bot": "Bot",
     "AccessResult.Success": "Success",
     "AccessResult.Failed": "Failed",
     "AccessResult.Forbidden": "Forbidden",

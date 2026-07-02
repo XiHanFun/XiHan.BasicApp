@@ -33,6 +33,7 @@
     "MessageChannel.SiteNotification": "站内通知",
     "MessageChannel.Email": "邮件",
     "MessageChannel.Sms": "短信",
+    "MessageChannel.Bot": "机器人",
     "AccessResult.Success": "成功",
     "AccessResult.Failed": "失败",
     "AccessResult.Forbidden": "权限不足",

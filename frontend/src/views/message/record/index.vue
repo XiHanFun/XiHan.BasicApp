@@ -429,18 +429,6 @@ async function deleteSms(row: SmsListItemDto) {
           <NDescriptionsItem :label="t('message.record.detail_template_code')">
             {{ currentEmailDetail.templateCode || '-' }}
           </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_content_flag')">
-            {{ t('message.record.email_content_flag', { body: formatFlag(currentEmailDetail.hasBody), attachment: formatFlag(currentEmailDetail.hasAttachment), templateData: formatFlag(currentEmailDetail.hasTemplateData) }) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_recipient_flag')">
-            {{ t('message.record.email_recipient_flag', { senderAddress: formatFlag(currentEmailDetail.hasSenderAddress), recipientAddress: formatFlag(currentEmailDetail.hasRecipientAddress), copyRecipient: formatFlag(currentEmailDetail.hasCopyRecipient), blindRecipient: formatFlag(currentEmailDetail.hasBlindRecipient) }) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_failure_detail')">
-            {{ formatFlag(currentEmailDetail.hasFailureDetail) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_remark')">
-            {{ formatFlag(currentEmailDetail.hasNote) }}
-          </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_retry')">
             {{ formatRetry(currentEmailDetail) }}
           </NDescriptionsItem>
@@ -479,18 +467,6 @@ async function deleteSms(row: SmsListItemDto) {
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_cost')">
             {{ currentSmsDetail.cost ?? '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_content_flag')">
-            {{ t('message.record.sms_content_flag', { body: formatFlag(currentSmsDetail.hasBody), templateData: formatFlag(currentSmsDetail.hasTemplateData), providerReceipt: formatFlag(currentSmsDetail.hasProviderReceipt) }) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_recipient_phone')">
-            {{ formatFlag(currentSmsDetail.hasRecipientPhone) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_failure_detail')">
-            {{ formatFlag(currentSmsDetail.hasFailureDetail) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_remark')">
-            {{ formatFlag(currentSmsDetail.hasNote) }}
           </NDescriptionsItem>
           <NDescriptionsItem :label="t('message.record.detail_retry')">
             {{ formatRetry(currentSmsDetail) }}
