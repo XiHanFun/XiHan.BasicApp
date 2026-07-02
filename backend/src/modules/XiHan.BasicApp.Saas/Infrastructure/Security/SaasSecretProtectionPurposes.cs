@@ -42,4 +42,9 @@ public static class SaasSecretProtectionPurposes
     /// 短信网关访问密钥保护用途。
     /// </summary>
     public const string SmsConfigAccessKeySecret = "XiHan.BasicApp.Saas.SmsConfig.AccessKeySecret.v1";
+
+    /// <summary>
+    /// 邮件网关认证密码保护用途。
+    /// </summary>
+    public const string EmailConfigPassword = "XiHan.BasicApp.Saas.EmailConfig.Password.v1";
 }

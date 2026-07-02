@@ -165,6 +165,16 @@ public static class SaasPermissionCodes
         StorageConfig.Update,
         StorageConfig.Status,
         StorageConfig.Delete,
+        EmailConfig.Read,
+        EmailConfig.Create,
+        EmailConfig.Update,
+        EmailConfig.Status,
+        EmailConfig.Delete,
+        SmsConfig.Read,
+        SmsConfig.Create,
+        SmsConfig.Update,
+        SmsConfig.Status,
+        SmsConfig.Delete,
         Cache.Read,
         Cache.Clear,
         Server.Read,
@@ -261,7 +271,9 @@ public static class SaasPermissionCodes
         Notification.Export,
         TenantEdition.Export,
         StorageConfig.Export,
-        ConstraintRule.Export
+        ConstraintRule.Export,
+        EmailConfig.Export,
+        SmsConfig.Export
     ];
 
     /// <summary>
@@ -1501,6 +1513,88 @@ public static class SaasPermissionCodes
         /// 导出存储配置
         /// </summary>
         public const string Export = "saas:storage-config:export";
+    }
+
+    /// <summary>
+    /// 邮件配置权限码（SMTP 邮件网关配置，独立于消息记录的 Message 族）
+    /// </summary>
+    public static class EmailConfig
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "email-config";
+
+        /// <summary>
+        /// 查看邮件配置
+        /// </summary>
+        public const string Read = "saas:email-config:read";
+
+        /// <summary>
+        /// 创建邮件配置
+        /// </summary>
+        public const string Create = "saas:email-config:create";
+
+        /// <summary>
+        /// 更新邮件配置
+        /// </summary>
+        public const string Update = "saas:email-config:update";
+
+        /// <summary>
+        /// 更新邮件配置状态
+        /// </summary>
+        public const string Status = "saas:email-config:status";
+
+        /// <summary>
+        /// 删除邮件配置
+        /// </summary>
+        public const string Delete = "saas:email-config:delete";
+
+        /// <summary>
+        /// 导出邮件配置
+        /// </summary>
+        public const string Export = "saas:email-config:export";
+    }
+
+    /// <summary>
+    /// 短信配置权限码（短信服务商网关配置，独立于消息记录的 Message 族）
+    /// </summary>
+    public static class SmsConfig
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "sms-config";
+
+        /// <summary>
+        /// 查看短信配置
+        /// </summary>
+        public const string Read = "saas:sms-config:read";
+
+        /// <summary>
+        /// 创建短信配置
+        /// </summary>
+        public const string Create = "saas:sms-config:create";
+
+        /// <summary>
+        /// 更新短信配置
+        /// </summary>
+        public const string Update = "saas:sms-config:update";
+
+        /// <summary>
+        /// 更新短信配置状态
+        /// </summary>
+        public const string Status = "saas:sms-config:status";
+
+        /// <summary>
+        /// 删除短信配置
+        /// </summary>
+        public const string Delete = "saas:sms-config:delete";
+
+        /// <summary>
+        /// 导出短信配置
+        /// </summary>
+        public const string Export = "saas:sms-config:export";
     }
 
     /// <summary>

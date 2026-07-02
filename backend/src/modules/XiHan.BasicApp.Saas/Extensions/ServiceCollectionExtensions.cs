@@ -32,6 +32,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
+using XiHan.Framework.Bot.Email;
 using XiHan.Framework.Bot.Sms;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
@@ -106,6 +107,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISmsConfigDomainService, SmsConfigDomainService>();
         // 短信网关密钥保护器（Data Protection，独立 Purpose）
         services.AddSingleton<ISmsConfigSecretProtector, DataProtectionSmsConfigSecretProtector>();
+        services.AddScoped<IEmailConfigDomainService, EmailConfigDomainService>();
+        // 邮件网关密码保护器（Data Protection，独立 Purpose）
+        services.AddSingleton<IEmailConfigSecretProtector, DataProtectionEmailConfigSecretProtector>();
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();
@@ -142,6 +146,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
         // 短信配置存储：以数据库实现覆盖框架默认空实现（框架模块 TryAdd 先注册，故须 Replace）
         services.Replace(ServiceDescriptor.Singleton<ISmsConfigStore, SaasSmsConfigStore>());
+        // 邮件配置存储：以数据库实现覆盖框架默认 Options 实现（框架模块 TryAdd 先注册，故须 Replace）
+        services.Replace(ServiceDescriptor.Singleton<IEmailConfigStore, SaasEmailConfigStore>());
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
@@ -281,7 +287,6 @@ public static class ServiceCollectionExtensions
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasMessageSenders(this IServiceCollection services)
     {
-        services.AddOptions<EmailSenderOptions>().BindConfiguration(EmailSenderOptions.SectionName);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, EmailMessageSender>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IMessageSender, SmsMessageSender>());
 

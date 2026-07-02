@@ -309,6 +309,8 @@
     "SessionRoleStatus.Active": "Active",
     "SessionRoleStatus.Inactive": "Inactive",
     "SessionRoleStatus.Expired": "Expired",
+    "SmsProviderType.Aliyun": "Alibaba Cloud",
+    "SmsProviderType.TencentCloud": "Tencent Cloud",
     "SmsStatus.Pending": "Pending",
     "SmsStatus.Sending": "Sending",
     "SmsStatus.Success": "Sent",

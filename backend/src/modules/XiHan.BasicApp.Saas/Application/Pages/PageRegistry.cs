@@ -132,6 +132,10 @@ public static class PageRegistry
          new("message.record", "邮件短信", "menu.message_record", MenuType.Menu, "/message/record", "MessageRecord", "message/record/index", "message", SaasPermissionCodes.Message.Read, "lucide:send", 320),
         // [4.3] 消息模板
          new("message.template", "消息模板", "menu.message_template", MenuType.Menu, "/message/template", "MessageTemplate", "message/template/index", "message", SaasPermissionCodes.MessageTemplate.Read, "lucide:file-code-2", 330),
+        // [4.4] 邮件配置
+         new("message.email-config", "邮件配置", "menu.message_email_config", MenuType.Menu, "/message/email-config", "MessageEmailConfig", "message/email-config/index", "message", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 340),
+        // [4.5] 短信配置
+         new("message.sms-config", "短信配置", "menu.message_sms_config", MenuType.Menu, "/message/sms-config", "MessageSmsConfig", "message/sms-config/index", "message", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 350),
 
         // [5] 审批规则
          new("approval", "审批规则", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:clipboard-check", 400, "/approval/review"),
@@ -285,6 +289,20 @@ public static class PageRegistry
          new("message.template.status", "启停", "message.template", SaasPermissionCodes.MessageTemplate.Status, 3),
          new("message.template.delete", "删除", "message.template", SaasPermissionCodes.MessageTemplate.Delete, 4),
          new("message.template.export", "导出", "message.template", SaasPermissionCodes.MessageTemplate.Export, 9),
+
+        // [4.4] 邮件配置
+         new("message.email-config.create", "新增", "message.email-config", SaasPermissionCodes.EmailConfig.Create, 1),
+         new("message.email-config.update", "编辑", "message.email-config", SaasPermissionCodes.EmailConfig.Update, 2),
+         new("message.email-config.status", "启停", "message.email-config", SaasPermissionCodes.EmailConfig.Status, 3),
+         new("message.email-config.delete", "删除", "message.email-config", SaasPermissionCodes.EmailConfig.Delete, 4),
+         new("message.email-config.export", "导出", "message.email-config", SaasPermissionCodes.EmailConfig.Export, 9),
+
+        // [4.5] 短信配置
+         new("message.sms-config.create", "新增", "message.sms-config", SaasPermissionCodes.SmsConfig.Create, 1),
+         new("message.sms-config.update", "编辑", "message.sms-config", SaasPermissionCodes.SmsConfig.Update, 2),
+         new("message.sms-config.status", "启停", "message.sms-config", SaasPermissionCodes.SmsConfig.Status, 3),
+         new("message.sms-config.delete", "删除", "message.sms-config", SaasPermissionCodes.SmsConfig.Delete, 4),
+         new("message.sms-config.export", "导出", "message.sms-config", SaasPermissionCodes.SmsConfig.Export, 9),
 
         // [5.1] 审批中心
          new("approval.review.audit", "审核", "approval.review", SaasPermissionCodes.Review.Audit, 1),

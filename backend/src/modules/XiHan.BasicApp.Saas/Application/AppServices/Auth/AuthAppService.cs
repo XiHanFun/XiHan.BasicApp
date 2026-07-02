@@ -19,7 +19,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -32,10 +31,10 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Otp;
+using XiHan.Framework.Bot.Email;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Localization.Abstractions;
@@ -78,7 +77,7 @@ public sealed class AuthAppService
 
     private readonly IOtpService _otpService;
 
-    private readonly IOptionsMonitor<EmailSenderOptions> _emailSenderOptions;
+    private readonly IEmailConfigStore _emailConfigStore;
 
     private readonly IClientInfoProvider _clientInfoProvider;
 
@@ -128,7 +127,7 @@ public sealed class AuthAppService
         IAuthEmailLoginCodeService emailLoginCodeService,
         IMessageDeliveryService messageDeliveryService,
         IOtpService otpService,
-        IOptionsMonitor<EmailSenderOptions> emailSenderOptions,
+        IEmailConfigStore emailConfigStore,
         ILocalEventBus localEventBus,
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
@@ -154,7 +153,7 @@ public sealed class AuthAppService
         _emailLoginCodeService = emailLoginCodeService;
         _messageDeliveryService = messageDeliveryService;
         _otpService = otpService;
-        _emailSenderOptions = emailSenderOptions;
+        _emailConfigStore = emailConfigStore;
         _localEventBus = localEventBus;
         _currentTenant = currentTenant;
         _currentUser = currentUser;
@@ -285,11 +284,12 @@ public sealed class AuthAppService
         }
 
         // 欢迎邮件尽力而为：投递失败只记录日志，绝不阻断注册主流程
-        if (_emailSenderOptions.CurrentValue.IsConfigured)
+        var welcomeEmailConfig = await GetConfiguredEmailOptionsAsync(cancellationToken);
+        if (welcomeEmailConfig is not null)
         {
             try
             {
-                await SendWelcomeEmailAsync(email, result.User, cancellationToken);
+                await SendWelcomeEmailAsync(email, result.User, welcomeEmailConfig, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -342,9 +342,10 @@ public sealed class AuthAppService
         var resetUrl = BuildPasswordResetUrl(token);
 
         // 已配置真实 SMTP：发送带一次性链接的邮件（失败抛出，避免静默丢链接）
-        if (_emailSenderOptions.CurrentValue.IsConfigured)
+        var resetEmailConfig = await GetConfiguredEmailOptionsAsync(cancellationToken);
+        if (resetEmailConfig is not null)
         {
-            await SendPasswordResetEmailAsync(email, user.BasicId, resetUrl, cancellationToken);
+            await SendPasswordResetEmailAsync(email, user.BasicId, resetUrl, resetEmailConfig, cancellationToken);
         }
 
         return new PasswordResetResultDto
@@ -1086,20 +1087,38 @@ public sealed class AuthAppService
     }
 
     /// <summary>
+    /// 读取当前生效邮件网关配置；未配置或缺 SMTP 主机返回 null（调用方据此门控真实发信）
+    /// </summary>
+    private async Task<EmailOptions?> GetConfiguredEmailOptionsAsync(CancellationToken cancellationToken)
+    {
+        var emailConfig = await _emailConfigStore.GetAsync(cancellationToken);
+        var isConfigured = emailConfig is not null && !string.IsNullOrWhiteSpace(emailConfig.From.SmtpHost);
+        return isConfigured ? emailConfig : null;
+    }
+
+    /// <summary>
+    /// 解析品牌名（发件人显示名 FromName，未配置回退默认品牌）
+    /// </summary>
+    private static string ResolveEmailBrand(EmailOptions? emailConfig)
+    {
+        var fromName = emailConfig?.From.FromName;
+        return string.IsNullOrWhiteSpace(fromName) ? "XiHan BasicApp" : fromName;
+    }
+
+    /// <summary>
     /// 发送注册欢迎邮件（复用消息投递管道，模板优先、内置内容兜底）
     /// </summary>
-    private async Task SendWelcomeEmailAsync(string email, SysUser user, CancellationToken cancellationToken)
+    private async Task SendWelcomeEmailAsync(string email, SysUser user, EmailOptions emailConfig, CancellationToken cancellationToken)
     {
-        var emailOptions = _emailSenderOptions.CurrentValue;
-        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        var brand = ResolveEmailBrand(emailConfig);
         var displayName = string.IsNullOrWhiteSpace(user.NickName) ? user.UserName : user.NickName;
         await _messageDeliveryService.CreateEmailAsync(
             new EmailCreateCommand(
                 SendUserId: null,
                 ReceiveUserId: user.BasicId,
                 EmailType: EmailType.Notification,
-                FromEmail: emailOptions.FromEmail,
-                FromName: emailOptions.FromName,
+                FromEmail: emailConfig.From.FromMail,
+                FromName: emailConfig.From.FromName,
                 ToEmail: email,
                 CcEmail: null,
                 BccEmail: null,
@@ -1121,17 +1140,16 @@ public sealed class AuthAppService
     /// <summary>
     /// 发送找回密码邮件：携带一次性重置链接（复用消息投递管道）
     /// </summary>
-    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string resetUrl, CancellationToken cancellationToken)
+    private async Task SendPasswordResetEmailAsync(string email, long receiveUserId, string resetUrl, EmailOptions emailConfig, CancellationToken cancellationToken)
     {
-        var emailOptions = _emailSenderOptions.CurrentValue;
-        var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+        var brand = ResolveEmailBrand(emailConfig);
         await _messageDeliveryService.CreateEmailAsync(
             new EmailCreateCommand(
                 SendUserId: null,
                 ReceiveUserId: receiveUserId,
                 EmailType: EmailType.Verification,
-                FromEmail: emailOptions.FromEmail,
-                FromName: emailOptions.FromName,
+                FromEmail: emailConfig.From.FromMail,
+                FromName: emailConfig.From.FromName,
                 ToEmail: email,
                 CcEmail: null,
                 BccEmail: null,
@@ -1207,20 +1225,20 @@ public sealed class AuthAppService
     private async Task<string> IssueAndSendEmailLoginCodeAsync(string email, long? receiveUserId, long? tenantId, CancellationToken cancellationToken)
     {
         var code = await _emailLoginCodeService.IssueCodeAsync(tenantId, email, cancellationToken);
-        var emailOptions = _emailSenderOptions.CurrentValue;
+        var emailConfig = await GetConfiguredEmailOptionsAsync(cancellationToken);
 
         // 已配置真实 SMTP：通过消息投递管道发送验证码邮件（失败会抛出，避免静默丢码）
-        if (emailOptions.IsConfigured)
+        if (emailConfig is not null)
         {
             var minutes = Math.Max(1, _emailLoginCodeService.ExpiresInSeconds / 60);
-            var brand = string.IsNullOrWhiteSpace(emailOptions.FromName) ? "XiHan BasicApp" : emailOptions.FromName;
+            var brand = ResolveEmailBrand(emailConfig);
             await _messageDeliveryService.CreateEmailAsync(
                 new EmailCreateCommand(
                     SendUserId: null,
                     ReceiveUserId: receiveUserId,
                     EmailType: EmailType.Verification,
-                    FromEmail: emailOptions.FromEmail,
-                    FromName: emailOptions.FromName,
+                    FromEmail: emailConfig.From.FromMail,
+                    FromName: emailConfig.From.FromName,
                     ToEmail: email,
                     CcEmail: null,
                     BccEmail: null,
