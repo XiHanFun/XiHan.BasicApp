@@ -419,6 +419,12 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Message.Delete, "系统消息删除", "删除当前租户通知、邮件或短信", true, 2074),
             new(SaasPermissionCodes.Message.Export, "消息导出", "导出当前数据范围内的邮件短信列表数据", false, 2700),
         ]),
+        new(SaasPermissionCodes.Chat.Group, "在线聊天",
+        [
+            new(SaasPermissionCodes.Chat.Read, "聊天查看", "查看当前用户的聊天会话列表与消息历史", true, 916),
+            new(SaasPermissionCodes.Chat.Send, "聊天发送", "在所属会话内发送消息与撤回自己的消息", true, 2078),
+            new(SaasPermissionCodes.Chat.Manage, "聊天会话管理", "创建群聊、添加/移除群成员", true, 2079),
+        ]),
         new(SaasPermissionCodes.Notification.Group, "系统通知",
         [
             new(SaasPermissionCodes.Notification.Read, "系统通知查看", "查看当前租户系统通知/公告列表与详情", false, 2100),
