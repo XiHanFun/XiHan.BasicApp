@@ -17,10 +17,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow.Attributes;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -37,13 +39,23 @@ public sealed class UserDepartmentAppService
 
     private readonly IPositionRepository _positionRepository;
 
+    private readonly IUserDepartmentRepository _userDepartmentRepository;
+
+    private readonly ILocalEventBus _localEventBus;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public UserDepartmentAppService(IUserDomainService userDomainService, IPositionRepository positionRepository)
+    public UserDepartmentAppService(
+        IUserDomainService userDomainService,
+        IPositionRepository positionRepository,
+        IUserDepartmentRepository userDepartmentRepository,
+        ILocalEventBus localEventBus)
     {
         _userDomainService = userDomainService;
         _positionRepository = positionRepository;
+        _userDepartmentRepository = userDepartmentRepository;
+        _localEventBus = localEventBus;
     }
 
     #region 用户部门
@@ -60,6 +72,9 @@ public sealed class UserDepartmentAppService
 
         await EnsurePositionExistsAsync(input.PositionId, cancellationToken);
         var result = await _userDomainService.CreateUserDepartmentAsync(UserDepartmentApplicationMapper.ToAssignCommand(input), cancellationToken);
+
+        // 部门归属变更事件：订阅方同步部门群成员（入部门自动进群）
+        await _localEventBus.PublishAsync(new UserDepartmentChangedDomainEvent(input.UserId, input.DepartmentId, isAssigned: true));
         return UserDepartmentApplicationMapper.ToDetailDto(result.UserDepartment, result.Department);
     }
 
@@ -71,7 +86,14 @@ public sealed class UserDepartmentAppService
     public async Task DeleteUserDepartmentAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 删除前留存归属信息，供部门归属变更事件使用（移出部门即踢出部门群）
+        var existing = await _userDepartmentRepository.GetByIdAsync(id, cancellationToken);
         await _userDomainService.DeleteUserDepartmentAsync(id, cancellationToken);
+        if (existing is not null)
+        {
+            await _localEventBus.PublishAsync(new UserDepartmentChangedDomainEvent(existing.UserId, existing.DepartmentId, isAssigned: false));
+        }
     }
 
     /// <summary>

@@ -19,4 +19,10 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 /// <summary>
 /// 聊天消息仓储接口
 /// </summary>
-public interface IChatMessageRepository : ISaasRepository<SysChatMessage>;
+public interface IChatMessageRepository : ISaasRepository<SysChatMessage>
+{
+    /// <summary>
+    /// 会话消息历史游标分页：取 beforeMessageId 之前（不含）的最近 take 条，按消息 ID 倒序
+    /// </summary>
+    Task<IReadOnlyList<SysChatMessage>> GetHistoryAsync(long conversationId, long? beforeMessageId, int take, CancellationToken cancellationToken = default);
+}

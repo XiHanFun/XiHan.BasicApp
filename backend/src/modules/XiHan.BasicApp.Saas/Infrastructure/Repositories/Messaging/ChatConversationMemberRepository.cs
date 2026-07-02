@@ -54,4 +54,14 @@ public sealed class ChatConversationMemberRepository(ISqlSugarClientResolver cli
             .Where(member => member.ConversationId == conversationId && member.UserId != exceptUserId && !member.IsDeleted)
             .ExecuteCommandAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysChatConversationMember>> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(member => member.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
 }
