@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { NInput, NProgress, NTooltip, useMessage } from 'naive-ui'
-import { computed, ref } from 'vue'
+import type { InputInst } from 'naive-ui'
+import { NInput, NPopover, NProgress, NScrollbar, NTooltip, useMessage } from 'naive-ui'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { CHAT_MAX_CONTENT_LENGTH } from '~/types'
 import { ChatMessageType } from '~/types/enums'
+import { CHAT_EMOJIS } from './chat-emojis'
 
 defineOptions({ name: 'ChatComposer' })
 
@@ -25,12 +27,31 @@ const sending = ref(false)
 const uploadingPercent = ref<null | number>(null)
 const imageInputRef = ref<HTMLInputElement>()
 const fileInputRef = ref<HTMLInputElement>()
+const textInputRef = ref<InputInst | null>(null)
+const showEmojiPicker = ref(false)
 
 const canSend = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.send))
 const trimmedDraft = computed(() => draft.value.trim())
 
 function handleInput() {
   chatStore.sendTyping(props.conversationId)
+}
+
+/** 在光标处插入表情（超长丢弃；插入后回焦并把光标落在表情后） */
+function insertEmoji(emoji: string) {
+  if (draft.value.length + emoji.length > CHAT_MAX_CONTENT_LENGTH) {
+    return
+  }
+  const textarea = textInputRef.value?.textareaElRef
+  const start = textarea?.selectionStart ?? draft.value.length
+  const end = textarea?.selectionEnd ?? draft.value.length
+  draft.value = draft.value.slice(0, start) + emoji + draft.value.slice(end)
+  showEmojiPicker.value = false
+  void nextTick(() => {
+    textarea?.focus()
+    const caret = start + emoji.length
+    textarea?.setSelectionRange(caret, caret)
+  })
 }
 
 async function handleSendText() {
@@ -110,6 +131,30 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
       </div>
 
       <div class="flex items-end gap-1.5">
+        <!-- 表情 -->
+        <NPopover v-model:show="showEmojiPicker" trigger="click" placement="top-start" :show-arrow="false" raw>
+          <template #trigger>
+            <button type="button" class="chat-composer-btn" :title="t('chat.composer.emoji')">
+              <Icon icon="lucide:smile" width="17" height="17" />
+            </button>
+          </template>
+          <div class="chat-emoji-panel">
+            <NScrollbar style="max-height: 216px">
+              <div class="chat-emoji-grid">
+                <button
+                  v-for="emoji in CHAT_EMOJIS"
+                  :key="emoji"
+                  type="button"
+                  class="chat-emoji-item"
+                  @click="insertEmoji(emoji)"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+            </NScrollbar>
+          </div>
+        </NPopover>
+
         <!-- 附件按钮 -->
         <NTooltip>
           <template #trigger>
@@ -153,6 +198,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
 
         <!-- 文本输入：Enter 发送 / Shift+Enter 换行 -->
         <NInput
+          ref="textInputRef"
           v-model:value="draft"
           type="textarea"
           :autosize="{ minRows: 1, maxRows: 5 }"
@@ -210,5 +256,42 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
 
 .chat-composer-btn--send {
   color: hsl(var(--primary));
+}
+
+.chat-emoji-panel {
+  width: 296px;
+  padding: 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--card));
+  box-shadow:
+    0 8px 30px hsl(var(--foreground) / 8%),
+    0 2px 8px hsl(var(--foreground) / 4%);
+}
+
+.chat-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.chat-emoji-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.chat-emoji-item:hover {
+  background: hsl(var(--accent));
 }
 </style>

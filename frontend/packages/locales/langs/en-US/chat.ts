@@ -55,6 +55,7 @@ export default {
   composer: {
     placeholder: 'Type a message. Enter to send / Shift+Enter for newline',
     send: 'Send',
+    emoji: 'Emoji',
     image: 'Send image',
     file: 'Send file',
     uploading: 'Uploading {percent}%',
