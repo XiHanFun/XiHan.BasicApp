@@ -1,4 +1,9 @@
 export default {
+  bell: '在线聊天',
+  drawer: {
+    title: '在线聊天',
+    open_page: '打开独立页',
+  },
   start: {
     button: '发起聊天',
     single: '发起单聊',

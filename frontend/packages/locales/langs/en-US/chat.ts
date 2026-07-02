@@ -1,4 +1,9 @@
 export default {
+  bell: 'Chat',
+  drawer: {
+    title: 'Chat',
+    open_page: 'Open full page',
+  },
   start: {
     button: 'Start Chat',
     single: 'Direct Message',

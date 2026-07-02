@@ -10,6 +10,7 @@ import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
+import ChatHeaderButton from './ChatHeaderButton.vue'
 import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
@@ -109,6 +110,9 @@ const { isMobile } = useIsMobile()
 
     <!-- 分割线 -->
     <div class="mx-1 h-4 w-px bg-border" />
+
+    <!-- 聊天入口（未读角标 + 打开全局聊天抽屉；无权限自隐藏） -->
+    <ChatHeaderButton />
 
     <!-- 通知弹窗 -->
     <NotificationPopover

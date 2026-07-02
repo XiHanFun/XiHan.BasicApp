@@ -7,6 +7,7 @@ import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useSplitViewStore, useTabbarStore } from '~/stores'
+import AppChatDrawer from './components/AppChatDrawer.vue'
 import AppFavorites from './components/AppFavorites.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
@@ -507,6 +508,7 @@ const sidebarEnableState = computed(
 
     <!-- ==================== Extra ==================== -->
     <AppPreferenceDrawer />
+    <AppChatDrawer />
     <AppTabOverview />
     <XihanBackTop :scroll-y="shell.scrollY.value" />
 
