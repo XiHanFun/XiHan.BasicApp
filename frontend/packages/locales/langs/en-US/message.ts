@@ -17,6 +17,11 @@ export default {
     // Publish status
     published: 'Published',
     unpublished: 'Unpublished',
+    // Delivery channels
+    channel_site: 'In-App',
+    channel_email: 'Email',
+    channel_sms: 'SMS',
+    channel_bot: 'Bot',
     // Columns / search
     col_keyword: 'Keyword',
     search_keyword_placeholder: 'Search title / content',
@@ -24,6 +29,7 @@ export default {
     col_type: 'Type',
     search_type_placeholder: 'Type',
     col_target_type: 'Target Type',
+    col_delivery_channels: 'Delivery Channels',
     col_is_published: 'Published',
     search_published_placeholder: 'Publish Status',
     col_send_time: 'Send Time',
@@ -76,6 +82,8 @@ export default {
     form_mandatory: 'Mandatory Read',
     form_banner: 'Top Banner',
     form_popup: 'Login Popup',
+    form_delivery_channels: 'Delivery Channels',
+    form_delivery_channels_hint: 'In-app is always delivered. Email/SMS are filtered by user preferences and sent asynchronously via the outbox; Bot is a global broadcast.',
     edit_user_hint: 'Editing overwrites the entire recipient list. Please re-enter the complete recipient user IDs.',
     // Detail
     detail_title: 'Announcement Detail',
@@ -85,6 +93,7 @@ export default {
         type: 'Type',
         priority: 'Priority',
         target_type: 'Target Type',
+        delivery_channels: 'Delivery Channels',
         is_published: 'Published',
         need_confirm: 'Require Confirmation',
         mandatory: 'Mandatory Read',

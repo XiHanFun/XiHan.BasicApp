@@ -36,6 +36,7 @@ public sealed record NotificationCreateCommand(
     bool NeedConfirm,
     NotificationPriority Priority,
     NotificationContentFormat ContentFormat,
+    MessageChannel DeliveryChannels,
     DateTimeOffset? StartTime,
     bool IsMandatory,
     bool IsBanner,
@@ -62,6 +63,7 @@ public sealed record NotificationUpdateCommand(
     bool NeedConfirm,
     NotificationPriority Priority,
     NotificationContentFormat ContentFormat,
+    MessageChannel DeliveryChannels,
     DateTimeOffset? StartTime,
     bool IsMandatory,
     bool IsBanner,
@@ -72,6 +74,19 @@ public sealed record NotificationUpdateCommand(
 /// 通知发布命令
 /// </summary>
 public sealed record NotificationPublishCommand(long BasicId, NotificationTargetType? TargetType, IReadOnlyList<long>? UserIds);
+
+/// <summary>
+/// 通知渠道收件人解析结果（邮箱/短信位各自经偏好门控后的用户主键集合；未勾选渠道为空集合）
+/// </summary>
+public sealed record NotificationChannelRecipientsResult(
+    IReadOnlyCollection<long> EmailUserIds,
+    IReadOnlyCollection<long> SmsUserIds)
+{
+    /// <summary>
+    /// 空结果（无邮箱/短信投递位时使用）
+    /// </summary>
+    public static NotificationChannelRecipientsResult Empty { get; } = new([], []);
+}
 
 /// <summary>
 /// 通知命令结果

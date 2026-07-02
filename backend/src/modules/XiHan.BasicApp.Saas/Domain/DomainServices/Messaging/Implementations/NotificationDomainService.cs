@@ -25,6 +25,12 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class NotificationDomainService
     : INotificationDomainService
 {
+    /// <summary>
+    /// 全部合法投递渠道位（用于 [Flags] 组合校验，防未定义位入库）
+    /// </summary>
+    private const MessageChannel AllDeliveryChannels =
+        MessageChannel.SiteNotification | MessageChannel.Email | MessageChannel.Sms | MessageChannel.Bot;
+
     private readonly INotificationRepository _notificationRepository;
 
     private readonly IUserNotificationRepository _userNotificationRepository;
@@ -81,6 +87,7 @@ public sealed class NotificationDomainService
             NeedConfirm = command.NeedConfirm,
             Priority = command.Priority,
             ContentFormat = command.ContentFormat,
+            DeliveryChannels = EnsureDeliveryChannels(command.DeliveryChannels),
             StartTime = command.StartTime,
             IsMandatory = command.IsMandatory,
             IsBanner = command.IsBanner,
@@ -134,6 +141,38 @@ public sealed class NotificationDomainService
     }
 
     /// <inheritdoc />
+    public async Task<NotificationChannelRecipientsResult> ResolveChannelRecipientsAsync(SysNotification notification, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(notification);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var needEmail = notification.DeliveryChannels.HasFlag(MessageChannel.Email);
+        var needSms = notification.DeliveryChannels.HasFlag(MessageChannel.Sms);
+        if (!needEmail && !needSms)
+        {
+            return NotificationChannelRecipientsResult.Empty;
+        }
+
+        // 从持久化的 TargetValue 还原目标 ID（全员为 null → 空数组），复用站内信同一解析链
+        long[] targetIds = string.IsNullOrWhiteSpace(notification.TargetValue)
+            ? []
+            : JsonSerializer.Deserialize<long[]>(notification.TargetValue) ?? [];
+        var recipientIds = await ResolveRecipientIdsAsync(targetIds, notification.TargetType, cancellationToken);
+        if (recipientIds.Count == 0)
+        {
+            return NotificationChannelRecipientsResult.Empty;
+        }
+
+        IReadOnlyCollection<long> emailUserIds = needEmail
+            ? await FilterByPreferenceAsync(recipientIds, notification, MessageChannel.Email, cancellationToken)
+            : [];
+        IReadOnlyCollection<long> smsUserIds = needSms
+            ? await FilterByPreferenceAsync(recipientIds, notification, MessageChannel.Sms, cancellationToken)
+            : [];
+        return new NotificationChannelRecipientsResult(emailUserIds, smsUserIds);
+    }
+
+    /// <inheritdoc />
     public async Task<NotificationCommandResult> UpdateNotificationAsync(NotificationUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -163,6 +202,7 @@ public sealed class NotificationDomainService
         notification.NeedConfirm = command.NeedConfirm;
         notification.Priority = command.Priority;
         notification.ContentFormat = command.ContentFormat;
+        notification.DeliveryChannels = EnsureDeliveryChannels(command.DeliveryChannels);
         notification.StartTime = command.StartTime;
         notification.IsMandatory = command.IsMandatory;
         notification.IsBanner = command.IsBanner;
@@ -212,6 +252,24 @@ public sealed class NotificationDomainService
         {
             throw new ArgumentOutOfRangeException(nameof(expireTime), "过期时间必须晚于发送时间。");
         }
+    }
+
+    /// <summary>
+    /// 校验投递渠道组合：必含站内信位（前端固定勾选），且不得携带未定义渠道位（[Flags] 组合无法用 Enum.IsDefined 校验）
+    /// </summary>
+    private static MessageChannel EnsureDeliveryChannels(MessageChannel channels)
+    {
+        if ((channels & ~AllDeliveryChannels) != 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(channels), "投递渠道包含未定义的渠道位。");
+        }
+
+        if (!channels.HasFlag(MessageChannel.SiteNotification))
+        {
+            throw new ArgumentOutOfRangeException(nameof(channels), "投递渠道必须包含站内信。");
+        }
+
+        return channels;
     }
 
     private static void EnsureEnum<TEnum>(TEnum value, string paramName)

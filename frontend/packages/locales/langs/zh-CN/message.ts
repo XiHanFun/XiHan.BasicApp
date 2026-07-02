@@ -17,6 +17,11 @@ export default {
     // 发布状态
     published: '已发布',
     unpublished: '未发布',
+    // 投递渠道
+    channel_site: '站内信',
+    channel_email: '邮箱',
+    channel_sms: '短信',
+    channel_bot: '机器人',
     // 列 / 搜索
     col_keyword: '关键词',
     search_keyword_placeholder: '搜索标题/内容',
@@ -24,6 +29,7 @@ export default {
     col_type: '类型',
     search_type_placeholder: '类型',
     col_target_type: '目标类型',
+    col_delivery_channels: '投递渠道',
     col_is_published: '是否发布',
     search_published_placeholder: '发布状态',
     col_send_time: '发送时间',
@@ -76,6 +82,8 @@ export default {
     form_mandatory: '强制阅读',
     form_banner: '顶部横幅',
     form_popup: '登录弹窗',
+    form_delivery_channels: '投递渠道',
+    form_delivery_channels_hint: '站内信始终投递；邮箱/短信按用户偏好过滤后经发件箱异步发送，机器人为全局广播。',
     edit_user_hint: '编辑会整体覆盖原指定用户列表，请重新填写完整的接收用户ID。',
     // 详情
     detail_title: '公告详情',
@@ -85,6 +93,7 @@ export default {
         type: '类型',
         priority: '优先级',
         target_type: '目标类型',
+        delivery_channels: '投递渠道',
         is_published: '是否发布',
         need_confirm: '需用户确认',
         mandatory: '强制阅读',

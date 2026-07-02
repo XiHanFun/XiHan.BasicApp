@@ -46,6 +46,12 @@ public sealed class NotificationCreateDto
     public bool NeedConfirm { get; set; }
     public NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
     public NotificationContentFormat ContentFormat { get; set; } = NotificationContentFormat.Markdown;
+
+    /// <summary>
+    /// 投递渠道（[Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人）
+    /// </summary>
+    public MessageChannel DeliveryChannels { get; set; } = MessageChannel.SiteNotification;
+
     public DateTimeOffset? StartTime { get; set; }
     public bool IsMandatory { get; set; }
     public bool IsBanner { get; set; }
@@ -70,6 +76,12 @@ public sealed class NotificationUpdateDto : BasicAppUDto
     public bool NeedConfirm { get; set; }
     public NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
     public NotificationContentFormat ContentFormat { get; set; } = NotificationContentFormat.Markdown;
+
+    /// <summary>
+    /// 投递渠道（[Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人）
+    /// </summary>
+    public MessageChannel DeliveryChannels { get; set; } = MessageChannel.SiteNotification;
+
     public DateTimeOffset? StartTime { get; set; }
     public bool IsMandatory { get; set; }
     public bool IsBanner { get; set; }

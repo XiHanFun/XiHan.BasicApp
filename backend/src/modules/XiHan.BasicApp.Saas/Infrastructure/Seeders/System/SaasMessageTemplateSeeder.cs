@@ -157,6 +157,24 @@ public sealed class SaasMessageTemplateSeeder(
                 IsHtml: false,
                 "变量：code=验证码, minutes=有效分钟数, brand=品牌名, title=用途标题",
                 45),
+            new(
+                SaasMessageTemplateCodes.Notification.Email,
+                MessageChannel.Email,
+                "系统通知邮件",
+                "【{{brand}}】{{title}}",
+                BuildNotificationEmailHtml(),
+                IsHtml: true,
+                "变量：title=通知标题, content=通知内容, brand=品牌名",
+                50),
+            new(
+                SaasMessageTemplateCodes.Notification.Sms,
+                MessageChannel.Sms,
+                "系统通知短信",
+                Subject: null,
+                "【{{brand}}】您有新的通知：{{title}}，详情请登录查看。",
+                IsHtml: false,
+                "变量：title=通知标题, brand=品牌名；云厂商发送须在短信配置 TemplateMap 登记 notification-sms → 服务商模板码的映射",
+                55),
         ];
     }
 
@@ -205,6 +223,25 @@ public sealed class SaasMessageTemplateSeeder(
       <p style='margin:0;font-size:13px;line-height:1.7;color:#9ca3af;'>如非本人操作，请忽略本邮件，您的账号仍然安全。</p>
     </div>
     <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。</div>
+  </div>
+</div>";
+    }
+
+    /// <summary>
+    /// 系统通知邮件 HTML（占位符 {{title}}/{{content}}/{{brand}}；content 以 pre-wrap 呈现保留纯文本/Markdown 换行，HTML 内容亦可正常渲染）
+    /// </summary>
+    private static string BuildNotificationEmailHtml()
+    {
+        return @"<div style='margin:0;padding:24px;background:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'>
+  <div style='max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(20,40,80,0.08);'>
+    <div style='padding:28px 32px;background:linear-gradient(135deg,#4f7cff,#6f5bff);color:#ffffff;'>
+      <div style='font-size:18px;font-weight:700;letter-spacing:.5px;'>{{brand}}</div>
+    </div>
+    <div style='padding:32px;'>
+      <h1 style='margin:0 0 16px;font-size:20px;color:#1f2937;'>{{title}}</h1>
+      <div style='margin:0;font-size:14px;line-height:1.7;color:#4b5563;white-space:pre-wrap;word-break:break-word;'>{{content}}</div>
+    </div>
+    <div style='padding:18px 32px;background:#fafbfc;border-top:1px solid #eef0f4;font-size:12px;color:#9ca3af;text-align:center;'>本邮件由系统自动发送，请勿直接回复。详情请登录系统查看。</div>
   </div>
 </div>";
     }

@@ -1,4 +1,5 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+import type { MessageChannel } from './message-template.types'
 import { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationTargetType, NotificationType } from '~/types/enums'
 
 // 通知契约枚举已下沉到 packages/types/enums（供布局通知中心等 shell 功能复用），此处 re-export 保持 `@/api` 入口不变
@@ -25,6 +26,8 @@ export interface NotificationListItemDto extends BasicDto {
   content?: string | null
   contentFormat: NotificationContentFormat
   createdTime: DateTimeString
+  /** 投递渠道（MessageChannel [Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人） */
+  deliveryChannels: MessageChannel
   expirationTime?: DateTimeString | null
   icon?: string | null
   isBanner: boolean
@@ -56,6 +59,8 @@ export interface NotificationCreateDto {
   businessType?: string | null
   content?: string | null
   contentFormat: NotificationContentFormat
+  /** 投递渠道（MessageChannel [Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人） */
+  deliveryChannels: MessageChannel
   expirationTime?: DateTimeString | null
   icon?: string | null
   isBanner: boolean
@@ -87,6 +92,8 @@ export interface NotificationUpdateDto {
   businessType?: string | null
   content?: string | null
   contentFormat: NotificationContentFormat
+  /** 投递渠道（MessageChannel [Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人） */
+  deliveryChannels: MessageChannel
   expirationTime?: DateTimeString | null
   icon?: string | null
   isBanner: boolean

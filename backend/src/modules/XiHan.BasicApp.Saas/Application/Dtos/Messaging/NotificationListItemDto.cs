@@ -93,6 +93,11 @@ public class NotificationListItemDto : BasicAppDto
     public NotificationContentFormat ContentFormat { get; set; }
 
     /// <summary>
+    /// 投递渠道（[Flags] 按位组合；必含站内信，可叠加邮箱/短信/机器人）
+    /// </summary>
+    public MessageChannel DeliveryChannels { get; set; } = MessageChannel.SiteNotification;
+
+    /// <summary>
     /// 生效开始时间
     /// </summary>
     public DateTimeOffset? StartTime { get; set; }
