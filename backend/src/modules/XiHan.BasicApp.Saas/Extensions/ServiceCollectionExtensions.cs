@@ -32,6 +32,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
+using XiHan.Framework.Bot.Sms;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.Data.SqlSugar.Tenanting;
@@ -139,7 +140,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
-        services.AddSingleton<ISmsGatewayResolver, SmsGatewayResolver>();
+        // 短信配置存储：以数据库实现覆盖框架默认空实现（框架模块 TryAdd 先注册，故须 Replace）
+        services.Replace(ServiceDescriptor.Singleton<ISmsConfigStore, SaasSmsConfigStore>());
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用

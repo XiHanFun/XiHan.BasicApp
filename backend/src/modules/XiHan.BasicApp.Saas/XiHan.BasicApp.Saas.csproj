@@ -24,11 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="4.1.0" />
-      <PackageReference Include="TencentCloudSDK.Sms" Version="3.0.1355" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Web.Core\XiHan.BasicApp.Web.Core.csproj" />
     </ItemGroup>
 

@@ -23,6 +23,7 @@
         <PackageReference Include="XiHan.Framework.Bot.DingTalk" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Bot.Email" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Bot.Lark" Version="3.0.1" />
+        <PackageReference Include="XiHan.Framework.Bot.Sms" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Bot.Telegram" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Bot.WeCom" Version="3.0.1" />
         <PackageReference Include="XiHan.Framework.Caching" Version="3.0.1" />
