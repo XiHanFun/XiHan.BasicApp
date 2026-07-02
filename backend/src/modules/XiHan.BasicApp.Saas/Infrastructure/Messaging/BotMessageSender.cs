@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Messaging;
-using XiHan.Framework.Bot.Core;
+using XiHan.Framework.Bot.Clients;
 using XiHan.Framework.Bot.Enums;
 using XiHan.Framework.Bot.Models;
 using XiHan.Framework.Messaging.Abstractions;
@@ -29,12 +29,12 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 /// 机器人消息发送器
 /// </summary>
 /// <remarks>
-/// 仅支持直发模式：渲染模板（缺失回退信封内容）后经框架 Bot 提供者（Telegram/钉钉/飞书/企微 等）投递。
+/// 仅支持直发模式：渲染模板（缺失回退信封内容）后经框架 <see cref="IBotClient"/> 投递
+/// （完整经过框架管道：环境过滤/限流/重试/日志 + 广播等策略）。
 /// - 不落 SysEmail/SysSms 类业务行，无发件箱重放语义：信封元数据含 EntityId 时视为误路由，直接抛出。
 /// - 渠道选择：信封元数据 <c>Channels</c>（逗号分隔的框架渠道/提供者名）有值则定向投递，否则广播全部提供者。
-/// - 结果映射：0 个提供者送达 或 任一提供者返回失败 → <see cref="MessageSendResult.IsSuccess"/> 为 false（fail-closed）。
-/// 注：框架 <c>IBotClient.SendAsync</c> 不回传各提供者结果，故这里经同为框架公开 API 的
-/// <see cref="BotProviderManager"/> 解析提供者并逐个投递（与广播策略同语义），以拿到可映射的 <see cref="BotResult"/>。
+/// - 结果映射：<see cref="BotDispatchResult.IsSuccess"/> 为 false（无提供者/被跳过/任一失败）
+///   → <see cref="MessageSendResult.IsSuccess"/> 为 false（fail-closed）。
 /// </remarks>
 public sealed class BotMessageSender : IMessageSender
 {
@@ -49,22 +49,22 @@ public sealed class BotMessageSender : IMessageSender
     public const string EntityIdMetadataKey = "EntityId";
 
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly BotProviderManager _botProviderManager;
+    private readonly IBotClient _botClient;
     private readonly ILogger<BotMessageSender> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="scopeFactory">服务作用域工厂（用于解析 Scoped 的模板渲染服务）</param>
-    /// <param name="botProviderManager">框架 Bot 提供者管理器（Singleton，按渠道/提供者名解析）</param>
+    /// <param name="botClient">框架 Bot 客户端（Singleton，经调度器走完整管道并回传聚合结果）</param>
     /// <param name="logger">日志记录器</param>
     public BotMessageSender(
         IServiceScopeFactory scopeFactory,
-        BotProviderManager botProviderManager,
+        IBotClient botClient,
         ILogger<BotMessageSender> logger)
     {
         _scopeFactory = scopeFactory;
-        _botProviderManager = botProviderManager;
+        _botClient = botClient;
         _logger = logger;
     }
 
@@ -109,49 +109,35 @@ public sealed class BotMessageSender : IMessageSender
             Type = BotMessageType.Text
         };
 
-        // 定向渠道：元数据 Channels（逗号分隔）有值则按框架渠道/提供者名解析，否则广播全部提供者
+        // 定向渠道：元数据 Channels（逗号分隔）有值则按框架渠道/提供者名投递，否则广播全部提供者
         var channels = ResolveTargetChannels(envelope);
-        var providers = _botProviderManager.ResolveProviders(channels);
-        if (providers.Count == 0)
+        BotDispatchResult dispatchResult;
+        try
         {
-            _logger.LogWarning("机器人消息无可用提供者。MessageId: {MessageId}, Channels: {Channels}",
-                envelope.MessageId, channels.Count == 0 ? "(broadcast)" : string.Join(",", channels));
-
-            return BuildResult(envelope, recipient, isSuccess: false, "未配置可用的机器人提供者，已拒绝发送。");
+            dispatchResult = channels.Count == 0
+                ? await _botClient.SendAsync(botMessage)
+                : await _botClient.SendAsync(botMessage, [.. channels]);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // 框架 ThrowWhenNoProvider=true 或重试耗尽后的最终异常
+            _logger.LogError(ex, "机器人消息调度异常。MessageId: {MessageId}", envelope.MessageId);
+            return BuildResult(envelope, recipient, isSuccess: false, ex.Message);
         }
 
-        // 逐提供者投递并收集结果（与框架广播策略同语义；单个异常不阻断其余提供者）
-        var context = new BotContext(botMessage, channels, cancellationToken);
-        foreach (var provider in providers)
+        if (!dispatchResult.IsSuccess)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                var result = await provider.SendAsync(botMessage, context);
-                context.AddResult(provider.Name, result);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger.LogError(ex, "机器人提供者投递异常。MessageId: {MessageId}, Provider: {Provider}", envelope.MessageId, provider.Name);
-                context.AddResult(provider.Name, BotResult.Failed(ex.Message, provider.Name));
-            }
+            _logger.LogWarning("机器人消息发送失败。MessageId: {MessageId}, 失败明细: {Error}",
+                envelope.MessageId, dispatchResult.ErrorMessage);
+            return BuildResult(envelope, recipient, isSuccess: false,
+                dispatchResult.ErrorMessage ?? "机器人消息发送失败。");
         }
 
-        if (context.HasFailures)
-        {
-            var error = string.Join("; ", context.Results
-                .Where(result => !result.Result.IsSuccess)
-                .Select(result => $"{result.ProviderName}: {result.Result.Message ?? "发送失败"}"));
-
-            _logger.LogWarning("机器人消息发送失败。MessageId: {MessageId}, 失败明细: {Error}", envelope.MessageId, error);
-            return BuildResult(envelope, recipient, isSuccess: false, error);
-        }
-
+        var providers = string.Join(",", dispatchResult.Results.Select(result => result.Provider));
         _logger.LogInformation("机器人消息发送成功。MessageId: {MessageId}, Providers: {Providers}",
-            envelope.MessageId, string.Join(",", context.Results.Select(result => result.ProviderName)));
+            envelope.MessageId, providers);
 
-        return BuildResult(envelope, recipient, isSuccess: true, errorMessage: null,
-            providerMessageId: string.Join(",", context.Results.Select(result => result.ProviderName)));
+        return BuildResult(envelope, recipient, isSuccess: true, errorMessage: null, providerMessageId: providers);
     }
 
     /// <summary>
