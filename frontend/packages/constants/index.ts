@@ -1,5 +1,6 @@
 export * from './app'
 export * from './business'
+export * from './chat'
 export * from './http'
 export * from './layout-events'
 export * from './route'
