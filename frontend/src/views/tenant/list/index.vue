@@ -4,6 +4,7 @@ import type {
   PageResult,
   TenantCreateDto,
   TenantDetailDto,
+  TenantEditionListItemDto,
   TenantListItemDto,
   TenantMemberListItemDto,
   TenantMemberStatusUpdateDto,
@@ -41,6 +42,7 @@ import {
   createPageRequest,
   querySortsFromSchema,
   TenantConfigStatus,
+  tenantEditionApi,
   TenantIsolationMode,
   tenantManagementApi,
   TenantMemberInviteStatus,
@@ -84,6 +86,36 @@ const expiredOptions = computed(() => [
   { label: t('tenant.list.no'), value: 0 },
 ])
 
+// ── 版本套餐：下拉选项 + 名称回显 + 上限默认值联动 ───────────────
+const editions = ref<TenantEditionListItemDto[]>([])
+
+async function loadEditions() {
+  try {
+    editions.value = await tenantEditionApi.enabledList()
+  }
+  catch {
+    // 加载失败时表单退化为无选项下拉、列表回显原始 ID，不阻塞页面
+    editions.value = []
+  }
+}
+
+void loadEditions()
+
+const editionOptions = computed(() =>
+  editions.value.map(e => ({
+    label: e.isDefault ? `${e.editionName}${t('tenant.list.edition_default_suffix')}` : e.editionName,
+    value: e.basicId,
+  })),
+)
+
+/** 版本名称回显：未加载到/找不到时回退原始 ID */
+function editionLabel(id?: ApiId | null) {
+  if (id === null || id === undefined || id === '') {
+    return null
+  }
+  return editions.value.find(e => e.basicId === id)?.editionName ?? String(id)
+}
+
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 function reloadTenant() {
@@ -96,6 +128,25 @@ const submitLoading = ref(false)
 const editingStatus = ref<TenantStatus | null>(null)
 const tenantForm = ref<TenantFormModel>(createDefaultForm())
 const modalTitle = computed(() => (tenantForm.value.basicId ? t('tenant.list.edit_title') : t('tenant.list.add_title')))
+
+/** 表单当前生效版本：选中的版本；留空时为默认版本 */
+const selectedEdition = computed(() => {
+  const id = tenantForm.value.editionId
+  if (id) {
+    return editions.value.find(e => e.basicId === id) ?? null
+  }
+  return editions.value.find(e => e.isDefault) ?? null
+})
+
+function limitPlaceholder(value?: number | null) {
+  if (!selectedEdition.value) {
+    return undefined
+  }
+  return t('tenant.list.limit_from_edition', { value: value ?? t('tenant.list.unlimited') })
+}
+
+const userLimitPlaceholder = computed(() => limitPlaceholder(selectedEdition.value?.userLimit))
+const storageLimitPlaceholder = computed(() => limitPlaceholder(selectedEdition.value?.storageLimit))
 
 const detailVisible = ref(false)
 const detailLoading = ref(false)
@@ -148,7 +199,17 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 120,
     order: 5,
   },
-  { key: 'editionId', title: t('tenant.list.edition'), dataType: 'string', minWidth: 100, order: 6 },
+  {
+    key: 'editionId',
+    title: t('tenant.list.edition'),
+    dataType: 'string',
+    minWidth: 100,
+    order: 6,
+    render: (row) => {
+      const r = row as unknown as TenantListItemDto
+      return editionLabel(r.editionId) ?? '-'
+    },
+  },
   {
     key: 'tenantStatus',
     title: t('tenant.list.tenant_status'),
@@ -196,8 +257,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'sort', title: t('tenant.list.sort'), dataType: 'number', sortable: true, minWidth: 80, order: 12 },
   { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 13 },
   { key: 'createdTime', title: t('tenant.list.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
-  // 仅高级搜索(不作为列)
-  { key: 'editionIdFilter', title: t('tenant.list.edition_id'), dataType: 'string', visible: false, advancedSearch: true, searchPlaceholder: t('tenant.list.edition_id_filter_placeholder'), order: 20 },
+  // 仅高级搜索(不作为列)：版本下拉（值仍为版本 ID）
+  { key: 'editionIdFilter', title: t('tenant.list.edition'), dataType: 'enum', visible: false, advancedSearch: true, options: editionOptions.value, searchPlaceholder: t('tenant.list.edition_filter_placeholder'), order: 20 },
 ])
 
 /** 过滤值辅助:trim 字符串 */
@@ -606,8 +667,8 @@ async function handleSubmit() {
                   <NDescriptionsItem v-if="currentDetail.databaseType" :label="t('tenant.list.database_type')">
                     {{ getOptionLabel(databaseTypeOptions, currentDetail.databaseType) }}
                   </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('tenant.list.edition_id')">
-                    {{ formatNullable(currentDetail.editionId) }}
+                  <NDescriptionsItem :label="t('tenant.list.edition')">
+                    {{ editionLabel(currentDetail.editionId) ?? '-' }}
                   </NDescriptionsItem>
                   <NDescriptionsItem :label="t('tenant.list.user_limit')">
                     {{ formatNullable(currentDetail.userLimit) }}
@@ -763,8 +824,13 @@ async function handleSubmit() {
             />
           </NFormItem>
         </template>
-        <NFormItem :label="t('tenant.list.edition_id')" path="editionId">
-          <NInput v-model:value="tenantForm.editionId" clearable style="width: 100%" />
+        <NFormItem :label="t('tenant.list.edition')" path="editionId">
+          <NSelect
+            v-model:value="tenantForm.editionId"
+            clearable
+            :options="editionOptions"
+            :placeholder="t('tenant.list.edition_placeholder')"
+          />
         </NFormItem>
         <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_user_name')" path="adminUserName">
           <NInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" />
@@ -787,10 +853,22 @@ async function handleSubmit() {
           />
         </NFormItem>
         <NFormItem :label="t('tenant.list.user_limit')" path="userLimit">
-          <NInputNumber v-model:value="tenantForm.userLimit" :min="0" clearable style="width: 100%" />
+          <NInputNumber
+            v-model:value="tenantForm.userLimit"
+            :min="0"
+            clearable
+            :placeholder="userLimitPlaceholder"
+            style="width: 100%"
+          />
         </NFormItem>
         <NFormItem :label="t('tenant.list.storage_limit')" path="storageLimit">
-          <NInputNumber v-model:value="tenantForm.storageLimit" :min="0" clearable style="width: 100%" />
+          <NInputNumber
+            v-model:value="tenantForm.storageLimit"
+            :min="0"
+            clearable
+            :placeholder="storageLimitPlaceholder"
+            style="width: 100%"
+          />
         </NFormItem>
         <NFormItem :label="t('tenant.list.sort')" path="sort">
           <NInputNumber v-model:value="tenantForm.sort" :min="0" style="width: 100%" />

@@ -26,7 +26,11 @@ export default {
     connection_string: '数据库连接串',
     connection_string_placeholder: '填写完整连接串；编辑时留空表示保持不变',
     edition: '版本',
-    edition_id: '版本 ID',
+    edition_default_suffix: '（默认）',
+    edition_placeholder: '选择版本套餐；留空使用默认版本',
+    edition_filter_placeholder: '按版本筛选',
+    limit_from_edition: '留空则用版本默认：{value}',
+    unlimited: '不限',
     tenant_status: '租户状态',
     tenant_status_placeholder: '租户状态',
     config_status: '配置状态',
@@ -41,7 +45,6 @@ export default {
     modified_time: '修改时间',
     is_expired_value: '已过期',
     // 高级搜索
-    edition_id_filter_placeholder: '版本 ID',
     expiration_time_start: '到期开始',
     expiration_time_end: '到期结束',
     // 布尔
