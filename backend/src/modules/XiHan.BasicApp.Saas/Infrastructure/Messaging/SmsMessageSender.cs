@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Bot.Sms;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Models;
 using XiHan.BasicApp.Saas.Application.Services;

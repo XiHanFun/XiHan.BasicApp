@@ -20,6 +20,7 @@ using XiHan.Framework.Bot;
 using XiHan.Framework.Bot.DingTalk;
 using XiHan.Framework.Bot.Email;
 using XiHan.Framework.Bot.Lark;
+using XiHan.Framework.Bot.Sms;
 using XiHan.Framework.Bot.Telegram;
 using XiHan.Framework.Bot.WeCom;
 using XiHan.Framework.Caching;
@@ -65,6 +66,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanBotDingTalkModule),
     typeof(XiHanBotEmailModule),
     typeof(XiHanBotLarkModule),
+    typeof(XiHanBotSmsModule),
     typeof(XiHanBotTelegramModule),
     typeof(XiHanBotWeComModule),
     typeof(XiHanCachingModule),
