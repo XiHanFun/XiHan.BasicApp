@@ -26,7 +26,11 @@ export default {
     connection_string: 'Connection String',
     connection_string_placeholder: 'Enter the full connection string; leave blank when editing to keep unchanged',
     edition: 'Edition',
-    edition_id: 'Edition ID',
+    edition_default_suffix: ' (Default)',
+    edition_placeholder: 'Select an edition; leave blank to use the default edition',
+    edition_filter_placeholder: 'Filter by edition',
+    limit_from_edition: 'Blank = edition default: {value}',
+    unlimited: 'Unlimited',
     tenant_status: 'Tenant Status',
     tenant_status_placeholder: 'Tenant status',
     config_status: 'Config Status',
@@ -41,7 +45,6 @@ export default {
     modified_time: 'Modified Time',
     is_expired_value: 'Expired',
     // Advanced search
-    edition_id_filter_placeholder: 'Edition ID',
     expiration_time_start: 'Expire From',
     expiration_time_end: 'Expire To',
     // Boolean
