@@ -17,6 +17,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.WebHost.HealthChecks;
+using XiHan.Framework.Bot.Telegram.Webhook;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Core.Extensions;
@@ -42,6 +43,21 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         context.Services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("database")
             .AddCheck<RedisHealthCheck>("redis");
+    }
+
+    /// <summary>
+    /// 应用初始化前：注册 Telegram Bot Webhook 接收中间件，确保在认证/授权中间件之前处理 Webhook 请求
+    /// </summary>
+    /// <remarks>
+    /// 模块预初始化先于框架 WebApi 模块的管线注册执行（镜像 Swagger UI 的 OnPreApplicationInitialization 写法），
+    /// 故中间件位于鉴权之前。中间件仅匹配 POST {前缀}/{机器人名}，自带 secret_token 强校验（fail-closed），
+    /// 非 Webhook 路径请求原样放行；仅 Webhook 传输模式（webhook-base-url 配置非空）会实际收到请求。
+    /// </remarks>
+    /// <param name="context">应用初始化上下文</param>
+    public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var app = context.GetApplicationBuilder();
+        _ = app.UseTelegramBotWebhook();
     }
 
     /// <summary>

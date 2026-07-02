@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Configurations;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Bot.Telegram.Options;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -120,7 +121,7 @@ public sealed class SaasConfigurationSeeder(
         changed |= SetIfChanged(config.DataType, definition.DataType, value => config.DataType = value);
         changed |= SetIfChanged(config.ConfigDescription, definition.ConfigDescription, value => config.ConfigDescription = value);
         changed |= SetIfChanged(config.IsBuiltIn, true, value => config.IsBuiltIn = value);
-        changed |= SetIfChanged(config.IsEncrypted, false, value => config.IsEncrypted = value);
+        changed |= SetIfChanged(config.IsEncrypted, definition.IsEncrypted, value => config.IsEncrypted = value);
         changed |= SetIfChanged(config.Status, EnableStatus.Enabled, value => config.Status = value);
         changed |= SetIfChanged(config.Sort, definition.Sort, value => config.Sort = value);
         changed |= SetIfChanged(config.Remark, "系统初始化内置参数", value => config.Remark = value);
@@ -135,12 +136,23 @@ public sealed class SaasConfigurationSeeder(
 
     private static IReadOnlyList<ConfigSeedDefinition> BuildDefinitions()
     {
-        // 仅保留运行期被强类型读取入口（SaasConfigurationService.GetLoginConfigAsync）实际消费的配置键。
+        // 仅保留运行期被强类型读取入口实际消费的配置键：
+        // - SaasConfigurationService.GetLoginConfigAsync（认证）
+        // - SaasTelegramBotSettingsStore.GetSettingsAsync（Telegram 机器人平台设置）
         // 其余历史占位键未被任何代码引用，已移除以避免无效内置参数（详见配置审计）。
         return
         [
             new("登录方式", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.LoginMethods, "[\"password\"]", "[\"password\"]", ConfigType.Feature, ConfigDataType.Array, "登录页开放的登录方式编码集合", 50),
-            new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[{\"name\":\"github\",\"displayName\":\"Github\"},{\"name\":\"google\",\"displayName\":\"Google\"},{\"name\":\"qq\",\"displayName\":\"QQ\"}]", "[]", ConfigType.Feature, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70)
+            new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[{\"name\":\"github\",\"displayName\":\"Github\"},{\"name\":\"google\",\"displayName\":\"Google\"},{\"name\":\"qq\",\"displayName\":\"QQ\"}]", "[]", ConfigType.Feature, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70),
+            new("Telegram 机器人开关", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.Enabled, "false", "false", ConfigType.Feature, ConfigDataType.Boolean, "是否启用 Telegram 机器人平台（总开关，关闭时不拉起任何机器人）", 100),
+            new("Telegram Webhook 基础地址", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookBaseUrl, "", "", ConfigType.Feature, ConfigDataType.String, "Webhook 基础地址（如 https://example.com）；留空使用长轮询（Polling）模式", 101),
+            new("Telegram Webhook 路由前缀", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookRoutePrefix, TelegramBotPlatformConsts.DefaultWebhookRoutePrefix, TelegramBotPlatformConsts.DefaultWebhookRoutePrefix, ConfigType.Feature, ConfigDataType.String, "Webhook 接收中间件路由前缀（匹配 POST {前缀}/{机器人名}）", 102),
+            new("Telegram Webhook 密钥令牌", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookSecretToken, "", "", ConfigType.Feature, ConfigDataType.String, "Webhook 模式必填的 secret_token（未配置一律拒绝 Webhook 请求，fail-closed）", 103, IsEncrypted: true),
+            new("Telegram 管理器刷新秒数", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.ManagerRefreshSeconds, "5", "5", ConfigType.Feature, ConfigDataType.Number, "管理器动态增删改机器人的探测周期（秒）", 104),
+            new("Telegram 配置缓存秒数", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.ConfigCacheSeconds, "5", "5", ConfigType.Feature, ConfigDataType.Number, "机器人配置列表的进程内缓存时长（秒）", 105),
+            new("Telegram 兜底回复", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.EnableFallbackReply, "false", "false", ConfigType.Feature, ConfigDataType.Boolean, "无处理器命中普通消息时是否回复提示文案（与单机器人配置任一开启即生效）", 106),
+            new("Telegram 代理地址", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.ProxyUrl, "", "", ConfigType.Feature, ConfigDataType.String, "访问 Telegram API 的代理地址（如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080）；留空直连", 107),
+            new("Telegram 请求超时秒数", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.TimeoutSeconds, "100", "100", ConfigType.Feature, ConfigDataType.Number, "Telegram API 请求超时（秒）", 108)
         ];
     }
 
@@ -164,5 +176,6 @@ public sealed class SaasConfigurationSeeder(
         ConfigType ConfigType,
         ConfigDataType DataType,
         string ConfigDescription,
-        int Sort);
+        int Sort,
+        bool IsEncrypted = false);
 }

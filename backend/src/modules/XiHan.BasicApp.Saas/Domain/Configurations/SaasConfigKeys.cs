@@ -99,6 +99,63 @@ public static class SaasConfigKeys
     }
 
     /// <summary>
+    /// 机器人配置。
+    /// </summary>
+    public static class Bot
+    {
+        /// <summary>
+        /// Telegram 机器人平台全局设置（由 <c>SaasTelegramBotSettingsStore</c> 强类型读取）。
+        /// </summary>
+        public static class Telegram
+        {
+            /// <summary>
+            /// 是否启用 Telegram 机器人平台（总开关，布尔）。
+            /// </summary>
+            public const string Enabled = "saas.bot.telegram.enabled";
+
+            /// <summary>
+            /// Webhook 基础地址（如 https://example.com）；空 = 长轮询（Polling）模式。
+            /// </summary>
+            public const string WebhookBaseUrl = "saas.bot.telegram.webhook-base-url";
+
+            /// <summary>
+            /// Webhook 路由前缀。
+            /// </summary>
+            public const string WebhookRoutePrefix = "saas.bot.telegram.webhook-route-prefix";
+
+            /// <summary>
+            /// Webhook 密钥令牌（Webhook 模式必填，fail-closed；读侧遮蔽）。
+            /// </summary>
+            public const string WebhookSecretToken = "saas.bot.telegram.webhook-secret-token";
+
+            /// <summary>
+            /// 管理器刷新间隔秒数。
+            /// </summary>
+            public const string ManagerRefreshSeconds = "saas.bot.telegram.manager-refresh-seconds";
+
+            /// <summary>
+            /// 配置列表缓存秒数。
+            /// </summary>
+            public const string ConfigCacheSeconds = "saas.bot.telegram.config-cache-seconds";
+
+            /// <summary>
+            /// 是否启用兜底回复（平台级；与单机器人配置任一开启即生效）。
+            /// </summary>
+            public const string EnableFallbackReply = "saas.bot.telegram.enable-fallback-reply";
+
+            /// <summary>
+            /// 代理地址（如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080）；空 = 直连。
+            /// </summary>
+            public const string ProxyUrl = "saas.bot.telegram.proxy-url";
+
+            /// <summary>
+            /// 请求超时秒数。
+            /// </summary>
+            public const string TimeoutSeconds = "saas.bot.telegram.timeout-seconds";
+        }
+    }
+
+    /// <summary>
     /// 配置分组。
     /// </summary>
     public static class Groups
@@ -107,5 +164,10 @@ public static class SaasConfigKeys
         /// 认证配置分组。
         /// </summary>
         public const string Auth = "auth";
+
+        /// <summary>
+        /// 机器人配置分组。
+        /// </summary>
+        public const string Bot = "bot";
     }
 }
