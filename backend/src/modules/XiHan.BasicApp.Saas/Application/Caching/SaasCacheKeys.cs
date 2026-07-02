@@ -245,6 +245,18 @@ public static class SaasCacheKeys
         return "tenant:*:dict:*";
     }
 
+    /// <summary>
+    /// Telegram 会话状态缓存键（按 机器人 × 会话 × 用户 隔离）。
+    /// </summary>
+    /// <param name="botName">机器人名称。</param>
+    /// <param name="chatId">会话标识。</param>
+    /// <param name="userId">Telegram 用户标识。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string TelegramConversationState(string botName, long chatId, long userId)
+    {
+        return $"{botName}:{chatId}:{userId}";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

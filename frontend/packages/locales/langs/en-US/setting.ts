@@ -149,6 +149,7 @@ export default {
     config_key_placeholder: 'e.g. app.site_name',
     config_group_placeholder: 'Please enter config group',
     config_value_placeholder: 'Please enter config value',
+    config_value_encrypted_placeholder: 'Leave empty to keep the current value',
     default_value_placeholder: 'Please enter default value',
     remark: 'Remark',
     remark_placeholder: 'Please enter remark',

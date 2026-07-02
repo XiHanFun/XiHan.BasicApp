@@ -149,6 +149,7 @@ export default {
     config_key_placeholder: '如: app.site_name',
     config_group_placeholder: '请输入配置分组',
     config_value_placeholder: '请输入配置值',
+    config_value_encrypted_placeholder: '留空保留原值',
     default_value_placeholder: '请输入默认值',
     remark: '备注',
     remark_placeholder: '请输入备注',

@@ -23,6 +23,7 @@ using XiHan.Framework.Authentication.OneTimeCode;
 using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Email.Options;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
@@ -32,6 +33,7 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// <remarks>
 /// 验证码签发与消费委托框架 <see cref="IOneTimeCodeService"/>（分布式缓存后端，加密安全 RNG，消费即销毁）：
 /// 改绑场景的待生效联系方式以验证码负载（payload）随码暂存，消费成功后取回。
+/// 发码与消费均经 <see cref="IVerificationThrottleService"/> 防刷（发送间隔/日配额/错误计数封禁）。
 /// </remarks>
 public sealed class ProfileVerificationService
     : IProfileVerificationService
@@ -41,6 +43,11 @@ public sealed class ProfileVerificationService
     private const string Purpose = "profile:verification";
     private const int VerificationCodeSeconds = 600;
 
+    /// <summary>
+    /// 作废在途码占位串（框架消费即销毁：以必不匹配的占位码走一次消费即可清除在途码）
+    /// </summary>
+    private const string InFlightCodeVoidStamp = "!void!";
+
     private readonly IOneTimeCodeService _oneTimeCodeService;
 
     private readonly IMessageDeliveryService _messageDeliveryService;
@@ -49,6 +56,8 @@ public sealed class ProfileVerificationService
 
     private readonly IEmailConfigStore _emailConfigStore;
 
+    private readonly IVerificationThrottleService _verificationThrottleService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -56,12 +65,14 @@ public sealed class ProfileVerificationService
         IOneTimeCodeService oneTimeCodeService,
         IOtpService otpService,
         IMessageDeliveryService messageDeliveryService,
-        IEmailConfigStore emailConfigStore)
+        IEmailConfigStore emailConfigStore,
+        IVerificationThrottleService verificationThrottleService)
     {
         _oneTimeCodeService = oneTimeCodeService;
         _otpService = otpService;
         _messageDeliveryService = messageDeliveryService;
         _emailConfigStore = emailConfigStore;
+        _verificationThrottleService = verificationThrottleService;
     }
 
     /// <inheritdoc />
@@ -69,11 +80,25 @@ public sealed class ProfileVerificationService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
 
+        // 封禁期内拒绝校验
+        await _verificationThrottleService.EnsureVerifyAllowedAsync(userId, purpose, cancellationToken);
+
         var result = await _oneTimeCodeService.TryConsumeAsync(Purpose, BuildTarget(userId, purpose), code, cancellationToken);
         if (!result.Succeeded || string.IsNullOrWhiteSpace(result.Payload))
         {
+            var bannedNow = await _verificationThrottleService.OnVerifyFailedAsync(userId, purpose, cancellationToken);
+            if (bannedNow)
+            {
+                // 触发封禁：作废在途码（防御性；消费即销毁语义下多数场景已随本次尝试销毁）
+                _ = await _oneTimeCodeService.TryConsumeAsync(Purpose, BuildTarget(userId, purpose), InFlightCodeVoidStamp, cancellationToken);
+                throw new UserFriendlyException("验证码错误次数过多，已临时锁定，请稍后再试。");
+            }
+
             throw new InvalidOperationException("验证码无效或已过期。");
         }
+
+        // 成功消费清零失败计数
+        await _verificationThrottleService.OnVerifySucceededAsync(userId, purpose, cancellationToken);
 
         return result.Payload;
     }
@@ -123,6 +148,9 @@ public sealed class ProfileVerificationService
         }
 
         var trimmedTarget = target.Trim();
+
+        // 防刷：封禁 → 发送间隔（60s）→ 日配额（target 10 次 / IP 50 次）依序检查，通过后记账
+        await _verificationThrottleService.EnsureSendAllowedAsync(user.BasicId, purpose, trimmedTarget, cancellationToken);
 
         // 目标联系方式作为负载随码暂存，消费成功后取回（改绑场景即待生效的新邮箱/新手机号）
         var issued = await _oneTimeCodeService.IssueAsync(
@@ -206,6 +234,9 @@ public sealed class ProfileVerificationService
         cancellationToken.ThrowIfCancellationRequested();
 
         var trimmedPhone = phone.Trim();
+
+        // 防刷：与安全操作发码共用同一套限流（封禁 → 间隔 → 日配额）
+        await _verificationThrottleService.EnsureSendAllowedAsync(user.BasicId, ProfileVerificationPurpose.TwoFactorPhone, trimmedPhone, cancellationToken);
 
         // 登录 2FA 与安全操作 2FA 共享 TwoFactorPhone 用途（同一在途码，重发覆盖旧码）；
         // 负载暂存手机号以满足消费侧非空校验，与改绑场景语义保持一致

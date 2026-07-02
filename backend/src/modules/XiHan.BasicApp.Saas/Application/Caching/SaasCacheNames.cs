@@ -83,4 +83,14 @@ public static class SaasCacheNames
     /// 字典项树缓存（字典驱动的下拉/选项高频读取）。
     /// </summary>
     public const string DictItemTree = "basicapp:saas:configuration:dict-tree";
+
+    /// <summary>
+    /// Telegram 会话多步交互状态缓存（botName:chatId:userId → 状态）。
+    /// </summary>
+    public const string TelegramConversationState = "basicapp:saas:bot:telegram-conversation";
+
+    /// <summary>
+    /// Telegram Update 幂等去重键前缀（原生 Redis SET NX，非 IDistributedCache 通道）。
+    /// </summary>
+    public const string TelegramUpdateDedup = "basicapp:saas:bot:telegram-dedup";
 }

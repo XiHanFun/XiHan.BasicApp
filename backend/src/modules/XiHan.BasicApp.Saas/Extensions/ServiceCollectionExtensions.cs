@@ -37,6 +37,7 @@ using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Lark.Abstractions;
 using XiHan.Framework.Bot.Sms.Abstractions;
 using XiHan.Framework.Bot.Telegram.Abstractions;
+using XiHan.Framework.Bot.Telegram.Extensions.DependencyInjection;
 using XiHan.Framework.Bot.WeCom.Abstractions;
 using XiHan.Framework.Data.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
@@ -90,6 +91,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ISqlSugarTenantConnectionProvider>(sp => sp.GetRequiredService<SaasTenantConnectionProvider>());
         services.AddSingleton<ITenantConnectionCacheInvalidator>(sp => sp.GetRequiredService<SaasTenantConnectionProvider>());
         services.AddScoped<IConfigDomainService, ConfigDomainService>();
+        // 系统配置加密值保护器（Data Protection，独立 Purpose；IsEncrypted 行写侧加密/读侧解密）
+        services.AddSingleton<IConfigValueSecretProtector, DataProtectionConfigValueSecretProtector>();
         services.AddScoped<IDictDomainService, DictDomainService>();
         services.AddScoped<IVersionDomainService, VersionDomainService>();
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
@@ -165,11 +168,20 @@ public static class ServiceCollectionExtensions
         // Telegram 机器人配置/平台设置存储：以数据库实现覆盖框架默认 Options 实现（框架模块 TryAdd 先注册，故须 Replace）
         services.Replace(ServiceDescriptor.Singleton<ITelegramBotConfigStore, SaasTelegramBotConfigStore>());
         services.Replace(ServiceDescriptor.Singleton<ITelegramBotSettingsStore, SaasTelegramBotSettingsStore>());
+        // Telegram 分布式三件套（多实例安全）：Update 幂等去重（Redis SET NX，未启用 Redis 回退进程内）/
+        // 会话状态（分布式缓存）/ 出站审计（月分表落库，异常吞掉不阻断发送）——均覆盖框架默认实现，故须 Replace
+        services.Replace(ServiceDescriptor.Singleton<ITelegramUpdateDeduplicator, SaasTelegramUpdateDeduplicator>());
+        services.Replace(ServiceDescriptor.Singleton<IConversationStateStore, SaasConversationStateStore>());
+        services.Replace(ServiceDescriptor.Singleton<ITelegramMessageAuditStore, SaasTelegramMessageAuditStore>());
+        // Telegram 内置基础命令（/start /help /myid）：框架坚持显式注册原则，须在应用侧启用
+        services.AddTelegramBotBuiltinHandlers();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
         services.AddScoped<IOAuthServerService, OAuthServerService>();
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
+        // 验证码防刷限流（发送间隔/日配额/错误计数封禁）：覆盖 Profile 全部发码用途与消费校验
+        services.AddScoped<IVerificationThrottleService, VerificationThrottleService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
         services.AddScoped<IFieldSecurityService, FieldSecurityService>();
         services.AddScoped<ISuperAdminProtector, SuperAdminProtector>();
