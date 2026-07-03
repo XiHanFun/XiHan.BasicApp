@@ -73,6 +73,9 @@ export default {
     locate: '定位',
     back_to_latest: '回到最新',
     download: '下载原图',
+    copy: '复制',
+    copied: '已复制',
+    copy_failed: '复制失败',
   },
   composer: {
     placeholder: '输入消息，Enter 发送 / Shift+Enter 换行',

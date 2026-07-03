@@ -73,6 +73,9 @@ export default {
     locate: 'Locate',
     back_to_latest: 'Back to latest',
     download: 'Download',
+    copy: 'Copy',
+    copied: 'Copied',
+    copy_failed: 'Copy failed',
   },
   composer: {
     placeholder: 'Type a message. Enter to send / Shift+Enter for newline',

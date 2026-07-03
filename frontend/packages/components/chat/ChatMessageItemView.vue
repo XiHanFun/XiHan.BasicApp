@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
-import { NImage, NPopover, NSpin, NTooltip } from 'naive-ui'
+import { NImage, NSpin, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvatarUrl } from '~/composables'
@@ -18,12 +18,6 @@ const props = defineProps<{
   isSelf: boolean
   /** 群聊/部门群显示他人昵称 */
   showSenderName: boolean
-  /** 是否可撤回（本人 + 2 分钟窗口内 + 未撤回 + 已落库） */
-  canRecall: boolean
-  /** 是否可编辑（本人 + 文本 + 5 分钟窗口内） */
-  canEdit: boolean
-  /** 是否可 Pin（单聊双方 / 群主管理员） */
-  canPin: boolean
   /** 会话类型（已读回执文案区分单聊/群聊） */
   conversationType: ChatConversationType
   /** 本人消息的已读人数（未加载为 null；单聊 >0 即已读） */
@@ -33,22 +27,14 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  recall: []
   retry: []
   remove: []
-  reply: []
-  edit: []
-  pin: []
-  unpin: []
   react: [emoji: string]
 }>()
 
 const { t } = useI18n()
 const appContext = useAppContext()
 const userStore = useUserStore()
-
-/** 快捷回应集（点击 toggle） */
-const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉']
 
 const isSystem = computed(() => props.message.messageType === ChatMessageType.System)
 const isImage = computed(() => props.message.messageType === ChatMessageType.Image)
@@ -114,10 +100,6 @@ async function handleDownload() {
     // 请求层已有统一错误提示
   }
 }
-
-/** 已落库的普通消息才有操作行 */
-const showActions = computed(() =>
-  !props.message.isRecalled && !props.message.pending && !props.message.failed)
 </script>
 
 <template>
@@ -240,44 +222,6 @@ const showActions = computed(() =>
           <span>{{ formatMessageTime(message.createdTime) }}</span>
           <span v-if="message.editedTime" class="opacity-70">{{ t('chat.thread.edited') }}</span>
           <span v-if="readReceiptLabel" class="text-primary/70">{{ readReceiptLabel }}</span>
-
-          <!-- 悬浮操作行 -->
-          <span v-if="showActions" class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-            <!-- 快捷回应 -->
-            <NPopover trigger="click" placement="top" :show-arrow="false">
-              <template #trigger>
-                <button type="button" class="chat-meta-action" :title="t('chat.thread.react')">
-                  <Icon icon="lucide:smile-plus" width="12" height="12" />
-                </button>
-              </template>
-              <div class="flex gap-1">
-                <button
-                  v-for="emoji in QUICK_REACTIONS"
-                  :key="emoji"
-                  type="button"
-                  class="chat-quick-react"
-                  @click="emit('react', emoji)"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </NPopover>
-            <button type="button" class="chat-meta-action" @click="emit('reply')">
-              {{ t('chat.thread.reply') }}
-            </button>
-            <button v-if="canEdit" type="button" class="chat-meta-action" @click="emit('edit')">
-              {{ t('chat.thread.edit') }}
-            </button>
-            <button v-if="canPin && !message.isPinned" type="button" class="chat-meta-action" @click="emit('pin')">
-              {{ t('chat.thread.pin') }}
-            </button>
-            <button v-if="canPin && message.isPinned" type="button" class="chat-meta-action" @click="emit('unpin')">
-              {{ t('chat.thread.unpin') }}
-            </button>
-            <button v-if="canRecall" type="button" class="chat-meta-action" @click="emit('recall')">
-              {{ t('chat.thread.recall') }}
-            </button>
-          </span>
         </template>
       </div>
     </div>
@@ -384,25 +328,6 @@ const showActions = computed(() =>
 .chat-reaction-chip--mine {
   border-color: hsl(var(--primary) / 60%);
   background: hsl(var(--primary) / 10%);
-}
-
-.chat-quick-react {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  font-size: 17px;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-
-.chat-quick-react:hover {
-  background: hsl(var(--accent));
 }
 
 .chat-meta-action {
