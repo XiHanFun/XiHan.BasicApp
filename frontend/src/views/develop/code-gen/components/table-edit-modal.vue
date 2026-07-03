@@ -17,10 +17,11 @@ import {
   NSpace,
   useMessage,
 } from 'naive-ui'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenTableApi,
+  createPageRequest,
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
   EnableStatus as EnableStatusEnum,
@@ -62,6 +63,13 @@ interface TableFormModel {
   templateType: TemplateType
   genType: GenType
   genPath?: string | null
+  // 上级菜单：M1 仅随详情回传（不写死 null），M3 接入菜单树选择控件
+  parentMenuId?: ApiId | null
+  primaryKeyColumn?: string | null
+  treeParentColumn?: string | null
+  treeNameColumn?: string | null
+  masterTableId?: ApiId | null
+  masterForeignKey?: string | null
   databaseType: DatabaseType
   dbConnectionName?: string | null
   status: EnableStatus
@@ -72,6 +80,14 @@ const loading = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const form = ref<TableFormModel>(createDefaultForm())
+
+/** 本表列（供主键列/树列/子表外键列下拉选择，来源为详情随附的 columns） */
+const columnOptions = ref<{ label: string, value: string }[]>([])
+/** 其他表（供主子表的主表选择） */
+const tableOptions = ref<{ label: string, value: ApiId }[]>([])
+
+const isTreeTemplate = computed(() => form.value.templateType === TemplateTypeEnum.Tree)
+const isMasterDetailTemplate = computed(() => form.value.templateType === TemplateTypeEnum.MasterDetail)
 
 function createDefaultForm(): TableFormModel {
   return {
@@ -87,6 +103,12 @@ function createDefaultForm(): TableFormModel {
     templateType: TemplateTypeEnum.Single,
     genType: GenTypeEnum.Zip,
     genPath: null,
+    parentMenuId: null,
+    primaryKeyColumn: null,
+    treeParentColumn: null,
+    treeNameColumn: null,
+    masterTableId: null,
+    masterForeignKey: null,
     databaseType: DatabaseTypeEnum.MySql,
     dbConnectionName: null,
     status: EnableStatusEnum.Enabled,
@@ -116,6 +138,10 @@ async function loadDetail() {
       return
     }
     editingStatus.value = detail.status
+    columnOptions.value = (detail.columns ?? []).map(column => ({
+      label: column.columnComment ? `${column.columnName}（${column.columnComment}）` : column.columnName,
+      value: column.columnName,
+    }))
     form.value = {
       basicId: detail.basicId,
       tableName: detail.tableName,
@@ -129,10 +155,19 @@ async function loadDetail() {
       templateType: detail.templateType,
       genType: detail.genType,
       genPath: detail.genPath ?? null,
+      parentMenuId: detail.parentMenuId ?? null,
+      primaryKeyColumn: detail.primaryKeyColumn ?? null,
+      treeParentColumn: detail.treeParentColumn ?? null,
+      treeNameColumn: detail.treeNameColumn ?? null,
+      masterTableId: detail.masterTableId ?? null,
+      masterForeignKey: detail.masterForeignKey ?? null,
       databaseType: detail.databaseType,
       dbConnectionName: detail.dbConnectionName ?? null,
       status: detail.status,
       remark: detail.remark ?? null,
+    }
+    if (form.value.templateType === TemplateTypeEnum.MasterDetail) {
+      void ensureTableOptions()
     }
   }
   catch {
@@ -143,6 +178,39 @@ async function loadDetail() {
   }
 }
 
+/** 惰性加载其他表列表（主子表选择主表用）；排除本表自身 */
+async function ensureTableOptions() {
+  if (tableOptions.value.length > 0) {
+    return
+  }
+  try {
+    const result = await codeGenTableApi.page({
+      ...createPageRequest({ page: { pageIndex: 1, pageSize: 200 } }),
+    })
+    tableOptions.value = result.items
+      .filter(item => item.basicId !== form.value.basicId)
+      .map(item => ({ label: `${item.tableName}（${item.className}）`, value: item.basicId }))
+  }
+  catch {
+    tableOptions.value = []
+  }
+}
+
+// 切换模板类型：清空与新类型无关的结构字段，主子表时惰性拉取表列表
+watch(() => form.value.templateType, (type) => {
+  if (type !== TemplateTypeEnum.Tree) {
+    form.value.treeParentColumn = null
+    form.value.treeNameColumn = null
+  }
+  if (type !== TemplateTypeEnum.MasterDetail) {
+    form.value.masterTableId = null
+    form.value.masterForeignKey = null
+  }
+  else {
+    void ensureTableOptions()
+  }
+})
+
 function validateForm() {
   if (!form.value.tableName.trim()) {
     message.warning(t('develop.code_gen.table_edit.validate_table_name'))
@@ -151,6 +219,26 @@ function validateForm() {
   if (!form.value.className.trim()) {
     message.warning(t('develop.code_gen.table_edit.validate_class_name'))
     return false
+  }
+  if (isTreeTemplate.value) {
+    if (!form.value.treeParentColumn) {
+      message.warning(t('develop.code_gen.table_edit.validate_tree_parent_column'))
+      return false
+    }
+    if (!form.value.treeNameColumn) {
+      message.warning(t('develop.code_gen.table_edit.validate_tree_name_column'))
+      return false
+    }
+  }
+  if (isMasterDetailTemplate.value) {
+    if (!form.value.masterTableId) {
+      message.warning(t('develop.code_gen.table_edit.validate_master_table'))
+      return false
+    }
+    if (!form.value.masterForeignKey) {
+      message.warning(t('develop.code_gen.table_edit.validate_master_foreign_key'))
+      return false
+    }
   }
   return true
 }
@@ -174,12 +262,12 @@ async function handleSubmit() {
       templateType: form.value.templateType,
       genType: form.value.genType,
       genPath: form.value.genPath,
-      parentMenuId: null,
-      primaryKeyColumn: null,
-      treeParentColumn: null,
-      treeNameColumn: null,
-      masterTableId: null,
-      masterForeignKey: null,
+      parentMenuId: form.value.parentMenuId,
+      primaryKeyColumn: form.value.primaryKeyColumn,
+      treeParentColumn: isTreeTemplate.value ? form.value.treeParentColumn : null,
+      treeNameColumn: isTreeTemplate.value ? form.value.treeNameColumn : null,
+      masterTableId: isMasterDetailTemplate.value ? form.value.masterTableId : null,
+      masterForeignKey: isMasterDetailTemplate.value ? form.value.masterForeignKey : null,
       databaseType: form.value.databaseType,
       dbConnectionName: form.value.dbConnectionName,
       options: null,
@@ -251,6 +339,55 @@ async function handleSubmit() {
       <NFormItem :label="t('develop.code_gen.table_edit.form_gen_path')" path="genPath">
         <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
       </NFormItem>
+      <NFormItem :label="t('develop.code_gen.table_edit.form_primary_key_column')" path="primaryKeyColumn">
+        <NSelect
+          v-model:value="form.primaryKeyColumn"
+          clearable
+          filterable
+          :options="columnOptions"
+          :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+        />
+      </NFormItem>
+      <template v-if="isTreeTemplate">
+        <NFormItem :label="t('develop.code_gen.table_edit.form_tree_parent_column')" path="treeParentColumn">
+          <NSelect
+            v-model:value="form.treeParentColumn"
+            clearable
+            filterable
+            :options="columnOptions"
+            :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_tree_name_column')" path="treeNameColumn">
+          <NSelect
+            v-model:value="form.treeNameColumn"
+            clearable
+            filterable
+            :options="columnOptions"
+            :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+          />
+        </NFormItem>
+      </template>
+      <template v-if="isMasterDetailTemplate">
+        <NFormItem :label="t('develop.code_gen.table_edit.form_master_table')" path="masterTableId">
+          <NSelect
+            v-model:value="form.masterTableId"
+            clearable
+            filterable
+            :options="tableOptions"
+            :placeholder="t('develop.code_gen.table_edit.form_master_table_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_master_foreign_key')" path="masterForeignKey">
+          <NSelect
+            v-model:value="form.masterForeignKey"
+            clearable
+            filterable
+            :options="columnOptions"
+            :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+          />
+        </NFormItem>
+      </template>
       <NFormItem :label="t('common.fields.status')" path="status">
         <NSelect v-model:value="form.status" :options="statusEnumOptions" />
       </NFormItem>

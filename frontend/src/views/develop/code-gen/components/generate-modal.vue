@@ -12,6 +12,7 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { codeGenerationApi, GenType } from '@/api'
+import CodeHighlight from '~/components/common/CodeHighlight.vue'
 
 defineOptions({ name: 'CodeGenGenerateModal' })
 
@@ -164,9 +165,12 @@ async function handleGenerate() {
         </div>
         <div class="gen__content">
           <NEmpty v-if="!activeArtifact" :description="t('develop.code_gen.generate.empty')" />
-          <NScrollbar v-else style="max-height: 60vh">
-            <pre class="gen__code">{{ activeArtifact.content }}</pre>
-          </NScrollbar>
+          <CodeHighlight
+            v-else
+            :code="activeArtifact.content"
+            :file-name="activeArtifact.fileName"
+            max-height="60vh"
+          />
         </div>
       </div>
     </NSpin>
@@ -243,15 +247,6 @@ async function handleGenerate() {
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   padding: 8px 12px;
-}
-
-.gen__code {
-  margin: 0;
-  font-family: var(--font-mono, ui-monospace, 'SFMono-Regular', 'Consolas', monospace);
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre;
-  tab-size: 2;
 }
 
 .gen__hint {
