@@ -272,6 +272,7 @@ sudo systemctl start XiHan.BasicApp
     <td align="center"><img src="./assets/weixinpay.png" width="200" /><br/>微信</td>
   </tr>
 </table>
+
 ## 版权&授权
 
 Copyright (c) 2026 XiHanFun and ZhaiFanhua
