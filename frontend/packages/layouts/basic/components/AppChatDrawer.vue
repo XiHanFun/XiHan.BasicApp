@@ -4,6 +4,7 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ChatPanel } from '~/components'
+import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 import { useChatStore, useLayoutBridgeStore } from '~/stores'
 
@@ -13,6 +14,8 @@ const { t } = useI18n()
 const router = useRouter()
 const chatStore = useChatStore()
 const layoutBridgeStore = useLayoutBridgeStore()
+// 小屏（<768）抽屉全宽，避免留缝
+const { isMobile } = useIsMobile()
 
 const show = ref(false)
 
@@ -31,8 +34,8 @@ function handleOpenFullPage() {
 <template>
   <NDrawer
     v-model:show="show"
-    :width="440"
-    style="max-width: calc(100vw - 24px);"
+    :width="isMobile ? '100%' : 440"
+    style="max-width: 100vw;"
     placement="right"
   >
     <div class="flex h-full min-h-0 flex-col">

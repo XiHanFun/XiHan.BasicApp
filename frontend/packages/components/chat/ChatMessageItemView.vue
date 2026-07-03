@@ -69,7 +69,7 @@ async function handleDownload() {
   <!-- 普通消息行 -->
   <div v-else class="group my-1.5 flex gap-2" :class="isSelf ? 'flex-row-reverse' : 'flex-row'">
     <XUserAvatar v-if="!isSelf" :name="message.senderUserName" :size="30" />
-    <div class="flex max-w-[72%] min-w-0 flex-col" :class="isSelf ? 'items-end' : 'items-start'">
+    <div class="flex max-w-[86%] min-w-0 flex-col sm:max-w-[72%]" :class="isSelf ? 'items-end' : 'items-start'">
       <div v-if="showSenderName && !isSelf" class="mb-0.5 px-1 text-[11px] text-muted-foreground">
         {{ message.senderUserName }}
       </div>

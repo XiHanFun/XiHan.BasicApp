@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatConversationListItem, ChatMemberItem } from '~/types'
-import { NButton, NDrawer, NDrawerContent, NEmpty, NPopconfirm, NSpin, NTag, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NModal, NPopconfirm, NScrollbar, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
@@ -11,7 +11,7 @@ import XUserAvatar from '../common/UserAvatar.vue'
 import { formatMessageTime } from './chat-helpers'
 import ChatUserSelect from './ChatUserSelect.vue'
 
-defineOptions({ name: 'ChatMembersDrawer' })
+defineOptions({ name: 'ChatMembersDialog' })
 
 const props = defineProps<{
   conversation: ChatConversationListItem | null
@@ -151,49 +151,54 @@ async function handleLeave() {
 </script>
 
 <template>
-  <NDrawer v-model:show="show" :width="320" placement="right">
-    <NDrawerContent :title="t('chat.members.title', { n: members.length })" closable>
-      <NSpin :show="loading">
-        <!-- 添加成员 -->
-        <div v-if="canManage" class="mb-3">
-          <NButton v-if="!showAdd" size="small" dashed block @click="showAdd = true">
-            <template #icon>
-              <Icon icon="lucide:user-plus" width="14" height="14" />
-            </template>
-            {{ t('chat.members.add') }}
-          </NButton>
-          <div v-else class="flex flex-col gap-2">
-            <ChatUserSelect
-              v-model="addUserIds"
-              multiple
-              :exclude-user-ids="memberIds"
-              :placeholder="t('chat.start.users_placeholder')"
-            />
-            <div class="flex justify-end gap-2">
-              <NButton size="tiny" :disabled="adding" @click="showAdd = false">
-                {{ t('chat.start.cancel') }}
-              </NButton>
-              <NButton
-                size="tiny"
-                type="primary"
-                :loading="adding"
-                :disabled="!addUserIds.length"
-                @click="handleAddMembers"
-              >
-                {{ t('chat.start.confirm') }}
-              </NButton>
-            </div>
+  <NModal
+    v-model:show="show"
+    preset="card"
+    :title="t('chat.members.title', { n: members.length })"
+    style="width: 480px; max-width: calc(100vw - 24px);"
+  >
+    <NSpin :show="loading">
+      <!-- 添加成员 -->
+      <div v-if="canManage" class="mb-3">
+        <NButton v-if="!showAdd" size="small" dashed block @click="showAdd = true">
+          <template #icon>
+            <Icon icon="lucide:user-plus" width="14" height="14" />
+          </template>
+          {{ t('chat.members.add') }}
+        </NButton>
+        <div v-else class="flex flex-col gap-2">
+          <ChatUserSelect
+            v-model="addUserIds"
+            multiple
+            :exclude-user-ids="memberIds"
+            :placeholder="t('chat.start.users_placeholder')"
+          />
+          <div class="flex justify-end gap-2">
+            <NButton size="tiny" :disabled="adding" @click="showAdd = false">
+              {{ t('chat.start.cancel') }}
+            </NButton>
+            <NButton
+              size="tiny"
+              type="primary"
+              :loading="adding"
+              :disabled="!addUserIds.length"
+              @click="handleAddMembers"
+            >
+              {{ t('chat.start.confirm') }}
+            </NButton>
           </div>
         </div>
+      </div>
 
-        <!-- 成员列表 -->
-        <div v-if="!members.length && !loading" class="py-8">
-          <NEmpty size="small" />
-        </div>
+      <!-- 成员列表 -->
+      <div v-if="!members.length && !loading" class="py-8">
+        <NEmpty size="small" />
+      </div>
+      <NScrollbar v-else style="max-height: min(52vh, 420px)">
         <div
           v-for="member in members"
           :key="member.userId"
-          class="flex items-center gap-2.5 border-b border-border/50 py-2 last:border-b-0"
+          class="flex items-center gap-2.5 border-b border-border/50 py-2 pr-3 last:border-b-0"
         >
           <XUserAvatar :name="member.userName" :size="32" />
           <div class="min-w-0 flex-1">
@@ -216,18 +221,20 @@ async function handleLeave() {
             {{ t('chat.members.remove_confirm', { name: member.userName ?? '' }) }}
           </NPopconfirm>
         </div>
-      </NSpin>
+      </NScrollbar>
+    </NSpin>
 
-      <template #footer>
-        <NPopconfirm v-if="canLeave" @positive-click="handleLeave">
+    <template v-if="canLeave" #footer>
+      <div class="flex justify-end">
+        <NPopconfirm @positive-click="handleLeave">
           <template #trigger>
-            <NButton size="small" type="error" secondary block>
+            <NButton size="small" type="error" secondary>
               {{ t('chat.members.leave') }}
             </NButton>
           </template>
           {{ t('chat.members.leave_confirm') }}
         </NPopconfirm>
-      </template>
-    </NDrawerContent>
-  </NDrawer>
+      </div>
+    </template>
+  </NModal>
 </template>
