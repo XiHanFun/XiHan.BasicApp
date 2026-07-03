@@ -1,636 +1,428 @@
 <script setup lang="ts">
-import type { NotificationListItemDto, UserInboxItemDto } from '@/api'
-import {
-  NCard,
-  NCarousel,
-  NEmpty,
-  NGrid,
-  NGridItem,
-  NIcon,
-  NTimeline,
-  NTimelineItem,
-} from 'naive-ui'
-import { computed, onMounted, ref } from 'vue'
+import type { DragEndEvent } from '@dnd-kit/vue'
+import type { BoardItem } from './components'
+import { DragDropProvider } from '@dnd-kit/vue'
+import { NButton, NDrawer, NDrawerContent, NEmpty, NPopover } from 'naive-ui'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { createPageRequest, notificationApi, NotificationType, workbenchApi } from '@/api'
+import { resolveSortMove } from '~/components/common/sortable'
+import SortableItem from '~/components/common/SortableItem.vue'
+import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
+import { useUserSettingSync } from '~/components/schema'
+import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useFavoritesStore } from '~/stores'
-import { formatDate } from '~/utils'
+import { useAppStore } from '~/stores'
+import { DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './components'
 
 defineOptions({ name: 'WorkbenchDashboardPage' })
 
-const router = useRouter()
-const favoritesStore = useFavoritesStore()
-const { t, te } = useI18n()
+const GRID_COLS = 12
+const MIN_SPAN = 1
+// 尺寸选项：12 等分全部列宽（1/12…1/1），边缘拖拽实时吸附到最近的一档（每一档都吸）
+const SIZE_OPTIONS = Array.from({ length: GRID_COLS - MIN_SPAN + 1 }, (_, i) => MIN_SPAN + i)
 
-// ── 统计（全部来自后端 DashboardSummary，真实数据） ───────────────
-const accessCount = ref(0)
-const operationCount = ref(0)
-const loginCount = ref(0)
-const apiCallCount = ref(0)
-
-// ── 最近动态（真实：站内信最新消息） ───────────────────────────
-const latestItems = ref<UserInboxItemDto[]>([])
-
-// ── 轮播公告（真实：已发布的「公告」类型通知） ─────────────────
-const announcements = ref<NotificationListItemDto[]>([])
-
-const statCards = computed(() => [
-  { key: 'access', label: t('workbench.dashboard.stat_access'), value: accessCount.value, icon: 'lucide:mouse-pointer-click', color: '#3b82f6' },
-  { key: 'operation', label: t('workbench.dashboard.stat_operation'), value: operationCount.value, icon: 'lucide:activity', color: '#22c55e' },
-  { key: 'login', label: t('workbench.dashboard.stat_login'), value: loginCount.value, icon: 'lucide:log-in', color: '#8b5cf6' },
-  { key: 'api', label: t('workbench.dashboard.stat_api'), value: apiCallCount.value, icon: 'lucide:webhook', color: '#f59e0b' },
-])
-
-// 快捷入口复用「收藏夹」数据：用户右键标签收藏的常用菜单
-const QUICK_PALETTE = ['#3b82f6', '#22c55e', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6']
-
-/** 收藏标题多为 i18n key（如 menu.user），渲染时翻译；非 key 原样展示 */
-function displayTitle(title: string) {
-  return te(title) ? t(title) : title
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b)
+}
+// 用最简分数 x/x 表示宽度（占整行比例）：3/12→1/4、5/12→5/12、12/12→1/1
+function spanLabel(span: number): string {
+  const g = gcd(span, GRID_COLS)
+  return `${span / g}/${GRID_COLS / g}`
 }
 
-function resolveIcon(icon?: string | null) {
-  if (!icon) {
-    return 'lucide:bookmark'
+const { t } = useI18n()
+const { hasPermission } = usePermission()
+const appStore = useAppStore()
+// 看板布局随用户设置同步（本地即时 + 后端跨端同步，复用 SchemaPage 同一套机制）
+// 同步开关在「偏好设置 → 同步 → 仪表盘看板」，本页只读 appStore.widgetsSyncEnabled 显示状态徽标
+// 场景键保持 'workbench:widgets'（历史键），避免更名导致用户已保存布局丢失
+const sync = useUserSettingSync('workbench:widgets')
+
+// 小组件是否对当前用户可见：未声明权限码则人人可见，声明则按权限码门控
+function canShow(key: string): boolean {
+  const def = WIDGET_MAP[key]
+  return !!def && (!def.permission || hasPermission(def.permission))
+}
+function clampSpan(span: number) {
+  if (!Number.isFinite(span))
+    return 6
+  return Math.min(GRID_COLS, Math.max(MIN_SPAN, Math.round(span)))
+}
+function sanitize(items: BoardItem[]): BoardItem[] {
+  return items.filter(item => canShow(item.key)).map(item => ({ key: item.key, span: clampSpan(item.span) }))
+}
+
+const LOCAL_BOARD_KEY = 'xh:workbench:widgets:board'
+
+const board = ref<BoardItem[]>(sanitize(DEFAULT_BOARD))
+const customizing = ref(false)
+const showAdd = ref(false)
+// 悬浮操作栏开合：折叠时右侧只露半隐藏按钮，点击展开为半透明毛玻璃操作栏
+const panelOpen = ref(false)
+function onPanelEsc(event: KeyboardEvent) {
+  if (event.key === 'Escape' && panelOpen.value)
+    panelOpen.value = false
+}
+window.addEventListener('keydown', onPanelEsc)
+// 编辑期间是否有改动：只有点「完成」且确有改动时才落地 + 同步一次（编辑过程不写后端、不刷同步提示）
+const dirty = ref(false)
+
+// 工具栏可上下自由拖动（避免挡住小组件操作）：竖向偏移量，按本地记忆，跨刷新保留
+const TOOLBAR_OFFSET_KEY = 'xh:workbench:widgets:toolbar-offset'
+function clampOffset(value: number): number {
+  return Math.min(Math.max(0, window.innerHeight - 160), Math.max(0, value))
+}
+const toolbarOffsetY = ref(clampOffset(Number(localStorage.getItem(TOOLBAR_OFFSET_KEY)) || 0))
+const draggingToolbar = ref(false)
+let toolbarDrag: { y: number, base: number } | null = null
+function onToolbarDragMove(event: PointerEvent) {
+  if (!toolbarDrag)
+    return
+  toolbarOffsetY.value = clampOffset(toolbarDrag.base + (event.clientY - toolbarDrag.y))
+}
+function onToolbarDragEnd() {
+  window.removeEventListener('pointermove', onToolbarDragMove)
+  toolbarDrag = null
+  draggingToolbar.value = false
+  try {
+    localStorage.setItem(TOOLBAR_OFFSET_KEY, String(toolbarOffsetY.value))
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  catch {
+    // 忽略本地存储异常
+  }
+}
+function onToolbarDragStart(event: PointerEvent) {
+  event.preventDefault()
+  toolbarDrag = { y: event.clientY, base: toolbarOffsetY.value }
+  draggingToolbar.value = true
+  window.addEventListener('pointermove', onToolbarDragMove)
+  window.addEventListener('pointerup', onToolbarDragEnd, { once: true })
 }
 
-const quickLinks = computed(() =>
-  favoritesStore.favorites.map((fav, index) => ({
-    key: fav.path,
-    label: displayTitle(fav.title),
-    icon: resolveIcon(fav.icon),
-    to: fav.path,
-    color: QUICK_PALETTE[index % QUICK_PALETTE.length] ?? '#3b82f6',
-  })),
-)
-
-/** 通知类型 → 标签 key + 渐变配色 */
-interface TypeMeta { label: string, from: string, to: string }
-const DEFAULT_META: TypeMeta = { label: 'workbench.dashboard.type_system', from: '#3b82f6', to: '#2563eb' }
-const TYPE_META: Record<string, TypeMeta> = {
-  System: DEFAULT_META,
-  Security: { label: 'workbench.dashboard.type_security', from: '#f59e0b', to: '#ea580c' },
-  Business: { label: 'workbench.dashboard.type_business', from: '#22c55e', to: '#059669' },
-  Todo: { label: 'workbench.dashboard.type_todo', from: '#8b5cf6', to: '#6d28d9' },
-  Emergency: { label: 'workbench.dashboard.type_emergency', from: '#ef4444', to: '#b91c1c' },
+function readLocalBoard(): BoardItem[] | null {
+  try {
+    const raw = localStorage.getItem(LOCAL_BOARD_KEY)
+    const parsed = raw ? (JSON.parse(raw) as { items?: BoardItem[] }) : null
+    return Array.isArray(parsed?.items) ? parsed.items : null
+  }
+  catch {
+    return null
+  }
+}
+function persist() {
+  const payload = { items: board.value }
+  // 本地始终留一份（关闭同步时即以此为准）；sync.save 内部按「仪表盘看板同步」开关决定是否上行后端
+  try {
+    localStorage.setItem(LOCAL_BOARD_KEY, JSON.stringify(payload))
+  }
+  catch {
+    // 忽略本地存储异常（隐私模式等）
+  }
+  sync.save('board', payload)
 }
 
-function metaOf(type?: NotificationType | null): TypeMeta {
-  const meta = (type && TYPE_META[type]) || DEFAULT_META
-  return { ...meta, label: t(meta.label) }
-}
-
-function slideStyle(item: NotificationListItemDto) {
-  const accent = metaOf(item.notificationType).from
-  // 浅色「纯色」背景：所有列同色，避免相邻幻灯片边缘透出导致的发丝缝
-  return { background: `color-mix(in srgb, ${accent} 7%, hsl(var(--card)))` }
-}
-
-function badgeStyle(item: NotificationListItemDto) {
-  const accent = metaOf(item.notificationType).from
-  return { color: accent, background: `color-mix(in srgb, ${accent} 14%, transparent)` }
-}
-
-function openAnnouncement(item: NotificationListItemDto) {
-  if (item.link) {
-    if (/^https?:\/\//.test(item.link)) {
-      window.open(item.link, '_blank', 'noopener,noreferrer')
-    }
-    else {
-      void router.push(item.link)
-    }
+onMounted(async () => {
+  // 开启同步取后端值；关闭时 hydrate 返回 undefined，回退本地
+  const saved = await sync.hydrate<{ items: BoardItem[] }>('board')
+  if (saved?.items?.length) {
+    board.value = sanitize(saved.items)
     return
   }
-  void router.push('/workbench/inbox')
-}
-
-function formatRelative(value?: string | null) {
-  if (!value) {
-    return '-'
-  }
-  const diff = Date.now() - new Date(value).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) {
-    return t('workbench.dashboard.just_now')
-  }
-  if (minutes < 60) {
-    return t('workbench.dashboard.minutes_ago', { n: minutes })
-  }
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) {
-    return t('workbench.dashboard.hours_ago', { n: hours })
-  }
-  const days = Math.floor(hours / 24)
-  if (days < 7) {
-    return t('workbench.dashboard.days_ago', { n: days })
-  }
-  return formatDate(value, 'MM-DD HH:mm')
-}
-
-async function fetchDashboardData() {
-  try {
-    const summary = await workbenchApi.dashboard.summary()
-    accessCount.value = summary.statistics.accessCount
-    operationCount.value = summary.statistics.operationCount
-    loginCount.value = summary.statistics.loginCount
-    apiCallCount.value = summary.statistics.apiCallCount
-    latestItems.value = summary.inbox.latestItems ?? []
-  }
-  catch {
-    accessCount.value = 0
-    operationCount.value = 0
-    loginCount.value = 0
-    apiCallCount.value = 0
-    latestItems.value = []
-  }
-}
-
-async function fetchAnnouncements() {
-  try {
-    // 与「通知公告」管理页同源：已发布的「公告」类型通知（非仅当前用户已收）
-    const result = await notificationApi.page({
-      ...createPageRequest({ page: { pageIndex: 1, pageSize: 6 } }),
-      isPublished: true,
-      notificationType: NotificationType.System,
-    })
-    announcements.value = result.items ?? []
-  }
-  catch {
-    announcements.value = []
-  }
-}
-
-onMounted(() => {
-  fetchDashboardData()
-  fetchAnnouncements()
-  // 跨端同步：拉取后端收藏夹覆盖本地（尽力而为，端点未就绪/离线静默回退本地）
-  void favoritesStore.hydrate()
+  const local = readLocalBoard()
+  if (local?.length)
+    board.value = sanitize(local)
 })
+
+// 其它设备推送（同步关闭的分区由框架层自动跳过，无需此处再判断）
+const unsubscribe = sync.subscribeRemote('board', (value) => {
+  const items = (value as { items?: BoardItem[] }).items
+  if (Array.isArray(items) && items.length)
+    board.value = sanitize(items)
+})
+onUnmounted(() => {
+  unsubscribe()
+  window.removeEventListener('keydown', onPanelEsc)
+  window.removeEventListener('pointermove', onToolbarDragMove)
+})
+
+const activeKeys = computed(() => new Set(board.value.map(item => item.key)))
+const available = computed(() => WIDGETS.filter(widget => !activeKeys.value.has(widget.key) && canShow(widget.key)))
+const ids = computed(() => board.value.map(item => item.key))
+
+function onDragEnd(event: DragEndEvent) {
+  const move = resolveSortMove(event, ids.value)
+  if (!move)
+    return
+  const next = board.value.slice()
+  const [moved] = next.splice(move.from, 1)
+  if (!moved)
+    return
+  next.splice(move.to, 0, moved)
+  board.value = next
+  dirty.value = true
+}
+function addWidget(key: string) {
+  const def = WIDGET_MAP[key]
+  if (!def)
+    return
+  board.value = [...board.value, { key, span: def.defaultSpan }]
+  dirty.value = true
+}
+function removeWidget(key: string) {
+  board.value = board.value.filter(item => item.key !== key)
+  dirty.value = true
+}
+function setSpan(item: BoardItem, span: number) {
+  item.span = span
+  dirty.value = true
+}
+function resetBoard() {
+  board.value = sanitize(DEFAULT_BOARD)
+  dirty.value = true
+}
+// 编辑期间所有改动只在内存预览；点「完成」才落地 localStorage + 同步后端一次（无改动则跳过）
+function finishCustomize() {
+  customizing.value = false
+  panelOpen.value = false
+  if (!dirty.value)
+    return
+  dirty.value = false
+  persist()
+}
+
+// 边缘拖拽调宽：把像素位移换算成栅格列数，实时跟随光标；靠近预设档位时磁吸（左把手方向取反）
+const gridRef = ref<HTMLElement | null>(null)
+let resize: { item: BoardItem, startX: number, startSpan: number, colUnit: number, sign: number } | null = null
+
+// 实时列数 → 落地列数：吸附到最近的尺寸档位（全部列宽都吸）
+function resolveSpan(cols: number): number {
+  const clamped = Math.min(GRID_COLS, Math.max(MIN_SPAN, cols))
+  return SIZE_OPTIONS.reduce((best, span) => (Math.abs(span - clamped) < Math.abs(best - clamped) ? span : best), SIZE_OPTIONS[0] ?? MIN_SPAN)
+}
+function onResizeMove(event: PointerEvent) {
+  if (!resize)
+    return
+  const delta = (event.clientX - resize.startX) * resize.sign
+  const next = resolveSpan(resize.startSpan + delta / resize.colUnit)
+  if (next !== resize.item.span) {
+    resize.item.span = next
+    dirty.value = true
+  }
+}
+function onResizeEnd() {
+  window.removeEventListener('pointermove', onResizeMove)
+  resize = null
+}
+function onResizeStart(event: PointerEvent, item: BoardItem, side: 'left' | 'right') {
+  const width = gridRef.value?.offsetWidth ?? 0
+  if (width <= 0)
+    return
+  event.preventDefault()
+  event.stopPropagation()
+  resize = { item, startX: event.clientX, startSpan: item.span, colUnit: width / 12, sign: side === 'left' ? -1 : 1 }
+  window.addEventListener('pointermove', onResizeMove)
+  window.addEventListener('pointerup', onResizeEnd, { once: true })
+}
+
+onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
 </script>
 
 <template>
-  <div class="dashboard">
-    <!-- 轮播公告（真实通知数据，自定义箭头与控制点） -->
-    <NCarousel
-      v-if="announcements.length"
-      autoplay
-      show-arrow
-      :interval="5000"
-      class="dash-carousel"
-    >
+  <div class="flex flex-col gap-4 p-4 sm:p-5">
+    <!-- 悬浮控制：sticky 跟随滚动、零高度不占空间。折叠=右侧半隐藏按钮；展开=半透明毛玻璃操作栏 -->
+    <div class="pointer-events-none sticky top-2 z-40 -mb-4 -mr-4 flex h-0 items-start justify-end overflow-x-clip sm:-mb-5 sm:-mr-5">
       <div
-        v-for="item in announcements"
-        :key="item.basicId"
-        class="carousel-slide"
-        :style="slideStyle(item)"
-        @click="openAnnouncement(item)"
+        class="flex justify-end"
+        :style="{ transform: `translateY(${toolbarOffsetY}px)`, transition: draggingToolbar ? 'none' : 'transform 0.15s ease' }"
       >
-        <NIcon class="slide-deco" :size="150" :style="{ color: metaOf(item.notificationType).from }">
-          <Icon icon="lucide:megaphone" />
-        </NIcon>
-        <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
-        <div class="slide-title">
-          {{ item.title || t('workbench.dashboard.system_notice') }}
-        </div>
-        <div v-if="item.content" class="slide-content">
-          {{ item.content }}
-        </div>
-        <div class="slide-time">
-          <NIcon size="13">
-            <Icon icon="lucide:clock" />
-          </NIcon>
-          {{ item.sendTime ? formatDate(item.sendTime, 'YYYY-MM-DD HH:mm') : '' }}
-        </div>
+        <!-- 折叠态：右侧半隐藏按钮，悬停滑出 -->
+        <Transition
+          enter-active-class="transition-opacity duration-200"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-150"
+          leave-to-class="opacity-0"
+        >
+          <button
+            v-if="!panelOpen"
+            type="button"
+            :title="t('workbench.widgets.customize')"
+            class="group pointer-events-auto mt-2 flex h-9 translate-x-[40%] items-center gap-1.5 rounded-l-xl border border-r-0 border-border/60 bg-background/55 pl-3 pr-2 text-muted-foreground shadow-sm backdrop-blur-md transition-all duration-200 hover:translate-x-0 hover:bg-background/90 hover:text-foreground"
+            @click="panelOpen = true"
+          >
+            <Icon icon="lucide:settings-2" width="16" />
+            <Icon icon="lucide:chevron-left" width="14" class="opacity-50 transition-opacity group-hover:opacity-90" />
+          </button>
+        </Transition>
+        <!-- 展开态：半透明毛玻璃悬浮操作栏 -->
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="translate-x-4 opacity-0"
+          leave-active-class="transition duration-150 ease-in"
+          leave-to-class="translate-x-4 opacity-0"
+        >
+          <div
+            v-if="panelOpen"
+            class="pointer-events-auto mr-4 mt-2 flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-background/80 p-1.5 pl-2 shadow-lg shadow-black/5 backdrop-blur-xl sm:mr-5"
+          >
+            <span
+              class="flex h-7 w-4 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
+              :title="t('workbench.widgets.drag_toolbar')"
+              @pointerdown="onToolbarDragStart"
+            >
+              <Icon icon="lucide:grip-vertical" width="14" />
+            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-foreground">{{ t('menu.workbench_dashboard') }}</span>
+              <SyncStatusBadge :synced="appStore.widgetsSyncEnabled" />
+            </div>
+            <div class="mx-0.5 h-5 w-px bg-border/70" />
+            <template v-if="customizing">
+              <NButton size="small" @click="showAdd = true">
+                <template #icon>
+                  <Icon icon="lucide:plus" />
+                </template>
+                {{ t('workbench.widgets.add') }}
+              </NButton>
+              <NButton size="small" @click="resetBoard">
+                <template #icon>
+                  <Icon icon="lucide:rotate-ccw" />
+                </template>
+                {{ t('workbench.widgets.reset') }}
+              </NButton>
+              <NButton size="small" type="primary" @click="finishCustomize">
+                <template #icon>
+                  <Icon icon="lucide:check" />
+                </template>
+                {{ t('workbench.widgets.done') }}
+              </NButton>
+            </template>
+            <template v-else>
+              <NButton size="small" secondary @click="customizing = true">
+                <template #icon>
+                  <Icon icon="lucide:layout-grid" />
+                </template>
+                {{ t('workbench.widgets.customize') }}
+              </NButton>
+              <button
+                type="button"
+                :title="t('workbench.widgets.collapse')"
+                class="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                @click="panelOpen = false"
+              >
+                <Icon icon="lucide:chevron-right" width="16" />
+              </button>
+            </template>
+          </div>
+        </Transition>
       </div>
+    </div>
 
-      <template #arrow="{ prev, next }">
-        <div class="carousel-arrows">
-          <button class="carousel-arrow" type="button" @click.stop="prev">
-            <NIcon size="18">
-              <Icon icon="lucide:arrow-left" />
-            </NIcon>
-          </button>
-          <button class="carousel-arrow" type="button" @click.stop="next">
-            <NIcon size="18">
-              <Icon icon="lucide:arrow-right" />
-            </NIcon>
-          </button>
+    <div v-if="!board.length" class="py-20">
+      <NEmpty :description="t('workbench.widgets.empty')">
+        <template #extra>
+          <NButton size="small" @click="customizing = true; showAdd = true">
+            {{ t('workbench.widgets.add') }}
+          </NButton>
+        </template>
+      </NEmpty>
+    </div>
+
+    <DragDropProvider v-else @drag-end="onDragEnd">
+      <div ref="gridRef" class="grid grid-cols-1 gap-4 md:grid-cols-12">
+        <SortableItem
+          v-for="(item, index) in board"
+          :id="item.key"
+          :key="item.key"
+          :index="index"
+          handle=".widget-drag-handle"
+          :disabled="!customizing"
+          class="min-w-0"
+          :style="{ gridColumn: `span ${item.span}` }"
+        >
+          <div class="relative h-full" :class="customizing ? 'rounded-xl ring-1 ring-dashed ring-[hsl(var(--primary)/0.45)]' : ''">
+            <component :is="WIDGET_MAP[item.key]?.component" />
+            <!-- 边缘拖拽调宽：左右各一把手，拖动按 12 栅格吸附到最近档位（Windows 窗口式） -->
+            <template v-if="customizing">
+              <div
+                class="group/lh absolute left-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-start"
+                :title="t('workbench.widgets.resize')"
+                @pointerdown="onResizeStart($event, item, 'left')"
+              >
+                <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/lh:bg-[hsl(var(--primary))]" />
+              </div>
+              <div
+                class="group/rh absolute right-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-end"
+                :title="t('workbench.widgets.resize')"
+                @pointerdown="onResizeStart($event, item, 'right')"
+              >
+                <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/rh:bg-[hsl(var(--primary))]" />
+              </div>
+            </template>
+            <!-- 自定义工具条：始终在 DOM（v-show），仅手柄 span 可拖（非交互元素 + handle 选择器） -->
+            <div
+              v-show="customizing"
+              class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg border border-border bg-card/95 px-1 py-0.5 shadow-sm backdrop-blur"
+            >
+              <span
+                class="widget-drag-handle flex h-6 w-6 cursor-grab touch-none select-none items-center justify-center rounded text-muted-foreground hover:bg-muted active:cursor-grabbing"
+                :title="t('workbench.widgets.drag')"
+              >
+                <Icon icon="lucide:grip-vertical" width="15" />
+              </span>
+              <NPopover trigger="click" placement="bottom-end" :show-arrow="false">
+                <template #trigger>
+                  <button type="button" class="flex h-6 min-w-[2.25rem] items-center justify-center rounded px-1 text-xs font-medium text-muted-foreground hover:bg-muted" :title="t('workbench.widgets.span')">
+                    {{ spanLabel(item.span) }}
+                  </button>
+                </template>
+                <div class="grid grid-cols-6 gap-1">
+                  <button
+                    v-for="s in SIZE_OPTIONS"
+                    :key="s"
+                    type="button"
+                    class="flex h-7 min-w-[2.75rem] items-center justify-center rounded px-1 text-xs transition-colors"
+                    :class="s === item.span ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
+                    @click="setSpan(item, s)"
+                  >
+                    {{ spanLabel(s) }}
+                  </button>
+                </div>
+              </NPopover>
+              <button type="button" class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]" @click="removeWidget(item.key)">
+                <Icon icon="lucide:x" width="15" />
+              </button>
+            </div>
+          </div>
+        </SortableItem>
+      </div>
+    </DragDropProvider>
+
+    <NDrawer v-model:show="showAdd" :width="340" placement="right">
+      <NDrawerContent :title="t('workbench.widgets.add_panel_title')" closable>
+        <div v-if="!available.length" class="py-10">
+          <NEmpty :description="t('workbench.widgets.all_added')" />
         </div>
-      </template>
-
-      <template #dots="{ total, currentIndex, to }">
-        <ul class="carousel-dots">
-          <li
-            v-for="index of total"
-            :key="index"
-            class="carousel-dot"
-            :class="{ 'is-active': currentIndex === index - 1 }"
-            @click="to(index - 1)"
-          />
-        </ul>
-      </template>
-    </NCarousel>
-
-    <!-- 真实统计卡片 -->
-    <NGrid :cols="4" :item-responsive="true" :x-gap="14" :y-gap="14" responsive="screen">
-      <NGridItem v-for="stat in statCards" :key="stat.key" span="2 m:1">
-        <NCard :bordered="false" class="stat-card">
-          <div class="stat-inner">
-            <div class="stat-icon" :style="{ backgroundColor: `${stat.color}18` }">
-              <NIcon :style="{ color: stat.color }" size="22">
-                <Icon :icon="stat.icon" />
-              </NIcon>
+        <div v-else class="flex flex-col gap-2">
+          <div v-for="widget in available" :key="widget.key" class="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-[hsl(var(--primary))]">
+              <Icon :icon="widget.icon" width="18" />
             </div>
-            <div class="stat-text">
-              <span class="stat-value">{{ stat.value }}</span>
-              <span class="stat-label">{{ stat.label }}</span>
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-medium text-foreground">
+                {{ t(widget.titleKey) }}
+              </div>
+              <div class="truncate text-xs text-muted-foreground">
+                {{ t(widget.descKey) }}
+              </div>
             </div>
+            <NButton size="small" type="primary" secondary @click="addWidget(widget.key)">
+              <template #icon>
+                <Icon icon="lucide:plus" />
+              </template>
+            </NButton>
           </div>
-        </NCard>
-      </NGridItem>
-    </NGrid>
-
-    <NGrid :cols="3" :item-responsive="true" :x-gap="14" :y-gap="14" responsive="screen">
-      <NGridItem span="3 m:2">
-        <NCard :bordered="false" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <NIcon class="section-icon" size="16">
-                <Icon icon="lucide:zap" />
-              </NIcon>
-              <span>{{ t('workbench.dashboard.quick_entry') }}</span>
-            </div>
-          </template>
-          <div v-if="quickLinks.length" class="quick-grid">
-            <button
-              v-for="link in quickLinks"
-              :key="link.key"
-              class="quick-item"
-              type="button"
-              @click="router.push(link.to)"
-            >
-              <div class="quick-icon" :style="{ backgroundColor: `${link.color}18` }">
-                <NIcon :style="{ color: link.color }" size="22">
-                  <Icon :icon="link.icon" />
-                </NIcon>
-              </div>
-              <div class="quick-text">
-                <span class="quick-label">{{ link.label }}</span>
-              </div>
-            </button>
-          </div>
-          <NEmpty v-else class="quick-empty" :description="t('workbench.dashboard.quick_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:star" /></NIcon>
-            </template>
-          </NEmpty>
-        </NCard>
-      </NGridItem>
-
-      <NGridItem span="3 m:1">
-        <NCard :bordered="false" class="section-card">
-          <template #header>
-            <div class="section-header">
-              <NIcon class="section-icon" size="16">
-                <Icon icon="lucide:clock" />
-              </NIcon>
-              <span>{{ t('workbench.dashboard.recent_activity') }}</span>
-            </div>
-          </template>
-          <NTimeline v-if="latestItems.length">
-            <NTimelineItem
-              v-for="(item, index) in latestItems"
-              :key="item.basicId"
-              :color="index === 0 ? '#3b82f6' : undefined"
-              :time="formatRelative(item.sendTime)"
-              line-type="dashed"
-            >
-              <div class="activity-title">
-                {{ item.title }}
-              </div>
-              <div v-if="item.content" class="activity-desc">
-                {{ item.content }}
-              </div>
-            </NTimelineItem>
-          </NTimeline>
-          <NEmpty v-else class="activity-empty" :description="t('workbench.dashboard.activity_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-        </NCard>
-      </NGridItem>
-    </NGrid>
+        </div>
+      </NDrawerContent>
+    </NDrawer>
   </div>
 </template>
-
-<style scoped>
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Carousel（浅色主题） */
-.dash-carousel {
-  height: 190px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 12px;
-  background: hsl(var(--card));
-  overflow: hidden;
-}
-
-/* 只铺满高度；宽度交给 NCarousel 自身按像素计算
-   （强行设 width:100% 会让 flex 轨道挤窄当前页、露出相邻幻灯片缝隙） */
-.dash-carousel :deep(.n-carousel__slide) {
-  height: 100%;
-}
-
-.carousel-slide {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  height: 100%;
-  padding: 24px 28px;
-  box-sizing: border-box;
-  color: hsl(var(--foreground));
-  cursor: pointer;
-  user-select: none;
-  overflow: hidden;
-}
-
-/* 右侧装饰大图标：填充空白、点缀但不抢内容 */
-.slide-deco {
-  position: absolute;
-  right: 40px;
-  top: 50%;
-  transform: translateY(-50%) rotate(-8deg);
-  opacity: 0.1;
-  pointer-events: none;
-}
-
-.slide-badge {
-  position: relative;
-  z-index: 1;
-  align-self: flex-start;
-  padding: 2px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 999px;
-}
-
-.slide-title {
-  position: relative;
-  z-index: 1;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: hsl(var(--foreground));
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 82%;
-}
-
-.slide-content {
-  position: relative;
-  z-index: 1;
-  font-size: 14px;
-  line-height: 1.5;
-  color: hsl(var(--muted-foreground));
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  max-width: 82%;
-}
-
-.slide-time {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 2px;
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-}
-
-/* 自定义箭头：右下角 */
-.carousel-arrows {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  display: flex;
-  gap: 8px;
-  z-index: 2;
-}
-
-.carousel-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  color: hsl(var(--foreground));
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.carousel-arrow:hover {
-  background: hsl(var(--accent));
-}
-
-/* 自定义控制点：左下角 */
-.carousel-dots {
-  position: absolute;
-  left: 24px;
-  bottom: 22px;
-  display: flex;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  z-index: 2;
-}
-
-.carousel-dot {
-  width: 16px;
-  height: 4px;
-  background: hsl(var(--border));
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    width 0.3s ease,
-    background 0.3s ease;
-}
-
-.carousel-dot.is-active {
-  width: 28px;
-  background: hsl(var(--primary));
-}
-
-/* Stat Cards */
-.stat-card {
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 12px !important;
-}
-
-.stat-card :deep(.n-card__content) {
-  padding: 16px 18px !important;
-}
-
-.stat-inner {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.stat-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.stat-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.stat-value {
-  color: hsl(var(--foreground));
-  font-size: 24px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.stat-label {
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
-}
-
-/* Section Card */
-.section-card {
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 12px !important;
-  height: 100%;
-}
-
-.section-card :deep(.n-card__header) {
-  padding: 14px 20px 10px;
-}
-
-.section-card :deep(.n-card__content) {
-  padding: 12px 20px 18px;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: hsl(var(--foreground));
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.section-icon {
-  color: hsl(var(--primary));
-}
-
-/* Quick Links */
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-}
-
-.quick-item {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px 8px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  cursor: pointer;
-  outline: none;
-  transition:
-    background 0.15s ease,
-    transform 0.15s ease;
-  text-align: center;
-}
-
-.quick-item:hover {
-  background: hsl(var(--accent));
-  transform: translateY(-1px);
-}
-
-.quick-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-}
-
-.quick-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.quick-label {
-  color: hsl(var(--foreground));
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.quick-empty {
-  padding: 32px 0;
-}
-
-/* Recent Activity */
-.activity-title {
-  color: hsl(var(--foreground));
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.activity-desc {
-  margin-top: 2px;
-  color: hsl(var(--muted-foreground));
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.activity-empty {
-  padding: 28px 0;
-}
-</style>

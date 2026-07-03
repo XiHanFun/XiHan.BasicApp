@@ -3,7 +3,6 @@ export default {
   workbench: '工作台',
   workbench_dashboard: '仪表盘',
   workbench_inbox: '我的消息',
-  workbench_widgets: '小组件',
   identity: '身份权限',
   identity_user: '用户管理',
   identity_role: '角色管理',

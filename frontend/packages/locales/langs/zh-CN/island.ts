@@ -41,7 +41,7 @@ export default {
       table: '表格设置',
       search: '搜索设置',
       views: '视图',
-      widgets: '小组件看板',
+      widgets: '仪表盘看板',
     },
   },
   auth: {

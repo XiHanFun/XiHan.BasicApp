@@ -3,7 +3,6 @@ export default {
   workbench: 'Workbench',
   workbench_dashboard: 'Dashboard',
   workbench_inbox: 'My Inbox',
-  workbench_widgets: 'Widgets',
   identity: 'Identity & Access',
   identity_user: 'Users',
   identity_role: 'Roles',
