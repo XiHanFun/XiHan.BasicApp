@@ -56,6 +56,7 @@ export default {
     placeholder: '输入消息，Enter 发送 / Shift+Enter 换行',
     send: '发送',
     emoji: '表情',
+    emoji_set_native: '系统默认',
     image: '发送图片',
     file: '发送文件',
     uploading: '上传中 {percent}%',

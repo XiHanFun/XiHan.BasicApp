@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import type { InputInst } from 'naive-ui'
-import { NInput, NPopover, NProgress, NScrollbar, NTooltip, useMessage } from 'naive-ui'
-import { computed, nextTick, ref } from 'vue'
+import { NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
+import { computed, defineAsyncComponent, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { CHAT_MAX_CONTENT_LENGTH } from '~/types'
 import { ChatMessageType } from '~/types/enums'
-import { CHAT_EMOJIS } from './chat-emojis'
 
 defineOptions({ name: 'ChatComposer' })
 
 const props = defineProps<{
   conversationId: string
 }>()
+
+// emoji-mart 及其数据（~600KB）异步拆包：首次点开表情按钮才加载
+const ChatEmojiPicker = defineAsyncComponent(() => import('./ChatEmojiPicker.vue'))
 
 const { t } = useI18n()
 const message = useMessage()
@@ -37,7 +39,7 @@ function handleInput() {
   chatStore.sendTyping(props.conversationId)
 }
 
-/** 在光标处插入表情（超长丢弃；插入后回焦并把光标落在表情后） */
+/** 在光标处插入表情（超长丢弃；插入后回焦并把光标落在表情后，面板保持打开支持连选） */
 function insertEmoji(emoji: string) {
   if (draft.value.length + emoji.length > CHAT_MAX_CONTENT_LENGTH) {
     return
@@ -46,7 +48,6 @@ function insertEmoji(emoji: string) {
   const start = textarea?.selectionStart ?? draft.value.length
   const end = textarea?.selectionEnd ?? draft.value.length
   draft.value = draft.value.slice(0, start) + emoji + draft.value.slice(end)
-  showEmojiPicker.value = false
   void nextTick(() => {
     textarea?.focus()
     const caret = start + emoji.length
@@ -138,21 +139,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
               <Icon icon="lucide:smile" width="17" height="17" />
             </button>
           </template>
-          <div class="chat-emoji-panel">
-            <NScrollbar style="max-height: 216px">
-              <div class="chat-emoji-grid">
-                <button
-                  v-for="emoji in CHAT_EMOJIS"
-                  :key="emoji"
-                  type="button"
-                  class="chat-emoji-item"
-                  @click="insertEmoji(emoji)"
-                >
-                  {{ emoji }}
-                </button>
-              </div>
-            </NScrollbar>
-          </div>
+          <ChatEmojiPicker @select="insertEmoji" />
         </NPopover>
 
         <!-- 附件按钮 -->
@@ -256,42 +243,5 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
 
 .chat-composer-btn--send {
   color: hsl(var(--primary));
-}
-
-.chat-emoji-panel {
-  width: 296px;
-  padding: 8px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 10px;
-  background: hsl(var(--card));
-  box-shadow:
-    0 8px 30px hsl(var(--foreground) / 8%),
-    0 2px 8px hsl(var(--foreground) / 4%);
-}
-
-.chat-emoji-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 2px;
-}
-
-.chat-emoji-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-
-.chat-emoji-item:hover {
-  background: hsl(var(--accent));
 }
 </style>
