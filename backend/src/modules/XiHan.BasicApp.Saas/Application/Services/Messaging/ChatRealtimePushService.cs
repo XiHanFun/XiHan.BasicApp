@@ -40,6 +40,21 @@ public interface IChatRealtimePushService
     /// 推送会话变更（成员增删/入群/被移出，提示前端刷新会话列表）
     /// </summary>
     Task PushConversationChangedAsync(long conversationId, string changeType, IReadOnlyList<long> recipientUserIds);
+
+    /// <summary>
+    /// 推送消息编辑
+    /// </summary>
+    Task PushMessageEditedAsync(long conversationId, long messageId, string? content, DateTimeOffset? editedTime, IReadOnlyList<long> recipientUserIds);
+
+    /// <summary>
+    /// 推送表情回应变更（delta）
+    /// </summary>
+    Task PushReactionChangedAsync(long conversationId, long messageId, string emoji, long userId, string? userName, bool added, IReadOnlyList<long> recipientUserIds);
+
+    /// <summary>
+    /// 推送成员已读位变更（群已读回执实时刷新）
+    /// </summary>
+    Task PushReadPositionChangedAsync(long conversationId, long userId, long? lastReadMessageId, IReadOnlyList<long> recipientUserIds);
 }
 
 /// <summary>
@@ -91,7 +106,13 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
                     fileSize = message.FileSize,
                     isRecalled = message.IsRecalled,
                     clientMessageId = message.ClientMessageId,
-                    createdTime = message.CreatedTime
+                    createdTime = message.CreatedTime,
+                    replyToMessageId = message.ReplyToMessageId?.ToString(),
+                    replyPreview = message.ReplyPreview,
+                    editedTime = message.EditedTime,
+                    mentionedUserIds = message.MentionedUserIds.Select(id => id.ToString()).ToArray(),
+                    isPinned = message.IsPinned,
+                    reactions = Array.Empty<object>()
                 },
                 conversation = new
                 {
@@ -135,6 +156,48 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "聊天会话变更实时推送失败，ConversationId={ConversationId}", conversationId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task PushMessageEditedAsync(long conversationId, long messageId, string? content, DateTimeOffset? editedTime, IReadOnlyList<long> recipientUserIds)
+    {
+        try
+        {
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatMessageEdited,
+                new { conversationId = conversationId.ToString(), messageId = messageId.ToString(), content, editedTime });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "聊天消息编辑实时推送失败，MessageId={MessageId}", messageId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task PushReactionChangedAsync(long conversationId, long messageId, string emoji, long userId, string? userName, bool added, IReadOnlyList<long> recipientUserIds)
+    {
+        try
+        {
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatReactionChanged,
+                new { conversationId = conversationId.ToString(), messageId = messageId.ToString(), emoji, userId = userId.ToString(), userName, added });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "聊天表情回应实时推送失败，MessageId={MessageId}", messageId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task PushReadPositionChangedAsync(long conversationId, long userId, long? lastReadMessageId, IReadOnlyList<long> recipientUserIds)
+    {
+        try
+        {
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatReadPositionChanged,
+                new { conversationId = conversationId.ToString(), userId = userId.ToString(), lastReadMessageId = lastReadMessageId?.ToString() });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "聊天已读位实时推送失败，ConversationId={ConversationId}", conversationId);
         }
     }
 

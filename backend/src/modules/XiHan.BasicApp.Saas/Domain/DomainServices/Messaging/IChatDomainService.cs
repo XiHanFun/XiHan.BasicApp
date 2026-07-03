@@ -55,7 +55,32 @@ public interface IChatDomainService
     Task<ChatMessageRecallResult> RecallMessageAsync(ChatMessageRecallCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 标记会话已读（未读清零并记录已读位）
+    /// 编辑消息（仅文本、仅本人、限时窗口内；EditedTime 置标）
     /// </summary>
-    Task MarkConversationReadAsync(ChatMarkReadCommand command, CancellationToken cancellationToken = default);
+    Task<ChatMessageEditResult> EditMessageAsync(ChatMessageEditCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 表情回应 toggle（同消息+用户+表情已存在则取消，否则新增）
+    /// </summary>
+    Task<ChatReactionToggleResult> ToggleReactionAsync(ChatReactionToggleCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 消息 Pin/取消 Pin（单聊双方皆可，群/部门群仅群主与管理员；每会话有上限）
+    /// </summary>
+    Task<ChatMessagePinResult> SetMessagePinAsync(ChatMessagePinCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 会话置顶 toggle（个人维度），返回新状态
+    /// </summary>
+    Task<bool> TogglePinConversationAsync(ChatMemberToggleCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 会话免打扰 toggle（个人维度），返回新状态
+    /// </summary>
+    Task<bool> ToggleMuteConversationAsync(ChatMemberToggleCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 标记会话已读（未读清零并记录已读位；结果用于已读位实时扇出）
+    /// </summary>
+    Task<ChatMarkReadResult> MarkConversationReadAsync(ChatMarkReadCommand command, CancellationToken cancellationToken = default);
 }

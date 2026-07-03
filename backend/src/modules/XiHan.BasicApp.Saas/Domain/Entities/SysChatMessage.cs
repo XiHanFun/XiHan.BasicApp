@@ -113,4 +113,46 @@ public partial class SysChatMessage : BasicAppCreationEntity
     /// </summary>
     [SugarColumn(ColumnName = "Client_Message_Id", ColumnDescription = "客户端消息ID", Length = 50, IsNullable = true)]
     public virtual string? ClientMessageId { get; set; }
+
+    /// <summary>
+    /// 被回复消息ID（回复消息；空为普通消息）
+    /// </summary>
+    [SugarColumn(ColumnName = "Reply_To_Message_Id", ColumnDescription = "被回复消息ID", IsNullable = true)]
+    public virtual long? ReplyToMessageId { get; set; }
+
+    /// <summary>
+    /// 回复快照「{发送人}: {内容截断}」（发送时生成，不随原消息撤回/编辑回溯）
+    /// </summary>
+    [SugarColumn(ColumnName = "Reply_Preview", ColumnDescription = "回复快照", Length = 300, IsNullable = true)]
+    public virtual string? ReplyPreview { get; set; }
+
+    /// <summary>
+    /// 编辑时间（非空即展示"已编辑"；仅文本消息限时可编辑）
+    /// </summary>
+    [SugarColumn(ColumnName = "Edited_Time", ColumnDescription = "编辑时间", IsNullable = true)]
+    public virtual DateTimeOffset? EditedTime { get; set; }
+
+    /// <summary>
+    /// 被 @ 用户ID 逗号串（发送时校验均为会话成员）
+    /// </summary>
+    [SugarColumn(ColumnName = "Mentioned_User_Ids", ColumnDescription = "被@用户ID串", Length = 500, IsNullable = true)]
+    public virtual string? MentionedUserIds { get; set; }
+
+    /// <summary>
+    /// 是否被 Pin（会话内置顶消息，每会话有上限）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Pinned", ColumnDescription = "是否被Pin")]
+    public virtual bool IsPinned { get; set; } = false;
+
+    /// <summary>
+    /// Pin 操作人用户ID
+    /// </summary>
+    [SugarColumn(ColumnName = "Pinned_By_User_Id", ColumnDescription = "Pin操作人用户ID", IsNullable = true)]
+    public virtual long? PinnedByUserId { get; set; }
+
+    /// <summary>
+    /// Pin 时间
+    /// </summary>
+    [SugarColumn(ColumnName = "Pinned_Time", ColumnDescription = "Pin时间", IsNullable = true)]
+    public virtual DateTimeOffset? PinnedTime { get; set; }
 }

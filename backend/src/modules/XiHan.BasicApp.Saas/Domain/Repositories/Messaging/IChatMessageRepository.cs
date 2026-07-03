@@ -25,4 +25,9 @@ public interface IChatMessageRepository : ISaasRepository<SysChatMessage>
     /// 会话消息历史游标分页：取 beforeMessageId 之前（不含）的最近 take 条，按消息 ID 倒序
     /// </summary>
     Task<IReadOnlyList<SysChatMessage>> GetHistoryAsync(long conversationId, long? beforeMessageId, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取会话内被 Pin 的消息（按 Pin 时间倒序）
+    /// </summary>
+    Task<IReadOnlyList<SysChatMessage>> GetPinnedAsync(long conversationId, CancellationToken cancellationToken = default);
 }

@@ -40,4 +40,15 @@ public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver
             .Take(take)
             .ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysChatMessage>> GetPinnedAsync(long conversationId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(message => message.ConversationId == conversationId && message.IsPinned)
+            .OrderByDescending(message => message.PinnedTime)
+            .ToListAsync(cancellationToken);
+    }
 }

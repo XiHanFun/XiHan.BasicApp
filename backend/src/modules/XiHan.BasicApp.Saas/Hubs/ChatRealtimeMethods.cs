@@ -44,6 +44,21 @@ public static class ChatRealtimeMethods
     public const string ChatTyping = "ChatTyping";
 
     /// <summary>
+    /// 消息被编辑（负载：conversationId、messageId、content、editedTime）
+    /// </summary>
+    public const string ChatMessageEdited = "ChatMessageEdited";
+
+    /// <summary>
+    /// 表情回应变更（负载：conversationId、messageId、emoji、userId、userName、added）
+    /// </summary>
+    public const string ChatReactionChanged = "ChatReactionChanged";
+
+    /// <summary>
+    /// 成员已读位变更（负载：conversationId、userId、lastReadMessageId；群已读回执实时刷新）
+    /// </summary>
+    public const string ChatReadPositionChanged = "ChatReadPositionChanged";
+
+    /// <summary>
     /// 会话的 SignalR 组名（打开会话页时 JoinConversation 加入，用于 typing 等轻量组播）
     /// </summary>
     public static string ConversationGroup(long conversationId)

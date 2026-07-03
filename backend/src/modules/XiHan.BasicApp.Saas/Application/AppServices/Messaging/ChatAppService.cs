@@ -151,14 +151,103 @@ public sealed class ChatAppService
 
     /// <inheritdoc />
     [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
+    public async Task<ChatMessageItemDto> EditMessageAsync(ChatMessageEditDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.EditMessageAsync(
+            new ChatMessageEditCommand(input.MessageId, GetCurrentUserIdOrThrow(), input.Content), cancellationToken);
+        await _pushService.PushMessageEditedAsync(
+            result.Message.ConversationId, result.Message.BasicId, result.Message.Content, result.Message.EditedTime, result.RecipientUserIds);
+        return ChatApplicationMapper.ToMessageItemDto(result.Message);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
+    public async Task<ChatReactionToggleResultDto> ToggleReactionAsync(ChatReactionToggleDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.ToggleReactionAsync(
+            new ChatReactionToggleCommand(input.MessageId, GetCurrentUserIdOrThrow(), input.Emoji), cancellationToken);
+        await _pushService.PushReactionChangedAsync(
+            result.ConversationId, result.MessageId, result.Emoji, result.UserId, result.UserName, result.Added, result.RecipientUserIds);
+        return new ChatReactionToggleResultDto { Added = result.Added };
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
+    public async Task PinMessageAsync(ChatMessagePinDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.SetMessagePinAsync(
+            new ChatMessagePinCommand(input.MessageId, GetCurrentUserIdOrThrow(), Pin: true), cancellationToken);
+        await _pushService.PushConversationChangedAsync(result.Message.ConversationId, "pinned-changed", result.RecipientUserIds);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
+    public async Task UnpinMessageAsync(ChatMessagePinDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.SetMessagePinAsync(
+            new ChatMessagePinCommand(input.MessageId, GetCurrentUserIdOrThrow(), Pin: false), cancellationToken);
+        await _pushService.PushConversationChangedAsync(result.Message.ConversationId, "pinned-changed", result.RecipientUserIds);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<ChatToggleStateDto> TogglePinConversationAsync(ChatConversationToggleDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userId = GetCurrentUserIdOrThrow();
+        var isOn = await _chatDomainService.TogglePinConversationAsync(
+            new ChatMemberToggleCommand(input.ConversationId, userId), cancellationToken);
+        // 仅推给本人：多端同步个人会话设置
+        await _pushService.PushConversationChangedAsync(input.ConversationId, "member-setting-changed", [userId]);
+        return new ChatToggleStateDto { IsOn = isOn };
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<ChatToggleStateDto> ToggleMuteConversationAsync(ChatConversationToggleDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userId = GetCurrentUserIdOrThrow();
+        var isOn = await _chatDomainService.ToggleMuteConversationAsync(
+            new ChatMemberToggleCommand(input.ConversationId, userId), cancellationToken);
+        await _pushService.PushConversationChangedAsync(input.ConversationId, "member-setting-changed", [userId]);
+        return new ChatToggleStateDto { IsOn = isOn };
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task MarkReadAsync(ChatMarkReadDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        await _chatDomainService.MarkConversationReadAsync(
+        var result = await _chatDomainService.MarkConversationReadAsync(
             new ChatMarkReadCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.UpToMessageId), cancellationToken);
+        // 已读位扇出全体成员：群已读回执/单聊已读状态实时刷新
+        await _pushService.PushReadPositionChangedAsync(result.ConversationId, result.UserId, result.LastReadMessageId, result.RecipientUserIds);
     }
 
     private long GetCurrentUserIdOrThrow()

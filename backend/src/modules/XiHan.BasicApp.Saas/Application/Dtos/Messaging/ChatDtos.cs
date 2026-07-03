@@ -125,6 +125,92 @@ public sealed class ChatMessageSendDto
     /// 客户端消息ID（乐观上屏去重）
     /// </summary>
     public string? ClientMessageId { get; set; }
+
+    /// <summary>
+    /// 被回复消息ID（回复消息）
+    /// </summary>
+    public long? ReplyToMessageId { get; set; }
+
+    /// <summary>
+    /// 被 @ 用户ID集合（须均为会话成员）
+    /// </summary>
+    public List<long>? MentionedUserIds { get; set; }
+}
+
+/// <summary>
+/// 编辑消息 DTO（仅文本、仅本人、限时窗口）
+/// </summary>
+public sealed class ChatMessageEditDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+
+    /// <summary>
+    /// 新内容
+    /// </summary>
+    public string Content { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 表情回应 toggle DTO
+/// </summary>
+public sealed class ChatReactionToggleDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+
+    /// <summary>
+    /// 表情（Unicode emoji）
+    /// </summary>
+    public string Emoji { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 消息 Pin/取消 Pin DTO
+/// </summary>
+public sealed class ChatMessagePinDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+}
+
+/// <summary>
+/// 会话个人开关 DTO（置顶/免打扰 toggle）
+/// </summary>
+public sealed class ChatConversationToggleDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+}
+
+/// <summary>
+/// 表情回应 toggle 结果 DTO
+/// </summary>
+public sealed class ChatReactionToggleResultDto
+{
+    /// <summary>
+    /// true=已新增回应，false=已取消回应
+    /// </summary>
+    public bool Added { get; set; }
+}
+
+/// <summary>
+/// 会话个人开关结果 DTO
+/// </summary>
+public sealed class ChatToggleStateDto
+{
+    /// <summary>
+    /// 新状态
+    /// </summary>
+    public bool IsOn { get; set; }
 }
 
 /// <summary>
@@ -246,6 +332,11 @@ public sealed class ChatConversationListItemDto
     public bool IsMuted { get; set; }
 
     /// <summary>
+    /// 是否置顶会话（个人维度，列表置顶优先排序）
+    /// </summary>
+    public bool IsPinned { get; set; }
+
+    /// <summary>
     /// 最后一条消息时间
     /// </summary>
     public DateTimeOffset? LastMessageTime { get; set; }
@@ -320,6 +411,73 @@ public sealed class ChatMessageItemDto
     /// 发送时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 被回复消息ID
+    /// </summary>
+    public long? ReplyToMessageId { get; set; }
+
+    /// <summary>
+    /// 回复快照「{发送人}: {内容截断}」
+    /// </summary>
+    public string? ReplyPreview { get; set; }
+
+    /// <summary>
+    /// 编辑时间（非空即"已编辑"）
+    /// </summary>
+    public DateTimeOffset? EditedTime { get; set; }
+
+    /// <summary>
+    /// 被 @ 用户ID集合
+    /// </summary>
+    public List<long> MentionedUserIds { get; set; } = [];
+
+    /// <summary>
+    /// 是否被 Pin
+    /// </summary>
+    public bool IsPinned { get; set; }
+
+    /// <summary>
+    /// 表情回应列表
+    /// </summary>
+    public List<ChatReactionItemDto> Reactions { get; set; } = [];
+}
+
+/// <summary>
+/// 表情回应项 DTO
+/// </summary>
+public sealed class ChatReactionItemDto
+{
+    /// <summary>
+    /// 表情
+    /// </summary>
+    public string Emoji { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 回应用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 回应用户名（快照）
+    /// </summary>
+    public string? UserName { get; set; }
+}
+
+/// <summary>
+/// 成员已读位 DTO（群已读回执）
+/// </summary>
+public sealed class ChatReadPositionDto
+{
+    /// <summary>
+    /// 用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 最后已读消息ID
+    /// </summary>
+    public long? LastReadMessageId { get; set; }
 }
 
 /// <summary>

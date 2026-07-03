@@ -36,8 +36,17 @@ export interface ChatConversationListItem {
   /** 我的未读消息数 */
   unreadCount: number
   isMuted: boolean
+  /** 是否置顶会话（个人维度，列表置顶优先） */
+  isPinned: boolean
   lastMessageTime?: null | string
   lastMessagePreview?: null | string
+}
+
+/** 表情回应项 */
+export interface ChatReactionItem {
+  emoji: string
+  userId: string
+  userName?: null | string
 }
 
 /** 消息项 */
@@ -58,6 +67,18 @@ export interface ChatMessageItem {
   /** 客户端消息ID（乐观上屏去重） */
   clientMessageId?: null | string
   createdTime: string
+  /** 被回复消息ID */
+  replyToMessageId?: null | string
+  /** 回复快照「{发送人}: {内容截断}」 */
+  replyPreview?: null | string
+  /** 编辑时间（非空即"已编辑"） */
+  editedTime?: null | string
+  /** 被 @ 用户ID集合 */
+  mentionedUserIds: string[]
+  /** 是否被 Pin */
+  isPinned: boolean
+  /** 表情回应列表 */
+  reactions: ChatReactionItem[]
 }
 
 /** 消息历史（游标分页，Items 按时间正序） */
@@ -87,6 +108,16 @@ export interface ChatMessageSendInput {
   fileSize?: null | number
   /** 客户端消息ID（乐观上屏去重） */
   clientMessageId?: null | string
+  /** 被回复消息ID */
+  replyToMessageId?: null | string
+  /** 被 @ 用户ID集合（须均为会话成员） */
+  mentionedUserIds?: null | string[]
+}
+
+/** 成员已读位（群已读回执） */
+export interface ChatReadPosition {
+  userId: string
+  lastReadMessageId?: null | string
 }
 
 /** 消息历史查询（游标：取 beforeMessageId 之前不含的历史；空取最新一页） */
@@ -149,10 +180,37 @@ export interface ChatTypingPushPayload {
   userName?: null | string
 }
 
+/** SignalR ChatMessageEdited 载荷 */
+export interface ChatMessageEditedPushPayload {
+  conversationId: string
+  messageId: string
+  content?: null | string
+  editedTime?: null | string
+}
+
+/** SignalR ChatReactionChanged 载荷（delta） */
+export interface ChatReactionChangedPushPayload {
+  conversationId: string
+  messageId: string
+  emoji: string
+  userId: string
+  userName?: null | string
+  added: boolean
+}
+
+/** SignalR ChatReadPositionChanged 载荷 */
+export interface ChatReadPositionChangedPushPayload {
+  conversationId: string
+  userId: string
+  lastReadMessageId?: null | string
+}
+
 /** 聊天业务常量（与后端 ChatDomainService 不变量一致，前端仅做前置校验/文案） */
 export const CHAT_RECALL_WINDOW_MINUTES = 2
+export const CHAT_EDIT_WINDOW_MINUTES = 5
 export const CHAT_MAX_CONTENT_LENGTH = 4000
 export const CHAT_MAX_GROUP_NAME_LENGTH = 100
+export const CHAT_MAX_MENTION_COUNT = 20
 
 /**
  * 聊天 API 契约：src 实现并注册进 appContext.apis.chatApi，packages 只依赖此契约
@@ -166,9 +224,23 @@ export interface ChatApiContract {
   sendMessage: (input: ChatMessageSendInput) => Promise<ChatMessageItem>
   recallMessage: (messageId: string) => Promise<void>
   markRead: (conversationId: string, upToMessageId?: null | string) => Promise<void>
+  /** 编辑消息（仅文本、仅本人、5 分钟窗） */
+  editMessage: (messageId: string, content: string) => Promise<ChatMessageItem>
+  /** 表情回应 toggle */
+  toggleReaction: (messageId: string, emoji: string) => Promise<{ added: boolean }>
+  /** Pin/取消 Pin 消息 */
+  pinMessage: (messageId: string) => Promise<void>
+  unpinMessage: (messageId: string) => Promise<void>
+  /** 会话置顶/免打扰 toggle（个人维度），返回新状态 */
+  togglePinConversation: (conversationId: string) => Promise<{ isOn: boolean }>
+  toggleMuteConversation: (conversationId: string) => Promise<{ isOn: boolean }>
   myConversations: () => Promise<ChatConversationListItem[]>
   messageHistory: (query: ChatMessageHistoryQuery) => Promise<ChatMessageHistoryResult>
   members: (conversationId: string) => Promise<ChatMemberItem[]>
+  /** 成员已读位（群已读回执） */
+  readPositions: (conversationId: string) => Promise<ChatReadPosition[]>
+  /** 会话内被 Pin 的消息 */
+  pinnedMessages: (conversationId: string) => Promise<ChatMessageItem[]>
   /** 选人（keyword 模糊匹配），复用 UserSelect 轻量端点 */
   selectUsers: (keyword: string, limit?: number) => Promise<ChatUserPickerItem[]>
   /** 部门树（发起部门群用） */

@@ -1,16 +1,20 @@
 import type {
   ChatConversationChangedPushPayload,
   ChatConversationListItem,
+  ChatMessageEditedPushPayload,
   ChatMessageItem,
   ChatMessagePushPayload,
   ChatMessageSendInput,
+  ChatReactionChangedPushPayload,
+  ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
 } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useSignalR } from '~/composables'
-import { CHAT_HUB_METHODS, CHAT_HUB_PATH } from '~/constants'
+import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH } from '~/constants'
+import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 import { useUserStore } from './user'
 
@@ -50,6 +54,18 @@ export const useChatStore = defineStore('chat', () => {
   const hasMoreOlder = ref<Record<string, boolean>>({})
   const historyLoading = ref<Record<string, boolean>>({})
   const typingIndicators = ref<Record<string, ChatTypingPushPayload>>({})
+  /** 会话成员已读位：conversationId → (userId → lastReadMessageId) */
+  const readPositions = ref<Record<string, Record<string, null | string>>>({})
+  /** 会话内 Pin 消息缓存 */
+  const pinnedMessages = ref<Record<string, ChatMessageItem[]>>({})
+  /** [有人@我] 提示（进入会话即清） */
+  const mentionsPending = ref<Record<string, boolean>>({})
+  /** 回复目标（composer 引用条） */
+  const replyTarget = ref<ChatLocalMessage | null>(null)
+  /** 编辑目标（composer 进入编辑态） */
+  const editTarget = ref<ChatLocalMessage | null>(null)
+  /** 会话草稿（localStorage 持久化） */
+  const drafts = ref<Record<string, string>>(LocalStorage.get<Record<string, string>>(CHAT_DRAFTS_STORAGE_KEY) ?? {})
 
   const markReadTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingClearTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -79,6 +95,10 @@ export const useChatStore = defineStore('chat', () => {
 
   function sortConversations() {
     conversations.value.sort((a, b) => {
+      // 置顶优先，再按最后消息时间倒序
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1
+      }
       const ta = a.lastMessageTime ? Date.parse(a.lastMessageTime) : 0
       const tb = b.lastMessageTime ? Date.parse(b.lastMessageTime) : 0
       return tb - ta
@@ -178,6 +198,9 @@ export const useChatStore = defineStore('chat', () => {
       void invokeHub(CHAT_HUB_METHODS.leaveConversation, activeConversationId.value)
     }
     activeConversationId.value = conversationId
+    replyTarget.value = null
+    editTarget.value = null
+    delete mentionsPending.value[conversationId]
     void invokeHub(CHAT_HUB_METHODS.joinConversation, conversationId)
     if (!messages.value[conversationId]) {
       try {
@@ -188,6 +211,9 @@ export const useChatStore = defineStore('chat', () => {
       }
     }
     markConversationRead(conversationId)
+    // 已读回执与 Pin 列表 best-effort 预取
+    loadReadPositions(conversationId).catch(() => {})
+    loadPinnedMessages(conversationId).catch(() => {})
   }
 
   function closeActiveConversation() {
@@ -195,6 +221,8 @@ export const useChatStore = defineStore('chat', () => {
       void invokeHub(CHAT_HUB_METHODS.leaveConversation, activeConversationId.value)
     }
     activeConversationId.value = null
+    replyTarget.value = null
+    editTarget.value = null
   }
 
   /** 本地立即清零 + 防抖上报（null 表示读到最新） */
@@ -249,7 +277,10 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  async function sendMessage(input: Omit<ChatMessageSendInput, 'clientMessageId'>) {
+  async function sendMessage(
+    input: Omit<ChatMessageSendInput, 'clientMessageId'>,
+    localExtras?: { replyPreview?: null | string },
+  ) {
     const userStore = useUserStore()
     const clientMessageId = generateClientMessageId()
     const local: ChatLocalMessage = {
@@ -265,6 +296,11 @@ export const useChatStore = defineStore('chat', () => {
       isRecalled: false,
       clientMessageId,
       createdTime: new Date().toISOString(),
+      replyToMessageId: input.replyToMessageId,
+      replyPreview: localExtras?.replyPreview ?? null,
+      mentionedUserIds: input.mentionedUserIds ?? [],
+      isPinned: false,
+      reactions: [],
       pending: true,
     }
     messages.value[input.conversationId] = [...(messages.value[input.conversationId] ?? []), local]
@@ -298,6 +334,8 @@ export const useChatStore = defineStore('chat', () => {
         fileId: item.fileId,
         fileName: item.fileName,
         fileSize: item.fileSize,
+        replyToMessageId: item.replyToMessageId,
+        mentionedUserIds: item.mentionedUserIds,
         clientMessageId,
       })
       reconcileSaved(saved)
@@ -308,6 +346,125 @@ export const useChatStore = defineStore('chat', () => {
       item.failed = true
       throw error
     }
+  }
+
+  /** 编辑消息（REST 成功后本地收敛；推送回执对其他端收敛） */
+  async function editMessage(conversationId: string, messageId: string, content: string) {
+    const saved = await api().editMessage(messageId, content)
+    applyMessageEdited({ conversationId, messageId, content: saved.content, editedTime: saved.editedTime })
+    if (editTarget.value?.messageId === messageId) {
+      editTarget.value = null
+    }
+  }
+
+  /** 表情回应 toggle：乐观应用，失败回滚 */
+  async function toggleReaction(conversationId: string, messageId: string, emoji: string) {
+    const me = currentUserId()
+    const userStore = useUserStore()
+    const item = messages.value[conversationId]?.find(m => m.messageId === messageId)
+    const hadMine = item?.reactions.some(r => r.userId === me && r.emoji === emoji) ?? false
+    applyReactionChanged({
+      conversationId,
+      messageId,
+      emoji,
+      userId: me,
+      userName: userStore.nickname || userStore.username,
+      added: !hadMine,
+    })
+    try {
+      await api().toggleReaction(messageId, emoji)
+    }
+    catch (error) {
+      // 回滚乐观应用
+      applyReactionChanged({ conversationId, messageId, emoji, userId: me, userName: null, added: hadMine })
+      throw error
+    }
+  }
+
+  async function pinMessage(conversationId: string, messageId: string) {
+    await api().pinMessage(messageId)
+    await loadPinnedMessages(conversationId).catch(() => {})
+    const item = messages.value[conversationId]?.find(m => m.messageId === messageId)
+    if (item) {
+      item.isPinned = true
+    }
+  }
+
+  async function unpinMessage(conversationId: string, messageId: string) {
+    await api().unpinMessage(messageId)
+    await loadPinnedMessages(conversationId).catch(() => {})
+    const item = messages.value[conversationId]?.find(m => m.messageId === messageId)
+    if (item) {
+      item.isPinned = false
+    }
+  }
+
+  async function loadPinnedMessages(conversationId: string) {
+    pinnedMessages.value[conversationId] = await api().pinnedMessages(conversationId)
+  }
+
+  async function loadReadPositions(conversationId: string) {
+    const positions = await api().readPositions(conversationId)
+    const map: Record<string, null | string> = {}
+    for (const position of positions) {
+      map[position.userId] = position.lastReadMessageId ?? null
+    }
+    readPositions.value[conversationId] = map
+  }
+
+  /** 会话置顶 toggle（个人维度） */
+  async function togglePinConversation(conversationId: string) {
+    const result = await api().togglePinConversation(conversationId)
+    const conv = conversations.value.find(c => c.conversationId === conversationId)
+    if (conv) {
+      conv.isPinned = result.isOn
+      sortConversations()
+    }
+  }
+
+  /** 会话免打扰 toggle（个人维度） */
+  async function toggleMuteConversation(conversationId: string) {
+    const result = await api().toggleMuteConversation(conversationId)
+    const conv = conversations.value.find(c => c.conversationId === conversationId)
+    if (conv) {
+      conv.isMuted = result.isOn
+    }
+  }
+
+  // ===== 草稿（localStorage 持久化） =====
+
+  function getDraft(conversationId: string): string {
+    return drafts.value[conversationId] ?? ''
+  }
+
+  function setDraft(conversationId: string, text: string) {
+    if (text.trim()) {
+      drafts.value[conversationId] = text
+    }
+    else {
+      delete drafts.value[conversationId]
+    }
+    LocalStorage.set(CHAT_DRAFTS_STORAGE_KEY, drafts.value)
+  }
+
+  /** 群聊某条自己消息的已读人数（不含自己）；单聊则表示对端是否已读 */
+  function readCountFor(conversationId: string, messageId: string): number {
+    const positions = readPositions.value[conversationId]
+    if (!positions) {
+      return 0
+    }
+    const me = currentUserId()
+    let count = 0
+    for (const [userId, lastRead] of Object.entries(positions)) {
+      if (userId === me || !lastRead) {
+        continue
+      }
+      // 雪花 ID 单调递增，字符串长度+字典序即可比较大小
+      if (lastRead.length > messageId.length || (lastRead.length === messageId.length && lastRead >= messageId)) {
+        count += 1
+      }
+    }
+    return count
   }
 
   function removeLocalMessage(conversationId: string, clientMessageId: string) {
@@ -349,9 +506,42 @@ export const useChatStore = defineStore('chat', () => {
       }
       else {
         conv.unreadCount += 1
+        // [有人@我] 提示（进入会话即清）
+        if (message.mentionedUserIds?.includes(currentUserId())) {
+          mentionsPending.value[conv.conversationId] = true
+        }
       }
     }
     sortConversations()
+  }
+
+  function applyMessageEdited(payload: ChatMessageEditedPushPayload) {
+    const item = messages.value[payload.conversationId]?.find(m => m.messageId === payload.messageId)
+    if (item) {
+      item.content = payload.content
+      item.editedTime = payload.editedTime
+    }
+  }
+
+  function applyReactionChanged(payload: ChatReactionChangedPushPayload) {
+    const item = messages.value[payload.conversationId]?.find(m => m.messageId === payload.messageId)
+    if (!item) {
+      return
+    }
+    const index = item.reactions.findIndex(r => r.userId === payload.userId && r.emoji === payload.emoji)
+    if (payload.added && index < 0) {
+      item.reactions.push({ emoji: payload.emoji, userId: payload.userId, userName: payload.userName })
+    }
+    else if (!payload.added && index >= 0) {
+      item.reactions.splice(index, 1)
+    }
+  }
+
+  function applyReadPositionChanged(payload: ChatReadPositionChangedPushPayload) {
+    const map = readPositions.value[payload.conversationId]
+    if (map) {
+      map[payload.userId] = payload.lastReadMessageId ?? null
+    }
   }
 
   function applyMessageRecalled(payload: ChatRecalledPushPayload) {
@@ -362,8 +552,15 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function applyConversationChanged(_payload: ChatConversationChangedPushPayload) {
-    // 成员增删/新建会话：整表刷新（含被移出时活跃会话收敛）
+  function applyConversationChanged(payload: ChatConversationChangedPushPayload) {
+    // Pin 列表变更：仅刷新该会话的 Pin 缓存（已加载过才刷）
+    if (payload.changeType === 'pinned-changed') {
+      if (pinnedMessages.value[payload.conversationId]) {
+        loadPinnedMessages(payload.conversationId).catch(() => {})
+      }
+      return
+    }
+    // 成员增删/新建会话/个人设置多端同步：整表刷新（含被移出时活跃会话收敛）
     loadConversations().catch(() => {})
   }
 
@@ -435,6 +632,11 @@ export const useChatStore = defineStore('chat', () => {
     hasMoreOlder.value = {}
     historyLoading.value = {}
     typingIndicators.value = {}
+    readPositions.value = {}
+    pinnedMessages.value = {}
+    mentionsPending.value = {}
+    replyTarget.value = null
+    editTarget.value = null
     for (const timer of markReadTimers.values()) {
       clearTimeout(timer)
     }
@@ -455,6 +657,11 @@ export const useChatStore = defineStore('chat', () => {
     hasMoreOlder,
     historyLoading,
     typingIndicators,
+    readPositions,
+    pinnedMessages,
+    mentionsPending,
+    replyTarget,
+    editTarget,
     totalUnread,
     activeConversation,
     activeMessages,
@@ -470,9 +677,23 @@ export const useChatStore = defineStore('chat', () => {
     retryMessage,
     removeLocalMessage,
     recallMessage,
+    editMessage,
+    toggleReaction,
+    pinMessage,
+    unpinMessage,
+    loadPinnedMessages,
+    loadReadPositions,
+    togglePinConversation,
+    toggleMuteConversation,
+    getDraft,
+    setDraft,
+    readCountFor,
     sendTyping,
     applyIncomingMessage,
     applyMessageRecalled,
+    applyMessageEdited,
+    applyReactionChanged,
+    applyReadPositionChanged,
     applyConversationChanged,
     applyTyping,
     startSingleConversation,

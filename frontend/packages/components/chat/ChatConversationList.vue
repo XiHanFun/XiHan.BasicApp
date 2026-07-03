@@ -49,6 +49,23 @@ function handleStartSelect(key: string | number) {
 function handleRefresh() {
   chatStore.loadConversations().catch(() => {})
 }
+
+function itemActionOptions(conversationId: string): DropdownOption[] {
+  const conv = chatStore.conversations.find(c => c.conversationId === conversationId)
+  return [
+    { key: 'pin', label: conv?.isPinned ? t('chat.list.unpin') : t('chat.list.pin') },
+    { key: 'mute', label: conv?.isMuted ? t('chat.list.unmute') : t('chat.list.mute') },
+  ]
+}
+
+function handleItemAction(conversationId: string, key: string | number) {
+  if (key === 'pin') {
+    chatStore.togglePinConversation(conversationId).catch(() => {})
+  }
+  else if (key === 'mute') {
+    chatStore.toggleMuteConversation(conversationId).catch(() => {})
+  }
+}
 </script>
 
 <template>
@@ -99,7 +116,10 @@ function handleRefresh() {
           v-for="conv in filteredConversations"
           :key="conv.conversationId"
           class="chat-conv-item"
-          :class="{ 'chat-conv-item--active': conv.conversationId === chatStore.activeConversationId }"
+          :class="{
+            'chat-conv-item--active': conv.conversationId === chatStore.activeConversationId,
+            'chat-conv-item--pinned': conv.isPinned,
+          }"
           @click="emit('select', conv.conversationId)"
         >
           <NBadge :value="conv.isMuted ? 0 : conv.unreadCount" :max="99" :offset="[-2, 2]">
@@ -107,13 +127,25 @@ function handleRefresh() {
           </NBadge>
           <div class="min-w-0 flex-1">
             <div class="flex items-center justify-between gap-2">
-              <span class="truncate text-[13px] font-medium text-foreground">{{ conv.displayName }}</span>
+              <span class="flex min-w-0 items-center gap-1">
+                <Icon
+                  v-if="conv.isPinned"
+                  icon="lucide:pin"
+                  width="11"
+                  height="11"
+                  class="shrink-0 text-primary/70"
+                />
+                <span class="truncate text-[13px] font-medium text-foreground">{{ conv.displayName }}</span>
+              </span>
               <span class="shrink-0 text-[11px] text-muted-foreground">
                 {{ formatConversationTime(t, conv.lastMessageTime) }}
               </span>
             </div>
             <div class="mt-0.5 flex items-center justify-between gap-2">
               <span class="truncate text-xs text-muted-foreground">
+                <span v-if="chatStore.mentionsPending[conv.conversationId]" class="text-destructive">
+                  {{ t('chat.list.mention_me') }}
+                </span>
                 {{ chatStore.typingIndicators[conv.conversationId]
                   ? t('chat.thread.typing', { name: chatStore.typingIndicators[conv.conversationId]?.userName ?? '' })
                   : conv.lastMessagePreview ?? '' }}
@@ -130,6 +162,19 @@ function handleRefresh() {
                   v-if="conv.isMuted && conv.unreadCount > 0"
                   class="text-[11px] text-muted-foreground/70"
                 >{{ conv.unreadCount }}</span>
+                <NDropdown
+                  :options="itemActionOptions(conv.conversationId)"
+                  trigger="click"
+                  @select="key => handleItemAction(conv.conversationId, key)"
+                >
+                  <button
+                    type="button"
+                    class="chat-conv-more"
+                    @click.stop
+                  >
+                    <Icon icon="lucide:ellipsis" width="13" height="13" />
+                  </button>
+                </NDropdown>
               </span>
             </div>
           </div>
@@ -176,5 +221,36 @@ function handleRefresh() {
 
 .chat-conv-item--active {
   background: hsl(var(--primary) / 8%);
+}
+
+.chat-conv-item--pinned {
+  background: hsl(var(--muted) / 40%);
+}
+
+.chat-conv-item--pinned.chat-conv-item--active {
+  background: hsl(var(--primary) / 8%);
+}
+
+.chat-conv-more {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+
+.chat-conv-item:hover .chat-conv-more {
+  display: inline-flex;
+}
+
+.chat-conv-more:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
 }
 </style>

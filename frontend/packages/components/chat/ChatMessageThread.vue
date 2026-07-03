@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
-import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NPopover, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
 import { Icon } from '~/iconify'
 import { useChatStore, useUserStore } from '~/stores'
-import { CHAT_RECALL_WINDOW_MINUTES } from '~/types'
-import { ChatConversationType } from '~/types/enums'
+import { CHAT_EDIT_WINDOW_MINUTES, CHAT_RECALL_WINDOW_MINUTES } from '~/types'
+import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
+import { formatMessageTime } from './chat-helpers'
 import ChatComposer from './ChatComposer.vue'
 import ChatMessageItemView from './ChatMessageItemView.vue'
 
@@ -77,6 +78,71 @@ function canRecall(item: ChatLocalMessage): boolean {
   }
   const created = Date.parse(item.createdTime)
   return !Number.isNaN(created) && nowTick.value - created <= CHAT_RECALL_WINDOW_MINUTES * 60 * 1000
+}
+
+function canEdit(item: ChatLocalMessage): boolean {
+  if (item.isRecalled || item.pending || item.failed || item.messageType !== ChatMessageType.Text) {
+    return false
+  }
+  if (item.senderUserId !== currentUserId.value || !userStore.hasPermission(CHAT_PERMISSIONS.send)) {
+    return false
+  }
+  const created = Date.parse(item.createdTime)
+  return !Number.isNaN(created) && nowTick.value - created <= CHAT_EDIT_WINDOW_MINUTES * 60 * 1000
+}
+
+// Pin 权限：单聊双方皆可，群/部门群仅群主与管理员（与后端不变量一致）
+const canPin = computed(() => {
+  if (!userStore.hasPermission(CHAT_PERMISSIONS.send) || !conversation.value) {
+    return false
+  }
+  if (conversation.value.conversationType === ChatConversationType.Single) {
+    return true
+  }
+  return conversation.value.memberRole === ChatMemberRole.Owner
+    || conversation.value.memberRole === ChatMemberRole.Admin
+})
+
+const pinnedList = computed(() =>
+  conversationId.value ? chatStore.pinnedMessages[conversationId.value] ?? [] : [])
+
+/** 本人消息已读回执：已读位加载前为 null（不显示） */
+function readCountOf(item: ChatLocalMessage): null | number {
+  const id = conversationId.value
+  if (!id || item.senderUserId !== currentUserId.value) {
+    return null
+  }
+  if (!chatStore.readPositions[id]) {
+    return null
+  }
+  return chatStore.readCountFor(id, item.messageId)
+}
+
+function handleReply(item: ChatLocalMessage) {
+  chatStore.editTarget = null
+  chatStore.replyTarget = item
+}
+
+function handleEdit(item: ChatLocalMessage) {
+  chatStore.replyTarget = null
+  chatStore.editTarget = item
+}
+
+function handleReact(item: ChatLocalMessage, emoji: string) {
+  if (!conversationId.value) {
+    return
+  }
+  chatStore.toggleReaction(conversationId.value, item.messageId, emoji).catch(() => {})
+}
+
+function handlePin(item: ChatLocalMessage, pin: boolean) {
+  if (!conversationId.value) {
+    return
+  }
+  const action = pin
+    ? chatStore.pinMessage(conversationId.value, item.messageId)
+    : chatStore.unpinMessage(conversationId.value, item.messageId)
+  action.catch(() => {})
 }
 
 function isNearBottom(): boolean {
@@ -199,6 +265,45 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
+    <!-- Pin 消息栏 -->
+    <div v-if="pinnedList.length" class="flex items-center gap-2 border-b border-border bg-primary/5 px-3 py-1.5">
+      <Icon icon="lucide:pin" width="13" height="13" class="shrink-0 text-primary" />
+      <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+        {{ pinnedList[0]?.content || pinnedList[0]?.fileName || '' }}
+      </span>
+      <NPopover trigger="click" placement="bottom-end" style="max-width: 340px">
+        <template #trigger>
+          <button type="button" class="chat-thread-btn h-6 w-auto px-1.5 text-[11px]">
+            {{ t('chat.thread.pinned_count', { n: pinnedList.length }) }}
+          </button>
+        </template>
+        <div class="flex max-h-64 flex-col gap-1 overflow-y-auto">
+          <div
+            v-for="pinnedItem in pinnedList"
+            :key="pinnedItem.messageId"
+            class="flex items-start gap-2 border-b border-border/50 py-1.5 last:border-b-0"
+          >
+            <div class="min-w-0 flex-1">
+              <div class="text-[11px] text-muted-foreground">
+                {{ pinnedItem.senderUserName }} · {{ formatMessageTime(pinnedItem.createdTime) }}
+              </div>
+              <div class="truncate text-xs text-foreground">
+                {{ pinnedItem.content || pinnedItem.fileName || '' }}
+              </div>
+            </div>
+            <button
+              v-if="canPin"
+              type="button"
+              class="chat-meta-unpin shrink-0"
+              @click="conversationId && chatStore.unpinMessage(conversationId, pinnedItem.messageId).catch(() => {})"
+            >
+              {{ t('chat.thread.unpin') }}
+            </button>
+          </div>
+        </div>
+      </NPopover>
+    </div>
+
     <!-- 消息流 -->
     <div ref="scrollRef" class="min-h-0 flex-1 overflow-y-auto px-3 py-2" @scroll.passive="handleScroll">
       <div v-if="hasMoreOlder || historyLoading" class="flex justify-center py-1.5">
@@ -219,9 +324,18 @@ onBeforeUnmount(() => {
         :is-self="item.senderUserId === currentUserId"
         :show-sender-name="isGroupLike"
         :can-recall="canRecall(item)"
+        :can-edit="canEdit(item)"
+        :can-pin="canPin"
+        :conversation-type="conversation.conversationType"
+        :read-count="readCountOf(item)"
         @recall="handleRecall(item)"
         @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
         @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
+        @reply="handleReply(item)"
+        @edit="handleEdit(item)"
+        @pin="handlePin(item, true)"
+        @unpin="handlePin(item, false)"
+        @react="emoji => handleReact(item, emoji)"
       />
     </div>
 
@@ -255,5 +369,18 @@ onBeforeUnmount(() => {
 .chat-thread-btn:hover {
   background: hsl(var(--accent));
   color: hsl(var(--foreground));
+}
+
+.chat-meta-unpin {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: hsl(var(--primary));
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chat-meta-unpin:hover {
+  text-decoration: underline;
 }
 </style>

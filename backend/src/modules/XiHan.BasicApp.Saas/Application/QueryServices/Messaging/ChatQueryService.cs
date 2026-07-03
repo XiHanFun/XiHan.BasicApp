@@ -51,6 +51,8 @@ public sealed class ChatQueryService
 
     private readonly IChatMessageRepository _messageRepository;
 
+    private readonly IChatMessageReactionRepository _reactionRepository;
+
     private readonly IUserRepository _userRepository;
 
     private readonly ICurrentUser _currentUser;
@@ -64,6 +66,7 @@ public sealed class ChatQueryService
         IChatConversationRepository conversationRepository,
         IChatConversationMemberRepository memberRepository,
         IChatMessageRepository messageRepository,
+        IChatMessageReactionRepository reactionRepository,
         IUserRepository userRepository,
         ICurrentUser currentUser,
         ISuperAdminProtector superAdminProtector)
@@ -71,6 +74,7 @@ public sealed class ChatQueryService
         _conversationRepository = conversationRepository;
         _memberRepository = memberRepository;
         _messageRepository = messageRepository;
+        _reactionRepository = reactionRepository;
         _userRepository = userRepository;
         _currentUser = currentUser;
         _superAdminProtector = superAdminProtector;
@@ -139,13 +143,16 @@ public sealed class ChatQueryService
                 MemberRole = member.MemberRole,
                 UnreadCount = member.UnreadCount,
                 IsMuted = member.IsMuted,
+                IsPinned = member.IsPinned,
                 LastMessageTime = conversation.LastMessageTime,
                 LastMessagePreview = conversation.LastMessagePreview
             });
         }
 
+        // 置顶优先，再按最后消息时间倒序
         return [.. items
-            .OrderByDescending(item => item.LastMessageTime ?? DateTimeOffset.MinValue)
+            .OrderByDescending(item => item.IsPinned)
+            .ThenByDescending(item => item.LastMessageTime ?? DateTimeOffset.MinValue)
             .ThenByDescending(item => item.ConversationId)];
     }
 
@@ -162,14 +169,56 @@ public sealed class ChatQueryService
         // 多取一条判断是否还有更早历史
         var rows = await _messageRepository.GetHistoryAsync(input.ConversationId, input.BeforeMessageId, take + 1, cancellationToken);
         var hasMore = rows.Count > take;
+        var page = rows.Take(take).OrderBy(message => message.BasicId).ToList();
 
-        var items = rows
-            .Take(take)
-            .OrderBy(message => message.BasicId)
-            .Select(ChatApplicationMapper.ToMessageItemDto)
-            .ToList();
-
+        var items = await AttachReactionsAsync(page, cancellationToken);
         return new ChatMessageHistoryResultDto { Items = items, HasMore = hasMore };
+    }
+
+    /// <inheritdoc />
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<List<ChatReadPositionDto>> GetReadPositionsAsync(long conversationId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await EnsureMemberAsync(conversationId, cancellationToken);
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversationId, cancellationToken);
+        return [.. members.Select(member => new ChatReadPositionDto
+        {
+            UserId = member.UserId,
+            LastReadMessageId = member.LastReadMessageId
+        })];
+    }
+
+    /// <inheritdoc />
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<List<ChatMessageItemDto>> GetPinnedMessagesAsync(long conversationId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await EnsureMemberAsync(conversationId, cancellationToken);
+
+        var pinned = await _messageRepository.GetPinnedAsync(conversationId, cancellationToken);
+        return [.. pinned.Select(message => ChatApplicationMapper.ToMessageItemDto(message))];
+    }
+
+    /// <summary>
+    /// 批量带出消息的表情回应（一次查询按消息ID聚合）
+    /// </summary>
+    private async Task<List<ChatMessageItemDto>> AttachReactionsAsync(IReadOnlyList<SysChatMessage> messages, CancellationToken cancellationToken)
+    {
+        if (messages.Count == 0)
+        {
+            return [];
+        }
+
+        var messageIds = messages.Select(message => message.BasicId).ToList();
+        var reactions = await _reactionRepository.GetByMessageIdsAsync(messageIds, cancellationToken);
+        var reactionMap = reactions
+            .GroupBy(reaction => reaction.MessageId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        return [.. messages.Select(message =>
+            ChatApplicationMapper.ToMessageItemDto(message, reactionMap.GetValueOrDefault(message.BasicId)))];
     }
 
     /// <inheritdoc />
