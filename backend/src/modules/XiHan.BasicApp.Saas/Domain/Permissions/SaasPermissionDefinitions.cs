@@ -424,6 +424,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Chat.Read, "聊天查看", "查看当前用户的聊天会话列表与消息历史", true, 916),
             new(SaasPermissionCodes.Chat.Send, "聊天发送", "在所属会话内发送消息与撤回自己的消息", true, 2078),
             new(SaasPermissionCodes.Chat.Manage, "聊天会话管理", "创建群聊、添加/移除群成员", true, 2079),
+            new(SaasPermissionCodes.Chat.Audit, "聊天审计", "管理侧跨会话查询聊天消息（合规审计）", false, 2080),
         ]),
         new(SaasPermissionCodes.Notification.Group, "系统通知",
         [

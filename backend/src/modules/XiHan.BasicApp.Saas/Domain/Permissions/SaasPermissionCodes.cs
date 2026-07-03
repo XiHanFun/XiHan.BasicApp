@@ -1431,6 +1431,11 @@ public static class SaasPermissionCodes
         /// 聊天会话管理（建群/成员管理）
         /// </summary>
         public const string Manage = "saas:chat:manage";
+
+        /// <summary>
+        /// 聊天审计（管理侧跨会话消息查询）
+        /// </summary>
+        public const string Audit = "saas:chat:audit";
     }
 
     /// <summary>
