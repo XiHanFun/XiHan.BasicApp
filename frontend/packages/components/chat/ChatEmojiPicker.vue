@@ -72,8 +72,9 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* em-emoji-picker 宿主默认 width:min-content（按内容自适应）：外壳贴内容宽，别强拉 100% 造成左右间隙不等 */
 .chat-emoji-picker {
-  width: 356px;
+  width: fit-content;
   max-width: calc(100vw - 24px);
   padding: 4px;
   border: 1px solid hsl(var(--border));
@@ -85,7 +86,9 @@ onBeforeUnmount(() => {
 }
 
 .chat-emoji-picker__host :deep(em-emoji-picker) {
-  width: 100%;
   height: 320px;
+  max-width: 100%;
+  /* 外壳已有卡片阴影，去掉元素自带阴影避免双层 */
+  --shadow: none;
 }
 </style>
