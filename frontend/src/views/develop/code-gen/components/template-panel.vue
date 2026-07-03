@@ -22,7 +22,7 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { computed, h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenTemplateApi,
@@ -229,6 +229,24 @@ const validating = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
 const form = ref<TemplateFormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? t('develop.code_gen.template.modal_edit_title') : t('develop.code_gen.template.modal_add_title')))
+
+/** 模板编辑器 Tab 键插入 2 空格缩进（textarea 默认切焦点，模板缩进敏感需手动处理） */
+function handleTemplateTab(event: KeyboardEvent) {
+  if (event.key !== 'Tab' || event.shiftKey) {
+    return
+  }
+  event.preventDefault()
+  const textarea = event.target as HTMLTextAreaElement
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const value = form.value.templateContent ?? ''
+  form.value.templateContent = `${value.slice(0, start)}  ${value.slice(end)}`
+  void nextTick(() => {
+    const caret = start + 2
+    textarea.selectionStart = caret
+    textarea.selectionEnd = caret
+  })
+}
 
 function createDefaultForm(): TemplateFormModel {
   return {
@@ -439,9 +457,11 @@ async function handleSubmit() {
         <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_content')" path="templateContent">
           <NInput
             v-model:value="form.templateContent"
+            class="tpl-code-input"
             :placeholder="t('develop.code_gen.template.form_template_content_placeholder')"
-            :rows="12"
+            :rows="14"
             type="textarea"
+            @keydown="handleTemplateTab"
           />
         </NFormItem>
       </NForm>
@@ -474,6 +494,14 @@ async function handleSubmit() {
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+
+/* 模板内容用等宽字体，便于对齐缩进（Scriban 无 hljs 语法，暂不做语法着色） */
+.tpl-code-input :deep(textarea) {
+  font-family: var(--font-mono, ui-monospace, 'SFMono-Regular', 'Consolas', monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  tab-size: 2;
 }
 
 .tpl-name__text {
