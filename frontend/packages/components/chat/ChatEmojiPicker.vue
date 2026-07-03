@@ -26,13 +26,21 @@ function buildPicker() {
   if (!host) {
     return
   }
+  // 肤色选择已隐藏，但 emoji-mart 优先读 localStorage 里历史选过的肤色——清掉才能真正固定默认肤色
+  try {
+    localStorage.removeItem('emoji-mart.skin')
+  }
+  catch {
+    // 隐私模式等场景不可用时忽略
+  }
   picker?.remove()
   picker = new Picker({
     data,
     i18n: locale.value.toLowerCase().startsWith('zh') ? i18nZh : i18nEn,
     set: 'native',
+    skin: 1,
     theme: isDark.value ? 'dark' : 'light',
-    skinTonePosition: 'search',
+    skinTonePosition: 'none',
     previewPosition: 'none',
     navPosition: 'top',
     emojiButtonSize: 32,
