@@ -76,6 +76,13 @@ export enum QueryType {
   NotIn = 'NotIn',
 }
 
+/** 字典选择器类型（列可选项来源：系统字典/枚举/常量；关联不入生成代码，仅表单渲染值） */
+export enum DictSelectorType {
+  DictSelector = 'DictSelector',
+  EnumSelector = 'EnumSelector',
+  ConstSelector = 'ConstSelector',
+}
+
 /** 模板类型选项（label 取自后端 [Description]） */
 export const TEMPLATE_TYPE_OPTIONS = [
   { label: '单表', value: TemplateType.Single },
@@ -145,4 +152,11 @@ export const QUERY_TYPE_OPTIONS = [
   { label: '范围查询', value: QueryType.Between },
   { label: '包含', value: QueryType.In },
   { label: '不包含', value: QueryType.NotIn },
+]
+
+/** 字典选择器类型选项 */
+export const DICT_SELECTOR_TYPE_OPTIONS = [
+  { label: '系统字典', value: DictSelectorType.DictSelector },
+  { label: '枚举类型', value: DictSelectorType.EnumSelector },
+  { label: '常量数组', value: DictSelectorType.ConstSelector },
 ]

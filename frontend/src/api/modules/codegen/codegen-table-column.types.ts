@@ -1,6 +1,6 @@
 import type { ApiId, BasicDto } from '../../types'
 import type { EnableStatus } from '../shared'
-import type { HtmlType, QueryType } from './codegen.enums'
+import type { DictSelectorType, HtmlType, QueryType } from './codegen.enums'
 
 export { EnableStatus } from '../shared'
 
@@ -27,7 +27,10 @@ export interface CodeGenTableColumnListItemDto extends BasicDto {
   isQuery: boolean
   queryType: QueryType
   htmlType: HtmlType
-  dictType?: string | null
+  dictSelectorType?: DictSelectorType | null
+  dictCode?: string | null
+  enumTypeName?: string | null
+  constValues?: string | null
   sort: number
   status: EnableStatus
 }
@@ -47,7 +50,10 @@ export interface CodeGenTableColumnUpdateDto extends BasicDto {
   isQuery: boolean
   queryType: QueryType
   htmlType: HtmlType
-  dictType?: string | null
+  dictSelectorType?: DictSelectorType | null
+  dictCode?: string | null
+  enumTypeName?: string | null
+  constValues?: string | null
   defaultValue?: string | null
   regexPattern?: string | null
   validationMessage?: string | null

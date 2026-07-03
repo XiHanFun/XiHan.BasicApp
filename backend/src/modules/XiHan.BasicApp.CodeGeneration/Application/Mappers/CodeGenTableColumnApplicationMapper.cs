@@ -42,7 +42,10 @@ public static class CodeGenTableColumnApplicationMapper
             input.IsQuery,
             input.QueryType,
             input.HtmlType,
-            input.DictType,
+            input.DictSelectorType,
+            input.DictCode,
+            input.EnumTypeName,
+            input.ConstValues,
             input.DefaultValue,
             input.RegexPattern,
             input.ValidationMessage,
@@ -93,7 +96,10 @@ public static class CodeGenTableColumnApplicationMapper
             IsQuery = column.IsQuery,
             QueryType = column.QueryType,
             HtmlType = column.HtmlType,
-            DictType = column.DictType,
+            DictSelectorType = column.DictSelectorType,
+            DictCode = column.DictCode,
+            EnumTypeName = column.EnumTypeName,
+            ConstValues = column.ConstValues,
             Sort = column.Sort,
             Status = column.Status
         };

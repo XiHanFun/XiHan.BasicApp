@@ -315,3 +315,27 @@ public enum DatabaseType
     [Description("SQLite")]
     Sqlite = 4
 }
+
+/// <summary>
+/// 字典选择器类型（列可选项来源：系统字典/枚举/常量；关联不入生成代码，仅用于表单渲染值）
+/// </summary>
+public enum DictSelectorType
+{
+    /// <summary>
+    /// 系统字典（关联字典码 DictCode）
+    /// </summary>
+    [Description("系统字典")]
+    DictSelector = 0,
+
+    /// <summary>
+    /// 枚举类型（关联枚举全名 EnumTypeName）
+    /// </summary>
+    [Description("枚举类型")]
+    EnumSelector = 1,
+
+    /// <summary>
+    /// 常量数组（内联 ConstValues JSON）
+    /// </summary>
+    [Description("常量数组")]
+    ConstSelector = 2
+}

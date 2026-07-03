@@ -232,7 +232,12 @@ export default {
       col_query: '查询',
       col_query_type: '查询方式',
       col_html_type: '显示类型',
-      col_dict_type: '字典类型',
+      col_dict_selector: '选项来源',
+      col_dict_selector_placeholder: '字典/枚举/常量',
+      col_dict_value: '选项配置',
+      col_dict_code_placeholder: '字典码',
+      col_enum_type_placeholder: '枚举全名',
+      col_const_values_placeholder: '常量 JSON，如 [{"value":1,"label":"启用"}]',
       load_failed: '加载列配置失败',
     },
     runtime: {

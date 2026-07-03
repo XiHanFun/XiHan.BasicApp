@@ -1,10 +1,16 @@
 {{~ # 预计算控件需求标志（避免按列重复 import 造成 eslint no-unused） ~}}
 {{~ has_number = false ~}}
 {{~ has_switch = false ~}}
+{{~ has_select = false ~}}
 {{~ for col in Columns ~}}
 {{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
-{{~ if col.HtmlType == "Switch"; has_switch = true; end ~}}
-{{~ if col.HtmlType != "Switch" && col.HtmlType != "Textarea" && col.TsType == "number"; has_number = true; end ~}}
+{{~ if col.DictSelectorType ~}}
+{{~ has_select = true ~}}
+{{~ else if col.HtmlType == "Switch" ~}}
+{{~ has_switch = true ~}}
+{{~ else if col.HtmlType != "Textarea" && col.TsType == "number" ~}}
+{{~ has_number = true ~}}
+{{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 <script setup lang="ts">
@@ -25,6 +31,9 @@ import {
   NInputNumber,
 {{~ end ~}}
   NModal,
+{{~ if has_select ~}}
+  NSelect,
+{{~ end ~}}
   NSpace,
 {{~ if has_switch ~}}
   NSwitch,
@@ -219,7 +228,12 @@ async function handleSubmit() {
 {{~ for col in Columns ~}}
 {{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
         <NFormItem label="{{ col.ColumnComment }}" path="{{ col.TsProperty }}">
-{{~ if col.HtmlType == "Switch" ~}}
+{{~ if col.DictSelectorType == "ConstSelector" ~}}
+          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.ConstValues }}" placeholder="请选择{{ col.ColumnComment }}" />
+{{~ else if col.DictSelectorType ~}}
+          <!-- TODO：绑定{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode }}{{ else }}枚举 {{ col.EnumTypeName }}{{ end }} 的选项来源（由业务层提供） -->
+          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="[]" placeholder="请选择{{ col.ColumnComment }}" />
+{{~ else if col.HtmlType == "Switch" ~}}
           <NSwitch v-model:value="form.{{ col.TsProperty }}" />
 {{~ else if col.HtmlType == "Textarea" ~}}
           <NInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.ColumnComment }}" />

@@ -176,7 +176,10 @@ public static class CodeGenTableApplicationMapper
             IsQuery = column.IsQuery,
             QueryType = column.QueryType,
             HtmlType = column.HtmlType,
-            DictType = column.DictType,
+            DictSelectorType = column.DictSelectorType,
+            DictCode = column.DictCode,
+            EnumTypeName = column.EnumTypeName,
+            ConstValues = column.ConstValues,
             Sort = column.Sort,
             Status = column.Status
         };
