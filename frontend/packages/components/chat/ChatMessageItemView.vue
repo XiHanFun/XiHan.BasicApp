@@ -28,6 +28,8 @@ const props = defineProps<{
   conversationType: ChatConversationType
   /** 本人消息的已读人数（未加载为 null；单聊 >0 即已读） */
   readCount?: null | number
+  /** 搜索定位高亮（3s 自清） */
+  highlighted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -143,7 +145,10 @@ const showActions = computed(() =>
       <div
         v-else
         class="chat-bubble"
-        :class="[isSelf ? 'chat-bubble--self' : 'chat-bubble--other', { 'chat-bubble--mention': mentionsMe }]"
+        :class="[
+          isSelf ? 'chat-bubble--self' : 'chat-bubble--other',
+          { 'chat-bubble--mention': mentionsMe, 'chat-bubble--highlight': props.highlighted },
+        ]"
       >
         <!-- 被 Pin 标记 -->
         <div v-if="message.isPinned" class="mb-1 flex items-center gap-1 text-[11px] text-primary/80">
@@ -168,8 +173,11 @@ const showActions = computed(() =>
           <div v-else class="flex h-24 w-40 items-center justify-center rounded bg-muted/40">
             <NSpin size="small" />
           </div>
-          <div v-if="message.content" class="mt-1 text-[13px]">
-            {{ message.content }}
+          <div class="mt-1 flex items-center gap-2">
+            <span v-if="message.content" class="min-w-0 flex-1 text-[13px]">{{ message.content }}</span>
+            <button type="button" class="chat-meta-action shrink-0" @click="handleDownload">
+              {{ t('chat.thread.download') }}
+            </button>
           </div>
         </template>
 
@@ -297,6 +305,21 @@ const showActions = computed(() =>
 
 .chat-bubble--mention {
   box-shadow: inset 0 0 0 1px hsl(var(--primary) / 45%);
+}
+
+.chat-bubble--highlight {
+  animation: chat-highlight-pulse 3s ease-out;
+}
+
+@keyframes chat-highlight-pulse {
+  0%,
+  60% {
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 60%);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0%);
+  }
 }
 
 .chat-bubble--recalled {

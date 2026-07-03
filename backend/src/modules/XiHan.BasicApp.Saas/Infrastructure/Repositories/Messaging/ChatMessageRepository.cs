@@ -51,4 +51,42 @@ public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver
             .OrderByDescending(message => message.PinnedTime)
             .ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysChatMessage>> GetAroundAsync(long conversationId, long aroundMessageId, int beforeTake, int afterTake, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var before = await CreateQueryable()
+            .Where(message => message.ConversationId == conversationId && message.BasicId < aroundMessageId)
+            .OrderByDescending(message => message.BasicId)
+            .Take(beforeTake)
+            .ToListAsync(cancellationToken);
+        var fromTarget = await CreateQueryable()
+            .Where(message => message.ConversationId == conversationId && message.BasicId >= aroundMessageId)
+            .OrderBy(message => message.BasicId)
+            .Take(afterTake + 1)
+            .ToListAsync(cancellationToken);
+
+        return [.. before.OrderBy(message => message.BasicId), .. fromTarget];
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysChatMessage>> SearchAsync(long conversationId, string keyword, long? beforeMessageId, int take, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var query = CreateQueryable()
+            .Where(message => message.ConversationId == conversationId && !message.IsRecalled)
+            .Where(message => message.Content!.Contains(keyword) || message.FileName!.Contains(keyword));
+        if (beforeMessageId is { } before && before > 0)
+        {
+            query = query.Where(message => message.BasicId < before);
+        }
+
+        return await query
+            .OrderByDescending(message => message.BasicId)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
 }

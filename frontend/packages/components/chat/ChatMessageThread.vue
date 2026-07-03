@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
-import { NButton, NEmpty, NPopover, NSpin, NTag, useMessage } from 'naive-ui'
+import type { ChatMessageItem } from '~/types'
+import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
 import { Icon } from '~/iconify'
-import { useChatStore, useUserStore } from '~/stores'
+import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { CHAT_EDIT_WINDOW_MINUTES, CHAT_RECALL_WINDOW_MINUTES } from '~/types'
 import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
@@ -31,8 +32,17 @@ const { t } = useI18n()
 const message = useMessage()
 const chatStore = useChatStore()
 const userStore = useUserStore()
+const appContext = useAppContext()
 
 const scrollRef = ref<HTMLDivElement>()
+
+// 会话内搜索
+const showSearch = ref(false)
+const searchKeyword = ref('')
+const searchLoading = ref(false)
+const searchResults = ref<ChatMessageItem[]>([])
+const searchHasMore = ref(false)
+let searchSeq = 0
 
 // 撤回窗口是时间敏感 UI：30s 心跳重算 canRecall，避免按钮滞留
 const nowTick = ref(Date.now())
@@ -143,6 +153,87 @@ function handlePin(item: ChatLocalMessage, pin: boolean) {
     ? chatStore.pinMessage(conversationId.value, item.messageId)
     : chatStore.unpinMessage(conversationId.value, item.messageId)
   action.catch(() => {})
+}
+
+// ===== 会话内搜索 =====
+
+const isDetached = computed(() =>
+  conversationId.value ? Boolean(chatStore.detachedConversations[conversationId.value]) : false)
+
+async function runSearch(loadMore = false) {
+  const id = conversationId.value
+  const keyword = searchKeyword.value.trim()
+  if (!id || !keyword) {
+    searchResults.value = []
+    searchHasMore.value = false
+    return
+  }
+  const seq = ++searchSeq
+  searchLoading.value = true
+  try {
+    const before = loadMore ? searchResults.value.at(-1)?.messageId : null
+    const result = await appContext.apis.chatApi.searchMessages({
+      conversationId: id,
+      keyword,
+      beforeMessageId: before,
+      take: 20,
+    })
+    if (seq !== searchSeq) {
+      return
+    }
+    searchResults.value = loadMore ? [...searchResults.value, ...result.items] : result.items
+    searchHasMore.value = result.hasMore
+  }
+  catch {
+    if (seq === searchSeq) {
+      searchResults.value = []
+      searchHasMore.value = false
+    }
+  }
+  finally {
+    if (seq === searchSeq) {
+      searchLoading.value = false
+    }
+  }
+}
+
+async function handleLocate(item: ChatMessageItem) {
+  const id = conversationId.value
+  if (!id) {
+    return
+  }
+  showSearch.value = false
+  try {
+    await chatStore.jumpToMessage(id, item.messageId)
+    await nextTick()
+    document.getElementById(`chat-msg-${item.messageId}`)?.scrollIntoView({ block: 'center' })
+  }
+  catch {
+    // 定位失败静默（消息可能已被清理）
+  }
+}
+
+async function handleBackToLatest() {
+  const id = conversationId.value
+  if (!id) {
+    return
+  }
+  try {
+    await chatStore.reloadLatest(id)
+    scrollToBottom()
+  }
+  catch {
+    // 静默
+  }
+}
+
+function toggleSearch() {
+  showSearch.value = !showSearch.value
+  if (!showSearch.value) {
+    searchKeyword.value = ''
+    searchResults.value = []
+    searchHasMore.value = false
+  }
 }
 
 function isNearBottom(): boolean {
@@ -260,9 +351,54 @@ onBeforeUnmount(() => {
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
         </div>
       </div>
+      <button type="button" class="chat-thread-btn" :title="t('chat.thread.search')" @click="toggleSearch">
+        <Icon icon="lucide:search" width="16" height="16" />
+      </button>
       <button v-if="isGroupLike" type="button" class="chat-thread-btn" @click="emit('members')">
         <Icon icon="lucide:users" width="16" height="16" />
       </button>
+    </div>
+
+    <!-- 会话内搜索面板 -->
+    <div v-if="showSearch" class="border-b border-border bg-muted/20 px-3 py-2">
+      <NInput
+        v-model:value="searchKeyword"
+        size="small"
+        clearable
+        :placeholder="t('chat.thread.search_placeholder')"
+        @keydown.enter="runSearch(false)"
+        @clear="searchResults = []"
+      >
+        <template #prefix>
+          <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
+        </template>
+      </NInput>
+      <div v-if="searchLoading" class="flex justify-center py-3">
+        <NSpin size="small" />
+      </div>
+      <div v-else-if="searchResults.length" class="mt-1.5 max-h-56 overflow-y-auto">
+        <button
+          v-for="hit in searchResults"
+          :key="hit.messageId"
+          type="button"
+          class="chat-search-hit"
+          @click="handleLocate(hit)"
+        >
+          <span class="flex items-center justify-between gap-2">
+            <span class="text-[11px] text-muted-foreground">{{ hit.senderUserName }} · {{ formatMessageTime(hit.createdTime) }}</span>
+            <span class="text-[11px] text-primary">{{ t('chat.thread.locate') }}</span>
+          </span>
+          <span class="block truncate text-left text-xs text-foreground">{{ hit.content || hit.fileName || '' }}</span>
+        </button>
+        <div v-if="searchHasMore" class="flex justify-center py-1">
+          <NButton text size="tiny" @click="runSearch(true)">
+            {{ t('chat.thread.load_more') }}
+          </NButton>
+        </div>
+      </div>
+      <div v-else-if="searchKeyword.trim()" class="py-3 text-center text-xs text-muted-foreground">
+        {{ t('chat.thread.search_empty') }}
+      </div>
     </div>
 
     <!-- Pin 消息栏 -->
@@ -317,26 +453,37 @@ onBeforeUnmount(() => {
         <NEmpty :description="t('chat.thread.empty')" size="small" />
       </div>
 
-      <ChatMessageItemView
-        v-for="item in chatStore.activeMessages"
-        :key="item.messageId"
-        :message="item"
-        :is-self="item.senderUserId === currentUserId"
-        :show-sender-name="isGroupLike"
-        :can-recall="canRecall(item)"
-        :can-edit="canEdit(item)"
-        :can-pin="canPin"
-        :conversation-type="conversation.conversationType"
-        :read-count="readCountOf(item)"
-        @recall="handleRecall(item)"
-        @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
-        @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
-        @reply="handleReply(item)"
-        @edit="handleEdit(item)"
-        @pin="handlePin(item, true)"
-        @unpin="handlePin(item, false)"
-        @react="emoji => handleReact(item, emoji)"
-      />
+      <div v-for="item in chatStore.activeMessages" :id="`chat-msg-${item.messageId}`" :key="item.messageId">
+        <ChatMessageItemView
+          :message="item"
+          :is-self="item.senderUserId === currentUserId"
+          :show-sender-name="isGroupLike"
+          :can-recall="canRecall(item)"
+          :can-edit="canEdit(item)"
+          :can-pin="canPin"
+          :conversation-type="conversation.conversationType"
+          :read-count="readCountOf(item)"
+          :highlighted="chatStore.highlightMessageId === item.messageId"
+          @recall="handleRecall(item)"
+          @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
+          @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
+          @reply="handleReply(item)"
+          @edit="handleEdit(item)"
+          @pin="handlePin(item, true)"
+          @unpin="handlePin(item, false)"
+          @react="emoji => handleReact(item, emoji)"
+        />
+      </div>
+
+      <!-- 视口分离态：回到最新 -->
+      <div v-if="isDetached" class="sticky bottom-1 flex justify-center">
+        <NButton size="tiny" round secondary type="primary" @click="handleBackToLatest">
+          <template #icon>
+            <Icon icon="lucide:arrow-down-to-line" width="13" height="13" />
+          </template>
+          {{ t('chat.thread.back_to_latest') }}
+        </NButton>
+      </div>
     </div>
 
     <!-- 输入中提示 -->
@@ -382,5 +529,20 @@ onBeforeUnmount(() => {
 
 .chat-meta-unpin:hover {
   text-decoration: underline;
+}
+
+.chat-search-hit {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.chat-search-hit:hover {
+  background: hsl(var(--accent));
 }
 </style>

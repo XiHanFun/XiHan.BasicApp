@@ -230,7 +230,7 @@ public sealed class ChatMarkReadDto
 }
 
 /// <summary>
-/// 消息历史查询 DTO（游标分页）
+/// 消息历史查询 DTO（游标分页；AroundMessageId 定位模式二选一）
 /// </summary>
 public sealed class ChatMessageHistoryQueryDto
 {
@@ -245,7 +245,38 @@ public sealed class ChatMessageHistoryQueryDto
     public long? BeforeMessageId { get; set; }
 
     /// <summary>
+    /// 定位模式：以该消息为中心取前后各半页（搜索命中跳转用；优先于 BeforeMessageId）
+    /// </summary>
+    public long? AroundMessageId { get; set; }
+
+    /// <summary>
     /// 每页条数（1-100，默认 20）
+    /// </summary>
+    public int Take { get; set; } = 20;
+}
+
+/// <summary>
+/// 会话内消息搜索 DTO（关键字匹配正文与文件名，排除已撤回）
+/// </summary>
+public sealed class ChatMessageSearchQueryDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 关键字
+    /// </summary>
+    public string Keyword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 游标：取该消息ID之前（不含）的更早命中；空取最新一页
+    /// </summary>
+    public long? BeforeMessageId { get; set; }
+
+    /// <summary>
+    /// 每页条数（1-50，默认 20）
     /// </summary>
     public int Take { get; set; } = 20;
 }
