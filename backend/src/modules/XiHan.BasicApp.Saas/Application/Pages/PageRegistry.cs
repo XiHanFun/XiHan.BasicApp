@@ -89,10 +89,8 @@ public static class PageRegistry
     [
         // [1] 工作台
          new("workbench", "工作台", "menu.workbench", MenuType.Directory, "/workbench", "Workbench", null, null, null, "lucide:layout-dashboard", 10, "/workbench/dashboard"),
-        // [1.1] 仪表盘
-         new("workbench.dashboard", "仪表盘", "menu.workbench_dashboard", MenuType.Menu, "/workbench/dashboard", "WorkbenchDashboard", "workbench/dashboard/index", "workbench", SaasPermissionCodes.UserStatistics.Read, "lucide:gauge", 11, IsAffix: true),
-        // [1.2] 小组件（可定制工作台；无权限码 → 所有登录用户可见）
-         new("workbench.widgets", "小组件", "menu.workbench_widgets", MenuType.Menu, "/workbench/widgets", "WorkbenchWidgets", "workbench/widgets/index", "workbench", null, "lucide:layout-grid", 12),
+        // [1.1] 仪表盘（可定制小组件看板；页面无权限码 → 所有登录用户可见，统计等小组件按各自权限码门控）
+         new("workbench.dashboard", "仪表盘", "menu.workbench_dashboard", MenuType.Menu, "/workbench/dashboard", "WorkbenchDashboard", "workbench/dashboard/index", "workbench", null, "lucide:gauge", 11, IsAffix: true),
         // [1.3] 我的消息
          new("workbench.inbox", "我的消息", "menu.workbench_inbox", MenuType.Menu, "/workbench/inbox", "WorkbenchInbox", "workbench/inbox/index", "workbench", null, "lucide:inbox", 13),
         // [1.4] 个人中心（_core 页面：Component 用 _core/profile/index，前端 dynamic.ts coreComponentMap 解析；无权限码 → 所有登录用户可见）
