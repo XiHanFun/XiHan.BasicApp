@@ -6,7 +6,8 @@ defineOptions({ name: 'MessageChat' })
 </script>
 
 <template>
-  <div class="h-full p-2 sm:p-4">
+  <!-- overflow-hidden 钉死页面高度：消息再多也只允许面板内部（消息流/会话列表）滚动，不撑破外层页面滚动 -->
+  <div class="h-full min-h-0 overflow-hidden p-2 sm:p-4">
     <ChatPanel mode="page" />
   </div>
 </template>

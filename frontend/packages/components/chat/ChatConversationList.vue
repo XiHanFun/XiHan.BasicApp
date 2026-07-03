@@ -98,8 +98,8 @@ function handleItemAction(key: string) {
 
 <template>
   <div class="flex h-full min-h-0 flex-col">
-    <!-- 头部：搜索 + 发起聊天 -->
-    <div class="flex items-center gap-2 p-3 pb-2">
+    <!-- 头部：搜索 + 发起聊天（固定高度与消息区会话头对齐，底部分割线） -->
+    <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
       <NInput
         v-model:value="keyword"
         size="small"

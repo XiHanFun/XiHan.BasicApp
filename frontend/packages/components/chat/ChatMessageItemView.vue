@@ -118,8 +118,9 @@ async function handleDownload() {
       :size="30"
     />
     <div class="flex max-w-[86%] min-w-0 flex-col sm:max-w-[72%]" :class="isSelf ? 'items-end' : 'items-start'">
-      <div v-if="showSenderName && !isSelf" class="mb-0.5 px-1 text-[11px] text-muted-foreground">
-        {{ message.senderUserName }}
+      <!-- 群聊双侧都显示昵称（本人取当前用户资料，右对齐），与对方样式一致 -->
+      <div v-if="showSenderName" class="mb-0.5 px-1 text-[11px] text-muted-foreground">
+        {{ isSelf ? (userStore.nickname || userStore.username) : message.senderUserName }}
       </div>
 
       <!-- 已撤回占位 -->
