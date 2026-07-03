@@ -206,7 +206,7 @@ export class RequestClient {
 
         // 用户时区（已选优先，否则跟随浏览器）：后端据此将 UTC 时间换算为该时区返回
         const timezone = LocalStorage.get<string>(APP_TIMEZONE_KEY)
-          || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : '')
+          || (typeof Intl !== 'undefined' ? new Intl.DateTimeFormat().resolvedOptions().timeZone : '')
         if (timezone) {
           config.headers['X-Timezone'] = timezone
         }
@@ -419,11 +419,13 @@ export class RequestClient {
       const responseSuccess = typed.isSuccess
       const responseMessage = typed.message
       const traceId = typeof typed.traceId === 'string' ? typed.traceId : undefined
-      const hasEnvelope = responseData !== undefined && (responseCode !== undefined || responseSuccess !== undefined)
+      // 信封判定不能依赖 data 字段存在：后端序列化 WhenWritingNull 会把 data=null 整个省略
+      // （如秒传探测未命中）；isSuccess 是非空布尔、信封必写，作为主判据
+      const hasEnvelope = typeof responseSuccess === 'boolean' || (responseData !== undefined && responseCode !== undefined)
 
       if (hasEnvelope) {
         if (responseSuccess === true || responseCode === BIZ_CODE.SUCCESS || responseCode === 0) {
-          return responseData as T
+          return (responseData ?? null) as T
         }
         if (meta) {
           const now = Date.now()
