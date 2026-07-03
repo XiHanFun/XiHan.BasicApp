@@ -6,7 +6,7 @@ defineOptions({ name: 'MessageChat' })
 </script>
 
 <template>
-  <div class="h-full p-4">
+  <div class="h-full p-2 sm:p-4">
     <ChatPanel mode="page" />
   </div>
 </template>
