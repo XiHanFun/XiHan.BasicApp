@@ -7,6 +7,7 @@ import type {
   ChatMessageHistoryQuery,
   ChatMessageHistoryResult,
   ChatMessageItem,
+  ChatMessageSearchQuery,
   ChatMessageSendInput,
   ChatReadPosition,
 } from '~/types'
@@ -85,6 +86,10 @@ export const chatApi = {
   /** GetMessageHistoryAsync：[HttpPost] 显式 POST（游标分页走 body）→ POST /ChatQuery/MessageHistory */
   messageHistory(query: ChatMessageHistoryQuery) {
     return chatQueryApi.post<ChatMessageHistoryResult, ChatMessageHistoryQuery>('MessageHistory', query)
+  },
+  /** GetMessageSearchAsync：Get 前缀剥离 + [HttpPost] → POST /ChatQuery/MessageSearch */
+  searchMessages(query: ChatMessageSearchQuery) {
+    return chatQueryApi.post<ChatMessageHistoryResult, ChatMessageSearchQuery>('MessageSearch', query)
   },
   /** GetMembersAsync(long conversationId)：GET 的 Id 参数拼路由段 → GET /ChatQuery/Members/{conversationId} */
   members(conversationId: string) {

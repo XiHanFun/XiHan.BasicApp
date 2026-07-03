@@ -67,6 +67,12 @@ export default {
     read: 'Read',
     unread: 'Unread',
     read_count: 'Read by {n}',
+    search: 'Search messages',
+    search_placeholder: 'Search this conversation (Enter)',
+    search_empty: 'No matching messages',
+    locate: 'Locate',
+    back_to_latest: 'Back to latest',
+    download: 'Download',
   },
   composer: {
     placeholder: 'Type a message. Enter to send / Shift+Enter for newline',

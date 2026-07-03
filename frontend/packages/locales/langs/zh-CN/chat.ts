@@ -67,6 +67,12 @@ export default {
     read: '已读',
     unread: '未读',
     read_count: '{n} 人已读',
+    search: '搜索消息',
+    search_placeholder: '搜索本会话消息（Enter 检索）',
+    search_empty: '未找到匹配消息',
+    locate: '定位',
+    back_to_latest: '回到最新',
+    download: '下载原图',
   },
   composer: {
     placeholder: '输入消息，Enter 发送 / Shift+Enter 换行',

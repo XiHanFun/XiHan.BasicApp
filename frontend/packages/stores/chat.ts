@@ -66,6 +66,11 @@ export const useChatStore = defineStore('chat', () => {
   const editTarget = ref<ChatLocalMessage | null>(null)
   /** 会话草稿（localStorage 持久化） */
   const drafts = ref<Record<string, string>>(LocalStorage.get<Record<string, string>>(CHAT_DRAFTS_STORAGE_KEY) ?? {})
+  /** 视口分离态：搜索定位后 bucket 停留在历史上下文，不再追加新消息（回到最新后解除） */
+  const detachedConversations = ref<Record<string, boolean>>({})
+  /** 搜索命中定位后的高亮消息（3s 自清） */
+  const highlightMessageId = ref<null | string>(null)
+  let highlightTimer: ReturnType<typeof setTimeout> | null = null
 
   const markReadTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingClearTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -282,6 +287,10 @@ export const useChatStore = defineStore('chat', () => {
     localExtras?: { replyPreview?: null | string },
   ) {
     const userStore = useUserStore()
+    // 视口分离态（搜索定位中）发消息：先回到最新，保证乐观消息出现在正确位置
+    if (detachedConversations.value[input.conversationId]) {
+      await reloadLatest(input.conversationId).catch(() => {})
+    }
     const clientMessageId = generateClientMessageId()
     const local: ChatLocalMessage = {
       messageId: `${LOCAL_MESSAGE_ID_PREFIX}${clientMessageId}`,
@@ -412,6 +421,33 @@ export const useChatStore = defineStore('chat', () => {
     readPositions.value[conversationId] = map
   }
 
+  /** 搜索命中跳转：以目标消息为中心重载上下文并高亮（进入视口分离态） */
+  async function jumpToMessage(conversationId: string, messageId: string) {
+    const result = await api().messageHistory({
+      conversationId,
+      aroundMessageId: messageId,
+      take: HISTORY_PAGE_SIZE,
+    })
+    messages.value[conversationId] = [...result.items]
+    hasMoreOlder.value[conversationId] = result.hasMore
+    detachedConversations.value[conversationId] = true
+    highlightMessageId.value = messageId
+    if (highlightTimer) {
+      clearTimeout(highlightTimer)
+    }
+    highlightTimer = setTimeout(() => {
+      highlightMessageId.value = null
+    }, 3000)
+  }
+
+  /** 回到最新：清 bucket 重载最新一页并解除分离态 */
+  async function reloadLatest(conversationId: string) {
+    delete detachedConversations.value[conversationId]
+    delete messages.value[conversationId]
+    delete hasMoreOlder.value[conversationId]
+    await loadHistory(conversationId)
+  }
+
   /** 会话置顶 toggle（个人维度） */
   async function togglePinConversation(conversationId: string) {
     const result = await api().togglePinConversation(conversationId)
@@ -486,7 +522,10 @@ export const useChatStore = defineStore('chat', () => {
 
   function applyIncomingMessage(payload: ChatMessagePushPayload) {
     const { message, conversation } = payload
-    reconcileSaved(message)
+    // 视口分离态（搜索定位中）：不追加进 bucket，避免历史上下文与最新消息之间出现空洞
+    if (!detachedConversations.value[message.conversationId]) {
+      reconcileSaved(message)
+    }
     clearTyping(conversation.conversationId, message.senderUserId)
 
     const conv = conversations.value.find(c => c.conversationId === conversation.conversationId)
@@ -637,6 +676,12 @@ export const useChatStore = defineStore('chat', () => {
     mentionsPending.value = {}
     replyTarget.value = null
     editTarget.value = null
+    detachedConversations.value = {}
+    highlightMessageId.value = null
+    if (highlightTimer) {
+      clearTimeout(highlightTimer)
+      highlightTimer = null
+    }
     for (const timer of markReadTimers.values()) {
       clearTimeout(timer)
     }
@@ -662,6 +707,8 @@ export const useChatStore = defineStore('chat', () => {
     mentionsPending,
     replyTarget,
     editTarget,
+    detachedConversations,
+    highlightMessageId,
     totalUnread,
     activeConversation,
     activeMessages,
@@ -688,6 +735,8 @@ export const useChatStore = defineStore('chat', () => {
     getDraft,
     setDraft,
     readCountFor,
+    jumpToMessage,
+    reloadLatest,
     sendTyping,
     applyIncomingMessage,
     applyMessageRecalled,

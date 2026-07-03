@@ -465,6 +465,30 @@ function createChatApis() {
       return nodes.map(mapDepartmentNode)
     },
     async uploadAttachment(file: File, onProgress?: (percent: number) => void) {
+      // 秒传：SHA-256（与后端 FileTransferService 同算法，hex 小写）命中已有文件直接复用 fileId；
+      // 未命中/不支持/超大文件（整读内存有风险）回退普通上传
+      const FAST_UPLOAD_MAX_BYTES = 200 * 1024 * 1024
+      if (file.size > 0 && file.size <= FAST_UPLOAD_MAX_BYTES && globalThis.crypto?.subtle) {
+        try {
+          const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+          const fileHash = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
+          const fast = await fileApi.fastUpload({
+            fileHash,
+            originalName: file.name,
+            fileSize: file.size,
+            mimeType: file.type || null,
+          })
+          onProgress?.(100)
+          return {
+            fileId: fast.basicId,
+            fileName: fast.originalName || fast.fileName,
+            fileSize: fast.fileSize,
+          }
+        }
+        catch {
+          // 未命中或秒传失败：回退普通上传
+        }
+      }
       const detail = await fileApi.upload({ file, directory: 'chat' }, onProgress)
       return {
         fileId: detail.basicId,

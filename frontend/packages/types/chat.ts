@@ -120,9 +120,19 @@ export interface ChatReadPosition {
   lastReadMessageId?: null | string
 }
 
-/** 消息历史查询（游标：取 beforeMessageId 之前不含的历史；空取最新一页） */
+/** 消息历史查询（游标：取 beforeMessageId 之前不含的历史；aroundMessageId 定位模式优先） */
 export interface ChatMessageHistoryQuery {
   conversationId: string
+  beforeMessageId?: null | string
+  /** 定位模式：以该消息为中心取前后各半页（搜索命中跳转用） */
+  aroundMessageId?: null | string
+  take?: number
+}
+
+/** 会话内消息搜索查询 */
+export interface ChatMessageSearchQuery {
+  conversationId: string
+  keyword: string
   beforeMessageId?: null | string
   take?: number
 }
@@ -236,6 +246,8 @@ export interface ChatApiContract {
   toggleMuteConversation: (conversationId: string) => Promise<{ isOn: boolean }>
   myConversations: () => Promise<ChatConversationListItem[]>
   messageHistory: (query: ChatMessageHistoryQuery) => Promise<ChatMessageHistoryResult>
+  /** 会话内消息搜索（关键字匹配正文与文件名，排除已撤回） */
+  searchMessages: (query: ChatMessageSearchQuery) => Promise<ChatMessageHistoryResult>
   members: (conversationId: string) => Promise<ChatMemberItem[]>
   /** 成员已读位（群已读回执） */
   readPositions: (conversationId: string) => Promise<ChatReadPosition[]>

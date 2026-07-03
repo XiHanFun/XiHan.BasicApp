@@ -166,12 +166,56 @@ public sealed class ChatQueryService
         await EnsureMemberAsync(input.ConversationId, cancellationToken);
 
         var take = Math.Clamp(input.Take, 1, MaxHistoryTake);
+
+        // 定位模式：以目标消息为中心取前后各半页（搜索命中跳转）
+        if (input.AroundMessageId is { } around && around > 0)
+        {
+            var half = Math.Max(1, take / 2);
+            // 前向多取一条判断是否还有更早历史
+            var aroundRows = await _messageRepository.GetAroundAsync(input.ConversationId, around, half + 1, half, cancellationToken);
+            var beforeCount = aroundRows.Count(message => message.BasicId < around);
+            var aroundHasMore = beforeCount > half;
+            var aroundPage = aroundHasMore
+                ? aroundRows.Skip(beforeCount - half).ToList()
+                : [.. aroundRows];
+            return new ChatMessageHistoryResultDto
+            {
+                Items = await AttachReactionsAsync(aroundPage, cancellationToken),
+                HasMore = aroundHasMore
+            };
+        }
+
         // 多取一条判断是否还有更早历史
         var rows = await _messageRepository.GetHistoryAsync(input.ConversationId, input.BeforeMessageId, take + 1, cancellationToken);
         var hasMore = rows.Count > take;
         var page = rows.Take(take).OrderBy(message => message.BasicId).ToList();
 
         var items = await AttachReactionsAsync(page, cancellationToken);
+        return new ChatMessageHistoryResultDto { Items = items, HasMore = hasMore };
+    }
+
+    /// <inheritdoc />
+    /// <remarks>GetMessageSearchAsync：Get 前缀剥离 → POST /ChatQuery/MessageSearch（[HttpPost] 显式）</remarks>
+    [HttpPost]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<ChatMessageHistoryResultDto> GetMessageSearchAsync(ChatMessageSearchQueryDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+        await EnsureMemberAsync(input.ConversationId, cancellationToken);
+
+        var keyword = input.Keyword?.Trim();
+        if (string.IsNullOrEmpty(keyword))
+        {
+            return new ChatMessageHistoryResultDto { Items = [], HasMore = false };
+        }
+
+        var take = Math.Clamp(input.Take, 1, 50);
+        var rows = await _messageRepository.SearchAsync(input.ConversationId, keyword, input.BeforeMessageId, take + 1, cancellationToken);
+        var hasMore = rows.Count > take;
+
+        // 搜索结果按时间倒序展示（最新命中在前），不带回应
+        var items = rows.Take(take).Select(message => ChatApplicationMapper.ToMessageItemDto(message)).ToList();
         return new ChatMessageHistoryResultDto { Items = items, HasMore = hasMore };
     }
 
