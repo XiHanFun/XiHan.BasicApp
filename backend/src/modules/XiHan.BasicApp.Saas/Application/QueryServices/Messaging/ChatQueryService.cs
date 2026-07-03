@@ -144,6 +144,9 @@ public sealed class ChatQueryService
                 UnreadCount = member.UnreadCount,
                 IsMuted = member.IsMuted,
                 IsPinned = member.IsPinned,
+                IsSilenced = member.IsSilenced,
+                Announcement = conversation.Announcement,
+                Description = conversation.Description,
                 LastMessageTime = conversation.LastMessageTime,
                 LastMessagePreview = conversation.LastMessagePreview
             });

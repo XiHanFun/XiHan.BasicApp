@@ -1,6 +1,7 @@
 import type { DynamicApiParams } from '../../base'
 import type { UserSelectItemDto } from '../identity/user.types'
 import type {
+  ChatConversationInfoUpdateInput,
   ChatConversationListItem,
   ChatConversationOpenResult,
   ChatMemberItem,
@@ -78,6 +79,18 @@ export const chatApi = {
   /** ToggleMuteConversationAsync → POST /Chat/ToggleMuteConversation */
   toggleMuteConversation(conversationId: string) {
     return chatCommandApi.post<{ isOn: boolean }>('ToggleMuteConversation', { conversationId })
+  },
+  /** UpdateConversationInfoAsync(dto)：Update 前缀→PUT 且剥离 → PUT /Chat/ConversationInfo */
+  updateConversationInfo(input: ChatConversationInfoUpdateInput) {
+    return chatCommandApi.put<void, ChatConversationInfoUpdateInput>('ConversationInfo', input)
+  },
+  /** TransferOwnerAsync → POST /Chat/TransferOwner */
+  transferOwner(conversationId: string, newOwnerUserId: string) {
+    return chatCommandApi.post<void>('TransferOwner', { conversationId, newOwnerUserId })
+  },
+  /** SetMemberSilenceAsync → POST /Chat/SetMemberSilence */
+  setMemberSilence(conversationId: string, userId: string, isSilenced: boolean) {
+    return chatCommandApi.post<void>('SetMemberSilence', { conversationId, userId, isSilenced })
   },
   /** GetMyConversationsAsync：Get 前缀剥离 → GET /ChatQuery/MyConversations */
   myConversations() {

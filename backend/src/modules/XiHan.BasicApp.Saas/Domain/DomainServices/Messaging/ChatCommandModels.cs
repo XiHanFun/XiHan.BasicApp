@@ -77,6 +77,31 @@ public sealed record ChatMessagePinCommand(long MessageId, long OperatorUserId, 
 public sealed record ChatMemberToggleCommand(long ConversationId, long UserId);
 
 /// <summary>
+/// 群信息更新命令（群聊可改名；部门群名称随部门禁改；公告变更追加系统提示）
+/// </summary>
+public sealed record ChatConversationInfoUpdateCommand(
+    long ConversationId,
+    long OperatorUserId,
+    string? ConversationName,
+    string? Announcement,
+    string? Description);
+
+/// <summary>
+/// 转让群主命令（仅群聊、仅群主；旧主降为普通成员）
+/// </summary>
+public sealed record ChatOwnerTransferCommand(long ConversationId, long OperatorUserId, long NewOwnerUserId);
+
+/// <summary>
+/// 成员禁言命令（群主/管理员可禁言普通成员）
+/// </summary>
+public sealed record ChatMemberSilenceCommand(long ConversationId, long OperatorUserId, long TargetUserId, bool IsSilenced);
+
+/// <summary>
+/// 群治理结果（SystemMessage 非空时随消息链路推送时间线提示）
+/// </summary>
+public sealed record ChatGovernanceResult(SysChatConversation Conversation, SysChatMessage? SystemMessage, IReadOnlyList<long> RecipientUserIds);
+
+/// <summary>
 /// 撤回消息命令
 /// </summary>
 public sealed record ChatMessageRecallCommand(long MessageId, long OperatorUserId);

@@ -38,6 +38,12 @@ export interface ChatConversationListItem {
   isMuted: boolean
   /** 是否置顶会话（个人维度，列表置顶优先） */
   isPinned: boolean
+  /** 我是否被禁言（输入区置灰） */
+  isSilenced: boolean
+  /** 群公告 */
+  announcement?: null | string
+  /** 群描述 */
+  description?: null | string
   lastMessageTime?: null | string
   lastMessagePreview?: null | string
 }
@@ -93,7 +99,17 @@ export interface ChatMemberItem {
   userId: string
   userName?: null | string
   memberRole: ChatMemberRole
+  /** 是否被禁言 */
+  isSilenced: boolean
   joinTime: string
+}
+
+/** 群信息更新入参（null 字段不改） */
+export interface ChatConversationInfoUpdateInput {
+  conversationId: string
+  conversationName?: null | string
+  announcement?: null | string
+  description?: null | string
 }
 
 /** 发送消息入参 */
@@ -244,6 +260,10 @@ export interface ChatApiContract {
   /** 会话置顶/免打扰 toggle（个人维度），返回新状态 */
   togglePinConversation: (conversationId: string) => Promise<{ isOn: boolean }>
   toggleMuteConversation: (conversationId: string) => Promise<{ isOn: boolean }>
+  /** 群治理：信息编辑/转让群主/成员禁言（群主与管理员） */
+  updateConversationInfo: (input: ChatConversationInfoUpdateInput) => Promise<void>
+  transferOwner: (conversationId: string, newOwnerUserId: string) => Promise<void>
+  setMemberSilence: (conversationId: string, userId: string, isSilenced: boolean) => Promise<void>
   myConversations: () => Promise<ChatConversationListItem[]>
   messageHistory: (query: ChatMessageHistoryQuery) => Promise<ChatMessageHistoryResult>
   /** 会话内消息搜索（关键字匹配正文与文件名，排除已撤回） */

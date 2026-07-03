@@ -250,6 +250,59 @@ public sealed class ChatAppService
         await _pushService.PushReadPositionChangedAsync(result.ConversationId, result.UserId, result.LastReadMessageId, result.RecipientUserIds);
     }
 
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
+    public async Task UpdateConversationInfoAsync(ChatConversationInfoUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.UpdateConversationInfoAsync(
+            new ChatConversationInfoUpdateCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.ConversationName, input.Announcement, input.Description),
+            cancellationToken);
+        await PushGovernanceAsync(result, "info-changed");
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
+    public async Task TransferOwnerAsync(ChatOwnerTransferDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.TransferOwnerAsync(
+            new ChatOwnerTransferCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.NewOwnerUserId), cancellationToken);
+        await PushGovernanceAsync(result, "owner-transferred");
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
+    public async Task SetMemberSilenceAsync(ChatMemberSilenceDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.SetMemberSilenceAsync(
+            new ChatMemberSilenceCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.UserId, input.IsSilenced), cancellationToken);
+        await PushGovernanceAsync(result, "member-silenced");
+    }
+
+    /// <summary>
+    /// 群治理推送：会话变更通知 + 可选系统提示消息（时间线实时可见）
+    /// </summary>
+    private async Task PushGovernanceAsync(ChatGovernanceResult result, string changeType)
+    {
+        await _pushService.PushConversationChangedAsync(result.Conversation.BasicId, changeType, result.RecipientUserIds);
+        if (result.SystemMessage is not null)
+        {
+            await _pushService.PushMessageAsync(
+                ChatApplicationMapper.ToMessageItemDto(result.SystemMessage), result.Conversation, result.RecipientUserIds);
+        }
+    }
+
     private long GetCurrentUserIdOrThrow()
     {
         return _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
