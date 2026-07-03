@@ -24,6 +24,3 @@ export const CHAT_PERMISSIONS = {
   send: 'saas:chat:send',
   manage: 'saas:chat:manage',
 } as const
-
-/** 表情皮肤偏好的本地存储键（native/apple/google/twitter/facebook） */
-export const CHAT_EMOJI_SET_STORAGE_KEY = 'chat-emoji-set'
