@@ -35,9 +35,9 @@ public interface IFileDomainService
     Task IncrementViewCountAsync(long fileId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 秒传文件
+    /// 秒传文件（按哈希探测：未命中返回 null，调用方回退普通上传）
     /// </summary>
-    Task<FileCommandResult> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default);
+    Task<FileCommandResult?> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 切换主存储

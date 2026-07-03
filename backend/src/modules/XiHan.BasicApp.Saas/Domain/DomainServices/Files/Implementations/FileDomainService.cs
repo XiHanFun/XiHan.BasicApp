@@ -96,7 +96,7 @@ public sealed class FileDomainService
     }
 
     /// <inheritdoc />
-    public async Task<FileCommandResult> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default)
+    public async Task<FileCommandResult?> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -104,8 +104,13 @@ public sealed class FileDomainService
         var fileHash = Required(command.FileHash, 100, nameof(command.FileHash), "文件哈希不能超过 100 个字符。");
         _fileStorageDomainService.EnsureUploadMetadata(command.FileSize, command.IsTemporary, command.ExpirationTime, command.RetentionDays);
 
-        var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken)
-            ?? throw new InvalidOperationException("文件不存在，无法秒传。");
+        // 未命中不是错误：秒传是探测语义，返回 null 让调用方回退普通上传（避免 4xx 噪音与异常日志垃圾）
+        var existing = await _fileRepository.GetByHashAsync(fileHash, cancellationToken);
+        if (existing is null)
+        {
+            return null;
+        }
+
         if (existing.Status != FileStatus.Normal)
         {
             throw new InvalidOperationException("文件状态非正常，无法秒传。");

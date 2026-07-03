@@ -472,21 +472,24 @@ function createChatApis() {
         try {
           const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
           const fileHash = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
+          // 探测语义：命中返回详情，未命中返回 null（不再抛 4xx）
           const fast = await fileApi.fastUpload({
             fileHash,
             originalName: file.name,
             fileSize: file.size,
             mimeType: file.type || null,
           })
-          onProgress?.(100)
-          return {
-            fileId: fast.basicId,
-            fileName: fast.originalName || fast.fileName,
-            fileSize: fast.fileSize,
+          if (fast) {
+            onProgress?.(100)
+            return {
+              fileId: fast.basicId,
+              fileName: fast.originalName || fast.fileName,
+              fileSize: fast.fileSize,
+            }
           }
         }
         catch {
-          // 未命中或秒传失败：回退普通上传
+          // 探测失败不阻断：回退普通上传
         }
       }
       const detail = await fileApi.upload({ file, directory: 'chat' }, onProgress)

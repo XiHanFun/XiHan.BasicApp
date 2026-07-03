@@ -113,17 +113,17 @@ public sealed class FileAppService
     }
 
     /// <summary>
-    /// 秒传文件
+    /// 秒传文件（按哈希探测：未命中返回 null，前端回退普通上传）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.File.Create)]
-    public async Task<FileDetailDto> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default)
+    public async Task<FileDetailDto?> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fileDomainService.FastUploadFileAsync(FileApplicationMapper.ToFastUploadCommand(input), cancellationToken);
-        return FileApplicationMapper.ToDetailDto(result.File);
+        return result is null ? null : FileApplicationMapper.ToDetailDto(result.File);
     }
 
     /// <summary>
