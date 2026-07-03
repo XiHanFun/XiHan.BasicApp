@@ -306,13 +306,8 @@ function cancelReply() {
   chatStore.replyTarget = null
 }
 
-async function handlePickedFile(event: Event, messageType: ChatMessageType) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  input.value = ''
-  if (!file || uploadingPercent.value != null) {
-    return
-  }
+/** 上传单个文件并作为消息发送（图片/文件按钮与剪贴板粘贴共用） */
+async function uploadAndSend(file: File, messageType: ChatMessageType) {
   uploadingPercent.value = 0
   try {
     const uploaded = await appContext.apis.chatApi.uploadAttachment(file, (percent) => {
@@ -332,6 +327,29 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
   }
   finally {
     uploadingPercent.value = null
+  }
+}
+
+async function handlePickedFile(event: Event, messageType: ChatMessageType) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || uploadingPercent.value != null) {
+    return
+  }
+  await uploadAndSend(file, messageType)
+}
+
+/** 粘贴发送：剪贴板含文件（截图/复制的文件）时拦截默认粘贴直接上传发送，多文件顺序发；纯文本走默认粘贴 */
+async function handlePaste(event: ClipboardEvent) {
+  const files = [...(event.clipboardData?.files ?? [])]
+  if (!files.length || isEditing.value || uploadingPercent.value != null) {
+    return
+  }
+  event.preventDefault()
+  for (const file of files) {
+    const messageType = file.type.startsWith('image/') ? ChatMessageType.Image : ChatMessageType.File
+    await uploadAndSend(file, messageType)
   }
 }
 </script>
@@ -451,6 +469,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
               class="chat-composer-input"
               @input="handleInput"
               @keydown="handleKeydown"
+              @paste="handlePaste"
             />
           </template>
           <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
