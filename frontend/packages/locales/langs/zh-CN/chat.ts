@@ -78,8 +78,11 @@ export default {
     copy_failed: '复制失败',
   },
   composer: {
-    placeholder: '输入消息，Enter 发送 / Shift+Enter 换行',
+    placeholder_enter: '输入消息，Enter 发送 / Shift+Enter 换行',
+    placeholder_ctrl_enter: '输入消息，Ctrl+Enter 发送',
     send: '发送',
+    send_key_enter: '按 Enter 键发送消息',
+    send_key_ctrl_enter: '按 Ctrl + Enter 键发送消息',
     emoji: '表情',
     image: '发送图片',
     file: '发送文件',

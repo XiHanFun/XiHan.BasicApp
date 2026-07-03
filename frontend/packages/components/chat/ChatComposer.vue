@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { InputInst } from 'naive-ui'
+import type { DropdownOption, InputInst } from 'naive-ui'
 import type { ChatMemberItem } from '~/types'
-import { NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
-import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue'
+import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
+import { computed, defineAsyncComponent, h, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CHAT_PERMISSIONS } from '~/constants'
+import { CHAT_PERMISSIONS, CHAT_SEND_KEY_STORAGE_KEY } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { CHAT_MAX_CONTENT_LENGTH, CHAT_MAX_MENTION_COUNT } from '~/types'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
+import { LocalStorage } from '~/utils'
 import XUserAvatar from '../common/UserAvatar.vue'
 
 defineOptions({ name: 'ChatComposer' })
@@ -19,6 +20,8 @@ const props = defineProps<{
 
 // emoji-mart 及其数据（~600KB）异步拆包：首次点开表情按钮才加载
 const ChatEmojiPicker = defineAsyncComponent(() => import('./ChatEmojiPicker.vue'))
+
+type ChatSendKey = 'ctrl-enter' | 'enter'
 
 const { t } = useI18n()
 const message = useMessage()
@@ -38,6 +41,9 @@ const mentionMembers = ref<ChatMemberItem[]>([])
 /** 已插入的 @ 名单：显示名 → userId（发送时按「@名字仍在正文中」过滤） */
 const mentionDrafts = new Map<string, string>()
 
+/** 发送键偏好（QQ 式可切换：Enter 直发 / Ctrl+Enter 发送），localStorage 持久化 */
+const sendKey = ref<ChatSendKey>(LocalStorage.get<ChatSendKey>(CHAT_SEND_KEY_STORAGE_KEY) ?? 'enter')
+
 const canSend = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.send))
 const isSilenced = computed(() => chatStore.activeConversation?.isSilenced ?? false)
 const trimmedDraft = computed(() => draft.value.trim())
@@ -47,6 +53,24 @@ const replyTarget = computed(() =>
 const isGroupLike = computed(() =>
   chatStore.activeConversation?.conversationType === ChatConversationType.Group
   || chatStore.activeConversation?.conversationType === ChatConversationType.Department)
+
+const placeholder = computed(() =>
+  sendKey.value === 'enter' ? t('chat.composer.placeholder_enter') : t('chat.composer.placeholder_ctrl_enter'))
+
+/** 发送模式下拉（当前项打勾，另一项占位对齐） */
+const sendKeyOptions = computed<DropdownOption[]>(() => {
+  const check = () => h(Icon, { icon: 'lucide:check', width: 14, height: 14 })
+  const blank = () => h('span', { style: 'display:inline-block;width:14px' })
+  return [
+    { key: 'enter', label: t('chat.composer.send_key_enter'), icon: sendKey.value === 'enter' ? check : blank },
+    { key: 'ctrl-enter', label: t('chat.composer.send_key_ctrl_enter'), icon: sendKey.value === 'ctrl-enter' ? check : blank },
+  ]
+})
+
+function handleSendKeySelect(key: number | string) {
+  sendKey.value = key === 'ctrl-enter' ? 'ctrl-enter' : 'enter'
+  LocalStorage.set(CHAT_SEND_KEY_STORAGE_KEY, sendKey.value)
+}
 
 // 会话切换：恢复草稿、清 @ 名单与回复/编辑态残留
 watch(() => props.conversationId, (id) => {
@@ -95,11 +119,43 @@ function handleInput() {
   detectMentionTrigger()
 }
 
-/** 键盘分发：NInput 的 onKeydown 只接受单个函数（多个修饰符监听会合并成数组触发 prop 校验警告） */
+/** 在光标处插入换行（Enter 直发模式下 Ctrl+Enter 换行，textarea 默认不插入需手动） */
+function insertNewlineAtCursor() {
+  const textarea = textInputRef.value?.textareaElRef
+  const start = textarea?.selectionStart ?? draft.value.length
+  const end = textarea?.selectionEnd ?? draft.value.length
+  draft.value = `${draft.value.slice(0, start)}\n${draft.value.slice(end)}`
+  if (!isEditing.value) {
+    chatStore.setDraft(props.conversationId, draft.value)
+  }
+  void nextTick(() => {
+    textarea?.focus()
+    textarea?.setSelectionRange(start + 1, start + 1)
+  })
+}
+
+/** 键盘分发：NInput 的 onKeydown 只接受单个函数；发送键位随偏好切换 */
 function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+  if (event.key === 'Enter') {
     // 中文输入法组合态的回车是选词，不发送
     if (event.isComposing) {
+      return
+    }
+    if (sendKey.value === 'ctrl-enter') {
+      // Ctrl+Enter 发送模式：普通回车默认换行
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault()
+        void handleSendText()
+      }
+      return
+    }
+    // Enter 直发模式
+    if (event.shiftKey || event.altKey) {
+      return
+    }
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault()
+      insertNewlineAtCursor()
       return
     }
     event.preventDefault()
@@ -263,17 +319,17 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
 </script>
 
 <template>
-  <div class="border-t border-border p-2.5">
-    <div v-if="!canSend" class="py-2 text-center text-xs text-muted-foreground">
+  <div class="border-t border-border">
+    <div v-if="!canSend" class="py-3 text-center text-xs text-muted-foreground">
       {{ t('chat.composer.no_permission') }}
     </div>
-    <div v-else-if="isSilenced" class="py-2 text-center text-xs text-muted-foreground">
+    <div v-else-if="isSilenced" class="py-3 text-center text-xs text-muted-foreground">
       <Icon icon="lucide:mic-off" width="12" height="12" class="mr-1 inline-block align-[-1px]" />
       {{ t('chat.composer.silenced') }}
     </div>
     <template v-else>
       <!-- 编辑态横条 -->
-      <div v-if="isEditing" class="mb-2 flex items-center gap-2 rounded bg-primary/8 px-2 py-1">
+      <div v-if="isEditing" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-primary/8 px-2 py-1">
         <Icon icon="lucide:pencil" width="12" height="12" class="shrink-0 text-primary" />
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{ t('chat.composer.editing') }}</span>
         <button type="button" class="chat-composer-inline-btn" @click="cancelEdit">
@@ -282,7 +338,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
       </div>
 
       <!-- 回复引用条 -->
-      <div v-else-if="replyTarget" class="mb-2 flex items-center gap-2 rounded bg-muted/50 px-2 py-1">
+      <div v-else-if="replyTarget" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-muted/50 px-2 py-1">
         <Icon icon="lucide:reply" width="12" height="12" class="shrink-0 text-primary" />
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           {{ t('chat.composer.reply_to', { name: replyTarget.senderUserName ?? '' }) }}：{{ replyTarget.content || replyTarget.fileName || '' }}
@@ -293,7 +349,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
       </div>
 
       <!-- 附件上传进度 -->
-      <div v-if="uploadingPercent != null" class="mb-2 flex items-center gap-2">
+      <div v-if="uploadingPercent != null" class="mx-2.5 mt-2 flex items-center gap-2">
         <NProgress
           type="line"
           :percentage="uploadingPercent"
@@ -306,18 +362,16 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
         </span>
       </div>
 
-      <div class="flex items-end gap-1.5">
-        <!-- 表情 -->
+      <!-- 工具条（QQ 式：表情/图片/文件在输入区上方一排） -->
+      <div class="flex items-center gap-0.5 px-2 pt-1.5">
         <NPopover v-model:show="showEmojiPicker" trigger="click" placement="top-start" :show-arrow="false" raw>
           <template #trigger>
             <button type="button" class="chat-composer-btn" :title="t('chat.composer.emoji')">
-              <Icon icon="lucide:smile" width="17" height="17" />
+              <Icon icon="lucide:smile" width="18" height="18" />
             </button>
           </template>
           <ChatEmojiPicker @select="insertEmoji" />
         </NPopover>
-
-        <!-- 附件按钮 -->
         <NTooltip>
           <template #trigger>
             <button
@@ -326,7 +380,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
               :disabled="uploadingPercent != null || isEditing"
               @click="imageInputRef?.click()"
             >
-              <Icon icon="lucide:image" width="17" height="17" />
+              <Icon icon="lucide:image" width="18" height="18" />
             </button>
           </template>
           {{ t('chat.composer.image') }}
@@ -339,7 +393,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
               :disabled="uploadingPercent != null || isEditing"
               @click="fileInputRef?.click()"
             >
-              <Icon icon="lucide:paperclip" width="17" height="17" />
+              <Icon icon="lucide:paperclip" width="18" height="18" />
             </button>
           </template>
           {{ t('chat.composer.file') }}
@@ -357,58 +411,67 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
           class="hidden"
           @change="handlePickedFile($event, ChatMessageType.File)"
         >
+      </div>
 
-        <!-- 文本输入：Enter 发送 / Shift+Enter 换行；群聊输入 @ 唤起成员选择 -->
-        <div class="relative min-w-0 flex-1">
-          <NPopover
-            v-model:show="showMentionPicker"
-            trigger="manual"
-            placement="top-start"
-            :show-arrow="false"
-          >
-            <template #trigger>
-              <NInput
-                ref="textInputRef"
-                v-model:value="draft"
-                type="textarea"
-                :autosize="{ minRows: 1, maxRows: 5 }"
-                :maxlength="CHAT_MAX_CONTENT_LENGTH"
-                :placeholder="t('chat.composer.placeholder')"
-                @input="handleInput"
-                @keydown="handleKeydown"
-              />
-            </template>
-            <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
-              <div v-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
-                {{ t('chat.composer.mention_empty') }}
-              </div>
-              <button
-                v-for="member in mentionMembers"
-                :key="member.userId"
-                type="button"
-                class="chat-mention-item"
-                @click="insertMention(member)"
-              >
-                <XUserAvatar :name="member.userName" :size="24" />
-                <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
-              </button>
-            </div>
-          </NPopover>
-        </div>
-
-        <NTooltip>
+      <!-- 大面积无边框输入区；群聊输入 @ 唤起成员选择 -->
+      <div class="relative px-1">
+        <NPopover
+          v-model:show="showMentionPicker"
+          trigger="manual"
+          placement="top-start"
+          :show-arrow="false"
+        >
           <template #trigger>
-            <button
-              type="button"
-              class="chat-composer-btn chat-composer-btn--send"
-              :disabled="!trimmedDraft || sending"
-              @click="handleSendText"
-            >
-              <Icon :icon="isEditing ? 'lucide:check' : 'lucide:send-horizontal'" width="17" height="17" />
-            </button>
+            <NInput
+              ref="textInputRef"
+              v-model:value="draft"
+              type="textarea"
+              :bordered="false"
+              :autosize="{ minRows: 3, maxRows: 7 }"
+              :maxlength="CHAT_MAX_CONTENT_LENGTH"
+              :placeholder="placeholder"
+              class="chat-composer-input"
+              @input="handleInput"
+              @keydown="handleKeydown"
+            />
           </template>
-          {{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}
-        </NTooltip>
+          <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
+            <div v-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
+              {{ t('chat.composer.mention_empty') }}
+            </div>
+            <button
+              v-for="member in mentionMembers"
+              :key="member.userId"
+              type="button"
+              class="chat-mention-item"
+              @click="insertMention(member)"
+            >
+              <XUserAvatar :name="member.userName" :size="24" />
+              <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
+            </button>
+          </div>
+        </NPopover>
+      </div>
+
+      <!-- 底部：发送按钮 + 发送模式下拉（QQ 式分体按钮） -->
+      <div class="flex items-center justify-end px-2.5 pb-2.5">
+        <div class="chat-send-group">
+          <NButton
+            type="primary"
+            size="small"
+            :disabled="!trimmedDraft || sending"
+            :loading="sending"
+            class="chat-send-main"
+            @click="handleSendText"
+          >
+            {{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}
+          </NButton>
+          <NDropdown :options="sendKeyOptions" trigger="click" placement="top-end" @select="handleSendKeySelect">
+            <NButton type="primary" size="small" class="chat-send-arrow">
+              <Icon icon="lucide:chevron-up" width="14" height="14" />
+            </NButton>
+          </NDropdown>
+        </div>
       </div>
     </template>
   </div>
@@ -419,8 +482,8 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border: none;
   border-radius: 6px;
@@ -441,8 +504,10 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
   cursor: not-allowed;
 }
 
-.chat-composer-btn--send {
-  color: hsl(var(--primary));
+/* 无边框输入区：去掉聚焦描边，保持 QQ 式纯净输入面 */
+.chat-composer-input :deep(.n-input__border),
+.chat-composer-input :deep(.n-input__state-border) {
+  display: none;
 }
 
 .chat-composer-inline-btn {
@@ -478,5 +543,24 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
 
 .chat-mention-item:hover {
   background: hsl(var(--accent));
+}
+
+/* 发送分体按钮：主按钮 + 模式箭头拼接（QQ 式） */
+.chat-send-group {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.chat-send-group .chat-send-main {
+  min-width: 64px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.chat-send-group .chat-send-arrow {
+  padding: 0 6px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid hsl(var(--primary-foreground, 0 0% 100%) / 30%);
 }
 </style>
