@@ -107,7 +107,7 @@ export default {
       form_status: 'Status',
       form_template_description: 'Template Description',
       form_template_content: 'Template Content',
-      form_template_content_placeholder: 'Scriban / Razor / T4 template content…',
+      form_template_content_placeholder: 'Scriban / T4 template content…',
       validate_syntax: 'Validate Syntax',
       validate_content_required: 'Please fill in the template content first',
       validate_pass: 'Template syntax validation passed',

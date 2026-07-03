@@ -257,16 +257,10 @@ public enum GenType
 }
 
 /// <summary>
-/// 模板引擎类型
+/// 模板引擎类型（Razor 已移除：需运行时编译能力、框架不支持，避免"选了报错"的伪能力）
 /// </summary>
 public enum TemplateEngine
 {
-    /// <summary>
-    /// Razor
-    /// </summary>
-    [Description("Razor")]
-    Razor = 0,
-
     /// <summary>
     /// Scriban
     /// </summary>

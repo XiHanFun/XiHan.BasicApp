@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
@@ -33,7 +34,9 @@ public sealed class CodeGenerationEngine(
     ICodeGenTemplateRepository templateRepository,
     ITemplateRendererResolver rendererResolver,
     ITypeMappingProvider typeMappingProvider,
-    IGeneratedArtifactPackager packager) : ICodeGenerationEngine
+    IGeneratedArtifactPackager packager,
+    IGeneratedArtifactWriter artifactWriter,
+    ILogger<CodeGenerationEngine> logger) : ICodeGenerationEngine
 {
     private readonly ICodeGenTableRepository _tableRepository = tableRepository;
     private readonly ICodeGenTableColumnRepository _columnRepository = columnRepository;
@@ -41,6 +44,8 @@ public sealed class CodeGenerationEngine(
     private readonly ITemplateRendererResolver _rendererResolver = rendererResolver;
     private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
     private readonly IGeneratedArtifactPackager _packager = packager;
+    private readonly IGeneratedArtifactWriter _artifactWriter = artifactWriter;
+    private readonly ILogger<CodeGenerationEngine> _logger = logger;
 
     /// <inheritdoc />
     public Task<GenerationResult> PreviewAsync(GenerationRequest request, CancellationToken cancellationToken = default)
@@ -64,9 +69,18 @@ public sealed class CodeGenerationEngine(
                 break;
 
             case GenType.CustomPath:
-                // 安全 D5：生产环境默认禁用落盘；需路径白名单 + 规范化校验后方可开启
-                // TODO(S2)：实现受控目录落盘（IGeneratedArtifactWriter + 白名单 + ".." 穿越校验）
-                return GenerationResult.Fail("自定义路径落盘暂未启用（安全策略）。请使用预览或 Zip 下载。");
+                // 受控落盘：默认禁用 + 白名单根目录 + 路径穿越校验（fail-closed），审计经生成历史留痕
+                var table = await _tableRepository.GetByIdAsync(request.TableId, cancellationToken);
+                var writeResult = await _artifactWriter.WriteAsync(result.Artifacts, table?.GenPath, cancellationToken);
+                if (!writeResult.Success)
+                {
+                    return GenerationResult.Fail(writeResult.Message ?? "自定义路径落盘失败。");
+                }
+
+                _logger.LogInformation(
+                    "代码生成落盘完成：TableId={TableId}，路径={Path}，文件数={Count}",
+                    request.TableId, table?.GenPath, writeResult.WrittenCount);
+                break;
 
             case GenType.Preview:
             default:
@@ -141,7 +155,16 @@ public sealed class CodeGenerationEngine(
             TemplateType = table.TemplateType,
             Columns = columnSchemas,
             PrimaryKey = columnSchemas.FirstOrDefault(column => column.IsPrimaryKey)
-                ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn)
+                ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn),
+            // 树表/主子表结构字段透出给模板（模板按 TemplateType 消费 Options.XxxColumn）
+            Options = new Dictionary<string, object?>
+            {
+                ["PrimaryKeyColumn"] = table.PrimaryKeyColumn,
+                ["TreeParentColumn"] = table.TreeParentColumn,
+                ["TreeNameColumn"] = table.TreeNameColumn,
+                ["MasterTableId"] = table.MasterTableId?.ToString(),
+                ["MasterForeignKey"] = table.MasterForeignKey
+            }
         };
     }
 
@@ -193,7 +216,7 @@ public sealed class CodeGenerationEngine(
     /// <summary>
     /// 解析输出文件名（优先模板 FileNameExpression，回退 ClassName + 扩展名）
     /// </summary>
-    private static async Task<string> ResolveFileNameAsync(
+    private async Task<string> ResolveFileNameAsync(
         ITemplateRenderer renderer,
         SysCodeGenTemplate template,
         CodeGenerationContext context,
@@ -201,10 +224,17 @@ public sealed class CodeGenerationEngine(
     {
         if (!string.IsNullOrWhiteSpace(template.FileNameExpression))
         {
-            var rendered = await renderer.RenderAsync(template.FileNameExpression, context, cancellationToken);
-            if (!string.IsNullOrWhiteSpace(rendered))
+            try
             {
-                return rendered.Trim();
+                var rendered = await renderer.RenderAsync(template.FileNameExpression, context, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(rendered))
+                {
+                    return rendered.Trim();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "模板 {Code} 文件名表达式渲染失败，回退默认命名。", template.TemplateCode);
             }
         }
 
@@ -220,7 +250,7 @@ public sealed class CodeGenerationEngine(
     /// <summary>
     /// 解析输出相对路径（优先模板 FilePathExpression 作为目录，拼接文件名）
     /// </summary>
-    private static async Task<string> ResolveRelativePathAsync(
+    private async Task<string> ResolveRelativePathAsync(
         ITemplateRenderer renderer,
         SysCodeGenTemplate template,
         CodeGenerationContext context,
@@ -232,9 +262,16 @@ public sealed class CodeGenerationEngine(
             return fileName;
         }
 
-        var directory = await renderer.RenderAsync(template.FilePathExpression, context, cancellationToken);
-        directory = directory?.Trim().Replace('\\', '/').TrimEnd('/');
-
-        return string.IsNullOrWhiteSpace(directory) ? fileName : $"{directory}/{fileName}";
+        try
+        {
+            var directory = await renderer.RenderAsync(template.FilePathExpression, context, cancellationToken);
+            directory = directory?.Trim().Replace('\\', '/').TrimEnd('/');
+            return string.IsNullOrWhiteSpace(directory) ? fileName : $"{directory}/{fileName}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "模板 {Code} 路径表达式渲染失败，回退无目录输出。", template.TemplateCode);
+            return fileName;
+        }
     }
 }

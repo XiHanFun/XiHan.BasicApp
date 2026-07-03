@@ -107,7 +107,7 @@ export default {
       form_status: '状态',
       form_template_description: '模板描述',
       form_template_content: '模板正文',
-      form_template_content_placeholder: 'Scriban / Razor / T4 模板正文…',
+      form_template_content_placeholder: 'Scriban / T4 模板正文…',
       validate_syntax: '校验语法',
       validate_content_required: '请先填写模板正文',
       validate_pass: '模板语法校验通过',
