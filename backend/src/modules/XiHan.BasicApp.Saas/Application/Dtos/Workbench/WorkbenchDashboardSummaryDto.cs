@@ -27,11 +27,6 @@ public sealed class WorkbenchDashboardSummaryDto
     public WorkbenchDashboardStatisticsDto Statistics { get; set; } = new();
 
     /// <summary>
-    /// 当前用户站内信摘要
-    /// </summary>
-    public WorkbenchInboxSummaryDto Inbox { get; set; } = new();
-
-    /// <summary>
     /// 生成时间
     /// </summary>
     public DateTimeOffset GeneratedTime { get; set; }
@@ -96,25 +91,4 @@ public sealed class WorkbenchDashboardStatisticsDto
     /// 最后操作时间
     /// </summary>
     public DateTimeOffset? LastOperationTime { get; set; }
-}
-
-/// <summary>
-/// 工作台站内信摘要 DTO
-/// </summary>
-public sealed class WorkbenchInboxSummaryDto
-{
-    /// <summary>
-    /// 未读数量
-    /// </summary>
-    public int UnreadCount { get; set; }
-
-    /// <summary>
-    /// 待确认数量
-    /// </summary>
-    public int PendingConfirmCount { get; set; }
-
-    /// <summary>
-    /// 最近站内信
-    /// </summary>
-    public List<UserInboxItemDto> LatestItems { get; set; } = [];
 }
