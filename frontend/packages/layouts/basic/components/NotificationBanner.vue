@@ -1,37 +1,35 @@
 <script setup lang="ts">
 import type { AppUserInboxDisplayItem } from '~/types'
-import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
-import { NotificationContentFormat, NotificationPriority, NotificationType } from '~/types/enums'
+import { NotificationContentFormat } from '~/types/enums'
+import { resolveBannerTone, useBannerNotices } from '../composables/use-banner-notices'
 
 defineOptions({ name: 'NotificationBanner' })
 
 const { t } = useI18n()
 const router = useRouter()
-const appContext = useAppContext()
+const { banners, active, activeIndex, paused, dismiss } = useBannerNotices()
 
-const banners = ref<AppUserInboxDisplayItem[]>([])
-
-/** 高警示级别（优先级紧急 / 类型紧急）走警示色，其余走主色/信息色 */
-function isAlert(item: AppUserInboxDisplayItem): boolean {
-  return item.priority === NotificationPriority.Urgent
-    || item.priority === NotificationPriority.High
-    || item.notificationType === NotificationType.Emergency
+/** 视觉类型 → 默认图标（公告项自带 icon 时优先） */
+const TONE_ICON: Record<string, string> = {
+  info: 'lucide:info',
+  success: 'lucide:check-circle-2',
+  warning: 'lucide:alert-triangle',
+  error: 'lucide:alert-circle',
+  primary: 'lucide:megaphone',
 }
 
-/** 横幅按优先级（高警示在前）排序，便于「只突出最高一条」 */
-const sortedBanners = computed(() =>
-  [...banners.value].sort((a, b) => Number(isAlert(b)) - Number(isAlert(a))),
-)
+function resolveIcon(item: AppUserInboxDisplayItem): string {
+  const icon = item.icon
+  if (!icon) {
+    return TONE_ICON[resolveBannerTone(item)] ?? 'lucide:megaphone'
+  }
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
 
-/** 当前置顶展示的一条（其余折叠为「还有 N 条」） */
-const primaryBanner = computed<AppUserInboxDisplayItem | null>(() => sortedBanners.value[0] ?? null)
-const restCount = computed(() => Math.max(0, sortedBanners.value.length - 1))
-
-/** 内容首行（横幅只展示标题旁的一句话摘要，去除 Markdown/HTML 噪声不强求） */
+/** 内容首行（横幅只展示一句话摘要；Markdown/HTML 去噪不强求，详情走跳转） */
 function contentFirstLine(item: AppUserInboxDisplayItem): string {
   const raw = item.content ?? ''
   if (item.contentFormat === NotificationContentFormat.Html) {
@@ -40,106 +38,157 @@ function contentFirstLine(item: AppUserInboxDisplayItem): string {
   return raw.replace(/\r/g, '').split('\n').find(line => line.trim().length > 0)?.trim() ?? ''
 }
 
-function resolveIcon(item: AppUserInboxDisplayItem): string {
-  const icon = item.icon
-  if (!icon) {
-    return 'lucide:megaphone'
-  }
-  return icon.includes(':') ? icon : `lucide:${icon}`
-}
-
+/** 详情跳转：外链新窗口、内链路由 */
 function onDetail(item: AppUserInboxDisplayItem): void {
-  if (item.link) {
-    void router.push(item.link)
+  if (!item.link) {
+    return
   }
+  if (/^https?:\/\//.test(item.link)) {
+    window.open(item.link, '_blank', 'noopener,noreferrer')
+    return
+  }
+  void router.push(item.link)
 }
-
-function onClose(item: AppUserInboxDisplayItem): void {
-  banners.value = banners.value.filter(b => b.basicId !== item.basicId)
-}
-
-onMounted(async () => {
-  try {
-    banners.value = await appContext.apis.userInboxApi.banner()
-  }
-  catch {
-    // 横幅拉取失败静默：不渲染即可
-  }
-})
 </script>
 
 <template>
-  <div v-if="primaryBanner" class="notif-banner-wrap">
+  <Transition name="banner-slide">
     <div
-      class="notif-banner"
-      :class="isAlert(primaryBanner) ? 'notif-banner--alert' : 'notif-banner--info'"
+      v-if="active"
+      class="notif-banner-wrap"
+      @mouseenter="paused = true"
+      @mouseleave="paused = false"
     >
-      <Icon :icon="resolveIcon(primaryBanner)" width="18" height="18" class="notif-banner__icon" />
-      <div class="notif-banner__body">
-        <span class="notif-banner__title">{{ primaryBanner.title }}</span>
-        <span v-if="contentFirstLine(primaryBanner)" class="notif-banner__text">
-          {{ contentFirstLine(primaryBanner) }}
-        </span>
-        <span v-if="restCount > 0" class="notif-banner__more">
-          {{ t('header.notification.gate.banner_more', { n: restCount }) }}
-        </span>
-      </div>
-      <button
-        v-if="primaryBanner.link"
-        type="button"
-        class="notif-banner__action"
-        @click="onDetail(primaryBanner)"
-      >
-        {{ t('header.notification.gate.banner_detail') }}
-      </button>
-      <button
-        type="button"
-        class="notif-banner__close"
-        :title="t('header.notification.gate.banner_close')"
-        :aria-label="t('header.notification.gate.banner_close')"
-        @click="onClose(primaryBanner)"
-      >
-        <Icon icon="lucide:x" width="15" height="15" />
-      </button>
+      <Transition name="banner-fade" mode="out-in">
+        <div
+          :key="active.basicId"
+          class="notif-banner"
+          :class="`notif-banner--${resolveBannerTone(active)}`"
+        >
+          <Icon :icon="resolveIcon(active)" width="16" height="16" class="notif-banner__icon" />
+          <div class="notif-banner__body">
+            <span class="notif-banner__title">{{ active.title }}</span>
+            <span v-if="contentFirstLine(active)" class="notif-banner__text">
+              {{ contentFirstLine(active) }}
+            </span>
+          </div>
+          <!-- 多条：圆点指示 + 点击切换（自动 5s 轮播，悬停暂停） -->
+          <div v-if="banners.length > 1" class="notif-banner__dots">
+            <button
+              v-for="(item, index) in banners"
+              :key="item.basicId"
+              type="button"
+              class="notif-banner__dot"
+              :class="{ 'is-active': index === activeIndex }"
+              :aria-label="item.title"
+              :title="item.title"
+              @click="activeIndex = index"
+            />
+          </div>
+          <button
+            v-if="active.link"
+            type="button"
+            class="notif-banner__action"
+            @click="onDetail(active)"
+          >
+            {{ t('header.notification.gate.banner_detail') }}
+            <Icon icon="lucide:arrow-right" width="12" height="12" />
+          </button>
+          <button
+            type="button"
+            class="notif-banner__close"
+            :title="t('header.notification.gate.banner_close')"
+            :aria-label="t('header.notification.gate.banner_close')"
+            @click="dismiss(active)"
+          >
+            <Icon icon="lucide:x" width="14" height="14" />
+          </button>
+        </div>
+      </Transition>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <style scoped>
 .notif-banner-wrap {
   flex: 0 0 auto;
+  overflow: hidden;
   padding: 6px 12px 0;
 }
 
+/* 出现/关闭：slideDown / slideUp */
+.banner-slide-enter-active,
+.banner-slide-leave-active {
+  transition:
+    max-height 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  max-height: 48px;
+}
+
+.banner-slide-enter-from,
+.banner-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* 多条切换：fade */
+.banner-fade-enter-active,
+.banner-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.banner-fade-enter-from,
+.banner-fade-leave-to {
+  opacity: 0;
+}
+
+/* 横幅本体：固定 36px 单行 */
 .notif-banner {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 8px 12px;
+  height: 36px;
+  padding: 0 10px;
   border-radius: 8px;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground));
+  border: 1px solid;
 }
 
+/* 5 态配色（按通知类型/优先级映射） */
 .notif-banner--info {
+  border-color: #3b82f64d;
+  background: #3b82f614;
+  color: #1d4ed8;
+}
+
+.notif-banner--success {
+  border-color: #22c55e4d;
+  background: #22c55e14;
+  color: #15803d;
+}
+
+.notif-banner--warning {
+  border-color: #f59e0b55;
+  background: #f59e0b16;
+  color: #b45309;
+}
+
+.notif-banner--error {
+  border-color: #ef44444d;
+  background: #ef444414;
+  color: #b91c1c;
+}
+
+.notif-banner--primary {
   border-color: hsl(var(--primary) / 30%);
   background: hsl(var(--primary) / 8%);
-}
-
-.notif-banner--alert {
-  border-color: hsl(var(--destructive) / 35%);
-  background: hsl(var(--destructive) / 10%);
-  color: hsl(var(--destructive));
+  color: hsl(var(--primary));
 }
 
 .notif-banner__icon {
   flex-shrink: 0;
-}
-
-.notif-banner--info .notif-banner__icon {
-  color: hsl(var(--primary));
 }
 
 .notif-banner__body {
@@ -161,23 +210,42 @@ onMounted(async () => {
   flex: 1;
   min-width: 0;
   font-size: 13px;
+  opacity: 0.75;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: hsl(var(--foreground) / 75%);
 }
 
-.notif-banner--alert .notif-banner__text {
-  color: hsl(var(--destructive) / 85%);
-}
-
-.notif-banner__more {
+.notif-banner__dots {
+  display: flex;
   flex-shrink: 0;
-  font-size: 12px;
-  opacity: 0.7;
+  align-items: center;
+  gap: 5px;
+}
+
+.notif-banner__dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: currentcolor;
+  opacity: 0.25;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.notif-banner__dot.is-active {
+  opacity: 0.9;
+  transform: scale(1.25);
 }
 
 .notif-banner__action {
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
   padding: 2px 8px;
   border: none;
   border-radius: 6px;
@@ -198,8 +266,8 @@ onMounted(async () => {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   border: none;
   border-radius: 6px;
