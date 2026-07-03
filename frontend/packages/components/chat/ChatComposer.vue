@@ -2,7 +2,7 @@
 import type { DropdownOption, InputInst } from 'naive-ui'
 import type { ChatMemberItem } from '~/types'
 import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
-import { computed, defineAsyncComponent, h, nextTick, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS, CHAT_SEND_KEY_STORAGE_KEY } from '~/constants'
 import { Icon } from '~/iconify'
@@ -23,6 +23,15 @@ const ChatEmojiPicker = defineAsyncComponent(() => import('./ChatEmojiPicker.vue
 
 type ChatSendKey = 'ctrl-enter' | 'enter'
 
+/** 待发附件（粘贴/选择后暂存输入区，发送时才上传） */
+interface PendingAttachment {
+  id: number
+  file: File
+  messageType: ChatMessageType
+  /** 图片的本地预览 objectURL（发送/移除时 revoke） */
+  previewUrl: null | string
+}
+
 const { t } = useI18n()
 const message = useMessage()
 const chatStore = useChatStore()
@@ -40,6 +49,11 @@ const showMentionPicker = ref(false)
 const mentionMembers = ref<ChatMemberItem[]>([])
 /** 已插入的 @ 名单：显示名 → userId（发送时按「@名字仍在正文中」过滤） */
 const mentionDrafts = new Map<string, string>()
+
+const pendingAttachments = ref<PendingAttachment[]>([])
+/** 会话切换时暂存各会话的待发附件（File 对象仅存内存，不入 localStorage 草稿） */
+const pendingStash = new Map<string, PendingAttachment[]>()
+let attachmentSeq = 0
 
 /** 发送键偏好（QQ 式可切换：Enter 直发 / Ctrl+Enter 发送），localStorage 持久化 */
 const sendKey = ref<ChatSendKey>(LocalStorage.get<ChatSendKey>(CHAT_SEND_KEY_STORAGE_KEY) ?? 'enter')
@@ -72,12 +86,28 @@ function handleSendKeySelect(key: number | string) {
   LocalStorage.set(CHAT_SEND_KEY_STORAGE_KEY, sendKey.value)
 }
 
-// 会话切换：恢复草稿、清 @ 名单与回复/编辑态残留
-watch(() => props.conversationId, (id) => {
+// 会话切换：恢复草稿与待发附件、清 @ 名单与回复/编辑态残留
+watch(() => props.conversationId, (id, oldId) => {
+  if (oldId) {
+    pendingStash.set(oldId, pendingAttachments.value)
+  }
+  pendingAttachments.value = pendingStash.get(id) ?? []
   draft.value = chatStore.getDraft(id)
   mentionDrafts.clear()
   showMentionPicker.value = false
 }, { immediate: true })
+
+// 组件销毁：释放所有会话待发图片的本地预览 URL
+onBeforeUnmount(() => {
+  pendingStash.set(props.conversationId, pendingAttachments.value)
+  for (const list of pendingStash.values()) {
+    for (const attachment of list) {
+      if (attachment.previewUrl) {
+        URL.revokeObjectURL(attachment.previewUrl)
+      }
+    }
+  }
+})
 
 // 进入/退出编辑态：正文替换为被编辑消息，退出恢复草稿
 watch(isEditing, (editing) => {
@@ -259,7 +289,8 @@ function insertEmoji(emoji: string) {
 
 async function handleSendText() {
   const content = trimmedDraft.value
-  if (!content || sending.value) {
+  const attachments = pendingAttachments.value
+  if ((!content && !attachments.length) || sending.value) {
     return
   }
   if (content.length > CHAT_MAX_CONTENT_LENGTH) {
@@ -274,6 +305,20 @@ async function handleSendText() {
       draft.value = chatStore.getDraft(props.conversationId)
     }
     else {
+      // 待发附件按加入顺序逐个上传并发送；某个失败即中断，剩余附件与正文保留可重试
+      for (const attachment of [...attachments]) {
+        await uploadAndSend(attachment.file, attachment.messageType)
+        const index = attachments.indexOf(attachment)
+        if (index >= 0) {
+          attachments.splice(index, 1)
+        }
+        if (attachment.previewUrl) {
+          URL.revokeObjectURL(attachment.previewUrl)
+        }
+      }
+      if (!content) {
+        return
+      }
       const replyPreview = buildReplyPreview()
       const replyToMessageId = replyTarget.value?.messageId ?? null
       const mentionedUserIds = collectMentionIds(content)
@@ -306,7 +351,7 @@ function cancelReply() {
   chatStore.replyTarget = null
 }
 
-/** 上传单个文件并作为消息发送（图片/文件按钮与剪贴板粘贴共用） */
+/** 上传单个文件并作为消息发送（发送阶段调用；失败上抛由调用方保留待发列表） */
 async function uploadAndSend(file: File, messageType: ChatMessageType) {
   uploadingPercent.value = 0
   try {
@@ -322,35 +367,57 @@ async function uploadAndSend(file: File, messageType: ChatMessageType) {
       fileSize: uploaded.fileSize,
     })
   }
-  catch {
+  catch (error) {
     message.error(t('chat.composer.upload_failed'))
+    throw error
   }
   finally {
     uploadingPercent.value = null
   }
 }
 
-async function handlePickedFile(event: Event, messageType: ChatMessageType) {
+/** 暂存到待发列表（QQ 语义：先进输入区，发送时才上传）；不传 forcedType 时按 MIME 归类 */
+function addAttachments(files: File[], forcedType?: ChatMessageType) {
+  for (const file of files) {
+    const messageType = forcedType ?? (file.type.startsWith('image/') ? ChatMessageType.Image : ChatMessageType.File)
+    pendingAttachments.value.push({
+      id: ++attachmentSeq,
+      file,
+      messageType,
+      previewUrl: messageType === ChatMessageType.Image ? URL.createObjectURL(file) : null,
+    })
+  }
+}
+
+function removeAttachment(id: number) {
+  const target = pendingAttachments.value.find(attachment => attachment.id === id)
+  if (target?.previewUrl) {
+    URL.revokeObjectURL(target.previewUrl)
+  }
+  pendingAttachments.value = pendingAttachments.value.filter(attachment => attachment.id !== id)
+}
+
+function handlePickedFile(event: Event, messageType: ChatMessageType) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
-  if (!file || uploadingPercent.value != null) {
+  if (!file) {
     return
   }
-  await uploadAndSend(file, messageType)
+  addAttachments([file], messageType)
 }
 
-/** 粘贴发送：剪贴板含文件（截图/复制的文件）时拦截默认粘贴直接上传发送，多文件顺序发；纯文本走默认粘贴 */
-async function handlePaste(event: ClipboardEvent) {
+/** 粘贴：剪贴板含文件（截图/复制的文件）时拦截默认粘贴，暂存待发列表；纯文本走默认粘贴 */
+function handlePaste(event: ClipboardEvent) {
+  if (isEditing.value) {
+    return
+  }
   const files = [...(event.clipboardData?.files ?? [])]
-  if (!files.length || isEditing.value || uploadingPercent.value != null) {
+  if (!files.length) {
     return
   }
   event.preventDefault()
-  for (const file of files) {
-    const messageType = file.type.startsWith('image/') ? ChatMessageType.Image : ChatMessageType.File
-    await uploadAndSend(file, messageType)
-  }
+  addAttachments(files)
 }
 </script>
 
@@ -449,6 +516,25 @@ async function handlePaste(event: ClipboardEvent) {
         >
       </div>
 
+      <!-- 待发附件（粘贴/选择暂存，发送时才上传）；编辑态下隐藏 -->
+      <div v-if="pendingAttachments.length && !isEditing" class="mx-2.5 mt-1.5 flex flex-wrap gap-2">
+        <div v-for="attachment in pendingAttachments" :key="attachment.id" class="chat-attach-item">
+          <img
+            v-if="attachment.previewUrl"
+            :src="attachment.previewUrl"
+            :alt="attachment.file.name"
+            class="chat-attach-thumb"
+          >
+          <template v-else>
+            <Icon icon="lucide:file" width="14" height="14" class="shrink-0 text-muted-foreground" />
+            <span class="max-w-40 truncate text-xs">{{ attachment.file.name }}</span>
+          </template>
+          <button type="button" class="chat-attach-remove" @click="removeAttachment(attachment.id)">
+            <Icon icon="lucide:x" width="10" height="10" />
+          </button>
+        </div>
+      </div>
+
       <!-- 大面积无边框输入区；群聊输入 @ 唤起成员选择 -->
       <div class="relative px-1">
         <NPopover
@@ -496,7 +582,7 @@ async function handlePaste(event: ClipboardEvent) {
           <NButton
             type="primary"
             size="small"
-            :disabled="!trimmedDraft || sending"
+            :disabled="(!trimmedDraft && !pendingAttachments.length) || sending"
             :loading="sending"
             class="chat-send-main"
             @click="handleSendText"
@@ -580,6 +666,47 @@ async function handlePaste(event: ClipboardEvent) {
 
 .chat-mention-item:hover {
   background: hsl(var(--accent));
+}
+
+/* 待发附件条目：图片显示缩略图，文件显示图标+名称，右上角浮动移除按钮 */
+.chat-attach-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background: hsl(var(--muted) / 40%);
+}
+
+.chat-attach-thumb {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.chat-attach-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: hsl(var(--foreground) / 70%);
+  color: hsl(var(--background));
+  cursor: pointer;
+}
+
+.chat-attach-remove:hover {
+  background: hsl(var(--destructive));
 }
 
 /* 发送分体按钮：主按钮 + 模式箭头拼接（QQ 式） */
