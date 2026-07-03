@@ -21,6 +21,8 @@ import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenTableColumnApi,
+  DICT_SELECTOR_TYPE_OPTIONS,
+  DictSelectorType,
   HTML_TYPE_OPTIONS,
   QUERY_TYPE_OPTIONS,
 } from '@/api'
@@ -79,6 +81,41 @@ function renderCheckbox(row: CodeGenTableColumnListItemDto, field: BooleanColumn
       row[field] = value
     },
   })
+}
+
+/** 字典取值列：按 dictSelectorType 渲染字典码 / 枚举全名 / 常量 JSON（互斥，仅生效项可编辑） */
+function renderDictValue(row: CodeGenTableColumnListItemDto) {
+  if (row.dictSelectorType === DictSelectorType.DictSelector) {
+    return h(NInput, {
+      'size': 'small',
+      'value': row.dictCode ?? '',
+      'placeholder': t('develop.code_gen.column.col_dict_code_placeholder'),
+      'onUpdate:value': (value: string) => {
+        row.dictCode = value
+      },
+    })
+  }
+  if (row.dictSelectorType === DictSelectorType.EnumSelector) {
+    return h(NInput, {
+      'size': 'small',
+      'value': row.enumTypeName ?? '',
+      'placeholder': t('develop.code_gen.column.col_enum_type_placeholder'),
+      'onUpdate:value': (value: string) => {
+        row.enumTypeName = value
+      },
+    })
+  }
+  if (row.dictSelectorType === DictSelectorType.ConstSelector) {
+    return h(NInput, {
+      'size': 'small',
+      'value': row.constValues ?? '',
+      'placeholder': t('develop.code_gen.column.col_const_values_placeholder'),
+      'onUpdate:value': (value: string) => {
+        row.constValues = value
+      },
+    })
+  }
+  return h('span', { style: 'color: var(--text-secondary)' }, '—')
 }
 
 const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => [
@@ -157,17 +194,30 @@ const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => 
       }),
   },
   {
-    key: 'dictType',
-    title: t('develop.code_gen.column.col_dict_type'),
-    width: 130,
+    key: 'dictSelectorType',
+    title: t('develop.code_gen.column.col_dict_selector'),
+    width: 120,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NInput, {
+      h(NSelect, {
         'size': 'small',
-        'value': row.dictType ?? '',
-        'onUpdate:value': (value: string) => {
-          row.dictType = value
+        'value': row.dictSelectorType ?? null,
+        'options': DICT_SELECTOR_TYPE_OPTIONS,
+        'clearable': true,
+        'placeholder': t('develop.code_gen.column.col_dict_selector_placeholder'),
+        'onUpdate:value': (value: DictSelectorType | null) => {
+          // 切换选择器类型时清空其它取值，保持三分互斥
+          row.dictSelectorType = value
+          row.dictCode = null
+          row.enumTypeName = null
+          row.constValues = null
         },
       }),
+  },
+  {
+    key: 'dictValue',
+    title: t('develop.code_gen.column.col_dict_value'),
+    width: 200,
+    render: (row: CodeGenTableColumnListItemDto) => renderDictValue(row),
   },
 ])
 
@@ -190,7 +240,10 @@ async function handleSubmit() {
       isQuery: row.isQuery,
       queryType: row.queryType,
       htmlType: row.htmlType,
-      dictType: row.dictType,
+      dictSelectorType: row.dictSelectorType,
+      dictCode: row.dictCode,
+      enumTypeName: row.enumTypeName,
+      constValues: row.constValues,
       defaultValue: null,
       regexPattern: null,
       validationMessage: null,
@@ -227,7 +280,7 @@ async function handleSubmit() {
       :loading="loading"
       max-height="60vh"
       :row-key="(row: CodeGenTableColumnListItemDto) => row.basicId"
-      :scroll-x="1560"
+      :scroll-x="1730"
       size="small"
     />
 

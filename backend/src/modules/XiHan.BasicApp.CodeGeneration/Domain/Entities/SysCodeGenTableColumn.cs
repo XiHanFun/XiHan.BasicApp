@@ -169,10 +169,28 @@ public partial class SysCodeGenTableColumn : BasicAppFullAuditedEntity
     public virtual HtmlType HtmlType { get; set; } = HtmlType.Input;
 
     /// <summary>
-    /// 关联字典类型
+    /// 字典选择器类型（字典/枚举/常量三分；决定 DictCode/EnumTypeName/ConstValues 哪个生效，空表示非选项列）
     /// </summary>
-    [SugarColumn(ColumnName = "Dict_Type", ColumnDescription = "关联字典类型", Length = 100, IsNullable = true)]
-    public virtual string? DictType { get; set; }
+    [SugarColumn(ColumnName = "Dict_Selector_Type", ColumnDescription = "字典选择器类型", IsNullable = true)]
+    public virtual DictSelectorType? DictSelectorType { get; set; }
+
+    /// <summary>
+    /// 字典码（DictSelector 时生效，关联系统字典类型编码）
+    /// </summary>
+    [SugarColumn(ColumnName = "Dict_Code", ColumnDescription = "字典码", Length = 200, IsNullable = true)]
+    public virtual string? DictCode { get; set; }
+
+    /// <summary>
+    /// 枚举类型全名（EnumSelector 时生效，如 XiHan.BasicApp.Saas.Domain.Enums.EnableStatus）
+    /// </summary>
+    [SugarColumn(ColumnName = "Enum_Type_Name", ColumnDescription = "枚举类型全名", Length = 500, IsNullable = true)]
+    public virtual string? EnumTypeName { get; set; }
+
+    /// <summary>
+    /// 常量项 JSON（ConstSelector 时生效，如 [{"value":1,"label":"启用"}]）
+    /// </summary>
+    [SugarColumn(ColumnName = "Const_Values", ColumnDescription = "常量项JSON", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? ConstValues { get; set; }
 
     /// <summary>
     /// 默认值

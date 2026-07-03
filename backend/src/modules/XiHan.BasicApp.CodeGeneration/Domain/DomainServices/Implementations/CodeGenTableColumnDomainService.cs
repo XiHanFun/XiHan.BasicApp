@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.Text.Json;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
@@ -96,12 +97,84 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         column.IsQuery = command.IsQuery;
         column.QueryType = command.QueryType;
         column.HtmlType = command.HtmlType;
-        column.DictType = NormalizeNullable(command.DictType, 100, "字典类型最长 100 个字符。");
+        ApplyDictSelector(column, command);
         column.DefaultValue = NormalizeNullable(command.DefaultValue, 500, "默认值最长 500 个字符。");
         column.RegexPattern = NormalizeNullable(command.RegexPattern, 500, "正则表达式最长 500 个字符。");
         column.ValidationMessage = NormalizeNullable(command.ValidationMessage, 500, "验证提示信息最长 500 个字符。");
         column.Sort = command.Sort;
         column.Status = command.Status;
+    }
+
+    /// <summary>
+    /// 字典三分互斥落库：按 DictSelectorType 校验并只保留生效字段，其余清空。
+    /// 关联不入生成代码（仅作表单选项来源），故此处只校验值合法性，不做跨表/外键处理。
+    /// </summary>
+    private static void ApplyDictSelector(SysCodeGenTableColumn column, CodeGenTableColumnUpdateCommand command)
+    {
+        if (command.DictSelectorType is not { } selectorType)
+        {
+            column.DictSelectorType = null;
+            column.DictCode = null;
+            column.EnumTypeName = null;
+            column.ConstValues = null;
+            return;
+        }
+
+        EnsureEnum(selectorType, "字典选择器类型无效。");
+        var dictCode = NormalizeNullable(command.DictCode, 200, "字典码最长 200 个字符。");
+        var enumTypeName = NormalizeNullable(command.EnumTypeName, 500, "枚举类型全名最长 500 个字符。");
+        var constValues = NormalizeConstValues(command.ConstValues);
+
+        switch (selectorType)
+        {
+            case DictSelectorType.DictSelector:
+                column.DictCode = dictCode ?? throw new InvalidOperationException("系统字典选择器必须填写字典码。");
+                column.EnumTypeName = null;
+                column.ConstValues = null;
+                break;
+
+            case DictSelectorType.EnumSelector:
+                column.EnumTypeName = enumTypeName ?? throw new InvalidOperationException("枚举选择器必须填写枚举类型全名。");
+                column.DictCode = null;
+                column.ConstValues = null;
+                break;
+
+            case DictSelectorType.ConstSelector:
+                column.ConstValues = constValues ?? throw new InvalidOperationException("常量选择器必须填写常量项 JSON。");
+                column.DictCode = null;
+                column.EnumTypeName = null;
+                break;
+
+            default:
+                throw new InvalidOperationException("字典选择器类型无效。");
+        }
+
+        column.DictSelectorType = selectorType;
+    }
+
+    /// <summary>
+    /// 常量项 JSON 规整：空白归 null，非法 JSON 抛异常
+    /// </summary>
+    private static string? NormalizeConstValues(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var trimmed = value.Trim();
+        try
+        {
+            using (JsonDocument.Parse(trimmed))
+            {
+            }
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException("常量项必须是合法 JSON。");
+        }
+
+        return trimmed;
     }
 
     /// <summary>

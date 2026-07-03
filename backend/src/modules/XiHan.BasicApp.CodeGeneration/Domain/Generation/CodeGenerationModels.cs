@@ -75,6 +75,18 @@ public sealed class ColumnSchema
 
     /// <summary>查询方式</summary>
     public QueryType QueryType { get; set; } = QueryType.Equal;
+
+    /// <summary>字典选择器类型（字典/枚举/常量；空表示非选项列）</summary>
+    public DictSelectorType? DictSelectorType { get; set; }
+
+    /// <summary>字典码（DictSelector 时生效）</summary>
+    public string? DictCode { get; set; }
+
+    /// <summary>枚举类型全名（EnumSelector 时生效）</summary>
+    public string? EnumTypeName { get; set; }
+
+    /// <summary>常量项 JSON（ConstSelector 时生效）</summary>
+    public string? ConstValues { get; set; }
 }
 
 /// <summary>

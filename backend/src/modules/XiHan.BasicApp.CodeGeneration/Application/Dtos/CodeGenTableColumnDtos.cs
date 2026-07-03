@@ -44,7 +44,10 @@ public class CodeGenTableColumnListItemDto : BasicAppDto
     public bool IsQuery { get; set; }
     public QueryType QueryType { get; set; }
     public HtmlType HtmlType { get; set; }
-    public string? DictType { get; set; }
+    public DictSelectorType? DictSelectorType { get; set; }
+    public string? DictCode { get; set; }
+    public string? EnumTypeName { get; set; }
+    public string? ConstValues { get; set; }
     public int Sort { get; set; }
     public EnableStatus Status { get; set; }
 }
@@ -65,7 +68,10 @@ public sealed class CodeGenTableColumnUpdateDto : BasicAppUDto
     public bool IsQuery { get; set; }
     public QueryType QueryType { get; set; } = QueryType.Equal;
     public HtmlType HtmlType { get; set; } = HtmlType.Input;
-    public string? DictType { get; set; }
+    public DictSelectorType? DictSelectorType { get; set; }
+    public string? DictCode { get; set; }
+    public string? EnumTypeName { get; set; }
+    public string? ConstValues { get; set; }
     public string? DefaultValue { get; set; }
     public string? RegexPattern { get; set; }
     public string? ValidationMessage { get; set; }

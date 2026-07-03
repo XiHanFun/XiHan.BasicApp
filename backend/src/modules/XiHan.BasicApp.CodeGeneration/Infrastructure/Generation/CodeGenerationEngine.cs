@@ -165,7 +165,11 @@ public sealed class CodeGenerationEngine(
             Length = column.ColumnLength,
             DecimalDigits = column.DecimalDigits,
             HtmlType = column.HtmlType,
-            QueryType = column.QueryType
+            QueryType = column.QueryType,
+            DictSelectorType = column.DictSelectorType,
+            DictCode = column.DictCode,
+            EnumTypeName = column.EnumTypeName,
+            ConstValues = column.ConstValues
         };
 
         // 列配置未填类型时，按 DB 类型回退映射（导入流程会预填，此处为兜底）

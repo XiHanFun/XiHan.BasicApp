@@ -112,7 +112,12 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             ["Length"] = column.Length,
             ["DecimalDigits"] = column.DecimalDigits,
             ["HtmlType"] = column.HtmlType.ToString(),
-            ["QueryType"] = column.QueryType.ToString()
+            ["QueryType"] = column.QueryType.ToString(),
+            // 字典三分（表单选项来源；关联不入生成代码，仅供模板渲染下拉控件）
+            ["DictSelectorType"] = column.DictSelectorType?.ToString(),
+            ["DictCode"] = column.DictCode,
+            ["EnumTypeName"] = column.EnumTypeName,
+            ["ConstValues"] = column.ConstValues
         };
     }
 
