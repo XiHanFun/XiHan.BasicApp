@@ -17,6 +17,9 @@ export const CHAT_REALTIME_METHODS = {
 /** 会话草稿本地存储键（值为 conversationId → 草稿文本 的 JSON） */
 export const CHAT_DRAFTS_STORAGE_KEY = 'chat-drafts'
 
+/** 发送键偏好本地存储键（'enter' | 'ctrl-enter'） */
+export const CHAT_SEND_KEY_STORAGE_KEY = 'chat-send-key'
+
 /** 客户端 → 服务端 Hub 方法名（后端 BasicAppChatHub；conversationId 一律传字符串形态雪花 ID） */
 export const CHAT_HUB_METHODS = {
   joinConversation: 'JoinConversation',

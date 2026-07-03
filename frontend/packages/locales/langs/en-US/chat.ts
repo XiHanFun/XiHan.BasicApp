@@ -78,8 +78,11 @@ export default {
     copy_failed: 'Copy failed',
   },
   composer: {
-    placeholder: 'Type a message. Enter to send / Shift+Enter for newline',
+    placeholder_enter: 'Type a message. Enter to send / Shift+Enter for newline',
+    placeholder_ctrl_enter: 'Type a message. Ctrl+Enter to send',
     send: 'Send',
+    send_key_enter: 'Send with Enter',
+    send_key_ctrl_enter: 'Send with Ctrl + Enter',
     emoji: 'Emoji',
     image: 'Send image',
     file: 'Send file',
