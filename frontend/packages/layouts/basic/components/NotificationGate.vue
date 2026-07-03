@@ -75,7 +75,7 @@ onMounted(async () => {
     :mask-closable="false"
     :closable="false"
     :close-on-esc="false"
-    style="width: 600px; max-width: 92vw"
+    style="width: 820px; max-width: 94vw"
   >
     <div class="notif-gate-body">
       <NotificationContent
@@ -106,7 +106,7 @@ onMounted(async () => {
     preset="card"
     :title="currentPopup.title"
     :mask-closable="false"
-    style="width: 560px; max-width: 92vw"
+    style="width: 820px; max-width: 94vw"
     @close="onPopupConfirm(currentPopup)"
   >
     <div class="notif-gate-body">
