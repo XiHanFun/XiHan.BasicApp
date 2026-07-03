@@ -90,7 +90,7 @@ public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
     /// 模板引擎
     /// </summary>
     [SugarColumn(ColumnName = "Template_Engine", ColumnDescription = "模板引擎")]
-    public virtual TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Razor;
+    public virtual TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
 
     /// <summary>
     /// 模板内容

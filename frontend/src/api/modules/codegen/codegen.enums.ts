@@ -26,9 +26,8 @@ export enum GenType {
   Preview = 'Preview',
 }
 
-/** 模板引擎类型 */
+/** 模板引擎类型（Razor 已移除：需运行时编译能力、框架不支持） */
 export enum TemplateEngine {
-  Razor = 'Razor',
   Scriban = 'Scriban',
   T4 = 'T4',
 }
@@ -106,7 +105,6 @@ export const GEN_TYPE_OPTIONS = [
 
 /** 模板引擎选项 */
 export const TEMPLATE_ENGINE_OPTIONS = [
-  { label: 'Razor', value: TemplateEngine.Razor },
   { label: 'Scriban', value: TemplateEngine.Scriban },
   { label: 'T4', value: TemplateEngine.T4 },
 ]

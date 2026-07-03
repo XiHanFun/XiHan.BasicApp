@@ -57,14 +57,15 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddCodeGenerationEngine(this IServiceCollection services)
     {
-        // 模板渲染器（多引擎抽象；当前 Scriban 可用，Razor 占位）
+        // 模板渲染器（多引擎抽象；当前仅 Scriban 落地，Razor 已移除）
         services.AddTransient<ITemplateRenderer, ScribanTemplateRenderer>();
-        services.AddTransient<ITemplateRenderer, RazorTemplateRenderer>();
         services.AddTransient<ITemplateRendererResolver, TemplateRendererResolver>();
 
-        // 类型映射与产物打包
+        // 落盘选项 + 类型映射 + 产物打包 + 受控落盘写入器
+        services.AddOptions<CodeGenerationOptions>().BindConfiguration(CodeGenerationOptions.SectionName);
         services.AddTransient<ITypeMappingProvider, DefaultTypeMappingProvider>();
         services.AddTransient<IGeneratedArtifactPackager, ZipArtifactPackager>();
+        services.AddTransient<IGeneratedArtifactWriter, FileSystemArtifactWriter>();
 
         // DbFirst 元数据扫描与生成编排（依赖 Scoped 仓储/元数据提供器）
         services.AddScoped<IDatabaseSchemaImporter, DatabaseSchemaImporter>();
