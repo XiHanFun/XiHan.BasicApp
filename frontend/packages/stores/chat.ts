@@ -197,6 +197,8 @@ export const useChatStore = defineStore('chat', () => {
 
   async function openConversation(conversationId: string) {
     if (activeConversationId.value === conversationId) {
+      // 重复点击当前会话：仍消费未读（窗口失焦期间积累的未读需要一个触发点）
+      consumeActiveUnread()
       return
     }
     if (activeConversationId.value) {
@@ -228,6 +230,18 @@ export const useChatStore = defineStore('chat', () => {
     activeConversationId.value = null
     replyTarget.value = null
     editTarget.value = null
+  }
+
+  /** 消费活跃会话未读（窗口重新聚焦/回到页面/重复点击当前会话时调用） */
+  function consumeActiveUnread() {
+    const id = activeConversationId.value
+    if (!id) {
+      return
+    }
+    const conv = conversations.value.find(c => c.conversationId === id)
+    if (conv && conv.unreadCount > 0) {
+      markConversationRead(id)
+    }
   }
 
   /** 本地立即清零 + 防抖上报（null 表示读到最新） */
@@ -722,6 +736,7 @@ export const useChatStore = defineStore('chat', () => {
     openConversation,
     closeActiveConversation,
     markConversationRead,
+    consumeActiveUnread,
     sendMessage,
     retryMessage,
     removeLocalMessage,

@@ -99,17 +99,35 @@ export function useChatIntegration() {
     },
   )
 
+  // 窗口重新聚焦/回到页面：消费活跃会话在失焦期间积累的未读
+  // （收消息时仅在「活跃且聚焦」才自动已读，失焦期间的未读需要这个触发点）
+  function handleWindowFocus() {
+    if (canUseChat()) {
+      chatStore.consumeActiveUnread()
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+      handleWindowFocus()
+    }
+  }
+
   onMounted(() => {
     void connect()
     if (canUseChat()) {
       chatStore.ensureConversations().catch(() => {})
     }
+    window.addEventListener('focus', handleWindowFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
   })
 
   onUnmounted(() => {
     stopTokenWatch()
     clearReconnectTimer()
     isListenersBound = false
+    window.removeEventListener('focus', handleWindowFocus)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     void signalR.destroy()
   })
 }

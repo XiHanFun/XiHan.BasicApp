@@ -421,15 +421,15 @@ onBeforeUnmount(() => {
   </div>
 
   <div v-else class="flex h-full min-h-0 flex-col">
-    <!-- 会话头 -->
-    <div class="flex items-center gap-2 border-b border-border px-3 py-2.5">
+    <!-- 会话头（固定高度：单聊无副行时与群聊保持一致） -->
+    <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
       <button v-if="props.showBack" type="button" class="chat-thread-btn" @click="emit('back')">
         <Icon icon="lucide:arrow-left" width="16" height="16" />
       </button>
-      <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="30" />
+      <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="32" />
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5">
-          <span class="truncate text-[13px] font-medium text-foreground">{{ conversation.displayName }}</span>
+          <span class="truncate text-sm font-semibold text-foreground">{{ conversation.displayName }}</span>
           <NTag size="tiny" :bordered="false" round>
             {{ conversationTypeLabel }}
           </NTag>
