@@ -214,6 +214,69 @@ public sealed class ChatToggleStateDto
 }
 
 /// <summary>
+/// 群信息更新 DTO（null 字段不改；群聊可改名，部门群名称禁改）
+/// </summary>
+public sealed class ChatConversationInfoUpdateDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 群聊名称（null 不改）
+    /// </summary>
+    public string? ConversationName { get; set; }
+
+    /// <summary>
+    /// 群公告（null 不改；空串清空）
+    /// </summary>
+    public string? Announcement { get; set; }
+
+    /// <summary>
+    /// 群描述（null 不改；空串清空）
+    /// </summary>
+    public string? Description { get; set; }
+}
+
+/// <summary>
+/// 转让群主 DTO
+/// </summary>
+public sealed class ChatOwnerTransferDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 新群主用户ID（须现成员）
+    /// </summary>
+    public long NewOwnerUserId { get; set; }
+}
+
+/// <summary>
+/// 成员禁言 DTO
+/// </summary>
+public sealed class ChatMemberSilenceDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 目标用户ID（须普通成员）
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// true=禁言，false=解除
+    /// </summary>
+    public bool IsSilenced { get; set; }
+}
+
+/// <summary>
 /// 标记会话已读 DTO
 /// </summary>
 public sealed class ChatMarkReadDto
@@ -366,6 +429,21 @@ public sealed class ChatConversationListItemDto
     /// 是否置顶会话（个人维度，列表置顶优先排序）
     /// </summary>
     public bool IsPinned { get; set; }
+
+    /// <summary>
+    /// 我是否被禁言（发送/编辑被拦截，前端输入区置灰）
+    /// </summary>
+    public bool IsSilenced { get; set; }
+
+    /// <summary>
+    /// 群公告
+    /// </summary>
+    public string? Announcement { get; set; }
+
+    /// <summary>
+    /// 群描述
+    /// </summary>
+    public string? Description { get; set; }
 
     /// <summary>
     /// 最后一条消息时间
@@ -546,6 +624,11 @@ public sealed class ChatMemberItemDto
     /// 成员角色
     /// </summary>
     public ChatMemberRole MemberRole { get; set; }
+
+    /// <summary>
+    /// 是否被禁言
+    /// </summary>
+    public bool IsSilenced { get; set; }
 
     /// <summary>
     /// 入群时间

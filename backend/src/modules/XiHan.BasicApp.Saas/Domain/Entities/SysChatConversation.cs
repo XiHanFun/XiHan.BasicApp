@@ -109,4 +109,16 @@ public partial class SysChatConversation : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "Last_Message_Preview", ColumnDescription = "最后一条消息预览", Length = 200, IsNullable = true)]
     public virtual string? LastMessagePreview { get; set; }
+
+    /// <summary>
+    /// 群公告（群聊/部门群；变更时追加系统提示消息）
+    /// </summary>
+    [SugarColumn(ColumnName = "Announcement", ColumnDescription = "群公告", Length = 2000, IsNullable = true)]
+    public virtual string? Announcement { get; set; }
+
+    /// <summary>
+    /// 群描述
+    /// </summary>
+    [SugarColumn(ColumnName = "Description", ColumnDescription = "群描述", Length = 500, IsNullable = true)]
+    public virtual string? Description { get; set; }
 }

@@ -284,6 +284,11 @@ public sealed class ChatDomainService : IChatDomainService
         var senderMember = members.FirstOrDefault(member => member.UserId == command.SenderUserId)
             ?? throw new InvalidOperationException("仅会话成员可发送消息。");
 
+        if (senderMember.IsSilenced)
+        {
+            throw new InvalidOperationException("你已被禁言，暂时不能发送消息。");
+        }
+
         var content = ValidateMessagePayload(command);
         var mentionedUserIds = ValidateMentions(command.MentionedUserIds, members);
         var replyPreview = await BuildReplyPreviewAsync(command.ReplyToMessageId, conversation.BasicId, cancellationToken);
@@ -394,6 +399,12 @@ public sealed class ChatDomainService : IChatDomainService
         if (now - message.CreatedTime > TimeSpan.FromMinutes(EditWindowMinutes))
         {
             throw new InvalidOperationException($"仅可编辑 {EditWindowMinutes} 分钟内发送的消息。");
+        }
+
+        var editorMember = await GetMemberOrThrowAsync(message.ConversationId, command.OperatorUserId, "仅会话成员可编辑消息。", cancellationToken);
+        if (editorMember.IsSilenced)
+        {
+            throw new InvalidOperationException("你已被禁言，暂时不能编辑消息。");
         }
 
         var content = Required(command.Content, MaxContentLength, $"文本消息内容不能为空且不能超过 {MaxContentLength} 个字符。");
@@ -565,6 +576,154 @@ public sealed class ChatDomainService : IChatDomainService
             command.UserId,
             member.LastReadMessageId,
             [.. members.Select(item => item.UserId)]);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatGovernanceResult> UpdateConversationInfoAsync(ChatConversationInfoUpdateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var conversation = await GetConversationOrThrowAsync(command.ConversationId, cancellationToken);
+        if (conversation.ConversationType == ChatConversationType.Single)
+        {
+            throw new InvalidOperationException("单聊没有可编辑的群信息。");
+        }
+
+        await EnsureCanManageMembersAsync(conversation, command.OperatorUserId, cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(command.ConversationName))
+        {
+            if (conversation.ConversationType == ChatConversationType.Department)
+            {
+                throw new InvalidOperationException("部门群名称随部门同步，不能手动修改。");
+            }
+
+            conversation.ConversationName = Required(command.ConversationName, 100, "群聊名称不能为空且不能超过 100 个字符。");
+        }
+
+        var announcementChanged = false;
+        if (command.Announcement is not null)
+        {
+            var announcement = Optional(command.Announcement, 2000);
+            announcementChanged = !string.Equals(conversation.Announcement, announcement, StringComparison.Ordinal);
+            conversation.Announcement = announcement;
+        }
+
+        if (command.Description is not null)
+        {
+            conversation.Description = Optional(command.Description, 500);
+        }
+
+        conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+
+        SysChatMessage? systemMessage = null;
+        if (announcementChanged && !string.IsNullOrWhiteSpace(conversation.Announcement))
+        {
+            systemMessage = await AppendSystemMessageAsync(conversation, $"群公告已更新：{Truncate(conversation.Announcement, 80)}", cancellationToken);
+        }
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        return new ChatGovernanceResult(conversation, systemMessage, [.. members.Select(member => member.UserId)]);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatGovernanceResult> TransferOwnerAsync(ChatOwnerTransferCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var conversation = await GetConversationOrThrowAsync(command.ConversationId, cancellationToken);
+        if (conversation.ConversationType != ChatConversationType.Group)
+        {
+            throw new InvalidOperationException("仅群聊支持转让群主。");
+        }
+
+        if (conversation.OwnerUserId != command.OperatorUserId)
+        {
+            throw new InvalidOperationException("仅群主可转让群主。");
+        }
+
+        if (command.NewOwnerUserId == command.OperatorUserId)
+        {
+            throw new InvalidOperationException("不能把群主转让给自己。");
+        }
+
+        var oldOwnerMember = await GetMemberOrThrowAsync(conversation.BasicId, command.OperatorUserId, "群主成员记录不存在。", cancellationToken);
+        var newOwnerMember = await GetMemberOrThrowAsync(conversation.BasicId, command.NewOwnerUserId, "新群主必须是会话成员。", cancellationToken);
+        var newOwnerUser = await GetUserOrThrowAsync(command.NewOwnerUserId, cancellationToken);
+        var oldOwnerUser = await GetUserOrThrowAsync(command.OperatorUserId, cancellationToken);
+
+        oldOwnerMember.MemberRole = ChatMemberRole.Member;
+        newOwnerMember.MemberRole = ChatMemberRole.Owner;
+        _ = await _memberRepository.UpdateAsync(oldOwnerMember, cancellationToken);
+        _ = await _memberRepository.UpdateAsync(newOwnerMember, cancellationToken);
+
+        conversation.OwnerUserId = command.NewOwnerUserId;
+        conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+
+        var systemMessage = await AppendSystemMessageAsync(
+            conversation, $"{oldOwnerUser.UserName} 已将群主移交给 {newOwnerUser.UserName}", cancellationToken);
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        return new ChatGovernanceResult(conversation, systemMessage, [.. members.Select(member => member.UserId)]);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatGovernanceResult> SetMemberSilenceAsync(ChatMemberSilenceCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var conversation = await GetConversationOrThrowAsync(command.ConversationId, cancellationToken);
+        if (conversation.ConversationType == ChatConversationType.Single)
+        {
+            throw new InvalidOperationException("单聊不支持禁言。");
+        }
+
+        await EnsureCanManageMembersAsync(conversation, command.OperatorUserId, cancellationToken);
+
+        var target = await GetMemberOrThrowAsync(conversation.BasicId, command.TargetUserId, "该用户不是会话成员。", cancellationToken);
+        if (target.MemberRole is ChatMemberRole.Owner or ChatMemberRole.Admin)
+        {
+            throw new InvalidOperationException("不能禁言群主或管理员。");
+        }
+
+        if (target.IsSilenced != command.IsSilenced)
+        {
+            target.IsSilenced = command.IsSilenced;
+            _ = await _memberRepository.UpdateAsync(target, cancellationToken);
+        }
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        return new ChatGovernanceResult(conversation, SystemMessage: null, [.. members.Select(member => member.UserId)]);
+    }
+
+    /// <summary>
+    /// 追加系统提示消息（SenderUserId=0；刷新会话预览但不增加成员未读）
+    /// </summary>
+    private async Task<SysChatMessage> AppendSystemMessageAsync(SysChatConversation conversation, string content, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var message = await _messageRepository.AddAsync(new SysChatMessage
+        {
+            ConversationId = conversation.BasicId,
+            SenderUserId = 0,
+            SenderUserName = null,
+            MessageType = ChatMessageType.System,
+            Content = Truncate(content, MaxContentLength)
+        }, cancellationToken);
+
+        conversation.LastMessageId = message.BasicId;
+        conversation.LastMessageTime = now;
+        conversation.LastMessagePreview = Truncate(content, MaxPreviewLength);
+        _ = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+        return message;
+    }
+
+    private static string Truncate(string value, int maxLength)
+    {
+        return value.Length <= maxLength ? value : value[..maxLength];
     }
 
     private static string BuildPairKey(long userId, long peerUserId)

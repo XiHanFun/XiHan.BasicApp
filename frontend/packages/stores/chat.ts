@@ -537,7 +537,9 @@ export const useChatStore = defineStore('chat', () => {
     conv.lastMessageTime = conversation.lastMessageTime ?? message.createdTime
     conv.lastMessagePreview = conversation.lastMessagePreview ?? previewOf(message)
     const isSelf = message.senderUserId === currentUserId()
-    if (!isSelf) {
+    // 系统提示消息（senderUserId=0）：只刷时间线与预览，不计未读（与后端一致）
+    const isSystem = message.messageType === 'System'
+    if (!isSelf && !isSystem) {
       const isActiveAndVisible = activeConversationId.value === conv.conversationId
         && typeof document !== 'undefined' && document.hasFocus()
       if (isActiveAndVisible) {

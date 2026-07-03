@@ -138,6 +138,7 @@ public static class ChatApplicationMapper
             UserId = member.UserId,
             UserName = userName,
             MemberRole = member.MemberRole,
+            IsSilenced = member.IsSilenced,
             JoinTime = member.JoinTime
         };
     }

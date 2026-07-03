@@ -91,4 +91,19 @@ public interface IChatAppService : IApplicationService
     /// 标记会话已读
     /// </summary>
     Task MarkReadAsync(ChatMarkReadDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新群信息（群主/管理员；部门群名称禁改；公告变更追加系统提示）
+    /// </summary>
+    Task UpdateConversationInfoAsync(ChatConversationInfoUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 转让群主（仅群聊群主）
+    /// </summary>
+    Task TransferOwnerAsync(ChatOwnerTransferDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 成员禁言/解除（群主与管理员）
+    /// </summary>
+    Task SetMemberSilenceAsync(ChatMemberSilenceDto input, CancellationToken cancellationToken = default);
 }

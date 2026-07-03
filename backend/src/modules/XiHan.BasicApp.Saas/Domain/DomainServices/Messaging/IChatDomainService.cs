@@ -83,4 +83,19 @@ public interface IChatDomainService
     /// 标记会话已读（未读清零并记录已读位；结果用于已读位实时扇出）
     /// </summary>
     Task<ChatMarkReadResult> MarkConversationReadAsync(ChatMarkReadCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新群信息（群聊可改名/公告/描述；部门群名称随部门禁改；公告变更追加系统提示）
+    /// </summary>
+    Task<ChatGovernanceResult> UpdateConversationInfoAsync(ChatConversationInfoUpdateCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 转让群主（仅群聊、仅群主、新主须现成员；旧主降为普通成员并追加系统提示）
+    /// </summary>
+    Task<ChatGovernanceResult> TransferOwnerAsync(ChatOwnerTransferCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 成员禁言/解除（群主与管理员可操作普通成员；被禁言者发送/编辑被拦截）
+    /// </summary>
+    Task<ChatGovernanceResult> SetMemberSilenceAsync(ChatMemberSilenceCommand command, CancellationToken cancellationToken = default);
 }

@@ -39,6 +39,7 @@ const mentionMembers = ref<ChatMemberItem[]>([])
 const mentionDrafts = new Map<string, string>()
 
 const canSend = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.send))
+const isSilenced = computed(() => chatStore.activeConversation?.isSilenced ?? false)
 const trimmedDraft = computed(() => draft.value.trim())
 const isEditing = computed(() => chatStore.editTarget?.conversationId === props.conversationId && !!chatStore.editTarget)
 const replyTarget = computed(() =>
@@ -244,6 +245,10 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
   <div class="border-t border-border p-2.5">
     <div v-if="!canSend" class="py-2 text-center text-xs text-muted-foreground">
       {{ t('chat.composer.no_permission') }}
+    </div>
+    <div v-else-if="isSilenced" class="py-2 text-center text-xs text-muted-foreground">
+      <Icon icon="lucide:mic-off" width="12" height="12" class="mr-1 inline-block align-[-1px]" />
+      {{ t('chat.composer.silenced') }}
     </div>
     <template v-else>
       <!-- 编辑态横条 -->

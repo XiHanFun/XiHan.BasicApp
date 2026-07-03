@@ -98,6 +98,12 @@ public partial class SysChatConversationMember : BasicAppFullAuditedEntity
     public virtual bool IsPinned { get; set; } = false;
 
     /// <summary>
+    /// 是否被禁言（群治理：群主/管理员可禁言普通成员，发送/编辑消息被拦截）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Silenced", ColumnDescription = "是否被禁言")]
+    public virtual bool IsSilenced { get; set; } = false;
+
+    /// <summary>
     /// 入群时间
     /// </summary>
     [SugarColumn(ColumnName = "Join_Time", ColumnDescription = "入群时间")]
