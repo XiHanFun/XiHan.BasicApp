@@ -23,7 +23,7 @@ public interface IFileAppService : IApplicationService
 {
     Task<FileDetailDto> UploadFileAsync(FileUploadDto input, CancellationToken cancellationToken = default);
 
-    Task<FileDetailDto> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default);
+    Task<FileDetailDto?> FastUploadFileAsync(FileFastUploadDto input, CancellationToken cancellationToken = default);
 
     Task<FileDetailDto> UpdateFileMetadataAsync(FileMetadataUpdateDto input, CancellationToken cancellationToken = default);
 

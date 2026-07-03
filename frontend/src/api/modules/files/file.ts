@@ -44,8 +44,9 @@ export const fileApi = {
       responseType: 'blob',
     })
   },
+  /** 秒传探测：按哈希命中返回文件详情，未命中返回 null（调用方回退普通上传） */
   fastUpload(input: FileFastUploadDto) {
-    return fileCommandApi.post<FileDetailDto, FileFastUploadDto>('FastUploadFile', input)
+    return fileCommandApi.post<FileDetailDto | null, FileFastUploadDto>('FastUploadFile', input)
   },
   generatePresignedUrl(fileId: ApiId) {
     // 后端 GenerateFilePresignedUrlAsync：方法名前缀 Generate 不在动词约定表中，默认 POST；
