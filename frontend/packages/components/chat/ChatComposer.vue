@@ -95,6 +95,27 @@ function handleInput() {
   detectMentionTrigger()
 }
 
+/** 键盘分发：NInput 的 onKeydown 只接受单个函数（多个修饰符监听会合并成数组触发 prop 校验警告） */
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+    // 中文输入法组合态的回车是选词，不发送
+    if (event.isComposing) {
+      return
+    }
+    event.preventDefault()
+    void handleSendText()
+    return
+  }
+  if (event.key === 'Escape') {
+    if (isEditing.value) {
+      cancelEdit()
+    }
+    else {
+      showMentionPicker.value = false
+    }
+  }
+}
+
 /** 群聊中输入 @ 唤起成员选择 */
 function detectMentionTrigger() {
   if (!isGroupLike.value || isEditing.value) {
@@ -354,8 +375,7 @@ async function handlePickedFile(event: Event, messageType: ChatMessageType) {
                 :maxlength="CHAT_MAX_CONTENT_LENGTH"
                 :placeholder="t('chat.composer.placeholder')"
                 @input="handleInput"
-                @keydown.enter.exact.prevent="handleSendText"
-                @keydown.esc="isEditing ? cancelEdit() : (showMentionPicker = false)"
+                @keydown="handleKeydown"
               />
             </template>
             <div class="flex max-h-52 w-52 flex-col overflow-y-auto">

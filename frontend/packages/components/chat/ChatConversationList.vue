@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownOption } from 'naive-ui'
+import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import { NBadge, NDropdown, NEmpty, NInput, NScrollbar, NSpin, NTooltip } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -8,6 +9,7 @@ import { Icon } from '~/iconify'
 import { useChatStore, useUserStore } from '~/stores'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatConversationTime } from './chat-helpers'
+import ChatContextMenu from './ChatContextMenu.vue'
 
 defineOptions({ name: 'ChatConversationList' })
 
@@ -50,20 +52,46 @@ function handleRefresh() {
   chatStore.loadConversations().catch(() => {})
 }
 
-function itemActionOptions(conversationId: string): DropdownOption[] {
-  const conv = chatStore.conversations.find(c => c.conversationId === conversationId)
+// ===== 会话右键菜单（QQ 式） =====
+
+const ctxShow = ref(false)
+const ctxX = ref(0)
+const ctxY = ref(0)
+const ctxConversationId = ref<null | string>(null)
+
+const ctxItems = computed<ChatContextMenuItem[]>(() => {
+  const conv = chatStore.conversations.find(c => c.conversationId === ctxConversationId.value)
+  if (!conv) {
+    return []
+  }
   return [
-    { key: 'pin', label: conv?.isPinned ? t('chat.list.unpin') : t('chat.list.pin') },
-    { key: 'mute', label: conv?.isMuted ? t('chat.list.unmute') : t('chat.list.mute') },
+    conv.isPinned
+      ? { key: 'pin', label: t('chat.list.unpin'), icon: 'lucide:pin-off' }
+      : { key: 'pin', label: t('chat.list.pin'), icon: 'lucide:pin' },
+    conv.isMuted
+      ? { key: 'mute', label: t('chat.list.unmute'), icon: 'lucide:bell' }
+      : { key: 'mute', label: t('chat.list.mute'), icon: 'lucide:bell-off' },
   ]
+})
+
+function openItemContextMenu(event: MouseEvent, conversationId: string) {
+  event.preventDefault()
+  ctxConversationId.value = conversationId
+  ctxX.value = event.clientX
+  ctxY.value = event.clientY
+  ctxShow.value = true
 }
 
-function handleItemAction(conversationId: string, key: string | number) {
+function handleItemAction(key: string) {
+  const id = ctxConversationId.value
+  if (!id) {
+    return
+  }
   if (key === 'pin') {
-    chatStore.togglePinConversation(conversationId).catch(() => {})
+    chatStore.togglePinConversation(id).catch(() => {})
   }
   else if (key === 'mute') {
-    chatStore.toggleMuteConversation(conversationId).catch(() => {})
+    chatStore.toggleMuteConversation(id).catch(() => {})
   }
 }
 </script>
@@ -121,6 +149,7 @@ function handleItemAction(conversationId: string, key: string | number) {
             'chat-conv-item--pinned': conv.isPinned,
           }"
           @click="emit('select', conv.conversationId)"
+          @contextmenu="openItemContextMenu($event, conv.conversationId)"
         >
           <NBadge :value="conv.isMuted ? 0 : conv.unreadCount" :max="99" :offset="[-2, 2]">
             <XUserAvatar :avatar="conv.avatar" :name="conv.displayName" :size="38" />
@@ -162,25 +191,21 @@ function handleItemAction(conversationId: string, key: string | number) {
                   v-if="conv.isMuted && conv.unreadCount > 0"
                   class="text-[11px] text-muted-foreground/70"
                 >{{ conv.unreadCount }}</span>
-                <NDropdown
-                  :options="itemActionOptions(conv.conversationId)"
-                  trigger="click"
-                  @select="key => handleItemAction(conv.conversationId, key)"
-                >
-                  <button
-                    type="button"
-                    class="chat-conv-more"
-                    @click.stop
-                  >
-                    <Icon icon="lucide:ellipsis" width="13" height="13" />
-                  </button>
-                </NDropdown>
               </span>
             </div>
           </div>
         </div>
       </NScrollbar>
     </NSpin>
+
+    <!-- 会话右键菜单（QQ 式） -->
+    <ChatContextMenu
+      v-model:show="ctxShow"
+      :x="ctxX"
+      :y="ctxY"
+      :items="ctxItems"
+      @select="handleItemAction"
+    />
   </div>
 </template>
 
@@ -229,28 +254,5 @@ function handleItemAction(conversationId: string, key: string | number) {
 
 .chat-conv-item--pinned.chat-conv-item--active {
   background: hsl(var(--primary) / 8%);
-}
-
-.chat-conv-more {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-}
-
-.chat-conv-item:hover .chat-conv-more {
-  display: inline-flex;
-}
-
-.chat-conv-more:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
 }
 </style>
