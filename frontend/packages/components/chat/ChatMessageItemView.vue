@@ -39,6 +39,8 @@ const appContext = useAppContext()
 const userStore = useUserStore()
 
 const isSystem = computed(() => props.message.messageType === ChatMessageType.System)
+/** 带操作人身份的系统消息=公告卡片（走对话流归属样式）；无身份的为中性时间线（居中） */
+const isAnnouncement = computed(() => isSystem.value && props.message.senderUserId !== '0')
 const isImage = computed(() => props.message.messageType === ChatMessageType.Image)
 const isFile = computed(() => props.message.messageType === ChatMessageType.File)
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
@@ -105,8 +107,8 @@ async function handleDownload() {
 </script>
 
 <template>
-  <!-- 系统提示：居中时间线 -->
-  <div v-if="isSystem" class="my-2 flex justify-center">
+  <!-- 中性系统提示：居中时间线（公告卡片走下方对话流归属样式） -->
+  <div v-if="isSystem && !isAnnouncement" class="my-2 flex justify-center">
     <span class="rounded-full bg-muted/60 px-3 py-0.5 text-[11px] text-muted-foreground">
       {{ message.content }}
     </span>
@@ -143,7 +145,11 @@ async function handleDownload() {
         class="chat-bubble"
         :class="[
           isSelf ? 'chat-bubble--self' : 'chat-bubble--other',
-          { 'chat-bubble--mention': mentionsMe, 'chat-bubble--highlight': props.highlighted },
+          {
+            'chat-bubble--mention': mentionsMe,
+            'chat-bubble--highlight': props.highlighted,
+            'chat-bubble--announcement': isAnnouncement,
+          },
         ]"
       >
         <!-- 被 Pin 标记 -->
@@ -190,6 +196,15 @@ async function handleDownload() {
           <div v-if="message.content" class="mt-1 text-[13px]">
             {{ message.content }}
           </div>
+        </template>
+
+        <!-- 公告卡片（钉钉式：小喇叭标题 + 全文保留换行，发布人经头像/昵称归属） -->
+        <template v-else-if="isAnnouncement">
+          <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-amber-600">
+            <Icon icon="lucide:megaphone" width="14" height="14" />
+            {{ t('chat.members.announcement_title') }}
+          </div>
+          <span class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
         </template>
 
         <!-- 文本 -->
@@ -278,6 +293,13 @@ async function handleDownload() {
   100% {
     box-shadow: 0 0 0 0 hsl(var(--primary) / 0%);
   }
+}
+
+.chat-bubble--announcement {
+  min-width: 220px;
+  max-width: 100%;
+  background: hsl(38deg 92% 50% / 8%);
+  border: 1px solid hsl(38deg 92% 50% / 25%);
 }
 
 .chat-bubble--recalled {
