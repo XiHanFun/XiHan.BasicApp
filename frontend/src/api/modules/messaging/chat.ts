@@ -8,6 +8,7 @@ import type {
   ChatMessageHistoryResult,
   ChatMessageItem,
   ChatMessageSendInput,
+  ChatReadPosition,
 } from '~/types'
 import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
@@ -53,6 +54,30 @@ export const chatApi = {
   markRead(conversationId: string, upToMessageId?: null | string) {
     return chatCommandApi.post<void>('MarkRead', { conversationId, upToMessageId })
   },
+  /** EditMessageAsync(dto)：Edit 前缀→PUT 且剥离 → PUT /Chat/Message */
+  editMessage(messageId: string, content: string) {
+    return chatCommandApi.put<ChatMessageItem>('Message', { messageId, content })
+  },
+  /** ToggleReactionAsync → POST /Chat/ToggleReaction */
+  toggleReaction(messageId: string, emoji: string) {
+    return chatCommandApi.post<{ added: boolean }>('ToggleReaction', { messageId, emoji })
+  },
+  /** PinMessageAsync → POST /Chat/PinMessage */
+  pinMessage(messageId: string) {
+    return chatCommandApi.post<void>('PinMessage', { messageId })
+  },
+  /** UnpinMessageAsync → POST /Chat/UnpinMessage */
+  unpinMessage(messageId: string) {
+    return chatCommandApi.post<void>('UnpinMessage', { messageId })
+  },
+  /** TogglePinConversationAsync → POST /Chat/TogglePinConversation */
+  togglePinConversation(conversationId: string) {
+    return chatCommandApi.post<{ isOn: boolean }>('TogglePinConversation', { conversationId })
+  },
+  /** ToggleMuteConversationAsync → POST /Chat/ToggleMuteConversation */
+  toggleMuteConversation(conversationId: string) {
+    return chatCommandApi.post<{ isOn: boolean }>('ToggleMuteConversation', { conversationId })
+  },
   /** GetMyConversationsAsync：Get 前缀剥离 → GET /ChatQuery/MyConversations */
   myConversations() {
     return chatQueryApi.get<ChatConversationListItem[]>('MyConversations')
@@ -70,5 +95,13 @@ export const chatApi = {
     const params: DynamicApiParams = { Limit: limit }
     appendDynamicApiParam(params, 'Keyword', keyword)
     return chatQueryApi.get<UserSelectItemDto[]>('UserOptions', params)
+  },
+  /** GetReadPositionsAsync(long conversationId) → GET /ChatQuery/ReadPositions/{id}（群已读回执） */
+  readPositions(conversationId: string) {
+    return chatQueryApi.get<ChatReadPosition[]>(`ReadPositions/${formatDynamicApiRouteValue(conversationId)}`)
+  },
+  /** GetPinnedMessagesAsync(long conversationId) → GET /ChatQuery/PinnedMessages/{id} */
+  pinnedMessages(conversationId: string) {
+    return chatQueryApi.get<ChatMessageItem[]>(`PinnedMessages/${formatDynamicApiRouteValue(conversationId)}`)
   },
 }

@@ -1,6 +1,9 @@
 import type {
   ChatConversationChangedPushPayload,
+  ChatMessageEditedPushPayload,
   ChatMessagePushPayload,
+  ChatReactionChangedPushPayload,
+  ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
 } from '~/types'
@@ -41,6 +44,12 @@ export function useChatIntegration() {
       chatStore.applyConversationChanged(payload as ChatConversationChangedPushPayload))
     signalR.on(CHAT_REALTIME_METHODS.chatTyping, payload =>
       chatStore.applyTyping(payload as ChatTypingPushPayload))
+    signalR.on(CHAT_REALTIME_METHODS.chatMessageEdited, payload =>
+      chatStore.applyMessageEdited(payload as ChatMessageEditedPushPayload))
+    signalR.on(CHAT_REALTIME_METHODS.chatReactionChanged, payload =>
+      chatStore.applyReactionChanged(payload as ChatReactionChangedPushPayload))
+    signalR.on(CHAT_REALTIME_METHODS.chatReadPositionChanged, payload =>
+      chatStore.applyReadPositionChanged(payload as ChatReadPositionChangedPushPayload))
     isListenersBound = true
   }
 

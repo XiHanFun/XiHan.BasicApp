@@ -52,7 +52,29 @@ public sealed record ChatMessageSendCommand(
     long? FileId,
     string? FileName,
     long? FileSize,
-    string? ClientMessageId);
+    string? ClientMessageId,
+    long? ReplyToMessageId = null,
+    IReadOnlyCollection<long>? MentionedUserIds = null);
+
+/// <summary>
+/// 编辑消息命令（仅文本、仅本人、限时窗口）
+/// </summary>
+public sealed record ChatMessageEditCommand(long MessageId, long OperatorUserId, string Content);
+
+/// <summary>
+/// 表情回应 toggle 命令（已存在则取消，否则新增）
+/// </summary>
+public sealed record ChatReactionToggleCommand(long MessageId, long OperatorUserId, string Emoji);
+
+/// <summary>
+/// 消息 Pin/取消 Pin 命令
+/// </summary>
+public sealed record ChatMessagePinCommand(long MessageId, long OperatorUserId, bool Pin);
+
+/// <summary>
+/// 成员行个人开关命令（会话置顶/免打扰 toggle）
+/// </summary>
+public sealed record ChatMemberToggleCommand(long ConversationId, long UserId);
 
 /// <summary>
 /// 撤回消息命令
@@ -78,3 +100,30 @@ public sealed record ChatMessageSendResult(SysChatMessage Message, SysChatConver
 /// 撤回消息结果
 /// </summary>
 public sealed record ChatMessageRecallResult(SysChatMessage Message, IReadOnlyList<long> RecipientUserIds);
+
+/// <summary>
+/// 编辑消息结果
+/// </summary>
+public sealed record ChatMessageEditResult(SysChatMessage Message, IReadOnlyList<long> RecipientUserIds);
+
+/// <summary>
+/// 表情回应 toggle 结果（Added=true 为新增回应，false 为取消回应）
+/// </summary>
+public sealed record ChatReactionToggleResult(
+    long ConversationId,
+    long MessageId,
+    long UserId,
+    string? UserName,
+    string Emoji,
+    bool Added,
+    IReadOnlyList<long> RecipientUserIds);
+
+/// <summary>
+/// 消息 Pin 结果
+/// </summary>
+public sealed record ChatMessagePinResult(SysChatMessage Message, IReadOnlyList<long> RecipientUserIds);
+
+/// <summary>
+/// 标记已读结果（RecipientUserIds 为全体成员，用于已读位实时扇出）
+/// </summary>
+public sealed record ChatMarkReadResult(long ConversationId, long UserId, long? LastReadMessageId, IReadOnlyList<long> RecipientUserIds);

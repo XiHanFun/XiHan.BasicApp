@@ -37,11 +37,38 @@ public sealed class ChatDomainService : IChatDomainService
     /// </summary>
     private const int MaxPreviewLength = 200;
 
+    /// <summary>
+    /// 编辑时间窗口（分钟）
+    /// </summary>
+    private const int EditWindowMinutes = 5;
+
+    /// <summary>
+    /// 每会话 Pin 消息上限
+    /// </summary>
+    private const int MaxPinnedMessages = 10;
+
+    /// <summary>
+    /// 单条消息 @ 人数上限
+    /// </summary>
+    private const int MaxMentionCount = 20;
+
+    /// <summary>
+    /// 表情回应 emoji 最大长度（Unicode 码元）
+    /// </summary>
+    private const int MaxReactionEmojiLength = 16;
+
+    /// <summary>
+    /// 回复快照最大长度
+    /// </summary>
+    private const int MaxReplyPreviewLength = 300;
+
     private readonly IChatConversationRepository _conversationRepository;
 
     private readonly IChatConversationMemberRepository _memberRepository;
 
     private readonly IChatMessageRepository _messageRepository;
+
+    private readonly IChatMessageReactionRepository _reactionRepository;
 
     private readonly IUserRepository _userRepository;
 
@@ -56,6 +83,7 @@ public sealed class ChatDomainService : IChatDomainService
         IChatConversationRepository conversationRepository,
         IChatConversationMemberRepository memberRepository,
         IChatMessageRepository messageRepository,
+        IChatMessageReactionRepository reactionRepository,
         IUserRepository userRepository,
         IDepartmentRepository departmentRepository,
         IUserDepartmentRepository userDepartmentRepository)
@@ -63,6 +91,7 @@ public sealed class ChatDomainService : IChatDomainService
         _conversationRepository = conversationRepository;
         _memberRepository = memberRepository;
         _messageRepository = messageRepository;
+        _reactionRepository = reactionRepository;
         _userRepository = userRepository;
         _departmentRepository = departmentRepository;
         _userDepartmentRepository = userDepartmentRepository;
@@ -251,10 +280,13 @@ public sealed class ChatDomainService : IChatDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var conversation = await GetConversationOrThrowAsync(command.ConversationId, cancellationToken);
-        var senderMember = await _memberRepository.GetMemberAsync(conversation.BasicId, command.SenderUserId, cancellationToken)
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        var senderMember = members.FirstOrDefault(member => member.UserId == command.SenderUserId)
             ?? throw new InvalidOperationException("仅会话成员可发送消息。");
 
         var content = ValidateMessagePayload(command);
+        var mentionedUserIds = ValidateMentions(command.MentionedUserIds, members);
+        var replyPreview = await BuildReplyPreviewAsync(command.ReplyToMessageId, conversation.BasicId, cancellationToken);
         var sender = await GetUserOrThrowAsync(command.SenderUserId, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
@@ -268,7 +300,10 @@ public sealed class ChatDomainService : IChatDomainService
             FileId = command.FileId,
             FileName = Optional(command.FileName, 200),
             FileSize = command.FileSize,
-            ClientMessageId = Optional(command.ClientMessageId, 50)
+            ClientMessageId = Optional(command.ClientMessageId, 50),
+            ReplyToMessageId = command.ReplyToMessageId is > 0 ? command.ReplyToMessageId : null,
+            ReplyPreview = replyPreview,
+            MentionedUserIds = mentionedUserIds.Count > 0 ? string.Join(',', mentionedUserIds) : null
         }, cancellationToken);
 
         // 会话最后消息冗余 + 其余成员未读自增（发送者已读位前移）
@@ -282,7 +317,6 @@ public sealed class ChatDomainService : IChatDomainService
         senderMember.LastReadTime = now;
         _ = await _memberRepository.UpdateAsync(senderMember, cancellationToken);
 
-        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
         var recipientIds = members.Select(member => member.UserId).ToList();
         return new ChatMessageSendResult(message, conversation, recipientIds);
     }
@@ -332,7 +366,183 @@ public sealed class ChatDomainService : IChatDomainService
     }
 
     /// <inheritdoc />
-    public async Task MarkConversationReadAsync(ChatMarkReadCommand command, CancellationToken cancellationToken = default)
+    public async Task<ChatMessageEditResult> EditMessageAsync(ChatMessageEditCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.MessageId, "消息主键必须大于 0。");
+        var message = await _messageRepository.GetByIdAsync(command.MessageId, cancellationToken)
+            ?? throw new InvalidOperationException("消息不存在。");
+
+        if (message.SenderUserId != command.OperatorUserId)
+        {
+            throw new InvalidOperationException("仅可编辑自己发送的消息。");
+        }
+
+        if (message.IsRecalled)
+        {
+            throw new InvalidOperationException("已撤回的消息不能编辑。");
+        }
+
+        if (message.MessageType != ChatMessageType.Text)
+        {
+            throw new InvalidOperationException("仅文本消息支持编辑。");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        if (now - message.CreatedTime > TimeSpan.FromMinutes(EditWindowMinutes))
+        {
+            throw new InvalidOperationException($"仅可编辑 {EditWindowMinutes} 分钟内发送的消息。");
+        }
+
+        var content = Required(command.Content, MaxContentLength, $"文本消息内容不能为空且不能超过 {MaxContentLength} 个字符。");
+        message.Content = content;
+        message.EditedTime = now;
+        message = await _messageRepository.UpdateAsync(message, cancellationToken);
+
+        // 编辑的是最后一条时同步刷新会话预览
+        var conversation = await GetConversationOrThrowAsync(message.ConversationId, cancellationToken);
+        if (conversation.LastMessageId == message.BasicId)
+        {
+            conversation.LastMessagePreview = BuildPreview(message.MessageType, content, message.FileName);
+            _ = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+        }
+
+        var members = await _memberRepository.GetByConversationIdAsync(message.ConversationId, cancellationToken);
+        return new ChatMessageEditResult(message, [.. members.Select(member => member.UserId)]);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatReactionToggleResult> ToggleReactionAsync(ChatReactionToggleCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.MessageId, "消息主键必须大于 0。");
+        var emoji = (command.Emoji ?? string.Empty).Trim();
+        if (emoji.Length is 0 or > MaxReactionEmojiLength)
+        {
+            throw new InvalidOperationException("表情回应无效。");
+        }
+
+        var message = await _messageRepository.GetByIdAsync(command.MessageId, cancellationToken)
+            ?? throw new InvalidOperationException("消息不存在。");
+        if (message.IsRecalled)
+        {
+            throw new InvalidOperationException("已撤回的消息不能回应。");
+        }
+
+        var operatorUser = await GetUserOrThrowAsync(command.OperatorUserId, cancellationToken);
+        _ = await GetMemberOrThrowAsync(message.ConversationId, command.OperatorUserId, "仅会话成员可回应消息。", cancellationToken);
+
+        var existing = await _reactionRepository.GetAsync(command.MessageId, command.OperatorUserId, emoji, cancellationToken);
+        bool added;
+        if (existing is not null)
+        {
+            if (!await _reactionRepository.DeleteAsync(existing, cancellationToken))
+            {
+                throw new InvalidOperationException("取消回应失败。");
+            }
+
+            added = false;
+        }
+        else
+        {
+            _ = await _reactionRepository.AddAsync(new SysChatMessageReaction
+            {
+                ConversationId = message.ConversationId,
+                MessageId = message.BasicId,
+                UserId = command.OperatorUserId,
+                UserName = operatorUser.UserName,
+                Emoji = emoji
+            }, cancellationToken);
+            added = true;
+        }
+
+        var members = await _memberRepository.GetByConversationIdAsync(message.ConversationId, cancellationToken);
+        return new ChatReactionToggleResult(
+            message.ConversationId,
+            message.BasicId,
+            command.OperatorUserId,
+            operatorUser.UserName,
+            emoji,
+            added,
+            [.. members.Select(member => member.UserId)]);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatMessagePinResult> SetMessagePinAsync(ChatMessagePinCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.MessageId, "消息主键必须大于 0。");
+        var message = await _messageRepository.GetByIdAsync(command.MessageId, cancellationToken)
+            ?? throw new InvalidOperationException("消息不存在。");
+
+        var conversation = await GetConversationOrThrowAsync(message.ConversationId, cancellationToken);
+        await EnsureCanPinAsync(conversation, command.OperatorUserId, cancellationToken);
+
+        if (command.Pin)
+        {
+            if (message.IsRecalled)
+            {
+                throw new InvalidOperationException("已撤回的消息不能置顶。");
+            }
+
+            if (!message.IsPinned)
+            {
+                var pinned = await _messageRepository.GetPinnedAsync(conversation.BasicId, cancellationToken);
+                if (pinned.Count >= MaxPinnedMessages)
+                {
+                    throw new InvalidOperationException($"每个会话最多置顶 {MaxPinnedMessages} 条消息。");
+                }
+
+                message.IsPinned = true;
+                message.PinnedByUserId = command.OperatorUserId;
+                message.PinnedTime = DateTimeOffset.UtcNow;
+                message = await _messageRepository.UpdateAsync(message, cancellationToken);
+            }
+        }
+        else if (message.IsPinned)
+        {
+            message.IsPinned = false;
+            message.PinnedByUserId = null;
+            message.PinnedTime = null;
+            message = await _messageRepository.UpdateAsync(message, cancellationToken);
+        }
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        return new ChatMessagePinResult(message, [.. members.Select(member => member.UserId)]);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> TogglePinConversationAsync(ChatMemberToggleCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var member = await GetMemberOrThrowAsync(command.ConversationId, command.UserId, "仅会话成员可置顶会话。", cancellationToken);
+        member.IsPinned = !member.IsPinned;
+        _ = await _memberRepository.UpdateAsync(member, cancellationToken);
+        return member.IsPinned;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ToggleMuteConversationAsync(ChatMemberToggleCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var member = await GetMemberOrThrowAsync(command.ConversationId, command.UserId, "仅会话成员可设置免打扰。", cancellationToken);
+        member.IsMuted = !member.IsMuted;
+        _ = await _memberRepository.UpdateAsync(member, cancellationToken);
+        return member.IsMuted;
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatMarkReadResult> MarkConversationReadAsync(ChatMarkReadCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -348,6 +558,13 @@ public sealed class ChatDomainService : IChatDomainService
         }
 
         _ = await _memberRepository.UpdateAsync(member, cancellationToken);
+
+        var members = await _memberRepository.GetByConversationIdAsync(command.ConversationId, cancellationToken);
+        return new ChatMarkReadResult(
+            command.ConversationId,
+            command.UserId,
+            member.LastReadMessageId,
+            [.. members.Select(item => item.UserId)]);
     }
 
     private static string BuildPairKey(long userId, long peerUserId)
@@ -445,6 +662,74 @@ public sealed class ChatDomainService : IChatDomainService
                 JoinTime = now
             }, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// 校验 @ 名单：全部为会话成员、数量受限、去重去自身无效值
+    /// </summary>
+    private static List<long> ValidateMentions(IReadOnlyCollection<long>? mentionedUserIds, IReadOnlyList<SysChatConversationMember> members)
+    {
+        if (mentionedUserIds is not { Count: > 0 })
+        {
+            return [];
+        }
+
+        var ids = mentionedUserIds.Where(id => id > 0).Distinct().ToList();
+        if (ids.Count > MaxMentionCount)
+        {
+            throw new InvalidOperationException($"单条消息最多 @ {MaxMentionCount} 人。");
+        }
+
+        var memberIds = members.Select(member => member.UserId).ToHashSet();
+        return ids.Any(id => !memberIds.Contains(id))
+            ? throw new InvalidOperationException("仅可 @ 会话成员。")
+            : ids;
+    }
+
+    /// <summary>
+    /// 构建回复快照「{发送人}: {内容}」（发送时校验被回复消息同会话且未撤回）
+    /// </summary>
+    private async Task<string?> BuildReplyPreviewAsync(long? replyToMessageId, long conversationId, CancellationToken cancellationToken)
+    {
+        if (replyToMessageId is not > 0)
+        {
+            return null;
+        }
+
+        var original = await _messageRepository.GetByIdAsync(replyToMessageId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("被回复的消息不存在。");
+        if (original.ConversationId != conversationId)
+        {
+            throw new InvalidOperationException("仅可回复本会话内的消息。");
+        }
+
+        if (original.IsRecalled)
+        {
+            throw new InvalidOperationException("被回复的消息已撤回。");
+        }
+
+        var body = BuildPreview(original.MessageType, original.Content, original.FileName);
+        var preview = $"{original.SenderUserName}: {body}";
+        return preview.Length <= MaxReplyPreviewLength ? preview : preview[..MaxReplyPreviewLength];
+    }
+
+    /// <summary>
+    /// Pin 权限：单聊双方皆可，群/部门群仅群主与管理员
+    /// </summary>
+    private async Task EnsureCanPinAsync(SysChatConversation conversation, long operatorUserId, CancellationToken cancellationToken)
+    {
+        var member = await GetMemberOrThrowAsync(conversation.BasicId, operatorUserId, "仅会话成员可操作。", cancellationToken);
+        if (conversation.ConversationType != ChatConversationType.Single
+            && member.MemberRole is not (ChatMemberRole.Owner or ChatMemberRole.Admin))
+        {
+            throw new InvalidOperationException("仅群主或管理员可置顶消息。");
+        }
+    }
+
+    private async Task<SysChatConversationMember> GetMemberOrThrowAsync(long conversationId, long userId, string message, CancellationToken cancellationToken)
+    {
+        return await _memberRepository.GetMemberAsync(conversationId, userId, cancellationToken)
+            ?? throw new InvalidOperationException(message);
     }
 
     private async Task EnsureCanManageMembersAsync(SysChatConversation conversation, long operatorUserId, CancellationToken cancellationToken)

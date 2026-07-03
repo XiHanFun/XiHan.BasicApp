@@ -58,6 +58,36 @@ public interface IChatAppService : IApplicationService
     Task RecallMessageAsync(long messageId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 编辑消息（仅文本、仅本人、限时窗口）
+    /// </summary>
+    Task<ChatMessageItemDto> EditMessageAsync(ChatMessageEditDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 表情回应 toggle（已存在则取消，否则新增）
+    /// </summary>
+    Task<ChatReactionToggleResultDto> ToggleReactionAsync(ChatReactionToggleDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pin 消息（单聊双方皆可，群仅群主/管理员；每会话有上限）
+    /// </summary>
+    Task PinMessageAsync(ChatMessagePinDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取消 Pin 消息
+    /// </summary>
+    Task UnpinMessageAsync(ChatMessagePinDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 会话置顶 toggle（个人维度）
+    /// </summary>
+    Task<ChatToggleStateDto> TogglePinConversationAsync(ChatConversationToggleDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 会话免打扰 toggle（个人维度）
+    /// </summary>
+    Task<ChatToggleStateDto> ToggleMuteConversationAsync(ChatConversationToggleDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 标记会话已读
     /// </summary>
     Task MarkReadAsync(ChatMarkReadDto input, CancellationToken cancellationToken = default);

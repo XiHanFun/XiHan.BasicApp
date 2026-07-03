@@ -38,7 +38,9 @@ public static class ChatApplicationMapper
             input.FileId,
             input.FileName,
             input.FileSize,
-            input.ClientMessageId);
+            input.ClientMessageId,
+            input.ReplyToMessageId,
+            input.MentionedUserIds);
     }
 
     /// <summary>
@@ -58,9 +60,9 @@ public static class ChatApplicationMapper
     }
 
     /// <summary>
-    /// 消息实体 → 消息项 DTO
+    /// 消息实体 → 消息项 DTO（可选带回应列表）
     /// </summary>
-    public static ChatMessageItemDto ToMessageItemDto(SysChatMessage message)
+    public static ChatMessageItemDto ToMessageItemDto(SysChatMessage message, IEnumerable<SysChatMessageReaction>? reactions = null)
     {
         ArgumentNullException.ThrowIfNull(message);
 
@@ -77,8 +79,51 @@ public static class ChatApplicationMapper
             FileSize = message.FileSize,
             IsRecalled = message.IsRecalled,
             ClientMessageId = message.ClientMessageId,
-            CreatedTime = message.CreatedTime
+            CreatedTime = message.CreatedTime,
+            ReplyToMessageId = message.ReplyToMessageId,
+            ReplyPreview = message.ReplyPreview,
+            EditedTime = message.EditedTime,
+            MentionedUserIds = ParseMentionedUserIds(message.MentionedUserIds),
+            IsPinned = message.IsPinned,
+            Reactions = reactions?.Select(ToReactionItemDto).ToList() ?? []
         };
+    }
+
+    /// <summary>
+    /// 回应实体 → 回应项 DTO
+    /// </summary>
+    public static ChatReactionItemDto ToReactionItemDto(SysChatMessageReaction reaction)
+    {
+        ArgumentNullException.ThrowIfNull(reaction);
+
+        return new ChatReactionItemDto
+        {
+            Emoji = reaction.Emoji,
+            UserId = reaction.UserId,
+            UserName = reaction.UserName
+        };
+    }
+
+    /// <summary>
+    /// 解析 @ 用户ID 逗号串（容忍脏值）
+    /// </summary>
+    public static List<long> ParseMentionedUserIds(string? mentionedUserIds)
+    {
+        if (string.IsNullOrWhiteSpace(mentionedUserIds))
+        {
+            return [];
+        }
+
+        var result = new List<long>();
+        foreach (var part in mentionedUserIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (long.TryParse(part, out var id) && id > 0)
+            {
+                result.Add(id);
+            }
+        }
+
+        return result;
     }
 
     /// <summary>

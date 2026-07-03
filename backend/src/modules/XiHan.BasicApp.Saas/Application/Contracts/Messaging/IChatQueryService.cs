@@ -41,4 +41,14 @@ public interface IChatQueryService : IApplicationService
     /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
     /// </summary>
     Task<IReadOnlyList<UserSelectItemDto>> GetUserOptionsAsync(UserSelectQueryDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取会话成员已读位（群已读回执；仅会话成员）
+    /// </summary>
+    Task<List<ChatReadPositionDto>> GetReadPositionsAsync(long conversationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取会话内被 Pin 的消息（仅会话成员）
+    /// </summary>
+    Task<List<ChatMessageItemDto>> GetPinnedMessagesAsync(long conversationId, CancellationToken cancellationToken = default);
 }

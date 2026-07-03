@@ -92,6 +92,12 @@ public partial class SysChatConversationMember : BasicAppFullAuditedEntity
     public virtual bool IsMuted { get; set; } = false;
 
     /// <summary>
+    /// 是否置顶会话（个人维度，会话列表置顶优先排序）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Pinned", ColumnDescription = "是否置顶会话")]
+    public virtual bool IsPinned { get; set; } = false;
+
+    /// <summary>
     /// 入群时间
     /// </summary>
     [SugarColumn(ColumnName = "Join_Time", ColumnDescription = "入群时间")]

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
-import { NImage, NSpin, NTooltip } from 'naive-ui'
+import { NImage, NPopover, NSpin, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
-import { ChatMessageType } from '~/types/enums'
+import { useAppContext, useUserStore } from '~/stores'
+import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatFileSize, formatMessageTime } from './chat-helpers'
 
@@ -20,20 +20,76 @@ const props = defineProps<{
   showSenderName: boolean
   /** 是否可撤回（本人 + 2 分钟窗口内 + 未撤回 + 已落库） */
   canRecall: boolean
+  /** 是否可编辑（本人 + 文本 + 5 分钟窗口内） */
+  canEdit: boolean
+  /** 是否可 Pin（单聊双方 / 群主管理员） */
+  canPin: boolean
+  /** 会话类型（已读回执文案区分单聊/群聊） */
+  conversationType: ChatConversationType
+  /** 本人消息的已读人数（未加载为 null；单聊 >0 即已读） */
+  readCount?: null | number
 }>()
 
 const emit = defineEmits<{
   recall: []
   retry: []
   remove: []
+  reply: []
+  edit: []
+  pin: []
+  unpin: []
+  react: [emoji: string]
 }>()
 
 const { t } = useI18n()
 const appContext = useAppContext()
+const userStore = useUserStore()
+
+/** 快捷回应集（点击 toggle） */
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉']
 
 const isSystem = computed(() => props.message.messageType === ChatMessageType.System)
 const isImage = computed(() => props.message.messageType === ChatMessageType.Image)
 const isFile = computed(() => props.message.messageType === ChatMessageType.File)
+const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
+
+/** 被 @ 到我：气泡高亮 */
+const mentionsMe = computed(() =>
+  !props.isSelf && props.message.mentionedUserIds?.includes(currentUserId.value))
+
+/** 回应按 emoji 分组（含我是否已回应） */
+const groupedReactions = computed(() => {
+  const groups = new Map<string, { emoji: string, count: number, mine: boolean, users: string[] }>()
+  for (const reaction of props.message.reactions ?? []) {
+    let group = groups.get(reaction.emoji)
+    if (!group) {
+      group = { emoji: reaction.emoji, count: 0, mine: false, users: [] }
+      groups.set(reaction.emoji, group)
+    }
+    group.count += 1
+    if (reaction.userId === currentUserId.value) {
+      group.mine = true
+    }
+    if (reaction.userName) {
+      group.users.push(reaction.userName)
+    }
+  }
+  return [...groups.values()]
+})
+
+/** 已读回执文案（仅本人已落库消息） */
+const readReceiptLabel = computed(() => {
+  if (!props.isSelf || props.message.pending || props.message.failed || props.message.isRecalled) {
+    return ''
+  }
+  if (props.readCount == null) {
+    return ''
+  }
+  if (props.conversationType === ChatConversationType.Single) {
+    return props.readCount > 0 ? t('chat.thread.read') : t('chat.thread.unread')
+  }
+  return props.readCount > 0 ? t('chat.thread.read_count', { n: props.readCount }) : t('chat.thread.unread')
+})
 
 // 图片消息：fileId → 预签名 URL（内存缓存 + 并发去重，复用头像解析链路）
 const imageUrl = useAvatarUrl(computed(() =>
@@ -56,6 +112,10 @@ async function handleDownload() {
     // 请求层已有统一错误提示
   }
 }
+
+/** 已落库的普通消息才有操作行 */
+const showActions = computed(() =>
+  !props.message.isRecalled && !props.message.pending && !props.message.failed)
 </script>
 
 <template>
@@ -80,7 +140,22 @@ async function handleDownload() {
       </div>
 
       <!-- 气泡内容 -->
-      <div v-else class="chat-bubble" :class="isSelf ? 'chat-bubble--self' : 'chat-bubble--other'">
+      <div
+        v-else
+        class="chat-bubble"
+        :class="[isSelf ? 'chat-bubble--self' : 'chat-bubble--other', { 'chat-bubble--mention': mentionsMe }]"
+      >
+        <!-- 被 Pin 标记 -->
+        <div v-if="message.isPinned" class="mb-1 flex items-center gap-1 text-[11px] text-primary/80">
+          <Icon icon="lucide:pin" width="11" height="11" />
+          {{ t('chat.thread.pinned_flag') }}
+        </div>
+
+        <!-- 回复引用块 -->
+        <div v-if="message.replyPreview" class="chat-reply-quote">
+          {{ message.replyPreview }}
+        </div>
+
         <!-- 图片 -->
         <template v-if="isImage">
           <NImage
@@ -119,7 +194,25 @@ async function handleDownload() {
         </template>
       </div>
 
-      <!-- 元信息：时间 + 发送状态 + 悬浮操作 -->
+      <!-- 回应汇总 -->
+      <div v-if="groupedReactions.length" class="mt-1 flex flex-wrap gap-1" :class="isSelf ? 'justify-end' : ''">
+        <NTooltip v-for="group in groupedReactions" :key="group.emoji">
+          <template #trigger>
+            <button
+              type="button"
+              class="chat-reaction-chip"
+              :class="{ 'chat-reaction-chip--mine': group.mine }"
+              @click="emit('react', group.emoji)"
+            >
+              <span>{{ group.emoji }}</span>
+              <span class="text-[11px]">{{ group.count }}</span>
+            </button>
+          </template>
+          {{ group.users.join('、') }}
+        </NTooltip>
+      </div>
+
+      <!-- 元信息：时间 + 状态 + 已读回执 + 悬浮操作 -->
       <div class="mt-0.5 flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
         <template v-if="message.failed">
           <Icon icon="lucide:circle-alert" width="12" height="12" class="text-destructive" />
@@ -137,18 +230,46 @@ async function handleDownload() {
         </template>
         <template v-else>
           <span>{{ formatMessageTime(message.createdTime) }}</span>
-          <NTooltip v-if="canRecall">
-            <template #trigger>
-              <button
-                type="button"
-                class="chat-meta-action opacity-0 transition-opacity group-hover:opacity-100"
-                @click="emit('recall')"
-              >
-                {{ t('chat.thread.recall') }}
-              </button>
-            </template>
-            {{ t('chat.thread.recall_window', { n: 2 }) }}
-          </NTooltip>
+          <span v-if="message.editedTime" class="opacity-70">{{ t('chat.thread.edited') }}</span>
+          <span v-if="readReceiptLabel" class="text-primary/70">{{ readReceiptLabel }}</span>
+
+          <!-- 悬浮操作行 -->
+          <span v-if="showActions" class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <!-- 快捷回应 -->
+            <NPopover trigger="click" placement="top" :show-arrow="false">
+              <template #trigger>
+                <button type="button" class="chat-meta-action" :title="t('chat.thread.react')">
+                  <Icon icon="lucide:smile-plus" width="12" height="12" />
+                </button>
+              </template>
+              <div class="flex gap-1">
+                <button
+                  v-for="emoji in QUICK_REACTIONS"
+                  :key="emoji"
+                  type="button"
+                  class="chat-quick-react"
+                  @click="emit('react', emoji)"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+            </NPopover>
+            <button type="button" class="chat-meta-action" @click="emit('reply')">
+              {{ t('chat.thread.reply') }}
+            </button>
+            <button v-if="canEdit" type="button" class="chat-meta-action" @click="emit('edit')">
+              {{ t('chat.thread.edit') }}
+            </button>
+            <button v-if="canPin && !message.isPinned" type="button" class="chat-meta-action" @click="emit('pin')">
+              {{ t('chat.thread.pin') }}
+            </button>
+            <button v-if="canPin && message.isPinned" type="button" class="chat-meta-action" @click="emit('unpin')">
+              {{ t('chat.thread.unpin') }}
+            </button>
+            <button v-if="canRecall" type="button" class="chat-meta-action" @click="emit('recall')">
+              {{ t('chat.thread.recall') }}
+            </button>
+          </span>
         </template>
       </div>
     </div>
@@ -174,12 +295,30 @@ async function handleDownload() {
   border-top-right-radius: 2px;
 }
 
+.chat-bubble--mention {
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 45%);
+}
+
 .chat-bubble--recalled {
   background: transparent;
   border: 1px dashed hsl(var(--border));
   color: hsl(var(--muted-foreground));
   font-size: 12px;
   font-style: italic;
+}
+
+.chat-reply-quote {
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  border-left: 2px solid hsl(var(--primary) / 50%);
+  border-radius: 4px;
+  background: hsl(var(--muted) / 50%);
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .chat-file-card {
@@ -201,7 +340,51 @@ async function handleDownload() {
   border-color: hsl(var(--primary) / 50%);
 }
 
+.chat-reaction-chip {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  padding: 1px 7px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9999px;
+  background: hsl(var(--card));
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.chat-reaction-chip:hover {
+  border-color: hsl(var(--primary) / 50%);
+}
+
+.chat-reaction-chip--mine {
+  border-color: hsl(var(--primary) / 60%);
+  background: hsl(var(--primary) / 10%);
+}
+
+.chat-quick-react {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.chat-quick-react:hover {
+  background: hsl(var(--accent));
+}
+
 .chat-meta-action {
+  display: inline-flex;
+  align-items: center;
   padding: 0;
   border: none;
   background: transparent;

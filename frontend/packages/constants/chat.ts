@@ -9,7 +9,13 @@ export const CHAT_REALTIME_METHODS = {
   chatMessageRecalled: 'ChatMessageRecalled',
   chatConversationChanged: 'ChatConversationChanged',
   chatTyping: 'ChatTyping',
+  chatMessageEdited: 'ChatMessageEdited',
+  chatReactionChanged: 'ChatReactionChanged',
+  chatReadPositionChanged: 'ChatReadPositionChanged',
 } as const
+
+/** 会话草稿本地存储键（值为 conversationId → 草稿文本 的 JSON） */
+export const CHAT_DRAFTS_STORAGE_KEY = 'chat-drafts'
 
 /** 客户端 → 服务端 Hub 方法名（后端 BasicAppChatHub；conversationId 一律传字符串形态雪花 ID） */
 export const CHAT_HUB_METHODS = {
