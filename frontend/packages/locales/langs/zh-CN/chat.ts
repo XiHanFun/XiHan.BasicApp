@@ -31,7 +31,8 @@ export default {
     unpin: '取消置顶',
     mute: '免打扰',
     unmute: '取消免打扰',
-    mention_me: '[有人@我] ',
+    // @ 是 vue-i18n 链接消息保留字符，须用 {'@'} 字面量转义，否则消息编译抛错白屏
+    mention_me: '[有人{\'@\'}我] ',
   },
   type: {
     single: '单聊',
@@ -84,7 +85,7 @@ export default {
   },
   member_menu: {
     send_message: '发送消息',
-    mention: '@ TA',
+    mention: '{\'@\'} TA',
     set_admin: '设为管理员',
     unset_admin: '取消管理员',
     remove: '移出本群',
@@ -105,7 +106,7 @@ export default {
     editing: '编辑消息（Esc 取消）',
     reply_to: '回复 {name}',
     save_edit: '保存修改',
-    mention_empty: '暂无可 @ 的成员',
+    mention_empty: '暂无可 {\'@\'} 的成员',
     silenced: '你已被禁言，暂时不能发送消息',
   },
   members: {
