@@ -563,9 +563,18 @@ public sealed class ChatDomainService : IChatDomainService
 
         member.UnreadCount = 0;
         member.LastReadTime = DateTimeOffset.UtcNow;
-        if (command.UpToMessageId is { } upTo && upTo > 0)
+
+        // 已读位推进：显式已读位优先；null 语义为「读到最新」（取会话最后消息）。均不允许回退
+        var target = command.UpToMessageId is { } upTo && upTo > 0 ? upTo : (long?)null;
+        if (target is null)
         {
-            member.LastReadMessageId = upTo;
+            var conversation = await _conversationRepository.GetByIdAsync(command.ConversationId, cancellationToken);
+            target = conversation?.LastMessageId;
+        }
+
+        if (target is { } advanceTo && advanceTo > (member.LastReadMessageId ?? 0))
+        {
+            member.LastReadMessageId = advanceTo;
         }
 
         _ = await _memberRepository.UpdateAsync(member, cancellationToken);
