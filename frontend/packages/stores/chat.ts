@@ -64,6 +64,9 @@ export const useChatStore = defineStore('chat', () => {
   const replyTarget = ref<ChatLocalMessage | null>(null)
   /** 编辑目标（composer 进入编辑态） */
   const editTarget = ref<ChatLocalMessage | null>(null)
+  /** @提及请求（头像菜单「@TA」→ composer 监听后插入，seq 保证同人可重复触发） */
+  const mentionRequest = ref<null | { conversationId: string, seq: number, userId: string, userName: string }>(null)
+  let mentionSeq = 0
   /** 会话草稿（localStorage 持久化） */
   const drafts = ref<Record<string, string>>(LocalStorage.get<Record<string, string>>(CHAT_DRAFTS_STORAGE_KEY) ?? {})
   /** 视口分离态：搜索定位后 bucket 停留在历史上下文，不再追加新消息（回到最新后解除） */
@@ -645,6 +648,11 @@ export const useChatStore = defineStore('chat', () => {
     delete typingIndicators.value[conversationId]
   }
 
+  /** 请求在输入框插入 @提及（composer 监听 mentionRequest 执行插入） */
+  function requestMention(conversationId: string, userId: string, userName: string) {
+    mentionRequest.value = { conversationId, userId, userName, seq: ++mentionSeq }
+  }
+
   /** 输入中提示节流上报（组播给会话内其他成员） */
   function sendTyping(conversationId: string) {
     const last = typingSentAt.get(conversationId) ?? 0
@@ -723,6 +731,8 @@ export const useChatStore = defineStore('chat', () => {
     mentionsPending,
     replyTarget,
     editTarget,
+    mentionRequest,
+    requestMention,
     detachedConversations,
     highlightMessageId,
     totalUnread,

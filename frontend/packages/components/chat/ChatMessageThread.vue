@@ -2,7 +2,7 @@
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { ChatLocalMessage } from '~/stores'
 import type { ChatMessageItem } from '~/types'
-import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
@@ -14,6 +14,7 @@ import XUserAvatar from '../common/UserAvatar.vue'
 import { formatMessageTime } from './chat-helpers'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
+import ChatForwardDialog from './ChatForwardDialog.vue'
 import ChatMessageItemView from './ChatMessageItemView.vue'
 
 defineOptions({ name: 'ChatMessageThread' })
@@ -32,6 +33,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const message = useMessage()
+const dialog = useDialog()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const appContext = useAppContext()
@@ -176,6 +178,7 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
     items.push({ key: 'copy', label: t('chat.thread.copy'), icon: 'lucide:copy' })
   }
   items.push({ key: 'reply', label: t('chat.thread.reply'), icon: 'lucide:reply' })
+  items.push({ key: 'forward', label: t('chat.thread.forward'), icon: 'lucide:corner-up-right' })
   if (canEdit(target)) {
     items.push({ key: 'edit', label: t('chat.thread.edit'), icon: 'lucide:pencil' })
   }
@@ -208,6 +211,126 @@ function handleCtxReact(emoji: string) {
   }
 }
 
+// ===== 转发 =====
+
+const showForward = ref(false)
+const forwardTarget = ref<ChatLocalMessage | null>(null)
+
+// ===== 头像右键成员菜单（QQ 式） =====
+
+const memberCtxShow = ref(false)
+const memberCtxX = ref(0)
+const memberCtxY = ref(0)
+const memberTarget = ref<ChatLocalMessage | null>(null)
+const memberTargetRole = ref<ChatMemberRole | null>(null)
+const memberTargetSilenced = ref(false)
+
+async function openMemberMenu(event: MouseEvent, item: ChatLocalMessage) {
+  const convId = conversationId.value
+  if (!convId || item.senderUserId === currentUserId.value || item.senderUserId === '0') {
+    return
+  }
+  event.preventDefault()
+  memberTarget.value = item
+  memberTargetRole.value = null
+  memberTargetSilenced.value = false
+  memberCtxX.value = event.clientX
+  memberCtxY.value = event.clientY
+  memberCtxShow.value = true
+  // 异步补充目标成员角色/禁言态（群治理项按此显隐，加载前先展示通用项）
+  try {
+    const members = await appContext.apis.chatApi.members(convId)
+    const target = members.find(member => member.userId === item.senderUserId)
+    if (target && memberTarget.value?.senderUserId === target.userId) {
+      memberTargetRole.value = target.memberRole
+      memberTargetSilenced.value = target.isSilenced
+    }
+  }
+  catch {
+    // 拉取失败仅隐藏治理项
+  }
+}
+
+const memberCtxItems = computed<ChatContextMenuItem[]>(() => {
+  const target = memberTarget.value
+  const conv = conversation.value
+  if (!target || !conv) {
+    return []
+  }
+  const items: ChatContextMenuItem[] = [
+    { key: 'dm', label: t('chat.member_menu.send_message'), icon: 'lucide:message-circle' },
+  ]
+  if (isGroupLike.value) {
+    items.push({ key: 'mention', label: t('chat.member_menu.mention'), icon: 'lucide:at-sign' })
+  }
+  const iAmOwner = conv.memberRole === ChatMemberRole.Owner
+  const iCanManage = (iAmOwner || conv.memberRole === ChatMemberRole.Admin)
+    && userStore.hasPermission(CHAT_PERMISSIONS.manage)
+  const role = memberTargetRole.value
+  if (conv.conversationType === ChatConversationType.Group && iAmOwner
+    && userStore.hasPermission(CHAT_PERMISSIONS.manage) && role && role !== ChatMemberRole.Owner) {
+    items.push(role === ChatMemberRole.Admin
+      ? { key: 'unset-admin', label: t('chat.member_menu.unset_admin'), icon: 'lucide:shield-off', divided: true }
+      : { key: 'set-admin', label: t('chat.member_menu.set_admin'), icon: 'lucide:shield', divided: true })
+  }
+  if (isGroupLike.value && iCanManage && role === ChatMemberRole.Member) {
+    items.push(memberTargetSilenced.value
+      ? { key: 'unsilence', label: t('chat.members.unsilence'), icon: 'lucide:mic' }
+      : { key: 'silence', label: t('chat.members.silence'), icon: 'lucide:mic-off' })
+  }
+  if (conv.conversationType === ChatConversationType.Group && iCanManage && role && role !== ChatMemberRole.Owner) {
+    items.push({ key: 'remove', label: t('chat.member_menu.remove'), icon: 'lucide:user-minus', danger: true, divided: true })
+  }
+  return items
+})
+
+function handleMemberCtxSelect(key: string) {
+  const target = memberTarget.value
+  const convId = conversationId.value
+  if (!target || !convId) {
+    return
+  }
+  const userId = target.senderUserId
+  const userName = target.senderUserName ?? ''
+  switch (key) {
+    case 'dm':
+      chatStore.startSingleConversation(userId).catch(() => {})
+      break
+    case 'mention':
+      chatStore.requestMention(convId, userId, userName)
+      break
+    case 'set-admin':
+      appContext.apis.chatApi.setMemberRole(convId, userId, 'Admin').catch(() => {})
+      break
+    case 'unset-admin':
+      appContext.apis.chatApi.setMemberRole(convId, userId, 'Member').catch(() => {})
+      break
+    case 'silence':
+      appContext.apis.chatApi.setMemberSilence(convId, userId, true).catch(() => {})
+      break
+    case 'unsilence':
+      appContext.apis.chatApi.setMemberSilence(convId, userId, false).catch(() => {})
+      break
+    case 'remove':
+      dialog.warning({
+        title: t('chat.member_menu.remove'),
+        content: t('chat.members.remove_confirm', { name: userName }),
+        positiveText: t('chat.start.confirm'),
+        negativeText: t('chat.start.cancel'),
+        onPositiveClick: async () => {
+          try {
+            await appContext.apis.chatApi.removeMember(convId, userId)
+            chatStore.loadConversations().catch(() => {})
+          }
+          catch {
+            // 请求层已有统一错误提示
+          }
+        },
+      })
+      break
+  }
+}
+
 async function handleCtxSelect(key: string | number) {
   ctxShow.value = false
   const target = ctxMessage.value
@@ -226,6 +349,10 @@ async function handleCtxSelect(key: string | number) {
       break
     case 'reply':
       handleReply(target)
+      break
+    case 'forward':
+      forwardTarget.value = target
+      showForward.value = true
       break
     case 'edit':
       handleEdit(target)
@@ -556,6 +683,7 @@ onBeforeUnmount(() => {
           @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
           @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
           @react="emoji => handleReact(item, emoji)"
+          @avatar-contextmenu="event => openMemberMenu(event, item)"
         />
       </div>
 
@@ -569,6 +697,18 @@ onBeforeUnmount(() => {
         @select="key => handleCtxSelect(key)"
         @react="handleCtxReact"
       />
+
+      <!-- 头像右键成员菜单（QQ 式） -->
+      <ChatContextMenu
+        v-model:show="memberCtxShow"
+        :x="memberCtxX"
+        :y="memberCtxY"
+        :items="memberCtxItems"
+        @select="handleMemberCtxSelect"
+      />
+
+      <!-- 转发目标选择 -->
+      <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
 
       <!-- 视口分离态：回到最新 -->
       <div v-if="isDetached" class="sticky bottom-1 flex justify-center">

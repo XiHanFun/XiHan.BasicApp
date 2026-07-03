@@ -76,6 +76,18 @@ export default {
     copy: 'Copy',
     copied: 'Copied',
     copy_failed: 'Copy failed',
+    forward: 'Forward',
+  },
+  forward: {
+    title: 'Forward to…',
+    sent: 'Forwarded',
+  },
+  member_menu: {
+    send_message: 'Send message',
+    mention: 'Mention',
+    set_admin: 'Set as admin',
+    unset_admin: 'Remove admin',
+    remove: 'Remove from group',
   },
   composer: {
     placeholder_enter: 'Type a message. Enter to send / Shift+Enter for newline',

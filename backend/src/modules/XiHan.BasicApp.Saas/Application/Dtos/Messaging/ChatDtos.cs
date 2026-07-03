@@ -257,6 +257,27 @@ public sealed class ChatOwnerTransferDto
 }
 
 /// <summary>
+/// 成员角色设置 DTO（仅群主；Admin ↔ Member）
+/// </summary>
+public sealed class ChatMemberRoleDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 目标用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 目标角色（仅 Admin/Member）
+    /// </summary>
+    public ChatMemberRole MemberRole { get; set; } = ChatMemberRole.Member;
+}
+
+/// <summary>
 /// 成员禁言 DTO
 /// </summary>
 public sealed class ChatMemberSilenceDto

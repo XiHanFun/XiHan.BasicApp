@@ -296,6 +296,19 @@ public sealed class ChatAppService
         await PushGovernanceAsync(result, "member-silenced");
     }
 
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
+    public async Task SetMemberRoleAsync(ChatMemberRoleDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _chatDomainService.SetMemberRoleAsync(
+            new ChatMemberRoleCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.UserId, input.MemberRole), cancellationToken);
+        await PushGovernanceAsync(result, "member-role-changed");
+    }
+
     /// <summary>
     /// 群治理推送：会话变更通知 + 可选系统提示消息（时间线实时可见）
     /// </summary>
