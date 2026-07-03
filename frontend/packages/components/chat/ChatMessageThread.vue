@@ -168,6 +168,14 @@ const ctxX = ref(0)
 const ctxY = ref(0)
 const ctxMessage = ref<ChatLocalMessage | null>(null)
 
+// 头像右键成员菜单状态（与消息菜单互斥，函数定义见下方成员菜单段）
+const memberCtxShow = ref(false)
+const memberCtxX = ref(0)
+const memberCtxY = ref(0)
+const memberTarget = ref<ChatLocalMessage | null>(null)
+const memberTargetRole = ref<ChatMemberRole | null>(null)
+const memberTargetSilenced = ref(false)
+
 const ctxItems = computed<ChatContextMenuItem[]>(() => {
   const target = ctxMessage.value
   if (!target) {
@@ -199,6 +207,7 @@ function openContextMenu(event: MouseEvent, item: ChatLocalMessage) {
     return
   }
   event.preventDefault()
+  memberCtxShow.value = false
   ctxMessage.value = item
   ctxX.value = event.clientX
   ctxY.value = event.clientY
@@ -216,14 +225,7 @@ function handleCtxReact(emoji: string) {
 const showForward = ref(false)
 const forwardTarget = ref<ChatLocalMessage | null>(null)
 
-// ===== 头像右键成员菜单（QQ 式） =====
-
-const memberCtxShow = ref(false)
-const memberCtxX = ref(0)
-const memberCtxY = ref(0)
-const memberTarget = ref<ChatLocalMessage | null>(null)
-const memberTargetRole = ref<ChatMemberRole | null>(null)
-const memberTargetSilenced = ref(false)
+// ===== 头像右键成员菜单（QQ 式；状态 refs 声明在消息菜单段旁） =====
 
 async function openMemberMenu(event: MouseEvent, item: ChatLocalMessage) {
   const convId = conversationId.value
@@ -231,6 +233,7 @@ async function openMemberMenu(event: MouseEvent, item: ChatLocalMessage) {
     return
   }
   event.preventDefault()
+  ctxShow.value = false
   memberTarget.value = item
   memberTargetRole.value = null
   memberTargetSilenced.value = false

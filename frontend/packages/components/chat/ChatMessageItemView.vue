@@ -114,10 +114,11 @@ async function handleDownload() {
 
   <!-- 普通消息行（本人头像取当前用户资料，在右侧；他人取消息快照名首字，在左侧，右键弹成员菜单） -->
   <div v-else class="group my-1.5 flex gap-2" :class="isSelf ? 'flex-row-reverse' : 'flex-row'">
+    <!-- 头像右键独立成员菜单：stop 阻断冒泡（否则消息菜单同时弹出）；本人头像不弹任何菜单 -->
     <span
       class="shrink-0"
       :class="{ 'cursor-pointer': !isSelf }"
-      @contextmenu="!isSelf && emit('avatarContextmenu', $event)"
+      @contextmenu.stop.prevent="!isSelf && emit('avatarContextmenu', $event)"
     >
       <XUserAvatar
         :avatar="isSelf ? userStore.avatar : null"
