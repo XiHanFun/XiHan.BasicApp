@@ -164,7 +164,7 @@ function handleItemAction(key: string) {
                   height="11"
                   class="shrink-0 text-primary/70"
                 />
-                <span class="truncate text-[13px] font-medium text-foreground">{{ conv.displayName }}</span>
+                <span class="truncate text-[13px] font-semibold text-foreground">{{ conv.displayName }}</span>
               </span>
               <span class="shrink-0 text-[11px] text-muted-foreground">
                 {{ formatConversationTime(t, conv.lastMessageTime) }}
