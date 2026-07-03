@@ -654,8 +654,9 @@ onBeforeUnmount(() => {
       </span>
       <NPopover trigger="click" placement="bottom-end" style="max-width: 340px">
         <template #trigger>
-          <button type="button" class="chat-thread-btn h-6 w-auto px-1.5 text-[11px]">
-            {{ t('chat.thread.pinned_count', { n: pinnedList.length }) }}
+          <button type="button" class="chat-thread-btn h-6 w-auto gap-0.5 px-1.5 text-[11px]" :title="t('chat.thread.pinned_count', { n: pinnedList.length })">
+            {{ pinnedList.length }}
+            <Icon icon="lucide:chevron-down" width="12" height="12" />
           </button>
         </template>
         <div class="flex max-h-64 flex-col gap-1 overflow-y-auto">
