@@ -3,8 +3,6 @@ import { markRaw } from 'vue'
 import AnnouncementWidget from './AnnouncementWidget.vue'
 import ClockWidget from './ClockWidget.vue'
 import FavoritesWidget from './FavoritesWidget.vue'
-import QuickLinksWidget from './QuickLinksWidget.vue'
-import RecentActivityWidget from './RecentActivityWidget.vue'
 import StatsWidget from './StatsWidget.vue'
 import TodoWidget from './TodoWidget.vue'
 import WelcomeWidget from './WelcomeWidget.vue'
@@ -23,14 +21,12 @@ export interface WidgetDef {
 
 /** 小组件登记表：新增小组件只需在此追加一项 */
 export const WIDGETS: WidgetDef[] = [
-  { key: 'announcement', titleKey: 'workbench.widgets.announcement.title', descKey: 'workbench.widgets.announcement.desc', icon: 'lucide:megaphone', defaultSpan: 12, component: markRaw(AnnouncementWidget) },
-  { key: 'stats', titleKey: 'workbench.widgets.stats.title', descKey: 'workbench.widgets.stats.desc', icon: 'lucide:gauge', defaultSpan: 12, component: markRaw(StatsWidget), permission: 'saas:user-statistics:read' },
-  { key: 'favorites', titleKey: 'workbench.widgets.favorites.title', descKey: 'workbench.widgets.favorites.desc', icon: 'lucide:star', defaultSpan: 8, component: markRaw(FavoritesWidget) },
-  { key: 'recentActivity', titleKey: 'workbench.widgets.recent_activity.title', descKey: 'workbench.widgets.recent_activity.desc', icon: 'lucide:clock', defaultSpan: 4, component: markRaw(RecentActivityWidget) },
   { key: 'clock', titleKey: 'workbench.widgets.clock.title', descKey: 'workbench.widgets.clock.desc', icon: 'lucide:clock', defaultSpan: 2, component: markRaw(ClockWidget) },
-  { key: 'welcome', titleKey: 'workbench.widgets.welcome.title', descKey: 'workbench.widgets.welcome.desc', icon: 'lucide:sparkles', defaultSpan: 3, component: markRaw(WelcomeWidget) },
+  { key: 'welcome', titleKey: 'workbench.widgets.welcome.title', descKey: 'workbench.widgets.welcome.desc', icon: 'lucide:sparkles', defaultSpan: 4, component: markRaw(WelcomeWidget) },
+  { key: 'stats', titleKey: 'workbench.widgets.stats.title', descKey: 'workbench.widgets.stats.desc', icon: 'lucide:gauge', defaultSpan: 3, component: markRaw(StatsWidget), permission: 'saas:user-statistics:read' },
+  { key: 'favorites', titleKey: 'workbench.widgets.favorites.title', descKey: 'workbench.widgets.favorites.desc', icon: 'lucide:star', defaultSpan: 3, component: markRaw(FavoritesWidget) },
   { key: 'todo', titleKey: 'workbench.widgets.todo.title', descKey: 'workbench.widgets.todo.desc', icon: 'lucide:check-square', defaultSpan: 3, component: markRaw(TodoWidget) },
-  { key: 'quickLinks', titleKey: 'workbench.widgets.quick_links.title', descKey: 'workbench.widgets.quick_links.desc', icon: 'lucide:zap', defaultSpan: 4, component: markRaw(QuickLinksWidget) },
+  { key: 'announcement', titleKey: 'workbench.widgets.announcement.title', descKey: 'workbench.widgets.announcement.desc', icon: 'lucide:megaphone', defaultSpan: 6, component: markRaw(AnnouncementWidget) },
 ]
 
 export const WIDGET_MAP: Record<string, WidgetDef> = Object.fromEntries(WIDGETS.map(widget => [widget.key, widget]))
@@ -41,10 +37,5 @@ export interface BoardItem {
   span: number
 }
 
-/** 默认看板（原仪表盘布局）：公告轮播 + 统计卡 + 收藏入口 + 最近动态 */
-export const DEFAULT_BOARD: BoardItem[] = [
-  { key: 'announcement', span: 12 },
-  { key: 'stats', span: 12 },
-  { key: 'favorites', span: 8 },
-  { key: 'recentActivity', span: 4 },
-]
+/** 默认看板：时间(2) 欢迎(4) 今日统计(3) 收藏入口(3) / 便签待办(3) 公告轮播(6) */
+export const DEFAULT_BOARD: BoardItem[] = WIDGETS.map(widget => ({ key: widget.key, span: widget.defaultSpan }))

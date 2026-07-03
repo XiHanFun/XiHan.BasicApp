@@ -32,11 +32,7 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class WorkbenchQueryService
     : SaasApplicationService, IWorkbenchQueryService
 {
-    private const int LatestInboxCount = 5;
-
     private readonly IUserStatisticsRepository _userStatisticsRepository;
-
-    private readonly IUserInboxAppService _userInboxAppService;
 
     private readonly ICurrentUser _currentUser;
 
@@ -45,11 +41,9 @@ public sealed class WorkbenchQueryService
     /// </summary>
     public WorkbenchQueryService(
         IUserStatisticsRepository userStatisticsRepository,
-        IUserInboxAppService userInboxAppService,
         ICurrentUser currentUser)
     {
         _userStatisticsRepository = userStatisticsRepository;
-        _userInboxAppService = userInboxAppService;
         _currentUser = currentUser;
     }
 
@@ -62,12 +56,10 @@ public sealed class WorkbenchQueryService
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var statistics = await GetTodayStatisticsAsync(userId, today, cancellationToken);
-        var inboxItems = await _userInboxAppService.GetListAsync(unreadOnly: true, cancellationToken);
 
         return new WorkbenchDashboardSummaryDto
         {
             GeneratedTime = DateTimeOffset.UtcNow,
-            Inbox = BuildInboxSummary(inboxItems),
             Statistics = BuildStatisticsSummary(statistics, today)
         };
     }
@@ -96,19 +88,6 @@ public sealed class WorkbenchQueryService
             OperationCount = statistics.OperationCount,
             Period = statistics.Period,
             StatisticsDate = statistics.StatisticsDate
-        };
-    }
-
-    private static WorkbenchInboxSummaryDto BuildInboxSummary(IReadOnlyCollection<UserInboxItemDto> inboxItems)
-    {
-        return new WorkbenchInboxSummaryDto
-        {
-            LatestItems = [.. inboxItems
-                .OrderByDescending(item => item.SendTime)
-                .ThenByDescending(item => item.BasicId)
-                .Take(LatestInboxCount)],
-            PendingConfirmCount = inboxItems.Count(item => item.NeedConfirm && !item.ConfirmTime.HasValue),
-            UnreadCount = inboxItems.Count(item => item.NotificationStatus == (int)NotificationStatus.Unread)
         };
     }
 
