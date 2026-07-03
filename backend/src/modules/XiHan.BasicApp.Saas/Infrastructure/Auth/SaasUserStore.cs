@@ -327,12 +327,13 @@ public sealed class SaasUserStore : IUserStore
         }
 
         var db = _clientResolver.GetCurrentClient();
-        var lockoutEndTime = await db.Queryable<SysUserSecurity>()
+        // 取整行走实体属性绑定：DateTimeOffset? 列的标量投影会走 SqlSugar 值类型 ChangeType 路径，
+        // DateTime→DateTimeOffset 直转抛 InvalidCastException（LockoutEndTime 非空时所有登录 500）
+        var security = await db.Queryable<SysUserSecurity>()
             .Where(s => s.UserId == userId && !s.IsDeleted)
-            .Select(s => s.LockoutEndTime)
             .FirstAsync(cancellationToken);
 
-        return lockoutEndTime?.UtcDateTime;
+        return security?.LockoutEndTime?.UtcDateTime;
     }
 
     /// <summary>
