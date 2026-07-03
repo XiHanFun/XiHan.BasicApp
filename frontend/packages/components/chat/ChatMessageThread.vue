@@ -120,6 +120,10 @@ const canPin = computed(() => {
 const pinnedList = computed(() =>
   conversationId.value ? chatStore.pinnedMessages[conversationId.value] ?? [] : [])
 
+/** 公告首行（横条内单行预览，全文在弹层） */
+const announcementFirstLine = computed(() =>
+  (conversation.value?.announcement ?? '').split('\n')[0] ?? '')
+
 /** 本人消息已读回执：已读位加载前为 null（不显示） */
 function readCountOf(item: ChatLocalMessage): null | number {
   const id = conversationId.value
@@ -616,6 +620,30 @@ onBeforeUnmount(() => {
       <div v-else-if="searchKeyword.trim()" class="py-3 text-center text-xs text-muted-foreground">
         {{ t('chat.thread.search_empty') }}
       </div>
+    </div>
+
+    <!-- 群公告横条（同置顶栏样式，点开看全文，换行经 pre-wrap 正确渲染） -->
+    <div v-if="isGroupLike && conversation.announcement" class="border-b border-border bg-amber-500/5">
+      <NPopover trigger="click" placement="bottom" style="max-width: 380px" :show-arrow="false">
+        <template #trigger>
+          <button type="button" class="flex w-full items-center gap-2 px-3 py-1.5 text-left">
+            <Icon icon="lucide:megaphone" width="13" height="13" class="shrink-0 text-amber-500" />
+            <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              {{ announcementFirstLine }}
+            </span>
+            <Icon icon="lucide:chevron-down" width="12" height="12" class="shrink-0 text-muted-foreground/60" />
+          </button>
+        </template>
+        <div class="max-h-64 overflow-y-auto">
+          <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+            <Icon icon="lucide:megaphone" width="13" height="13" class="text-amber-500" />
+            {{ t('chat.members.announcement_title') }}
+          </div>
+          <div class="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
+            {{ conversation.announcement }}
+          </div>
+        </div>
+      </NPopover>
     </div>
 
     <!-- Pin 消息栏 -->

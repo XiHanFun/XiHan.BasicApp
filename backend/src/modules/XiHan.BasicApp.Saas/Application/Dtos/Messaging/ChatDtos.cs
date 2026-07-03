@@ -238,6 +238,11 @@ public sealed class ChatConversationInfoUpdateDto
     /// 群描述（null 不改；空串清空）
     /// </summary>
     public string? Description { get; set; }
+
+    /// <summary>
+    /// 群头像（文件主键或直链；null 不改；空串清空）
+    /// </summary>
+    public string? Avatar { get; set; }
 }
 
 /// <summary>

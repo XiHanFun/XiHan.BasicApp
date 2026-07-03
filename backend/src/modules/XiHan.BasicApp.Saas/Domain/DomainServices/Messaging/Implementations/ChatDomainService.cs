@@ -624,6 +624,11 @@ public sealed class ChatDomainService : IChatDomainService
             conversation.Description = Optional(command.Description, 500);
         }
 
+        if (command.Avatar is not null)
+        {
+            conversation.Avatar = Optional(command.Avatar, 500);
+        }
+
         conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
 
         SysChatMessage? systemMessage = null;

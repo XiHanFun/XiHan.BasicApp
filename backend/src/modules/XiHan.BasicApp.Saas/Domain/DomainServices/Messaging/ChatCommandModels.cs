@@ -77,14 +77,15 @@ public sealed record ChatMessagePinCommand(long MessageId, long OperatorUserId, 
 public sealed record ChatMemberToggleCommand(long ConversationId, long UserId);
 
 /// <summary>
-/// 群信息更新命令（群聊可改名；部门群名称随部门禁改；公告变更追加系统提示）
+/// 群信息更新命令（群聊可改名；部门群名称随部门禁改；公告变更追加系统提示；Avatar 为文件主键或直链）
 /// </summary>
 public sealed record ChatConversationInfoUpdateCommand(
     long ConversationId,
     long OperatorUserId,
     string? ConversationName,
     string? Announcement,
-    string? Description);
+    string? Description,
+    string? Avatar = null);
 
 /// <summary>
 /// 转让群主命令（仅群聊、仅群主；旧主降为普通成员）
