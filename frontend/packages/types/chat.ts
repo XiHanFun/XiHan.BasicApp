@@ -264,6 +264,8 @@ export interface ChatApiContract {
   updateConversationInfo: (input: ChatConversationInfoUpdateInput) => Promise<void>
   transferOwner: (conversationId: string, newOwnerUserId: string) => Promise<void>
   setMemberSilence: (conversationId: string, userId: string, isSilenced: boolean) => Promise<void>
+  /** 设置成员角色（仅群主；Admin ↔ Member） */
+  setMemberRole: (conversationId: string, userId: string, memberRole: 'Admin' | 'Member') => Promise<void>
   myConversations: () => Promise<ChatConversationListItem[]>
   messageHistory: (query: ChatMessageHistoryQuery) => Promise<ChatMessageHistoryResult>
   /** 会话内消息搜索（关键字匹配正文与文件名，排除已撤回） */

@@ -98,4 +98,9 @@ public interface IChatDomainService
     /// 成员禁言/解除（群主与管理员可操作普通成员；被禁言者发送/编辑被拦截）
     /// </summary>
     Task<ChatGovernanceResult> SetMemberSilenceAsync(ChatMemberSilenceCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 设置成员角色（仅群聊、仅群主；只能在管理员与普通成员之间切换）
+    /// </summary>
+    Task<ChatGovernanceResult> SetMemberRoleAsync(ChatMemberRoleCommand command, CancellationToken cancellationToken = default);
 }

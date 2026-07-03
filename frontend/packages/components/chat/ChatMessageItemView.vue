@@ -30,6 +30,8 @@ const emit = defineEmits<{
   retry: []
   remove: []
   react: [emoji: string]
+  /** 右键他人头像（QQ 式成员菜单，由消息流统一承载） */
+  avatarContextmenu: [event: MouseEvent]
 }>()
 
 const { t } = useI18n()
@@ -110,13 +112,19 @@ async function handleDownload() {
     </span>
   </div>
 
-  <!-- 普通消息行（本人头像取当前用户资料，在右侧；他人取消息快照名首字，在左侧） -->
+  <!-- 普通消息行（本人头像取当前用户资料，在右侧；他人取消息快照名首字，在左侧，右键弹成员菜单） -->
   <div v-else class="group my-1.5 flex gap-2" :class="isSelf ? 'flex-row-reverse' : 'flex-row'">
-    <XUserAvatar
-      :avatar="isSelf ? userStore.avatar : null"
-      :name="isSelf ? (userStore.nickname || userStore.username) : message.senderUserName"
-      :size="30"
-    />
+    <span
+      class="shrink-0"
+      :class="{ 'cursor-pointer': !isSelf }"
+      @contextmenu="!isSelf && emit('avatarContextmenu', $event)"
+    >
+      <XUserAvatar
+        :avatar="isSelf ? userStore.avatar : null"
+        :name="isSelf ? (userStore.nickname || userStore.username) : message.senderUserName"
+        :size="30"
+      />
+    </span>
     <div class="flex max-w-[86%] min-w-0 flex-col sm:max-w-[72%]" :class="isSelf ? 'items-end' : 'items-start'">
       <!-- 群聊双侧都显示昵称（本人取当前用户资料，右对齐），与对方样式一致 -->
       <div v-if="showSenderName" class="mb-0.5 px-1 text-[11px] text-muted-foreground">

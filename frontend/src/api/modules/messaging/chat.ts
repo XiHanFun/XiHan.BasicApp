@@ -92,6 +92,10 @@ export const chatApi = {
   setMemberSilence(conversationId: string, userId: string, isSilenced: boolean) {
     return chatCommandApi.post<void>('SetMemberSilence', { conversationId, userId, isSilenced })
   },
+  /** SetMemberRoleAsync → POST /Chat/SetMemberRole（仅群主；Admin ↔ Member） */
+  setMemberRole(conversationId: string, userId: string, memberRole: 'Admin' | 'Member') {
+    return chatCommandApi.post<void>('SetMemberRole', { conversationId, userId, memberRole })
+  },
   /** GetMyConversationsAsync：Get 前缀剥离 → GET /ChatQuery/MyConversations */
   myConversations() {
     return chatQueryApi.get<ChatConversationListItem[]>('MyConversations')

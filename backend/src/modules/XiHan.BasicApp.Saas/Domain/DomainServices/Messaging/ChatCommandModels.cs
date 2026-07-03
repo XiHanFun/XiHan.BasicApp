@@ -97,6 +97,11 @@ public sealed record ChatOwnerTransferCommand(long ConversationId, long Operator
 public sealed record ChatMemberSilenceCommand(long ConversationId, long OperatorUserId, long TargetUserId, bool IsSilenced);
 
 /// <summary>
+/// 成员角色设置命令（仅群主可设/撤管理员）
+/// </summary>
+public sealed record ChatMemberRoleCommand(long ConversationId, long OperatorUserId, long TargetUserId, ChatMemberRole MemberRole);
+
+/// <summary>
 /// 群治理结果（SystemMessage 非空时随消息链路推送时间线提示）
 /// </summary>
 public sealed record ChatGovernanceResult(SysChatConversation Conversation, SysChatMessage? SystemMessage, IReadOnlyList<long> RecipientUserIds);

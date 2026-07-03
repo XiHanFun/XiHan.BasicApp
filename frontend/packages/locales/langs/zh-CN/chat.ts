@@ -76,6 +76,18 @@ export default {
     copy: '复制',
     copied: '已复制',
     copy_failed: '复制失败',
+    forward: '转发',
+  },
+  forward: {
+    title: '转发给…',
+    sent: '已转发',
+  },
+  member_menu: {
+    send_message: '发送消息',
+    mention: '@ TA',
+    set_admin: '设为管理员',
+    unset_admin: '取消管理员',
+    remove: '移出本群',
   },
   composer: {
     placeholder_enter: '输入消息，Enter 发送 / Shift+Enter 换行',

@@ -90,6 +90,24 @@ watch(isEditing, (editing) => {
   }
 })
 
+// 头像菜单「@TA」→ 在光标处插入提及
+watch(() => chatStore.mentionRequest, (request) => {
+  if (!request || request.conversationId !== props.conversationId || isEditing.value) {
+    return
+  }
+  const name = request.userName || request.userId
+  const textarea = textInputRef.value?.textareaElRef
+  const pos = textarea?.selectionStart ?? draft.value.length
+  draft.value = `${draft.value.slice(0, pos)}@${name} ${draft.value.slice(pos)}`
+  mentionDrafts.set(name, request.userId)
+  chatStore.setDraft(props.conversationId, draft.value)
+  void nextTick(() => {
+    textarea?.focus()
+    const caret = pos + name.length + 2
+    textarea?.setSelectionRange(caret, caret)
+  })
+})
+
 function buildReplyPreview(): null | string {
   const target = replyTarget.value
   if (!target) {

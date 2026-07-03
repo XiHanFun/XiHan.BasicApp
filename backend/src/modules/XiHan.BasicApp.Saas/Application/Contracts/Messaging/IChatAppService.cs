@@ -106,4 +106,9 @@ public interface IChatAppService : IApplicationService
     /// 成员禁言/解除（群主与管理员）
     /// </summary>
     Task SetMemberSilenceAsync(ChatMemberSilenceDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 设置成员角色（仅群主；Admin ↔ Member）
+    /// </summary>
+    Task SetMemberRoleAsync(ChatMemberRoleDto input, CancellationToken cancellationToken = default);
 }

@@ -708,6 +708,49 @@ public sealed class ChatDomainService : IChatDomainService
         return new ChatGovernanceResult(conversation, SystemMessage: null, [.. members.Select(member => member.UserId)]);
     }
 
+    /// <inheritdoc />
+    public async Task<ChatGovernanceResult> SetMemberRoleAsync(ChatMemberRoleCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var conversation = await GetConversationOrThrowAsync(command.ConversationId, cancellationToken);
+        if (conversation.ConversationType != ChatConversationType.Group)
+        {
+            throw new InvalidOperationException("仅群聊支持设置管理员。");
+        }
+
+        if (conversation.OwnerUserId != command.OperatorUserId)
+        {
+            throw new InvalidOperationException("仅群主可设置管理员。");
+        }
+
+        if (command.TargetUserId == command.OperatorUserId)
+        {
+            throw new InvalidOperationException("不能修改自己的角色。");
+        }
+
+        if (command.MemberRole is not (ChatMemberRole.Admin or ChatMemberRole.Member))
+        {
+            throw new InvalidOperationException("只能在管理员与普通成员之间切换。");
+        }
+
+        var target = await GetMemberOrThrowAsync(conversation.BasicId, command.TargetUserId, "该用户不是会话成员。", cancellationToken);
+        if (target.MemberRole == ChatMemberRole.Owner)
+        {
+            throw new InvalidOperationException("不能修改群主的角色。");
+        }
+
+        if (target.MemberRole != command.MemberRole)
+        {
+            target.MemberRole = command.MemberRole;
+            _ = await _memberRepository.UpdateAsync(target, cancellationToken);
+        }
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        return new ChatGovernanceResult(conversation, SystemMessage: null, [.. members.Select(member => member.UserId)]);
+    }
+
     /// <summary>
     /// 追加系统提示消息（SenderUserId=0；刷新会话预览但不增加成员未读）
     /// </summary>
