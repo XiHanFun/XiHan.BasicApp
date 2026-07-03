@@ -18,6 +18,7 @@ export default {
   message: 'Message Center',
   message_notification: 'Announcements',
   message_chat: 'Chat',
+  message_chat_audit: 'Chat Audit',
   message_record: 'Email & SMS',
   message_template: 'Message Templates',
   message_email_config: 'Email Config',

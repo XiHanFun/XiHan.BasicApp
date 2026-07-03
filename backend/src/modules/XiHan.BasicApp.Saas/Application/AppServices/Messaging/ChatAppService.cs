@@ -41,6 +41,8 @@ public sealed class ChatAppService
 
     private readonly IChatRealtimePushService _pushService;
 
+    private readonly IChatSensitiveWordGuard _sensitiveWordGuard;
+
     private readonly ICurrentUser _currentUser;
 
     /// <summary>
@@ -49,10 +51,12 @@ public sealed class ChatAppService
     public ChatAppService(
         IChatDomainService chatDomainService,
         IChatRealtimePushService pushService,
+        IChatSensitiveWordGuard sensitiveWordGuard,
         ICurrentUser currentUser)
     {
         _chatDomainService = chatDomainService;
         _pushService = pushService;
+        _sensitiveWordGuard = sensitiveWordGuard;
         _currentUser = currentUser;
     }
 
@@ -130,6 +134,7 @@ public sealed class ChatAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _sensitiveWordGuard.EnsureAllowedAsync(input.Content, cancellationToken);
         var result = await _chatDomainService.SendMessageAsync(
             ChatApplicationMapper.ToSendCommand(input, GetCurrentUserIdOrThrow()), cancellationToken);
         var messageDto = ChatApplicationMapper.ToMessageItemDto(result.Message);
@@ -157,6 +162,7 @@ public sealed class ChatAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _sensitiveWordGuard.EnsureAllowedAsync(input.Content, cancellationToken);
         var result = await _chatDomainService.EditMessageAsync(
             new ChatMessageEditCommand(input.MessageId, GetCurrentUserIdOrThrow(), input.Content), cancellationToken);
         await _pushService.PushMessageEditedAsync(

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Dtos;
@@ -587,6 +588,108 @@ public sealed class ChatReadPositionDto
     /// 最后已读消息ID
     /// </summary>
     public long? LastReadMessageId { get; set; }
+}
+
+/// <summary>
+/// 聊天审计分页查询 DTO（管理侧跨会话，权限 saas:chat:audit）
+/// </summary>
+public sealed class ChatAuditPageQueryDto : BasicAppPRDto
+{
+    /// <summary>
+    /// 关键字（正文/发送人用户名/文件名）
+    /// </summary>
+    public string? Keyword { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long? ConversationId { get; set; }
+
+    /// <summary>
+    /// 发送人用户ID
+    /// </summary>
+    public long? SenderUserId { get; set; }
+
+    /// <summary>
+    /// 发送时间起
+    /// </summary>
+    public DateTimeOffset? CreatedTimeStart { get; set; }
+
+    /// <summary>
+    /// 发送时间止
+    /// </summary>
+    public DateTimeOffset? CreatedTimeEnd { get; set; }
+
+    /// <summary>
+    /// 是否包含已撤回消息（默认包含）
+    /// </summary>
+    public bool IncludeRecalled { get; set; } = true;
+}
+
+/// <summary>
+/// 聊天审计列表项 DTO
+/// </summary>
+public sealed class ChatAuditListItemDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long BasicId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 会话名称（单聊为空）
+    /// </summary>
+    public string? ConversationName { get; set; }
+
+    /// <summary>
+    /// 会话类型
+    /// </summary>
+    public ChatConversationType ConversationType { get; set; }
+
+    /// <summary>
+    /// 发送人用户ID（系统提示为 0）
+    /// </summary>
+    public long SenderUserId { get; set; }
+
+    /// <summary>
+    /// 发送人用户名（快照）
+    /// </summary>
+    public string? SenderUserName { get; set; }
+
+    /// <summary>
+    /// 消息类型
+    /// </summary>
+    public ChatMessageType MessageType { get; set; }
+
+    /// <summary>
+    /// 消息内容
+    /// </summary>
+    public string? Content { get; set; }
+
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    public string? FileName { get; set; }
+
+    /// <summary>
+    /// 是否已撤回
+    /// </summary>
+    public bool IsRecalled { get; set; }
+
+    /// <summary>
+    /// 编辑时间
+    /// </summary>
+    public DateTimeOffset? EditedTime { get; set; }
+
+    /// <summary>
+    /// 发送时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
 }
 
 /// <summary>
