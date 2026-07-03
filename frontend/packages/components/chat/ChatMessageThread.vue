@@ -11,7 +11,7 @@ import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { CHAT_EDIT_WINDOW_MINUTES, CHAT_RECALL_WINDOW_MINUTES } from '~/types'
 import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
-import { formatMessageTime } from './chat-helpers'
+import { formatMessageTime, messageBodyLabel } from './chat-helpers'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
@@ -609,7 +609,7 @@ onBeforeUnmount(() => {
             <span class="text-[11px] text-muted-foreground">{{ hit.senderUserName }} · {{ formatMessageTime(hit.createdTime) }}</span>
             <span class="text-[11px] text-primary">{{ t('chat.thread.locate') }}</span>
           </span>
-          <span class="block truncate text-left text-xs text-foreground">{{ hit.content || hit.fileName || '' }}</span>
+          <span class="block truncate text-left text-xs text-foreground">{{ messageBodyLabel(hit) }}</span>
         </button>
         <div v-if="searchHasMore" class="flex justify-center py-1">
           <NButton text size="tiny" @click="runSearch(true)">
@@ -650,7 +650,7 @@ onBeforeUnmount(() => {
     <div v-if="pinnedList.length" class="flex items-center gap-2 border-b border-border bg-primary/5 px-3 py-1.5">
       <Icon icon="lucide:pin" width="13" height="13" class="shrink-0 text-primary" />
       <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-        {{ pinnedList[0]?.content || pinnedList[0]?.fileName || '' }}
+        {{ pinnedList[0] ? messageBodyLabel(pinnedList[0]) : '' }}
       </span>
       <NPopover trigger="click" placement="bottom-end" style="max-width: 340px">
         <template #trigger>
@@ -670,7 +670,7 @@ onBeforeUnmount(() => {
                 {{ pinnedItem.senderUserName }} · {{ formatMessageTime(pinnedItem.createdTime) }}
               </div>
               <div class="truncate text-xs text-foreground">
-                {{ pinnedItem.content || pinnedItem.fileName || '' }}
+                {{ messageBodyLabel(pinnedItem) }}
               </div>
             </div>
             <button

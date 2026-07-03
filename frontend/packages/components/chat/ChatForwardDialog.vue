@@ -10,7 +10,7 @@ import XUserAvatar from '../common/UserAvatar.vue'
 defineOptions({ name: 'ChatForwardDialog' })
 
 const props = defineProps<{
-  /** 待转发的消息（文本原样重发；图片/文件复用 fileId） */
+  /** 待转发的消息（文本原样重发；图片/文件复用附件列表） */
   message: ChatLocalMessage | null
 }>()
 
@@ -49,9 +49,7 @@ async function handleForward(conversationId: string) {
       conversationId,
       messageType: target.messageType,
       content: target.content,
-      fileId: target.fileId,
-      fileName: target.fileName,
-      fileSize: target.fileSize,
+      attachments: target.attachments,
     })
     show.value = false
     message$.success(t('chat.forward.sent'))

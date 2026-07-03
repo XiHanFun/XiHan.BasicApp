@@ -14,6 +14,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useSignalR } from '~/composables'
 import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH } from '~/constants'
+import { ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 import { useUserStore } from './user'
@@ -264,7 +265,16 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function previewOf(message: ChatMessageItem): string {
-    const text = message.content || message.fileName || ''
+    const count = message.attachments?.length ?? 0
+    let text = message.content || ''
+    if (!text) {
+      if (message.messageType === ChatMessageType.Image) {
+        text = count > 1 ? `[图片] ${count}张` : '[图片]'
+      }
+      else if (count > 0) {
+        text = count > 1 ? `[文件] ${count}个` : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
+      }
+    }
     return text.length > 60 ? `${text.slice(0, 60)}…` : text
   }
 
@@ -316,9 +326,7 @@ export const useChatStore = defineStore('chat', () => {
       senderUserName: userStore.nickname || userStore.username,
       messageType: input.messageType,
       content: input.content,
-      fileId: input.fileId,
-      fileName: input.fileName,
-      fileSize: input.fileSize,
+      attachments: input.attachments ?? [],
       isRecalled: false,
       clientMessageId,
       createdTime: new Date().toISOString(),
@@ -357,9 +365,7 @@ export const useChatStore = defineStore('chat', () => {
         conversationId,
         messageType: item.messageType,
         content: item.content,
-        fileId: item.fileId,
-        fileName: item.fileName,
-        fileSize: item.fileSize,
+        attachments: item.attachments,
         replyToMessageId: item.replyToMessageId,
         mentionedUserIds: item.mentionedUserIds,
         clientMessageId,

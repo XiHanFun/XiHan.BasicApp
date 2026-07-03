@@ -18,6 +18,7 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
@@ -72,7 +73,7 @@ public sealed class ChatAuditQueryService
             .WhereIF(!string.IsNullOrEmpty(keyword), message =>
                 message.Content!.Contains(keyword!)
                 || message.SenderUserName!.Contains(keyword!)
-                || message.FileName!.Contains(keyword!));
+                || message.Attachments!.Contains(keyword!));
 
         // 前端选择的排序/区间过滤原样带入，无有效排序回退按发送时间倒序
         query = query.ApplyFilters(input.Conditions.Filters);
@@ -110,12 +111,24 @@ public sealed class ChatAuditQueryService
                 SenderUserName = message.SenderUserName,
                 MessageType = message.MessageType,
                 Content = message.Content,
-                FileName = message.FileName,
+                FileName = BuildAttachmentSummary(message.Attachments),
                 IsRecalled = message.IsRecalled,
                 EditedTime = message.EditedTime,
                 CreatedTime = message.CreatedTime
             };
         }).ToList();
         return new PageResultDtoBase<ChatAuditListItemDto>(items, page);
+    }
+
+    /// <summary>
+    /// 附件列表 JSON → 审计展示用文件名摘要（多附件以逗号连接，无附件返回 null）
+    /// </summary>
+    private static string? BuildAttachmentSummary(string? attachmentsJson)
+    {
+        var names = ChatMessageAttachments.Deserialize(attachmentsJson)
+            .Select(attachment => attachment.FileName)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToList();
+        return names.Count > 0 ? string.Join("，", names) : null;
     }
 }

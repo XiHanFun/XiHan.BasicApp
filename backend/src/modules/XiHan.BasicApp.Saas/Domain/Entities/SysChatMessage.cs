@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 关联：
-/// - ConversationId → SysChatConversation；SenderUserId → SysUser；FileId → SysFile（图片/文件消息）
+/// - ConversationId → SysChatConversation；SenderUserId → SysUser；Attachments 内 fileId → SysFile（图片/文件消息）
 ///
 /// 写入：
 /// - 只追加 + 撤回置标（IsRecalled=true 并清空 Content，保留行以维持时序）
@@ -79,22 +79,11 @@ public partial class SysChatMessage : BasicAppCreationEntity
     public virtual string? Content { get; set; }
 
     /// <summary>
-    /// 关联文件ID（图片/文件消息 → SysFile，经文件库预签名 URL 访问）
+    /// 附件列表 JSON（图片/文件消息至少一项，如 [{"fileId":1,"fileName":"a.png","fileSize":10}]；
+    /// fileId → SysFile 经文件库预签名 URL 访问，fileName/fileSize 为发送时快照）
     /// </summary>
-    [SugarColumn(ColumnName = "File_Id", ColumnDescription = "关联文件ID", IsNullable = true)]
-    public virtual long? FileId { get; set; }
-
-    /// <summary>
-    /// 文件名（冗余快照，列表展示免查文件表）
-    /// </summary>
-    [SugarColumn(ColumnName = "File_Name", ColumnDescription = "文件名", Length = 200, IsNullable = true)]
-    public virtual string? FileName { get; set; }
-
-    /// <summary>
-    /// 文件大小（字节，冗余快照）
-    /// </summary>
-    [SugarColumn(ColumnName = "File_Size", ColumnDescription = "文件大小", IsNullable = true)]
-    public virtual long? FileSize { get; set; }
+    [SugarColumn(ColumnName = "Attachments", ColumnDescription = "附件列表JSON", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = true)]
+    public virtual string? Attachments { get; set; }
 
     /// <summary>
     /// 是否已撤回（撤回置标并清空内容，保留行维持时序）

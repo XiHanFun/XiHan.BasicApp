@@ -55,6 +55,14 @@ export interface ChatReactionItem {
   userName?: null | string
 }
 
+/** 消息附件（图片/文件消息可带多个；发送前先上传换 fileId） */
+export interface ChatMessageAttachment {
+  fileId: string
+  fileName: string
+  /** 文件大小（字节） */
+  fileSize?: null | number
+}
+
 /** 消息项 */
 export interface ChatMessageItem {
   messageId: string
@@ -65,10 +73,8 @@ export interface ChatMessageItem {
   messageType: ChatMessageType
   /** 消息内容（已撤回为空） */
   content?: null | string
-  fileId?: null | string
-  fileName?: null | string
-  /** 文件大小（字节） */
-  fileSize?: null | number
+  /** 附件列表（图片消息可含多张；文本消息为空） */
+  attachments?: ChatMessageAttachment[] | null
   isRecalled: boolean
   /** 客户端消息ID（乐观上屏去重） */
   clientMessageId?: null | string
@@ -120,10 +126,8 @@ export interface ChatMessageSendInput {
   messageType: ChatMessageType
   /** 文本正文；图片/文件为可选说明 */
   content?: null | string
-  /** 图片/文件消息必填 */
-  fileId?: null | string
-  fileName?: null | string
-  fileSize?: null | number
+  /** 图片/文件消息必填至少一项（一条图片消息可含多张） */
+  attachments?: ChatMessageAttachment[] | null
   /** 客户端消息ID（乐观上屏去重） */
   clientMessageId?: null | string
   /** 被回复消息ID */

@@ -78,7 +78,7 @@ public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver
 
         var query = CreateQueryable()
             .Where(message => message.ConversationId == conversationId && !message.IsRecalled)
-            .Where(message => message.Content!.Contains(keyword) || message.FileName!.Contains(keyword));
+            .Where(message => message.Content!.Contains(keyword) || message.Attachments!.Contains(keyword));
         if (beforeMessageId is { } before && before > 0)
         {
             query = query.Where(message => message.BasicId < before);

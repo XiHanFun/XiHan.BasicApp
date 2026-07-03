@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownOption, InputInst } from 'naive-ui'
-import type { ChatMemberItem } from '~/types'
+import type { ChatMemberItem, ChatMessageAttachment } from '~/types'
 import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
 import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -11,6 +11,7 @@ import { CHAT_MAX_CONTENT_LENGTH, CHAT_MAX_MENTION_COUNT } from '~/types'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import XUserAvatar from '../common/UserAvatar.vue'
+import { messageBodyLabel } from './chat-helpers'
 
 defineOptions({ name: 'ChatComposer' })
 
@@ -143,9 +144,7 @@ function buildReplyPreview(): null | string {
   if (!target) {
     return null
   }
-  const body = target.content
-    || (target.messageType === ChatMessageType.Image ? '[图片]' : target.fileName ? `[文件] ${target.fileName}` : '')
-  return `${target.senderUserName ?? ''}: ${body}`.slice(0, 300)
+  return `${target.senderUserName ?? ''}: ${messageBodyLabel(target)}`.slice(0, 300)
 }
 
 /** 收集仍存在于正文中的 @ 名单 */
@@ -298,45 +297,75 @@ async function handleSendText() {
     return
   }
 
-  sending.value = true
-  try {
-    if (isEditing.value && chatStore.editTarget) {
+  // 编辑态只处理正文；无正文（仅附件）不进入编辑分支
+  if (isEditing.value && chatStore.editTarget) {
+    if (!content) {
+      return
+    }
+    sending.value = true
+    try {
       await chatStore.editMessage(props.conversationId, chatStore.editTarget.messageId, content)
       draft.value = chatStore.getDraft(props.conversationId)
     }
-    else {
-      // 待发附件按加入顺序逐个上传并发送；某个失败即中断，剩余附件与正文保留可重试
-      for (const attachment of [...attachments]) {
-        await uploadAndSend(attachment.file, attachment.messageType)
-        const index = attachments.indexOf(attachment)
-        if (index >= 0) {
-          attachments.splice(index, 1)
-        }
-        if (attachment.previewUrl) {
-          URL.revokeObjectURL(attachment.previewUrl)
-        }
+    catch {
+      // 请求层已有统一错误提示
+    }
+    finally {
+      sending.value = false
+    }
+    return
+  }
+
+  sending.value = true
+  try {
+    // 阶段一：上传全部待发附件并按类型分组（失败保留待发列表可重试）；成功后清空输入区
+    if (attachments.length) {
+      let images: ChatMessageAttachment[] = []
+      let files: ChatMessageAttachment[] = []
+      try {
+        ({ images, files } = await uploadPending(attachments))
       }
-      if (!content) {
+      catch {
+        message.error(t('chat.composer.upload_failed'))
         return
       }
-      const replyPreview = buildReplyPreview()
-      const replyToMessageId = replyTarget.value?.messageId ?? null
-      const mentionedUserIds = collectMentionIds(content)
-      draft.value = ''
-      chatStore.setDraft(props.conversationId, '')
-      chatStore.replyTarget = null
-      mentionDrafts.clear()
-      await chatStore.sendMessage({
-        conversationId: props.conversationId,
-        messageType: ChatMessageType.Text,
-        content,
-        replyToMessageId,
-        mentionedUserIds: mentionedUserIds.length ? mentionedUserIds : null,
-      }, { replyPreview })
+      clearPendingAttachments()
+      // 阶段二：图片合一条、文件合一条发送（发送失败以可重发气泡留在消息流）
+      if (images.length) {
+        await chatStore.sendMessage({
+          conversationId: props.conversationId,
+          messageType: ChatMessageType.Image,
+          content: null,
+          attachments: images,
+        }).catch(() => {})
+      }
+      if (files.length) {
+        await chatStore.sendMessage({
+          conversationId: props.conversationId,
+          messageType: ChatMessageType.File,
+          content: null,
+          attachments: files,
+        }).catch(() => {})
+      }
     }
-  }
-  catch {
-    // 失败条目留在消息流中可重发；请求层已有统一错误提示
+
+    if (!content) {
+      return
+    }
+    const replyPreview = buildReplyPreview()
+    const replyToMessageId = replyTarget.value?.messageId ?? null
+    const mentionedUserIds = collectMentionIds(content)
+    draft.value = ''
+    chatStore.setDraft(props.conversationId, '')
+    chatStore.replyTarget = null
+    mentionDrafts.clear()
+    await chatStore.sendMessage({
+      conversationId: props.conversationId,
+      messageType: ChatMessageType.Text,
+      content,
+      replyToMessageId,
+      mentionedUserIds: mentionedUserIds.length ? mentionedUserIds : null,
+    }, { replyPreview }).catch(() => {})
   }
   finally {
     sending.value = false
@@ -351,29 +380,38 @@ function cancelReply() {
   chatStore.replyTarget = null
 }
 
-/** 上传单个文件并作为消息发送（发送阶段调用；失败上抛由调用方保留待发列表） */
-async function uploadAndSend(file: File, messageType: ChatMessageType) {
+/** 上传全部待发附件并按类型分组（整批统一进度）；任一失败即上抛，调用方保留待发列表 */
+async function uploadPending(attachments: PendingAttachment[]) {
+  const images: ChatMessageAttachment[] = []
+  const files: ChatMessageAttachment[] = []
   uploadingPercent.value = 0
   try {
-    const uploaded = await appContext.apis.chatApi.uploadAttachment(file, (percent) => {
-      uploadingPercent.value = percent
-    })
-    await chatStore.sendMessage({
-      conversationId: props.conversationId,
-      messageType,
-      content: null,
-      fileId: uploaded.fileId,
-      fileName: uploaded.fileName,
-      fileSize: uploaded.fileSize,
-    })
-  }
-  catch (error) {
-    message.error(t('chat.composer.upload_failed'))
-    throw error
+    for (const [index, attachment] of attachments.entries()) {
+      const uploaded = await appContext.apis.chatApi.uploadAttachment(attachment.file, (percent) => {
+        uploadingPercent.value = Math.round(((index + percent / 100) / attachments.length) * 100)
+      })
+      const entry: ChatMessageAttachment = {
+        fileId: uploaded.fileId,
+        fileName: uploaded.fileName,
+        fileSize: uploaded.fileSize,
+      }
+      ;(attachment.messageType === ChatMessageType.Image ? images : files).push(entry)
+    }
+    return { images, files }
   }
   finally {
     uploadingPercent.value = null
   }
+}
+
+/** 清空待发列表并释放本地预览 URL */
+function clearPendingAttachments() {
+  for (const attachment of pendingAttachments.value) {
+    if (attachment.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl)
+    }
+  }
+  pendingAttachments.value = []
 }
 
 /** 暂存到待发列表（QQ 语义：先进输入区，发送时才上传）；不传 forcedType 时按 MIME 归类 */
@@ -444,7 +482,7 @@ function handlePaste(event: ClipboardEvent) {
       <div v-else-if="replyTarget" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-muted/50 px-2 py-1">
         <Icon icon="lucide:reply" width="12" height="12" class="shrink-0 text-primary" />
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-          {{ t('chat.composer.reply_to', { name: replyTarget.senderUserName ?? '' }) }}：{{ replyTarget.content || replyTarget.fileName || '' }}
+          {{ t('chat.composer.reply_to', { name: replyTarget.senderUserName ?? '' }) }}：{{ messageBodyLabel(replyTarget) }}
         </span>
         <button type="button" class="chat-composer-inline-btn" @click="cancelReply">
           <Icon icon="lucide:x" width="12" height="12" />

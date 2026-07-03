@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -42,16 +43,55 @@ public sealed record ChatMemberAddCommand(long ConversationId, long OperatorUser
 public sealed record ChatMemberRemoveCommand(long ConversationId, long OperatorUserId, long UserId);
 
 /// <summary>
-/// 发送消息命令
+/// 消息附件载荷（FileId → SysFile；FileName/FileSize 为发送时快照）
+/// </summary>
+public sealed record ChatMessageAttachment(long FileId, string FileName, long? FileSize);
+
+/// <summary>
+/// 消息附件 JSON 序列化辅助（实体 Attachments 列 ↔ 附件载荷，camelCase 存储）
+/// </summary>
+public static class ChatMessageAttachments
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    /// <summary>
+    /// 序列化附件列表（空列表返回 null，不落空数组）
+    /// </summary>
+    public static string? Serialize(IReadOnlyList<ChatMessageAttachment>? attachments)
+    {
+        return attachments is { Count: > 0 } ? JsonSerializer.Serialize(attachments, JsonOptions) : null;
+    }
+
+    /// <summary>
+    /// 反序列化附件列表（空/异常返回空列表，避免单条脏数据拖垮整页历史查询）
+    /// </summary>
+    public static IReadOnlyList<ChatMessageAttachment> Deserialize(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<ChatMessageAttachment>>(json, JsonOptions) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+}
+
+/// <summary>
+/// 发送消息命令（图片/文件消息可带多个附件，正文为可选说明文字同条发送）
 /// </summary>
 public sealed record ChatMessageSendCommand(
     long ConversationId,
     long SenderUserId,
     ChatMessageType MessageType,
     string? Content,
-    long? FileId,
-    string? FileName,
-    long? FileSize,
+    IReadOnlyList<ChatMessageAttachment>? Attachments,
     string? ClientMessageId,
     long? ReplyToMessageId = null,
     IReadOnlyCollection<long>? MentionedUserIds = null);

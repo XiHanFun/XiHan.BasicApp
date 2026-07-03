@@ -35,12 +35,31 @@ public static class ChatApplicationMapper
             senderUserId,
             input.MessageType,
             input.Content,
-            input.FileId,
-            input.FileName,
-            input.FileSize,
+            input.Attachments?.Select(ToAttachment).ToList(),
             input.ClientMessageId,
             input.ReplyToMessageId,
             input.MentionedUserIds);
+    }
+
+    /// <summary>
+    /// 附件 DTO → 领域附件载荷
+    /// </summary>
+    private static ChatMessageAttachment ToAttachment(ChatMessageAttachmentDto dto)
+    {
+        return new ChatMessageAttachment(dto.FileId, dto.FileName, dto.FileSize);
+    }
+
+    /// <summary>
+    /// 领域附件载荷 → 附件 DTO
+    /// </summary>
+    private static ChatMessageAttachmentDto ToAttachmentDto(ChatMessageAttachment attachment)
+    {
+        return new ChatMessageAttachmentDto
+        {
+            FileId = attachment.FileId,
+            FileName = attachment.FileName,
+            FileSize = attachment.FileSize
+        };
     }
 
     /// <summary>
@@ -74,9 +93,7 @@ public static class ChatApplicationMapper
             SenderUserName = message.SenderUserName,
             MessageType = message.MessageType,
             Content = message.Content,
-            FileId = message.FileId,
-            FileName = message.FileName,
-            FileSize = message.FileSize,
+            Attachments = ChatMessageAttachments.Deserialize(message.Attachments).Select(ToAttachmentDto).ToList(),
             IsRecalled = message.IsRecalled,
             ClientMessageId = message.ClientMessageId,
             CreatedTime = message.CreatedTime,
