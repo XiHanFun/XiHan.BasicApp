@@ -336,8 +336,8 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
           :index="index"
           handle=".widget-drag-handle"
           :disabled="!customizing"
-          class="min-w-0"
-          :style="{ gridColumn: `span ${item.span}` }"
+          class="widget-cell min-w-0"
+          :style="{ '--widget-span': item.span }"
         >
           <div class="relative h-full" :class="customizing ? 'rounded-xl ring-1 ring-dashed ring-[hsl(var(--primary)/0.45)]' : ''">
             <component :is="WIDGET_MAP[item.key]?.component" />
@@ -426,3 +426,16 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     </NDrawer>
   </div>
 </template>
+
+<style scoped>
+/* 小屏（<md）忽略用户设定的小组件宽度，一律整行铺满；md 及以上按 12 栅格自定义宽度 */
+.widget-cell {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .widget-cell {
+    grid-column: span var(--widget-span);
+  }
+}
+</style>
