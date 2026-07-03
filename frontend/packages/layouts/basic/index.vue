@@ -349,15 +349,16 @@ const sidebarEnableState = computed(
         </div>
       </div>
 
-      <!-- 通知横幅（顶栏之下、页面内容之上，块级推下内容） -->
-      <NotificationBanner />
-
       <!-- Page content -->
-      <div class="flex-1 overflow-hidden transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
+      <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
+        <!-- 通知横幅：置于正文容器内（容器已按固定顶栏做 margin-top 让位），
+             紧贴标签栏下方、块级推下页面内容；放容器外会被固定顶栏遮住并顶出空白条 -->
+        <NotificationBanner />
+
         <!-- 普通内容 -->
         <div
           v-if="!showSplit"
-          class="h-full overflow-auto"
+          class="min-h-0 flex-1 overflow-auto"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
@@ -371,7 +372,7 @@ const sidebarEnableState = computed(
         <div
           v-else
           ref="splitRowRef"
-          class="relative flex h-full w-full overflow-hidden"
+          class="relative flex min-h-0 w-full flex-1 overflow-hidden"
           :class="{ 'split-collapsed': swapPhase === 'shrink' || swapPhase === 'fly' }"
         >
           <div
