@@ -110,6 +110,8 @@ export interface ChatConversationInfoUpdateInput {
   conversationName?: null | string
   announcement?: null | string
   description?: null | string
+  /** 群头像（文件主键或直链；null 不改；空串清空） */
+  avatar?: null | string
 }
 
 /** 发送消息入参 */

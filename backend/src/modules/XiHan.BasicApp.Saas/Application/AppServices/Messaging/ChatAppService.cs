@@ -265,7 +265,7 @@ public sealed class ChatAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _chatDomainService.UpdateConversationInfoAsync(
-            new ChatConversationInfoUpdateCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.ConversationName, input.Announcement, input.Description),
+            new ChatConversationInfoUpdateCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.ConversationName, input.Announcement, input.Description, input.Avatar),
             cancellationToken);
         await PushGovernanceAsync(result, "info-changed");
     }
