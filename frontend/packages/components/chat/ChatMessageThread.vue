@@ -624,7 +624,7 @@ onBeforeUnmount(() => {
 
     <!-- 群公告横条（同置顶栏样式，点开看全文，换行经 pre-wrap 正确渲染） -->
     <div v-if="isGroupLike && conversation.announcement" class="border-b border-border bg-amber-500/5">
-      <NPopover trigger="click" placement="bottom" style="max-width: 380px" :show-arrow="false">
+      <NPopover trigger="click" placement="bottom" style="width: min(560px, calc(100vw - 48px))" :show-arrow="false">
         <template #trigger>
           <button type="button" class="flex w-full items-center gap-2 px-3 py-1.5 text-left">
             <Icon icon="lucide:megaphone" width="13" height="13" class="shrink-0 text-amber-500" />

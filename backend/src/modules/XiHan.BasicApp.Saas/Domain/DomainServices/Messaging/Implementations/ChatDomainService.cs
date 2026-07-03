@@ -634,7 +634,15 @@ public sealed class ChatDomainService : IChatDomainService
         SysChatMessage? systemMessage = null;
         if (announcementChanged && !string.IsNullOrWhiteSpace(conversation.Announcement))
         {
-            systemMessage = await AppendSystemMessageAsync(conversation, $"群公告已更新：{Truncate(conversation.Announcement, 80)}", cancellationToken);
+            // 公告更新以「操作人身份」入流（前端渲染为带发布人的公告卡片），正文为公告全文
+            var operatorUser = await GetUserOrThrowAsync(command.OperatorUserId, cancellationToken);
+            systemMessage = await AppendSystemMessageAsync(
+                conversation,
+                conversation.Announcement,
+                $"[群公告] {Truncate(conversation.Announcement, 60)}",
+                command.OperatorUserId,
+                operatorUser.UserName,
+                cancellationToken);
         }
 
         var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
@@ -676,8 +684,9 @@ public sealed class ChatDomainService : IChatDomainService
         conversation.OwnerUserId = command.NewOwnerUserId;
         conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
 
+        var transferText = $"{oldOwnerUser.UserName} 已将群主移交给 {newOwnerUser.UserName}";
         var systemMessage = await AppendSystemMessageAsync(
-            conversation, $"{oldOwnerUser.UserName} 已将群主移交给 {newOwnerUser.UserName}", cancellationToken);
+            conversation, transferText, transferText, senderUserId: 0, senderUserName: null, cancellationToken);
 
         var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
         return new ChatGovernanceResult(conversation, systemMessage, [.. members.Select(member => member.UserId)]);
@@ -757,23 +766,30 @@ public sealed class ChatDomainService : IChatDomainService
     }
 
     /// <summary>
-    /// 追加系统提示消息（SenderUserId=0；刷新会话预览但不增加成员未读）
+    /// 追加系统提示消息（刷新会话预览但不增加成员未读）。
+    /// senderUserId=0 为中性时间线提示（居中样式）；带操作人身份则前端渲染为公告卡片等归属样式
     /// </summary>
-    private async Task<SysChatMessage> AppendSystemMessageAsync(SysChatConversation conversation, string content, CancellationToken cancellationToken)
+    private async Task<SysChatMessage> AppendSystemMessageAsync(
+        SysChatConversation conversation,
+        string content,
+        string preview,
+        long senderUserId,
+        string? senderUserName,
+        CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
         var message = await _messageRepository.AddAsync(new SysChatMessage
         {
             ConversationId = conversation.BasicId,
-            SenderUserId = 0,
-            SenderUserName = null,
+            SenderUserId = senderUserId,
+            SenderUserName = senderUserName,
             MessageType = ChatMessageType.System,
             Content = Truncate(content, MaxContentLength)
         }, cancellationToken);
 
         conversation.LastMessageId = message.BasicId;
         conversation.LastMessageTime = now;
-        conversation.LastMessagePreview = Truncate(content, MaxPreviewLength);
+        conversation.LastMessagePreview = Truncate(preview, MaxPreviewLength);
         _ = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         return message;
     }
