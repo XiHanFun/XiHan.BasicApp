@@ -56,6 +56,7 @@ export default {
     placeholder: 'Type a message. Enter to send / Shift+Enter for newline',
     send: 'Send',
     emoji: 'Emoji',
+    emoji_set_native: 'System',
     image: 'Send image',
     file: 'Send file',
     uploading: 'Uploading {percent}%',
