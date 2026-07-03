@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { DropdownOption } from 'naive-ui'
+import type { VNodeChild } from 'vue'
 import type { ChatLocalMessage } from '~/stores'
 import type { ChatMessageItem } from '~/types'
-import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useMessage } from 'naive-ui'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { NButton, NDropdown, NEmpty, NInput, NPopover, NSpin, NTag, useMessage } from 'naive-ui'
+import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHAT_PERMISSIONS } from '~/constants'
 import { Icon } from '~/iconify'
@@ -153,6 +155,116 @@ function handlePin(item: ChatLocalMessage, pin: boolean) {
     ? chatStore.pinMessage(conversationId.value, item.messageId)
     : chatStore.unpinMessage(conversationId.value, item.messageId)
   action.catch(() => {})
+}
+
+// ===== 右键菜单（QQ 式：快捷表情行 + 操作项） =====
+
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉']
+
+const ctxShow = ref(false)
+const ctxX = ref(0)
+const ctxY = ref(0)
+const ctxMessage = ref<ChatLocalMessage | null>(null)
+
+function renderCtxIcon(icon: string) {
+  return () => h(Icon, { icon, width: 14, height: 14 })
+}
+
+/** 菜单头：快捷表情回应行 */
+function renderQuickReactions(): VNodeChild {
+  const target = ctxMessage.value
+  if (!target) {
+    return null
+  }
+  return h(
+    'div',
+    { class: 'chat-ctx-reactions' },
+    QUICK_REACTIONS.map(emoji =>
+      h('button', {
+        type: 'button',
+        class: 'chat-ctx-react-btn',
+        onClick: () => {
+          ctxShow.value = false
+          handleReact(target, emoji)
+        },
+      }, emoji)),
+  )
+}
+
+const ctxOptions = computed<DropdownOption[]>(() => {
+  const target = ctxMessage.value
+  if (!target) {
+    return []
+  }
+  const options: DropdownOption[] = [
+    { key: 'quick-reactions', type: 'render', render: renderQuickReactions },
+    { key: 'divider-reactions', type: 'divider' },
+  ]
+  if (target.messageType === ChatMessageType.Text && target.content) {
+    options.push({ key: 'copy', label: t('chat.thread.copy'), icon: renderCtxIcon('lucide:copy') })
+  }
+  options.push({ key: 'reply', label: t('chat.thread.reply'), icon: renderCtxIcon('lucide:reply') })
+  if (canEdit(target)) {
+    options.push({ key: 'edit', label: t('chat.thread.edit'), icon: renderCtxIcon('lucide:pencil') })
+  }
+  if (canPin.value) {
+    options.push(target.isPinned
+      ? { key: 'unpin', label: t('chat.thread.unpin'), icon: renderCtxIcon('lucide:pin-off') }
+      : { key: 'pin', label: t('chat.thread.pin'), icon: renderCtxIcon('lucide:pin') })
+  }
+  if (canRecall(target)) {
+    options.push({ key: 'recall', label: t('chat.thread.recall'), icon: renderCtxIcon('lucide:undo-2') })
+  }
+  return options
+})
+
+function openContextMenu(event: MouseEvent, item: ChatLocalMessage) {
+  // 系统提示/已撤回/未落库消息无可用操作
+  if (item.messageType === ChatMessageType.System || item.isRecalled || item.pending || item.failed) {
+    return
+  }
+  event.preventDefault()
+  ctxShow.value = false
+  void nextTick(() => {
+    ctxMessage.value = item
+    ctxX.value = event.clientX
+    ctxY.value = event.clientY
+    ctxShow.value = true
+  })
+}
+
+async function handleCtxSelect(key: string | number) {
+  ctxShow.value = false
+  const target = ctxMessage.value
+  if (!target) {
+    return
+  }
+  switch (key) {
+    case 'copy':
+      try {
+        await navigator.clipboard.writeText(target.content ?? '')
+        message.success(t('chat.thread.copied'))
+      }
+      catch {
+        message.error(t('chat.thread.copy_failed'))
+      }
+      break
+    case 'reply':
+      handleReply(target)
+      break
+    case 'edit':
+      handleEdit(target)
+      break
+    case 'pin':
+      handlePin(target, true)
+      break
+    case 'unpin':
+      handlePin(target, false)
+      break
+    case 'recall':
+      void handleRecall(target)
+      break
+  }
 }
 
 // ===== 会话内搜索 =====
@@ -453,27 +565,36 @@ onBeforeUnmount(() => {
         <NEmpty :description="t('chat.thread.empty')" size="small" />
       </div>
 
-      <div v-for="item in chatStore.activeMessages" :id="`chat-msg-${item.messageId}`" :key="item.messageId">
+      <div
+        v-for="item in chatStore.activeMessages"
+        :id="`chat-msg-${item.messageId}`"
+        :key="item.messageId"
+        @contextmenu="openContextMenu($event, item)"
+      >
         <ChatMessageItemView
           :message="item"
           :is-self="item.senderUserId === currentUserId"
           :show-sender-name="isGroupLike"
-          :can-recall="canRecall(item)"
-          :can-edit="canEdit(item)"
-          :can-pin="canPin"
           :conversation-type="conversation.conversationType"
           :read-count="readCountOf(item)"
           :highlighted="chatStore.highlightMessageId === item.messageId"
-          @recall="handleRecall(item)"
           @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
           @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
-          @reply="handleReply(item)"
-          @edit="handleEdit(item)"
-          @pin="handlePin(item, true)"
-          @unpin="handlePin(item, false)"
           @react="emoji => handleReact(item, emoji)"
         />
       </div>
+
+      <!-- 消息右键菜单（QQ 式） -->
+      <NDropdown
+        placement="bottom-start"
+        trigger="manual"
+        :show="ctxShow"
+        :x="ctxX"
+        :y="ctxY"
+        :options="ctxOptions"
+        @select="handleCtxSelect"
+        @clickoutside="ctxShow = false"
+      />
 
       <!-- 视口分离态：回到最新 -->
       <div v-if="isDetached" class="sticky bottom-1 flex justify-center">
@@ -543,6 +664,32 @@ onBeforeUnmount(() => {
 }
 
 .chat-search-hit:hover {
+  background: hsl(var(--accent));
+}
+
+/* 右键菜单头部的快捷表情行（NDropdown render 选项为全局弹层，样式需全局作用域） */
+:global(.chat-ctx-reactions) {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 2px;
+}
+
+:global(.chat-ctx-react-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+:global(.chat-ctx-react-btn:hover) {
   background: hsl(var(--accent));
 }
 </style>
