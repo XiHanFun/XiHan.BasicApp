@@ -88,6 +88,27 @@ public sealed class ChatMemberRemoveDto
 }
 
 /// <summary>
+/// 聊天消息附件 DTO（图片/文件消息可带多个，FileId → SysFile，FileName/FileSize 为发送时快照）
+/// </summary>
+public sealed class ChatMessageAttachmentDto
+{
+    /// <summary>
+    /// 关联文件ID
+    /// </summary>
+    public long FileId { get; set; }
+
+    /// <summary>
+    /// 文件名（冗余快照）
+    /// </summary>
+    public string FileName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 文件大小（字节）
+    /// </summary>
+    public long? FileSize { get; set; }
+}
+
+/// <summary>
 /// 发送聊天消息 DTO
 /// </summary>
 public sealed class ChatMessageSendDto
@@ -108,19 +129,9 @@ public sealed class ChatMessageSendDto
     public string? Content { get; set; }
 
     /// <summary>
-    /// 关联文件ID（图片/文件消息必填）
+    /// 附件列表（图片/文件消息必填至少一项；一条图片消息可含多张）
     /// </summary>
-    public long? FileId { get; set; }
-
-    /// <summary>
-    /// 文件名（冗余快照）
-    /// </summary>
-    public string? FileName { get; set; }
-
-    /// <summary>
-    /// 文件大小（字节）
-    /// </summary>
-    public long? FileSize { get; set; }
+    public List<ChatMessageAttachmentDto>? Attachments { get; set; }
 
     /// <summary>
     /// 客户端消息ID（乐观上屏去重）
@@ -519,19 +530,9 @@ public sealed class ChatMessageItemDto
     public string? Content { get; set; }
 
     /// <summary>
-    /// 关联文件ID
+    /// 附件列表（图片消息可含多张；文本消息为空）
     /// </summary>
-    public long? FileId { get; set; }
-
-    /// <summary>
-    /// 文件名
-    /// </summary>
-    public string? FileName { get; set; }
-
-    /// <summary>
-    /// 文件大小（字节）
-    /// </summary>
-    public long? FileSize { get; set; }
+    public List<ChatMessageAttachmentDto> Attachments { get; set; } = [];
 
     /// <summary>
     /// 是否已撤回

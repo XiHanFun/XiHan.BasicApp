@@ -101,9 +101,12 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
                     senderUserName = message.SenderUserName,
                     messageType = message.MessageType.ToString(),
                     content = message.Content,
-                    fileId = message.FileId?.ToString(),
-                    fileName = message.FileName,
-                    fileSize = message.FileSize,
+                    attachments = message.Attachments.Select(attachment => new
+                    {
+                        fileId = attachment.FileId.ToString(),
+                        fileName = attachment.FileName,
+                        fileSize = attachment.FileSize
+                    }).ToArray(),
                     isRecalled = message.IsRecalled,
                     clientMessageId = message.ClientMessageId,
                     createdTime = message.CreatedTime,

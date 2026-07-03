@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
-import { NImage, NSpin, NTooltip } from 'naive-ui'
+import { NImageGroup, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatFileSize, formatMessageTime } from './chat-helpers'
+import ChatMessageImage from './ChatMessageImage.vue'
 
 defineOptions({ name: 'ChatMessageItemView' })
 
@@ -83,13 +83,19 @@ const readReceiptLabel = computed(() => {
   return props.readCount > 0 ? t('chat.thread.read_count', { n: props.readCount }) : t('chat.thread.unread')
 })
 
-// 图片消息：fileId → 预签名 URL（内存缓存 + 并发去重，复用头像解析链路）
-const imageUrl = useAvatarUrl(computed(() =>
-  isImage.value && !props.message.isRecalled ? props.message.fileId : null,
-))
+/** 附件列表（图片/文件消息） */
+const attachments = computed(() => props.message.attachments ?? [])
 
-async function handleDownload() {
-  const fileId = props.message.fileId
+/** 图片相册网格：单图自适应，多图方形缩略图（2 张两列、≥3 张三列） */
+const imageGridClass = computed(() => {
+  const count = attachments.value.length
+  if (count <= 1) {
+    return ''
+  }
+  return count === 2 ? 'chat-image-grid chat-image-grid--2' : 'chat-image-grid chat-image-grid--3'
+})
+
+async function handleDownload(fileId: string) {
   if (!fileId) {
     return
   }
@@ -163,36 +169,42 @@ async function handleDownload() {
           {{ message.replyPreview }}
         </div>
 
-        <!-- 图片 -->
+        <!-- 图片（相册：点击预览可左右切换） -->
         <template v-if="isImage">
-          <NImage
-            v-if="imageUrl"
-            :src="imageUrl"
-            object-fit="cover"
-            class="chat-image"
-            :img-props="{ style: 'max-width: 240px; max-height: 240px; border-radius: 6px; display: block;' }"
-          />
-          <div v-else class="flex h-24 w-40 items-center justify-center rounded bg-muted/40">
-            <NSpin size="small" />
-          </div>
-          <div class="mt-1 flex items-center gap-2">
-            <span v-if="message.content" class="min-w-0 flex-1 text-[13px]">{{ message.content }}</span>
-            <button type="button" class="chat-meta-action shrink-0" @click="handleDownload">
-              {{ t('chat.thread.download') }}
-            </button>
+          <NImageGroup>
+            <div :class="imageGridClass">
+              <ChatMessageImage
+                v-for="att in attachments"
+                :key="att.fileId"
+                :file-id="att.fileId"
+                :alt="att.fileName"
+                :thumb="attachments.length > 1"
+              />
+            </div>
+          </NImageGroup>
+          <div v-if="message.content" class="mt-1 text-[13px]">
+            {{ message.content }}
           </div>
         </template>
 
-        <!-- 文件卡片 -->
+        <!-- 文件卡片（多文件逐个堆叠） -->
         <template v-else-if="isFile">
-          <button type="button" class="chat-file-card" @click="handleDownload">
-            <Icon icon="lucide:file" width="26" height="26" class="shrink-0 text-primary" />
-            <span class="min-w-0 flex-1 text-left">
-              <span class="block truncate text-[13px] font-medium">{{ message.fileName }}</span>
-              <span class="block text-[11px] opacity-70">{{ formatFileSize(message.fileSize) }}</span>
-            </span>
-            <Icon icon="lucide:download" width="14" height="14" class="shrink-0 opacity-70" />
-          </button>
+          <div class="flex flex-col gap-1.5">
+            <button
+              v-for="att in attachments"
+              :key="att.fileId"
+              type="button"
+              class="chat-file-card"
+              @click="handleDownload(att.fileId)"
+            >
+              <Icon icon="lucide:file" width="26" height="26" class="shrink-0 text-primary" />
+              <span class="min-w-0 flex-1 text-left">
+                <span class="block truncate text-[13px] font-medium">{{ att.fileName }}</span>
+                <span class="block text-[11px] opacity-70">{{ formatFileSize(att.fileSize) }}</span>
+              </span>
+              <Icon icon="lucide:download" width="14" height="14" class="shrink-0 opacity-70" />
+            </button>
+          </div>
           <div v-if="message.content" class="mt-1 text-[13px]">
             {{ message.content }}
           </div>
@@ -322,6 +334,19 @@ async function handleDownload() {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.chat-image-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.chat-image-grid--2 {
+  grid-template-columns: repeat(2, 88px);
+}
+
+.chat-image-grid--3 {
+  grid-template-columns: repeat(3, 88px);
 }
 
 .chat-file-card {

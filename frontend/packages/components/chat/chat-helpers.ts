@@ -1,6 +1,28 @@
 /** 聊天展示辅助：时间与文件大小格式化（纯函数，i18n 由调用方注入） */
 
+import type { ChatMessageAttachment } from '~/types'
+import { ChatMessageType } from '~/types/enums'
+
 type Translate = (key: string, named?: Record<string, unknown>) => string
+
+/** 消息正文/附件的简短标签（回复引用、搜索命中、置顶预览用）：多图/多文件带数量 */
+export function messageBodyLabel(message: {
+  content?: null | string
+  messageType: ChatMessageType
+  attachments?: ChatMessageAttachment[] | null
+}): string {
+  if (message.content) {
+    return message.content
+  }
+  const count = message.attachments?.length ?? 0
+  if (message.messageType === ChatMessageType.Image) {
+    return count > 1 ? `[图片] ${count}张` : '[图片]'
+  }
+  if (count > 0) {
+    return count > 1 ? `[文件] ${count}个` : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
+  }
+  return ''
+}
 
 function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()

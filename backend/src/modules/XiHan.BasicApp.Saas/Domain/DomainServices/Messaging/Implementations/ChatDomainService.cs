@@ -302,9 +302,7 @@ public sealed class ChatDomainService : IChatDomainService
             SenderUserName = sender.UserName,
             MessageType = command.MessageType,
             Content = content,
-            FileId = command.FileId,
-            FileName = Optional(command.FileName, 200),
-            FileSize = command.FileSize,
+            Attachments = ChatMessageAttachments.Serialize(command.Attachments),
             ClientMessageId = Optional(command.ClientMessageId, 50),
             ReplyToMessageId = command.ReplyToMessageId is > 0 ? command.ReplyToMessageId : null,
             ReplyPreview = replyPreview,
@@ -314,7 +312,7 @@ public sealed class ChatDomainService : IChatDomainService
         // 会话最后消息冗余 + 其余成员未读自增（发送者已读位前移）
         conversation.LastMessageId = message.BasicId;
         conversation.LastMessageTime = now;
-        conversation.LastMessagePreview = BuildPreview(command.MessageType, content, command.FileName);
+        conversation.LastMessagePreview = BuildPreview(command.MessageType, content, command.Attachments);
         _ = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         _ = await _memberRepository.IncrementUnreadAsync(conversation.BasicId, command.SenderUserId, cancellationToken);
 
@@ -416,7 +414,7 @@ public sealed class ChatDomainService : IChatDomainService
         var conversation = await GetConversationOrThrowAsync(message.ConversationId, cancellationToken);
         if (conversation.LastMessageId == message.BasicId)
         {
-            conversation.LastMessagePreview = BuildPreview(message.MessageType, content, message.FileName);
+            conversation.LastMessagePreview = BuildPreview(message.MessageType, content, ChatMessageAttachments.Deserialize(message.Attachments));
             _ = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         }
 
@@ -805,12 +803,13 @@ public sealed class ChatDomainService : IChatDomainService
         return $"{min}_{max}";
     }
 
-    private static string BuildPreview(ChatMessageType messageType, string? content, string? fileName)
+    private static string BuildPreview(ChatMessageType messageType, string? content, IReadOnlyList<ChatMessageAttachment>? attachments)
     {
+        var count = attachments?.Count ?? 0;
         var preview = messageType switch
         {
-            ChatMessageType.Image => "[图片]",
-            ChatMessageType.File => $"[文件] {fileName}".TrimEnd(),
+            ChatMessageType.Image => count > 1 ? $"[图片] {count}张" : "[图片]",
+            ChatMessageType.File => count > 1 ? $"[文件] {count}个" : $"[文件] {attachments?.FirstOrDefault()?.FileName}".TrimEnd(),
             _ => content ?? string.Empty
         };
         return preview.Length <= MaxPreviewLength ? preview : preview[..MaxPreviewLength];
@@ -867,7 +866,7 @@ public sealed class ChatDomainService : IChatDomainService
 
             case ChatMessageType.Image:
             case ChatMessageType.File:
-                if (command.FileId is not > 0)
+                if (command.Attachments is not { Count: > 0 } || command.Attachments.Any(attachment => attachment.FileId <= 0))
                 {
                     throw new InvalidOperationException("图片/文件消息必须关联文件。");
                 }
@@ -940,7 +939,7 @@ public sealed class ChatDomainService : IChatDomainService
             throw new InvalidOperationException("被回复的消息已撤回。");
         }
 
-        var body = BuildPreview(original.MessageType, original.Content, original.FileName);
+        var body = BuildPreview(original.MessageType, original.Content, ChatMessageAttachments.Deserialize(original.Attachments));
         var preview = $"{original.SenderUserName}: {body}";
         return preview.Length <= MaxReplyPreviewLength ? preview : preview[..MaxReplyPreviewLength];
     }
