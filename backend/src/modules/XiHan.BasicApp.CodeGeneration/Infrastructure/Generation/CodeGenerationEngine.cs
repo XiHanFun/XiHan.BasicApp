@@ -131,6 +131,9 @@ public sealed class CodeGenerationEngine(
             artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode));
         }
 
+        // 二阶产物：菜单 + 按钮权限代码片段（待并入源码 → 重建库经既有 Seeder 链生效，非运行时写库）
+        artifacts.AddRange(MenuPermissionArtifactGenerator.Build(context));
+
         stopwatch.Stop();
         return GenerationResult.Ok(artifacts, stopwatch.ElapsedMilliseconds);
     }
@@ -156,14 +159,15 @@ public sealed class CodeGenerationEngine(
             Columns = columnSchemas,
             PrimaryKey = columnSchemas.FirstOrDefault(column => column.IsPrimaryKey)
                 ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn),
-            // 树表/主子表结构字段透出给模板（模板按 TemplateType 消费 Options.XxxColumn）
+            // 树表/主子表结构字段 + 上级菜单透出给模板/二阶产物（模板按 TemplateType 消费 Options.XxxColumn）
             Options = new Dictionary<string, object?>
             {
                 ["PrimaryKeyColumn"] = table.PrimaryKeyColumn,
                 ["TreeParentColumn"] = table.TreeParentColumn,
                 ["TreeNameColumn"] = table.TreeNameColumn,
                 ["MasterTableId"] = table.MasterTableId?.ToString(),
-                ["MasterForeignKey"] = table.MasterForeignKey
+                ["MasterForeignKey"] = table.MasterForeignKey,
+                ["ParentMenuId"] = table.ParentMenuId?.ToString()
             }
         };
     }
