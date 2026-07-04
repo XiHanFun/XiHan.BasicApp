@@ -68,10 +68,16 @@ public partial class SysAiProvider : BasicAppFullAuditedEntity
     public virtual string Provider { get; set; } = string.Empty;
 
     /// <summary>
-    /// 模型名称
+    /// 模型名称（会话模型）
     /// </summary>
     [SugarColumn(ColumnName = "Model", ColumnDescription = "模型名称", Length = 100, IsNullable = false)]
     public virtual string Model { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 嵌入模型名称（RAG 用；与会话同端点同密钥、仅模型 id 不同，如 text-embedding-3-small；空则不支持嵌入）
+    /// </summary>
+    [SugarColumn(ColumnName = "Embedding_Model", ColumnDescription = "嵌入模型名称", Length = 100, IsNullable = true)]
+    public virtual string? EmbeddingModel { get; set; }
 
     /// <summary>
     /// 端点地址（空则用提供商默认端点，如 OpenAI 官方）

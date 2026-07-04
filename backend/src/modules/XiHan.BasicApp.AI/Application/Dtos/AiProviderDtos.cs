@@ -28,6 +28,7 @@ public sealed class AiProviderCreateDto
     public string ConfigName { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
+    public string? EmbeddingModel { get; set; }
     public string? BaseUrl { get; set; }
 
     /// <summary>API 密钥（明文提交，服务端加密落库；写入专用，永不回读）</summary>
@@ -53,6 +54,7 @@ public sealed class AiProviderUpdateDto : BasicAppUDto
     public string ConfigName { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
+    public string? EmbeddingModel { get; set; }
     public string? BaseUrl { get; set; }
 
     /// <summary>API 密钥（留空保留原密钥；非空则替换并加密）</summary>
@@ -105,6 +107,7 @@ public class AiProviderListItemDto : BasicAppDto
     public string ConfigName { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
+    public string? EmbeddingModel { get; set; }
     public string? BaseUrl { get; set; }
     public int? MaxOutputTokens { get; set; }
     public float? Temperature { get; set; }

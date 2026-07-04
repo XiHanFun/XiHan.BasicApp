@@ -65,6 +65,7 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
             ConfigName = Required(command.ConfigName, 200, nameof(command.ConfigName), "配置名称不能超过 200 个字符。"),
             Provider = Required(command.Provider, 50, nameof(command.Provider), "提供商标识不能超过 50 个字符。"),
             Model = Required(command.Model, 100, nameof(command.Model), "模型名称不能超过 100 个字符。"),
+            EmbeddingModel = Optional(command.EmbeddingModel, 100, nameof(command.EmbeddingModel), "嵌入模型名称不能超过 100 个字符。"),
             BaseUrl = Optional(command.BaseUrl, 500, nameof(command.BaseUrl), "端点地址不能超过 500 个字符。"),
             ApiKey = _secretProtector.Protect(NormalizeNullable(command.ApiKey)),
             MaxOutputTokens = command.MaxOutputTokens,
@@ -102,6 +103,7 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         provider.ConfigName = Required(command.ConfigName, 200, nameof(command.ConfigName), "配置名称不能超过 200 个字符。");
         provider.Provider = Required(command.Provider, 50, nameof(command.Provider), "提供商标识不能超过 50 个字符。");
         provider.Model = Required(command.Model, 100, nameof(command.Model), "模型名称不能超过 100 个字符。");
+        provider.EmbeddingModel = Optional(command.EmbeddingModel, 100, nameof(command.EmbeddingModel), "嵌入模型名称不能超过 100 个字符。");
         provider.BaseUrl = Optional(command.BaseUrl, 500, nameof(command.BaseUrl), "端点地址不能超过 500 个字符。");
 
         // ApiKey 仅在传入新值时重新加密；为空表示保留原密钥。

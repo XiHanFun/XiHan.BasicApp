@@ -11,10 +11,17 @@
         <PackageId>XiHan.BasicApp.AI</PackageId>
         <Description>曦寒基础应用 AI 库</Description>
         <OutputType>Library</OutputType>
+        <!-- Qdrant 向量库连接器目前仅 preview、无 GA，本库为已知的有意预发布依赖，抑制打包警告 NU5104 -->
+        <NoWarn>$(NoWarn);NU5104</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.Local.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Qdrant 向量库连接器（RAG）；实现 Microsoft.Extensions.VectorData 抽象，当前仅 preview，钉版本确保可复现 -->
+      <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" Version="1.74.0-preview" />
     </ItemGroup>
 
 </Project>

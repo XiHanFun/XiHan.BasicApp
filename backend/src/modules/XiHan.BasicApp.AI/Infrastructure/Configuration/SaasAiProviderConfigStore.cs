@@ -102,6 +102,7 @@ public sealed class SaasAiProviderConfigStore : IAiProviderConfigStore
             ApiKey = _secretProtector.Unprotect(provider.ApiKey),
             BaseUrl = provider.BaseUrl,
             Model = provider.Model,
+            EmbeddingModel = provider.EmbeddingModel,
             MaxOutputTokens = provider.MaxOutputTokens,
             Temperature = provider.Temperature,
             TimeoutSeconds = provider.TimeoutSeconds,

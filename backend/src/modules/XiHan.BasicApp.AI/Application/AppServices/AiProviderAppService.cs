@@ -34,19 +34,35 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
     private readonly IAiProviderDomainService _providerDomainService;
 
     /// <summary>
-    /// 框架 provider 解析器（写入后使已缓存 IChatClient 失效，配置热切换）
+    /// 框架会话解析器（写入后使已缓存 IChatClient 失效，配置热切换）
     /// </summary>
     private readonly IAiChatClientResolver _chatClientResolver;
+
+    /// <summary>
+    /// 框架嵌入解析器（写入后使已缓存 IEmbeddingGenerator 失效，RAG 配置热切换）
+    /// </summary>
+    private readonly IAiEmbeddingGeneratorResolver _embeddingResolver;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public AiProviderAppService(
         IAiProviderDomainService providerDomainService,
-        IAiChatClientResolver chatClientResolver)
+        IAiChatClientResolver chatClientResolver,
+        IAiEmbeddingGeneratorResolver embeddingResolver)
     {
         _providerDomainService = providerDomainService;
         _chatClientResolver = chatClientResolver;
+        _embeddingResolver = embeddingResolver;
+    }
+
+    /// <summary>
+    /// 使会话与嵌入解析器缓存一并失效（provider 配置改动后热切换）
+    /// </summary>
+    private void InvalidateResolvers()
+    {
+        _chatClientResolver.Invalidate();
+        _embeddingResolver.Invalidate();
     }
 
     /// <inheritdoc />
@@ -58,7 +74,7 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _providerDomainService.CreateProviderAsync(AiProviderApplicationMapper.ToCreateCommand(input), cancellationToken);
-        _chatClientResolver.Invalidate();
+        InvalidateResolvers();
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
@@ -71,7 +87,7 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _providerDomainService.UpdateProviderAsync(AiProviderApplicationMapper.ToUpdateCommand(input), cancellationToken);
-        _chatClientResolver.Invalidate();
+        InvalidateResolvers();
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
@@ -84,7 +100,7 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _providerDomainService.UpdateProviderStatusAsync(AiProviderApplicationMapper.ToStatusCommand(input), cancellationToken);
-        _chatClientResolver.Invalidate();
+        InvalidateResolvers();
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
@@ -97,7 +113,7 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _providerDomainService.SetDefaultAsync(input.BasicId, cancellationToken);
-        _chatClientResolver.Invalidate();
+        InvalidateResolvers();
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
@@ -108,7 +124,7 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _providerDomainService.DeleteProviderAsync(id, cancellationToken);
-        _chatClientResolver.Invalidate();
+        InvalidateResolvers();
     }
 
     /// <inheritdoc />
