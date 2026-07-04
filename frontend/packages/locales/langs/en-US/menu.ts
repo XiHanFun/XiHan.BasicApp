@@ -53,6 +53,7 @@ export default {
   about_gitee: 'Gitee',
   develop: 'Development Tools',
   code_gen: 'Code Generation',
+  ai_provider: 'AI Providers',
   // ==================== Common / legacy keys ====================
   dashboard: 'Dashboard',
   workspace: 'Workspace',
