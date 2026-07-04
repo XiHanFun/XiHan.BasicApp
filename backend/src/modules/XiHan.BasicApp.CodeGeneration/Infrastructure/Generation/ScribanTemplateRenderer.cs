@@ -13,22 +13,22 @@
 #endregion <<版权版本注释>>
 
 using System.Text.RegularExpressions;
+using Scriban;
+using Scriban.Runtime;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
-using XiHan.Framework.Templating.Services;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
 /// <summary>
-/// Scriban 模板渲染器（接通框架 ITemplateService）
+/// Scriban 模板渲染器（直接用原生 Scriban 渲染）
 /// </summary>
 /// <remarks>
-/// 这是本轮唯一落地的渲染通道。运行时依赖 Templating 模块注册的 <see cref="ITemplateService"/>。
+/// 不走框架 ITemplateService：其 string 默认引擎是简单替换引擎、不解析 Scriban 语法（{{ }}/for/if），
+/// 会把模板原样输出。这里以原生 Scriban 解析 + ScriptObject 注入变量渲染。
 /// </remarks>
-public sealed class ScribanTemplateRenderer(ITemplateService templateService) : ITemplateRenderer
+public sealed class ScribanTemplateRenderer : ITemplateRenderer
 {
-    private readonly ITemplateService _templateService = templateService;
-
     /// <summary>
     /// 基类（BasicAppFullAuditedEntity）托管的列名集合：主键/租户/审计/软删，生成实体属性时应跳过。
     /// 模板可据 col.IsBaseColumn 过滤，只生成业务列。
@@ -55,11 +55,24 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             return string.Empty;
         }
 
-        // 走框架已验证可用的「字典变量」重载（生产中 MessageTemplateRenderer 同款路径）。
-        // 将上下文展开为嵌套字典：键即 Scriban 变量名/成员名，精确匹配、不经成员重命名，
-        // 故模板用确定的 PascalCase 访问（如 {{ ClassName }}、{{ for col in Columns }}{{ col.CSharpProperty }}）。
-        var variables = BuildVariables(context);
-        return await _templateService.RenderAsync(templateSource, variables);
+        var template = Template.Parse(templateSource);
+        if (template.HasErrors)
+        {
+            var message = string.Join("; ", template.Messages.Select(item => item.Message));
+            throw new InvalidOperationException($"Scriban 模板解析失败：{message}");
+        }
+
+        // 变量以 PascalCase 键直接注入 ScriptObject；关闭成员重命名（Scriban 默认转 snake_case），
+        // 模板以确定的 PascalCase 访问（如 {{ ClassName }}、{{ for col in Columns }}{{ col.CSharpProperty }}）。
+        var scriptObject = new ScriptObject();
+        foreach (var (key, value) in BuildVariables(context))
+        {
+            scriptObject.SetValue(key, value, true);
+        }
+
+        var scribanContext = new TemplateContext { MemberRenamer = member => member.Name };
+        scribanContext.PushGlobal(scriptObject);
+        return await template.RenderAsync(scribanContext);
     }
 
     /// <summary>
@@ -157,9 +170,16 @@ public sealed class ScribanTemplateRenderer(ITemplateService templateService) : 
             return TemplateRenderValidation.Invalid("模板内容为空");
         }
 
-        var validation = _templateService.ValidateTemplate(templateSource);
-        return validation.IsValid
-            ? TemplateRenderValidation.Valid()
-            : TemplateRenderValidation.Invalid(validation.ErrorMessage ?? "模板语法错误");
+        var template = Template.Parse(templateSource);
+        if (!template.HasErrors)
+        {
+            return TemplateRenderValidation.Valid();
+        }
+
+        var errors = template.Messages
+            .Where(item => item.Type == Scriban.Parsing.ParserMessageType.Error)
+            .Select(item => item.Message)
+            .ToArray();
+        return TemplateRenderValidation.Invalid(errors.Length > 0 ? errors : ["模板语法错误"]);
     }
 }
