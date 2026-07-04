@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.WebHost.HealthChecks;
@@ -30,7 +31,8 @@ namespace XiHan.BasicApp.WebHost;
 [DependsOn(
     // 应用模块依赖
     typeof(XiHanBasicAppSaasModule),
-    typeof(XiHanBasicAppCodeGenerationModule)
+    typeof(XiHanBasicAppCodeGenerationModule),
+    typeof(XiHanBasicAppAIModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
