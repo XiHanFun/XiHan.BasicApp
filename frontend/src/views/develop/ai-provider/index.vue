@@ -43,6 +43,7 @@ interface ProviderFormModel {
   configName: string
   provider: string
   model: string
+  embeddingModel?: string | null
   baseUrl?: string | null
   apiKey?: string | null
   maxOutputTokens?: number | null
@@ -254,6 +255,7 @@ function createDefaultForm(): ProviderFormModel {
     configName: '',
     provider: 'OpenAI',
     model: '',
+    embeddingModel: null,
     baseUrl: null,
     apiKey: null,
     maxOutputTokens: null,
@@ -288,6 +290,7 @@ async function handleEdit(row: AiProviderListItemDto) {
       configName: detail.configName,
       provider: detail.provider,
       model: detail.model,
+      embeddingModel: detail.embeddingModel ?? null,
       baseUrl: detail.baseUrl ?? null,
       // 编辑态密钥留空 = 保留原密钥（后端 hasApiKey 标志是否已配置）
       apiKey: null,
@@ -336,6 +339,7 @@ async function handleSubmit() {
         configName: form.value.configName.trim(),
         provider: form.value.provider.trim(),
         model: form.value.model.trim(),
+        embeddingModel: form.value.embeddingModel?.trim() || null,
         baseUrl: form.value.baseUrl?.trim() || null,
         apiKey: form.value.apiKey?.trim() || null,
         maxOutputTokens: form.value.maxOutputTokens,
@@ -362,6 +366,7 @@ async function handleSubmit() {
         configName: form.value.configName.trim(),
         provider: form.value.provider.trim(),
         model: form.value.model.trim(),
+        embeddingModel: form.value.embeddingModel?.trim() || null,
         baseUrl: form.value.baseUrl?.trim() || null,
         apiKey: form.value.apiKey?.trim() || null,
         maxOutputTokens: form.value.maxOutputTokens,
@@ -422,6 +427,9 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem :label="t('develop.ai_provider.form_model')" path="model">
           <NInput v-model:value="form.model" clearable :placeholder="t('develop.ai_provider.form_model_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('develop.ai_provider.form_embedding_model')" path="embeddingModel">
+          <NInput v-model:value="form.embeddingModel" clearable :placeholder="t('develop.ai_provider.form_embedding_model_placeholder')" />
         </NFormItem>
         <NFormItem class="xh-form-full" :label="t('develop.ai_provider.form_base_url')" path="baseUrl">
           <NInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" />
