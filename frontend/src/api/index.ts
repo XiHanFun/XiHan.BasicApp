@@ -1,5 +1,6 @@
 export * from './base'
 export * from './helpers'
+export * from './modules/ai'
 export * from './modules/audit'
 export * from './modules/authorization'
 export * from './modules/cache'
