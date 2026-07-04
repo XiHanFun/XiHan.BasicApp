@@ -18,6 +18,7 @@ export interface AiProviderListItemDto extends BasicDto {
   configName: string
   provider: string
   model: string
+  embeddingModel?: string | null
   baseUrl?: string | null
   maxOutputTokens?: number | null
   temperature?: number | null
@@ -48,6 +49,7 @@ export interface AiProviderCreateDto {
   configName: string
   provider: string
   model: string
+  embeddingModel?: string | null
   baseUrl?: string | null
   /** API 密钥（明文提交，服务端加密落库） */
   apiKey?: string | null
@@ -67,6 +69,7 @@ export interface AiProviderUpdateDto extends BasicDto {
   configName: string
   provider: string
   model: string
+  embeddingModel?: string | null
   baseUrl?: string | null
   /** API 密钥（留空保留原密钥；非空则替换并加密） */
   apiKey?: string | null
