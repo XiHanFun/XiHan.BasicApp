@@ -109,13 +109,15 @@ public sealed class CodeGenerationEngine(
         var columns = await _columnRepository.GetByTableIdAsync(table.BasicId, cancellationToken);
         var context = BuildContext(table, columns);
 
+        // 无显式模板编码时，按表的模板类型（单表/树表/主子表）选取通用模板集；
+        // 模板不按业务模块过滤（CRUD 模板对所有模块通用，此前误用 ModuleName 作分组导致匹配为空）
         var templates = request.TemplateCodes is { Count: > 0 }
             ? await _templateRepository.GetByCodesAsync(request.TemplateCodes, cancellationToken)
-            : await _templateRepository.GetEnabledByGroupAsync(table.ModuleName, cancellationToken);
+            : await _templateRepository.GetEnabledByTypeAsync(table.TemplateType, cancellationToken);
 
         if (templates.Count == 0)
         {
-            return GenerationResult.Fail("未找到可用模板（请检查模板分组/编码与启用状态）。");
+            return GenerationResult.Fail("未找到可用模板（请检查模板类型/编码与启用状态）。");
         }
 
         var artifacts = new List<GeneratedArtifact>(templates.Count);
