@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -67,6 +68,17 @@ public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientReso
         }
 
         return await query.OrderBy(template => template.Sort).ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysCodeGenTemplate>> GetEnabledByTypeAsync(TemplateType templateType, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(template => template.IsEnabled && template.Status == EnableStatus.Enabled && template.TemplateType == templateType)
+            .OrderBy(template => template.Sort)
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />

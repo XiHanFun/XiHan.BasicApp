@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.Repositories;
@@ -36,6 +37,11 @@ public interface ICodeGenTemplateRepository : ISaasRepository<SysCodeGenTemplate
     /// 按分组获取启用模板（用于生成时批量加载）
     /// </summary>
     Task<IReadOnlyList<SysCodeGenTemplate>> GetEnabledByGroupAsync(string? templateGroup, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按模板类型获取启用模板（生成时按表的单表/树表/主子表选取匹配模板集；模板通用、不按业务模块过滤）
+    /// </summary>
+    Task<IReadOnlyList<SysCodeGenTemplate>> GetEnabledByTypeAsync(TemplateType templateType, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 根据模板编码集合批量获取
