@@ -62,4 +62,9 @@ public static class SaasSecretProtectionPurposes
     /// 系统配置加密值（IsEncrypted 行的 ConfigValue）保护用途。
     /// </summary>
     public const string ConfigValue = "XiHan.BasicApp.Saas.Config.Value.v1";
+
+    /// <summary>
+    /// AI Provider API 密钥保护用途。
+    /// </summary>
+    public const string AiProviderApiKey = "XiHan.BasicApp.Saas.AiProvider.ApiKey.v1";
 }
