@@ -12,14 +12,17 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.SemanticKernel;
 using XiHan.BasicApp.AI.Domain.DomainServices;
 using XiHan.BasicApp.AI.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.AI.Infrastructure.Configuration;
 using XiHan.BasicApp.AI.Infrastructure.Security;
 using XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 using XiHan.Framework.AI.Abstractions.Configuration;
+using XiHan.Framework.AI.Extensions.DependencyInjection;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
 namespace XiHan.BasicApp.AI.Extensions;
@@ -77,6 +80,63 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAIConfigStore(this IServiceCollection services)
     {
         services.Replace(ServiceDescriptor.Singleton<IAiProviderConfigStore, SaasAiProviderConfigStore>());
+        return services;
+    }
+
+    /// <summary>
+    /// 添加知识库（RAG）种子数据提供者
+    /// </summary>
+    /// <remarks>
+    /// RAG 种子用 Order 205+ 段（AI provider 段 200-204 之后）；操作字典复用 AI 段的 <see cref="SysOperationSeeder"/>(200)。
+    /// 链内顺序：资源 → 权限(资源×操作) → 菜单 → 角色授权。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddRAGDataSeeders(this IServiceCollection services)
+    {
+        services.AddDataSeeder<KnowledgeResourceSeeder>();       // Order = 205
+        services.AddDataSeeder<KnowledgePermissionSeeder>();     // Order = 206
+        services.AddDataSeeder<KnowledgeMenuSeeder>();           // Order = 207（建即绑 knowledge_base:read）
+        services.AddDataSeeder<KnowledgeRolePermissionSeeder>(); // Order = 208（仅授超管）
+        return services;
+    }
+
+    /// <summary>
+    /// 添加知识库（RAG）领域服务
+    /// </summary>
+    /// <remarks>领域服务无 DI 标记接口，显式登记 Scoped；仓储/应用服务由框架约定自动注册。</remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddRAGDomainServices(this IServiceCollection services)
+    {
+        services.AddScoped<IKnowledgeDocumentDomainService, KnowledgeDocumentDomainService>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 RAG 能力与向量库连接器
+    /// </summary>
+    /// <remarks>
+    /// 框架 <c>AddXiHanRAG</c> 给切片/摄取/检索/增强默认实现（不含具体 VectorStore）；此处登记 Qdrant 连接器，
+    /// 连接参数取 <see cref="XiHanRagOptions"/>（appsettings 的 XiHan:AI:Rag 节，属部署级基础设施配置）。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">配置</param>
+    /// <returns></returns>
+    public static IServiceCollection AddRAG(this IServiceCollection services, IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        // 框架 RAG 默认实现（切片/摄取/检索/增强）
+        services.AddXiHanRAG();
+
+        // RAG 配置（检索 topK 等）
+        services.AddOptions<XiHanRagOptions>().BindConfiguration(XiHanRagOptions.SectionName);
+
+        // Qdrant 向量库连接器（gRPC；启动期读连接参数）
+        var ragOptions = configuration.GetSection(XiHanRagOptions.SectionName).Get<XiHanRagOptions>() ?? new XiHanRagOptions();
+        services.AddQdrantVectorStore(ragOptions.QdrantHost, ragOptions.QdrantPort, ragOptions.QdrantHttps, ragOptions.QdrantApiKey);
+
         return services;
     }
 }

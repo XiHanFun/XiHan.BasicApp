@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.AI.Extensions;
 using XiHan.BasicApp.Saas;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.AI;
@@ -39,14 +40,16 @@ public class XiHanBasicAppAIModule : XiHanModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
+        var configuration = services.GetConfiguration();
 
-        // 注册 AI 模块种子数据（操作 → 资源 → 权限 → 菜单 → 角色授权）
+        // AI Provider 配置管理：种子（操作 → 资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + DB 配置源覆盖
         services.AddAIDataSeeders();
-
-        // 注册 AI 领域服务与密钥保护器（未携带 DI 标记接口，需显式登记）
         services.AddAIDomainServices();
-
-        // 覆盖框架默认 provider 配置源为 DB 存储实现
         services.AddAIConfigStore();
+
+        // 知识库（RAG）：种子（资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + 框架 RAG + Qdrant 向量库连接器
+        services.AddRAGDataSeeders();
+        services.AddRAGDomainServices();
+        services.AddRAG(configuration);
     }
 }
