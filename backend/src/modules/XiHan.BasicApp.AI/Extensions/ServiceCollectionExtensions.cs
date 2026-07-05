@@ -21,7 +21,9 @@ using XiHan.BasicApp.AI.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.AI.Infrastructure.Configuration;
 using XiHan.BasicApp.AI.Infrastructure.Security;
 using XiHan.BasicApp.AI.Infrastructure.Seeders.System;
+using XiHan.BasicApp.AI.Infrastructure.Skills;
 using XiHan.Framework.AI.Abstractions.Configuration;
+using XiHan.Framework.AI.Abstractions.Skills;
 using XiHan.Framework.AI.Extensions.DependencyInjection;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -137,6 +139,21 @@ public static class ServiceCollectionExtensions
         var ragOptions = configuration.GetSection(XiHanRagOptions.SectionName).Get<XiHanRagOptions>() ?? new XiHanRagOptions();
         services.AddQdrantVectorStore(ragOptions.QdrantHost, ragOptions.QdrantPort, ragOptions.QdrantHttps, ragOptions.QdrantApiKey);
 
+        return services;
+    }
+
+    /// <summary>
+    /// 添加应用层 AI 技能
+    /// </summary>
+    /// <remarks>
+    /// 技能注册为 <see cref="IAiSkill"/>,框架 <c>DefaultAiSkillRegistry</c> 构造时收纳,进而暴露为对话工具 / MCP tools。
+    /// 单例(依赖单例 IKnowledgeRetriever)。新增技能在此追加一行。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddAISkills(this IServiceCollection services)
+    {
+        services.AddSingleton<IAiSkill, KnowledgeRetrieveSkill>();
         return services;
     }
 }

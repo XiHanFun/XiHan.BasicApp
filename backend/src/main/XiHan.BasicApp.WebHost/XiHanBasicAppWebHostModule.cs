@@ -12,14 +12,21 @@
 
 #endregion <<版权版本注释>>
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.WebHost.HealthChecks;
+using XiHan.BasicApp.WebHost.Mcp;
+using XiHan.Framework.AI.Extensions.DependencyInjection;
 using XiHan.Framework.Bot.Telegram.Webhook;
 using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Web.Core.Extensions;
 
@@ -45,6 +52,16 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         context.Services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("database")
             .AddCheck<RedisHealthCheck>("redis");
+
+        // MCP Server：把 AI 技能暴露为 MCP tools（应用管理 key 鉴权）。仅在启用且配置了密钥时注册（fail-closed）。
+        var configuration = context.Services.GetConfiguration();
+        context.Services.Configure<XiHanMcpOptions>(configuration.GetSection(XiHanMcpOptions.SectionName));
+        var mcpOptions = configuration.GetSection(XiHanMcpOptions.SectionName).Get<XiHanMcpOptions>() ?? new XiHanMcpOptions();
+        if (mcpOptions.IsExposable)
+        {
+            context.Services.AddMcpServer().WithHttpTransport(transport => transport.Stateless = mcpOptions.Stateless);
+            context.Services.AddXiHanMcpServerTools();
+        }
     }
 
     /// <summary>
@@ -83,6 +100,15 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         if (app is IEndpointRouteBuilder endpoints)
         {
             _ = endpoints.MapHealthChecks("/health", options).AllowAnonymous();
+
+            // MCP Server 端点：AllowAnonymous 绕过全局 FallbackPolicy，改由应用管理的 key 端点过滤器守门。
+            var mcpOptions = app.ApplicationServices.GetRequiredService<IOptions<XiHanMcpOptions>>().Value;
+            if (mcpOptions.IsExposable)
+            {
+                _ = endpoints.MapMcp(mcpOptions.Path)
+                    .AllowAnonymous()
+                    .AddEndpointFilter(new McpApiKeyEndpointFilter(mcpOptions.ApiKey!, mcpOptions.HeaderName));
+            }
         }
         else
         {
