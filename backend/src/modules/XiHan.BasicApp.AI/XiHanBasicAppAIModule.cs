@@ -51,5 +51,8 @@ public class XiHanBasicAppAIModule : XiHanModule
         services.AddRAGDataSeeders();
         services.AddRAGDomainServices();
         services.AddRAG(configuration);
+
+        // AI 技能（注册为 IAiSkill，框架技能注册表收纳 → 对话工具 / MCP tools）
+        services.AddAISkills();
     }
 }
