@@ -55,6 +55,7 @@ export default {
   code_gen: '代码生成',
   ai_provider: 'AI 提供商',
   knowledge_base: '知识库',
+  ai_prompt: 'AI 提示词',
   // ==================== 通用 / 历史键 ====================
   dashboard: '仪表板',
   workspace: '工作台',

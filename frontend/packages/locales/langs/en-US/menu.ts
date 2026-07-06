@@ -55,6 +55,7 @@ export default {
   code_gen: 'Code Generation',
   ai_provider: 'AI Providers',
   knowledge_base: 'Knowledge Base',
+  ai_prompt: 'AI Prompts',
   // ==================== Common / legacy keys ====================
   dashboard: 'Dashboard',
   workspace: 'Workspace',
