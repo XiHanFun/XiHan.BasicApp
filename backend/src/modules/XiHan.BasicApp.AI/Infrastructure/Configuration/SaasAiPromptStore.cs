@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SaasAiPromptStore
-// Guid:a11c0de0-9008-4a10-9a00-00000000ai97
+// Guid:2df1b77b-fb34-41a3-a142-7ae71541a6cf
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

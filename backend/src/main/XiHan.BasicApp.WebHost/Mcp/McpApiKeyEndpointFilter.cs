@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:McpApiKeyEndpointFilter
-// Guid:a11c0de0-8002-4a10-9a00-00000000ai81
+// Guid:8f831f7c-cf14-42a8-9668-fa0fdfce3529
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 18:00:00

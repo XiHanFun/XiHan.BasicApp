@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AiPromptDtos
-// Guid:a11c0de0-9009-4a10-9a00-00000000ai98
+// Guid:81d0cf38-1ff4-4aca-8c05-35df0c556582
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

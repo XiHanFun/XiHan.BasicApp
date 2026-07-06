@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AiPromptRepository
-// Guid:a11c0de0-9003-4a10-9a00-00000000ai92
+// Guid:9d91f0e9-af29-4bad-91ec-f33d9a60fa04
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

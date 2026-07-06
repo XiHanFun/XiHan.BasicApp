@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:PromptResourceSeeder
-// Guid:a11c0de0-a001-4a10-9a00-00000000aia0
+// Guid:2ac10262-0770-4885-923e-cf3db6c3b3cb
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

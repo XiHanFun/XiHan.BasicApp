@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:KnowledgeRetrieveSkill
-// Guid:a11c0de0-7001-4a10-9a00-00000000ai70
+// Guid:58d712c7-759f-4cd5-824a-77bec732b41b
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 18:00:00

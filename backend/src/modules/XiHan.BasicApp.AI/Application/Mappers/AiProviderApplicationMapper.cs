@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AiProviderApplicationMapper
-// Guid:a11c0de0-4003-4a10-9a00-00000000ai43
+// Guid:a0fd3f15-60b7-4707-8956-fa14692d28d8
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 14:00:00

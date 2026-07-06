@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:XiHanRagOptions
-// Guid:a11c0de0-5008-4a10-9a00-00000000ai57
+// Guid:0c4461fd-a2fe-4d35-b824-5bc7d68f3c77
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 16:00:00

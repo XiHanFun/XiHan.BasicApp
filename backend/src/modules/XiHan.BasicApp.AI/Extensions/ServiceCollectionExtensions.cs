@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:ServiceCollectionExtensions
-// Guid:a11c0de0-0002-4a10-9a00-00000000ai02
+// Guid:b914beb0-9a86-40df-8164-d89f2f9d88a6
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 14:00:00
