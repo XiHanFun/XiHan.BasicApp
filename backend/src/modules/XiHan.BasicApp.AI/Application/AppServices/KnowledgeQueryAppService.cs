@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:KnowledgeQueryAppService
-// Guid:a11c0de0-5015-4a10-9a00-00000000ai5e
+// Guid:5156918d-67a0-4508-a9c6-24bb8e638210
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 16:00:00

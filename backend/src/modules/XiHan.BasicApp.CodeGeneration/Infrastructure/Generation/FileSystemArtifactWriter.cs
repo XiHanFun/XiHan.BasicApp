@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:FileSystemArtifactWriter
-// Guid:c0de9e00-0402-4a00-9000-000000000402
+// Guid:34be4d7c-597c-47b7-8bd9-89cc4724a5b1
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/04 10:00:00

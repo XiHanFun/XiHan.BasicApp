@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:KnowledgeDocumentCommandModels
-// Guid:a11c0de0-5005-4a10-9a00-00000000ai54
+// Guid:fef6a6df-e125-4be7-8cb0-4d283003fa54
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 16:00:00

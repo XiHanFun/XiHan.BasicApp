@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SaasAiProviderConfigStore
-// Guid:a11c0de0-2003-4a10-9a00-00000000ai22
+// Guid:83e36abc-c6a4-4b63-bb2a-60b2a25753cf
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 14:00:00

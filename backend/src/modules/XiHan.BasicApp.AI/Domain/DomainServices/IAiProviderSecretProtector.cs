@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:IAiProviderSecretProtector
-// Guid:a11c0de0-1003-4a10-9a00-00000000ai12
+// Guid:47ffc67e-e91a-4a37-83a5-b6e40be20c9d
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 14:00:00

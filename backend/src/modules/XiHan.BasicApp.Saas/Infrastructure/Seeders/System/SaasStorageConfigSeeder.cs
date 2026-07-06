@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SaasStorageConfigSeeder
-// Guid:a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+// Guid:b78ff89f-18ad-48bb-897e-d38d872c0d06
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/05/12 00:00:00

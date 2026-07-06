@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AiProviderDomainService
-// Guid:a11c0de0-1007-4a10-9a00-00000000ai16
+// Guid:52ab4984-9dbc-46cf-8099-229ec150f4f5
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 14:00:00

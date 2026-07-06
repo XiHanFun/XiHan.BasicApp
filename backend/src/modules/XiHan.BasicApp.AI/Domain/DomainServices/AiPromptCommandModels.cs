@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AiPromptCommandModels
-// Guid:a11c0de0-9005-4a10-9a00-00000000ai94
+// Guid:b22ea7cc-5ec0-48be-b0b9-a758215b843c
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

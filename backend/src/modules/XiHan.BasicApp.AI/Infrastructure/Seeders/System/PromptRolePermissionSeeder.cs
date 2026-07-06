@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:PromptRolePermissionSeeder
-// Guid:a11c0de0-a004-4a10-9a00-00000000aia3
+// Guid:f68569a7-9406-4f5a-ad8d-d6ad541adc8d
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

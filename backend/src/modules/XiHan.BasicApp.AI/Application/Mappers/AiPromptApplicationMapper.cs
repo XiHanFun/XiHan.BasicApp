@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:AiPromptApplicationMapper
-// Guid:a11c0de0-900b-4a10-9a00-00000000ai9a
+// Guid:f63eae6e-4f9b-403f-b5a7-c87143a8a901
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00

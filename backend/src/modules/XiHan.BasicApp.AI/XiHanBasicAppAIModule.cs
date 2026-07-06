@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:XiHanBasicAppAIModule
-// Guid:a11c0de0-0001-4a10-9a00-00000000ai01
+// Guid:4a0806f3-b4ee-4466-a463-6a971c14f7fb
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 14:00:00

@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:XiHanMcpOptions
-// Guid:a11c0de0-8001-4a10-9a00-00000000ai80
+// Guid:fd66b0fe-cf66-4fa5-bb80-5b85f6ae6454
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/05 18:00:00

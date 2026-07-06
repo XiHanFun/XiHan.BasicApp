@@ -4,7 +4,7 @@
 // Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 // FileName:SysAiPrompt
-// Guid:a11c0de0-9001-4a10-9a00-00000000ai90
+// Guid:d0957e66-0192-4227-bd45-9001b2807684
 // Author:zhaifanhua
 // Email:me@zhaifanhua.com
 // CreateTime:2026/07/06 10:00:00
