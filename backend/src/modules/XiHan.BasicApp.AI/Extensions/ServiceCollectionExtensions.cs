@@ -23,6 +23,7 @@ using XiHan.BasicApp.AI.Infrastructure.Security;
 using XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 using XiHan.BasicApp.AI.Infrastructure.Skills;
 using XiHan.Framework.AI.Abstractions.Configuration;
+using XiHan.Framework.AI.Abstractions.Prompts;
 using XiHan.Framework.AI.Abstractions.Skills;
 using XiHan.Framework.AI.Extensions.DependencyInjection;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
@@ -154,6 +155,44 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAISkills(this IServiceCollection services)
     {
         services.AddSingleton<IAiSkill, KnowledgeRetrieveSkill>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加提示词库（M5）种子数据提供者
+    /// </summary>
+    /// <remarks>提示词库段 Order 209-212（晚于知识库 205-208）；操作复用 AI 段 <see cref="SysOperationSeeder"/>(200)。</remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddPromptDataSeeders(this IServiceCollection services)
+    {
+        services.AddDataSeeder<PromptResourceSeeder>();       // Order = 209
+        services.AddDataSeeder<PromptPermissionSeeder>();     // Order = 210
+        services.AddDataSeeder<PromptMenuSeeder>();           // Order = 211（建即绑 ai_prompt:read）
+        services.AddDataSeeder<PromptRolePermissionSeeder>(); // Order = 212（仅授超管）
+        return services;
+    }
+
+    /// <summary>
+    /// 添加提示词库领域服务
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddPromptDomainServices(this IServiceCollection services)
+    {
+        services.AddScoped<IAiPromptDomainService, AiPromptDomainService>();
+        return services;
+    }
+
+    /// <summary>
+    /// 覆盖框架默认提示词库为 DB 存储实现
+    /// </summary>
+    /// <remarks>框架 <c>AddXiHanAI</c> 已 TryAdd 默认 Options 提示词库，故须 <c>Replace</c> 覆盖。</remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddPromptStore(this IServiceCollection services)
+    {
+        services.Replace(ServiceDescriptor.Singleton<IAiPromptStore, SaasAiPromptStore>());
         return services;
     }
 }

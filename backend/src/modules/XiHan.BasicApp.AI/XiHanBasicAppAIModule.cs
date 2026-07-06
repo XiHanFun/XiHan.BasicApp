@@ -54,5 +54,10 @@ public class XiHanBasicAppAIModule : XiHanModule
 
         // AI 技能（注册为 IAiSkill，框架技能注册表收纳 → 对话工具 / MCP tools）
         services.AddAISkills();
+
+        // 提示词库（M5）：种子（资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + DB 提示词库覆盖
+        services.AddPromptDataSeeders();
+        services.AddPromptDomainServices();
+        services.AddPromptStore();
     }
 }
