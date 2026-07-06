@@ -447,6 +447,12 @@ async function handleQuery() {
   min-height: 0;
 }
 
+.knowledge__tabs :deep(.n-tab-pane) {
+  height: 100%;
+  padding-top: 8px;
+  box-sizing: border-box;
+}
+
 .knowledge__text {
   width: 100%;
 }
@@ -464,7 +470,6 @@ async function handleQuery() {
 .playground {
   height: 100%;
   overflow: auto;
-  padding-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 12px;
