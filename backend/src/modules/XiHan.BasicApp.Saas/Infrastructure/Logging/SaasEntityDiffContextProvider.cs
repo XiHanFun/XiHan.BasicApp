@@ -14,7 +14,7 @@
 
 using Microsoft.AspNetCore.Http;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.Auditing;
+using XiHan.Framework.Auditing;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Web.Api.Constants;
