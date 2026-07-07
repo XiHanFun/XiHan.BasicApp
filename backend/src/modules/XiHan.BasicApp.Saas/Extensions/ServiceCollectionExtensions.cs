@@ -39,7 +39,7 @@ using XiHan.Framework.Bot.Sms.Abstractions;
 using XiHan.Framework.Bot.Telegram.Abstractions;
 using XiHan.Framework.Bot.Telegram.Extensions.DependencyInjection;
 using XiHan.Framework.Bot.WeCom.Abstractions;
-using XiHan.Framework.Data.Auditing;
+using XiHan.Framework.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.Data.SqlSugar.Tenanting;
 using XiHan.Framework.EventBus.Local;
@@ -47,7 +47,7 @@ using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Utils.Collections;
-using XiHan.Framework.Web.Api.Logging.Writers;
+using XiHan.Framework.Auditing.Writers;
 
 namespace XiHan.BasicApp.Saas.Extensions;
 

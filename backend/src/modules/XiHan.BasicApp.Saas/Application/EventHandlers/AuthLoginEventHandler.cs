@@ -19,8 +19,8 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
-using XiHan.Framework.Web.Api.Logging;
-using XiHan.Framework.Web.Api.Logging.Pipelines;
+using XiHan.Framework.Auditing;
+using XiHan.Framework.Auditing.Pipelines;
 
 namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 

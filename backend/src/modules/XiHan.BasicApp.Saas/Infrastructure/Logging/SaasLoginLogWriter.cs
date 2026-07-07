@@ -16,8 +16,8 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
-using XiHan.Framework.Web.Api.Logging;
-using XiHan.Framework.Web.Api.Logging.Writers;
+using XiHan.Framework.Auditing;
+using XiHan.Framework.Auditing.Writers;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
