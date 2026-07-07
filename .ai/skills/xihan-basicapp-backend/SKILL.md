@@ -84,8 +84,14 @@ Common commands from the repository root:
 dotnet build backend/XiHan.BasicApp.slnx
 dotnet test backend/XiHan.BasicApp.slnx
 dotnet run --project backend/src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj --launch-profile Development
-curl http://127.0.0.1:9708/health
-curl -L http://127.0.0.1:9708/scalar
 ```
 
 When running locally, point `dotnet run --project` at `XiHan.BasicApp.WebHost.csproj`; the WebHost directory contains multiple project files, so the directory path is ambiguous.
+
+For runtime HTTP checks, do not hardcode hostnames or ports in guidance or scripts. Discover the current backend base URL from `Properties/launchSettings.json`, `Hosting:Urls`, `appsettings*.json`, environment variables, or the startup log. Then set a temporary shell variable and use it for checks:
+
+```bash
+# Set BACKEND_BASE_URL from the current launch/config output before running these.
+curl "$BACKEND_BASE_URL/health"
+curl -L "$BACKEND_BASE_URL/scalar"
+```
