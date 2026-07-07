@@ -61,6 +61,15 @@ Use the existing module boundary before creating new files:
 - Keep DTOs, contracts, mappers, app services, query services, domain services, repositories, and seeders in focused files.
 - Follow the existing copyright header style when adding C# files.
 
+## Contribution Conventions
+
+When adding or changing backend code:
+
+- Follow the repository's existing C# copyright header style on new C# files, including the MIT license line that points to `LICENSE` in the project root.
+- Use `backend/.editorconfig` and checked-in backend formatting configuration as the formatting source of truth.
+- Visual Studio 2022 and CodeMaid can be useful local tools, but they are not required project gates.
+- When committing backend-only documentation or code changes, use one of the conventional prefixes listed in `AGENTS.md`.
+
 ## Backend Change Workflow
 
 For a new backend capability:
