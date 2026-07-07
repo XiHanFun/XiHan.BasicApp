@@ -82,6 +82,15 @@ For a new frontend capability:
 7. Add permission-aware UI actions using existing hooks/stores and the backend permission codes.
 8. Verify type safety and build output before reporting success.
 
+## Contribution Conventions
+
+When adding or changing frontend code:
+
+- Use the scripts in `frontend/package.json` for linting, formatting, type checking, and builds.
+- Use `frontend/.editorconfig` and `frontend/.prettierrc.mjs` as the formatting sources of truth.
+- VS Code and editor plugins can be useful local tools, but they are not required project gates.
+- When committing frontend-only documentation or code changes, use one of the conventional prefixes listed in `AGENTS.md`.
+
 ## Verification
 
 Use focused verification first, then broaden when shared behavior changes.
