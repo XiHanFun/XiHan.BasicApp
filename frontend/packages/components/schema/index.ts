@@ -7,7 +7,6 @@ export { default as SchemaSearchSettings } from './SchemaSearchSettings.vue'
 export { default as SchemaTablePanel } from './SchemaTablePanel.vue'
 export { default as SchemaTableSettings } from './SchemaTableSettings.vue'
 
-export { default as SchemaViewManager } from './SchemaViewManager.vue'
 export {
   toAdvancedFields,
   toColumns,
