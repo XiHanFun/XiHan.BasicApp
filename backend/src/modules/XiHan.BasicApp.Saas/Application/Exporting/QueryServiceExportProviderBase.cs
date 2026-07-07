@@ -17,6 +17,7 @@ using System.Text.Json;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
+using XiHan.Framework.Domain.Shared.Paging.Models;
 
 namespace XiHan.BasicApp.Saas.Application.Exporting;
 
@@ -53,6 +54,9 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
         var pageSize = isCurrentPage
             ? Math.Clamp(query.Page.PageSize, 1, ExportDefaults.CurrentPageMaxSize)
             : ExportDefaults.BatchSize;
+        // 请求页大小不得超过框架分页上限（MaxPageSize），否则会被查询侧钳小，
+        // 导致每页实际返回 < 请求 pageSize，被下方"拿到不足一页即最后一页"误判而提前结束（全量导出只导出首页）。
+        pageSize = Math.Min(pageSize, PageRequestMetadata.MaxPageSize);
         var pageIndex = isCurrentPage ? Math.Max(1, query.Page.PageIndex) : 1;
 
         var emitted = 0;
