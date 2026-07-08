@@ -183,8 +183,8 @@ const userOptions = computed<DropdownOption[]>(() => [
     icon: () => h(Icon, { icon: 'lucide:user' }),
   },
   {
-    // 切换租户 / 平台管理：打开控制中心（独立公共页，不进标签栏）
-    label: t('header.user.switch_tenant'),
+    // 控制中心：切换租户 / 进入平台管理（独立公共页，不进标签栏）。标签复用 menu.control_center，与路由名、页面标题同源
+    label: t('menu.control_center'),
     key: 'control-center',
     icon: () => h(Icon, { icon: 'lucide:building-2' }),
   },

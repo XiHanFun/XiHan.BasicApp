@@ -187,7 +187,7 @@ export default {
     title: '控制中心',
     welcome: '欢迎回来',
     subtitle: '选择一个租户进入，或前往平台管理',
-    my_tenants: '我的租户',
+    my_tenants: '租户',
     enter: '进入',
     current: '当前',
     refresh: '刷新',
@@ -199,6 +199,8 @@ export default {
     load_failed: '加载租户列表失败',
     switch_failed: '切换失败',
     switched: '已切换到「{name}」',
+    switched_platform: '已进入平台管理',
+    platform_group: '平台',
   },
   oauth: {
     consent_title: '授权确认',

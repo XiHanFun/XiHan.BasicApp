@@ -188,7 +188,7 @@ export default {
     title: 'Control Center',
     welcome: 'Welcome back',
     subtitle: 'Pick a tenant to enter, or go to platform administration',
-    my_tenants: 'My Tenants',
+    my_tenants: 'Tenants',
     enter: 'Enter',
     current: 'Current',
     refresh: 'Refresh',
@@ -200,6 +200,8 @@ export default {
     load_failed: 'Failed to load tenant list',
     switch_failed: 'Switch failed',
     switched: 'Switched to "{name}"',
+    switched_platform: 'Entered platform administration',
+    platform_group: 'Platform',
   },
   oauth: {
     consent_title: 'Authorize Application',
