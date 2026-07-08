@@ -31,10 +31,15 @@ const loaded = ref(false)
 const switching = ref(false)
 const tenants = ref<TenantSwitcherDto[]>([])
 
-/** 是否可进入平台管理（超管 / 平台管理员） */
+/** 是否可进入平台管理（超管 / 平台管理员）——角色派生，稳定，仅用于是否展示平台分组 */
 const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?? false)
-/** 当前是否处于平台态（未进入任何租户） */
-const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
+/**
+ * 当前上下文以租户列表的 isCurrent 为唯一事实源：后端按令牌 tenantid 实时计算，始终新鲜。
+ * 不用 userInfo.isPlatform（整页重载后可能陈旧，会导致切换后前端当前态不同步）。
+ */
+const hasCurrentTenant = computed(() => tenants.value.some(item => item.isCurrent))
+/** 平台管理是否为当前上下文：已加载且没有任何租户处于当前态 */
+const platformIsCurrent = computed(() => loaded.value && !hasCurrentTenant.value)
 const displayName = computed(() => userStore.nickname || userStore.username)
 const avatar = computed(() => userStore.avatar)
 const brandTitle = computed(() => appStore.brandTitle)
@@ -54,9 +59,9 @@ async function loadTenants() {
   }
 }
 
-/** 进入租户：重签发令牌后整页重载，让新上下文的权限/菜单重新引导 */
+/** 进入租户：重签发令牌后整页重载，让新上下文的权限/菜单重新引导（允许再次进入当前租户） */
 async function enterTenant(tenant: TenantSwitcherDto) {
-  if (switching.value || tenant.isCurrent) {
+  if (switching.value) {
     return
   }
   switching.value = true
@@ -73,9 +78,24 @@ async function enterTenant(tenant: TenantSwitcherDto) {
   }
 }
 
-/** 进入平台管理：平台态本身已具备平台菜单，直接回首页（首个可导航菜单） */
-function enterPlatform() {
-  window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
+/** 进入平台管理：与进入租户同构——重签发平台态令牌（无 TenantId）后整页重载（允许在平台态再次进入以刷新） */
+async function enterPlatform() {
+  if (switching.value) {
+    return
+  }
+  switching.value = true
+  try {
+    // tenantId 传 null → 后端归一为平台运维态（无租户上下文）
+    const token = await tenantApi.switchTenant({ tenantId: null })
+    accessStore.setAccessToken(token.accessToken)
+    accessStore.setRefreshToken(token.refreshToken)
+    message.success(t('page.control_center.switched_platform'))
+    window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || t('page.control_center.switch_failed'))
+    switching.value = false
+  }
 }
 
 async function handleLogout() {
@@ -129,31 +149,11 @@ onMounted(loadTenants)
           </p>
         </div>
 
-        <section v-if="canAccessPlatform && isPlatform" class="cc-card cc-platform">
-          <div class="cc-platform__icon">
-            <Icon icon="lucide:shield-check" width="22" />
-          </div>
-          <div class="cc-platform__body">
-            <div class="cc-platform__title">
-              {{ t('page.control_center.platform_panel') }}
-            </div>
-            <div class="cc-platform__desc">
-              {{ t('page.control_center.platform_desc') }}
-            </div>
-          </div>
-          <NButton type="primary" @click="enterPlatform">
-            {{ t('page.control_center.enter_platform') }}
-            <template #icon>
-              <Icon icon="lucide:arrow-right" />
-            </template>
-          </NButton>
-        </section>
-
         <section class="cc-card">
           <div class="cc-card__head">
             <div class="cc-card__title">
-              <Icon icon="lucide:building-2" width="16" />
-              <span>{{ t('page.control_center.my_tenants') }}</span>
+              <Icon icon="lucide:layout-grid" width="16" />
+              <span>{{ t('page.control_center.title') }}</span>
             </div>
             <NButton size="tiny" quaternary :loading="loading" @click="loadTenants">
               <template #icon>
@@ -163,6 +163,42 @@ onMounted(loadTenants)
             </NButton>
           </div>
           <NSpin :show="loading">
+            <!-- 平台分组：与租户同构的可选中项，选中态表示当前处于平台运维态 -->
+            <template v-if="canAccessPlatform">
+              <div class="cc-group-label">
+                {{ t('page.control_center.platform_group') }}
+              </div>
+              <div class="cc-tenant-grid">
+                <button
+                  type="button"
+                  class="cc-tenant"
+                  :class="{ 'cc-tenant--current': platformIsCurrent }"
+                  :disabled="switching"
+                  @click="enterPlatform"
+                >
+                  <div class="cc-tenant__logo cc-tenant__logo--platform">
+                    <Icon icon="lucide:shield-check" width="20" />
+                  </div>
+                  <div class="cc-tenant__body">
+                    <div class="cc-tenant__name">
+                      {{ t('page.control_center.platform_panel') }}
+                      <NTag v-if="platformIsCurrent" type="success" size="tiny" :bordered="false">
+                        {{ t('page.control_center.current') }}
+                      </NTag>
+                    </div>
+                    <div class="cc-tenant__meta">
+                      <span class="cc-tenant__code">{{ t('page.control_center.platform_desc') }}</span>
+                    </div>
+                  </div>
+                  <Icon v-if="!platformIsCurrent" icon="lucide:arrow-right" width="16" class="cc-tenant__arrow" />
+                </button>
+              </div>
+            </template>
+
+            <!-- 我的租户分组 -->
+            <div class="cc-group-label" :class="{ 'cc-group-label--spaced': canAccessPlatform }">
+              {{ t('page.control_center.my_tenants') }}
+            </div>
             <NEmpty
               v-if="tenants.length === 0 && loaded"
               :description="t('page.control_center.no_tenants')"
@@ -323,38 +359,22 @@ onMounted(loadTenants)
   color: hsl(var(--foreground));
 }
 
-.cc-platform {
-  display: flex;
-  gap: 14px;
-  align-items: center;
+.cc-group-label {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.cc-platform__icon {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+.cc-group-label--spaced {
+  margin-top: 18px;
+}
+
+.cc-tenant__logo--platform {
   color: hsl(var(--primary));
   background: hsl(var(--primary) / 12%);
-  border-radius: 12px;
-}
-
-.cc-platform__body {
-  flex: 1;
-  min-width: 0;
-}
-
-.cc-platform__title {
-  font-size: 15px;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-}
-
-.cc-platform__desc {
-  font-size: 13px;
-  color: hsl(var(--muted-foreground));
 }
 
 .cc-tenant-grid {
@@ -480,15 +500,6 @@ onMounted(loadTenants)
 
   .cc-card {
     padding: 16px;
-  }
-
-  .cc-platform {
-    flex-wrap: wrap;
-  }
-
-  .cc-platform > .n-button {
-    width: 100%;
-    margin-top: 4px;
   }
 }
 </style>
