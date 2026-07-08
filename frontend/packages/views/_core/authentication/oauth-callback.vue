@@ -52,7 +52,7 @@ onMounted(async () => {
     loading.value = false
     message.error(errorMsg.value)
     setTimeout(() => {
-      window.location.href = LOGIN_PATH
+      void router.push(LOGIN_PATH)
     }, 3000)
     return
   }
@@ -65,7 +65,7 @@ onMounted(async () => {
     loading.value = false
     message.error(errorMsg.value)
     setTimeout(() => {
-      window.location.href = LOGIN_PATH
+      void router.push(LOGIN_PATH)
     }, 3000)
     return
   }
@@ -87,7 +87,7 @@ onMounted(async () => {
     errorMsg.value = e?.message || t('page.auth.oauth_callback_failed')
     message.error(errorMsg.value!)
     setTimeout(() => {
-      window.location.href = LOGIN_PATH
+      void router.push(LOGIN_PATH)
     }, 3000)
   }
   finally {
