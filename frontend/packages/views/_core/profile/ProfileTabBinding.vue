@@ -74,10 +74,11 @@ async function handleUnlinkAccount(provider: string) {
   }
 }
 
-// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi）：mdi 品牌图标，lucide 兜底
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底
 function providerIcon(name: string) {
   const map: Record<string, string> = {
     github: 'mdi:github',
+    gitee: 'simple-icons:gitee',
     google: 'mdi:google',
     microsoft: 'mdi:microsoft',
     qq: 'mdi:qqchat',

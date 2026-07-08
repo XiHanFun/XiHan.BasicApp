@@ -13,22 +13,28 @@ export const ICON_SET_META = [
   { prefix: 'heroicons', name: 'Heroicons', package: 'heroicons' },
   { prefix: 'lucide', name: 'Lucide', package: 'lucide' },
   { prefix: 'mdi', name: 'Material Design Icons', package: 'mdi' },
+  { prefix: 'simple-icons', name: 'Simple Icons', package: 'simple-icons' },
   { prefix: 'tabler', name: 'Tabler', package: 'tabler' },
 ] as const
 
 type IconPackageName = typeof ICON_SET_META[number]['package']
 
 const PACKAGE_LOADERS: Record<IconPackageName, () => Promise<IconifyJSON>> = {
-  carbon: () => import('@iconify-json/carbon').then(m => m.icons as IconifyJSON),
-  ep: () => import('@iconify-json/ep').then(m => m.icons as IconifyJSON),
-  heroicons: () => import('@iconify-json/heroicons').then(m => m.icons as IconifyJSON),
-  lucide: () => import('@iconify-json/lucide').then(m => m.icons as IconifyJSON),
-  mdi: () => import('@iconify-json/mdi').then(m => m.icons as IconifyJSON),
-  tabler: () => import('@iconify-json/tabler').then(m => m.icons as IconifyJSON),
+  'carbon': () => import('@iconify-json/carbon').then(m => m.icons as IconifyJSON),
+  'ep': () => import('@iconify-json/ep').then(m => m.icons as IconifyJSON),
+  'heroicons': () => import('@iconify-json/heroicons').then(m => m.icons as IconifyJSON),
+  'lucide': () => import('@iconify-json/lucide').then(m => m.icons as IconifyJSON),
+  'mdi': () => import('@iconify-json/mdi').then(m => m.icons as IconifyJSON),
+  'simple-icons': () => import('@iconify-json/simple-icons').then(m => m.icons as IconifyJSON),
+  'tabler': () => import('@iconify-json/tabler').then(m => m.icons as IconifyJSON),
 }
 
-/** 运行期常用图标集：lucide（通用）、tabler（用户管理等页）、mdi（品牌等图标），预加载避免离线模式图标空白 */
-const PRELOAD_ICON_PACKAGES: IconPackageName[] = ['lucide', 'tabler', 'mdi']
+/**
+ * 运行期常用图标集：lucide（通用）、tabler（用户管理等页）、mdi（品牌等图标）、
+ * simple-icons（第三方登录品牌 logo 如 Gitee，登录页/绑定页离线渲染需预载）。
+ * 预加载避免离线模式图标空白（离线 Icon 对已挂载组件不会因后加载而重渲染）。
+ */
+const PRELOAD_ICON_PACKAGES: IconPackageName[] = ['lucide', 'tabler', 'mdi', 'simple-icons']
 
 export async function setupIconifyOffline() {
   await Promise.all(PRELOAD_ICON_PACKAGES.map(async (packageName) => {

@@ -151,7 +151,7 @@ public sealed class SaasConfigurationSeeder(
         return
         [
             new("登录方式", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.LoginMethods, "[\"password\"]", "[\"password\"]", ConfigType.Feature, ConfigDataType.Array, "登录页开放的登录方式编码集合", 50),
-            new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[{\"name\":\"github\",\"displayName\":\"Github\"},{\"name\":\"google\",\"displayName\":\"Google\"},{\"name\":\"qq\",\"displayName\":\"QQ\"}]", "[]", ConfigType.Feature, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70),
+            new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[{\"name\":\"github\",\"displayName\":\"Github\"},{\"name\":\"gitee\",\"displayName\":\"Gitee\"},{\"name\":\"google\",\"displayName\":\"Google\"},{\"name\":\"qq\",\"displayName\":\"QQ\"}]", "[]", ConfigType.Feature, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70),
             new("Telegram 机器人开关", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.Enabled, "false", "false", ConfigType.Feature, ConfigDataType.Boolean, "是否启用 Telegram 机器人平台（总开关，关闭时不拉起任何机器人）", 100),
             new("Telegram Webhook 基础地址", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookBaseUrl, "", "", ConfigType.Feature, ConfigDataType.String, "Webhook 基础地址（如 https://example.com）；留空使用长轮询（Polling）模式", 101),
             new("Telegram Webhook 路由前缀", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookRoutePrefix, TelegramBotPlatformConsts.DefaultWebhookRoutePrefix, TelegramBotPlatformConsts.DefaultWebhookRoutePrefix, ConfigType.Feature, ConfigDataType.String, "Webhook 接收中间件路由前缀（匹配 POST {前缀}/{机器人名}）", 102),
