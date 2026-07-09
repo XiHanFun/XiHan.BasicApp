@@ -28,6 +28,7 @@ using XiHan.Framework.Bot.Telegram.Webhook;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Observability;
 using XiHan.Framework.Web.Core.Extensions;
 
 namespace XiHan.BasicApp.WebHost;
@@ -39,7 +40,9 @@ namespace XiHan.BasicApp.WebHost;
     // 应用模块依赖
     typeof(XiHanBasicAppSaasModule),
     typeof(XiHanBasicAppCodeGenerationModule),
-    typeof(XiHanBasicAppAIModule)
+    typeof(XiHanBasicAppAIModule),
+    // 可观测性：激活 OpenTelemetry 装配；由 XiHan:Observability 配置门控（Enabled 默认关）
+    typeof(XiHanObservabilityModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
