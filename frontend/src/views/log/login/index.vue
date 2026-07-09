@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { createPageRequest, LoginResult, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
+import { loginLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -147,27 +148,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basic_id') },
-  { key: 'sessionId', label: t('log.common.session_id') },
-  { key: 'traceId', label: t('log.common.trace_id') },
-  { key: 'userName', label: t('log.common.user_name') },
-  { key: 'userId', label: t('log.common.user_id') },
-  { key: 'loginIp', label: t('log.login.login_ip') },
-  { key: 'loginLocation', label: t('log.login.login_location') },
-  { key: 'browser', label: t('log.common.browser') },
-  { key: 'os', label: t('log.common.os') },
-  { key: 'device', label: t('log.common.device') },
-  { key: 'deviceId', label: t('log.common.device_id') },
-  { key: 'loginResult', label: t('log.login.login_result'), options: loginResultOptions.value, type: 'enum' },
-  { key: 'isRiskLogin', falseText: t('common.statuses.no'), label: t('log.login.is_risk_login'), trueText: t('common.statuses.yes'), type: 'boolean' },
-  { key: 'loginTime', label: t('log.login.login_time'), type: 'date' },
-  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'createdId', label: t('log.common.created_id') },
-  { key: 'createdBy', label: t('common.fields.created_by') },
-  { key: 'message', label: t('log.login.message'), type: 'code' },
-  { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-])
+const detailFields = computed<LogDetailField[]>(() => loginLogDetailFields(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as LoginLogListItemDto | undefined

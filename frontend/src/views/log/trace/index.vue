@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField, LogDetailFieldType } from '../_components/log-detail.types.ts'
+import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
@@ -9,12 +9,21 @@ import { useI18n } from 'vue-i18n'
 import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
 import { SchemaSearchPanel } from '~/components'
 import { formatDate } from '~/utils'
+import {
+  accessLogDetailFields,
+  apiLogDetailFields,
+  diffLogDetailFields,
+  exceptionLogDetailFields,
+  loginLogDetailFields,
+  operationLogDetailFields,
+  permissionChangeLogDetailFields,
+} from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { tracePreset } from '../_components/trace-nav'
 
 defineOptions({ name: 'LogTracePage' })
 
-const { t, te } = useI18n()
+const { t } = useI18n()
 const message = useMessage()
 const themeVars = useThemeVars()
 
@@ -77,6 +86,15 @@ const logTypeLabelMap = computed<Record<string, string>>(() => ({
 }))
 
 const logTypeOptions = computed(() => ALL_LOG_TYPES.map(value => ({ label: logTypeLabelMap.value[value] ?? value, value })))
+
+// 大小写无关索引：后端统计 typeCounts 的字典键经 JSON camelCase 序列化为 access/operation/…，
+// 与枚举 PascalCase 不一致；用小写归一化同时兼容 item.logType(PascalCase) 与 typeCounts 键(camelCase)。
+const logTypeLabelByLower = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const [key, label] of Object.entries(logTypeLabelMap.value))
+    map[key.toLowerCase()] = label
+  return map
+})
 
 // 权限变更日志无用户名/会话维度
 const disabledTypes = computed<TraceLogType[]>(() =>
@@ -179,12 +197,20 @@ function reset() {
 }
 
 // ── 展示辅助 ─────────────────────────────────────────────────────
-// 中性灰度为主，仅异常/告警着色（对齐设计稿）
-function statusColor(status: string): string {
-  switch (status) {
-    case 'error': return themeVars.value.errorColor
-    case 'warning': return themeVars.value.warningColor
-    default: return themeVars.value.textColor2
+type StatusKind = 'success' | 'error' | 'warning' | 'info'
+
+/**
+ * 状态归一：以后端已折算的 item.status 为权威来源（后端已综合 IsSuccess/AccessResult/
+ * 严重级别等得出统一结果，7 类日志一致）。不按原始 HTTP 码判色——本框架业务失败常包成
+ * HTTP 200，若按码判定会把失败误染成「成功(绿)」。HTTP 码仅用于状态标签文案(statusText)。
+ * 颜色统一后，「200」与「成功」这类不同文案也呈现一致的状态视觉。
+ */
+function statusKind(item: TraceTimelineItemDto): StatusKind {
+  switch (item.status) {
+    case 'error': return 'error'
+    case 'warning': return 'warning'
+    case 'success': return 'success'
+    default: return 'info'
   }
 }
 
@@ -199,12 +225,39 @@ function statusLabel(status: string): string {
 }
 
 function logTypeLabel(type: string) {
-  return logTypeLabelMap.value[type] ?? type
+  return logTypeLabelByLower.value[type.toLowerCase()] ?? type
 }
 
-/** 状态文案：有 HTTP 码显码，否则显结果文案 */
+/** 请求方式配色：按 HTTP 动词着色；非 HTTP（日志类型标签）保持中性 */
+function methodClass(item: TraceTimelineItemDto): string {
+  switch ((item.method ?? '').toUpperCase()) {
+    case 'GET': return 'm-get'
+    case 'POST': return 'm-post'
+    case 'PUT': return 'm-put'
+    case 'PATCH': return 'm-patch'
+    case 'DELETE': return 'm-delete'
+    default: return ''
+  }
+}
+
+/** 日志类型配色：与请求方式 chip 同款样式，按日志类型着色 */
+function logTypeClass(item: TraceTimelineItemDto): string {
+  switch (item.logType) {
+    case TraceLogType.Login: return 't-success'
+    case TraceLogType.Exception: return 't-error'
+    case TraceLogType.Diff: return 't-warning'
+    case TraceLogType.Operation:
+    case TraceLogType.PermissionChange: return 't-primary'
+    case TraceLogType.Access:
+    case TraceLogType.Api: return 't-info'
+    default: return 't-info'
+  }
+}
+
+/** 状态文案：有正整数 HTTP 码显码，否则显结果文案（与 statusKind 判定口径一致，避免出现无意义的「0」） */
 function statusText(item: TraceTimelineItemDto): string {
-  return item.statusCode != null ? String(item.statusCode) : statusLabel(item.status)
+  const code = Number(item.statusCode)
+  return Number.isFinite(code) && code > 0 ? String(code) : statusLabel(item.status)
 }
 
 /** 路径/标题（method/path 为主，机器值等宽） */
@@ -221,15 +274,19 @@ function minuteKey(value: string): string {
   return formatDate(value).slice(0, 16)
 }
 
-/** 行数据：按分钟分组（相邻分钟变化时显示分钟分隔） */
-const rows = computed(() => {
+/** 分钟分组：外层时间线按分钟连接，分钟内为卡片子时间线 */
+const groups = computed(() => {
+  const out: { key: string, minute: string, items: TraceTimelineItemDto[] }[] = []
   let prev = ''
-  return items.value.map((item) => {
+  for (const item of items.value) {
     const key = minuteKey(item.time)
-    const showMinute = key !== prev
-    prev = key
-    return { item, showMinute, minute: timeText(item.time).slice(0, 5) }
-  })
+    if (key !== prev) {
+      out.push({ key, minute: timeText(item.time).slice(0, 5), items: [] })
+      prev = key
+    }
+    out[out.length - 1]!.items.push(item)
+  }
+  return out
 })
 
 /** 最大耗时（耗时条相对刻度） */
@@ -251,6 +308,16 @@ function barWidth(item: TraceTimelineItemDto): string {
   const v = Number(item.executionTime)
   const pct = Number.isFinite(v) ? (v / maxDuration.value) * 100 : 0
   return `${Math.max(6, Math.min(100, Math.round(pct)))}%`
+}
+
+/** 耗时分级（独立于状态配色）：<500ms 快 / <1500ms 一般 / 更久 慢 */
+function durationLevel(item: TraceTimelineItemDto): 'fast' | 'mid' | 'slow' {
+  const v = Number(item.executionTime)
+  if (!Number.isFinite(v) || v < 500)
+    return 'fast'
+  if (v < 1500)
+    return 'mid'
+  return 'slow'
 }
 
 /** 元信息（机器值等宽，用户/IP + 链路/会话次之） */
@@ -297,56 +364,20 @@ async function openDetail(item: TraceTimelineItemDto) {
   }
 }
 
-const CODE_KEYS = new Set([
-  'extendData',
-  'requestBody',
-  'responseBody',
-  'requestParams',
-  'requestHeaders',
-  'responseHeaders',
-  'exceptionStackTrace',
-  'stackTrace',
-  'changedFields',
-  'beforeData',
-  'afterData',
-  'userAgent',
-  'errorMessage',
-  'exceptionMessage',
-  'handledRemark',
-])
-
-function fieldType(key: string): LogDetailFieldType | undefined {
-  if (key === 'executionTime')
-    return 'duration'
-  if (key === 'requestSize' || key === 'responseSize')
-    return 'bytes'
-  if (CODE_KEYS.has(key))
-    return 'code'
-  if (/Time$/.test(key))
-    return 'date'
-  return undefined
+// 详情字段：直接复用各日志类型页已定义的字段/标签/枚举国际化（单一事实源 log-detail-fields.ts），
+// 不在链路追踪里另建映射，避免漏国际化。
+const DETAIL_FIELDS_BY_TYPE: Record<TraceLogType, (t: (key: string) => string) => LogDetailField[]> = {
+  [TraceLogType.Access]: accessLogDetailFields,
+  [TraceLogType.Api]: apiLogDetailFields,
+  [TraceLogType.Operation]: operationLogDetailFields,
+  [TraceLogType.Login]: loginLogDetailFields,
+  [TraceLogType.Exception]: exceptionLogDetailFields,
+  [TraceLogType.Diff]: diffLogDetailFields,
+  [TraceLogType.PermissionChange]: permissionChangeLogDetailFields,
 }
 
-function fieldLabel(key: string): string {
-  const snake = key.replace(/([A-Z])/g, '_$1').toLowerCase()
-  const commonKey = `log.common.${snake}`
-  if (te(commonKey))
-    return t(commonKey)
-  const humanized = key.replace(/([A-Z])/g, ' $1').trim()
-  return humanized.charAt(0).toUpperCase() + humanized.slice(1)
-}
-
-const detailFields = computed<LogDetailField[]>(() => {
-  const record = detailData.value
-  if (!record)
-    return []
-  return Object.keys(record)
-    .filter((key) => {
-      const v = record[key]
-      return v !== null && v !== undefined && v !== ''
-    })
-    .map(key => ({ key, label: fieldLabel(key), type: fieldType(key), span: fieldType(key) === 'code' ? 2 : 1 } as LogDetailField))
-})
+const detailFields = computed<LogDetailField[]>(() =>
+  detailLogType.value != null ? DETAIL_FIELDS_BY_TYPE[detailLogType.value](t) : [])
 
 // ── 深链预填（从各日志页「追踪」跳转，经共享预设复用同一标签页） ──
 function applyPreset(preset: TracePreset) {
@@ -406,7 +437,7 @@ watch(tracePreset, (preset) => {
                 v-for="(count, type) in result.typeCounts"
                 :key="type"
                 class="trace-chip"
-                :class="{ 'is-error': type === 'Exception' }"
+                :class="{ 'is-error': String(type).toLowerCase() === 'exception' }"
               >
                 {{ logTypeLabel(type) }}<i>·</i><b>{{ count }}</b>
               </span>
@@ -417,47 +448,49 @@ watch(tracePreset, (preset) => {
             </div>
           </div>
 
-          <div v-if="rows.length" class="trace-panel__list">
-            <template v-for="row in rows" :key="`${row.item.logType}-${row.item.basicId}`">
-              <div v-if="row.showMinute" class="trace-min">
-                <span class="trace-min__label">{{ row.minute }}</span>
-                <span class="trace-min__gap" />
-                <span class="trace-min__line" />
+          <div v-if="groups.length" class="trace-panel__list">
+            <div v-for="grp in groups" :key="grp.key" class="trace-grp">
+              <div class="trace-grp__minute">
+                <span class="trace-grp__node" />
+                <span class="trace-grp__label">{{ grp.minute }}</span>
+                <span class="trace-grp__count">{{ grp.items.length }}</span>
               </div>
-              <div class="trace-row" @click="openDetail(row.item)">
-                <div class="trace-row__time">
-                  {{ timeText(row.item.time) }}
-                </div>
-                <div class="trace-row__rail">
-                  <span class="trace-row__line" />
-                  <span class="trace-row__dot" :style="{ borderColor: statusColor(row.item.status) }" />
-                </div>
-                <div class="trace-row__body">
-                  <div class="trace-row__main">
-                    <span class="trace-row__chip">{{ row.item.method || logTypeLabel(row.item.logType) }}</span>
-                    <span class="trace-row__path">{{ pathOf(row.item) }}</span>
-                    <span class="trace-row__grow" />
-                    <span v-if="hasDuration(row.item)" class="trace-row__dur">
-                      <span class="trace-row__bar">
-                        <span class="trace-row__barfill" :style="{ width: barWidth(row.item), background: statusColor(row.item.status) }" />
-                      </span>
-                      <span class="trace-row__durlabel">{{ row.item.executionTime }}ms</span>
-                    </span>
-                    <span class="trace-row__status" :style="{ color: statusColor(row.item.status) }">
-                      <span class="trace-row__sdot" :style="{ background: statusColor(row.item.status) }" />
-                      {{ statusText(row.item) }}
-                    </span>
+              <div class="trace-grp__cards">
+                <div
+                  v-for="item in grp.items"
+                  :key="`${item.logType}-${item.basicId}`"
+                  class="trace-card"
+                  :class="`is-${statusKind(item)}`"
+                  @click="openDetail(item)"
+                >
+                  <div class="trace-card__head">
+                    <span class="trace-card__time">{{ timeText(item.time) }}</span>
+                    <span class="trace-card__chip" :class="logTypeClass(item)">{{ logTypeLabel(item.logType) }}</span>
+                    <span v-if="item.method" class="trace-card__chip" :class="methodClass(item)">{{ item.method }}</span>
+                    <span class="trace-card__grow" />
+                    <span class="trace-card__status">{{ statusText(item) }}</span>
                   </div>
-                  <div v-if="row.item.summary || metaParts(row.item).length" class="trace-row__meta">
-                    <span v-if="row.item.summary" class="trace-row__handler">{{ row.item.summary }}</span>
-                    <template v-for="p in metaParts(row.item)" :key="p.key">
-                      <i class="trace-row__sep">·</i>
-                      <span>{{ p.label }} <b>{{ p.value }}</b></span>
-                    </template>
+                  <div class="trace-card__path">
+                    {{ pathOf(item) }}
+                  </div>
+                  <div v-if="item.summary" class="trace-card__summary">
+                    {{ item.summary }}
+                  </div>
+                  <div v-if="hasDuration(item)" class="trace-card__dur" :class="`dur-${durationLevel(item)}`">
+                    <span class="trace-card__bar">
+                      <span class="trace-card__barfill" :style="{ width: barWidth(item) }" />
+                    </span>
+                    <span class="trace-card__durlabel">{{ item.executionTime }}ms</span>
+                  </div>
+                  <div v-if="metaParts(item).length" class="trace-card__meta">
+                    <div v-for="p in metaParts(item)" :key="p.key" class="trace-card__metarow">
+                      <span class="trace-card__metak">{{ p.label }}</span>
+                      <span class="trace-card__metav">{{ p.value }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </template>
+            </div>
           </div>
 
           <NEmpty v-else :description="emptyDescription" class="trace-empty" />
@@ -501,9 +534,19 @@ watch(tracePreset, (preset) => {
   font-size: 12px;
 }
 
-/* ── 时间线轨道（内嵌于外层 NCard，中性灰度 + 等宽机器值；不再套第二层边框） ── */
+/* ── 时间线轨道（内嵌于外层 NCard，等宽机器值；卡片按状态浅色着色） ── */
 .trace-panel {
   --trace-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* 状态色 / 耗时色 / 请求方式色 + 底色（卡片用 color-mix 调浅色） */
+  --t-card: v-bind('themeVars.cardColor');
+  --t-action: v-bind('themeVars.actionColor');
+  --t-border: v-bind('themeVars.borderColor');
+  --t-succ: v-bind('themeVars.successColor');
+  --t-err: v-bind('themeVars.errorColor');
+  --t-warn: v-bind('themeVars.warningColor');
+  --t-info: v-bind('themeVars.infoColor');
+  --t-primary: v-bind('themeVars.primaryColor');
+  --t-text: v-bind('themeVars.textColor1');
 }
 
 /* 头部吸顶：随内容滚动固定在结果卡顶部 */
@@ -583,203 +626,311 @@ watch(tracePreset, (preset) => {
 }
 
 .trace-panel__list {
-  padding: 2px 20px 12px;
+  padding: 6px 20px 16px;
 }
 
-/* 分钟分隔 */
-.trace-min {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 14px 0 6px;
+/* ── 外层时间线：按分钟连接 ── */
+.trace-grp {
+  position: relative;
 }
 
-.trace-min__label {
-  width: 56px;
-  flex: none;
-  text-align: right;
-  font-family: var(--trace-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: v-bind('themeVars.textColor2');
-}
-
-.trace-min__gap {
-  width: 34px;
-  flex: none;
-}
-
-.trace-min__line {
-  flex: 1;
-  height: 1px;
+/* 贯穿分钟节点的竖直主线（相邻分组无间距 → 连续） */
+.trace-grp::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
   background: v-bind('themeVars.dividerColor');
 }
 
-/* 单行 */
-.trace-row {
-  display: flex;
-  align-items: flex-start;
-  border-bottom: 1px solid v-bind('themeVars.dividerColor');
-  cursor: pointer;
-  transition: background-color 0.12s ease;
+.trace-grp:first-child::before {
+  top: 22px;
 }
 
-.trace-row:hover {
-  background: v-bind('themeVars.hoverColor');
+.trace-grp:last-child::before {
+  bottom: auto;
+  height: 24px;
 }
 
-.trace-row__time {
-  width: 56px;
-  flex: none;
-  text-align: right;
-  padding-top: 14px;
-  font-family: var(--trace-mono);
-  font-size: 11.5px;
-  color: v-bind('themeVars.textColor3');
-}
-
-.trace-row__rail {
+/* 分钟节点 */
+.trace-grp__minute {
   position: relative;
-  width: 34px;
-  flex: none;
-  align-self: stretch;
-}
-
-.trace-row__line {
-  position: absolute;
-  left: 16px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: v-bind('themeVars.borderColor');
-}
-
-.trace-row__dot {
-  position: absolute;
-  left: 11px;
-  top: 14px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: v-bind('themeVars.cardColor');
-  border: 2px solid;
-  box-shadow: 0 0 0 3px v-bind('themeVars.cardColor');
-}
-
-.trace-row__body {
-  flex: 1;
-  min-width: 0;
-  padding: 11px 0 12px;
-}
-
-.trace-row__main {
   display: flex;
   align-items: center;
   gap: 9px;
+  min-height: 20px;
+  padding: 12px 0 10px 26px;
 }
 
-.trace-row__chip {
+.trace-grp__node {
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: v-bind('themeVars.primaryColor');
+  box-shadow: 0 0 0 3px v-bind('themeVars.cardColor');
+}
+
+.trace-grp__label {
+  font-family: var(--trace-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: v-bind('themeVars.textColor1');
+}
+
+.trace-grp__count {
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: v-bind('themeVars.actionColor');
+  color: v-bind('themeVars.textColor3');
+  font-family: var(--trace-mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+/* ── 分钟内：卡片横向排列（自适应换行），信息竖向堆叠完整展示 ── */
+.trace-grp__cards {
+  margin-left: 27px;
+  padding-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+/* 单条日志卡片：纵向堆叠 + 按状态(--k)浅色着色 */
+.trace-card {
+  --k: var(--t-info); /* 状态色，由 is-* 覆盖 */
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 13px 12px;
+  border: 1px solid color-mix(in srgb, var(--k) 20%, var(--t-border));
+  border-radius: 8px;
+  /* 浅色渐变背景：状态色微染 → 卡片底色 */
+  background: linear-gradient(135deg, color-mix(in srgb, var(--k) 9%, var(--t-card)) 0%, var(--t-card) 62%);
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    background 0.14s ease;
+}
+
+/* 状态 → 状态色（见 statusKind，来源于后端权威结果） */
+.trace-card.is-success {
+  /* 成功是绝大多数：染色更淡，让异常(告警/错误)更跳出 */
+  --k: var(--t-succ);
+
+  background: linear-gradient(135deg, color-mix(in srgb, var(--k) 5%, var(--t-card)) 0%, var(--t-card) 66%);
+}
+
+.trace-card.is-info {
+  --k: var(--t-info);
+}
+
+.trace-card.is-warning {
+  --k: var(--t-warn);
+}
+
+.trace-card.is-error {
+  --k: var(--t-err);
+}
+
+.trace-card:hover {
+  /* 悬停反馈以 边框加强 + 背景微抬升 为主（明暗主题都可见，不依赖纯黑阴影） */
+  border-color: color-mix(in srgb, var(--k) 45%, var(--t-border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--k) 14%, var(--t-card)) 0%, var(--t-card) 56%);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.1);
+}
+
+/* 卡片头部：状态点 + 方法 + 时间 … 状态标签 */
+.trace-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trace-card__chip {
+  --m: var(--t-info); /* 请求方式色，由 m-* 覆盖 */
+
   flex: none;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 5px;
   border: 1px solid v-bind('themeVars.borderColor');
   background: v-bind('themeVars.actionColor');
   color: v-bind('themeVars.textColor3');
   font-family: var(--trace-mono);
   font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   line-height: 1.3;
 }
 
-.trace-row__path {
-  min-width: 0;
-  font-family: var(--trace-mono);
-  font-size: 13.5px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: v-bind('themeVars.textColor1');
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* 彩色 chip：HTTP 动词（m-*）与日志类型（t-*）同款着色 */
+.trace-card__chip.m-get,
+.trace-card__chip.m-post,
+.trace-card__chip.m-put,
+.trace-card__chip.m-patch,
+.trace-card__chip.m-delete,
+.trace-card__chip.t-info,
+.trace-card__chip.t-primary,
+.trace-card__chip.t-success,
+.trace-card__chip.t-warning,
+.trace-card__chip.t-error {
+  /* 文字向 ink 混以保证对比度（浅底上纯色调过淡） */
+  color: color-mix(in srgb, var(--m) 50%, var(--t-text));
+  background: color-mix(in srgb, var(--m) 13%, var(--t-card));
+  border-color: color-mix(in srgb, var(--m) 30%, var(--t-border));
 }
 
-.trace-row__grow {
-  flex: 1;
+.trace-card__chip.m-get,
+.trace-card__chip.t-info {
+  --m: var(--t-info);
 }
 
-.trace-row__dur {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
+.trace-card__chip.m-post,
+.trace-card__chip.t-success {
+  --m: var(--t-succ);
+}
+
+.trace-card__chip.m-put,
+.trace-card__chip.t-warning {
+  --m: var(--t-warn);
+}
+
+.trace-card__chip.m-patch,
+.trace-card__chip.t-primary {
+  --m: var(--t-primary);
+}
+
+.trace-card__chip.m-delete,
+.trace-card__chip.t-error {
+  --m: var(--t-err);
+}
+
+.trace-card__time {
   flex: none;
-}
-
-.trace-row__bar {
-  width: 60px;
-  height: 5px;
-  border-radius: 3px;
-  background: v-bind('themeVars.actionColor');
-  overflow: hidden;
-}
-
-.trace-row__barfill {
-  display: block;
-  height: 100%;
-  border-radius: 3px;
-}
-
-.trace-row__durlabel {
-  min-width: 46px;
-  text-align: right;
-  font-family: var(--trace-mono);
-  font-size: 12px;
-  color: v-bind('themeVars.textColor2');
-}
-
-.trace-row__status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 5px;
-  flex: none;
-  min-width: 52px;
-  font-family: var(--trace-mono);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.trace-row__sdot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.trace-row__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  margin-top: 7px;
   font-family: var(--trace-mono);
   font-size: 11.5px;
   color: v-bind('themeVars.textColor3');
 }
 
-.trace-row__meta b {
-  font-weight: 400;
-  color: v-bind('themeVars.textColor2');
+.trace-card__grow {
+  flex: 1;
+}
+
+/* 状态标签：状态色文字(向 ink 混以保证对比度) + 浅色底，统一「200 / 成功」视觉 */
+.trace-card__status {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-family: var(--trace-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--k) 45%, var(--t-text));
+  background: color-mix(in srgb, var(--k) 16%, var(--t-card));
+}
+
+/* 路径：完整展示、允许换行（不截断） */
+.trace-card__path {
+  font-family: var(--trace-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.45;
+  color: v-bind('themeVars.textColor1');
   word-break: break-all;
 }
 
-.trace-row__handler {
+.trace-card__summary {
+  font-size: 12px;
+  line-height: 1.45;
   color: v-bind('themeVars.textColor2');
+  word-break: break-word;
 }
 
-.trace-row__sep {
-  font-style: normal;
-  opacity: 0.4;
+/* 耗时按其快慢单独着色(--d)，与状态色解耦 */
+.trace-card__dur {
+  --d: var(--t-info); /* 耗时色，由 dur-* 覆盖 */
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.trace-card__dur.dur-fast {
+  --d: var(--t-succ);
+}
+
+.trace-card__dur.dur-mid {
+  --d: var(--t-warn);
+}
+
+.trace-card__dur.dur-slow {
+  --d: var(--t-err);
+}
+
+.trace-card__bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  /* 轨道混入不透明卡片底色（避免暗色主题下 actionColor 半透明导致轨道消隐） */
+  background: color-mix(in srgb, var(--d) 10%, var(--t-card));
+  overflow: hidden;
+}
+
+/* 耗时条填充：耗时色淡化（仍偏浅，但与轨道拉开足够对比） */
+.trace-card__barfill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--d) 66%, var(--t-card));
+}
+
+.trace-card__durlabel {
+  flex: none;
+  min-width: 46px;
+  text-align: right;
+  font-family: var(--trace-mono);
+  font-size: 12px;
+  /* 以 ink 为主、耗时色为辅：既清晰可读又带快慢暗示 */
+  color: color-mix(in srgb, var(--d) 32%, var(--t-text));
+}
+
+/* 元信息：逐行竖向展示（用户/IP/链路/会话），长值完整换行 */
+.trace-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+  padding-top: 9px;
+  border-top: 1px dashed v-bind('themeVars.dividerColor');
+}
+
+.trace-card__metarow {
+  display: flex;
+  gap: 8px;
+  font-family: var(--trace-mono);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.trace-card__metak {
+  flex: none;
+  min-width: 58px;
+  color: v-bind('themeVars.textColor3');
+}
+
+.trace-card__metav {
+  color: v-bind('themeVars.textColor2');
+  word-break: break-all;
 }
 
 .trace-empty {

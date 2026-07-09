@@ -10,6 +10,8 @@ export enum PermissionChangeType {
   UserRemoveRole = 'UserRemoveRole',
   UserDenyPermission = 'UserDenyPermission',
   RoleDenyPermission = 'RoleDenyPermission',
+  UserDelegateGrant = 'UserDelegateGrant',
+  UserDelegateRevoke = 'UserDelegateRevoke',
 }
 
 export interface PermissionChangeLogPageQueryDto extends PageRequest {
@@ -32,9 +34,13 @@ export interface PermissionChangeLogListItemDto extends BasicDto {
   description?: string | null
   operationIp?: string | null
   operatorUserId?: ApiId | null
+  operatorUserName?: string | null
   permissionId?: ApiId | null
+  permissionName?: string | null
   targetRoleId?: ApiId | null
+  targetRoleName?: string | null
   targetUserId?: ApiId | null
+  targetUserName?: string | null
   traceId?: string | null
 }
 

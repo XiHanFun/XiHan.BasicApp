@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { createPageRequest, logManagementApi, querySortsFromSchema, SignatureType } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
+import { apiLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -184,48 +185,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basic_id') },
-  { key: 'sessionId', label: t('log.common.session_id') },
-  { key: 'requestId', label: t('log.common.request_id') },
-  { key: 'traceId', label: t('log.common.trace_id') },
-  { key: 'userName', label: t('log.common.user_name') },
-  { key: 'userId', label: t('log.common.user_id') },
-  { key: 'clientId', label: t('log.api.client_id') },
-  { key: 'appId', label: t('log.api.app_id') },
-  { key: 'apiPath', label: t('log.api.api_path'), span: 2 },
-  { key: 'apiName', label: t('log.api.api_name') },
-  { key: 'apiVersion', label: t('log.api.api_version') },
-  { key: 'controllerName', label: t('log.common.controller_name') },
-  { key: 'actionName', label: t('log.common.action_name') },
-  { key: 'method', label: t('log.common.method') },
-  { key: 'statusCode', label: t('log.common.status_code') },
-  { key: 'isSuccess', falseText: t('common.statuses.failed'), label: t('log.api.is_success'), trueText: t('common.statuses.success'), type: 'boolean' },
-  { key: 'isSignatureValid', falseText: t('log.api.signature_invalid'), label: t('log.api.is_signature_valid'), trueText: t('log.api.signature_valid'), type: 'boolean' },
-  { key: 'signatureType', label: t('log.api.signature_type'), options: signatureTypeOptions.value, type: 'enum' },
-  { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
-  { key: 'requestSize', label: t('log.api.request_size'), type: 'bytes' },
-  { key: 'responseSize', label: t('log.api.response_size'), type: 'bytes' },
-  { key: 'requestIp', label: t('log.api.request_ip') },
-  { key: 'requestLocation', label: t('log.api.request_location') },
-  { key: 'browser', label: t('log.common.browser') },
-  { key: 'referer', label: t('log.common.referer'), span: 2 },
-  { key: 'requestTime', label: t('log.api.request_time'), type: 'date' },
-  { key: 'responseTime', label: t('log.api.response_time'), type: 'date' },
-  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'createdId', label: t('log.common.created_id') },
-  { key: 'createdBy', label: t('common.fields.created_by') },
-  { key: 'remark', label: t('common.fields.remark'), span: 2 },
-  { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-  { key: 'requestParams', label: t('log.common.request_params'), type: 'code' },
-  { key: 'requestBody', label: t('log.common.request_body'), type: 'code' },
-  { key: 'responseBody', label: t('log.api.response_body'), type: 'code' },
-  { key: 'requestHeaders', label: t('log.common.request_headers'), type: 'code' },
-  { key: 'responseHeaders', label: t('log.common.response_headers'), type: 'code' },
-  { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
-  { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
-  { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-])
+const detailFields = computed<LogDetailField[]>(() => apiLogDetailFields(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as ApiLogListItemDto | undefined
