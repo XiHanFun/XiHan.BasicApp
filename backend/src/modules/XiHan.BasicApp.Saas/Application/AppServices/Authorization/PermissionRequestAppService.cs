@@ -13,11 +13,13 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -55,18 +57,25 @@ public sealed class PermissionRequestAppService
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     /// <summary>
+    /// 授权变更通知器
+    /// </summary>
+    private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionRequestAppService(
         IPermissionRequestDomainService permissionRequestDomainService,
         IPermissionRequestQueryService permissionRequestQueryService,
         ICurrentUser currentUser,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IAuthorizationChangeNotifier authorizationChangeNotifier)
     {
         _permissionRequestDomainService = permissionRequestDomainService;
         _permissionRequestQueryService = permissionRequestQueryService;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
+        _authorizationChangeNotifier = authorizationChangeNotifier;
     }
 
     #region PermissionRequest
@@ -168,6 +177,32 @@ public sealed class PermissionRequestAppService
 
         // 失效授权快照：审批通过会自动授予角色/权限，必须重建快照避免脏权限
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
+        // 审批通过自动授权留痕：申请角色 → 用户分配角色；申请权限 → 用户直授权限
+        if (result.GrantedUserId is > 0)
+        {
+            if (result.GrantedRoleId is > 0)
+            {
+                await _authorizationChangeNotifier.NotifyAsync(
+                    PermissionChangeType.UserAssignRole,
+                    targetUserId: result.GrantedUserId,
+                    targetRoleId: result.GrantedRoleId,
+                    permissionId: null,
+                    reason: $"权限申请[{result.RequestId}]审批通过自动授权",
+                    cancellationToken: cancellationToken);
+            }
+
+            if (result.GrantedPermissionId is > 0)
+            {
+                await _authorizationChangeNotifier.NotifyAsync(
+                    PermissionChangeType.UserGrantPermission,
+                    targetUserId: result.GrantedUserId,
+                    targetRoleId: null,
+                    permissionId: result.GrantedPermissionId,
+                    reason: $"权限申请[{result.RequestId}]审批通过自动授权",
+                    cancellationToken: cancellationToken);
+            }
+        }
 
         return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
             ?? throw new InvalidOperationException("权限申请不存在。");

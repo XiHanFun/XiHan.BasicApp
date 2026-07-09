@@ -257,6 +257,8 @@
     "PermissionChangeType.UserRemoveRole": "用户移除角色",
     "PermissionChangeType.UserDenyPermission": "用户直授权限拒绝",
     "PermissionChangeType.RoleDenyPermission": "角色权限拒绝",
+    "PermissionChangeType.UserDelegateGrant": "用户获得委托授权",
+    "PermissionChangeType.UserDelegateRevoke": "用户委托授权收回",
     "ConditionOperator.Equals": "等于",
     "ConditionOperator.NotEquals": "不等于",
     "ConditionOperator.GreaterThan": "大于",

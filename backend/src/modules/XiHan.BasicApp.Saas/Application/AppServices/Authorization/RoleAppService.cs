@@ -13,12 +13,15 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -39,6 +42,8 @@ public sealed class RoleAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
+
     private readonly ISuperAdminProtector _superAdminProtector;
 
     private readonly IRolePermissionRepository _rolePermissionRepository;
@@ -53,6 +58,7 @@ public sealed class RoleAppService
     public RoleAppService(
         IRoleDomainService roleDomainService,
         ISaasCacheInvalidator cacheInvalidator,
+        IAuthorizationChangeNotifier authorizationChangeNotifier,
         ISuperAdminProtector superAdminProtector,
         IRolePermissionRepository rolePermissionRepository,
         IRoleDataScopeRepository roleDataScopeRepository,
@@ -60,6 +66,7 @@ public sealed class RoleAppService
     {
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _authorizationChangeNotifier = authorizationChangeNotifier;
         _superAdminProtector = superAdminProtector;
         _rolePermissionRepository = rolePermissionRepository;
         _roleDataScopeRepository = roleDataScopeRepository;
@@ -128,6 +135,13 @@ public sealed class RoleAppService
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
         var result = await _roleDomainService.CreateRolePermissionAsync(RolePermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _authorizationChangeNotifier.NotifyAsync(
+            result.RolePermission.PermissionAction == PermissionAction.Deny ? PermissionChangeType.RoleDenyPermission : PermissionChangeType.RoleGrantPermission,
+            targetUserId: null,
+            targetRoleId: result.RolePermission.RoleId,
+            permissionId: result.RolePermission.PermissionId,
+            reason: result.RolePermission.GrantReason,
+            cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -143,10 +157,31 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
-        await _roleDomainService.BatchUpdateRolePermissionsAsync(
+        var result = await _roleDomainService.BatchUpdateRolePermissionsAsync(
             new RolePermissionBatchUpdateCommand(input.RoleId, input.GrantPermissionIds, input.RevokeRolePermissionIds),
             cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
+        // 逐条记录本次实际发生的角色权限变更（审计）
+        foreach (var permissionId in result.RevokedPermissionIds)
+        {
+            await _authorizationChangeNotifier.NotifyAsync(
+                PermissionChangeType.RoleRevokePermission,
+                targetUserId: null,
+                targetRoleId: input.RoleId,
+                permissionId: permissionId,
+                cancellationToken: cancellationToken);
+        }
+
+        foreach (var permissionId in result.GrantedPermissionIds)
+        {
+            await _authorizationChangeNotifier.NotifyAsync(
+                PermissionChangeType.RoleGrantPermission,
+                targetUserId: null,
+                targetRoleId: input.RoleId,
+                permissionId: permissionId,
+                cancellationToken: cancellationToken);
+        }
     }
 
     /// <summary>
@@ -213,6 +248,15 @@ public sealed class RoleAppService
         }
         await _roleDomainService.DeleteRolePermissionAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        if (rolePermission is not null)
+        {
+            await _authorizationChangeNotifier.NotifyAsync(
+                PermissionChangeType.RoleRevokePermission,
+                targetUserId: null,
+                targetRoleId: rolePermission.RoleId,
+                permissionId: rolePermission.PermissionId,
+                cancellationToken: cancellationToken);
+        }
     }
 
     /// <summary>
@@ -289,6 +333,17 @@ public sealed class RoleAppService
         }
         var result = await _roleDomainService.UpdateRolePermissionAsync(RolePermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        // 更新可能翻转授予↔拒绝：按更新后有效状态与动作留痕
+        await _authorizationChangeNotifier.NotifyAsync(
+            result.RolePermission.Status != ValidityStatus.Valid
+                ? PermissionChangeType.RoleRevokePermission
+                : result.RolePermission.PermissionAction == PermissionAction.Deny
+                    ? PermissionChangeType.RoleDenyPermission
+                    : PermissionChangeType.RoleGrantPermission,
+            targetUserId: null,
+            targetRoleId: result.RolePermission.RoleId,
+            permissionId: result.RolePermission.PermissionId,
+            cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 
@@ -309,6 +364,17 @@ public sealed class RoleAppService
         }
         var result = await _roleDomainService.UpdateRolePermissionStatusAsync(RolePermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        // 状态切换即授予/收回：Valid→按动作授予/拒绝，Invalid→撤销
+        await _authorizationChangeNotifier.NotifyAsync(
+            result.RolePermission.Status != ValidityStatus.Valid
+                ? PermissionChangeType.RoleRevokePermission
+                : result.RolePermission.PermissionAction == PermissionAction.Deny
+                    ? PermissionChangeType.RoleDenyPermission
+                    : PermissionChangeType.RoleGrantPermission,
+            targetUserId: null,
+            targetRoleId: result.RolePermission.RoleId,
+            permissionId: result.RolePermission.PermissionId,
+            cancellationToken: cancellationToken);
         return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
     }
 

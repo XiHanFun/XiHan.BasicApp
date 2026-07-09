@@ -62,4 +62,12 @@ public sealed record PermissionRequestApprovalCommand(
 /// <summary>
 /// 权限申请命令结果
 /// </summary>
-public sealed record PermissionRequestCommandResult(long RequestId);
+/// <param name="RequestId">权限申请主键</param>
+/// <param name="GrantedUserId">审批通过自动授权时的被授用户ID（仅审批通过场景填写）</param>
+/// <param name="GrantedRoleId">审批通过自动授予的角色ID（申请角色时填写）</param>
+/// <param name="GrantedPermissionId">审批通过自动直授的权限ID（申请权限时填写）</param>
+public sealed record PermissionRequestCommandResult(
+    long RequestId,
+    long? GrantedUserId = null,
+    long? GrantedRoleId = null,
+    long? GrantedPermissionId = null);

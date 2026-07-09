@@ -58,10 +58,22 @@ public partial class SysPermissionChangeLog : BasicAppCreationEntity, ISplitTabl
     public virtual long? OperatorUserId { get; set; }
 
     /// <summary>
+    /// 操作人名称（写入时快照，账号名；便于审计直读、不随用户后续改名而变）
+    /// </summary>
+    [SugarColumn(ColumnName = "Operator_User_Name", ColumnDescription = "操作人名称", Length = 64, IsNullable = true)]
+    public virtual string? OperatorUserName { get; set; }
+
+    /// <summary>
     /// 目标用户ID（被授予/撤销权限的用户，用户级变更时填写）
     /// </summary>
     [SugarColumn(ColumnName = "Target_User_Id", ColumnDescription = "目标用户ID", IsNullable = true)]
     public virtual long? TargetUserId { get; set; }
+
+    /// <summary>
+    /// 目标用户名称（写入时快照）
+    /// </summary>
+    [SugarColumn(ColumnName = "Target_User_Name", ColumnDescription = "目标用户名称", Length = 64, IsNullable = true)]
+    public virtual string? TargetUserName { get; set; }
 
     /// <summary>
     /// 目标角色ID（被授予/撤销权限的角色，角色级变更时填写）
@@ -70,10 +82,22 @@ public partial class SysPermissionChangeLog : BasicAppCreationEntity, ISplitTabl
     public virtual long? TargetRoleId { get; set; }
 
     /// <summary>
+    /// 目标角色名称（写入时快照）
+    /// </summary>
+    [SugarColumn(ColumnName = "Target_Role_Name", ColumnDescription = "目标角色名称", Length = 100, IsNullable = true)]
+    public virtual string? TargetRoleName { get; set; }
+
+    /// <summary>
     /// 权限ID（被授予/撤销的权限，权限级变更时填写）
     /// </summary>
     [SugarColumn(ColumnName = "Permission_Id", ColumnDescription = "权限ID", IsNullable = true)]
     public virtual long? PermissionId { get; set; }
+
+    /// <summary>
+    /// 权限名称（写入时快照）
+    /// </summary>
+    [SugarColumn(ColumnName = "Permission_Name", ColumnDescription = "权限名称", Length = 200, IsNullable = true)]
+    public virtual string? PermissionName { get; set; }
 
     /// <summary>
     /// 变更类型

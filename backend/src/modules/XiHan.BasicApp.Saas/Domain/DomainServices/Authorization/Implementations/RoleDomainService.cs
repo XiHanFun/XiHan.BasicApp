@@ -163,11 +163,28 @@ public sealed class RoleDomainService
 
         _ = await GetEnabledRoleForPermissionOrThrowAsync(command.RoleId, cancellationToken);
         var permission = await GetEnabledPermissionOrThrowAsync(command.PermissionId, cancellationToken);
-        if (await _rolePermissionRepository.AnyAsync(
+
+        // 既有绑定（任意状态）：有效则拒绝重复；被软撤销（Invalid）则复活为有效，
+        // 避免"撤销→再次授予"因唯一绑定行残留而永久报『已绑定』。
+        var existing = await _rolePermissionRepository.GetFirstAsync(
             rolePermission => rolePermission.RoleId == command.RoleId && rolePermission.PermissionId == command.PermissionId,
-            cancellationToken))
+            cancellationToken);
+        if (existing is not null)
         {
-            throw new InvalidOperationException("角色权限已绑定。");
+            if (existing.Status == ValidityStatus.Valid)
+            {
+                throw new InvalidOperationException("角色权限已绑定。");
+            }
+
+            existing.PermissionAction = command.PermissionAction;
+            existing.EffectiveTime = command.EffectiveTime;
+            existing.ExpirationTime = command.ExpirationTime;
+            existing.GrantReason = NormalizeNullable(command.GrantReason);
+            existing.Status = ValidityStatus.Valid;
+            existing.Remark = NormalizeNullable(command.Remark);
+
+            var reactivated = await _rolePermissionRepository.UpdateAsync(existing, cancellationToken);
+            return new RolePermissionCommandResult(reactivated, permission);
         }
 
         var rolePermission = new SysRolePermission
@@ -187,7 +204,7 @@ public sealed class RoleDomainService
     }
 
     /// <inheritdoc />
-    public async Task BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateCommand command, CancellationToken cancellationToken = default)
+    public async Task<RolePermissionBatchUpdateResult> BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -201,8 +218,12 @@ public sealed class RoleDomainService
         var revokeRolePermissionIds = command.RevokeRolePermissionIds.Where(id => id > 0).Distinct().ToList();
         if (grantPermissionIds.Count == 0 && revokeRolePermissionIds.Count == 0)
         {
-            return;
+            return new RolePermissionBatchUpdateResult([], []);
         }
+
+        // 本次实际发生变化的权限（供审计发事件）
+        var grantedPermissionIds = new List<long>();
+        var revokedPermissionIds = new List<long>();
 
         // 角色启用校验（一次）
         _ = await GetEnabledRoleForPermissionOrThrowAsync(command.RoleId, cancellationToken);
@@ -221,6 +242,7 @@ public sealed class RoleDomainService
                 }
 
                 _ = await _rolePermissionRepository.UpdateRangeAsync(revoking, cancellationToken);
+                revokedPermissionIds.AddRange(revoking.Select(rolePermission => rolePermission.PermissionId));
             }
         }
 
@@ -258,6 +280,7 @@ public sealed class RoleDomainService
                 }
 
                 _ = await _rolePermissionRepository.UpdateRangeAsync(reactivating, cancellationToken);
+                grantedPermissionIds.AddRange(reactivating.Select(rolePermission => rolePermission.PermissionId));
             }
 
             // 从未绑定过的新增（单次批量插入）
@@ -275,8 +298,11 @@ public sealed class RoleDomainService
             if (newBindings.Count > 0)
             {
                 _ = await _rolePermissionRepository.AddRangeAsync(newBindings, cancellationToken);
+                grantedPermissionIds.AddRange(newBindings.Select(rolePermission => rolePermission.PermissionId));
             }
         }
+
+        return new RolePermissionBatchUpdateResult(grantedPermissionIds, revokedPermissionIds);
     }
 
     /// <inheritdoc />

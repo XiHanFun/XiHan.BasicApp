@@ -84,18 +84,19 @@ public sealed class PermissionDelegationDomainService
         };
 
         var savedDelegation = await _permissionDelegationRepository.AddAsync(delegation, cancellationToken);
-        return new PermissionDelegationCommandResult(savedDelegation.BasicId);
+        return ToCommandResult(savedDelegation);
     }
 
     /// <inheritdoc />
-    public async Task RevokePermissionDelegationAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<PermissionDelegationCommandResult> RevokePermissionDelegationAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var delegation = await GetPermissionDelegationOrThrowAsync(id, cancellationToken);
         delegation.DelegationStatus = DelegationStatus.Revoked;
 
-        _ = await _permissionDelegationRepository.UpdateAsync(delegation, cancellationToken);
+        var savedDelegation = await _permissionDelegationRepository.UpdateAsync(delegation, cancellationToken);
+        return ToCommandResult(savedDelegation);
     }
 
     /// <inheritdoc />
@@ -142,7 +143,7 @@ public sealed class PermissionDelegationDomainService
         delegation.Remark = NormalizeNullable(command.Remark);
 
         var savedDelegation = await _permissionDelegationRepository.UpdateAsync(delegation, cancellationToken);
-        return new PermissionDelegationCommandResult(savedDelegation.BasicId);
+        return ToCommandResult(savedDelegation);
     }
 
     /// <inheritdoc />
@@ -178,7 +179,19 @@ public sealed class PermissionDelegationDomainService
         delegation.Remark = NormalizeNullable(command.Remark);
 
         var savedDelegation = await _permissionDelegationRepository.UpdateAsync(delegation, cancellationToken);
-        return new PermissionDelegationCommandResult(savedDelegation.BasicId);
+        return ToCommandResult(savedDelegation);
+    }
+
+    private static PermissionDelegationCommandResult ToCommandResult(SysPermissionDelegation delegation)
+    {
+        // 生效/待生效视为授予；已撤销/已过期视为收回
+        var isActive = delegation.DelegationStatus is DelegationStatus.Active or DelegationStatus.Pending;
+        return new PermissionDelegationCommandResult(
+            delegation.BasicId,
+            delegation.DelegateeUserId,
+            delegation.PermissionId,
+            delegation.RoleId,
+            isActive);
     }
 
     private static string? NormalizeNullable(string? value)

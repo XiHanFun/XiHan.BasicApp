@@ -47,7 +47,8 @@ public interface IRoleDomainService
     /// <summary>
     /// 批量变更角色权限（批量撤销 + 批量授予，底层走 UpdateRange/AddRange 单次提交）
     /// </summary>
-    Task BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateCommand command, CancellationToken cancellationToken = default);
+    /// <returns>本次实际发生变化的授予/撤销权限ID（供审计发事件）</returns>
+    Task<RolePermissionBatchUpdateResult> BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新角色权限

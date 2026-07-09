@@ -51,36 +51,36 @@ public sealed class AuthorizationChangedEventHandler : ILocalEventHandler<Author
         ArgumentNullException.ThrowIfNull(eventData);
 
         _logger.LogInformation(
-            "[AuthorizationChanged] Authorization changed: TargetType={TargetType}, TargetId={TargetId}, PermissionId={PermissionId}, Action={Action}",
-            eventData.TargetType, eventData.TargetId, eventData.PermissionId, eventData.Action);
+            "[AuthorizationChanged] Authorization changed: ChangeType={ChangeType}, TargetUserId={TargetUserId}, TargetRoleId={TargetRoleId}, PermissionId={PermissionId}",
+            eventData.ChangeType, eventData.TargetUserId, eventData.TargetRoleId, eventData.PermissionId);
 
         try
         {
-            // 如果目标是用户类型，精准失效该用户的授权快照
-            if (string.Equals(eventData.TargetType, "User", StringComparison.OrdinalIgnoreCase))
+            // 用户级变更（直授权限、用户角色）：精准失效该用户的授权快照
+            if (eventData.TargetUserId is > 0)
             {
-                await _cacheInvalidator.InvalidateAuthorizationAsync(eventData.TargetId);
+                await _cacheInvalidator.InvalidateAuthorizationAsync(eventData.TargetUserId);
                 _logger.LogDebug(
-                    "[AuthorizationChanged] Invalidated authorization cache for user {UserId}", eventData.TargetId);
+                    "[AuthorizationChanged] Invalidated authorization cache for user {UserId}", eventData.TargetUserId);
             }
             else
             {
-                // 角色或其他类型的授权变更，全量失效授权快照
+                // 角色级变更（角色权限）可能影响任意持有该角色的用户，全量失效授权快照
                 await _cacheInvalidator.InvalidateAuthorizationAsync();
 
                 // 同时失效导航缓存（授权变更可能影响菜单可见性）
                 await _cacheInvalidator.InvalidateNavigationAsync();
 
                 _logger.LogDebug(
-                    "[AuthorizationChanged] Invalidated all authorization and navigation caches (TargetType={TargetType})",
-                    eventData.TargetType);
+                    "[AuthorizationChanged] Invalidated all authorization and navigation caches (TargetRoleId={TargetRoleId})",
+                    eventData.TargetRoleId);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "[AuthorizationChanged] Failed to invalidate caches for TargetType={TargetType}, TargetId={TargetId}",
-                eventData.TargetType, eventData.TargetId);
+                "[AuthorizationChanged] Failed to invalidate caches for ChangeType={ChangeType}, TargetUserId={TargetUserId}, TargetRoleId={TargetRoleId}",
+                eventData.ChangeType, eventData.TargetUserId, eventData.TargetRoleId);
         }
     }
 }

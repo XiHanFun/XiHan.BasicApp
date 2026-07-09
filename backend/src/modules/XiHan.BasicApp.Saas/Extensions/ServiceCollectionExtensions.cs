@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
 using XiHan.BasicApp.Saas.Application.Exporting;
@@ -191,6 +192,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICacheManagementService, CacheManagementService>();
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
+        services.AddScoped<IAuthorizationChangeNotifier, AuthorizationChangeNotifier>();
         return services;
     }
 
@@ -224,6 +226,7 @@ public static class ServiceCollectionExtensions
 
         // 授权事件
         services.AddSaasLocalEventHandler<AuthorizationChangedEventHandler>();
+        services.AddSaasLocalEventHandler<PermissionChangeLogEventHandler>();
         services.AddSaasLocalEventHandler<DataScopeChangedEventHandler>();
         services.AddSaasLocalEventHandler<FieldLevelSecurityChangedEventHandler>();
 

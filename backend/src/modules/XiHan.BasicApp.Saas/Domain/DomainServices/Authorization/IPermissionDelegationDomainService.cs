@@ -27,7 +27,8 @@ public interface IPermissionDelegationDomainService
     /// <summary>
     /// 撤销权限委托
     /// </summary>
-    Task RevokePermissionDelegationAsync(long id, CancellationToken cancellationToken = default);
+    /// <returns>被撤销委托的被委托人/权限/角色（供审计发事件）</returns>
+    Task<PermissionDelegationCommandResult> RevokePermissionDelegationAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新权限委托
