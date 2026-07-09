@@ -51,4 +51,14 @@ public sealed record PermissionDelegationStatusCommand(long BasicId, DelegationS
 /// <summary>
 /// 权限委托命令结果
 /// </summary>
-public sealed record PermissionDelegationCommandResult(long DelegationId);
+/// <param name="DelegationId">权限委托主键</param>
+/// <param name="DelegateeUserId">被委托人用户ID（审计留痕的目标用户）</param>
+/// <param name="PermissionId">被委托的权限ID（委托权限时填写）</param>
+/// <param name="RoleId">被委托的角色ID（委托角色时填写）</param>
+/// <param name="IsActive">委托是否处于生效/待生效（用于审计判定授予 vs 收回）</param>
+public sealed record PermissionDelegationCommandResult(
+    long DelegationId,
+    long DelegateeUserId = 0,
+    long? PermissionId = null,
+    long? RoleId = null,
+    bool IsActive = true);

@@ -194,7 +194,11 @@ public sealed class PermissionRequestDomainService
         request.RequestStatus = PermissionRequestStatus.Approved;
         request.Remark = NormalizeNullable(command.Remark) ?? request.Remark;
         var savedRequest = await _permissionRequestRepository.UpdateAsync(request, cancellationToken);
-        return new PermissionRequestCommandResult(savedRequest.BasicId);
+        return new PermissionRequestCommandResult(
+            savedRequest.BasicId,
+            request.RequestUserId,
+            request.RoleId is > 0 ? request.RoleId : null,
+            request.PermissionId is > 0 ? request.PermissionId : null);
     }
 
     /// <inheritdoc />

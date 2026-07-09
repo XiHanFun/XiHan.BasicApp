@@ -127,6 +127,15 @@ public sealed record RoleCommandResult(SysRole Role);
 public sealed record RolePermissionCommandResult(SysRolePermission RolePermission, SysPermission? Permission);
 
 /// <summary>
+/// 角色权限批量变更结果（本次实际发生变化的权限，用于审计发事件）
+/// </summary>
+/// <param name="GrantedPermissionIds">实际授予/复活的权限ID（不含本已有效的重复授予）</param>
+/// <param name="RevokedPermissionIds">实际撤销的权限ID</param>
+public sealed record RolePermissionBatchUpdateResult(
+    IReadOnlyList<long> GrantedPermissionIds,
+    IReadOnlyList<long> RevokedPermissionIds);
+
+/// <summary>
 /// 角色数据范围命令结果
 /// </summary>
 public sealed record RoleDataScopeCommandResult(SysRoleDataScope DataScope, SysDepartment? Department);

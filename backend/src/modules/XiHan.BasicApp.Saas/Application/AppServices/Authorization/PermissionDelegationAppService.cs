@@ -13,11 +13,13 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -49,16 +51,36 @@ public sealed class PermissionDelegationAppService
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     /// <summary>
+    /// 授权变更通知器
+    /// </summary>
+    private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionDelegationAppService(
         IPermissionDelegationDomainService permissionDelegationDomainService,
         IPermissionDelegationQueryService permissionDelegationQueryService,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IAuthorizationChangeNotifier authorizationChangeNotifier)
     {
         _permissionDelegationDomainService = permissionDelegationDomainService;
         _permissionDelegationQueryService = permissionDelegationQueryService;
         _cacheInvalidator = cacheInvalidator;
+        _authorizationChangeNotifier = authorizationChangeNotifier;
+    }
+
+    /// <summary>
+    /// 委托变更留痕：生效/待生效=获得委托授权，已撤销/已过期=委托授权收回。
+    /// </summary>
+    private Task NotifyDelegationChangeAsync(PermissionDelegationCommandResult result, CancellationToken cancellationToken)
+    {
+        return _authorizationChangeNotifier.NotifyAsync(
+            result.IsActive ? PermissionChangeType.UserDelegateGrant : PermissionChangeType.UserDelegateRevoke,
+            targetUserId: result.DelegateeUserId,
+            targetRoleId: result.RoleId,
+            permissionId: result.PermissionId,
+            cancellationToken: cancellationToken);
     }
 
     #region PermissionDelegation
@@ -75,6 +97,7 @@ public sealed class PermissionDelegationAppService
 
         var result = await _permissionDelegationDomainService.CreatePermissionDelegationAsync(PermissionDelegationApplicationMapper.ToCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await NotifyDelegationChangeAsync(result, cancellationToken);
 
         return await _permissionDelegationQueryService.GetPermissionDelegationDetailAsync(result.DelegationId, cancellationToken)
             ?? throw new InvalidOperationException("权限委托不存在。");
@@ -89,8 +112,9 @@ public sealed class PermissionDelegationAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await _permissionDelegationDomainService.RevokePermissionDelegationAsync(id, cancellationToken);
+        var result = await _permissionDelegationDomainService.RevokePermissionDelegationAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await NotifyDelegationChangeAsync(result, cancellationToken);
     }
 
     /// <summary>
@@ -105,6 +129,7 @@ public sealed class PermissionDelegationAppService
 
         var result = await _permissionDelegationDomainService.UpdatePermissionDelegationAsync(PermissionDelegationApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await NotifyDelegationChangeAsync(result, cancellationToken);
 
         return await _permissionDelegationQueryService.GetPermissionDelegationDetailAsync(result.DelegationId, cancellationToken)
             ?? throw new InvalidOperationException("权限委托不存在。");
@@ -122,6 +147,7 @@ public sealed class PermissionDelegationAppService
 
         var result = await _permissionDelegationDomainService.UpdatePermissionDelegationStatusAsync(PermissionDelegationApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await NotifyDelegationChangeAsync(result, cancellationToken);
 
         return await _permissionDelegationQueryService.GetPermissionDelegationDetailAsync(result.DelegationId, cancellationToken)
             ?? throw new InvalidOperationException("权限委托不存在。");

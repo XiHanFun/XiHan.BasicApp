@@ -13,12 +13,15 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -39,6 +42,8 @@ public sealed class UserRoleAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
+
     private readonly ISuperAdminProtector _superAdminProtector;
 
     private readonly IUserRoleRepository _userRoleRepository;
@@ -49,11 +54,13 @@ public sealed class UserRoleAppService
     public UserRoleAppService(
         IUserDomainService userDomainService,
         ISaasCacheInvalidator cacheInvalidator,
+        IAuthorizationChangeNotifier authorizationChangeNotifier,
         ISuperAdminProtector superAdminProtector,
         IUserRoleRepository userRoleRepository)
     {
         _userDomainService = userDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _authorizationChangeNotifier = authorizationChangeNotifier;
         _superAdminProtector = superAdminProtector;
         _userRoleRepository = userRoleRepository;
     }
@@ -76,6 +83,12 @@ public sealed class UserRoleAppService
 
         var result = await _userDomainService.CreateUserRoleAsync(UserRoleApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _authorizationChangeNotifier.NotifyAsync(
+            PermissionChangeType.UserAssignRole,
+            targetUserId: result.UserRole.UserId,
+            targetRoleId: result.UserRole.RoleId,
+            permissionId: null,
+            cancellationToken: cancellationToken);
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 
@@ -88,9 +101,23 @@ public sealed class UserRoleAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         // 超管保护：解析该用户角色记录的 UserId/RoleId，非超管不得撤销超管用户的角色或撤销 super_admin 角色
-        await EnsureCanWriteUserRoleAsync(id, cancellationToken);
+        var userRole = await _userRoleRepository.GetByIdAsync(id, cancellationToken);
+        if (userRole is not null)
+        {
+            await _superAdminProtector.EnsureCanWriteUserAsync(userRole.UserId, cancellationToken);
+            await _superAdminProtector.EnsureCanAssignRoleAsync(userRole.RoleId, cancellationToken);
+        }
         await _userDomainService.DeleteUserRoleAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        if (userRole is not null)
+        {
+            await _authorizationChangeNotifier.NotifyAsync(
+                PermissionChangeType.UserRemoveRole,
+                targetUserId: userRole.UserId,
+                targetRoleId: userRole.RoleId,
+                permissionId: null,
+                cancellationToken: cancellationToken);
+        }
     }
 
     /// <summary>
@@ -108,6 +135,15 @@ public sealed class UserRoleAppService
 
         var result = await _userDomainService.UpdateUserRoleAsync(UserRoleApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        // 更新后按有效状态留痕：有效=分配角色，失效=移除角色
+        await _authorizationChangeNotifier.NotifyAsync(
+            result.UserRole.Status != ValidityStatus.Valid
+                ? PermissionChangeType.UserRemoveRole
+                : PermissionChangeType.UserAssignRole,
+            targetUserId: result.UserRole.UserId,
+            targetRoleId: result.UserRole.RoleId,
+            permissionId: null,
+            cancellationToken: cancellationToken);
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 
@@ -126,6 +162,15 @@ public sealed class UserRoleAppService
 
         var result = await _userDomainService.UpdateUserRoleStatusAsync(UserRoleApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        // 状态切换即分配/移除角色：Valid→分配角色，Invalid→移除角色
+        await _authorizationChangeNotifier.NotifyAsync(
+            result.UserRole.Status != ValidityStatus.Valid
+                ? PermissionChangeType.UserRemoveRole
+                : PermissionChangeType.UserAssignRole,
+            targetUserId: result.UserRole.UserId,
+            targetRoleId: result.UserRole.RoleId,
+            permissionId: null,
+            cancellationToken: cancellationToken);
         return UserRoleApplicationMapper.ToDetailDto(result.UserRole, result.Role, result.TenantMember, result.Now);
     }
 

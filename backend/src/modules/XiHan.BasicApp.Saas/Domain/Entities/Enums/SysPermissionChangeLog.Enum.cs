@@ -67,5 +67,17 @@ public enum PermissionChangeType
     /// 角色权限拒绝
     /// </summary>
     [Description("角色权限拒绝")]
-    RoleDenyPermission = 7
+    RoleDenyPermission = 7,
+
+    /// <summary>
+    /// 用户获得委托授权（作为被委托人）
+    /// </summary>
+    [Description("用户获得委托授权")]
+    UserDelegateGrant = 8,
+
+    /// <summary>
+    /// 用户委托授权收回（作为被委托人）
+    /// </summary>
+    [Description("用户委托授权收回")]
+    UserDelegateRevoke = 9
 }

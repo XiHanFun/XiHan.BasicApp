@@ -19,44 +19,58 @@ namespace XiHan.BasicApp.Saas.Domain.Events;
 /// <summary>
 /// 授权变更事件
 /// </summary>
+/// <remarks>
+/// 由授权写路径（角色权限、用户直授、用户角色的授予/撤销）在业务操作后发布，
+/// 驱动：①授权快照/导航缓存失效（<c>AuthorizationChangedEventHandler</c>）；
+/// ②权限变更审计落库（<c>PermissionChangeLogEventHandler</c> 写 <c>SysPermissionChangeLog</c>）。
+/// 事件直接携带确定的 <see cref="PermissionChangeType"/>（由发布方按语义给出），
+/// 避免消费端反推"授予/撤销"，也让"撤销"得以被审计记录。
+/// </remarks>
 public sealed class AuthorizationChangedDomainEvent : SaasDomainEventBase
 {
     /// <summary>
     /// 构造函数
     /// </summary>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="changeType">变更类型（授予/撤销/拒绝/分配角色/移除角色）</param>
+    /// <param name="targetUserId">目标用户ID（用户级变更时填写）</param>
+    /// <param name="targetRoleId">目标角色ID（角色级变更、或用户分配/移除角色时填写）</param>
+    /// <param name="permissionId">权限ID（权限级变更时填写；分配/移除角色时为空）</param>
+    /// <param name="operatorUserId">操作人ID</param>
+    /// <param name="reason">变更原因</param>
     public AuthorizationChangedDomainEvent(
         long tenantId,
-        string targetType,
-        long targetId,
-        long permissionId,
-        PermissionAction action,
+        PermissionChangeType changeType,
+        long? targetUserId,
+        long? targetRoleId,
+        long? permissionId,
         long? operatorUserId = null,
         string? reason = null)
         : base(tenantId, operatorUserId, reason)
     {
-        TargetType = targetType;
-        TargetId = targetId;
+        ChangeType = changeType;
+        TargetUserId = targetUserId;
+        TargetRoleId = targetRoleId;
         PermissionId = permissionId;
-        Action = action;
     }
 
     /// <summary>
-    /// 授权目标类型
+    /// 变更类型
     /// </summary>
-    public string TargetType { get; }
+    public PermissionChangeType ChangeType { get; }
 
     /// <summary>
-    /// 授权目标ID
+    /// 目标用户ID（用户级变更时填写）
     /// </summary>
-    public long TargetId { get; }
+    public long? TargetUserId { get; }
 
     /// <summary>
-    /// 权限ID
+    /// 目标角色ID（角色级变更、或用户分配/移除角色时填写）
     /// </summary>
-    public long PermissionId { get; }
+    public long? TargetRoleId { get; }
 
     /// <summary>
-    /// 授权操作
+    /// 权限ID（权限级变更时填写）
     /// </summary>
-    public PermissionAction Action { get; }
+    public long? PermissionId { get; }
 }

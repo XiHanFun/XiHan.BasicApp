@@ -28,9 +28,19 @@ public class PermissionChangeLogListItemDto : BasicAppDto
     public long? OperatorUserId { get; set; }
 
     /// <summary>
+    /// 操作人名称（写入时快照）
+    /// </summary>
+    public string? OperatorUserName { get; set; }
+
+    /// <summary>
     /// 目标用户主键
     /// </summary>
     public long? TargetUserId { get; set; }
+
+    /// <summary>
+    /// 目标用户名称（写入时快照）
+    /// </summary>
+    public string? TargetUserName { get; set; }
 
     /// <summary>
     /// 目标角色主键
@@ -38,9 +48,19 @@ public class PermissionChangeLogListItemDto : BasicAppDto
     public long? TargetRoleId { get; set; }
 
     /// <summary>
+    /// 目标角色名称（写入时快照）
+    /// </summary>
+    public string? TargetRoleName { get; set; }
+
+    /// <summary>
     /// 权限主键
     /// </summary>
     public long? PermissionId { get; set; }
+
+    /// <summary>
+    /// 权限名称（写入时快照）
+    /// </summary>
+    public string? PermissionName { get; set; }
 
     /// <summary>
     /// 变更类型
