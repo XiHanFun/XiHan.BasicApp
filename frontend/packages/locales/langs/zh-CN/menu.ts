@@ -47,6 +47,7 @@ export default {
   log_login: '登录日志',
   log_exception: '异常日志',
   log_diff: '数据变更',
+  log_permission_change: '权限变更',
   log_trace: '链路追踪',
   about: '关于项目',
   about_project: '项目概览',
