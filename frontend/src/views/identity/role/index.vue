@@ -281,11 +281,17 @@ const permLoading = ref(false)
 const permKeyword = ref('')
 const permTogglingId = ref<ApiId | null>(null)
 
-/** permissionId → 授权记录（收权时取记录主键） */
+/**
+ * permissionId → 有效授权记录（收权时取记录主键）
+ * 仅纳入 Status===Valid：撤销是软删除（Status=Invalid），列表接口默认返回含软删除的全集，
+ * 若不过滤则收回后复选框仍判定为已授权而自动重新勾上，表现为「收回不生效」。
+ */
 const permGrantByPermissionId = computed(() => {
   const map = new Map<ApiId, RolePermissionListItemDto>()
   for (const grant of permGrants.value) {
-    map.set(grant.permissionId, grant)
+    if (grant.status === ValidityStatus.Valid) {
+      map.set(grant.permissionId, grant)
+    }
   }
   return map
 })
@@ -1154,7 +1160,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
         <div class="perm-toolbar">
           <NInput v-model:value="permKeyword" clearable :placeholder="t('identity.role.perm_search')" style="width: 240px" />
           <NTag round type="success" :bordered="false">
-            {{ t('identity.role.perm_granted_count', { count: permGrants.length }) }}
+            {{ t('identity.role.perm_granted_count', { count: permGrantByPermissionId.size }) }}
           </NTag>
         </div>
         <NSpin :show="permLoading">
