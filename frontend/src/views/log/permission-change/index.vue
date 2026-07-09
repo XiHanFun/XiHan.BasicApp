@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { createPageRequest, permissionChangeLogApi, PermissionChangeType, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
+import { permissionChangeLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -31,6 +32,8 @@ const changeTypeOptions = computed(() => [
   { label: t('log.permission_change.type_user_remove_role'), value: PermissionChangeType.UserRemoveRole },
   { label: t('log.permission_change.type_user_deny'), value: PermissionChangeType.UserDenyPermission },
   { label: t('log.permission_change.type_role_deny'), value: PermissionChangeType.RoleDenyPermission },
+  { label: t('log.permission_change.type_user_delegate_grant'), value: PermissionChangeType.UserDelegateGrant },
+  { label: t('log.permission_change.type_user_delegate_revoke'), value: PermissionChangeType.UserDelegateRevoke },
 ])
 
 /** 变更类型 → 标签类型：授权绿、撤权橙、拒绝红 */
@@ -67,16 +70,20 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(NTag, { size: 'small', round: true, bordered: false, type: changeTypeTagType(type) }, () => getOptionLabel(changeTypeOptions.value, type))
     },
   },
-  { key: 'operatorUserId', title: t('log.permission_change.operator_user_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 11 },
-  { key: 'targetUserId', title: t('log.permission_change.target_user_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 12 },
-  { key: 'targetRoleId', title: t('log.permission_change.target_role_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 13 },
-  { key: 'permissionId', title: t('log.permission_change.permission_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 14 },
-  { key: 'changeReason', title: t('log.permission_change.change_reason'), dataType: 'string', minWidth: 180, order: 15 },
-  { key: 'description', title: t('log.permission_change.description'), dataType: 'string', minWidth: 220, order: 16 },
-  { key: 'operationIp', title: t('log.permission_change.operation_ip'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('log.permission_change.operation_ip_placeholder'), minWidth: 130, order: 17 },
-  { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 160, order: 18 },
-  { key: 'changeTime', title: t('log.permission_change.change_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 20 },
+  { key: 'operatorUserName', title: t('log.permission_change.operator_user_name'), dataType: 'string', minWidth: 130, order: 11 },
+  { key: 'operatorUserId', title: t('log.permission_change.operator_user_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 12 },
+  { key: 'targetUserName', title: t('log.permission_change.target_user_name'), dataType: 'string', minWidth: 130, order: 13 },
+  { key: 'targetUserId', title: t('log.permission_change.target_user_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 14 },
+  { key: 'targetRoleName', title: t('log.permission_change.target_role_name'), dataType: 'string', minWidth: 130, order: 15 },
+  { key: 'targetRoleId', title: t('log.permission_change.target_role_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 16 },
+  { key: 'permissionName', title: t('log.permission_change.permission_name'), dataType: 'string', minWidth: 150, order: 17 },
+  { key: 'permissionId', title: t('log.permission_change.permission_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 140, order: 18 },
+  { key: 'changeReason', title: t('log.permission_change.change_reason'), dataType: 'string', minWidth: 180, order: 19 },
+  { key: 'description', title: t('log.permission_change.description'), dataType: 'string', minWidth: 220, order: 20 },
+  { key: 'operationIp', title: t('log.permission_change.operation_ip'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('log.permission_change.operation_ip_placeholder'), minWidth: 130, order: 21 },
+  { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 160, order: 22 },
+  { key: 'changeTime', title: t('log.permission_change.change_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 23 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 24 },
   // 仅高级搜索：变更时间区间
   { key: 'changeTime', title: t('log.permission_change.change_time'), dataType: 'datetime', visible: false, advancedSearch: true, searchRange: true, searchPlaceholder: t('log.permission_change.change_time'), order: 40 },
 ])
@@ -107,8 +114,18 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'log.permission-change',
   pageName: t('log.permission_change.page_name'),
   rowKey: 'basicId',
-  scrollX: 1900,
-  fields: decorateTraceFields(fields.value, router, { timeField: 'changeTime', ipKey: 'operationIp' }),
+  scrollX: 2600,
+  fields: decorateTraceFields(fields.value, router, {
+    timeField: 'changeTime',
+    ipKey: 'operationIp',
+    // 操作人 / 目标用户（名称按用户名维度、主键按用户ID维度）均可点击深链追踪
+    extraDimensions: {
+      operatorUserName: 'UserName',
+      operatorUserId: 'UserId',
+      targetUserName: 'UserName',
+      targetUserId: 'UserId',
+    },
+  }),
   resource: {
     page: params => permissionChangeLogApi.page(buildQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
   },
@@ -118,22 +135,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basic_id') },
-  { key: 'traceId', label: t('log.common.trace_id') },
-  { key: 'changeType', label: t('log.permission_change.change_type'), options: changeTypeOptions.value, type: 'enum' },
-  { key: 'operatorUserId', label: t('log.permission_change.operator_user_id') },
-  { key: 'targetUserId', label: t('log.permission_change.target_user_id') },
-  { key: 'targetRoleId', label: t('log.permission_change.target_role_id') },
-  { key: 'permissionId', label: t('log.permission_change.permission_id') },
-  { key: 'operationIp', label: t('log.permission_change.operation_ip') },
-  { key: 'changeReason', label: t('log.permission_change.change_reason'), span: 2 },
-  { key: 'description', label: t('log.permission_change.description'), span: 2 },
-  { key: 'changeTime', label: t('log.permission_change.change_time'), type: 'date' },
-  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'createdId', label: t('log.common.created_id') },
-  { key: 'createdBy', label: t('common.fields.created_by') },
-])
+const detailFields = computed<LogDetailField[]>(() => permissionChangeLogDetailFields(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as PermissionChangeLogListItemDto | undefined

@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { createPageRequest, DeviceType, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
+import { exceptionLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -190,52 +191,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basic_id') },
-  { key: 'sessionId', label: t('log.common.session_id') },
-  { key: 'requestId', label: t('log.common.request_id') },
-  { key: 'traceId', label: t('log.common.trace_id') },
-  { key: 'userName', label: t('log.common.user_name') },
-  { key: 'userId', label: t('log.common.user_id') },
-  { key: 'exceptionType', label: t('log.exception.exception_type') },
-  { key: 'errorCode', label: t('log.exception.error_code') },
-  { key: 'exceptionSource', label: t('log.exception.exception_source') },
-  { key: 'exceptionLocation', label: t('log.exception.exception_location'), span: 2 },
-  { key: 'severityLevel', label: t('log.exception.severity_level'), options: severityOptions.value, type: 'enum' },
-  { key: 'statusCode', label: t('log.common.status_code') },
-  { key: 'requestPath', label: t('log.exception.request_path'), span: 2 },
-  { key: 'requestMethod', label: t('log.exception.request_method') },
-  { key: 'controllerName', label: t('log.common.controller_name') },
-  { key: 'actionName', label: t('log.common.action_name') },
-  { key: 'operationIp', label: t('log.exception.operation_ip') },
-  { key: 'operationLocation', label: t('log.exception.operation_location') },
-  { key: 'browser', label: t('log.common.browser') },
-  { key: 'os', label: t('log.common.os') },
-  { key: 'deviceType', label: t('log.exception.device_type'), options: deviceTypeOptions.value, type: 'enum' },
-  { key: 'applicationName', label: t('log.exception.application_name') },
-  { key: 'applicationVersion', label: t('log.exception.application_version') },
-  { key: 'environmentName', label: t('log.exception.environment_name') },
-  { key: 'serverHostName', label: t('log.exception.server_host_name') },
-  { key: 'threadId', label: t('log.exception.thread_id') },
-  { key: 'processId', label: t('log.exception.process_id') },
-  { key: 'isHandled', falseText: t('log.exception.unhandled'), label: t('log.exception.is_handled'), trueText: t('log.exception.handled'), type: 'boolean' },
-  { key: 'handledBy', label: t('log.exception.handled_by') },
-  { key: 'handledTime', label: t('log.exception.handled_time'), type: 'date' },
-  { key: 'exceptionTime', label: t('log.exception.exception_time'), type: 'date' },
-  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'createdId', label: t('log.common.created_id') },
-  { key: 'createdBy', label: t('common.fields.created_by') },
-  { key: 'handledRemark', label: t('log.exception.handled_remark'), span: 2 },
-  { key: 'remark', label: t('common.fields.remark'), span: 2 },
-  { key: 'exceptionMessage', label: t('log.exception.exception_message'), type: 'code' },
-  { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
-  { key: 'requestParams', label: t('log.common.request_params'), type: 'code' },
-  { key: 'requestBody', label: t('log.common.request_body'), type: 'code' },
-  { key: 'requestHeaders', label: t('log.common.request_headers'), type: 'code' },
-  { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-  { key: 'deviceInfo', label: t('log.exception.device_info'), type: 'code' },
-  { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-])
+const detailFields = computed<LogDetailField[]>(() => exceptionLogDetailFields(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as ExceptionLogListItemDto | undefined

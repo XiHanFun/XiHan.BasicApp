@@ -800,9 +800,9 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     <tr v-for="item in currentDetail.changeLogs" :key="item.basicId">
                       <td>{{ formatNullableDate(item.changeTime) }}</td>
                       <td>{{ getOptionLabel(changeTypeOptions, item.changeType) }}</td>
-                      <td>{{ formatNullable(item.targetUserId) }}</td>
-                      <td>{{ formatNullable(item.targetRoleId) }}</td>
-                      <td>{{ formatNullable(item.operatorUserId) }}</td>
+                      <td>{{ formatNullable(item.targetUserName || item.targetUserId) }}</td>
+                      <td>{{ formatNullable(item.targetRoleName || item.targetRoleId) }}</td>
+                      <td>{{ formatNullable(item.operatorUserName || item.operatorUserId) }}</td>
                       <td>{{ formatNullable(item.changeReason || item.description) }}</td>
                       <td>{{ formatNullable(item.traceId) }}</td>
                     </tr>

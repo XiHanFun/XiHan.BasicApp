@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { AuditOperationType, AuditRiskLevel, createPageRequest, diffLogApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
+import { diffLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -170,35 +171,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => [
-  { key: 'basicId', label: t('log.common.basic_id') },
-  { key: 'requestId', label: t('log.common.request_id') },
-  { key: 'sessionId', label: t('log.common.session_id') },
-  { key: 'traceId', label: t('log.common.trace_id') },
-  { key: 'userName', label: t('log.common.user_name') },
-  { key: 'userId', label: t('log.common.user_id') },
-  { key: 'auditType', label: t('log.diff.audit_type') },
-  { key: 'operationType', label: t('log.diff.operation_type'), options: operationTypeOptions.value, type: 'enum' },
-  { key: 'riskLevel', label: t('log.diff.risk_level'), options: riskLevelOptions.value, type: 'enum' },
-  { key: 'entityType', label: t('log.diff.entity_type') },
-  { key: 'entityName', label: t('log.diff.entity_name') },
-  { key: 'tableName', label: t('log.diff.table_name') },
-  { key: 'entityId', label: t('log.diff.entity_id') },
-  { key: 'primaryKey', label: t('log.diff.primary_key') },
-  { key: 'primaryKeyValue', label: t('log.diff.primary_key_value') },
-  { key: 'changeDescription', label: t('log.diff.change_description'), span: 2 },
-  { key: 'description', label: t('log.diff.description'), span: 2 },
-  { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
-  { key: 'operationIp', label: t('log.diff.operation_ip') },
-  { key: 'auditTime', label: t('log.diff.audit_time'), type: 'date' },
-  { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  { key: 'changedFields', label: t('log.diff.changed_fields'), type: 'code' },
-  { key: 'beforeData', label: t('log.diff.before_data'), type: 'code' },
-  { key: 'afterData', label: t('log.diff.after_data'), type: 'code' },
-  { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-  { key: 'exceptionMessage', label: t('log.common.exception_message'), type: 'code' },
-  { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
-])
+const detailFields = computed<LogDetailField[]>(() => diffLogDetailFields(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as DiffLogListItemDto | undefined

@@ -32,6 +32,8 @@ export interface TraceNavRow {
 }
 
 export interface TraceFieldOptions {
+  /** 额外的「列键 → 追踪维度」映射（页面特有列，如权限变更的 operatorUserName → UserName） */
+  extraDimensions?: Record<string, string>
   /** IP 列的字段键（各日志列名不同：accessIp/requestIp/operationIp/loginIp） */
   ipKey?: string
   /** 行时间字段名，用于把追踪时间窗口居中到该行 ±1 天 */
@@ -78,7 +80,9 @@ export function gotoTrace(router: Router, row: TraceNavRow, time?: string | null
  */
 export function decorateTraceFields(fields: ListFieldSchema[], router: Router, options: TraceFieldOptions): ListFieldSchema[] {
   return fields.map((field) => {
-    const dimension = field.key === options.ipKey ? 'Ip' : DIMENSION_BY_KEY[field.key]
+    const dimension = field.key === options.ipKey
+      ? 'Ip'
+      : options.extraDimensions?.[field.key] ?? DIMENSION_BY_KEY[field.key]
     if (!dimension || field.render)
       return field
 

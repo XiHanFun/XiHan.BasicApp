@@ -477,6 +477,8 @@ export const PERMISSION_CHANGE_TYPE_OPTIONS = [
   { label: '用户移除角色', value: PermissionChangeType.UserRemoveRole },
   { label: '用户直授权限拒绝', value: PermissionChangeType.UserDenyPermission },
   { label: '角色权限拒绝', value: PermissionChangeType.RoleDenyPermission },
+  { label: '用户获得委托授权', value: PermissionChangeType.UserDelegateGrant },
+  { label: '用户委托授权收回', value: PermissionChangeType.UserDelegateRevoke },
 ]
 
 // ==================== 约束规则 ====================
