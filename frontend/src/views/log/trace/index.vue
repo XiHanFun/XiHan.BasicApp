@@ -3,7 +3,7 @@ import type { LogDetailField, LogDetailFieldType } from '../_components/log-deta
 import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
-import { NCard, NEmpty, NSpin, NTag, NText, NTimeline, NTimelineItem, useMessage } from 'naive-ui'
+import { NCard, NEmpty, NSpin, NText, useMessage, useThemeVars } from 'naive-ui'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
@@ -16,6 +16,7 @@ defineOptions({ name: 'LogTracePage' })
 
 const { t, te } = useI18n()
 const message = useMessage()
+const themeVars = useThemeVars()
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -178,25 +179,22 @@ function reset() {
 }
 
 // ── 展示辅助 ─────────────────────────────────────────────────────
-function timelineType(status: string): 'default' | 'error' | 'info' | 'success' | 'warning' {
+// 中性灰度为主，仅异常/告警着色（对齐设计稿）
+function statusColor(status: string): string {
   switch (status) {
-    case 'success': return 'success'
-    case 'error': return 'error'
-    case 'warning': return 'warning'
-    case 'info': return 'info'
-    default: return 'default'
+    case 'error': return themeVars.value.errorColor
+    case 'warning': return themeVars.value.warningColor
+    default: return themeVars.value.textColor2
   }
 }
 
-function logTypeTagType(type: TraceLogType): 'default' | 'error' | 'info' | 'primary' | 'success' | 'warning' {
-  switch (type) {
-    case TraceLogType.Access: return 'info'
-    case TraceLogType.Api: return 'primary'
-    case TraceLogType.Operation: return 'success'
-    case TraceLogType.Login: return 'warning'
-    case TraceLogType.Exception: return 'error'
-    case TraceLogType.Diff: return 'info'
-    default: return 'default'
+function statusLabel(status: string): string {
+  switch (status) {
+    case 'success': return t('log.trace.status_success')
+    case 'error': return t('log.trace.status_error')
+    case 'warning': return t('log.trace.status_warning')
+    case 'info': return t('log.trace.status_info')
+    default: return '-'
   }
 }
 
@@ -204,20 +202,70 @@ function logTypeLabel(type: string) {
   return logTypeLabelMap.value[type] ?? type
 }
 
+/** 状态文案：有 HTTP 码显码，否则显结果文案 */
+function statusText(item: TraceTimelineItemDto): string {
+  return item.statusCode != null ? String(item.statusCode) : statusLabel(item.status)
+}
+
+/** 路径/标题（method/path 为主，机器值等宽） */
+function pathOf(item: TraceTimelineItemDto): string {
+  return item.path || item.title || '-'
+}
+
+// formatDate 输出 "YYYY-MM-DD HH:MM:SS"，拆出时间/分钟
+function timeText(value: string): string {
+  const parts = formatDate(value).split(' ')
+  return parts[1] ?? parts[0] ?? ''
+}
+function minuteKey(value: string): string {
+  return formatDate(value).slice(0, 16)
+}
+
+/** 行数据：按分钟分组（相邻分钟变化时显示分钟分隔） */
+const rows = computed(() => {
+  let prev = ''
+  return items.value.map((item) => {
+    const key = minuteKey(item.time)
+    const showMinute = key !== prev
+    prev = key
+    return { item, showMinute, minute: timeText(item.time).slice(0, 5) }
+  })
+})
+
+/** 最大耗时（耗时条相对刻度） */
+const maxDuration = computed(() => {
+  let max = 1
+  for (const item of items.value) {
+    const v = Number(item.executionTime)
+    if (Number.isFinite(v) && v > max)
+      max = v
+  }
+  return max
+})
+
+function hasDuration(item: TraceTimelineItemDto): boolean {
+  const v = Number(item.executionTime)
+  return Number.isFinite(v) && v > 0
+}
+function barWidth(item: TraceTimelineItemDto): string {
+  const v = Number(item.executionTime)
+  const pct = Number.isFinite(v) ? (v / maxDuration.value) * 100 : 0
+  return `${Math.max(6, Math.min(100, Math.round(pct)))}%`
+}
+
+/** 元信息（机器值等宽，用户/IP + 链路/会话次之） */
 function metaParts(item: TraceTimelineItemDto): { key: string, label: string, value: string }[] {
   const parts: { key: string, label: string, value: string }[] = []
   if (item.userName)
-    parts.push({ key: 'user', label: t('log.common.user_name'), value: item.userName })
+    parts.push({ key: 'user', label: t('log.common.user_name'), value: item.userId != null ? `${item.userName} (#${item.userId})` : item.userName })
+  else if (item.userId != null)
+    parts.push({ key: 'user', label: t('log.common.user_id'), value: String(item.userId) })
   if (item.ip)
-    parts.push({ key: 'ip', label: 'IP', value: item.ip })
-  if (item.method)
-    parts.push({ key: 'method', label: t('log.common.method'), value: item.method })
-  if (item.executionTime != null && item.executionTime !== '')
-    parts.push({ key: 'cost', label: t('log.common.execution_time'), value: `${item.executionTime}ms` })
-  if (item.sessionId)
-    parts.push({ key: 'session', label: t('log.common.session_id'), value: item.sessionId })
+    parts.push({ key: 'ip', label: 'IP', value: item.location ? `${item.ip} · ${item.location}` : item.ip })
   if (item.traceId)
     parts.push({ key: 'trace', label: t('log.common.trace_id'), value: item.traceId })
+  if (item.sessionId)
+    parts.push({ key: 'session', label: t('log.common.session_id'), value: item.sessionId })
   return parts
 }
 
@@ -345,56 +393,75 @@ watch(tracePreset, (preset) => {
       size="small"
       class="flex-1"
       style="height: 0"
-      :content-style="{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: '0', padding: '12px 16px' }"
+      :content-style="{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: '0', padding: '0' }"
     >
       <NSpin :show="loading" class="trace-scroll">
-        <div v-if="result" class="trace-summary">
-          <NText strong>
-            {{ t('log.trace.summary_total', { total: result.totalCount }) }}
-          </NText>
-          <NTag
-            v-for="(count, type) in result.typeCounts"
-            :key="type"
-            size="small"
-            round
-            :bordered="false"
-            :type="logTypeTagType(type as TraceLogType)"
-          >
-            {{ logTypeLabel(type) }} · {{ count }}
-          </NTag>
-          <NTag v-if="result.truncated" size="small" type="warning" :bordered="false">
-            {{ t('log.trace.truncated') }}
-          </NTag>
-        </div>
-
-        <NTimeline v-if="items.length" class="trace-timeline">
-          <NTimelineItem
-            v-for="item in items"
-            :key="`${item.logType}-${item.basicId}`"
-            :type="timelineType(item.status)"
-            :time="formatDate(item.time)"
-          >
-            <div class="trace-item" @click="openDetail(item)">
-              <div class="trace-item__head">
-                <NTag size="small" round :bordered="false" :type="logTypeTagType(item.logType)">
-                  {{ logTypeLabel(item.logType) }}
-                </NTag>
-                <span class="trace-item__title">{{ item.title || '-' }}</span>
-                <NTag v-if="item.statusCode != null" size="tiny" :bordered="false">
-                  {{ item.statusCode }}
-                </NTag>
-              </div>
-              <div v-if="item.summary" class="trace-item__summary">
-                {{ item.summary }}
-              </div>
-              <div v-if="metaParts(item).length" class="trace-item__meta">
-                <span v-for="p in metaParts(item)" :key="p.key" class="trace-chip">
-                  <span class="trace-chip__k">{{ p.label }}</span>{{ p.value }}
-                </span>
-              </div>
+        <div v-if="result" class="trace-panel">
+          <div class="trace-panel__header">
+            <div class="trace-panel__titlerow">
+              <span class="trace-panel__title">{{ t('log.trace.page_name') }}</span>
+              <span class="trace-panel__count">{{ t('log.trace.summary_total', { total: result.totalCount }) }}</span>
+              <span class="trace-panel__grow" />
+              <span
+                v-for="(count, type) in result.typeCounts"
+                :key="type"
+                class="trace-chip"
+                :class="{ 'is-error': type === 'Exception' }"
+              >
+                {{ logTypeLabel(type) }}<i>·</i><b>{{ count }}</b>
+              </span>
             </div>
-          </NTimelineItem>
-        </NTimeline>
+            <div v-if="result.truncated" class="trace-panel__warn">
+              <span class="trace-panel__warndot" />
+              {{ t('log.trace.truncated') }}
+            </div>
+          </div>
+
+          <div v-if="rows.length" class="trace-panel__list">
+            <template v-for="row in rows" :key="`${row.item.logType}-${row.item.basicId}`">
+              <div v-if="row.showMinute" class="trace-min">
+                <span class="trace-min__label">{{ row.minute }}</span>
+                <span class="trace-min__gap" />
+                <span class="trace-min__line" />
+              </div>
+              <div class="trace-row" @click="openDetail(row.item)">
+                <div class="trace-row__time">
+                  {{ timeText(row.item.time) }}
+                </div>
+                <div class="trace-row__rail">
+                  <span class="trace-row__line" />
+                  <span class="trace-row__dot" :style="{ borderColor: statusColor(row.item.status) }" />
+                </div>
+                <div class="trace-row__body">
+                  <div class="trace-row__main">
+                    <span class="trace-row__chip">{{ row.item.method || logTypeLabel(row.item.logType) }}</span>
+                    <span class="trace-row__path">{{ pathOf(row.item) }}</span>
+                    <span class="trace-row__grow" />
+                    <span v-if="hasDuration(row.item)" class="trace-row__dur">
+                      <span class="trace-row__bar">
+                        <span class="trace-row__barfill" :style="{ width: barWidth(row.item), background: statusColor(row.item.status) }" />
+                      </span>
+                      <span class="trace-row__durlabel">{{ row.item.executionTime }}ms</span>
+                    </span>
+                    <span class="trace-row__status" :style="{ color: statusColor(row.item.status) }">
+                      <span class="trace-row__sdot" :style="{ background: statusColor(row.item.status) }" />
+                      {{ statusText(row.item) }}
+                    </span>
+                  </div>
+                  <div v-if="row.item.summary || metaParts(row.item).length" class="trace-row__meta">
+                    <span v-if="row.item.summary" class="trace-row__handler">{{ row.item.summary }}</span>
+                    <template v-for="p in metaParts(row.item)" :key="p.key">
+                      <i class="trace-row__sep">·</i>
+                      <span>{{ p.label }} <b>{{ p.value }}</b></span>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <NEmpty v-else :description="emptyDescription" class="trace-empty" />
+        </div>
 
         <NEmpty v-else :description="emptyDescription" class="trace-empty" />
       </NSpin>
@@ -434,61 +501,285 @@ watch(tracePreset, (preset) => {
   font-size: 12px;
 }
 
-.trace-summary {
+/* ── 时间线轨道（内嵌于外层 NCard，中性灰度 + 等宽机器值；不再套第二层边框） ── */
+.trace-panel {
+  --trace-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* 头部吸顶：随内容滚动固定在结果卡顶部 */
+.trace-panel__header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 14px 20px 12px;
+  background: v-bind('themeVars.cardColor');
+  border-bottom: 1px solid v-bind('themeVars.dividerColor');
+}
+
+.trace-panel__titlerow {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  align-items: baseline;
+  gap: 8px 10px;
 }
 
-.trace-timeline {
-  padding: 4px 4px 4px 8px;
+.trace-panel__title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: v-bind('themeVars.textColor1');
 }
 
-.trace-item {
-  cursor: pointer;
-  padding: 6px 8px;
-  margin: -6px -8px;
-  border-radius: 6px;
-  transition: background-color 0.15s ease;
+.trace-panel__count {
+  font-size: 12px;
+  color: v-bind('themeVars.textColor3');
 }
 
-.trace-item:hover {
-  background: var(--code-bg, rgba(128, 128, 128, 0.08));
+.trace-panel__grow {
+  flex: 1;
 }
 
-.trace-item__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+.trace-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: v-bind('themeVars.actionColor');
+  color: v-bind('themeVars.textColor3');
+  font-family: var(--trace-mono);
+  font-size: 11px;
 }
 
-.trace-item__title {
+.trace-chip i {
+  font-style: normal;
+  opacity: 0.5;
+}
+
+.trace-chip b {
   font-weight: 500;
+  color: v-bind('themeVars.textColor2');
+}
+
+.trace-chip.is-error,
+.trace-chip.is-error b {
+  color: v-bind('themeVars.errorColor');
+}
+
+.trace-panel__warn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  font-size: 11px;
+  color: v-bind('themeVars.warningColor');
+}
+
+.trace-panel__warndot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: v-bind('themeVars.warningColor');
+}
+
+.trace-panel__list {
+  padding: 2px 20px 12px;
+}
+
+/* 分钟分隔 */
+.trace-min {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 0 6px;
+}
+
+.trace-min__label {
+  width: 56px;
+  flex: none;
+  text-align: right;
+  font-family: var(--trace-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: v-bind('themeVars.textColor2');
+}
+
+.trace-min__gap {
+  width: 34px;
+  flex: none;
+}
+
+.trace-min__line {
+  flex: 1;
+  height: 1px;
+  background: v-bind('themeVars.dividerColor');
+}
+
+/* 单行 */
+.trace-row {
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px solid v-bind('themeVars.dividerColor');
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.trace-row:hover {
+  background: v-bind('themeVars.hoverColor');
+}
+
+.trace-row__time {
+  width: 56px;
+  flex: none;
+  text-align: right;
+  padding-top: 14px;
+  font-family: var(--trace-mono);
+  font-size: 11.5px;
+  color: v-bind('themeVars.textColor3');
+}
+
+.trace-row__rail {
+  position: relative;
+  width: 34px;
+  flex: none;
+  align-self: stretch;
+}
+
+.trace-row__line {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: v-bind('themeVars.borderColor');
+}
+
+.trace-row__dot {
+  position: absolute;
+  left: 11px;
+  top: 14px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: v-bind('themeVars.cardColor');
+  border: 2px solid;
+  box-shadow: 0 0 0 3px v-bind('themeVars.cardColor');
+}
+
+.trace-row__body {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 0 12px;
+}
+
+.trace-row__main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.trace-row__chip {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid v-bind('themeVars.borderColor');
+  background: v-bind('themeVars.actionColor');
+  color: v-bind('themeVars.textColor3');
+  font-family: var(--trace-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.trace-row__path {
+  min-width: 0;
+  font-family: var(--trace-mono);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: v-bind('themeVars.textColor1');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trace-row__grow {
+  flex: 1;
+}
+
+.trace-row__dur {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+}
+
+.trace-row__bar {
+  width: 60px;
+  height: 5px;
+  border-radius: 3px;
+  background: v-bind('themeVars.actionColor');
+  overflow: hidden;
+}
+
+.trace-row__barfill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.trace-row__durlabel {
+  min-width: 46px;
+  text-align: right;
+  font-family: var(--trace-mono);
+  font-size: 12px;
+  color: v-bind('themeVars.textColor2');
+}
+
+.trace-row__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  flex: none;
+  min-width: 52px;
+  font-family: var(--trace-mono);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.trace-row__sdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.trace-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 7px;
+  font-family: var(--trace-mono);
+  font-size: 11.5px;
+  color: v-bind('themeVars.textColor3');
+}
+
+.trace-row__meta b {
+  font-weight: 400;
+  color: v-bind('themeVars.textColor2');
   word-break: break-all;
 }
 
-.trace-item__summary {
-  margin-top: 4px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  word-break: break-word;
+.trace-row__handler {
+  color: v-bind('themeVars.textColor2');
 }
 
-.trace-item__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.trace-chip__k {
-  margin-right: 4px;
-  opacity: 0.7;
+.trace-row__sep {
+  font-style: normal;
+  opacity: 0.4;
 }
 
 .trace-empty {
