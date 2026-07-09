@@ -10,6 +10,8 @@ const props = withDefaults(defineProps<XihanBackTopProps>(), {
   scrollY: 0,
 })
 
+const emit = defineEmits<{ toTop: [] }>()
+
 interface XihanBackTopProps {
   scrollY?: number
   threshold?: number
@@ -20,7 +22,7 @@ const { t } = useI18n()
 const visible = computed(() => props.scrollY > props.threshold)
 
 function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  emit('toTop')
 }
 </script>
 

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'vue'
+import type { ComponentPublicInstance, CSSProperties } from 'vue'
 import type { HeaderMode } from '../contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -40,6 +40,7 @@ export function useLayoutShellAdapter() {
   const headerIsHidden = ref(false)
   const mobileSidebarOpen = ref(false)
   const scrollY = ref(0)
+  const contentScrollEl = ref<HTMLElement | null>(null)
   const mouseY = ref(0)
 
   const sidebarExtraVisible = ref(false)
@@ -392,8 +393,23 @@ export function useLayoutShellAdapter() {
   }
 
   function handleScroll() {
-    scrollY.value = window.scrollY ?? document.documentElement.scrollTop
+    scrollY.value = contentScrollEl.value?.scrollTop ?? 0
     handleAutoScrollHeader()
+  }
+
+  // 内容滚动容器由布局通过 :ref 注入；滚动搬入容器后，滚动源改读容器 scrollTop（back-top/顶栏阴影/自动隐藏都依赖它）
+  function setContentScrollEl(el: ComponentPublicInstance | Element | null) {
+    const next = (el as HTMLElement) ?? null
+    if (next === contentScrollEl.value)
+      return
+    contentScrollEl.value?.removeEventListener('scroll', handleScroll)
+    contentScrollEl.value = next
+    next?.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+  }
+
+  function scrollContentToTop() {
+    contentScrollEl.value?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function handleMouseMove(e: MouseEvent) {
@@ -444,6 +460,8 @@ export function useLayoutShellAdapter() {
     () => {
       if (isNarrowScreen.value)
         mobileSidebarOpen.value = false
+      // 滚动搬入内容容器后，路由切换手动重置到顶（原 router window scrollBehavior 已失效）
+      contentScrollEl.value?.scrollTo({ top: 0 })
     },
   )
 
@@ -457,13 +475,12 @@ export function useLayoutShellAdapter() {
   onMounted(() => {
     updateViewportWidth()
     window.addEventListener('resize', updateViewportWidth)
-    window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
   })
 
   onBeforeUnmount(() => {
     window.removeEventListener('resize', updateViewportWidth)
-    window.removeEventListener('scroll', handleScroll)
+    contentScrollEl.value?.removeEventListener('scroll', handleScroll)
     window.removeEventListener('mousemove', handleMouseMove)
   })
 
@@ -490,6 +507,8 @@ export function useLayoutShellAdapter() {
     sidebarExtraCollapse,
     headerIsHidden,
     scrollY,
+    setContentScrollEl,
+    scrollContentToTop,
 
     headerHeight,
     tabbarHeight,

@@ -4,7 +4,7 @@ import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
 import { NCard, NEmpty, NSpin, NTag, NText, NTimeline, NTimelineItem, useMessage } from 'naive-ui'
-import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
 import { SchemaSearchPanel } from '~/components'
@@ -55,11 +55,6 @@ const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<Record<string, unknown> | null>(null)
 const detailLogType = ref<TraceLogType | null>(null)
-
-// 视口内定高：布局内容区高度链不确定（min-h-full 断链、实际在 body 滚动），
-// 故自算可用高度，让结果区内部滚动、搜索区固定在顶部
-const pageRef = ref<HTMLElement>()
-const pageHeight = ref('')
 
 // ── 选项 ─────────────────────────────────────────────────────────
 const dimensionOptions = computed(() => [
@@ -329,34 +324,10 @@ watch(tracePreset, (preset) => {
   if (preset)
     consumePreset()
 })
-
-// ── 视口内定高：令搜索区固定、仅结果区滚动（规避布局在 body 级滚动） ──
-function updatePageHeight() {
-  const el = pageRef.value
-  if (!el)
-    return
-  const top = el.getBoundingClientRect().top
-  const footer = document.querySelector<HTMLElement>('.footer-bar')
-  const bottom = footer && getComputedStyle(footer).position === 'fixed'
-    ? footer.getBoundingClientRect().top
-    : window.innerHeight
-  pageHeight.value = `${Math.max(240, Math.floor(bottom - top))}px`
-}
-
-onMounted(() => {
-  void nextTick(updatePageHeight)
-  window.addEventListener('resize', updatePageHeight)
-})
-onActivated(() => {
-  void nextTick(updatePageHeight)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updatePageHeight)
-})
 </script>
 
 <template>
-  <div ref="pageRef" class="trace-page" :style="{ height: pageHeight }">
+  <div class="trace-page">
     <NCard size="small" :content-style="{ padding: '12px 16px' }" :style="{ overflow: 'visible' }">
       <SchemaSearchPanel
         :advanced-fields="EMPTY_FIELDS"
@@ -445,6 +416,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 8px;
   box-sizing: border-box;
+  height: 100%;
   padding: 12px;
   overflow: hidden;
 }
