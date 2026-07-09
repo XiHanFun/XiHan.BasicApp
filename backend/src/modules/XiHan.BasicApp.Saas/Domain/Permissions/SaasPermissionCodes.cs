@@ -964,6 +964,22 @@ public static class SaasPermissionCodes
     }
 
     /// <summary>
+    /// 链路追踪权限码
+    /// </summary>
+    public static class LogTrace
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "log-trace";
+
+        /// <summary>
+        /// 查看链路追踪（跨类日志综合追踪时间线）
+        /// </summary>
+        public const string Read = "saas:log-trace:read";
+    }
+
+    /// <summary>
     /// 差异日志权限码
     /// </summary>
     public static class DiffLog

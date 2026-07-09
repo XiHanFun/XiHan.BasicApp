@@ -47,6 +47,7 @@ export default {
   log_login: 'Login Logs',
   log_exception: 'Exception Logs',
   log_diff: 'Data Changes',
+  log_trace: 'Trace',
   about: 'About',
   about_project: 'About Project',
   about_github: 'Github',
