@@ -197,6 +197,8 @@ public static class PageRegistry
          new("log.exception", "异常日志", "menu.log_exception", MenuType.Menu, "/log/exception", "LogException", "log/exception/index", "log", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 850),
         // [9.6] 数据变更
          new("log.diff", "数据变更", "menu.log_diff", MenuType.Menu, "/log/diff", "LogDiff", "log/diff/index", "log", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 860),
+        // [9.7] 权限变更日志
+         new("log.permission-change", "权限变更", "menu.log_permission_change", MenuType.Menu, "/log/permission-change", "LogPermissionChange", "log/permission-change/index", "log", SaasPermissionCodes.PermissionChangeLog.Read, "lucide:shield-check", 870),
 
         // [10] 关于项目
          new("about", "关于项目", "menu.about", MenuType.Directory, "/about", "About", null, null, null, "lucide:info", 900, "/about"),
