@@ -244,7 +244,7 @@ const sidebarEnableState = computed(
 </script>
 
 <template>
-  <div class="relative flex min-h-full w-full">
+  <div class="relative flex h-full w-full">
     <!-- ==================== Sidebar ==================== -->
     <NConfigProvider
       v-if="sidebarEnableState"
@@ -358,6 +358,7 @@ const sidebarEnableState = computed(
         <!-- 普通内容 -->
         <div
           v-if="!showSplit"
+          :ref="shell.setContentScrollEl"
           class="min-h-0 flex-1 overflow-auto"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
@@ -376,6 +377,7 @@ const sidebarEnableState = computed(
           :class="{ 'split-collapsed': swapPhase === 'shrink' || swapPhase === 'fly' }"
         >
           <div
+            :ref="shell.setContentScrollEl"
             class="split-anchor h-full min-w-0 overflow-auto"
             :style="{
               flexBasis: `calc((100% - 6px) * ${splitView.reversed ? 1 - splitView.ratio : splitView.ratio})`,
@@ -511,7 +513,7 @@ const sidebarEnableState = computed(
     <AppPreferenceDrawer />
     <AppChatDrawer />
     <AppTabOverview />
-    <XihanBackTop :scroll-y="shell.scrollY.value" />
+    <XihanBackTop :scroll-y="shell.scrollY.value" @to-top="shell.scrollContentToTop" />
 
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
