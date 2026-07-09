@@ -37,6 +37,7 @@ using XiHan.Framework.Authentication.Otp;
 using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Email.Options;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -90,6 +91,8 @@ public sealed class AuthAppService
 
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    private readonly ITraceIdProvider _traceIdProvider;
+
     private readonly ILocalEventBus _localEventBus;
 
     private readonly ILoginSessionDomainService _loginSessionDomainService;
@@ -137,6 +140,7 @@ public sealed class AuthAppService
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor,
+        ITraceIdProvider traceIdProvider,
         IUserRepository userRepository,
         ITenantUserRepository tenantUserRepository,
         IUserDomainService userDomainService,
@@ -164,6 +168,7 @@ public sealed class AuthAppService
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
+        _traceIdProvider = traceIdProvider;
         _userRepository = userRepository;
         _tenantUserRepository = tenantUserRepository;
         _userDomainService = userDomainService;
@@ -502,7 +507,7 @@ public sealed class AuthAppService
                     authResult.FailureResult,
                     authResult.ErrorMessage,
                     now,
-                    _httpContextAccessor.HttpContext?.TraceIdentifier,
+                    _traceIdProvider.GetCurrentTraceId(),
                     clientForFailure.IpAddress,
                     clientForFailure.UserAgent));
             throw new InvalidOperationException(authResult.ErrorMessage ?? "账号或密码错误。");
@@ -584,7 +589,7 @@ public sealed class AuthAppService
                     authResult.FailureResult,
                     authResult.ErrorMessage,
                     now,
-                    _httpContextAccessor.HttpContext?.TraceIdentifier,
+                    _traceIdProvider.GetCurrentTraceId(),
                     clientForFailure.IpAddress,
                     clientForFailure.UserAgent));
             throw new InvalidOperationException(authResult.ErrorMessage ?? "邮箱或验证码错误。");
@@ -679,7 +684,7 @@ public sealed class AuthAppService
                 session.BasicId,
                 sessionBusinessId,
                 now,
-                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                _traceIdProvider.GetCurrentTraceId(),
                 client.IpAddress,
                 client.UserAgent));
     }
@@ -1330,7 +1335,7 @@ public sealed class AuthAppService
                 sessionResult.Session.BasicId,
                 sessionBusinessId,
                 now,
-                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                _traceIdProvider.GetCurrentTraceId(),
                 client.IpAddress,
                 client.UserAgent,
                 client.Location,
@@ -1355,7 +1360,7 @@ public sealed class AuthAppService
                 auditResult,
                 message,
                 DateTimeOffset.UtcNow,
-                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                _traceIdProvider.GetCurrentTraceId(),
                 client.IpAddress,
                 client.UserAgent));
     }
@@ -1448,7 +1453,7 @@ public sealed class AuthAppService
                 LoginResult.RequiresTwoFactor,
                 "双因素验证码无效。",
                 now,
-                _httpContextAccessor.HttpContext?.TraceIdentifier,
+                _traceIdProvider.GetCurrentTraceId(),
                 client.IpAddress,
                 client.UserAgent));
         throw new InvalidOperationException("双因素验证码无效或已过期。");
