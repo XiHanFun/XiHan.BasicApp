@@ -1,8 +1,11 @@
 ![logo](./assets/logo.png)
 
+[![GitHub Star](https://img.shields.io/github/stars/XiHanFun/XiHan.BasicApp?style=flat&logo=github)](https://github.com/XiHanFun/XiHan.BasicApp) | [![Gitee Star](https://gitee.com/XiHanFun/XiHan.BasicApp/badge/star.svg)](https://gitee.com/XiHanFun/XiHan.BasicApp) | [![AtomGit Star](https://atomgit.com/XiHanFun/XiHan.BasicApp/star/badge.svg)](https://atomgit.com/XiHanFun/XiHan.BasicApp)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/XiHanFun/XiHan.BasicApp)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/) | [![NuGet](https://img.shields.io/nuget/v/XiHan.BasicApp.Core?label=NuGet&color=blue)](https://www.nuget.org/packages?q=XiHan.BasicApp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
-QQ 交流群：[462371834](https://qm.qq.com/q/qYp1Urv3z2)
+[曦寒懿官方交流群](https://qm.qq.com/q/qYp1Urv3z2) 462371834 | [在线文档](https://docs.xihanfun.com)
 
 # XiHan.BasicApp
 
