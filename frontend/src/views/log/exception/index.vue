@@ -5,15 +5,18 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import { NTag, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { createPageRequest, DeviceType, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
+import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
 defineOptions({ name: 'LogExceptionPage' })
 
 const { t } = useI18n()
 const message = useMessage()
+const router = useRouter()
 
 const detailVisible = ref(false)
 const detailLoading = ref(false)
@@ -176,13 +179,14 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('log.exception.page_name'),
   rowKey: 'basicId',
   scrollX: 2800,
-  fields: fields.value,
+  fields: decorateTraceFields(fields.value, router, { timeField: 'exceptionTime', ipKey: 'operationIp' }),
   resource: {
     page: params => logManagementApi.exception.page(buildExceptionQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
     export: { businessType: 'log.exception', buildQuery: buildExceptionQuery },
   },
   actions: [
     { key: 'view', title: t('common.actions.view_detail'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'trace', title: t('log.trace.action'), scope: 'row', icon: 'lucide:route' },
   ],
 }))
 
@@ -237,6 +241,11 @@ function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as ExceptionLogListItemDto | undefined
   if (payload.key === 'view' && row) {
     void handleDetail(row)
+  }
+  else if (payload.key === 'trace' && row) {
+    if (!gotoTrace(router, row, row.exceptionTime)) {
+      message.warning(t('log.trace.value_required'))
+    }
   }
 }
 

@@ -293,6 +293,10 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.ApiLog.Read, "API日志查看", "查看当前租户 API 调用日志摘要", true, 539),
             new(SaasPermissionCodes.ApiLog.Export, "API日志导出", "导出开放接口日志数据", false, 2490),
         ]),
+        new(SaasPermissionCodes.LogTrace.Group, "链路追踪",
+        [
+            new(SaasPermissionCodes.LogTrace.Read, "链路追踪查看", "按维度跨多类日志综合追踪时间线", true, 540),
+        ]),
         new(SaasPermissionCodes.PermissionRequest.Group, "权限申请",
         [
             new(SaasPermissionCodes.PermissionRequest.Read, "权限申请查看", "查看当前租户权限申请列表和详情", false, 580),

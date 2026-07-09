@@ -183,6 +183,8 @@ public static class PageRegistry
 
         // [9] 日志审计
          new("log", "日志审计", "menu.log", MenuType.Directory, "/log", "Log", null, null, null, "lucide:file-search", 800, "/log/access"),
+        // [9.0] 链路追踪（跨类日志综合追踪时间线）
+         new("log.trace", "链路追踪", "menu.log_trace", MenuType.Menu, "/log/trace", "LogTrace", "log/trace/index", "log", SaasPermissionCodes.LogTrace.Read, "lucide:route", 805),
         // [9.1] 访问日志
          new("log.access", "访问日志", "menu.log_access", MenuType.Menu, "/log/access", "LogAccess", "log/access/index", "log", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 810),
         // [9.2] 开放接口日志

@@ -6,6 +6,7 @@ import {
   loginLogApi,
   operationLogApi,
   permissionChangeLogApi,
+  traceLogApi,
 } from '../audit'
 
 export const logManagementApi = {
@@ -16,4 +17,5 @@ export const logManagementApi = {
   login: loginLogApi,
   operation: operationLogApi,
   permissionChanges: permissionChangeLogApi,
+  trace: traceLogApi,
 }
