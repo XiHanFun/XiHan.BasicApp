@@ -271,12 +271,8 @@ sudo systemctl start XiHan.BasicApp
 
 如果此项目对你的开发有助益，也欢迎请作者一杯咖啡。
 
-<table>
-  <tr>
-    <td align="center"><img src="./assets/alipay.png" width="200" /><br/>支付宝</td>
-    <td align="center"><img src="./assets/weixinpay.png" width="200" /><br/>微信</td>
-  </tr>
-</table>
+官方赞助页 https://docs.xihanfun.com/cosmos/sponsor
+
 
 ## 版权&授权
 
