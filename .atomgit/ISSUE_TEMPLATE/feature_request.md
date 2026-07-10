@@ -5,6 +5,8 @@ title: "[Feature] "
 labels: enhancement
 ---
 
+> ⭐ 本仓库为镜像，GitHub 主仓库优先处理，建议优先前往 https://github.com/XiHanFun/XiHan.BasicApp 提交。
+>
 > 提交前请先搜索现有 Issue，避免重复建议。
 
 ## 前置确认
