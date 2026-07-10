@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 报告安全漏洞
+    url: https://gitee.com/XiHanFun/XiHan.BasicApp
+    about: 安全漏洞请勿公开提交 Issue，请通过邮件 zhaifanhua@gmail.com 私密反馈
+  - name: 📖 在线文档
+    url: https://docs.xihanfun.com
+    about: 安装、配置与使用问题请先查阅官方文档
+  - name: 👥 官方交流群
+    url: https://qm.qq.com/q/qYp1Urv3z2
+    about: 曦寒懿官方 QQ 交流群 462371834
