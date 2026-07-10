@@ -5,7 +5,11 @@ title: "[Bug] "
 labels: bug
 ---
 
-> 提交前请先搜索现有 Issue，确认不是重复问题。安全漏洞请勿公开提交，请通过邮件 zhaifanhua@gmail.com 私密反馈。
+> ⭐ 本仓库为镜像，GitHub 主仓库优先处理，建议优先前往 https://github.com/XiHanFun/XiHan.BasicApp 提交。
+>
+> 🔒 安全漏洞请勿公开提交，请前往 GitHub 主仓库私密报告：https://github.com/XiHanFun/XiHan.BasicApp/security/advisories/new
+>
+> 提交前请先搜索现有 Issue，确认不是重复问题。
 
 ## 前置确认
 
