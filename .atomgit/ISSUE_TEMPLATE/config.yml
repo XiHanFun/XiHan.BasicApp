@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ⭐ GitHub 主仓库（优先提交）
+    url: https://github.com/XiHanFun/XiHan.BasicApp
+    about: 本仓库为镜像，建议优先前往 GitHub 主仓库提交 Issue / PR；安全漏洞也请在主仓库私密报告
+  - name: 📖 在线文档
+    url: https://docs.xihanfun.com
+    about: 安装、配置与使用问题请先查阅官方文档
+  - name: 👥 官方交流群
+    url: https://qm.qq.com/q/qYp1Urv3z2
+    about: 曦寒懿官方 QQ 交流群 462371834
