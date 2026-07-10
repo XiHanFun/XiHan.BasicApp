@@ -1,0 +1,133 @@
+name: 🐛 反馈 Bug
+description: 报告一个缺陷或异常行为，帮助我们修复问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量完整地填写以下信息，这能帮助我们更快地定位并修复问题。
+        > 安全漏洞请勿公开提交 Issue，请通过邮件 zhaifanhua@gmail.com 私密反馈。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 前置确认
+      description: 提交前请逐项确认
+      options:
+        - label: 我已搜索过 [现有 Issue](https://gitee.com/XiHanFun/XiHan.BasicApp/issues)，确认这不是重复问题
+          required: true
+        - label: 我已尝试更新到最新版本，问题依旧存在
+          required: true
+        - label: 我确认这是一个 Bug，而非使用方式或环境配置问题
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 清晰、简洁地描述这个 Bug 是什么
+      placeholder: 例如：进入用户管理页面时，表格数据加载失败并提示 500…
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 请提供可稳定复现该问题的完整步骤
+      placeholder: |
+        1. 登录后进入「系统管理 → 用户管理」
+        2. 点击「新增」按钮
+        3. 填写表单并提交
+        4. 出现错误…
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你期望正确的结果应该是什么
+      placeholder: 例如：应成功创建用户并刷新列表…
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么（如有报错，请附完整错误信息）
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影响范围
+      description: 该问题出现在哪一侧
+      options:
+        - 后端（.NET / API）
+        - 前端（Vue / 页面）
+        - 前后端均涉及
+        - 部署 / 运维
+        - 文档
+        - 其他 / 不确定
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: 相关模块
+      description: 该问题主要涉及的模块（可在补充说明中进一步说明）
+      options:
+        - Saas（用户 / 角色 / 权限 / 菜单 / 租户 / 审计等）
+        - CodeGeneration（代码生成）
+        - Web.Core（动态 API / 网关 / 灰度 / SignalR）
+        - Core（基础应用能力 / DDD / CQRS）
+        - WebHost（启动与聚合）
+        - 前端（Schema 页面 / 权限 / 偏好 / 组件）
+        - 其他 / 不确定
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 出现问题的项目版本或 commit（如 v2.3.1 / 提交短哈希）
+      placeholder: v2.3.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 请填写相关的环境信息（未涉及的可留空）
+      value: |
+        - 操作系统：
+        - .NET SDK：
+        - Node.js / pnpm：
+        - 数据库（PostgreSQL / MySQL / MariaDB + 版本）：
+        - Redis：
+        - 浏览器（前端问题）：
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图
+      description: 粘贴相关的后端日志、浏览器控制台报错或截图。日志请用代码块包裹。
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充说明
+      description: 任何有助于我们理解问题的额外信息（临时规避方法、影响面等）
+    validations:
+      required: false
