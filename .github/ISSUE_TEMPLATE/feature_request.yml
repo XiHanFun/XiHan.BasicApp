@@ -1,0 +1,95 @@
+name: ✨ 功能建议
+description: 提出一个新功能或对现有功能的改进建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议！好的想法让项目更好。请尽量说明「为什么需要」以及「期望它如何工作」。
+        > 提交前请先搜索 [现有 Issue](https://github.com/XiHanFun/XiHan.BasicApp/issues) 与 [讨论区](https://github.com/XiHanFun/XiHan.BasicApp/discussions)，避免重复。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 前置确认
+      description: 提交前请逐项确认
+      options:
+        - label: 我已搜索过现有 Issue 和讨论，确认这不是重复建议
+          required: true
+        - label: 我确认这是对 XiHan.BasicApp 的功能建议，而非使用问题咨询
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 需求背景 / 痛点
+      description: 你遇到了什么问题，或当前有哪些不便？这个建议想解决什么？
+      placeholder: 例如：批量导入用户时无法预设角色，需要导入后逐个手动分配，效率很低…
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的功能
+      description: 你希望它如何工作？尽量具体地描述预期的行为、交互或接口。
+      placeholder: 例如：导入模板中增加「角色」列，导入时按角色名称自动匹配并分配…
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 影响范围
+      description: 该建议主要涉及哪一侧
+      options:
+        - 后端（.NET / API）
+        - 前端（Vue / 页面）
+        - 前后端均涉及
+        - 部署 / 运维
+        - 文档
+        - 其他 / 不确定
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: 相关模块
+      description: 该建议主要涉及的模块
+      options:
+        - Saas（用户 / 角色 / 权限 / 菜单 / 租户 / 审计等）
+        - CodeGeneration（代码生成）
+        - Web.Core（动态 API / 网关 / 灰度 / SignalR）
+        - Core（基础应用能力 / DDD / CQRS）
+        - WebHost（启动与聚合）
+        - 前端（Schema 页面 / 权限 / 偏好 / 组件）
+        - 其他 / 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案
+      description: 你是否考虑过其他实现方式或临时规避方法？
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充说明
+      description: 参考截图、竞品做法、相关链接或任何其他上下文
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: 参与贡献
+      description: 可选
+      options:
+        - label: 我愿意提交 PR 来实现这个功能
+          required: false
