@@ -1,5 +1,3 @@
-> ⭐ 本仓库为镜像，GitHub 主仓库优先处理，建议优先向 GitHub 主仓库提交 PR：https://github.com/XiHanFun/XiHan.BasicApp
-
 <!-- 感谢贡献！提交前请阅读贡献指南，并完整填写以下内容。 -->
 
 ## 关联 Issue
