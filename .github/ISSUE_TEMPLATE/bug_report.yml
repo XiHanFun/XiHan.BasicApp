@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         感谢反馈！请尽量完整地填写以下信息，这能帮助我们更快地定位并修复问题。
+        > 🔒 安全漏洞请勿公开提交 Issue，请使用本仓库的「私密漏洞报告」功能私下反馈。
         > 提问前请先阅读 [贡献指南](https://github.com/XiHanFun/.github/blob/main/CONTRIBUTING_cn.md)，安全漏洞请勿公开提交 Issue。
 
   - type: checkboxes

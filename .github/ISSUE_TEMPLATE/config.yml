@@ -1,11 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 🔒 报告安全漏洞
-    url: https://github.com/XiHanFun/XiHan.BasicApp/security/advisories/new
-    about: 安全漏洞请勿公开提交 Issue，请通过 GitHub 私密漏洞报告私下反馈
-  - name: 💬 提问与讨论
-    url: https://github.com/XiHanFun/XiHan.BasicApp/discussions
-    about: 使用疑问、方案探讨、经验分享请前往讨论区
   - name: 📖 在线文档
     url: https://docs.xihanfun.com
     about: 安装、配置与使用问题请先查阅官方文档

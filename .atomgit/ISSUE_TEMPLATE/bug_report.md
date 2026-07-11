@@ -5,9 +5,7 @@ title: "[Bug] "
 labels: bug
 ---
 
-> ⭐ 本仓库为镜像，GitHub 主仓库优先处理，建议优先前往 https://github.com/XiHanFun/XiHan.BasicApp 提交。
->
-> 🔒 安全漏洞请勿公开提交，请前往 GitHub 主仓库私密报告：https://github.com/XiHanFun/XiHan.BasicApp/security/advisories/new
+> 🔒 安全漏洞请勿公开提交 Issue，请使用本仓库的「私密漏洞报告」功能私下反馈。
 >
 > 提交前请先搜索现有 Issue，确认不是重复问题。
 
