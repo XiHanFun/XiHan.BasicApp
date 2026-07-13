@@ -1,4 +1,15 @@
 {
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "rootDir": ".",
+      "module": "CommonJS",
+      "moduleResolution": "Node",
+      "verbatimModuleSyntax": false,
+      "allowImportingTsExtensions": false,
+      "ignoreDeprecations": "6.0"
+    }
+  },
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "preserve",
