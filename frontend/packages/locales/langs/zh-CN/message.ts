@@ -112,7 +112,6 @@ export default {
         content: '公告内容',
       },
     },
-    detail_content_title: '公告内容',
     detail_no_content: '（无内容）',
     never_expire: '永不过期',
     // 发布确认

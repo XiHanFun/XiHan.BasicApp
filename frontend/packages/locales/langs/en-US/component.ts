@@ -405,7 +405,6 @@ export default {
       err_load_failed: 'Failed to load tenant list',
       msg_switched_to: 'Switched to "{label}"',
       err_switch_failed: 'Switch failed',
-      tenant_initial_fallback: 'T',
       section_title: 'My Tenants',
       section_desc: 'The tenant organizations you can currently access and your member roles',
       empty: 'No accessible tenants',
@@ -487,9 +486,6 @@ export default {
   },
   md_editor: {
     placeholder: 'Enter Markdown content...',
-  },
-  json_viewer: {
-    title: 'Data Preview',
   },
   schema_page: {
     actions_column: 'Actions',
@@ -607,16 +603,6 @@ export default {
     fixed_tip: 'Fixed: {label}',
     hint: 'Check to show the column; set width here or drag the header edge (blank = auto); click the pin icon to cycle Left / Right / None; drag the handle to reorder.',
   },
-  schema_view_manager: {
-    set_default: 'Set as default',
-    remove_view: 'Delete view',
-    select_placeholder: 'Search schemes',
-    save_view: 'Save scheme',
-    manage_aria: 'Manage schemes',
-    save_modal_title: 'Save Search Scheme',
-    name_placeholder: 'Enter scheme name',
-    warn_name_required: 'Please enter a scheme name',
-  },
   icon_picker: {
     select_placeholder: 'Select icon',
     modal_title: 'Select Icon',
@@ -677,7 +663,6 @@ export default {
     every_step: 'every',
     to: 'to',
     specific_placeholder: 'Select {unit}',
-    expression: 'Expression',
     preview: 'Next {count} runs',
     preview_none: 'Cannot compute (invalid expression or no upcoming match)',
     week_names: 'Sun,Mon,Tue,Wed,Thu,Fri,Sat',

@@ -10,12 +10,6 @@ export default {
     remove: '移除收藏',
     hint: '点击导航到对应页面；拖拽可排序；× 移除收藏',
   },
-  sidebar: {
-    pin: '固定侧边栏',
-    unpin: '取消固定（悬停展开）',
-    expand: '展开侧边栏',
-    collapse: '收起侧边栏',
-  },
   locale: {
     zh_cn: '简体中文',
     en_us: 'English',
@@ -30,7 +24,6 @@ export default {
     switch_success: '已切换时区：{timezone}',
   },
   notification: {
-    pending: '通知功能待接入',
     bell: '通知',
     title: '通知中心',
     refresh: '刷新',
@@ -55,10 +48,8 @@ export default {
       days_ago: '{n} 天前',
     },
     gate: {
-      banner_more: '还有 {n} 条',
       banner_detail: '查看详情',
       banner_close: '关闭',
-      mandatory_title: '请先阅读以下必读公告',
       mandatory_read: '我已阅读',
       popup_ok: '我知道了',
       no_content: '暂无内容',

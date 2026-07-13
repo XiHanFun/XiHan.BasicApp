@@ -10,12 +10,6 @@ export default {
     remove: 'Remove favorite',
     hint: 'Click to navigate; drag to reorder; × to remove.',
   },
-  sidebar: {
-    pin: 'Pin sidebar',
-    unpin: 'Unpin (hover to expand)',
-    expand: 'Expand sidebar',
-    collapse: 'Collapse sidebar',
-  },
   locale: {
     zh_cn: '简体中文',
     en_us: 'English',
@@ -30,7 +24,6 @@ export default {
     switch_success: 'Timezone switched: {timezone}',
   },
   notification: {
-    pending: 'Notification feature coming soon',
     bell: 'Notifications',
     title: 'Notifications',
     refresh: 'Refresh',
@@ -55,10 +48,8 @@ export default {
       days_ago: '{n} d ago',
     },
     gate: {
-      banner_more: '{n} more',
       banner_detail: 'View details',
       banner_close: 'Close',
-      mandatory_title: 'Please read the following required announcements',
       mandatory_read: 'I have read it',
       popup_ok: 'Got it',
       no_content: 'No content',

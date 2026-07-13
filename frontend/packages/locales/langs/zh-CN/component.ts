@@ -405,7 +405,6 @@ export default {
       err_load_failed: '加载租户列表失败',
       msg_switched_to: '已切换到「{label}」',
       err_switch_failed: '切换失败',
-      tenant_initial_fallback: '租',
       section_title: '我的租户',
       section_desc: '您当前可访问的租户组织及其成员角色',
       empty: '暂无可访问的租户',
@@ -487,9 +486,6 @@ export default {
   },
   md_editor: {
     placeholder: '请输入 Markdown 内容...',
-  },
-  json_viewer: {
-    title: '数据预览',
   },
   schema_page: {
     actions_column: '操作',
@@ -607,16 +603,6 @@ export default {
     fixed_tip: '固定：{label}',
     hint: '勾选=显示该列；列宽可在此输入或拖动表头右边框调整（留空为自动）；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序',
   },
-  schema_view_manager: {
-    set_default: '设为默认',
-    remove_view: '删除视图',
-    select_placeholder: '搜索方案',
-    save_view: '保存方案',
-    manage_aria: '方案管理',
-    save_modal_title: '保存搜索方案',
-    name_placeholder: '请输入方案名称',
-    warn_name_required: '请输入方案名称',
-  },
   icon_picker: {
     select_placeholder: '选择图标',
     modal_title: '选择图标',
@@ -677,7 +663,6 @@ export default {
     every_step: '每',
     to: '至',
     specific_placeholder: '选择{unit}',
-    expression: '表达式',
     preview: '最近 {count} 次执行',
     preview_none: '无法计算（表达式无效或近期无匹配）',
     week_names: '周日,周一,周二,周三,周四,周五,周六',

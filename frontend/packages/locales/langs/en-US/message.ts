@@ -112,7 +112,6 @@ export default {
         content: 'Announcement Content',
       },
     },
-    detail_content_title: 'Announcement Content',
     detail_no_content: '(No content)',
     never_expire: 'Never expires',
     // Publish confirmation

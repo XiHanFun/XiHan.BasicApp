@@ -27,8 +27,6 @@ export default {
     response_headers: 'Response Headers',
     extend_data: 'Extended Data',
     referer: 'Referer',
-    start_time: 'Start Time',
-    end_time: 'End Time',
     min_execution_time: 'Min Duration (ms)',
     max_execution_time: 'Max Duration (ms)',
   },
@@ -268,7 +266,6 @@ export default {
   trace: {
     page_name: 'Trace',
     action: 'Trace',
-    reset: 'Reset',
     dimension: 'Dimension',
     value: 'Value',
     time_range: 'Time Range',

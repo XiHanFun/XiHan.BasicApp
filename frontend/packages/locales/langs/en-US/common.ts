@@ -1,8 +1,6 @@
 export default {
   // Common actions
   actions: {
-    add: 'Add',
-    create: 'Create',
     edit: 'Edit',
     delete: 'Delete',
     view: 'View',
@@ -10,7 +8,6 @@ export default {
     view_detail: 'View Details',
     search: 'Search',
     reset: 'Reset',
-    submit: 'Submit',
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Confirm',
@@ -22,22 +19,16 @@ export default {
     enable: 'Enable',
     disable: 'Disable',
     resend: 'Resend',
-    retry: 'Retry',
     prev_step: 'Previous',
     next_step: 'Next',
-    tip: 'Tip',
   },
   // Common fields
   fields: {
     keyword: 'Keyword',
     status: 'Status',
     sort: 'Sort',
-    priority: 'Priority',
     remark: 'Remark',
-    description: 'Description',
-    actions: 'Actions',
     created_time: 'Created Time',
-    modified_time: 'Modified Time',
     created_by: 'Created By',
   },
   // Common statuses
@@ -77,8 +68,5 @@ export default {
     male: 'Male',
     female: 'Female',
   },
-  confirm_delete: 'Are you sure to delete this record?',
-  confirm_batch_delete: 'Are you sure to delete the selected records?',
   no_data: 'No Data',
-  total: 'Total {total} items',
 }
