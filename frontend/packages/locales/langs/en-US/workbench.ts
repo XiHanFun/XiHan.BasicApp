@@ -1,6 +1,5 @@
 export default {
   widgets: {
-    subtitle: 'Drag the widgets you use most into place and make this workbench your own',
     customize: 'Customize',
     done: 'Done',
     collapse: 'Collapse',

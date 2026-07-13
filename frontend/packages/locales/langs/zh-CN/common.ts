@@ -1,8 +1,6 @@
 export default {
   // 通用动作
   actions: {
-    add: '新增',
-    create: '新建',
     edit: '编辑',
     delete: '删除',
     view: '查看',
@@ -10,7 +8,6 @@ export default {
     view_detail: '查看详情',
     search: '查询',
     reset: '重置',
-    submit: '提交',
     save: '保存',
     cancel: '取消',
     confirm: '确认',
@@ -22,22 +19,16 @@ export default {
     enable: '启用',
     disable: '停用',
     resend: '重发',
-    retry: '重试',
     prev_step: '上一步',
     next_step: '下一步',
-    tip: '提示',
   },
   // 通用字段
   fields: {
     keyword: '关键词',
     status: '状态',
     sort: '排序',
-    priority: '优先级',
     remark: '备注',
-    description: '描述',
-    actions: '操作',
     created_time: '创建时间',
-    modified_time: '修改时间',
     created_by: '创建人',
   },
   // 通用状态
@@ -77,8 +68,5 @@ export default {
     male: '男',
     female: '女',
   },
-  confirm_delete: '确认删除该条数据吗？',
-  confirm_batch_delete: '确认批量删除所选数据吗？',
   no_data: '暂无数据',
-  total: '共 {total} 条',
 }

@@ -1,6 +1,5 @@
 export default {
   widgets: {
-    subtitle: '把常用的小组件拖到这里，打造你自己的工作台',
     customize: '自定义',
     done: '完成',
     collapse: '收起',

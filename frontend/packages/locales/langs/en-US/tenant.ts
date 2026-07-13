@@ -44,9 +44,6 @@ export default {
     created_time: 'Created Time',
     modified_time: 'Modified Time',
     is_expired_value: 'Expired',
-    // Advanced search
-    expiration_time_start: 'Expire From',
-    expiration_time_end: 'Expire To',
     // Boolean
     yes: 'Yes',
     no: 'No',
@@ -92,7 +89,6 @@ export default {
     admin_email_placeholder: 'Admin login email (unique across the platform)',
     admin_password: 'Admin Password',
     admin_password_placeholder: 'Takes effect when filled together with the admin account',
-    logo_placeholder: 'Enter logo URL',
     remark: 'Remark',
     remark_placeholder: 'Enter remark',
     status: 'Status',

@@ -27,8 +27,6 @@ export default {
     response_headers: '响应头',
     extend_data: '扩展数据',
     referer: '来源地址',
-    start_time: '开始时间',
-    end_time: '结束时间',
     min_execution_time: '最小耗时(ms)',
     max_execution_time: '最大耗时(ms)',
   },
@@ -268,7 +266,6 @@ export default {
   trace: {
     page_name: '链路追踪',
     action: '追踪',
-    reset: '重置',
     dimension: '追踪维度',
     value: '追踪值',
     time_range: '时间范围',

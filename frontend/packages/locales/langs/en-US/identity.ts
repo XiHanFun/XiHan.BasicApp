@@ -66,7 +66,7 @@ export default {
     pick_roles_desc: 'Select roles to assign (multiple allowed)',
     pick_depts_desc: 'Select departments (multiple allowed)',
     pick_selected: 'Selected',
-    pick_selected_unit: '',
+    pick_selected_unit: ' ',
     detail: {
       title: 'User Details',
       language_timezone: 'Language/Time Zone:',

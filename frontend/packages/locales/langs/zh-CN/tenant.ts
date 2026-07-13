@@ -44,9 +44,6 @@ export default {
     created_time: '创建时间',
     modified_time: '修改时间',
     is_expired_value: '已过期',
-    // 高级搜索
-    expiration_time_start: '到期开始',
-    expiration_time_end: '到期结束',
     // 布尔
     yes: '是',
     no: '否',
@@ -92,7 +89,6 @@ export default {
     admin_email_placeholder: '管理员登录邮箱（全平台唯一）',
     admin_password: '管理员密码',
     admin_password_placeholder: '与管理员账号同时填写生效',
-    logo_placeholder: '请输入 Logo 地址',
     remark: '备注',
     remark_placeholder: '请输入备注',
     status: '状态',
