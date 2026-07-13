@@ -28,9 +28,11 @@ const repository
 const author
   = typeof PackageJson.author === 'string' ? PackageJson.author : (PackageJson.author?.name ?? '-')
 
+const DOCS_URL = 'https://docs.xihanfun.com'
+
 const dependencyCount = Object.keys(dependencies).length
 const devDependencyCount = Object.keys(devDependencies).length
-const overviewItems = computed(() => [
+const overviewItems = computed<Array<{ icon: string, label: string, value: string, subValue: string, href?: string }>>(() => [
   {
     icon: 'lucide:user-round',
     label: t('page.about.name_author'),
@@ -54,6 +56,14 @@ const overviewItems = computed(() => [
     label: t('page.about.homepage'),
     value: homepage || '-',
     subValue: t('component.about.sub_official_site'),
+    href: homepage || undefined,
+  },
+  {
+    icon: 'lucide:book-open-text',
+    label: t('page.about.docs'),
+    value: DOCS_URL,
+    subValue: t('component.about.sub_docs'),
+    href: DOCS_URL,
   },
   {
     icon: 'lucide:github',
@@ -148,7 +158,18 @@ onMounted(() => {
               {{ item.label }}
             </div>
             <div class="ab-overview-value" :title="item.value">
-              {{ item.value }}
+              <a
+                v-if="item.href"
+                :href="item.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="ab-overview-link"
+              >
+                {{ item.value }}
+              </a>
+              <template v-else>
+                {{ item.value }}
+              </template>
             </div>
             <div class="ab-overview-sub" :title="item.subValue">
               {{ item.subValue }}
@@ -472,6 +493,15 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ab-overview-link {
+  color: hsl(var(--primary));
+  text-decoration: none;
+}
+
+.ab-overview-link:hover {
+  text-decoration: underline;
 }
 
 .ab-overview-sub {

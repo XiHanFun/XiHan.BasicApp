@@ -231,6 +231,21 @@ function canPreview(row: FileListItemDto): boolean {
   return row.status === FileStatus.Normal && getPreviewKind(row) !== null
 }
 
+/** 文件类型 → 图标（离线预载 lucide 集） */
+const FILE_TYPE_ICON_MAP: Record<string, string> = {
+  [FileType.Image]: 'lucide:image',
+  [FileType.Document]: 'lucide:file-text',
+  [FileType.Video]: 'lucide:file-video',
+  [FileType.Audio]: 'lucide:file-audio',
+  [FileType.Archive]: 'lucide:file-archive',
+  [FileType.Other]: 'lucide:file',
+}
+
+/** 按文件类型解析展示图标（未知类型回退通用文件图标） */
+function getFileTypeIcon(fileType: FileType): string {
+  return FILE_TYPE_ICON_MAP[fileType] ?? 'lucide:file'
+}
+
 // ── 字段单一事实源 ──────────────────────────────────────────────
 // 后端 FilePageQueryDto 支持：keyword/fileType/status/accessLevel/isTemporary/isEncrypted/fileExtension/mimeType
 const fields = computed<ListFieldSchema[]>(() => [
@@ -245,6 +260,18 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
   },
   { key: 'fileName', title: t('file.library.columns.file_name'), dataType: 'string', sortable: true, minWidth: 220, order: 2 },
+  {
+    key: 'fileTypeIcon',
+    title: t('file.library.columns.file_type_icon'),
+    dataType: 'string',
+    width: 64,
+    order: 2.5,
+    render: row => h(
+      'div',
+      { style: 'display:flex;align-items:center;justify-content:center' },
+      h(NIcon, { size: 18 }, () => h(Icon, { icon: getFileTypeIcon((row as unknown as FileListItemDto).fileType) })),
+    ),
+  },
   {
     key: 'fileType',
     title: t('file.library.columns.file_type'),

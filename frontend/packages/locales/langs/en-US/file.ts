@@ -96,6 +96,7 @@ export default {
       keyword_placeholder: 'Search by file name / hash',
       original_name: 'Original Name',
       file_name: 'Stored Name',
+      file_type_icon: 'Type',
       file_type: 'File Type',
       file_type_placeholder: 'File Type',
       file_size: 'File Size',

@@ -21,6 +21,8 @@ const appTitle = computed(
 const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
 )
+const appSubtitle = computed(() => appStore.brandSubtitle)
+const appDescription = computed(() => appStore.brandDescription)
 
 const showFooter = computed(
   () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
@@ -82,13 +84,9 @@ const appAuthorUrl = __APP_AUTHOR_URL__
             />
 
             <div class="relative z-[1] lg:absolute lg:left-10 lg:top-14 xl:left-14 xl:top-16">
-              <div
-                class="mb-7 flex h-[78px] w-[78px] items-center justify-center rounded-3xl bg-[hsl(var(--card))] p-2 shadow-xl shadow-[hsl(var(--foreground)/0.08)]"
-              >
-                <img :src="appLogo" :alt="appTitle" class="object-contain w-12 h-12">
-              </div>
+              <img :src="appLogo" :alt="appTitle" class="mb-3 h-[78px] w-[78px] rounded-2xl object-contain">
               <p
-                class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"
+                class="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"
               >
                 {{ appTitle }}
               </p>
@@ -97,12 +95,12 @@ const appAuthorUrl = __APP_AUTHOR_URL__
             <div class="relative z-[1] flex w-full flex-1 items-center justify-center">
               <div class="inline-flex max-w-[92%] flex-col items-start">
                 <h2 class="text-left text-[36px] font-semibold leading-[1.15] xl:text-[44px]">
-                  {{ t('page.auth.slogan_title') }}
+                  {{ appSubtitle || t('page.auth.slogan_title') }}
                 </h2>
                 <span
                   class="slogan-tag -mt-px inline-block rounded-full border-2 border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.1)] px-3.5 py-1 text-[15px] leading-5 font-semibold text-[hsl(var(--primary))]"
                 >
-                  {{ t('page.auth.slogan_desc') }}
+                  {{ appDescription || t('page.auth.slogan_desc') }}
                 </span>
               </div>
             </div>

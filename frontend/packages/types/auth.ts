@@ -7,6 +7,7 @@ export interface UserInfo {
   userName: string
   nickName?: string
   appTitle?: string
+  appSubtitle?: string
   appLogo?: string
   avatar?: string
   email?: string

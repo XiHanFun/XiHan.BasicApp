@@ -51,6 +51,7 @@ export default {
   log_trace: 'Trace',
   about: 'About',
   about_project: 'About Project',
+  about_docs: 'Documentation',
   about_github: 'Github',
   about_gitee: 'Gitee',
   develop: 'Development Tools',
