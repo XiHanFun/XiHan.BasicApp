@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { TenantSwitcherDto } from '@/api'
-import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
+import { XUserAvatar } from '~/components'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -72,12 +73,6 @@ function memberTagType(type: TenantMemberType) {
   return 'default'
 }
 
-/** 无 logo 时的占位首字符 */
-function tenantInitial(tenant: TenantSwitcherDto): string {
-  const name = tenant.tenantShortName || tenant.tenantName || ''
-  return name.trim().charAt(0) || t('component.profile.tenants.tenant_initial_fallback')
-}
-
 onMounted(loadTenants)
 </script>
 
@@ -113,16 +108,12 @@ onMounted(loadTenants)
               :class="{ 'pf-list-item--active': tenant.isCurrent }"
             >
               <div class="pf-list-icon pf-tenant-logo" :class="{ 'pf-list-icon--active': tenant.isCurrent }">
-                <NAvatar
-                  v-if="tenant.logo"
-                  :src="tenant.logo"
+                <XUserAvatar
+                  :avatar="tenant.logo"
+                  :name="tenant.tenantShortName || tenant.tenantName"
                   :size="32"
-                  object-fit="cover"
-                  class="pf-tenant-avatar"
+                  :round="false"
                 />
-                <template v-else>
-                  {{ tenantInitial(tenant) }}
-                </template>
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
@@ -174,11 +165,6 @@ onMounted(loadTenants)
   overflow: hidden;
   font-size: 13px;
   font-weight: 600;
-}
-
-.pf-tenant-avatar {
-  border-radius: 8px;
-  background: transparent;
 }
 
 .pf-tenant-short {

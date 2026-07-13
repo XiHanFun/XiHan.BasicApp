@@ -149,6 +149,7 @@ export default {
     author: '作者',
     release_time: '发布时间',
     homepage: '项目主页',
+    docs: '官方文档',
     repository: '仓库地址',
     dependencies: '生产环境依赖',
     dev_dependencies: '开发环境依赖',

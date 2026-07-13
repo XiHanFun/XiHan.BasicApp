@@ -204,6 +204,8 @@ public static class PageRegistry
          new("about", "关于项目", "menu.about", MenuType.Directory, "/about", "About", null, null, null, "lucide:info", 900, "/about"),
         // [10.1] 关于项目（复用前端静态 /about 页：RouteName=About 令动态路由按名去重跳过，导航直达静态页）
          new("about.project", "项目概览", "menu.about_project", MenuType.Menu, "/about/project", "AboutProject", "_core/about/index", "about", null, "lucide:file-text", 910),
+        // [10.1a] 官方文档（外链，直接打开在线文档）
+         new("about.docs", "官方文档", "menu.about_docs", MenuType.Menu, "/about/docs", "AboutDocs", null, "about", null, "lucide:book-open-text", 915, IsExternal: true, ExternalUrl: "https://docs.xihanfun.com"),
         // [10.2] Github（外链，直接打开）
          new("about.github", "Github", "menu.about_github", MenuType.Menu, "/about/github", "AboutGithub", null, "about", null, "lucide:github", 920, IsExternal: true, ExternalUrl: "https://github.com/XiHanFun/XiHan.BasicApp"),
         // [10.3] Gitee（外链，直接打开）

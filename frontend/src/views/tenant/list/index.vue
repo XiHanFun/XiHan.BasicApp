@@ -50,7 +50,8 @@ import {
   TenantStatus,
   ValidityStatus,
 } from '@/api'
-import { Icon, SchemaPage } from '~/components'
+import XLogoUpload from '@/components/LogoUpload.vue'
+import { Icon, SchemaPage, XUserAvatar } from '~/components'
 import {
   MEMBER_INVITE_STATUS_OPTIONS,
   MEMBER_TYPE_OPTIONS,
@@ -757,7 +758,12 @@ async function handleSubmit() {
               <NTabPane name="config" :tab="t('tenant.list.tab_config')">
                 <NDescriptions :column="1" bordered size="small">
                   <NDescriptionsItem :label="t('tenant.list.logo')">
-                    {{ formatNullable(currentDetail.logo) }}
+                    <XUserAvatar
+                      :avatar="currentDetail.logo"
+                      :name="currentDetail.tenantName"
+                      :size="48"
+                      :round="false"
+                    />
                   </NDescriptionsItem>
                   <NDescriptionsItem :label="t('tenant.list.domain')">
                     {{ formatNullable(currentDetail.domain) }}
@@ -886,7 +892,7 @@ async function handleSubmit() {
           />
         </NFormItem>
         <NFormItem :label="t('tenant.list.logo')" path="logo">
-          <NInput v-model:value="tenantForm.logo" clearable :placeholder="t('tenant.list.logo_placeholder')" />
+          <XLogoUpload v-model="tenantForm.logo" directory="tenant-logo" />
         </NFormItem>
         <NFormItem :label="t('tenant.list.remark')" path="remark">
           <NInput

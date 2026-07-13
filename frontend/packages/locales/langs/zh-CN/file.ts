@@ -96,6 +96,7 @@ export default {
       keyword_placeholder: '搜索文件名/哈希',
       original_name: '原始文件名',
       file_name: '存储文件名',
+      file_type_icon: '类型',
       file_type: '文件类型',
       file_type_placeholder: '文件类型',
       file_size: '文件大小',

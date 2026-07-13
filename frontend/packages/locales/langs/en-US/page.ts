@@ -150,6 +150,7 @@ export default {
     author: 'Author',
     release_time: 'Release Time',
     homepage: 'Homepage',
+    docs: 'Documentation',
     repository: 'Repository',
     dependencies: 'Dependencies',
     dev_dependencies: 'Dev Dependencies',

@@ -51,6 +51,7 @@ export default {
   log_trace: '链路追踪',
   about: '关于项目',
   about_project: '项目概览',
+  about_docs: '官方文档',
   about_github: 'Github',
   about_gitee: 'Gitee',
   develop: '开发工具',

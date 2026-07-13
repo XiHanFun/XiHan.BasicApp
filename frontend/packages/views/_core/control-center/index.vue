@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { TenantSwitcherDto } from '@/api'
-import { NAvatar, NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
+import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { tenantApi, TenantMemberType } from '@/api'
@@ -112,11 +112,6 @@ function memberTagType(type: TenantMemberType) {
   return 'default'
 }
 
-function tenantInitial(tenant: TenantSwitcherDto): string {
-  const name = tenant.tenantShortName || tenant.tenantName || ''
-  return name.trim().charAt(0) || '租'
-}
-
 onMounted(loadTenants)
 </script>
 
@@ -219,16 +214,12 @@ onMounted(loadTenants)
                 @click="enterTenant(tenant)"
               >
                 <div class="cc-tenant__logo">
-                  <NAvatar
-                    v-if="tenant.logo"
-                    :src="tenant.logo"
+                  <XUserAvatar
+                    :avatar="tenant.logo"
+                    :name="tenant.tenantShortName || tenant.tenantName"
                     :size="40"
-                    object-fit="cover"
-                    class="cc-tenant__avatar"
+                    :round="false"
                   />
-                  <template v-else>
-                    {{ tenantInitial(tenant) }}
-                  </template>
                 </div>
                 <div class="cc-tenant__body">
                   <div class="cc-tenant__name">
@@ -279,15 +270,18 @@ onMounted(loadTenants)
   align-items: center;
 }
 
+/* 与其他页面侧边栏品牌（AppBrand）保持一致：32px、圆角 6px、object-fit cover、标题 600 */
 .cc-brand__logo {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   border-radius: 6px;
+  object-fit: cover;
 }
 
 .cc-brand__title {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: hsl(var(--foreground));
 }
 
@@ -428,11 +422,6 @@ onMounted(loadTenants)
   font-weight: 600;
   color: hsl(var(--primary));
   background: hsl(var(--primary) / 12%);
-  border-radius: 10px;
-}
-
-.cc-tenant__avatar {
-  background: transparent;
   border-radius: 10px;
 }
 
