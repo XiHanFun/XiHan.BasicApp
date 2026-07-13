@@ -136,6 +136,7 @@ const menuBuildConfig = {
   translate: translateTitle,
   iconRenderer: renderIcon,
   badgeLabelRenderer: renderSidebarBadgeLabel,
+  linkIcon: () => h(Icon, { icon: 'lucide:external-link', width: 13, height: 13, style: 'opacity:0.5;flex-shrink:0' }),
 }
 
 function toPrimaryOptions(routeList: LayoutRouteRecord[], parentPath = '') {

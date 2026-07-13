@@ -113,6 +113,7 @@ const topMenuOptions = computed<MenuOption[]>(() => {
     translate: translateMenuTitle,
     iconRenderer: renderRouteIcon,
     badgeLabelRenderer: renderHorizontalBadgeLabel,
+    linkIcon: () => h(Icon, { icon: 'lucide:external-link', width: 13, height: 13, style: 'opacity:0.5;flex-shrink:0' }),
   })
   if (isSplitMode.value) {
     return options.map(item => ({ ...item, children: undefined }))
