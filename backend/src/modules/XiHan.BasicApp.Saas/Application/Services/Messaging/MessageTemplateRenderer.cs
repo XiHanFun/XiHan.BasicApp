@@ -24,7 +24,9 @@ using XiHan.Framework.Templating.Services;
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
-/// 消息模板渲染器实现（分布式缓存 + 框架 Scriban 引擎）
+/// 消息模板渲染器实现（分布式缓存 + 框架 <see cref="ITemplateService"/>）。
+/// 注意：<see cref="ITemplateService"/> 的字符串渲染路径走的是默认引擎（简单替换，支持 {{var}} 占位与基础条件/循环），
+/// 并非 Scriban；消息模板只用到 {{var}} 占位，正落在该引擎能力内。若需 Scriban 管道函数，请直接用原生 Scriban。
 /// </summary>
 public sealed class MessageTemplateRenderer : IMessageTemplateRenderer
 {
