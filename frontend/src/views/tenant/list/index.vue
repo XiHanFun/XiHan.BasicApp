@@ -38,7 +38,6 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  createDefaultQueryBehavior,
   createPageRequest,
   querySortsFromSchema,
   TenantConfigStatus,
@@ -453,7 +452,6 @@ async function loadMembers() {
   try {
     const result = await tenantManagementApi.members.page({
       ...createPageRequest({
-        behavior: createDefaultQueryBehavior(),
         page: { pageIndex: 1, pageSize: 200 },
       }),
       // 必须按当前查看的租户过滤：平台管理员无租户上下文，后端全局租户过滤器在平台态放行全部，

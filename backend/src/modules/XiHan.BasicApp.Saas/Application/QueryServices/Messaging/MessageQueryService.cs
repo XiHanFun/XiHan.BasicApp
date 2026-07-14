@@ -146,7 +146,6 @@ public sealed class MessageQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 
@@ -246,7 +245,6 @@ public sealed class MessageQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

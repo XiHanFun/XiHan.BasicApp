@@ -209,7 +209,6 @@ public sealed class DictQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 
@@ -257,7 +256,6 @@ public sealed class DictQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

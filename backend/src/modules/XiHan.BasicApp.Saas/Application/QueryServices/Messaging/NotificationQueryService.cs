@@ -226,7 +226,6 @@ public sealed class NotificationQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
         request.Conditions.AddFilter((SysUserNotification userNotification) => userNotification.NotificationId, input.NotificationId);
@@ -266,7 +265,6 @@ public sealed class NotificationQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 
@@ -347,7 +345,6 @@ public sealed class NotificationQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

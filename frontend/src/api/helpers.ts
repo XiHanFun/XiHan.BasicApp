@@ -1,25 +1,12 @@
 import type {
   ApiPrimitive,
   PageRequest,
-  QueryBehavior,
   QueryConditions,
   QueryFilter,
   QueryKeyword,
   QuerySort,
 } from './types'
 import { SortDirection } from './types'
-
-export function createDefaultQueryBehavior(input: Partial<QueryBehavior> = {}): QueryBehavior {
-  return {
-    disableDefaultSort: false,
-    disablePaging: false,
-    enableSplitQuery: false,
-    ignoreSoftDelete: false,
-    ignoreTenant: false,
-    queryTimeout: null,
-    ...input,
-  }
-}
 
 export function createDefaultQueryConditions(input: Partial<QueryConditions> = {}): QueryConditions {
   return {
@@ -31,12 +18,10 @@ export function createDefaultQueryConditions(input: Partial<QueryConditions> = {
 }
 
 export function createPageRequest(input: {
-  behavior?: Partial<QueryBehavior>
   conditions?: Partial<QueryConditions>
   page?: { pageIndex?: number, pageSize?: number }
 } = {}): PageRequest {
   return {
-    behavior: createDefaultQueryBehavior(input.behavior),
     conditions: createDefaultQueryConditions(input.conditions),
     page: {
       pageIndex: input.page?.pageIndex ?? 1,

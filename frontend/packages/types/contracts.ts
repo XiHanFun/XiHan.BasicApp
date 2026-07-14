@@ -64,15 +64,6 @@ export interface QueryConditions {
   sorts: QuerySort[]
 }
 
-export interface QueryBehavior {
-  disableDefaultSort: boolean
-  disablePaging: boolean
-  enableSplitQuery: boolean
-  ignoreSoftDelete: boolean
-  ignoreTenant: boolean
-  queryTimeout?: number | null
-}
-
 export interface PageRequestMetadata {
   pageIndex: number
   pageSize: number
@@ -93,7 +84,6 @@ export interface PageResultMetadata {
 }
 
 export interface PageRequest {
-  behavior: QueryBehavior
   conditions: QueryConditions
   page: PageRequestMetadata
 }
