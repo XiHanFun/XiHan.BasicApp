@@ -138,7 +138,10 @@ public sealed class SaasUserStore : IUserStore
                 security.LastPasswordChangeTime = new DateTimeOffset(user.PasswordChangedTime.Value, TimeSpan.Zero);
             }
 
+            // 安全状态变更（2FA 密钥、锁定）必须留痕：本类直连 DbClient、不走仓储，
+            // 需显式挂 EnableDiffLogEvent 才会进数据变更日志（TwoFactorSecret 的值由 LogSanitizer 掩码）
             await db.Updateable(security)
+                .EnableDiffLogEvent(typeof(SysUserSecurity))
                 .UpdateColumns(s => new
                 {
                     s.TwoFactorEnabled,
@@ -177,7 +180,9 @@ public sealed class SaasUserStore : IUserStore
         security.Password = passwordHash;
         security.LastPasswordChangeTime = DateTimeOffset.UtcNow;
 
+        // 改密码必须留痕（密码值本身由 LogSanitizer 掩成 ***，只留"改过"的事实与时间）
         await db.Updateable(security)
+            .EnableDiffLogEvent(typeof(SysUserSecurity))
             .UpdateColumns(s => new { s.Password, s.LastPasswordChangeTime })
             .ExecuteCommandAsync(cancellationToken);
     }
@@ -305,7 +310,9 @@ public sealed class SaasUserStore : IUserStore
             security.LockoutEndTime = null;
         }
 
+        // 账号锁定/解锁必须留痕（低频、安全敏感；失败计数那条刻意不挂——每次登录失败都写会变成噪音，SysLoginLog 已覆盖）
         await db.Updateable(security)
+            .EnableDiffLogEvent(typeof(SysUserSecurity))
             .UpdateColumns(s => new { s.IsLocked, s.LockoutTime, s.LockoutEndTime })
             .ExecuteCommandAsync(cancellationToken);
     }
