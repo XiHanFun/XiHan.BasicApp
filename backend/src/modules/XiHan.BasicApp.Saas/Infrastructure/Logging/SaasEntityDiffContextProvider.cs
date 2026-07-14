@@ -98,19 +98,6 @@ public class SaasEntityDiffContextProvider : IEntityAuditContextProvider
         return !ExcludedEntityNames.Contains(entityType.Name);
     }
 
-    /// <summary>
-    /// 按数据库表名判断是否应审计
-    /// </summary>
-    public bool ShouldAuditByName(string tableName)
-    {
-        if (string.IsNullOrWhiteSpace(tableName))
-        {
-            return false;
-        }
-
-        return !ExcludedEntityNames.Contains(tableName.Trim());
-    }
-
     private static string? ResolveRequestId(RequestContext? requestContext, HttpContext? httpContext)
     {
         var traceId = requestContext?.TraceId
