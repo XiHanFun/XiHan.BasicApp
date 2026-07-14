@@ -114,6 +114,27 @@ public interface IAuthAppService : IApplicationService
     Task LogoutAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 锁屏（服务端强制）
+    /// </summary>
+    /// <remarks>
+    /// 置位当前会话的锁屏标记，此后该会话的一切请求被中间件以 423 拒绝（仅放行解锁/登出/刷新）。
+    /// 口令为会话级一次性密码，<b>不接受空值</b>。
+    /// </remarks>
+    /// <param name="input">锁屏请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task LockSessionAsync(LockSessionRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 解锁
+    /// </summary>
+    /// <remarks>
+    /// 校验锁屏口令；连续失败 5 次直接吊销会话（等同踢下线），防止暴力枚举。
+    /// </remarks>
+    /// <param name="input">解锁请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task UnlockSessionAsync(UnlockSessionRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 第三方登录编排（登录/绑定）。非公开 API，仅由 OAuth 回调端点服务端调用。
     /// </summary>
     /// <param name="command">编排命令</param>

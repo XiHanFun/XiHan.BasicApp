@@ -121,6 +121,48 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     public virtual SessionStatus Status { get; set; } = SessionStatus.Active;
 
     /// <summary>
+    /// 是否锁屏
+    /// </summary>
+    /// <remarks>
+    /// 锁屏是<b>服务端强制</b>的：置位后 <c>XiHanSessionStateMiddleware</c> 会以 <b>423</b> 拒绝该会话的一切请求
+    /// （仅放行解锁 / 登出 / 刷新令牌），因此改 DOM、开新标签页、直接 curl 调 API 都绕不过去。
+    /// <para>
+    /// 与 <see cref="Status"/> <b>正交</b>：锁屏不改变会话有效性——所以是 423 而非 401，
+    /// 客户端应展示锁屏页而不是跳登录；解锁后原会话继续可用。
+    /// </para>
+    /// <para>
+    /// 刷新令牌会保留同一 <c>session_id</c>，故锁屏位可安全跨令牌刷新存活（长时间锁屏不会掉成登出）。
+    /// </para>
+    /// </remarks>
+    [SugarColumn(ColumnName = "Is_Locked", ColumnDescription = "是否锁屏")]
+    public virtual bool IsLocked { get; set; } = false;
+
+    /// <summary>
+    /// 锁屏时间
+    /// </summary>
+    [SugarColumn(ColumnName = "Locked_Time", ColumnDescription = "锁屏时间", IsNullable = true)]
+    public virtual DateTimeOffset? LockedTime { get; set; }
+
+    /// <summary>
+    /// 锁屏密码哈希（PBKDF2，仅可校验不可还原）
+    /// </summary>
+    /// <remarks>
+    /// <b>会话级</b>口令：锁屏时现场设置，随本次锁屏生效，解锁即清除——它不是账号密码，也不跨会话复用。
+    /// 服务端<b>拒绝空口令锁屏</b>：无口令的锁屏在服务端强制模式下毫无意义（任何持有该 token 的人调一次解锁接口就开了）。
+    /// 解锁失败次数由 <see cref="UnlockFailedAttempts"/> 单独计数，<b>不复用</b>账号的登录失败计数，避免锁屏误触发账号锁定。
+    /// </remarks>
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [SugarColumn(ColumnName = "Lock_Password_Hash", ColumnDescription = "锁屏密码哈希", Length = 200, IsNullable = true)]
+    public virtual string? LockPasswordHash { get; set; }
+
+    /// <summary>
+    /// 解锁失败次数
+    /// </summary>
+    [SugarColumn(ColumnName = "Unlock_Failed_Attempts", ColumnDescription = "解锁失败次数")]
+    public virtual int UnlockFailedAttempts { get; set; } = 0;
+
+    /// <summary>
     /// 撤销时间
     /// </summary>
     [SugarColumn(ColumnName = "Revoked_Time", ColumnDescription = "撤销时间", IsNullable = true)]

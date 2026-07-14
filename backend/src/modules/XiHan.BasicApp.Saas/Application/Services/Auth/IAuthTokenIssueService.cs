@@ -43,4 +43,4 @@ public interface IAuthTokenIssueService
 /// <param name="UserId">用户标识</param>
 /// <param name="UserName">用户名</param>
 /// <param name="TenantId">租户标识</param>
-public sealed record AuthTokenIdentity(long? UserId, string? UserName, long? TenantId);
+public sealed record AuthTokenIdentity(long? UserId, string? UserName, long? TenantId, string? SessionId = null);

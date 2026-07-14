@@ -48,6 +48,8 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasDictItemTreeCacheItem, string> _dictItemTreeCache;
 
+    private readonly IDistributedCache<SaasSessionStateCacheItem, string> _sessionStateCache;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -64,7 +66,8 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache,
         IDistributedCache<SaasMessageTemplateCacheItem, string> messageTemplateCache,
         IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache,
-        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache)
+        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache,
+        IDistributedCache<SaasSessionStateCacheItem, string> sessionStateCache)
     {
         _configValueCache = configValueCache;
         _authorizationSnapshotCache = authorizationSnapshotCache;
@@ -79,6 +82,7 @@ public sealed class SaasCacheInvalidator
         _messageTemplateCache = messageTemplateCache;
         _editionGateCache = editionGateCache;
         _dictItemTreeCache = dictItemTreeCache;
+        _sessionStateCache = sessionStateCache;
     }
 
     /// <inheritdoc />
@@ -162,5 +166,25 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateDictionaryAsync(CancellationToken cancellationToken = default)
     {
         return _dictItemTreeCache.RemoveByPatternAsync(SaasCacheKeys.AllDictItemTreesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateSessionStateAsync(string userSessionId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userSessionId))
+        {
+            return Task.CompletedTask;
+        }
+
+        // considerUow:true —— 与业务写同事务落地，避免"事务未提交就清缓存、别的请求立刻回填旧值"的竞态
+        return _sessionStateCache.RemoveByPatternAsync(
+            SaasCacheKeys.SessionStatePattern(userSessionId), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidateAllSessionStatesAsync(CancellationToken cancellationToken = default)
+    {
+        return _sessionStateCache.RemoveByPatternAsync(
+            SaasCacheKeys.AllSessionStatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
     }
 }

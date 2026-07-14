@@ -12,6 +12,8 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.Framework.Security.Password;
+using XiHan.BasicApp.Saas.Application.Caching;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -65,6 +67,11 @@ public sealed class AuthAppService
     /// </summary>
     private const long DefaultRegistrationTenantId = 1;
 
+    /// <summary>
+    /// 解锁失败上限：超限直接吊销会话，防止锁屏页被暴力枚举
+    /// </summary>
+    private const int MaxUnlockAttempts = 5;
+
     private readonly IAuthContextQueryService _authContextQueryService;
 
     private readonly IAuthenticationDomainService _authenticationDomainService;
@@ -105,6 +112,12 @@ public sealed class AuthAppService
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
+    private readonly IUserSessionRepository _userSessionRepository;
+
+    private readonly IPasswordHasher _passwordHasher;
+
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     private readonly IUserDomainService _userDomainService;
 
     private readonly IExternalLoginStore _externalLoginStore;
@@ -143,14 +156,20 @@ public sealed class AuthAppService
         ITraceIdProvider traceIdProvider,
         IUserRepository userRepository,
         ITenantUserRepository tenantUserRepository,
+        IUserSessionRepository userSessionRepository,
         IUserDomainService userDomainService,
         IExternalLoginStore externalLoginStore,
         IDistributedCache distributedCache,
         IUserNotificationDispatchService userNotificationDispatchService,
+        IPasswordHasher passwordHasher,
+        ISaasCacheInvalidator cacheInvalidator,
         IWebHostEnvironment webHostEnvironment,
         IConfiguration configuration,
         ILogger<AuthAppService> logger)
     {
+        _userSessionRepository = userSessionRepository;
+        _passwordHasher = passwordHasher;
+        _cacheInvalidator = cacheInvalidator;
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
         _authContextQueryService = authContextQueryService;
@@ -674,6 +693,9 @@ public sealed class AuthAppService
             return;
         }
 
+        // 会话闸门每请求读这份缓存：登出后不清，旧 token 还能继续用到 TTL 到期
+        await _cacheInvalidator.InvalidateSessionStateAsync(sessionBusinessId, cancellationToken);
+
         var userName = _currentUser.FindClaim(XiHanClaimTypes.UserName)?.Value;
         var client = _clientInfoProvider.GetCurrent();
         await _localEventBus.PublishAsync(
@@ -690,6 +712,116 @@ public sealed class AuthAppService
     }
 
     /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task LockSessionAsync(LockSessionRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 服务端强制锁屏必须有口令：没有口令的锁屏毫无意义——任何持有该 token 的人调一次解锁接口就开了。
+        // 前端的"空密码锁屏 / Esc 解锁"是同一个洞，已一并移除。
+        if (string.IsNullOrWhiteSpace(input.Password))
+        {
+            throw new InvalidOperationException("锁屏密码不能为空。");
+        }
+
+        var session = await GetCurrentSessionOrThrowAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+
+        session.IsLocked = true;
+        session.LockedTime = now;
+        session.LockPasswordHash = _passwordHasher.HashPassword(input.Password);
+        session.UnlockFailedAttempts = 0;
+
+        await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    [UnitOfWork(true)]
+    public async Task UnlockSessionAsync(UnlockSessionRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var session = await GetCurrentSessionOrThrowAsync(cancellationToken);
+        if (!session.IsLocked)
+        {
+            return;
+        }
+
+        // 口令哈希异常（被篡改/脏数据）时绝不当作"无口令"放行——直接踢下线，宁可误伤
+        if (string.IsNullOrWhiteSpace(session.LockPasswordHash))
+        {
+            await RevokeLockedSessionAsync(session, "锁屏口令缺失", cancellationToken);
+            throw new InvalidOperationException("锁屏状态异常，请重新登录。");
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Password) ||
+            !_passwordHasher.VerifyPassword(session.LockPasswordHash, input.Password))
+        {
+            session.UnlockFailedAttempts++;
+
+            // 连续失败上限：直接吊销会话（等同踢下线），避免锁屏页被暴力枚举
+            if (session.UnlockFailedAttempts >= MaxUnlockAttempts)
+            {
+                await RevokeLockedSessionAsync(session, "解锁失败次数超限", cancellationToken);
+                throw new InvalidOperationException("解锁失败次数过多，会话已失效，请重新登录。");
+            }
+
+            await _userSessionRepository.UpdateAsync(session, cancellationToken);
+            await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
+            throw new InvalidOperationException($"锁屏密码错误，还可尝试 {MaxUnlockAttempts - session.UnlockFailedAttempts} 次。");
+        }
+
+        session.IsLocked = false;
+        session.LockedTime = null;
+        session.LockPasswordHash = null;   // 会话级一次性口令：解锁即清除，不跨锁屏复用
+        session.UnlockFailedAttempts = 0;
+
+        await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 取当前请求所属的会话（锁屏/解锁均只作用于本会话，不影响该用户的其它端）
+    /// </summary>
+    private async Task<SysUserSession> GetCurrentSessionOrThrowAsync(CancellationToken cancellationToken)
+    {
+        var sessionBusinessId = _currentUser.FindClaim(XiHanClaimTypes.SessionId)?.Value;
+        if (string.IsNullOrWhiteSpace(sessionBusinessId))
+        {
+            throw new InvalidOperationException("当前令牌不含会话标识，无法锁屏。");
+        }
+
+        var session = await _userSessionRepository.GetByUserSessionIdAsync(sessionBusinessId, cancellationToken)
+            ?? throw new InvalidOperationException("会话不存在或已失效。");
+
+        if (session.UserId != _currentUser.UserId)
+        {
+            throw new InvalidOperationException("会话与当前用户不匹配。");
+        }
+
+        return session;
+    }
+
+    /// <summary>
+    /// 解锁失败超限：吊销会话并清掉锁屏态（否则会留下一个既锁屏又失效的僵尸会话）
+    /// </summary>
+    private async Task RevokeLockedSessionAsync(SysUserSession session, string reason, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        session.Status = SessionStatus.Revoked;
+        session.RevokedTime = now;
+        session.RevokedReason = reason;
+        session.IsLocked = false;
+        session.LockPasswordHash = null;
+
+        await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     [AllowAnonymous]
     public async Task<LoginTokenDto> RefreshTokenAsync(RefreshTokenRequestDto input, CancellationToken cancellationToken = default)
     {
@@ -701,10 +833,31 @@ public sealed class AuthAppService
             throw new InvalidOperationException("刷新令牌参数不完整。");
         }
 
+        var identity = _authTokenIssueService.ResolveTokenIdentity(input.AccessToken);
+
+        // 会话闸门：被踢下线/登出/过期的会话，不得再靠刷新令牌续命。
+        // 这个端点是 [AllowAnonymous]，走不到 XiHanSessionStateMiddleware，必须在此自行把关——
+        // 否则刷新链会成为吊销的绕过口（刷新原样复制 claims、零 DB 访问，等于永久有效）。
+        if (!string.IsNullOrWhiteSpace(identity?.SessionId))
+        {
+            using var refreshTenantScope = _currentTenant.Change(identity.TenantId, identity.TenantId?.ToString());
+            var session = await _userSessionRepository.GetByUserSessionIdAsync(identity.SessionId, cancellationToken);
+            if (session is null || session.Status != SessionStatus.Active ||
+                (session.ExpirationTime.HasValue && session.ExpirationTime.Value <= DateTimeOffset.UtcNow))
+            {
+                await PublishSecurityAuditAsync(
+                    identity.TenantId,
+                    identity.UserId,
+                    identity.UserName,
+                    LoginResult.Failed,
+                    "会话已失效，拒绝刷新令牌");
+                throw new InvalidOperationException("会话已失效，请重新登录。");
+            }
+        }
+
         var token = _authTokenIssueService.RefreshAccessToken(input.AccessToken, input.RefreshToken);
 
         // 认证审计：令牌刷新落登录日志（身份从旧令牌解析，仅用于审计归属）
-        var identity = _authTokenIssueService.ResolveTokenIdentity(input.AccessToken);
         await PublishSecurityAuditAsync(
             identity?.TenantId,
             identity?.UserId,
