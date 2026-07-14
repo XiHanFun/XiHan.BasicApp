@@ -5,6 +5,16 @@ export const STORAGE_PREFIX = 'xihan_'
 export const TOKEN_KEY = `${STORAGE_PREFIX}access_token`
 export const REFRESH_TOKEN_KEY = `${STORAGE_PREFIX}refresh_token`
 export const USER_INFO_KEY = `${STORAGE_PREFIX}user_info`
+
+/**
+ * 锁屏状态与锁屏密码摘要。
+ *
+ * 必须放 localStorage（跨标签页共享），不能放 sessionStorage：
+ * sessionStorage 是**每标签页独立**的，锁屏后新开一个标签页拿到的是空状态，锁屏会被直接绕过。
+ * 登出时须显式清除（见 authStore.logout），否则重新登录会卡在锁屏。
+ */
+export const LOCK_STATE_KEY = `${STORAGE_PREFIX}locked`
+export const LOCK_PASSWORD_KEY = `${STORAGE_PREFIX}lock_pwd`
 export const LOCALE_KEY = `${STORAGE_PREFIX}locale`
 export const THEME_MODE_KEY = `${STORAGE_PREFIX}theme_mode`
 export const SIDEBAR_COLLAPSED_KEY = `${STORAGE_PREFIX}sidebar_collapsed`

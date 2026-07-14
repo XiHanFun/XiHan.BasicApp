@@ -12,7 +12,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { destroyAllSignalRConnections } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
-import { HOME_PATH, LOGIN_PATH } from '~/constants'
+import { HOME_PATH, LOCK_PASSWORD_KEY, LOCK_STATE_KEY, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { CORE_ROUTE_NAMES } from '~/router/routes/core'
@@ -208,6 +208,10 @@ export const useAuthStore = defineStore('auth', () => {
     userStore.$reset()
     tabbarStore.closeAll()
     sessionStorage.clear()
+    // 锁屏状态在 localStorage（需跨标签页共享），sessionStorage.clear() 清不掉它；
+    // 不显式清除会导致重新登录后仍卡在锁屏。
+    localStorage.removeItem(LOCK_STATE_KEY)
+    localStorage.removeItem(LOCK_PASSWORD_KEY)
     resetPreferenceBackendSync()
 
     try {
