@@ -110,7 +110,6 @@ public sealed class AiPromptQueryService : AiApplicationService, IAiPromptQueryS
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

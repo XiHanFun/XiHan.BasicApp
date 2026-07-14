@@ -172,7 +172,6 @@ public sealed class PermissionDelegationQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

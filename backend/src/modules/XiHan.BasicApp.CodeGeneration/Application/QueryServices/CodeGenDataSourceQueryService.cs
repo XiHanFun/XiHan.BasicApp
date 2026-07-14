@@ -111,7 +111,6 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

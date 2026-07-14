@@ -124,7 +124,6 @@ public sealed class BotConfigQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 

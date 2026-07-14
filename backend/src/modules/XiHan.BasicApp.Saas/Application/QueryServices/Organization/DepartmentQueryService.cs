@@ -164,7 +164,6 @@ public sealed class DepartmentQueryService
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 
