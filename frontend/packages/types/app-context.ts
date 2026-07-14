@@ -178,6 +178,10 @@ export interface AppContextApis extends Record<string, unknown> {
   emailLoginApi: (input: EmailLoginParams) => Promise<LoginToken>
   loginApi: (input: LoginParams) => Promise<LoginResponse>
   logoutApi: () => Promise<unknown>
+  /** 锁屏（服务端强制）：设置会话级一次性口令并置位锁屏标记 */
+  lockSessionApi: (input: { password: string }) => Promise<unknown>
+  /** 解锁：口令由服务端 PBKDF2 校验；连续失败 5 次服务端会直接吊销会话 */
+  unlockSessionApi: (input: { password: string }) => Promise<unknown>
   operationLogApi: {
     page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
   }

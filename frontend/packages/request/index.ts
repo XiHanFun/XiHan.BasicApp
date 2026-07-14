@@ -7,7 +7,7 @@ import type {
 import type { Router } from 'vue-router'
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
-import { APP_TIMEZONE_KEY, BIZ_CODE, DEFAULT_LOCALE, LOCALE_KEY, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
+import { APP_TIMEZONE_KEY, BIZ_CODE, DEFAULT_LOCALE, HTTP_STATUS, LOCALE_KEY, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
 import { i18n } from '~/locales'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
 import {
@@ -41,6 +41,20 @@ function readResponseLogFields(payload: unknown) {
   }
 }
 
+/**
+ * 读取 423 响应体里的锁屏展示信息。
+ *
+ * 锁屏期间用户信息接口本身也被 423 挡住，所以"是谁锁的"由服务端在 423 的 data 里直接回传——
+ * 这比为了拿头像昵称而放行整个用户信息接口泄露更少。
+ */
+function readLockPayload(payload: unknown) {
+  const data = asRecord(asRecord(payload)?.data)
+  return {
+    displayName: typeof data?.displayName === 'string' ? data.displayName : null,
+    avatarUrl: typeof data?.avatarUrl === 'string' ? data.avatarUrl : null,
+  }
+}
+
 /** Flat 请求的返回结构：data 和 error 互斥 */
 export interface FlatRequestResult<T> {
   data: T | null
@@ -57,6 +71,18 @@ export function bindRouter(router: Router) {
 let _logoutHook: (() => void) | null = null
 export function bindLogoutHook(hook: () => void) {
   _logoutHook = hook
+}
+
+/**
+ * 服务端判定会话已锁屏（HTTP 423）时的回调，由应用层注入以拉起锁屏遮罩。
+ *
+ * 这是"服务端强制锁屏"的关键一环：任何请求被 423 拒绝，都会把本标签页拉回锁屏态——
+ * 于是新开标签页、刷新页面、乃至绕过前端直接调 API，都无法取得数据。
+ * 注意**绝不能**走 forceLogout：用户身份仍然有效，只是会话被锁住。
+ */
+let _lockHook: ((payload?: { displayName?: string | null, avatarUrl?: string | null }) => void) | null = null
+export function bindLockHook(hook: (payload?: { displayName?: string | null, avatarUrl?: string | null }) => void) {
+  _lockHook = hook
 }
 
 /** HTTP 状态码 → 兜底中文文案（i18n 缺键时回退；正常走 error.http_<status> 键，随 locale 切换） */
@@ -304,6 +330,15 @@ export class RequestClient {
 
         if (error.response) {
           const { status } = error.response
+
+          // 会话已锁屏：身份仍有效，拉起锁屏遮罩而**不是**登出。
+          // 必须先于 401 分支处理，且不得触发 refresh/forceLogout。
+          if (status === HTTP_STATUS.LOCKED) {
+            const locked = readLockPayload(error.response.data)
+            _lockHook?.(locked)
+            return Promise.reject(error)
+          }
+
           if (status === BIZ_CODE.UNAUTHORIZED) {
             const originalRequest = error.config as InternalAxiosRequestConfig & {
               _retry?: boolean

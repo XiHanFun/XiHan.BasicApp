@@ -7,14 +7,18 @@ export const REFRESH_TOKEN_KEY = `${STORAGE_PREFIX}refresh_token`
 export const USER_INFO_KEY = `${STORAGE_PREFIX}user_info`
 
 /**
- * 锁屏状态与锁屏密码摘要。
+ * 锁屏 UI 标记。
  *
- * 必须放 localStorage（跨标签页共享），不能放 sessionStorage：
- * sessionStorage 是**每标签页独立**的，锁屏后新开一个标签页拿到的是空状态，锁屏会被直接绕过。
- * 登出时须显式清除（见 authStore.logout），否则重新登录会卡在锁屏。
+ * **它不是安全边界**——真正的锁屏由服务端强制：锁屏位存在 `SysUserSession.IsLocked`，
+ * 中间件会以 423 拒绝该会话的一切请求。这个标记只是让本标签页立刻显示遮罩、
+ * 并让其它标签页跟着同步，免得每个标签页都要先撞一次 423 才知道该锁。手动删掉它，服务端照样 423。
+ *
+ * 放 localStorage（跨标签页共享）而非 sessionStorage：后者是**每标签页独立**的，
+ * 新开标签页拿到的是空状态。登出时须显式清除（见 authStore.logout），否则重新登录会卡在锁屏遮罩。
+ *
+ * 锁屏口令**不在客户端存任何形式**（连哈希都不存）：由服务端 PBKDF2 校验。
  */
 export const LOCK_STATE_KEY = `${STORAGE_PREFIX}locked`
-export const LOCK_PASSWORD_KEY = `${STORAGE_PREFIX}lock_pwd`
 export const LOCALE_KEY = `${STORAGE_PREFIX}locale`
 export const THEME_MODE_KEY = `${STORAGE_PREFIX}theme_mode`
 export const SIDEBAR_COLLAPSED_KEY = `${STORAGE_PREFIX}sidebar_collapsed`

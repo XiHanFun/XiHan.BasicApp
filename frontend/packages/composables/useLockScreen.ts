@@ -1,62 +1,49 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { LOCK_PASSWORD_KEY, LOCK_STATE_KEY } from '~/constants'
-import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
+import { LOCK_STATE_KEY } from '~/constants'
+import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 
 export type LockMode = 'off' | 'setting' | 'locked'
 
+/**
+ * 锁屏：**服务端强制**。
+ *
+ * 锁屏位存在 `SysUserSession.IsLocked`，服务端中间件会以 423 拒绝该会话的一切请求
+ * （仅放行解锁/登出/刷新）。所以改 DOM、开新标签页、乃至绕过前端直接 curl 调 API，都取不到数据。
+ *
+ * 客户端这份 localStorage 标记**只是 UI 状态**，不是安全边界：它的作用是让本标签页
+ * 立刻显示遮罩、并让其它标签页跟着同步，免得每个标签页都要先撞一次 423 才知道该锁。
+ * 即便有人手动删掉它，服务端照样 423。
+ */
 const MAX_LOCK_ATTEMPTS = 5
 
-/**
- * 清除锁屏状态。登出时必须调用：锁屏状态在 localStorage 里跨会话存活，
- * 不清会导致重新登录后仍卡在锁屏。
- */
+/** 清除锁屏 UI 标记（登出时调用） */
 export function clearLockState() {
   localStorage.removeItem(LOCK_STATE_KEY)
-  localStorage.removeItem(LOCK_PASSWORD_KEY)
 }
 
-function toHex(buffer: ArrayBuffer) {
-  return Array.from(new Uint8Array(buffer))
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-function randomSalt() {
-  const bytes = new Uint8Array(16)
-  crypto.getRandomValues(bytes)
-  return toHex(bytes.buffer)
-}
-
-/**
- * 口令摘要：SHA-256(salt + password)，按 UTF-8 编码。
- *
- * 不用 btoa：它是 base64 编码而非哈希（`atob()` 一步还原，等于明文存储），
- * 且遇到非 Latin-1 字符（如中文密码）会直接抛 InvalidCharacterError。
- */
-async function hashPassword(password: string, salt: string) {
-  const data = new TextEncoder().encode(`${salt}:${password}`)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return toHex(digest)
-}
-
-/** WebCrypto 仅在安全上下文（HTTPS / localhost）可用 */
-function isCryptoAvailable() {
-  return typeof crypto !== 'undefined' && !!crypto.subtle
+/** 被 423 拦截时由请求层调用：把本标签页拉回锁屏态 */
+export function markLockedFromServer() {
+  localStorage.setItem(LOCK_STATE_KEY, '1')
+  window.dispatchEvent(new CustomEvent('xihan:session-locked'))
 }
 
 export function useLockScreen() {
   const appStore = useAppStore()
   const authStore = useAuthStore()
   const layoutBridgeStore = useLayoutBridgeStore()
+  const ctx = useAppContext()
 
   const lockMode = ref<LockMode>('off')
   const lockAttempts = ref(0)
   const lockPwdNew = ref('')
   const lockPwdConfirm = ref('')
   const lockPwdError = ref('')
+  const lockLoading = ref(false)
   const unlockPwd = ref('')
   const unlockError = ref('')
-  const hasLockPwd = ref(false)
+  const unlockLoading = ref(false)
+  // 服务端强制锁屏必须有口令，因此锁屏态下永远需要输入密码
+  const hasLockPwd = ref(true)
 
   function doLock() {
     lockMode.value = 'setting'
@@ -65,110 +52,83 @@ export function useLockScreen() {
     lockPwdError.value = ''
   }
 
+  /** 设置锁屏口令并请求服务端置位 */
   async function confirmLock() {
-    if (lockPwdNew.value && lockPwdNew.value !== lockPwdConfirm.value) {
+    if (!lockPwdNew.value) {
+      // 空口令锁屏已被移除：服务端强制模式下，无口令的锁屏毫无意义
+      // （任何持有该 token 的人调一次解锁接口就打开了）
+      lockPwdError.value = '请输入锁屏密码'
+      return
+    }
+    if (lockPwdNew.value !== lockPwdConfirm.value) {
       lockPwdError.value = '两次输入不一致'
       return
     }
 
-    if (lockPwdNew.value) {
-      if (!isCryptoAvailable()) {
-        lockPwdError.value = '当前环境不支持加密（需 HTTPS 或 localhost），无法设置锁屏密码'
-        return
-      }
-      try {
-        const salt = randomSalt()
-        const digest = await hashPassword(lockPwdNew.value, salt)
-        localStorage.setItem(LOCK_PASSWORD_KEY, `${salt}:${digest}`)
-        hasLockPwd.value = true
-      }
-      catch {
-        lockPwdError.value = '锁屏密码设置失败'
-        return
-      }
+    lockLoading.value = true
+    try {
+      await ctx.apis.lockSessionApi({ password: lockPwdNew.value })
+      localStorage.setItem(LOCK_STATE_KEY, '1')
+      lockMode.value = 'locked'
+      lockPwdNew.value = ''
+      lockPwdConfirm.value = ''
+      lockPwdError.value = ''
+      unlockPwd.value = ''
+      unlockError.value = ''
+      lockAttempts.value = 0
     }
-    else {
-      localStorage.removeItem(LOCK_PASSWORD_KEY)
-      hasLockPwd.value = false
+    catch (error) {
+      lockPwdError.value = (error as Error)?.message || '锁屏失败'
     }
-
-    // 密码先落库、状态后置：其他标签页收到 storage 事件时，密码摘要必然已就绪
-    localStorage.setItem(LOCK_STATE_KEY, '1')
-    lockMode.value = 'locked'
-    unlockPwd.value = ''
-    unlockError.value = ''
-    lockAttempts.value = 0
+    finally {
+      lockLoading.value = false
+    }
   }
 
+  /** 解锁：口令由服务端校验（PBKDF2），本地不持有任何哈希 */
   async function doUnlock() {
-    const stored = localStorage.getItem(LOCK_PASSWORD_KEY)
-    if (!stored) {
-      releaseLock()
+    if (!unlockPwd.value) {
+      unlockError.value = '请输入锁屏密码'
       return
     }
 
-    const separator = stored.indexOf(':')
-    if (separator <= 0) {
-      // 摘要格式异常（被篡改/残留旧格式）：不能当作"无密码"放行，直接登出
-      releaseLock()
-      void authStore.logout()
-      return
-    }
-
-    const salt = stored.slice(0, separator)
-    const expected = stored.slice(separator + 1)
-
-    let actual: string
+    unlockLoading.value = true
     try {
-      actual = await hashPassword(unlockPwd.value, salt)
+      await ctx.apis.unlockSessionApi({ password: unlockPwd.value })
+      releaseLock()
     }
-    catch {
-      unlockError.value = '解锁失败，请重试'
-      return
-    }
-
-    if (actual !== expected) {
+    catch (error) {
       lockAttempts.value++
       unlockPwd.value = ''
+      // 连续失败达上限时服务端已吊销会话，此处直接登出，避免停留在一个已失效的锁屏页
       if (lockAttempts.value >= MAX_LOCK_ATTEMPTS) {
         releaseLock()
         void authStore.logout()
         return
       }
-      unlockError.value = `密码错误，还可尝试 ${MAX_LOCK_ATTEMPTS - lockAttempts.value} 次`
-      return
+      unlockError.value = (error as Error)?.message || '解锁失败'
     }
-
-    releaseLock()
+    finally {
+      unlockLoading.value = false
+    }
   }
 
   function releaseLock() {
     clearLockState()
     lockMode.value = 'off'
     lockAttempts.value = 0
-    hasLockPwd.value = false
     unlockPwd.value = ''
     unlockError.value = ''
   }
 
-  function handleEscUnlock(e: KeyboardEvent) {
-    if (e.key === 'Escape' && lockMode.value === 'locked') {
-      if (!localStorage.getItem(LOCK_PASSWORD_KEY)) {
-        releaseLock()
-      }
-    }
-  }
-
-  /** 以 localStorage 为唯一事实源同步本标签页的锁屏态 */
+  /** 以 localStorage 为准同步本标签页的锁屏 UI 态 */
   function syncFromStorage() {
     const locked = localStorage.getItem(LOCK_STATE_KEY) === '1'
-
     if (locked && lockMode.value !== 'locked') {
       lockMode.value = 'locked'
       lockAttempts.value = 0
       unlockPwd.value = ''
       unlockError.value = ''
-      hasLockPwd.value = !!localStorage.getItem(LOCK_PASSWORD_KEY)
     }
     else if (!locked && lockMode.value === 'locked') {
       lockMode.value = 'off'
@@ -180,12 +140,16 @@ export function useLockScreen() {
   /**
    * storage 事件只在**其他**标签页触发，正是跨标签页同步所需：
    * 一处锁屏，所有已打开的标签页立即跟着锁；一处解锁，其余一起解开。
-   * key 为 null 表示 storage 被整体 clear()。
    */
   function handleStorage(e: StorageEvent) {
-    if (e.key === null || e.key === LOCK_STATE_KEY || e.key === LOCK_PASSWORD_KEY) {
+    if (e.key === null || e.key === LOCK_STATE_KEY) {
       syncFromStorage()
     }
+  }
+
+  /** 请求被服务端 423 拒绝（如新开标签页、或锁屏期间后台请求）→ 立刻进入锁屏 */
+  function handleServerLocked() {
+    syncFromStorage()
   }
 
   watch(
@@ -198,15 +162,15 @@ export function useLockScreen() {
   )
 
   onMounted(() => {
-    window.addEventListener('keydown', handleEscUnlock)
     window.addEventListener('storage', handleStorage)
-    // 新标签页/刷新时从 localStorage 恢复锁屏态——这一步是"新开标签页绕过锁屏"的堵口
+    window.addEventListener('xihan:session-locked', handleServerLocked)
+    // 新标签页/刷新时恢复锁屏态。真正的兜底是服务端 423——即使这里被绕过，请求也拿不到数据。
     syncFromStorage()
   })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleEscUnlock)
     window.removeEventListener('storage', handleStorage)
+    window.removeEventListener('xihan:session-locked', handleServerLocked)
   })
 
   return {
@@ -214,8 +178,10 @@ export function useLockScreen() {
     lockPwdNew,
     lockPwdConfirm,
     lockPwdError,
+    lockLoading,
     unlockPwd,
     unlockError,
+    unlockLoading,
     hasLockPwd,
     confirmLock,
     doUnlock,

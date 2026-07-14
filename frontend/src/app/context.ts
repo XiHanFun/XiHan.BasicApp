@@ -157,6 +157,12 @@ function createAuthApis() {
     logoutApi() {
       return postWithFallback('/Auth/Logout', undefined, undefined)
     },
+    lockSessionApi(input: { password: string }) {
+      return requestClient.post<unknown>('/Auth/LockSession', input)
+    },
+    unlockSessionApi(input: { password: string }) {
+      return requestClient.post<unknown>('/Auth/UnlockSession', input)
+    },
     phoneLoginApi(input: PhoneLoginParams) {
       return requestClient.post<LoginToken>('/Auth/PhoneLogin', input)
     },
