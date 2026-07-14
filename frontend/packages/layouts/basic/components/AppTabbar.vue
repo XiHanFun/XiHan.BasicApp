@@ -102,6 +102,7 @@ const contextMenuOptions = computed(() => {
     favorited: favoritesStore.has(contextTabPath.value),
     favoritesEnabled: appStore.widgetFavorites,
     isSplitTab: splitViewStore.isSplitTab(contextTabPath.value),
+    splitEnabled: splitViewStore.canSplit,
     splitTargets,
     tabs: visibleTabs.value,
     isContentMaximized: isContentMaximized.value,

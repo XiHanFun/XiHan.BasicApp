@@ -2,6 +2,7 @@ import type { ComponentPublicInstance, CSSProperties } from 'vue'
 import type { HeaderMode } from '../contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { MOBILE_BREAKPOINT } from '~/composables/useIsMobile'
 import { useContentMaximize } from '~/hooks'
 import { useAppStore, useLayoutBridgeStore, useLayoutPreferences } from '~/stores'
 import { useLayout } from './use-layout'
@@ -19,7 +20,7 @@ export function useLayoutShellAdapter() {
   const { contentIsMaximize: contentMaximized } = useContentMaximize()
 
   const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  const isMobile = computed(() => viewportWidth.value < 768)
+  const isMobile = computed(() => viewportWidth.value < MOBILE_BREAKPOINT)
   const isNarrowScreen = computed(() => viewportWidth.value < 960)
 
   const {

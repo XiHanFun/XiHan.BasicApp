@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useIsMobile } from '~/composables/useIsMobile'
 import { SPLIT_VIEW_KEY } from '~/constants'
 import { SessionStorage } from '~/utils'
 import { SetupStoreId } from './store-ids'
@@ -25,6 +26,12 @@ interface PersistedSplitView {
 export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
   const saved = SessionStorage.get<PersistedSplitView>(SPLIT_VIEW_KEY)
 
+  // 小屏两栏并排过窄、不符合使用，故禁用分屏。复用全站统一的小屏判定（useIsMobile），
+  // 不再自定义断点，避免各处阈值不一致。
+  const { isMobile } = useIsMobile()
+  /** 当前视口是否允许开启分屏（小屏禁用） */
+  const canSplit = computed(() => !isMobile.value)
+
   const active = ref(saved?.active ?? false)
   /** 锚定标签（主视图 = 真实路由；其标签菜单显示「关闭分屏」） */
   const leftPath = ref(saved?.left ?? '')
@@ -47,7 +54,7 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
 
   /** 开启分屏：left 锚定标签 + right 副标签（锚定默认在左） */
   function open(left: string, right: string): void {
-    if (!left || !right || left === right) {
+    if (!canSplit.value || !left || !right || left === right) {
       return
     }
     leftPath.value = left
@@ -122,7 +129,16 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
     return active.value && path === rightPath.value
   }
 
+  // 缩到小屏立即关闭分屏（右标签恢复可见）；immediate 兼顾启动即处于小屏且
+  // SessionStorage 恢复了分屏的情形，立即收敛为关闭态。
+  watch(isMobile, (mobile) => {
+    if (mobile && active.value) {
+      close()
+    }
+  }, { immediate: true })
+
   return {
+    canSplit,
     active,
     leftPath,
     rightPath,
