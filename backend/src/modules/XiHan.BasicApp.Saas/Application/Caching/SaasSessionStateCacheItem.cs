@@ -19,7 +19,7 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 namespace XiHan.BasicApp.Saas.Application.Caching;
 
 /// <summary>
-/// SaaS 会话状态缓存项（session_id → 有效性 + 锁屏位；会话闸门每请求读取的热路径）。
+/// SaaS 会话状态缓存项（session_id → 有效性 + 锁定位；会话闸门每请求读取的热路径）。
 /// </summary>
 /// <remarks>
 /// <see cref="IgnoreMultiTenancy"/>：会话闸门跑在租户解析之后但服务于全租户，键本身即 session_id（全局唯一），
@@ -45,9 +45,14 @@ public sealed class SaasSessionStateCacheItem
     public SessionStatus Status { get; set; }
 
     /// <summary>
-    /// 是否锁屏。
+    /// 是否锁定（锁屏只是原因之一，见 <see cref="LockReason"/>）。
     /// </summary>
     public bool IsLocked { get; set; }
+
+    /// <summary>
+    /// 锁定原因（<see cref="SessionLockReasons"/>；经 423 响应体透传给前端，决定引导哪种解锁方式）。
+    /// </summary>
+    public string? LockReason { get; set; }
 
     /// <summary>
     /// 会话过期时间（超过即视为失效）。
@@ -55,7 +60,7 @@ public sealed class SaasSessionStateCacheItem
     public DateTimeOffset? ExpirationTime { get; set; }
 
     /// <summary>
-    /// 展示名（锁屏页要显示"是谁锁的"；此时用户信息接口本身是被 423 挡住的）。
+    /// 展示名（解锁页要显示"锁的是谁"；此时用户信息接口本身是被 423 挡住的）。
     /// </summary>
     public string? DisplayName { get; set; }
 

@@ -95,7 +95,7 @@ public static class SaasCacheNames
     public const string TelegramUpdateDedup = "basicapp:saas:bot:telegram-dedup";
 
     /// <summary>
-    /// 会话状态缓存（session_id → 有效性 + 锁屏位）。会话闸门每请求读取，是最热的路径之一。
+    /// 会话状态缓存（session_id → 有效性 + 锁定位）。会话闸门每请求读取，是最热的路径之一。
     /// </summary>
     public const string SessionState = "basicapp:saas:identity:session-state";
 }

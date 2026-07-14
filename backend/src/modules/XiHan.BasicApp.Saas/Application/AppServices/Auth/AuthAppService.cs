@@ -729,6 +729,7 @@ public sealed class AuthAppService
         var now = DateTimeOffset.UtcNow;
 
         session.IsLocked = true;
+        session.LockReason = SessionLockReasons.ScreenLock;
         session.LockedTime = now;
         session.LockPasswordHash = _passwordHasher.HashPassword(input.Password);
         session.UnlockFailedAttempts = 0;
@@ -750,11 +751,18 @@ public sealed class AuthAppService
             return;
         }
 
+        // 本端点只处理「锁屏」这一种锁定原因。会话锁定是通用能力——将来若因风控挂起、强制改密等
+        // 原因被锁定，那类锁定不该、也不能用锁屏口令打开，否则等于给它开了后门。
+        if (!string.Equals(session.LockReason, SessionLockReasons.ScreenLock, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("当前会话的锁定原因不支持口令解锁。");
+        }
+
         // 口令哈希异常（被篡改/脏数据）时绝不当作"无口令"放行——直接踢下线，宁可误伤
         if (string.IsNullOrWhiteSpace(session.LockPasswordHash))
         {
             await RevokeLockedSessionAsync(session, "锁屏口令缺失", cancellationToken);
-            throw new InvalidOperationException("锁屏状态异常，请重新登录。");
+            throw new InvalidOperationException("锁定状态异常，请重新登录。");
         }
 
         if (string.IsNullOrWhiteSpace(input.Password) ||
@@ -775,6 +783,7 @@ public sealed class AuthAppService
         }
 
         session.IsLocked = false;
+        session.LockReason = null;
         session.LockedTime = null;
         session.LockPasswordHash = null;   // 会话级一次性口令：解锁即清除，不跨锁屏复用
         session.UnlockFailedAttempts = 0;
@@ -815,6 +824,7 @@ public sealed class AuthAppService
         session.RevokedTime = now;
         session.RevokedReason = reason;
         session.IsLocked = false;
+        session.LockReason = null;
         session.LockPasswordHash = null;
 
         await _userSessionRepository.UpdateAsync(session, cancellationToken);

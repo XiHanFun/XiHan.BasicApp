@@ -85,11 +85,11 @@ public interface ISaasCacheInvalidator
     Task InvalidateDictionaryAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 失效指定会话的状态缓存（锁屏/解锁/吊销/登出后必须调用）。
+    /// 失效指定会话的状态缓存（锁定/解锁/吊销/登出后必须调用）。
     /// </summary>
     /// <remarks>
     /// 会话闸门每请求读这份缓存。任何改写 <c>SysUserSession.Status</c> 或 <c>IsLocked</c> 的写路径
-    /// <b>都必须</b>补这一刀，否则改动最长要等缓存过期才生效——踢下线踢不掉、锁屏锁不住。
+    /// <b>都必须</b>补这一刀，否则改动最长要等缓存过期才生效——踢下线踢不掉、锁定锁不住。
     /// </remarks>
     /// <param name="userSessionId">会话业务标识（JWT 的 session_id）。</param>
     /// <param name="cancellationToken">取消令牌。</param>

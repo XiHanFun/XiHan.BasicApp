@@ -268,7 +268,7 @@ public static class SaasCacheKeys
     }
 
     /// <summary>
-    /// 指定会话的状态缓存匹配模式（锁屏/解锁/吊销后失效）。
+    /// 指定会话的状态缓存匹配模式（锁定/解锁/吊销后失效）。
     /// </summary>
     /// <param name="userSessionId">会话业务标识。</param>
     /// <returns>业务缓存键匹配模式。</returns>

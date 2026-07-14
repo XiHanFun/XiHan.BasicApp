@@ -121,39 +121,53 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     public virtual SessionStatus Status { get; set; } = SessionStatus.Active;
 
     /// <summary>
-    /// 是否锁屏
+    /// 是否锁定
     /// </summary>
     /// <remarks>
-    /// 锁屏是<b>服务端强制</b>的：置位后 <c>XiHanSessionStateMiddleware</c> 会以 <b>423</b> 拒绝该会话的一切请求
+    /// 锁定是<b>服务端强制</b>的：置位后 <c>XiHanSessionStateMiddleware</c> 会以 <b>423</b> 拒绝该会话的一切请求
     /// （仅放行解锁 / 登出 / 刷新令牌），因此改 DOM、开新标签页、直接 curl 调 API 都绕不过去。
     /// <para>
-    /// 与 <see cref="Status"/> <b>正交</b>：锁屏不改变会话有效性——所以是 423 而非 401，
-    /// 客户端应展示锁屏页而不是跳登录；解锁后原会话继续可用。
+    /// <b>锁定不等于锁屏</b>：锁屏只是<see cref="LockReason"/> 的一种取值。将来若加入风控挂起、
+    /// 强制改密、二次验证待完成等场景，复用同一个锁定位即可——解锁方式由原因决定。
     /// </para>
     /// <para>
-    /// 刷新令牌会保留同一 <c>session_id</c>，故锁屏位可安全跨令牌刷新存活（长时间锁屏不会掉成登出）。
+    /// 与 <see cref="Status"/> <b>正交</b>：锁定不改变会话有效性——所以是 423 而非 401，
+    /// 客户端应引导解锁而不是跳登录；解锁后原会话继续可用。
+    /// </para>
+    /// <para>
+    /// 刷新令牌会保留同一 <c>session_id</c>，故锁定位可安全跨令牌刷新存活（长时间锁定不会掉成登出）。
     /// </para>
     /// </remarks>
-    [SugarColumn(ColumnName = "Is_Locked", ColumnDescription = "是否锁屏")]
+    [SugarColumn(ColumnName = "Is_Locked", ColumnDescription = "是否锁定")]
     public virtual bool IsLocked { get; set; } = false;
 
     /// <summary>
-    /// 锁屏时间
+    /// 锁定原因（<see cref="SessionLockReasons"/>；决定客户端引导哪种解锁方式）
     /// </summary>
-    [SugarColumn(ColumnName = "Locked_Time", ColumnDescription = "锁屏时间", IsNullable = true)]
+    [SugarColumn(ColumnName = "Lock_Reason", ColumnDescription = "锁定原因", Length = 50, IsNullable = true)]
+    public virtual string? LockReason { get; set; }
+
+    /// <summary>
+    /// 锁定时间
+    /// </summary>
+    [SugarColumn(ColumnName = "Locked_Time", ColumnDescription = "锁定时间", IsNullable = true)]
     public virtual DateTimeOffset? LockedTime { get; set; }
 
     /// <summary>
-    /// 锁屏密码哈希（PBKDF2，仅可校验不可还原）
+    /// 锁屏口令哈希（PBKDF2，仅可校验不可还原）
     /// </summary>
     /// <remarks>
+    /// <b>仅用于 <see cref="SessionLockReasons.ScreenLock"/> 这一种锁定原因</b>——其它原因的锁定（如风控挂起）
+    /// 不走口令解锁，此列为空。
+    /// <para>
     /// <b>会话级</b>口令：锁屏时现场设置，随本次锁屏生效，解锁即清除——它不是账号密码，也不跨会话复用。
     /// 服务端<b>拒绝空口令锁屏</b>：无口令的锁屏在服务端强制模式下毫无意义（任何持有该 token 的人调一次解锁接口就开了）。
+    /// </para>
     /// 解锁失败次数由 <see cref="UnlockFailedAttempts"/> 单独计数，<b>不复用</b>账号的登录失败计数，避免锁屏误触发账号锁定。
     /// </remarks>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnName = "Lock_Password_Hash", ColumnDescription = "锁屏密码哈希", Length = 200, IsNullable = true)]
+    [SugarColumn(ColumnName = "Lock_Password_Hash", ColumnDescription = "锁屏口令哈希", Length = 200, IsNullable = true)]
     public virtual string? LockPasswordHash { get; set; }
 
     /// <summary>

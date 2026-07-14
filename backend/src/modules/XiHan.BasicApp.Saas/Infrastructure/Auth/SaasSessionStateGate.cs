@@ -23,7 +23,7 @@ using XiHan.Framework.Web.Api.Session;
 namespace XiHan.BasicApp.Saas.Infrastructure.Auth;
 
 /// <summary>
-/// SaaS 会话状态闸门：把 <see cref="SysUserSession"/> 的有效性与锁屏位喂给框架的会话中间件
+/// SaaS 会话状态闸门：把 <see cref="SysUserSession"/> 的有效性与锁定位喂给框架的会话中间件
 /// </summary>
 /// <remarks>
 /// <b>fail-closed</b>：查不到会话 → 判定失效（401）。
@@ -66,7 +66,7 @@ public sealed class SaasSessionStateGate : ISessionStateGate
                 SaasCacheKeys.SessionState(sessionId),
                 () => LoadAsync(sessionId, cancellationToken),
                 // 短 TTL 兜底：会话写路径散落在多个领域服务里，漏掉任何一处显式失效，
-                // 最多 60 秒自愈（踢下线最迟 60s 生效）。锁屏/解锁走显式失效，即时生效。
+                // 最多 60 秒自愈（踢下线最迟 60s 生效）。锁定/解锁走显式失效，即时生效。
                 () => new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
@@ -101,12 +101,12 @@ public sealed class SaasSessionStateGate : ISessionStateGate
         }
 
         return state.IsLocked
-            ? new SessionGateDecision(SessionGateStatus.Locked, state.DisplayName, state.AvatarUrl)
+            ? new SessionGateDecision(SessionGateStatus.Locked, state.LockReason, state.DisplayName, state.AvatarUrl)
             : SessionGateDecision.Allow;
     }
 
     /// <summary>
-    /// 回源：按 session_id 读会话 + 用户展示信息（锁屏页要显示"是谁锁的"）
+    /// 回源：按 session_id 读会话 + 用户展示信息（解锁页要显示"锁的是谁"）
     /// </summary>
     private async Task<SaasSessionStateCacheItem> LoadAsync(string sessionId, CancellationToken cancellationToken)
     {
@@ -120,7 +120,7 @@ public sealed class SaasSessionStateGate : ISessionStateGate
         string? displayName = null;
         string? avatarUrl = null;
 
-        // 仅锁屏时才需要展示信息，避免给每个请求都加一次用户查询
+        // 仅锁定时才需要展示信息，避免给每个请求都加一次用户查询
         if (session.IsLocked)
         {
             var user = await _userRepository.GetByIdIgnoreTenantAsync(session.UserId, cancellationToken);
@@ -134,6 +134,7 @@ public sealed class SaasSessionStateGate : ISessionStateGate
             UserId = session.UserId,
             Status = session.Status,
             IsLocked = session.IsLocked,
+            LockReason = session.LockReason,
             ExpirationTime = session.ExpirationTime,
             DisplayName = displayName,
             AvatarUrl = avatarUrl,
