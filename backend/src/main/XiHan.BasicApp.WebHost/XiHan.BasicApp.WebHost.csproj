@@ -38,6 +38,10 @@
       <None Update="Localization\**\*.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <!-- 自动版本更新脚本：UseAutoVersionUpdate 从 AppContext.BaseDirectory/UpdateScripts 读取，必须随输出/发布一同拷贝 -->
+      <None Update="UpdateScripts\**\*.sql">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
