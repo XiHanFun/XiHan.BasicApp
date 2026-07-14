@@ -42,13 +42,15 @@ export function buildTabContextOptions(params: {
   favoritesEnabled: boolean
   /** 该标签是否为分屏锚定标签（菜单显示「关闭分屏」） */
   isSplitTab: boolean
+  /** 当前视口是否允许开启分屏（小屏禁用；不影响「关闭分屏」） */
+  splitEnabled: boolean
   /** 分屏候选标签（其它已打开标签，用于「右侧分屏打开」子菜单） */
   splitTargets: { path: string, title: string }[]
   tabs: TabItem[]
   isContentMaximized: boolean
   t: (key: string) => string
 }) {
-  const { path, closable, pinned, favorited, favoritesEnabled, isSplitTab, splitTargets, tabs, isContentMaximized, t } = params
+  const { path, closable, pinned, favorited, favoritesEnabled, isSplitTab, splitEnabled, splitTargets, tabs, isContentMaximized, t } = params
   const {
     closeAllDisabled,
     closeCurrentDisabled,
@@ -58,14 +60,15 @@ export function buildTabContextOptions(params: {
     pinDisabled,
   } = getTabDisableState(tabs, path, closable)
 
-  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）
+  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）。
+  // 小屏（splitEnabled=false）不提供「分屏打开」，但仍允许对既有分屏「关闭分屏」。
   let splitItems: DropdownOption[] = []
   if (isSplitTab) {
     splitItems = [
       { key: 'splitClose', label: t('tabbar.split_close'), icon: createDropdownIcon('lucide:columns-2') },
     ]
   }
-  else if (splitTargets.length > 0) {
+  else if (splitEnabled && splitTargets.length > 0) {
     splitItems = [
       {
         key: 'splitParent',

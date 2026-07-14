@@ -47,8 +47,9 @@ useCheckUpdates()
 // 容器变形转场：点击的行/按钮「长大」成弹窗、关闭收回原位（跟随「页面切换动画」偏好）
 setupContainerTransform({ enabled: () => shell.appStore.transitionEnable })
 
-// 仅当「当前路由 === 分屏锚定标签」时显示分屏（右标签已并入、从标签栏隐藏）
-const showSplit = computed(() => splitView.active && route.fullPath === splitView.leftPath)
+// 仅当「当前路由 === 分屏锚定标签」且视口足够宽时显示分屏（右标签已并入、从标签栏隐藏）；
+// 小屏禁用分屏（store 会自动关闭，此处 canSplit 再兜一道防抖动）
+const showSplit = computed(() => splitView.canSplit && splitView.active && route.fullPath === splitView.leftPath)
 
 // 路由变化时对齐分屏状态（pre-flush，渲染前完成 → 不闪烁）：
 // - 抵达副标签路径（用户经菜单直接导航）→ 锚定/副互换
