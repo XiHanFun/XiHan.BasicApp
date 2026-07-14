@@ -257,6 +257,35 @@ public static class SaasCacheKeys
         return $"{botName}:{chatId}:{userId}";
     }
 
+    /// <summary>
+    /// 会话状态缓存键（按 session_id，全局唯一）。
+    /// </summary>
+    /// <param name="userSessionId">会话业务标识（JWT 的 session_id）。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string SessionState(string userSessionId)
+    {
+        return $"session:{userSessionId}";
+    }
+
+    /// <summary>
+    /// 指定会话的状态缓存匹配模式（锁屏/解锁/吊销后失效）。
+    /// </summary>
+    /// <param name="userSessionId">会话业务标识。</param>
+    /// <returns>业务缓存键匹配模式。</returns>
+    public static string SessionStatePattern(string userSessionId)
+    {
+        return $"session:{userSessionId}";
+    }
+
+    /// <summary>
+    /// 全部会话状态缓存匹配模式（批量吊销某用户全部会话后整体失效）。
+    /// </summary>
+    /// <returns>业务缓存键匹配模式。</returns>
+    public static string AllSessionStatesPattern()
+    {
+        return "session:*";
+    }
+
     private static string Hash(string value)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));

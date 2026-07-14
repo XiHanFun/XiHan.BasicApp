@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.Framework.Web.Api.Session;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Authorization;
@@ -145,6 +146,23 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthorizationSnapshotQueryService, AuthorizationSnapshotQueryService>();
         // 请求期鉴权改用授权快照（替换框架内存版 DefaultPermissionChecker），使授权变更无需重新登录即生效
         services.Replace(ServiceDescriptor.Scoped<IPermissionChecker, SaasPermissionChecker>());
+
+        // 会话闸门：把 SysUserSession 的有效性与锁屏位喂给框架的 XiHanSessionStateMiddleware。
+        // 替换掉框架默认的 NullSessionStateGate（一律放行）后，吊销才在**全部已认证端点**上生效
+        // （此前仅带权限码的端点会 403），锁屏也才成为服务端强制。
+        services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGate>());
+        services.Configure<XiHanSessionStateOptions>(options =>
+        {
+            // 锁屏期间仍需放行：解锁（否则永远解不开）、登出（锁屏中必须能退）、
+            // 刷新令牌（长时间锁屏会跨越 access token 有效期；刷新保留同一 session_id，锁屏位不丢）
+            options.LockAllowedPaths =
+            [
+                "/api/Auth/UnlockSession",
+                "/api/Auth/LockSession",
+                "/api/Auth/Logout",
+                "/api/Auth/RefreshToken"
+            ];
+        });
         services.AddScoped<IMenuRouteQueryService, MenuRouteQueryService>();
         services.AddScoped<IUserDataScopeFilterService, UserDataScopeFilterService>();
         services.AddScoped<IFileRecordQueryService, FileRecordQueryService>();

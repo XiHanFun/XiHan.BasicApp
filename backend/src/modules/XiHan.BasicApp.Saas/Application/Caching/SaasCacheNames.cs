@@ -93,4 +93,9 @@ public static class SaasCacheNames
     /// Telegram Update 幂等去重键前缀（原生 Redis SET NX，非 IDistributedCache 通道）。
     /// </summary>
     public const string TelegramUpdateDedup = "basicapp:saas:bot:telegram-dedup";
+
+    /// <summary>
+    /// 会话状态缓存（session_id → 有效性 + 锁屏位）。会话闸门每请求读取，是最热的路径之一。
+    /// </summary>
+    public const string SessionState = "basicapp:saas:identity:session-state";
 }

@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using XiHan.BasicApp.Saas.Application.Caching;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
@@ -33,6 +34,8 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
+
     private readonly ILogger<UserSessionRevokedEventHandler> _logger;
 
     /// <summary>
@@ -41,10 +44,12 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
     public UserSessionRevokedEventHandler(
         ISqlSugarClientResolver clientResolver,
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
+        ISaasCacheInvalidator cacheInvalidator,
         ILogger<UserSessionRevokedEventHandler> logger)
     {
         _clientResolver = clientResolver ?? throw new ArgumentNullException(nameof(clientResolver));
         _realtimeNotificationService = realtimeNotificationService ?? throw new ArgumentNullException(nameof(realtimeNotificationService));
+        _cacheInvalidator = cacheInvalidator ?? throw new ArgumentNullException(nameof(cacheInvalidator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -61,6 +66,12 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
             eventData.UserId, eventData.SessionId?.ToString() ?? eventData.UserSessionId, eventData.AccessTokenJti,
             eventData.RevokeAllUserSessions, eventData.Reason);
 
+        // 会话状态缓存失效——这一刀决定了踢下线是不是**真的踢得掉**：
+        // 会话闸门每请求读这份缓存，不清就得等 TTL 到期才生效。
+        // 注意 SignalR 那条只是"通知前端自己登出"，纯客户端行为，curl 绕过即可；
+        // 服务端硬拦截靠的是闸门读到 Status=Revoked。
+        await InvalidateSessionCacheAsync(eventData);
+
         // 写入登录/登出日志
         await WriteLoginLogAsync(eventData);
 
@@ -72,10 +83,36 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
     }
 
     /// <summary>
+    /// 失效被撤销会话的状态缓存（撤销全部会话时整体清空）
+    /// </summary>
+    private async Task InvalidateSessionCacheAsync(UserSessionRevokedDomainEvent eventData)
+    {
+        try
+        {
+            if (eventData.RevokeAllUserSessions || string.IsNullOrWhiteSpace(eventData.UserSessionId))
+            {
+                await _cacheInvalidator.InvalidateAllSessionStatesAsync();
+                return;
+            }
+
+            await _cacheInvalidator.InvalidateSessionStateAsync(eventData.UserSessionId);
+        }
+        catch (Exception ex)
+        {
+            // 失效失败不阻断撤销主流程：缓存有 60s 短 TTL 兜底，最迟 60 秒后闸门也会读到 Revoked
+            _logger.LogError(ex, "[UserSessionRevoked] 会话状态缓存失效失败：{SessionId}", eventData.UserSessionId);
+        }
+    }
+
+    /// <summary>
     /// 向用户在线连接推送 ForceLogout。
     /// 单会话撤销带 targetSessionIds（前端按 JWT session_id 匹配，仅目标会话登出）；
     /// 全部撤销不带目标列表（该用户所有在线连接立即登出）。
     /// </summary>
+    /// <remarks>
+    /// 这只是"通知前端自己登出"——<b>纯客户端行为，忽略推送或直接 curl 即可绕过</b>。
+    /// 服务端的硬拦截靠 <c>XiHanSessionStateMiddleware</c> + <c>SaasSessionStateGate</c> 读到 Status=Revoked 后 401。
+    /// </remarks>
     private async Task PushForceLogoutAsync(UserSessionRevokedDomainEvent eventData)
     {
         try

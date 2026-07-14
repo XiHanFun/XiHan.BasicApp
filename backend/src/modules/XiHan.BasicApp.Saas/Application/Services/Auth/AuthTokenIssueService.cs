@@ -88,9 +88,11 @@ public sealed class AuthTokenIssueService
 
             long? userId = long.TryParse(userIdValue, out var parsedUserId) ? parsedUserId : null;
             long? tenantId = long.TryParse(tenantIdValue, out var parsedTenantId) ? parsedTenantId : null;
+            // 刷新令牌时要靠它校验会话是否仍然有效（被踢下线的会话不得再刷新续命）
+            var sessionId = claims.FirstOrDefault(c => c.Type == XiHanClaimTypes.SessionId)?.Value;
             return userId is null && string.IsNullOrWhiteSpace(userName)
                 ? null
-                : new AuthTokenIdentity(userId, userName, tenantId);
+                : new AuthTokenIdentity(userId, userName, tenantId, sessionId);
         }
         catch
         {
