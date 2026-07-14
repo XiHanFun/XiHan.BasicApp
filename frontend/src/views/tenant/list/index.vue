@@ -435,6 +435,15 @@ async function handleView(row: TenantListItemDto) {
   loadMembers()
 }
 
+/**
+ * 解析成员展示名：租户内覆盖名 → 真实姓名 → 昵称 → 账号。
+ * displayName 是「租户内覆盖名」，绝大多数成员没设（为空），直接展示它会让整列都是 "-"、只剩一串雪花 ID。
+ * 注意别把回退结果写回 displayName——「编辑资料」编辑的就是它，那会把回退名当成覆盖名存回库。
+ */
+function resolveMemberName(item: TenantMemberListItemDto): string | null {
+  return item.displayName || item.realName || item.nickName || item.userName || null
+}
+
 async function loadMembers() {
   if (!currentDetail.value) {
     return
@@ -444,9 +453,12 @@ async function loadMembers() {
   try {
     const result = await tenantManagementApi.members.page({
       ...createPageRequest({
-        behavior: createDefaultQueryBehavior({ ignoreTenant: true }),
+        behavior: createDefaultQueryBehavior(),
         page: { pageIndex: 1, pageSize: 200 },
       }),
+      // 必须按当前查看的租户过滤：平台管理员无租户上下文，后端全局租户过滤器在平台态放行全部，
+      // 不传这个就会把所有租户的成员关系都拉回来。
+      tenantId: currentDetail.value.basicId,
     })
     members.value = result.items
   }
@@ -722,7 +734,7 @@ async function handleSubmit() {
                     <tbody>
                       <tr v-for="item in members" :key="item.basicId">
                         <td>{{ item.userId }}</td>
-                        <td>{{ formatNullable(item.displayName) }}</td>
+                        <td>{{ formatNullable(resolveMemberName(item)) }}</td>
                         <td>
                           <NTag :type="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'primary' : 'default'" round size="small">
                             {{ getOptionLabel(memberTypeOptions, item.memberType) }}

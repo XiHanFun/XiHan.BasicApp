@@ -24,6 +24,15 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public sealed class TenantMemberPageQueryDto : BasicAppPRDto
 {
     /// <summary>
+    /// 所属租户主键
+    /// </summary>
+    /// <remarks>
+    /// 查"某个租户有哪些成员"时<b>必须</b>传。平台管理员没有租户上下文，全局租户过滤器在平台态是放行全部的，
+    /// 不显式按租户过滤就会把<b>所有租户</b>的成员关系一并捞出来。
+    /// </remarks>
+    public long? TenantId { get; set; }
+
+    /// <summary>
     /// 关键字（租户内显示名、邀请备注、备注）
     /// </summary>
     public string? Keyword { get; set; }

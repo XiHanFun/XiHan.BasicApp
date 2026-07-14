@@ -59,4 +59,16 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// 经全局租户过滤会查不到用户，故此处显式忽略租户过滤按主键定位。
     /// </remarks>
     Task<SysUser?> GetByIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按主键批量获取用户（忽略租户过滤）
+    /// </summary>
+    /// <remarks>
+    /// 用于跨租户场景批量解析用户身份：跨租户成员（外部协作者/顾问）的 <see cref="SysUser"/> 属于来源租户，
+    /// 而成员关系行属于目标租户，带租户过滤会解析不出他们的名字。
+    /// </remarks>
+    /// <param name="userIds">用户主键集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户列表（集合为空时返回空列表）</returns>
+    Task<List<SysUser>> GetListByIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default);
 }

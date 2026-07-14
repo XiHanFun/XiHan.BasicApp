@@ -74,6 +74,26 @@ public sealed class TenantMemberListItemDto : BasicAppDto
     public string? DisplayName { get; set; }
 
     /// <summary>
+    /// 用户账号（只读，来自 SysUser）
+    /// </summary>
+    /// <remarks>
+    /// <see cref="DisplayName"/> 是<b>租户内覆盖名</b>，绝大多数成员没设，因而为空。
+    /// 这三个只读字段用于让前端回退展示"这个人是谁"（显示名 → 姓名 → 昵称 → 账号），
+    /// 而不是把回退值写回 <see cref="DisplayName"/>——那会被「编辑资料」当成覆盖名存回库里。
+    /// </remarks>
+    public string? UserName { get; set; }
+
+    /// <summary>
+    /// 用户真实姓名（只读，来自 SysUser）
+    /// </summary>
+    public string? RealName { get; set; }
+
+    /// <summary>
+    /// 用户昵称（只读，来自 SysUser）
+    /// </summary>
+    public string? NickName { get; set; }
+
+    /// <summary>
     /// 成员状态
     /// </summary>
     public ValidityStatus Status { get; set; }
