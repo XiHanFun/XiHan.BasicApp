@@ -88,4 +88,22 @@ public sealed class UserRepository(
             .Where(user => user.BasicId == userId)
             .FirstAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<List<SysUser>> GetListByIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (userIds is null || userIds.Count == 0)
+        {
+            return [];
+        }
+
+        // 必须忽略租户过滤：跨租户成员（外部协作者/顾问）的 SysUser 属于**来源租户**，
+        // 而成员关系行属于**目标租户**，带租户过滤会解析不出他们的名字。
+        var ids = userIds.Distinct().ToList();
+        return await CreateNoTenantQueryable()
+            .Where(user => ids.Contains(user.BasicId))
+            .ToListAsync(cancellationToken);
+    }
 }

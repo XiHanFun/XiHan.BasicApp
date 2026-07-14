@@ -44,11 +44,19 @@ public sealed class TenantMemberQueryService
     private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
+    /// 用户仓储（用于批量解析成员身份）
+    /// </summary>
+    private readonly IUserRepository _userRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
-    public TenantMemberQueryService(ITenantUserRepository tenantUserRepository)
+    public TenantMemberQueryService(
+        ITenantUserRepository tenantUserRepository,
+        IUserRepository userRepository)
     {
         _tenantUserRepository = tenantUserRepository;
+        _userRepository = userRepository;
     }
 
     /// <summary>
@@ -68,7 +76,23 @@ public sealed class TenantMemberQueryService
         var members = await _tenantUserRepository.GetPagedAsync(request, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
-        return members.Map(member => TenantMemberApplicationMapper.ToListItemDto(member, now));
+        // 批量解析成员身份（一次 IN 查询，不做 N+1）。忽略租户过滤：跨租户成员的 SysUser 属于来源租户。
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(
+            [.. members.Items.Select(member => member.UserId)], cancellationToken);
+        var userMap = users.ToDictionary(user => user.BasicId);
+
+        return members.Map(member =>
+        {
+            var dto = TenantMemberApplicationMapper.ToListItemDto(member, now);
+            if (userMap.TryGetValue(member.UserId, out var user))
+            {
+                dto.UserName = user.UserName;
+                dto.RealName = user.RealName;
+                dto.NickName = user.NickName;
+            }
+
+            return dto;
+        });
     }
 
     /// <summary>
@@ -104,6 +128,13 @@ public sealed class TenantMemberQueryService
             Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
+
+        // 必须显式按租户过滤：平台管理员没有租户上下文，全局租户过滤器在平台态放行全部，
+        // 少了这一刀，「租户详情 → 成员」会把所有租户的成员关系都捞出来。
+        if (input.TenantId.HasValue)
+        {
+            request.Conditions.AddFilter((SysTenantUser member) => member.TenantId, input.TenantId.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
