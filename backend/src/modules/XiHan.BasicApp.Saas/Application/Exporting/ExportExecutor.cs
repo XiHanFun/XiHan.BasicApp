@@ -115,6 +115,9 @@ public sealed class ExportExecutor : IExportExecutor
             var writer = _writers.FirstOrDefault(item => item.Format == task.Format)
                 ?? _writers.First(item => item.Format == ExportFormat.Csv);
 
+            // 实际落地的格式以命中的写出器为准（请求格式无匹配时回落 CSV），文件名/ContentType 都跟着它走
+            var actualFormat = writer.Format;
+
             var context = new ExportContext
             {
                 BusinessType = task.BusinessType,
@@ -143,8 +146,8 @@ public sealed class ExportExecutor : IExportExecutor
 
             buffer.Position = 0;
             var totalRows = Math.Max(context.Total ?? 0, 0);
-            var fileName = BuildFileName(task);
-            var (fileId, fileSize) = await UploadAsync(buffer, fileName, task.TaskName, cancellationToken);
+            var fileName = BuildFileName(task, actualFormat);
+            var (fileId, fileSize) = await UploadAsync(buffer, fileName, task.TaskName, actualFormat, cancellationToken);
 
             await _repository.MarkSuccessAsync(task.BasicId, fileId, fileName, fileSize, totalRows, DateTimeOffset.UtcNow, cancellationToken);
             await _notifier.NotifySucceededAsync(userId, islandTaskId, $"{task.TaskName} 导出完成", $"共 {totalRows} 行，可在导出中心下载", "/setting/export-center", cancellationToken);
@@ -177,14 +180,32 @@ public sealed class ExportExecutor : IExportExecutor
         }
     }
 
-    private static string BuildFileName(SysExportTask task)
+    private static string BuildFileName(SysExportTask task, ExportFormat format)
     {
         var name = task.TaskName;
         foreach (var invalid in Path.GetInvalidFileNameChars())
         {
             name = name.Replace(invalid, '_');
         }
-        return $"{name}.csv";
+        return $"{name}.{GetExtension(format)}";
+    }
+
+    private static string GetExtension(ExportFormat format)
+    {
+        return format switch
+        {
+            ExportFormat.Xlsx => "xlsx",
+            _ => "csv"
+        };
+    }
+
+    private static string GetContentType(ExportFormat format)
+    {
+        return format switch
+        {
+            ExportFormat.Xlsx => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            _ => "text/csv; charset=utf-8"
+        };
     }
 
     private static ClaimsPrincipal BuildPrincipal(long userId, long tenantId)
@@ -202,14 +223,14 @@ public sealed class ExportExecutor : IExportExecutor
         await _notifier.NotifyFailedAsync(userId, islandTaskId, $"{task.TaskName} 导出失败", trimmed, cancellationToken);
     }
 
-    private async Task<(long FileId, long FileSize)> UploadAsync(MemoryStream content, string fileName, string taskName, CancellationToken cancellationToken)
+    private async Task<(long FileId, long FileSize)> UploadAsync(MemoryStream content, string fileName, string taskName, ExportFormat format, CancellationToken cancellationToken)
     {
         var bytes = content.ToArray();
         var stream = new MemoryStream(bytes);
         var formFile = new FormFile(stream, 0, bytes.Length, "file", fileName)
         {
             Headers = new HeaderDictionary(),
-            ContentType = "text/csv; charset=utf-8"
+            ContentType = GetContentType(format)
         };
 
         var uploadDto = new FileUploadDto

@@ -363,7 +363,7 @@ public static class ServiceCollectionExtensions
     /// 添加 SaaS 导出中心基础设施
     /// </summary>
     /// <remarks>
-    /// 导出引擎：执行器 + CSV 写出器 + 逐资源登记的 <see cref="IExportProvider"/>（首版 system.user / log.operation）；
+    /// 导出引擎：执行器 + CSV/Xlsx 写出器 + 逐资源登记的 <see cref="IExportProvider"/>（首版 system.user / log.operation）；
     /// 后台 <see cref="ExportTaskHostedService"/> 轮询 Pending 任务异步执行。
     /// 导出任务仓储（<c>IExportTaskRepository</c>）随 <c>SaasRepository</c> 的 <c>IScopedDependency</c> 自动注册。
     /// </remarks>
@@ -374,6 +374,7 @@ public static class ServiceCollectionExtensions
         // 导出引擎
         services.AddScoped<IExportExecutor, ExportExecutor>();
         services.AddSingleton<IExportWriter, CsvExportWriter>();
+        services.AddSingleton<IExportWriter, XlsxExportWriter>();
 
         // 导出 Provider（逐资源登记；新增资源在此追加一行）
         services.AddScoped<IExportProvider, UserExportProvider>();
