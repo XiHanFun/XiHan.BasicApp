@@ -42,14 +42,18 @@ function readResponseLogFields(payload: unknown) {
 }
 
 /**
- * 读取 423 响应体里的锁屏展示信息。
+ * 读取 423 响应体里的会话锁定信息。
  *
- * 锁屏期间用户信息接口本身也被 423 挡住，所以"是谁锁的"由服务端在 423 的 data 里直接回传——
+ * 锁定期间用户信息接口本身也被 423 挡住，所以"锁的是谁"由服务端在 423 的 data 里直接回传——
  * 这比为了拿头像昵称而放行整个用户信息接口泄露更少。
+ *
+ * `reason` 由应用侧定义（框架只透传）：锁定不等于锁屏——锁屏只是原因之一，
+ * 将来可能有风控挂起、强制改密等，客户端据此决定引导哪种解锁方式。
  */
 function readLockPayload(payload: unknown) {
   const data = asRecord(asRecord(payload)?.data)
   return {
+    reason: typeof data?.reason === 'string' ? data.reason : null,
     displayName: typeof data?.displayName === 'string' ? data.displayName : null,
     avatarUrl: typeof data?.avatarUrl === 'string' ? data.avatarUrl : null,
   }
@@ -73,15 +77,23 @@ export function bindLogoutHook(hook: () => void) {
   _logoutHook = hook
 }
 
+/** 服务端 423 回传的会话锁定信息 */
+export interface SessionLockedPayload {
+  /** 锁定原因（应用侧定义，框架只透传）。锁屏只是其中一种 */
+  reason?: string | null
+  displayName?: string | null
+  avatarUrl?: string | null
+}
+
 /**
- * 服务端判定会话已锁屏（HTTP 423）时的回调，由应用层注入以拉起锁屏遮罩。
+ * 服务端判定会话已锁定（HTTP 423）时的回调，由应用层注入以拉起锁定遮罩。
  *
- * 这是"服务端强制锁屏"的关键一环：任何请求被 423 拒绝，都会把本标签页拉回锁屏态——
+ * 这是"服务端强制锁定"的关键一环：任何请求被 423 拒绝，都会把本标签页拉回锁定态——
  * 于是新开标签页、刷新页面、乃至绕过前端直接调 API，都无法取得数据。
  * 注意**绝不能**走 forceLogout：用户身份仍然有效，只是会话被锁住。
  */
-let _lockHook: ((payload?: { displayName?: string | null, avatarUrl?: string | null }) => void) | null = null
-export function bindLockHook(hook: (payload?: { displayName?: string | null, avatarUrl?: string | null }) => void) {
+let _lockHook: ((payload?: SessionLockedPayload) => void) | null = null
+export function bindLockHook(hook: (payload?: SessionLockedPayload) => void) {
   _lockHook = hook
 }
 
