@@ -15,9 +15,10 @@ const {
   lockPwdNew,
   lockPwdConfirm,
   lockPwdError,
+  lockLoading,
   unlockPwd,
   unlockError,
-  hasLockPwd,
+  unlockLoading,
   confirmLock,
   doUnlock,
 } = useLockScreen()
@@ -57,7 +58,6 @@ const {
               </template>
             </NInput>
             <NInput
-              v-if="lockPwdNew"
               v-model:value="lockPwdConfirm"
               type="password"
               show-password-on="click"
@@ -74,7 +74,7 @@ const {
             <div v-if="lockPwdError" class="lock-screen-error">
               {{ lockPwdError }}
             </div>
-            <button type="submit" class="unlock-btn" style="margin-top: 12px">
+            <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="lockLoading">
               <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                 <Icon icon="lucide:lock" />
               </NIcon>
@@ -83,12 +83,12 @@ const {
           </form>
         </template>
 
-        <!-- ② 已锁定，输入锁屏密码 -->
+        <!-- ② 已锁定，输入锁屏密码（口令由服务端校验；无密码解锁与 Esc 解锁已移除——那是绕过口） -->
         <template v-else-if="lockMode === 'locked'">
           <div class="lock-screen-hint">
-            {{ hasLockPwd ? t('component.lock_screen.input_password_hint') : t('component.lock_screen.press_unlock_hint') }}
+            {{ t('component.lock_screen.input_password_hint') }}
           </div>
-          <form v-if="hasLockPwd" class="lock-screen-input-wrap" @submit.prevent="doUnlock">
+          <form class="lock-screen-input-wrap" @submit.prevent="doUnlock">
             <NInput
               v-model:value="unlockPwd"
               type="password"
@@ -105,19 +105,13 @@ const {
             <div v-if="unlockError" class="lock-screen-error">
               {{ unlockError }}
             </div>
-            <button type="submit" class="unlock-btn" style="margin-top: 12px">
+            <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="unlockLoading">
               <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
                 <Icon icon="lucide:lock-open" />
               </NIcon>
               {{ t('component.lock_screen.unlock_btn') }}
             </button>
           </form>
-          <button v-else class="unlock-btn" @click="doUnlock">
-            <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
-              <Icon icon="lucide:lock-open" />
-            </NIcon>
-            {{ t('component.lock_screen.unlock_btn') }}
-          </button>
         </template>
       </div>
     </div>

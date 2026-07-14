@@ -480,7 +480,6 @@ export default {
     confirm_password_placeholder: 'Confirm password',
     confirm_lock_btn: 'Confirm Lock',
     input_password_hint: 'Please enter lock screen password',
-    press_unlock_hint: 'Press the unlock button to continue',
     password_placeholder: 'Lock screen password',
     unlock_btn: 'Unlock',
   },

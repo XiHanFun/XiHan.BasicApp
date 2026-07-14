@@ -480,7 +480,6 @@ export default {
     confirm_password_placeholder: '确认密码',
     confirm_lock_btn: '确认锁屏',
     input_password_hint: '请输入锁屏密码',
-    press_unlock_hint: '按下解锁按钮继续',
     password_placeholder: '锁屏密码',
     unlock_btn: '解锁',
   },
