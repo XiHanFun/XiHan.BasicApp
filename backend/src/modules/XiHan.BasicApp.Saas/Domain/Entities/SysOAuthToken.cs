@@ -57,7 +57,6 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_AcJti", nameof(AccessTokenJti), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_ReTo", nameof(RefreshToken), OrderByType.Asc)]
 [SugarIndex("IX_{table}_SeId", nameof(SessionId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
