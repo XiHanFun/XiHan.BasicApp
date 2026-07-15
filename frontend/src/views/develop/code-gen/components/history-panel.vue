@@ -3,9 +3,9 @@ import type {
   CodeGenHistoryDetailDto,
   CodeGenHistoryListItemDto,
   GenStatus,
+  PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { PageResult } from '~/types/contracts'
 import {
   NButton,
   NDescriptions,

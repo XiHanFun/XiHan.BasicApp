@@ -57,14 +57,8 @@ import {
   RoleType,
   ValidityStatus,
 } from '@/api'
+import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
-import {
-  DATA_SCOPE_OPTIONS,
-  PERMISSION_ACTION_OPTIONS,
-  ROLE_TYPE_OPTIONS,
-  STATUS_OPTIONS,
-  VALIDITY_STATUS_OPTIONS,
-} from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

@@ -8,7 +8,6 @@ import type {
   AppEnumBatchQuery,
   AppEnumDefinition,
   AppEnumNameQuery,
-  AppPageSummary,
   ChangeEmailParams,
   ChangePasswordParams,
   ChangePhoneParams,
@@ -31,6 +30,7 @@ import type {
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
+  SwitchTenantParams,
   TwoFactorSetupResult,
   UpdateProfileParams,
   UserActivity,
@@ -39,30 +39,12 @@ import type {
   UserSessionItem,
   VerificationCodeResult,
 } from '~/types'
+import { ResourceAccessLevel } from '@/api/modules/authorization'
 import { fileApi } from '@/api/modules/files'
-import { logManagementApi } from '@/api/modules/log'
 import { chatApi } from '@/api/modules/messaging'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
 import { departmentApi } from '@/api/modules/organization'
-import {
-  appManagementApi,
-  approvalManagementApi,
-  cacheManagementApi,
-  configManagementApi,
-  dictManagementApi,
-  fileManagementApi,
-  jobManagementApi,
-  menuManagementApi,
-  serverManagementApi,
-  tenantManagementApi,
-} from '@/api/modules/platform'
-import {
-  messageCenterApi,
-  orgManagementApi,
-  permissionCenterApi,
-  roleManagementApi,
-  userManagementApi,
-} from '@/api/modules/system'
+import { tenantApi } from '@/api/modules/tenant'
 import { workbenchApi } from '@/api/modules/workbench'
 import { requestClient } from '@/api/request'
 import { router } from '@/router'
@@ -74,15 +56,6 @@ const viewModules = import.meta.glob('/src/views/**/*.vue')
 const defaultLoginConfig: LoginConfig = {
   loginMethods: ['password'],
   oAuthProviders: [],
-}
-
-function emptyPage(input?: { page?: number, pageSize?: number }): AppPageSummary {
-  return {
-    items: [],
-    page: input?.page ?? 1,
-    pageSize: input?.pageSize ?? 20,
-    total: 0,
-  }
 }
 
 function emptyEnum(name: string): AppEnumDefinition {
@@ -262,6 +235,15 @@ function createProfileApis() {
     getFilePresignedUrlApi(fileId: string) {
       return fileApi.generatePresignedUrl(fileId)
     },
+    // 访问级别与存储目录属应用策略，由 src 决定；契约层只承诺"上传头像 → 拿到文件主键"，
+    // 不把 ResourceAccessLevel 这类纯业务枚举泄漏进 packages
+    async uploadAvatarApi(file: File, onProgress?: (percent: number) => void) {
+      const detail = await fileApi.upload(
+        { file, accessLevel: ResourceAccessLevel.Public, directory: 'avatars' },
+        onProgress,
+      )
+      return { fileId: detail.basicId }
+    },
     getLinkedAccountsApi() {
       return requestClient.get<ExternalLoginItem[]>('/Profile/LinkedAccounts')
     },
@@ -316,11 +298,6 @@ function createProfileApis() {
 
 function createShellApis() {
   return {
-    accessLogApi: {
-      page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<AppPageSummary>('/AccessLogQuery/AccessLogPage', emptyPage(input))
-      },
-    },
     enumApi: {
       // 复用既有可用端点 /EnumMetadata/AllEnums（DynamicApi 约定去掉 Get 前缀），按名筛选并映射为
       // AppEnumDefinition；淘汰原先 404 的 /Enum/Batch、/Enum/ByName 重复实现。结果由 useEnumService 缓存。
@@ -396,19 +373,9 @@ function createShellApis() {
         return requestClient.post<unknown>('/ExportTask/Submit', input)
       },
     },
-    operationLogApi: {
-      page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<AppPageSummary>('/OperationLogQuery/OperationLogPage', emptyPage(input))
-      },
-    },
     serverApi: {
       getNuGetPackages() {
         return getWithFallback<AppBackendDependency[]>('/Server/NuGetPackages', [])
-      },
-    },
-    userApi: {
-      page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<AppPageSummary>('/UserQuery/UserPage', emptyPage(input))
       },
     },
     userInboxApi: {
@@ -435,11 +402,6 @@ function createShellApis() {
       },
       popup() {
         return workbenchApi.inbox.popup()
-      },
-    },
-    userSessionApi: {
-      page(input: { page?: number, pageSize?: number }) {
-        return getWithFallback<AppPageSummary>('/UserSessionQuery/UserSessionPage', emptyPage(input))
       },
     },
   }
@@ -512,29 +474,12 @@ function createChatApis() {
   return { chatApi: composed }
 }
 
-function createMenuPageApis() {
+function createTenantApis() {
   return {
-    logManagementApi,
-    platformApi: {
-      app: appManagementApi,
-      approval: approvalManagementApi,
-      cache: cacheManagementApi,
-      config: configManagementApi,
-      dict: dictManagementApi,
-      file: fileManagementApi,
-      job: jobManagementApi,
-      menu: menuManagementApi,
-      server: serverManagementApi,
-      tenant: tenantManagementApi,
+    tenantApi: {
+      myAvailableTenants: () => tenantApi.myAvailableTenants(),
+      switchTenant: (input: SwitchTenantParams) => tenantApi.switchTenant(input),
     },
-    systemApi: {
-      message: messageCenterApi,
-      org: orgManagementApi,
-      permission: permissionCenterApi,
-      role: roleManagementApi,
-      user: userManagementApi,
-    },
-    workbenchApi,
   }
 }
 
@@ -544,7 +489,7 @@ export function createApplicationApis() {
     ...createProfileApis(),
     ...createShellApis(),
     ...createChatApis(),
-    ...createMenuPageApis(),
+    ...createTenantApis(),
   }
 }
 
@@ -555,5 +500,12 @@ export function registerApplicationContext(appRouter: Router = router) {
     getRouter: () => Promise.resolve(appRouter),
     getStaticRoutes: () => staticRoutes,
     viewModules,
+    // shell 要跳转、但由本应用（路由表 / 后端 PageRegistry）定义的路径
+    shellRoutes: {
+      profile: '/workbench/profile',
+      controlCenter: '/control-center',
+      inbox: '/workbench/inbox',
+      chat: '/message/chat',
+    },
   })
 }

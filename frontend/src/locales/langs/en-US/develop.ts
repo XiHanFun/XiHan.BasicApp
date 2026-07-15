@@ -299,8 +299,6 @@ export default {
       generate_failed: 'Generation failed',
       generate_success: '{count} file(s) generated, downloading',
       no_package: 'Generated successfully but no package returned',
-      copy_code: 'Copy',
-      copy_success: 'Copied',
     },
     table_edit: {
       title: 'Edit Table Configuration',

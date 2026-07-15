@@ -35,9 +35,9 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
+import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
 import CronExpression from '~/components/common/CronExpression.vue'
-import { STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

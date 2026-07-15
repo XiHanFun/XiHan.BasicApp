@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Icon } from '@iconify/vue/offline'
 import {
   NButton,
   NEmpty,
@@ -13,7 +14,6 @@ import {
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '~/iconify'
 import { ICON_SET_META, loadIconNames } from './offline'
 
 defineOptions({ name: 'IconPicker' })

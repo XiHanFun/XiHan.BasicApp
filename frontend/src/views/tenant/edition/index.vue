@@ -37,8 +37,8 @@ import {
   tenantEditionPermissionApi,
   ValidityStatus,
 } from '@/api'
+import { PERMISSION_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
-import { PERMISSION_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

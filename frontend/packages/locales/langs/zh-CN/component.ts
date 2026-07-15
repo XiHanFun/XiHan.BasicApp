@@ -483,6 +483,10 @@ export default {
     password_placeholder: '锁屏密码',
     unlock_btn: '解锁',
   },
+  code_highlight: {
+    copy: '复制',
+    copy_success: '已复制',
+  },
   md_editor: {
     placeholder: '请输入 Markdown 内容...',
   },

@@ -12,7 +12,7 @@ import type {
 } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { useSignalR } from '~/composables'
+import { useSignalR } from '~/composables/useSignalR'
 import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH } from '~/constants'
 import { ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'

@@ -3,9 +3,9 @@ import type {
   KnowledgeCitationDto,
   KnowledgeIngestDto,
   KnowledgeListItemDto,
+  PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { PageResult } from '~/types/contracts'
 import {
   NButton,
   NCard,

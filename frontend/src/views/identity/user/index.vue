@@ -53,8 +53,8 @@ import {
   UserGender,
   userManagementApi,
 } from '@/api'
+import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
-import { GENDER_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'

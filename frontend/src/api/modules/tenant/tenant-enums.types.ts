@@ -40,13 +40,6 @@ export enum TenantMemberInviteStatus {
   Expired = 'Expired',
 }
 
-/** 与后端 JsonStringEnumConverter 序列化值一致 */
-export enum TenantMemberType {
-  Owner = 'Owner',
-  Admin = 'Admin',
-  Member = 'Member',
-  External = 'External',
-  Guest = 'Guest',
-  Consultant = 'Consultant',
-  PlatformAdmin = 'PlatformAdmin',
-}
+// 成员类型契约枚举已下沉到 packages/types/enums（供 _core 控制中心 / 个人中心「我的租户」复用），
+// 此处反向 re-export 保持 `@/api` 入口不变（先例：src/api/modules/messaging/notification.types.ts）
+export { TenantMemberType } from '~/types/enums'

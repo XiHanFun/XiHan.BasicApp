@@ -7,7 +7,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAuthStore } from '~/stores'
+import { useAppContext, useAuthStore } from '~/stores'
 
 defineOptions({ name: 'OAuthCallbackPage' })
 
@@ -16,6 +16,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const appContext = useAppContext()
 const message = useMessage()
 
 const loading = ref(true)
@@ -41,7 +42,11 @@ onMounted(async () => {
       message.error(BIND_ERROR_TEXT[bind] ?? t('page.auth.oauth_bind_failed'))
     }
     setTimeout(() => {
-      void router.push({ path: '/workbench/profile', query: { tab: 'binding' } })
+      // 个人中心路由由应用注册；未配置时回落到首页，别把用户扔到一个不存在的路径上
+      const profilePath = appContext.shellRoutes.profile
+      void (profilePath
+        ? router.push({ path: profilePath, query: { tab: 'binding' } })
+        : router.push('/'))
     }, 1200)
     return
   }

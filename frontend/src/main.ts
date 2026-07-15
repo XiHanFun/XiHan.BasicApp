@@ -10,6 +10,7 @@ import { resetSetupStorePlugin } from '~/stores/plugins'
 import App from './App.vue'
 import { registerApplicationContext } from './app/context'
 import { setupGlobalErrorHandler } from './app/error-handler'
+import { setupBusinessLocales } from './locales'
 import { router } from './router'
 import './styles/index.css'
 
@@ -24,6 +25,8 @@ import './styles/index.css'
 
   app.use(pinia)
   setupI18n(app)
+  // packages 的 i18n 只带 shell 文案；业务命名空间由应用侧注册（须在 mount 之前，否则首屏出裸 key）
+  setupBusinessLocales()
 
   bindRouter(router)
   bindLogoutHook(() => {

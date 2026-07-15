@@ -90,7 +90,7 @@ export const coreRoutes: RouteRecordRaw[] = [
 ]
 
 /** 递归提取路由树中的所有 name */
-function collectRouteNames(routes: RouteRecordRaw[]): string[] {
+export function collectRouteNames(routes: RouteRecordRaw[]): string[] {
   const names: string[] = []
   for (const route of routes) {
     if (route.name)

@@ -128,7 +128,7 @@ async function handleCopy() {
     <div class="xh-code__bar">
       <span class="xh-code__lang">{{ languageBadge }}</span>
       <button v-if="copyable" type="button" class="xh-code__copy" @click="handleCopy">
-        {{ copied ? t('develop.code_gen.generate.copy_success') : t('develop.code_gen.generate.copy_code') }}
+        {{ copied ? t('component.code_highlight.copy_success') : t('component.code_highlight.copy') }}
       </button>
     </div>
     <pre class="xh-code__pre" :style="{ maxHeight }"><code class="hljs" v-html="highlightedHtml" /></pre>

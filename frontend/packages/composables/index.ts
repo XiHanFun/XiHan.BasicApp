@@ -1,4 +1,4 @@
-export * from './useAccessDirective'
+export * from './session-lock'
 export * from './useAvatarUrl'
 export * from './useContainerTransform'
 export * from './useDynamicIsland'

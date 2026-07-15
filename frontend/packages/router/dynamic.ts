@@ -11,14 +11,12 @@ const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
 // 后端 Component 路径（PascalCase）→ 前端实际文件路径（kebab-case）的别名映射
 const componentAliasMap: Record<string, string> = {
   // _core 特殊映射（packages/views/_core 不在 src/views 目录下）
-  '_core/dashboard/index': '_core/dashboard/index',
   '_core/about/index': '_core/about/index',
   '_core/profile/index': '_core/profile/index',
 }
 
 // packages 自身的 _core 视图映射（使用 ~/ 引用，无需从 src 注入）
 const coreComponentMap: Record<string, () => Promise<unknown>> = {
-  '_core/dashboard/index': () => import('~/views/_core/dashboard/index.vue'),
   '_core/about/index': () => import('~/views/_core/about/index.vue'),
   '_core/profile/index': () => import('~/views/_core/profile/index.vue'),
 }

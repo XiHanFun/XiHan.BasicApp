@@ -13,7 +13,6 @@ import {
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fileApi, ResourceAccessLevel } from '@/api'
 import { XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
@@ -182,16 +181,9 @@ async function handleAvatarChange(event: Event) {
   // 灵动岛实时进度（确定性进度条）
   const task = islandStart('avatar-upload', t('island.avatar.uploading'), { icon: 'lucide:image-up', progress: 0 })
   try {
-    const detail = await fileApi.upload(
-      {
-        file,
-        accessLevel: ResourceAccessLevel.Public,
-        directory: 'avatars',
-      },
-      percent => task.setProgress(percent),
-    )
+    const { fileId } = await apis.uploadAvatarApi(file, percent => task.setProgress(percent))
     // user.avatar 存文件主键(fileId)，显示时再换取预签名 URL
-    await persistAvatar(detail.basicId)
+    await persistAvatar(fileId)
     task.success(t('island.avatar.updated'))
   }
   catch (e: unknown) {

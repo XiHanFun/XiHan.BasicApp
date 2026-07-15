@@ -1,20 +1,21 @@
 <script lang="ts" setup>
-import type { TenantSwitcherDto } from '@/api'
+import type { AppTenantSwitcherItem } from '~/types'
 import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { tenantApi, TenantMemberType } from '@/api'
 import { XUserAvatar } from '~/components'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAccessStore, useAppStore, useAuthStore, useUserStore } from '~/stores'
+import { useAccessStore, useAppContext, useAppStore, useAuthStore, useUserStore } from '~/stores'
+import { TenantMemberType } from '~/types/enums'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ControlCenter' })
 
 const { t } = useI18n()
 const message = useMessage()
+const { apis } = useAppContext()
 const accessStore = useAccessStore()
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -22,14 +23,14 @@ const userStore = useUserStore()
 
 // 成员类型走后端枚举元数据（本地化、切语言响应式重取），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
 const memberTypeOptions = useEnumOptions('TenantMemberType', MEMBER_TYPE_OPTIONS)
-function memberTypeLabel(value: TenantSwitcherDto['memberType']) {
+function memberTypeLabel(value: AppTenantSwitcherItem['memberType']) {
   return getOptionLabel(memberTypeOptions.value, value)
 }
 
 const loading = ref(false)
 const loaded = ref(false)
 const switching = ref(false)
-const tenants = ref<TenantSwitcherDto[]>([])
+const tenants = ref<AppTenantSwitcherItem[]>([])
 
 /** 是否可进入平台管理（超管 / 平台管理员）——角色派生，稳定，仅用于是否展示平台分组 */
 const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?? false)
@@ -48,7 +49,7 @@ const brandLogo = computed(() => appStore.brandLogo)
 async function loadTenants() {
   loading.value = true
   try {
-    tenants.value = await tenantApi.myAvailableTenants()
+    tenants.value = await apis.tenantApi.myAvailableTenants()
     loaded.value = true
   }
   catch (e: unknown) {
@@ -60,13 +61,13 @@ async function loadTenants() {
 }
 
 /** 进入租户：重签发令牌后整页重载，让新上下文的权限/菜单重新引导（允许再次进入当前租户） */
-async function enterTenant(tenant: TenantSwitcherDto) {
+async function enterTenant(tenant: AppTenantSwitcherItem) {
   if (switching.value) {
     return
   }
   switching.value = true
   try {
-    const token = await tenantApi.switchTenant({ tenantId: String(tenant.tenantId) })
+    const token = await apis.tenantApi.switchTenant({ tenantId: String(tenant.tenantId) })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
     message.success(t('page.control_center.switched', { name: tenant.tenantName }))
@@ -86,7 +87,7 @@ async function enterPlatform() {
   switching.value = true
   try {
     // tenantId 传 null → 后端归一为平台运维态（无租户上下文）
-    const token = await tenantApi.switchTenant({ tenantId: null })
+    const token = await apis.tenantApi.switchTenant({ tenantId: null })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
     message.success(t('page.control_center.switched_platform'))

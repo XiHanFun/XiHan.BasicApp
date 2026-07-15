@@ -35,12 +35,8 @@ import {
   roleApi,
   userManagementApi,
 } from '@/api'
+import { FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
-import {
-  FIELD_MASK_STRATEGY_OPTIONS,
-  FIELD_SECURITY_TARGET_TYPE_OPTIONS,
-  STATUS_OPTIONS,
-} from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
