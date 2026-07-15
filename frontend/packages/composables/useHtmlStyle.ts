@@ -1,5 +1,5 @@
 import { watchEffect } from 'vue'
-import { useTheme } from '~/hooks'
+import { useTheme } from '~/hooks/useTheme'
 import { useAppStore } from '~/stores'
 
 /**

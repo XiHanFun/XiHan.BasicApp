@@ -22,7 +22,6 @@ import {
   HttpMethodType,
   MenuType,
   NotificationStatus,
-  NotificationType,
   OAuthAppType,
   OperationCategory,
   OperationTypeCode,
@@ -41,14 +40,13 @@ import {
   TenantDatabaseType,
   TenantIsolationMode,
   TenantMemberInviteStatus,
-  TenantMemberType,
   TenantStatus,
   TriggerType,
   TwoFactorMethod,
   UserGender,
   ValidityStatus,
   ViolationAction,
-} from '../../src/api'
+} from '@/api'
 
 // ==================== 性别 ====================
 
@@ -143,15 +141,9 @@ export const TENANT_CONFIG_STATUS_OPTIONS = [
   { label: '已停用', value: TenantConfigStatus.Disabled },
 ]
 
-export const MEMBER_TYPE_OPTIONS = [
-  { label: '租户所有者', value: TenantMemberType.Owner },
-  { label: '租户管理员', value: TenantMemberType.Admin },
-  { label: '普通成员', value: TenantMemberType.Member },
-  { label: '外部协作者', value: TenantMemberType.External },
-  { label: '访客', value: TenantMemberType.Guest },
-  { label: '顾问', value: TenantMemberType.Consultant },
-  { label: '平台管理员', value: TenantMemberType.PlatformAdmin },
-]
+// MEMBER_TYPE_OPTIONS 在 `~/constants/tenant`：消费方是 packages 层 shell 页（控制中心 / 我的租户），
+// 不能反向依赖 src，故随 TenantMemberType 一起留在 packages。此处 re-export 保持 `@/constants` 入口不变。
+export { MEMBER_TYPE_OPTIONS } from '~/constants'
 
 export const MEMBER_INVITE_STATUS_OPTIONS = [
   { label: '待接受', value: TenantMemberInviteStatus.Pending },
@@ -503,13 +495,8 @@ export const VIOLATION_ACTION_OPTIONS = [
 
 // ==================== 通知 ====================
 
-export const NOTIFICATION_TYPE_OPTIONS = [
-  { label: '系统公告', value: NotificationType.System },
-  { label: '安全通知', value: NotificationType.Security },
-  { label: '业务通知', value: NotificationType.Business },
-  { label: '待办通知', value: NotificationType.Todo },
-  { label: '紧急通知', value: NotificationType.Emergency },
-]
+// NOTIFICATION_TYPE_OPTIONS 在 `~/constants/notification`：
+// 它的消费方是 packages 层的通知组件，不能反向依赖 src，故随枚举一起留在 packages。
 
 export const NOTIFICATION_STATUS_OPTIONS = [
   { label: '未读', value: NotificationStatus.Unread },

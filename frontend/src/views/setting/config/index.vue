@@ -35,8 +35,8 @@ import {
   EnableStatus,
   querySortsFromSchema,
 } from '@/api'
+import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
-import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

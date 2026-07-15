@@ -7,7 +7,16 @@ import type {
 import type { Router } from 'vue-router'
 import type { ApiResponse } from '~/types'
 import axios from 'axios'
-import { APP_TIMEZONE_KEY, BIZ_CODE, DEFAULT_LOCALE, HTTP_STATUS, LOCALE_KEY, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
+import {
+  APP_TIMEZONE_KEY,
+  BIZ_CODE,
+  DEFAULT_LOCALE,
+  HTTP_STATUS,
+  LOCALE_KEY,
+  LOGIN_PATH,
+  REFRESH_TOKEN_KEY,
+  TOKEN_KEY,
+} from '~/constants'
 import { i18n } from '~/locales'
 import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
 import {

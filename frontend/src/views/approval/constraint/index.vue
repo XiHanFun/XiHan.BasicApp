@@ -44,8 +44,8 @@ import {
   tenantMemberApi,
   ViolationAction,
 } from '@/api'
+import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
-import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

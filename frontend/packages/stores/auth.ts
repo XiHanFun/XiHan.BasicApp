@@ -10,15 +10,18 @@ import type {
 } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { destroyAllSignalRConnections } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
+import { destroyAllSignalRConnections } from '~/composables/useSignalR'
 import { HOME_PATH, LOCK_STATE_KEY, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { mapMenuToRoutes } from '~/router/dynamic'
-import { CORE_ROUTE_NAMES } from '~/router/routes/core'
-import { useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
+import { collectRouteNames, CORE_ROUTE_NAMES } from '~/router/routes/core'
+import { useAccessStore } from './access'
+import { useAppStore } from './app'
 import { useAppContext } from './app-context'
 import { hydratePreferencesFromBackend, resetPreferenceBackendSync } from './helpers'
+import { useTabbarStore } from './tabbar'
+import { useUserStore } from './user'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore()
@@ -78,8 +81,9 @@ export const useAuthStore = defineStore('auth', () => {
     // 智能落点（先登录后选租户）：后端按成员关系决定登录态——
     // 未进入租户（tenantId 为空：平台账号/超管/多租户成员待选择）→ 控制中心；
     // 已直进唯一租户 → 正常首页/重定向。
-    if (!userInfo.tenantId) {
-      await router.replace('/control-center')
+    // 控制中心路由由应用注册（shellRoutes）；未配置的应用没有租户切换概念，直接走正常首页
+    if (!userInfo.tenantId && ctx.shellRoutes.controlCenter) {
+      await router.replace(ctx.shellRoutes.controlCenter)
       loginTask.success(i18n.global.t('island.auth.login_success'))
       return
     }
@@ -160,18 +164,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // 从 coreRoutes 自动派生，新增认证/错误路由时无需手动维护
-  const STATIC_ROUTE_NAMES = new Set([
-    'RootLayout',
-    'Profile',
-    'ControlCenter',
-    'EditorDemo',
-    ...CORE_ROUTE_NAMES,
-  ])
-
   async function logout() {
     const ctx = useAppContext()
     const router = await ctx.getRouter()
+    // 登出时保留的路由 = 应用侧静态路由（经 AppContext 注入，packages 不认识 RootLayout/EditorDemo 这些应用页名）
+    //                   + packages 自己的核心路由（登录/错误页）
+    // 原先是一份手写常量，却顶着「自动派生」的注释：它漏了 AboutProject / OAuthAuthorize，
+    // 导致登出再登录后这两页 404。改为真派生后，应用侧新增静态路由无需再回来改这里。
+    const staticRouteNames = new Set<string>([
+      ...collectRouteNames(ctx.getStaticRoutes()),
+      ...CORE_ROUTE_NAMES,
+      // 个人中心由后端菜单动态注册（coreComponentMap 的 '_core/profile/index'），不在静态路由表里
+      'Profile',
+    ])
     try {
       // 登出销毁全部 Hub 连接（通知/聊天等），不逐个枚举 hubPath
       await destroyAllSignalRConnections()
@@ -190,7 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const allRoutes = router.getRoutes()
       for (const route of allRoutes) {
-        if (route.name && !STATIC_ROUTE_NAMES.has(route.name as string)) {
+        if (route.name && !staticRouteNames.has(route.name as string)) {
           try {
             router.removeRoute(route.name)
           }

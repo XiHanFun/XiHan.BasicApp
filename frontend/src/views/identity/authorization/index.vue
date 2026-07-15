@@ -35,8 +35,8 @@ import {
   roleApi,
   userManagementApi,
 } from '@/api'
+import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
-import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

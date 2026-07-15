@@ -1,9 +1,17 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { MessageChannel } from './message-template.types'
-import { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationTargetType, NotificationType } from '~/types/enums'
+import { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
 
 // 通知契约枚举已下沉到 packages/types/enums（供布局通知中心等 shell 功能复用），此处 re-export 保持 `@/api` 入口不变
-export { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationTargetType, NotificationType }
+export { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType }
+
+/** 通知目标类型（与后端 JsonStringEnumConverter 序列化值一致）。仅后台发通知时选目标人群用，packages 零引用，故不下沉契约层 */
+export enum NotificationTargetType {
+  All = 'All',
+  Role = 'Role',
+  Department = 'Department',
+  User = 'User',
+}
 
 export interface NotificationPageQueryDto extends PageRequest {
   businessId?: ApiId | null

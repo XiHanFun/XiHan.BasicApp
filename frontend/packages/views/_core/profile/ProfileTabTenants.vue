@@ -1,37 +1,38 @@
 <script lang="ts" setup>
-import type { TenantSwitcherDto } from '@/api'
+import type { AppTenantSwitcherItem } from '~/types'
 import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { tenantApi, TenantMemberType } from '@/api'
 import { XUserAvatar } from '~/components'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAccessStore } from '~/stores'
+import { useAccessStore, useAppContext } from '~/stores'
+import { TenantMemberType } from '~/types/enums'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabTenants' })
 
 const message = useMessage()
+const { apis } = useAppContext()
 const accessStore = useAccessStore()
 const { t } = useI18n()
 
 // 成员类型走后端枚举元数据（本地化、切语言响应式重取），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
 const memberTypeOptions = useEnumOptions('TenantMemberType', MEMBER_TYPE_OPTIONS)
-function memberTypeLabel(value: TenantSwitcherDto['memberType']) {
+function memberTypeLabel(value: AppTenantSwitcherItem['memberType']) {
   return getOptionLabel(memberTypeOptions.value, value)
 }
 
 const loading = ref(false)
 const loaded = ref(false)
 const switching = ref(false)
-const tenants = ref<TenantSwitcherDto[]>([])
+const tenants = ref<AppTenantSwitcherItem[]>([])
 
 async function loadTenants() {
   loading.value = true
   try {
-    tenants.value = await tenantApi.myAvailableTenants()
+    tenants.value = await apis.tenantApi.myAvailableTenants()
     loaded.value = true
   }
   catch (e: unknown) {
@@ -49,7 +50,7 @@ async function switchTo(tenantId: string, label: string) {
   }
   switching.value = true
   try {
-    const token = await tenantApi.switchTenant({ tenantId })
+    const token = await apis.tenantApi.switchTenant({ tenantId })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
     message.success(t('component.profile.tenants.msg_switched_to', { label }))

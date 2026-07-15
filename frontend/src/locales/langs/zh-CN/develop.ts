@@ -299,8 +299,6 @@ export default {
       generate_failed: '生成失败',
       generate_success: '已生成 {count} 个文件，开始下载',
       no_package: '生成成功但未返回压缩包',
-      copy_code: '复制',
-      copy_success: '已复制',
     },
     table_edit: {
       title: '编辑表配置',

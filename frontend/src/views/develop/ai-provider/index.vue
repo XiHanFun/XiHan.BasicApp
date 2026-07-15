@@ -4,9 +4,9 @@ import type {
   AiProviderCreateDto,
   AiProviderListItemDto,
   AiProviderUpdateDto,
+  PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { PageResult } from '~/types/contracts'
 import {
   NButton,
   NForm,
@@ -30,8 +30,8 @@ import {
   EnableStatus,
   querySortsFromSchema,
 } from '@/api'
+import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
-import { STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 

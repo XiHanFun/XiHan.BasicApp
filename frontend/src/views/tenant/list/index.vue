@@ -50,16 +50,8 @@ import {
   ValidityStatus,
 } from '@/api'
 import XLogoUpload from '@/components/LogoUpload.vue'
+import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XUserAvatar } from '~/components'
-import {
-  MEMBER_INVITE_STATUS_OPTIONS,
-  MEMBER_TYPE_OPTIONS,
-  TENANT_CONFIG_STATUS_OPTIONS,
-  TENANT_DATABASE_TYPE_OPTIONS,
-  TENANT_ISOLATION_MODE_OPTIONS,
-  TENANT_STATUS_OPTIONS,
-  VALIDITY_STATUS_OPTIONS,
-} from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { ApiId, CodeGenTableListItemDto, GenStatus } from '@/api'
+import type { ApiId, CodeGenTableListItemDto, GenStatus, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { PageResult } from '~/types/contracts'
 import { NTag, useDialog, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -14,8 +13,8 @@ import {
   querySortsFromSchema,
   TEMPLATE_TYPE_OPTIONS,
 } from '@/api'
+import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
-import { STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import ColumnConfigModal from './column-config-modal.vue'

@@ -31,8 +31,8 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
+import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
-import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

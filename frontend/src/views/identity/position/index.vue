@@ -30,8 +30,8 @@ import {
   positionApi,
   querySortsFromSchema,
 } from '@/api'
+import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
-import { STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 

@@ -3,11 +3,11 @@ import type {
   CodeGenTemplateCreateDto,
   CodeGenTemplateListItemDto,
   CodeGenTemplateUpdateDto,
+  PageResult,
   TemplateEngine,
   TemplateType,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { PageResult } from '~/types/contracts'
 import {
   NButton,
   NForm,
@@ -34,8 +34,8 @@ import {
   TemplateEngine as TemplateEngineEnum,
   TemplateType as TemplateTypeEnum,
 } from '@/api'
+import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage } from '~/components'
-import { STATUS_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 

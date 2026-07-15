@@ -8,11 +8,12 @@ import type {
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
+  SwitchTenantParams,
   UserInfo,
   VerificationCodeResult,
 } from './auth'
 import type { ChatApiContract } from './chat'
-import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from './enums'
+import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
 import type {
   ApiCredentialItem,
   ApiCredentialSecret,
@@ -34,11 +35,43 @@ import type {
   UserSessionItem,
 } from './profile'
 
-export interface AppPageSummary {
-  items: unknown[]
-  page: number
-  pageSize: number
-  total: number
+/**
+ * 租户切换器条目：控制中心 / 个人中心「我的租户」只读这些字段。
+ *
+ * 刻意是 src 侧 `TenantSwitcherDto` 的**窄投影**而非全量下沉——后者会连坐把
+ * TenantStatus / TenantConfigStatus / TenantMemberInviteStatus 三个纯业务枚举拖进契约层。
+ * src 的 DTO 字段更多，结构上可直接赋值给它。
+ */
+export interface AppTenantSwitcherItem {
+  membershipId: string
+  tenantId: string
+  tenantCode: string
+  tenantName: string
+  tenantShortName?: null | string
+  logo?: null | string
+  domain?: null | string
+  memberType: TenantMemberType
+  isCurrent: boolean
+  joinedTime: string
+  membershipExpirationTime?: null | string
+}
+
+/**
+ * shell 需要跳转、但**由应用侧定义**的路由路径。
+ *
+ * 底层包不该认识 `/workbench/profile`、`/message/chat` 这类业务路径——它们由 src 的路由表
+ * 或后端 PageRegistry 定义，换一个应用就不存在，硬编码后点击即 404。
+ * 未配置的项，对应入口应隐藏（而不是留一个点了没反应的死按钮）。
+ */
+export interface AppShellRoutes {
+  /** 个人中心 */
+  profile?: string
+  /** 控制中心（登录后未进入租户时的落点；视图在 packages，但路由由应用注册） */
+  controlCenter?: string
+  /** 收件箱 / 消息中心 */
+  inbox?: string
+  /** 聊天全屏页 */
+  chat?: string
 }
 
 export interface AppBackendDependency {
@@ -114,10 +147,10 @@ export interface AppUserInboxDisplayItem extends AppUserInboxItem {
   isPopup: boolean
 }
 
-export interface AppContextApis extends Record<string, unknown> {
-  accessLogApi: {
-    page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
-  }
+// 刻意**不带**索引签名（`extends Record<string, unknown>`）：带上之后任何未声明的 key 都能塞进
+// ctx.apis 且类型检查通过（历史上 createMenuPageApis 的整块死注册就是这么活下来的），
+// 同时 `apis.typo` 也不报错（推成 unknown）。去掉后 packages 侧上百个 ctx.apis.* 调用点获得拼写保护。
+export interface AppContextApis {
   changePasswordApi: (input: ChangePasswordParams) => Promise<unknown>
   changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
   /** 在线聊天（会话/消息/成员 + 选人/部门树/附件上传，契约见 ~/types/chat） */
@@ -168,6 +201,13 @@ export interface AppContextApis extends Record<string, unknown> {
   updateNotificationPreferenceApi: (input: NotificationPreference) => Promise<NotificationPreference>
   /** 由文件主键(fileId)换取对象存储预签名访问 URL（<img> 可直接用、无需 token，会过期） */
   getFilePresignedUrlApi: (fileId: string) => Promise<string>
+  /** 上传头像，返回文件主键(fileId)。访问级别/存储目录属应用策略，由 src 决定，契约层不暴露业务枚举 */
+  uploadAvatarApi: (file: File, onProgress?: (percent: number) => void) => Promise<{ fileId: string }>
+  /** 租户切换（控制中心 / 个人中心「我的租户」）：tenantId 传 null → 退回平台运维态 */
+  tenantApi: {
+    myAvailableTenants: () => Promise<AppTenantSwitcherItem[]>
+    switchTenant: (input: SwitchTenantParams) => Promise<LoginToken>
+  }
   getLinkedAccountsApi: () => Promise<ExternalLoginItem[]>
   getLoginConfigApi: () => Promise<LoginConfig>
   getLoginLogsApi: (page: number, pageSize: number) => Promise<LoginLogPage & { page: number, pageSize: number }>
@@ -182,9 +222,6 @@ export interface AppContextApis extends Record<string, unknown> {
   lockSessionApi: (input: { password: string }) => Promise<unknown>
   /** 解锁：口令由服务端 PBKDF2 校验；连续失败 5 次服务端会直接吊销会话 */
   unlockSessionApi: (input: { password: string }) => Promise<unknown>
-  operationLogApi: {
-    page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
-  }
   phoneLoginApi: (input: PhoneLoginParams) => Promise<LoginToken>
   sendEmailLoginCodeApi: (email: string) => Promise<VerificationCodeResult>
   registerApi: (input: unknown) => Promise<unknown>
@@ -205,9 +242,6 @@ export interface AppContextApis extends Record<string, unknown> {
   setup2FAApi: () => Promise<TwoFactorSetupResult>
   unlinkAccountApi: (provider: string) => Promise<unknown>
   updateProfileApi: (input: UpdateProfileParams) => Promise<UserProfile>
-  userApi: {
-    page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
-  }
   userInboxApi: {
     banner: () => Promise<AppUserInboxDisplayItem[]>
     confirm: (id: string, userId?: string, tenantId?: null | string) => Promise<unknown>
@@ -217,9 +251,6 @@ export interface AppContextApis extends Record<string, unknown> {
     markPopupShown: (id: string) => Promise<unknown>
     markRead: (id: string, userId?: string, tenantId?: null | string) => Promise<unknown>
     popup: () => Promise<AppUserInboxDisplayItem[]>
-  }
-  userSessionApi: {
-    page: (input: { page?: number, pageSize?: number }) => Promise<AppPageSummary>
   }
   verifyEmailApi: (code: string) => Promise<unknown>
   verifyPhoneApi: (code: string) => Promise<unknown>

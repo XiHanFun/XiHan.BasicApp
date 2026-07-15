@@ -30,7 +30,7 @@ import {
   TEMPLATE_TYPE_OPTIONS,
   TemplateType as TemplateTypeEnum,
 } from '@/api'
-import { STATUS_OPTIONS } from '~/constants'
+import { STATUS_OPTIONS } from '@/constants'
 import { useEnumOptions } from '~/hooks'
 
 defineOptions({ name: 'CodeGenTableEditModal' })

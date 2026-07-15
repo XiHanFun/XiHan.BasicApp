@@ -178,17 +178,23 @@ const shortcutKbdStyle = [
 ].join(';')
 
 const userOptions = computed<DropdownOption[]>(() => [
-  {
-    label: t('header.user.profile'),
-    key: 'profile',
-    icon: () => h(Icon, { icon: 'lucide:user' }),
-  },
-  {
-    // 控制中心：切换租户 / 进入平台管理（独立公共页，不进标签栏）。标签复用 menu.control_center，与路由名、页面标题同源
-    label: t('menu.control_center'),
-    key: 'control-center',
-    icon: () => h(Icon, { icon: 'lucide:building-2' }),
-  },
+  // 个人中心 / 控制中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，
+  // 免得留一个点了没反应的死菜单
+  ...(appContext.shellRoutes.profile
+    ? [{
+        label: t('header.user.profile'),
+        key: 'profile',
+        icon: () => h(Icon, { icon: 'lucide:user' }),
+      }]
+    : []),
+  ...(appContext.shellRoutes.controlCenter
+    ? [{
+        // 控制中心：切换租户 / 进入平台管理（独立公共页，不进标签栏）。标签复用 menu.control_center，与路由名、页面标题同源
+        label: t('menu.control_center'),
+        key: 'control-center',
+        icon: () => h(Icon, { icon: 'lucide:building-2' }),
+      }]
+    : []),
   ...(appStore.widgetLockScreen
     ? [
         {
@@ -223,12 +229,12 @@ async function handleUserAction(key: string) {
     await authStore.logout()
     return
   }
-  if (key === 'profile') {
-    router.push('/workbench/profile')
+  if (key === 'profile' && appContext.shellRoutes.profile) {
+    router.push(appContext.shellRoutes.profile)
     return
   }
-  if (key === 'control-center') {
-    router.push('/control-center')
+  if (key === 'control-center' && appContext.shellRoutes.controlCenter) {
+    router.push(appContext.shellRoutes.controlCenter)
     return
   }
   if (key === 'lock') {
@@ -366,7 +372,9 @@ async function handleNotificationMarkAllRead() {
 }
 
 function handleNotificationViewAll() {
-  router.push('/workbench/inbox')
+  if (appContext.shellRoutes.inbox) {
+    router.push(appContext.shellRoutes.inbox)
+  }
 }
 
 // SignalR 推送节流：2 秒内多次推送只触发一次全量刷新

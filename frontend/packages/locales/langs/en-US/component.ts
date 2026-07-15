@@ -483,6 +483,10 @@ export default {
     password_placeholder: 'Lock screen password',
     unlock_btn: 'Unlock',
   },
+  code_highlight: {
+    copy: 'Copy',
+    copy_success: 'Copied',
+  },
   md_editor: {
     placeholder: 'Enter Markdown content...',
   },
