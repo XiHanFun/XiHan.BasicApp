@@ -94,7 +94,7 @@ public sealed class LoginSessionDomainService
             LoginTime = now,
             LastActivityTime = now,
             Status = SessionStatus.Active,
-            ExpirationTime = ToDateTimeOffset(tokenResult.ExpiresAt)
+            ExpirationTime = ToDateTimeOffset(tokenResult.RefreshTokenExpiresAt)
         };
 
         session = await _userSessionRepository.AddAsync(session, cancellationToken);
@@ -112,7 +112,7 @@ public sealed class LoginSessionDomainService
             Scopes = SaasOAuthClientIds.DefaultScope,
             Status = EnableStatus.Enabled,
             AccessTokenExpirationTime = ToDateTimeOffset(tokenResult.ExpiresAt),
-            RefreshTokenExpirationTime = now.AddDays(7),
+            RefreshTokenExpirationTime = ToDateTimeOffset(tokenResult.RefreshTokenExpiresAt),
             IsRevoked = false
         };
 
