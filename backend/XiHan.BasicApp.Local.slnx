@@ -15,8 +15,55 @@
   <Folder Name="/1.src/2.Modules/3.AI/">
     <Project Path="src/modules/XiHan.BasicApp.AI/XiHan.BasicApp.AI.Local.csproj" />
   </Folder>
+  <Folder Name="/1.src/2.Modules/4.Workflow/">
+    <Project Path="src/modules/XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.Local.csproj" />
+  </Folder>
   <Folder Name="/1.src/3.Business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
-  <Folder Name="/1.src/3.Business/1.Blog/" />
+  <Folder Name="/1.src/3.Business/1-1.OA/">
+    <Project Path="src/business/XiHan.BasicApp.OA/XiHan.BasicApp.OA.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/1-2.CMS/">
+    <Project Path="src/business/XiHan.BasicApp.CMS/XiHan.BasicApp.CMS.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/2-1.CRM/">
+    <Project Path="src/business/XiHan.BasicApp.CRM/XiHan.BasicApp.CRM.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/2-2.HRM/">
+    <Project Path="src/business/XiHan.BasicApp.HRM/XiHan.BasicApp.HRM.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/3-1.FMS/">
+    <Project Path="src/business/XiHan.BasicApp.FMS/XiHan.BasicApp.FMS.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/3-2.EAM/">
+    <Project Path="src/business/XiHan.BasicApp.EAM/XiHan.BasicApp.EAM.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/4-1.ERP/">
+    <Project Path="src/business/XiHan.BasicApp.ERP/XiHan.BasicApp.ERP.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/4-2.SCM/">
+    <Project Path="src/business/XiHan.BasicApp.SCM/XiHan.BasicApp.SCM.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/4-3.WMS/">
+    <Project Path="src/business/XiHan.BasicApp.WMS/XiHan.BasicApp.WMS.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/5-1.PLM/">
+    <Project Path="src/business/XiHan.BasicApp.PLM/XiHan.BasicApp.PLM.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/5-2.APS/">
+    <Project Path="src/business/XiHan.BasicApp.APS/XiHan.BasicApp.APS.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/5-3.MES/">
+    <Project Path="src/business/XiHan.BasicApp.MES/XiHan.BasicApp.MES.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/5-4.QMS/">
+    <Project Path="src/business/XiHan.BasicApp.QMS/XiHan.BasicApp.QMS.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/5-5.TMS/">
+    <Project Path="src/business/XiHan.BasicApp.TMS/XiHan.BasicApp.TMS.Local.csproj" />
+  </Folder>
+  <Folder Name="/1.src/3.Business/6-1.BI/">
+    <Project Path="src/business/XiHan.BasicApp.BI/XiHan.BasicApp.BI.Local.csproj" />
+  </Folder>
   <Folder Name="/1.src/4.Main/" Id="d2d033ac-57c1-ffc6-883a-a6944cad0e51">
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.Local.csproj" />
   </Folder>

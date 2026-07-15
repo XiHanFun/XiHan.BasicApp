@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\props\netcore.props" />
+    <Import Project="..\..\..\props\common.props" />
+    <Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\nuget.props" />
+
+    <PropertyGroup>
+        <Title>XiHan.BasicApp.OA</Title>
+        <AssemblyName>XiHan.BasicApp.OA</AssemblyName>
+        <PackageId>XiHan.BasicApp.OA</PackageId>
+        <Description>曦寒基础应用办公自动化库</Description>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
+    </ItemGroup>
+
+</Project>

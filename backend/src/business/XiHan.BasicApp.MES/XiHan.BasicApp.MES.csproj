@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\props\netcore.props" />
+    <Import Project="..\..\..\props\common.props" />
+    <Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\nuget.props" />
+
+    <PropertyGroup>
+        <Title>XiHan.BasicApp.MES</Title>
+        <AssemblyName>XiHan.BasicApp.MES</AssemblyName>
+        <PackageId>XiHan.BasicApp.MES</PackageId>
+        <Description>曦寒基础应用制造执行库</Description>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
+    </ItemGroup>
+
+</Project>
