@@ -1,17 +1,52 @@
-![logo](./assets/banner.png)
+<div align="center">
 
-[![GitHub Star](https://img.shields.io/github/stars/XiHanFun/XiHan.BasicApp?style=flat&logo=github)](https://github.com/XiHanFun/XiHan.BasicApp) | [![Gitee Star](https://gitee.com/XiHanFun/XiHan.BasicApp/badge/star.svg)](https://gitee.com/XiHanFun/XiHan.BasicApp) | [![AtomGit Star](https://atomgit.com/XiHanFun/XiHan.BasicApp/star/badge.svg)](https://atomgit.com/XiHanFun/XiHan.BasicApp)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/XiHanFun/XiHan.BasicApp)
-[![.NET 10](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/) | [![NuGet](https://img.shields.io/nuget/v/XiHan.BasicApp.Core?label=NuGet&color=blue)](https://www.nuget.org/packages?q=XiHan.BasicApp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+<img src="./assets/banner.png" alt="XiHan.BasicApp" />
 
-[曦寒懿官方交流群](https://qm.qq.com/q/qYp1Urv3z2) 462371834 | [在线文档](https://docs.xihanfun.com)
+<h1>XiHan.BasicApp</h1>
 
-# XiHan.BasicApp
+<p><b>企业级中后台内核</b></p>
 
-企业级中后台内核。后端基于 .NET 10 与 [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework)，前端基于 Vue 3，提供多租户、RBAC + ABAC 权限、代码生成与实时通信等能力。
+<p>后端基于 .NET 10 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 3<br/>多租户 · RBAC + ABAC 权限 · 代码生成 · 实时通信</p>
 
-![登录](./assets/login.png)
+<p>
+  <a href="https://github.com/XiHanFun/XiHan.BasicApp/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/XiHanFun/XiHan.BasicApp?style=flat-square&logo=github&label=Stars&color=1f6feb" /></a>
+  <a href="https://gitee.com/XiHanFun/XiHan.BasicApp"><img alt="Gitee Stars" src="https://gitee.com/XiHanFun/XiHan.BasicApp/badge/star.svg" /></a>
+  <a href="https://atomgit.com/XiHanFun/XiHan.BasicApp"><img alt="AtomGit Stars" src="https://atomgit.com/XiHanFun/XiHan.BasicApp/star/badge.svg" /></a>
+</p>
+
+
+<p>
+  <img alt=".NET" src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
+  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-3.5.0-6f42c1?style=flat-square" /></a>
+  <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <a href="https://www.nuget.org/packages?q=XiHan.BasicApp"><img alt="NuGet" src="https://img.shields.io/nuget/v/XiHan.BasicApp.Core?style=flat-square&logo=nuget&logoColor=white&label=NuGet&color=004880" /></a>
+</p>
+
+<p>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/github/license/XiHanFun/XiHan.BasicApp?style=flat-square&color=green" /></a>
+  <a href="https://github.com/XiHanFun/XiHan.BasicApp/commits"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/XiHanFun/XiHan.BasicApp?style=flat-square&color=blueviolet" /></a>
+  <img alt="Commit Activity" src="https://img.shields.io/github/commit-activity/m/XiHanFun/XiHan.BasicApp?style=flat-square" />
+  <a href="https://github.com/XiHanFun/XiHan.BasicApp/issues"><img alt="Issues" src="https://img.shields.io/github/issues/XiHanFun/XiHan.BasicApp?style=flat-square" /></a>
+  <a href="https://github.com/XiHanFun/XiHan.BasicApp/graphs/contributors"><img alt="Contributors" src="https://img.shields.io/github/contributors/XiHanFun/XiHan.BasicApp?style=flat-square" /></a>
+  <img alt="Repo Size" src="https://img.shields.io/github/repo-size/XiHanFun/XiHan.BasicApp?style=flat-square" />
+</p>
+
+<p>
+  <a href="https://deepwiki.com/XiHanFun/XiHan.BasicApp"><img alt="Ask DeepWiki" src="https://deepwiki.com/badge.svg" /></a>
+  <a href="https://docs.xihanfun.com"><img alt="Docs" src="https://img.shields.io/badge/Docs-docs.xihanfun.com-2496ED?style=flat-square&logo=readthedocs&logoColor=white" /></a>
+  <a href="https://qm.qq.com/q/qYp1Urv3z2"><img alt="QQ Group" src="https://img.shields.io/badge/QQ_Group-462371834-EB1923?style=flat-square&logo=tencentqq&logoColor=white" /></a>
+</p>
+
+<p>
+  <a href="https://trendshift.io/repositories/83127" target="_blank" rel="noopener noreferrer"><img alt="XiHanFun/XiHan.BasicApp | Trendshift" src="https://trendshift.io/api/badge/repositories/83127" width="250" height="55" /></a>
+</p>
+
+<img src="./assets/login.png" alt="登录" />
+
+</div>
 
 ## 简介
 
@@ -279,6 +314,18 @@ sudo supervisorctl start XiHanBasicApp
 | [SoybeanAdmin](https://github.com/soybeanjs/soybean-admin)   | 作为部分前端视觉功能灵感来源                   |
 | [LitheAdmin](https://github.com/tenianon/lithe-admin)        | 作为部分前端视觉功能灵感来源                   |
 | 其他第三方依赖                                               | 作为项目功能丰富与拓展的基石                   |
+
+## Star History
+
+<div align="center">
+  <a href="https://star-history.com/#XiHanFun/XiHan.BasicApp&Date" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=XiHanFun/XiHan.BasicApp&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=XiHanFun/XiHan.BasicApp&type=Date" />
+      <img alt="XiHan.BasicApp Star History Chart" src="https://api.star-history.com/svg?repos=XiHanFun/XiHan.BasicApp&type=Date" width="640" />
+    </picture>
+  </a>
+</div>
 
 ## 支持&赞助
 
