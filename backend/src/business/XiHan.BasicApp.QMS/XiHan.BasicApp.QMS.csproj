@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\props\netcore.props" />
+    <Import Project="..\..\..\props\common.props" />
+    <Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\nuget.props" />
+
+    <PropertyGroup>
+        <Title>XiHan.BasicApp.QMS</Title>
+        <AssemblyName>XiHan.BasicApp.QMS</AssemblyName>
+        <PackageId>XiHan.BasicApp.QMS</PackageId>
+        <Description>曦寒基础应用质量管理库</Description>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
+    </ItemGroup>
+
+</Project>

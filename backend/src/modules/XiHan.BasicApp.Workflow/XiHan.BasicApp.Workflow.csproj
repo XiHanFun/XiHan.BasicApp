@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Import Project="..\..\..\props\netcore.props" />
+    <Import Project="..\..\..\props\common.props" />
+    <Import Project="..\..\..\props\version.props" />
+    <Import Project="..\..\..\props\nuget.props" />
+
+    <PropertyGroup>
+        <Title>XiHan.BasicApp.Workflow</Title>
+        <AssemblyName>XiHan.BasicApp.Workflow</AssemblyName>
+        <PackageId>XiHan.BasicApp.Workflow</PackageId>
+        <Description>曦寒基础应用工作流库</Description>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
+    </ItemGroup>
+
+</Project>
