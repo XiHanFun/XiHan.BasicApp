@@ -17,6 +17,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Identity;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -76,7 +77,13 @@ public sealed class LoginSessionDomainService
         if (security is not null)
         {
             security.LastSecurityCheckTime = now;
-            _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+
+            // 用户主体数据自有行写入：平台归属用户（行 TenantId=0）登录/切换租户时在租户态更新自己的安全信息，
+            // 写路径租户边界须显式豁免（行归属键是 UserId，TenantId 只是注册地元数据）
+            using (TenantWriteGuard.Suppress())
+            {
+                _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+            }
         }
 
         var session = new SysUserSession
@@ -117,7 +124,12 @@ public sealed class LoginSessionDomainService
         };
 
         _ = await _oauthTokenRepository.AddAsync(oauthToken, cancellationToken);
-        _ = await _userRepository.UpdateAsync(user, cancellationToken);
+
+        // 用户主体数据自有行写入：回写当前登录用户自己的 LastLoginIp（平台归属用户行 TenantId=0，租户态直写会被写边界拒绝）
+        using (TenantWriteGuard.Suppress())
+        {
+            _ = await _userRepository.UpdateAsync(user, cancellationToken);
+        }
 
         if (tenantId.HasValue)
         {
@@ -164,18 +176,24 @@ public sealed class LoginSessionDomainService
         session.RevokedTime = now;
         session.RevokedReason = "用户主动退出";
         session.LogoutTime = now;
-        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
 
-        var tokens = await _oauthTokenRepository.GetListAsync(item => item.SessionId == session.BasicId && !item.IsRevoked, cancellationToken);
-        foreach (var token in tokens)
+        // 用户主体数据自有行写入：会话/令牌行带「发起登录时租户」的戳，
+        // 用户切换到其他租户后登出，当前租户 ≠ 行租户戳，须显式豁免写路径租户边界（行归属键是 UserId/SessionId）
+        using (TenantWriteGuard.Suppress())
         {
-            token.IsRevoked = true;
-            token.RevokedTime = now;
-        }
+            _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
 
-        if (tokens.Count > 0)
-        {
-            _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
+            var tokens = await _oauthTokenRepository.GetListAsync(item => item.SessionId == session.BasicId && !item.IsRevoked, cancellationToken);
+            foreach (var token in tokens)
+            {
+                token.IsRevoked = true;
+                token.RevokedTime = now;
+            }
+
+            if (tokens.Count > 0)
+            {
+                _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
+            }
         }
 
         return session;

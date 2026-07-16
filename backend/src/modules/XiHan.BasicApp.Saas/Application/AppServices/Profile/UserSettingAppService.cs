@@ -20,6 +20,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Hubs;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Web.RealTime.Constants;
@@ -91,7 +92,13 @@ public sealed class UserSettingAppService
         else
         {
             entity.SettingValue = input.SettingValue;
-            _ = await _repository.UpdateAsync(entity, cancellationToken);
+
+            // 用户主体数据自有行写入：SysUserSetting 按 UserId 归属（唯一索引 UserId+Scene+SettingKey 不含租户），
+            // 平台归属用户（行 TenantId=0）在租户态保存自己的偏好是合法路径，须显式豁免写路径租户边界
+            using (TenantWriteGuard.Suppress())
+            {
+                _ = await _repository.UpdateAsync(entity, cancellationToken);
+            }
         }
 
         // 写后失效该用户设置读缓存，保证下次读取拿到最新值

@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Otp;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Security.Password;
 
@@ -97,7 +98,7 @@ public sealed class ProfileDomainService
         security.FailedLoginAttempts = 0;
         security.LastFailedLoginTime = null;
 
-        var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        var savedSecurity = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
         await _passwordHistoryDomainService.RecordAsync(user.BasicId, security.Password, now, cancellationToken);
         return new ProfileUserSecurityResult(user, savedSecurity);
     }
@@ -135,8 +136,8 @@ public sealed class ProfileDomainService
         security.LastUserNameChangeTime = DateTimeOffset.UtcNow;
         security.SecurityStamp = NewSecurityStamp();
 
-        var savedUser = await _userRepository.UpdateAsync(user, cancellationToken);
-        var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        var savedUser = await AsSelfWriteAsync(() => _userRepository.UpdateAsync(user, cancellationToken));
+        var savedSecurity = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
         return new ProfileUserSecurityResult(savedUser, savedSecurity);
     }
 
@@ -166,8 +167,8 @@ public sealed class ProfileDomainService
         }
 
         security.SecurityStamp = NewSecurityStamp();
-        var savedUser = await _userRepository.UpdateAsync(user, cancellationToken);
-        var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        var savedUser = await AsSelfWriteAsync(() => _userRepository.UpdateAsync(user, cancellationToken));
+        var savedSecurity = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
         return new ProfileUserSecurityResult(savedUser, savedSecurity);
     }
 
@@ -184,8 +185,8 @@ public sealed class ProfileDomainService
 
         user.Status = EnableStatus.Disabled;
         security.SecurityStamp = NewSecurityStamp();
-        _ = await _userRepository.UpdateAsync(user, cancellationToken);
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userRepository.UpdateAsync(user, cancellationToken));
+        _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
 
         return await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心停用账号", command.OperatorUserId, cancellationToken);
     }
@@ -204,8 +205,8 @@ public sealed class ProfileDomainService
         security.IsDeleted = true;
         security.DeletedTime = DateTimeOffset.UtcNow;
         security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-        await _userRepository.SoftDeleteAsync(user, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
+        await AsSelfWriteAsync(() => _userRepository.SoftDeleteAsync(user, cancellationToken));
 
         return await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心注销账号", command.OperatorUserId, cancellationToken);
     }
@@ -231,7 +232,7 @@ public sealed class ProfileDomainService
         }
 
         security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -260,7 +261,7 @@ public sealed class ProfileDomainService
         security.TwoFactorMethod |= command.Method;
         security.TwoFactorEnabled = security.TwoFactorMethod != TwoFactorMethod.None;
         security.SecurityStamp = NewSecurityStamp();
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -302,7 +303,7 @@ public sealed class ProfileDomainService
             RevokeSession(session, Reason);
         }
 
-        _ = await _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken));
         return new ProfileSessionRevokeResult([.. sessions.Select(session => BuildSessionRevokedEvent(session, false, command.OperatorUserId, Reason))]);
     }
 
@@ -330,7 +331,7 @@ public sealed class ProfileDomainService
 
         const string Reason = "用户在个人中心撤销会话";
         RevokeSession(session, Reason);
-        session = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        session = await AsSelfWriteAsync(() => _userSessionRepository.UpdateAsync(session, cancellationToken));
         return new ProfileSessionRevokeResult([BuildSessionRevokedEvent(session, false, command.OperatorUserId, Reason)]);
     }
 
@@ -346,7 +347,7 @@ public sealed class ProfileDomainService
             : security.TwoFactorSecret;
 
         security.TwoFactorSecret = secret;
-        _ = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
 
         return new ProfileTwoFactorSetupResult(secret, _otpService.GenerateTotpUri(secret, command.Issuer, user.UserName));
     }
@@ -381,7 +382,7 @@ public sealed class ProfileDomainService
 
         account.IsDeleted = true;
         account.DeletedTime = DateTimeOffset.UtcNow;
-        _ = await _externalLoginRepository.UpdateAsync(account, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _externalLoginRepository.UpdateAsync(account, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -402,7 +403,7 @@ public sealed class ProfileDomainService
         user.Country = NormalizeNullable(command.Country, 50);
         user.Remark = NormalizeNullable(command.Remark, 500);
 
-        var savedUser = await _userRepository.UpdateAsync(user, cancellationToken);
+        var savedUser = await AsSelfWriteAsync(() => _userRepository.UpdateAsync(user, cancellationToken));
         return new ProfileUserSecurityResult(savedUser, security);
     }
 
@@ -427,7 +428,7 @@ public sealed class ProfileDomainService
         }
 
         security.SecurityStamp = NewSecurityStamp();
-        var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
+        var savedSecurity = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
         return new ProfileUserSecurityResult(user, savedSecurity);
     }
 
@@ -636,6 +637,31 @@ public sealed class ProfileDomainService
         return (user, security);
     }
 
+    /// <summary>
+    /// 在写路径租户边界豁免作用域内执行用户自有行写入
+    /// </summary>
+    /// <remarks>
+    /// 本服务全部方法都是个人中心自助场景、只写当前用户自己的行（用户/安全/会话/三方绑定）；
+    /// 平台归属用户（行 TenantId=0）在租户上下文内写自己的数据是合法路径，
+    /// 须经 <see cref="TenantWriteGuard"/> 显式豁免（行归属键是 UserId，TenantId 只是注册地元数据）。
+    /// </remarks>
+    private static async Task<T> AsSelfWriteAsync<T>(Func<Task<T>> write)
+    {
+        using (TenantWriteGuard.Suppress())
+        {
+            return await write();
+        }
+    }
+
+    /// <inheritdoc cref="AsSelfWriteAsync{T}(Func{Task{T}})"/>
+    private static async Task AsSelfWriteAsync(Func<Task> write)
+    {
+        using (TenantWriteGuard.Suppress())
+        {
+            await write();
+        }
+    }
+
     private async Task<ProfileSessionRevokeResult> RevokeCurrentUserSessionsAsync(
         long userId,
         string reason,
@@ -654,7 +680,7 @@ public sealed class ProfileDomainService
             RevokeSession(session, reason);
         }
 
-        _ = await _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken));
         return new ProfileSessionRevokeResult([BuildUserSessionsRevokedEvent(user, sessions[0].TenantId, operatorUserId, reason)]);
     }
 }
