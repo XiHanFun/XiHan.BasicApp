@@ -15,6 +15,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.Local.csproj" />
+      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Workflow\XiHan.Framework.Workflow.csproj" />
+      <ProjectReference Include="..\..\..\..\..\XiHan.Framework\framework\src\XiHan.Framework.Workflow.Abstractions\XiHan.Framework.Workflow.Abstractions.csproj" />
     </ItemGroup>
 
 </Project>

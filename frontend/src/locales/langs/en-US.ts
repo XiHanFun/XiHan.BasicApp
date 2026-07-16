@@ -8,6 +8,7 @@ import openapi from './en-US/openapi'
 import setting from './en-US/setting'
 import tenant from './en-US/tenant'
 import workbench from './en-US/workbench'
+import workflow from './en-US/workflow'
 
 export default {
   approval,
@@ -20,4 +21,5 @@ export default {
   setting,
   tenant,
   workbench,
+  workflow,
 }

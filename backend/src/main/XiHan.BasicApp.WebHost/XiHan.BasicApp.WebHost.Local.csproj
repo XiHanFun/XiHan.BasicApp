@@ -18,6 +18,7 @@
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.AI\XiHan.BasicApp.AI.Local.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration\XiHan.BasicApp.CodeGeneration.Local.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.Local.csproj" />
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Workflow\XiHan.BasicApp.Workflow.Local.csproj" />
     </ItemGroup>
 
     <ItemGroup>

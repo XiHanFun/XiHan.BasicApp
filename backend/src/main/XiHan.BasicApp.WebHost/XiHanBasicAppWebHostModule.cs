@@ -21,6 +21,7 @@ using Microsoft.Extensions.Options;
 using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
+using XiHan.BasicApp.Workflow;
 using XiHan.BasicApp.Web.Core.Extensions;
 using XiHan.BasicApp.WebHost.HealthChecks;
 using XiHan.BasicApp.WebHost.Mcp;
@@ -42,6 +43,7 @@ namespace XiHan.BasicApp.WebHost;
     typeof(XiHanBasicAppSaasModule),
     typeof(XiHanBasicAppCodeGenerationModule),
     typeof(XiHanBasicAppAIModule),
+    typeof(XiHanBasicAppWorkflowModule),
     // 可观测性：激活 OpenTelemetry 装配；由 XiHan:Observability 配置门控（Enabled 默认关）
     typeof(XiHanObservabilityModule)
 )]
