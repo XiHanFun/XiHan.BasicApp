@@ -59,6 +59,10 @@ export default {
   ai_provider: 'AI 提供商',
   knowledge_base: '知识库',
   ai_prompt: 'AI 提示词',
+  workflow: '工作流',
+  workflow_todo: '我的待办',
+  workflow_definition: '流程定义',
+  workflow_instance: '流程实例',
   // ==================== 通用 / 历史键 ====================
   dashboard: '仪表板',
   workspace: '工作台',

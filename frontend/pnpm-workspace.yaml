@@ -2,6 +2,7 @@ packages:
   - 'packages/*'
 allowBuilds:
   simple-git-hooks: true
+  vue-demi: true
 minimumReleaseAgeExclude:
   - '@iconify-json/lucide@1.2.113'
 # 不在每次 `pnpm run <script>` 前重跑 install 校验:依赖已就位且锁定,

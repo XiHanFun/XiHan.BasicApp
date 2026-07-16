@@ -59,6 +59,10 @@ export default {
   ai_provider: 'AI Providers',
   knowledge_base: 'Knowledge Base',
   ai_prompt: 'AI Prompts',
+  workflow: 'Workflow',
+  workflow_todo: 'My Todos',
+  workflow_definition: 'Definitions',
+  workflow_instance: 'Instances',
   // ==================== Common / legacy keys ====================
   dashboard: 'Dashboard',
   workspace: 'Workspace',
