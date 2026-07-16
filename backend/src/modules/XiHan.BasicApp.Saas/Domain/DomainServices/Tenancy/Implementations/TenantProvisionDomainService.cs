@@ -90,16 +90,17 @@ public sealed class TenantProvisionDomainService
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 在新租户上下文内开通，确保审计/上下文一致（实体均显式置 TenantId）
-        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
-
-        // 1) 确保版本：未指定则取默认版本并持久化
+        // 1) 确保版本：未指定则取默认版本并持久化——必须在进入租户上下文之前完成：
+        //    SysTenant 行本身是 TenantId=0 的平台数据，租户上下文内写它会被写路径租户边界拒绝（语义上这本就是平台态操作）
         var editionId = tenant.EditionId ?? await AssignDefaultEditionAsync(tenant, cancellationToken);
         if (editionId.HasValue && tenant.EditionId != editionId)
         {
             tenant.EditionId = editionId;
             await _tenantRepository.UpdateAsync(tenant, cancellationToken);
         }
+
+        // 在新租户上下文内开通，确保审计/上下文一致（实体均显式置 TenantId）
+        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
 
         // 2) 创建管理员（用户/安全/成员）
         var adminUser = await InitializeTenantAdminAsync(tenant, adminUserName, adminEmail, passwordHash, cancellationToken);

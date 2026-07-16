@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -94,7 +95,7 @@ public sealed class UserInboxDomainService
             userNotification.ConfirmTime ??= now;
         }
 
-        _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateAsync(userNotification, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -117,7 +118,7 @@ public sealed class UserInboxDomainService
             MarkRead(userNotification, now);
         }
 
-        _ = await _userNotificationRepository.UpdateRangeAsync(userNotifications, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateRangeAsync(userNotifications, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -127,7 +128,7 @@ public sealed class UserInboxDomainService
 
         var userNotification = await GetUserNotificationOrThrowAsync(userNotificationId, userId, cancellationToken);
         MarkRead(userNotification, DateTimeOffset.UtcNow);
-        _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
+        _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateAsync(userNotification, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -140,7 +141,23 @@ public sealed class UserInboxDomainService
         if (userNotification.PopupShownTime is null)
         {
             userNotification.PopupShownTime = DateTimeOffset.UtcNow;
-            _ = await _userNotificationRepository.UpdateAsync(userNotification, cancellationToken);
+            _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateAsync(userNotification, cancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// 在写路径租户边界豁免作用域内执行收件行自有写入
+    /// </summary>
+    /// <remarks>
+    /// 收件行（SysUserNotification）按 UserId 归属：平台态发布的全局公告收件行 TenantId=0，
+    /// 租户用户已读/确认/弹窗登记写自己的收件行是合法路径，须经 <see cref="TenantWriteGuard"/> 显式豁免。
+    /// 本服务全部写入均先经 GetUserNotificationOrThrowAsync/UserId 条件锁定为当前用户自有行。
+    /// </remarks>
+    private static async Task<T> AsSelfWriteAsync<T>(Func<Task<T>> write)
+    {
+        using (TenantWriteGuard.Suppress())
+        {
+            return await write();
         }
     }
 
