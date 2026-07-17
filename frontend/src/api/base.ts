@@ -1,5 +1,5 @@
-import type { AxiosRequestConfig } from 'axios'
 import type { ApiId, ApiPrimitive, PageRequest, PageResult } from './types'
+import type { AxiosRequestConfig } from '~/request'
 import { requestClient } from './request'
 
 export type DynamicApiParamValue = boolean | number | string | undefined

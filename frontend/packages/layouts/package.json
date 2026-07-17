@@ -4,6 +4,8 @@
   "private": true,
   "main": "./basic/index.vue",
   "dependencies": {
+    "@dnd-kit/geometry": "^0.5.0",
+    "@dnd-kit/vue": "^0.5.0",
     "@xihan/composables": "workspace:*",
     "@xihan/constants": "workspace:*",
     "@xihan/locales": "workspace:*",
