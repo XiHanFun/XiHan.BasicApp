@@ -8,6 +8,7 @@ import {
 } from '@microsoft/signalr'
 import { ref, shallowRef } from 'vue'
 import { TOKEN_KEY } from '~/constants'
+import { refreshSessionToken } from '~/request'
 import { LocalStorage } from '~/utils'
 
 export type SignalREventHandler = Parameters<HubConnection['on']>[1]
@@ -20,6 +21,15 @@ interface SignalRInstanceState {
 
 // 按 hubPath 各持一条连接：通知 /hubs/notification 与聊天 /hubs/chat 互不干扰
 const instances = new Map<string, SignalRInstanceState>()
+
+/** negotiate 阶段的 401（token 过期/失效）：signalr 的 HttpError 带 statusCode，包装错误只剩 message */
+function isUnauthorizedError(error: unknown): boolean {
+  if ((error as { statusCode?: number } | null)?.statusCode === 401) {
+    return true
+  }
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  return message.includes('401')
+}
 
 function getInstanceState(hubPath: string): SignalRInstanceState {
   let state = instances.get(hubPath)
@@ -66,6 +76,10 @@ export function useSignalR(hubPath = '/hubs/notification') {
   }
 
   async function start() {
+    await startCore(false)
+  }
+
+  async function startCore(isRetryAfterRefresh: boolean) {
     if (state.connection.value && state.connection.value.state !== HubConnectionState.Disconnected) {
       return
     }
@@ -127,14 +141,25 @@ export function useSignalR(hubPath = '/hubs/notification') {
       state.connected.value = true
     }
     catch (error) {
+      state.connected.value = false
+      state.connection.value = null
+
+      // negotiate 401：token 已过期，借道统一刷新后重试一次；刷新失败时内部已强制登出并清 token，
+      // 调用方的 token watch 会随之停掉重连定时器——避免拿着过期 token 无限打 negotiate
+      if (!isRetryAfterRefresh && isUnauthorizedError(error)) {
+        const nextToken = await refreshSessionToken()
+        if (nextToken) {
+          await startCore(true)
+        }
+        return
+      }
+
       if (import.meta.env.DEV) {
         console.warn('[SignalR] 连接失败，请检查 Hub 地址与后端服务状态', {
           hubUrl,
           error,
         })
       }
-      state.connected.value = false
-      state.connection.value = null
     }
   }
 
