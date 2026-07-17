@@ -32,6 +32,11 @@ public interface IUserSessionRepository : ISaasRepository<SysUserSession>
     Task<SysUserSession?> GetByUserSessionIdAsync(string userSessionId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 跨租户获取用户在指定设备上的活跃会话（会话行带发起登录时租户戳，同设备旧会话下线须忽略租户过滤）
+    /// </summary>
+    Task<IReadOnlyList<SysUserSession>> GetActiveByUserAndDeviceIgnoreTenantAsync(long userId, string deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 吊销用户所有会话
     /// </summary>
     Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);

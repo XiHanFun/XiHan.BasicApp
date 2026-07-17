@@ -200,12 +200,8 @@ public sealed class SwitchTenantRequestDto
     /// <summary>
     /// 目标租户标识；为空或 0 表示切换到平台运维态（无租户上下文）
     /// </summary>
+    /// <remarks>切换复用当前登录会话（设备信息随会话保留），不需要设备标识</remarks>
     public long? TenantId { get; set; }
-
-    /// <summary>
-    /// 设备标识
-    /// </summary>
-    public string? DeviceId { get; set; }
 }
 
 /// <summary>

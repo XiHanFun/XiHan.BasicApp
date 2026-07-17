@@ -86,6 +86,34 @@ public sealed class LoginSessionDomainService
             }
         }
 
+        // 同设备重新登录：旧活跃会话自动下线（静默替换，不发通知、不推强制登出）。
+        // 不清理则旧会话滞留到过期为止：设备列表越积越多，且每次重新登录都会误报「账号在其它设备登录」。
+        var supersededSessionBusinessIds = new List<string>();
+        var normalizedDeviceId = NormalizeNullable(deviceId, 200);
+        if (normalizedDeviceId is not null)
+        {
+            var staleSessions = await _userSessionRepository.GetActiveByUserAndDeviceIgnoreTenantAsync(user.BasicId, normalizedDeviceId, cancellationToken);
+            if (staleSessions.Count > 0)
+            {
+                foreach (var stale in staleSessions)
+                {
+                    stale.Status = SessionStatus.Revoked;
+                    stale.RevokedTime = now;
+                    stale.RevokedReason = "同设备重新登录，自动下线";
+                    stale.LogoutTime = now;
+                }
+
+                // 旧会话行带「发起登录时租户」的戳，与本次登录上下文可能不同，写路径租户边界须显式豁免
+                using (TenantWriteGuard.Suppress())
+                {
+                    _ = await _userSessionRepository.UpdateRangeAsync([.. staleSessions], cancellationToken);
+                }
+
+                _ = await _oauthTokenRepository.RevokeBySessionIdsAsync([.. staleSessions.Select(item => item.BasicId)], now, cancellationToken);
+                supersededSessionBusinessIds.AddRange(staleSessions.Select(item => item.UserSessionId));
+            }
+        }
+
         var session = new SysUserSession
         {
             UserId = user.BasicId,
@@ -141,7 +169,58 @@ public sealed class LoginSessionDomainService
             }
         }
 
-        return new LoginSessionIssueResult(session);
+        return new LoginSessionIssueResult(session, supersededSessionBusinessIds);
+    }
+
+    /// <inheritdoc />
+    public async Task<SysUserSession> SwitchTenantAsync(
+        SysUserSession session,
+        long? targetTenantId,
+        string accessTokenJti,
+        JwtTokenResult tokenResult,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentException.ThrowIfNullOrWhiteSpace(accessTokenJti);
+        ArgumentNullException.ThrowIfNull(tokenResult);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 会话行租户戳迁移到目标上下文（平台态戳 0）：在线用户等按租户查会话的视图以「用户当前所在上下文」为准
+        session.TenantId = targetTenantId ?? 0;
+        session.CurrentAccessTokenJti = accessTokenJti;
+        session.LastActivityTime = now;
+        session.ExpirationTime = ToDateTimeOffset(tokenResult.RefreshTokenExpiresAt);
+
+        // 用户主体数据自有行写入：行归属键是 UserId，租户戳只是上下文元数据，写路径租户边界须显式豁免
+        using (TenantWriteGuard.Suppress())
+        {
+            _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        }
+
+        // 令牌台账与登录同构：旧令牌记录吊销、落新令牌记录（刷新链无状态，此处仅维护台账）
+        _ = await _oauthTokenRepository.RevokeBySessionIdsAsync([session.BasicId], now, cancellationToken);
+
+        var oauthToken = new SysOAuthToken
+        {
+            SessionId = session.BasicId,
+            AccessTokenJti = accessTokenJti,
+            AccessToken = null,
+            RefreshToken = tokenResult.RefreshToken,
+            TokenType = tokenResult.TokenType,
+            ClientId = SaasOAuthClientIds.Web,
+            UserId = session.UserId,
+            GrantType = GrantType.Password,
+            Scopes = SaasOAuthClientIds.DefaultScope,
+            Status = EnableStatus.Enabled,
+            AccessTokenExpirationTime = ToDateTimeOffset(tokenResult.ExpiresAt),
+            RefreshTokenExpirationTime = ToDateTimeOffset(tokenResult.RefreshTokenExpiresAt),
+            IsRevoked = false
+        };
+
+        _ = await _oauthTokenRepository.AddAsync(oauthToken, cancellationToken);
+
+        return session;
     }
 
     /// <inheritdoc />
