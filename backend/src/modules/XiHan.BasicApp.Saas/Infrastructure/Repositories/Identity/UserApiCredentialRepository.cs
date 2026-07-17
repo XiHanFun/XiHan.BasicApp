@@ -41,7 +41,9 @@ public sealed class UserApiCredentialRepository(ISqlSugarClientResolver clientRe
         ArgumentException.ThrowIfNullOrWhiteSpace(appKey);
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await CreateQueryable()
+        // AppKey 全局唯一，跨租户查询：开放接口网关鉴权在请求管道早期执行、无租户上下文；
+        // 创建时的唯一性检查也需跨租户，避免不同租户生成相同 AppKey
+        return await CreateNoTenantQueryable()
             .Where(credential => credential.AppKey == appKey)
             .FirstAsync(cancellationToken);
     }

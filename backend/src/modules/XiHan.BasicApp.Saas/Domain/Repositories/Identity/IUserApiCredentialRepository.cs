@@ -27,7 +27,7 @@ public interface IUserApiCredentialRepository : ISaasRepository<SysUserApiCreden
     Task<IReadOnlyList<SysUserApiCredential>> GetListByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 按应用键查询凭证（开放接口鉴权入口）
+    /// 按应用键查询凭证（跨租户；开放接口鉴权入口，AppKey 全局唯一）
     /// </summary>
     Task<SysUserApiCredential?> GetByAppKeyAsync(string appKey, CancellationToken cancellationToken = default);
 }

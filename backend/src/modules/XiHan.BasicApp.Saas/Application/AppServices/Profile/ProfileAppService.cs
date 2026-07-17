@@ -27,7 +27,6 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
-using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Web.Core.Clients;
@@ -59,7 +58,7 @@ public sealed partial class ProfileAppService
 
     private readonly IUserApiCredentialRepository _userApiCredentialRepository;
 
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly IUserApiCredentialSecretProtector _apiCredentialSecretProtector;
 
     private readonly IClientInfoProvider _clientInfoProvider;
 
@@ -76,7 +75,7 @@ public sealed partial class ProfileAppService
         IUserNotificationDispatchService notificationDispatchService,
         IUserNotificationPreferenceRepository notificationPreferenceRepository,
         IUserApiCredentialRepository userApiCredentialRepository,
-        IPasswordHasher passwordHasher,
+        IUserApiCredentialSecretProtector apiCredentialSecretProtector,
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor)
@@ -88,7 +87,7 @@ public sealed partial class ProfileAppService
         _notificationDispatchService = notificationDispatchService;
         _notificationPreferenceRepository = notificationPreferenceRepository;
         _userApiCredentialRepository = userApiCredentialRepository;
-        _passwordHasher = passwordHasher;
+        _apiCredentialSecretProtector = apiCredentialSecretProtector;
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;

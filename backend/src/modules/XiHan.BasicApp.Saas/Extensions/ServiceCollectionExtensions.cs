@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.Framework.Web.Api.Session;
+using XiHan.Framework.Web.Api.Security.OpenApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Authorization;
@@ -86,6 +87,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileDomainService, FileDomainService>();
         services.AddScoped<IStorageConfigDomainService, StorageConfigDomainService>();
         services.AddSingleton<IStorageSecretProtector, DataProtectionStorageSecretProtector>();
+        // 用户 OpenAPI 凭证密钥保护器（Data Protection，独立 Purpose；创建/滚动写侧加密，网关鉴权读侧解密）
+        services.AddSingleton<IUserApiCredentialSecretProtector, DataProtectionUserApiCredentialSecretProtector>();
 
         // 租户库隔离：连接串保护器 + 运行时连接提供器（框架据此按 SysTenant 动态建连）
         services.AddSingleton<ITenantConnectionSecretProtector, DataProtectionTenantConnectionSecretProtector>();
@@ -201,6 +204,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
         services.AddScoped<IOAuthServerService, OAuthServerService>();
+        // OpenAPI 安全客户端存储：以数据库凭证（SysUserApiCredential）实现覆盖框架默认配置源实现
+        // （框架 XiHanWebApiModule 以 TryAddScoped 先注册 DefaultOpenApiSecurityClientStore，故须 Replace，否则 DB 凭证永不生效）
+        services.Replace(ServiceDescriptor.Scoped<IOpenApiSecurityClientStore, SaasOpenApiSecurityClientStore>());
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
         // 验证码防刷限流（发送间隔/日配额/错误计数封禁）：覆盖 Profile 全部发码用途与消费校验
         services.AddScoped<IVerificationThrottleService, VerificationThrottleService>();
