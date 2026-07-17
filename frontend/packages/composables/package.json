@@ -4,10 +4,10 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
-    "@microsoft/signalr": "^10.0.0",
+    "@microsoft/signalr": "catalog:",
     "@xihan/constants": "workspace:*",
     "@xihan/stores": "workspace:*",
     "@xihan/utils": "workspace:*",
-    "pinyin-pro": "^3.28.1"
+    "pinyin-pro": "catalog:"
   }
 }

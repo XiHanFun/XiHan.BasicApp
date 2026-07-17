@@ -6,6 +6,6 @@
   "dependencies": {
     "@xihan/constants": "workspace:*",
     "@xihan/utils": "workspace:*",
-    "axios": "^1.18.1"
+    "axios": "catalog:"
   }
 }
