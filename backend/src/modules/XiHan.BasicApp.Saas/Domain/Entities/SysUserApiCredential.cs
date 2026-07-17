@@ -28,8 +28,9 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 写入：
 /// - AppKey 全局唯一（UX_ApKe），服务层以加密安全随机数生成，不可修改
-/// - SecretHash 仅存哈希（与账号密码同栈 IPasswordHasher），明文 Secret 仅创建/滚动时返回一次
-/// - 滚动密钥 = 重置 SecretHash，AppKey 保持不变（调用方仅需换 Secret）
+/// - SecretCipher 可逆加密落库（Data Protection，独立 Purpose）——开放接口 HMAC 验签需还原明文密钥参与运算，
+///   故不能用单向哈希；明文 Secret 仍仅创建/滚动时返回一次
+/// - 滚动密钥 = 重置 SecretCipher，AppKey 保持不变（调用方仅需换 Secret）
 ///
 /// 查询：
 /// - 自助凭证列表：IX_UsId（按用户）
@@ -72,12 +73,24 @@ public partial class SysUserApiCredential : BasicAppFullAuditedEntity
     public virtual string AppKey { get; set; } = string.Empty;
 
     /// <summary>
-    /// 应用密钥哈希（严禁明文落库；明文仅创建/滚动时返回一次）
+    /// 应用密钥密文（可逆加密落库，dp: 前缀；严禁明文落库/回显，明文仅创建/滚动时返回一次）
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnName = "Secret_Hash", ColumnDescription = "应用密钥哈希", Length = 200, IsNullable = false)]
-    public virtual string SecretHash { get; set; } = string.Empty;
+    [SugarColumn(ColumnName = "Secret_Cipher", ColumnDescription = "应用密钥密文", Length = 500, IsNullable = false)]
+    public virtual string SecretCipher { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 签名算法（开放接口验签使用；缺省 HMAC-SHA256）
+    /// </summary>
+    [SugarColumn(ColumnName = "Signature_Algorithm", ColumnDescription = "签名算法")]
+    public virtual SignatureType SignatureAlgorithm { get; set; } = SignatureType.HmacSha256;
+
+    /// <summary>
+    /// IP 白名单（逗号分隔，支持前缀通配 * 与 *=全放行；为空表示不限制来源 IP）
+    /// </summary>
+    [SugarColumn(ColumnName = "Ip_Whitelist", ColumnDescription = "IP白名单", Length = 1000, IsNullable = true)]
+    public virtual string? IpWhitelist { get; set; }
 
     /// <summary>
     /// 最后使用时间（开放接口鉴权成功时刷新）

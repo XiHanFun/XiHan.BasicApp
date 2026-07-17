@@ -67,4 +67,12 @@ public static class SaasSecretProtectionPurposes
     /// AI Provider API 密钥保护用途。
     /// </summary>
     public const string AiProviderApiKey = "XiHan.BasicApp.Saas.AiProvider.ApiKey.v1";
+
+    /// <summary>
+    /// 用户 OpenAPI 凭证密钥（AppSecret）保护用途。
+    /// </summary>
+    /// <remarks>
+    /// 与账号密码不同：开放接口 HMAC 验签需还原明文密钥参与运算，故此密钥可逆加密落库（非单向哈希）。
+    /// </remarks>
+    public const string UserApiCredentialSecret = "XiHan.BasicApp.Saas.UserApiCredential.Secret.v1";
 }

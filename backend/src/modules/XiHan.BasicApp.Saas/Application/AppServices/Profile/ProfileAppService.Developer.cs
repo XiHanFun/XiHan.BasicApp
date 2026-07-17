@@ -26,8 +26,9 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 当前用户个人中心应用服务（开发者关注点：个人 API 凭证）。
 /// </summary>
 /// <remarks>
-/// AppKey/AppSecret 以加密安全随机数生成；Secret 仅存哈希（与账号密码同栈 IPasswordHasher），
-/// 明文仅创建/滚动时返回一次。凭证数量按用户限额，全部操作自限定当前用户并发安全通知。
+/// AppKey/AppSecret 以加密安全随机数生成；Secret 可逆加密落库（Data Protection，独立 Purpose）——
+/// 开放接口 HMAC 验签需还原明文密钥，故不用单向哈希；明文仍仅创建/滚动时返回一次。
+/// 凭证数量按用户限额，全部操作自限定当前用户并发安全通知。
 /// </remarks>
 public sealed partial class ProfileAppService
 {
@@ -73,7 +74,7 @@ public sealed partial class ProfileAppService
             UserId = userId,
             CredentialName = name,
             AppKey = appKey,
-            SecretHash = _passwordHasher.HashPassword(secret),
+            SecretCipher = _apiCredentialSecretProtector.Protect(secret)!,
             Status = EnableStatus.Enabled
         };
         credential = await _userApiCredentialRepository.AddAsync(credential, cancellationToken);
@@ -99,7 +100,7 @@ public sealed partial class ProfileAppService
         var credential = await GetOwnedApiCredentialOrThrowAsync(userId, input.BasicId, cancellationToken);
 
         var secret = GenerateApiSecret();
-        credential.SecretHash = _passwordHasher.HashPassword(secret);
+        credential.SecretCipher = _apiCredentialSecretProtector.Protect(secret)!;
         _ = await _userApiCredentialRepository.UpdateAsync(credential, cancellationToken);
 
         await NotifyApiCredentialChangeAsync(userId, "API 凭证密钥已滚动", $"凭证「{credential.CredentialName}」（{credential.AppKey}）的密钥已重置，旧密钥立即失效。", credential.BasicId, cancellationToken);
