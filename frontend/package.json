@@ -32,23 +32,24 @@
     "pnpm": ">=11.0.0"
   },
   "scripts": {
-    "bootstrap": "pnpm -r install",
     "dev": "vite --mode development",
+    "build": "pnpm run type-check && vite build --mode production",
+    "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
     "lint": "cross-env CI=true oxlint && cross-env CI=true eslint .",
     "lint:fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix",
     "format": "prettier --write \"**/*.{json,css,html,md}\" --ignore-path .gitignore",
-    "fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix && prettier --write \"**/*.{json,css,html,md}\" --ignore-path .gitignore",
-    "postinstall": "simple-git-hooks",
-    "clean": "rimraf dist",
-    "clean:modules": "rimraf node_modules",
-    "upgrade": "pnpm -r update",
-    "build": "vue-tsc --noEmit && vite build --mode production",
-    "build:dev": "vite build --mode development",
+    "fix": "pnpm run lint:fix && pnpm run format",
+    "check": "pnpm run type-check && pnpm run lint",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "clean:modules": "node -e \"require('node:fs').rmSync('node_modules',{recursive:true,force:true,maxRetries:5,retryDelay:200})\"",
     "reinstall": "pnpm run clean:modules && pnpm install",
     "rebuild": "pnpm run clean && pnpm run build",
-    "rebuild:dev": "pnpm run clean && pnpm run build:dev"
+    "rebuild:dev": "pnpm run clean && pnpm run build:dev",
+    "deps:check": "pnpm outdated",
+    "deps:update": "pnpm update --latest -i",
+    "postinstall": "simple-git-hooks"
   },
   "dependencies": {
     "@vueuse/core": "catalog:",
