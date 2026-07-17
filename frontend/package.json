@@ -32,7 +32,7 @@
     "pnpm": ">=11.0.0"
   },
   "scripts": {
-    "bootstrap": "pnpm install",
+    "bootstrap": "pnpm -r install",
     "dev": "vite --mode development",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
@@ -43,7 +43,7 @@
     "postinstall": "simple-git-hooks",
     "clean": "rimraf dist",
     "clean:modules": "rimraf node_modules",
-    "upgrade": "pnpm upgrade",
+    "upgrade": "pnpm -r update",
     "build": "vue-tsc --noEmit && vite build --mode production",
     "build:dev": "vite build --mode development",
     "reinstall": "pnpm run clean:modules && pnpm install",
@@ -54,28 +54,28 @@
     "@vueuse/core": "^14.3.0",
     "naive-ui": "^2.44.1",
     "pinia": "^3.0.4",
-    "vue": "^3.5.39",
+    "vue": "^3.5.40",
     "vue-i18n": "^11.4.6",
-    "vue-router": "^5.1.0"
+    "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.1.0",
     "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^25.9.5",
-    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
     "cross-env": "^10.1.0",
     "eslint": "^10.7.0",
     "eslint-plugin-format": "^2.0.1",
     "lint-staged": "^17.0.8",
-    "oxlint": "^1.73.0",
+    "oxlint": "^1.74.0",
     "prettier": "^3.9.5",
     "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^32.1.0",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vue-tsc": "^3.3.7"
   },
   "simple-git-hooks": {
