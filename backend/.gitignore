@@ -306,6 +306,8 @@ node_modules/
 # Visual Studio 6 technical files
 *.ncb
 *.aps
+# 例外：APS 业务模块目录名以 .APS 结尾，会被上面的 *.aps 规则（core.ignorecase 下）误伤，需重新纳入
+!**/XiHan.BasicApp.APS/
 
 # Visual Studio LightSwitch build output
 **/*.HTMLClient/GeneratedArtifacts
