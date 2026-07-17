@@ -351,7 +351,7 @@ export default {
       col_dict_value: '选项配置',
       col_dict_code_placeholder: '字典码',
       col_enum_type_placeholder: '枚举全名',
-      col_const_values_placeholder: '常量 JSON，如 [{"value":1,"label":"启用"}]',
+      col_const_values_placeholder: '常量 JSON，如 {\'[{"value":1,"label":"启用"}]\'}',
       load_failed: '加载列配置失败',
     },
     runtime: {
