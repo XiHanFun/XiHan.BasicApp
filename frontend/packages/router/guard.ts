@@ -169,10 +169,13 @@ export function setupRouterGuard(router: Router) {
     const pinned = to.path === (accessStore.homePath || HOME_PATH) || Boolean(to.meta?.affixTab)
     tabbarStore.ensureTab({
       key: to.fullPath,
+      // 路由名 + keepAlive 标记：供 KeepAlive 的 include 构建（见 tabbarStore.cachedTabNames）
+      name: to.name ? String(to.name) : undefined,
       title: routeTitle,
       path: to.fullPath,
       pinned,
       closable: !pinned,
+      keepAlive: Boolean(to.meta?.keepAlive),
       meta: {
         icon: to.meta?.icon as string | undefined,
       },
