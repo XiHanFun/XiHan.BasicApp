@@ -535,6 +535,31 @@ defineExpose({
   removeView: viewManager.removeView,
   setDefaultView: viewManager.setDefault,
 })
+
+// 列表骨架屏：列宽/列数/行高全部对应真实表格 —— 从 columns 派生每列宽度，行高随密度（small/medium/large）
+const SKELETON_ROWS = 14
+const SKELETON_ROW_HEIGHT: Record<string, number> = { small: 40, medium: 48, large: 56 }
+// 单元格内骨架条占列宽的比例（按列位置循环，模拟不同长度的内容）
+const SKELETON_CELL_FILL = ['62%', '48%', '80%', '55%', '70%', '45%', '75%', '58%', '66%', '50%']
+
+const skeletonRowHeight = computed(() => SKELETON_ROW_HEIGHT[settings.density.value] ?? 40)
+
+const skeletonColumns = computed(() =>
+  columns.value.map((col, i) => {
+    const c = col as { width?: number | string, type?: string }
+    const control = c.type === 'selection' || c.type === 'expand'
+    const rawWidth = typeof c.width === 'number'
+      ? `${c.width}px`
+      : typeof c.width === 'string' ? c.width : undefined
+    return {
+      key: i,
+      // 选择/展开列固定窄格；其余列按真实列宽，无宽度则 flex 平分剩余空间
+      width: control ? '40px' : rawWidth,
+      control,
+      fill: SKELETON_CELL_FILL[i % SKELETON_CELL_FILL.length] as string,
+    }
+  }),
+)
 </script>
 
 <template>
@@ -654,7 +679,35 @@ defineExpose({
       style="height: 0"
       :content-style="{ height: '100%', display: 'flex', flexDirection: 'column', padding: '12px 16px' }"
     >
-      <NSkeleton v-if="!firstLoaded" :height="48" :repeat="5" text style="padding: 16px" />
+      <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
+      <div v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
+        <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
+          <div
+            v-for="col in skeletonColumns"
+            :key="`h-${col.key}`"
+            class="xh-skel-cell"
+            :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+          >
+            <NSkeleton v-if="!col.control" round :height="13" width="52%" />
+          </div>
+        </div>
+        <div
+          v-for="row in SKELETON_ROWS"
+          :key="row"
+          class="xh-skel-row"
+          :style="{ height: `${skeletonRowHeight}px` }"
+        >
+          <div
+            v-for="col in skeletonColumns"
+            :key="`r${row}-${col.key}`"
+            class="xh-skel-cell"
+            :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+          >
+            <NSkeleton v-if="col.control" :sharp="false" :width="16" :height="16" />
+            <NSkeleton v-else round :height="15" :width="col.fill" />
+          </div>
+        </div>
+      </div>
       <template v-else>
         <!-- 表格：列表/树形两种模式（树形不分页、按 childrenKey 展开） -->
         <SchemaTablePanel
@@ -750,6 +803,30 @@ defineExpose({
 </template>
 
 <style scoped>
+/* 列表骨架屏：列宽/行高对应真实表格，单元格内边距 + 行分割线还原表格观感，填满表格区并裁剪溢出 */
+.xh-table-skeleton {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.xh-skel-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+}
+
+.xh-skel-row--head {
+  border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+}
+
+.xh-skel-cell {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0 12px;
+}
+
 .xh-batch-bar {
   display: flex;
   gap: 8px;
