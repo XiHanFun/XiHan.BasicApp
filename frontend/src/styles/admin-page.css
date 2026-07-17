@@ -19,10 +19,51 @@
   min-width: 0;
 }
 
+/*
+ * 新增/编辑弹窗统一表单网格（以用户页为基准，配合 XEditModal 使用）：
+ * 两列等宽、行列间距 10px、紧凑标签；跨整行字段（备注/长文本等）加 .xh-span-2。
+ * 加在 NForm 或普通 div 容器上均可。
+ */
+.xh-edit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.xh-edit-form-grid .xh-span-2 {
+  grid-column: span 2;
+}
+
 /* 编辑弹窗表单标签紧凑 */
 .xh-edit-form-grid .n-form-item-label {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 500;
   padding-bottom: 4px;
+}
+
+/*
+ * 弹窗表单不走 NForm 校验反馈（全仓无 :rules 用法，校验在提交时统一提示）：
+ * 去掉每行下方保留的反馈占位，行距统一为网格间距，等效逐项 :show-feedback="false"
+ */
+.xh-edit-form-grid .n-form-item-feedback-wrapper {
+  display: none;
+}
+
+/* 网格内日期/数字输入默认占满整格，免去逐个设置宽度 */
+.xh-edit-form-grid .n-date-picker,
+.xh-edit-form-grid .n-input-number {
+  width: 100%;
+}
+
+/* 小屏单列 */
+@media (max-width: 560px) {
+  .xh-edit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .xh-edit-form-grid .xh-span-2 {
+    grid-column: auto;
+  }
 }
 
 /* 管理页详情弹窗（与用户页一致） */
