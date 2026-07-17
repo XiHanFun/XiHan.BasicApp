@@ -2,14 +2,10 @@
 import type { EmailConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
-  NConfigProvider,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -18,7 +14,7 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, emailConfigApi, querySortsFromSchema } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 
 defineOptions({ name: 'MessageEmailConfigPage' })
 
@@ -415,89 +411,74 @@ function handleDelete(row: EmailConfigListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider size="small" abstract>
-        <NForm :model="form" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('message.email_config.form.config_code')" path="configCode">
-            <NInput
-              v-model:value="form.configCode"
-              clearable size="small"
-              :disabled="Boolean(form.basicId)"
-              :placeholder="t('message.email_config.form.config_code_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.config_name')" path="configName">
-            <NInput v-model:value="form.configName" clearable size="small" :placeholder="t('message.email_config.form.config_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.smtp_host')" path="smtpHost">
-            <NInput v-model:value="form.smtpHost" clearable size="small" :placeholder="t('message.email_config.form.smtp_host_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.smtp_port')" path="smtpPort">
-            <NInputNumber v-model:value="form.smtpPort" :min="1" :max="65535" style="width: 100%" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.from_email')" path="fromEmail">
-            <NInput v-model:value="form.fromEmail" clearable size="small" :placeholder="t('message.email_config.form.from_email_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.from_name')" path="fromName">
-            <NInput v-model:value="form.fromName" clearable size="small" :placeholder="t('message.email_config.form.from_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.user_name')" path="userName">
-            <NInput v-model:value="form.userName" clearable size="small" :placeholder="t('message.email_config.form.user_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.password')" path="password">
-            <NInput
-              v-model:value="form.password"
-              size="small"
-              type="password"
-              show-password-on="click"
-              :placeholder="passwordPlaceholder"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.use_ssl')" path="useSsl">
-            <NSwitch v-model:value="form.useSsl" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.accept_invalid_certificate')" path="acceptInvalidCertificate">
-            <NSwitch v-model:value="form.acceptInvalidCertificate" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.is_body_html')" path="isBodyHtml">
-            <NSwitch v-model:value="form.isBodyHtml" />
-          </NFormItem>
-          <NFormItem :label="t('message.email_config.form.sort')" path="sort">
-            <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
-          </NFormItem>
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('message.email_config.form.config_code')" path="configCode">
+          <NInput
+            v-model:value="form.configCode"
+            clearable
+            :disabled="Boolean(form.basicId)"
+            :placeholder="t('message.email_config.form.config_code_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.config_name')" path="configName">
+          <NInput v-model:value="form.configName" clearable :placeholder="t('message.email_config.form.config_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.smtp_host')" path="smtpHost">
+          <NInput v-model:value="form.smtpHost" clearable :placeholder="t('message.email_config.form.smtp_host_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.smtp_port')" path="smtpPort">
+          <NInputNumber v-model:value="form.smtpPort" :min="1" :max="65535" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.from_email')" path="fromEmail">
+          <NInput v-model:value="form.fromEmail" clearable :placeholder="t('message.email_config.form.from_email_placeholder')" :input-props="{ autocomplete: 'off' }" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.from_name')" path="fromName">
+          <NInput v-model:value="form.fromName" clearable :placeholder="t('message.email_config.form.from_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.user_name')" path="userName">
+          <NInput v-model:value="form.userName" clearable :placeholder="t('message.email_config.form.user_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.password')" path="password">
+          <NInput
+            v-model:value="form.password"
+            type="password"
+            :input-props="{ autocomplete: 'new-password' }"
+            show-password-on="click"
+            :placeholder="passwordPlaceholder"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.use_ssl')" path="useSsl">
+          <NSwitch v-model:value="form.useSsl" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.accept_invalid_certificate')" path="acceptInvalidCertificate">
+          <NSwitch v-model:value="form.acceptInvalidCertificate" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.is_body_html')" path="isBodyHtml">
+          <NSwitch v-model:value="form.isBodyHtml" />
+        </NFormItem>
+        <NFormItem :label="t('message.email_config.form.sort')" path="sort">
+          <NInputNumber v-model:value="form.sort" :min="0" />
+        </NFormItem>
 
-          <template v-if="!form.basicId">
-            <NFormItem :label="t('message.email_config.form.is_enabled')" path="isEnabled">
-              <NSwitch v-model:value="form.isEnabled" />
-            </NFormItem>
-            <NFormItem :label="t('message.email_config.form.is_default')" path="isDefault">
-              <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
-            </NFormItem>
-          </template>
-
-          <NFormItem :label="t('message.email_config.form.remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="form.remark" clearable size="small" :placeholder="t('message.email_config.form.remark_placeholder')" />
+        <template v-if="!form.basicId">
+          <NFormItem :label="t('message.email_config.form.is_enabled')" path="isEnabled">
+            <NSwitch v-model:value="form.isEnabled" />
           </NFormItem>
-        </NForm>
-      </NConfigProvider>
+          <NFormItem :label="t('message.email_config.form.is_default')" path="isDefault">
+            <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
+          </NFormItem>
+        </template>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('message.email_config.form.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('message.email_config.form.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <NFormItem :label="t('message.email_config.form.remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="form.remark" clearable :placeholder="t('message.email_config.form.remark_placeholder')" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>

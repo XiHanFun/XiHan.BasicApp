@@ -6,9 +6,7 @@ import {
   NFormItem,
   NIcon,
   NInput,
-  NModal,
   NSelect,
-  NSpace,
   useMessage,
 } from 'naive-ui'
 import { ref, watch } from 'vue'
@@ -18,7 +16,7 @@ import {
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
 } from '@/api'
-import { Icon } from '~/components'
+import { Icon, XEditModal } from '~/components'
 
 defineOptions({ name: 'CodeGenImportTableModal' })
 
@@ -148,21 +146,16 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
-
-function handleClose() {
-  emit('update:show', false)
-}
 </script>
 
 <template>
-  <NModal
-    :auto-focus="false"
-    :bordered="false"
-    preset="card"
+  <XEditModal
     :show="show"
-    style="width: 680px; max-width: 92vw"
     :title="t('develop.code_gen.import.title')"
+    :loading="submitLoading"
+    :save-text="step === 1 ? t('common.actions.next_step') : t('develop.code_gen.import.action_import')"
     @update:show="emit('update:show', $event)"
+    @save="step === 1 ? handleNext() : handleSubmit()"
   >
     <template v-if="step === 1">
       <div class="import-filters">
@@ -171,24 +164,22 @@ function handleClose() {
           class="import-filters__item"
           clearable
           :placeholder="t('develop.code_gen.import.connection_placeholder')"
-          size="small"
         />
         <NInput
           v-model:value="queryKeyword"
           class="import-filters__item"
           clearable
           :placeholder="t('develop.code_gen.import.keyword_placeholder')"
-          size="small"
           @keyup.enter="loadTables"
         />
-        <NButton :loading="tableLoading" size="small" type="primary" @click="loadTables">
+        <NButton :loading="tableLoading" type="primary" @click="loadTables">
           <template #icon>
             <NIcon><Icon icon="lucide:search" /></NIcon>
           </template>
           {{ t('common.actions.search') }}
         </NButton>
       </div>
-      <NForm label-placement="top">
+      <NForm class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('develop.code_gen.import.form_database_type')">
           <NSelect v-model:value="databaseType" :options="DATABASE_TYPE_OPTIONS" />
         </NFormItem>
@@ -206,7 +197,7 @@ function handleClose() {
     </template>
 
     <template v-else>
-      <NForm class="xh-edit-form-grid" label-placement="top">
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('develop.code_gen.import.form_table')">
           <NInput :value="selectedTable ?? ''" disabled />
         </NFormItem>
@@ -231,26 +222,12 @@ function handleClose() {
       </NForm>
     </template>
 
-    <template #footer>
-      <NSpace justify="space-between">
-        <NButton v-if="step === 2" @click="step = 1">
-          {{ t('common.actions.prev_step') }}
-        </NButton>
-        <span v-else />
-        <NSpace>
-          <NButton @click="handleClose">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton v-if="step === 1" type="primary" @click="handleNext">
-            {{ t('common.actions.next_step') }}
-          </NButton>
-          <NButton v-else :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('develop.code_gen.import.action_import') }}
-          </NButton>
-        </NSpace>
-      </NSpace>
+    <template #footer-extra>
+      <NButton v-if="step === 2" size="small" @click="step = 1">
+        {{ t('common.actions.prev_step') }}
+      </NButton>
     </template>
-  </NModal>
+  </XEditModal>
 </template>
 
 <style scoped>

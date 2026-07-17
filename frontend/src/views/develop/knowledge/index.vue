@@ -14,7 +14,6 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSpace,
   NSwitch,
   NTabPane,
@@ -34,7 +33,7 @@ import {
   KnowledgeSourceType,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'DevelopKnowledgePage' })
@@ -311,13 +310,12 @@ async function handleQuery() {
     <NTabs v-model:value="activeTab" animated class="knowledge__tabs" type="line">
       <NTabPane name="documents" :tab="t('develop.knowledge.tabs.documents')">
         <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-          <NModal
+          <XEditModal
             v-model:show="modalVisible"
-            :auto-focus="false"
-            :bordered="false"
             :title="t('develop.knowledge.modal_add_title')"
-            preset="card"
-            style="width: 760px; max-width: 92vw"
+            :loading="submitLoading"
+            :save-text="t('develop.knowledge.ingest')"
+            @save="handleSubmit"
           >
             <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
               <NFormItem :label="t('develop.knowledge.form_title')" path="title">
@@ -326,7 +324,7 @@ async function handleQuery() {
               <NFormItem :label="t('develop.knowledge.form_provider')" path="embeddingProviderCode">
                 <NInput v-model:value="form.embeddingProviderCode" clearable :placeholder="t('develop.knowledge.form_provider_placeholder')" />
               </NFormItem>
-              <NFormItem class="xh-form-full" :label="t('develop.knowledge.form_text')" path="text">
+              <NFormItem class="xh-span-2" :label="t('develop.knowledge.form_text')" path="text">
                 <div class="knowledge__text">
                   <NSpace class="knowledge__text-bar" justify="space-between">
                     <NButton size="small" @click="triggerFilePicker">
@@ -343,22 +341,11 @@ async function handleQuery() {
                   <input ref="fileInput" accept=".txt,.md,.markdown,.cs,.ts,.vue,.js,.json,.py,.java,.go,.sql,.yml,.yaml,.html,.css" style="display: none" type="file" @change="onFileSelected">
                 </div>
               </NFormItem>
-              <NFormItem class="xh-form-full" :label="t('common.fields.remark')" path="remark">
+              <NFormItem class="xh-span-2" :label="t('common.fields.remark')" path="remark">
                 <NInput v-model:value="form.remark" clearable :rows="2" type="textarea" />
               </NFormItem>
             </NForm>
-
-            <template #footer>
-              <NSpace justify="end">
-                <NButton @click="modalVisible = false">
-                  {{ t('common.actions.cancel') }}
-                </NButton>
-                <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-                  {{ t('develop.knowledge.ingest') }}
-                </NButton>
-              </NSpace>
-            </template>
-          </NModal>
+          </XEditModal>
         </SchemaPage>
       </NTabPane>
 

@@ -8,13 +8,10 @@ import type {
   TemplateType,
 } from '@/api'
 import {
-  NButton,
   NForm,
   NFormItem,
   NInput,
-  NModal,
   NSelect,
-  NSpace,
   useMessage,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
@@ -31,6 +28,7 @@ import {
   TemplateType as TemplateTypeEnum,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
+import { XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 
 defineOptions({ name: 'CodeGenTableEditModal' })
@@ -296,14 +294,12 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <NModal
-    :auto-focus="false"
-    :bordered="false"
-    preset="card"
+  <XEditModal
     :show="show"
-    style="width: 760px; max-width: 92vw"
     :title="t('develop.code_gen.table_edit.title')"
+    :loading="submitLoading"
     @update:show="emit('update:show', $event)"
+    @save="handleSubmit"
   >
     <NForm v-if="!loading" :model="form" class="xh-edit-form-grid" label-placement="top">
       <NFormItem :label="t('develop.code_gen.table_edit.form_table_name')" path="tableName">
@@ -391,20 +387,9 @@ async function handleSubmit() {
       <NFormItem :label="t('common.fields.status')" path="status">
         <NSelect v-model:value="form.status" :options="statusEnumOptions" />
       </NFormItem>
-      <NFormItem class="xh-form-full" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
+      <NFormItem class="xh-span-2" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
         <NInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />
       </NFormItem>
     </NForm>
-
-    <template #footer>
-      <NSpace justify="end">
-        <NButton @click="emit('update:show', false)">
-          {{ t('common.actions.cancel') }}
-        </NButton>
-        <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-          {{ t('common.actions.save') }}
-        </NButton>
-      </NSpace>
-    </template>
-  </NModal>
+  </XEditModal>
 </template>

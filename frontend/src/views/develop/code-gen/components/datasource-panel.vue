@@ -9,14 +9,11 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -33,7 +30,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -395,13 +392,11 @@ async function handleSubmit() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 720px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('develop.code_gen.datasource.form_source_name')" path="sourceName">
@@ -414,22 +409,22 @@ async function handleSubmit() {
           <NInput v-model:value="form.host" clearable :placeholder="t('develop.code_gen.datasource.form_host_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.datasource.form_port')" path="port">
-          <NInputNumber v-model:value="form.port" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="form.port" :min="0" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.datasource.form_database_name')" path="databaseName">
           <NInput v-model:value="form.databaseName" clearable />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.datasource.form_user_name')" path="userName">
-          <NInput v-model:value="form.userName" clearable />
+          <NInput v-model:value="form.userName" clearable :input-props="{ autocomplete: 'off' }" />
         </NFormItem>
         <NFormItem :label="form.basicId ? t('develop.code_gen.datasource.form_password_edit') : t('develop.code_gen.datasource.form_password')" path="password">
           <NInput v-model:value="form.password" clearable show-password-on="click" type="password" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.datasource.form_connection_timeout')" path="connectionTimeout">
-          <NInputNumber v-model:value="form.connectionTimeout" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="form.connectionTimeout" :min="0" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.datasource.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="form.sort" :min="0" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.datasource.form_is_default')" path="isDefault">
           <NSwitch v-model:value="form.isDefault" />
@@ -437,7 +432,7 @@ async function handleSubmit() {
         <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
           <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.code_gen.datasource.form_connection_string')" path="connectionString">
+        <NFormItem class="xh-span-2" :label="t('develop.code_gen.datasource.form_connection_string')" path="connectionString">
           <NInput
             v-model:value="form.connectionString"
             clearable
@@ -446,22 +441,11 @@ async function handleSubmit() {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.code_gen.datasource.form_description')" path="sourceDescription">
+        <NFormItem class="xh-span-2" :label="t('develop.code_gen.datasource.form_description')" path="sourceDescription">
           <NInput v-model:value="form.sourceDescription" clearable :rows="2" type="textarea" />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

@@ -13,7 +13,6 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -24,10 +23,8 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NModal,
   NScrollbar,
   NSelect,
-  NSpace,
   NSpin,
   NSwitch,
   NTabPane,
@@ -45,7 +42,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -800,23 +797,21 @@ async function handleToggleStatus(row: PermissionListItemDto) {
       </NDrawerContent>
     </NDrawer>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 760px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="permissionForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('identity.permission.label_form_permission_name')" path="permissionName">
-          <NInput v-model:value="permissionForm.permissionName" clearable size="small" :placeholder="t('identity.permission.ph_permission_name')" />
+          <NInput v-model:value="permissionForm.permissionName" clearable :placeholder="t('identity.permission.ph_permission_name')" />
         </NFormItem>
         <NFormItem :label="t('identity.permission.label_form_permission_code')" path="permissionCode">
           <NInput
             v-model:value="permissionForm.permissionCode"
             :disabled="Boolean(permissionForm.basicId)"
-            clearable size="small"
+            clearable
             :placeholder="t('identity.permission.ph_permission_code')"
           />
         </NFormItem>
@@ -824,7 +819,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
           <NInput
             v-model:value="permissionForm.moduleCode"
             :disabled="Boolean(permissionForm.basicId)"
-            clearable size="small"
+            clearable
             :placeholder="t('identity.permission.ph_module_code')"
           />
         </NFormItem>
@@ -841,7 +836,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             :disabled="Boolean(permissionForm.basicId)"
             :loading="resourceLoading"
             :options="resourceOptions"
-            clearable size="small"
+            clearable
             filterable
             :placeholder="t('identity.permission.ph_resource')"
             remote
@@ -855,7 +850,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             :disabled="Boolean(permissionForm.basicId)"
             :loading="operationLoading"
             :options="operationOptions"
-            clearable size="small"
+            clearable
             filterable
             :placeholder="t('identity.permission.ph_operation')"
             remote
@@ -870,45 +865,34 @@ async function handleToggleStatus(row: PermissionListItemDto) {
           <NSelect v-model:value="permissionForm.status" :options="statusOptions" />
         </NFormItem>
         <NFormItem :label="t('identity.permission.label_form_priority')" path="priority">
-          <NInputNumber v-model:value="permissionForm.priority" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="permissionForm.priority" :min="0" />
         </NFormItem>
         <NFormItem :label="t('identity.permission.label_form_sort')" path="sort">
-          <NInputNumber v-model:value="permissionForm.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="permissionForm.sort" :min="0" />
         </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_tags_json')" path="tags">
+        <NFormItem :label="t('identity.permission.label_form_tags_json')" path="tags" class="xh-span-2">
           <NInput
             v-model:value="permissionForm.tags"
-            clearable size="small"
+            clearable
             placeholder="[&quot;admin&quot;]"
             :rows="3"
             type="textarea"
           />
         </NFormItem>
         <NFormItem :label="t('identity.permission.label_form_remark')" path="remark">
-          <NInput v-model:value="permissionForm.remark" clearable size="small" :placeholder="t('identity.permission.ph_remark')" />
+          <NInput v-model:value="permissionForm.remark" clearable :placeholder="t('identity.permission.ph_remark')" />
         </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_description')" path="permissionDescription">
+        <NFormItem :label="t('identity.permission.label_form_description')" path="permissionDescription" class="xh-span-2">
           <NInput
             v-model:value="permissionForm.permissionDescription"
-            clearable size="small"
+            clearable
             :placeholder="t('identity.permission.ph_description')"
             :rows="3"
             type="textarea"
           />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

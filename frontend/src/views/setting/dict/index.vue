@@ -17,7 +17,6 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NModal,
   NPagination,
   NPopconfirm,
   NSelect,
@@ -30,7 +29,7 @@ import { computed, h, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon } from '~/components'
+import { Icon, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -865,13 +864,11 @@ onMounted(fetchDictData)
     </section>
 
     <!-- 字典 新增/编辑 -->
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="dictForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('setting.dict.dict_code')" path="dictCode">
@@ -888,7 +885,7 @@ onMounted(fetchDictData)
         <NFormItem :label="t('setting.dict.dict_type')" path="dictType">
           <NInput v-model:value="dictForm.dictType" clearable :placeholder="t('setting.dict.dict_type_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('setting.dict.description')" path="dictDescription">
+        <NFormItem :label="t('setting.dict.description')" path="dictDescription" class="xh-span-2">
           <NInput
             v-model:value="dictForm.dictDescription"
             clearable
@@ -898,33 +895,20 @@ onMounted(fetchDictData)
           />
         </NFormItem>
         <NFormItem :label="t('setting.dict.sort')" path="sort">
-          <NInputNumber v-model:value="dictForm.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="dictForm.sort" :min="0" />
         </NFormItem>
         <NFormItem v-if="!dictForm.basicId" :label="t('setting.dict.status')" path="status">
           <NSelect v-model:value="dictForm.status" :options="statusEnumOptions" />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
 
     <!-- 字典项 新增/编辑 -->
-    <NModal
+    <XEditModal
       v-model:show="itemModalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="itemModalTitle"
-      preset="card"
-      style="width: 600px; max-width: 92vw"
+      :loading="itemSubmitLoading"
+      @save="handleItemSubmit"
     >
       <NForm :model="itemForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('setting.dict.item_code')" path="itemCode">
@@ -941,7 +925,7 @@ onMounted(fetchDictData)
         <NFormItem :label="t('setting.dict.item_value_label')" path="itemValue">
           <NInput v-model:value="itemForm.itemValue" clearable :placeholder="t('setting.dict.item_value_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('setting.dict.description')" path="itemDescription">
+        <NFormItem :label="t('setting.dict.description')" path="itemDescription" class="xh-span-2">
           <NInput
             v-model:value="itemForm.itemDescription"
             clearable
@@ -954,24 +938,13 @@ onMounted(fetchDictData)
           <NSwitch v-model:value="itemForm.isDefault" />
         </NFormItem>
         <NFormItem :label="t('setting.dict.sort')" path="sort">
-          <NInputNumber v-model:value="itemForm.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="itemForm.sort" :min="0" />
         </NFormItem>
         <NFormItem v-if="!itemForm.basicId" :label="t('setting.dict.status')" path="status">
           <NSelect v-model:value="itemForm.status" :options="statusEnumOptions" />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="itemModalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="itemSubmitLoading" type="primary" @click="handleItemSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </div>
 </template>
 

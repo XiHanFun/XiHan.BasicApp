@@ -2,15 +2,11 @@
 import type { SmsConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
-  NConfigProvider,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -19,7 +15,7 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, smsConfigApi, SmsProviderType } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'MessageSmsConfigPage' })
@@ -455,93 +451,77 @@ function handleDelete(row: SmsConfigListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider size="small" abstract>
-        <NForm :model="form" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('message.sms_config.form.config_code')" path="configCode">
-            <NInput
-              v-model:value="form.configCode"
-              clearable size="small"
-              :disabled="Boolean(form.basicId)"
-              :placeholder="t('message.sms_config.form.config_code_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.config_name')" path="configName">
-            <NInput v-model:value="form.configName" clearable size="small" :placeholder="t('message.sms_config.form.config_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.provider')" path="provider">
-            <NSelect v-model:value="form.provider" :options="providerOptions" />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.sign_name')" path="signName">
-            <NInput v-model:value="form.signName" clearable size="small" :placeholder="t('message.sms_config.form.sign_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.access_key_id')" path="accessKeyId">
-            <NInput v-model:value="form.accessKeyId" clearable size="small" :placeholder="t('message.sms_config.form.access_key_id_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.access_key_secret')" path="accessKeySecret">
-            <NInput
-              v-model:value="form.accessKeySecret"
-              size="small"
-              type="password"
-              show-password-on="click"
-              :placeholder="secretPlaceholder"
-            />
-          </NFormItem>
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('message.sms_config.form.config_code')" path="configCode">
+          <NInput
+            v-model:value="form.configCode"
+            clearable
+            :disabled="Boolean(form.basicId)"
+            :placeholder="t('message.sms_config.form.config_code_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.sms_config.form.config_name')" path="configName">
+          <NInput v-model:value="form.configName" clearable :placeholder="t('message.sms_config.form.config_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.sms_config.form.provider')" path="provider">
+          <NSelect v-model:value="form.provider" :options="providerOptions" />
+        </NFormItem>
+        <NFormItem :label="t('message.sms_config.form.sign_name')" path="signName">
+          <NInput v-model:value="form.signName" clearable :placeholder="t('message.sms_config.form.sign_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.sms_config.form.access_key_id')" path="accessKeyId">
+          <NInput v-model:value="form.accessKeyId" clearable :placeholder="t('message.sms_config.form.access_key_id_placeholder')" :input-props="{ autocomplete: 'off' }" />
+        </NFormItem>
+        <NFormItem :label="t('message.sms_config.form.access_key_secret')" path="accessKeySecret">
+          <NInput
+            v-model:value="form.accessKeySecret"
+            type="password"
+            :input-props="{ autocomplete: 'new-password' }"
+            show-password-on="click"
+            :placeholder="secretPlaceholder"
+          />
+        </NFormItem>
 
-          <template v-if="isTencentCloud">
-            <NFormItem :label="t('message.sms_config.form.sdk_app_id')" path="sdkAppId">
-              <NInput v-model:value="form.sdkAppId" clearable size="small" :placeholder="t('message.sms_config.form.sdk_app_id_placeholder')" />
-            </NFormItem>
-            <NFormItem :label="t('message.sms_config.form.region')" path="region">
-              <NInput v-model:value="form.region" clearable size="small" :placeholder="t('message.sms_config.form.region_placeholder')" />
-            </NFormItem>
-          </template>
-
-          <NFormItem :label="t('message.sms_config.form.template_map')" path="templateMap" style="grid-column: span 2">
-            <NInput
-              v-model:value="form.templateMap"
-              size="small"
-              type="textarea"
-              :rows="4"
-              :placeholder="t('message.sms_config.form.template_map_placeholder')"
-            />
+        <template v-if="isTencentCloud">
+          <NFormItem :label="t('message.sms_config.form.sdk_app_id')" path="sdkAppId">
+            <NInput v-model:value="form.sdkAppId" clearable :placeholder="t('message.sms_config.form.sdk_app_id_placeholder')" />
           </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.sort')" path="sort">
-            <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
+          <NFormItem :label="t('message.sms_config.form.region')" path="region">
+            <NInput v-model:value="form.region" clearable :placeholder="t('message.sms_config.form.region_placeholder')" />
           </NFormItem>
+        </template>
 
-          <template v-if="!form.basicId">
-            <NFormItem :label="t('message.sms_config.form.is_enabled')" path="isEnabled">
-              <NSwitch v-model:value="form.isEnabled" />
-            </NFormItem>
-            <NFormItem :label="t('message.sms_config.form.is_default')" path="isDefault">
-              <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
-            </NFormItem>
-          </template>
+        <NFormItem :label="t('message.sms_config.form.template_map')" path="templateMap" class="xh-span-2">
+          <NInput
+            v-model:value="form.templateMap"
+            type="textarea"
+            :rows="4"
+            :placeholder="t('message.sms_config.form.template_map_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.sms_config.form.sort')" path="sort">
+          <NInputNumber v-model:value="form.sort" :min="0" />
+        </NFormItem>
 
-          <NFormItem :label="t('message.sms_config.form.remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="form.remark" clearable size="small" :placeholder="t('message.sms_config.form.remark_placeholder')" />
+        <template v-if="!form.basicId">
+          <NFormItem :label="t('message.sms_config.form.is_enabled')" path="isEnabled">
+            <NSwitch v-model:value="form.isEnabled" />
           </NFormItem>
-        </NForm>
-      </NConfigProvider>
+          <NFormItem :label="t('message.sms_config.form.is_default')" path="isDefault">
+            <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
+          </NFormItem>
+        </template>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('message.sms_config.form.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('message.sms_config.form.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <NFormItem :label="t('message.sms_config.form.remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="form.remark" clearable :placeholder="t('message.sms_config.form.remark_placeholder')" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>

@@ -4,7 +4,6 @@ import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNode
 import type { PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import {
   NButton,
-  NConfigProvider,
   NDataTable,
   NDescriptions,
   NDescriptionsItem,
@@ -30,7 +29,7 @@ import {
   menuManagementApi,
   MenuType,
 } from '@/api'
-import { Icon, IconPicker, SchemaPage } from '~/components'
+import { Icon, IconPicker, SchemaPage, XEditModal } from '~/components'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -763,108 +762,93 @@ onMounted(() => {
       </template>
     </NModal>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 800px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider size="small" abstract>
-        <NForm :model="menuForm" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('setting.menu.menu_name')" path="menuName">
-            <NInput v-model:value="menuForm.menuName" clearable :placeholder="t('setting.menu.menu_name_input_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.menu_code')" path="menuCode">
-            <NInput
-              v-model:value="menuForm.menuCode"
-              :disabled="Boolean(menuForm.basicId)"
-              clearable
-              :placeholder="t('setting.menu.menu_code_input_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.parent_menu')" path="parentId">
-            <NTreeSelect
-              v-model:value="menuForm.parentId"
-              :options="treeSelectOptions"
-              key-field="key"
-              label-field="label"
-              clearable
-              :placeholder="t('setting.menu.parent_menu_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.menu_type')" path="menuType">
-            <NSelect v-model:value="menuForm.menuType" :options="menuTypeOptions" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.route_path')" path="path">
-            <NInput v-model:value="menuForm.path" clearable :placeholder="t('setting.menu.path_input_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.route_name')" path="routeName">
-            <NInput v-model:value="menuForm.routeName" clearable :placeholder="t('setting.menu.route_name_input_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.component_path')" path="component">
-            <NInput v-model:value="menuForm.component" clearable :placeholder="t('setting.menu.component_input_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.redirect')" path="redirect">
-            <NInput v-model:value="menuForm.redirect" clearable :placeholder="t('setting.menu.redirect_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.icon')" path="icon">
-            <IconPicker v-model="menuForm.icon" :placeholder="t('setting.menu.icon_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.title')" path="title">
-            <NInput v-model:value="menuForm.title" clearable :placeholder="t('setting.menu.title_input_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.i18n_key')" path="i18nKey">
-            <NInput v-model:value="menuForm.i18nKey" clearable :placeholder="t('setting.menu.i18n_key_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.sort')" path="sort">
-            <NInputNumber v-model:value="menuForm.sort" :min="0" style="width: 100%" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.badge_content')" path="badge">
-            <NInput v-model:value="menuForm.badge" clearable :placeholder="t('setting.menu.badge_content_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.badge_type')" path="badgeType">
-            <NSelect v-model:value="menuForm.badgeType" :options="badgeTypeOptions" clearable :placeholder="t('setting.menu.badge_type_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.badge_dot')">
-            <NSwitch v-model:value="menuForm.badgeDot" />
-          </NFormItem>
-          <NFormItem v-if="!menuForm.basicId" :label="t('setting.menu.status')" path="status">
-            <NSelect v-model:value="menuForm.status" :options="statusOptions" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.visible')">
-            <NSwitch v-model:value="menuForm.isVisible" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.cache')">
-            <NSwitch v-model:value="menuForm.isCache" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.affix')">
-            <NSwitch v-model:value="menuForm.isAffix" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.external')">
-            <NSwitch v-model:value="menuForm.isExternal" />
-          </NFormItem>
-          <NFormItem v-if="menuForm.isExternal" :label="t('setting.menu.external_url')" path="externalUrl">
-            <NInput v-model:value="menuForm.externalUrl" clearable :placeholder="t('setting.menu.external_url_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.menu.remark')" path="remark">
-            <NInput v-model:value="menuForm.remark" clearable :placeholder="t('setting.menu.remark_placeholder')" :rows="3" type="textarea" />
-          </NFormItem>
-        </NForm>
-      </NConfigProvider>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+      <NForm :model="menuForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('setting.menu.menu_name')" path="menuName">
+          <NInput v-model:value="menuForm.menuName" clearable :placeholder="t('setting.menu.menu_name_input_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.menu_code')" path="menuCode">
+          <NInput
+            v-model:value="menuForm.menuCode"
+            :disabled="Boolean(menuForm.basicId)"
+            clearable
+            :placeholder="t('setting.menu.menu_code_input_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.parent_menu')" path="parentId">
+          <NTreeSelect
+            v-model:value="menuForm.parentId"
+            :options="treeSelectOptions"
+            key-field="key"
+            label-field="label"
+            clearable
+            :placeholder="t('setting.menu.parent_menu_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.menu_type')" path="menuType">
+          <NSelect v-model:value="menuForm.menuType" :options="menuTypeOptions" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.route_path')" path="path">
+          <NInput v-model:value="menuForm.path" clearable :placeholder="t('setting.menu.path_input_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.route_name')" path="routeName">
+          <NInput v-model:value="menuForm.routeName" clearable :placeholder="t('setting.menu.route_name_input_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.component_path')" path="component">
+          <NInput v-model:value="menuForm.component" clearable :placeholder="t('setting.menu.component_input_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.redirect')" path="redirect">
+          <NInput v-model:value="menuForm.redirect" clearable :placeholder="t('setting.menu.redirect_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.icon')" path="icon">
+          <IconPicker v-model="menuForm.icon" :placeholder="t('setting.menu.icon_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.title')" path="title">
+          <NInput v-model:value="menuForm.title" clearable :placeholder="t('setting.menu.title_input_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.i18n_key')" path="i18nKey">
+          <NInput v-model:value="menuForm.i18nKey" clearable :placeholder="t('setting.menu.i18n_key_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.sort')" path="sort">
+          <NInputNumber v-model:value="menuForm.sort" :min="0" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.badge_content')" path="badge">
+          <NInput v-model:value="menuForm.badge" clearable :placeholder="t('setting.menu.badge_content_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.badge_type')" path="badgeType">
+          <NSelect v-model:value="menuForm.badgeType" :options="badgeTypeOptions" clearable :placeholder="t('setting.menu.badge_type_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.badge_dot')">
+          <NSwitch v-model:value="menuForm.badgeDot" />
+        </NFormItem>
+        <NFormItem v-if="!menuForm.basicId" :label="t('setting.menu.status')" path="status">
+          <NSelect v-model:value="menuForm.status" :options="statusOptions" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.visible')">
+          <NSwitch v-model:value="menuForm.isVisible" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.cache')">
+          <NSwitch v-model:value="menuForm.isCache" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.affix')">
+          <NSwitch v-model:value="menuForm.isAffix" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.external')">
+          <NSwitch v-model:value="menuForm.isExternal" />
+        </NFormItem>
+        <NFormItem v-if="menuForm.isExternal" :label="t('setting.menu.external_url')" path="externalUrl" class="xh-span-2">
+          <NInput v-model:value="menuForm.externalUrl" clearable :placeholder="t('setting.menu.external_url_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.menu.remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="menuForm.remark" clearable :placeholder="t('setting.menu.remark_placeholder')" :rows="3" type="textarea" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </div>
 </template>
 

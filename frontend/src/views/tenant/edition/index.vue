@@ -17,7 +17,6 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
   NSpace,
   NSpin,
@@ -38,7 +37,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { PERMISSION_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -601,13 +600,11 @@ function formatNullable(value: unknown) {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 720px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="editionForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('tenant.edition.edition_code')" path="editionCode">
@@ -629,7 +626,6 @@ function formatNullable(value: unknown) {
             :precision="2"
             clearable
             :placeholder="t('tenant.edition.price_placeholder')"
-            style="width: 100%"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.edition.billing_period_form')" path="billingPeriodMonths">
@@ -639,7 +635,6 @@ function formatNullable(value: unknown) {
             :precision="0"
             clearable
             :placeholder="t('tenant.edition.billing_period_placeholder')"
-            style="width: 100%"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.edition.user_limit')" path="userLimit">
@@ -649,7 +644,6 @@ function formatNullable(value: unknown) {
             :precision="0"
             clearable
             :placeholder="t('tenant.edition.user_limit_placeholder')"
-            style="width: 100%"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.edition.storage_limit_form')" path="storageLimit">
@@ -659,7 +653,6 @@ function formatNullable(value: unknown) {
             :precision="0"
             clearable
             :placeholder="t('tenant.edition.storage_limit_placeholder')"
-            style="width: 100%"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.edition.is_free')" path="isFree">
@@ -672,9 +665,9 @@ function formatNullable(value: unknown) {
           <NSelect v-model:value="editionForm.status" :options="statusOptions" />
         </NFormItem>
         <NFormItem :label="t('tenant.edition.sort')" path="sort">
-          <NInputNumber v-model:value="editionForm.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="editionForm.sort" :min="0" />
         </NFormItem>
-        <NFormItem :label="t('tenant.edition.description')" path="description">
+        <NFormItem :label="t('tenant.edition.description')" path="description" class="xh-span-2">
           <NInput
             v-model:value="editionForm.description"
             :rows="2"
@@ -683,7 +676,7 @@ function formatNullable(value: unknown) {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem :label="t('tenant.edition.remark')" path="remark">
+        <NFormItem :label="t('tenant.edition.remark')" path="remark" class="xh-span-2">
           <NInput
             v-model:value="editionForm.remark"
             :rows="2"
@@ -693,18 +686,7 @@ function formatNullable(value: unknown) {
           />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('tenant.edition.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('tenant.edition.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
 
     <NDrawer v-model:show="permDrawerVisible" :width="760">
       <NDrawerContent :title="t('tenant.edition.perm_drawer_title', { name: permEdition?.editionName ?? '' })" closable>

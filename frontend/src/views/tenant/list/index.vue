@@ -25,7 +25,6 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NModal,
   NScrollbar,
   NSelect,
   NSpace,
@@ -51,7 +50,7 @@ import {
 } from '@/api'
 import XLogoUpload from '@/components/LogoUpload.vue'
 import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XUserAvatar } from '~/components'
+import { Icon, SchemaPage, XEditModal, XUserAvatar } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -784,13 +783,11 @@ async function handleSubmit() {
       </NDrawerContent>
     </NDrawer>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 760px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="tenantForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('tenant.list.tenant_name')" path="tenantName">
@@ -822,7 +819,7 @@ async function handleSubmit() {
               :placeholder="t('tenant.list.database_type_placeholder')"
             />
           </NFormItem>
-          <NFormItem :label="t('tenant.list.connection_string')" path="connectionString">
+          <NFormItem :label="t('tenant.list.connection_string')" path="connectionString" class="xh-span-2">
             <NInput
               v-model:value="tenantForm.connectionString"
               clearable
@@ -841,14 +838,14 @@ async function handleSubmit() {
           />
         </NFormItem>
         <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_user_name')" path="adminUserName">
-          <NInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" />
+          <NInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
         </NFormItem>
         <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_email')" path="adminEmail">
           <NInput
             v-model:value="tenantForm.adminEmail"
             clearable
             :placeholder="t('tenant.list.admin_email_placeholder')"
-            :input-props="{ type: 'email' }"
+            :input-props="{ type: 'email', autocomplete: 'off' }"
           />
         </NFormItem>
         <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_password')" path="adminPassword">
@@ -858,6 +855,7 @@ async function handleSubmit() {
             :placeholder="t('tenant.list.admin_password_placeholder')"
             show-password-on="click"
             type="password"
+            :input-props="{ autocomplete: 'new-password' }"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.list.user_limit')" path="userLimit">
@@ -866,7 +864,6 @@ async function handleSubmit() {
             :min="0"
             clearable
             :placeholder="userLimitPlaceholder"
-            style="width: 100%"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.list.storage_limit')" path="storageLimit">
@@ -875,11 +872,10 @@ async function handleSubmit() {
             :min="0"
             clearable
             :placeholder="storageLimitPlaceholder"
-            style="width: 100%"
           />
         </NFormItem>
         <NFormItem :label="t('tenant.list.sort')" path="sort">
-          <NInputNumber v-model:value="tenantForm.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="tenantForm.sort" :min="0" />
         </NFormItem>
         <NFormItem v-if="tenantForm.basicId" :label="t('tenant.list.tenant_status')" path="tenantStatus">
           <NSelect v-model:value="tenantForm.tenantStatus" :options="tenantStatusOptions" />
@@ -888,7 +884,6 @@ async function handleSubmit() {
           <NDatePicker
             v-model:formatted-value="tenantForm.expirationTime"
             clearable
-            style="width: 100%"
             type="datetime"
             value-format="yyyy-MM-dd HH:mm:ss"
           />
@@ -896,7 +891,7 @@ async function handleSubmit() {
         <NFormItem :label="t('tenant.list.logo')" path="logo">
           <XLogoUpload v-model="tenantForm.logo" directory="tenant-logo" />
         </NFormItem>
-        <NFormItem :label="t('tenant.list.remark')" path="remark">
+        <NFormItem :label="t('tenant.list.remark')" path="remark" class="xh-span-2">
           <NInput
             v-model:value="tenantForm.remark"
             clearable
@@ -906,26 +901,13 @@ async function handleSubmit() {
           />
         </NFormItem>
       </NForm>
+    </XEditModal>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('tenant.list.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('tenant.list.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <NModal
+    <XEditModal
       v-model:show="memberEditVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      style="width: 520px; max-width: 92vw"
       :title="t('tenant.list.member_edit_title')"
+      :loading="memberEditLoading"
+      @save="handleSaveMember"
     >
       <NForm v-if="editingMember" :model="editingMember" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('tenant.list.member_display_name')" path="displayName">
@@ -938,7 +920,6 @@ async function handleSubmit() {
           <NDatePicker
             v-model:formatted-value="editingMember.effectiveTime"
             clearable
-            style="width: 100%"
             type="datetime"
             value-format="yyyy-MM-dd HH:mm:ss"
           />
@@ -947,12 +928,11 @@ async function handleSubmit() {
           <NDatePicker
             v-model:formatted-value="editingMember.expirationTime"
             clearable
-            style="width: 100%"
             type="datetime"
             value-format="yyyy-MM-dd HH:mm:ss"
           />
         </NFormItem>
-        <NFormItem :label="t('tenant.list.member_invite_remark')" path="inviteRemark">
+        <NFormItem :label="t('tenant.list.member_invite_remark')" path="inviteRemark" class="xh-span-2">
           <NInput
             v-model:value="editingMember.inviteRemark"
             clearable
@@ -961,7 +941,7 @@ async function handleSubmit() {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem :label="t('tenant.list.member_remark')" path="remark">
+        <NFormItem :label="t('tenant.list.member_remark')" path="remark" class="xh-span-2">
           <NInput
             v-model:value="editingMember.remark"
             clearable
@@ -971,44 +951,20 @@ async function handleSubmit() {
           />
         </NFormItem>
       </NForm>
+    </XEditModal>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="memberEditVisible = false">
-            {{ t('tenant.list.cancel') }}
-          </NButton>
-          <NButton :loading="memberEditLoading" type="primary" @click="handleSaveMember">
-            {{ t('tenant.list.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <NModal
+    <XEditModal
       v-model:show="memberStatusVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      style="width: 360px; max-width: 92vw"
       :title="t('tenant.list.member_status_title')"
+      :loading="memberStatusLoading"
+      @save="handleSaveMemberStatus"
     >
-      <NForm label-placement="top">
-        <NFormItem :label="t('tenant.list.member_status')">
+      <NForm class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('tenant.list.member_status')" class="xh-span-2">
           <NSelect v-model:value="editingMemberStatus" :options="validityStatusOptions" />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="memberStatusVisible = false">
-            {{ t('tenant.list.cancel') }}
-          </NButton>
-          <NButton :loading="memberStatusLoading" type="primary" @click="handleSaveMemberStatus">
-            {{ t('tenant.list.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

@@ -8,14 +8,11 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -30,7 +27,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -288,13 +285,11 @@ async function handleSubmit() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 820px; max-width: 94vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('develop.ai_prompt.form_prompt_code')" path="promptCode">
@@ -315,7 +310,7 @@ async function handleSubmit() {
           <NInput v-model:value="form.version" clearable :placeholder="t('develop.ai_prompt.form_version_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('develop.ai_prompt.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="form.sort" :min="0" />
         </NFormItem>
         <NFormItem :label="t('develop.ai_prompt.form_is_enabled')" path="isEnabled">
           <NSwitch v-model:value="form.isEnabled" />
@@ -323,7 +318,7 @@ async function handleSubmit() {
         <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
           <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.ai_prompt.form_content')" path="content">
+        <NFormItem class="xh-span-2" :label="t('develop.ai_prompt.form_content')" path="content">
           <NInput
             v-model:value="form.content"
             class="prompt-content-input"
@@ -332,22 +327,11 @@ async function handleSubmit() {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('common.fields.remark')" path="remark">
+        <NFormItem class="xh-span-2" :label="t('common.fields.remark')" path="remark">
           <NInput v-model:value="form.remark" clearable :rows="2" type="textarea" />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

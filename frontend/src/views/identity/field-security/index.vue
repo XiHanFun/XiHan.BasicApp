@@ -8,14 +8,11 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NSwitch,
   NTag,
   useMessage,
@@ -36,7 +33,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -508,13 +505,11 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
       :title="modalTitle"
-      style="width: 720px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="flsForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('identity.field_security.label_target_type')" path="targetType">
@@ -570,12 +565,12 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
           />
         </NFormItem>
         <NFormItem :label="t('identity.field_security.label_priority')" path="priority">
-          <NInputNumber v-model:value="flsForm.priority" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="flsForm.priority" :min="0" />
         </NFormItem>
         <NFormItem v-if="!flsForm.basicId" :label="t('identity.field_security.label_status')" path="status">
           <NSelect v-model:value="flsForm.status" :options="statusEnumOptions" />
         </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_description')" path="description">
+        <NFormItem :label="t('identity.field_security.label_description')" path="description" class="xh-span-2">
           <NInput
             v-model:value="flsForm.description"
             clearable
@@ -588,17 +583,6 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
           <NInput v-model:value="flsForm.remark" clearable :placeholder="t('identity.field_security.ph_remark')" />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
