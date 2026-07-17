@@ -1,23 +1,31 @@
 import type { Cell, Edge, Node } from '@antv/x6'
 import type {
+  DiagramAlign,
   DiagramApi,
   DiagramData,
   DiagramEdge,
   DiagramEdgeEventPayload,
   DiagramNode,
+  DiagramNodeStatus,
   DiagramOptions,
 } from './types'
 import { Graph } from '@antv/x6'
 import { Clipboard } from '@antv/x6-plugin-clipboard'
+import { Export } from '@antv/x6-plugin-export'
 import { History } from '@antv/x6-plugin-history'
 import { Keyboard } from '@antv/x6-plugin-keyboard'
+import { MiniMap } from '@antv/x6-plugin-minimap'
 import { Selection } from '@antv/x6-plugin-selection'
 import { Snapline } from '@antv/x6-plugin-snapline'
+import { DIAGRAM_NODE_HIGHLIGHT_KEY, DIAGRAM_NODE_STATUS_KEY } from './types'
 
 /** 连线保留数据键（label/dashed 的权威副本，业务 data 与其隔离） */
 const EDGE_META_KEY = '__diagramEdgeMeta'
 
 const EDGE_STROKE = '#94a3b8'
+
+/** X6 鼠标事件的结构子集（取 clientX/Y 定位菜单，避免耦合 X6 内部事件类型） */
+interface MouseEventLike { preventDefault: () => void, clientX: number, clientY: number }
 
 function edgeAttrs(dashed: boolean | undefined) {
   return {
@@ -148,8 +156,12 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
     graph.use(new Selection({
       enabled: !readonly,
       rubberband: true,
+      // Shift 框选空白区域；Shift/Ctrl 点选叠加多选（对齐/分布需要）
       modifiers: 'shift',
-      showNodeSelectionBox: false,
+      multipleSelectionModifiers: ['ctrl', 'meta', 'shift'],
+      // 显示选中框给出多选反馈；pointerEvents:'none' 使其纯视觉、不拦截节点点击
+      showNodeSelectionBox: true,
+      pointerEvents: 'none',
     }))
   }
   if (options.snapline !== false)
@@ -185,6 +197,27 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
         graph.select(graph.paste({ offset: 32 }))
       return false
     })
+  }
+
+  graph.use(new Export())
+  if (options.minimapContainer) {
+    graph.use(new MiniMap({
+      container: options.minimapContainer,
+      width: 180,
+      height: 120,
+      padding: 8,
+    }))
+  }
+
+  const ZOOM_STEP = 0.2
+  const ZOOM_MIN = 0.2
+  const ZOOM_MAX = 2
+
+  /** 当前选中的节点（无 Selection 插件时安全返回空） */
+  function selectedNodes(): Node[] {
+    if (typeof graph.getSelectedCells !== 'function')
+      return []
+    return graph.getSelectedCells().filter((cell): cell is Node => cell.isNode())
   }
 
   const api: DiagramApi = {
@@ -260,8 +293,124 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
       return { x: point.x, y: point.y }
     },
 
+    setNodeStatus(id: string, status: DiagramNodeStatus | null) {
+      const cell = graph.getCellById(id)
+      if (cell?.isNode())
+        cell.setData({ [DIAGRAM_NODE_STATUS_KEY]: status }, { deep: false })
+    },
+
+    setNodeStatuses(statuses: Record<string, DiagramNodeStatus | null>) {
+      for (const [id, status] of Object.entries(statuses)) {
+        const cell = graph.getCellById(id)
+        if (cell?.isNode())
+          cell.setData({ [DIAGRAM_NODE_STATUS_KEY]: status }, { deep: false })
+      }
+    },
+
+    highlightNodes(ids: string[]) {
+      const set = new Set(ids)
+      for (const node of graph.getNodes()) {
+        const should = set.has(node.id)
+        const current = Boolean((node.getData() as Record<string, unknown> | undefined)?.[DIAGRAM_NODE_HIGHLIGHT_KEY])
+        // 只在变化时写入，避免无谓的节点重渲染
+        if (should !== current)
+          node.setData({ [DIAGRAM_NODE_HIGHLIGHT_KEY]: should }, { deep: false })
+      }
+    },
+
+    clearHighlights() {
+      api.highlightNodes([])
+    },
+
+    scrollToNode(id: string) {
+      const cell = graph.getCellById(id)
+      if (cell?.isNode())
+        graph.centerCell(cell)
+    },
+
     zoomToFit() {
       graph.zoomToFit({ padding: 24, maxScale: 1 })
+    },
+
+    zoomIn() {
+      graph.zoomTo(Math.min(graph.zoom() + ZOOM_STEP, ZOOM_MAX))
+    },
+
+    zoomOut() {
+      graph.zoomTo(Math.max(graph.zoom() - ZOOM_STEP, ZOOM_MIN))
+    },
+
+    zoomToActual() {
+      graph.zoomTo(1)
+      graph.centerContent()
+    },
+
+    getSelectedNodeIds() {
+      return selectedNodes().map(node => node.id)
+    },
+
+    align(mode: DiagramAlign) {
+      const nodes = selectedNodes()
+      if (nodes.length < 2)
+        return
+      const rects = nodes.map(node => ({ node, pos: node.getPosition(), size: node.getSize() }))
+      const left = Math.min(...rects.map(r => r.pos.x))
+      const right = Math.max(...rects.map(r => r.pos.x + r.size.width))
+      const top = Math.min(...rects.map(r => r.pos.y))
+      const bottom = Math.max(...rects.map(r => r.pos.y + r.size.height))
+      const centerX = rects.reduce((sum, r) => sum + r.pos.x + r.size.width / 2, 0) / rects.length
+      const centerY = rects.reduce((sum, r) => sum + r.pos.y + r.size.height / 2, 0) / rects.length
+      graph.batchUpdate(() => {
+        for (const { node, pos, size } of rects) {
+          let x = pos.x
+          let y = pos.y
+          if (mode === 'left')
+            x = left
+          else if (mode === 'right')
+            x = right - size.width
+          else if (mode === 'center-vertical')
+            x = centerX - size.width / 2
+          else if (mode === 'top')
+            y = top
+          else if (mode === 'bottom')
+            y = bottom - size.height
+          else if (mode === 'center-horizontal')
+            y = centerY - size.height / 2
+          node.setPosition(x, y)
+        }
+      })
+    },
+
+    distribute(axis: 'horizontal' | 'vertical') {
+      const nodes = selectedNodes()
+      if (nodes.length < 3)
+        return
+      const rects = nodes.map(node => ({ node, pos: node.getPosition(), size: node.getSize() }))
+      const horizontal = axis === 'horizontal'
+      const centerOf = (r: (typeof rects)[number]) => horizontal ? r.pos.x + r.size.width / 2 : r.pos.y + r.size.height / 2
+      rects.sort((a, b) => centerOf(a) - centerOf(b))
+      const first = rects[0]
+      const last = rects[rects.length - 1]
+      if (!first || !last)
+        return
+      const startC = centerOf(first)
+      const endC = centerOf(last)
+      const step = (endC - startC) / (rects.length - 1)
+      graph.batchUpdate(() => {
+        rects.forEach((r, index) => {
+          if (index === 0 || index === rects.length - 1)
+            return
+          const target = startC + step * index
+          if (horizontal)
+            r.node.setPosition(target - r.size.width / 2, r.pos.y)
+          else
+            r.node.setPosition(r.pos.x, target - r.size.height / 2)
+        })
+      })
+    },
+
+    exportPng(fileName = 'diagram.png') {
+      graph.exportPNG(fileName, { padding: 24, quality: 1 })
     },
 
     undo() {
@@ -303,6 +452,24 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
           break
         case 'cell:removed':
           graph.on('cell:removed', ({ cell }: { cell: Cell }) => emit({ id: cell.id }))
+          break
+        case 'node:contextmenu':
+          graph.on('node:contextmenu', ({ node, e }: { node: Node, e: MouseEventLike }) => {
+            e.preventDefault()
+            emit({ id: node.id, x: e.clientX, y: e.clientY })
+          })
+          break
+        case 'edge:contextmenu':
+          graph.on('edge:contextmenu', ({ edge, e }: { edge: Edge, e: MouseEventLike }) => {
+            e.preventDefault()
+            emit({ id: edge.id, x: e.clientX, y: e.clientY })
+          })
+          break
+        case 'blank:contextmenu':
+          graph.on('blank:contextmenu', ({ e }: { e: MouseEventLike }) => {
+            e.preventDefault()
+            emit({ x: e.clientX, y: e.clientY })
+          })
           break
       }
     },

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PageResult, WorkflowInstanceDetailDto, WorkflowInstanceListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { DiagramNodeStatus } from '~/diagram'
 import {
   NButton,
   NDescriptions,
@@ -22,12 +23,14 @@ import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
+  workflowDefinitionApi,
   workflowInstanceApi,
   WorkflowInstanceStatus,
   WorkflowNodeInstanceStatus,
 } from '@/api'
 import { SchemaPage } from '~/components'
 import { formatDate } from '~/utils'
+import WorkflowGraphView from '../definition/designer/WorkflowGraphView.vue'
 
 defineOptions({ name: 'WorkflowInstancePage' })
 
@@ -162,13 +165,62 @@ const schema = computed<PageSchema>(() => ({
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<WorkflowInstanceDetailDto | null>(null)
+const detailDefinitionJson = ref<string | null>(null)
+
+/** 节点实例/运行态 → 图节点着色状态 */
+const NODE_STATUS_MAP: Record<WorkflowNodeInstanceStatus, DiagramNodeStatus> = {
+  [WorkflowNodeInstanceStatus.Running]: 'running',
+  [WorkflowNodeInstanceStatus.Completed]: 'completed',
+  [WorkflowNodeInstanceStatus.Faulted]: 'faulted',
+  [WorkflowNodeInstanceStatus.Suspended]: 'waiting',
+  [WorkflowNodeInstanceStatus.Canceled]: 'canceled',
+  [WorkflowNodeInstanceStatus.Compensated]: 'compensated',
+}
+
+/** 定义节点 id → 运行态（取该节点最近一次实例状态；等待中的书签补 waiting） */
+const nodeStatuses = computed<Record<string, DiagramNodeStatus | null>>(() => {
+  const result: Record<string, DiagramNodeStatus | null> = {}
+  const detail = detailData.value
+  if (!detail)
+    return result
+  for (const node of detail.nodeInstances)
+    result[node.nodeId] = NODE_STATUS_MAP[node.status]
+  for (const bookmark of detail.pendingBookmarks) {
+    if (result[bookmark.nodeId] === undefined)
+      result[bookmark.nodeId] = 'waiting'
+  }
+  return result
+})
+
+/** 按 code + version 取定义 JSON（实例只携带 code/version，需回查定义画图） */
+async function loadDefinitionJson(code: string, version: number): Promise<string | null> {
+  const res = await workflowDefinitionApi.page({
+    ...createPageRequest({ page: { pageIndex: 1, pageSize: 50 }, conditions: { sorts: [], filters: [] } }),
+    keyword: code,
+  })
+  const match = res.items.find(item => item.code === code && item.version === version)
+  if (!match)
+    return null
+  const detail = await workflowDefinitionApi.detail(match.basicId)
+  return detail?.definitionJson ?? null
+}
 
 async function handleDetail(row: WorkflowInstanceListItemDto) {
   detailVisible.value = true
   detailLoading.value = true
   detailData.value = null
+  detailDefinitionJson.value = null
   try {
     detailData.value = await workflowInstanceApi.detail(row.basicId) ?? null
+    if (detailData.value) {
+      // 定义回查失败不阻断详情，仅隐藏轨迹图
+      try {
+        detailDefinitionJson.value = await loadDefinitionJson(detailData.value.definitionCode, detailData.value.definitionVersion)
+      }
+      catch {
+        detailDefinitionJson.value = null
+      }
+    }
   }
   catch {
     message.error(t('workflow.instance.err_load_detail'))
@@ -333,6 +385,20 @@ function onAction(payload: SchemaActionPayload) {
               {{ detailData.cancellationReason }}
             </NDescriptionsItem>
           </NDescriptions>
+
+          <!-- 运行轨迹（只读图 + 节点状态着色） -->
+          <template v-if="detailDefinitionJson">
+            <NDivider>{{ t('workflow.instance.graph_label') }}</NDivider>
+            <div class="h-[380px] overflow-hidden rounded border border-gray-200 dark:border-gray-700">
+              <WorkflowGraphView :definition-json="detailDefinitionJson" :statuses="nodeStatuses" />
+            </div>
+            <div class="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
+              <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-green-500" />{{ t('workflow.instance.legend_completed') }}</span>
+              <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-blue-500" />{{ t('workflow.instance.legend_running') }}</span>
+              <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-amber-500" />{{ t('workflow.instance.legend_waiting') }}</span>
+              <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-red-500" />{{ t('workflow.instance.legend_faulted') }}</span>
+            </div>
+          </template>
 
           <NDivider>{{ t('workflow.instance.variables_label') }}</NDivider>
           <pre class="m-0 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">{{ detailData.variablesJson }}</pre>

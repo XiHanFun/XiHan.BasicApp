@@ -8,7 +8,7 @@
  * 画布坐标持久化在 extraProperties.designerLayout（{nodeId: {x,y}} 的 JSON 字符串）。
  */
 
-import type { DiagramData, DiagramEdge, DiagramNode, DiagramPortMode } from '~/diagram'
+import type { DiagramData, DiagramEdge, DiagramNode, DiagramNodeStatus, DiagramPortMode } from '~/diagram'
 
 export const ACTIVITY_SHAPE = 'workflow-activity'
 
@@ -27,6 +27,10 @@ export interface DesignerNodeData extends Record<string, unknown> {
   continueOnError?: boolean
   /** 设计器态：属性面板选中高亮 */
   __selected?: boolean
+  /** 运行态：实例轨迹着色（由 ~/diagram 的 setNodeStatus 写入） */
+  __status?: DiagramNodeStatus | null
+  /** 高亮标记：校验错误等（由 ~/diagram 的 highlightNodes 写入） */
+  __highlight?: boolean
 }
 
 export interface DesignerEdgeData extends Record<string, unknown> {
@@ -303,18 +307,103 @@ export function serializeDefinition(
   return JSON.stringify(definition, null, 2)
 }
 
-/** 设计器本地结构校验（保存前的快速把关；完整校验在后端发布时执行） */
-export function validateGraph(meta: DefinitionMeta, data: DiagramData): string[] {
-  const errors: string[] = []
+/** 校验问题（level=error 阻断保存，warning 仅提示） */
+export interface ValidationIssue {
+  /** i18n 键后缀：workflow.designer.validate.{code} */
+  code: string
+  level: 'error' | 'warning'
+  /** 关联节点（用于定位/高亮） */
+  nodeId?: string
+}
+
+const TERMINAL_TYPES = new Set(['End', 'Terminate', 'Fault'])
+
+/** 设计器本地结构校验（常驻问题面板 + 保存前把关；完整校验在后端发布时执行） */
+export function validateGraph(meta: DefinitionMeta, data: DiagramData): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+  const push = (code: string, level: 'error' | 'warning', nodeId?: string) => issues.push({ code, level, nodeId })
+
   if (!meta.code.trim())
-    errors.push('code')
+    push('code', 'error')
   if (!meta.name.trim())
-    errors.push('name')
-  const startCount = data.nodes.filter(node => (node.data as DesignerNodeData | undefined)?.activityType === 'Start').length
-  if (startCount !== 1)
-    errors.push('start')
-  const ids = new Set(data.nodes.map(node => node.id))
+    push('name', 'error')
+
+  const nodes = data.nodes
+  const dataOf = (node: DiagramNode) => (node.data ?? {}) as DesignerNodeData
+
+  // 重复节点 id
+  const ids = new Set<string>()
+  for (const node of nodes) {
+    if (ids.has(node.id))
+      push('dup_node', 'error', node.id)
+    ids.add(node.id)
+  }
+
+  // 开始节点数量
+  const starts = nodes.filter(node => dataOf(node).activityType === 'Start')
+  if (nodes.length > 0 && starts.length === 0)
+    push('no_start', 'error')
+  else if (starts.length > 1)
+    starts.forEach(node => push('multi_start', 'error', node.id))
+
+  // 至少一个结束/终止节点
+  if (nodes.length > 0 && !nodes.some(node => ['End', 'Terminate'].includes(dataOf(node).activityType)))
+    push('no_end', 'warning')
+
+  // 悬空连线（端点不存在）
   if (data.edges.some(edge => !ids.has(edge.source) || !ids.has(edge.target)))
-    errors.push('edge')
-  return errors
+    push('dangling_edge', 'error')
+
+  // 出/入度与出边表
+  const outCount = new Map<string, number>()
+  const inCount = new Map<string, number>()
+  const outgoing = new Map<string, { target: string, data: DesignerEdgeData }[]>()
+  for (const edge of data.edges) {
+    outCount.set(edge.source, (outCount.get(edge.source) ?? 0) + 1)
+    inCount.set(edge.target, (inCount.get(edge.target) ?? 0) + 1)
+    const list = outgoing.get(edge.source) ?? []
+    list.push({ target: edge.target, data: (edge.data ?? {}) as DesignerEdgeData })
+    outgoing.set(edge.source, list)
+  }
+
+  for (const node of nodes) {
+    const type = dataOf(node).activityType
+    // 死路：非终止节点无出边
+    if (!TERMINAL_TYPES.has(type) && (outCount.get(node.id) ?? 0) === 0)
+      push('dead_end', 'warning', node.id)
+    // 孤立入口：非开始节点无入边
+    if (type !== 'Start' && (inCount.get(node.id) ?? 0) === 0)
+      push('no_incoming', 'warning', node.id)
+    // 独占网关无默认/兜底分支
+    if (type === 'Decision') {
+      const outs = outgoing.get(node.id) ?? []
+      const conditional = outs.filter(out => out.data.condition && !out.data.isDefault)
+      const hasFallback = outs.some(out => out.data.isDefault || !out.data.condition)
+      if (conditional.length >= 1 && !hasFallback)
+        push('decision_no_default', 'warning', node.id)
+    }
+  }
+
+  // 从开始节点不可达
+  const start = starts[0]
+  if (start) {
+    const reached = new Set<string>()
+    const queue: string[] = [start.id]
+    while (queue.length > 0) {
+      const cur = queue.shift()
+      if (cur === undefined || reached.has(cur))
+        continue
+      reached.add(cur)
+      for (const out of outgoing.get(cur) ?? []) {
+        if (!reached.has(out.target))
+          queue.push(out.target)
+      }
+    }
+    for (const node of nodes) {
+      if (!reached.has(node.id))
+        push('unreachable', 'warning', node.id)
+    }
+  }
+
+  return issues
 }
