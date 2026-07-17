@@ -21,14 +21,25 @@ export const useTabbarStore = defineStore('tabbar', () => {
 
   const tabKeys = computed(() => tabs.value.map(item => item.key))
 
+  // KeepAlive 的 include：所有「已打开 且 开了缓存」标签的路由名（= 组件强制名，见 router/dynamic.ts）。
+  // 必须是全部缓存标签，而非仅当前路由——否则切走的标签会被踢出缓存，返回时重渲染。
+  const cachedTabNames = computed(() =>
+    tabs.value.filter(item => item.keepAlive && item.name).map(item => item.name as string),
+  )
+
   function ensureTab(tab: TabItem) {
     const existing = tabs.value.find(item => item.key === tab.key)
     if (!existing) {
       tabs.value.push(tab)
     }
-    else if (tab.meta) {
-      existing.meta = { ...existing.meta, ...tab.meta }
-      existing.title = tab.title
+    else {
+      // 补齐缓存相关字段：默认标签 / sessionStorage 里旧的持久化标签可能缺 name、keepAlive
+      existing.name = tab.name
+      existing.keepAlive = tab.keepAlive
+      if (tab.meta) {
+        existing.meta = { ...existing.meta, ...tab.meta }
+        existing.title = tab.title
+      }
     }
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)
@@ -142,6 +153,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tabs,
     activeTab,
     tabKeys,
+    cachedTabNames,
     ensureTab,
     setActiveTab,
     removeTab,

@@ -2,10 +2,14 @@
 
 export interface TabItem {
   key: string
+  /** 路由名（= KeepAlive 缓存名，须与组件被强制设置的 name 一致，见 router/dynamic.ts） */
+  name?: string
   title: string
   path: string
   pinned?: boolean
   closable: boolean
+  /** 该标签是否参与 keep-alive 缓存（来自菜单 meta.keepAlive） */
+  keepAlive?: boolean
   meta?: {
     icon?: string
     [key: string]: unknown
