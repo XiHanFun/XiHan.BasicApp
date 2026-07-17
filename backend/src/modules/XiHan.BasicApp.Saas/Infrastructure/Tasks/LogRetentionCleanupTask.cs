@@ -146,9 +146,10 @@ public sealed class LogRetentionCleanupTask
     private static async Task<int> CleanupAsync<T>(ISqlSugarClient client, DateTimeOffset cutoff)
         where T : BasicAppCreationEntity, ISplitTableEntity, new()
     {
+        // 无参 SplitTable() 仅支持按实体集合删除（运行时抛异常），条件删除必须走带表筛选的重载
         return await client.Deleteable<T>()
             .Where(entity => entity.CreatedTime < cutoff)
-            .SplitTable()
+            .SplitTable(tabs => tabs)
             .ExecuteCommandAsync();
     }
 
