@@ -445,7 +445,7 @@ export default {
       region: '地域',
       region_placeholder: '腾讯云必填，如 ap-guangzhou',
       template_map: '模板映射（JSON）',
-      template_map_placeholder: '如 {"auth-sms-login-code":{"templateCode":"SMS_123456","paramOrder":["code","minutes"]}}',
+      template_map_placeholder: '如 {\'{"auth-sms-login-code":{"templateCode":"SMS_123456","paramOrder":["code","minutes"]}}\'}',
       sort: '排序',
       is_enabled: '是否启用',
       is_default: '设为默认',

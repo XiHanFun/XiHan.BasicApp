@@ -351,7 +351,7 @@ export default {
       col_dict_value: 'Option Config',
       col_dict_code_placeholder: 'Dict code',
       col_enum_type_placeholder: 'Enum full name',
-      col_const_values_placeholder: 'Const JSON, e.g. [{"value":1,"label":"Enabled"}]',
+      col_const_values_placeholder: 'Const JSON, e.g. {\'[{"value":1,"label":"Enabled"}]\'}',
       load_failed: 'Failed to load column configuration',
     },
     runtime: {

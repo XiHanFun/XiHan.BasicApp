@@ -445,7 +445,7 @@ export default {
       region: 'Region',
       region_placeholder: 'Required for Tencent Cloud, e.g. ap-guangzhou',
       template_map: 'Template Map (JSON)',
-      template_map_placeholder: 'e.g. {"auth-sms-login-code":{"templateCode":"SMS_123456","paramOrder":["code","minutes"]}}',
+      template_map_placeholder: 'e.g. {\'{"auth-sms-login-code":{"templateCode":"SMS_123456","paramOrder":["code","minutes"]}}\'}',
       sort: 'Sort',
       is_enabled: 'Enabled',
       is_default: 'Set as Default',
