@@ -20,12 +20,16 @@ const emit = defineEmits<{
 }>()
 
 const containerRef = ref<HTMLElement | null>(null)
+const minimapRef = ref<HTMLElement | null>(null)
 let api: DiagramApi | null = null
 
 onMounted(() => {
   if (!containerRef.value)
     return
-  api = createDiagram(containerRef.value, props.options)
+  const options = { ...props.options }
+  if (options.minimap && minimapRef.value)
+    options.minimapContainer = minimapRef.value
+  api = createDiagram(containerRef.value, options)
   emit('ready', api)
 })
 
@@ -38,6 +42,11 @@ onBeforeUnmount(() => {
 <template>
   <div class="relative h-full w-full">
     <div ref="containerRef" class="h-full w-full" />
+    <div
+      v-show="props.options?.minimap"
+      ref="minimapRef"
+      class="absolute bottom-2 right-2 overflow-hidden rounded border border-gray-200 bg-white/90 shadow-sm dark:border-gray-700 dark:bg-gray-800/90"
+    />
     <DiagramTeleport />
   </div>
 </template>

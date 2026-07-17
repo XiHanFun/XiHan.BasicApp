@@ -7,7 +7,12 @@
  */
 
 export { createDiagram } from './create-diagram'
+export {
+  DIAGRAM_NODE_HIGHLIGHT_KEY,
+  DIAGRAM_NODE_STATUS_KEY,
+} from './types'
 export type {
+  DiagramAlign,
   DiagramApi,
   DiagramData,
   DiagramEdge,
@@ -15,6 +20,7 @@ export type {
   DiagramEventMap,
   DiagramNode,
   DiagramNodeEventPayload,
+  DiagramNodeStatus,
   DiagramOptions,
   DiagramPoint,
   DiagramPortMode,

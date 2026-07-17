@@ -27,6 +27,7 @@ import {
 import { SchemaPage } from '~/components'
 import { formatDate } from '~/utils'
 import WorkflowDesigner from './designer/WorkflowDesigner.vue'
+import WorkflowGraphView from './designer/WorkflowGraphView.vue'
 
 defineOptions({ name: 'WorkflowDefinitionPage' })
 
@@ -138,6 +139,7 @@ const schema = computed<PageSchema>(() => ({
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<WorkflowDefinitionDetailDto | null>(null)
+const showDetailJson = ref(false)
 
 async function handleDetail(row: WorkflowDefinitionListItemDto) {
   detailVisible.value = true
@@ -340,10 +342,16 @@ function onAction(payload: SchemaActionPayload) {
               {{ detailData.description || '-' }}
             </NDescriptionsItem>
           </NDescriptions>
-          <div class="mt-4 mb-2 text-sm font-medium">
-            {{ t('workflow.definition.json_label') }}
+          <div class="mb-2 mt-4 flex items-center justify-between">
+            <span class="text-sm font-medium">{{ t('workflow.definition.graph_label') }}</span>
+            <NButton text size="tiny" @click="showDetailJson = !showDetailJson">
+              {{ showDetailJson ? t('workflow.definition.hide_json') : t('workflow.definition.show_json') }}
+            </NButton>
           </div>
-          <pre class="m-0 max-h-96 overflow-auto whitespace-pre-wrap break-all rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">{{ detailData.definitionJson }}</pre>
+          <div class="h-[440px] overflow-hidden rounded border border-gray-200 dark:border-gray-700">
+            <WorkflowGraphView :definition-json="detailData.definitionJson" />
+          </div>
+          <pre v-if="showDetailJson" class="m-0 mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-all rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">{{ detailData.definitionJson }}</pre>
         </template>
       </NDrawerContent>
     </NDrawer>
