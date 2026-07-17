@@ -5,11 +5,11 @@
   "main": "./index.ts",
   "dependencies": {
     "@xihan/constants": "workspace:*",
-    "dayjs": "^1.11.21",
-    "highlight.js": "^11.11.1",
-    "papaparse": "^5.5.4"
+    "dayjs": "catalog:",
+    "highlight.js": "catalog:",
+    "papaparse": "catalog:"
   },
   "devDependencies": {
-    "@types/papaparse": "^5.5.2"
+    "@types/papaparse": "catalog:"
   }
 }

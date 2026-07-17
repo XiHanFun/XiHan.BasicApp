@@ -4,14 +4,14 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
-    "@antv/x6": "^2.19.2",
-    "@antv/x6-plugin-clipboard": "^2.1.6",
-    "@antv/x6-plugin-export": "^2.1.6",
-    "@antv/x6-plugin-history": "^2.2.4",
-    "@antv/x6-plugin-keyboard": "^2.2.3",
-    "@antv/x6-plugin-minimap": "^2.0.7",
-    "@antv/x6-plugin-selection": "^2.2.2",
-    "@antv/x6-plugin-snapline": "^2.1.7",
-    "@antv/x6-vue-shape": "^2.1.2"
+    "@antv/x6": "catalog:",
+    "@antv/x6-plugin-clipboard": "catalog:",
+    "@antv/x6-plugin-export": "catalog:",
+    "@antv/x6-plugin-history": "catalog:",
+    "@antv/x6-plugin-keyboard": "catalog:",
+    "@antv/x6-plugin-minimap": "catalog:",
+    "@antv/x6-plugin-selection": "catalog:",
+    "@antv/x6-plugin-snapline": "catalog:",
+    "@antv/x6-vue-shape": "catalog:"
   }
 }
