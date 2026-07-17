@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { DragEndEvent } from '@dnd-kit/vue'
 import type { BoardItem } from './components'
-import { DragDropProvider } from '@dnd-kit/vue'
+import type { DragEndEvent } from '~/components'
 import { NButton, NDrawer, NDrawerContent, NEmpty, NPopover } from 'naive-ui'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { DragDropProvider } from '~/components'
 import { resolveSortMove } from '~/components/common/sortable'
 import SortableItem from '~/components/common/SortableItem.vue'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'

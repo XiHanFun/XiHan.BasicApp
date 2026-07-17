@@ -11,3 +11,6 @@ export { default as XPageShell } from './PageShell.vue'
 export { resolveSortMove } from './sortable'
 export { default as XSortableItem } from './SortableItem.vue'
 export { default as XUserAvatar } from './UserAvatar.vue'
+// dnd-kit 的拖拽容器与事件类型统一经底层暴露：应用层不直接依赖 @dnd-kit/vue
+export { DragDropProvider } from '@dnd-kit/vue'
+export type { DragEndEvent } from '@dnd-kit/vue'

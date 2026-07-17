@@ -25,6 +25,10 @@ import {
   tryDecryptSecureResponse,
 } from './security'
 
+// 对外暴露 axios 的请求配置类型：应用层（src/api）不直接依赖 axios，
+// 统一经 ~/request 取用，第三方依赖收敛在本底层包。
+export type { AxiosRequestConfig } from 'axios'
+
 type AnyRecord = Record<string, unknown>
 type HeaderBag = Record<string, unknown> & {
   delete?: (name: string) => void

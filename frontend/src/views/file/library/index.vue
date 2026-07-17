@@ -9,7 +9,6 @@ import type {
 } from '@/api'
 
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import hljs from 'highlight.js/lib/common'
 import {
   NButton,
   NCode,
@@ -33,7 +32,6 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import Papa from 'papaparse'
 import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -48,7 +46,7 @@ import {
 } from '@/api'
 import { Icon, SchemaPage, XMdEditor } from '~/components'
 import { islandStart } from '~/composables/useDynamicIsland'
-import { downloadBlob, formatDate, formatFileSize, getOptionLabel } from '~/utils'
+import { downloadBlob, formatDate, formatFileSize, getOptionLabel, hljs, parseCsvRows } from '~/utils'
 
 defineOptions({ name: 'PlatformFilePage' })
 
@@ -761,8 +759,7 @@ async function handlePreview(row: FileListItemDto) {
 
 /** 解析 CSV 文本为 NDataTable 的列与行（首行作表头） */
 function parseCsv(text: string) {
-  const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true })
-  const rows = parsed.data
+  const rows = parseCsvRows(text)
   if (!rows.length) {
     return
   }
