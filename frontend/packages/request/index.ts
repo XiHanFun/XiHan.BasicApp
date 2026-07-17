@@ -90,6 +90,18 @@ export function bindLogoutHook(hook: () => void) {
   _logoutHook = hook
 }
 
+/** 旁路会话刷新入口的实现，由最近创建的 RequestClient 注册 */
+let _sessionRefresher: (() => Promise<string | null>) | null = null
+
+/**
+ * 供 SignalR 等不经 axios 拦截器的客户端在收到 401 后借道刷新令牌。
+ * 成功返回新 accessToken；刷新失败时内部已执行强制登出（清 token + 重置 stores + 跳登录页）并返回 null。
+ * 未创建过 RequestClient 时为空操作，返回 null 且不登出。
+ */
+export async function refreshSessionToken(): Promise<string | null> {
+  return _sessionRefresher ? _sessionRefresher() : null
+}
+
 /** 服务端 423 回传的会话锁定信息 */
 export interface SessionLockedPayload {
   /** 锁定原因（应用侧定义，框架只透传）。锁屏只是其中一种 */
@@ -194,6 +206,16 @@ export class RequestClient {
     })
 
     this.setupInterceptors()
+    _sessionRefresher = () => this.refreshSessionOrLogout()
+  }
+
+  /** 刷新会话令牌，失败即强制登出（与拦截器 401 分支同语义，供旁路客户端复用） */
+  private async refreshSessionOrLogout(): Promise<string | null> {
+    const nextToken = await this.refreshAccessToken()
+    if (!nextToken) {
+      this.forceLogout()
+    }
+    return nextToken
   }
 
   private resolveUrl(url: string) {
