@@ -14,7 +14,6 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/compone
 import {
   NButton,
   NCascader,
-  NConfigProvider,
   NDataTable,
   NDatePicker,
   NDescriptions,
@@ -44,7 +43,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -660,115 +659,85 @@ onMounted(() => {
       </template>
     </NModal>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 720px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider abstract>
-        <NForm :model="deptForm" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('identity.org.label_department_name')" path="departmentName">
-            <NInput v-model:value="deptForm.departmentName" clearable :placeholder="t('identity.org.ph_department_name')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_department_code')" path="departmentCode">
-            <NInput
-              v-model:value="deptForm.departmentCode"
-              :disabled="Boolean(deptForm.basicId)"
-              clearable
-              :placeholder="t('identity.org.ph_department_code')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_parent_dept')" path="parentId">
-            <NCascader
-              v-model:value="deptForm.parentId"
-              :options="cascaderOptions"
-              check-strategy="child"
-              clearable
-              :placeholder="t('identity.org.ph_parent')"
-              style="width: 100%"
-            />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_department_type')" path="departmentType">
-            <NSelect v-model:value="deptForm.departmentType" :options="deptTypeOptions" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_phone')" path="phone">
-            <NInput v-model:value="deptForm.phone" clearable :placeholder="t('identity.org.ph_phone')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_email')" path="email">
-            <NInput v-model:value="deptForm.email" clearable :placeholder="t('identity.org.ph_email')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_address')" path="address">
-            <NInput v-model:value="deptForm.address" clearable :placeholder="t('identity.org.ph_address')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_sort')" path="sort">
-            <NInputNumber v-model:value="deptForm.sort" :min="0" style="width: 100%" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_remark')" path="remark">
-            <NInput v-model:value="deptForm.remark" clearable :placeholder="t('identity.org.ph_remark')" :rows="3" type="textarea" />
-          </NFormItem>
-        </NForm>
-      </NConfigProvider>
+      <NForm :model="deptForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('identity.org.label_department_name')" path="departmentName">
+          <NInput v-model:value="deptForm.departmentName" clearable :placeholder="t('identity.org.ph_department_name')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_department_code')" path="departmentCode">
+          <NInput
+            v-model:value="deptForm.departmentCode"
+            :disabled="Boolean(deptForm.basicId)"
+            clearable
+            :placeholder="t('identity.org.ph_department_code')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_parent_dept')" path="parentId">
+          <NCascader
+            v-model:value="deptForm.parentId"
+            :options="cascaderOptions"
+            check-strategy="child"
+            clearable
+            :placeholder="t('identity.org.ph_parent')"
+            style="width: 100%"
+          />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_department_type')" path="departmentType">
+          <NSelect v-model:value="deptForm.departmentType" :options="deptTypeOptions" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_phone')" path="phone">
+          <NInput v-model:value="deptForm.phone" clearable :placeholder="t('identity.org.ph_phone')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_email')" path="email">
+          <NInput v-model:value="deptForm.email" clearable :placeholder="t('identity.org.ph_email')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_address')" path="address">
+          <NInput v-model:value="deptForm.address" clearable :placeholder="t('identity.org.ph_address')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_sort')" path="sort">
+          <NInputNumber v-model:value="deptForm.sort" :min="0" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="deptForm.remark" clearable :placeholder="t('identity.org.ph_remark')" :rows="3" type="textarea" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <NModal
+    <XEditModal
       v-model:show="membershipVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="t('identity.org.membership_title', { name: membershipMemberName })"
-      preset="card"
-      style="width: 560px; max-width: 92vw"
+      :loading="membershipLoading"
+      @save="submitMembership"
     >
-      <NConfigProvider abstract>
-        <NForm :model="membershipForm" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('identity.org.label_position')" path="positionId">
-            <NSelect
-              v-model:value="membershipForm.positionId"
-              :options="positionOptions"
-              clearable
-              filterable
-              :placeholder="t('identity.org.ph_position')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_job_number')" path="jobNumber">
-            <NInput v-model:value="membershipForm.jobNumber" clearable :placeholder="t('identity.org.ph_job_number')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_job_level')" path="jobLevel">
-            <NInput v-model:value="membershipForm.jobLevel" clearable :placeholder="t('identity.org.ph_job_level')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_join_time')" path="joinTime">
-            <NDatePicker v-model:value="membershipForm.joinTime" type="date" clearable style="width: 100%" />
-          </NFormItem>
-          <NFormItem :label="t('identity.org.label_remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="membershipForm.remark" clearable :rows="2" type="textarea" :placeholder="t('identity.org.ph_remark')" />
-          </NFormItem>
-        </NForm>
-      </NConfigProvider>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="membershipVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="membershipLoading" type="primary" @click="submitMembership">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+      <NForm :model="membershipForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('identity.org.label_position')" path="positionId">
+          <NSelect
+            v-model:value="membershipForm.positionId"
+            :options="positionOptions"
+            clearable
+            filterable
+            :placeholder="t('identity.org.ph_position')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_job_number')" path="jobNumber">
+          <NInput v-model:value="membershipForm.jobNumber" clearable :placeholder="t('identity.org.ph_job_number')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_job_level')" path="jobLevel">
+          <NInput v-model:value="membershipForm.jobLevel" clearable :placeholder="t('identity.org.ph_job_level')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_join_time')" path="joinTime">
+          <NDatePicker v-model:value="membershipForm.joinTime" type="date" clearable />
+        </NFormItem>
+        <NFormItem :label="t('identity.org.label_remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="membershipForm.remark" clearable :rows="2" type="textarea" :placeholder="t('identity.org.ph_remark')" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>
 

@@ -9,7 +9,6 @@ import type {
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
-  NConfigProvider,
   NDescriptions,
   NDescriptionsItem,
   NForm,
@@ -36,7 +35,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -524,86 +523,71 @@ async function handleToggleStatus(row: ConfigListItemDto) {
       </template>
     </NModal>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 720px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider size="small" abstract>
-        <NForm :model="configForm" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('setting.config.config_name')" path="configName">
-            <NInput v-model:value="configForm.configName" clearable size="small" :placeholder="t('setting.config.config_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.config_key')" path="configKey">
-            <NInput
-              v-model:value="configForm.configKey"
-              clearable size="small"
-              :disabled="Boolean(configForm.basicId)"
-              :placeholder="t('setting.config.config_key_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.config_group')" path="configGroup">
-            <NInput v-model:value="configForm.configGroup" clearable size="small" :placeholder="t('setting.config.config_group_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.config_type')" path="configType">
-            <NSelect v-model:value="configForm.configType" :options="(configTypeOptions as SelectOption[])" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.data_type')" path="dataType">
-            <NSelect v-model:value="configForm.dataType" :options="(dataTypeOptions as SelectOption[])" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.config_value')" path="configValue" style="grid-column: span 2">
-            <NInput
-              v-model:value="configForm.configValue"
-              :rows="5"
-              clearable size="small"
-              :placeholder="configForm.isEncrypted && configForm.basicId ? t('setting.config.config_value_encrypted_placeholder') : t('setting.config.config_value_placeholder')"
-              type="textarea"
-            />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.default_value')" path="defaultValue" style="grid-column: span 2">
-            <NInput
-              v-model:value="configForm.defaultValue"
-              :rows="3"
-              clearable size="small"
-              :placeholder="t('setting.config.default_value_placeholder')"
-              type="textarea"
-            />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.is_global_field')" path="isGlobal">
-            <NSwitch v-model:value="configForm.isGlobal" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.is_builtin_field')" path="isBuiltIn">
-            <NSwitch :value="configForm.isBuiltIn" disabled />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.is_encrypted_field')" path="isEncrypted">
-            <NSwitch v-model:value="configForm.isEncrypted" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.sort')" path="sort">
-            <NInputNumber v-model:value="configForm.sort" :min="0" style="width: 100%" />
-          </NFormItem>
-          <NFormItem :label="t('setting.config.remark')" path="remark">
-            <NInput v-model:value="configForm.remark" clearable size="small" :placeholder="t('setting.config.remark_placeholder')" />
-          </NFormItem>
-          <NFormItem v-if="!configForm.basicId" :label="t('setting.config.status')" path="status">
-            <NSelect v-model:value="configForm.status" :options="(statusOptions as SelectOption[])" />
-          </NFormItem>
-        </NForm>
-      </NConfigProvider>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+      <NForm :model="configForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('setting.config.config_name')" path="configName">
+          <NInput v-model:value="configForm.configName" clearable :placeholder="t('setting.config.config_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.config_key')" path="configKey">
+          <NInput
+            v-model:value="configForm.configKey"
+            clearable
+            :disabled="Boolean(configForm.basicId)"
+            :placeholder="t('setting.config.config_key_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.config_group')" path="configGroup">
+          <NInput v-model:value="configForm.configGroup" clearable :placeholder="t('setting.config.config_group_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.config_type')" path="configType">
+          <NSelect v-model:value="configForm.configType" :options="(configTypeOptions as SelectOption[])" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.data_type')" path="dataType">
+          <NSelect v-model:value="configForm.dataType" :options="(dataTypeOptions as SelectOption[])" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.config_value')" path="configValue" class="xh-span-2">
+          <NInput
+            v-model:value="configForm.configValue"
+            :rows="5"
+            clearable
+            :placeholder="configForm.isEncrypted && configForm.basicId ? t('setting.config.config_value_encrypted_placeholder') : t('setting.config.config_value_placeholder')"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.default_value')" path="defaultValue" class="xh-span-2">
+          <NInput
+            v-model:value="configForm.defaultValue"
+            :rows="3"
+            clearable
+            :placeholder="t('setting.config.default_value_placeholder')"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.is_global_field')" path="isGlobal">
+          <NSwitch v-model:value="configForm.isGlobal" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.is_builtin_field')" path="isBuiltIn">
+          <NSwitch :value="configForm.isBuiltIn" disabled />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.is_encrypted_field')" path="isEncrypted">
+          <NSwitch v-model:value="configForm.isEncrypted" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.sort')" path="sort">
+          <NInputNumber v-model:value="configForm.sort" :min="0" />
+        </NFormItem>
+        <NFormItem :label="t('setting.config.remark')" path="remark">
+          <NInput v-model:value="configForm.remark" clearable :placeholder="t('setting.config.remark_placeholder')" />
+        </NFormItem>
+        <NFormItem v-if="!configForm.basicId" :label="t('setting.config.status')" path="status">
+          <NSelect v-model:value="configForm.status" :options="(statusOptions as SelectOption[])" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>
 

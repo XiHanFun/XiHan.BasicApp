@@ -8,16 +8,13 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NDatePicker,
   NForm,
   NFormItem,
   NInput,
-  NModal,
   NRadioButton,
   NRadioGroup,
   NSelect,
-  NSpace,
   NTabPane,
   NTabs,
   NTag,
@@ -36,7 +33,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -527,13 +524,11 @@ async function submitDelegation() {
       </NTabPane>
       <NTabPane name="delegation" :tab="t('identity.authorization.tab_delegation')">
         <SchemaPage ref="delegationPageRef" :schema="delegationSchema" @action="onDelegationAction">
-          <NModal
+          <XEditModal
             v-model:show="delegationModalVisible"
-            :auto-focus="false"
-            :bordered="false"
-            preset="card"
             :title="t('identity.authorization.modal_title')"
-            style="width: 640px; max-width: 92vw"
+            :loading="delegationSubmitting"
+            @save="submitDelegation"
           >
             <NForm :model="delegationForm" class="xh-edit-form-grid" label-placement="top">
               <NFormItem :label="t('identity.authorization.label_delegator')" path="delegatorUserId">
@@ -599,12 +594,12 @@ async function submitDelegation() {
                 />
               </NFormItem>
               <NFormItem :label="t('identity.authorization.label_effective_time')" path="effectiveTime">
-                <NDatePicker v-model:value="delegationForm.effectiveTime" clearable style="width: 100%" type="datetime" />
+                <NDatePicker v-model:value="delegationForm.effectiveTime" clearable type="datetime" />
               </NFormItem>
               <NFormItem :label="t('identity.authorization.label_expiration_time')" path="expirationTime">
-                <NDatePicker v-model:value="delegationForm.expirationTime" clearable style="width: 100%" type="datetime" />
+                <NDatePicker v-model:value="delegationForm.expirationTime" clearable type="datetime" />
               </NFormItem>
-              <NFormItem :label="t('identity.authorization.label_reason')" path="delegationReason">
+              <NFormItem :label="t('identity.authorization.label_reason')" path="delegationReason" class="xh-span-2">
                 <NInput
                   v-model:value="delegationForm.delegationReason"
                   clearable
@@ -614,18 +609,7 @@ async function submitDelegation() {
                 />
               </NFormItem>
             </NForm>
-
-            <template #footer>
-              <NSpace justify="end">
-                <NButton @click="delegationModalVisible = false">
-                  {{ t('common.actions.cancel') }}
-                </NButton>
-                <NButton :loading="delegationSubmitting" type="primary" @click="submitDelegation">
-                  {{ t('common.actions.save') }}
-                </NButton>
-              </NSpace>
-            </template>
-          </NModal>
+          </XEditModal>
         </SchemaPage>
       </NTabPane>
     </NTabs>

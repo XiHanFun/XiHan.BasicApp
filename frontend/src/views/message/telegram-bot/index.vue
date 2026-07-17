@@ -2,14 +2,10 @@
 import type { TelegramBotListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
-  NConfigProvider,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -18,7 +14,7 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, telegramBotApi } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 
 defineOptions({ name: 'MessageTelegramBotPage' })
 
@@ -351,66 +347,51 @@ function handleDelete(row: TelegramBotListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider size="small" abstract>
-        <NForm :model="form" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('message.telegram_bot.form.bot_name')" path="botName">
-            <NInput v-model:value="form.botName" clearable size="small" :placeholder="t('message.telegram_bot.form.bot_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.telegram_bot.form.token')" path="token">
-            <NInput
-              v-model:value="form.token"
-              size="small"
-              type="password"
-              show-password-on="click"
-              :placeholder="tokenPlaceholder"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.telegram_bot.form.admin_users')" path="adminUsers" style="grid-column: span 2">
-            <NInput v-model:value="form.adminUsers" clearable size="small" :placeholder="t('message.telegram_bot.form.admin_users_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.telegram_bot.form.allowed_group_chat_ids')" path="allowedGroupChatIds" style="grid-column: span 2">
-            <NInput v-model:value="form.allowedGroupChatIds" clearable size="small" :placeholder="t('message.telegram_bot.form.allowed_group_chat_ids_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.telegram_bot.form.allowed_commands')" path="allowedCommands" style="grid-column: span 2">
-            <NInput v-model:value="form.allowedCommands" clearable size="small" :placeholder="t('message.telegram_bot.form.allowed_commands_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.telegram_bot.form.enable_fallback_reply')" path="enableFallbackReply">
-            <NSwitch v-model:value="form.enableFallbackReply" />
-          </NFormItem>
-          <NFormItem :label="t('message.telegram_bot.form.sort')" path="sort">
-            <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
-          </NFormItem>
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('message.telegram_bot.form.bot_name')" path="botName">
+          <NInput v-model:value="form.botName" clearable :placeholder="t('message.telegram_bot.form.bot_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
+        </NFormItem>
+        <NFormItem :label="t('message.telegram_bot.form.token')" path="token">
+          <NInput
+            v-model:value="form.token"
+            type="password"
+            :input-props="{ autocomplete: 'new-password' }"
+            show-password-on="click"
+            :placeholder="tokenPlaceholder"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.telegram_bot.form.admin_users')" path="adminUsers" class="xh-span-2">
+          <NInput v-model:value="form.adminUsers" clearable :placeholder="t('message.telegram_bot.form.admin_users_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.telegram_bot.form.allowed_group_chat_ids')" path="allowedGroupChatIds" class="xh-span-2">
+          <NInput v-model:value="form.allowedGroupChatIds" clearable :placeholder="t('message.telegram_bot.form.allowed_group_chat_ids_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.telegram_bot.form.allowed_commands')" path="allowedCommands" class="xh-span-2">
+          <NInput v-model:value="form.allowedCommands" clearable :placeholder="t('message.telegram_bot.form.allowed_commands_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.telegram_bot.form.enable_fallback_reply')" path="enableFallbackReply">
+          <NSwitch v-model:value="form.enableFallbackReply" />
+        </NFormItem>
+        <NFormItem :label="t('message.telegram_bot.form.sort')" path="sort">
+          <NInputNumber v-model:value="form.sort" :min="0" />
+        </NFormItem>
 
-          <template v-if="!form.basicId">
-            <NFormItem :label="t('message.telegram_bot.form.is_enabled')" path="isEnabled">
-              <NSwitch v-model:value="form.isEnabled" />
-            </NFormItem>
-          </template>
-
-          <NFormItem :label="t('message.telegram_bot.form.remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="form.remark" clearable size="small" :placeholder="t('message.telegram_bot.form.remark_placeholder')" />
+        <template v-if="!form.basicId">
+          <NFormItem :label="t('message.telegram_bot.form.is_enabled')" path="isEnabled">
+            <NSwitch v-model:value="form.isEnabled" />
           </NFormItem>
-        </NForm>
-      </NConfigProvider>
+        </template>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('message.telegram_bot.form.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('message.telegram_bot.form.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <NFormItem :label="t('message.telegram_bot.form.remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="form.remark" clearable :placeholder="t('message.telegram_bot.form.remark_placeholder')" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>

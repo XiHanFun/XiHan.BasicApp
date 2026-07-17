@@ -7,7 +7,6 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NDescriptions,
   NDescriptionsItem,
   NForm,
@@ -29,7 +28,7 @@ import {
   messageTemplateApi,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
 
@@ -332,40 +331,38 @@ async function handleSubmit() {
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 编辑/新增 -->
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      preset="card"
       :title="modalTitle"
-      style="width: 720px"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NForm :model="templateForm" label-placement="top">
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.template.form_template_code')" path="templateCode">
-            <NInput
-              v-model:value="templateForm.templateCode"
-              :disabled="Boolean(templateForm.basicId)"
-              clearable
-              :placeholder="t('message.template.form_template_code_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.template.form_channel')" path="channel">
-            <NSelect
-              v-model:value="templateForm.channel"
-              :disabled="Boolean(templateForm.basicId)"
-              :options="channelOptions"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.template.form_template_name')" path="templateName">
-            <NInput v-model:value="templateForm.templateName" clearable :placeholder="t('message.template.form_template_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.template.form_sort')" path="sort">
-            <NInputNumber v-model:value="templateForm.sort" :min="0" style="width: 100%" />
-          </NFormItem>
-        </div>
-        <NFormItem :label="t('message.template.form_subject')" path="subject">
+      <NForm :model="templateForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('message.template.form_template_code')" path="templateCode">
+          <NInput
+            v-model:value="templateForm.templateCode"
+            :disabled="Boolean(templateForm.basicId)"
+            clearable
+            :placeholder="t('message.template.form_template_code_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.template.form_channel')" path="channel">
+          <NSelect
+            v-model:value="templateForm.channel"
+            :disabled="Boolean(templateForm.basicId)"
+            :options="channelOptions"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.template.form_template_name')" path="templateName">
+          <NInput v-model:value="templateForm.templateName" clearable :placeholder="t('message.template.form_template_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.template.form_sort')" path="sort">
+          <NInputNumber v-model:value="templateForm.sort" :min="0" />
+        </NFormItem>
+        <NFormItem :label="t('message.template.form_subject')" path="subject" class="xh-span-2">
           <NInput v-model:value="templateForm.subject" clearable :placeholder="t('message.template.form_subject_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('message.template.form_content')" path="content">
+        <NFormItem :label="t('message.template.form_content')" path="content" class="xh-span-2">
           <NInput
             v-model:value="templateForm.content"
             type="textarea"
@@ -373,32 +370,20 @@ async function handleSubmit() {
             :placeholder="t('message.template.form_content_placeholder')"
           />
         </NFormItem>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.template.form_is_html')" path="isHtml">
-            <NSwitch v-model:value="templateForm.isHtml" />
-          </NFormItem>
-          <NFormItem v-if="!templateForm.basicId" :label="t('message.template.form_status')" path="status">
-            <NSelect v-model:value="templateForm.status" :options="statusOptions" />
-          </NFormItem>
-        </div>
-        <NFormItem :label="t('message.template.form_description')" path="description">
+        <NFormItem :label="t('message.template.form_is_html')" path="isHtml">
+          <NSwitch v-model:value="templateForm.isHtml" />
+        </NFormItem>
+        <NFormItem v-if="!templateForm.basicId" :label="t('message.template.form_status')" path="status">
+          <NSelect v-model:value="templateForm.status" :options="statusOptions" />
+        </NFormItem>
+        <NFormItem :label="t('message.template.form_description')" path="description" class="xh-span-2">
           <NInput v-model:value="templateForm.description" clearable :placeholder="t('message.template.form_description_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('message.template.form_remark')" path="remark">
+        <NFormItem :label="t('message.template.form_remark')" path="remark" class="xh-span-2">
           <NInput v-model:value="templateForm.remark" clearable />
         </NFormItem>
       </NForm>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </div>
-      </template>
-    </NModal>
+    </XEditModal>
 
     <!-- 详情 -->
     <NModal

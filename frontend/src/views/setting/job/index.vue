@@ -36,7 +36,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import CronExpression from '~/components/common/CronExpression.vue'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -920,13 +920,11 @@ async function handleSubmit() {
       </NSpin>
     </NModal>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 720px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="jobForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('setting.job.task_code')" path="taskCode">
@@ -952,25 +950,25 @@ async function handleSubmit() {
         <NFormItem :label="t('setting.job.task_method')" path="taskMethod">
           <NInput v-model:value="jobForm.taskMethod" clearable :placeholder="t('setting.job.task_method_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('setting.job.cron_expression')" path="cronExpression" class="xh-form-full-row">
+        <NFormItem :label="t('setting.job.cron_expression')" path="cronExpression" class="xh-span-2">
           <CronExpression v-model:value="jobForm.cronExpression" />
         </NFormItem>
         <NFormItem :label="t('setting.job.interval_label')" path="intervalSeconds">
-          <NInputNumber v-model:value="jobForm.intervalSeconds" :min="0" clearable style="width: 100%" />
+          <NInputNumber v-model:value="jobForm.intervalSeconds" :min="0" clearable />
         </NFormItem>
         <NFormItem :label="t('setting.job.priority')" path="priority">
-          <NInputNumber v-model:value="jobForm.priority" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="jobForm.priority" :min="0" />
         </NFormItem>
         <NFormItem :label="t('setting.job.timeout_label')" path="timeoutSeconds">
-          <NInputNumber v-model:value="jobForm.timeoutSeconds" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="jobForm.timeoutSeconds" :min="0" />
         </NFormItem>
         <NFormItem :label="t('setting.job.max_retry_count')" path="maxRetryCount">
-          <NInputNumber v-model:value="jobForm.maxRetryCount" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="jobForm.maxRetryCount" :min="0" />
         </NFormItem>
         <NFormItem :label="t('setting.job.allow_concurrent')" path="allowConcurrent">
           <NSwitch v-model:value="jobForm.allowConcurrent" />
         </NFormItem>
-        <NFormItem :label="t('setting.job.task_params')" path="taskParams">
+        <NFormItem :label="t('setting.job.task_params')" path="taskParams" class="xh-span-2">
           <NInput
             v-model:value="jobForm.taskParams"
             clearable
@@ -979,7 +977,7 @@ async function handleSubmit() {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem :label="t('setting.job.task_description')" path="taskDescription">
+        <NFormItem :label="t('setting.job.task_description')" path="taskDescription" class="xh-span-2">
           <NInput
             v-model:value="jobForm.taskDescription"
             clearable
@@ -988,7 +986,7 @@ async function handleSubmit() {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem :label="t('setting.job.remark')" path="remark">
+        <NFormItem :label="t('setting.job.remark')" path="remark" class="xh-span-2">
           <NInput
             v-model:value="jobForm.remark"
             clearable
@@ -998,18 +996,7 @@ async function handleSubmit() {
           />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

@@ -24,7 +24,6 @@ import {
   NForm,
   NFormItem,
   NInput,
-  NModal,
   NPagination,
   NPopconfirm,
   NProgress,
@@ -49,7 +48,7 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { IconPicker, NotificationContent, SchemaPage, XMdEditor } from '~/components'
+import { IconPicker, NotificationContent, SchemaPage, XEditModal, XMdEditor } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
 
@@ -722,25 +721,23 @@ async function handleSubmit() {
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 新增/编辑 -->
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      preset="card"
       :title="modalTitle"
-      style="width: 680px"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NForm :model="notificationForm" label-placement="top">
-        <NFormItem :label="t('message.notification.form_title')" path="title">
+      <NForm :model="notificationForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('message.notification.form_title')" path="title" class="xh-span-2">
           <NInput v-model:value="notificationForm.title" clearable :maxlength="200" :placeholder="t('message.notification.form_title_placeholder')" />
         </NFormItem>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.notification.form_priority')" path="priority">
-            <NSelect v-model:value="notificationForm.priority" :options="priorityOptions" />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_content_format')" path="contentFormat">
-            <NSelect v-model:value="notificationForm.contentFormat" :options="contentFormatOptions" />
-          </NFormItem>
-        </div>
-        <NFormItem :label="t('message.notification.form_content')" path="content">
+        <NFormItem :label="t('message.notification.form_priority')" path="priority">
+          <NSelect v-model:value="notificationForm.priority" :options="priorityOptions" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_content_format')" path="contentFormat">
+          <NSelect v-model:value="notificationForm.contentFormat" :options="contentFormatOptions" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_content')" path="content" class="xh-span-2">
           <XMdEditor v-if="isMarkdownContent" v-model="markdownContent" />
           <NInput
             v-else
@@ -750,15 +747,13 @@ async function handleSubmit() {
             :placeholder="t('message.notification.form_content_placeholder')"
           />
         </NFormItem>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.notification.form_type')" path="notificationType">
-            <NSelect v-model:value="notificationForm.notificationType" :options="notificationTypeOptions" />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_target_type')" path="targetType">
-            <NSelect v-model:value="notificationForm.targetType" :options="targetTypeFormOptions" />
-          </NFormItem>
-        </div>
-        <NFormItem :label="t('message.notification.form_delivery_channels')" path="deliveryChannels">
+        <NFormItem :label="t('message.notification.form_type')" path="notificationType">
+          <NSelect v-model:value="notificationForm.notificationType" :options="notificationTypeOptions" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_target_type')" path="targetType">
+          <NSelect v-model:value="notificationForm.targetType" :options="targetTypeFormOptions" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_delivery_channels')" path="deliveryChannels" class="xh-span-2">
           <div>
             <NCheckboxGroup v-model:value="notificationForm.deliveryChannels">
               <NCheckbox
@@ -775,71 +770,53 @@ async function handleSubmit() {
             </p>
           </div>
         </NFormItem>
-        <NFormItem v-if="isUserTarget" :label="t('message.notification.form_user_ids')" path="userIds">
+        <NFormItem v-if="isUserTarget" :label="t('message.notification.form_user_ids')" path="userIds" class="xh-span-2">
           <NDynamicTags v-model:value="notificationForm.userIds" />
         </NFormItem>
-        <NFormItem v-else-if="isRoleTarget" :label="t('message.notification.form_role_ids')" path="userIds">
+        <NFormItem v-else-if="isRoleTarget" :label="t('message.notification.form_role_ids')" path="userIds" class="xh-span-2">
           <NSelect v-model:value="notificationForm.userIds" multiple :options="roleOptions" />
         </NFormItem>
-        <NFormItem v-else-if="isDepartmentTarget" :label="t('message.notification.form_department_ids')" path="userIds">
+        <NFormItem v-else-if="isDepartmentTarget" :label="t('message.notification.form_department_ids')" path="userIds" class="xh-span-2">
           <NSelect v-model:value="notificationForm.userIds" multiple :options="departmentOptions" />
         </NFormItem>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.notification.form_icon')" path="icon">
-            <IconPicker v-model="notificationForm.icon" :placeholder="t('message.notification.form_icon_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_link')" path="link">
-            <NInput v-model:value="notificationForm.link" clearable :maxlength="500" :placeholder="t('message.notification.form_link_placeholder')" />
-          </NFormItem>
-        </div>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.notification.form_start_time')" path="startTime">
-            <NDatePicker
-              v-model:value="notificationForm.startTime"
-              type="datetime"
-              clearable
-              style="width: 100%"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_expiration_time')" path="expirationTime">
-            <NDatePicker
-              v-model:value="notificationForm.expirationTime"
-              type="datetime"
-              clearable
-              style="width: 100%"
-              :placeholder="t('message.notification.form_expiration_placeholder')"
-            />
-          </NFormItem>
-        </div>
-        <div class="grid grid-cols-2 gap-x-4">
-          <NFormItem :label="t('message.notification.form_need_confirm')" path="needConfirm">
-            <NSwitch v-model:value="notificationForm.needConfirm" />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_mandatory')" path="isMandatory">
-            <NSwitch v-model:value="notificationForm.isMandatory" />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_banner')" path="isBanner">
-            <NSwitch v-model:value="notificationForm.isBanner" />
-          </NFormItem>
-          <NFormItem :label="t('message.notification.form_popup')" path="isPopup">
-            <NSwitch v-model:value="notificationForm.isPopup" />
-          </NFormItem>
-        </div>
-        <p v-if="isUserTarget && notificationForm.basicId" class="form-hint">
+        <NFormItem :label="t('message.notification.form_icon')" path="icon">
+          <IconPicker v-model="notificationForm.icon" :placeholder="t('message.notification.form_icon_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_link')" path="link">
+          <NInput v-model:value="notificationForm.link" clearable :maxlength="500" :placeholder="t('message.notification.form_link_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_start_time')" path="startTime">
+          <NDatePicker
+            v-model:value="notificationForm.startTime"
+            type="datetime"
+            clearable
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_expiration_time')" path="expirationTime">
+          <NDatePicker
+            v-model:value="notificationForm.expirationTime"
+            type="datetime"
+            clearable
+            :placeholder="t('message.notification.form_expiration_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_need_confirm')" path="needConfirm">
+          <NSwitch v-model:value="notificationForm.needConfirm" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_mandatory')" path="isMandatory">
+          <NSwitch v-model:value="notificationForm.isMandatory" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_banner')" path="isBanner">
+          <NSwitch v-model:value="notificationForm.isBanner" />
+        </NFormItem>
+        <NFormItem :label="t('message.notification.form_popup')" path="isPopup">
+          <NSwitch v-model:value="notificationForm.isPopup" />
+        </NFormItem>
+        <p v-if="isUserTarget && notificationForm.basicId" class="form-hint xh-span-2">
           {{ t('message.notification.edit_user_hint') }}
         </p>
       </NForm>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </div>
-      </template>
-    </NModal>
+    </XEditModal>
 
     <!-- 详情（抽屉） -->
     <NDrawer v-model:show="detailVisible" :width="560">

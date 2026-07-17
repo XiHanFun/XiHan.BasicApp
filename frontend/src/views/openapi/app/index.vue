@@ -19,7 +19,6 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NModal,
   NScrollbar,
   NSelect,
   NSpace,
@@ -32,7 +31,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -523,13 +522,11 @@ async function handleDelete(row: OAuthAppListItemDto) {
     </NDrawer>
 
     <!-- 新增/编辑弹窗 -->
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="appForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('openapi.app.form_app_name')" path="appName">
@@ -550,7 +547,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
         <NFormItem :label="t('openapi.app.form_scopes')" path="scopes">
           <NInput v-model:value="appForm.scopes" clearable :placeholder="t('openapi.app.form_scopes_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_redirect_uris')" path="redirectUris">
+        <NFormItem :label="t('openapi.app.form_redirect_uris')" path="redirectUris" class="xh-span-2">
           <NInput v-model:value="appForm.redirectUris" clearable :placeholder="t('openapi.app.form_redirect_uris_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_homepage')" path="homepage">
@@ -560,13 +557,13 @@ async function handleDelete(row: OAuthAppListItemDto) {
           <NInput v-model:value="appForm.logo" clearable :placeholder="t('openapi.app.form_logo_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_access_token_lifetime')" path="accessTokenLifetime">
-          <NInputNumber v-model:value="appForm.accessTokenLifetime" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="appForm.accessTokenLifetime" :min="0" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_refresh_token_lifetime')" path="refreshTokenLifetime">
-          <NInputNumber v-model:value="appForm.refreshTokenLifetime" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="appForm.refreshTokenLifetime" :min="0" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_authorization_code_lifetime')" path="authorizationCodeLifetime">
-          <NInputNumber v-model:value="appForm.authorizationCodeLifetime" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="appForm.authorizationCodeLifetime" :min="0" />
         </NFormItem>
         <NFormItem :label="t('openapi.app.form_skip_consent')" path="skipConsent">
           <NSwitch v-model:value="appForm.skipConsent" />
@@ -574,7 +571,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
         <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_status')" path="status">
           <NSelect v-model:value="appForm.status" :options="statusOptions" />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_app_description')" path="appDescription">
+        <NFormItem :label="t('openapi.app.form_app_description')" path="appDescription" class="xh-span-2">
           <NInput
             v-model:value="appForm.appDescription"
             clearable
@@ -583,7 +580,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem :label="t('openapi.app.form_remark')" path="remark">
+        <NFormItem :label="t('openapi.app.form_remark')" path="remark" class="xh-span-2">
           <NInput
             v-model:value="appForm.remark"
             clearable
@@ -593,18 +590,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
           />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('openapi.app.form_cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('openapi.app.form_save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
 
     <!-- 密钥抽屉 -->
     <NDrawer v-model:show="secretVisible" :width="420">

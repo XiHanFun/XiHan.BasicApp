@@ -27,10 +27,8 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NModal,
   NScrollbar,
   NSelect,
-  NSpace,
   NSpin,
   NSwitch,
   NTabPane,
@@ -58,7 +56,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -1088,13 +1086,11 @@ async function handleToggleStatus(row: RoleListItemDto) {
       </NDrawerContent>
     </NDrawer>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="roleForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('identity.role.label_role_name')" path="roleName">
@@ -1115,10 +1111,10 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <NSelect v-model:value="roleForm.dataScope" :options="dataScopeOptions" />
         </NFormItem>
         <NFormItem :label="t('identity.role.label_max_members')" path="maxMembers">
-          <NInputNumber v-model:value="roleForm.maxMembers" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="roleForm.maxMembers" :min="0" />
         </NFormItem>
         <NFormItem :label="t('identity.role.label_sort')" path="sort">
-          <NInputNumber v-model:value="roleForm.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="roleForm.sort" :min="0" />
         </NFormItem>
         <NFormItem :label="t('identity.role.label_status')" path="status">
           <NSelect v-model:value="roleForm.status" :options="statusOptions" />
@@ -1126,7 +1122,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
         <NFormItem :label="t('identity.role.label_remark')" path="remark">
           <NInput v-model:value="roleForm.remark" clearable :placeholder="t('identity.role.ph_remark')" />
         </NFormItem>
-        <NFormItem :label="t('identity.role.label_description')" path="roleDescription">
+        <NFormItem :label="t('identity.role.label_description')" path="roleDescription" class="xh-span-2">
           <NInput
             v-model:value="roleForm.roleDescription"
             clearable
@@ -1136,18 +1132,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
 
     <NDrawer v-model:show="permissionVisible" :width="760">
       <NDrawerContent closable :title="t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' })">

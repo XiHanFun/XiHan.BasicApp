@@ -8,13 +8,10 @@ import type {
   QueryType,
 } from '@/api'
 import {
-  NButton,
   NCheckbox,
   NDataTable,
   NInput,
-  NModal,
   NSelect,
-  NSpace,
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref, watch } from 'vue'
@@ -26,6 +23,7 @@ import {
   HTML_TYPE_OPTIONS,
   QUERY_TYPE_OPTIONS,
 } from '@/api'
+import { XEditModal } from '~/components'
 
 defineOptions({ name: 'CodeGenColumnConfigModal' })
 
@@ -265,14 +263,13 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <NModal
-    :auto-focus="false"
-    :bordered="false"
-    preset="card"
+  <XEditModal
     :show="show"
-    style="width: 96vw; max-width: 1280px"
     :title="t('develop.code_gen.column.title')"
+    :width="1280"
+    :loading="submitLoading"
     @update:show="emit('update:show', $event)"
+    @save="handleSubmit"
   >
     <NDataTable
       :columns="columns"
@@ -283,16 +280,5 @@ async function handleSubmit() {
       :scroll-x="1730"
       size="small"
     />
-
-    <template #footer>
-      <NSpace justify="end">
-        <NButton @click="emit('update:show', false)">
-          {{ t('common.actions.cancel') }}
-        </NButton>
-        <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-          {{ t('common.actions.save') }}
-        </NButton>
-      </NSpace>
-    </template>
-  </NModal>
+  </XEditModal>
 </template>

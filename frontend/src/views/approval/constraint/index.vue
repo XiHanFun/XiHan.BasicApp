@@ -21,10 +21,8 @@ import {
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NScrollbar,
   NSelect,
-  NSpace,
   NSpin,
   NTag,
   useDialog,
@@ -45,7 +43,7 @@ import {
   ViolationAction,
 } from '@/api'
 import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -774,13 +772,11 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
     </NDrawer>
 
     <!-- 新增 / 编辑弹窗：基础字段 + 规则项动态行 -->
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 860px; max-width: 94vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="ruleForm" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('approval.constraint.label_rule_code')" path="ruleCode">
@@ -812,7 +808,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <NSelect v-model:value="ruleForm.violationAction" :options="violationActionOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_priority')" path="priority">
-          <NInputNumber v-model:value="ruleForm.priority" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="ruleForm.priority" :min="0" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_status')" path="status">
           <NSelect v-model:value="ruleForm.status" :options="statusOptions as unknown as SelectMixedOption[]" />
@@ -821,12 +817,12 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <NInput v-model:value="ruleForm.remark" clearable :placeholder="t('approval.constraint.placeholder_remark')" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_effective_time')" path="effectiveTime">
-          <NDatePicker v-model:value="ruleForm.effectiveTime" clearable style="width: 100%" type="datetime" />
+          <NDatePicker v-model:value="ruleForm.effectiveTime" clearable type="datetime" />
         </NFormItem>
         <NFormItem :label="t('approval.constraint.label_expiration_time')" path="expirationTime">
-          <NDatePicker v-model:value="ruleForm.expirationTime" clearable style="width: 100%" type="datetime" />
+          <NDatePicker v-model:value="ruleForm.expirationTime" clearable type="datetime" />
         </NFormItem>
-        <NFormItem class="xh-form-full-row" :label="t('approval.constraint.label_parameters')" path="parameters">
+        <NFormItem class="xh-span-2" :label="t('approval.constraint.label_parameters')" path="parameters">
           <NInput
             v-model:value="ruleForm.parameters"
             clearable
@@ -835,7 +831,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             type="textarea"
           />
         </NFormItem>
-        <NFormItem class="xh-form-full-row" :label="t('approval.constraint.label_description')" path="description">
+        <NFormItem class="xh-span-2" :label="t('approval.constraint.label_description')" path="description">
           <NInput
             v-model:value="ruleForm.description"
             clearable
@@ -860,14 +856,12 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             v-model:value="item.constraintGroup"
             :min="0"
             :placeholder="t('approval.constraint.placeholder_group')"
-            size="small"
             style="width: 100px"
           />
           <NSelect
             v-model:value="item.targetType"
             :disabled="!isPrerequisite"
             :options="targetTypeOptions"
-            size="small"
             style="width: 110px"
             @update:value="() => onItemTargetTypeChange(item)"
           />
@@ -879,7 +873,6 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             :options="targetOptions[item.targetType]"
             :placeholder="t('approval.constraint.placeholder_target')"
             remote
-            size="small"
             style="flex: 1; min-width: 0"
             @focus="() => loadTargetOptions(item.targetType)"
             @search="(kw: string) => loadTargetOptions(item.targetType, kw)"
@@ -888,7 +881,6 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             v-model:value="item.remark"
             clearable
             :placeholder="t('approval.constraint.placeholder_item_remark')"
-            size="small"
             style="width: 160px"
           />
           <NButton quaternary size="small" type="error" @click="removeItem(index)">
@@ -896,18 +888,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           </NButton>
         </div>
       </div>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('approval.constraint.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('approval.constraint.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

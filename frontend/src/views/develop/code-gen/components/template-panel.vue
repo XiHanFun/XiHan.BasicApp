@@ -15,9 +15,7 @@ import {
   NIcon,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NTag,
   useDialog,
   useMessage,
@@ -35,7 +33,7 @@ import {
   TemplateType as TemplateTypeEnum,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -407,13 +405,11 @@ async function handleSubmit() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 820px; max-width: 94vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('develop.code_gen.template.form_template_code')" path="templateCode">
@@ -446,15 +442,15 @@ async function handleSubmit() {
           <NInput v-model:value="form.filePathExpression" clearable />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="form.sort" :min="0" />
         </NFormItem>
         <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
           <NSelect v-model:value="form.status" :options="statusEnumOptions" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_description')" path="templateDescription">
+        <NFormItem class="xh-span-2" :label="t('develop.code_gen.template.form_template_description')" path="templateDescription">
           <NInput v-model:value="form.templateDescription" clearable :rows="2" type="textarea" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.code_gen.template.form_template_content')" path="templateContent">
+        <NFormItem class="xh-span-2" :label="t('develop.code_gen.template.form_template_content')" path="templateContent">
           <NInput
             v-model:value="form.templateContent"
             class="tpl-code-input"
@@ -466,25 +462,15 @@ async function handleSubmit() {
         </NFormItem>
       </NForm>
 
-      <template #footer>
-        <NSpace justify="space-between">
-          <NButton :loading="validating" @click="handleValidate">
-            <template #icon>
-              <NIcon><Icon icon="lucide:check-check" /></NIcon>
-            </template>
-            {{ t('develop.code_gen.template.validate_syntax') }}
-          </NButton>
-          <NSpace>
-            <NButton @click="modalVisible = false">
-              {{ t('common.actions.cancel') }}
-            </NButton>
-            <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-              {{ t('common.actions.save') }}
-            </NButton>
-          </NSpace>
-        </NSpace>
+      <template #footer-extra>
+        <NButton size="small" :loading="validating" @click="handleValidate">
+          <template #icon>
+            <NIcon><Icon icon="lucide:check-check" /></NIcon>
+          </template>
+          {{ t('develop.code_gen.template.validate_syntax') }}
+        </NButton>
       </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

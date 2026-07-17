@@ -8,14 +8,11 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -31,7 +28,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -396,13 +393,11 @@ async function handleSubmit() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 760px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
         <NFormItem :label="t('develop.ai_provider.form_config_code')" path="configCode">
@@ -431,29 +426,30 @@ async function handleSubmit() {
         <NFormItem :label="t('develop.ai_provider.form_embedding_model')" path="embeddingModel">
           <NInput v-model:value="form.embeddingModel" clearable :placeholder="t('develop.ai_provider.form_embedding_model_placeholder')" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.ai_provider.form_base_url')" path="baseUrl">
-          <NInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" />
+        <NFormItem class="xh-span-2" :label="t('develop.ai_provider.form_base_url')" path="baseUrl">
+          <NInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" :input-props="{ autocomplete: 'off' }" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="form.basicId ? t('develop.ai_provider.form_api_key_edit') : t('develop.ai_provider.form_api_key')" path="apiKey">
+        <NFormItem class="xh-span-2" :label="form.basicId ? t('develop.ai_provider.form_api_key_edit') : t('develop.ai_provider.form_api_key')" path="apiKey">
           <NInput
             v-model:value="form.apiKey"
             clearable
             :placeholder="t('develop.ai_provider.form_api_key_placeholder')"
             show-password-on="click"
             type="password"
+            :input-props="{ autocomplete: 'new-password' }"
           />
         </NFormItem>
         <NFormItem :label="t('develop.ai_provider.form_max_output_tokens')" path="maxOutputTokens">
-          <NInputNumber v-model:value="form.maxOutputTokens" :min="1" style="width: 100%" />
+          <NInputNumber v-model:value="form.maxOutputTokens" :min="1" />
         </NFormItem>
         <NFormItem :label="t('develop.ai_provider.form_temperature')" path="temperature">
-          <NInputNumber v-model:value="form.temperature" :max="2" :min="0" :precision="2" :step="0.1" style="width: 100%" />
+          <NInputNumber v-model:value="form.temperature" :max="2" :min="0" :precision="2" :step="0.1" />
         </NFormItem>
         <NFormItem :label="t('develop.ai_provider.form_timeout_seconds')" path="timeoutSeconds">
-          <NInputNumber v-model:value="form.timeoutSeconds" :min="1" style="width: 100%" />
+          <NInputNumber v-model:value="form.timeoutSeconds" :min="1" />
         </NFormItem>
         <NFormItem :label="t('develop.ai_provider.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
+          <NInputNumber v-model:value="form.sort" :min="0" />
         </NFormItem>
         <NFormItem :label="t('develop.ai_provider.form_is_default')" path="isDefault">
           <NSwitch v-model:value="form.isDefault" />
@@ -464,7 +460,7 @@ async function handleSubmit() {
         <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
           <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
         </NFormItem>
-        <NFormItem class="xh-form-full" :label="t('develop.ai_provider.form_extra_json')" path="extraJson">
+        <NFormItem class="xh-span-2" :label="t('develop.ai_provider.form_extra_json')" path="extraJson">
           <NInput
             v-model:value="form.extraJson"
             clearable
@@ -474,18 +470,7 @@ async function handleSubmit() {
           />
         </NFormItem>
       </NForm>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
   </SchemaPage>
 </template>
 

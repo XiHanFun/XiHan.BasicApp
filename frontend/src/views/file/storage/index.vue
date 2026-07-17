@@ -2,15 +2,11 @@
 import type { StorageConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
-  NConfigProvider,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
-  NModal,
   NSelect,
-  NSpace,
   NSwitch,
   NTag,
   useDialog,
@@ -19,7 +15,7 @@ import {
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, storageConfigApi, StorageConfigType } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XEditModal } from '~/components'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'FileStoragePage' })
@@ -440,88 +436,73 @@ function handleDelete(row: StorageConfigListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider size="small" abstract>
-        <NForm :model="form" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('file.storage.form.config_code')" path="configCode">
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('file.storage.form.config_code')" path="configCode">
+          <NInput
+            v-model:value="form.configCode"
+            clearable
+            :disabled="Boolean(form.basicId)"
+            :placeholder="t('file.storage.form.config_code_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('file.storage.form.config_name')" path="configName">
+          <NInput v-model:value="form.configName" clearable :placeholder="t('file.storage.form.config_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('file.storage.form.storage_type')" path="storageType">
+          <NSelect v-model:value="form.storageType" :options="storageTypeOptions" />
+        </NFormItem>
+        <NFormItem :label="t('file.storage.form.sort')" path="sort">
+          <NInputNumber v-model:value="form.sort" :min="0" />
+        </NFormItem>
+
+        <template v-if="isObjectStorage">
+          <NFormItem :label="t('file.storage.form.endpoint')" path="endpoint">
+            <NInput v-model:value="form.endpoint" clearable :placeholder="t('file.storage.form.endpoint_placeholder')" />
+          </NFormItem>
+          <NFormItem :label="t('file.storage.form.region')" path="region">
+            <NInput v-model:value="form.region" clearable :placeholder="t('file.storage.form.region_placeholder')" />
+          </NFormItem>
+          <NFormItem :label="t('file.storage.form.bucket_name')" path="bucketName">
+            <NInput v-model:value="form.bucketName" clearable :placeholder="t('file.storage.form.bucket_name_placeholder')" />
+          </NFormItem>
+          <NFormItem :label="t('file.storage.form.access_key_id')" path="accessKeyId">
+            <NInput v-model:value="form.accessKeyId" clearable placeholder="AccessKeyId" :input-props="{ autocomplete: 'off' }" />
+          </NFormItem>
+          <NFormItem :label="t('file.storage.form.secret_access_key')" path="secretAccessKey" class="xh-span-2">
             <NInput
-              v-model:value="form.configCode"
-              clearable size="small"
-              :disabled="Boolean(form.basicId)"
-              :placeholder="t('file.storage.form.config_code_placeholder')"
+              v-model:value="form.secretAccessKey"
+              type="password"
+              :input-props="{ autocomplete: 'new-password' }"
+              show-password-on="click"
+              :placeholder="secretPlaceholder"
             />
           </NFormItem>
-          <NFormItem :label="t('file.storage.form.config_name')" path="configName">
-            <NInput v-model:value="form.configName" clearable size="small" :placeholder="t('file.storage.form.config_name_placeholder')" />
+        </template>
+        <template v-else>
+          <NFormItem :label="t('file.storage.form.root_path')" path="bucketName" class="xh-span-2">
+            <NInput v-model:value="form.bucketName" clearable :placeholder="t('file.storage.form.root_path_placeholder')" />
           </NFormItem>
-          <NFormItem :label="t('file.storage.form.storage_type')" path="storageType">
-            <NSelect v-model:value="form.storageType" :options="storageTypeOptions" />
+        </template>
+
+        <template v-if="!form.basicId">
+          <NFormItem :label="t('file.storage.form.is_enabled')" path="isEnabled">
+            <NSwitch v-model:value="form.isEnabled" />
           </NFormItem>
-          <NFormItem :label="t('file.storage.form.sort')" path="sort">
-            <NInputNumber v-model:value="form.sort" :min="0" style="width: 100%" />
+          <NFormItem :label="t('file.storage.form.is_default')" path="isDefault">
+            <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
           </NFormItem>
+        </template>
 
-          <template v-if="isObjectStorage">
-            <NFormItem :label="t('file.storage.form.endpoint')" path="endpoint">
-              <NInput v-model:value="form.endpoint" clearable size="small" :placeholder="t('file.storage.form.endpoint_placeholder')" />
-            </NFormItem>
-            <NFormItem :label="t('file.storage.form.region')" path="region">
-              <NInput v-model:value="form.region" clearable size="small" :placeholder="t('file.storage.form.region_placeholder')" />
-            </NFormItem>
-            <NFormItem :label="t('file.storage.form.bucket_name')" path="bucketName">
-              <NInput v-model:value="form.bucketName" clearable size="small" :placeholder="t('file.storage.form.bucket_name_placeholder')" />
-            </NFormItem>
-            <NFormItem :label="t('file.storage.form.access_key_id')" path="accessKeyId">
-              <NInput v-model:value="form.accessKeyId" clearable size="small" placeholder="AccessKeyId" />
-            </NFormItem>
-            <NFormItem :label="t('file.storage.form.secret_access_key')" path="secretAccessKey" style="grid-column: span 2">
-              <NInput
-                v-model:value="form.secretAccessKey"
-                size="small"
-                type="password"
-                show-password-on="click"
-                :placeholder="secretPlaceholder"
-              />
-            </NFormItem>
-          </template>
-          <template v-else>
-            <NFormItem :label="t('file.storage.form.root_path')" path="bucketName" style="grid-column: span 2">
-              <NInput v-model:value="form.bucketName" clearable size="small" :placeholder="t('file.storage.form.root_path_placeholder')" />
-            </NFormItem>
-          </template>
-
-          <template v-if="!form.basicId">
-            <NFormItem :label="t('file.storage.form.is_enabled')" path="isEnabled">
-              <NSwitch v-model:value="form.isEnabled" />
-            </NFormItem>
-            <NFormItem :label="t('file.storage.form.is_default')" path="isDefault">
-              <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
-            </NFormItem>
-          </template>
-
-          <NFormItem :label="t('file.storage.form.remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="form.remark" clearable size="small" :placeholder="t('file.storage.form.remark_placeholder')" />
-          </NFormItem>
-        </NForm>
-      </NConfigProvider>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('file.storage.form.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('file.storage.form.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <NFormItem :label="t('file.storage.form.remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="form.remark" clearable :placeholder="t('file.storage.form.remark_placeholder')" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>

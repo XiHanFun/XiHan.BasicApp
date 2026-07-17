@@ -9,7 +9,6 @@ import type {
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
-  NConfigProvider,
   NDescriptions,
   NDescriptionsItem,
   NForm,
@@ -31,7 +30,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -353,49 +352,34 @@ async function handleSubmit() {
       </template>
     </NModal>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 560px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
-      <NConfigProvider abstract>
-        <NForm :model="positionForm" size="small" class="xh-edit-form-grid" label-placement="top">
-          <NFormItem :label="t('identity.position.position_name')" path="positionName">
-            <NInput v-model:value="positionForm.positionName" clearable :placeholder="t('identity.position.ph_position_name')" />
-          </NFormItem>
-          <NFormItem :label="t('identity.position.position_code')" path="positionCode">
-            <NInput
-              v-model:value="positionForm.positionCode"
-              :disabled="Boolean(positionForm.basicId)"
-              clearable
-              :placeholder="t('identity.position.ph_position_code')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('identity.position.sort')" path="sort">
-            <NInputNumber v-model:value="positionForm.sort" :min="0" style="width: 100%" />
-          </NFormItem>
-          <NFormItem v-if="!positionForm.basicId" :label="t('identity.position.status')" path="status">
-            <NSelect v-model:value="positionForm.status" :options="(statusOptions as SelectOption[])" />
-          </NFormItem>
-          <NFormItem :label="t('identity.position.remark')" path="remark" style="grid-column: span 2">
-            <NInput v-model:value="positionForm.remark" clearable :rows="3" type="textarea" :placeholder="t('identity.position.ph_remark')" />
-          </NFormItem>
-        </NForm>
-      </NConfigProvider>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="modalVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" :loading="submitLoading" type="primary" @click="handleSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+      <NForm :model="positionForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('identity.position.position_name')" path="positionName">
+          <NInput v-model:value="positionForm.positionName" clearable :placeholder="t('identity.position.ph_position_name')" />
+        </NFormItem>
+        <NFormItem :label="t('identity.position.position_code')" path="positionCode">
+          <NInput
+            v-model:value="positionForm.positionCode"
+            :disabled="Boolean(positionForm.basicId)"
+            clearable
+            :placeholder="t('identity.position.ph_position_code')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('identity.position.sort')" path="sort">
+          <NInputNumber v-model:value="positionForm.sort" :min="0" />
+        </NFormItem>
+        <NFormItem v-if="!positionForm.basicId" :label="t('identity.position.status')" path="status">
+          <NSelect v-model:value="positionForm.status" :options="(statusOptions as SelectOption[])" />
+        </NFormItem>
+        <NFormItem :label="t('identity.position.remark')" path="remark" class="xh-span-2">
+          <NInput v-model:value="positionForm.remark" clearable :rows="3" type="textarea" :placeholder="t('identity.position.ph_remark')" />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
   </SchemaPage>
 </template>

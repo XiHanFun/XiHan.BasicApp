@@ -17,11 +17,11 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParam
 import {
   NButton,
   NCheckbox,
-  NConfigProvider,
   NDatePicker,
   NDrawer,
   NDrawerContent,
   NEmpty,
+  NForm,
   NFormItem,
   NInput,
   NInputNumber,
@@ -54,7 +54,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
@@ -1146,120 +1146,90 @@ async function confirmDelete() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <!-- 新建/编辑：preset=card 使用 Naive 主题卡片背景，避免暗色下透明 -->
-    <NModal
+    <!-- 新建/编辑：统一编辑弹窗外壳 + 表单网格 -->
+    <XEditModal
       v-model:show="showFormModal"
-      :mask-closable="false"
-      :auto-focus="false"
-      :bordered="false"
       :title="formTitle"
-      preset="card"
-      style="width: 640px; max-width: calc(100vw - 32px)"
+      :loading="submitLoading"
+      @save="saveUser"
+      @cancel="closeModals"
     >
-      <NConfigProvider size="small" abstract>
-        <NTabs v-model:value="formTab" type="line" animated>
-          <NTabPane name="0" :tab="t('identity.user.tab_basic')" display-directive="show">
-            <div class="form-grid">
-              <NFormItem
-                :label="t('identity.user.label_username')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput
-                  v-model:value="userForm.userName"
-                  :placeholder="t('identity.user.ph_username')"
-                  :disabled="!!userForm.basicId"
-                />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_real_name')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_nickname')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_email')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_phone')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_gender')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_birthday')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NDatePicker v-model:value="userForm.birthday" type="date" class="w-full" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_language')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NSelect v-model:value="userForm.language" :options="languageOptions" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_country')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_timezone')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
-              </NFormItem>
-              <NFormItem
-                :label="t('identity.user.label_status')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NSelect v-model:value="userForm.status" :options="statusEnumOptions" />
-              </NFormItem>
-              <NFormItem
-                v-if="!userForm.basicId"
-                :label="t('identity.user.label_initial_password')"
-                :show-feedback="false"
-                label-style="font-size:11px;font-weight:500"
-              >
-                <NInput
-                  v-model:value="userForm.initialPassword"
-                  type="password"
-                  :placeholder="t('identity.user.ph_initial_password')"
-                />
-              </NFormItem>
-            </div>
+      <NTabs v-model:value="formTab" type="line" animated>
+        <NTabPane name="0" :tab="t('identity.user.tab_basic')" display-directive="show">
+          <!-- NForm 渲染真实 form 元素：密码输入必须在 form 内，否则浏览器告警 -->
+          <NForm class="xh-edit-form-grid" label-placement="top">
             <NFormItem
-              :label="t('identity.user.label_remark')"
-              :show-feedback="false"
-              label-style="font-size:11px;font-weight:500"
-              class="mt-1"
+              :label="t('identity.user.label_username')"
             >
+              <NInput
+                v-model:value="userForm.userName"
+                :placeholder="t('identity.user.ph_username')"
+                :disabled="!!userForm.basicId"
+                :input-props="{ autocomplete: 'off' }"
+              />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_real_name')"
+            >
+              <NInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_nickname')"
+            >
+              <NInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_email')"
+            >
+              <NInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" :input-props="{ autocomplete: 'off' }" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_phone')"
+            >
+              <NInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" :input-props="{ autocomplete: 'off' }" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_gender')"
+            >
+              <NSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_birthday')"
+            >
+              <NDatePicker v-model:value="userForm.birthday" type="date" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_language')"
+            >
+              <NSelect v-model:value="userForm.language" :options="languageOptions" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_country')"
+            >
+              <NInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_timezone')"
+            >
+              <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
+            </NFormItem>
+            <NFormItem
+              :label="t('identity.user.label_status')"
+            >
+              <NSelect v-model:value="userForm.status" :options="statusEnumOptions" />
+            </NFormItem>
+            <NFormItem
+              v-if="!userForm.basicId"
+              :label="t('identity.user.label_initial_password')"
+            >
+              <NInput
+                v-model:value="userForm.initialPassword"
+                type="password"
+                :input-props="{ autocomplete: 'new-password' }"
+                :placeholder="t('identity.user.ph_initial_password')"
+              />
+            </NFormItem>
+            <NFormItem :label="t('identity.user.label_remark')" class="xh-span-2">
               <NInput
                 v-model:value="userForm.remark"
                 type="textarea"
@@ -1267,137 +1237,126 @@ async function confirmDelete() {
                 :placeholder="t('identity.user.ph_remark')"
               />
             </NFormItem>
-          </NTabPane>
+          </NForm>
+        </NTabPane>
 
-          <NTabPane name="1" :tab="t('identity.user.tab_security')" display-directive="show">
-            <div class="sec-panel">
-              <div class="sec-block">
-                <div class="sec-block-hd">
-                  <Icon icon="tabler:shield-lock" :size="14" />
-                  <span>{{ t('identity.user.sec_account_security') }}</span>
-                </div>
-                <div class="form-row">
-                  <div class="form-row-main">
-                    <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
-                    <div>
-                      <div class="lbl">
-                        {{ t('identity.user.sec_account_lock') }}
-                      </div>
-                      <div class="sub">
-                        {{ t('identity.user.sec_account_lock_hint') }}
-                      </div>
+        <NTabPane name="1" :tab="t('identity.user.tab_security')" display-directive="show">
+          <div class="sec-panel">
+            <div class="sec-block">
+              <div class="sec-block-hd">
+                <Icon icon="tabler:shield-lock" :size="14" />
+                <span>{{ t('identity.user.sec_account_security') }}</span>
+              </div>
+              <div class="form-row">
+                <div class="form-row-main">
+                  <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
+                  <div>
+                    <div class="lbl">
+                      {{ t('identity.user.sec_account_lock') }}
+                    </div>
+                    <div class="sub">
+                      {{ t('identity.user.sec_account_lock_hint') }}
                     </div>
                   </div>
-                  <NSwitch v-model:value="userForm.isLocked" />
                 </div>
+                <NSwitch v-model:value="userForm.isLocked" />
               </div>
-              <div class="sec-block">
-                <div class="sec-block-hd">
-                  <Icon icon="tabler:devices" :size="14" />
-                  <span>{{ t('identity.user.sec_login_session') }}</span>
-                </div>
-                <div class="form-row">
-                  <div class="form-row-main">
-                    <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
-                    <div>
-                      <div class="lbl">
-                        {{ t('identity.user.sec_allow_multi_login') }}
-                      </div>
-                      <div class="sub">
-                        {{ t('identity.user.sec_allow_multi_login_hint') }}
-                      </div>
+            </div>
+            <div class="sec-block">
+              <div class="sec-block-hd">
+                <Icon icon="tabler:devices" :size="14" />
+                <span>{{ t('identity.user.sec_login_session') }}</span>
+              </div>
+              <div class="form-row">
+                <div class="form-row-main">
+                  <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
+                  <div>
+                    <div class="lbl">
+                      {{ t('identity.user.sec_allow_multi_login') }}
+                    </div>
+                    <div class="sub">
+                      {{ t('identity.user.sec_allow_multi_login_hint') }}
                     </div>
                   </div>
-                  <NSwitch v-model:value="userForm.multiLogin" />
                 </div>
-                <div class="form-row">
-                  <div class="form-row-main">
-                    <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
-                    <div>
-                      <div class="lbl">
-                        {{ t('identity.user.sec_max_devices') }}
-                      </div>
-                      <div class="sub">
-                        {{ t('identity.user.sec_max_devices_hint') }}
-                      </div>
+                <NSwitch v-model:value="userForm.multiLogin" />
+              </div>
+              <div class="form-row">
+                <div class="form-row-main">
+                  <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
+                  <div>
+                    <div class="lbl">
+                      {{ t('identity.user.sec_max_devices') }}
+                    </div>
+                    <div class="sub">
+                      {{ t('identity.user.sec_max_devices_hint') }}
                     </div>
                   </div>
-                  <NInputNumber
-                    v-model:value="userForm.maxDev"
-                    :min="0"
-                    :max="99"
-                    class="max-dev-input"
-                    size="small"
-                    :show-button="false"
-                  />
                 </div>
+                <NInputNumber
+                  v-model:value="userForm.maxDev"
+                  :min="0"
+                  :max="99"
+                  class="max-dev-input"
+                  size="small"
+                  :show-button="false"
+                />
               </div>
             </div>
-          </NTabPane>
+          </div>
+        </NTabPane>
 
-          <NTabPane name="2" :tab="t('identity.user.tab_roles')" display-directive="show">
-            <div class="pick-panel">
-              <p class="pick-desc">
-                {{ t('identity.user.pick_roles_desc') }}
-              </p>
-              <p v-if="selRoleIds.length" class="pick-summary">
-                {{ t('identity.user.pick_selected') }}
-                <strong>{{ selRoleIds.length }}</strong>
-                {{ t('identity.user.pick_selected_unit') }}
-              </p>
-              <div class="pick-grid">
-                <button
-                  v-for="r in roleOptions"
-                  :key="r.basicId"
-                  type="button"
-                  class="pick-chip" :class="[selRoleIds.includes(r.basicId) ? 'on' : '']"
-                  @click="togglePick(selRoleIds, r.basicId)"
-                >
-                  <Icon icon="tabler:user-check" :size="13" />
-                  {{ r.roleName }}
-                </button>
-              </div>
+        <NTabPane name="2" :tab="t('identity.user.tab_roles')" display-directive="show">
+          <div class="pick-panel">
+            <p class="pick-desc">
+              {{ t('identity.user.pick_roles_desc') }}
+            </p>
+            <p v-if="selRoleIds.length" class="pick-summary">
+              {{ t('identity.user.pick_selected') }}
+              <strong>{{ selRoleIds.length }}</strong>
+              {{ t('identity.user.pick_selected_unit') }}
+            </p>
+            <div class="pick-grid">
+              <button
+                v-for="r in roleOptions"
+                :key="r.basicId"
+                type="button"
+                class="pick-chip" :class="[selRoleIds.includes(r.basicId) ? 'on' : '']"
+                @click="togglePick(selRoleIds, r.basicId)"
+              >
+                <Icon icon="tabler:user-check" :size="13" />
+                {{ r.roleName }}
+              </button>
             </div>
-          </NTabPane>
+          </div>
+        </NTabPane>
 
-          <NTabPane name="3" :tab="t('identity.user.tab_departments')" display-directive="show">
-            <div class="pick-panel">
-              <p class="pick-desc">
-                {{ t('identity.user.pick_depts_desc') }}
-              </p>
-              <p v-if="selDeptIds.length" class="pick-summary">
-                {{ t('identity.user.pick_selected') }}
-                <strong>{{ selDeptIds.length }}</strong>
-                {{ t('identity.user.pick_selected_unit') }}
-              </p>
-              <div class="pick-grid">
-                <button
-                  v-for="d in deptFlatOptions"
-                  :key="d.value"
-                  type="button"
-                  class="pick-chip" :class="[selDeptIds.includes(d.value) ? 'on' : '']"
-                  @click="togglePick(selDeptIds, d.value)"
-                >
-                  <Icon icon="tabler:building" :size="13" />
-                  {{ d.label.trim() }}
-                </button>
-              </div>
+        <NTabPane name="3" :tab="t('identity.user.tab_departments')" display-directive="show">
+          <div class="pick-panel">
+            <p class="pick-desc">
+              {{ t('identity.user.pick_depts_desc') }}
+            </p>
+            <p v-if="selDeptIds.length" class="pick-summary">
+              {{ t('identity.user.pick_selected') }}
+              <strong>{{ selDeptIds.length }}</strong>
+              {{ t('identity.user.pick_selected_unit') }}
+            </p>
+            <div class="pick-grid">
+              <button
+                v-for="d in deptFlatOptions"
+                :key="d.value"
+                type="button"
+                class="pick-chip" :class="[selDeptIds.includes(d.value) ? 'on' : '']"
+                @click="togglePick(selDeptIds, d.value)"
+              >
+                <Icon icon="tabler:building" :size="13" />
+                {{ d.label.trim() }}
+              </button>
             </div>
-          </NTabPane>
-        </NTabs>
-      </NConfigProvider>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="closeModals">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" type="primary" :loading="submitLoading" @click="saveUser">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+          </div>
+        </NTabPane>
+      </NTabs>
+    </XEditModal>
 
     <!-- 详情 -->
     <NModal
@@ -1718,12 +1677,6 @@ async function confirmDelete() {
   padding: 48px 0;
   text-align: center;
   color: var(--n-text-color-3);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
 }
 
 .sec-panel {
