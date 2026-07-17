@@ -21,12 +21,10 @@ export interface UserInfo {
   permissions: string[]
 }
 
-/** 切换租户 / 进入平台运维态参数 */
+/** 切换租户 / 进入平台运维态参数（切换复用当前登录会话，无需设备标识） */
 export interface SwitchTenantParams {
   /** 目标租户标识；为空表示切换到平台运维态 */
   tenantId?: null | string
-  /** 设备标识 */
-  deviceId?: string
 }
 
 export interface OAuthProviderItem {

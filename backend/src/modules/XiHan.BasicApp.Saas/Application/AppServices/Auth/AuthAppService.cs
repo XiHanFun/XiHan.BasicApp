@@ -663,9 +663,45 @@ public sealed class AuthAppService
         var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("当前用户不存在。");
 
+        // 切换租户是同一登录会话的上下文迁移，不是一次新登录：复用当前会话并轮换令牌。
+        // 不新建会话（否则设备列表每切一次多一台「设备」），不发布登录成功事件（否则每切一次误报「账号在新设备登录」）。
+        var session = await GetCurrentSessionOrThrowAsync(cancellationToken);
+        if (session.Status != SessionStatus.Active)
+        {
+            throw new InvalidOperationException("会话已失效，请重新登录。");
+        }
+
         // 在目标上下文内重建授权快照并签发新令牌（平台态不带 TenantId claim）
         using var tenantScope = _currentTenant.Change(targetTenantId, targetTenantName);
-        return await IssueLoginTokenAsync(user, security: null, targetTenantId, user.UserName, input.DeviceId, now, cancellationToken);
+        var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
+        var accessTokenJti = Guid.NewGuid().ToString("N");
+
+        // 与登录同口径：token 不冻结具体权限，仅保留通配 * 作为超管快路径
+        IReadOnlyCollection<string> tokenPermissions = authSnapshot.Permissions.Contains("*") ? ["*"] : [];
+        var tokenIssue = _authTokenIssueService.IssueAccessToken(
+            new AuthAccessTokenIssueCommand(
+                user,
+                targetTenantId,
+                session.UserSessionId,
+                accessTokenJti,
+                authSnapshot.Roles,
+                tokenPermissions,
+                session.DeviceId));
+
+        _ = await _loginSessionDomainService.SwitchTenantAsync(session, targetTenantId, accessTokenJti, tokenIssue.TokenResult, now, cancellationToken);
+
+        // 会话行的租户戳/过期时间已变化，闸门缓存立即失效避免读到旧状态
+        await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
+
+        // 认证审计：切换租户落登录日志（不触发登录通知）
+        await PublishSecurityAuditAsync(
+            targetTenantId,
+            userId,
+            user.UserName,
+            LoginResult.TenantSwitched,
+            targetTenantId is null ? "进入平台运维态" : $"切换租户：{targetTenantName}");
+
+        return tokenIssue.Token;
     }
 
     /// <inheritdoc />
@@ -793,14 +829,14 @@ public sealed class AuthAppService
     }
 
     /// <summary>
-    /// 取当前请求所属的会话（锁屏/解锁均只作用于本会话，不影响该用户的其它端）
+    /// 取当前请求所属的会话（锁屏/解锁/切换租户均只作用于本会话，不影响该用户的其它端）
     /// </summary>
     private async Task<SysUserSession> GetCurrentSessionOrThrowAsync(CancellationToken cancellationToken)
     {
         var sessionBusinessId = _currentUser.FindClaim(XiHanClaimTypes.SessionId)?.Value;
         if (string.IsNullOrWhiteSpace(sessionBusinessId))
         {
-            throw new InvalidOperationException("当前令牌不含会话标识，无法锁屏。");
+            throw new InvalidOperationException("当前令牌不含会话标识。");
         }
 
         var session = await _userSessionRepository.GetByUserSessionIdAsync(sessionBusinessId, cancellationToken)
@@ -1489,6 +1525,12 @@ public sealed class AuthAppService
             client,
             now,
             cancellationToken);
+
+        // 同设备重新登录被顶下线的旧会话：闸门缓存立即失效，旧令牌马上被拒（不清则最多再活 60s）
+        foreach (var supersededSessionId in sessionResult.SupersededSessionBusinessIds)
+        {
+            await _cacheInvalidator.InvalidateSessionStateAsync(supersededSessionId, cancellationToken);
+        }
 
         await _localEventBus.PublishAsync(
             new AuthLoginSucceededDomainEvent(

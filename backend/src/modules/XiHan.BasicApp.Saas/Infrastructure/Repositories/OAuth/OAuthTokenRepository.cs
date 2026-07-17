@@ -91,4 +91,23 @@ public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
             .Where(t => t.UserId == userId && t.ClientId == clientId && !t.IsRevoked)
             .ExecuteCommandAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<int> RevokeBySessionIdsAsync(IReadOnlyCollection<long> sessionIds, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(sessionIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (sessionIds.Count == 0)
+        {
+            return 0;
+        }
+
+        // 条件更新不受租户查询过滤影响；令牌行带发起登录时租户戳，会话跨租户下线时须一并吊销
+        var ids = sessionIds.ToList();
+        return await DbClient.Updateable<SysOAuthToken>()
+            .SetColumns(t => new SysOAuthToken { IsRevoked = true, RevokedTime = now })
+            .Where(t => t.SessionId != null && ids.Contains(t.SessionId.Value) && !t.IsRevoked)
+            .ExecuteCommandAsync(cancellationToken);
+    }
 }

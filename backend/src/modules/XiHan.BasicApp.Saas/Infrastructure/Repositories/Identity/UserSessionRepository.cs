@@ -52,6 +52,18 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<SysUserSession>> GetActiveByUserAndDeviceIgnoreTenantAsync(long userId, string deviceId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(deviceId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 会话行带「发起登录时租户」的戳，同一设备的历史会话可能散落在不同租户戳下，须跨租户查询
+        return await CreateNoTenantQueryable()
+            .Where(session => session.UserId == userId && session.DeviceId == deviceId && session.Status == SessionStatus.Active)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

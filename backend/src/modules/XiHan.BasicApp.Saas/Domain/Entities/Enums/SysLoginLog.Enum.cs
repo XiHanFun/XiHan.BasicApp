@@ -94,6 +94,12 @@ public enum LoginResult
     MfaUnbound = 15,
 
     /// <summary>
+    /// 切换租户（认证审计事件：复用会话轮换令牌，不算一次新登录）
+    /// </summary>
+    [Description("切换租户")]
+    TenantSwitched = 16,
+
+    /// <summary>
     /// 失败 - 其他错误
     /// </summary>
     [Description("其他失败")]

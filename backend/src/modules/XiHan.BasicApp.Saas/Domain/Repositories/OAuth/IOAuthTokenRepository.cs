@@ -50,4 +50,9 @@ public interface IOAuthTokenRepository : ISaasRepository<SysOAuthToken>
     /// 跨租户吊销某用户在某客户端下的全部未撤销令牌（刷新令牌重放检测时吊销整个令牌族）
     /// </summary>
     Task<int> RevokeFamilyAsync(long userId, string clientId, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 跨租户吊销指定会话的全部未撤销令牌（会话下线 / 令牌轮换时同步维护令牌台账）
+    /// </summary>
+    Task<int> RevokeBySessionIdsAsync(IReadOnlyCollection<long> sessionIds, DateTimeOffset now, CancellationToken cancellationToken = default);
 }
