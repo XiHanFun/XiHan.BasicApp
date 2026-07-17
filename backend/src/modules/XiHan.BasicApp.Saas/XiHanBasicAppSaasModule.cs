@@ -19,6 +19,7 @@ using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.BasicApp.Saas.Infrastructure.OAuth;
+using XiHan.BasicApp.Saas.Infrastructure.OpenApi;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Saas.Extensions;
 using XiHan.BasicApp.Web.Core;
@@ -119,6 +120,9 @@ public class XiHanBasicAppSaasModule : XiHanModule
 
             // OAuth2 授权服务端标准端点：/connect/authorize（跳同意页）+ /connect/token（令牌）+ /connect/revoke（撤销）
             endpoints.MapOAuthConnectEndpoints();
+
+            // OpenAPI 签名网关自测端点：/api/openapi/ping + /api/openapi/echo（仅在 OpenApiSecurity 开启时受签名强制）
+            endpoints.MapOpenApiDiagnosticsEndpoints();
         });
     }
 }
