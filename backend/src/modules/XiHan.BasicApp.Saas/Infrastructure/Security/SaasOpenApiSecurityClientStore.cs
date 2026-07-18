@@ -108,7 +108,9 @@ public sealed class SaasOpenApiSecurityClientStore : IOpenApiSecurityClientStore
             SecretKey = secretKey,
             SignatureAlgorithm = MapSignatureAlgorithm(credential.SignatureAlgorithm),
             IpWhitelist = SplitWhitelist(credential.IpWhitelist),
-            IsEnabled = isActive
+            IsEnabled = isActive,
+            // 凭证归属用户：供开放接口日志记录"是谁的密钥发起的调用"
+            OwnerUserId = credential.UserId
         };
     }
 

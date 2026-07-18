@@ -66,11 +66,19 @@ public class SaasApiLogWriter : IApiLogWriter
 
         var sessionId = httpContext?.User?.FindFirst(XiHanClaimTypes.SessionId)?.Value;
 
+        // 签名调用无 JWT 用户名：当已回退到凭证归属用户（record.UserId 有值）而用户名缺失时，按 UserId 补全（跨租户）
+        var userName = record.UserName;
+        if (string.IsNullOrWhiteSpace(userName) && record.UserId is > 0)
+        {
+            userName = await ResolveUserNameAsync(record.UserId.Value, cancellationToken);
+        }
+
         var entity = new SysOpenApiLog
         {
             TenantId = _currentTenant.Id ?? 0,
             UserId = record.UserId,
-            UserName = SaasLogMappingHelper.TrimOrNull(record.UserName, 50),
+            UserName = SaasLogMappingHelper.TrimOrNull(userName, 50),
+            ApiName = SaasLogMappingHelper.TrimOrNull(record.ApiName, 200),
             RequestId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 100),
             UserSessionId = SaasLogMappingHelper.TrimOrNull(sessionId, 100),
             TraceId = SaasLogMappingHelper.TrimOrNull(record.TraceId, 64),
@@ -101,6 +109,25 @@ public class SaasApiLogWriter : IApiLogWriter
         };
 
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 按用户主键解析用户名（跨租户，忽略租户过滤：凭证归属人可能是平台用户）；失败兜底空。
+    /// </summary>
+    private async Task<string?> ResolveUserNameAsync(long userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await DbClient.Queryable<SysUser>()
+                .ClearFilter()
+                .Where(user => user.BasicId == userId && !user.IsDeleted)
+                .Select(user => user.UserName)
+                .FirstAsync(cancellationToken);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static SignatureType ResolveSignatureType(string? algorithm)
