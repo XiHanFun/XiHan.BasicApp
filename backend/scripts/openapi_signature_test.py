@@ -9,7 +9,8 @@ OpenAPI 签名网关端到端自测脚本
 对齐后端：
   - 中间件 XiHanOpenApiSecurityMiddleware（规范串 method\\npath\\nquery\\ncontentSign\\ntimestamp\\nnonce）
   - 存储 SaasOpenApiSecurityClientStore（DB 凭证 SysUserApiCredential，密钥可逆加密）
-  - 测试端点 /api/openapi/ping (GET) 与 /api/openapi/echo (POST)
+  - 自测端点 OpenApiAppService（动态 API 按约定自动注册）：/api/openapi/Ping (GET) 与 /api/openapi/Echo (POST)
+    响应走应用统一信封 {code,message,data}，脚本断言前会剥离
 
 前置：
   1) 后端已运行（默认 http://127.0.0.1:9708），且 appsettings.Development.json 里
@@ -18,7 +19,8 @@ OpenAPI 签名网关端到端自测脚本
 
 用法：
   # 全自动：登录超管 → 自助创建一枚 DB 凭证 → 跑全部用例 → 清理凭证
-  python openapi_signature_test.py
+  # （Windows 上 python 可能命中商店占位程序而静默无输出，请改用 py）
+  py openapi_signature_test.py
 
   # 指定后端地址 / 账号
   python openapi_signature_test.py --base-url http://127.0.0.1:9708 --username superadmin --password "SuperAdmin@123"
@@ -41,6 +43,11 @@ try:
 except ImportError:
     print("缺少依赖：请先执行  pip install requests")
     sys.exit(1)
+
+
+# 开放接口自测端点（动态 API，由 OpenApiAppService 按约定自动注册；RouteTemplate=api/openapi）
+PING_PATH = "/api/openapi/Ping"
+ECHO_PATH = "/api/openapi/Echo"
 
 
 # ---------------------------------------------------------------------------
@@ -162,49 +169,47 @@ class Runner:
             self.failed += 1
 
     def ping_signed(self):
-        path = "/api/openapi/ping"
+        path = PING_PATH
         headers, canonical = build_signed_headers("GET", path, "", "", self.access_key, self.secret_key)
         resp = requests.get(f"{self.base_url}{path}", headers=headers, timeout=15)
-        body = _safe_json(resp)
-        ok = resp.status_code == 200 and isinstance(body, dict) and body.get("ok") is True \
-            and body.get("accessKey") == self.access_key
+        data = _unwrap(_safe_json(resp))
+        ok = resp.status_code == 200 and isinstance(data, dict) and data.get("ok") is True \
+            and data.get("accessKey") == self.access_key
         print("    规范串 canonical =", repr(canonical))
-        self._check("签名 GET /api/openapi/ping → 200 且回显本 AccessKey", ok,
-                    f"HTTP {resp.status_code}, accessKey={body.get('accessKey') if isinstance(body, dict) else body}")
+        self._check(f"签名 GET {PING_PATH} → 200 且回显本 AccessKey", ok,
+                    f"HTTP {resp.status_code}, accessKey={data.get('accessKey') if isinstance(data, dict) else data}")
 
     def echo_signed(self):
-        path = "/api/openapi/echo"
-        payload = json.dumps({"hello": "xihan", "n": 42}, separators=(",", ":"), ensure_ascii=False)
+        path = ECHO_PATH
+        payload = json.dumps({"message": "xihan", "number": 42}, separators=(",", ":"), ensure_ascii=False)
         headers, _ = build_signed_headers("POST", path, "", payload, self.access_key, self.secret_key)
         headers["Content-Type"] = "application/json"
         resp = requests.post(f"{self.base_url}{path}", data=payload.encode("utf-8"), headers=headers, timeout=15)
-        body = _safe_json(resp)
-        ok = resp.status_code == 200 and isinstance(body, dict) and body.get("ok") is True \
-            and body.get("receivedBody") == payload
-        self._check("签名 POST /api/openapi/echo → 200 且请求体完整回显", ok,
-                    f"HTTP {resp.status_code}")
+        data = _unwrap(_safe_json(resp))
+        echo = data.get("echo") if isinstance(data, dict) else None
+        ok = resp.status_code == 200 and isinstance(data, dict) and data.get("ok") is True \
+            and isinstance(echo, dict) and echo.get("message") == "xihan" and echo.get("number") == 42
+        self._check(f"签名 POST {ECHO_PATH} → 200 且请求体完整回显", ok,
+                    f"HTTP {resp.status_code}, echo={echo}")
 
     def unsigned_rejected(self):
-        path = "/api/openapi/ping"
-        resp = requests.get(f"{self.base_url}{path}", timeout=15)
+        resp = requests.get(f"{self.base_url}{PING_PATH}", timeout=15)
         self._check("未签名请求 → 401 拒绝", resp.status_code == 401, f"HTTP {resp.status_code}")
 
     def tampered_rejected(self):
-        path = "/api/openapi/ping"
-        headers, _ = build_signed_headers("GET", path, "", "", self.access_key, self.secret_key)
+        headers, _ = build_signed_headers("GET", PING_PATH, "", "", self.access_key, self.secret_key)
         headers["X-Signature"] = "deadbeef" + headers["X-Signature"][8:]
-        resp = requests.get(f"{self.base_url}{path}", headers=headers, timeout=15)
+        resp = requests.get(f"{self.base_url}{PING_PATH}", headers=headers, timeout=15)
         self._check("篡改签名 → 401 拒绝", resp.status_code == 401, f"HTTP {resp.status_code}")
 
     def expired_rejected(self):
-        path = "/api/openapi/ping"
         old_ts = str(int(time.time()) - 400)  # 超出默认 300s 容差
-        headers, _ = build_signed_headers("GET", path, "", "", self.access_key, self.secret_key, timestamp=old_ts)
-        resp = requests.get(f"{self.base_url}{path}", headers=headers, timeout=15)
+        headers, _ = build_signed_headers("GET", PING_PATH, "", "", self.access_key, self.secret_key, timestamp=old_ts)
+        resp = requests.get(f"{self.base_url}{PING_PATH}", headers=headers, timeout=15)
         self._check("过期时间戳（>300s）→ 401 拒绝", resp.status_code == 401, f"HTTP {resp.status_code}")
 
     def replay_rejected(self):
-        path = "/api/openapi/ping"
+        path = PING_PATH
         nonce = token_hex(16)
         ts = str(int(time.time()))
         headers, _ = build_signed_headers("GET", path, "", "", self.access_key, self.secret_key, timestamp=ts, nonce=nonce)

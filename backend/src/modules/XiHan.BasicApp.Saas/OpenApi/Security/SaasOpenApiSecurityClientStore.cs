@@ -20,7 +20,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Web.Api.Security.OpenApi;
 
-namespace XiHan.BasicApp.Saas.Infrastructure.Security;
+namespace XiHan.BasicApp.Saas.OpenApi.Security;
 
 /// <summary>
 /// SaaS OpenAPI 安全客户端存储（数据库凭证 + 配置客户端复合实现，覆盖框架默认配置源实现）
