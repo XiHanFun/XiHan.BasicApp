@@ -19,6 +19,7 @@ using XiHan.BasicApp.Saas.Application;
 using XiHan.BasicApp.Saas.OpenApi.Contracts;
 using XiHan.BasicApp.Saas.OpenApi.Dtos;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Web.Api.Middlewares;
 using XiHan.Framework.Web.Api.Security.OpenApi;
 
 namespace XiHan.BasicApp.Saas.OpenApi.AppServices;
