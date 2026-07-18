@@ -13,8 +13,10 @@
 #endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Hubs;
@@ -59,6 +61,28 @@ public class XiHanBasicAppSaasModule : XiHanModule
 
         // 注册 SaaS 应用层内部服务
         services.AddSaasApplicationServices();
+
+        // 修正 .NET 配置对 List<T> 的「追加而非替换」语义：框架 XiHanOpenApiSecurityOptions 的默认
+        // ProtectedPathPrefixes=["/api"] 不会被 appsettings 的值替换，而是被追加，导致最终为 ["/api", 配置值...]，
+        // 把整个第一方前端 /api/* 全纳入强制签名（登录等匿名调用直接 401「缺少安全请求头」）。
+        // 此处以 appsettings 配置值为准重建这两个路径列表（.Get 返回全新列表，无默认污染）；PostConfigure 在框架绑定之后执行，最终生效。
+        services.AddOptions<XiHan.Framework.Web.Api.Security.OpenApi.XiHanOpenApiSecurityOptions>()
+            .PostConfigure<IConfiguration>((options, configuration) =>
+            {
+                var sectionName = XiHan.Framework.Web.Api.Security.OpenApi.XiHanOpenApiSecurityOptions.SectionName;
+
+                var protectedPrefixes = configuration.GetSection($"{sectionName}:ProtectedPathPrefixes").Get<List<string>>();
+                if (protectedPrefixes is not null)
+                {
+                    options.ProtectedPathPrefixes = protectedPrefixes;
+                }
+
+                var ignoredPrefixes = configuration.GetSection($"{sectionName}:IgnoredPathPrefixes").Get<List<string>>();
+                if (ignoredPrefixes is not null)
+                {
+                    options.IgnoredPathPrefixes = ignoredPrefixes;
+                }
+            });
 
         // 注册 SaaS 领域事件处理器（ILocalEventHandler<T> 由事件总线框架自动发现并订阅）
         services.AddSaasEventHandlers();
