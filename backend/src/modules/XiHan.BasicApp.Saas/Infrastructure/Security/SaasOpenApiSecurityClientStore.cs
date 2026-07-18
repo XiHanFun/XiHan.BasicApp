@@ -18,6 +18,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Web.Api.Middlewares;
 using XiHan.Framework.Web.Api.Security.OpenApi;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Security;
@@ -75,6 +76,31 @@ public sealed class SaasOpenApiSecurityClientStore : IOpenApiSecurityClientStore
 
         // 数据库无此 AppKey：回退配置客户端（第一方固定接入方）
         return MapFromConfiguredClient(normalizedAccessKey);
+    }
+
+    /// <summary>
+    /// 凭证签名算法枚举 → 框架算法标识；未覆盖项返回 null（回退中间件全局默认）
+    /// </summary>
+    private static string? MapSignatureAlgorithm(SignatureType type)
+    {
+        return type switch
+        {
+            SignatureType.HmacSha256 => "HMACSHA256",
+            SignatureType.HmacSha512 => "HMACSHA512",
+            SignatureType.RsaSha256 => "RSASHA256",
+            SignatureType.Sm2 => "SM2",
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// 逗号/分号/竖线分隔的 IP 白名单串 → 规则集合（空串表示不限制）
+    /// </summary>
+    private static IReadOnlyCollection<string> SplitWhitelist(string? raw)
+    {
+        return string.IsNullOrWhiteSpace(raw)
+            ? []
+            : raw.Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     /// <summary>
@@ -140,30 +166,5 @@ public sealed class SaasOpenApiSecurityClientStore : IOpenApiSecurityClientStore
             IpWhitelist = [.. configured.IpWhitelist],
             IsEnabled = configured.IsEnabled
         };
-    }
-
-    /// <summary>
-    /// 凭证签名算法枚举 → 框架算法标识；未覆盖项返回 null（回退中间件全局默认）
-    /// </summary>
-    private static string? MapSignatureAlgorithm(SignatureType type)
-    {
-        return type switch
-        {
-            SignatureType.HmacSha256 => "HMACSHA256",
-            SignatureType.HmacSha512 => "HMACSHA512",
-            SignatureType.RsaSha256 => "RSASHA256",
-            SignatureType.Sm2 => "SM2",
-            _ => null
-        };
-    }
-
-    /// <summary>
-    /// 逗号/分号/竖线分隔的 IP 白名单串 → 规则集合（空串表示不限制）
-    /// </summary>
-    private static IReadOnlyCollection<string> SplitWhitelist(string? raw)
-    {
-        return string.IsNullOrWhiteSpace(raw)
-            ? []
-            : raw.Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 }
