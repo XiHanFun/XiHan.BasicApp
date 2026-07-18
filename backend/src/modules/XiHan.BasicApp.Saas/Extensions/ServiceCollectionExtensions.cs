@@ -29,7 +29,6 @@ using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
-using XiHan.BasicApp.Saas.OpenApi.Security;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;

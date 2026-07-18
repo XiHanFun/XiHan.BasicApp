@@ -27,4 +27,8 @@
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Web.Core\XiHan.BasicApp.Web.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="OpenApi\" />
+    </ItemGroup>
+
 </Project>
