@@ -39,10 +39,10 @@
   <a href="https://docs.xihanfun.com"><img alt="Docs" src="https://img.shields.io/badge/Docs-docs.xihanfun.com-2496ED?style=flat-square&logo=readthedocs&logoColor=white" /></a>
   <a href="https://qm.qq.com/q/qYp1Urv3z2"><img alt="QQ Group" src="https://img.shields.io/badge/QQ_Group-462371834-EB1923?style=flat-square&logo=tencentqq&logoColor=white" /></a>
 </p>
-
 <p>
-  <a href="https://trendshift.io/repositories/83127" target="_blank" rel="noopener noreferrer"><img alt="XiHanFun/XiHan.BasicApp | Trendshift" src="https://trendshift.io/api/badge/repositories/83127" width="250" height="55" /></a>
+  <a href="https://trendshift.io/repositories/83127?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-83127" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/83127/daily?language=C%23" alt="XiHanFun%2FXiHan.BasicApp | Trendshift" width="250" height="55"/></a>
 </p>
+
 
 <img src="./assets/login.png" alt="登录" />
 
