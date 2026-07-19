@@ -128,9 +128,13 @@ function handleOpenPreferenceDrawer() {
   layoutBridgeStore.requestOpenPreferenceDrawer()
 }
 
-function handleThemeModeChange(value: 'light' | 'dark' | 'auto') {
+function handleThemeModeChange(
+  value: 'light' | 'dark' | 'auto',
+  origin?: { clientX: number, clientY: number },
+) {
   // 三种模式统一走扩散动画：auto 由 animateThemeTransition 内部按系统主题决定方向并落地为跟随系统
-  animateThemeTransition(value)
+  // origin 为被点中的模式卡片中心，缺省才回退到视口中心
+  animateThemeTransition(value, origin)
 }
 
 function handleLayoutModeChange(value: string) {
