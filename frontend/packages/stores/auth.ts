@@ -10,9 +10,10 @@ import type {
 } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { clearLockState } from '~/composables/session-lock'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { destroyAllSignalRConnections } from '~/composables/useSignalR'
-import { HOME_PATH, LOCK_STATE_KEY, LOGIN_PATH } from '~/constants'
+import { HOME_PATH, LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { collectRouteNames, CORE_ROUTE_NAMES } from '~/router/routes/core'
@@ -214,8 +215,9 @@ export const useAuthStore = defineStore('auth', () => {
     tabbarStore.closeAll()
     sessionStorage.clear()
     // 锁屏状态在 localStorage（需跨标签页共享），sessionStorage.clear() 清不掉它；
-    // 不显式清除会导致重新登录后仍卡在锁屏。
-    localStorage.removeItem(LOCK_STATE_KEY)
+    // 不显式清除会导致重新登录后仍卡在锁屏。走 clearLockState 而非直接删 key：
+    // 它会广播锁定态变更，让本标签页的遮罩当场收起（storage 事件只通知其他标签页）。
+    clearLockState()
     resetPreferenceBackendSync()
 
     try {
