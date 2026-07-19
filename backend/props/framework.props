@@ -1,0 +1,33 @@
+﻿<Project>
+
+	<!--
+		曦寒框架（XiHan.Framework）引用方式的唯一开关。
+
+		本仓库默认走 NuGet 包：单独 clone XiHan.BasicApp 即可还原、编译、发布，无需框架源码。
+
+		若把 XiHan.Framework 与 XiHan.BasicApp 并列检出（即 XiHanFun 工作区，
+		两者同为其子模块），这里会自动探测到框架源码并改用 ProjectReference，
+		于是改框架源码可直接 F5 调试进去，不必先打包再还原。
+
+		目录布局（探测依据）：
+		    XiHanFun/
+		      ├─ XiHan.BasicApp/backend/props/   ← 本文件
+		      └─ XiHan.Framework/framework/src/  ← 探测目标
+
+		强制指定（覆盖自动探测）：
+		    dotnet build -p:UseXiHanFrameworkSource=true    仅框架源码
+		    dotnet build -p:UseXiHanFrameworkSource=false   仅 NuGet 包
+
+		注意：源码模式下 VS 要求被 ProjectReference 的工程也是解决方案成员，
+		否则设计时报 NU1105（CLI 正常）。所以工作区里请打开仓库根的
+		XiHanFun.Local.slnx（已登记全部框架工程），而不是 XiHan.BasicApp.slnx。
+	-->
+	<PropertyGroup>
+		<!-- 框架源码目录，供 ProjectReference 拼路径 -->
+		<XiHanFrameworkSrc>$(MSBuildThisFileDirectory)..\..\..\XiHan.Framework\framework\src\</XiHanFrameworkSrc>
+		<!-- 未显式指定时：框架源码在旁边就用源码，否则用 NuGet -->
+		<UseXiHanFrameworkSource Condition=" '$(UseXiHanFrameworkSource)' == '' AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Core\XiHan.Framework.Core.csproj') ">true</UseXiHanFrameworkSource>
+		<UseXiHanFrameworkSource Condition=" '$(UseXiHanFrameworkSource)' == '' ">false</UseXiHanFrameworkSource>
+	</PropertyGroup>
+
+</Project>
