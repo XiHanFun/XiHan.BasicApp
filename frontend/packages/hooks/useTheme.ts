@@ -4,6 +4,12 @@ import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { useAppStore } from '~/stores'
 
+/**
+ * 主题扩散动画起点：鼠标事件，或调用方自算的视口坐标
+ * （如 change 事件本身无坐标，由控件矩形中心换算）
+ */
+export type ThemeTransitionOrigin = MouseEvent | { clientX: number, clientY: number }
+
 /** 将 hex 颜色解析为 HSL 数值三元组 [h(0-360), s(0-100), l(0-100)] */
 function hexToHsl(hex: string): [number, number, number] {
   const r = Number.parseInt(hex.slice(1, 3), 16) / 255
@@ -289,7 +295,7 @@ export function useTheme() {
     }
   }
 
-  function animateThemeTransition(mode: 'light' | 'dark' | 'auto', e?: MouseEvent) {
+  function animateThemeTransition(mode: 'light' | 'dark' | 'auto', e?: ThemeTransitionOrigin) {
     if (appStore.themeMode === mode)
       return
 
@@ -308,15 +314,25 @@ export function useTheme() {
       return
     }
 
-    const x = e?.clientX ?? window.innerWidth / 2
-    const y = e?.clientY ?? window.innerHeight / 2
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y),
-    )
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const x = e?.clientX ?? vw / 2
+    const y = e?.clientY ?? vh / 2
+    // 覆盖全屏所需半径：取点击处到最远视口角的距离
+    const endRadius = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y))
+
+    // 一律用百分比而非 px：::view-transition-* 伪元素的几何空间不跟随浏览器页面缩放，
+    // 写 px 会被按缩放比整体压缩（圆心偏向左上），百分比相对伪元素自身盒子解析，与缩放无关。
+    const xPercent = (x / vw) * 100
+    const yPercent = (y / vh) * 100
+    // circle() 的百分比半径按规范以 √(w²+h²)/√2 为参照解析
+    const radiusPercent = (endRadius / (Math.hypot(vw, vh) / Math.SQRT2)) * 100
 
     // clipPath 起止：从点击处 0 → 全屏
-    const clipPath = [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`]
+    const clipPath = [
+      `circle(0% at ${xPercent}% ${yPercent}%)`,
+      `circle(${radiusPercent}% at ${xPercent}% ${yPercent}%)`,
+    ]
 
     // 全程抑制 CSS transition，防止截图期间元素颜色渐变产生残影
     document.documentElement.classList.add('theme-switching')

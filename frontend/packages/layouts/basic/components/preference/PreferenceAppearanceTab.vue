@@ -14,7 +14,7 @@ defineOptions({ name: 'PreferenceAppearanceTab' })
 
 const props = defineProps<PreferenceAppearanceTabProps>()
 const emit = defineEmits<{
-  themeModeChange: [value: 'light' | 'dark' | 'auto']
+  themeModeChange: [value: 'light' | 'dark' | 'auto', origin?: { clientX: number, clientY: number }]
 }>()
 
 const appStore = props.appStore
@@ -53,6 +53,25 @@ const themeColorGroups = THEME_COLOR_GROUPS
 const allPresetColors = ALL_THEME_COLORS
 
 const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
+
+/**
+ * 模式切换：change 事件不带坐标，取被点中的模式卡片矩形中心作为扩散起点，
+ * 否则 useTheme 会回退到视口中心，动画看起来「从上方扩散」而非从点击处。
+ */
+function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
+  const card = (event.currentTarget as HTMLElement | null)
+    ?.closest('.mode-item')
+    ?.querySelector('.theme-mode-card')
+  if (!card) {
+    emit('themeModeChange', value)
+    return
+  }
+  const rect = card.getBoundingClientRect()
+  emit('themeModeChange', value, {
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+  })
+}
 
 const transitionItems = computed(() => [
   { value: 'scale-up', label: t('preference.general.animation.scale_up') },
@@ -97,7 +116,7 @@ const loaderItems = computed(() =>
               :value="mode.value"
               class="sr-only"
               :checked="props.themeMode === mode.value"
-              @change="emit('themeModeChange', mode.value)"
+              @change="(e: Event) => handleModeChange(mode.value, e)"
             >
             <div class="theme-mode-card" :class="{ 'is-active': props.themeMode === mode.value }">
               <NIcon size="20">
