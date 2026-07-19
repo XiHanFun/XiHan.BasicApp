@@ -242,6 +242,27 @@ dotnet run --project src/main/XiHan.BasicApp.WebHost --launch-profile Developmen
 
 各环境端口：Development `9708`、Production `9709`。
 
+#### 曦寒框架的引用方式
+
+本仓库依赖 [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework)，默认走 **NuGet 包**——按上面的步骤克隆即可编译、运行、发布，不需要框架源码。
+
+如果你要连框架一起改（跟到框架内部断点、改完立刻生效），把两个仓库**并列检出**即可，无需任何开关：
+
+```text
+XiHanFun/
+├─ XiHan.BasicApp/      # 本仓库
+└─ XiHan.Framework/     # 框架源码
+```
+
+`backend/props/framework.props` 会探测到旁边的框架源码，自动把 `PackageReference` 换成 `ProjectReference`。想强制指定：
+
+```bash
+dotnet build -p:UseXiHanFrameworkSource=true    # 只用框架源码
+dotnet build -p:UseXiHanFrameworkSource=false   # 只用 NuGet 包
+```
+
+> 源码模式下用 Visual Studio 时，请打开工作区根目录的 `XiHanFun.Local.slnx`（已登记全部框架工程）；直接打开 `backend/XiHan.BasicApp.slnx` 会因框架工程不是解决方案成员而在设计时报 `NU1105`（命令行不受影响）。
+
 ### 前端
 
 ```bash

@@ -14,12 +14,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <!-- 框架工作流包未随 Core 透传，模块级直接引用（Local 变体对应框架源码工程引用） -->
-      <PackageReference Include="XiHan.Framework.Workflow" Version="3.7.0" />
-      <PackageReference Include="XiHan.Framework.Workflow.Abstractions" Version="3.7.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
     </ItemGroup>
 
