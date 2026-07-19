@@ -14,6 +14,7 @@
 
 using XiHan.BasicApp.Saas.Application.Caching;
 using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Hubs;
@@ -34,6 +35,7 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
 {
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly IRealtimeNotificationService<BasicAppNotificationHub> _realtimeNotificationService;
+    private readonly IUserNotificationDispatchService _notificationDispatchService;
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     private readonly ILogger<UserSessionRevokedEventHandler> _logger;
@@ -44,11 +46,13 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
     public UserSessionRevokedEventHandler(
         ISqlSugarClientResolver clientResolver,
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
+        IUserNotificationDispatchService notificationDispatchService,
         ISaasCacheInvalidator cacheInvalidator,
         ILogger<UserSessionRevokedEventHandler> logger)
     {
         _clientResolver = clientResolver ?? throw new ArgumentNullException(nameof(clientResolver));
         _realtimeNotificationService = realtimeNotificationService ?? throw new ArgumentNullException(nameof(realtimeNotificationService));
+        _notificationDispatchService = notificationDispatchService ?? throw new ArgumentNullException(nameof(notificationDispatchService));
         _cacheInvalidator = cacheInvalidator ?? throw new ArgumentNullException(nameof(cacheInvalidator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -190,41 +194,22 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
     {
         try
         {
-            var db = _clientResolver.GetCurrentClient();
-            var now = DateTimeOffset.UtcNow;
-
-            var notification = new SysNotification
-            {
-                NotificationType = NotificationType.Security,
-                Title = "会话已撤销",
-                Content = string.IsNullOrEmpty(eventData.Reason)
-                    ? "您的登录会话已被管理员撤销，请重新登录。"
+            // 走统一的站内信投递（与登录/登出通知同一条路）：
+            await _notificationDispatchService.DispatchToUserAsync(
+                eventData.UserId,
+                "会话已撤销",
+                string.IsNullOrEmpty(eventData.Reason)
+                    ? "您的登录会话已被撤销，请重新登录。"
                     : $"您的登录会话已被撤销，原因：{eventData.Reason}。请重新登录或联系平台管理员。",
-                SendUserId = eventData.OperatorUserId,
-                SendTime = now,
-                TargetType = NotificationTargetType.User,
-                TargetValue = $"[{eventData.UserId}]",
-                ContentFormat = NotificationContentFormat.Text,
-                IsPublished = true,
-                TenantId = eventData.TenantId
-            };
-
-            var notificationId = await db.Insertable(notification).ExecuteReturnBigIdentityAsync();
-
-            // 创建用户通知关联
-            var userNotification = new SysUserNotification
-            {
-                NotificationId = notificationId,
-                UserId = eventData.UserId,
-                NotificationStatus = NotificationStatus.Unread,
-                TenantId = eventData.TenantId
-            };
-
-            await db.Insertable(userNotification).ExecuteCommandAsync();
+                NotificationType.Security,
+                "auth.session.revoked",
+                eventData.SessionId,
+                icon: "lucide:shield-alert",
+                link: "/workbench/profile");
 
             _logger.LogDebug(
-                "[UserSessionRevoked] Notification sent to user {UserId}, notificationId: {NotificationId}",
-                eventData.UserId, notificationId);
+                "[UserSessionRevoked] Notification sent to user {UserId}, session {SessionId}",
+                eventData.UserId, eventData.SessionId?.ToString() ?? eventData.UserSessionId);
         }
         catch (Exception ex)
         {
