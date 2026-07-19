@@ -192,6 +192,13 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
     /// </summary>
     private async Task SendNotificationAsync(UserSessionRevokedDomainEvent eventData)
     {
+        // 自己踢自己的设备（个人中心「登出其他设备/踢下线」）不发通知
+        // 管理员撤销他人会话时 OperatorUserId != UserId，通知照发
+        if (eventData.OperatorUserId == eventData.UserId)
+        {
+            return;
+        }
+
         try
         {
             // 走统一的站内信投递（与登录/登出通知同一条路）：
