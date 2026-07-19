@@ -5,6 +5,10 @@
     <Project Path="src/framework/XiHan.BasicApp.Core/XiHan.BasicApp.Core.Local.csproj" Id="d91f1216-6bff-4c66-b806-599ff979f3cf" />
     <Project Path="src/framework/XiHan.BasicApp.Web.Core/XiHan.BasicApp.Web.Core.Local.csproj" />
   </Folder>
+  <Folder Name="/1.src/1.Framework/0.源码依赖/">
+    <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Workflow.Abstractions/XiHan.Framework.Workflow.Abstractions.csproj" />
+    <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Workflow/XiHan.Framework.Workflow.csproj" />
+  </Folder>
   <Folder Name="/1.src/2.Modules/" Id="285740d0-396d-7347-2ab3-1e26ccd72e49" />
   <Folder Name="/1.src/2.Modules/1.Saas/">
     <Project Path="src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.Local.csproj" />
