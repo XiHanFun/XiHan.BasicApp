@@ -9,9 +9,27 @@ import { LOCK_STATE_KEY } from '~/constants'
  */
 export const SESSION_LOCK_REASON_SCREEN = 'ScreenLock'
 
-/** 清除锁定 UI 标记（登出时调用） */
+/**
+ * 本标签页内的锁定态变更事件。
+ *
+ * `storage` 事件只在**其他**标签页触发，所以同一个标签页里改动 localStorage 后
+ * UI 不会自己跟着变——强制登出清锁定标记正是这种情况，不广播就会留下一个刷新也去不掉的遮罩。
+ */
+export const SESSION_LOCK_CHANGED_EVENT = 'xihan:session-lock-changed'
+
+function notifyLockChanged() {
+  window.dispatchEvent(new CustomEvent(SESSION_LOCK_CHANGED_EVENT))
+}
+
+/** 当前是否处于锁定 UI 态 */
+export function isLockedState() {
+  return localStorage.getItem(LOCK_STATE_KEY) === '1'
+}
+
+/** 清除锁定 UI 标记（登出/强制登出时调用） */
 export function clearLockState() {
   localStorage.removeItem(LOCK_STATE_KEY)
+  notifyLockChanged()
 }
 
 /**
@@ -28,5 +46,5 @@ export function markLockedFromServer(reason?: string | null) {
     return
   }
   localStorage.setItem(LOCK_STATE_KEY, '1')
-  window.dispatchEvent(new CustomEvent('xihan:session-locked'))
+  notifyLockChanged()
 }

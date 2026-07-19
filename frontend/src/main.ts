@@ -1,6 +1,6 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { markLockedFromServer } from '~/composables'
+import { clearLockState, markLockedFromServer } from '~/composables'
 import { setupIconifyOffline } from '~/iconify'
 import { setupI18n } from '~/locales'
 import { bindLockHook, bindLogoutHook, bindRouter } from '~/request'
@@ -32,6 +32,9 @@ import './styles/index.css'
   bindLogoutHook(() => {
     useAccessStore().$reset()
     useUserStore().$reset()
+    // 强制登出（401：会话被其它设备登出、令牌失效）时锁屏标记必须一起清掉。
+    // 它在 localStorage 里，不清就会在登录页上留下一层刷新也去不掉的遮罩。
+    clearLockState()
   })
   // 任何请求被服务端以 423 拒绝 → 会话已锁定，拉起对应的解锁引导（而不是登出：用户身份仍有效）。
   // 这条钩子让"新开标签页 / 刷新页面"也会立刻进入锁定态——它们的第一个接口调用就会撞上 423。
