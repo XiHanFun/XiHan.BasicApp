@@ -32,6 +32,9 @@ import type { PageSchema, SchemaActionPayload } from '~/components'
 import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
 import {
   NButton,
+{{~ if HasDetailTables ~}}
+  NDataTable,
+{{~ end ~}}
   NForm,
   NFormItem,
   NInput,
@@ -51,8 +54,14 @@ import {
 import { computed, ref } from 'vue'
 import { createPageRequest } from '@/api'
 import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
+{{~ for detail in DetailTables ~}}
+import { {{ detail.ClassNameCamel }}ManagementApi } from '@/api/modules/{{ detail.ModuleName | string.downcase }}/{{ detail.ClassNameKebab }}'
+{{~ end ~}}
 import { SchemaPage } from '~/components'
 import { actions, createDefaultForm, fields, pageMeta } from './{{ ClassNameKebab }}.schema'
+{{~ if HasDetailTables ~}}
+import { detailTableColumns } from './{{ ClassNameKebab }}.schema'
+{{~ end ~}}
 
 defineOptions({ name: '{{ ClassName }}Page' })
 
@@ -62,6 +71,45 @@ const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 function reloadList() {
   void schemaPageRef.value?.reload()
 }
+{{~ if HasDetailTables ~}}
+
+/** 明细区数据：按主表行主键缓存，展开时按需加载，避免列表页一次性拉全部子表 */
+const detailRows = ref<Record<string, Record<string, Record<string, unknown>[]>>>({})
+const detailLoading = ref<Record<string, boolean>>({})
+
+async function loadDetails(masterId: string) {
+  if (!masterId || detailRows.value[masterId] || detailLoading.value[masterId]) {
+    return
+  }
+
+  detailLoading.value = { ...detailLoading.value, [masterId]: true }
+  try {
+    const [
+{{~ for detail in DetailTables ~}}
+      {{ detail.ClassNameCamel }}Rows,
+{{~ end ~}}
+    ] = await Promise.all([
+{{~ for detail in DetailTables ~}}
+      {{ detail.ClassNameCamel }}ManagementApi.byMaster(masterId),
+{{~ end ~}}
+    ])
+    detailRows.value = {
+      ...detailRows.value,
+      [masterId]: {
+{{~ for detail in DetailTables ~}}
+        {{ detail.ClassNameCamel }}: ({{ detail.ClassNameCamel }}Rows ?? []) as unknown as Record<string, unknown>[],
+{{~ end ~}}
+      },
+    }
+  }
+  catch {
+    message.error('加载明细失败')
+  }
+  finally {
+    detailLoading.value = { ...detailLoading.value, [masterId]: false }
+  }
+}
+{{~ end ~}}
 
 const schema: PageSchema = {
   ...pageMeta,
@@ -176,6 +224,26 @@ async function handleSubmit() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+{{~ if HasDetailTables ~}}
+    <template #expand="{ row }">
+      <div class="xh-detail-area" @vue:mounted="loadDetails(String((row as { basicId: string }).basicId))">
+{{~ for detail in DetailTables ~}}
+        <div class="xh-detail-area__block">
+          <div class="xh-detail-area__title">
+            {{ if detail.TableComment }}{{ detail.TableComment }}{{ else }}{{ detail.ClassName }}{{ end }}
+          </div>
+          <NDataTable
+            :bordered="false"
+            :columns="detailTableColumns.{{ detail.ClassNameCamel }}"
+            :data="detailRows[String((row as { basicId: string }).basicId)]?.{{ detail.ClassNameCamel }} ?? []"
+            :loading="detailLoading[String((row as { basicId: string }).basicId)] ?? false"
+            size="small"
+          />
+        </div>
+{{~ end ~}}
+      </div>
+    </template>
+{{~ end ~}}
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -219,3 +287,21 @@ async function handleSubmit() {
     </NModal>
   </SchemaPage>
 </template>
+{{~ if HasDetailTables ~}}
+
+<style scoped>
+.xh-detail-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.xh-detail-area__title {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+</style>
+{{~ end ~}}

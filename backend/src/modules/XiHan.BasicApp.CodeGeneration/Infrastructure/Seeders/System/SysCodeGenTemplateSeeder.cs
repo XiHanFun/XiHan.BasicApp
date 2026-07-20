@@ -90,6 +90,12 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
         new("frontend.schema.manual", "前端页面Schema（单表·自定义）", FrontendCrudGroup, "Frontend/Schema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Single),
         new("frontend.page", "前端列表页面（单表）", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Single),
 
+        // 主子表沿用单表的页面结构（明细区由模板内 HasDetailTables 分支渲染，与本表自身类型无关），
+        // 故复用同一批资源文件，仅按类型另行登记一份
+        new("frontend.schema.masterdetail", "前端页面Schema（主子表）", FrontendCrudGroup, "Frontend/Schema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.MasterDetail),
+        new("frontend.schema.masterdetail.manual", "前端页面Schema（主子表·自定义）", FrontendCrudGroup, "Frontend/Schema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.MasterDetail),
+        new("frontend.page.masterdetail", "前端列表页面（主子表）", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.MasterDetail),
+
         new("frontend.schema.tree", "前端页面Schema（树表）", FrontendCrudGroup, "Frontend/TreeSchema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.Tree),
         new("frontend.schema.tree.manual", "前端页面Schema（树表·自定义）", FrontendCrudGroup, "Frontend/TreeSchema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Tree),
         new("frontend.page.tree", "前端列表页面（树表）", FrontendCrudGroup, "Frontend/TreePage.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Tree),

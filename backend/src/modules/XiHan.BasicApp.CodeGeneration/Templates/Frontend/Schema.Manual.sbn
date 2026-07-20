@@ -21,3 +21,7 @@ export const fields = baseFields
 export const actions = baseActions
 
 export const createDefaultForm = createDefaultFormModel
+{{~ if HasDetailTables ~}}
+
+export { detailTableColumns } from './{{ ClassNameKebab }}.schema.generated'
+{{~ end ~}}
