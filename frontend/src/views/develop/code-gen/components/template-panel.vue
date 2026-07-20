@@ -23,6 +23,8 @@ import {
 import { computed, h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  ARTIFACT_WRITE_MODE_OPTIONS,
+  ArtifactWriteMode,
   codeGenTemplateApi,
   createPageRequest,
   EnableStatus,
@@ -47,6 +49,7 @@ interface TemplateFormModel {
   templateGroup?: string | null
   templateType: TemplateType
   templateEngine: TemplateEngine
+  writeMode: ArtifactWriteMode
   templateContent?: string | null
   fileNameExpression?: string | null
   filePathExpression?: string | null
@@ -254,6 +257,7 @@ function createDefaultForm(): TemplateFormModel {
     templateGroup: null,
     templateType: TemplateTypeEnum.Single,
     templateEngine: TemplateEngineEnum.Scriban,
+    writeMode: ArtifactWriteMode.AlwaysOverwrite,
     templateContent: null,
     fileNameExpression: null,
     filePathExpression: null,
@@ -287,6 +291,7 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
       templateGroup: detail.templateGroup ?? null,
       templateType: detail.templateType,
       templateEngine: detail.templateEngine,
+      writeMode: detail.writeMode,
       templateContent: detail.templateContent ?? null,
       fileNameExpression: detail.fileNameExpression ?? null,
       filePathExpression: detail.filePathExpression ?? null,
@@ -355,6 +360,7 @@ async function handleSubmit() {
         templateGroup: form.value.templateGroup,
         templateType: form.value.templateType,
         templateEngine: form.value.templateEngine,
+        writeMode: form.value.writeMode,
         templateContent: form.value.templateContent,
         fileNameExpression: form.value.fileNameExpression,
         filePathExpression: form.value.filePathExpression,
@@ -380,6 +386,7 @@ async function handleSubmit() {
         templateGroup: form.value.templateGroup,
         templateType: form.value.templateType,
         templateEngine: form.value.templateEngine,
+        writeMode: form.value.writeMode,
         templateContent: form.value.templateContent,
         fileNameExpression: form.value.fileNameExpression,
         filePathExpression: form.value.filePathExpression,
@@ -431,6 +438,9 @@ async function handleSubmit() {
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_template_engine')" path="templateEngine">
           <NSelect v-model:value="form.templateEngine" :options="TEMPLATE_ENGINE_OPTIONS" />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.template.form_write_mode')" path="writeMode">
+          <NSelect v-model:value="form.writeMode" :options="ARTIFACT_WRITE_MODE_OPTIONS" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_file_extension')" path="fileExtension">
           <NInput v-model:value="form.fileExtension" clearable :placeholder="t('develop.code_gen.template.form_file_extension_placeholder')" />

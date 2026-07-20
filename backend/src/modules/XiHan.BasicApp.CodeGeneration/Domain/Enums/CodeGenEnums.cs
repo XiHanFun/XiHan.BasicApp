@@ -333,3 +333,26 @@ public enum DictSelectorType
     [Description("常量数组")]
     ConstSelector = 2
 }
+
+/// <summary>
+/// 产物写入策略（机器拥有 vs 人类拥有）
+/// </summary>
+/// <remarks>
+/// 代码生成器的产物分两类：机器文件由表结构完全推导、重新生成时总是覆盖；
+/// 人类文件是开发者自定义代码的落脚点，仅在首次生成时创建骨架，此后永不触碰。
+/// 二者以 partial（数据类）或 Generation Gap 基类/派生类（行为类）在语言层面拼接。
+/// </remarks>
+public enum ArtifactWriteMode
+{
+    /// <summary>
+    /// 总是覆盖（机器拥有，禁止手工编辑）
+    /// </summary>
+    [Description("总是覆盖")]
+    AlwaysOverwrite = 0,
+
+    /// <summary>
+    /// 仅首次创建（人类拥有，重新生成时跳过）
+    /// </summary>
+    [Description("仅首次创建")]
+    WriteOnce = 1
+}

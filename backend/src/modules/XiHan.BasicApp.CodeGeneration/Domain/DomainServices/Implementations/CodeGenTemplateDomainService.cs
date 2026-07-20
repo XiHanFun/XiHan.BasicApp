@@ -58,6 +58,7 @@ public sealed class CodeGenTemplateDomainService
             TemplateGroup = Optional(command.TemplateGroup, 100, nameof(command.TemplateGroup), "模板分组不能超过 100 个字符。"),
             TemplateType = command.TemplateType,
             TemplateEngine = command.TemplateEngine,
+            WriteMode = command.WriteMode,
             TemplateContent = NormalizeNullable(command.TemplateContent),
             FileNameExpression = Optional(command.FileNameExpression, 500, nameof(command.FileNameExpression), "生成文件名表达式不能超过 500 个字符。"),
             FilePathExpression = Optional(command.FilePathExpression, 500, nameof(command.FilePathExpression), "生成文件路径表达式不能超过 500 个字符。"),
@@ -91,6 +92,7 @@ public sealed class CodeGenTemplateDomainService
         template.TemplateGroup = Optional(command.TemplateGroup, 100, nameof(command.TemplateGroup), "模板分组不能超过 100 个字符。");
         template.TemplateType = command.TemplateType;
         template.TemplateEngine = command.TemplateEngine;
+        template.WriteMode = command.WriteMode;
         template.TemplateContent = NormalizeNullable(command.TemplateContent);
         template.FileNameExpression = Optional(command.FileNameExpression, 500, nameof(command.FileNameExpression), "生成文件名表达式不能超过 500 个字符。");
         template.FilePathExpression = Optional(command.FilePathExpression, 500, nameof(command.FilePathExpression), "生成文件路径表达式不能超过 500 个字符。");

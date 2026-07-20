@@ -13,6 +13,13 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
+<!--
+  {{ TableComment }}管理页
+
+  本文件仅在首次生成时创建，重新生成时不会被覆盖——页面结构与表单标记可以放心改。
+  列定义/表单默认值来自 ./{{ ClassNameKebab }}.schema.ts（它在生成的 base* 之上做 transform，
+  会随表结构变化自动更新）；需要增删列或改渲染，改那个文件而不是这里。
+-->
 <script setup lang="ts">
 import type { PageResult } from '@/api'
 import type {
@@ -21,7 +28,8 @@ import type {
   {{ ClassName }}ListItemDto,
   {{ ClassName }}UpdateDto,
 } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PageSchema, SchemaActionPayload } from '~/components'
+import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
 import {
   NButton,
   NForm,
@@ -44,21 +52,9 @@ import { computed, ref } from 'vue'
 import { createPageRequest } from '@/api'
 import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
 import { SchemaPage } from '~/components'
+import { actions, createDefaultForm, fields, pageMeta } from './{{ ClassNameKebab }}.schema'
 
 defineOptions({ name: '{{ ClassName }}Page' })
-
-interface {{ ClassName }}FormModel {
-  basicId?: string
-{{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
-{{~ else ~}}
-  {{ col.TsProperty }}: {{ col.TsType }}
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
-}
 
 const message = useMessage()
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -67,23 +63,10 @@ function reloadList() {
   void schemaPageRef.value?.reload()
 }
 
-const fields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment }}', width: 250, order: 0 },
-{{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
-{{~ end ~}}
-{{~ end ~}}
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 99 },
-]
-
 const schema: PageSchema = {
-  pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
-  pageName: '{{ TableComment }}',
-  batchRemovable: true,
-  rowKey: 'basicId',
-  scrollX: 1200,
+  ...pageMeta,
   fields,
+  actions,
   resource: {
     page: (params) => {
       const { keyword{{ for col in Columns }}{{ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") }}, {{ col.TsProperty }}{{ end }}{{ end }} } = params.filters
@@ -99,11 +82,6 @@ const schema: PageSchema = {
     },
     remove: id => {{ ClassNameCamel }}ManagementApi.delete(id),
   },
-  actions: [
-    { key: 'create', title: '新增{{ TableComment }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: '编辑', scope: 'row' },
-    { key: 'delete', title: '删除', scope: 'row' },
-  ],
 }
 
 function onAction(payload: SchemaActionPayload) {
@@ -129,24 +107,6 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment }}' : '新增{{ TableComment }}'))
-
-function createDefaultForm(): {{ ClassName }}FormModel {
-  return {
-{{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
-{{~ if col.TsType == "number" ~}}
-    {{ col.TsProperty }}: 0,
-{{~ else if col.TsType == "boolean" ~}}
-    {{ col.TsProperty }}: false,
-{{~ else if col.IsNullable || !col.IsRequired ~}}
-    {{ col.TsProperty }}: null,
-{{~ else ~}}
-    {{ col.TsProperty }}: '',
-{{~ end ~}}
-{{~ end ~}}
-{{~ end ~}}
-  }
-}
 
 function handleAdd() {
   form.value = createDefaultForm()

@@ -255,8 +255,11 @@ public sealed class CodeGenerationAppService(
             RelativePath = artifact.RelativePath,
             FileName = artifact.FileName,
             Content = artifact.Content,
-            TemplateCode = artifact.TemplateCode
+            TemplateCode = artifact.TemplateCode,
+            WriteMode = artifact.WriteMode
         })],
+        WrittenCount = result.WrittenCount,
+        SkippedPaths = result.SkippedPaths,
         PackageBase64 = result.Package is null ? null : Convert.ToBase64String(result.Package)
     };
 

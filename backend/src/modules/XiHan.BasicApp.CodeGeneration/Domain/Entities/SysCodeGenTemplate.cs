@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
 /// <summary>
 /// 系统代码生成模板实体
-/// 代码生成引擎使用的模板文件元信息（Razor/Liquid 等），承载模板分组、目标文件名规则、输出路径
+/// 代码生成引擎使用的模板元信息（Scriban），承载模板分组、写入策略、目标文件名规则、输出路径
 /// </summary>
 /// <remarks>
 /// 关联：
@@ -43,9 +43,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// - Status: Yes/No
 ///
 /// 场景：
-/// - 全栈代码生成（Entity/DTO/Service/Controller/Vue Page）
+/// - 全栈代码生成（Entity/DTO/Service/Vue Page）
 /// - 多风格模板（CRUD 简化版 / 完整版 / 只读展示版）
-/// - 模板版本化管理
+/// - 机器/人类产物分离（WriteMode：机器文件总是覆盖，人类文件仅首次创建）
 /// </remarks>
 [SugarTable(TableName = "Sys_CodeGen_Template", TableDescription = "系统代码生成模板表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -91,6 +91,13 @@ public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "Template_Engine", ColumnDescription = "模板引擎")]
     public virtual TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
+
+    /// <summary>
+    /// 写入策略
+    /// 机器文件（AlwaysOverwrite）重新生成时总是覆盖；人类文件（WriteOnce）仅在目标不存在时创建，此后永不触碰
+    /// </summary>
+    [SugarColumn(ColumnName = "Write_Mode", ColumnDescription = "写入策略")]
+    public virtual ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
 
     /// <summary>
     /// 模板内容

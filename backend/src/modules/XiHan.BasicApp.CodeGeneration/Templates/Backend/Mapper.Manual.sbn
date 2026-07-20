@@ -1,0 +1,32 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}ApplicationMapper
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+namespace {{ Namespace }}.Application.Mappers;
+
+/// <summary>
+/// {{ TableComment }}应用层映射器（自定义部分）
+/// </summary>
+/// <remarks>
+/// 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+/// 基础映射在 {{ ClassName }}ApplicationMapper.Generated.cs，两者经 partial 合并。
+///
+/// 可实现以下扩展点（<c>static partial void</c>，不实现则由编译器整体移除，零运行时成本）：
+/// <code>
+/// static partial void OnEntityCreated({{ ClassName }}CreateDto input, {{ ClassName }} entity) { }
+/// static partial void OnUpdateApplied({{ ClassName }} entity, {{ ClassName }}UpdateDto input) { }
+/// static partial void OnListItemMapped({{ ClassName }} entity, {{ ClassName }}ListItemDto dto) { }
+/// static partial void OnDetailMapped({{ ClassName }} entity, {{ ClassName }}DetailDto dto) { }
+/// </code>
+/// 实现时需按需补上 <c>{{ Namespace }}.Application.Dtos</c> 与 <c>{{ Namespace }}.Domain.Entities</c> 的 using。
+/// </remarks>
+public static partial class {{ ClassName }}ApplicationMapper
+{
+}

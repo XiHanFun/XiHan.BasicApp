@@ -1,0 +1,25 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+namespace {{ Namespace }}.Domain.Entities;
+
+/// <summary>
+/// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}实体（自定义部分）
+/// </summary>
+/// <remarks>
+/// 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+/// 表结构推导出的属性在 {{ ClassName }}.Generated.cs，两者经 partial 合并为同一个类。
+///
+/// 常见用途：导航属性（[SugarColumn(IsIgnore = true)] + [Navigate]）、计算属性、领域方法。
+/// </remarks>
+public partial class {{ ClassName }}
+{
+}

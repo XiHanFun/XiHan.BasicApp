@@ -78,6 +78,9 @@ public sealed class CodeGenArtifactDto
     public string FileName { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public string? TemplateCode { get; set; }
+
+    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建</summary>
+    public ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
 }
 
 /// <summary>
@@ -92,6 +95,12 @@ public sealed class CodeGenResultDto
 
     /// <summary>产物清单（预览 / 文件树展示用）</summary>
     public IReadOnlyList<CodeGenArtifactDto> Artifacts { get; set; } = [];
+
+    /// <summary>实际写入文件数（GenType.CustomPath 时填充）</summary>
+    public int WrittenCount { get; set; }
+
+    /// <summary>被跳过的人类文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖以保护自定义代码）</summary>
+    public IReadOnlyList<string> SkippedPaths { get; set; } = [];
 
     /// <summary>Zip 包体（Base64）；GenType.Zip 时填充。TODO(S3)：改为下载令牌 + 流式下载端点。</summary>
     public string? PackageBase64 { get; set; }

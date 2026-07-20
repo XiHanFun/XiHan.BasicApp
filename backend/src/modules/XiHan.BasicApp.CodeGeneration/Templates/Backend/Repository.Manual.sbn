@@ -1,0 +1,27 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}Repository
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+namespace {{ Namespace }}.Infrastructure.Repositories;
+
+/// <summary>
+/// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}仓储实现（自定义部分）
+/// </summary>
+/// <remarks>
+/// 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+/// 基础实现在 {{ ClassName }}Repository.Generated.cs（继承框架仓储基类），两者经 partial 合并。
+///
+/// 在此实现 I{{ ClassName }}Repository.cs 中声明的自定义查询。
+/// 注意：主构造函数已在 Generated 侧声明，本文件不要重复声明。
+/// 禁止显式调用 .EnableQueryFilter()：框架工厂已自动挂载，重复挂载会导致同名参数碰撞。
+/// </remarks>
+public partial class {{ ClassName }}Repository
+{
+}

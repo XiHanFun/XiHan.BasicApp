@@ -1,6 +1,6 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
-import type { TemplateEngine, TemplateType } from './codegen.enums'
+import type { ArtifactWriteMode, TemplateEngine, TemplateType } from './codegen.enums'
 
 export { EnableStatus } from '../shared'
 
@@ -10,6 +10,7 @@ export interface CodeGenTemplatePageQueryDto extends PageRequest {
   templateGroup?: string | null
   templateType?: TemplateType | null
   templateEngine?: TemplateEngine | null
+  writeMode?: ArtifactWriteMode | null
   isBuiltIn?: boolean | null
   isEnabled?: boolean | null
   status?: EnableStatus | null
@@ -23,6 +24,8 @@ export interface CodeGenTemplateListItemDto extends BasicDto {
   templateGroup?: string | null
   templateType: TemplateType
   templateEngine: TemplateEngine
+  /** 写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建 */
+  writeMode: ArtifactWriteMode
   fileExtension?: string | null
   isBuiltIn: boolean
   isEnabled: boolean
@@ -53,6 +56,8 @@ export interface CodeGenTemplateCreateDto {
   templateGroup?: string | null
   templateType: TemplateType
   templateEngine: TemplateEngine
+  /** 写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建 */
+  writeMode: ArtifactWriteMode
   templateContent?: string | null
   fileNameExpression?: string | null
   filePathExpression?: string | null
@@ -69,6 +74,8 @@ export interface CodeGenTemplateUpdateDto extends BasicDto {
   templateGroup?: string | null
   templateType: TemplateType
   templateEngine: TemplateEngine
+  /** 写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建 */
+  writeMode: ArtifactWriteMode
   templateContent?: string | null
   fileNameExpression?: string | null
   filePathExpression?: string | null

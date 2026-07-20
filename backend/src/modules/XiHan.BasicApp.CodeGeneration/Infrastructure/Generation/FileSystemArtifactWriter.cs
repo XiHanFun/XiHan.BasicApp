@@ -14,6 +14,7 @@
 
 using System.IO;
 using Microsoft.Extensions.Options;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
@@ -21,6 +22,11 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// <summary>
 /// 文件系统落盘写入器（fail-closed：默认禁用 + 白名单根目录 + 绝对路径/穿越拒绝）
 /// </summary>
+/// <remarks>
+/// 写入策略：<see cref="ArtifactWriteMode.AlwaysOverwrite"/> 的机器文件直接覆盖；
+/// <see cref="ArtifactWriteMode.WriteOnce"/> 的人类文件若已存在则跳过并记入 SkippedPaths，
+/// 保证开发者写在里面的自定义代码不会被重新生成冲掉。
+/// </remarks>
 public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> options) : IGeneratedArtifactWriter
 {
     private readonly CodeGenerationOptions _options = options.Value;
@@ -61,6 +67,7 @@ public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> opt
         }
 
         var written = 0;
+        var skipped = new List<string>();
         foreach (var artifact in artifacts)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -78,6 +85,13 @@ public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> opt
                 return GeneratedArtifactWriteResult.Fail($"产物路径越界：{artifact.RelativePath}");
             }
 
+            // 人类文件已存在：跳过，保护开发者写入的自定义代码
+            if (artifact.WriteMode == ArtifactWriteMode.WriteOnce && File.Exists(fullPath))
+            {
+                skipped.Add(relative);
+                continue;
+            }
+
             var directory = Path.GetDirectoryName(fullPath);
             if (!string.IsNullOrEmpty(directory))
             {
@@ -88,7 +102,7 @@ public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> opt
             written++;
         }
 
-        return GeneratedArtifactWriteResult.Ok(written);
+        return GeneratedArtifactWriteResult.Ok(written, skipped.Count, skipped);
     }
 
     /// <summary>
