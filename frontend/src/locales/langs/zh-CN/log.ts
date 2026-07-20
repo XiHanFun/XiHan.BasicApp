@@ -104,6 +104,8 @@ export default {
     result_password_reset: '密码重置',
     result_mfa_bound: '绑定MFA',
     result_mfa_unbound: '解绑MFA',
+    result_tenant_switched: '切换租户',
+    result_session_revoked: '会话撤销',
     result_failed: '其他失败',
     login_ip: '登录 IP',
     login_ip_placeholder: '搜索登录 IP',

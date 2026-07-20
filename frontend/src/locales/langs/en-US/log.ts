@@ -104,6 +104,8 @@ export default {
     result_password_reset: 'Password Reset',
     result_mfa_bound: 'MFA Bound',
     result_mfa_unbound: 'MFA Unbound',
+    result_tenant_switched: 'Tenant Switched',
+    result_session_revoked: 'Session Revoked',
     result_failed: 'Other Failure',
     login_ip: 'Login IP',
     login_ip_placeholder: 'Search login IP',

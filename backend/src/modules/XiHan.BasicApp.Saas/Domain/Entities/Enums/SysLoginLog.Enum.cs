@@ -100,6 +100,12 @@ public enum LoginResult
     TenantSwitched = 16,
 
     /// <summary>
+    /// 会话撤销（认证审计事件：本人在个人中心撤销，或管理员踢下线，具体原因见消息）
+    /// </summary>
+    [Description("会话撤销")]
+    SessionRevoked = 17,
+
+    /// <summary>
     /// 失败 - 其他错误
     /// </summary>
     [Description("其他失败")]

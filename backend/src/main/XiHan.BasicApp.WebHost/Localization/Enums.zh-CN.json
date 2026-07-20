@@ -174,6 +174,8 @@
     "LoginResult.PasswordReset": "密码重置",
     "LoginResult.MfaBound": "绑定MFA",
     "LoginResult.MfaUnbound": "解绑MFA",
+    "LoginResult.TenantSwitched": "切换租户",
+    "LoginResult.SessionRevoked": "会话撤销",
     "LoginResult.Failed": "其他失败",
     "MenuType.Directory": "目录",
     "MenuType.Menu": "菜单",

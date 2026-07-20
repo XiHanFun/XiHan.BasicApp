@@ -36,6 +36,8 @@ const loginResultOptions = computed(() => [
   { label: t('log.login.result_password_reset'), value: LoginResult.PasswordReset },
   { label: t('log.login.result_mfa_bound'), value: LoginResult.MfaBound },
   { label: t('log.login.result_mfa_unbound'), value: LoginResult.MfaUnbound },
+  { label: t('log.login.result_tenant_switched'), value: LoginResult.TenantSwitched },
+  { label: t('log.login.result_session_revoked'), value: LoginResult.SessionRevoked },
   { label: t('log.login.result_failed'), value: LoginResult.Failed },
 ])
 
@@ -48,7 +50,8 @@ function loginResultType(result: LoginResult) {
   switch (result) {
     case LoginResult.Success: return 'success'
     case LoginResult.Logout:
-    case LoginResult.TokenRefreshed: return 'info'
+    case LoginResult.TokenRefreshed:
+    case LoginResult.TenantSwitched: return 'info'
     case LoginResult.InvalidCredentials:
     case LoginResult.TwoFactorFailed:
     case LoginResult.Failed: return 'error'
@@ -58,7 +61,8 @@ function loginResultType(result: LoginResult) {
     case LoginResult.PasswordChanged:
     case LoginResult.PasswordReset:
     case LoginResult.MfaBound:
-    case LoginResult.MfaUnbound: return 'warning'
+    case LoginResult.MfaUnbound:
+    case LoginResult.SessionRevoked: return 'warning'
     default: return 'default'
   }
 }

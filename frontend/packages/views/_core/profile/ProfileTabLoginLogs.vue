@@ -35,13 +35,15 @@ const loginResultLabel = computed<Record<LoginAuditResult, string>>(() => ({
   PasswordReset: t('component.profile.login_logs.result_password_reset'),
   MfaBound: t('component.profile.login_logs.result_mfa_bound'),
   MfaUnbound: t('component.profile.login_logs.result_mfa_unbound'),
+  TenantSwitched: t('component.profile.login_logs.result_tenant_switched'),
+  SessionRevoked: t('component.profile.login_logs.result_session_revoked'),
   Failed: t('component.profile.login_logs.result_failed'),
 }))
 
 type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 const ERROR_RESULTS: LoginAuditResult[] = ['InvalidCredentials', 'TwoFactorFailed', 'Failed']
-const NEUTRAL_RESULTS: LoginAuditResult[] = ['Logout', 'TokenRefreshed']
+const NEUTRAL_RESULTS: LoginAuditResult[] = ['Logout', 'TokenRefreshed', 'TenantSwitched']
 
 function resultTagType(result: LoginAuditResult): TagType {
   if (result === 'Success')
@@ -60,6 +62,10 @@ function resultIcon(result: LoginAuditResult) {
     return 'lucide:log-out'
   if (result === 'TokenRefreshed')
     return 'lucide:refresh-cw'
+  if (result === 'TenantSwitched')
+    return 'lucide:building-2'
+  if (result === 'SessionRevoked')
+    return 'lucide:shield-off'
   if (result === 'PasswordChanged' || result === 'PasswordReset' || result === 'MfaBound' || result === 'MfaUnbound')
     return 'lucide:key-round'
   return 'lucide:shield-alert'
