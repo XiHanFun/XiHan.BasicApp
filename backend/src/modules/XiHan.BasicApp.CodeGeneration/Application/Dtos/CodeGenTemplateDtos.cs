@@ -29,7 +29,8 @@ public sealed class CodeGenTemplateCreateDto
     public string TemplateName { get; set; } = string.Empty;
     public string? TemplateDescription { get; set; }
     public string? TemplateGroup { get; set; }
-    public TemplateType TemplateType { get; set; } = TemplateType.Single;
+    /// <summary>模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</summary>
+    public TemplateType? TemplateType { get; set; }
 
     /// <summary>模板引擎（决策 D1：当前仅 Scriban 可渲染）</summary>
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
@@ -54,7 +55,8 @@ public sealed class CodeGenTemplateUpdateDto : BasicAppUDto
     public string TemplateName { get; set; } = string.Empty;
     public string? TemplateDescription { get; set; }
     public string? TemplateGroup { get; set; }
-    public TemplateType TemplateType { get; set; } = TemplateType.Single;
+    /// <summary>模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</summary>
+    public TemplateType? TemplateType { get; set; }
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
 
     /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建，用于承载手写代码</summary>
@@ -102,7 +104,9 @@ public class CodeGenTemplateListItemDto : BasicAppDto
     public string TemplateName { get; set; } = string.Empty;
     public string? TemplateDescription { get; set; }
     public string? TemplateGroup { get; set; }
-    public TemplateType TemplateType { get; set; }
+    /// <summary>模板类型；为空表示通用模板</summary>
+    public TemplateType? TemplateType { get; set; }
+
     public TemplateEngine TemplateEngine { get; set; }
 
     /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建</summary>

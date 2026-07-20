@@ -96,6 +96,65 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         return entity is null ? null : {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
     }
 
+{{~ if TemplateType == "Tree" ~}}
+    /// <inheritdoc />
+    /// <remarks>
+    /// 取全量后在内存组树：树表数据量小（菜单/组织/分类等），且避免递归查询在各数据库方言上的差异。
+    /// 本方法不应用查询过滤——按关键字裁剪会截断父链导致节点丢失；需要搜索请用分页接口。
+    /// </remarks>
+    public virtual async Task<IReadOnlyList<{{ ClassName }}TreeNodeDto>> Get{{ ClassName }}TreeAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entities = await _repository.GetAllAsync(cancellationToken);
+        var nodes = new Dictionary<long, {{ ClassName }}TreeNodeDto>(entities.Count);
+        foreach (var entity in entities)
+        {
+            nodes[entity.BasicId] = {{ ClassName }}ApplicationMapper.ToTreeNodeDto(entity);
+        }
+
+        var roots = new List<{{ ClassName }}TreeNodeDto>();
+        foreach (var entity in entities)
+        {
+            var node = nodes[entity.BasicId];
+{{~ if TreeParentColumn.CSharpType | string.contains "?" ~}}
+            if (entity.{{ TreeParentColumn.CSharpProperty }} is { } parentId
+                && nodes.TryGetValue(parentId, out var parent)
+                && !ReferenceEquals(parent, node))
+{{~ else ~}}
+            if (nodes.TryGetValue(entity.{{ TreeParentColumn.CSharpProperty }}, out var parent)
+                && !ReferenceEquals(parent, node))
+{{~ end ~}}
+            {
+                parent.Children.Add(node);
+            }
+            else
+            {
+                // 父级不存在或指向自身：按根节点处理，避免脏数据导致节点整体丢失
+                roots.Add(node);
+            }
+        }
+
+        return roots;
+    }
+
+{{~ end ~}}
+{{~ if MasterTable ~}}
+    /// <inheritdoc />
+    public virtual async Task<IReadOnlyList<{{ ClassName }}ListItemDto>> Get{{ ClassName }}ByMasterAsync(long masterId, CancellationToken cancellationToken = default)
+    {
+        if (masterId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(masterId), "主表主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entities = await _repository.GetListAsync(entity => entity.{{ MasterTable.ForeignKeyProperty }} == masterId, cancellationToken);
+        return [.. entities.Select({{ ClassName }}ApplicationMapper.ToListItemDto)];
+    }
+
+{{~ end ~}}
     /// <summary>
     /// 构建{{ TableComment }}分页请求
     /// </summary>

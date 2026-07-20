@@ -111,7 +111,11 @@ public sealed class CodeGenerationEngine(
         }
 
         var columns = await _columnRepository.GetByTableIdAsync(table.BasicId, cancellationToken);
-        var context = BuildContext(table, columns);
+        var (context, contextError) = await BuildContextAsync(table, columns, cancellationToken);
+        if (context is null)
+        {
+            return GenerationResult.Fail(contextError ?? "构建生成上下文失败。");
+        }
 
         // 无显式模板编码时，按表的模板类型（单表/树表/主子表）选取通用模板集；
         // 模板不按业务模块过滤（CRUD 模板对所有模块通用，此前误用 ModuleName 作分组导致匹配为空）
@@ -147,11 +151,19 @@ public sealed class CodeGenerationEngine(
     /// <summary>
     /// 由表配置 + 列配置构建模板上下文
     /// </summary>
-    private CodeGenerationContext BuildContext(SysCodeGenTable table, IReadOnlyList<SysCodeGenTableColumn> columns)
+    /// <remarks>
+    /// 树表/主子表的结构字段在此解析为强类型的列模型与关联表引用；
+    /// 解析不出来时返回错误而非静默降级——否则模板会渲染出引用了不存在属性的代码，
+    /// 问题要到编译期才暴露。
+    /// </remarks>
+    private async Task<(CodeGenerationContext? Context, string? Error)> BuildContextAsync(
+        SysCodeGenTable table,
+        IReadOnlyList<SysCodeGenTableColumn> columns,
+        CancellationToken cancellationToken)
     {
         var columnSchemas = columns.Select(column => MapColumn(table, column)).ToList();
 
-        return new CodeGenerationContext
+        var context = new CodeGenerationContext
         {
             TableName = table.TableName,
             TableComment = table.TableComment,
@@ -165,7 +177,6 @@ public sealed class CodeGenerationEngine(
             Columns = columnSchemas,
             PrimaryKey = columnSchemas.FirstOrDefault(column => column.IsPrimaryKey)
                 ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn),
-            // 树表/主子表结构字段 + 上级菜单透出给模板/二阶产物（模板按 TemplateType 消费 Options.XxxColumn）
             Options = new Dictionary<string, object?>
             {
                 ["PrimaryKeyColumn"] = table.PrimaryKeyColumn,
@@ -176,7 +187,156 @@ public sealed class CodeGenerationEngine(
                 ["ParentMenuId"] = table.ParentMenuId?.ToString()
             }
         };
+
+        if (table.TemplateType == TemplateType.Tree)
+        {
+            var error = ResolveTreeColumns(table, columnSchemas, context);
+            if (error is not null)
+            {
+                return (null, error);
+            }
+        }
+
+        if (table.TemplateType == TemplateType.MasterDetail)
+        {
+            var (master, error) = await ResolveMasterTableAsync(table, columnSchemas, cancellationToken);
+            if (error is not null)
+            {
+                return (null, error);
+            }
+
+            context.MasterTable = master;
+        }
+
+        // 反查以本表为主表的子表（本表为主表时生成明细区）；与本表自身的模板类型无关
+        context.DetailTables = await ResolveDetailTablesAsync(table, cancellationToken);
+
+        return (context, null);
     }
+
+    /// <summary>
+    /// 解析树表的父级列与显示名列（fail-closed）
+    /// </summary>
+    private static string? ResolveTreeColumns(SysCodeGenTable table, List<ColumnSchema> columnSchemas, CodeGenerationContext context)
+    {
+        if (string.IsNullOrWhiteSpace(table.TreeParentColumn))
+        {
+            return $"表 {table.TableName} 的模板类型为树表，但未配置父级列（TreeParentColumn）。";
+        }
+
+        var parent = columnSchemas.FirstOrDefault(column =>
+            string.Equals(column.ColumnName, table.TreeParentColumn, StringComparison.OrdinalIgnoreCase));
+        if (parent is null)
+        {
+            return $"表 {table.TableName} 配置的父级列 {table.TreeParentColumn} 不在列配置中，请重新导入或同步表结构。";
+        }
+
+        if (string.IsNullOrWhiteSpace(table.TreeNameColumn))
+        {
+            return $"表 {table.TableName} 的模板类型为树表，但未配置显示名列（TreeNameColumn）。";
+        }
+
+        var name = columnSchemas.FirstOrDefault(column =>
+            string.Equals(column.ColumnName, table.TreeNameColumn, StringComparison.OrdinalIgnoreCase));
+        if (name is null)
+        {
+            return $"表 {table.TableName} 配置的显示名列 {table.TreeNameColumn} 不在列配置中，请重新导入或同步表结构。";
+        }
+
+        context.TreeParentColumn = parent;
+        context.TreeNameColumn = name;
+        return null;
+    }
+
+    /// <summary>
+    /// 解析本表所属的主表（fail-closed）
+    /// </summary>
+    private async Task<(RelatedTableRef? Master, string? Error)> ResolveMasterTableAsync(
+        SysCodeGenTable table,
+        List<ColumnSchema> columnSchemas,
+        CancellationToken cancellationToken)
+    {
+        if (table.MasterTableId is not { } masterTableId)
+        {
+            return (null, $"表 {table.TableName} 的模板类型为主子表，但未配置主表（MasterTableId）。");
+        }
+
+        if (string.IsNullOrWhiteSpace(table.MasterForeignKey))
+        {
+            return (null, $"表 {table.TableName} 的模板类型为主子表，但未配置指向主表的外键列（MasterForeignKey）。");
+        }
+
+        var foreignKey = columnSchemas.FirstOrDefault(column =>
+            string.Equals(column.ColumnName, table.MasterForeignKey, StringComparison.OrdinalIgnoreCase));
+        if (foreignKey is null)
+        {
+            return (null, $"表 {table.TableName} 配置的外键列 {table.MasterForeignKey} 不在列配置中，请重新导入或同步表结构。");
+        }
+
+        var masterTable = await _tableRepository.GetByIdAsync(masterTableId, cancellationToken);
+        if (masterTable is null)
+        {
+            return (null, $"表 {table.TableName} 配置的主表（Id={masterTableId}）不存在，请重新选择主表。");
+        }
+
+        var masterColumns = await _columnRepository.GetByTableIdAsync(masterTable.BasicId, cancellationToken);
+        return (BuildRelatedTableRef(masterTable, masterColumns, foreignKey), null);
+    }
+
+    /// <summary>
+    /// 反查以本表为主表的子表集合（无匹配时返回空集合，不是错误）
+    /// </summary>
+    private async Task<IReadOnlyList<RelatedTableRef>> ResolveDetailTablesAsync(SysCodeGenTable table, CancellationToken cancellationToken)
+    {
+        var detailTables = await _tableRepository.GetByMasterTableIdAsync(table.BasicId, cancellationToken);
+        if (detailTables.Count == 0)
+        {
+            return [];
+        }
+
+        var refs = new List<RelatedTableRef>(detailTables.Count);
+        foreach (var detail in detailTables)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var detailColumns = await _columnRepository.GetByTableIdAsync(detail.BasicId, cancellationToken);
+            var foreignKey = detailColumns
+                .Where(column => string.Equals(column.ColumnName, detail.MasterForeignKey, StringComparison.OrdinalIgnoreCase))
+                .Select(column => MapColumn(detail, column))
+                .FirstOrDefault();
+
+            // 子表未配好外键列则跳过：主表侧的明细区无从取数，但不应因此让主表整体生成失败
+            if (foreignKey is null)
+            {
+                _logger.LogWarning(
+                    "子表 {DetailTable} 的外键列 {ForeignKey} 不在列配置中，已跳过其明细区生成。",
+                    detail.TableName, detail.MasterForeignKey);
+                continue;
+            }
+
+            refs.Add(BuildRelatedTableRef(detail, detailColumns, foreignKey));
+        }
+
+        return refs;
+    }
+
+    /// <summary>
+    /// 表配置 + 列配置 → 关联表引用
+    /// </summary>
+    private RelatedTableRef BuildRelatedTableRef(SysCodeGenTable table, IReadOnlyList<SysCodeGenTableColumn> columns, ColumnSchema foreignKey) => new()
+    {
+        TableId = table.BasicId,
+        TableName = table.TableName,
+        TableComment = table.TableComment,
+        ClassName = table.ClassName,
+        ClassNameCamel = NamingConventions.Camelize(table.ClassName),
+        ClassNameKebab = NamingConventions.Kebabize(table.ClassName),
+        ModuleName = table.ModuleName,
+        Namespace = table.Namespace,
+        ForeignKeyColumn = foreignKey.ColumnName,
+        ForeignKeyProperty = foreignKey.CSharpProperty,
+        Columns = [.. columns.Select(column => MapColumn(table, column))]
+    };
 
     /// <summary>
     /// 列配置 → 列模型；C#/TS 类型缺失时回退到类型映射器

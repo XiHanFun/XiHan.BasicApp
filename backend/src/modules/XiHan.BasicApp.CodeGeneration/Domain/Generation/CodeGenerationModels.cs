@@ -108,6 +108,49 @@ public sealed class TableSchema
 }
 
 /// <summary>
+/// 关联表引用（主子表场景：本表的主表，或以本表为主表的子表）
+/// </summary>
+/// <remarks>
+/// 仅承载生成模板所需的标识与列信息。按"不焊外键"约定，生成产物中不会出现
+/// 导航属性或 JOIN，关联仅体现为子表侧的外键列查询方法与前端的展开区取数。
+/// </remarks>
+public sealed class RelatedTableRef
+{
+    /// <summary>表配置主键</summary>
+    public long TableId { get; set; }
+
+    /// <summary>数据库表名</summary>
+    public string TableName { get; set; } = string.Empty;
+
+    /// <summary>表注释</summary>
+    public string? TableComment { get; set; }
+
+    /// <summary>实体类名</summary>
+    public string ClassName { get; set; } = string.Empty;
+
+    /// <summary>实体类名（camelCase）</summary>
+    public string ClassNameCamel { get; set; } = string.Empty;
+
+    /// <summary>实体类名（kebab-case）</summary>
+    public string ClassNameKebab { get; set; } = string.Empty;
+
+    /// <summary>模块名称</summary>
+    public string? ModuleName { get; set; }
+
+    /// <summary>命名空间</summary>
+    public string? Namespace { get; set; }
+
+    /// <summary>外键列名（子表中指向主表主键的列）</summary>
+    public string ForeignKeyColumn { get; set; } = string.Empty;
+
+    /// <summary>外键 C# 属性名</summary>
+    public string ForeignKeyProperty { get; set; } = string.Empty;
+
+    /// <summary>列集合</summary>
+    public IReadOnlyList<ColumnSchema> Columns { get; set; } = [];
+}
+
+/// <summary>
 /// 代码生成上下文（模板可消费的强类型模型）
 /// </summary>
 /// <remarks>
@@ -147,6 +190,18 @@ public sealed class CodeGenerationContext
 
     /// <summary>列集合</summary>
     public IReadOnlyList<ColumnSchema> Columns { get; set; } = [];
+
+    /// <summary>树表父级列（TemplateType.Tree 时必有；已解析为列模型）</summary>
+    public ColumnSchema? TreeParentColumn { get; set; }
+
+    /// <summary>树表显示名列（TemplateType.Tree 时必有；承载展开箭头的列）</summary>
+    public ColumnSchema? TreeNameColumn { get; set; }
+
+    /// <summary>本表的主表（TemplateType.MasterDetail 且本表为子表时有值）</summary>
+    public RelatedTableRef? MasterTable { get; set; }
+
+    /// <summary>以本表为主表的子表集合（本表为主表时有值）</summary>
+    public IReadOnlyList<RelatedTableRef> DetailTables { get; set; } = [];
 
     /// <summary>扩展选项（模板可读取的自定义键值）</summary>
     public IDictionary<string, object?> Options { get; set; } = new Dictionary<string, object?>();

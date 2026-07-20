@@ -1,0 +1,93 @@
+/**
+ * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
+ * 列定义/表单默认值的微调请写在 {{ ClassNameKebab }}.schema.ts（在那里对下列 base* 做 transform）。
+ */
+import type { ListFieldSchema, PageSchema } from '~/components'
+
+/**
+ * {{ TableComment }}表单模型
+ */
+export interface {{ ClassName }}FormModel {
+  basicId?: string
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ else ~}}
+  {{ col.TsProperty }}: {{ col.TsType }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+}
+
+/**
+ * 页面元信息（树形模式：走 resource.tree 取数、不分页、按 children 展开）
+ */
+export const basePageMeta = {
+  pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
+  pageName: '{{ TableComment }}',
+  batchRemovable: true,
+  rowKey: 'basicId',
+  scrollX: 1200,
+  tree: {
+    childrenKey: 'children',
+    defaultExpandAll: true,
+  },
+} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'rowKey' | 'scrollX' | 'tree'>
+
+/**
+ * 列定义（{{ TreeNameColumn.TsProperty }} 承载展开箭头）
+ */
+export const baseFields: ListFieldSchema[] = [
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment }}', width: 250, order: 0 },
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.ColumnName == TreeNameColumn.ColumnName ~}}
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: 'string', treeColumn: true,{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 220, order: {{ for.index + 1 }} },
+{{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
+{{~ else ~}}
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 99 },
+]
+
+/**
+ * 页面与行操作
+ */
+export const baseActions: NonNullable<PageSchema['actions']> = [
+  { key: 'create', title: '新增{{ TableComment }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+  { key: 'edit', title: '编辑', scope: 'row' },
+  { key: 'delete', title: '删除', scope: 'row' },
+]
+
+/**
+ * 表单默认值
+ */
+export function createDefaultFormModel(): {{ ClassName }}FormModel {
+  return {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.TsType == "number" ~}}
+    {{ col.TsProperty }}: 0,
+{{~ else if col.TsType == "boolean" ~}}
+    {{ col.TsProperty }}: false,
+{{~ else if col.IsNullable || !col.IsRequired ~}}
+    {{ col.TsProperty }}: null,
+{{~ else ~}}
+    {{ col.TsProperty }}: '',
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+
+/**
+ * 树形结构字段名（页面据此渲染父级选择器）
+ */
+export const treeMeta = {
+  parentKey: '{{ TreeParentColumn.TsProperty }}',
+  labelKey: '{{ TreeNameColumn.TsProperty }}',
+} as const

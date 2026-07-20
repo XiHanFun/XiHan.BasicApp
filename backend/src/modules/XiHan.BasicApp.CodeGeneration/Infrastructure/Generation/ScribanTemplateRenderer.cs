@@ -97,7 +97,35 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["TemplateType"] = context.TemplateType.ToString(),
             ["PrimaryKey"] = context.PrimaryKey is null ? null : BuildColumn(context.PrimaryKey),
             ["Columns"] = context.Columns.Select(BuildColumn).ToList(),
+            // 树表结构列（TemplateType == "Tree" 时非空，由引擎 fail-closed 保证）
+            ["TreeParentColumn"] = context.TreeParentColumn is null ? null : BuildColumn(context.TreeParentColumn),
+            ["TreeNameColumn"] = context.TreeNameColumn is null ? null : BuildColumn(context.TreeNameColumn),
+            // 主子表关联（本表为子表时 MasterTable 非空；本表为主表时 DetailTables 非空）
+            ["MasterTable"] = context.MasterTable is null ? null : BuildRelatedTable(context.MasterTable),
+            ["DetailTables"] = context.DetailTables.Select(BuildRelatedTable).ToList(),
+            ["HasDetailTables"] = context.DetailTables.Count > 0,
             ["Options"] = context.Options
+        };
+    }
+
+    /// <summary>
+    /// 关联表引用 → Scriban 字典
+    /// </summary>
+    private static IDictionary<string, object?> BuildRelatedTable(RelatedTableRef table)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["TableId"] = table.TableId.ToString(),
+            ["TableName"] = table.TableName,
+            ["TableComment"] = table.TableComment,
+            ["ClassName"] = table.ClassName,
+            ["ClassNameCamel"] = table.ClassNameCamel,
+            ["ClassNameKebab"] = table.ClassNameKebab,
+            ["ModuleName"] = table.ModuleName,
+            ["Namespace"] = table.Namespace,
+            ["ForeignKeyColumn"] = table.ForeignKeyColumn,
+            ["ForeignKeyProperty"] = table.ForeignKeyProperty,
+            ["Columns"] = table.Columns.Select(BuildColumn).ToList()
         };
     }
 
@@ -135,32 +163,14 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
     }
 
     /// <summary>
-    /// PascalCase → camelCase（首字母小写，其余不变）
+    /// PascalCase → camelCase（转换实现见 <see cref="NamingConventions"/>，与引擎共用）
     /// </summary>
-    private static string Camelize(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return value;
-        }
-
-        return char.ToLowerInvariant(value[0]) + value[1..];
-    }
+    private static string Camelize(string value) => NamingConventions.Camelize(value);
 
     /// <summary>
-    /// PascalCase → kebab-case（与前端 toKebabCase 一致：SysProduct → sys-product）
+    /// PascalCase → kebab-case（转换实现见 <see cref="NamingConventions"/>，与引擎共用）
     /// </summary>
-    private static string Kebabize(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return value;
-        }
-
-        var result = Regex.Replace(value, "([A-Z]+)([A-Z][a-z])", "$1-$2");
-        result = Regex.Replace(result, "([a-z0-9])([A-Z])", "$1-$2");
-        return result.Replace('_', '-').ToLowerInvariant();
-    }
+    private static string Kebabize(string value) => NamingConventions.Kebabize(value);
 
     /// <inheritdoc />
     public TemplateRenderValidation Validate(string templateSource)

@@ -75,10 +75,15 @@ public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientReso
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await CreateQueryable()
-            .Where(template => template.IsEnabled && template.Status == EnableStatus.Enabled && template.TemplateType == templateType)
+        // 通用模板（TemplateType 为空）对所有类型生效，故需 "类型匹配 或 为空"。
+        // 该判定不下推 SQL：本仓库已知 SqlSugar 把含可空字段的 OR lambda 下推到 PG 会触发 42601，
+        // 且模板总量极小（内置 23 条 + 少量自定义），取回后内存过滤代价可忽略。
+        var enabled = await CreateQueryable()
+            .Where(template => template.IsEnabled && template.Status == EnableStatus.Enabled)
             .OrderBy(template => template.Sort)
             .ToListAsync(cancellationToken);
+
+        return [.. enabled.Where(template => template.TemplateType is null || template.TemplateType == templateType)];
     }
 
     /// <inheritdoc />

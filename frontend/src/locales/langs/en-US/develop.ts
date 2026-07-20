@@ -218,6 +218,7 @@ export default {
       form_template_type: 'Template Type',
       form_template_engine: 'Template Engine',
       form_write_mode: 'Write Mode',
+      form_template_type_universal: 'Universal (all types)',
       form_file_extension: 'File Extension',
       form_file_extension_placeholder: 'e.g. .cs',
       form_file_name_expression: 'File Name Expression',
