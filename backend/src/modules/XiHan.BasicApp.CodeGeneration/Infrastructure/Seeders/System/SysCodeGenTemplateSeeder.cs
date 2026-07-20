@@ -85,9 +85,14 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
         new("frontend.types.manual", "前端类型定义（自定义）", FrontendCrudGroup, "Frontend/Types.Manual.sbn", "{{ ClassNameKebab }}.types.ts", ".ts", FrontendApiPath, ArtifactWriteMode.WriteOnce),
         new("frontend.api", "前端接口请求", FrontendCrudGroup, "Frontend/Api.sbn", "{{ ClassNameKebab }}.generated.ts", ".ts", FrontendApiPath),
         new("frontend.api.manual", "前端接口请求（自定义）", FrontendCrudGroup, "Frontend/Api.Manual.sbn", "{{ ClassNameKebab }}.ts", ".ts", FrontendApiPath, ArtifactWriteMode.WriteOnce),
-        new("frontend.schema", "前端页面Schema", FrontendCrudGroup, "Frontend/Schema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath),
-        new("frontend.schema.manual", "前端页面Schema（自定义）", FrontendCrudGroup, "Frontend/Schema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce),
-        new("frontend.page", "前端列表页面", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce),
+        // 页面与 schema 按模板类型分化：结构差异过大，不宜在同一模板内分支
+        new("frontend.schema", "前端页面Schema（单表）", FrontendCrudGroup, "Frontend/Schema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.Single),
+        new("frontend.schema.manual", "前端页面Schema（单表·自定义）", FrontendCrudGroup, "Frontend/Schema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Single),
+        new("frontend.page", "前端列表页面（单表）", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Single),
+
+        new("frontend.schema.tree", "前端页面Schema（树表）", FrontendCrudGroup, "Frontend/TreeSchema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.Tree),
+        new("frontend.schema.tree.manual", "前端页面Schema（树表·自定义）", FrontendCrudGroup, "Frontend/TreeSchema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Tree),
+        new("frontend.page.tree", "前端列表页面（树表）", FrontendCrudGroup, "Frontend/TreePage.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Tree),
     ];
 
     /// <summary>
@@ -160,7 +165,7 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
                 TemplateCode = template.Code,
                 TemplateName = template.Name,
                 TemplateGroup = template.Group,
-                TemplateType = TemplateType.Single,
+                TemplateType = template.TemplateType,
                 TemplateEngine = TemplateEngine.Scriban,
                 TemplateContent = content,
                 FileExtension = template.FileExtension,
@@ -195,6 +200,7 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     /// <param name="FileExtension">文件扩展名（如 .cs / .ts / .vue）</param>
     /// <param name="FilePathExpression">生成文件路径表达式（目录，可空）</param>
     /// <param name="WriteMode">写入策略（机器文件总是覆盖；人类文件仅首次创建）</param>
+    /// <param name="TemplateType">模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</param>
     private sealed record BuiltInTemplate(
         string Code,
         string Name,
@@ -203,5 +209,6 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
         string FileNameExpression,
         string FileExtension,
         string? FilePathExpression,
-        ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite);
+        ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite,
+        TemplateType? TemplateType = null);
 }

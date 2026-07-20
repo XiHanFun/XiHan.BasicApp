@@ -108,10 +108,41 @@ public static partial class {{ ClassName }}ApplicationMapper
         return dto;
     }
 
+{{~ if TemplateType == "Tree" ~}}
+    /// <summary>
+    /// 实体 → 树节点 DTO（不含子节点，由查询服务组装）
+    /// </summary>
+    public static {{ ClassName }}TreeNodeDto ToTreeNodeDto({{ ClassName }} entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        var dto = new {{ ClassName }}TreeNodeDto
+        {
+            BasicId = entity.BasicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+            {{ col.CSharpProperty }} = entity.{{ col.CSharpProperty }},
+{{~ end ~}}
+{{~ end ~}}
+            CreatedTime = entity.CreatedTime
+        };
+
+        OnTreeNodeMapped(entity, dto);
+        return dto;
+    }
+
+{{~ end ~}}
     /// <summary>
     /// 创建映射完成后的扩展点（可选实现于 {{ ClassName }}ApplicationMapper.cs）
     /// </summary>
     static partial void OnEntityCreated({{ ClassName }}CreateDto input, {{ ClassName }} entity);
+{{~ if TemplateType == "Tree" ~}}
+
+    /// <summary>
+    /// 树节点映射完成后的扩展点（可选实现于 {{ ClassName }}ApplicationMapper.cs）
+    /// </summary>
+    static partial void OnTreeNodeMapped({{ ClassName }} entity, {{ ClassName }}TreeNodeDto dto);
+{{~ end ~}}
 
     /// <summary>
     /// 更新写回完成后的扩展点（可选实现于 {{ ClassName }}ApplicationMapper.cs）

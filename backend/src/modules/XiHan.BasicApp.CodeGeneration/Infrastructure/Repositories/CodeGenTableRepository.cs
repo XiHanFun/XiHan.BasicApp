@@ -62,4 +62,15 @@ public sealed class CodeGenTableRepository(ISqlSugarClientResolver clientResolve
             .OrderBy(table => table.TableName)
             .ToListAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<SysCodeGenTable>> GetByMasterTableIdAsync(long masterTableId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(table => table.MasterTableId == masterTableId)
+            .OrderBy(table => table.TableName)
+            .ToListAsync(cancellationToken);
+    }
 }

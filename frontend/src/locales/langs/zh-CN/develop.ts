@@ -218,6 +218,7 @@ export default {
       form_template_type: '模板类型',
       form_template_engine: '模板引擎',
       form_write_mode: '写入策略',
+      form_template_type_universal: '通用（适用全部类型）',
       form_file_extension: '文件扩展名',
       form_file_extension_placeholder: '如: .cs',
       form_file_name_expression: '文件名表达式',

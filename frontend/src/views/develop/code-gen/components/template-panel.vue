@@ -32,7 +32,6 @@ import {
   TEMPLATE_ENGINE_OPTIONS,
   TEMPLATE_TYPE_OPTIONS,
   TemplateEngine as TemplateEngineEnum,
-  TemplateType as TemplateTypeEnum,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XEditModal } from '~/components'
@@ -47,7 +46,7 @@ interface TemplateFormModel {
   templateName: string
   templateDescription?: string | null
   templateGroup?: string | null
-  templateType: TemplateType
+  templateType?: TemplateType | null
   templateEngine: TemplateEngine
   writeMode: ArtifactWriteMode
   templateContent?: string | null
@@ -255,7 +254,8 @@ function createDefaultForm(): TemplateFormModel {
     templateName: '',
     templateDescription: null,
     templateGroup: null,
-    templateType: TemplateTypeEnum.Single,
+    // 默认通用模板：适用于单表/树表/主子表全部类型
+    templateType: null,
     templateEngine: TemplateEngineEnum.Scriban,
     writeMode: ArtifactWriteMode.AlwaysOverwrite,
     templateContent: null,
@@ -289,7 +289,7 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
       templateName: detail.templateName,
       templateDescription: detail.templateDescription ?? null,
       templateGroup: detail.templateGroup ?? null,
-      templateType: detail.templateType,
+      templateType: detail.templateType ?? null,
       templateEngine: detail.templateEngine,
       writeMode: detail.writeMode,
       templateContent: detail.templateContent ?? null,
@@ -434,7 +434,12 @@ async function handleSubmit() {
           <NInput v-model:value="form.templateGroup" clearable :placeholder="t('develop.code_gen.template.form_template_group_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_template_type')" path="templateType">
-          <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
+          <NSelect
+            v-model:value="form.templateType"
+            clearable
+            :options="TEMPLATE_TYPE_OPTIONS"
+            :placeholder="t('develop.code_gen.template.form_template_type_universal')"
+          />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_template_engine')" path="templateEngine">
           <NSelect v-model:value="form.templateEngine" :options="TEMPLATE_ENGINE_OPTIONS" />

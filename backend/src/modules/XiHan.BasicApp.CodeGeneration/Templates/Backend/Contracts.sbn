@@ -44,4 +44,14 @@ public partial interface I{{ ClassName }}QueryService : IApplicationService
 
     /// <summary>查询{{ TableComment }}详情</summary>
     Task<{{ ClassName }}DetailDto?> Get{{ ClassName }}DetailAsync(long id, CancellationToken cancellationToken = default);
+{{~ if TemplateType == "Tree" ~}}
+
+    /// <summary>查询{{ TableComment }}完整树（按 {{ TreeParentColumn.CSharpProperty }} 组装嵌套结构，不分页）</summary>
+    Task<IReadOnlyList<{{ ClassName }}TreeNodeDto>> Get{{ ClassName }}TreeAsync(CancellationToken cancellationToken = default);
+{{~ end ~}}
+{{~ if MasterTable ~}}
+
+    /// <summary>按主表（{{ MasterTable.TableComment }}）主键查询本表明细</summary>
+    Task<IReadOnlyList<{{ ClassName }}ListItemDto>> Get{{ ClassName }}ByMasterAsync(long masterId, CancellationToken cancellationToken = default);
+{{~ end ~}}
 }

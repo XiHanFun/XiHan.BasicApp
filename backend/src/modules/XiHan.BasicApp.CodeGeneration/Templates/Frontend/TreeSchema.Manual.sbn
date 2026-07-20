@@ -1,0 +1,25 @@
+/**
+ * {{ TableComment }}树形页面 schema（自定义部分）
+ *
+ * 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+ * 由表结构推导的 base* 在 {{ ClassNameKebab }}.schema.generated.ts，会随表结构变化自动更新；
+ * 本文件在其之上做 transform 后导出最终结果，index.vue 只从这里导入。
+ *
+ * 例如隐藏某列、给某列加自定义渲染：
+ *   export const fields = baseFields
+ *     .filter(field => field.key !== 'internalCode')
+ *     .map(field => (field.key === 'status' ? { ...field, render: renderStatusTag } : field))
+ */
+import { baseActions, baseFields, basePageMeta, createDefaultFormModel, treeMeta } from './{{ ClassNameKebab }}.schema.generated'
+
+export type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema.generated'
+
+export const pageMeta = { ...basePageMeta }
+
+export const fields = baseFields
+
+export const actions = baseActions
+
+export const createDefaultForm = createDefaultFormModel
+
+export { treeMeta }

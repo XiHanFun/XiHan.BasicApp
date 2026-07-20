@@ -32,6 +32,13 @@ export interface {{ ClassName }}DetailDto extends {{ ClassName }}ListItemDto {
   modifiedBy?: string | null
   modifiedId?: ApiId | null
 }
+{{~ if TemplateType == "Tree" ~}}
+
+/** {{ TableComment }}树节点（按 {{ TreeParentColumn.TsProperty }} 组装的嵌套结构） */
+export interface {{ ClassName }}TreeNodeDto extends {{ ClassName }}ListItemDto {
+  children: {{ ClassName }}TreeNodeDto[]
+}
+{{~ end ~}}
 
 export interface {{ ClassName }}CreateDto {
 {{~ for col in Columns ~}}

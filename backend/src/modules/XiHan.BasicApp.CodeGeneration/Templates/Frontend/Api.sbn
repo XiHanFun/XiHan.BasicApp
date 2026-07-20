@@ -8,6 +8,9 @@ import type {
   {{ ClassName }}DetailDto,
   {{ ClassName }}ListItemDto,
   {{ ClassName }}PageQueryDto,
+{{~ if TemplateType == "Tree" ~}}
+  {{ ClassName }}TreeNodeDto,
+{{~ end ~}}
   {{ ClassName }}UpdateDto,
 } from './{{ ClassNameKebab }}.types'
 import {
@@ -35,6 +38,16 @@ export const {{ ClassNameCamel }}BaseManagementApi = {
   page(input: {{ ClassName }}PageQueryDto) {
     return {{ ClassNameCamel }}QueryApi.get<PageResult<{{ ClassName }}ListItemDto>>('{{ ClassName }}Page', to{{ ClassName }}PageParams(input))
   },
+{{~ if TemplateType == "Tree" ~}}
+  tree() {
+    return {{ ClassNameCamel }}QueryApi.get<{{ ClassName }}TreeNodeDto[]>('{{ ClassName }}Tree')
+  },
+{{~ end ~}}
+{{~ if MasterTable ~}}
+  byMaster(masterId: ApiId) {
+    return {{ ClassNameCamel }}QueryApi.get<{{ ClassName }}ListItemDto[]>('{{ ClassName }}ByMaster', { MasterId: masterId })
+  },
+{{~ end ~}}
   update(input: {{ ClassName }}UpdateDto) {
     return {{ ClassNameCamel }}CommandApi.put<{{ ClassName }}DetailDto, {{ ClassName }}UpdateDto>('{{ ClassName }}', input)
   },

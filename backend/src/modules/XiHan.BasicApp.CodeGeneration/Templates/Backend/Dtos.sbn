@@ -79,3 +79,14 @@ public sealed partial class {{ ClassName }}DetailDto : {{ ClassName }}ListItemDt
     public long? ModifiedId { get; set; }
     public string? ModifiedBy { get; set; }
 }
+{{~ if TemplateType == "Tree" ~}}
+
+/// <summary>
+/// {{ TableComment }}树节点 DTO（按 {{ TreeParentColumn.CSharpProperty }} 组装的嵌套结构）
+/// </summary>
+public sealed partial class {{ ClassName }}TreeNodeDto : {{ ClassName }}ListItemDto
+{
+    /// <summary>子节点</summary>
+    public List<{{ ClassName }}TreeNodeDto> Children { get; set; } = [];
+}
+{{~ end ~}}

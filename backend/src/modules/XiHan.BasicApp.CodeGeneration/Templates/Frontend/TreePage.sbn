@@ -1,0 +1,242 @@
+{{~ # 预计算控件需求标志（避免按列重复 import 造成 eslint no-unused） ~}}
+{{~ has_number = false ~}}
+{{~ has_switch = false ~}}
+{{~ has_select = false ~}}
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && col.ColumnName != TreeParentColumn.ColumnName ~}}
+{{~ if col.DictSelectorType ~}}
+{{~ has_select = true ~}}
+{{~ else if col.HtmlType == "Switch" ~}}
+{{~ has_switch = true ~}}
+{{~ else if col.HtmlType != "Textarea" && col.TsType == "number" ~}}
+{{~ has_number = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+<!--
+  {{ TableComment }}管理页（树形）
+
+  本文件仅在首次生成时创建，重新生成时不会被覆盖——页面结构与表单标记可以放心改。
+  列定义/表单默认值来自 ./{{ ClassNameKebab }}.schema.ts（它在生成的 base* 之上做 transform，
+  会随表结构变化自动更新）；需要增删列或改渲染，改那个文件而不是这里。
+
+  树形取数走 resource.tree（返回嵌套数组、不分页），父级选择器复用同一份树数据。
+-->
+<script setup lang="ts">
+import type {
+  {{ ClassName }}CreateDto,
+  {{ ClassName }}DetailDto,
+  {{ ClassName }}ListItemDto,
+  {{ ClassName }}TreeNodeDto,
+  {{ ClassName }}UpdateDto,
+} from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
+import type { PageSchema, SchemaActionPayload } from '~/components'
+import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
+import {
+  NButton,
+  NForm,
+  NFormItem,
+  NInput,
+{{~ if has_number ~}}
+  NInputNumber,
+{{~ end ~}}
+  NModal,
+{{~ if has_select ~}}
+  NSelect,
+{{~ end ~}}
+  NSpace,
+{{~ if has_switch ~}}
+  NSwitch,
+{{~ end ~}}
+  NTreeSelect,
+  useMessage,
+} from 'naive-ui'
+import { computed, ref } from 'vue'
+import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
+import { SchemaPage } from '~/components'
+import { actions, createDefaultForm, fields, pageMeta } from './{{ ClassNameKebab }}.schema'
+
+defineOptions({ name: '{{ ClassName }}Page' })
+
+const message = useMessage()
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+/** 父级选择器数据源：与表格共用同一次树查询结果 */
+const treeNodes = ref<{{ ClassName }}TreeNodeDto[]>([])
+
+function reloadList() {
+  void schemaPageRef.value?.reload()
+}
+
+const schema: PageSchema = {
+  ...pageMeta,
+  fields,
+  actions,
+  resource: {
+    tree: async () => {
+      const nodes = await {{ ClassNameCamel }}ManagementApi.tree()
+      treeNodes.value = nodes ?? []
+      return (nodes ?? []) as unknown as Record<string, unknown>[]
+    },
+    remove: id => {{ ClassNameCamel }}ManagementApi.delete(id),
+  },
+}
+
+/** 编辑时排除自身及其子树，避免把节点挂到自己的后代下形成环 */
+const parentOptions = computed(() => {
+  const excludeId = form.value.basicId
+  const map = (nodes: {{ ClassName }}TreeNodeDto[]): unknown[] =>
+    nodes
+      .filter(node => node.basicId !== excludeId)
+      .map(node => ({
+        key: node.basicId,
+        label: node.{{ TreeNameColumn.TsProperty }},
+        children: node.children?.length ? map(node.children) : undefined,
+      }))
+  return map(treeNodes.value)
+})
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as {{ ClassName }}ListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
+}
+
+const modalVisible = ref(false)
+const submitLoading = ref(false)
+const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
+const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment }}' : '新增{{ TableComment }}'))
+
+function handleAdd() {
+  form.value = createDefaultForm()
+  modalVisible.value = true
+}
+
+async function handleEdit(row: {{ ClassName }}ListItemDto) {
+  const detail = await {{ ClassNameCamel }}ManagementApi.detail(row.basicId)
+  const src = (detail ?? row) as {{ ClassName }}DetailDto
+  form.value = {
+    basicId: row.basicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+    {{ col.TsProperty }}: src.{{ col.TsProperty }} ?? null,
+{{~ else ~}}
+    {{ col.TsProperty }}: src.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  }
+  modalVisible.value = true
+}
+
+async function handleDelete(row: {{ ClassName }}ListItemDto) {
+  await {{ ClassNameCamel }}ManagementApi.delete(row.basicId)
+  message.success('删除成功')
+  reloadList()
+}
+
+async function handleSubmit() {
+  submitLoading.value = true
+  try {
+    if (form.value.basicId) {
+      const updateInput: {{ ClassName }}UpdateDto = {
+        basicId: form.value.basicId,
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+      }
+      await {{ ClassNameCamel }}ManagementApi.update(updateInput)
+    }
+    else {
+      const createInput: {{ ClassName }}CreateDto = {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+      }
+      await {{ ClassNameCamel }}ManagementApi.create(createInput)
+    }
+    message.success('保存成功')
+    modalVisible.value = false
+    reloadList()
+  }
+  catch {
+    message.error('保存失败')
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
+</script>
+
+<template>
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+    <NModal
+      v-model:show="modalVisible"
+      :auto-focus="false"
+      :bordered="false"
+      :title="modalTitle"
+      preset="card"
+      style="width: 680px; max-width: 92vw"
+    >
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+        <NFormItem label="{{ col.ColumnComment }}" path="{{ col.TsProperty }}">
+{{~ if col.ColumnName == TreeParentColumn.ColumnName ~}}
+          <NTreeSelect
+            v-model:value="form.{{ col.TsProperty }}"
+            clearable
+            key-field="key"
+            label-field="label"
+            :options="parentOptions as never"
+            placeholder="不选则作为根节点"
+          />
+{{~ else if col.DictSelectorType == "ConstSelector" ~}}
+          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.ConstValues }}" placeholder="请选择{{ col.ColumnComment }}" />
+{{~ else if col.DictSelectorType ~}}
+          <!-- TODO：绑定{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode }}{{ else }}枚举 {{ col.EnumTypeName }}{{ end }} 的选项来源（由业务层提供） -->
+          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="[]" placeholder="请选择{{ col.ColumnComment }}" />
+{{~ else if col.HtmlType == "Switch" ~}}
+          <NSwitch v-model:value="form.{{ col.TsProperty }}" />
+{{~ else if col.HtmlType == "Textarea" ~}}
+          <NInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.ColumnComment }}" />
+{{~ else if col.TsType == "number" ~}}
+          <NInputNumber v-model:value="form.{{ col.TsProperty }}" :min="0" style="width: 100%" />
+{{~ else ~}}
+          <NInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.ColumnComment }}" />
+{{~ end ~}}
+        </NFormItem>
+{{~ end ~}}
+{{~ end ~}}
+      </NForm>
+      <template #footer>
+        <NSpace justify="end">
+          <NButton @click="modalVisible = false">
+            取消
+          </NButton>
+          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
+            保存
+          </NButton>
+        </NSpace>
+      </template>
+    </NModal>
+  </SchemaPage>
+</template>

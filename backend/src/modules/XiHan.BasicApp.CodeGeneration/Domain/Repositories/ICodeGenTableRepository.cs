@@ -36,4 +36,9 @@ public interface ICodeGenTableRepository : ISaasRepository<SysCodeGenTable>
     /// 按模块获取表配置
     /// </summary>
     Task<IReadOnlyList<SysCodeGenTable>> GetByModuleAsync(string moduleName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取以指定表为主表的子表配置（主子表生成时反查明细表）
+    /// </summary>
+    Task<IReadOnlyList<SysCodeGenTable>> GetByMasterTableIdAsync(long masterTableId, CancellationToken cancellationToken = default);
 }
