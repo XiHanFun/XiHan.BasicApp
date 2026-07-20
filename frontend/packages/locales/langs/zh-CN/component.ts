@@ -366,6 +366,8 @@ export default {
       result_password_reset: '密码重置',
       result_mfa_bound: '绑定MFA',
       result_mfa_unbound: '解绑MFA',
+      result_tenant_switched: '切换租户',
+      result_session_revoked: '会话撤销',
       result_failed: '其他失败',
       result_unknown: '状态{result}',
       section_title: '登录日志',

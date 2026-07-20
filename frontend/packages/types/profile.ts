@@ -75,7 +75,9 @@ export type LoginAuditResult
     | 'PasswordChanged'
     | 'PasswordReset'
     | 'RequiresTwoFactor'
+    | 'SessionRevoked'
     | 'Success'
+    | 'TenantSwitched'
     | 'TokenRefreshed'
     | 'TwoFactorFailed'
 

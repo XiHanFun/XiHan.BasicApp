@@ -179,6 +179,8 @@ export function loginLogDetailFields(t: Translate): LogDetailField[] {
     { label: t('log.login.result_password_reset'), value: LoginResult.PasswordReset },
     { label: t('log.login.result_mfa_bound'), value: LoginResult.MfaBound },
     { label: t('log.login.result_mfa_unbound'), value: LoginResult.MfaUnbound },
+    { label: t('log.login.result_tenant_switched'), value: LoginResult.TenantSwitched },
+    { label: t('log.login.result_session_revoked'), value: LoginResult.SessionRevoked },
     { label: t('log.login.result_failed'), value: LoginResult.Failed },
   ]
 

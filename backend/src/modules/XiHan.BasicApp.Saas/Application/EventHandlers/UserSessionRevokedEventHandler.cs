@@ -163,11 +163,11 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
                 UserId = eventData.UserId,
                 UserName = user?.UserName,
                 SessionId = sessionId,
-                LoginResult = LoginResult.Logout, // 登出/撤销
+                LoginResult = LoginResult.SessionRevoked, // 会话撤销（区别于用户主动登出）
                 LoginTime = now,
                 Message = string.IsNullOrEmpty(eventData.Reason)
-                    ? "Session revoked"
-                    : $"Session revoked: {eventData.Reason}",
+                    ? "会话撤销"
+                    : $"会话撤销：{eventData.Reason}",
                 TenantId = eventData.TenantId,
                 CreatedTime = now
             };

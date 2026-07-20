@@ -138,7 +138,9 @@ public static class TraceApplicationMapper
             {
                 LoginResult.Success => StatusSuccess,
                 LoginResult.Logout or LoginResult.TokenRefreshed or LoginResult.PasswordChanged
-                    or LoginResult.PasswordReset or LoginResult.MfaBound or LoginResult.MfaUnbound => StatusInfo,
+                    or LoginResult.PasswordReset or LoginResult.MfaBound or LoginResult.MfaUnbound
+                    or LoginResult.TenantSwitched => StatusInfo,
+                LoginResult.SessionRevoked => StatusWarning,
                 _ => StatusError
             },
             UserId = e.UserId,

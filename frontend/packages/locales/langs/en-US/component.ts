@@ -366,6 +366,8 @@ export default {
       result_password_reset: 'Password reset',
       result_mfa_bound: 'MFA bound',
       result_mfa_unbound: 'MFA unbound',
+      result_tenant_switched: 'Tenant switched',
+      result_session_revoked: 'Session revoked',
       result_failed: 'Other failure',
       result_unknown: 'Status {result}',
       section_title: 'Login Logs',

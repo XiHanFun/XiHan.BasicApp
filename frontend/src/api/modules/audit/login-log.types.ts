@@ -14,6 +14,8 @@ export enum LoginResult {
   PasswordReset = 'PasswordReset',
   MfaBound = 'MfaBound',
   MfaUnbound = 'MfaUnbound',
+  TenantSwitched = 'TenantSwitched',
+  SessionRevoked = 'SessionRevoked',
   Failed = 'Failed',
 }
 
