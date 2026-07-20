@@ -7,11 +7,12 @@ import {
   NScrollbar,
   NSpace,
   NSpin,
+  NTag,
   useMessage,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { codeGenerationApi, GenType } from '@/api'
+import { ArtifactWriteMode, codeGenerationApi, GenType } from '@/api'
 import CodeHighlight from '~/components/common/CodeHighlight.vue'
 
 defineOptions({ name: 'CodeGenGenerateModal' })
@@ -36,6 +37,28 @@ const artifacts = ref<CodeGenArtifactDto[]>([])
 const activeIndex = ref(0)
 
 const activeArtifact = computed(() => artifacts.value[activeIndex.value] ?? null)
+
+/**
+ * 产物按写入策略分组：机器文件（总是覆盖）与人类文件（仅首次创建）。
+ * 保留在扁平数组中的原始下标，供选中态使用。
+ */
+const artifactGroups = computed(() => {
+  const entries = artifacts.value.map((artifact, index) => ({ artifact, index }))
+  return [
+    {
+      key: ArtifactWriteMode.AlwaysOverwrite,
+      label: t('develop.code_gen.generate.group_generated'),
+      hint: t('develop.code_gen.generate.group_generated_hint'),
+      items: entries.filter(entry => entry.artifact.writeMode !== ArtifactWriteMode.WriteOnce),
+    },
+    {
+      key: ArtifactWriteMode.WriteOnce,
+      label: t('develop.code_gen.generate.group_manual'),
+      hint: t('develop.code_gen.generate.group_manual_hint'),
+      items: entries.filter(entry => entry.artifact.writeMode === ArtifactWriteMode.WriteOnce),
+    },
+  ].filter(group => group.items.length > 0)
+})
 
 const modalTitle = computed(() =>
   props.tableName
@@ -144,23 +167,32 @@ async function handleGenerate() {
       <div class="gen">
         <div class="gen__tree">
           <NScrollbar style="max-height: 60vh">
-            <ul class="gen__file-list">
-              <li
-                v-for="(artifact, index) in artifacts"
-                :key="`${artifact.relativePath}/${artifact.fileName}`"
-                class="gen__file"
-                :class="{ 'gen__file--active': index === activeIndex }"
-                :title="`${artifact.relativePath}/${artifact.fileName}`"
-                @click="activeIndex = index"
-              >
-                <div class="gen__file-name">
-                  {{ artifact.fileName }}
-                </div>
-                <div class="gen__file-path">
-                  {{ artifact.relativePath }}
-                </div>
-              </li>
-            </ul>
+            <div v-for="group in artifactGroups" :key="group.key" class="gen__group">
+              <div class="gen__group-title" :title="group.hint">
+                {{ group.label }}
+                <span class="gen__group-count">{{ group.items.length }}</span>
+              </div>
+              <ul class="gen__file-list">
+                <li
+                  v-for="entry in group.items"
+                  :key="`${entry.artifact.relativePath}/${entry.artifact.fileName}`"
+                  class="gen__file"
+                  :class="{ 'gen__file--active': entry.index === activeIndex }"
+                  :title="`${entry.artifact.relativePath}/${entry.artifact.fileName}`"
+                  @click="activeIndex = entry.index"
+                >
+                  <div class="gen__file-name">
+                    {{ entry.artifact.fileName }}
+                    <NTag v-if="group.key === ArtifactWriteMode.WriteOnce" :bordered="false" size="tiny" type="success">
+                      {{ t('develop.code_gen.generate.badge_manual') }}
+                    </NTag>
+                  </div>
+                  <div class="gen__file-path">
+                    {{ entry.artifact.relativePath }}
+                  </div>
+                </li>
+              </ul>
+            </div>
           </NScrollbar>
         </div>
         <div class="gen__content">
@@ -225,7 +257,31 @@ async function handleGenerate() {
   background: hsl(var(--primary) / 0.1);
 }
 
+.gen__group + .gen__group {
+  margin-top: 8px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.gen__group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.gen__group-count {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
 .gen__file-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   font-weight: 500;
   overflow: hidden;

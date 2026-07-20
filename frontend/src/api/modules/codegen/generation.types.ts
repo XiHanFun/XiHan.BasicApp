@@ -1,5 +1,5 @@
 import type { ApiId, NumericString } from '../../types'
-import type { DatabaseType, GenType } from './codegen.enums'
+import type { ArtifactWriteMode, DatabaseType, GenType } from './codegen.enums'
 
 /**
  * 数据库表列表查询 DTO（逆向工程：列出可导入的库表）
@@ -59,6 +59,8 @@ export interface CodeGenArtifactDto {
   fileName: string
   content: string
   templateCode?: string | null
+  /** 写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建 */
+  writeMode: ArtifactWriteMode
 }
 
 /**
@@ -73,6 +75,10 @@ export interface CodeGenResultDto {
   durationMilliseconds: NumericString
   /** 产物清单（预览 / 文件树展示用） */
   artifacts: CodeGenArtifactDto[]
+  /** 实际写入文件数（GenType.CustomPath 时填充） */
+  writtenCount: number
+  /** 被跳过的人类文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖） */
+  skippedPaths: string[]
   /** Zip 包体（Base64）；GenType.Zip 时填充 */
   packageBase64?: string | null
 }

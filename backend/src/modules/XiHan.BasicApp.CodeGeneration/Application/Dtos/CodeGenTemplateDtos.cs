@@ -34,6 +34,9 @@ public sealed class CodeGenTemplateCreateDto
     /// <summary>模板引擎（决策 D1：当前仅 Scriban 可渲染）</summary>
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
 
+    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建，用于承载手写代码</summary>
+    public ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
+
     public string? TemplateContent { get; set; }
     public string? FileNameExpression { get; set; }
     public string? FilePathExpression { get; set; }
@@ -53,6 +56,10 @@ public sealed class CodeGenTemplateUpdateDto : BasicAppUDto
     public string? TemplateGroup { get; set; }
     public TemplateType TemplateType { get; set; } = TemplateType.Single;
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
+
+    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建，用于承载手写代码</summary>
+    public ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
+
     public string? TemplateContent { get; set; }
     public string? FileNameExpression { get; set; }
     public string? FilePathExpression { get; set; }
@@ -80,6 +87,7 @@ public sealed class CodeGenTemplatePageQueryDto : BasicAppPRDto
     public string? TemplateGroup { get; set; }
     public TemplateType? TemplateType { get; set; }
     public TemplateEngine? TemplateEngine { get; set; }
+    public ArtifactWriteMode? WriteMode { get; set; }
     public bool? IsBuiltIn { get; set; }
     public bool? IsEnabled { get; set; }
     public EnableStatus? Status { get; set; }
@@ -96,6 +104,10 @@ public class CodeGenTemplateListItemDto : BasicAppDto
     public string? TemplateGroup { get; set; }
     public TemplateType TemplateType { get; set; }
     public TemplateEngine TemplateEngine { get; set; }
+
+    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建</summary>
+    public ArtifactWriteMode WriteMode { get; set; }
+
     public string? FileExtension { get; set; }
     public bool IsBuiltIn { get; set; }
     public bool IsEnabled { get; set; }

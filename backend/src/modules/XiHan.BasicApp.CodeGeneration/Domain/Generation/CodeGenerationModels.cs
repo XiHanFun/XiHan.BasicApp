@@ -159,11 +159,13 @@ public sealed class CodeGenerationContext
 /// <param name="FileName">文件名</param>
 /// <param name="Content">文件内容</param>
 /// <param name="TemplateCode">来源模板编码</param>
+/// <param name="WriteMode">写入策略（机器文件总是覆盖；人类文件仅首次创建）</param>
 public sealed record GeneratedArtifact(
     string RelativePath,
     string FileName,
     string Content,
-    string? TemplateCode);
+    string? TemplateCode,
+    ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite);
 
 /// <summary>
 /// 生成请求
@@ -196,6 +198,12 @@ public sealed class GenerationResult
 
     /// <summary>打包字节流（GenType.Zip 时填充）</summary>
     public byte[]? Package { get; set; }
+
+    /// <summary>实际写入文件数（GenType.CustomPath 时填充）</summary>
+    public int WrittenCount { get; set; }
+
+    /// <summary>被跳过的人类文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖）</summary>
+    public IReadOnlyList<string> SkippedPaths { get; set; } = [];
 
     /// <summary>耗时（毫秒）</summary>
     public long DurationMilliseconds { get; set; }

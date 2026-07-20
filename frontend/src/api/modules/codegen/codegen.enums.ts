@@ -158,3 +158,17 @@ export const DICT_SELECTOR_TYPE_OPTIONS = [
   { label: '枚举类型', value: DictSelectorType.EnumSelector },
   { label: '常量数组', value: DictSelectorType.ConstSelector },
 ]
+
+/** 生成产物写入策略（机器拥有 vs 人类拥有） */
+export enum ArtifactWriteMode {
+  /** 总是覆盖（机器文件，禁止手工编辑） */
+  AlwaysOverwrite = 'AlwaysOverwrite',
+  /** 仅首次创建（人类文件，重新生成时跳过） */
+  WriteOnce = 'WriteOnce',
+}
+
+/** 写入策略选项 */
+export const ARTIFACT_WRITE_MODE_OPTIONS = [
+  { label: '机器文件（总是覆盖）', value: ArtifactWriteMode.AlwaysOverwrite },
+  { label: '人类文件（仅首次创建）', value: ArtifactWriteMode.WriteOnce },
+]

@@ -25,8 +25,9 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 代码生成引擎（管线编排：建模 → 选模板 → 渲染 → 产出）
 /// </summary>
 /// <remarks>
-/// 本类已接通"配置 → 渲染 → 产物"主链路；以下为 S2 待完善项（已标 TODO）：
-/// 内置全栈模板、树表/主子表上下文扩展、文件名/路径表达式的健壮渲染、落盘白名单。
+/// 本类已接通"配置 → 渲染 → 产物"主链路，并按模板声明的 <see cref="ArtifactWriteMode"/>
+/// 区分机器产物（总是覆盖）与人类产物（仅首次创建），保证重新生成不冲掉手写代码。
+/// 待完善：树表/主子表上下文扩展（见 M1-1）。
 /// </remarks>
 public sealed class CodeGenerationEngine(
     ICodeGenTableRepository tableRepository,
@@ -77,9 +78,12 @@ public sealed class CodeGenerationEngine(
                     return GenerationResult.Fail(writeResult.Message ?? "自定义路径落盘失败。");
                 }
 
+                result.WrittenCount = writeResult.WrittenCount;
+                result.SkippedPaths = writeResult.SkippedPaths;
+
                 _logger.LogInformation(
-                    "代码生成落盘完成：TableId={TableId}，路径={Path}，文件数={Count}",
-                    request.TableId, table?.GenPath, writeResult.WrittenCount);
+                    "代码生成落盘完成：TableId={TableId}，路径={Path}，写入={Written}，跳过={Skipped}（人类文件已存在）",
+                    request.TableId, table?.GenPath, writeResult.WrittenCount, writeResult.SkippedCount);
                 break;
 
             case GenType.Preview:
@@ -130,7 +134,7 @@ public sealed class CodeGenerationEngine(
             var fileName = await ResolveFileNameAsync(renderer, template, context, cancellationToken);
             var relativePath = await ResolveRelativePathAsync(renderer, template, context, fileName, cancellationToken);
 
-            artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode));
+            artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode, template.WriteMode));
         }
 
         // 二阶产物：菜单 + 按钮权限代码片段（待并入源码 → 重建库经既有 Seeder 链生效，非运行时写库）

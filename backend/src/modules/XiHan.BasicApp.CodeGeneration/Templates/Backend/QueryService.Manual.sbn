@@ -1,0 +1,45 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}QueryService
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Domain.Repositories;
+
+namespace {{ Namespace }}.Application.QueryServices;
+
+/// <summary>
+/// {{ TableComment }}查询应用服务
+/// </summary>
+/// <remarks>
+/// 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+/// 基础查询在 {{ ClassName }}QueryServiceBase.Generated.cs。
+///
+/// 改写生成行为：override 基类的 virtual 方法即可，需要保留原逻辑时调 base。例如追加默认过滤：
+/// <code>
+/// protected override BasicAppPRDto BuildPageRequest({{ ClassName }}PageQueryDto input)
+/// {
+///     var request = base.BuildPageRequest(input);
+///     // 在生成的条件之上追加自定义过滤/排序
+///     return request;
+/// }
+/// </code>
+///
+/// 可重写：Get{{ ClassName }}PageAsync、Get{{ ClassName }}DetailAsync、BuildPageRequest。
+/// 新增接口方法请先在 I{{ ClassName }}Contracts.cs 中声明签名，再在此实现。
+/// </remarks>
+public sealed class {{ ClassName }}QueryService : {{ ClassName }}QueryServiceBase
+{
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public {{ ClassName }}QueryService(I{{ ClassName }}Repository repository)
+        : base(repository)
+    {
+    }
+}

@@ -31,11 +31,19 @@ public interface IGeneratedArtifactWriter
 /// <param name="Success">是否成功</param>
 /// <param name="Message">失败原因</param>
 /// <param name="WrittenCount">写入文件数</param>
-public sealed record GeneratedArtifactWriteResult(bool Success, string? Message, int WrittenCount)
+/// <param name="SkippedCount">跳过文件数（人类文件已存在）</param>
+/// <param name="SkippedPaths">被跳过的相对路径清单</param>
+public sealed record GeneratedArtifactWriteResult(
+    bool Success,
+    string? Message,
+    int WrittenCount,
+    int SkippedCount,
+    IReadOnlyList<string> SkippedPaths)
 {
     /// <summary>成功结果</summary>
-    public static GeneratedArtifactWriteResult Ok(int count) => new(true, null, count);
+    public static GeneratedArtifactWriteResult Ok(int writtenCount, int skippedCount, IReadOnlyList<string> skippedPaths)
+        => new(true, null, writtenCount, skippedCount, skippedPaths);
 
     /// <summary>失败结果</summary>
-    public static GeneratedArtifactWriteResult Fail(string message) => new(false, message, 0);
+    public static GeneratedArtifactWriteResult Fail(string message) => new(false, message, 0, 0, []);
 }

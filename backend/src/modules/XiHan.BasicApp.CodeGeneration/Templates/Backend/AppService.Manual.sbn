@@ -1,0 +1,44 @@
+#region <<版权版本注释>>
+
+// ----------------------------------------------------------------
+// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+// FileName:{{ ClassName }}AppService
+// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
+// ----------------------------------------------------------------
+
+#endregion <<版权版本注释>>
+
+using {{ Namespace }}.Domain.Repositories;
+
+namespace {{ Namespace }}.Application.AppServices;
+
+/// <summary>
+/// {{ TableComment }}命令应用服务
+/// </summary>
+/// <remarks>
+/// 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+/// 基础 CRUD 在 {{ ClassName }}AppServiceBase.Generated.cs。
+///
+/// 改写生成行为：override 基类的 virtual 方法即可，需要保留原逻辑时调 base。例如
+/// <code>
+/// public override async Task&lt;{{ ClassName }}DetailDto&gt; Create{{ ClassName }}Async({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default)
+/// {
+///     // 自定义前置校验
+///     return await base.Create{{ ClassName }}Async(input, cancellationToken);
+/// }
+/// </code>
+///
+/// 可重写：Create{{ ClassName }}Async、Update{{ ClassName }}Async、Delete{{ ClassName }}Async。
+/// 新增接口方法请先在 I{{ ClassName }}Contracts.cs 中声明签名，再在此实现。
+/// </remarks>
+public sealed class {{ ClassName }}AppService : {{ ClassName }}AppServiceBase
+{
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public {{ ClassName }}AppService(I{{ ClassName }}Repository repository)
+        : base(repository)
+    {
+    }
+}

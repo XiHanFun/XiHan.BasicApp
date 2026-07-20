@@ -1,0 +1,12 @@
+/**
+ * {{ TableComment }}类型定义（自定义部分）
+ *
+ * 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
+ * 表结构推导出的类型在 {{ ClassNameKebab }}.types.generated.ts，下方 re-export 全部导出，
+ * 因此外部一律从本文件导入，无需关心哪些是生成的。
+ *
+ * 常见用途：
+ *   - 扩展已生成的类型：export interface {{ ClassName }}WithExtra extends {{ ClassName }}ListItemDto { extra: string }
+ *   - 新增自定义 DTO / 视图模型
+ */
+export * from './{{ ClassNameKebab }}.types.generated'
