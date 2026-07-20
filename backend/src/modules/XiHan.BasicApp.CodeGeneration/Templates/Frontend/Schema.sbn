@@ -53,6 +53,23 @@ export const baseActions: NonNullable<PageSchema['actions']> = [
   { key: 'delete', title: '删除', scope: 'row' },
 ]
 
+{{~ if HasDetailTables ~}}
+/**
+ * 明细表列定义（主表行展开区使用；按子表分组）
+ */
+export const detailTableColumns = {
+{{~ for detail in DetailTables ~}}
+  {{ detail.ClassNameCamel }}: [
+{{~ for col in detail.Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && col.ColumnName != detail.ForeignKeyColumn ~}}
+    { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', minWidth: 120 },
+{{~ end ~}}
+{{~ end ~}}
+  ],
+{{~ end ~}}
+} satisfies Record<string, { key: string, title: string, minWidth: number }[]>
+
+{{~ end ~}}
 /**
  * 表单默认值
  */
