@@ -47,6 +47,63 @@ public sealed class CodeGenImportTableDto
 }
 
 /// <summary>
+/// 批量导入数据库表 DTO
+/// </summary>
+public sealed class CodeGenImportTablesDto
+{
+    /// <summary>数据源标识（对应 SysCodeGenDataSource；为空表示主库）</summary>
+    public long? DataSourceId { get; set; }
+
+    /// <summary>数据库类型</summary>
+    public DatabaseType DatabaseType { get; set; } = DatabaseType.MySql;
+
+    /// <summary>待导入的表名集合</summary>
+    public IReadOnlyList<string> TableNames { get; set; } = [];
+}
+
+/// <summary>
+/// 批量导入结果 DTO
+/// </summary>
+public sealed class CodeGenImportTablesResultDto
+{
+    /// <summary>成功导入的表名</summary>
+    public IReadOnlyList<string> Succeeded { get; set; } = [];
+
+    /// <summary>失败的表（表名 → 原因）</summary>
+    public IReadOnlyList<CodeGenImportFailureDto> Failed { get; set; } = [];
+}
+
+/// <summary>
+/// 批量导入失败明细
+/// </summary>
+public sealed class CodeGenImportFailureDto
+{
+    public string TableName { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 同步表结构结果 DTO
+/// </summary>
+public sealed class CodeGenSchemaSyncResultDto
+{
+    /// <summary>新增列数</summary>
+    public int AddedCount { get; set; }
+
+    /// <summary>更新列数（结构性字段或未冻结的推断字段有变化）</summary>
+    public int UpdatedCount { get; set; }
+
+    /// <summary>删除列数（库中已不存在）</summary>
+    public int RemovedCount { get; set; }
+
+    /// <summary>新增的列名</summary>
+    public IReadOnlyList<string> AddedColumns { get; set; } = [];
+
+    /// <summary>删除的列名</summary>
+    public IReadOnlyList<string> RemovedColumns { get; set; } = [];
+}
+
+/// <summary>
 /// 代码生成预览请求 DTO
 /// </summary>
 public sealed class CodeGenPreviewRequestDto

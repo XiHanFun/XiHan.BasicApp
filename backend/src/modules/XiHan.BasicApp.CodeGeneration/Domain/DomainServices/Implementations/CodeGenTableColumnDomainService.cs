@@ -15,6 +15,7 @@
 using System.Text.Json;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
@@ -73,10 +74,38 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         cancellationToken.ThrowIfCancellationRequested();
 
         var column = await GetColumnOrThrowAsync(command.BasicId, cancellationToken);
+
+        // dirty-tracking：应用前后 diff，把值发生变化的字段并入"已人工修改"集合，
+        // 供同步表结构时冻结（保留人工值），其余字段跟随最新表结构重新推断
+        var snapshot = UserModifiedFieldSet.Snapshot(column, TrackedFields);
         ApplyMutableFields(column, command);
+        var changed = UserModifiedFieldSet.DiffChanged(column, snapshot);
+        column.UserModifiedFields = UserModifiedFieldSet.Merge(column.UserModifiedFields, changed);
 
         return new CodeGenTableColumnCommandResult(await _columnRepository.UpdateAsync(column, cancellationToken));
     }
+
+    /// <summary>
+    /// 参与 dirty-tracking 的列字段（会被同步表结构重新推断覆盖的字段；结构性字段不在内，始终以 DB 为准）
+    /// </summary>
+    private static readonly string[] TrackedFields =
+    [
+        nameof(SysCodeGenTableColumn.CSharpType),
+        nameof(SysCodeGenTableColumn.CSharpProperty),
+        nameof(SysCodeGenTableColumn.TsType),
+        nameof(SysCodeGenTableColumn.IsRequired),
+        nameof(SysCodeGenTableColumn.IsList),
+        nameof(SysCodeGenTableColumn.IsInsert),
+        nameof(SysCodeGenTableColumn.IsEdit),
+        nameof(SysCodeGenTableColumn.IsQuery),
+        nameof(SysCodeGenTableColumn.QueryType),
+        nameof(SysCodeGenTableColumn.HtmlType),
+        nameof(SysCodeGenTableColumn.DictSelectorType),
+        nameof(SysCodeGenTableColumn.DictCode),
+        nameof(SysCodeGenTableColumn.EnumTypeName),
+        nameof(SysCodeGenTableColumn.ConstValues),
+        nameof(SysCodeGenTableColumn.Sort)
+    ];
 
     /// <summary>
     /// 覆盖列配置的可变字段
