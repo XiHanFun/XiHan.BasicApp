@@ -35,6 +35,10 @@ public sealed class CodeGenTableUpdateDto : BasicAppUDto
     public string? Author { get; set; }
     public TemplateType TemplateType { get; set; } = TemplateType.Single;
     public GenType GenType { get; set; } = GenType.Zip;
+    /// <summary>生成范围（全部/仅后端/仅前端）</summary>
+    public GenerationScope GenerationScope { get; set; } = GenerationScope.All;
+    /// <summary>包含操作（逗号分隔的 create/update/delete 子集；null/空=全开）</summary>
+    public string? EnabledActions { get; set; }
     public string? GenPath { get; set; }
     public long? ParentMenuId { get; set; }
     public string? PrimaryKeyColumn { get; set; }
@@ -98,6 +102,10 @@ public sealed class CodeGenTableDetailDto : CodeGenTableListItemDto
     public string? Namespace { get; set; }
     public string? Author { get; set; }
     public GenType GenType { get; set; }
+    /// <summary>生成范围（全部/仅后端/仅前端）</summary>
+    public GenerationScope GenerationScope { get; set; }
+    /// <summary>包含操作（逗号分隔的 create/update/delete 子集；null/空=全开）</summary>
+    public string? EnabledActions { get; set; }
     public string? GenPath { get; set; }
     public long? ParentMenuId { get; set; }
     public string? PrimaryKeyColumn { get; set; }

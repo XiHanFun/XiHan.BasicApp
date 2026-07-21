@@ -13,6 +13,10 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
+{{~ # 操作裁剪标志（EnabledActions 门控；读取基线 tree/detail 始终生成） ~}}
+{{~ has_modal = CanCreate || CanUpdate ~}}
+{{~ has_row_action = CanUpdate || CanDelete ~}}
+{{~ has_actions = CanCreate || CanUpdate || CanDelete ~}}
 <!--
   {{ TableComment }}管理页（树形）
 
@@ -24,49 +28,90 @@
 -->
 <script setup lang="ts">
 import type {
+{{~ if CanCreate ~}}
   {{ ClassName }}CreateDto,
+{{~ end ~}}
+{{~ if CanUpdate ~}}
   {{ ClassName }}DetailDto,
+{{~ end ~}}
+{{~ if has_row_action ~}}
   {{ ClassName }}ListItemDto,
+{{~ end ~}}
   {{ ClassName }}TreeNodeDto,
+{{~ if CanUpdate ~}}
   {{ ClassName }}UpdateDto,
+{{~ end ~}}
 } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
-import type { PageSchema, SchemaActionPayload } from '~/components'
+import type {
+  PageSchema,
+{{~ if has_actions ~}}
+  SchemaActionPayload,
+{{~ end ~}}
+} from '~/components'
+{{~ if has_modal ~}}
 import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
+{{~ end ~}}
+{{~ if has_actions ~}}
 import {
+{{~ if has_modal ~}}
   NButton,
   NForm,
   NFormItem,
   NInput,
-{{~ if has_number ~}}
+{{~ end ~}}
+{{~ if has_modal && has_number ~}}
   NInputNumber,
 {{~ end ~}}
+{{~ if has_modal ~}}
   NModal,
-{{~ if has_select ~}}
+{{~ end ~}}
+{{~ if has_modal && has_select ~}}
   NSelect,
 {{~ end ~}}
+{{~ if has_modal ~}}
   NSpace,
-{{~ if has_switch ~}}
+{{~ end ~}}
+{{~ if has_modal && has_switch ~}}
   NSwitch,
 {{~ end ~}}
+{{~ if has_modal ~}}
   NTreeSelect,
+{{~ end ~}}
   useMessage,
 } from 'naive-ui'
-import { computed, ref } from 'vue'
+{{~ end ~}}
+import {
+{{~ if has_modal ~}}
+  computed,
+{{~ end ~}}
+  ref,
+} from 'vue'
 import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
 import { SchemaPage } from '~/components'
-import { actions, createDefaultForm, fields, pageMeta } from './{{ ClassNameKebab }}.schema'
+import {
+  actions,
+{{~ if has_modal ~}}
+  createDefaultForm,
+{{~ end ~}}
+  fields,
+  pageMeta,
+} from './{{ ClassNameKebab }}.schema'
 
 defineOptions({ name: '{{ ClassName }}Page' })
 
+{{~ if has_actions ~}}
 const message = useMessage()
+{{~ end ~}}
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 /** 父级选择器数据源：与表格共用同一次树查询结果 */
 const treeNodes = ref<{{ ClassName }}TreeNodeDto[]>([])
+{{~ if has_actions ~}}
 
 function reloadList() {
   void schemaPageRef.value?.reload()
 }
+{{~ end ~}}
 
 const schema: PageSchema = {
   ...pageMeta,
@@ -78,9 +123,12 @@ const schema: PageSchema = {
       treeNodes.value = nodes ?? []
       return (nodes ?? []) as unknown as Record<string, unknown>[]
     },
+{{~ if CanDelete ~}}
     remove: id => {{ ClassNameCamel }}ManagementApi.delete(id),
+{{~ end ~}}
   },
 }
+{{~ if has_modal ~}}
 
 /** 编辑时排除自身及其子树，避免把节点挂到自己的后代下形成环 */
 const parentOptions = computed(() => {
@@ -95,35 +143,51 @@ const parentOptions = computed(() => {
       }))
   return map(treeNodes.value)
 })
+{{~ end ~}}
+{{~ if has_actions ~}}
 
 function onAction(payload: SchemaActionPayload) {
+{{~ if has_row_action ~}}
   const row = payload.row as unknown as {{ ClassName }}ListItemDto | undefined
+{{~ end ~}}
   switch (payload.key) {
+{{~ if CanCreate ~}}
     case 'create':
       handleAdd()
       break
+{{~ end ~}}
+{{~ if CanUpdate ~}}
     case 'edit':
       if (row) {
         void handleEdit(row)
       }
       break
+{{~ end ~}}
+{{~ if CanDelete ~}}
     case 'delete':
       if (row) {
         void handleDelete(row)
       }
       break
+{{~ end ~}}
   }
 }
+{{~ end ~}}
+{{~ if has_modal ~}}
 
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment }}' : '新增{{ TableComment }}'))
+{{~ end ~}}
+{{~ if CanCreate ~}}
 
 function handleAdd() {
   form.value = createDefaultForm()
   modalVisible.value = true
 }
+{{~ end ~}}
+{{~ if CanUpdate ~}}
 
 async function handleEdit(row: {{ ClassName }}ListItemDto) {
   const detail = await {{ ClassNameCamel }}ManagementApi.detail(row.basicId)
@@ -142,16 +206,21 @@ async function handleEdit(row: {{ ClassName }}ListItemDto) {
   }
   modalVisible.value = true
 }
+{{~ end ~}}
+{{~ if CanDelete ~}}
 
 async function handleDelete(row: {{ ClassName }}ListItemDto) {
   await {{ ClassNameCamel }}ManagementApi.delete(row.basicId)
   message.success('删除成功')
   reloadList()
 }
+{{~ end ~}}
+{{~ if has_modal ~}}
 
 async function handleSubmit() {
   submitLoading.value = true
   try {
+{{~ if CanUpdate ~}}
     if (form.value.basicId) {
       const updateInput: {{ ClassName }}UpdateDto = {
         basicId: form.value.basicId,
@@ -163,6 +232,7 @@ async function handleSubmit() {
       }
       await {{ ClassNameCamel }}ManagementApi.update(updateInput)
     }
+{{~ if CanCreate ~}}
     else {
       const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
@@ -173,6 +243,17 @@ async function handleSubmit() {
       }
       await {{ ClassNameCamel }}ManagementApi.create(createInput)
     }
+{{~ end ~}}
+{{~ else ~}}
+    const createInput: {{ ClassName }}CreateDto = {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+      {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+    }
+    await {{ ClassNameCamel }}ManagementApi.create(createInput)
+{{~ end ~}}
     message.success('保存成功')
     modalVisible.value = false
     reloadList()
@@ -184,10 +265,12 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
+{{~ end ~}}
 </script>
 
 <template>
-  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+  <SchemaPage ref="schemaPageRef" :schema="schema"{{ if has_actions }} @action="onAction"{{ end }}>
+{{~ if has_modal ~}}
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -238,5 +321,6 @@ async function handleSubmit() {
         </NSpace>
       </template>
     </NModal>
+{{~ end ~}}
   </SchemaPage>
 </template>

@@ -24,14 +24,20 @@ namespace {{ Namespace }}.Application.Contracts;
 /// </summary>
 public partial interface I{{ ClassName }}AppService : IApplicationService
 {
+{{~ if CanCreate ~}}
     /// <summary>创建{{ TableComment }}</summary>
     Task<{{ ClassName }}DetailDto> Create{{ ClassName }}Async({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default);
+{{~ end ~}}
+{{~ if CanUpdate ~}}
 
     /// <summary>更新{{ TableComment }}</summary>
     Task<{{ ClassName }}DetailDto> Update{{ ClassName }}Async({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default);
+{{~ end ~}}
+{{~ if CanDelete ~}}
 
     /// <summary>删除{{ TableComment }}</summary>
     Task Delete{{ ClassName }}Async(long id, CancellationToken cancellationToken = default);
+{{~ end ~}}
 }
 
 /// <summary>

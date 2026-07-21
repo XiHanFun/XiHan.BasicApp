@@ -123,9 +123,12 @@ public sealed class CodeGenerationEngine(
             ? await _templateRepository.GetByCodesAsync(request.TemplateCodes, cancellationToken)
             : await _templateRepository.GetEnabledByTypeAsync(table.TemplateType, cancellationToken);
 
+        // 生成范围裁剪：按模板分组前缀（backend-* / frontend-*）过滤
+        templates = FilterByScope(templates, table.GenerationScope);
+
         if (templates.Count == 0)
         {
-            return GenerationResult.Fail("未找到可用模板（请检查模板类型/编码与启用状态）。");
+            return GenerationResult.Fail("未找到可用模板（请检查模板类型/编码、启用状态与生成范围）。");
         }
 
         var artifacts = new List<GeneratedArtifact>(templates.Count);
@@ -141,11 +144,61 @@ public sealed class CodeGenerationEngine(
             artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode, template.WriteMode));
         }
 
-        // 二阶产物：菜单 + 按钮权限代码片段（待并入源码 → 重建库经既有 Seeder 链生效，非运行时写库）
-        artifacts.AddRange(MenuPermissionArtifactGenerator.Build(context));
+        // 二阶产物：菜单 + 按钮权限代码片段（属后端接线，仅后端与全部范围生成；纯前端不需要）
+        if (table.GenerationScope != GenerationScope.FrontendOnly)
+        {
+            artifacts.AddRange(MenuPermissionArtifactGenerator.Build(context));
+        }
 
         stopwatch.Stop();
         return GenerationResult.Ok(artifacts, stopwatch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// 按生成范围裁剪模板（依模板分组前缀 backend-* / frontend-* 判定归属）
+    /// </summary>
+    private static IReadOnlyList<SysCodeGenTemplate> FilterByScope(IReadOnlyList<SysCodeGenTemplate> templates, GenerationScope scope)
+    {
+        return scope switch
+        {
+            GenerationScope.BackendOnly => [.. templates.Where(template => IsBackend(template.TemplateGroup))],
+            GenerationScope.FrontendOnly => [.. templates.Where(template => IsFrontend(template.TemplateGroup))],
+            _ => templates
+        };
+    }
+
+    /// <summary>
+    /// 模板分组是否属后端
+    /// </summary>
+    private static bool IsBackend(string? templateGroup)
+        => templateGroup?.Contains("backend", StringComparison.OrdinalIgnoreCase) == true;
+
+    /// <summary>
+    /// 模板分组是否属前端
+    /// </summary>
+    private static bool IsFrontend(string? templateGroup)
+        => templateGroup?.Contains("frontend", StringComparison.OrdinalIgnoreCase) == true;
+
+    /// <summary>
+    /// 可裁剪的写操作全集（读取基线 list/detail 始终生成，不在此列）
+    /// </summary>
+    private static readonly string[] CrudActions = ["create", "update", "delete"];
+
+    /// <summary>
+    /// 归一化包含操作：null/空（未配置或全选）→ 全开；非空则按规范集合过滤
+    /// </summary>
+    private static IReadOnlyList<string> NormalizeEnabledActions(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return CrudActions;
+        }
+
+        var selected = raw
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(action => action.ToLowerInvariant())
+            .ToHashSet();
+        return [.. CrudActions.Where(selected.Contains)];
     }
 
     /// <summary>
@@ -174,6 +227,7 @@ public sealed class CodeGenerationEngine(
             FunctionName = table.FunctionName,
             Author = table.Author,
             TemplateType = table.TemplateType,
+            EnabledActions = NormalizeEnabledActions(table.EnabledActions),
             Columns = columnSchemas,
             PrimaryKey = columnSchemas.FirstOrDefault(column => column.IsPrimaryKey)
                 ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn),

@@ -33,6 +33,8 @@ public sealed record CodeGenTableUpdateCommand(
     string? Author,
     TemplateType TemplateType,
     GenType GenType,
+    GenerationScope GenerationScope,
+    string? EnabledActions,
     string? GenPath,
     long? ParentMenuId,
     string? PrimaryKeyColumn,

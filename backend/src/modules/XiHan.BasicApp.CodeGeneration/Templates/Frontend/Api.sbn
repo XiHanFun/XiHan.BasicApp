@@ -1,37 +1,50 @@
+{{~ has_command = CanCreate || CanUpdate || CanDelete ~}}
 /**
  * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
  * 自定义请求请写在 {{ ClassNameKebab }}.ts（该文件会 re-export 本文件全部导出）。
  */
 import type { ApiId, PageResult } from '../../types'
 import type {
+{{~ if CanCreate ~}}
   {{ ClassName }}CreateDto,
+{{~ end ~}}
   {{ ClassName }}DetailDto,
   {{ ClassName }}ListItemDto,
   {{ ClassName }}PageQueryDto,
 {{~ if TemplateType == "Tree" ~}}
   {{ ClassName }}TreeNodeDto,
 {{~ end ~}}
+{{~ if CanUpdate ~}}
   {{ ClassName }}UpdateDto,
+{{~ end ~}}
 } from './{{ ClassNameKebab }}.types'
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
   createPageRequestParams,
   createReadApi,
+{{~ if CanDelete ~}}
   formatDynamicApiRouteValue,
+{{~ end ~}}
 } from '../../base'
 
 const {{ ClassNameCamel }}QueryApi = createDynamicApiClient('{{ ClassName }}Query')
+{{~ if has_command ~}}
 const {{ ClassNameCamel }}CommandApi = createDynamicApiClient('{{ ClassName }}')
+{{~ end ~}}
 const {{ ClassNameCamel }}ReadApi = createReadApi<{{ ClassName }}ListItemDto, {{ ClassName }}DetailDto, {{ ClassName }}PageQueryDto>('{{ ClassName }}Query', '{{ ClassName }}')
 
 export const {{ ClassNameCamel }}BaseManagementApi = {
+{{~ if CanCreate ~}}
   create(input: {{ ClassName }}CreateDto) {
     return {{ ClassNameCamel }}CommandApi.post<{{ ClassName }}DetailDto, {{ ClassName }}CreateDto>('{{ ClassName }}', input)
   },
+{{~ end ~}}
+{{~ if CanDelete ~}}
   delete(id: ApiId) {
     return {{ ClassNameCamel }}CommandApi.delete(`{{ ClassName }}/${formatDynamicApiRouteValue(id)}`)
   },
+{{~ end ~}}
   detail(id: ApiId) {
     return {{ ClassNameCamel }}ReadApi.detail(id)
   },
@@ -48,9 +61,11 @@ export const {{ ClassNameCamel }}BaseManagementApi = {
     return {{ ClassNameCamel }}QueryApi.get<{{ ClassName }}ListItemDto[]>('{{ ClassName }}ByMaster', { MasterId: masterId })
   },
 {{~ end ~}}
+{{~ if CanUpdate ~}}
   update(input: {{ ClassName }}UpdateDto) {
     return {{ ClassNameCamel }}CommandApi.put<{{ ClassName }}DetailDto, {{ ClassName }}UpdateDto>('{{ ClassName }}', input)
   },
+{{~ end ~}}
 }
 
 function to{{ ClassName }}PageParams(input: {{ ClassName }}PageQueryDto) {

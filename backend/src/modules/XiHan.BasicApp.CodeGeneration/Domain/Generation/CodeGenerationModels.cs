@@ -185,6 +185,15 @@ public sealed class CodeGenerationContext
     /// <summary>模板类型（单表/树表/主子表）</summary>
     public TemplateType TemplateType { get; set; } = TemplateType.Single;
 
+    /// <summary>
+    /// 已启用操作键集合（裁剪生成的写接口与按钮；模板用 array.contains 判定）
+    /// </summary>
+    /// <remarks>
+    /// 取值为 create/update/delete 的子集（列表/详情为读取基线，始终生成）。已由引擎归一化：
+    /// 表未配置（null/空）时填入全集，模板无需处理空值。
+    /// </remarks>
+    public IReadOnlyList<string> EnabledActions { get; set; } = [];
+
     /// <summary>主键列</summary>
     public ColumnSchema? PrimaryKey { get; set; }
 

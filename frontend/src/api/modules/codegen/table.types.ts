@@ -1,7 +1,7 @@
 import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 import type { CodeGenTableColumnListItemDto } from './codegen-table-column.types'
-import type { DatabaseType, GenStatus, GenType, TemplateType } from './codegen.enums'
+import type { DatabaseType, GenerationScope, GenStatus, GenType, TemplateType } from './codegen.enums'
 
 export { EnableStatus } from '../shared'
 
@@ -42,6 +42,10 @@ export interface CodeGenTableDetailDto extends CodeGenTableListItemDto {
   namespace?: string | null
   author?: string | null
   genType: GenType
+  /** 生成范围（全部/仅后端/仅前端） */
+  generationScope: GenerationScope
+  /** 包含操作（逗号分隔的 create/update/delete 子集；null/空=全开） */
+  enabledActions?: string | null
   genPath?: string | null
   parentMenuId?: ApiId | null
   primaryKeyColumn?: string | null
@@ -76,6 +80,10 @@ export interface CodeGenTableUpdateDto extends BasicDto {
   author?: string | null
   templateType: TemplateType
   genType: GenType
+  /** 生成范围（全部/仅后端/仅前端） */
+  generationScope: GenerationScope
+  /** 包含操作（逗号分隔的 create/update/delete 子集；null/空=全开） */
+  enabledActions?: string | null
   genPath?: string | null
   parentMenuId?: ApiId | null
   primaryKeyColumn?: string | null

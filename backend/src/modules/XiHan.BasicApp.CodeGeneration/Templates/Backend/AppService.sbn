@@ -51,6 +51,7 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
     {
         _repository = repository;
     }
+{{~ if CanCreate ~}}
 
     /// <inheritdoc />
     [UnitOfWork(true)]
@@ -63,6 +64,8 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         entity = await _repository.AddAsync(entity, cancellationToken);
         return {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
     }
+{{~ end ~}}
+{{~ if CanUpdate ~}}
 
     /// <inheritdoc />
     [UnitOfWork(true)]
@@ -77,6 +80,8 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         entity = await _repository.UpdateAsync(entity, cancellationToken);
         return {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
     }
+{{~ end ~}}
+{{~ if CanDelete ~}}
 
     /// <inheritdoc />
     [UnitOfWork(true)]
@@ -90,4 +95,5 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         cancellationToken.ThrowIfCancellationRequested();
         _ = await _repository.DeleteByIdAsync(id, cancellationToken);
     }
+{{~ end ~}}
 }
