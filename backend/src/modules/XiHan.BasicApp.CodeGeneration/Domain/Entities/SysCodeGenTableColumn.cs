@@ -235,6 +235,13 @@ public partial class SysCodeGenTableColumn : BasicAppFullAuditedEntity
     public virtual EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
+    /// 已人工修改的字段名集合（JSON 数组）
+    /// 记录本列被用户手工改过的字段；同步表结构时冻结这些字段，其余跟随最新表结构重新推断
+    /// </summary>
+    [SugarColumn(ColumnName = "User_Modified_Fields", ColumnDescription = "已人工修改字段", Length = 500, IsNullable = true)]
+    public virtual string? UserModifiedFields { get; set; }
+
+    /// <summary>
     /// 备注
     /// </summary>
     [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]

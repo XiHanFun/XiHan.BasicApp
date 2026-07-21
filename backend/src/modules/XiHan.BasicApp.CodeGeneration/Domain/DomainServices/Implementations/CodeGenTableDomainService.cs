@@ -13,6 +13,7 @@
 #endregion <<版权版本注释>>
 
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
@@ -60,6 +61,9 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
 
         var table = await GetTableOrThrowAsync(command.BasicId, cancellationToken);
 
+        // dirty-tracking：应用前快照，应用后 diff，把变化的字段并入"已人工修改"集合
+        var snapshot = UserModifiedFieldSet.Snapshot(table, TrackedTableFields);
+
         table.TableName = tableName;
         table.TableComment = Optional(command.TableComment, 500, nameof(command.TableComment), "表描述长度不能超过 500 个字符。");
         table.ClassName = className;
@@ -83,8 +87,27 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         table.Status = command.Status;
         table.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注长度不能超过 500 个字符。");
 
+        var changed = UserModifiedFieldSet.DiffChanged(table, snapshot);
+        table.UserModifiedFields = UserModifiedFieldSet.Merge(table.UserModifiedFields, changed);
+
         return new CodeGenTableCommandResult(await _tableRepository.UpdateAsync(table, cancellationToken));
     }
+
+    /// <summary>
+    /// 参与 dirty-tracking 的表字段（会被同步表结构重新推断覆盖的字段）
+    /// </summary>
+    private static readonly string[] TrackedTableFields =
+    [
+        nameof(SysCodeGenTable.ClassName),
+        nameof(SysCodeGenTable.Namespace),
+        nameof(SysCodeGenTable.ModuleName),
+        nameof(SysCodeGenTable.BusinessName),
+        nameof(SysCodeGenTable.FunctionName),
+        nameof(SysCodeGenTable.Author),
+        nameof(SysCodeGenTable.TemplateType),
+        nameof(SysCodeGenTable.TreeParentColumn),
+        nameof(SysCodeGenTable.TreeNameColumn)
+    ];
 
     /// <inheritdoc />
     public async Task<CodeGenTableCommandResult> UpdateTableStatusAsync(CodeGenTableStatusChangeCommand command, CancellationToken cancellationToken = default)
