@@ -356,3 +356,31 @@ public enum ArtifactWriteMode
     [Description("仅首次创建")]
     WriteOnce = 1
 }
+
+/// <summary>
+/// 生成范围（裁剪产物归属：全量/仅后端/仅前端）
+/// </summary>
+/// <remarks>
+/// 仅做产物裁剪——某张表只需要后端接口、或只需要前端页面时，别生成不需要的那一半。
+/// 不用于改写生成行为：要改行为走 M0 的 Generation Gap（在人类文件 override 后调 base.XxxAsync）。
+/// </remarks>
+public enum GenerationScope
+{
+    /// <summary>
+    /// 全部（前端 + 后端）
+    /// </summary>
+    [Description("全部")]
+    All = 0,
+
+    /// <summary>
+    /// 仅后端
+    /// </summary>
+    [Description("仅后端")]
+    BackendOnly = 1,
+
+    /// <summary>
+    /// 仅前端
+    /// </summary>
+    [Description("仅前端")]
+    FrontendOnly = 2
+}

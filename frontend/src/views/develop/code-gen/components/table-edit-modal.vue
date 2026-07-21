@@ -4,6 +4,7 @@ import type {
   CodeGenTableUpdateDto,
   DatabaseType,
   EnableStatus,
+  GenerationScope,
   GenType,
   TemplateType,
 } from '@/api'
@@ -21,8 +22,11 @@ import {
   createPageRequest,
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
+  ENABLED_ACTION_OPTIONS,
   EnableStatus as EnableStatusEnum,
   GEN_TYPE_OPTIONS,
+  GENERATION_SCOPE_OPTIONS,
+  GenerationScope as GenerationScopeEnum,
   GenType as GenTypeEnum,
   TEMPLATE_TYPE_OPTIONS,
   TemplateType as TemplateTypeEnum,
@@ -60,6 +64,9 @@ interface TableFormModel {
   author?: string | null
   templateType: TemplateType
   genType: GenType
+  generationScope: GenerationScope
+  // 包含操作以字符串数组建模（多选控件）；提交时 join 为逗号分隔串，空/全等价全开
+  enabledActions: string[]
   genPath?: string | null
   // 上级菜单：M1 仅随详情回传（不写死 null），M3 接入菜单树选择控件
   parentMenuId?: ApiId | null
@@ -87,6 +94,18 @@ const tableOptions = ref<{ label: string, value: ApiId }[]>([])
 const isTreeTemplate = computed(() => form.value.templateType === TemplateTypeEnum.Tree)
 const isMasterDetailTemplate = computed(() => form.value.templateType === TemplateTypeEnum.MasterDetail)
 
+/** 全部可裁剪写操作（列表/详情为读取基线，不在此列） */
+const ALL_ACTIONS = ['create', 'update', 'delete']
+
+/** 后端逗号分隔串 → 多选数组；null/空视为全开（全部勾选） */
+function parseEnabledActions(raw?: string | null): string[] {
+  if (!raw) {
+    return [...ALL_ACTIONS]
+  }
+  const selected = raw.split(',').map(item => item.trim()).filter(Boolean)
+  return ALL_ACTIONS.filter(action => selected.includes(action))
+}
+
 function createDefaultForm(): TableFormModel {
   return {
     basicId: '',
@@ -100,6 +119,8 @@ function createDefaultForm(): TableFormModel {
     author: null,
     templateType: TemplateTypeEnum.Single,
     genType: GenTypeEnum.Zip,
+    generationScope: GenerationScopeEnum.All,
+    enabledActions: [...ALL_ACTIONS],
     genPath: null,
     parentMenuId: null,
     primaryKeyColumn: null,
@@ -152,6 +173,8 @@ async function loadDetail() {
       author: detail.author ?? null,
       templateType: detail.templateType,
       genType: detail.genType,
+      generationScope: detail.generationScope ?? GenerationScopeEnum.All,
+      enabledActions: parseEnabledActions(detail.enabledActions),
       genPath: detail.genPath ?? null,
       parentMenuId: detail.parentMenuId ?? null,
       primaryKeyColumn: detail.primaryKeyColumn ?? null,
@@ -259,6 +282,9 @@ async function handleSubmit() {
       author: form.value.author,
       templateType: form.value.templateType,
       genType: form.value.genType,
+      generationScope: form.value.generationScope,
+      // 全部/空数组都提交为空串，后端归一化为全开
+      enabledActions: form.value.enabledActions.length === ALL_ACTIONS.length ? '' : form.value.enabledActions.join(','),
       genPath: form.value.genPath,
       parentMenuId: form.value.parentMenuId,
       primaryKeyColumn: form.value.primaryKeyColumn,
@@ -328,6 +354,18 @@ async function handleSubmit() {
       </NFormItem>
       <NFormItem :label="t('develop.code_gen.table_edit.form_gen_type')" path="genType">
         <NSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />
+      </NFormItem>
+      <NFormItem :label="t('develop.code_gen.table_edit.form_generation_scope')" path="generationScope">
+        <NSelect v-model:value="form.generationScope" :options="GENERATION_SCOPE_OPTIONS" />
+      </NFormItem>
+      <NFormItem :label="t('develop.code_gen.table_edit.form_enabled_actions')" path="enabledActions">
+        <NSelect
+          v-model:value="form.enabledActions"
+          multiple
+          :max-tag-count="3"
+          :options="ENABLED_ACTION_OPTIONS"
+          :placeholder="t('develop.code_gen.table_edit.form_enabled_actions_placeholder')"
+        />
       </NFormItem>
       <NFormItem :label="t('develop.code_gen.table_edit.form_database_type')" path="databaseType">
         <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />

@@ -47,6 +47,7 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         EnsureId(command.BasicId, "表配置主键必须大于 0。");
         ValidateEnum(command.TemplateType, nameof(command.TemplateType));
         ValidateEnum(command.GenType, nameof(command.GenType));
+        ValidateEnum(command.GenerationScope, nameof(command.GenerationScope));
         ValidateEnum(command.DatabaseType, nameof(command.DatabaseType));
         ValidateEnum(command.Status, nameof(command.Status));
 
@@ -74,6 +75,8 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         table.Author = Optional(command.Author, 100, nameof(command.Author), "作者长度不能超过 100 个字符。");
         table.TemplateType = command.TemplateType;
         table.GenType = command.GenType;
+        table.GenerationScope = command.GenerationScope;
+        table.EnabledActions = Optional(command.EnabledActions, 200, nameof(command.EnabledActions), "包含操作长度不能超过 200 个字符。");
         table.GenPath = Optional(command.GenPath, 500, nameof(command.GenPath), "生成路径长度不能超过 500 个字符。");
         table.ParentMenuId = command.ParentMenuId;
         table.PrimaryKeyColumn = Optional(command.PrimaryKeyColumn, 100, nameof(command.PrimaryKeyColumn), "主键列名长度不能超过 100 个字符。");

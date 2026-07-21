@@ -83,6 +83,11 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["Author"] = context.Author,
             // 枚举以名称字符串透出，便于模板按名比较（如 {{ if TemplateType == "Tree" }}）
             ["TemplateType"] = context.TemplateType.ToString(),
+            // 包含操作：透出列表（供 array.contains）+ 三个便捷布尔（模板首选，避免重复判定）
+            ["EnabledActions"] = context.EnabledActions.ToList(),
+            ["CanCreate"] = context.EnabledActions.Contains("create"),
+            ["CanUpdate"] = context.EnabledActions.Contains("update"),
+            ["CanDelete"] = context.EnabledActions.Contains("delete"),
             ["PrimaryKey"] = context.PrimaryKey is null ? null : BuildColumn(context.PrimaryKey),
             ["Columns"] = context.Columns.Select(BuildColumn).ToList(),
             // 树表结构列（TemplateType == "Tree" 时非空，由引擎 fail-closed 保证）

@@ -119,6 +119,23 @@ public partial class SysCodeGenTable : BasicAppFullAuditedEntity
     public virtual GenType GenType { get; set; } = GenType.Zip;
 
     /// <summary>
+    /// 生成范围（裁剪前端/后端产物）
+    /// </summary>
+    [SugarColumn(ColumnName = "Generation_Scope", ColumnDescription = "生成范围")]
+    public virtual GenerationScope GenerationScope { get; set; } = GenerationScope.All;
+
+    /// <summary>
+    /// 包含操作（逗号分隔的操作键，裁剪生成的接口与按钮）
+    /// </summary>
+    /// <remarks>
+    /// 取值为 create/update/delete 的子集（列表/详情为读取基线，始终生成）。
+    /// null/空 = 全开（未配置或全选）；非空则按该子集裁剪写接口与按钮。
+    /// 仅做功能裁剪——不需要写接口时别生成；不用于改写行为（改行为走 M0 的 override + base.XxxAsync）。
+    /// </remarks>
+    [SugarColumn(ColumnName = "Enabled_Actions", ColumnDescription = "包含操作", Length = 200, IsNullable = true)]
+    public virtual string? EnabledActions { get; set; }
+
+    /// <summary>
     /// 生成路径
     /// </summary>
     [SugarColumn(ColumnName = "Gen_Path", ColumnDescription = "生成路径", Length = 500, IsNullable = true)]

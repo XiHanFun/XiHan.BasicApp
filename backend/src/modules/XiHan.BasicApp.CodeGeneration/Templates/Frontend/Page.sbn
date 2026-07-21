@@ -13,6 +13,11 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
+{{~ # 操作裁剪标志（EnabledActions 门控；读取基线 list/detail 始终生成） ~}}
+{{~ has_modal = CanCreate || CanUpdate ~}}
+{{~ has_row_action = CanUpdate || CanDelete ~}}
+{{~ has_actions = CanCreate || CanUpdate || CanDelete ~}}
+{{~ need_message = has_actions || HasDetailTables ~}}
 <!--
   {{ TableComment }}管理页
 
@@ -22,55 +27,98 @@
 -->
 <script setup lang="ts">
 import type { PageResult } from '@/api'
+{{~ if has_actions ~}}
 import type {
+{{~ if CanCreate ~}}
   {{ ClassName }}CreateDto,
+{{~ end ~}}
+{{~ if CanUpdate ~}}
   {{ ClassName }}DetailDto,
+{{~ end ~}}
+{{~ if has_row_action ~}}
   {{ ClassName }}ListItemDto,
+{{~ end ~}}
+{{~ if CanUpdate ~}}
   {{ ClassName }}UpdateDto,
+{{~ end ~}}
 } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
-import type { PageSchema, SchemaActionPayload } from '~/components'
+{{~ end ~}}
+import type {
+  PageSchema,
+{{~ if has_actions ~}}
+  SchemaActionPayload,
+{{~ end ~}}
+} from '~/components'
+{{~ if has_modal ~}}
 import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
+{{~ end ~}}
+{{~ if need_message ~}}
 import {
+{{~ if has_modal ~}}
   NButton,
+{{~ end ~}}
 {{~ if HasDetailTables ~}}
   NDataTable,
 {{~ end ~}}
+{{~ if has_modal ~}}
   NForm,
   NFormItem,
   NInput,
-{{~ if has_number ~}}
+{{~ end ~}}
+{{~ if has_modal && has_number ~}}
   NInputNumber,
 {{~ end ~}}
+{{~ if has_modal ~}}
   NModal,
-{{~ if has_select ~}}
+{{~ end ~}}
+{{~ if has_modal && has_select ~}}
   NSelect,
 {{~ end ~}}
+{{~ if has_modal ~}}
   NSpace,
-{{~ if has_switch ~}}
+{{~ end ~}}
+{{~ if has_modal && has_switch ~}}
   NSwitch,
 {{~ end ~}}
   useMessage,
 } from 'naive-ui'
-import { computed, ref } from 'vue'
+{{~ end ~}}
+import {
+{{~ if has_modal ~}}
+  computed,
+{{~ end ~}}
+  ref,
+} from 'vue'
 import { createPageRequest } from '@/api'
 import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
 {{~ for detail in DetailTables ~}}
 import { {{ detail.ClassNameCamel }}ManagementApi } from '@/api/modules/{{ detail.ModuleName | string.downcase }}/{{ detail.ClassNameKebab }}'
 {{~ end ~}}
 import { SchemaPage } from '~/components'
-import { actions, createDefaultForm, fields, pageMeta } from './{{ ClassNameKebab }}.schema'
+import {
+  actions,
+{{~ if has_modal ~}}
+  createDefaultForm,
+{{~ end ~}}
+  fields,
+  pageMeta,
+} from './{{ ClassNameKebab }}.schema'
 {{~ if HasDetailTables ~}}
 import { detailTableColumns } from './{{ ClassNameKebab }}.schema'
 {{~ end ~}}
 
 defineOptions({ name: '{{ ClassName }}Page' })
 
+{{~ if need_message ~}}
 const message = useMessage()
+{{~ end ~}}
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+{{~ if has_actions ~}}
 
 function reloadList() {
   void schemaPageRef.value?.reload()
 }
+{{~ end ~}}
 {{~ if HasDetailTables ~}}
 
 /** 明细区数据：按主表行主键缓存，展开时按需加载，避免列表页一次性拉全部子表 */
@@ -128,38 +176,55 @@ const schema: PageSchema = {
 {{~ end ~}}
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
+{{~ if CanDelete ~}}
     remove: id => {{ ClassNameCamel }}ManagementApi.delete(id),
+{{~ end ~}}
   },
 }
+{{~ if has_actions ~}}
 
 function onAction(payload: SchemaActionPayload) {
+{{~ if has_row_action ~}}
   const row = payload.row as unknown as {{ ClassName }}ListItemDto | undefined
+{{~ end ~}}
   switch (payload.key) {
+{{~ if CanCreate ~}}
     case 'create':
       handleAdd()
       break
+{{~ end ~}}
+{{~ if CanUpdate ~}}
     case 'edit':
       if (row) {
         void handleEdit(row)
       }
       break
+{{~ end ~}}
+{{~ if CanDelete ~}}
     case 'delete':
       if (row) {
         void handleDelete(row)
       }
       break
+{{~ end ~}}
   }
 }
+{{~ end ~}}
+{{~ if has_modal ~}}
 
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment }}' : '新增{{ TableComment }}'))
+{{~ end ~}}
+{{~ if CanCreate ~}}
 
 function handleAdd() {
   form.value = createDefaultForm()
   modalVisible.value = true
 }
+{{~ end ~}}
+{{~ if CanUpdate ~}}
 
 async function handleEdit(row: {{ ClassName }}ListItemDto) {
   const detail = await {{ ClassNameCamel }}ManagementApi.detail(row.basicId)
@@ -178,16 +243,21 @@ async function handleEdit(row: {{ ClassName }}ListItemDto) {
   }
   modalVisible.value = true
 }
+{{~ end ~}}
+{{~ if CanDelete ~}}
 
 async function handleDelete(row: {{ ClassName }}ListItemDto) {
   await {{ ClassNameCamel }}ManagementApi.delete(row.basicId)
   message.success('删除成功')
   reloadList()
 }
+{{~ end ~}}
+{{~ if has_modal ~}}
 
 async function handleSubmit() {
   submitLoading.value = true
   try {
+{{~ if CanUpdate ~}}
     if (form.value.basicId) {
       const updateInput: {{ ClassName }}UpdateDto = {
         basicId: form.value.basicId,
@@ -199,6 +269,7 @@ async function handleSubmit() {
       }
       await {{ ClassNameCamel }}ManagementApi.update(updateInput)
     }
+{{~ if CanCreate ~}}
     else {
       const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
@@ -209,6 +280,17 @@ async function handleSubmit() {
       }
       await {{ ClassNameCamel }}ManagementApi.create(createInput)
     }
+{{~ end ~}}
+{{~ else ~}}
+    const createInput: {{ ClassName }}CreateDto = {
+{{~ for col in Columns ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+      {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+{{~ end ~}}
+{{~ end ~}}
+    }
+    await {{ ClassNameCamel }}ManagementApi.create(createInput)
+{{~ end ~}}
     message.success('保存成功')
     modalVisible.value = false
     reloadList()
@@ -220,10 +302,11 @@ async function handleSubmit() {
     submitLoading.value = false
   }
 }
+{{~ end ~}}
 </script>
 
 <template>
-  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+  <SchemaPage ref="schemaPageRef" :schema="schema"{{ if has_actions }} @action="onAction"{{ end }}>
 {{~ if HasDetailTables ~}}
     <template #expand="{ row }">
       <div class="xh-detail-area" @vue:mounted="loadDetails(String((row as { basicId: string }).basicId))">
@@ -244,6 +327,7 @@ async function handleSubmit() {
       </div>
     </template>
 {{~ end ~}}
+{{~ if has_modal ~}}
     <NModal
       v-model:show="modalVisible"
       :auto-focus="false"
@@ -285,6 +369,7 @@ async function handleSubmit() {
         </NSpace>
       </template>
     </NModal>
+{{~ end ~}}
   </SchemaPage>
 </template>
 {{~ if HasDetailTables ~}}

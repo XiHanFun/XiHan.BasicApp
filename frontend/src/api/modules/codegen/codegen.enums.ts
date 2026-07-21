@@ -82,6 +82,13 @@ export enum DictSelectorType {
   ConstSelector = 'ConstSelector',
 }
 
+/** 生成范围（裁剪前端/后端产物） */
+export enum GenerationScope {
+  All = 'All',
+  BackendOnly = 'BackendOnly',
+  FrontendOnly = 'FrontendOnly',
+}
+
 /** 模板类型选项（label 取自后端 [Description]） */
 export const TEMPLATE_TYPE_OPTIONS = [
   { label: '单表', value: TemplateType.Single },
@@ -171,4 +178,21 @@ export enum ArtifactWriteMode {
 export const ARTIFACT_WRITE_MODE_OPTIONS = [
   { label: '机器文件（总是覆盖）', value: ArtifactWriteMode.AlwaysOverwrite },
   { label: '人类文件（仅首次创建）', value: ArtifactWriteMode.WriteOnce },
+]
+
+/** 生成范围选项 */
+export const GENERATION_SCOPE_OPTIONS = [
+  { label: '全部（前端 + 后端）', value: GenerationScope.All },
+  { label: '仅后端', value: GenerationScope.BackendOnly },
+  { label: '仅前端', value: GenerationScope.FrontendOnly },
+]
+
+/**
+ * 包含操作选项（写操作裁剪；列表/详情为读取基线，始终生成）。
+ * value 为后端解析的操作键；不选或全选均等价于全开。
+ */
+export const ENABLED_ACTION_OPTIONS = [
+  { label: '新增', value: 'create' },
+  { label: '编辑', value: 'update' },
+  { label: '删除', value: 'delete' },
 ]

@@ -26,7 +26,7 @@ export interface {{ ClassName }}FormModel {
 export const basePageMeta = {
   pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
   pageName: '{{ TableComment }}',
-  batchRemovable: true,
+  batchRemovable: {{ CanDelete }},
   rowKey: 'basicId',
   scrollX: 1200,
   tree: {
@@ -58,9 +58,15 @@ export const baseFields: ListFieldSchema[] = [
  * 页面与行操作
  */
 export const baseActions: NonNullable<PageSchema['actions']> = [
+{{~ if CanCreate ~}}
   { key: 'create', title: '新增{{ TableComment }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+{{~ end ~}}
+{{~ if CanUpdate ~}}
   { key: 'edit', title: '编辑', scope: 'row' },
+{{~ end ~}}
+{{~ if CanDelete ~}}
   { key: 'delete', title: '删除', scope: 'row' },
+{{~ end ~}}
 ]
 
 /**
