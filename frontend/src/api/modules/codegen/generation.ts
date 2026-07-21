@@ -19,7 +19,7 @@ export const codeGenerationApi = {
   /** 列出可导入的数据库表（逆向工程）。后端返回表名字符串数组 */
   listDatabaseTables(input: CodeGenDbTableQueryDto) {
     const params: DynamicApiParams = {}
-    appendDynamicApiParam(params, 'ConnectionConfigId', input.connectionConfigId)
+    appendDynamicApiParam(params, 'DataSourceId', input.dataSourceId)
     appendDynamicApiParam(params, 'Keyword', input.keyword)
     return orchestration.get<string[]>('DatabaseTables', params)
   },

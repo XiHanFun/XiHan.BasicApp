@@ -17,6 +17,7 @@ using System.Diagnostics;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Utils.Security.Cryptography;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
@@ -161,6 +162,24 @@ public sealed class CodeGenDataSourceDomainService : ICodeGenDataSourceDomainSer
         {
             throw new InvalidOperationException("数据源删除失败。");
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<CodeGenDataSourceConnectionInfo> GetConnectionInfoAsync(long dataSourceId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dataSource = await GetDataSourceOrThrowAsync(dataSourceId, cancellationToken);
+        if (dataSource.Status != EnableStatus.Enabled)
+        {
+            throw new InvalidOperationException($"数据源「{dataSource.SourceName}」已停用，无法用于读取库表结构。");
+        }
+
+        return new CodeGenDataSourceConnectionInfo(
+            dataSourceId.ToString(),
+            MapDbType(dataSource.DatabaseType),
+            BuildConnectionString(dataSource),
+            dataSource.SourceName);
     }
 
     /// <inheritdoc />

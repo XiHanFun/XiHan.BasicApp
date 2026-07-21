@@ -69,7 +69,7 @@ interface TableFormModel {
   masterTableId?: ApiId | null
   masterForeignKey?: string | null
   databaseType: DatabaseType
-  dbConnectionName?: string | null
+  dataSourceId?: ApiId | null
   status: EnableStatus
   remark?: string | null
 }
@@ -108,7 +108,7 @@ function createDefaultForm(): TableFormModel {
     masterTableId: null,
     masterForeignKey: null,
     databaseType: DatabaseTypeEnum.MySql,
-    dbConnectionName: null,
+    dataSourceId: null,
     status: EnableStatusEnum.Enabled,
     remark: null,
   }
@@ -160,7 +160,7 @@ async function loadDetail() {
       masterTableId: detail.masterTableId ?? null,
       masterForeignKey: detail.masterForeignKey ?? null,
       databaseType: detail.databaseType,
-      dbConnectionName: detail.dbConnectionName ?? null,
+      dataSourceId: detail.dataSourceId ?? null,
       status: detail.status,
       remark: detail.remark ?? null,
     }
@@ -267,7 +267,7 @@ async function handleSubmit() {
       masterTableId: isMasterDetailTemplate.value ? form.value.masterTableId : null,
       masterForeignKey: isMasterDetailTemplate.value ? form.value.masterForeignKey : null,
       databaseType: form.value.databaseType,
-      dbConnectionName: form.value.dbConnectionName,
+      dataSourceId: form.value.dataSourceId,
       options: null,
       status: form.value.status,
       remark: form.value.remark,

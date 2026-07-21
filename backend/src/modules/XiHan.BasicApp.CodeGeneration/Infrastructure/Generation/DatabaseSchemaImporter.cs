@@ -14,7 +14,9 @@
 
 using System.Reflection;
 using SqlSugar;
+using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
+using XiHan.Framework.Data.SqlSugar.Connections;
 using XiHan.Framework.Data.SqlSugar.Metadata;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
@@ -25,8 +27,12 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// </summary>
 /// <remarks>
 /// 仅产出数据库层结构（列名/类型/可空/主键等）。C#/TS 类型与表单语义由引擎结合
-/// <see cref="ITypeMappingProvider"/> 二次填充。多数据源连接（SysCodeGenDataSource）通过
-/// connectionConfigId 透传给框架元数据提供器。
+/// <see cref="ITypeMappingProvider"/> 二次填充。
+/// <para>
+/// 多数据源：入参 <c>dataSourceId</c> 为 <c>SysCodeGenDataSource</c> 主键，为空表示本系统主库。
+/// 首次使用某数据源时按需解密其连接信息并注册进 SqlSugar（见 <see cref="IDynamicConnectionRegistrar"/>），
+/// 此后框架元数据提供器即可按同一 ConfigId 解析到该外部库。
+/// </para>
 /// <para>
 /// 大小写还原：部分数据库（如 MySQL lower_case_table_names=1）返回的表名/列名为全小写，
 /// 驼峰信息丢失。导入器把扫描到的名称对照已注册的 <c>[SugarTable]</c> 实体还原为真实大小写
@@ -38,16 +44,52 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 自动扫描最近一个分片取列结构。
 /// </para>
 /// </remarks>
-public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataProvider) : IDatabaseSchemaImporter
+public sealed class DatabaseSchemaImporter(
+    IDatabaseMetadataProvider metadataProvider,
+    IDynamicConnectionRegistrar connectionRegistrar,
+    ICodeGenDataSourceDomainService dataSourceDomainService) : IDatabaseSchemaImporter
 {
     private static readonly Lazy<EntityNameCatalog> CatalogAccessor = new(EntityNameCatalog.Build);
 
     private readonly IDatabaseMetadataProvider _metadataProvider = metadataProvider;
+    private readonly IDynamicConnectionRegistrar _connectionRegistrar = connectionRegistrar;
+    private readonly ICodeGenDataSourceDomainService _dataSourceDomainService = dataSourceDomainService;
+
+    /// <summary>
+    /// 确保数据源连接已注册，返回框架可解析的 ConfigId（null 表示走本系统主库）
+    /// </summary>
+    /// <remarks>
+    /// 数据源不存在或已停用时由领域服务抛出明确异常（fail-closed），
+    /// 不静默回落到主库——否则用户以为在导外部库、实际导的是本系统的表。
+    /// </remarks>
+    private async Task<string?> EnsureConnectionAsync(string? dataSourceId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(dataSourceId))
+        {
+            return null;
+        }
+
+        var configId = dataSourceId.Trim();
+        if (_connectionRegistrar.IsRegistered(configId))
+        {
+            return configId;
+        }
+
+        if (!long.TryParse(configId, out var parsedId))
+        {
+            throw new ArgumentException($"数据源标识非法：{dataSourceId}", nameof(dataSourceId));
+        }
+
+        var info = await _dataSourceDomainService.GetConnectionInfoAsync(parsedId, cancellationToken);
+        _connectionRegistrar.Register(new DynamicConnectionDescriptor(info.ConfigId, info.DbType, info.ConnectionString));
+        return info.ConfigId;
+    }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<string>> ListTablesAsync(string? connectionConfigId = null, CancellationToken cancellationToken = default)
     {
-        var tables = await _metadataProvider.GetTablesAsync(connectionConfigId, cancellationToken);
+        var configId = await EnsureConnectionAsync(connectionConfigId, cancellationToken);
+        var tables = await _metadataProvider.GetTablesAsync(configId, cancellationToken);
         var catalog = CatalogAccessor.Value;
 
         // 还原真实大小写 + 把分表分片折叠为基础逻辑名，并按出现顺序去重
@@ -70,18 +112,19 @@ public sealed class DatabaseSchemaImporter(IDatabaseMetadataProvider metadataPro
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
 
+        var configId = await EnsureConnectionAsync(connectionConfigId, cancellationToken);
         var catalog = CatalogAccessor.Value;
         var realTableName = catalog.ResolveTable(tableName);
 
-        var table = await _metadataProvider.GetTableAsync(tableName, connectionConfigId, cancellationToken);
+        var table = await _metadataProvider.GetTableAsync(tableName, configId, cancellationToken);
 
         // 分表基础名无物理表：扫描最近一个分片取列结构
         if (table is null && catalog.IsSplitBase(realTableName))
         {
-            var shard = await FindLatestShardAsync(realTableName, connectionConfigId, catalog, cancellationToken);
+            var shard = await FindLatestShardAsync(realTableName, configId, catalog, cancellationToken);
             if (shard is not null)
             {
-                table = await _metadataProvider.GetTableAsync(shard, connectionConfigId, cancellationToken);
+                table = await _metadataProvider.GetTableAsync(shard, configId, cancellationToken);
             }
         }
 

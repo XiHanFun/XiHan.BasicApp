@@ -50,7 +50,8 @@ export interface CodeGenTableDetailDto extends CodeGenTableListItemDto {
   masterTableId?: ApiId | null
   masterForeignKey?: string | null
   databaseType: DatabaseType
-  dbConnectionName?: string | null
+  /** 数据源标识（对应 SysCodeGenDataSource；为空表示主库） */
+  dataSourceId?: ApiId | null
   options?: string | null
   remark?: string | null
   createdId?: ApiId | null
@@ -83,7 +84,8 @@ export interface CodeGenTableUpdateDto extends BasicDto {
   masterTableId?: ApiId | null
   masterForeignKey?: string | null
   databaseType: DatabaseType
-  dbConnectionName?: string | null
+  /** 数据源标识（对应 SysCodeGenDataSource；为空表示主库） */
+  dataSourceId?: ApiId | null
   options?: string | null
   status: EnableStatus
   remark?: string | null

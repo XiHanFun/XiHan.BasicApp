@@ -12,6 +12,7 @@
 
 #endregion <<版权版本注释>>
 
+using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -72,3 +73,16 @@ public sealed record CodeGenDataSourceCommandResult(SysCodeGenDataSource DataSou
 /// 数据源连接测试结果
 /// </summary>
 public sealed record CodeGenDataSourceConnectionTestResult(bool Success, string? Message, long ElapsedMilliseconds);
+
+/// <summary>
+/// 数据源运行期连接信息（已解密，供动态连接注册使用）
+/// </summary>
+/// <param name="ConfigId">连接配置标识（取数据源主键，全局唯一）</param>
+/// <param name="DbType">SqlSugar 数据库类型（在此完成映射，避免调用方各自再映一遍）</param>
+/// <param name="ConnectionString">连接字符串（明文）</param>
+/// <param name="SourceName">数据源名称（用于错误提示）</param>
+public sealed record CodeGenDataSourceConnectionInfo(
+    string ConfigId,
+    DbType DbType,
+    string ConnectionString,
+    string SourceName);
