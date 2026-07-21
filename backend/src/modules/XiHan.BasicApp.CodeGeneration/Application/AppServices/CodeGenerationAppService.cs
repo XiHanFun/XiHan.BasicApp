@@ -20,6 +20,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -143,6 +144,7 @@ public sealed class CodeGenerationAppService(
     }
 
     /// <inheritdoc />
+    [HttpPost]
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Import)]
     public async Task<CodeGenSchemaSyncResultDto> SyncSchemaAsync(long tableId, CancellationToken cancellationToken = default)

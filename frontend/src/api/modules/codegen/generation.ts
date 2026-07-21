@@ -1,13 +1,17 @@
 import type { DynamicApiParams } from '../../base'
+import type { ApiId } from '../../types'
 import type {
   CodeGenDbTableQueryDto,
   CodeGenGenerateRequestDto,
   CodeGenImportTableDto,
+  CodeGenImportTablesDto,
+  CodeGenImportTablesResultDto,
   CodeGenPreviewRequestDto,
   CodeGenResultDto,
+  CodeGenSchemaSyncResultDto,
 } from './generation.types'
 import type { CodeGenTableDetailDto } from './table.types'
-import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
 
 const orchestration = createDynamicApiClient('CodeGeneration')
 
@@ -26,6 +30,14 @@ export const codeGenerationApi = {
   /** 从数据库表导入并创建一条表配置（含列配置），返回表详情 */
   importTable(input: CodeGenImportTableDto) {
     return orchestration.post<CodeGenTableDetailDto, CodeGenImportTableDto>('ImportTable', input)
+  },
+  /** 批量从数据库表导入（逐表隔离异常，返回成功/失败明细） */
+  importTables(input: CodeGenImportTablesDto) {
+    return orchestration.post<CodeGenImportTablesResultDto, CodeGenImportTablesDto>('ImportTables', input)
+  },
+  /** 同步表结构：人工改过的字段冻结，其余跟随最新表结构重新推断 */
+  syncSchema(tableId: ApiId) {
+    return orchestration.post<CodeGenSchemaSyncResultDto>(`SyncSchema/${formatDynamicApiRouteValue(tableId)}`)
   },
   /** 预览生成（仅返回产物内容） */
   preview(input: CodeGenPreviewRequestDto) {

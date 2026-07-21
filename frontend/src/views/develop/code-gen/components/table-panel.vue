@@ -5,6 +5,7 @@ import { NTag, useDialog, useMessage } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  codeGenerationApi,
   codeGenTableApi,
   createPageRequest,
   EnableStatus,
@@ -135,6 +136,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database' },
     { key: 'generate', title: t('develop.code_gen.table.action_generate'), scope: 'row', type: 'primary', icon: 'lucide:play' },
     { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2' },
+    { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
     { key: 'runtime', title: t('develop.code_gen.table.action_runtime'), scope: 'row', icon: 'lucide:database' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
@@ -160,6 +162,11 @@ function onAction(payload: SchemaActionPayload) {
         columnVisible.value = true
       }
       break
+    case 'sync':
+      if (row) {
+        handleSync(row)
+      }
+      break
     case 'edit':
       if (row) {
         currentTableId.value = row.basicId
@@ -179,6 +186,29 @@ function onAction(payload: SchemaActionPayload) {
       }
       break
   }
+}
+
+function handleSync(row: CodeGenTableListItemDto) {
+  dialog.warning({
+    title: t('develop.code_gen.table.action_sync'),
+    content: t('develop.code_gen.table.sync_confirm'),
+    positiveText: t('common.actions.confirm'),
+    negativeText: t('common.actions.cancel'),
+    onPositiveClick: async () => {
+      try {
+        const result = await codeGenerationApi.syncSchema(row.basicId)
+        message.success(t('develop.code_gen.table.sync_result', {
+          added: result.addedCount,
+          updated: result.updatedCount,
+          removed: result.removedCount,
+        }))
+        reload()
+      }
+      catch {
+        message.error(t('develop.code_gen.table.sync_failed'))
+      }
+    },
+  })
 }
 
 function handleDelete(row: CodeGenTableListItemDto) {

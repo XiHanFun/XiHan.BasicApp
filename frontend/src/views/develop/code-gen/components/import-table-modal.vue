@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ApiId, DatabaseType } from '@/api'
+import type { ApiId, CodeGenImportTablesResultDto, DatabaseType } from '@/api'
 import {
   NButton,
   NForm,
@@ -7,9 +7,10 @@ import {
   NIcon,
   NInput,
   NSelect,
+  NTag,
   useMessage,
 } from 'naive-ui'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenDataSourceApi,
@@ -34,7 +35,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const message = useMessage()
 
-const step = ref<1 | 2>(1)
 const tableLoading = ref(false)
 const submitLoading = ref(false)
 
@@ -43,10 +43,33 @@ const queryKeyword = ref('')
 const dataSourceId = ref<ApiId>('')
 const dataSourceOptions = ref<{ label: string, value: ApiId }[]>([])
 const databaseType = ref<DatabaseType>(DatabaseTypeEnum.MySql)
+const tableOptions = ref<{ label: string, value: string }[]>([])
+/** 多选：一次导入一批表，命名全部由后端推断（零配置） */
+const selectedTables = ref<string[]>([])
+const importResult = ref<CodeGenImportTablesResultDto | null>(null)
+
+const selectedCount = computed(() => selectedTables.value.length)
+
+watch(
+  () => props.show,
+  (visible) => {
+    if (visible) {
+      reset()
+      void loadDataSources()
+      void loadTables()
+    }
+  },
+)
+
+function reset() {
+  queryKeyword.value = ''
+  selectedTables.value = []
+  tableOptions.value = []
+  importResult.value = null
+}
 
 /**
- * 加载可选数据源。
- * 选项文案带上库类型与库名，避免只显示名称时要回想「这个数据源指向哪」。
+ * 加载可选数据源。选项文案带库类型与库名，避免只显示名称时要回想「这个数据源指向哪」。
  */
 async function loadDataSources() {
   try {
@@ -63,43 +86,6 @@ async function loadDataSources() {
   }
   catch {
     dataSourceOptions.value = [{ label: t('develop.code_gen.import.data_source_primary'), value: '' }]
-  }
-}
-const tableOptions = ref<{ label: string, value: string }[]>([])
-const selectedTable = ref<string | null>(null)
-
-const form = ref({
-  className: '',
-  namespace: '',
-  moduleName: '',
-  businessName: '',
-  functionName: '',
-  author: '',
-})
-
-watch(
-  () => props.show,
-  (visible) => {
-    if (visible) {
-      reset()
-      void loadDataSources()
-      void loadTables()
-    }
-  },
-)
-
-function reset() {
-  step.value = 1
-  queryKeyword.value = ''
-  selectedTable.value = null
-  tableOptions.value = []
-  form.value = {
-    className: '',
-    namespace: '',
-    moduleName: '',
-    businessName: '',
-    functionName: '',
-    author: '',
   }
 }
 
@@ -121,50 +107,38 @@ async function loadTables() {
   }
 }
 
-function toPascalCase(name: string) {
-  return name
-    .split(/[_\s-]+/)
-    .filter(Boolean)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('')
+function onDataSourceChange() {
+  selectedTables.value = []
+  void loadTables()
 }
 
-function handleNext() {
-  if (!selectedTable.value) {
+async function handleImport() {
+  if (selectedTables.value.length === 0) {
     message.warning(t('develop.code_gen.import.validate_select_table'))
-    return
-  }
-  const pascal = toPascalCase(selectedTable.value)
-  form.value.className = form.value.className || pascal
-  form.value.businessName = form.value.businessName || pascal
-  step.value = 2
-}
-
-async function handleSubmit() {
-  if (!selectedTable.value) {
-    message.warning(t('develop.code_gen.import.validate_select_table'))
-    return
-  }
-  if (!form.value.className.trim()) {
-    message.warning(t('develop.code_gen.import.validate_class_name'))
     return
   }
   submitLoading.value = true
+  importResult.value = null
   try {
-    await codeGenerationApi.importTable({
-      tableName: selectedTable.value,
+    const result = await codeGenerationApi.importTables({
       dataSourceId: dataSourceId.value || undefined,
-      className: form.value.className.trim(),
-      namespace: form.value.namespace?.trim() || undefined,
-      moduleName: form.value.moduleName?.trim() || undefined,
-      businessName: form.value.businessName?.trim() || undefined,
-      functionName: form.value.functionName?.trim() || undefined,
-      author: form.value.author?.trim() || undefined,
       databaseType: databaseType.value,
+      tableNames: selectedTables.value,
     })
-    message.success(t('develop.code_gen.import.import_success'))
+    importResult.value = result
     emit('imported')
-    emit('update:show', false)
+
+    if (result.failed.length === 0) {
+      message.success(t('develop.code_gen.import.import_batch_success', { count: result.succeeded.length }))
+      emit('update:show', false)
+    }
+    else {
+      // 有失败：保留弹窗展示明细，成功的已刷新到列表
+      message.warning(t('develop.code_gen.import.import_batch_partial', {
+        ok: result.succeeded.length,
+        fail: result.failed.length,
+      }))
+    }
   }
   catch {
     message.error(t('develop.code_gen.import.import_failed'))
@@ -180,94 +154,98 @@ async function handleSubmit() {
     :show="show"
     :title="t('develop.code_gen.import.title')"
     :loading="submitLoading"
-    :save-text="step === 1 ? t('common.actions.next_step') : t('develop.code_gen.import.action_import')"
+    :save-text="t('develop.code_gen.import.action_import')"
     @update:show="emit('update:show', $event)"
-    @save="step === 1 ? handleNext() : handleSubmit()"
+    @save="handleImport"
   >
-    <template v-if="step === 1">
-      <div class="import-filters">
-        <NSelect
-          v-model:value="dataSourceId"
-          class="import-filters__item"
-          filterable
-          :options="dataSourceOptions"
-          :placeholder="t('develop.code_gen.import.data_source_placeholder')"
-          @update:value="loadTables"
-        />
-        <NInput
-          v-model:value="queryKeyword"
-          class="import-filters__item"
-          clearable
-          :placeholder="t('develop.code_gen.import.keyword_placeholder')"
-          @keyup.enter="loadTables"
-        />
-        <NButton :loading="tableLoading" type="primary" @click="loadTables">
-          <template #icon>
-            <NIcon><Icon icon="lucide:search" /></NIcon>
-          </template>
-          {{ t('common.actions.search') }}
-        </NButton>
-      </div>
-      <NForm class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('develop.code_gen.import.form_database_type')">
-          <NSelect v-model:value="databaseType" :options="DATABASE_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_select_table')">
-          <NSelect
-            v-model:value="selectedTable"
-            clearable
-            filterable
-            :loading="tableLoading"
-            :options="tableOptions"
-            :placeholder="t('develop.code_gen.import.select_table_placeholder')"
-          />
-        </NFormItem>
-      </NForm>
-    </template>
-
-    <template v-else>
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('develop.code_gen.import.form_table')">
-          <NInput :value="selectedTable ?? ''" disabled />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_class_name')">
-          <NInput v-model:value="form.className" clearable :placeholder="t('develop.code_gen.import.form_class_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_namespace')">
-          <NInput v-model:value="form.namespace" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_module_name')">
-          <NInput v-model:value="form.moduleName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_business_name')">
-          <NInput v-model:value="form.businessName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_function_name')">
-          <NInput v-model:value="form.functionName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.import.form_author')">
-          <NInput v-model:value="form.author" clearable />
-        </NFormItem>
-      </NForm>
-    </template>
-
-    <template #footer-extra>
-      <NButton v-if="step === 2" size="small" @click="step = 1">
-        {{ t('common.actions.prev_step') }}
+    <div class="import-filters">
+      <NSelect
+        v-model:value="dataSourceId"
+        class="import-filters__item"
+        filterable
+        :options="dataSourceOptions"
+        :placeholder="t('develop.code_gen.import.data_source_placeholder')"
+        @update:value="onDataSourceChange"
+      />
+      <NInput
+        v-model:value="queryKeyword"
+        class="import-filters__item"
+        clearable
+        :placeholder="t('develop.code_gen.import.keyword_placeholder')"
+        @keyup.enter="loadTables"
+      />
+      <NButton :loading="tableLoading" type="primary" @click="loadTables">
+        <template #icon>
+          <NIcon><Icon icon="lucide:search" /></NIcon>
+        </template>
+        {{ t('common.actions.search') }}
       </NButton>
-    </template>
+    </div>
+    <NForm class="xh-edit-form-grid" label-placement="top">
+      <NFormItem :label="t('develop.code_gen.import.form_database_type')">
+        <NSelect v-model:value="databaseType" :options="DATABASE_TYPE_OPTIONS" />
+      </NFormItem>
+      <NFormItem :label="t('develop.code_gen.import.form_select_tables', { count: selectedCount })">
+        <NSelect
+          v-model:value="selectedTables"
+          clearable
+          filterable
+          multiple
+          :loading="tableLoading"
+          :max-tag-count="6"
+          :options="tableOptions"
+          :placeholder="t('develop.code_gen.import.select_tables_placeholder')"
+        />
+      </NFormItem>
+    </NForm>
+
+    <div v-if="importResult && importResult.failed.length > 0" class="import-result">
+      <div class="import-result__title">
+        {{ t('develop.code_gen.import.result_failed_title') }}
+      </div>
+      <div v-for="item in importResult.failed" :key="item.tableName" class="import-result__row">
+        <NTag :bordered="false" size="small" type="error">
+          {{ item.tableName }}
+        </NTag>
+        <span class="import-result__reason">{{ item.reason }}</span>
+      </div>
+    </div>
   </XEditModal>
 </template>
 
 <style scoped>
 .import-filters {
   display: flex;
-  align-items: center;
   gap: 8px;
   margin-bottom: 12px;
 }
 
 .import-filters__item {
   flex: 1;
+}
+
+.import-result {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.import-result__title {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.import-result__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.import-result__reason {
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 </style>

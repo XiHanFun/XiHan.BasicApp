@@ -65,6 +65,43 @@ export interface CodeGenArtifactDto {
 }
 
 /**
+ * 批量导入数据库表 DTO
+ * 后端 CodeGenImportTablesDto
+ */
+export interface CodeGenImportTablesDto {
+  dataSourceId?: ApiId | null
+  databaseType: DatabaseType
+  tableNames: string[]
+}
+
+/**
+ * 批量导入结果 DTO
+ * 后端 CodeGenImportTablesResultDto
+ */
+export interface CodeGenImportTablesResultDto {
+  succeeded: string[]
+  failed: CodeGenImportFailureDto[]
+}
+
+/** 批量导入失败明细 */
+export interface CodeGenImportFailureDto {
+  tableName: string
+  reason: string
+}
+
+/**
+ * 同步表结构结果 DTO
+ * 后端 CodeGenSchemaSyncResultDto
+ */
+export interface CodeGenSchemaSyncResultDto {
+  addedCount: number
+  updatedCount: number
+  removedCount: number
+  addedColumns: string[]
+  removedColumns: string[]
+}
+
+/**
  * 代码生成结果 DTO（预览返回内容；Zip 返回 Base64 包体）
  * 后端 CodeGenResultDto
  */
