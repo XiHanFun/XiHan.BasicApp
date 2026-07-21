@@ -29,18 +29,6 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// </remarks>
 public sealed class ScribanTemplateRenderer : ITemplateRenderer
 {
-    /// <summary>
-    /// 基类（BasicAppFullAuditedEntity）托管的列名集合：主键/租户/审计/软删，生成实体属性时应跳过。
-    /// 模板可据 col.IsBaseColumn 过滤，只生成业务列。
-    /// </summary>
-    private static readonly HashSet<string> BaseColumnNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "BasicId", "Id", "TenantId", "IsDeleted",
-        "CreatedTime", "CreatedId", "CreatedBy",
-        "ModifiedTime", "ModifiedId", "ModifiedBy",
-        "DeletedTime", "DeletedId", "DeletedBy"
-    };
-
     /// <inheritdoc />
     public TemplateEngine Engine => TemplateEngine.Scriban;
 
@@ -149,7 +137,7 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["IsNullable"] = column.IsNullable,
             ["IsRequired"] = column.IsRequired,
             // 基类托管列（主键/审计/软删/租户）：模板生成业务属性时应跳过
-            ["IsBaseColumn"] = BaseColumnNames.Contains(column.ColumnName),
+            ["IsBaseColumn"] = GeneratedColumnNames.IsBaseColumn(column.ColumnName),
             ["Length"] = column.Length,
             ["DecimalDigits"] = column.DecimalDigits,
             ["HtmlType"] = column.HtmlType.ToString(),

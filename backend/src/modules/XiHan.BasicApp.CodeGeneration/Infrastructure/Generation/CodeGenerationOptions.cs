@@ -37,4 +37,15 @@ public sealed class CodeGenerationOptions
     /// 允许落盘的根目录白名单（绝对路径；为空则落盘被拒绝）
     /// </summary>
     public IReadOnlyList<string> AllowedRootPaths { get; set; } = [];
+
+    /// <summary>
+    /// 表前缀（推断类名时剥离；逗号分隔多前缀）。默认剥离本系统常见前缀
+    /// </summary>
+    public string TablePrefixes { get; set; } = "Sys_,Saas_";
+
+    /// <summary>
+    /// 解析后的表前缀数组
+    /// </summary>
+    public IReadOnlyList<string> ResolvedTablePrefixes =>
+        [.. TablePrefixes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
 }

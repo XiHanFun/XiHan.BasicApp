@@ -42,7 +42,7 @@ namespace XiHan.BasicApp.CodeGeneration.Application.AppServices;
 public sealed class CodeGenerationAppService(
     ICodeGenerationEngine generationEngine,
     IDatabaseSchemaImporter schemaImporter,
-    ITypeMappingProvider typeMappingProvider,
+    ITableConfigInferrer inferrer,
     ICodeGenTableRepository tableRepository,
     ICodeGenTableColumnRepository tableColumnRepository,
     ICodeGenHistoryRepository historyRepository,
@@ -51,7 +51,7 @@ public sealed class CodeGenerationAppService(
 {
     private readonly ICodeGenerationEngine _generationEngine = generationEngine;
     private readonly IDatabaseSchemaImporter _schemaImporter = schemaImporter;
-    private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
+    private readonly ITableConfigInferrer _inferrer = inferrer;
     private readonly ICodeGenTableRepository _tableRepository = tableRepository;
     private readonly ICodeGenTableColumnRepository _tableColumnRepository = tableColumnRepository;
     private readonly ICodeGenHistoryRepository _historyRepository = historyRepository;
@@ -98,24 +98,27 @@ public sealed class CodeGenerationAppService(
         var schema = await _schemaImporter.ImportTableAsync(tableName, input.DataSourceId?.ToString(), cancellationToken)
             ?? throw new InvalidOperationException($"数据库表“{tableName}”不存在或无法读取结构。");
 
-        // 3) 构建表配置
-        var className = string.IsNullOrWhiteSpace(input.ClassName) ? Pascalize(tableName) : input.ClassName.Trim();
+        // 3) 推断配置：能推断的一律不问；用户在导入弹窗显式填的字段覆盖推断值
+        var suggestion = _inferrer.Infer(schema, new InferenceContext(_currentUser.UserName, input.DatabaseType));
+
         var table = new SysCodeGenTable
         {
             TableName = tableName,
             TableComment = schema.TableComment,
-            ClassName = className,
-            Namespace = NormalizeNullable(input.Namespace),
-            ModuleName = NormalizeNullable(input.ModuleName),
-            BusinessName = NormalizeNullable(input.BusinessName),
-            FunctionName = NormalizeNullable(input.FunctionName),
-            Author = NormalizeNullable(input.Author),
+            ClassName = string.IsNullOrWhiteSpace(input.ClassName) ? suggestion.ClassName : input.ClassName.Trim(),
+            Namespace = FirstNonBlank(input.Namespace, suggestion.Namespace),
+            ModuleName = FirstNonBlank(input.ModuleName, suggestion.ModuleName),
+            BusinessName = FirstNonBlank(input.BusinessName, suggestion.BusinessName),
+            FunctionName = FirstNonBlank(input.FunctionName, suggestion.FunctionName),
+            Author = FirstNonBlank(input.Author, suggestion.Author),
             DatabaseType = input.DatabaseType,
             // 记住来源数据源：同步表结构与重新生成据此定位来源库，缺了会跑到主库上
             DataSourceId = input.DataSourceId,
-            PrimaryKeyColumn = schema.PrimaryKeyColumn,
+            PrimaryKeyColumn = suggestion.PrimaryKeyColumn,
+            TemplateType = suggestion.TemplateType,
+            TreeParentColumn = suggestion.TreeParentColumn,
+            TreeNameColumn = suggestion.TreeNameColumn,
             GenStatus = GenStatus.NotGenerated,
-            TemplateType = TemplateType.Single,
             GenType = GenType.Zip,
             Status = EnableStatus.Enabled
         };
@@ -123,37 +126,33 @@ public sealed class CodeGenerationAppService(
         // 4) 持久化表配置（BasicId 由框架雪花算法自动填充）
         var tableId = await _tableRepository.AddReturnIdAsync(table, cancellationToken);
 
-        // 5) 构建列配置
-        var columns = new List<SysCodeGenTableColumn>(schema.Columns.Count);
-        var sort = 0;
-        foreach (var column in schema.Columns)
+        // 5) 构建列配置（全部取推断建议：类型/属性名/控件/查询/开关/枚举已推断到位）
+        var columns = suggestion.Columns.Select(column => new SysCodeGenTableColumn
         {
-            var mapping = _typeMappingProvider.Map(input.DatabaseType, column.DbType, column.IsNullable);
-            columns.Add(new SysCodeGenTableColumn
-            {
-                TableId = tableId,
-                ColumnName = column.ColumnName,
-                ColumnComment = column.ColumnComment,
-                ColumnType = column.DbType,
-                CSharpType = mapping.CSharpType,
-                CSharpProperty = Pascalize(column.ColumnName),
-                TsType = mapping.TsType,
-                HtmlType = mapping.DefaultHtmlType,
-                QueryType = mapping.DefaultQueryType,
-                ColumnLength = column.Length,
-                DecimalDigits = column.DecimalDigits,
-                IsPrimaryKey = column.IsPrimaryKey,
-                IsIdentity = column.IsIdentity,
-                IsNullable = column.IsNullable,
-                IsRequired = column.IsRequired,
-                IsList = true,
-                IsInsert = true,
-                IsEdit = true,
-                IsQuery = false,
-                Sort = sort++,
-                Status = EnableStatus.Enabled
-            });
-        }
+            TableId = tableId,
+            ColumnName = column.ColumnName,
+            ColumnComment = column.ColumnComment,
+            ColumnType = column.ColumnType,
+            CSharpType = column.CSharpType,
+            CSharpProperty = column.CSharpProperty,
+            TsType = column.TsType,
+            HtmlType = column.HtmlType,
+            QueryType = column.QueryType,
+            DictSelectorType = column.DictSelectorType,
+            EnumTypeName = column.EnumTypeName,
+            ColumnLength = column.Length,
+            DecimalDigits = column.DecimalDigits,
+            IsPrimaryKey = column.IsPrimaryKey,
+            IsIdentity = column.IsIdentity,
+            IsNullable = column.IsNullable,
+            IsRequired = column.IsRequired,
+            IsList = column.IsList,
+            IsInsert = column.IsInsert,
+            IsEdit = column.IsEdit,
+            IsQuery = column.IsQuery,
+            Sort = column.Sort,
+            Status = EnableStatus.Enabled
+        }).ToList();
 
         if (columns.Count > 0)
         {
@@ -266,32 +265,8 @@ public sealed class CodeGenerationAppService(
     };
 
     /// <summary>
-    /// 把下划线/空格/连字符分隔的标识转为 PascalCase（如 sys_user → SysUser）
+    /// 用户显式输入优先，空白则回退推断值（去首尾空白）
     /// </summary>
-    private static string Pascalize(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return string.Empty;
-        }
-
-        var segments = value.Split(['_', ' ', '-'], StringSplitOptions.RemoveEmptyEntries);
-        var builder = new StringBuilder(value.Length);
-        foreach (var segment in segments)
-        {
-            builder.Append(char.ToUpperInvariant(segment[0]));
-            if (segment.Length > 1)
-            {
-                builder.Append(segment[1..]);
-            }
-        }
-
-        return builder.Length == 0 ? value : builder.ToString();
-    }
-
-    /// <summary>
-    /// 空白归一：纯空白转 null，否则去首尾空白
-    /// </summary>
-    private static string? NormalizeNullable(string? value)
-        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? FirstNonBlank(string? userInput, string? inferred)
+        => string.IsNullOrWhiteSpace(userInput) ? inferred : userInput.Trim();
 }

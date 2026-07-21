@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
+using XiHan.BasicApp.CodeGeneration.Infrastructure.Inference;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
@@ -66,6 +67,10 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ITypeMappingProvider, DefaultTypeMappingProvider>();
         services.AddTransient<IGeneratedArtifactPackager, ZipArtifactPackager>();
         services.AddTransient<IGeneratedArtifactWriter, FileSystemArtifactWriter>();
+
+        // 实体元数据目录（反射一次、进程内缓存）+ 表配置推断引擎
+        services.AddSingleton<IEntityMetadataCatalog, EntityMetadataCatalog>();
+        services.AddTransient<ITableConfigInferrer, TableConfigInferenceEngine>();
 
         // DbFirst 元数据扫描与生成编排（依赖 Scoped 仓储/元数据提供器）
         services.AddScoped<IDatabaseSchemaImporter, DatabaseSchemaImporter>();
