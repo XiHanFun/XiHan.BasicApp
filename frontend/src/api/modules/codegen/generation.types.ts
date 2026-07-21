@@ -6,8 +6,8 @@ import type { ArtifactWriteMode, DatabaseType, GenType } from './codegen.enums'
  * 后端 CodeGenDbTableQueryDto
  */
 export interface CodeGenDbTableQueryDto {
-  /** 连接配置标识（对应数据源；为空表示主库）。普通 string，非雪花 ApiId */
-  connectionConfigId?: string | null
+  /** 数据源标识（对应 SysCodeGenDataSource；为空表示主库） */
+  dataSourceId?: ApiId | null
   /** 表名关键字过滤 */
   keyword?: string | null
 }
@@ -18,7 +18,8 @@ export interface CodeGenDbTableQueryDto {
  */
 export interface CodeGenImportTableDto {
   tableName: string
-  connectionConfigId?: string | null
+  /** 数据源标识（对应 SysCodeGenDataSource；为空表示主库） */
+  dataSourceId?: ApiId | null
   className?: string | null
   namespace?: string | null
   moduleName?: string | null

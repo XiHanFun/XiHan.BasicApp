@@ -78,7 +78,7 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         table.MasterTableId = command.MasterTableId;
         table.MasterForeignKey = Optional(command.MasterForeignKey, 100, nameof(command.MasterForeignKey), "主子表关联外键列长度不能超过 100 个字符。");
         table.DatabaseType = command.DatabaseType;
-        table.DbConnectionName = Optional(command.DbConnectionName, 100, nameof(command.DbConnectionName), "数据库连接名称长度不能超过 100 个字符。");
+        table.DataSourceId = command.DataSourceId;
         table.Options = NormalizeNullable(command.Options);
         table.Status = command.Status;
         table.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注长度不能超过 500 个字符。");

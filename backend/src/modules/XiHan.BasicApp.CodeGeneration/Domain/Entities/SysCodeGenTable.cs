@@ -167,10 +167,11 @@ public partial class SysCodeGenTable : BasicAppFullAuditedEntity
     public virtual DatabaseType DatabaseType { get; set; } = DatabaseType.MySql;
 
     /// <summary>
-    /// 数据库连接名称
+    /// 数据源标识
+    /// 指向 SysCodeGenDataSource；为空表示本系统主库。同步表结构与重新生成时据此定位来源库
     /// </summary>
-    [SugarColumn(ColumnName = "Db_Connection_Name", ColumnDescription = "数据库连接名称", Length = 100, IsNullable = true)]
-    public virtual string? DbConnectionName { get; set; }
+    [SugarColumn(ColumnName = "Data_Source_Id", ColumnDescription = "数据源标识", IsNullable = true)]
+    public virtual long? DataSourceId { get; set; }
 
     /// <summary>
     /// 生成状态

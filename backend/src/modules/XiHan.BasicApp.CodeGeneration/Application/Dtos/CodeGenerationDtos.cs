@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.CodeGeneration.Application.Dtos;
 public sealed class CodeGenDbTableQueryDto
 {
     /// <summary>连接配置标识（对应 SysCodeGenDataSource；为空表示主库）</summary>
-    public string? ConnectionConfigId { get; set; }
+    public long? DataSourceId { get; set; }
 
     /// <summary>表名关键字过滤</summary>
     public string? Keyword { get; set; }
@@ -36,7 +36,7 @@ public sealed class CodeGenDbTableQueryDto
 public sealed class CodeGenImportTableDto
 {
     public string TableName { get; set; } = string.Empty;
-    public string? ConnectionConfigId { get; set; }
+    public long? DataSourceId { get; set; }
     public string? ClassName { get; set; }
     public string? Namespace { get; set; }
     public string? ModuleName { get; set; }

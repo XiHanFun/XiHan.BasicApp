@@ -64,7 +64,7 @@ public sealed class CodeGenerationAppService(
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        var tables = await _schemaImporter.ListTablesAsync(input.ConnectionConfigId, cancellationToken);
+        var tables = await _schemaImporter.ListTablesAsync(input.DataSourceId?.ToString(), cancellationToken);
         if (string.IsNullOrWhiteSpace(input.Keyword))
         {
             return tables;
@@ -95,7 +95,7 @@ public sealed class CodeGenerationAppService(
         }
 
         // 2) 扫描库表结构
-        var schema = await _schemaImporter.ImportTableAsync(tableName, input.ConnectionConfigId, cancellationToken)
+        var schema = await _schemaImporter.ImportTableAsync(tableName, input.DataSourceId?.ToString(), cancellationToken)
             ?? throw new InvalidOperationException($"数据库表“{tableName}”不存在或无法读取结构。");
 
         // 3) 构建表配置
@@ -111,6 +111,8 @@ public sealed class CodeGenerationAppService(
             FunctionName = NormalizeNullable(input.FunctionName),
             Author = NormalizeNullable(input.Author),
             DatabaseType = input.DatabaseType,
+            // 记住来源数据源：同步表结构与重新生成据此定位来源库，缺了会跑到主库上
+            DataSourceId = input.DataSourceId,
             PrimaryKeyColumn = schema.PrimaryKeyColumn,
             GenStatus = GenStatus.NotGenerated,
             TemplateType = TemplateType.Single,

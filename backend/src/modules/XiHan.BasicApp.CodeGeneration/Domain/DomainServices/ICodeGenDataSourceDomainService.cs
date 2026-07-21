@@ -46,4 +46,14 @@ public interface ICodeGenDataSourceDomainService
     /// 测试数据源连接（只读探测），并回写最后测试结果
     /// </summary>
     Task<CodeGenDataSourceConnectionTestResult> TestConnectionAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 获取数据源的运行期连接信息（已解密）
+    /// </summary>
+    /// <remarks>
+    /// 供动态连接注册使用，是"连接串构建 + 解密"的唯一出口，避免第二处实现。
+    /// 数据源不存在或已停用时抛异常（fail-closed）：宁可明确报错，也不要静默回落到主库
+    /// 让用户以为自己导的是外部库、实际导的是本系统的表。
+    /// </remarks>
+    Task<CodeGenDataSourceConnectionInfo> GetConnectionInfoAsync(long dataSourceId, CancellationToken cancellationToken = default);
 }

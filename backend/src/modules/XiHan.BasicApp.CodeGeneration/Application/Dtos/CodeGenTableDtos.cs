@@ -43,7 +43,8 @@ public sealed class CodeGenTableUpdateDto : BasicAppUDto
     public long? MasterTableId { get; set; }
     public string? MasterForeignKey { get; set; }
     public DatabaseType DatabaseType { get; set; } = DatabaseType.MySql;
-    public string? DbConnectionName { get; set; }
+    /// <summary>数据源标识（对应 SysCodeGenDataSource；为空表示主库）</summary>
+    public long? DataSourceId { get; set; }
     public string? Options { get; set; }
     public EnableStatus Status { get; set; } = EnableStatus.Enabled;
     public string? Remark { get; set; }
@@ -105,7 +106,8 @@ public sealed class CodeGenTableDetailDto : CodeGenTableListItemDto
     public long? MasterTableId { get; set; }
     public string? MasterForeignKey { get; set; }
     public DatabaseType DatabaseType { get; set; }
-    public string? DbConnectionName { get; set; }
+    /// <summary>数据源标识（对应 SysCodeGenDataSource；为空表示主库）</summary>
+    public long? DataSourceId { get; set; }
     public string? Options { get; set; }
     public string? Remark { get; set; }
     public long? CreatedId { get; set; }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DatabaseType } from '@/api'
+import type { ApiId, DatabaseType } from '@/api'
 import {
   NButton,
   NForm,
@@ -12,7 +12,9 @@ import {
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
+  codeGenDataSourceApi,
   codeGenerationApi,
+  createPageRequest,
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
 } from '@/api'
@@ -37,8 +39,32 @@ const tableLoading = ref(false)
 const submitLoading = ref(false)
 
 const queryKeyword = ref('')
-const connectionConfigId = ref<string | null>(null)
+/** 数据源：空串表示本系统主库（Naive UI 选项值不接受 null，故用空串作哨兵） */
+const dataSourceId = ref<ApiId>('')
+const dataSourceOptions = ref<{ label: string, value: ApiId }[]>([])
 const databaseType = ref<DatabaseType>(DatabaseTypeEnum.MySql)
+
+/**
+ * 加载可选数据源。
+ * 选项文案带上库类型与库名，避免只显示名称时要回想「这个数据源指向哪」。
+ */
+async function loadDataSources() {
+  try {
+    const result = await codeGenDataSourceApi.page(
+      createPageRequest({ page: { pageIndex: 1, pageSize: 200 } }),
+    )
+    dataSourceOptions.value = [
+      { label: t('develop.code_gen.import.data_source_primary'), value: '' },
+      ...(result?.items ?? []).map(item => ({
+        label: `${item.sourceName}（${item.databaseType} · ${item.databaseName}）`,
+        value: item.basicId,
+      })),
+    ]
+  }
+  catch {
+    dataSourceOptions.value = [{ label: t('develop.code_gen.import.data_source_primary'), value: '' }]
+  }
+}
 const tableOptions = ref<{ label: string, value: string }[]>([])
 const selectedTable = ref<string | null>(null)
 
@@ -56,6 +82,7 @@ watch(
   (visible) => {
     if (visible) {
       reset()
+      void loadDataSources()
       void loadTables()
     }
   },
@@ -80,7 +107,7 @@ async function loadTables() {
   tableLoading.value = true
   try {
     const tables = await codeGenerationApi.listDatabaseTables({
-      connectionConfigId: connectionConfigId.value?.trim() || undefined,
+      dataSourceId: dataSourceId.value || undefined,
       keyword: queryKeyword.value?.trim() || undefined,
     })
     tableOptions.value = (tables ?? []).map(name => ({ label: name, value: name }))
@@ -126,7 +153,7 @@ async function handleSubmit() {
   try {
     await codeGenerationApi.importTable({
       tableName: selectedTable.value,
-      connectionConfigId: connectionConfigId.value?.trim() || undefined,
+      dataSourceId: dataSourceId.value || undefined,
       className: form.value.className.trim(),
       namespace: form.value.namespace?.trim() || undefined,
       moduleName: form.value.moduleName?.trim() || undefined,
@@ -159,11 +186,13 @@ async function handleSubmit() {
   >
     <template v-if="step === 1">
       <div class="import-filters">
-        <NInput
-          v-model:value="connectionConfigId"
+        <NSelect
+          v-model:value="dataSourceId"
           class="import-filters__item"
-          clearable
-          :placeholder="t('develop.code_gen.import.connection_placeholder')"
+          filterable
+          :options="dataSourceOptions"
+          :placeholder="t('develop.code_gen.import.data_source_placeholder')"
+          @update:value="loadTables"
         />
         <NInput
           v-model:value="queryKeyword"

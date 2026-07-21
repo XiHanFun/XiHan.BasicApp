@@ -50,7 +50,7 @@ public static class CodeGenTableApplicationMapper
             input.MasterTableId,
             input.MasterForeignKey,
             input.DatabaseType,
-            input.DbConnectionName,
+            input.DataSourceId,
             input.Options,
             input.Status,
             input.Remark);
@@ -125,7 +125,7 @@ public static class CodeGenTableApplicationMapper
             MasterTableId = table.MasterTableId,
             MasterForeignKey = table.MasterForeignKey,
             DatabaseType = table.DatabaseType,
-            DbConnectionName = table.DbConnectionName,
+            DataSourceId = table.DataSourceId,
             Options = table.Options,
             Remark = table.Remark,
             CreatedId = table.CreatedId,

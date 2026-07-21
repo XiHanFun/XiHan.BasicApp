@@ -41,7 +41,7 @@ public sealed record CodeGenTableUpdateCommand(
     long? MasterTableId,
     string? MasterForeignKey,
     DatabaseType DatabaseType,
-    string? DbConnectionName,
+    long? DataSourceId,
     string? Options,
     EnableStatus Status,
     string? Remark);
