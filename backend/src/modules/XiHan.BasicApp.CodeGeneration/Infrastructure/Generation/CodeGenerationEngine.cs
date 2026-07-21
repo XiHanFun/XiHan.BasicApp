@@ -18,6 +18,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
@@ -37,6 +38,7 @@ public sealed class CodeGenerationEngine(
     ITypeMappingProvider typeMappingProvider,
     IGeneratedArtifactPackager packager,
     IGeneratedArtifactWriter artifactWriter,
+    IPermissionRepository permissionRepository,
     ILogger<CodeGenerationEngine> logger) : ICodeGenerationEngine
 {
     private readonly ICodeGenTableRepository _tableRepository = tableRepository;
@@ -46,6 +48,7 @@ public sealed class CodeGenerationEngine(
     private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
     private readonly IGeneratedArtifactPackager _packager = packager;
     private readonly IGeneratedArtifactWriter _artifactWriter = artifactWriter;
+    private readonly IPermissionRepository _permissionRepository = permissionRepository;
     private readonly ILogger<CodeGenerationEngine> _logger = logger;
 
     /// <inheritdoc />
@@ -144,10 +147,15 @@ public sealed class CodeGenerationEngine(
             artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode, template.WriteMode));
         }
 
-        // 二阶产物：菜单 + 按钮权限代码片段（属后端接线，仅后端与全部范围生成；纯前端不需要）
+        // 二阶产物：菜单/权限接线代码（待并入源码 → 重建库经既有 Seeder 链生效，非运行时写库）。
+        // 属后端接线，仅后端与全部范围生成；纯前端不需要（其后端与菜单权限已在别处到位）。
         if (table.GenerationScope != GenerationScope.FrontendOnly)
         {
-            artifacts.AddRange(MenuPermissionArtifactGenerator.Build(context));
+            var collidingCodes = await FindCollidingPermissionCodesAsync(context, cancellationToken);
+            artifacts.AddRange(MenuPermissionArtifactGenerator.Build(context, collidingCodes));
+            artifacts.Add(PermissionSeedArtifactGenerator.Build(context));
+            artifacts.Add(PageDescriptorArtifactGenerator.Build(context));
+            artifacts.AddRange(SeederArtifactGenerator.Build(context));
         }
 
         stopwatch.Stop();
@@ -199,6 +207,34 @@ public sealed class CodeGenerationEngine(
             .Select(action => action.ToLowerInvariant())
             .ToHashSet();
         return [.. CrudActions.Where(selected.Contains)];
+    }
+
+    /// <summary>
+    /// 查已存在的权限码（生成前的全局唯一性预检；仅用于 README 顶部醒目告警）
+    /// </summary>
+    /// <remarks>
+    /// fail-open：权限库读取异常不应挡住生成（唯一性告警是提示性的），异常时记日志并返回空集。
+    /// </remarks>
+    private async Task<IReadOnlyCollection<string>> FindCollidingPermissionCodesAsync(CodeGenerationContext context, CancellationToken cancellationToken)
+    {
+        var candidateCodes = MenuPermissionArtifactShared.EffectiveActions(context)
+            .Select(action => $"{context.TableName}:{action}")
+            .ToList();
+        if (candidateCodes.Count == 0)
+        {
+            return [];
+        }
+
+        try
+        {
+            var existing = await _permissionRepository.GetByCodesAsync(candidateCodes, cancellationToken);
+            return [.. existing.Select(permission => permission.PermissionCode)];
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "权限码唯一性预检失败，跳过冲突提示（不影响生成）。");
+            return [];
+        }
     }
 
     /// <summary>
