@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:WorkflowInstanceDtos
-// Guid:5d09b7e2-861c-4f34-92a8-c05e17d43b6f
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/17 10:18:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 #pragma warning disable CS1591
 

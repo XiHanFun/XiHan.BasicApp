@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:MessageTemplateRenderer
-// Guid:df825a7a-be19-44c5-a267-9eaf1d8eeba2
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/11 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;

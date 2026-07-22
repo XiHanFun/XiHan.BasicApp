@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanBasicAppCoreModule
-// Guid:dd5fa300-a07c-434f-9ac3-8d44c9476166
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2025/06/03 00:30:30
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.Framework.AI;
 using XiHan.Framework.Application;

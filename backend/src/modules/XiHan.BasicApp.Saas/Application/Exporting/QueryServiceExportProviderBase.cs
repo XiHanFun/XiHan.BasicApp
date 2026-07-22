@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:QueryServiceExportProviderBase
-// Guid:f1e8b6d4-9a2c-4d7f-86b0-6273849506b7
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/14 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.Runtime.CompilerServices;
 using System.Text.Json;

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IUserDataScopeAppService
-// Guid:5b6c7d8e-9f0a-4b1c-2d3e-4f5a6b7c8d9e
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/01 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.Framework.Application.Contracts.Services;

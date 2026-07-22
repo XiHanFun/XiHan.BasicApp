@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasSessionStateCacheItem
-// Guid:7a4d1e60-9c35-4f28-8b71-2e0f6a3c9d54
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/15 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Caching.Attributes;

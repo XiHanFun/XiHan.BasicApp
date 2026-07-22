@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:WorkflowInstanceAppService
-// Guid:0b74e6d2-c918-4f50-a3e7-86d25c91f4b0
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/17 10:29:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.Globalization;
 using System.Text.Json;

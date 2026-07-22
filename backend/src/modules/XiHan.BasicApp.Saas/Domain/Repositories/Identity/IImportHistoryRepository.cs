@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IImportHistoryRepository
-// Guid:1f7a3d52-8b4c-4e9f-a1d6-5c2e0b9f8741
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/12 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 

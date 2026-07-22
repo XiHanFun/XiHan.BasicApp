@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IWorkflowDefinitionRepository
-// Guid:2c81f5d9-06e4-4a73-b2c8-95d10e64f7a3
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/17 10:05:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Workflow.Domain.Entities;

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasConfigurationSeeder
-// Guid:f78f58bb-a5a4-4813-8b8d-7d7187a4c43c
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/04 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Configurations;

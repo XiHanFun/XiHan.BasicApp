@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:UserRoleAppService
-// Guid:9f0a1b2c-3d4e-4f5a-6b7c-8d9e0f1a2b3c
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/01 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Authorization;

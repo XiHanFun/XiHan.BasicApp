@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IChatDomainService
-// Guid:0f4a3b6c-8bf3-4ab3-d942-3e4f5a6b7c8d
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 

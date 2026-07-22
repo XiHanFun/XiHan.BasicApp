@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasMenuSeeder
-// Guid:8d9bf0f9-1040-46fe-8bb7-e5c889f11f2b
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Application.Pages;

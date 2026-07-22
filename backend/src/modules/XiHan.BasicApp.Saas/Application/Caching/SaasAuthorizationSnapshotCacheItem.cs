@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasAuthorizationSnapshotCacheItem
-// Guid:5a828cd9-9cfb-4502-9433-5c9c1cf9126a
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/06 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.Framework.Caching.Attributes;
 

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasEditionGateCacheItem
-// Guid:0c158daa-e14c-47f8-d59a-cfdb40b11ed5
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/11 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.MultiTenancy.Abstractions;

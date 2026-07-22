@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:LoginAuthenticationResult
-// Guid:5c4b1df7-52d7-4f67-a2aa-e0e3bfb9c7e1
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/17 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 

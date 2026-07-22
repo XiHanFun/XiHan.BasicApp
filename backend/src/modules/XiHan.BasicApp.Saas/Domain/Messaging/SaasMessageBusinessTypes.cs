@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasMessageBusinessTypes
-// Guid:3f8a1c6d-9e42-4b7a-8c05-d21e6f4a9b73
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.Domain.Messaging;
 

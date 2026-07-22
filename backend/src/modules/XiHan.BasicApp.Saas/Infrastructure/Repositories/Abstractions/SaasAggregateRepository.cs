@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasAggregateRepository
-// Guid:2e2a9b84-a052-4a10-b6d1-66adcf99b383
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/04/26 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;

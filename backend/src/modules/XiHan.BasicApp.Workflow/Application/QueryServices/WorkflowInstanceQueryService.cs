@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:WorkflowInstanceQueryService
-// Guid:71c04d8e-395f-4b26-a8d1-64e50c92f7b3
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/17 10:26:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;

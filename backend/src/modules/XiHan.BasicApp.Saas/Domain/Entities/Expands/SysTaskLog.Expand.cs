@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysTaskLog.Expand
-// Guid:2e28152c-d6e9-4396-addb-b479254bad61
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2025/08/14 06:52:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using SqlSugar;
 

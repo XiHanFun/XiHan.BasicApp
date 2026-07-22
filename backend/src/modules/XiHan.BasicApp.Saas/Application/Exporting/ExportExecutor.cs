@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:ExportExecutor
-// Guid:35c2f0b8-3e6a-4b1d-2af4-06b7c8d9e0f1
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/14 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

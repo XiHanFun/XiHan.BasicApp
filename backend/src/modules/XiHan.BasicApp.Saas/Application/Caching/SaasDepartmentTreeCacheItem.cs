@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasDepartmentTreeCacheItem
-// Guid:a6c9e2f7-8b0d-4fdb-9e67-5d8f4a0c3b91
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/07 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.Framework.Caching.Attributes;

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:PermissionChangeLogEventHandler
-// Guid:5d2c7f18-0b3a-4e6c-9f21-7a4c8e0d1b53
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/10 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;

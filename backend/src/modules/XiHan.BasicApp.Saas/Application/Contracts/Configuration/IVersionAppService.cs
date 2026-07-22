@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IVersionAppService
-// Guid:0a9bfe54-e955-4800-b770-1050635e07b4
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/06 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 #pragma warning disable CS1591
 

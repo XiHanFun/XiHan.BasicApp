@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysUserNotificationPreference
-// Guid:b3e1f8a2-6c4d-4e9a-8f1b-2d5c7e9a0b34
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/01 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;

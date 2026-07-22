@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:DataProtectionConfigValueSecretProtector
-// Guid:b4e7d2a9-5c18-4f6e-a3b7-8d90c4e21f56
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.DataProtection;
 using XiHan.BasicApp.Saas.Domain.DomainServices;

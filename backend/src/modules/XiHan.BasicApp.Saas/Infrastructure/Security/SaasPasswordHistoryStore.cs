@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasPasswordHistoryStore
-// Guid:a76e2573-d5ec-4e5c-a486-7973542834c1
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/12 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Security.Services;

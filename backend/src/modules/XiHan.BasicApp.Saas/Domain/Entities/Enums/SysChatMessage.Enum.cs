@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysChatMessage.Enum
-// Guid:2d6e5f8a-0f7c-4e9d-b1ca-5c6d7e8f9a0b
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.ComponentModel;
 

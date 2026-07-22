@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:EnumMetadataAppService
-// Guid:a7b2f1d6-3c9e-4a08-bf52-8d17e6c4b3a9
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/12 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Application.Dtos.Metadata;
 using XiHan.BasicApp.Saas.Application.QueryServices;

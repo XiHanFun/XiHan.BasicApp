@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IUserApiCredentialSecretProtector
-// Guid:9f3c1a26-7d84-4e0b-9c15-6a2f8d4b3e70
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/18 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 

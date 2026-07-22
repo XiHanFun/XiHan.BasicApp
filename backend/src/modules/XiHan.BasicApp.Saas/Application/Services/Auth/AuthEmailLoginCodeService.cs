@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:AuthEmailLoginCodeService
-// Guid:9c4e7b21-3a6d-4f81-b5c0-2d8f1a6e4b73
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.Framework.Authentication.OneTimeCode;
 

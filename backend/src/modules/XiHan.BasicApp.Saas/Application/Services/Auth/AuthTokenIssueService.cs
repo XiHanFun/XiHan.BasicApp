@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:AuthTokenIssueService
-// Guid:08d7df56-a4de-4850-9e1d-3555fb1ef81f
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/18 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

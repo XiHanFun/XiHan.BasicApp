@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IOAuthAppAppService
-// Guid:b7821328-26b9-4db9-ac48-27655caf6549
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/06 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 #pragma warning disable CS1591
 

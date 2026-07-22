@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:OAuthConnectEndpoints
-// Guid:6d9a4c5b-2e07-4f38-b145-0a7c5d3e2f96
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/01 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;

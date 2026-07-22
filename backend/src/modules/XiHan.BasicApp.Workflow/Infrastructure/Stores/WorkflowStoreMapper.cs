@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:WorkflowStoreMapper
-// Guid:b91f47a3-0d65-4e28-92c7-58e30d16f4b9
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/17 10:13:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.Globalization;
 using System.Text.Json;

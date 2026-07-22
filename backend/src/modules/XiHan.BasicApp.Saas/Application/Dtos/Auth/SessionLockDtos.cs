@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SessionLockDtos
-// Guid:8b2e5c41-6a97-4d30-b58f-0c4a19d7e263
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/15 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.ComponentModel.DataAnnotations;
 

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:OpenApiDiagnosticsDtos
-// Guid:5a91c3e7-06d4-4b28-9f51-3c7e8a2b6d40
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/18 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.OpenApi.Dtos;
 

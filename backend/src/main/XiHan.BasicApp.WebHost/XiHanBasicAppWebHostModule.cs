@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:XiHanBasicAppWebHostModule
-// Guid:c3d5fae5-17b2-44f8-aaa2-1ce1b868f8e6
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2024/12/10 05:34:12
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
