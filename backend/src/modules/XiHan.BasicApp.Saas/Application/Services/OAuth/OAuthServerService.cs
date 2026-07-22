@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:OAuthServerService
-// Guid:2b8e4c19-7d63-4a52-9f18-6c3a0d5b7e42
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/01 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;

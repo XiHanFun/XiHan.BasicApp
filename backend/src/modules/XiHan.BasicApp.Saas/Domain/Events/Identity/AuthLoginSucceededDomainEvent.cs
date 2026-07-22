@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:AuthLoginSucceededDomainEvent
-// Guid:64c66f1c-540d-4d45-a7b9-e38dc20b9218
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/17 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.Framework.Domain.Events;
 

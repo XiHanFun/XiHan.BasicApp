@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:QueryConditionsExtensions
-// Guid:3a7e2c91-f84b-4d05-b6e8-1c9f0a5d7b43
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/30 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using SqlSugar;
 using System.Linq.Expressions;

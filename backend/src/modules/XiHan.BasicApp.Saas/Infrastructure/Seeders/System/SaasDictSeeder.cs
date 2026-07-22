@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasDictSeeder
-// Guid:e4819afa-1304-4a15-99f7-b59a11e2e586
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/04 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using SqlSugar;

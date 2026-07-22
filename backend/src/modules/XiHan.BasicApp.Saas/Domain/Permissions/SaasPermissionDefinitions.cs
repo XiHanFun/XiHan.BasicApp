@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasPermissionDefinitions
-// Guid:3e7b2f4a-91c5-4d68-b8e0-6f2a0c5d9e13
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/30 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.Domain.Permissions;
 

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasSampleIdentitySeeder
-// Guid:7c1e9a64-3d52-4f08-9b21-5e8c2a47d0f9
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/15 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using SqlSugar;

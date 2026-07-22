@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:StorageProviderResolver
-// Guid:f6a7b8c9-d0e1-4b53-bf6a-7b8c9d0e1f2a
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/01 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;

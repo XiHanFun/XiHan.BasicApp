@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasBusinessTenantSeeder
-// Guid:9d2f4c81-7a36-4e15-b8c9-3a47e0d52f6b
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/22 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using SqlSugar;

@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SysCodeGenTemplateSeeder
-// Guid:5c4b3a2d-1e0f-4a9b-8c7d-6e5f4a3b2c1d
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/21 10:10:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;

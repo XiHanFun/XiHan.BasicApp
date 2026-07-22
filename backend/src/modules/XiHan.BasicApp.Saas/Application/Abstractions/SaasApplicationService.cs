@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasApplicationService
-// Guid:b0caa9c1-3b23-4496-a4d3-43dd4af5b0ec
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/04/29 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
 using XiHan.Framework.Application.Attributes;

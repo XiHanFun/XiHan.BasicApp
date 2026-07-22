@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:DepartmentManagementDetailDto
-// Guid:a6ad50a1-3f07-432b-8939-208c51970892
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/20 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Saas.Domain.Enums;
 

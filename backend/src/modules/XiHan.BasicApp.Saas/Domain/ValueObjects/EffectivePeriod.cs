@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:EffectivePeriod
-// Guid:db3fbdd8-27ce-41f1-a6b2-bf59f1e4f9d1
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/04/26 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.Domain.ValueObjects;
 

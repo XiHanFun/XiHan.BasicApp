@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:ProfileAppService
-// Guid:d74d16af-1221-45b8-8d0d-b0ab6cc144cc
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/05/04 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

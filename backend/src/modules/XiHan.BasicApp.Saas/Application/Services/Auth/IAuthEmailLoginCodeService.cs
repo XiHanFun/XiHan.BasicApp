@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:IAuthEmailLoginCodeService
-// Guid:6f2a1d4c-8b3e-4a7c-9d2f-1e5b7c9a3d10
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/03 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 

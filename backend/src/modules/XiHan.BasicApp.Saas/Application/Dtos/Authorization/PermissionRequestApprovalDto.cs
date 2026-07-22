@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:PermissionRequestApprovalDto
-// Guid:6b1c2d3e-4f50-4a61-8b72-c3d4e5f6a7b8
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/06/07 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using XiHan.BasicApp.Core.Dtos;
 

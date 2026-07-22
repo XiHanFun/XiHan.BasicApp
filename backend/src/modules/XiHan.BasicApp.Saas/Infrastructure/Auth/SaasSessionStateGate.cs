@@ -1,16 +1,5 @@
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:SaasSessionStateGate
-// Guid:1f6c8b25-7e04-4a93-9d51-3b8a0e7f2c46
-// Author:zhaifanhua
-// Email:me@zhaifanhua.com
-// CreateTime:2026/07/15 00:00:00
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Application.Caching;
