@@ -17,12 +17,12 @@
 
     <!-- 曦寒框架 Web 相关引用：两组二选一，规则同 XiHan.BasicApp.Core（见 props\framework.props） -->
     <ItemGroup Condition=" '$(UseXiHanFrameworkSource)' != 'true' ">
-        <PackageReference Include="XiHan.Framework.Web.Api" Version="3.7.0" />
-        <PackageReference Include="XiHan.Framework.Web.Core" Version="3.7.0" />
-        <PackageReference Include="XiHan.Framework.Web.Docs" Version="3.7.0" />
-        <PackageReference Include="XiHan.Framework.Web.Gateway" Version="3.7.0" />
-        <PackageReference Include="XiHan.Framework.Web.Grpc" Version="3.7.0" />
-        <PackageReference Include="XiHan.Framework.Web.RealTime" Version="3.7.0" />
+        <PackageReference Include="XiHan.Framework.Web.Api" Version="3.8.0" />
+        <PackageReference Include="XiHan.Framework.Web.Core" Version="3.8.0" />
+        <PackageReference Include="XiHan.Framework.Web.Docs" Version="3.8.0" />
+        <PackageReference Include="XiHan.Framework.Web.Gateway" Version="3.8.0" />
+        <PackageReference Include="XiHan.Framework.Web.Grpc" Version="3.8.0" />
+        <PackageReference Include="XiHan.Framework.Web.RealTime" Version="3.8.0" />
     </ItemGroup>
 
     <ItemGroup Condition=" '$(UseXiHanFrameworkSource)' == 'true' ">
