@@ -3,16 +3,8 @@
 // 要改写下列任意方法的行为，请在 {{ ClassName }}AppService.cs 中 override，
 // 需要保留原逻辑时调用 base.XxxAsync(...)。
 
-#region <<版权版本注释>>
-
-// ----------------------------------------------------------------
-// Copyright ©2021-Present ZhaiFanhua All Rights Reserved.
+// Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-// FileName:{{ ClassName }}AppServiceBase.Generated
-// Author:{{ if Author }}{{ Author }}{{ else }}zhaifanhua{{ end }}
-// ----------------------------------------------------------------
-
-#endregion <<版权版本注释>>
 
 using System.CodeDom.Compiler;
 using Microsoft.AspNetCore.Authorization;
