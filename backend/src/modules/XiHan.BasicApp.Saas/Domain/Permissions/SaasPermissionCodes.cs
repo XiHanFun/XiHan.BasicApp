@@ -118,6 +118,15 @@ public static class SaasPermissionCodes
         Config.Update,
         Config.Status,
         Config.Delete,
+        Numbering.Read,
+        Numbering.Create,
+        Numbering.Update,
+        Numbering.Status,
+        Numbering.Delete,
+        Numbering.Reset,
+        Numbering.Generate,
+        Numbering.AllocationRead,
+        Numbering.GlobalManage,
         Dict.Read,
         Dict.Create,
         Dict.Update,
@@ -1241,6 +1250,42 @@ public static class SaasPermissionCodes
         /// 导出系统配置
         /// </summary>
         public const string Export = "saas:config:export";
+    }
+
+    /// <summary>
+    /// 业务编号规则与发号权限码。
+    /// </summary>
+    public static class Numbering
+    {
+        /// <summary>分组编码（资源段）。</summary>
+        public const string Group = "numbering";
+
+        /// <summary>查看编号规则。</summary>
+        public const string Read = "saas:numbering:read";
+
+        /// <summary>创建编号规则。</summary>
+        public const string Create = "saas:numbering:create";
+
+        /// <summary>更新编号规则。</summary>
+        public const string Update = "saas:numbering:update";
+
+        /// <summary>启用或停用编号规则。</summary>
+        public const string Status = "saas:numbering:status";
+
+        /// <summary>删除从未发号的编号规则。</summary>
+        public const string Delete = "saas:numbering:delete";
+
+        /// <summary>安全重置下一流水值。</summary>
+        public const string Reset = "saas:numbering:reset";
+
+        /// <summary>通过 API 或 DI 服务生成编号。</summary>
+        public const string Generate = "saas:numbering:generate";
+
+        /// <summary>查看永久发号记录。</summary>
+        public const string AllocationRead = "saas:numbering:allocation-read";
+
+        /// <summary>管理平台全局规则与租户开放状态。</summary>
+        public const string GlobalManage = "saas:numbering:global-manage";
     }
 
     /// <summary>

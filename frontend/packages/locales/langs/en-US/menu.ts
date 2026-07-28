@@ -36,6 +36,7 @@ export default {
   setting_menu: 'Menus',
   setting_dict: 'Dictionaries',
   setting_config: 'Parameters',
+  setting_numbering: 'Business Numbering',
   setting_job: 'Job Scheduler',
   setting_cache: 'Cache',
   setting_server: 'Server Monitor',
