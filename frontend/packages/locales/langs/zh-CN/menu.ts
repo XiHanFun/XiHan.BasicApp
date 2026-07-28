@@ -36,6 +36,7 @@ export default {
   setting_menu: '菜单管理',
   setting_dict: '字典管理',
   setting_config: '参数配置',
+  setting_numbering: '业务编号',
   setting_job: '任务调度',
   setting_cache: '缓存管理',
   setting_server: '服务监控',
