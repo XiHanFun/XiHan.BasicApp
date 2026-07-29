@@ -67,7 +67,9 @@
   <Folder Name="/1.src/4.Main/" Id="d2d033ac-57c1-ffc6-883a-a6944cad0e51">
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>
-  <Folder Name="/2.test/" />
+  <Folder Name="/2.test/">
+    <Project Path="test/XiHan.BasicApp.Saas.Tests/XiHan.BasicApp.Saas.Tests.csproj" />
+  </Folder>
   <Folder Name="/3.others/" />
   <Folder Name="/3.others/1.Props/">
     <File Path="props/common.props" />

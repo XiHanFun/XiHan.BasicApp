@@ -375,6 +375,18 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Config.Import, "系统配置导入", "批量导入系统配置数据", true, 2530),
             new(SaasPermissionCodes.Config.Export, "系统配置导出", "导出当前数据范围内的系统配置列表数据", false, 2660),
         ]),
+        new(SaasPermissionCodes.Numbering.Group, "业务编号",
+        [
+            new(SaasPermissionCodes.Numbering.Read, "业务编号查看", "查看当前作用域编号规则、详情和格式预览", false, 2790),
+            new(SaasPermissionCodes.Numbering.Create, "业务编号创建", "创建当前作用域业务编号规则", true, 2791),
+            new(SaasPermissionCodes.Numbering.Update, "业务编号更新", "更新当前作用域业务编号规则", true, 2792),
+            new(SaasPermissionCodes.Numbering.Status, "业务编号启停", "启用或停用业务编号规则", true, 2793),
+            new(SaasPermissionCodes.Numbering.Delete, "业务编号删除", "删除从未发号的业务编号规则", true, 2794),
+            new(SaasPermissionCodes.Numbering.Reset, "业务编号重置", "安全调整下一流水值并记录原因", true, 2795),
+            new(SaasPermissionCodes.Numbering.Generate, "业务编号生成", "通过受权 API 或 DI 服务生成单号及批量编号", true, 2796),
+            new(SaasPermissionCodes.Numbering.AllocationRead, "发号记录查看", "查看当前可访问规则的永久发号记录", true, 2797),
+            new(SaasPermissionCodes.Numbering.GlobalManage, "全局编号管理", "管理平台全局编号规则及租户开放状态", true, 2798),
+        ]),
         new(SaasPermissionCodes.Dict.Group, "系统字典",
         [
             new(SaasPermissionCodes.Dict.Read, "系统字典查看", "查看当前租户系统字典和字典项", false, 880),
