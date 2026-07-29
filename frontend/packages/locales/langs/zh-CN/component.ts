@@ -492,7 +492,7 @@ export default {
     lock_failed: '锁屏失败',
     unlock_failed: '解锁失败',
   },
-  code_highlight: {
+  code_editor: {
     copy: '复制',
     copy_success: '已复制',
   },

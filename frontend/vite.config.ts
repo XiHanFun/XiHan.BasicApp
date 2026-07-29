@@ -53,6 +53,10 @@ function createManualChunks(id: string) {
     return 'vendor-lodash'
   }
 
+  if (normalizedId.includes('/monaco-editor/')) {
+    return 'vendor-monaco'
+  }
+
   if (
     normalizedId.includes('/date-fns/')
     || normalizedId.includes('/date-fns-tz/')

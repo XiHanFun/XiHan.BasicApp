@@ -56,6 +56,7 @@ catalog:
   'highlight.js': '^11.11.1'
   'lint-staged': '^17.1.1'
   'md-editor-v3': '^6.5.3'
+  'monaco-editor': '^0.52.2'
   'naive-ui': '^2.44.1'
   'oxlint': '^1.75.0'
   'papaparse': '^5.5.4'
