@@ -40,7 +40,7 @@ let requestVersion = 0
 const title = computed(() => t('setting.numbering.allocation_title', { code: props.rule?.ruleCode ?? '' }))
 
 const columns = computed<DataTableColumns<NumberingAllocationListItemDto>>(() => [
-  { key: 'generatedTime', title: t('setting.numbering.generated_at'), width: 170, render: row => formatDate(row.generatedTime) },
+  { key: 'generatedTime', title: t('setting.numbering.generated_time'), width: 170, render: row => formatDate(row.generatedTime) },
   { key: 'requestTenantId', title: t('setting.numbering.request_tenant'), width: 110 },
   { key: 'idempotencyKey', title: t('setting.numbering.idempotency_key'), minWidth: 180, ellipsis: { tooltip: true } },
   { key: 'periodKey', title: t('setting.numbering.period'), width: 110 },

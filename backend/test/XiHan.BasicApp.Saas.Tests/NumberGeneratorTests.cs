@@ -246,6 +246,47 @@ public sealed class NumberGeneratorTests
     }
 
     /// <summary>
+    /// 发号目标库与调用方事务同库时必须加入调用方事务，使编号与业务数据同时可见或同时消失。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_SameDatabaseShouldJoinCallerTransaction()
+    {
+        var fixture = new GeneratorFixture { SimulateIsolatedTenantDatabase = false };
+        fixture.AddRule(1, 0, "ORDER", "GLB", allowTenantUse: true);
+
+        _ = await fixture.RunAsTenantAsync(
+            7,
+            () => fixture.RunInCallerTransactionAsync(
+                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Global, "same-db"))));
+
+        // 只有调用方那一个事务，发号没有另开事务。
+        Assert.Equal(1, fixture.OwnTransactionCount);
+    }
+
+    /// <summary>
+    /// 发号目标库与调用方事务不同库时必须自行提交，不能依赖工作单元对两条连接的顺序提交。
+    /// </summary>
+    /// <remarks>
+    /// 跨库时并进调用方事务只是幻觉：没有两阶段提交，调用方先提交而平台库提交失败会让调用方
+    /// 拿到一个既未记录也未推进流水的编号，下一次发号必然重复它。自行提交把最坏结果降级为编号空洞。
+    /// </remarks>
+    [Fact]
+    public async Task GenerateAsync_CrossDatabaseShouldCommitOwnTransaction()
+    {
+        var fixture = new GeneratorFixture { SimulateIsolatedTenantDatabase = true };
+        fixture.AddRule(1, 0, "ORDER", "GLB", allowTenantUse: true);
+
+        var result = await fixture.RunAsTenantAsync(
+            7,
+            () => fixture.RunInCallerTransactionAsync(
+                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Global, "cross-db"))));
+
+        Assert.Equal("GLB-0001", Assert.Single(result.Numbers));
+        // 调用方事务 + 发号自有事务。
+        Assert.Equal(2, fixture.OwnTransactionCount);
+    }
+
+    /// <summary>
     /// 没有可用事务时必须立即失败，而不是在无锁保护下发号。
     /// </summary>
     /// <remarks>
@@ -348,6 +389,7 @@ public sealed class NumberGeneratorTests
 
         private long _nextAllocationId;
         private int _advanceAttempts;
+        private int _ownTransactionCount;
 
         /// <summary>
         /// 初始化测试夹具并把仓储回调连接到内存状态。
@@ -428,6 +470,12 @@ public sealed class NumberGeneratorTests
                     rule.RowVersion++;
                     return Task.FromResult(true);
                 });
+            // 库隔离部署下平台库与租户库是两条连接；共享库部署下两者同为默认连接。
+            RuleRepository
+                .Setup(repository => repository.GetCurrentDatabaseId())
+                .Returns(() => SimulateIsolatedTenantDatabase && _currentTenantId.Value is { } tenantId
+                    ? $"Tenant_{tenantId}"
+                    : "Default");
             RuleRepository
                 .Setup(repository => repository.ReadCurrentValueAsync(
                     It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))
@@ -529,6 +577,9 @@ public sealed class NumberGeneratorTests
         /// <summary>流水推进语句的执行次数，用于断言不再存在冲突重试。</summary>
         public int AdvanceAttempts => Volatile.Read(ref _advanceAttempts);
 
+        /// <summary>自行开启并提交的事务数量；调用方事务与发号自有事务各计一次。</summary>
+        public int OwnTransactionCount => Volatile.Read(ref _ownTransactionCount);
+
         /// <summary>当前永久分配记录快照。</summary>
         public IReadOnlyCollection<SysNumberingAllocation> Allocations => _allocations.Values.ToArray();
 
@@ -618,22 +669,40 @@ public sealed class NumberGeneratorTests
         /// <returns>可释放的工作单元替身。</returns>
         private IUnitOfWork BeginTransaction(XiHanUnitOfWorkOptions options, bool requiresNew)
         {
-            _ = requiresNew;
-            if (_ambientTransaction.Value is not null)
+            // 发号器只在「目标库与调用方事务不在同一条连接上」时传 requiresNew，
+            // 那条连接上必然没有调用方的事务，因此这里按「必定拿到真实事务」建模。
+            if (_ambientTransaction.Value is not null && !requiresNew)
             {
                 // 子工作单元：不接管提交，也不释放外层持有的行锁。
                 return new FakeUnitOfWork(null);
             }
 
+            var previous = _ambientTransaction.Value;
             var transaction = options.IsTransactional
                 ? new FakeTransaction(ReleaseLocks)
                 : FakeTransaction.NonTransactional;
+            if (transaction.IsTransactional)
+            {
+                Interlocked.Increment(ref _ownTransactionCount);
+            }
+
             _ambientTransaction.Value = transaction;
             return new FakeUnitOfWork(() =>
             {
                 transaction.Release();
-                _ambientTransaction.Value = null;
+                _ambientTransaction.Value = previous;
             });
+        }
+
+        /// <summary>
+        /// 以调用方身份开启一个环境事务，用于验证发号是加入它还是自行提交。
+        /// </summary>
+        public async Task<TResult> RunInCallerTransactionAsync<TResult>(Func<Task<TResult>> action)
+        {
+            using var unitOfWork = BeginTransaction(new XiHanUnitOfWorkOptions(isTransactional: true), false);
+            var result = await action();
+            await unitOfWork.CompleteAsync();
+            return result;
         }
 
         /// <summary>
