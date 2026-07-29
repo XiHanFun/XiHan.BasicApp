@@ -3,6 +3,7 @@ import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type {
   AiProviderCreateDto,
   AiProviderListItemDto,
+  AiProviderProbeResultDto,
   AiProviderUpdateDto,
   PageResult,
 } from '@/api'
@@ -17,6 +18,7 @@ import {
   NTag,
   useDialog,
   useMessage,
+  useNotification,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -57,6 +59,7 @@ interface ProviderFormModel {
 const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
+const notification = useNotification()
 
 const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -191,17 +194,33 @@ function onAction(payload: SchemaActionPayload) {
   }
 }
 
+// 会话与嵌入走各自的端点，逐项成文，避免只看总体结论时误判另一项也可用
+function describeProbe(label: string, probe: AiProviderProbeResultDto) {
+  if (!probe.success) {
+    const reason = probe.message ? `：${probe.message}` : ''
+    return `${label} ${t('develop.ai_provider.probe_failed')}${reason}`
+  }
+  const dimensions = probe.dimensions
+    ? t('develop.ai_provider.probe_dimensions', { n: probe.dimensions })
+    : ''
+  return `${label} ${t('develop.ai_provider.probe_ok', { ms: probe.latencyMs })}${dimensions}`
+}
+
 async function handleTest(row: AiProviderListItemDto) {
   const reset = message.loading(t('develop.ai_provider.testing'), { duration: 0 })
   try {
     const result = await aiProviderApi.testConnection(row.basicId)
     reset.destroy()
-    if (result.success) {
-      message.success(t('develop.ai_provider.test_success', { ms: result.latencyMs }))
-    }
-    else {
-      message.error(result.message || t('develop.ai_provider.test_failed'))
-    }
+    const lines = [describeProbe(t('develop.ai_provider.probe_chat'), result.chat)]
+    lines.push(result.embedding
+      ? describeProbe(t('develop.ai_provider.probe_embedding'), result.embedding)
+      : t('develop.ai_provider.probe_embedding_absent'))
+
+    notification[result.success ? 'success' : 'error']({
+      title: t(result.success ? 'develop.ai_provider.test_success' : 'develop.ai_provider.test_failed'),
+      content: () => h('div', { class: 'flex flex-col gap-1' }, lines.map(line => h('div', line))),
+      duration: result.success ? 5000 : undefined,
+    })
   }
   catch {
     reset.destroy()

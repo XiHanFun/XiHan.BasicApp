@@ -18,6 +18,7 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
     private readonly IAiProviderRepository _providerRepository;
     private readonly IAiProviderSecretProtector _secretProtector;
     private readonly OpenAiCompatibleChatClientFactory _chatClientFactory;
+    private readonly OpenAiEmbeddingGeneratorFactory _embeddingGeneratorFactory;
 
     /// <summary>
     /// 构造函数
@@ -25,11 +26,13 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
     public AiProviderDomainService(
         IAiProviderRepository providerRepository,
         IAiProviderSecretProtector secretProtector,
-        OpenAiCompatibleChatClientFactory chatClientFactory)
+        OpenAiCompatibleChatClientFactory chatClientFactory,
+        OpenAiEmbeddingGeneratorFactory embeddingGeneratorFactory)
     {
         _providerRepository = providerRepository;
         _secretProtector = secretProtector;
         _chatClientFactory = chatClientFactory;
+        _embeddingGeneratorFactory = embeddingGeneratorFactory;
     }
 
     /// <inheritdoc />
@@ -182,13 +185,27 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
             ApiKey = _secretProtector.Unprotect(provider.ApiKey),
             BaseUrl = provider.BaseUrl,
             Model = provider.Model,
+            EmbeddingModel = provider.EmbeddingModel,
             MaxOutputTokens = provider.MaxOutputTokens,
             Temperature = provider.Temperature,
             TimeoutSeconds = provider.TimeoutSeconds,
             ExtraJson = provider.ExtraJson
         };
 
-        // 用一次性客户端测试（不入解析器缓存），可测试尚未启用的配置。
+        var chat = await ProbeChatAsync(options, cancellationToken);
+        var embedding = string.IsNullOrWhiteSpace(options.EmbeddingModel)
+            ? null
+            : await ProbeEmbeddingAsync(options, cancellationToken);
+
+        return new AiProviderTestResult(chat, embedding);
+    }
+
+    /// <summary>
+    /// 探测会话模型（发一次最小请求）
+    /// </summary>
+    /// <remarks>用一次性客户端（不入解析器缓存），可测试尚未启用的配置。</remarks>
+    private async Task<AiProviderChatProbe> ProbeChatAsync(AiProviderOptions options, CancellationToken cancellationToken)
+    {
         var stopwatch = Stopwatch.StartNew();
         try
         {
@@ -200,7 +217,7 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
                     new ChatOptions { MaxOutputTokens = 16 },
                     cancellationToken);
                 stopwatch.Stop();
-                return new AiProviderTestResult(true, response.FinishReason?.ToString(), stopwatch.ElapsedMilliseconds, provider.Model);
+                return new AiProviderChatProbe(true, response.FinishReason?.ToString(), stopwatch.ElapsedMilliseconds, options.Model);
             }
             finally
             {
@@ -214,7 +231,39 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         catch (Exception ex)
         {
             stopwatch.Stop();
-            return new AiProviderTestResult(false, ex.Message, stopwatch.ElapsedMilliseconds, provider.Model);
+            return new AiProviderChatProbe(false, ex.Message, stopwatch.ElapsedMilliseconds, options.Model);
+        }
+    }
+
+    /// <summary>
+    /// 探测嵌入模型（嵌入端点与会话端点相互独立，须单独发一次请求并回报实际维度）
+    /// </summary>
+    private async Task<AiProviderEmbeddingProbe> ProbeEmbeddingAsync(AiProviderOptions options, CancellationToken cancellationToken)
+    {
+        var model = options.EmbeddingModel!;
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var generator = _embeddingGeneratorFactory.Create(options);
+            try
+            {
+                var vector = await generator.GenerateVectorAsync("ping", cancellationToken: cancellationToken);
+                stopwatch.Stop();
+                return new AiProviderEmbeddingProbe(true, null, stopwatch.ElapsedMilliseconds, model, vector.Length);
+            }
+            finally
+            {
+                generator.Dispose();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            return new AiProviderEmbeddingProbe(false, ex.Message, stopwatch.ElapsedMilliseconds, model, null);
         }
     }
 
