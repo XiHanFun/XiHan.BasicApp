@@ -429,7 +429,7 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
         if (request.Conditions.Sorts.Count == 0)
         {
             // UTC 发号时间与主键共同形成稳定倒序，保证相同时刻写入的记录分页顺序确定。
-            request.Conditions.AddSort((SysNumberingAllocation allocation) => allocation.GeneratedAtUtc, SortDirection.Descending, 0);
+            request.Conditions.AddSort((SysNumberingAllocation allocation) => allocation.GeneratedTime, SortDirection.Descending, 0);
             request.Conditions.AddSort((SysNumberingAllocation allocation) => allocation.BasicId, SortDirection.Descending, 1);
         }
 

@@ -285,7 +285,7 @@ public sealed class NumberingAllocationListItemDto : BasicAppDto
     public string LastNumber { get; set; } = string.Empty;
 
     /// <summary>UTC 发号时间。</summary>
-    public DateTimeOffset GeneratedAtUtc { get; set; }
+    public DateTimeOffset GeneratedTime { get; set; }
 
     /// <summary>可选业务类型。</summary>
     public string? BusinessType { get; set; }
@@ -467,7 +467,7 @@ public sealed class NumberGenerationResultDto
     public IReadOnlyList<string> Numbers { get; set; } = [];
 
     /// <summary>首次分配 UTC 时间。</summary>
-    public DateTimeOffset GeneratedAtUtc { get; set; }
+    public DateTimeOffset GeneratedTime { get; set; }
 
     /// <summary>是否为幂等重放。</summary>
     public bool IsIdempotentReplay { get; set; }

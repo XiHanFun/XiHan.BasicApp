@@ -33,6 +33,7 @@ import {
   NumberingResetCycle,
 } from '@/api'
 import { XEditModal } from '~/components'
+import { useEnumOptions } from '~/hooks'
 
 defineOptions({ name: 'NumberingRuleEditor' })
 
@@ -75,21 +76,14 @@ const serverTimeZoneOptions = ref<NumberingTimeZoneOptionDto[]>([])
 const title = computed(() => props.detail ? t('setting.numbering.edit_title') : t('setting.numbering.add_title'))
 const formatFrozen = computed(() => Boolean(props.detail?.hasAllocated))
 
-const dateFormatOptions = computed(() => [
-  { label: t('setting.numbering.date_none'), value: NumberingDateFormat.None },
-  { label: 'yyyy', value: NumberingDateFormat.Yyyy },
-  { label: 'yyyyMM', value: NumberingDateFormat.YyyyMM },
+// 枚举标签的单一事实源是后端枚举元数据，切换语言时由 useEnumService 整库重取一次并响应式刷新；
+// 这里的兜底数组只在元数据尚未到达时短暂生效，不参与日常展示。
+const dateFormatOptions = useEnumOptions('NumberingDateFormat', [
   { label: 'yyyyMMdd', value: NumberingDateFormat.YyyyMMdd },
-  { label: 'yyMM', value: NumberingDateFormat.YyMM },
-  { label: 'yyMMdd', value: NumberingDateFormat.YyMMdd },
-  { label: 'MMdd', value: NumberingDateFormat.MMdd },
 ])
 
-const resetCycleOptions = computed(() => [
-  { label: t('setting.numbering.reset_never'), value: NumberingResetCycle.Never },
-  { label: t('setting.numbering.reset_daily'), value: NumberingResetCycle.Daily },
-  { label: t('setting.numbering.reset_monthly'), value: NumberingResetCycle.Monthly },
-  { label: t('setting.numbering.reset_yearly'), value: NumberingResetCycle.Yearly },
+const resetCycleOptions = useEnumOptions('NumberingResetCycle', [
+  { label: 'Daily', value: NumberingResetCycle.Daily },
 ])
 
 const timeZoneOptions = computed(() => {

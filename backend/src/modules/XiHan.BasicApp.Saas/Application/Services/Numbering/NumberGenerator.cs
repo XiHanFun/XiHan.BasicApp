@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using XiHan.BasicApp.Saas.Application.Contracts;
@@ -10,7 +11,6 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Numbering;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
-using XiHan.Framework.Domain.Exceptions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
@@ -19,36 +19,40 @@ using XiHan.Framework.Uow.Options;
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
-/// 多租户业务编号生成器实现，编排作用域解析、幂等、事务、并发重试与格式快照。
+/// 多租户业务编号生成器实现，编排作用域解析、幂等、事务与格式快照。
 /// </summary>
 /// <remarks>
-/// 正确性分为三层：进程内规则键锁降低同节点竞争，规则 <c>RowVersion</c> 处理跨节点乐观并发，
-/// 永久分配记录的唯一索引保证相同幂等范围最终只保留一次分配。生成器本身不保存可变业务状态，可由 DI 并发调用。
+/// <para>
+/// 流水推进由数据库单条语句完成：先把周期基线单调翻转到当前周期，再在当前周期内累加占用一段连续区间，
+/// 最后在同一事务内读回本次写入以确定区间边界。应用层不做「读取当前值 → 计算新值 → 写回」，
+/// 因此不存在丢失更新，也不需要乐观锁冲突重试。
+/// </para>
+/// <para>
+/// 事务是正确性的前提而不是可选项：推进语句取得的排他行锁必须持有到提交，读回值才等于本次推进结果。
+/// 生成器因此保证事务存在——调用链上已有事务型工作单元时加入它，没有时自行开启并提交；
+/// 若两者都不成立（例如处于非事务型工作单元内），仓储的连接级断言会立即失败，而不是静默降级。
+/// </para>
+/// <para>
+/// 调用契约见 <see cref="INumberGenerator"/>：加入调用方事务意味着编号与调用方事务同生共死，
+/// 且规则行会被锁定到调用方提交为止。
+/// </para>
+/// <para>生成器本身不保存可变状态，可由 DI 并发调用。</para>
 /// </remarks>
 public sealed class NumberGenerator : INumberGenerator
 {
     /// <summary>
-    /// 单次发号允许执行的最大乐观并发尝试次数；包含首次尝试，最后一次失败后不再继续退避重试。
+    /// 请求指纹的字段分隔符，取 ASCII 单元分隔符 0x1F。
     /// </summary>
-    private const int MaximumRetryCount = 5;
+    /// <remarks>该字符不会出现在规则编码、幂等键或业务标识等普通文本中，因此字段拼接不会产生边界歧义。</remarks>
+    private const char FingerprintFieldSeparator = (char)0x1F;
 
     /// <summary>
-    /// 乐观锁冲突随机退避的最短毫秒数（含），用于降低多个竞争者立即再次碰撞的概率。
-    /// </summary>
-    private const int MinimumRetryDelayMilliseconds = 10;
-
-    /// <summary>
-    /// 乐观锁冲突随机退避的最长毫秒数（含），限制单次重试对接口延迟的影响。
-    /// </summary>
-    private const int MaximumRetryDelayMilliseconds = 80;
-
-    /// <summary>
-    /// 规则仓储，用于按明确作用域解析规则并持久化带 <c>RowVersion</c> 的流水推进。
+    /// 规则仓储，提供作用域解析查询和数据库内原子流水推进。
     /// </summary>
     private readonly INumberingRuleRepository _ruleRepository;
 
     /// <summary>
-    /// 永久分配记录仓储，负责幂等事实查询、分配审计写入和历史最大流水校验。
+    /// 永久分配记录仓储，负责幂等事实查询和分配审计写入。
     /// </summary>
     private readonly INumberingAllocationRepository _allocationRepository;
 
@@ -56,11 +60,6 @@ public sealed class NumberGenerator : INumberGenerator
     /// 无共享可变状态的格式与周期计算器，用于校验规则、计算周期以及重建幂等结果。
     /// </summary>
     private readonly INumberingFormatter _formatter;
-
-    /// <summary>
-    /// 进程内规则键锁提供器；只降低当前节点竞争，不能替代数据库乐观锁和唯一索引。
-    /// </summary>
-    private readonly NumberingLockProvider _lockProvider;
 
     /// <summary>
     /// 当前租户上下文，用于捕获可信请求租户并在全局发号时临时切换到平台数据库。
@@ -73,7 +72,7 @@ public sealed class NumberGenerator : INumberGenerator
     private readonly ICurrentUser _currentUser;
 
     /// <summary>
-    /// 工作单元管理器，为每次并发尝试创建独立事务并保证规则推进与分配记录原子提交。
+    /// 工作单元管理器，用于加入调用方事务或在没有环境事务时自行开启事务。
     /// </summary>
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
@@ -83,7 +82,7 @@ public sealed class NumberGenerator : INumberGenerator
     private readonly TimeProvider _timeProvider;
 
     /// <summary>
-    /// 结构化日志记录器，记录成功区间、并发冲突、重试耗尽和脱敏后的失败上下文。
+    /// 结构化日志记录器，记录成功区间、周期翻转、推进拒绝和脱敏后的失败上下文。
     /// </summary>
     private readonly ILogger<NumberGenerator> _logger;
 
@@ -93,7 +92,6 @@ public sealed class NumberGenerator : INumberGenerator
     /// <param name="ruleRepository">规则仓储。</param>
     /// <param name="allocationRepository">分配记录仓储。</param>
     /// <param name="formatter">格式策略。</param>
-    /// <param name="lockProvider">进程内规则键锁。</param>
     /// <param name="currentTenant">当前租户上下文。</param>
     /// <param name="currentUser">当前操作用户；后台任务调用时可以为空身份。</param>
     /// <param name="unitOfWorkManager">工作单元管理器。</param>
@@ -103,7 +101,6 @@ public sealed class NumberGenerator : INumberGenerator
         INumberingRuleRepository ruleRepository,
         INumberingAllocationRepository allocationRepository,
         INumberingFormatter formatter,
-        NumberingLockProvider lockProvider,
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
         IUnitOfWorkManager unitOfWorkManager,
@@ -113,7 +110,6 @@ public sealed class NumberGenerator : INumberGenerator
         _ruleRepository = ruleRepository;
         _allocationRepository = allocationRepository;
         _formatter = formatter;
-        _lockProvider = lockProvider;
         _currentTenant = currentTenant;
         _currentUser = currentUser;
         _unitOfWorkManager = unitOfWorkManager;
@@ -125,10 +121,10 @@ public sealed class NumberGenerator : INumberGenerator
     /// 生成一个业务编号，并将失败审计统一记录为结构化日志。
     /// </summary>
     /// <param name="request">单号请求；规则编码和幂等键必填，租户身份取自当前上下文。</param>
-    /// <param name="cancellationToken">用于取消锁等待、数据库操作、事务提交和重试退避的取消令牌。</param>
+    /// <param name="cancellationToken">用于取消数据库操作和事务提交的取消令牌。</param>
     /// <returns>首次分配或幂等重放得到的单号结果。</returns>
     /// <exception cref="ArgumentNullException"><paramref name="request"/> 为 <see langword="null"/>。</exception>
-    /// <exception cref="UserFriendlyException">请求、规则、幂等、容量或并发重试校验失败。</exception>
+    /// <exception cref="UserFriendlyException">请求、规则、幂等或容量校验失败。</exception>
     /// <exception cref="OperationCanceledException">操作被 <paramref name="cancellationToken"/> 取消。</exception>
     public async Task<NumberGenerationResult> GenerateAsync(NumberGenerateRequest request, CancellationToken cancellationToken = default)
     {
@@ -156,10 +152,10 @@ public sealed class NumberGenerator : INumberGenerator
     /// 在一次原子分配中生成连续编号，并将失败审计统一记录为结构化日志。
     /// </summary>
     /// <param name="request">批量请求；数量必须在 1 至 1000 之间，规则编码和幂等键必填。</param>
-    /// <param name="cancellationToken">用于取消锁等待、数据库操作、事务提交和重试退避的取消令牌。</param>
+    /// <param name="cancellationToken">用于取消数据库操作和事务提交的取消令牌。</param>
     /// <returns>首次分配或幂等重放得到的连续编号结果。</returns>
     /// <exception cref="ArgumentNullException"><paramref name="request"/> 为 <see langword="null"/>。</exception>
-    /// <exception cref="UserFriendlyException">请求、批量上限、规则、幂等、容量或并发重试校验失败。</exception>
+    /// <exception cref="UserFriendlyException">请求、批量上限、规则、幂等或容量校验失败。</exception>
     /// <exception cref="OperationCanceledException">操作被 <paramref name="cancellationToken"/> 取消。</exception>
     public async Task<NumberGenerationResult> GenerateBatchAsync(NumberBatchGenerateRequest request, CancellationToken cancellationToken = default)
     {
@@ -212,83 +208,53 @@ public sealed class NumberGenerator : INumberGenerator
         var resolved = await ResolveRuleAsync(normalized.RuleCode, scope, requestTenantId, cancellationToken);
         // 指纹绑定实际规则主键，避免 Auto 在租户规则与同编码全局规则之间切换时错误重放旧结果。
         var fingerprint = BuildFingerprint(normalized, resolved.RuleId);
-        var gate = _lockProvider.Get(resolved.OwnerTenantId, resolved.RuleId);
 
-        // 锁只覆盖同一规则的分配临界区；不同规则和不同独立租户库中的相同主键可以并行发号。
-        await gate.WaitAsync(cancellationToken);
-        try
+        if (resolved.OwnerTenantId == 0)
         {
-            // 全局规则必须先切到平台数据库，再开启独立事务；否则库隔离租户可能把平台事务绑定到租户连接。
-            if (resolved.OwnerTenantId == 0)
-            {
-                using var platformScope = _currentTenant.Change(null);
-                return await AllocateWithRetryAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
-            }
+            // 平台作用域承担两件独立的事：
+            // 一是让仓储的租户写谓词不再追加当前租户条件，使条件更新能命中 TenantId=0 的全局行；
+            // 二是满足框架审计在写入分配记录时的租户归属校验。
+            // 在库隔离部署下它还额外决定连接选择，因此必须在开启事务之前切换。
+            using var platformScope = _currentTenant.Change(null);
+            return await AllocateInTransactionAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
+        }
 
-            return await AllocateWithRetryAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
-        }
-        finally
-        {
-            gate.Release();
-        }
+        return await AllocateInTransactionAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
     }
 
     /// <summary>
-    /// 在当前已选数据库中执行带乐观锁重试的原子分配。
+    /// 在保证存在的数据库事务内执行一次分配。
     /// </summary>
     /// <param name="resolved">已经解析的实际规则位置和作用域。</param>
     /// <param name="requestTenantId">切换数据库前捕获的原请求租户。</param>
     /// <param name="request">已经校验并归一的请求。</param>
     /// <param name="fingerprint">绑定实际规则和请求参数的稳定指纹。</param>
-    /// <param name="cancellationToken">用于取消事务、数据库操作和退避等待的取消令牌。</param>
-    /// <returns>成功提交或幂等重放的分配结果。</returns>
-    /// <exception cref="UserFriendlyException">并发冲突重试耗尽或单次分配业务校验失败。</exception>
+    /// <param name="cancellationToken">用于取消事务和数据库操作的取消令牌。</param>
+    /// <returns>本次新分配或从永久记录重建的结果。</returns>
+    /// <remarks>
+    /// 刻意不使用 <c>requiresNew</c>：框架的事务适配器发现连接上已有事务时会退化为空操作，
+    /// 请求「新」工作单元只会得到一个不提交也不回滚的假事务。这里改为加入调用方事务
+    /// （<c>Begin</c> 在已有工作单元时返回子工作单元，其 <c>CompleteAsync</c> 为空实现，由外层统一提交），
+    /// 没有调用方事务时才真正开启并提交自己的事务。
+    /// </remarks>
+    /// <exception cref="UserFriendlyException">幂等冲突、规则不可用或流水耗尽。</exception>
+    /// <exception cref="InvalidOperationException">处于非事务型工作单元内，连接上没有活动事务。</exception>
     /// <exception cref="OperationCanceledException">操作被 <paramref name="cancellationToken"/> 取消。</exception>
-    private async Task<NumberGenerationResult> AllocateWithRetryAsync(
+    private async Task<NumberGenerationResult> AllocateInTransactionAsync(
         ResolvedNumberingRule resolved,
         long requestTenantId,
         NormalizedGenerationRequest request,
         string fingerprint,
         CancellationToken cancellationToken)
     {
-        Exception? lastConflict = null;
-        for (var attempt = 1; attempt <= MaximumRetryCount; attempt++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                // 每次尝试都使用 requiresNew 独立事务，冲突回滚后下一次才能重新读取最新 RowVersion。
-                using var unitOfWork = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(isTransactional: true), requiresNew: true);
-                var result = await AllocateOnceAsync(resolved, requestTenantId, request, fingerprint, cancellationToken);
-                await unitOfWork.CompleteAsync(cancellationToken);
-                return result;
-            }
-            catch (ConcurrencyConflictException exception) when (attempt < MaximumRetryCount)
-            {
-                lastConflict = exception;
-                // 短随机退避降低多节点在同一节奏上持续碰撞；取消令牌确保请求终止时不继续等待。
-                var delay = Random.Shared.Next(MinimumRetryDelayMilliseconds, MaximumRetryDelayMilliseconds + 1);
-                _logger.LogWarning(
-                    exception,
-                    "业务编号乐观锁冲突，准备重试：RuleId={RuleId}, OwnerTenantId={OwnerTenantId}, RequestTenantId={RequestTenantId}, OperatorId={OperatorId}, Attempt={Attempt}, DelayMs={DelayMs}",
-                    resolved.RuleId, resolved.OwnerTenantId, requestTenantId, _currentUser.UserId, attempt, delay);
-                await Task.Delay(delay, cancellationToken);
-            }
-            catch (ConcurrencyConflictException exception)
-            {
-                lastConflict = exception;
-            }
-        }
-
-        _logger.LogError(
-            lastConflict,
-            "业务编号并发重试耗尽：RuleId={RuleId}, OwnerTenantId={OwnerTenantId}, RequestTenantId={RequestTenantId}, OperatorId={OperatorId}, RetryCount={RetryCount}",
-            resolved.RuleId, resolved.OwnerTenantId, requestTenantId, _currentUser.UserId, MaximumRetryCount);
-        throw new UserFriendlyException("编号生成并发繁忙，请稍后使用相同幂等键重试。", innerException: lastConflict);
+        using var unitOfWork = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(isTransactional: true));
+        var result = await AllocateOnceAsync(resolved, requestTenantId, request, fingerprint, cancellationToken);
+        await unitOfWork.CompleteAsync(cancellationToken);
+        return result;
     }
 
     /// <summary>
-    /// 在一个独立事务中执行一次幂等检查、规则更新和分配记录写入。
+    /// 在当前事务内执行幂等检查、周期翻转、流水推进和分配记录写入。
     /// </summary>
     /// <param name="resolved">已经解析的实际规则位置和作用域。</param>
     /// <param name="requestTenantId">原请求租户；平台或单体上下文为 0。</param>
@@ -296,8 +262,7 @@ public sealed class NumberGenerator : INumberGenerator
     /// <param name="fingerprint">用于识别同幂等键参数冲突的请求指纹。</param>
     /// <param name="cancellationToken">用于取消本次事务内数据库操作的取消令牌。</param>
     /// <returns>本次新分配或从永久记录重建的结果。</returns>
-    /// <exception cref="UserFriendlyException">幂等冲突、规则不存在、规则停用、全局规则未开放或流水耗尽。</exception>
-    /// <exception cref="ConcurrencyConflictException">规则行版本或唯一索引发生并发冲突，由上层重试。</exception>
+    /// <exception cref="UserFriendlyException">幂等冲突、规则不存在、规则停用、全局规则未开放、时钟偏差或流水耗尽。</exception>
     /// <exception cref="OperationCanceledException">操作被 <paramref name="cancellationToken"/> 取消。</exception>
     private async Task<NumberGenerationResult> AllocateOnceAsync(
         ResolvedNumberingRule resolved,
@@ -326,7 +291,8 @@ public sealed class NumberGenerator : INumberGenerator
             return BuildResult(existing, resolved.ResolvedScope, true);
         }
 
-        // 必须在每次重试的独立事务中重新加载，确保 UpdateAsync 携带数据库最新 RowVersion。
+        // 这里只取用规则的格式与开放状态：首次发号后格式字段永久冻结，因此即便读取落在调用方事务的旧快照上也不会失真；
+        // 流水值和周期基线一律不从这个实体读取，全部交给数据库语句自行判定。
         var rule = await _ruleRepository.FindByIdInScopeAsync(resolved.OwnerTenantId, resolved.RuleId, cancellationToken)
             ?? throw new UserFriendlyException("业务编号规则不存在。");
         if (rule.Status != EnableStatus.Enabled)
@@ -339,30 +305,50 @@ public sealed class NumberGenerator : INumberGenerator
             throw new UserFriendlyException("该全局编号规则未向租户开放。");
         }
 
-        // 日期段和周期键必须从同一个 UTC 瞬间转换，避免恰逢周期边界时分别计算出不一致快照。
-        var generatedAtUtc = _timeProvider.GetUtcNow();
-        var localTime = _formatter.ConvertToRuleTime(generatedAtUtc, rule.TimeZoneId);
+        // 日期段、周期键和周期序号必须从同一个 UTC 瞬间换算，避免恰逢周期边界时得到互不一致的快照。
+        var generatedTime = _timeProvider.GetUtcNow();
+        var localTime = _formatter.ConvertToRuleTime(generatedTime, rule.TimeZoneId);
         var periodKey = _formatter.GetPeriodKey(localTime, rule.ResetCycle);
+        var periodOrdinal = _formatter.GetPeriodOrdinal(localTime, rule.ResetCycle);
         var dateText = _formatter.GetDateText(localTime, rule.DateFormat);
-        // 周期变化时从 0 开始计算下一值，但旧周期永久分配记录仍保留用于审计。
-        var currentValue = string.Equals(rule.CurrentPeriod, periodKey, StringComparison.Ordinal) ? rule.CurrentValue : 0L;
         var maximum = _formatter.GetMaxValue(rule.SerialLength);
-        // 先做减法再比较，避免 currentValue + count 在未来边界扩展时出现整数溢出。
-        if (currentValue > maximum - request.Count)
+
+        // 周期翻转只允许向前：命中 0 行既可能是「已在本周期」也可能是「库中周期更新」，两者都不是错误，
+        // 真正的判定交给随后的推进语句——它以周期键等值谓词把落后节点挡在外面。
+        var rolledOver = await _ruleRepository.TryRollOverPeriodAsync(
+            resolved.OwnerTenantId, resolved.RuleId, periodKey, periodOrdinal, cancellationToken);
+        if (rolledOver)
         {
-            throw new UserFriendlyException($"编号规则“{rule.RuleCode}”当前周期流水已耗尽，请调整规则或等待下一周期。");
+            _logger.LogInformation(
+                "业务编号周期翻转：RuleId={RuleId}, RuleCode={RuleCode}, OwnerTenantId={OwnerTenantId}, Period={Period}, PeriodOrdinal={PeriodOrdinal}",
+                resolved.RuleId, rule.RuleCode, resolved.OwnerTenantId, periodKey, periodOrdinal);
         }
 
-        var startValue = currentValue + 1;
-        var endValue = currentValue + request.Count;
-        rule.CurrentPeriod = periodKey;
-        rule.CurrentValue = endValue;
-        rule.HasAllocated = true;
+        var advanced = await _ruleRepository.TryAdvanceSequenceAsync(
+            resolved.OwnerTenantId, resolved.RuleId, periodKey, request.Count, maximum, cancellationToken);
+        if (!advanced)
+        {
+            throw await DescribeAdvanceRejectionAsync(
+                resolved, rule.RuleCode, requestTenantId, periodKey, periodOrdinal, request.Count, cancellationToken);
+        }
+
+        // 推进语句已在该行取得排他锁并持有到提交，因此这里读到的就是本次推进后的确切值。
+        var state = await _ruleRepository.ReadCurrentValueAsync(resolved.OwnerTenantId, resolved.RuleId, cancellationToken)
+            ?? throw new UserFriendlyException("业务编号规则不存在。");
+        var endValue = state.CurrentValue;
+        var startValue = endValue - request.Count + 1;
+
+        // 未发号规则的流水位数尚未冻结，可能在本次读取与推进之间被管理端改小；
+        // 以持锁读回的权威位数复核容量，越界则回滚整个事务而不是发出超长编号。
+        if (state.SerialLength != rule.SerialLength && endValue > _formatter.GetMaxValue(state.SerialLength))
+        {
+            throw new UserFriendlyException("业务编号规则的流水位数刚刚被修改，请重试。");
+        }
 
         // 保存完整格式快照，使规则后续元数据变化或删除限制调整时仍能原样重建历史编号。
         var allocation = new SysNumberingAllocation
         {
-            RuleId = rule.BasicId,
+            RuleId = resolved.RuleId,
             RuleCode = rule.RuleCode,
             RequestTenantId = requestTenantId,
             IdempotencyKey = request.IdempotencyKey,
@@ -375,19 +361,84 @@ public sealed class NumberGenerator : INumberGenerator
             SeparatorSnapshot = rule.Separator,
             DateTextSnapshot = dateText,
             SerialLengthSnapshot = rule.SerialLength,
-            GeneratedAtUtc = generatedAtUtc,
+            GeneratedTime = generatedTime,
             BusinessType = request.BusinessType,
             BusinessId = request.BusinessId
         };
-
-        // 事务边界：规则 RowVersion 更新与永久分配记录插入必须同时提交；任何异常都会回滚流水推进。
-        _ = await _ruleRepository.UpdateAsync(rule, cancellationToken);
         allocation = await _allocationRepository.AddAsync(allocation, cancellationToken);
 
         _logger.LogInformation(
             "业务编号分配成功：AllocationId={AllocationId}, RuleId={RuleId}, RuleCode={RuleCode}, OwnerTenantId={OwnerTenantId}, RequestTenantId={RequestTenantId}, OperatorId={OperatorId}, Period={Period}, StartValue={StartValue}, EndValue={EndValue}, Count={Count}, Result=Success",
-            allocation.BasicId, rule.BasicId, rule.RuleCode, resolved.OwnerTenantId, requestTenantId, _currentUser.UserId, periodKey, startValue, endValue, request.Count);
+            allocation.BasicId, resolved.RuleId, rule.RuleCode, resolved.OwnerTenantId, requestTenantId, _currentUser.UserId, periodKey, startValue, endValue, request.Count);
         return BuildResult(allocation, resolved.ResolvedScope, false);
+    }
+
+    /// <summary>
+    /// 读取规则实际状态，把「推进语句命中 0 行」翻译成可操作的失败原因。
+    /// </summary>
+    /// <param name="resolved">已经解析的实际规则位置和作用域。</param>
+    /// <param name="ruleCode">规则编码，用于错误文案。</param>
+    /// <param name="requestTenantId">原请求租户，用于日志。</param>
+    /// <param name="periodKey">本次计算出的周期键。</param>
+    /// <param name="periodOrdinal">本次计算出的周期序号。</param>
+    /// <param name="count">本次请求数量。</param>
+    /// <param name="cancellationToken">用于取消诊断查询的取消令牌。</param>
+    /// <returns>描述具体原因的业务异常，由调用方抛出。</returns>
+    /// <remarks>
+    /// 诊断查询安全：推进语句命中 0 行不是数据库错误，事务仍然可用，因此可以就地读取实际状态。
+    /// 各原因分别对应不同处置——停用要改配置、时钟偏差要查时间同步、容量耗尽要调整规则或等下一周期。
+    /// </remarks>
+    private async Task<UserFriendlyException> DescribeAdvanceRejectionAsync(
+        ResolvedNumberingRule resolved,
+        string ruleCode,
+        long requestTenantId,
+        string periodKey,
+        long periodOrdinal,
+        int count,
+        CancellationToken cancellationToken)
+    {
+        var state = await _ruleRepository.ReadCurrentValueAsync(resolved.OwnerTenantId, resolved.RuleId, cancellationToken);
+        if (state is not { } actual)
+        {
+            return new UserFriendlyException("业务编号规则不存在。");
+        }
+
+        if (actual.Status != EnableStatus.Enabled)
+        {
+            return new UserFriendlyException("业务编号规则已停用。");
+        }
+
+        if (actual.CurrentPeriodOrdinal > periodOrdinal)
+        {
+            // 库中周期已经走在本节点前面，说明本节点时钟落后。继续发号会重复上一周期已发出的编号，必须拒绝。
+            _logger.LogError(
+                "业务编号周期回退被拒绝，疑似节点时钟偏差：RuleId={RuleId}, RuleCode={RuleCode}, OwnerTenantId={OwnerTenantId}, RequestTenantId={RequestTenantId}, StoredPeriod={StoredPeriod}, StoredOrdinal={StoredOrdinal}, ComputedPeriod={ComputedPeriod}, ComputedOrdinal={ComputedOrdinal}",
+                resolved.RuleId, ruleCode, resolved.OwnerTenantId, requestTenantId,
+                actual.CurrentPeriod, actual.CurrentPeriodOrdinal, periodKey, periodOrdinal);
+            return new UserFriendlyException(
+                $"编号规则“{ruleCode}”当前周期已推进到 {actual.CurrentPeriod}，本节点计算出 {periodKey}，请检查服务器时间同步。");
+        }
+
+        if (!string.Equals(actual.CurrentPeriod, periodKey, StringComparison.Ordinal))
+        {
+            // 序号不落后却键不一致，说明周期键与周期序号不同源，通常是重置周期被改动后未清空周期基线。
+            _logger.LogError(
+                "业务编号周期基线不一致：RuleId={RuleId}, RuleCode={RuleCode}, StoredPeriod={StoredPeriod}, StoredOrdinal={StoredOrdinal}, ComputedPeriod={ComputedPeriod}, ComputedOrdinal={ComputedOrdinal}",
+                resolved.RuleId, ruleCode, actual.CurrentPeriod, actual.CurrentPeriodOrdinal, periodKey, periodOrdinal);
+            return new UserFriendlyException($"编号规则“{ruleCode}”的周期基线异常，请联系管理员安全重置该规则。");
+        }
+
+        var maximum = _formatter.GetMaxValue(actual.SerialLength);
+        if (actual.CurrentValue > maximum - count)
+        {
+            return new UserFriendlyException($"编号规则“{ruleCode}”当前周期流水已耗尽，请调整规则或等待下一周期。");
+        }
+
+        // 走到这里说明状态读起来完全允许推进，但语句确实没命中——只可能是并发窗口内规则又被改动。
+        _logger.LogWarning(
+            "业务编号推进被拒绝但状态检查全部通过：RuleId={RuleId}, RuleCode={RuleCode}, StoredPeriod={StoredPeriod}, StoredValue={StoredValue}, Count={Count}",
+            resolved.RuleId, ruleCode, actual.CurrentPeriod, actual.CurrentValue, count);
+        return new UserFriendlyException("业务编号规则刚刚被修改，请使用相同幂等键重试。");
     }
 
     /// <summary>
@@ -438,7 +489,7 @@ public sealed class NumberGenerator : INumberGenerator
             }
         }
 
-        // 回退查询只需在平台上下文读取规则定位信息；真正分配会重新切换平台上下文后再开启独立事务。
+        // 回退查询只需在平台上下文读取规则定位信息；真正分配会重新切换平台上下文后再开启事务。
         using var platformScope = _currentTenant.Change(null);
         var fallback = await _ruleRepository.FindByCodeInScopeAsync(0, ruleCode, true, cancellationToken);
         if (fallback is null || !fallback.AllowTenantUse)
@@ -509,11 +560,11 @@ public sealed class NumberGenerator : INumberGenerator
     {
         // 使用不可出现在普通业务文本中的单元分隔符，避免字段拼接产生边界歧义。
         var canonical = string.Join(
-            '\u001F',
-            ruleId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            FingerprintFieldSeparator,
+            ruleId.ToString(CultureInfo.InvariantCulture),
             request.RuleCode,
-            ((int)request.Scope).ToString(System.Globalization.CultureInfo.InvariantCulture),
-            request.Count.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ((int)request.Scope).ToString(CultureInfo.InvariantCulture),
+            request.Count.ToString(CultureInfo.InvariantCulture),
             request.BusinessType ?? string.Empty,
             request.BusinessId ?? string.Empty);
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
@@ -545,7 +596,7 @@ public sealed class NumberGenerator : INumberGenerator
             allocation.StartValue,
             allocation.EndValue,
             numbers,
-            allocation.GeneratedAtUtc,
+            allocation.GeneratedTime,
             isReplay);
     }
 

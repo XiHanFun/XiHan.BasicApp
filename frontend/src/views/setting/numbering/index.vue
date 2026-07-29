@@ -9,6 +9,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { EnumOptionItem } from '~/hooks'
 import {
   NAlert,
   NButton,
@@ -38,6 +39,7 @@ import {
   tenantApi,
 } from '@/api'
 import { SchemaPage, XEditModal } from '~/components'
+import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import NumberingAllocationDrawer from './components/NumberingAllocationDrawer.vue'
@@ -122,22 +124,21 @@ onMounted(() => {
   void resolveCurrentContext()
 })
 
-const dateFormatLabels = computed<Record<NumberingDateFormat, string>>(() => ({
-  [NumberingDateFormat.None]: t('setting.numbering.date_none'),
-  [NumberingDateFormat.Yyyy]: 'yyyy',
-  [NumberingDateFormat.YyyyMM]: 'yyyyMM',
-  [NumberingDateFormat.YyyyMMdd]: 'yyyyMMdd',
-  [NumberingDateFormat.YyMM]: 'yyMM',
-  [NumberingDateFormat.YyMMdd]: 'yyMMdd',
-  [NumberingDateFormat.MMdd]: 'MMdd',
-}))
+// 枚举标签一律取自后端枚举元数据，切语言时随之响应式刷新；这里只把选项列表转成按枚举值查找的映射。
+const dateFormatOptions = useEnumOptions('NumberingDateFormat', [
+  { label: 'yyyyMMdd', value: NumberingDateFormat.YyyyMMdd },
+])
+const resetCycleOptions = useEnumOptions('NumberingResetCycle', [
+  { label: 'Daily', value: NumberingResetCycle.Daily },
+])
 
-const resetCycleLabels = computed<Record<NumberingResetCycle, string>>(() => ({
-  [NumberingResetCycle.Never]: t('setting.numbering.reset_never'),
-  [NumberingResetCycle.Daily]: t('setting.numbering.reset_daily'),
-  [NumberingResetCycle.Monthly]: t('setting.numbering.reset_monthly'),
-  [NumberingResetCycle.Yearly]: t('setting.numbering.reset_yearly'),
-}))
+// 枚举选项的 value 是成员名（见 app/context.ts 的枚举选项归一），与接口返回的字符串枚举一致，因此按字符串建索引。
+function toLabelMap(options: EnumOptionItem[]): Record<string, string> {
+  return Object.fromEntries(options.map(option => [String(option.value), option.label]))
+}
+
+const dateFormatLabels = computed(() => toLabelMap(dateFormatOptions.value))
+const resetCycleLabels = computed(() => toLabelMap(resetCycleOptions.value))
 
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('setting.numbering.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.numbering.keyword_placeholder'), order: 0 },

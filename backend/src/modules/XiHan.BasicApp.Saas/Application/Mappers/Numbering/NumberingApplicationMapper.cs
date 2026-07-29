@@ -143,7 +143,7 @@ public static class NumberingApplicationMapper
             PeriodKey = allocation.PeriodKey,
             FirstNumber = formatter.Format(allocation.PrefixSnapshot, allocation.SeparatorSnapshot, allocation.DateTextSnapshot, allocation.SerialLengthSnapshot, allocation.StartValue),
             LastNumber = formatter.Format(allocation.PrefixSnapshot, allocation.SeparatorSnapshot, allocation.DateTextSnapshot, allocation.SerialLengthSnapshot, allocation.EndValue),
-            GeneratedAtUtc = allocation.GeneratedAtUtc,
+            GeneratedTime = allocation.GeneratedTime,
             BusinessType = allocation.BusinessType,
             BusinessId = allocation.BusinessId
         };
@@ -168,7 +168,7 @@ public static class NumberingApplicationMapper
             StartValue = result.StartValue.ToString(CultureInfo.InvariantCulture),
             EndValue = result.EndValue.ToString(CultureInfo.InvariantCulture),
             Numbers = result.Numbers,
-            GeneratedAtUtc = result.GeneratedAtUtc,
+            GeneratedTime = result.GeneratedTime,
             IsIdempotentReplay = result.IsIdempotentReplay
         };
     }
