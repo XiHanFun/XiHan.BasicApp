@@ -191,4 +191,31 @@ public static class ServiceCollectionExtensions
         services.Replace(ServiceDescriptor.Singleton<IAiPromptStore, SaasAiPromptStore>());
         return services;
     }
+
+    /// <summary>
+    /// 添加 AI 助手种子数据提供者
+    /// </summary>
+    /// <remarks>助手段 Order 213-216（晚于提示词库 209-212）；操作复用 AI 段 <see cref="SysOperationSeeder"/>(200)。</remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddAssistantDataSeeders(this IServiceCollection services)
+    {
+        services.AddDataSeeder<AssistantResourceSeeder>();       // Order = 213
+        services.AddDataSeeder<AssistantPermissionSeeder>();     // Order = 214
+        services.AddDataSeeder<AssistantMenuSeeder>();           // Order = 215（建即绑 ai_assistant:read）
+        services.AddDataSeeder<AssistantRolePermissionSeeder>(); // Order = 216（仅授超管）
+        return services;
+    }
+
+    /// <summary>
+    /// 添加 AI 助手领域服务
+    /// </summary>
+    /// <remarks>领域服务无 DI 标记接口，显式登记 Scoped；仓储/应用服务由框架约定自动注册。</remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns></returns>
+    public static IServiceCollection AddAssistantDomainServices(this IServiceCollection services)
+    {
+        services.AddScoped<IAiAssistantDomainService, AiAssistantDomainService>();
+        return services;
+    }
 }
