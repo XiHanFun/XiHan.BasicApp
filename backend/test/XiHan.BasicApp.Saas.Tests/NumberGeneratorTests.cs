@@ -246,67 +246,54 @@ public sealed class NumberGeneratorTests
     }
 
     /// <summary>
-    /// 发号目标库与调用方事务同库时必须加入调用方事务，使编号与业务数据同时可见或同时消失。
-    /// </summary>
-    [Fact]
-    public async Task GenerateAsync_SameDatabaseShouldJoinCallerTransaction()
-    {
-        var fixture = new GeneratorFixture { SimulateIsolatedTenantDatabase = false };
-        fixture.AddRule(1, 0, "ORDER", "GLB", allowTenantUse: true);
-
-        _ = await fixture.RunAsTenantAsync(
-            7,
-            () => fixture.RunInCallerTransactionAsync(
-                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Global, "same-db"))));
-
-        // 只有调用方那一个事务，发号没有另开事务。
-        Assert.Equal(1, fixture.OwnTransactionCount);
-    }
-
-    /// <summary>
-    /// 发号目标库与调用方事务不同库时必须自行提交，不能依赖工作单元对两条连接的顺序提交。
+    /// 存在调用方事务时，发号必须另开自己的事务，而不是并入调用方事务。
     /// </summary>
     /// <remarks>
-    /// 跨库时并进调用方事务只是幻觉：没有两阶段提交，调用方先提交而平台库提交失败会让调用方
-    /// 拿到一个既未记录也未推进流水的编号，下一次发号必然重复它。自行提交把最坏结果降级为编号空洞。
+    /// 编号语义对齐数据库序列：发出即永久消耗。并入调用方事务会让号随回滚被回收并可能重发给另一个实体，
+    /// 也会把规则行锁拖到调用方事务结束。两种租户隔离形态下行为必须一致，不允许出现部署形态分叉。
     /// </remarks>
-    [Fact]
-    public async Task GenerateAsync_CrossDatabaseShouldCommitOwnTransaction()
+    /// <param name="isolatedDatabase">是否模拟独立租户库。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GenerateAsync_InsideCallerTransactionShouldCommitOwnTransaction(bool isolatedDatabase)
     {
-        var fixture = new GeneratorFixture { SimulateIsolatedTenantDatabase = true };
+        var fixture = new GeneratorFixture { SimulateIsolatedTenantDatabase = isolatedDatabase };
         fixture.AddRule(1, 0, "ORDER", "GLB", allowTenantUse: true);
 
         var result = await fixture.RunAsTenantAsync(
             7,
             () => fixture.RunInCallerTransactionAsync(
-                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Global, "cross-db"))));
+                () => fixture.Generator.GenerateAsync(
+                    new NumberGenerateRequest("ORDER", NumberingScope.Global, $"own-tran-{isolatedDatabase}"))));
 
         Assert.Equal("GLB-0001", Assert.Single(result.Numbers));
-        // 调用方事务 + 发号自有事务。
+        // 调用方事务 + 发号自有事务，两种隔离形态下都是 2。
         Assert.Equal(2, fixture.OwnTransactionCount);
     }
 
     /// <summary>
-    /// 没有可用事务时必须立即失败，而不是在无锁保护下发号。
+    /// 即使调用方处于非事务型工作单元内，发号也必须开出自己的事务，而不是在无锁保护下写入。
     /// </summary>
     /// <remarks>
     /// 这是整套设计的安全底座：推进语句的行锁必须持有到提交，读回值才等于本次推进结果。
-    /// 一旦允许在非事务型工作单元内发号，两个并发调用会读回同一个流水值并发出重复编号。
+    /// 发号总是以 <c>requiresNew</c> 开启自有事务型工作单元，因此不存在「落进非事务上下文」的路径；
+    /// 仓储侧仍保留连接级事务断言作为兜底，它由 <c>NumberingRuleRepositorySqlTests</c> 在真实数据库上覆盖。
     /// </remarks>
     [Fact]
-    public async Task GenerateAsync_WithoutTransactionShouldFailClosed()
+    public async Task GenerateAsync_InsideNonTransactionalScopeShouldStillOpenOwnTransaction()
     {
         var fixture = new GeneratorFixture();
         var rule = fixture.AddRule(701, 7, "ORDER", "TEN", allowTenantUse: false);
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.RunAsTenantAsync(
+        var result = await fixture.RunAsTenantAsync(
             7,
             () => fixture.RunWithoutTransactionAsync(
-                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Tenant, "no-tran")))));
+                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Tenant, "no-tran"))));
 
-        Assert.Contains("没有活动事务", exception.Message, StringComparison.Ordinal);
-        Assert.Equal(0, rule.CurrentValue);
-        Assert.Empty(fixture.Allocations);
+        Assert.Equal("TEN-0001", Assert.Single(result.Numbers));
+        Assert.Equal(1, rule.CurrentValue);
+        Assert.Equal(1, fixture.OwnTransactionCount);
     }
 
     /// <summary>
@@ -470,12 +457,6 @@ public sealed class NumberGeneratorTests
                     rule.RowVersion++;
                     return Task.FromResult(true);
                 });
-            // 库隔离部署下平台库与租户库是两条连接；共享库部署下两者同为默认连接。
-            RuleRepository
-                .Setup(repository => repository.GetCurrentDatabaseId())
-                .Returns(() => SimulateIsolatedTenantDatabase && _currentTenantId.Value is { } tenantId
-                    ? $"Tenant_{tenantId}"
-                    : "Default");
             RuleRepository
                 .Setup(repository => repository.ReadCurrentValueAsync(
                     It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))

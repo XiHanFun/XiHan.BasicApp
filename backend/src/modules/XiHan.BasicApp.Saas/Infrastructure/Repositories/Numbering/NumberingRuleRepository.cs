@@ -159,12 +159,6 @@ public sealed class NumberingRuleRepository(ISqlSugarClientResolver clientResolv
                 rule.SerialLength);
     }
 
-    /// <inheritdoc />
-    public string GetCurrentDatabaseId()
-    {
-        return DbClient.CurrentConnectionConfig.ConfigId?.ToString() ?? string.Empty;
-    }
-
     /// <summary>
     /// 断言当前连接上确实存在活动事务。
     /// </summary>
