@@ -111,6 +111,7 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     /// 框架 <c>AddXiHanRAG</c> 给切片/摄取/检索/增强默认实现（不含具体 VectorStore）；此处登记 Qdrant 连接器，
     /// 连接参数取 <see cref="XiHanRagOptions"/>（appsettings 的 XiHan:AI:Rag 节，属部署级基础设施配置）。
+    /// 集合名与向量维度同源于该节，透传给框架的向量集合配置。
     /// </remarks>
     /// <param name="services">服务集合</param>
     /// <param name="configuration">配置</param>
@@ -119,14 +120,20 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        // 框架 RAG 默认实现（切片/摄取/检索/增强）
-        services.AddXiHanRAG();
-
         // RAG 配置（检索 topK 等）
         services.AddOptions<XiHanRagOptions>().BindConfiguration(XiHanRagOptions.SectionName);
 
-        // Qdrant 向量库连接器（gRPC；启动期读连接参数）
+        // 连接器与向量集合参数在启动期读取（集合定义随进程构建一次）
         var ragOptions = configuration.GetSection(XiHanRagOptions.SectionName).Get<XiHanRagOptions>() ?? new XiHanRagOptions();
+
+        // 框架 RAG 默认实现（切片/摄取/检索/增强）
+        services.AddXiHanRAG(vector =>
+        {
+            vector.CollectionName = ragOptions.CollectionName;
+            vector.Dimensions = ragOptions.EmbeddingDimensions;
+        });
+
+        // Qdrant 向量库连接器（gRPC）
         services.AddQdrantVectorStore(ragOptions.QdrantHost, ragOptions.QdrantPort, ragOptions.QdrantHttps, ragOptions.QdrantApiKey);
 
         return services;
