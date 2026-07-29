@@ -24,6 +24,16 @@ public interface IChatDomainService
     Task<ChatConversationCommandResult> GetOrCreateDepartmentConversationAsync(ChatDepartmentConversationCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取或创建 AI 助手会话（同一用户与同一助手租户内唯一）
+    /// </summary>
+    Task<ChatConversationCommandResult> GetOrCreateAssistantConversationAsync(ChatAssistantConversationCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 追加 AI 助手回复：落消息 → 会话最后消息冗余（助手非成员，不计未读、不校验成员）
+    /// </summary>
+    Task<ChatMessageSendResult> AppendAssistantMessageAsync(ChatAssistantMessageCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 添加群成员（群主/管理员可操作；单聊/部门群拒绝）
     /// </summary>
     Task<ChatConversationCommandResult> AddMembersAsync(ChatMemberAddCommand command, CancellationToken cancellationToken = default);

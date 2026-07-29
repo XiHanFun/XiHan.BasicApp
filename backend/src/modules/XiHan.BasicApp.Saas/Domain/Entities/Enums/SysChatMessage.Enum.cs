@@ -29,6 +29,12 @@ public enum ChatMessageType
     File = 3,
 
     /// <summary>
+    /// AI 助手回复（SenderUserId 为助手主键，内容按 Markdown 渲染，不可撤回/编辑）
+    /// </summary>
+    [Description("助手回复")]
+    Assistant = 4,
+
+    /// <summary>
     /// 系统提示（入群/退群/撤回等时间线提示，SenderUserId=0）
     /// </summary>
     [Description("系统提示")]

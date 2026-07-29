@@ -26,7 +26,13 @@ public enum ChatConversationType
     /// 部门群（按部门自动建群，成员随部门归属同步）
     /// </summary>
     [Description("部门群")]
-    Department = 3
+    Department = 3,
+
+    /// <summary>
+    /// AI 助手（用户与某个助手的一对一会话，成员只有用户本人）
+    /// </summary>
+    [Description("AI 助手")]
+    Assistant = 4
 }
 
 /// <summary>

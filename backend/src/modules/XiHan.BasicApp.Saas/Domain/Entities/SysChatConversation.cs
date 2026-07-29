@@ -76,6 +76,12 @@ public partial class SysChatConversation : BasicAppFullAuditedEntity
     public virtual long? OwnerUserId { get; set; }
 
     /// <summary>
+    /// AI 助手ID（仅助手会话，→ SysAiAssistant；其余类型为空）
+    /// </summary>
+    [SugarColumn(ColumnName = "Assistant_Id", ColumnDescription = "AI助手ID", IsNullable = true)]
+    public virtual long? AssistantId { get; set; }
+
+    /// <summary>
     /// 成员数量（冗余计数，成员增删时同步维护）
     /// </summary>
     [SugarColumn(ColumnName = "Member_Count", ColumnDescription = "成员数量")]
