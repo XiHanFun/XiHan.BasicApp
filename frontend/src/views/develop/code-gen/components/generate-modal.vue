@@ -233,7 +233,7 @@ async function handleGenerate() {
 }
 
 .gen__tree {
-  flex: 0 0 260px;
+  flex: 0 0 360px;
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   overflow: hidden;
