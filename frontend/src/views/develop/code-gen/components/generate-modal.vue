@@ -159,14 +159,14 @@ async function handleGenerate() {
     :bordered="false"
     preset="card"
     :show="show"
-    style="width: 96vw; max-width: 1200px"
+    style="width: 96vw; max-width: 1600px"
     :title="modalTitle"
     @update:show="emit('update:show', $event)"
   >
     <NSpin :show="previewLoading">
       <div class="gen">
         <div class="gen__tree">
-          <NScrollbar style="max-height: 60vh">
+          <NScrollbar style="max-height: 76vh">
             <div v-for="group in artifactGroups" :key="group.key" class="gen__group">
               <div class="gen__group-title" :title="group.hint">
                 {{ group.label }}
@@ -202,7 +202,7 @@ async function handleGenerate() {
             :value="activeArtifact.content"
             :file-name="activeArtifact.fileName"
             copyable
-            height="60vh"
+            height="76vh"
             readonly
           />
         </div>
@@ -229,7 +229,7 @@ async function handleGenerate() {
 .gen {
   display: flex;
   gap: 12px;
-  min-height: 320px;
+  min-height: 480px;
 }
 
 .gen__tree {
