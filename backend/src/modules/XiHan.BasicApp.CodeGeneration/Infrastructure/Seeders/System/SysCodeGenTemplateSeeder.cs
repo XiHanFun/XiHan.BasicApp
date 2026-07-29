@@ -42,10 +42,10 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     /// 同时兼容 Backend/ 与 Frontend/ 子目录，避免硬编码命名空间出错。
     /// </summary>
     /// <remarks>
-    /// 每个产物成对登记：机器模板（<see cref="ArtifactWriteMode.AlwaysOverwrite"/>，重新生成时覆盖）
-    /// 与人类模板（<see cref="ArtifactWriteMode.WriteOnce"/>，仅首次创建、此后永不触碰）。
+    /// 每个产物成对登记：自动模板（<see cref="ArtifactWriteMode.AlwaysOverwrite"/>，重新生成时覆盖）
+    /// 与手动模板（<see cref="ArtifactWriteMode.WriteOnce"/>，仅首次创建、此后永不触碰）。
     /// 二者在语言层面拼接：L1 数据类经 partial 合并；L2 行为类经抽象基类与具体派生类继承；
-    /// L3 前端经 re-export / transform 组合。前端页面 index.vue 无机器侧，整体归人类所有。
+    /// L3 前端经 re-export / transform 组合。前端页面 index.vue 无自动侧，整体归手动所有。
     /// </remarks>
     private static readonly IReadOnlyList<BuiltInTemplate> BuiltInTemplates =
     [
@@ -194,7 +194,7 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     /// <param name="FileNameExpression">生成文件名表达式</param>
     /// <param name="FileExtension">文件扩展名（如 .cs / .ts / .vue）</param>
     /// <param name="FilePathExpression">生成文件路径表达式（目录，可空）</param>
-    /// <param name="WriteMode">写入策略（机器文件总是覆盖；人类文件仅首次创建）</param>
+    /// <param name="WriteMode">写入策略（自动文件总是覆盖；手动文件仅首次创建）</param>
     /// <param name="TemplateType">模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</param>
     private sealed record BuiltInTemplate(
         string Code,

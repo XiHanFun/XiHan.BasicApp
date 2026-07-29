@@ -20,7 +20,7 @@ public interface IGeneratedArtifactWriter
 /// <param name="Success">是否成功</param>
 /// <param name="Message">失败原因</param>
 /// <param name="WrittenCount">写入文件数</param>
-/// <param name="SkippedCount">跳过文件数（人类文件已存在）</param>
+/// <param name="SkippedCount">跳过文件数（手动文件已存在）</param>
 /// <param name="SkippedPaths">被跳过的相对路径清单</param>
 public sealed record GeneratedArtifactWriteResult(
     bool Success,

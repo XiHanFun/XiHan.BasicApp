@@ -12,19 +12,19 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 生成产物 Zip 打包器（System.IO.Compression）
 /// </summary>
 /// <remarks>
-/// 按写入策略分目录：机器文件入 <c>_generated/</c>（可整体覆盖到工程），
-/// 人类文件入 <c>_manual/</c>（仅在目标不存在时拷贝，否则需人工比对）。
+/// 按写入策略分目录：自动文件入 <c>_generated/</c>（可整体覆盖到工程），
+/// 手动文件入 <c>_manual/</c>（仅在目标不存在时拷贝，否则需人工比对）。
 /// 包根附 <c>README.txt</c> 说明两者区别，避免解压后误覆盖自定义代码。
 /// </remarks>
 public sealed class ZipArtifactPackager : IGeneratedArtifactPackager
 {
     /// <summary>
-    /// 机器文件目录（总是覆盖）
+    /// 自动文件目录（总是覆盖）
     /// </summary>
     private const string GeneratedDirectory = "_generated";
 
     /// <summary>
-    /// 人类文件目录（仅首次创建）
+    /// 手动文件目录（仅首次创建）
     /// </summary>
     private const string ManualDirectory = "_manual";
 
@@ -77,11 +77,11 @@ public sealed class ZipArtifactPackager : IGeneratedArtifactPackager
         builder.AppendLine("代码生成产物说明");
         builder.AppendLine("================");
         builder.AppendLine();
-        builder.AppendLine($"{GeneratedDirectory}/  机器文件，共 {generated.Count} 个");
+        builder.AppendLine($"{GeneratedDirectory}/  自动文件，共 {generated.Count} 个");
         builder.AppendLine("    由表结构完全推导，可直接整体覆盖到工程对应目录。");
         builder.AppendLine("    请勿手工编辑：下次重新生成会被覆盖，改动会丢失。");
         builder.AppendLine();
-        builder.AppendLine($"{ManualDirectory}/  人类文件，共 {manual.Count} 个");
+        builder.AppendLine($"{ManualDirectory}/  手动文件，共 {manual.Count} 个");
         builder.AppendLine("    自定义代码的落脚点，仅在目标工程中尚不存在时拷贝过去。");
         builder.AppendLine("    若目标已存在同名文件，请勿覆盖——里面是你写的业务代码。");
         builder.AppendLine();
@@ -91,7 +91,7 @@ public sealed class ZipArtifactPackager : IGeneratedArtifactPackager
         if (manual.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("人类文件清单：");
+            builder.AppendLine("手动文件清单：");
             foreach (var item in manual)
             {
                 builder.AppendLine($"    {NormalizeEntryPath(item.RelativePath)}");

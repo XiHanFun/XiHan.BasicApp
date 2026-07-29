@@ -34,7 +34,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 场景：
 /// - 全栈代码生成（Entity/DTO/Service/Vue Page）
 /// - 多风格模板（CRUD 简化版 / 完整版 / 只读展示版）
-/// - 机器/人类产物分离（WriteMode：机器文件总是覆盖，人类文件仅首次创建）
+/// - 自动/手动产物分离（WriteMode：自动文件总是覆盖，手动文件仅首次创建）
 /// </remarks>
 [SugarTable(TableName = "Sys_CodeGen_Template", TableDescription = "系统代码生成模板表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -84,7 +84,7 @@ public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
 
     /// <summary>
     /// 写入策略
-    /// 机器文件（AlwaysOverwrite）重新生成时总是覆盖；人类文件（WriteOnce）仅在目标不存在时创建，此后永不触碰
+    /// 自动文件（AlwaysOverwrite）重新生成时总是覆盖；手动文件（WriteOnce）仅在目标不存在时创建，此后永不触碰
     /// </summary>
     [SugarColumn(ColumnName = "Write_Mode", ColumnDescription = "写入策略")]
     public virtual ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
