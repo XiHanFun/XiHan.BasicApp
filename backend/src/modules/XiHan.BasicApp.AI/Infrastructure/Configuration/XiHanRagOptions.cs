@@ -1,6 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.Framework.AI.Abstractions.Rag;
+
 namespace XiHan.BasicApp.AI.Infrastructure.Configuration;
 
 /// <summary>
@@ -37,4 +39,15 @@ public sealed class XiHanRagOptions
     /// 检索默认返回条数
     /// </summary>
     public int DefaultTopK { get; set; } = 5;
+
+    /// <summary>
+    /// 向量集合名
+    /// </summary>
+    public string CollectionName { get; set; } = KnowledgeVectorOptions.DefaultCollectionName;
+
+    /// <summary>
+    /// 嵌入向量维度（须与 provider 所配嵌入模型的输出维度一致）
+    /// </summary>
+    /// <remarks>常见取值：text-embedding-3-small=1536、bge-m3=1024、gte-Qwen2-1.5B-instruct=1536。</remarks>
+    public int EmbeddingDimensions { get; set; } = KnowledgeVectorOptions.DefaultDimensions;
 }
