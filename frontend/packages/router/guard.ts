@@ -164,8 +164,10 @@ export function setupRouterGuard(router: Router) {
       return true
     }
 
-    const rawTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
-    const routeTitle = i18n.global.te(rawTitle) ? i18n.global.t(rawTitle) : rawTitle
+    // 标签标题存的是国际化键而不是当次导航解析出的文本：
+    // 标签栏与标签总览都按「是键就翻译、不是键就原样显示」渲染，
+    // 在这里提前解析会把语言固化在打开标签的那一刻，之后切换语言标签栏不再跟随。
+    const routeTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
     const pinned = to.path === (accessStore.homePath || HOME_PATH) || Boolean(to.meta?.affixTab)
     tabbarStore.ensureTab({
       key: to.fullPath,
