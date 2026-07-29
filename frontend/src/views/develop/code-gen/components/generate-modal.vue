@@ -13,7 +13,7 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArtifactWriteMode, codeGenerationApi, GenType } from '@/api'
-import CodeHighlight from '~/components/common/CodeHighlight.vue'
+import { XCodeEditor } from '~/components'
 
 defineOptions({ name: 'CodeGenGenerateModal' })
 
@@ -197,11 +197,13 @@ async function handleGenerate() {
         </div>
         <div class="gen__content">
           <NEmpty v-if="!activeArtifact" :description="t('develop.code_gen.generate.empty')" />
-          <CodeHighlight
+          <XCodeEditor
             v-else
-            :code="activeArtifact.content"
+            :value="activeArtifact.content"
             :file-name="activeArtifact.fileName"
-            max-height="60vh"
+            copyable
+            height="60vh"
+            readonly
           />
         </div>
       </div>

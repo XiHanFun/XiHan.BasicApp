@@ -24,6 +24,7 @@
     "emoji-mart": "catalog:",
     "highlight.js": "catalog:",
     "md-editor-v3": "catalog:",
+    "monaco-editor": "catalog:",
     "vue3-ts-jsoneditor": "catalog:"
   }
 }

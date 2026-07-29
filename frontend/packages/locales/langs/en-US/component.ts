@@ -492,7 +492,7 @@ export default {
     lock_failed: 'Failed to lock',
     unlock_failed: 'Failed to unlock',
   },
-  code_highlight: {
+  code_editor: {
     copy: 'Copy',
     copy_success: 'Copied',
   },
