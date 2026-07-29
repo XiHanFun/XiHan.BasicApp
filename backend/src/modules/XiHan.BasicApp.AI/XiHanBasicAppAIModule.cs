@@ -48,5 +48,9 @@ public class XiHanBasicAppAIModule : XiHanModule
         services.AddPromptDataSeeders();
         services.AddPromptDomainServices();
         services.AddPromptStore();
+
+        // AI 助手：种子（资源 → 权限 → 菜单 → 角色授权）+ 领域服务
+        services.AddAssistantDataSeeders();
+        services.AddAssistantDomainServices();
     }
 }
