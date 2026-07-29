@@ -23,14 +23,7 @@ export const LOCALE_KEY = `${STORAGE_PREFIX}locale`
 export const THEME_MODE_KEY = `${STORAGE_PREFIX}theme_mode`
 export const SIDEBAR_COLLAPSED_KEY = `${STORAGE_PREFIX}sidebar_collapsed`
 export const TAGS_BAR_KEY = `${STORAGE_PREFIX}tags_bar`
-/**
- * 已打开标签列表。
- *
- * 键名带版本后缀：标签的 `title` 曾经存的是导航当次解析出的文本，改为存国际化键之后，
- * 旧会话里持久化的文本不是键、渲染时会原样显示，导致切换语言后未激活的标签仍停留在旧语言。
- * 换键让旧数据一次性作废；sessionStorage 本就随标签页关闭清空，代价只是当次会话少恢复一批标签。
- */
-export const TABS_LIST_KEY = `${STORAGE_PREFIX}tabs_list_v2`
+export const TABS_LIST_KEY = `${STORAGE_PREFIX}tabs_list`
 export const FAVORITES_KEY = `${STORAGE_PREFIX}favorites`
 export const RECENT_ROUTES_KEY = `${STORAGE_PREFIX}recent_routes`
 export const SPLIT_VIEW_KEY = `${STORAGE_PREFIX}split_view`
