@@ -22,6 +22,16 @@ public sealed record ChatGroupCreateCommand(long OwnerUserId, string Conversatio
 public sealed record ChatDepartmentConversationCommand(long DepartmentId, long OperatorUserId);
 
 /// <summary>
+/// 获取或创建 AI 助手会话命令（同一用户与同一助手租户内唯一，成员只有用户本人）
+/// </summary>
+public sealed record ChatAssistantConversationCommand(long UserId, long AssistantId, string AssistantName, string? Avatar);
+
+/// <summary>
+/// 追加 AI 助手回复命令（助手不是会话成员，走独立写入路径）
+/// </summary>
+public sealed record ChatAssistantMessageCommand(long ConversationId, long AssistantId, string AssistantName, string Content);
+
+/// <summary>
 /// 群成员添加命令
 /// </summary>
 public sealed record ChatMemberAddCommand(long ConversationId, long OperatorUserId, IReadOnlyCollection<long> UserIds);

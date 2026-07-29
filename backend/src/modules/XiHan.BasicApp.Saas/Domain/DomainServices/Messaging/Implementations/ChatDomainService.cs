@@ -22,6 +22,11 @@ public sealed class ChatDomainService : IChatDomainService
     private const int MaxContentLength = 4000;
 
     /// <summary>
+    /// AI 助手回复最大长度（超出截断）
+    /// </summary>
+    private const int MaxAssistantContentLength = 20000;
+
+    /// <summary>
     /// 会话最后消息预览最大长度
     /// </summary>
     private const int MaxPreviewLength = 200;
@@ -260,6 +265,74 @@ public sealed class ChatDomainService : IChatDomainService
         conversation.MemberCount = Math.Max(0, conversation.MemberCount - 1);
         conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         return new ChatConversationCommandResult(conversation, Created: false);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatConversationCommandResult> GetOrCreateAssistantConversationAsync(ChatAssistantConversationCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.UserId, "用户主键必须大于 0。");
+        EnsureId(command.AssistantId, "助手主键必须大于 0。");
+
+        // 复用单聊的 PairKey 唯一索引承载「一个用户对一个助手只有一个会话」
+        var pairKey = BuildAssistantPairKey(command.AssistantId, command.UserId);
+        var existing = await _conversationRepository.GetByPairKeyAsync(pairKey, cancellationToken);
+        if (existing is not null)
+        {
+            return new ChatConversationCommandResult(existing, Created: false);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var conversation = await _conversationRepository.AddAsync(new SysChatConversation
+        {
+            ConversationType = ChatConversationType.Assistant,
+            ConversationName = Required(command.AssistantName, 100, "助手名称不能为空且不能超过 100 个字符。"),
+            Avatar = Optional(command.Avatar, 500),
+            AssistantId = command.AssistantId,
+            PairKey = pairKey,
+            MemberCount = 1
+        }, cancellationToken);
+
+        await AddMemberRowsAsync(conversation.BasicId, [command.UserId], ownerUserId: null, now, cancellationToken);
+        return new ChatConversationCommandResult(conversation, Created: true);
+    }
+
+    /// <inheritdoc />
+    public async Task<ChatMessageSendResult> AppendAssistantMessageAsync(ChatAssistantMessageCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.AssistantId, "助手主键必须大于 0。");
+        var conversation = await GetConversationOrThrowAsync(command.ConversationId, cancellationToken);
+        if (conversation.ConversationType != ChatConversationType.Assistant)
+        {
+            throw new InvalidOperationException("仅助手会话可追加助手回复。");
+        }
+
+        // 超长时截断而不是拒绝：模型已经生成完，丢弃整条回复代价更大
+        var content = Truncate(Required(command.Content, int.MaxValue, "助手回复内容不能为空。"), MaxAssistantContentLength);
+        var now = DateTimeOffset.UtcNow;
+
+        var message = await _messageRepository.AddAsync(new SysChatMessage
+        {
+            ConversationId = conversation.BasicId,
+            SenderUserId = command.AssistantId,
+            SenderUserName = Optional(command.AssistantName, 50),
+            MessageType = ChatMessageType.Assistant,
+            Content = content
+        }, cancellationToken);
+
+        conversation.LastMessageId = message.BasicId;
+        conversation.LastMessageTime = now;
+        conversation.LastMessagePreview = BuildPreview(ChatMessageType.Assistant, content, attachments: null);
+        _ = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+
+        var members = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        var recipientIds = members.Select(member => member.UserId).ToList();
+        return new ChatMessageSendResult(message, conversation, recipientIds);
     }
 
     /// <inheritdoc />
@@ -790,6 +863,11 @@ public sealed class ChatDomainService : IChatDomainService
     {
         var (min, max) = userId < peerUserId ? (userId, peerUserId) : (peerUserId, userId);
         return $"{min}_{max}";
+    }
+
+    private static string BuildAssistantPairKey(long assistantId, long userId)
+    {
+        return $"ai:{assistantId}:{userId}";
     }
 
     private static string BuildPreview(ChatMessageType messageType, string? content, IReadOnlyList<ChatMessageAttachment>? attachments)

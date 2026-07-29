@@ -48,6 +48,16 @@ public static class ChatRealtimeMethods
     public const string ChatReadPositionChanged = "ChatReadPositionChanged";
 
     /// <summary>
+    /// AI 助手回复增量（负载：conversationId、replyId、delta；逐段到达，前端拼接为一条临时消息）
+    /// </summary>
+    public const string ChatAssistantDelta = "ChatAssistantDelta";
+
+    /// <summary>
+    /// AI 助手回复结束（负载：conversationId、replyId、messageId、error；messageId 为空表示失败，error 给出原因）
+    /// </summary>
+    public const string ChatAssistantCompleted = "ChatAssistantCompleted";
+
+    /// <summary>
     /// 会话的 SignalR 组名（打开会话页时 JoinConversation 加入，用于 typing 等轻量组播）
     /// </summary>
     public static string ConversationGroup(long conversationId)

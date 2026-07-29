@@ -44,6 +44,16 @@ public interface IChatRealtimePushService
     /// 推送成员已读位变更（群已读回执实时刷新）
     /// </summary>
     Task PushReadPositionChangedAsync(long conversationId, long userId, long? lastReadMessageId, IReadOnlyList<long> recipientUserIds);
+
+    /// <summary>
+    /// 推送 AI 助手回复增量
+    /// </summary>
+    Task PushAssistantDeltaAsync(long conversationId, string replyId, string delta, IReadOnlyList<long> recipientUserIds);
+
+    /// <summary>
+    /// 推送 AI 助手回复结束（messageId 为空表示失败，error 给出原因）
+    /// </summary>
+    Task PushAssistantCompletedAsync(long conversationId, string replyId, long? messageId, string? error, IReadOnlyList<long> recipientUserIds);
 }
 
 /// <summary>
@@ -190,6 +200,34 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "聊天已读位实时推送失败，ConversationId={ConversationId}", conversationId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task PushAssistantDeltaAsync(long conversationId, string replyId, string delta, IReadOnlyList<long> recipientUserIds)
+    {
+        try
+        {
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatAssistantDelta,
+                new { conversationId = conversationId.ToString(), replyId, delta });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "助手回复增量推送失败，ConversationId={ConversationId}", conversationId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task PushAssistantCompletedAsync(long conversationId, string replyId, long? messageId, string? error, IReadOnlyList<long> recipientUserIds)
+    {
+        try
+        {
+            await _realtimeService.SendToUsersAsync(ToUserIdStrings(recipientUserIds), ChatRealtimeMethods.ChatAssistantCompleted,
+                new { conversationId = conversationId.ToString(), replyId, messageId = messageId?.ToString(), error });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "助手回复结束推送失败，ConversationId={ConversationId}", conversationId);
         }
     }
 
