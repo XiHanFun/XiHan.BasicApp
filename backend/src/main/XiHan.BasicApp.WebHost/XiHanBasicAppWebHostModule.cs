@@ -39,14 +39,15 @@ namespace XiHan.BasicApp.WebHost;
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
     /// <summary>
-    /// 服务配置：注册数据库 / Redis 健康检查
+    /// 服务配置：注册数据库 / Redis / 向量库健康检查
     /// </summary>
     /// <param name="context">服务配置上下文</param>
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         context.Services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("database")
-            .AddCheck<RedisHealthCheck>("redis");
+            .AddCheck<RedisHealthCheck>("redis")
+            .AddCheck<QdrantHealthCheck>("qdrant");
 
         // MCP Server：把 AI 技能暴露为 MCP tools（应用管理 key 鉴权）。仅在启用且配置了密钥时注册（fail-closed）。
         var configuration = context.Services.GetConfiguration();
