@@ -149,9 +149,23 @@ public static class AiProviderApplicationMapper
         return new AiProviderTestConnectionResultDto
         {
             Success = result.Success,
-            Message = result.Message,
-            LatencyMs = result.LatencyMs,
-            Model = result.Model
+            Chat = new AiProviderProbeResultDto
+            {
+                Success = result.Chat.Success,
+                Message = result.Chat.Message,
+                LatencyMs = result.Chat.LatencyMs,
+                Model = result.Chat.Model
+            },
+            Embedding = result.Embedding is null
+                ? null
+                : new AiProviderProbeResultDto
+                {
+                    Success = result.Embedding.Success,
+                    Message = result.Embedding.Message,
+                    LatencyMs = result.Embedding.LatencyMs,
+                    Model = result.Embedding.Model,
+                    Dimensions = result.Embedding.Dimensions
+                }
         };
     }
 }

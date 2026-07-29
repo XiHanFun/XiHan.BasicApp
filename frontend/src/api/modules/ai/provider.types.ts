@@ -93,10 +93,18 @@ export interface AiProviderStatusUpdateDto extends BasicDto {
 export interface AiProviderActionDto extends BasicDto {
 }
 
-/** AI Provider 连接测试结果 DTO（后端 AiProviderTestConnectionResultDto，应用级结果，包裹在成功信封内） */
-export interface AiProviderTestConnectionResultDto {
+/** AI Provider 单项探测结果 DTO（后端 AiProviderProbeResultDto，dimensions 仅嵌入探测有值） */
+export interface AiProviderProbeResultDto {
   success: boolean
   message?: string | null
   latencyMs: number
   model?: string | null
+  dimensions?: number | null
+}
+
+/** AI Provider 连接测试结果 DTO（后端 AiProviderTestConnectionResultDto，embedding 为空表示未配置嵌入模型） */
+export interface AiProviderTestConnectionResultDto {
+  success: boolean
+  chat: AiProviderProbeResultDto
+  embedding?: AiProviderProbeResultDto | null
 }

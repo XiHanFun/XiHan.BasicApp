@@ -127,12 +127,23 @@ public sealed class AiProviderDetailDto : AiProviderListItemDto
 }
 
 /// <summary>
-/// AI Provider 连接测试结果 DTO
+/// AI Provider 单项探测结果 DTO（Dimensions 仅嵌入探测有值）
 /// </summary>
-public sealed class AiProviderTestConnectionResultDto
+public sealed class AiProviderProbeResultDto
 {
     public bool Success { get; set; }
     public string? Message { get; set; }
     public long LatencyMs { get; set; }
     public string? Model { get; set; }
+    public int? Dimensions { get; set; }
+}
+
+/// <summary>
+/// AI Provider 连接测试结果 DTO（Embedding 为空表示未配置嵌入模型）
+/// </summary>
+public sealed class AiProviderTestConnectionResultDto
+{
+    public bool Success { get; set; }
+    public AiProviderProbeResultDto Chat { get; set; } = new();
+    public AiProviderProbeResultDto? Embedding { get; set; }
 }

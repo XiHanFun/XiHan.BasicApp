@@ -59,6 +59,22 @@ public sealed record AiProviderStatusChangeCommand(long BasicId, EnableStatus St
 public sealed record AiProviderCommandResult(SysAiProvider Provider);
 
 /// <summary>
-/// AI Provider 连接测试结果
+/// AI Provider 会话探测结果
 /// </summary>
-public sealed record AiProviderTestResult(bool Success, string? Message, long LatencyMs, string? Model);
+public sealed record AiProviderChatProbe(bool Success, string? Message, long LatencyMs, string Model);
+
+/// <summary>
+/// AI Provider 嵌入探测结果（Dimensions 仅探测成功时有值）
+/// </summary>
+public sealed record AiProviderEmbeddingProbe(bool Success, string? Message, long LatencyMs, string Model, int? Dimensions);
+
+/// <summary>
+/// AI Provider 连接测试结果（Embedding 为 null 表示该 provider 未配置嵌入模型）
+/// </summary>
+public sealed record AiProviderTestResult(AiProviderChatProbe Chat, AiProviderEmbeddingProbe? Embedding)
+{
+    /// <summary>
+    /// 总体是否可用（会话须通过；配置了嵌入模型时嵌入也须通过）
+    /// </summary>
+    public bool Success => Chat.Success && Embedding?.Success != false;
+}
