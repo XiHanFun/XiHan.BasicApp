@@ -176,8 +176,8 @@ export enum ArtifactWriteMode {
 
 /** 写入策略选项 */
 export const ARTIFACT_WRITE_MODE_OPTIONS = [
-  { label: '机器文件（总是覆盖）', value: ArtifactWriteMode.AlwaysOverwrite },
-  { label: '人类文件（仅首次创建）', value: ArtifactWriteMode.WriteOnce },
+  { label: '自动文件（总是覆盖）', value: ArtifactWriteMode.AlwaysOverwrite },
+  { label: '手动文件（仅首次创建）', value: ArtifactWriteMode.WriteOnce },
 ]
 
 /** 生成范围选项 */
