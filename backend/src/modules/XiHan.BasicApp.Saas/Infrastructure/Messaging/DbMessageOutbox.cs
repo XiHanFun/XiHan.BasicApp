@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Caching.Distributed.Abstracts;
@@ -23,26 +24,35 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 public sealed class DbMessageOutbox
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IRedisDelayQueue<MessageOutboxMessage> _queue;
+    private readonly IRedisDelayQueue<MessageOutboxMessage>? _queue;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
+    private readonly ILogger<DbMessageOutbox> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DbMessageOutbox(IServiceScopeFactory scopeFactory, IRedisDelayQueue<MessageOutboxMessage> queue, IUnitOfWorkManager unitOfWorkManager)
+    public DbMessageOutbox(IServiceScopeFactory scopeFactory, IServiceProvider serviceProvider, IUnitOfWorkManager unitOfWorkManager, ILogger<DbMessageOutbox> logger)
     {
         _scopeFactory = scopeFactory;
-        _queue = queue;
+        _queue = serviceProvider.GetService<IRedisDelayQueue<MessageOutboxMessage>>();
         _unitOfWorkManager = unitOfWorkManager;
+        _logger = logger;
     }
 
     /// <summary>
     /// 入队待发送（SysEmail/SysSms 行已落库为 Pending）。在「事务提交后」入队，保证后台拉到时业务行已可见；无环境 UoW 时直接入队。
+    /// Redis 未启用时跳过入队。
     /// </summary>
     public Task EnqueueAsync(string channel, long entityId, CancellationToken cancellationToken = default)
     {
         if (entityId <= 0)
         {
+            return Task.CompletedTask;
+        }
+
+        if (_queue is null)
+        {
+            // Redis 未启用，延迟队列不可用，跳过入队
             return Task.CompletedTask;
         }
 

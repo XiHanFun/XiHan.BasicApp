@@ -57,25 +57,31 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(30);
 
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IRedisDelayQueue<MessageOutboxMessage> _queue;
+    private readonly IRedisDelayQueue<MessageOutboxMessage>? _queue;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public MessageOutboxHostedService(
         IServiceScopeFactory scopeFactory,
-        IRedisDelayQueue<MessageOutboxMessage> queue,
+        IServiceProvider serviceProvider,
         IOptions<XiHanBackgroundServiceOptions> options,
         ILogger<MessageOutboxHostedService> logger)
         : base(logger, options, BuildConfig(options))
     {
         _scopeFactory = scopeFactory;
-        _queue = queue;
+        _queue = serviceProvider.GetService<IRedisDelayQueue<MessageOutboxMessage>>();
     }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (_queue is null)
+        {
+            Logger.LogWarning("Redis 未启用，MessageOutboxHostedService 已跳过（Redis 延迟队列不可用）");
+            return;
+        }
+
         await RecoverPendingAsync(stoppingToken);
         await base.ExecuteAsync(stoppingToken);
     }

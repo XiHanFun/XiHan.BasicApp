@@ -49,25 +49,31 @@ public sealed class ExportTaskMessage : IBackgroundTaskItem
 public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportTaskHostedService>
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IRedisDelayQueue<ExportTaskMessage> _queue;
+    private readonly IRedisDelayQueue<ExportTaskMessage>? _queue;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public ExportTaskHostedService(
         IServiceScopeFactory scopeFactory,
-        IRedisDelayQueue<ExportTaskMessage> queue,
+        IServiceProvider serviceProvider,
         IOptions<XiHanBackgroundServiceOptions> options,
         ILogger<ExportTaskHostedService> logger)
         : base(logger, options, BuildConfig(options))
     {
         _scopeFactory = scopeFactory;
-        _queue = queue;
+        _queue = serviceProvider.GetService<IRedisDelayQueue<ExportTaskMessage>>();
     }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (_queue is null)
+        {
+            Logger.LogWarning("Redis 未启用，ExportTaskHostedService 已跳过（Redis 延迟队列不可用）");
+            return;
+        }
+
         await RecoverPendingAsync(stoppingToken);
         await base.ExecuteAsync(stoppingToken);
     }

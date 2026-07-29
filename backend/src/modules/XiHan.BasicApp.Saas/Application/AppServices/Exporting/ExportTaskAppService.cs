@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -28,18 +29,18 @@ public sealed class ExportTaskAppService
 
     private readonly IExportTaskRepository _repository;
 
-    private readonly IRedisDelayQueue<ExportTaskMessage> _exportTaskQueue;
+    private readonly IRedisDelayQueue<ExportTaskMessage>? _exportTaskQueue;
 
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ExportTaskAppService(IExportTaskRepository repository, ICurrentUser currentUser, IRedisDelayQueue<ExportTaskMessage> exportTaskQueue, IUnitOfWorkManager unitOfWorkManager)
+    public ExportTaskAppService(IExportTaskRepository repository, ICurrentUser currentUser, IServiceProvider serviceProvider, IUnitOfWorkManager unitOfWorkManager)
     {
         _repository = repository;
         _currentUser = currentUser;
-        _exportTaskQueue = exportTaskQueue;
+        _exportTaskQueue = serviceProvider.GetService<IRedisDelayQueue<ExportTaskMessage>>();
         _unitOfWorkManager = unitOfWorkManager;
     }
 
@@ -77,17 +78,20 @@ public sealed class ExportTaskAppService
         // CreatedId（发起人）/ TenantId（发起租户）由审计 AOP 自动注入，后台据此重建上下文
         entity = await _repository.AddAsync(entity, cancellationToken);
 
-        // 提交后入队（延迟 0）：后台导出服务拉取后立即领取执行（替换原 3s 轮询）。无环境 UoW 时直接入队。
-        var taskId = entity.BasicId;
-        var message = new ExportTaskMessage { ExportTaskId = taskId, CreatedAt = DateTimeOffset.UtcNow };
-        var uow = _unitOfWorkManager.Current;
-        if (uow is not null)
+        // 提交后入队（延迟 0）：后台导出服务拉取后立即领取执行。Redis 未启用时跳过入队，仅落库。
+        if (_exportTaskQueue is not null)
         {
-            uow.OnCompleted(() => _exportTaskQueue.EnqueueAsync(message, TimeSpan.Zero));
-        }
-        else
-        {
-            await _exportTaskQueue.EnqueueAsync(message, TimeSpan.Zero, cancellationToken);
+            var taskId = entity.BasicId;
+            var message = new ExportTaskMessage { ExportTaskId = taskId, CreatedAt = DateTimeOffset.UtcNow };
+            var uow = _unitOfWorkManager.Current;
+            if (uow is not null)
+            {
+                uow.OnCompleted(() => _exportTaskQueue.EnqueueAsync(message, TimeSpan.Zero));
+            }
+            else
+            {
+                await _exportTaskQueue.EnqueueAsync(message, TimeSpan.Zero, cancellationToken);
+            }
         }
 
         return ToDto(entity);
