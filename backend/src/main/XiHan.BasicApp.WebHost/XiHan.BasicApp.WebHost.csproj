@@ -27,7 +27,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="IpDatabases\ip2region.xdb">
+      <None Update="IpDatabases\ip2region_v4.xdb">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="IpDatabases\ip2region_v6.xdb">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="ServiceScripts\XiHan.BasicApp.bat">
