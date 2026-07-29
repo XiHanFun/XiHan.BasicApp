@@ -123,14 +123,8 @@ public static class PageRegistry
          new("message.record", "邮件短信", "menu.message_record", MenuType.Menu, "/message/record", "MessageRecord", "message/record/index", "message", SaasPermissionCodes.Message.Read, "lucide:send", 320),
         // [4.3] 消息模板
          new("message.template", "消息模板", "menu.message_template", MenuType.Menu, "/message/template", "MessageTemplate", "message/template/index", "message", SaasPermissionCodes.MessageTemplate.Read, "lucide:file-code-2", 330),
-        // [4.4] 邮件配置
-         new("message.email-config", "邮件配置", "menu.message_email_config", MenuType.Menu, "/message/email-config", "MessageEmailConfig", "message/email-config/index", "message", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 340),
-        // [4.5] 短信配置
-         new("message.sms-config", "短信配置", "menu.message_sms_config", MenuType.Menu, "/message/sms-config", "MessageSmsConfig", "message/sms-config/index", "message", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 350),
-        // [4.6] 机器人配置（Webhook 型：钉钉/飞书/企微）
-         new("message.bot-config", "机器人配置", "menu.message_bot_config", MenuType.Menu, "/message/bot-config", "MessageBotConfig", "message/bot-config/index", "message", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 360),
-        // [4.7] Telegram机器人
-         new("message.telegram-bot", "Telegram机器人", "menu.message_telegram_bot", MenuType.Menu, "/message/telegram-bot", "MessageTelegramBot", "message/telegram-bot/index", "message", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 370),
+        // 注：邮件/短信/机器人/Telegram 等系统级通道「配置」页归入系统设置（见 [8.8]-[8.11]），
+        // 消息中心只保留日常消息运营（聊天/审计/通知/记录/模板）。
 
         // [5] 审批规则
          new("approval", "审批规则", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:clipboard-check", 400, "/approval/review"),
@@ -171,6 +165,14 @@ public static class PageRegistry
          new("setting.server", "服务监控", "menu.setting_server", MenuType.Menu, "/setting/server", "SettingServer", "setting/server/index", "setting", SaasPermissionCodes.Server.Read, "lucide:server", 760),
         // [8.7] 版本管理（系统版本与升级迁移）
          new("setting.version", "版本管理", "menu.setting_version", MenuType.Menu, "/setting/version", "SettingVersion", "setting/version/index", "setting", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
+        // [8.8] 邮件配置（系统级邮件通道；路由/页面仍在 message 下，仅菜单归入系统设置）
+         new("message.email-config", "邮件配置", "menu.message_email_config", MenuType.Menu, "/message/email-config", "MessageEmailConfig", "message/email-config/index", "setting", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 780),
+        // [8.9] 短信配置
+         new("message.sms-config", "短信配置", "menu.message_sms_config", MenuType.Menu, "/message/sms-config", "MessageSmsConfig", "message/sms-config/index", "setting", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 790),
+        // [8.10] 机器人配置（Webhook 型：钉钉/飞书/企微）
+         new("message.bot-config", "机器人配置", "menu.message_bot_config", MenuType.Menu, "/message/bot-config", "MessageBotConfig", "message/bot-config/index", "setting", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 800),
+        // [8.11] Telegram机器人
+         new("message.telegram-bot", "Telegram机器人", "menu.message_telegram_bot", MenuType.Menu, "/message/telegram-bot", "MessageTelegramBot", "message/telegram-bot/index", "setting", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 810),
 
         // [9] 日志审计
          new("log", "日志审计", "menu.log", MenuType.Directory, "/log", "Log", null, null, null, "lucide:file-search", 800, "/log/access"),
