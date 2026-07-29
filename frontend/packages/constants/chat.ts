@@ -12,6 +12,8 @@ export const CHAT_REALTIME_METHODS = {
   chatMessageEdited: 'ChatMessageEdited',
   chatReactionChanged: 'ChatReactionChanged',
   chatReadPositionChanged: 'ChatReadPositionChanged',
+  chatAssistantDelta: 'ChatAssistantDelta',
+  chatAssistantCompleted: 'ChatAssistantCompleted',
 } as const
 
 /** 会话草稿本地存储键（值为 conversationId → 草稿文本 的 JSON） */

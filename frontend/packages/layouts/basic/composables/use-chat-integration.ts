@@ -1,4 +1,6 @@
 import type {
+  ChatAssistantCompletedPushPayload,
+  ChatAssistantDeltaPushPayload,
   ChatConversationChangedPushPayload,
   ChatMessageEditedPushPayload,
   ChatMessagePushPayload,
@@ -50,6 +52,10 @@ export function useChatIntegration() {
       chatStore.applyReactionChanged(payload as ChatReactionChangedPushPayload))
     signalR.on(CHAT_REALTIME_METHODS.chatReadPositionChanged, payload =>
       chatStore.applyReadPositionChanged(payload as ChatReadPositionChangedPushPayload))
+    signalR.on(CHAT_REALTIME_METHODS.chatAssistantDelta, payload =>
+      chatStore.applyAssistantDelta(payload as ChatAssistantDeltaPushPayload))
+    signalR.on(CHAT_REALTIME_METHODS.chatAssistantCompleted, payload =>
+      chatStore.applyAssistantCompleted(payload as ChatAssistantCompletedPushPayload))
     isListenersBound = true
   }
 

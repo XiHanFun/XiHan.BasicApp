@@ -15,7 +15,7 @@ defineOptions({ name: 'ChatConversationList' })
 
 const emit = defineEmits<{
   select: [conversationId: string]
-  start: [mode: 'department' | 'group' | 'single']
+  start: [mode: 'assistant' | 'department' | 'group' | 'single']
 }>()
 
 const { t } = useI18n()
@@ -36,6 +36,7 @@ const startOptions = computed<DropdownOption[]>(() => {
   const options: DropdownOption[] = [
     { key: 'single', label: t('chat.start.single') },
     { key: 'department', label: t('chat.start.department') },
+    { key: 'assistant', label: t('chat.start.assistant') },
   ]
   // 建群需要会话管理权限（后端 saas:chat:manage 门控）
   if (userStore.hasPermission(CHAT_PERMISSIONS.manage)) {
@@ -45,7 +46,7 @@ const startOptions = computed<DropdownOption[]>(() => {
 })
 
 function handleStartSelect(key: string | number) {
-  emit('start', String(key) as 'department' | 'group' | 'single')
+  emit('start', String(key) as 'assistant' | 'department' | 'group' | 'single')
 }
 
 function handleRefresh() {

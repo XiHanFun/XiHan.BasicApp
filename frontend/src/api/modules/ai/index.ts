@@ -1,4 +1,6 @@
 export * from './ai.enums'
+export * from './assistant'
+export * from './assistant.types'
 export * from './knowledge'
 export * from './knowledge.enums'
 export * from './knowledge.types'

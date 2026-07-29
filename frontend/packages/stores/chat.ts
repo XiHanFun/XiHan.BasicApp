@@ -1,4 +1,6 @@
 import type {
+  ChatAssistantCompletedPushPayload,
+  ChatAssistantDeltaPushPayload,
   ChatConversationChangedPushPayload,
   ChatConversationListItem,
   ChatMessageEditedPushPayload,
@@ -14,7 +16,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useSignalR } from '~/composables/useSignalR'
 import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH } from '~/constants'
-import { ChatMessageType } from '~/types/enums'
+import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
 import { useUserStore } from './user'
@@ -25,6 +27,16 @@ export interface ChatLocalMessage extends ChatMessageItem {
   pending?: boolean
   /** 发送失败（可重发或移除） */
   failed?: boolean
+}
+
+/** 助手回复流：生成期间的临时气泡状态（落库消息到达后丢弃） */
+export interface ChatAssistantStream {
+  replyId: string
+  /** 已收到的增量拼接结果 */
+  text: string
+  /** 仍在生成（false 表示已结束，仅剩错误待展示） */
+  streaming: boolean
+  error?: null | string
 }
 
 /** 乐观消息的本地占位 ID 前缀（REST/推送回执到达后被正式 messageId 替换） */
@@ -75,6 +87,8 @@ export const useChatStore = defineStore('chat', () => {
   /** 搜索命中定位后的高亮消息（3s 自清） */
   const highlightMessageId = ref<null | string>(null)
   let highlightTimer: ReturnType<typeof setTimeout> | null = null
+  /** 助手回复流：conversationId → 本轮增量（落库推送到达后清空，换成正式消息） */
+  const assistantStreams = ref<Record<string, ChatAssistantStream>>({})
 
   const markReadTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingClearTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -100,6 +114,9 @@ export const useChatStore = defineStore('chat', () => {
   )
   const activeTyping = computed(() =>
     activeConversationId.value ? typingIndicators.value[activeConversationId.value] ?? null : null,
+  )
+  const activeAssistantStream = computed(() =>
+    activeConversationId.value ? assistantStreams.value[activeConversationId.value] ?? null : null,
   )
 
   function sortConversations() {
@@ -342,6 +359,10 @@ export const useChatStore = defineStore('chat', () => {
       const saved = await api().sendMessage({ ...input, clientMessageId })
       reconcileSaved(saved)
       touchConversationBySend(saved)
+      // 助手会话：消息落库后由前端单独发起一次回复请求，生成期间增量走推送
+      if (conversationTypeOf(input.conversationId) === ChatConversationType.Assistant) {
+        void requestAssistantReply(input.conversationId)
+      }
     }
     catch (error) {
       const item = messages.value[input.conversationId]?.find(m => m.clientMessageId === clientMessageId)
@@ -692,6 +713,69 @@ export const useChatStore = defineStore('chat', () => {
     return result
   }
 
+  async function startAssistantConversation(assistantId: string) {
+    const result = await api().openAssistantConversation(assistantId)
+    await loadConversations()
+    await openConversation(result.conversationId)
+    return result
+  }
+
+  // ===== AI 助手回复 =====
+
+  function conversationTypeOf(conversationId: string) {
+    return conversations.value.find(c => c.conversationId === conversationId)?.conversationType ?? null
+  }
+
+  /** 请求助手回复本轮提问；增量由 applyAssistantDelta 回灌，落库消息经普通推送到达 */
+  async function requestAssistantReply(conversationId: string) {
+    const replyId = generateClientMessageId()
+    assistantStreams.value[conversationId] = { replyId, text: '', streaming: true }
+    try {
+      const result = await api().replyAssistant(conversationId, replyId)
+      if (result.error) {
+        markAssistantFailed(conversationId, replyId, result.error)
+      }
+    }
+    catch (error) {
+      markAssistantFailed(conversationId, replyId, error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  function markAssistantFailed(conversationId: string, replyId: string, error: string) {
+    const stream = assistantStreams.value[conversationId]
+    if (stream?.replyId === replyId) {
+      stream.streaming = false
+      stream.error = error
+    }
+  }
+
+  function applyAssistantDelta(payload: ChatAssistantDeltaPushPayload) {
+    const stream = assistantStreams.value[payload.conversationId]
+    if (stream?.replyId !== payload.replyId) {
+      return
+    }
+    stream.text += payload.delta
+  }
+
+  function applyAssistantCompleted(payload: ChatAssistantCompletedPushPayload) {
+    const stream = assistantStreams.value[payload.conversationId]
+    if (stream?.replyId !== payload.replyId) {
+      return
+    }
+    if (payload.error) {
+      stream.streaming = false
+      stream.error = payload.error
+      return
+    }
+    // 成功时正式消息经 ReceiveChatMessage 到达，临时气泡直接丢弃避免重影
+    delete assistantStreams.value[payload.conversationId]
+  }
+
+  /** 关闭错误态的助手气泡（用户手动消除） */
+  function dismissAssistantStream(conversationId: string) {
+    delete assistantStreams.value[conversationId]
+  }
+
   function $reset() {
     conversations.value = []
     conversationsLoading.value = false
@@ -708,6 +792,7 @@ export const useChatStore = defineStore('chat', () => {
     editTarget.value = null
     detachedConversations.value = {}
     highlightMessageId.value = null
+    assistantStreams.value = {}
     if (highlightTimer) {
       clearTimeout(highlightTimer)
       highlightTimer = null
@@ -781,6 +866,13 @@ export const useChatStore = defineStore('chat', () => {
     startSingleConversation,
     startGroupConversation,
     startDepartmentConversation,
+    startAssistantConversation,
+    assistantStreams,
+    activeAssistantStream,
+    requestAssistantReply,
+    applyAssistantDelta,
+    applyAssistantCompleted,
+    dismissAssistantStream,
     $reset,
   }
 })

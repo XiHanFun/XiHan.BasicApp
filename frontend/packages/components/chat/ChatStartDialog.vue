@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { TreeSelectOption } from 'naive-ui'
+import type { SelectOption, TreeSelectOption } from 'naive-ui'
 import type { ChatDepartmentPickerNode } from '~/types'
-import { NButton, NInput, NModal, NTreeSelect, useMessage } from 'naive-ui'
+import { NButton, NInput, NModal, NSelect, NTreeSelect, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { CHAT_MAX_GROUP_NAME_LENGTH } from '~/types'
 import ChatUserSelect from './ChatUserSelect.vue'
 
-export type ChatStartMode = 'department' | 'group' | 'single'
+export type ChatStartMode = 'assistant' | 'department' | 'group' | 'single'
 
 defineOptions({ name: 'ChatStartDialog' })
 
@@ -35,6 +35,9 @@ const groupMemberIds = ref<string[]>([])
 const departmentId = ref<null | string>(null)
 const departmentOptions = ref<TreeSelectOption[]>([])
 const departmentLoading = ref(false)
+const assistantId = ref<null | string>(null)
+const assistantOptions = ref<SelectOption[]>([])
+const assistantLoading = ref(false)
 
 const title = computed(() => {
   switch (props.mode) {
@@ -42,6 +45,8 @@ const title = computed(() => {
       return t('chat.start.single_title')
     case 'group':
       return t('chat.start.group_title')
+    case 'assistant':
+      return t('chat.start.assistant_title')
     default:
       return t('chat.start.department_title')
   }
@@ -74,14 +79,39 @@ async function loadDepartments() {
   }
 }
 
+async function loadAssistants() {
+  if (assistantLoading.value) {
+    return
+  }
+  assistantLoading.value = true
+  try {
+    const items = await appContext.apis.chatApi.availableAssistants()
+    assistantOptions.value = items.map(item => ({
+      value: item.assistantId,
+      label: item.assistantName,
+    }))
+    assistantId.value = items.find(item => item.isDefault)?.assistantId ?? items[0]?.assistantId ?? null
+  }
+  catch {
+    assistantOptions.value = []
+  }
+  finally {
+    assistantLoading.value = false
+  }
+}
+
 watch(show, (visible) => {
   if (visible) {
     singleUserId.value = null
     groupName.value = ''
     groupMemberIds.value = []
     departmentId.value = null
+    assistantId.value = null
     if (props.mode === 'department') {
       void loadDepartments()
+    }
+    if (props.mode === 'assistant') {
+      void loadAssistants()
     }
   }
 })
@@ -108,6 +138,10 @@ async function handleConfirm() {
     message.warning(t('chat.start.department_required'))
     return
   }
+  if (props.mode === 'assistant' && !assistantId.value) {
+    message.warning(t('chat.start.assistant_required'))
+    return
+  }
 
   submitting.value = true
   try {
@@ -116,6 +150,9 @@ async function handleConfirm() {
     }
     else if (props.mode === 'group') {
       await chatStore.startGroupConversation(groupName.value.trim(), groupMemberIds.value)
+    }
+    else if (props.mode === 'assistant') {
+      await chatStore.startAssistantConversation(assistantId.value!)
     }
     else {
       await chatStore.startDepartmentConversation(departmentId.value!)
@@ -161,6 +198,17 @@ async function handleConfirm() {
           multiple
           :exclude-user-ids="[currentUserId]"
           :placeholder="t('chat.start.users_placeholder')"
+        />
+      </template>
+
+      <template v-else-if="props.mode === 'assistant'">
+        <NSelect
+          v-model:value="assistantId"
+          :options="assistantOptions"
+          :loading="assistantLoading"
+          filterable
+          clearable
+          :placeholder="t('chat.start.assistant_placeholder')"
         />
       </template>
 
