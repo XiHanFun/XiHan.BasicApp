@@ -60,7 +60,7 @@ export interface CodeGenArtifactDto {
   fileName: string
   content: string
   templateCode?: string | null
-  /** 写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建 */
+  /** 写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建 */
   writeMode: ArtifactWriteMode
 }
 
@@ -115,7 +115,7 @@ export interface CodeGenResultDto {
   artifacts: CodeGenArtifactDto[]
   /** 实际写入文件数（GenType.CustomPath 时填充） */
   writtenCount: number
-  /** 被跳过的人类文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖） */
+  /** 被跳过的手动文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖） */
   skippedPaths: string[]
   /** Zip 包体（Base64）；GenType.Zip 时填充 */
   packageBase64?: string | null

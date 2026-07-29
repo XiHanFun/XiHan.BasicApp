@@ -166,11 +166,11 @@ export const DICT_SELECTOR_TYPE_OPTIONS = [
   { label: '常量数组', value: DictSelectorType.ConstSelector },
 ]
 
-/** 生成产物写入策略（机器拥有 vs 人类拥有） */
+/** 生成产物写入策略（生成器拥有 vs 开发者拥有） */
 export enum ArtifactWriteMode {
-  /** 总是覆盖（机器文件，禁止手工编辑） */
+  /** 总是覆盖（自动文件，禁止手工编辑） */
   AlwaysOverwrite = 'AlwaysOverwrite',
-  /** 仅首次创建（人类文件，重新生成时跳过） */
+  /** 仅首次创建（手动文件，重新生成时跳过） */
   WriteOnce = 'WriteOnce',
 }
 

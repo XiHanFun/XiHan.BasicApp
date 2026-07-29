@@ -131,7 +131,7 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("> 菜单规格：MenuCode=`" + resource + "`、Path=`/" + Shared.ModuleLower(context) + "/" + kebab + "`、Component=`" + Shared.Component(context) + "`、RouteName=`" + Shared.RouteName(context) + "`、I18nKey=`menu." + resource + "`、绑定 `" + resource + ":read` 可见性。");
         sb.AppendLine($"> ParentId：{(context.Options.TryGetValue("ParentMenuId", out var pid) && pid is not null ? $"表配置 ParentMenuId=`{pid}`" : "未设置 → 顶级菜单（设置表配置 ParentMenuId 可挂父菜单）")}。");
         sb.AppendLine();
-        sb.AppendLine("> **勿改 `.Generated.cs`**：生成产物分机器文件（`.Generated.cs`/`.generated.ts`，总是覆盖）与人类文件（首次创建、永不覆盖）。自定义代码写在人类文件里。");
+        sb.AppendLine("> **勿改 `.Generated.cs`**：生成产物分自动文件（`.Generated.cs`/`.generated.ts`，总是覆盖）与手动文件（首次创建、永不覆盖）。自定义代码写在手动文件里。");
 
         return new GeneratedArtifact($"{Shared.OutputFolder}/README.md", "README.md", sb.ToString(), Shared.TemplateCode);
     }

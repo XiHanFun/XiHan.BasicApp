@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// </summary>
 /// <remarks>
 /// 本类已接通"配置 → 渲染 → 产物"主链路，并按模板声明的 <see cref="ArtifactWriteMode"/>
-/// 区分机器产物（总是覆盖）与人类产物（仅首次创建），保证重新生成不冲掉手写代码。
+/// 区分自动产物（总是覆盖）与手动产物（仅首次创建），保证重新生成不冲掉手写代码。
 /// 待完善：树表/主子表上下文扩展（见 M1-1）。
 /// </remarks>
 public sealed class CodeGenerationEngine(
@@ -74,7 +74,7 @@ public sealed class CodeGenerationEngine(
                 result.SkippedPaths = writeResult.SkippedPaths;
 
                 _logger.LogInformation(
-                    "代码生成落盘完成：TableId={TableId}，路径={Path}，写入={Written}，跳过={Skipped}（人类文件已存在）",
+                    "代码生成落盘完成：TableId={TableId}，路径={Path}，写入={Written}，跳过={Skipped}（手动文件已存在）",
                     request.TableId, table?.GenPath, writeResult.WrittenCount, writeResult.SkippedCount);
                 break;
 

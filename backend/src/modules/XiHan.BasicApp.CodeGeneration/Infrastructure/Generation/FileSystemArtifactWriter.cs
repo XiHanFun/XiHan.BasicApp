@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 文件系统落盘写入器（fail-closed：默认禁用 + 白名单根目录 + 绝对路径/穿越拒绝）
 /// </summary>
 /// <remarks>
-/// 写入策略：<see cref="ArtifactWriteMode.AlwaysOverwrite"/> 的机器文件直接覆盖；
-/// <see cref="ArtifactWriteMode.WriteOnce"/> 的人类文件若已存在则跳过并记入 SkippedPaths，
+/// 写入策略：<see cref="ArtifactWriteMode.AlwaysOverwrite"/> 的自动文件直接覆盖；
+/// <see cref="ArtifactWriteMode.WriteOnce"/> 的手动文件若已存在则跳过并记入 SkippedPaths，
 /// 保证开发者写在里面的自定义代码不会被重新生成冲掉。
 /// </remarks>
 public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> options) : IGeneratedArtifactWriter
@@ -74,7 +74,7 @@ public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> opt
                 return GeneratedArtifactWriteResult.Fail($"产物路径越界：{artifact.RelativePath}");
             }
 
-            // 人类文件已存在：跳过，保护开发者写入的自定义代码
+            // 手动文件已存在：跳过，保护开发者写入的自定义代码
             if (artifact.WriteMode == ArtifactWriteMode.WriteOnce && File.Exists(fullPath))
             {
                 skipped.Add(relative);

@@ -24,7 +24,7 @@ public sealed class CodeGenTemplateCreateDto
     /// <summary>模板引擎（决策 D1：当前仅 Scriban 可渲染）</summary>
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
 
-    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建，用于承载手写代码</summary>
+    /// <summary>写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建，用于承载手写代码</summary>
     public ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
 
     public string? TemplateContent { get; set; }
@@ -48,7 +48,7 @@ public sealed class CodeGenTemplateUpdateDto : BasicAppUDto
     public TemplateType? TemplateType { get; set; }
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
 
-    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建，用于承载手写代码</summary>
+    /// <summary>写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建，用于承载手写代码</summary>
     public ArtifactWriteMode WriteMode { get; set; } = ArtifactWriteMode.AlwaysOverwrite;
 
     public string? TemplateContent { get; set; }
@@ -98,7 +98,7 @@ public class CodeGenTemplateListItemDto : BasicAppDto
 
     public TemplateEngine TemplateEngine { get; set; }
 
-    /// <summary>写入策略：机器文件总是覆盖；人类文件仅在目标不存在时创建</summary>
+    /// <summary>写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建</summary>
     public ArtifactWriteMode WriteMode { get; set; }
 
     public string? FileExtension { get; set; }

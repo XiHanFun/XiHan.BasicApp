@@ -39,7 +39,7 @@ const activeIndex = ref(0)
 const activeArtifact = computed(() => artifacts.value[activeIndex.value] ?? null)
 
 /**
- * 产物按写入策略分组：机器文件（总是覆盖）与人类文件（仅首次创建）。
+ * 产物按写入策略分组：自动文件（总是覆盖）与手动文件（仅首次创建）。
  * 保留在扁平数组中的原始下标，供选中态使用。
  */
 const artifactGroups = computed(() => {
