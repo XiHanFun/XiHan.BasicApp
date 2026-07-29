@@ -44,7 +44,8 @@ public static class SaasPlatformPermissions
         SaasPermissionCodes.Menu.Delete,
         SaasPermissionCodes.Cache.Read,
         SaasPermissionCodes.Cache.Clear,
-        SaasPermissionCodes.Server.Read
+        SaasPermissionCodes.Server.Read,
+        SaasPermissionCodes.Numbering.GlobalManage
     };
 
     /// <summary>

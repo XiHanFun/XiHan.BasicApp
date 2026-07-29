@@ -1,17 +1,17 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using XiHan.Framework.Web.Api.Session;
-using XiHan.Framework.Web.Api.Security.OpenApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
+using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
 using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Numbering;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
@@ -21,6 +21,8 @@ using XiHan.BasicApp.Saas.Infrastructure.Security;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
+using XiHan.Framework.Auditing;
+using XiHan.Framework.Auditing.Writers;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
@@ -31,7 +33,6 @@ using XiHan.Framework.Bot.Sms.Abstractions;
 using XiHan.Framework.Bot.Telegram.Abstractions;
 using XiHan.Framework.Bot.Telegram.Extensions.DependencyInjection;
 using XiHan.Framework.Bot.WeCom.Abstractions;
-using XiHan.Framework.Auditing;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.Data.SqlSugar.Tenanting;
 using XiHan.Framework.EventBus.Local;
@@ -39,7 +40,8 @@ using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Utils.Collections;
-using XiHan.Framework.Auditing.Writers;
+using XiHan.Framework.Web.Api.Security.OpenApi;
+using XiHan.Framework.Web.Api.Session;
 
 namespace XiHan.BasicApp.Saas.Extensions;
 
@@ -63,6 +65,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IUserSessionDomainService, UserSessionDomainService>();
         services.AddSingleton<IFileStorageDomainService, FileStorageDomainService>();
         services.AddSingleton<ITaskScheduleDomainService, TaskScheduleDomainService>();
+        // 编号格式器是无共享可变状态的纯计算服务，可安全注册为单例。
+        services.AddSingleton<INumberingFormatter, NumberingFormatter>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();
@@ -123,6 +127,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantDomainService, TenantDomainService>();
         services.AddScoped<ITenantDatabaseInitializer, TenantDatabaseInitializer>();
         services.AddScoped<ITenantEditionDomainService, TenantEditionDomainService>();
+        services.AddScoped<INumberingRuleDomainService, NumberingRuleDomainService>();
 
         return services;
     }
@@ -206,6 +211,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
         services.AddScoped<IAuthorizationChangeNotifier, AuthorizationChangeNotifier>();
+        // 键锁跨请求共享以削减单进程竞争；真正跨节点一致性仍由规则 RowVersion 保证。
+        services.AddSingleton<NumberingLockProvider>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<INumberGenerator, NumberGenerator>();
         return services;
     }
 
