@@ -29,12 +29,12 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// </para>
 /// <para>
 /// 事务是正确性的前提而不是可选项：推进语句取得的排他行锁必须持有到提交，读回值才等于本次推进结果。
-/// 生成器因此保证事务存在——调用链上已有事务型工作单元时加入它，没有时自行开启并提交；
-/// 若两者都不成立（例如处于非事务型工作单元内），仓储的连接级断言会立即失败，而不是静默降级。
+/// 生成器因此总是在自己的事务里完成分配并当场提交；存在调用方事务时由框架物化独立物理连接，
+/// 使规则行锁不被调用方事务的剩余时长拖住。处于非事务型工作单元内时，仓储的连接级断言会立即失败而不是静默降级。
 /// </para>
 /// <para>
-/// 调用契约见 <see cref="INumberGenerator"/>：加入调用方事务意味着编号与调用方事务同生共死，
-/// 且规则行会被锁定到调用方提交为止。
+/// 调用契约见 <see cref="INumberGenerator"/>：编号语义对齐数据库序列——发出即永久消耗，
+/// 不随调用方事务回滚而回收，代价是调用方失败时留下空洞。
 /// </para>
 /// <para>生成器本身不保存可变状态，可由 DI 并发调用。</para>
 /// </remarks>
@@ -211,24 +211,13 @@ public sealed class NumberGenerator : INumberGenerator
 
         if (resolved.OwnerTenantId == 0)
         {
-            // 平台作用域承担两件独立的事：
-            // 一是让仓储的租户写谓词不再追加当前租户条件，使条件更新能命中 TenantId=0 的全局行；
-            // 二是满足框架审计在写入分配记录时的租户归属校验。
-            // 在库隔离部署下它还额外决定连接选择，因此必须在开启事务之前切换。
-            var callerDatabaseId = _ruleRepository.GetCurrentDatabaseId();
+            // 平台作用域承担两件事：让仓储的租户写谓词不再追加当前租户条件，使条件更新能命中 TenantId=0 的全局行；
+            // 并满足框架审计在写入分配记录时的租户归属校验。库隔离部署下它还决定连接选择，因此必须在开启事务之前切换。
             using var platformScope = _currentTenant.Change(null);
-            var platformDatabaseId = _ruleRepository.GetCurrentDatabaseId();
-            // 全局规则行落在平台库。库隔离部署下它与调用方的业务数据不在同一条连接上，
-            // 此时把发号并进调用方事务只是幻觉：工作单元会顺序提交两条连接且没有两阶段提交，
-            // 若调用方事务先提交而平台事务失败，调用方拿到的编号既未记录也未推进流水，下一次发号会重复它。
-            // 因此跨库时自行开启并提交事务，把最坏结果从「重复编号」降级为已在契约中声明的「编号空洞」。
-            var crossesDatabase = !string.Equals(callerDatabaseId, platformDatabaseId, StringComparison.Ordinal);
-            return await AllocateInTransactionAsync(
-                resolved, requestTenantId, normalized, fingerprint, crossesDatabase, cancellationToken);
+            return await AllocateInTransactionAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
         }
 
-        return await AllocateInTransactionAsync(
-            resolved, requestTenantId, normalized, fingerprint, false, cancellationToken);
+        return await AllocateInTransactionAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
     }
 
     /// <summary>
@@ -238,22 +227,19 @@ public sealed class NumberGenerator : INumberGenerator
     /// <param name="requestTenantId">切换数据库前捕获的原请求租户。</param>
     /// <param name="request">已经校验并归一的请求。</param>
     /// <param name="fingerprint">绑定实际规则和请求参数的稳定指纹。</param>
-    /// <param name="requiresOwnTransaction">
-    /// 是否必须自行开启并提交事务；仅在发号目标库与调用方事务所在库不同时为 <see langword="true"/>。
-    /// </param>
     /// <param name="cancellationToken">用于取消事务和数据库操作的取消令牌。</param>
     /// <returns>本次新分配或从永久记录重建的结果。</returns>
     /// <remarks>
     /// <para>
-    /// 同库场景刻意不使用 <c>requiresNew</c>：框架的事务适配器发现连接上已有事务时会退化为空操作，
-    /// 请求「新」工作单元只会得到一个不提交也不回滚的假事务。这里改为加入调用方事务
-    /// （<c>Begin</c> 在已有工作单元时返回子工作单元，其 <c>CompleteAsync</c> 为空实现，由外层统一提交），
-    /// 没有调用方事务时才真正开启并提交自己的事务。
+    /// 发号<b>总是</b>在自己的事务里完成并当场提交，语义对齐数据库序列：号一旦发出就永久消耗，
+    /// 不随调用方事务回滚而回收，因此已经外泄的编号不可能被再次发给另一个业务实体。
     /// </para>
     /// <para>
-    /// 跨库场景相反：目标连接上本就没有调用方的事务，<c>requiresNew</c> 能拿到真实事务并在此处提交，
-    /// 从而不再依赖工作单元对两条连接的顺序提交。
+    /// <c>requiresNew</c> 在存在调用方事务时会让框架为本工作单元物化一条独立物理连接，
+    /// 规则行的排他锁只在本方法内持有，不会被调用方事务的剩余时长拖住；
+    /// 没有调用方事务时它退化为普通的新工作单元，沿用共享连接，不额外开销。
     /// </para>
+    /// <para>代价是空洞：调用方事务失败时编号已经消耗。编号保证唯一与单调，不保证连续。</para>
     /// </remarks>
     /// <exception cref="UserFriendlyException">幂等冲突、规则不可用或流水耗尽。</exception>
     /// <exception cref="InvalidOperationException">处于非事务型工作单元内，连接上没有活动事务。</exception>
@@ -263,11 +249,10 @@ public sealed class NumberGenerator : INumberGenerator
         long requestTenantId,
         NormalizedGenerationRequest request,
         string fingerprint,
-        bool requiresOwnTransaction,
         CancellationToken cancellationToken)
     {
         using var unitOfWork = _unitOfWorkManager.Begin(
-            new XiHanUnitOfWorkOptions(isTransactional: true), requiresOwnTransaction);
+            new XiHanUnitOfWorkOptions(isTransactional: true), requiresNew: true);
         var result = await AllocateOnceAsync(resolved, requestTenantId, request, fingerprint, cancellationToken);
         await unitOfWork.CompleteAsync(cancellationToken);
         return result;
