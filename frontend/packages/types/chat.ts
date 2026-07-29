@@ -237,6 +237,46 @@ export interface ChatReadPositionChangedPushPayload {
   lastReadMessageId?: null | string
 }
 
+/** 可选助手（聊天页发起助手会话用） */
+export interface ChatAssistantOption {
+  assistantId: string
+  assistantCode: string
+  assistantName: string
+  avatar?: null | string
+  description?: null | string
+  isDefault: boolean
+}
+
+/** 助手会话打开结果 */
+export interface ChatAssistantConversationResult {
+  conversationId: string
+  assistantId: string
+  assistantName: string
+  avatar?: null | string
+  created: boolean
+}
+
+/** 助手回复结果（messageId 为空表示失败，error 给出原因） */
+export interface ChatAssistantReplyResult {
+  messageId?: null | string
+  error?: null | string
+}
+
+/** SignalR ChatAssistantDelta 载荷 */
+export interface ChatAssistantDeltaPushPayload {
+  conversationId: string
+  replyId: string
+  delta: string
+}
+
+/** SignalR ChatAssistantCompleted 载荷 */
+export interface ChatAssistantCompletedPushPayload {
+  conversationId: string
+  replyId: string
+  messageId?: null | string
+  error?: null | string
+}
+
 /** 聊天业务常量（与后端 ChatDomainService 不变量一致，前端仅做前置校验/文案） */
 export const CHAT_RECALL_WINDOW_MINUTES = 2
 export const CHAT_EDIT_WINDOW_MINUTES = 5
@@ -289,4 +329,10 @@ export interface ChatApiContract {
   uploadAttachment: (file: File, onProgress?: (percent: number) => void) => Promise<ChatAttachmentUploadResult>
   /** fileId 换预签名访问 URL（图片内联/文件下载，会过期） */
   getFileUrl: (fileId: string) => Promise<string>
+  /** 可用助手列表（仅启用项） */
+  availableAssistants: () => Promise<ChatAssistantOption[]>
+  /** 打开与指定助手的会话（不存在则创建） */
+  openAssistantConversation: (assistantId: string) => Promise<ChatAssistantConversationResult>
+  /** 请求助手回复（增量经 SignalR 推送，返回时已落库） */
+  replyAssistant: (conversationId: string, replyId: string) => Promise<ChatAssistantReplyResult>
 }

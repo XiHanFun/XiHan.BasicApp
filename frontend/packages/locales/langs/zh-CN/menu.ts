@@ -60,6 +60,7 @@ export default {
   ai_provider: 'AI 提供商',
   knowledge_base: '知识库',
   ai_prompt: 'AI 提示词',
+  ai_assistant: 'AI 助手',
   workflow: '工作流',
   workflow_todo: '我的待办',
   workflow_definition: '流程定义',

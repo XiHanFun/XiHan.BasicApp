@@ -529,6 +529,14 @@ watch(() => chatStore.activeMessages.length, (len, prevLen) => {
   }
 })
 
+// 助手回复增量：视口在底部附近时跟随滚动，让生成过程一直可见
+const assistantStream = computed(() => chatStore.activeAssistantStream)
+watch(() => assistantStream.value?.text.length ?? 0, () => {
+  if (isNearBottom()) {
+    scrollToBottom()
+  }
+})
+
 onMounted(() => {
   tickTimer = setInterval(() => {
     nowTick.value = Date.now()
@@ -717,6 +725,22 @@ onBeforeUnmount(() => {
           @react="emoji => handleReact(item, emoji)"
           @avatar-contextmenu="event => openMemberMenu(event, item)"
         />
+      </div>
+
+      <!-- 助手回复流：生成期间的临时气泡，落库消息到达后由 store 丢弃 -->
+      <div v-if="assistantStream" class="flex justify-start px-2 py-1">
+        <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+          <template v-if="assistantStream.error">
+            <span class="text-error">{{ assistantStream.error }}</span>
+            <NButton size="tiny" text type="primary" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
+              {{ t('chat.thread.assistant_dismiss') }}
+            </NButton>
+          </template>
+          <template v-else>
+            <span>{{ assistantStream.text }}</span>
+            <span v-if="assistantStream.streaming" class="ml-1 text-muted-foreground">{{ t('chat.thread.assistant_thinking') }}</span>
+          </template>
+        </div>
       </div>
 
       <!-- 消息右键菜单（QQ 式：分离的表情条 + 菜单卡） -->

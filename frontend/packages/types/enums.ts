@@ -45,6 +45,7 @@ export enum ChatConversationType {
   Single = 'Single',
   Group = 'Group',
   Department = 'Department',
+  Assistant = 'Assistant',
 }
 
 /** 聊天成员角色（与后端 JsonStringEnumConverter 序列化值一致） */
@@ -59,6 +60,7 @@ export enum ChatMessageType {
   Text = 'Text',
   Image = 'Image',
   File = 'File',
+  Assistant = 'Assistant',
   System = 'System',
 }
 

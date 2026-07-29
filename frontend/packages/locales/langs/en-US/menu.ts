@@ -60,6 +60,7 @@ export default {
   ai_provider: 'AI Providers',
   knowledge_base: 'Knowledge Base',
   ai_prompt: 'AI Prompts',
+  ai_assistant: 'AI Assistants',
   workflow: 'Workflow',
   workflow_todo: 'My Todos',
   workflow_definition: 'Definitions',
