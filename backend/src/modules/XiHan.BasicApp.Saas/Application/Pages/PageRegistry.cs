@@ -161,6 +161,8 @@ public static class PageRegistry
          new("setting.dict", "字典管理", "menu.setting_dict", MenuType.Menu, "/setting/dict", "SettingDict", "setting/dict/index", "setting", SaasPermissionCodes.Dict.Read, "lucide:book-open", 720),
         // [8.3] 参数配置
          new("setting.config", "参数配置", "menu.setting_config", MenuType.Menu, "/setting/config", "SettingConfig", "setting/config/index", "setting", SaasPermissionCodes.Config.Read, "lucide:sliders-horizontal", 730),
+        // [8.3.1] 业务编号（租户私有规则 + 可用全局规则；平台态管理全局规则）
+         new("setting.numbering", "业务编号", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", "setting", SaasPermissionCodes.Numbering.Read, "lucide:hash", 735),
         // [8.4] 任务调度
          new("setting.job", "任务调度", "menu.setting_job", MenuType.Menu, "/setting/job", "SettingJob", "setting/job/index", "setting", SaasPermissionCodes.Task.Read, "lucide:timer", 740),
         // [8.5] 缓存管理（平台运维专属权限）
@@ -378,6 +380,15 @@ public static class PageRegistry
          new("setting.config.status", "启停", "setting.config", SaasPermissionCodes.Config.Status, 4),
          new("setting.config.import", "导入", "setting.config", SaasPermissionCodes.Config.Import, 5),
          new("setting.config.export", "导出", "setting.config", SaasPermissionCodes.Config.Export, 9),
+
+        // [8.3.1] 业务编号（页面不提供真实发号按钮，Generate 权限仅供 API/DI 调用）
+         new("setting.numbering.create", "新增", "setting.numbering", SaasPermissionCodes.Numbering.Create, 1),
+         new("setting.numbering.update", "编辑", "setting.numbering", SaasPermissionCodes.Numbering.Update, 2),
+         new("setting.numbering.status", "启停", "setting.numbering", SaasPermissionCodes.Numbering.Status, 3),
+         new("setting.numbering.reset", "安全重置", "setting.numbering", SaasPermissionCodes.Numbering.Reset, 4),
+         new("setting.numbering.delete", "删除", "setting.numbering", SaasPermissionCodes.Numbering.Delete, 5),
+         new("setting.numbering.allocations", "发号记录", "setting.numbering", SaasPermissionCodes.Numbering.AllocationRead, 6),
+         new("setting.numbering.global-manage", "全局管理", "setting.numbering", SaasPermissionCodes.Numbering.GlobalManage, 7),
 
         // [8.4] 任务调度
          new("setting.job.create", "新增", "setting.job", SaasPermissionCodes.Task.Create, 1),
