@@ -215,11 +215,20 @@ public sealed class NumberGenerator : INumberGenerator
             // 一是让仓储的租户写谓词不再追加当前租户条件，使条件更新能命中 TenantId=0 的全局行；
             // 二是满足框架审计在写入分配记录时的租户归属校验。
             // 在库隔离部署下它还额外决定连接选择，因此必须在开启事务之前切换。
+            var callerDatabaseId = _ruleRepository.GetCurrentDatabaseId();
             using var platformScope = _currentTenant.Change(null);
-            return await AllocateInTransactionAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
+            var platformDatabaseId = _ruleRepository.GetCurrentDatabaseId();
+            // 全局规则行落在平台库。库隔离部署下它与调用方的业务数据不在同一条连接上，
+            // 此时把发号并进调用方事务只是幻觉：工作单元会顺序提交两条连接且没有两阶段提交，
+            // 若调用方事务先提交而平台事务失败，调用方拿到的编号既未记录也未推进流水，下一次发号会重复它。
+            // 因此跨库时自行开启并提交事务，把最坏结果从「重复编号」降级为已在契约中声明的「编号空洞」。
+            var crossesDatabase = !string.Equals(callerDatabaseId, platformDatabaseId, StringComparison.Ordinal);
+            return await AllocateInTransactionAsync(
+                resolved, requestTenantId, normalized, fingerprint, crossesDatabase, cancellationToken);
         }
 
-        return await AllocateInTransactionAsync(resolved, requestTenantId, normalized, fingerprint, cancellationToken);
+        return await AllocateInTransactionAsync(
+            resolved, requestTenantId, normalized, fingerprint, false, cancellationToken);
     }
 
     /// <summary>
@@ -229,13 +238,22 @@ public sealed class NumberGenerator : INumberGenerator
     /// <param name="requestTenantId">切换数据库前捕获的原请求租户。</param>
     /// <param name="request">已经校验并归一的请求。</param>
     /// <param name="fingerprint">绑定实际规则和请求参数的稳定指纹。</param>
+    /// <param name="requiresOwnTransaction">
+    /// 是否必须自行开启并提交事务；仅在发号目标库与调用方事务所在库不同时为 <see langword="true"/>。
+    /// </param>
     /// <param name="cancellationToken">用于取消事务和数据库操作的取消令牌。</param>
     /// <returns>本次新分配或从永久记录重建的结果。</returns>
     /// <remarks>
-    /// 刻意不使用 <c>requiresNew</c>：框架的事务适配器发现连接上已有事务时会退化为空操作，
+    /// <para>
+    /// 同库场景刻意不使用 <c>requiresNew</c>：框架的事务适配器发现连接上已有事务时会退化为空操作，
     /// 请求「新」工作单元只会得到一个不提交也不回滚的假事务。这里改为加入调用方事务
     /// （<c>Begin</c> 在已有工作单元时返回子工作单元，其 <c>CompleteAsync</c> 为空实现，由外层统一提交），
     /// 没有调用方事务时才真正开启并提交自己的事务。
+    /// </para>
+    /// <para>
+    /// 跨库场景相反：目标连接上本就没有调用方的事务，<c>requiresNew</c> 能拿到真实事务并在此处提交，
+    /// 从而不再依赖工作单元对两条连接的顺序提交。
+    /// </para>
     /// </remarks>
     /// <exception cref="UserFriendlyException">幂等冲突、规则不可用或流水耗尽。</exception>
     /// <exception cref="InvalidOperationException">处于非事务型工作单元内，连接上没有活动事务。</exception>
@@ -245,9 +263,11 @@ public sealed class NumberGenerator : INumberGenerator
         long requestTenantId,
         NormalizedGenerationRequest request,
         string fingerprint,
+        bool requiresOwnTransaction,
         CancellationToken cancellationToken)
     {
-        using var unitOfWork = _unitOfWorkManager.Begin(new XiHanUnitOfWorkOptions(isTransactional: true));
+        using var unitOfWork = _unitOfWorkManager.Begin(
+            new XiHanUnitOfWorkOptions(isTransactional: true), requiresOwnTransaction);
         var result = await AllocateOnceAsync(resolved, requestTenantId, request, fingerprint, cancellationToken);
         await unitOfWork.CompleteAsync(cancellationToken);
         return result;

@@ -80,7 +80,7 @@ export default {
     allocation_title: 'Allocation Logs - {code}',
     allocation_search_placeholder: 'Search idempotency key, business type, or business ID',
     allocation_load_failed: 'Failed to load allocation logs',
-    generated_at: 'Generated At',
+    generated_time: 'Generated At',
     request_tenant: 'Request Tenant',
     idempotency_key: 'Idempotency Key',
     serial_range: 'Serial Range',

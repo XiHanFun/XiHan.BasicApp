@@ -80,7 +80,7 @@ export default {
     allocation_title: '发号记录 - {code}',
     allocation_search_placeholder: '搜索幂等键、业务类型或业务标识',
     allocation_load_failed: '加载发号记录失败',
-    generated_at: '发号时间',
+    generated_time: '发号时间',
     request_tenant: '请求租户',
     idempotency_key: '幂等键',
     serial_range: '流水区间',

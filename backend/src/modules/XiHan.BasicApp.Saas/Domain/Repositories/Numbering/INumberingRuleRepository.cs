@@ -89,4 +89,15 @@ public interface INumberingRuleRepository : ISaasRepository<SysNumberingRule>
     /// <exception cref="InvalidOperationException">当前连接上没有活动事务。</exception>
     /// <exception cref="OperationCanceledException">查询被 <paramref name="cancellationToken"/> 取消。</exception>
     Task<NumberingSequenceState?> ReadCurrentValueAsync(long ownerTenantId, long ruleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取得当前租户上下文解析到的数据库标识。
+    /// </summary>
+    /// <returns>连接配置标识；无法确定时返回空字符串。</returns>
+    /// <remarks>
+    /// 这是发号唯一需要感知物理存储位置的地方：跨库时把写入并进调用方事务只是幻觉，
+    /// 两条连接顺序提交且没有两阶段提交，因此必须据此改为自行提交。
+    /// 调用方只应比较两次调用的结果是否相同，不应解析该值的内容。
+    /// </remarks>
+    string GetCurrentDatabaseId();
 }
