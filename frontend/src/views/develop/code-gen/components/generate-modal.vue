@@ -159,7 +159,7 @@ async function handleGenerate() {
     :bordered="false"
     preset="card"
     :show="show"
-    style="width: 96vw; max-width: 1600px"
+    style="width: 96vw; max-width: 1840px"
     :title="modalTitle"
     @update:show="emit('update:show', $event)"
   >
