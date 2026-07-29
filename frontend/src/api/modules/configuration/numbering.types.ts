@@ -127,7 +127,7 @@ export interface NumberingAllocationListItemDto extends BasicDto {
   periodKey: string
   firstNumber: string
   lastNumber: string
-  generatedAtUtc: string
+  generatedTime: string
   businessType?: string | null
   businessId?: string | null
 }
@@ -205,6 +205,6 @@ export interface NumberGenerationResultDto {
   startValue: string
   endValue: string
   numbers: string[]
-  generatedAtUtc: string
+  generatedTime: string
   isIdempotentReplay: boolean
 }

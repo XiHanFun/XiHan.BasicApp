@@ -53,6 +53,20 @@ public interface INumberingFormatter
     string GetPeriodKey(DateTimeOffset localTime, NumberingResetCycle resetCycle);
 
     /// <summary>
+    /// 根据规则本地时间计算单调递增的周期序号。
+    /// </summary>
+    /// <param name="localTime">规则本地时间。</param>
+    /// <param name="resetCycle">重置周期。</param>
+    /// <returns>与周期键一一对应的数值序号；永不重置时固定为 0。</returns>
+    /// <remarks>
+    /// 周期序号是流水跨周期归零的唯一判据：数据库只允许把周期推进到更大的序号，
+    /// 因此节点时钟落后时不会把规则拉回旧周期、重发已经发出的编号。
+    /// 之所以不用周期键文本比较，是因为字符串大小比较依赖列排序规则，且 ORM 无法稳定翻译。
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">重置周期无效。</exception>
+    long GetPeriodOrdinal(DateTimeOffset localTime, NumberingResetCycle resetCycle);
+
+    /// <summary>
     /// 根据规则本地时间生成日期段文本。
     /// </summary>
     /// <param name="localTime">规则本地时间。</param>

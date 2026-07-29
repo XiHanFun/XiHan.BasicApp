@@ -91,6 +91,81 @@ public sealed class NumberingRuleDomainServiceTests
     }
 
     /// <summary>
+    /// 安全重置不得把周期基线写回更早的周期，否则下一次发号会把该周期当作新周期清零并重发编号。
+    /// </summary>
+    [Fact]
+    public async Task ResetAsync_ShouldRejectBackwardPeriodBaseline()
+    {
+        // 库中周期已推进到 20260729，本节点时钟仍停在 20260728。
+        var rule = CreateRule(hasAllocated: true);
+        rule.ResetCycle = NumberingResetCycle.Daily;
+        rule.CurrentPeriod = "20260729";
+        rule.CurrentPeriodOrdinal = 20260729;
+        rule.CurrentValue = 500;
+        var fixture = CreateFixture(rule, tenantId: 7, utcNow: new DateTimeOffset(2026, 7, 28, 3, 0, 0, TimeSpan.Zero));
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.ResetAsync(
+            new NumberingRuleResetCommand(rule.BasicId, 301, "外部单据迁移", null)));
+
+        Assert.Contains("时间同步", exception.Message, StringComparison.Ordinal);
+        // 关键断言：基线没有被写回旧周期，否则 20260729 已发出的 1..500 会被重发一遍。
+        Assert.Equal("20260729", rule.CurrentPeriod);
+        Assert.Equal(20260729, rule.CurrentPeriodOrdinal);
+        Assert.Equal(500, rule.CurrentValue);
+    }
+
+    /// <summary>
+    /// 安全重置必须同源写入周期键与周期序号，供发号器的单调守卫与归属判定共同使用。
+    /// </summary>
+    [Fact]
+    public async Task ResetAsync_ShouldWritePeriodOrdinalAlongsideKey()
+    {
+        var rule = CreateRule(hasAllocated: true);
+        rule.ResetCycle = NumberingResetCycle.Daily;
+        rule.CurrentPeriod = "20260728";
+        rule.CurrentPeriodOrdinal = 20260728;
+        rule.CurrentValue = 5;
+        var fixture = CreateFixture(rule, tenantId: 7, utcNow: new DateTimeOffset(2026, 7, 29, 3, 0, 0, TimeSpan.Zero));
+
+        _ = await fixture.Service.ResetAsync(new NumberingRuleResetCommand(rule.BasicId, 88, "跨周期预留号段", null));
+
+        Assert.Equal("20260729", rule.CurrentPeriod);
+        Assert.Equal(20260729, rule.CurrentPeriodOrdinal);
+        Assert.Equal(87, rule.CurrentValue);
+    }
+
+    /// <summary>
+    /// 未发号规则改动规则时区会移动周期边界，必须一并清空周期基线。
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_TimeZoneChangeShouldClearPeriodBaseline()
+    {
+        var rule = CreateRule(hasAllocated: false);
+        rule.ResetCycle = NumberingResetCycle.Daily;
+        rule.CurrentPeriod = "20260729";
+        rule.CurrentPeriodOrdinal = 20260729;
+        rule.CurrentValue = 12;
+        var fixture = CreateFixture(rule, tenantId: 7);
+
+        _ = await fixture.Service.UpdateAsync(new NumberingRuleUpdateCommand(
+            rule.BasicId,
+            rule.RuleName,
+            rule.Prefix,
+            rule.Separator,
+            rule.DateFormat,
+            rule.SerialLength,
+            rule.ResetCycle,
+            "Asia/Shanghai",
+            rule.AllowTenantUse,
+            rule.Sort,
+            rule.Remark));
+
+        Assert.Equal(string.Empty, rule.CurrentPeriod);
+        Assert.Equal(SysNumberingRule.NoPeriodBaseline, rule.CurrentPeriodOrdinal);
+        Assert.Equal(0, rule.CurrentValue);
+    }
+
+    /// <summary>
     /// 安全重置允许向前跳号，并把当前值保存为下一值减一。
     /// </summary>
     [Fact]
@@ -148,8 +223,13 @@ public sealed class NumberingRuleDomainServiceTests
     /// <param name="rule">当前作用域规则。</param>
     /// <param name="tenantId">当前租户；null 表示平台。</param>
     /// <param name="maximumAllocated">当前周期最大已分配值。</param>
+    /// <param name="utcNow">固定的 UTC 当前时刻；默认时刻用于与周期无关的用例。</param>
     /// <returns>领域服务及其仓储模拟对象。</returns>
-    private static DomainFixture CreateFixture(SysNumberingRule rule, long? tenantId, long maximumAllocated = 0)
+    private static DomainFixture CreateFixture(
+        SysNumberingRule rule,
+        long? tenantId,
+        long maximumAllocated = 0,
+        DateTimeOffset? utcNow = null)
     {
         var ruleRepository = new Mock<INumberingRuleRepository>();
         ruleRepository
@@ -172,6 +252,7 @@ public sealed class NumberingRuleDomainServiceTests
             allocationRepository.Object,
             new NumberingFormatter(),
             currentTenant.Object,
+            utcNow is { } moment ? new StubTimeProvider(moment) : TimeProvider.System,
             NullLogger<NumberingRuleDomainService>.Instance);
         return new DomainFixture(service, ruleRepository);
     }
@@ -228,6 +309,15 @@ public sealed class NumberingRuleDomainServiceTests
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("未找到实体主键属性。");
         property.SetValue(rule, id);
+    }
+
+    /// <summary>
+    /// 固定 UTC 时间提供器，使跨周期用例不依赖机器时钟。
+    /// </summary>
+    private sealed class StubTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        /// <inheritdoc />
+        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 
     /// <summary>

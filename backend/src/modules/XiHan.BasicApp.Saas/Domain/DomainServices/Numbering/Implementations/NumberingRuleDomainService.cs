@@ -41,6 +41,11 @@ public sealed class NumberingRuleDomainService : INumberingRuleDomainService
     private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
+    /// 可替换时间源，用于安全重置时按规则时区判定当前周期。
+    /// </summary>
+    private readonly TimeProvider _timeProvider;
+
+    /// <summary>
     /// 结构化日志记录器，记录规则创建、更新、重置和删除时的领域结果与关键边界。
     /// </summary>
     private readonly ILogger<NumberingRuleDomainService> _logger;
@@ -52,18 +57,21 @@ public sealed class NumberingRuleDomainService : INumberingRuleDomainService
     /// <param name="allocationRepository">分配记录仓储。</param>
     /// <param name="formatter">格式策略。</param>
     /// <param name="currentTenant">当前租户上下文。</param>
+    /// <param name="timeProvider">时间提供器；与发号器共用同一时间源，使周期边界行为可在测试中复现。</param>
     /// <param name="logger">结构化日志记录器。</param>
     public NumberingRuleDomainService(
         INumberingRuleRepository ruleRepository,
         INumberingAllocationRepository allocationRepository,
         INumberingFormatter formatter,
         ICurrentTenant currentTenant,
+        TimeProvider timeProvider,
         ILogger<NumberingRuleDomainService> logger)
     {
         _ruleRepository = ruleRepository;
         _allocationRepository = allocationRepository;
         _formatter = formatter;
         _currentTenant = currentTenant;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -103,7 +111,8 @@ public sealed class NumberingRuleDomainService : INumberingRuleDomainService
             ResetCycle = command.ResetCycle,
             TimeZoneId = command.TimeZoneId.Trim(),
             CurrentValue = 0,
-            CurrentPeriod = null,
+            CurrentPeriod = string.Empty,
+            CurrentPeriodOrdinal = SysNumberingRule.NoPeriodBaseline,
             HasAllocated = false,
             // 租户私有规则不存在跨租户开放语义，强制落为 false，避免配置含义漂移。
             AllowTenantUse = ownerTenantId == 0 && command.AllowTenantUse,
@@ -146,6 +155,18 @@ public sealed class NumberingRuleDomainService : INumberingRuleDomainService
         {
             // 未发号规则也可能经过安全重置预留号段；缩短位数不能让已保存的下一值落到格式容量之外。
             throw new UserFriendlyException("当前预留流水值超过新的流水位数容量，请先安全重置到有效范围。");
+        }
+
+        // 重置周期决定周期键的宽度与周期序号的量级（20260729 / 202607 / 2026 / 0），
+        // 规则时区决定同一时刻落在哪个周期。两者任一变化都会让旧基线不再可比：
+        // 前者使单调守卫拿两种量级互相比较，后者可能让新算出的周期序号小于库中值而永久拒绝发号。
+        // 只有未发号规则能走到这里：已发号规则的这两个字段已被上面的冻结校验拒绝。
+        if (rule.ResetCycle != command.ResetCycle
+            || !string.Equals(rule.TimeZoneId, command.TimeZoneId.Trim(), StringComparison.Ordinal))
+        {
+            rule.CurrentPeriod = string.Empty;
+            rule.CurrentPeriodOrdinal = SysNumberingRule.NoPeriodBaseline;
+            rule.CurrentValue = 0;
         }
 
         rule.RuleName = command.RuleName.Trim();
@@ -228,8 +249,21 @@ public sealed class NumberingRuleDomainService : INumberingRuleDomainService
             throw new UserFriendlyException($"下一流水值必须在 1 至 {maximum} 之间。");
         }
 
-        var localTime = _formatter.ConvertToRuleTime(DateTimeOffset.UtcNow, rule.TimeZoneId);
+        var localTime = _formatter.ConvertToRuleTime(_timeProvider.GetUtcNow(), rule.TimeZoneId);
         var periodKey = _formatter.GetPeriodKey(localTime, rule.ResetCycle);
+        var periodOrdinal = _formatter.GetPeriodOrdinal(localTime, rule.ResetCycle);
+        // 与发号器的周期翻转同一条单调规则：安全重置也不得把周期基线写回更早的周期。
+        // 否则下一次发号会把本节点看不到的那个更新周期当作「新周期」翻转并清零，
+        // 使该周期已经发出的编号被从头重发；而下方的防重复检查只统计本次算出的周期，看不到这种越界。
+        if (periodOrdinal < rule.CurrentPeriodOrdinal)
+        {
+            _logger.LogError(
+                "业务编号安全重置被拒绝，疑似节点时钟偏差：RuleId={RuleId}, RuleCode={RuleCode}, OwnerTenantId={OwnerTenantId}, StoredPeriod={StoredPeriod}, StoredOrdinal={StoredOrdinal}, ComputedPeriod={ComputedPeriod}, ComputedOrdinal={ComputedOrdinal}",
+                rule.BasicId, rule.RuleCode, rule.TenantId, rule.CurrentPeriod, rule.CurrentPeriodOrdinal, periodKey, periodOrdinal);
+            throw new UserFriendlyException(
+                $"规则当前周期已推进到 {rule.CurrentPeriod}，本节点计算出 {periodKey}，无法安全重置，请检查服务器时间同步。");
+        }
+
         // 永久分配记录是真实发号边界；规则当前值可能被重置或因周期变化而不能代表历史最大值。
         var maximumAllocated = await _allocationRepository.GetMaximumEndValueAsync(rule.TenantId, rule.BasicId, periodKey, cancellationToken);
         if (command.NextValue <= maximumAllocated)
@@ -239,6 +273,8 @@ public sealed class NumberingRuleDomainService : INumberingRuleDomainService
 
         var previousValue = string.Equals(rule.CurrentPeriod, periodKey, StringComparison.Ordinal) ? rule.CurrentValue : 0L;
         rule.CurrentPeriod = periodKey;
+        // 周期键与周期序号必须同源写入：发号器以序号做单调守卫、以键做归属判定，两者一旦不同步会让推进语句永远命中 0 行。
+        rule.CurrentPeriodOrdinal = periodOrdinal;
         // 发号器按 CurrentValue + 1 分配，因此这里保存 NextValue - 1，避免重置后跳过调用方指定值。
         rule.CurrentValue = command.NextValue - 1;
         var saved = await _ruleRepository.UpdateAsync(rule, cancellationToken);

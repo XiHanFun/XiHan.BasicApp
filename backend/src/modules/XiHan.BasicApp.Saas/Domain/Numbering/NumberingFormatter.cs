@@ -111,6 +111,30 @@ public sealed class NumberingFormatter : INumberingFormatter
     }
 
     /// <summary>
+    /// 根据同一个规则本地时刻计算单调递增的周期序号。
+    /// </summary>
+    /// <param name="localTime">已经转换到规则时区的本地时刻。</param>
+    /// <param name="resetCycle">流水重置周期。</param>
+    /// <returns>与 <see cref="GetPeriodKey"/> 一一对应的数值序号；永不重置时固定为 0。</returns>
+    /// <remarks>
+    /// 序号在同一条规则内严格单调：数据库的周期翻转语句只接受更大的序号，
+    /// 因此时钟落后的节点无法把规则拉回旧周期重发编号。
+    /// 重置周期在首次发号后被冻结，同一条规则的序号量级不会改变；未发号规则改周期时由领域服务清空周期基线。
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="resetCycle"/> 不是已定义枚举值。</exception>
+    public long GetPeriodOrdinal(DateTimeOffset localTime, NumberingResetCycle resetCycle)
+    {
+        return resetCycle switch
+        {
+            NumberingResetCycle.Never => 0L,
+            NumberingResetCycle.Daily => (localTime.Year * 10000L) + (localTime.Month * 100L) + localTime.Day,
+            NumberingResetCycle.Monthly => (localTime.Year * 100L) + localTime.Month,
+            NumberingResetCycle.Yearly => localTime.Year,
+            _ => throw new ArgumentOutOfRangeException(nameof(resetCycle), "重置周期无效。")
+        };
+    }
+
+    /// <summary>
     /// 根据规则本地时刻生成编号日期段文本。
     /// </summary>
     /// <param name="localTime">已经转换到规则时区的本地时刻。</param>

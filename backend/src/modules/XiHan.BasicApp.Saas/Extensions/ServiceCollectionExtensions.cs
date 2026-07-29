@@ -211,8 +211,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISaasConfigurationService, SaasConfigurationService>();
         services.AddScoped<ISaasCacheInvalidator, SaasCacheInvalidator>();
         services.AddScoped<IAuthorizationChangeNotifier, AuthorizationChangeNotifier>();
-        // 键锁跨请求共享以削减单进程竞争；真正跨节点一致性仍由规则 RowVersion 保证。
-        services.AddSingleton<NumberingLockProvider>();
+        // 发号不使用进程内键锁：流水推进由数据库单条语句完成，并发由行锁串行化，
+        // 进程内锁既无法覆盖跨节点竞争，也会在锁与数据库锁之间引入数据库看不见的等待环。
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<INumberGenerator, NumberGenerator>();
         return services;

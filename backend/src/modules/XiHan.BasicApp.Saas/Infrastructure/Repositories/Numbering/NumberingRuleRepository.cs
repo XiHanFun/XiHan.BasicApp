@@ -70,4 +70,112 @@ public sealed class NumberingRuleRepository(ISqlSugarClientResolver clientResolv
             .Where(rule => rule.TenantId == ownerTenantId && rule.BasicId == id)
             .FirstAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<bool> TryRollOverPeriodAsync(
+        long ownerTenantId,
+        long ruleId,
+        string periodKey,
+        long periodOrdinal,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(periodKey);
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureInDatabaseTransaction();
+
+        // 只接受更大的周期序号：时钟落后的节点无法把规则拉回旧周期，从而不会重发该周期已经发出的编号。
+        // 谓词显式写全所属租户、软删和启停，语义不随环境租户上下文或框架过滤器默认开关漂移。
+        return await UpdateAsync(
+            rule => new SysNumberingRule
+            {
+                CurrentValue = 0,
+                CurrentPeriod = periodKey,
+                CurrentPeriodOrdinal = periodOrdinal,
+                RowVersion = rule.RowVersion + 1
+            },
+            rule => rule.BasicId == ruleId
+                && rule.TenantId == ownerTenantId
+                && !rule.IsDeleted
+                && rule.Status == EnableStatus.Enabled
+                && rule.CurrentPeriodOrdinal < periodOrdinal,
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> TryAdvanceSequenceAsync(
+        long ownerTenantId,
+        long ruleId,
+        string periodKey,
+        int count,
+        long maximum,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(periodKey);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
+        ArgumentOutOfRangeException.ThrowIfNegative(maximum);
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureInDatabaseTransaction();
+
+        // 先做减法再比较，避免 currentValue + count 在 18 位边界上整数溢出。
+        var ceiling = maximum - count;
+
+        // 累加在数据库内完成，应用层不参与读改写，因此不存在丢失更新；
+        // 同时显式自增 RowVersion，让管理端「加载整实体 → 改字段 → 乐观锁回写」无法把流水打回旧值。
+        return await UpdateAsync(
+            rule => new SysNumberingRule
+            {
+                CurrentValue = rule.CurrentValue + count,
+                HasAllocated = true,
+                RowVersion = rule.RowVersion + 1
+            },
+            rule => rule.BasicId == ruleId
+                && rule.TenantId == ownerTenantId
+                && !rule.IsDeleted
+                && rule.Status == EnableStatus.Enabled
+                && rule.CurrentPeriod == periodKey
+                && rule.CurrentValue <= ceiling,
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<NumberingSequenceState?> ReadCurrentValueAsync(
+        long ownerTenantId,
+        long ruleId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        EnsureInDatabaseTransaction();
+
+        var rule = await CreateQueryable()
+            .Where(rule => rule.TenantId == ownerTenantId && rule.BasicId == ruleId)
+            .FirstAsync(cancellationToken);
+        return rule is null
+            ? null
+            : new NumberingSequenceState(
+                rule.CurrentValue,
+                rule.CurrentPeriod,
+                rule.CurrentPeriodOrdinal,
+                rule.Status,
+                rule.SerialLength);
+    }
+
+    /// <summary>
+    /// 断言当前连接上确实存在活动事务。
+    /// </summary>
+    /// <remarks>
+    /// 发号的正确性建立在「推进语句取得的排他行锁一直持有到提交」之上：
+    /// 没有事务时锁随语句立即释放，读回值会被其他节点的推进覆盖，进而把同一段区间发给两个调用方。
+    /// 这里核验的是连接上的事实而不是工作单元的选项，因为工作单元只是推断，
+    /// 真正决定语句行为的是执行它的那条连接（见框架 <c>SqlSugarTransactionApi</c> 的连接钉住语义）。
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">当前连接上没有活动事务。</exception>
+    private void EnsureInDatabaseTransaction()
+    {
+        if (DbClient.Ado.IsNoTran())
+        {
+            throw new InvalidOperationException(
+                "业务编号流水推进必须在数据库事务内执行，当前连接上没有活动事务。" +
+                "请确认调用链上存在事务型工作单元；发号器会在没有环境工作单元时自行开启事务。");
+        }
+    }
 }

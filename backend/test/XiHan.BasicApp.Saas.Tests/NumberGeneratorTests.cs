@@ -13,10 +13,10 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Numbering;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
-using XiHan.Framework.Domain.Exceptions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
+using XiHan.Framework.Uow.Abstracts;
 using XiHan.Framework.Uow.Options;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -215,9 +215,7 @@ public sealed class NumberGeneratorTests
             allowTenantUse: false,
             dateFormat: NumberingDateFormat.YyyyMMdd,
             resetCycle: NumberingResetCycle.Daily);
-        rule.CurrentPeriod = "20260726";
-        rule.CurrentValue = 998;
-        rule.HasAllocated = true;
+        GeneratorFixture.SeedBaseline(rule, "20260726", 20260726, 998);
 
         var result = await fixture.RunAsTenantAsync(
             7,
@@ -236,9 +234,7 @@ public sealed class NumberGeneratorTests
     {
         var fixture = new GeneratorFixture();
         var rule = fixture.AddRule(701, 7, "SHORT", null, allowTenantUse: false, serialLength: 1);
-        rule.CurrentPeriod = "never";
-        rule.CurrentValue = 9;
-        rule.HasAllocated = true;
+        GeneratorFixture.SeedBaseline(rule, "never", 0, 9);
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.RunAsTenantAsync(
             7,
@@ -250,21 +246,75 @@ public sealed class NumberGeneratorTests
     }
 
     /// <summary>
-    /// 乐观锁连续冲突五次后必须停止重试并返回可重放的友好错误。
+    /// 没有可用事务时必须立即失败，而不是在无锁保护下发号。
+    /// </summary>
+    /// <remarks>
+    /// 这是整套设计的安全底座：推进语句的行锁必须持有到提交，读回值才等于本次推进结果。
+    /// 一旦允许在非事务型工作单元内发号，两个并发调用会读回同一个流水值并发出重复编号。
+    /// </remarks>
+    [Fact]
+    public async Task GenerateAsync_WithoutTransactionShouldFailClosed()
+    {
+        var fixture = new GeneratorFixture();
+        var rule = fixture.AddRule(701, 7, "ORDER", "TEN", allowTenantUse: false);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.RunAsTenantAsync(
+            7,
+            () => fixture.RunWithoutTransactionAsync(
+                () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Tenant, "no-tran")))));
+
+        Assert.Contains("没有活动事务", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(0, rule.CurrentValue);
+        Assert.Empty(fixture.Allocations);
+    }
+
+    /// <summary>
+    /// 节点时钟落后时必须拒绝发号，而不是把规则拉回上一周期重发已发出的编号。
     /// </summary>
     [Fact]
-    public async Task GenerateAsync_ConcurrencyRetryExhaustedShouldReturnFriendlyError()
+    public async Task GenerateAsync_ClockBehindStoredPeriodShouldBeRejected()
     {
-        var fixture = new GeneratorFixture { AlwaysThrowConcurrencyConflict = true };
-        fixture.AddRule(701, 7, "ORDER", "TEN", allowTenantUse: false);
+        // 库中已经推进到 7 月 28 日，本节点时钟仍停在 7 月 27 日。
+        var fixture = new GeneratorFixture { CurrentUtcNow = new DateTimeOffset(2026, 7, 27, 8, 30, 0, TimeSpan.Zero) };
+        var rule = fixture.AddRule(
+            701,
+            7,
+            "DAILY",
+            "D",
+            allowTenantUse: false,
+            dateFormat: NumberingDateFormat.YyyyMMdd,
+            resetCycle: NumberingResetCycle.Daily);
+        GeneratorFixture.SeedBaseline(rule, "20260728", 20260728, 42);
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.RunAsTenantAsync(
             7,
-            () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Tenant, "retry-key"))));
+            () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("DAILY", NumberingScope.Tenant, "clock-skew"))));
 
-        Assert.Contains("并发繁忙", exception.Message, StringComparison.Ordinal);
-        Assert.Equal(5, fixture.UpdateAttempts);
+        Assert.Contains("时间同步", exception.Message, StringComparison.Ordinal);
+        // 关键断言：周期基线和流水都没有被拉回，否则 20260728 的 1..42 会被重新发一遍。
+        Assert.Equal("20260728", rule.CurrentPeriod);
+        Assert.Equal(20260728, rule.CurrentPeriodOrdinal);
+        Assert.Equal(42, rule.CurrentValue);
         Assert.Empty(fixture.Allocations);
+    }
+
+    /// <summary>
+    /// 正常并发路径不应产生任何重试：推进由数据库行锁串行化，不存在需要退避的冲突。
+    /// </summary>
+    [Fact]
+    public async Task GenerateAsync_ConcurrentRequestsShouldNotRetry()
+    {
+        var fixture = new GeneratorFixture();
+        fixture.AddRule(701, 7, "ORDER", "TEN", allowTenantUse: false, serialLength: 6);
+
+        var tasks = Enumerable.Range(0, 32).Select(index => Task.Run(() => fixture.RunAsTenantAsync(
+            7,
+            () => fixture.Generator.GenerateAsync(new NumberGenerateRequest("ORDER", NumberingScope.Tenant, $"no-retry-{index}")))));
+        var results = await Task.WhenAll(tasks);
+
+        // 每次发号恰好执行一条推进语句；出现多于请求数的尝试说明重试逻辑又被引入。
+        Assert.Equal(32, fixture.AdvanceAttempts);
+        Assert.Equal(32, results.Select(result => ParseSerial(Assert.Single(result.Numbers))).Distinct().Count());
     }
 
     /// <summary>
@@ -285,8 +335,19 @@ public sealed class NumberGeneratorTests
         private readonly AsyncLocal<long?> _currentTenantId = new();
         private readonly ConcurrentDictionary<(long OwnerTenantId, string RuleCode), SysNumberingRule> _rules = new();
         private readonly ConcurrentDictionary<AllocationKey, SysNumberingAllocation> _allocations = new();
+
+        /// <summary>
+        /// 每条规则一把锁，模拟数据库对被推进行加的排他锁。
+        /// </summary>
+        private readonly ConcurrentDictionary<(long OwnerTenantId, long RuleId), SemaphoreSlim> _ruleLocks = new();
+
+        /// <summary>
+        /// 当前执行流所处的模拟事务；为 null 表示连接上没有活动事务。
+        /// </summary>
+        private readonly AsyncLocal<FakeTransaction?> _ambientTransaction = new();
+
         private long _nextAllocationId;
-        private int _updateAttempts;
+        private int _advanceAttempts;
 
         /// <summary>
         /// 初始化测试夹具并把仓储回调连接到内存状态。
@@ -321,17 +382,68 @@ public sealed class NumberGeneratorTests
                     It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((long ownerTenantId, long id, CancellationToken _) =>
                     _rules.Values.SingleOrDefault(rule => rule.TenantId == ownerTenantId && rule.BasicId == id));
+            // 以下三个方法替身实现的是生产语句的真实语义，而不是「返回预设值」：
+            // 守卫全部真的求值，命中才改状态，并且模拟数据库把行锁持有到事务提交，
+            // 因此并发用例是在验证真实不变量，而不是验证 Mock 的配置。
             RuleRepository
-                .Setup(repository => repository.UpdateAsync(It.IsAny<SysNumberingRule>(), It.IsAny<CancellationToken>()))
-                .Returns((SysNumberingRule rule, CancellationToken _) =>
+                .Setup(repository => repository.TryRollOverPeriodAsync(
+                    It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .Returns((long ownerTenantId, long ruleId, string periodKey, long periodOrdinal, CancellationToken _) =>
                 {
-                    Interlocked.Increment(ref _updateAttempts);
-                    if (AlwaysThrowConcurrencyConflict)
+                    EnsureInTransaction();
+                    AcquireRuleLock(ownerTenantId, ruleId);
+                    var rule = FindRule(ownerTenantId, ruleId);
+                    // 单调守卫：只接受更大的周期序号，时钟落后的节点无法把规则拉回旧周期。
+                    if (rule is null || rule.IsDeleted || rule.Status != EnableStatus.Enabled || rule.CurrentPeriodOrdinal >= periodOrdinal)
                     {
-                        throw new ConcurrencyConflictException("模拟 RowVersion 冲突");
+                        return Task.FromResult(false);
                     }
 
-                    return Task.FromResult(rule);
+                    rule.CurrentValue = 0;
+                    rule.CurrentPeriod = periodKey;
+                    rule.CurrentPeriodOrdinal = periodOrdinal;
+                    rule.RowVersion++;
+                    return Task.FromResult(true);
+                });
+            RuleRepository
+                .Setup(repository => repository.TryAdvanceSequenceAsync(
+                    It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .Returns((long ownerTenantId, long ruleId, string periodKey, int count, long maximum, CancellationToken _) =>
+                {
+                    Interlocked.Increment(ref _advanceAttempts);
+                    EnsureInTransaction();
+                    AcquireRuleLock(ownerTenantId, ruleId);
+                    var rule = FindRule(ownerTenantId, ruleId);
+                    if (rule is null
+                        || rule.IsDeleted
+                        || rule.Status != EnableStatus.Enabled
+                        || !string.Equals(rule.CurrentPeriod, periodKey, StringComparison.Ordinal)
+                        || rule.CurrentValue > maximum - count)
+                    {
+                        return Task.FromResult(false);
+                    }
+
+                    rule.CurrentValue += count;
+                    rule.HasAllocated = true;
+                    rule.RowVersion++;
+                    return Task.FromResult(true);
+                });
+            RuleRepository
+                .Setup(repository => repository.ReadCurrentValueAsync(
+                    It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .Returns((long ownerTenantId, long ruleId, CancellationToken _) =>
+                {
+                    EnsureInTransaction();
+                    AcquireRuleLock(ownerTenantId, ruleId);
+                    var rule = FindRule(ownerTenantId, ruleId);
+                    return Task.FromResult(rule is null
+                        ? (NumberingSequenceState?)null
+                        : new NumberingSequenceState(
+                            rule.CurrentValue,
+                            rule.CurrentPeriod,
+                            rule.CurrentPeriodOrdinal,
+                            rule.Status,
+                            rule.SerialLength));
                 });
 
             AllocationRepository
@@ -372,24 +484,24 @@ public sealed class NumberGeneratorTests
             var currentUser = new Mock<ICurrentUser>();
             currentUser.SetupGet(user => user.UserId).Returns(9001);
 
-            var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork
-                .Setup(work => work.CompleteAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            // 工作单元替身复现框架的两条关键语义：
+            // 已有环境工作单元时 Begin 返回子工作单元（CompleteAsync 为空实现，由外层提交）；
+            // 没有时创建真正的事务并在 CompleteAsync 时释放持有的行锁。
             var unitOfWorkManager = new Mock<IUnitOfWorkManager>();
             unitOfWorkManager
-                .Setup(manager => manager.Begin(It.IsAny<XiHanUnitOfWorkOptions>(), true))
-                .Returns(unitOfWork.Object);
+                .Setup(manager => manager.Begin(It.IsAny<XiHanUnitOfWorkOptions>(), It.IsAny<bool>()))
+                .Returns((XiHanUnitOfWorkOptions options, bool requiresNew) => BeginTransaction(options, requiresNew));
 
             Generator = new NumberGenerator(
                 RuleRepository.Object,
                 AllocationRepository.Object,
                 new NumberingFormatter(),
-                new NumberingLockProvider(),
                 currentTenant.Object,
                 currentUser.Object,
                 unitOfWorkManager.Object,
-                new FixedTimeProvider(new DateTimeOffset(2026, 7, 27, 8, 30, 0, TimeSpan.Zero)),
+                // 必须延迟读取：CurrentUtcNow 是 init 属性，对象初始化器在构造函数体之后才赋值，
+                // 构造期直接取值只会拿到默认时刻，用例设定的时钟将静默失效。
+                new FixedTimeProvider(() => CurrentUtcNow),
                 NullLogger<NumberGenerator>.Instance);
         }
 
@@ -411,11 +523,11 @@ public sealed class NumberGeneratorTests
         /// <summary>是否模拟只有切换连接后才能看到平台库的独立数据库租户。</summary>
         public bool SimulateIsolatedTenantDatabase { get; init; }
 
-        /// <summary>是否让每次规则更新都抛出乐观锁冲突。</summary>
-        public bool AlwaysThrowConcurrencyConflict { get; init; }
+        /// <summary>被测发号器使用的固定 UTC 时刻，可按用例改写以跨越周期边界。</summary>
+        public DateTimeOffset CurrentUtcNow { get; init; } = new(2026, 7, 27, 8, 30, 0, TimeSpan.Zero);
 
-        /// <summary>规则更新尝试次数。</summary>
-        public int UpdateAttempts => Volatile.Read(ref _updateAttempts);
+        /// <summary>流水推进语句的执行次数，用于断言不再存在冲突重试。</summary>
+        public int AdvanceAttempts => Volatile.Read(ref _advanceAttempts);
 
         /// <summary>当前永久分配记录快照。</summary>
         public IReadOnlyCollection<SysNumberingAllocation> Allocations => _allocations.Values.ToArray();
@@ -453,12 +565,122 @@ public sealed class NumberGeneratorTests
         }
 
         /// <summary>
+        /// 为已发号规则设置一致的周期基线。
+        /// </summary>
+        /// <param name="rule">目标规则。</param>
+        /// <param name="periodKey">周期键。</param>
+        /// <param name="periodOrdinal">与周期键同源的周期序号。</param>
+        /// <param name="currentValue">该周期内已分配到的流水值。</param>
+        /// <remarks>
+        /// 周期键、周期序号与已发号标记必须成组设置：三者不同步的规则在生产中不可能出现，
+        /// 用这种数据构造出的用例只会测出假象。
+        /// </remarks>
+        public static void SeedBaseline(SysNumberingRule rule, string periodKey, long periodOrdinal, long currentValue)
+        {
+            rule.CurrentPeriod = periodKey;
+            rule.CurrentPeriodOrdinal = periodOrdinal;
+            rule.CurrentValue = currentValue;
+            rule.HasAllocated = true;
+        }
+
+        /// <summary>
         /// 在指定租户执行异步动作并在结束后恢复调用上下文。
         /// </summary>
         public async Task<TResult> RunAsTenantAsync<TResult>(long? tenantId, Func<Task<TResult>> action)
         {
             using var scope = ChangeTenant(tenantId);
             return await action();
+        }
+
+        /// <summary>
+        /// 在模拟事务外执行动作，用于验证发号器的 fail-closed 断言。
+        /// </summary>
+        /// <remarks>把当前执行流标记为「已存在非事务型工作单元」，使发号器无法自行开启事务。</remarks>
+        public async Task<TResult> RunWithoutTransactionAsync<TResult>(Func<Task<TResult>> action)
+        {
+            var previous = _ambientTransaction.Value;
+            _ambientTransaction.Value = FakeTransaction.NonTransactional;
+            try
+            {
+                return await action();
+            }
+            finally
+            {
+                _ambientTransaction.Value = previous;
+            }
+        }
+
+        /// <summary>
+        /// 开启或加入模拟事务。
+        /// </summary>
+        /// <param name="options">工作单元选项；非事务型选项不会建立事务。</param>
+        /// <param name="requiresNew">框架语义下是否要求新的工作单元。</param>
+        /// <returns>可释放的工作单元替身。</returns>
+        private IUnitOfWork BeginTransaction(XiHanUnitOfWorkOptions options, bool requiresNew)
+        {
+            _ = requiresNew;
+            if (_ambientTransaction.Value is not null)
+            {
+                // 子工作单元：不接管提交，也不释放外层持有的行锁。
+                return new FakeUnitOfWork(null);
+            }
+
+            var transaction = options.IsTransactional
+                ? new FakeTransaction(ReleaseLocks)
+                : FakeTransaction.NonTransactional;
+            _ambientTransaction.Value = transaction;
+            return new FakeUnitOfWork(() =>
+            {
+                transaction.Release();
+                _ambientTransaction.Value = null;
+            });
+        }
+
+        /// <summary>
+        /// 断言当前执行流处于模拟事务内，对应仓储实现的连接级事务断言。
+        /// </summary>
+        /// <exception cref="InvalidOperationException">当前没有活动事务。</exception>
+        private void EnsureInTransaction()
+        {
+            if (_ambientTransaction.Value is not { IsTransactional: true })
+            {
+                throw new InvalidOperationException("业务编号流水推进必须在数据库事务内执行，当前连接上没有活动事务。");
+            }
+        }
+
+        /// <summary>
+        /// 取得规则行锁并登记到当前事务，锁一直持有到事务提交。
+        /// </summary>
+        /// <remarks>这正是「推进后读回值等于本次推进结果」的依据；同一事务重复取同一把锁不会自锁。</remarks>
+        private void AcquireRuleLock(long ownerTenantId, long ruleId)
+        {
+            var transaction = _ambientTransaction.Value!;
+            var key = (ownerTenantId, ruleId);
+            if (!transaction.TryTrackLock(key))
+            {
+                return;
+            }
+
+            _ruleLocks.GetOrAdd(key, static _ => new SemaphoreSlim(1, 1)).Wait();
+        }
+
+        /// <summary>
+        /// 释放一个事务持有的全部规则行锁。
+        /// </summary>
+        private void ReleaseLocks(IEnumerable<(long OwnerTenantId, long RuleId)> keys)
+        {
+            foreach (var key in keys)
+            {
+                _ruleLocks[key].Release();
+            }
+        }
+
+        /// <summary>
+        /// 按所属租户和主键定位内存规则。
+        /// </summary>
+        private SysNumberingRule? FindRule(long ownerTenantId, long ruleId)
+        {
+            return _rules.Values.SingleOrDefault(rule => rule.TenantId == ownerTenantId && rule.BasicId == ruleId);
         }
 
         /// <summary>
@@ -495,12 +717,161 @@ public sealed class NumberGeneratorTests
     }
 
     /// <summary>
+    /// 模拟数据库事务：登记本事务持有的行锁，提交或释放时一次性归还。
+    /// </summary>
+    /// <remarks>
+    /// 只模拟「锁持有到提交」这一条与发号正确性直接相关的语义，不模拟回滚撤销数据变更，
+    /// 因此不要用它断言回滚行为。
+    /// </remarks>
+    private sealed class FakeTransaction
+    {
+        /// <summary>表示存在工作单元但不是事务型，对应发号器必须 fail-closed 的场景。</summary>
+        public static readonly FakeTransaction NonTransactional = new();
+
+        private readonly Action<IEnumerable<(long OwnerTenantId, long RuleId)>>? _release;
+        private readonly HashSet<(long OwnerTenantId, long RuleId)> _heldLocks = [];
+
+        private FakeTransaction()
+        {
+        }
+
+        public FakeTransaction(Action<IEnumerable<(long OwnerTenantId, long RuleId)>> release)
+        {
+            _release = release;
+        }
+
+        /// <summary>是否为事务型；非事务型工作单元下所有写语句都必须被拒绝。</summary>
+        public bool IsTransactional => _release is not null;
+
+        /// <summary>
+        /// 登记一把行锁；返回 false 表示本事务已持有，调用方不应重复等待。
+        /// </summary>
+        public bool TryTrackLock((long OwnerTenantId, long RuleId) key)
+        {
+            lock (_heldLocks)
+            {
+                return _heldLocks.Add(key);
+            }
+        }
+
+        /// <summary>归还本事务持有的全部行锁。</summary>
+        public void Release()
+        {
+            lock (_heldLocks)
+            {
+                _release?.Invoke(_heldLocks.ToArray());
+                _heldLocks.Clear();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 工作单元替身；子工作单元的完成与释放均为空实现，与框架 <c>ChildUnitOfWork</c> 一致。
+    /// </summary>
+    private sealed class FakeUnitOfWork(Action? commit) : IUnitOfWork
+    {
+        private int _finished;
+
+        public event EventHandler<UnitOfWorkFailedEventArgs> Failed = default!;
+
+        public event EventHandler<UnitOfWorkEventArgs> Disposed = default!;
+
+        public Guid Id { get; } = Guid.NewGuid();
+
+        public IXiHanUnitOfWorkOptions Options { get; } = new XiHanUnitOfWorkOptions(isTransactional: true);
+
+        public IUnitOfWork? Outer => null;
+
+        public bool IsReserved => false;
+
+        public bool IsDisposed => Volatile.Read(ref _finished) == 1;
+
+        public bool IsCompleted => Volatile.Read(ref _finished) == 1;
+
+        public string? ReservationName => null;
+
+        public IServiceProvider ServiceProvider => throw new NotSupportedException();
+
+        public Dictionary<string, object> Items { get; } = [];
+
+        public void SetOuter(IUnitOfWork? outer)
+        {
+        }
+
+        public void Initialize(XiHanUnitOfWorkOptions options)
+        {
+        }
+
+        public void Reserve(string reservationName)
+        {
+        }
+
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task CompleteAsync(CancellationToken cancellationToken = default)
+        {
+            Finish();
+            return Task.CompletedTask;
+        }
+
+        public Task RollbackAsync(CancellationToken cancellationToken = default)
+        {
+            Finish();
+            return Task.CompletedTask;
+        }
+
+        public void OnCompleted(Func<Task> handler)
+        {
+        }
+
+        public void AddOrReplaceLocalEvent(UnitOfWorkEventRecord eventRecord, Predicate<UnitOfWorkEventRecord>? replacementSelector = null)
+        {
+        }
+
+        public void AddOrReplaceDistributedEvent(UnitOfWorkEventRecord eventRecord, Predicate<UnitOfWorkEventRecord>? replacementSelector = null)
+        {
+        }
+
+        public IDatabaseApi? FindDatabaseApi(string key) => null;
+
+        public void AddDatabaseApi(string key, IDatabaseApi api)
+        {
+        }
+
+        public IDatabaseApi GetOrAddDatabaseApi(string key, Func<IDatabaseApi> factory) => factory();
+
+        public ITransactionApi? FindTransactionApi(string key) => null;
+
+        public void AddTransactionApi(string key, ITransactionApi api)
+        {
+        }
+
+        public ITransactionApi GetOrAddTransactionApi(string key, Func<ITransactionApi> factory) => factory();
+
+        public void Dispose()
+        {
+            Finish();
+            Disposed?.Invoke(this, new UnitOfWorkEventArgs(this));
+            Failed?.Invoke(this, new UnitOfWorkFailedEventArgs(this, null, false));
+        }
+
+        /// <summary>提交或释放只生效一次，避免重复归还行锁。</summary>
+        private void Finish()
+        {
+            if (Interlocked.Exchange(ref _finished, 1) == 0)
+            {
+                commit?.Invoke();
+            }
+        }
+    }
+
+    /// <summary>
     /// 固定 UTC 时间提供器，使周期测试不依赖机器时钟。
     /// </summary>
-    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    private sealed class FixedTimeProvider(Func<DateTimeOffset> utcNow) : TimeProvider
     {
         /// <inheritdoc />
-        public override DateTimeOffset GetUtcNow() => utcNow;
+        public override DateTimeOffset GetUtcNow() => utcNow();
     }
 
     /// <summary>
