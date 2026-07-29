@@ -18,7 +18,7 @@ import { botConfigApi, BotProviderType, createPageRequest, querySortsFromSchema 
 import { SchemaPage, XEditModal } from '~/components'
 import { getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'MessageBotConfigPage' })
+defineOptions({ name: 'SettingBotConfigPage' })
 
 interface BotConfigFormModel {
   basicId?: string
@@ -127,7 +127,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'message.bot-config',
+  pageCode: 'setting.bot-config',
   exportPermission: 'saas:bot-config:export',
   pageName: t('message.bot_config.page_name'),
   statusPermission: 'saas:bot-config:status',

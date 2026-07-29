@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, telegramBotApi } from '@/api'
 import { SchemaPage, XEditModal } from '~/components'
 
-defineOptions({ name: 'MessageTelegramBotPage' })
+defineOptions({ name: 'SettingTelegramBotPage' })
 
 interface TelegramBotFormModel {
   adminUsers: string | null
@@ -108,7 +108,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'message.telegram-bot',
+  pageCode: 'setting.telegram-bot',
   exportPermission: 'saas:telegram-bot:export',
   pageName: t('message.telegram_bot.page_name'),
   statusPermission: 'saas:telegram-bot:status',
