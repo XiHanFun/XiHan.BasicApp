@@ -137,15 +137,11 @@ public static class PageRegistry
          new("file", "文件存储", "menu.file", MenuType.Directory, "/file", "File", null, null, null, "lucide:folder", 500, "/file/library"),
         // [6.1] 文件管理
          new("file.library", "文件管理", "menu.file_library", MenuType.Menu, "/file/library", "FileLibrary", "file/library/index", "file", SaasPermissionCodes.File.Read, "lucide:folder-open", 510),
-        // [6.2] 存储配置
-         new("file.storage", "存储配置", "menu.file_storage", MenuType.Menu, "/file/storage", "FileStorage", "file/storage/index", "file", SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 520),
-        // [6.3] 导出中心（挂入文件存储；我的异步导出任务，任意登录用户可见自己的导出，无需权限码。
+        // 注：存储配置移至系统设置（见 [8.7.1]）。
+        // [6.2] 导出中心（挂入文件存储；我的异步导出任务，任意登录用户可见自己的导出，无需权限码。
          new("file.export-center", "导出中心", "menu.file_export_center", MenuType.Menu, "/file/export-center", "FileExportCenter", "file/export-center/index", "file", null, "lucide:download", 530),
 
-        // [7] 开放平台
-         new("openapi", "开放平台", "menu.openapi", MenuType.Directory, "/openapi", "Openapi", null, null, null, "lucide:blocks", 600, "/openapi/app"),
-        // [7.1] 应用管理
-         new("openapi.app", "应用管理", "menu.openapi_app", MenuType.Menu, "/openapi/app", "OpenapiApp", "openapi/app/index", "openapi", SaasPermissionCodes.OAuthApp.Read, "lucide:badge-check", 610),
+        // 注：开放平台仅「应用管理」一页，已移至系统设置（见 [8.12]），故不再单列开放平台目录。
 
         // [8] 系统设置
          new("setting", "系统设置", "menu.setting", MenuType.Directory, "/setting", "Setting", null, null, null, "lucide:settings", 700, "/setting/menu"),
@@ -165,14 +161,18 @@ public static class PageRegistry
          new("setting.server", "服务监控", "menu.setting_server", MenuType.Menu, "/setting/server", "SettingServer", "setting/server/index", "setting", SaasPermissionCodes.Server.Read, "lucide:server", 760),
         // [8.7] 版本管理（系统版本与升级迁移）
          new("setting.version", "版本管理", "menu.setting_version", MenuType.Menu, "/setting/version", "SettingVersion", "setting/version/index", "setting", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
-        // [8.8] 邮件配置（系统级邮件通道；路由/页面仍在 message 下，仅菜单归入系统设置）
-         new("message.email-config", "邮件配置", "menu.message_email_config", MenuType.Menu, "/message/email-config", "MessageEmailConfig", "message/email-config/index", "setting", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 780),
+        // [8.7.1] 存储配置（菜单归入系统设置；路由/页面仍在 /file/storage）
+         new("file.storage", "存储配置", "menu.file_storage", MenuType.Menu, "/file/storage", "FileStorage", "file/storage/index", "setting", SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 775),
+        // [8.8] 邮件配置（系统级邮件通道）
+         new("setting.email-config", "邮件配置", "menu.setting_email_config", MenuType.Menu, "/setting/email-config", "SettingEmailConfig", "setting/email-config/index", "setting", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 780),
         // [8.9] 短信配置
-         new("message.sms-config", "短信配置", "menu.message_sms_config", MenuType.Menu, "/message/sms-config", "MessageSmsConfig", "message/sms-config/index", "setting", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 790),
+         new("setting.sms-config", "短信配置", "menu.setting_sms_config", MenuType.Menu, "/setting/sms-config", "SettingSmsConfig", "setting/sms-config/index", "setting", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 790),
         // [8.10] 机器人配置（Webhook 型：钉钉/飞书/企微）
-         new("message.bot-config", "机器人配置", "menu.message_bot_config", MenuType.Menu, "/message/bot-config", "MessageBotConfig", "message/bot-config/index", "setting", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 800),
+         new("setting.bot-config", "机器人配置", "menu.setting_bot_config", MenuType.Menu, "/setting/bot-config", "SettingBotConfig", "setting/bot-config/index", "setting", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 800),
         // [8.11] Telegram机器人
-         new("message.telegram-bot", "Telegram机器人", "menu.message_telegram_bot", MenuType.Menu, "/message/telegram-bot", "MessageTelegramBot", "message/telegram-bot/index", "setting", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 810),
+         new("setting.telegram-bot", "Telegram机器人", "menu.setting_telegram_bot", MenuType.Menu, "/setting/telegram-bot", "SettingTelegramBot", "setting/telegram-bot/index", "setting", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 810),
+        // [8.12] 应用管理（开放平台 OAuth 应用；菜单归入系统设置，路由/页面仍在 /openapi/app）
+         new("openapi.app", "应用管理", "menu.openapi_app", MenuType.Menu, "/openapi/app", "OpenapiApp", "openapi/app/index", "setting", SaasPermissionCodes.OAuthApp.Read, "lucide:badge-check", 820),
 
         // [9] 日志审计
          new("log", "日志审计", "menu.log", MenuType.Directory, "/log", "Log", null, null, null, "lucide:file-search", 800, "/log/access"),
@@ -300,32 +300,32 @@ public static class PageRegistry
          new("message.template.export", "导出", "message.template", SaasPermissionCodes.MessageTemplate.Export, 9),
 
         // [4.4] 邮件配置
-         new("message.email-config.create", "新增", "message.email-config", SaasPermissionCodes.EmailConfig.Create, 1),
-         new("message.email-config.update", "编辑", "message.email-config", SaasPermissionCodes.EmailConfig.Update, 2),
-         new("message.email-config.status", "启停", "message.email-config", SaasPermissionCodes.EmailConfig.Status, 3),
-         new("message.email-config.delete", "删除", "message.email-config", SaasPermissionCodes.EmailConfig.Delete, 4),
-         new("message.email-config.export", "导出", "message.email-config", SaasPermissionCodes.EmailConfig.Export, 9),
+         new("setting.email-config.create", "新增", "setting.email-config", SaasPermissionCodes.EmailConfig.Create, 1),
+         new("setting.email-config.update", "编辑", "setting.email-config", SaasPermissionCodes.EmailConfig.Update, 2),
+         new("setting.email-config.status", "启停", "setting.email-config", SaasPermissionCodes.EmailConfig.Status, 3),
+         new("setting.email-config.delete", "删除", "setting.email-config", SaasPermissionCodes.EmailConfig.Delete, 4),
+         new("setting.email-config.export", "导出", "setting.email-config", SaasPermissionCodes.EmailConfig.Export, 9),
 
         // [4.5] 短信配置
-         new("message.sms-config.create", "新增", "message.sms-config", SaasPermissionCodes.SmsConfig.Create, 1),
-         new("message.sms-config.update", "编辑", "message.sms-config", SaasPermissionCodes.SmsConfig.Update, 2),
-         new("message.sms-config.status", "启停", "message.sms-config", SaasPermissionCodes.SmsConfig.Status, 3),
-         new("message.sms-config.delete", "删除", "message.sms-config", SaasPermissionCodes.SmsConfig.Delete, 4),
-         new("message.sms-config.export", "导出", "message.sms-config", SaasPermissionCodes.SmsConfig.Export, 9),
+         new("setting.sms-config.create", "新增", "setting.sms-config", SaasPermissionCodes.SmsConfig.Create, 1),
+         new("setting.sms-config.update", "编辑", "setting.sms-config", SaasPermissionCodes.SmsConfig.Update, 2),
+         new("setting.sms-config.status", "启停", "setting.sms-config", SaasPermissionCodes.SmsConfig.Status, 3),
+         new("setting.sms-config.delete", "删除", "setting.sms-config", SaasPermissionCodes.SmsConfig.Delete, 4),
+         new("setting.sms-config.export", "导出", "setting.sms-config", SaasPermissionCodes.SmsConfig.Export, 9),
 
         // [4.6] 机器人配置
-         new("message.bot-config.create", "新增", "message.bot-config", SaasPermissionCodes.BotConfig.Create, 1),
-         new("message.bot-config.update", "编辑", "message.bot-config", SaasPermissionCodes.BotConfig.Update, 2),
-         new("message.bot-config.status", "启停", "message.bot-config", SaasPermissionCodes.BotConfig.Status, 3),
-         new("message.bot-config.delete", "删除", "message.bot-config", SaasPermissionCodes.BotConfig.Delete, 4),
-         new("message.bot-config.export", "导出", "message.bot-config", SaasPermissionCodes.BotConfig.Export, 9),
+         new("setting.bot-config.create", "新增", "setting.bot-config", SaasPermissionCodes.BotConfig.Create, 1),
+         new("setting.bot-config.update", "编辑", "setting.bot-config", SaasPermissionCodes.BotConfig.Update, 2),
+         new("setting.bot-config.status", "启停", "setting.bot-config", SaasPermissionCodes.BotConfig.Status, 3),
+         new("setting.bot-config.delete", "删除", "setting.bot-config", SaasPermissionCodes.BotConfig.Delete, 4),
+         new("setting.bot-config.export", "导出", "setting.bot-config", SaasPermissionCodes.BotConfig.Export, 9),
 
         // [4.7] Telegram机器人
-         new("message.telegram-bot.create", "新增", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Create, 1),
-         new("message.telegram-bot.update", "编辑", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Update, 2),
-         new("message.telegram-bot.status", "启停", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Status, 3),
-         new("message.telegram-bot.delete", "删除", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Delete, 4),
-         new("message.telegram-bot.export", "导出", "message.telegram-bot", SaasPermissionCodes.TelegramBot.Export, 9),
+         new("setting.telegram-bot.create", "新增", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Create, 1),
+         new("setting.telegram-bot.update", "编辑", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Update, 2),
+         new("setting.telegram-bot.status", "启停", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Status, 3),
+         new("setting.telegram-bot.delete", "删除", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Delete, 4),
+         new("setting.telegram-bot.export", "导出", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Export, 9),
 
         // [5.1] 审批中心
          new("approval.review.audit", "审核", "approval.review", SaasPermissionCodes.Review.Audit, 1),

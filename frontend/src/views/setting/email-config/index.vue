@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { createPageRequest, emailConfigApi, querySortsFromSchema } from '@/api'
 import { SchemaPage, XEditModal } from '~/components'
 
-defineOptions({ name: 'MessageEmailConfigPage' })
+defineOptions({ name: 'SettingEmailConfigPage' })
 
 interface EmailConfigFormModel {
   acceptInvalidCertificate: boolean
@@ -111,7 +111,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'message.email-config',
+  pageCode: 'setting.email-config',
   exportPermission: 'saas:email-config:export',
   pageName: t('message.email_config.page_name'),
   statusPermission: 'saas:email-config:status',

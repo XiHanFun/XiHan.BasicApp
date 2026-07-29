@@ -18,7 +18,7 @@ import { createPageRequest, querySortsFromSchema, smsConfigApi, SmsProviderType 
 import { SchemaPage, XEditModal } from '~/components'
 import { getOptionLabel } from '~/utils'
 
-defineOptions({ name: 'MessageSmsConfigPage' })
+defineOptions({ name: 'SettingSmsConfigPage' })
 
 interface SmsConfigFormModel {
   accessKeyId: string
@@ -130,7 +130,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'message.sms-config',
+  pageCode: 'setting.sms-config',
   exportPermission: 'saas:sms-config:export',
   pageName: t('message.sms_config.page_name'),
   statusPermission: 'saas:sms-config:status',
