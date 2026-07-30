@@ -201,8 +201,9 @@ namespace %NS%.Infrastructure.Seeders;
 /// </summary>
 /// <remarks>
 /// 须置于 %CLASS%PermissionSeeder 之后：菜单建立时需解析 %RESOURCE%:read 绑定可见性。
-/// 如挂父菜单：参照本仓库 SysMenuSeeder，插入后用 Updateable 按 MenuCode 回写 ParentId。
-/// 若走 Saas PageRegistry 单一事实源，则删除本种子、改用 %CLASS%PageRegistry.snippet.txt 的条目。
+/// 如挂父菜单：插入后用 Updateable 按 MenuCode 回写 ParentId。
+/// 若走模块 PageRegistry 单一事实源（推荐，见 Saas/AI/CodeGeneration 各自的 Application/Pages/PageRegistry.cs），
+/// 则删除本种子，改为登记条目并让模块菜单种子继承 PageRegistryMenuSeederBase。
 /// </remarks>
 public sealed class %CLASS%MenuSeeder : DataSeederBase
 {

@@ -46,7 +46,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysOperationSeeder>();       // Order = 300（操作字典，权限派生前置）
         services.AddDataSeeder<SysResourceSeeder>();        // Order = 301（资源，权限派生前置）
         services.AddDataSeeder<SysPermissionSeeder>();      // Order = 302（资源 × 操作 → workflow:* 权限）
-        services.AddDataSeeder<SysMenuSeeder>();            // Order = 303（菜单，建即绑 workflow:read）
+        services.AddDataSeeder<WorkflowMenuSeeder>();       // Order = 303（PageRegistry 驱动，建即绑 workflow:read）
         services.AddDataSeeder<SysRolePermissionSeeder>();  // Order = 304（默认仅授超管）
         return services;
     }

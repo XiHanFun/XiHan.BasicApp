@@ -2,11 +2,11 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.AI.Application.Pages;
 using XiHan.BasicApp.Saas.Application.Pages;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using AiPageRegistry = XiHan.BasicApp.AI.Application.Pages.PageRegistry;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -35,8 +35,8 @@ public sealed class AiMenuSeeder(
     protected override string ModuleName => "AI";
 
     /// <inheritdoc />
-    protected override IReadOnlyList<PageDescriptor> Pages => PageRegistry.All;
+    protected override IReadOnlyList<PageDescriptor> Pages => AiPageRegistry.All;
 
     /// <inheritdoc />
-    protected override IReadOnlyList<ButtonDescriptor> Buttons => PageRegistry.Buttons;
+    protected override IReadOnlyList<ButtonDescriptor> Buttons => AiPageRegistry.Buttons;
 }
