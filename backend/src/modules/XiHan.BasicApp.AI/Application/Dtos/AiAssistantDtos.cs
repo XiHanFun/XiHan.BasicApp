@@ -119,8 +119,10 @@ public sealed class AiAssistantDetailDto : AiAssistantListItemDto
 /// <summary>
 /// 可用助手 DTO（聊天页选择助手用，只暴露展示所需字段）
 /// </summary>
-public sealed class AiAssistantOptionDto : BasicAppDto
+/// <remarks>主键显式命名为 AssistantId 而不是继承 BasicAppDto 的 BasicId，对齐聊天侧 DTO 的命名。</remarks>
+public sealed class AiAssistantOptionDto
 {
+    public long AssistantId { get; set; }
     public string AssistantCode { get; set; } = string.Empty;
     public string AssistantName { get; set; } = string.Empty;
     public string? Avatar { get; set; }

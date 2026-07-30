@@ -119,7 +119,7 @@ public sealed class ChatAssistantAppService : AiApplicationService, IChatAssista
 
         return new ChatAssistantConversationDto
         {
-            BasicId = result.Conversation.BasicId,
+            ConversationId = result.Conversation.BasicId,
             AssistantId = assistant.BasicId,
             AssistantName = assistant.AssistantName,
             Avatar = assistant.Avatar,

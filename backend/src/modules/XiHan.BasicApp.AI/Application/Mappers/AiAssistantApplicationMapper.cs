@@ -109,7 +109,7 @@ public static class AiAssistantApplicationMapper
 
         return new AiAssistantOptionDto
         {
-            BasicId = entity.BasicId,
+            AssistantId = entity.BasicId,
             AssistantCode = entity.AssistantCode,
             AssistantName = entity.AssistantName,
             Avatar = entity.Avatar,
