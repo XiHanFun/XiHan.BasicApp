@@ -64,7 +64,7 @@ public class SysMenuSeeder : DataSeederBase
         // 顶级目录：不绑权限，任一子菜单可见即可进入
         if (!existsCodes.Contains("workflow"))
         {
-            addList.Add(new SysMenu { ParentId = null, PermissionId = null, MenuName = "工作流", MenuCode = "workflow", MenuType = MenuType.Directory, Path = "/workflow", Component = null, RouteName = "Workflow", Icon = "lucide:workflow", Title = "工作流", I18nKey = "menu.workflow", IsExternal = false, IsCache = false, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 430, Remark = "工作流目录" });
+            addList.Add(new SysMenu { ParentId = null, PermissionId = null, MenuName = "工作流", MenuCode = "workflow", MenuType = MenuType.Directory, Path = "/workflow", Component = null, RouteName = "Workflow", Icon = "lucide:workflow", Title = "工作流", I18nKey = "menu.workflow", IsExternal = false, IsCache = true, IsVisible = true, IsAffix = false, Status = EnableStatus.Enabled, Sort = 430, Remark = "工作流目录" });
         }
 
         if (!existsCodes.Contains("workflow_todo"))

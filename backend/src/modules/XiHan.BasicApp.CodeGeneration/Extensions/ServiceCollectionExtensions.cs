@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysOperationSeeder>();        // Order = 100（操作字典，权限派生前置）
         services.AddDataSeeder<SysResourceSeeder>();        // Order = 101（资源，权限派生前置）
         services.AddDataSeeder<SysPermissionSeeder>();      // Order = 102（资源 × 操作 → code_gen:* 权限）
-        services.AddDataSeeder<SysMenuSeeder>();            // Order = 103
+        services.AddDataSeeder<CodeGenerationMenuSeeder>(); // Order = 103（PageRegistry 驱动，建即绑 code_gen:read）
         services.AddDataSeeder<SysRolePermissionSeeder>();  // Order = 104
         services.AddDataSeeder<SysCodeGenTemplateSeeder>(); // Order = 105
         return services;

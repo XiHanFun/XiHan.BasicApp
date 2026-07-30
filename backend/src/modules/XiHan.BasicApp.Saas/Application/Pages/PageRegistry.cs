@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Saas.Application.Pages;
 /// <param name="Icon">图标标识</param>
 /// <param name="Sort">排序值</param>
 /// <param name="Redirect">重定向路径（目录项指向首个子项）</param>
-/// <param name="IsCache">是否缓存组件</param>
+/// <param name="IsCache">是否缓存组件（默认开启：标签页切走再切回保留页面状态）</param>
 /// <param name="IsAffix">是否固定标签页</param>
 /// <param name="IsExternal">是否外链菜单（直接打开外部地址，不生成可用前端路由）</param>
 /// <param name="ExternalUrl">外链地址（IsExternal=true 时使用）</param>
@@ -46,7 +46,7 @@ public sealed record PageDescriptor(
     string Icon,
     int Sort,
     string? Redirect = null,
-    bool IsCache = false,
+    bool IsCache = true,
     bool IsAffix = false,
     bool IsExternal = false,
     string? ExternalUrl = null);
