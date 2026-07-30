@@ -18,8 +18,10 @@ public sealed class ChatAssistantOpenDto
 /// <summary>
 /// 助手会话 DTO
 /// </summary>
-public sealed class ChatAssistantConversationDto : BasicAppDto
+/// <remarks>会话主键显式命名为 ConversationId，与 Saas 侧 ChatConversationDto 一致。</remarks>
+public sealed class ChatAssistantConversationDto
 {
+    public long ConversationId { get; set; }
     public long AssistantId { get; set; }
     public string AssistantName { get; set; } = string.Empty;
     public string? Avatar { get; set; }
