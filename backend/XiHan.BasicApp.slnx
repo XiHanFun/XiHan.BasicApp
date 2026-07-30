@@ -1,5 +1,4 @@
 <Solution>
-  <Folder Name="/0.docs/" />
   <Folder Name="/1.src/" />
   <Folder Name="/1.src/1.Framework/" Id="fc7b4289-5a6e-4dbc-8e33-0a05f6165c25">
     <Project Path="src/framework/XiHan.BasicApp.Core/XiHan.BasicApp.Core.csproj" />
