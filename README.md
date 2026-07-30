@@ -323,10 +323,6 @@ sudo supervisorctl start XiHanBasicApp
 
 使用 `backend/scripts/service/XiHan.BasicApp.bat` 启动。
 
-## 版本
-
-后端与前端当前版本：v3.5.0。
-
 ## 诚挚致谢
 
 排名不分先后。
@@ -336,7 +332,6 @@ sudo supervisorctl start XiHanBasicApp
 | [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) | 作为本项目的后端底层框架支持                   |
 | [NaiveUI](https://github.com/tusen-ai/naive-ui)              | 作为本项目的前端 UI 组件支持                   |
 | [Blog.Core](https://github.com/anjoy8/Blog.Core)             | 作为部分后端架构、逻辑功能灵感来源（启蒙项目） |
-| [Admin.NET](https://gitee.com/zuohuaijun/Admin.NET)          | 作为部分后端功能灵感来源                       |
 | [ Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore)     | 作为部分后端功能灵感来源                       |
 | [YuebonCore](https://gitee.com/yuebon/YuebonNetCore)         | 作为部分后端功能灵感来源                       |
 | [VbenAdmin](https://github.com/vbenjs/vue-vben-admin)        | 作为部分前端架构、视觉功能灵感来源（启蒙项目） |
@@ -344,17 +339,6 @@ sudo supervisorctl start XiHanBasicApp
 | [LitheAdmin](https://github.com/tenianon/lithe-admin)        | 作为部分前端视觉功能灵感来源                   |
 | 其他第三方依赖                                               | 作为项目功能丰富与拓展的基石                   |
 
-## Star History
-
-<div align="center">
-  <a href="https://star-history.com/#XiHanFun/XiHan.BasicApp&Date" target="_blank">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=XiHanFun/XiHan.BasicApp&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=XiHanFun/XiHan.BasicApp&type=Date" />
-      <img alt="XiHan.BasicApp Star History Chart" src="https://api.star-history.com/svg?repos=XiHanFun/XiHan.BasicApp&type=Date" width="640" />
-    </picture>
-  </a>
-</div>
 
 ## 支持&赞助
 
