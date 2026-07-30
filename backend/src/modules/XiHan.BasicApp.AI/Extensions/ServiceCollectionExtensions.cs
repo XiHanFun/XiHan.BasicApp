@@ -38,7 +38,6 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SysOperationSeeder>();       // Order = 200（操作字典，权限派生前置）
         services.AddDataSeeder<SysResourceSeeder>();       // Order = 201（资源，权限派生前置）
         services.AddDataSeeder<SysPermissionSeeder>();     // Order = 202（资源 × 操作 → ai:* 权限）
-        services.AddDataSeeder<SysMenuSeeder>();           // Order = 203（菜单，建即绑 ai:read）
         services.AddDataSeeder<SysRolePermissionSeeder>(); // Order = 204（仅授超管）
         return services;
     }
@@ -88,7 +87,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddDataSeeder<KnowledgeResourceSeeder>();       // Order = 205
         services.AddDataSeeder<KnowledgePermissionSeeder>();     // Order = 206
-        services.AddDataSeeder<KnowledgeMenuSeeder>();           // Order = 207（建即绑 knowledge_base:read）
         services.AddDataSeeder<KnowledgeRolePermissionSeeder>(); // Order = 208（仅授超管）
         return services;
     }
@@ -164,7 +162,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddDataSeeder<PromptResourceSeeder>();       // Order = 209
         services.AddDataSeeder<PromptPermissionSeeder>();     // Order = 210
-        services.AddDataSeeder<PromptMenuSeeder>();           // Order = 211（建即绑 ai_prompt:read）
         services.AddDataSeeder<PromptRolePermissionSeeder>(); // Order = 212（仅授超管）
         return services;
     }
@@ -202,8 +199,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddDataSeeder<AssistantResourceSeeder>();       // Order = 213
         services.AddDataSeeder<AssistantPermissionSeeder>();     // Order = 214
-        services.AddDataSeeder<AssistantMenuSeeder>();           // Order = 215（建即绑 ai_assistant:read）
         services.AddDataSeeder<AssistantRolePermissionSeeder>(); // Order = 216（仅授超管）
+        services.AddDataSeeder<AiMenuSeeder>();                  // Order = 217（PageRegistry 驱动，覆盖本模块全部菜单）
         return services;
     }
 

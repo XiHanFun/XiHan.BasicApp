@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 /// </summary>
 /// <remarks>
 /// AI 提供商配置属平台级开发工具：仅授予超级管理员角色，其它任何角色都不得拥有，
-/// 故其它租户/角色既看不到也调不动。菜单可见性绑定（ai_provider → ai:read）已前移至 SysMenuSeeder（建菜单即绑定），
+/// 故其它租户/角色既看不到也调不动。菜单可见性绑定（ai_provider → ai:read）已前移至 AiMenuSeeder（建菜单即绑定），
 /// 本种子只负责角色授权。
 /// </remarks>
 public class SysRolePermissionSeeder : DataSeederBase

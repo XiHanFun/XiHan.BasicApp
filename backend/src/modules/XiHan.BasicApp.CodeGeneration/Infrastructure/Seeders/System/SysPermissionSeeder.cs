@@ -23,7 +23,7 @@ public class SysPermissionSeeder : DataSeederBase
     }
 
     /// <summary>
-    /// 种子数据优先级（须先于 SysMenuSeeder，菜单建立时即可解析 code_gen:read 绑定可见性）
+    /// 种子数据优先级（须先于 CodeGenerationMenuSeeder，菜单建立时即可解析 code_gen:read 绑定可见性）
     /// </summary>
     public override int Order => 102;
 

@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 /// <remarks>
 /// 开发功能（代码生成）属平台级开发工具：仅授予超级管理员角色，其它任何角色都不得拥有，
 /// 故其它租户/角色既看不到也调不动开发功能。
-/// 菜单可见性的绑定（develop/code_gen → code_gen:read）已前移至 SysMenuSeeder（建菜单即绑定），本种子只负责角色授权。
+/// 菜单可见性的绑定（code_gen → code_gen:read）已前移至 CodeGenerationMenuSeeder（建菜单即绑定），本种子只负责角色授权。
 /// </remarks>
 public class SysRolePermissionSeeder : DataSeederBase
 {

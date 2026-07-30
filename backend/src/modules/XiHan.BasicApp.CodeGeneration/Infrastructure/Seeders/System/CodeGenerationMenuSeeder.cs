@@ -2,11 +2,11 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Logging;
-using XiHan.BasicApp.CodeGeneration.Application.Pages;
 using XiHan.BasicApp.Saas.Application.Pages;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using CodeGenPageRegistry = XiHan.BasicApp.CodeGeneration.Application.Pages.PageRegistry;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
@@ -35,8 +35,8 @@ public sealed class CodeGenerationMenuSeeder(
     protected override string ModuleName => "代码生成";
 
     /// <inheritdoc />
-    protected override IReadOnlyList<PageDescriptor> Pages => PageRegistry.All;
+    protected override IReadOnlyList<PageDescriptor> Pages => CodeGenPageRegistry.All;
 
     /// <inheritdoc />
-    protected override IReadOnlyList<ButtonDescriptor> Buttons => PageRegistry.Buttons;
+    protected override IReadOnlyList<ButtonDescriptor> Buttons => CodeGenPageRegistry.Buttons;
 }
