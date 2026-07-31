@@ -22,6 +22,7 @@
         <PackageReference Include="XiHan.Framework.Web.Docs" Version="3.9.0" />
         <PackageReference Include="XiHan.Framework.Web.Gateway" Version="3.9.0" />
         <PackageReference Include="XiHan.Framework.Web.Grpc" Version="3.9.0" />
+        <PackageReference Include="XiHan.Framework.Web.Mcp" Version="3.9.0" />
         <PackageReference Include="XiHan.Framework.Web.RealTime" Version="3.9.0" />
     </ItemGroup>
 
@@ -31,6 +32,7 @@
         <ProjectReference Include="$(XiHanFrameworkSrc)XiHan.Framework.Web.Docs\XiHan.Framework.Web.Docs.csproj" />
         <ProjectReference Include="$(XiHanFrameworkSrc)XiHan.Framework.Web.Gateway\XiHan.Framework.Web.Gateway.csproj" />
         <ProjectReference Include="$(XiHanFrameworkSrc)XiHan.Framework.Web.Grpc\XiHan.Framework.Web.Grpc.csproj" />
+        <ProjectReference Include="$(XiHanFrameworkSrc)XiHan.Framework.Web.Mcp\XiHan.Framework.Web.Mcp.csproj" />
         <ProjectReference Include="$(XiHanFrameworkSrc)XiHan.Framework.Web.RealTime\XiHan.Framework.Web.RealTime.csproj" />
     </ItemGroup>
 

@@ -3,24 +3,20 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Options;
 using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.Workflow;
 using XiHan.BasicApp.Web.Core.Extensions;
 using XiHan.BasicApp.WebHost.HealthChecks;
-using XiHan.BasicApp.WebHost.Mcp;
-using XiHan.Framework.AI.Extensions.DependencyInjection;
 using XiHan.Framework.Bot.Telegram.Webhook;
 using XiHan.Framework.Core.Application;
-using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Observability;
 using XiHan.Framework.Web.Core.Extensions;
+using XiHan.Framework.Web.Mcp;
 
 namespace XiHan.BasicApp.WebHost;
 
@@ -34,7 +30,9 @@ namespace XiHan.BasicApp.WebHost;
     typeof(XiHanBasicAppAIModule),
     typeof(XiHanBasicAppWorkflowModule),
     // 可观测性：激活 OpenTelemetry 装配；由 XiHan:Observability 配置门控（Enabled 默认关）
-    typeof(XiHanObservabilityModule)
+    typeof(XiHanObservabilityModule),
+    // MCP Server：把 AI 技能暴露为 MCP tools；由 XiHan:AI:Mcp 配置门控（未启用或未配密钥则不暴露端点）
+    typeof(XiHanWebMcpModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
@@ -48,16 +46,6 @@ public class XiHanBasicAppWebHostModule : XiHanModule
             .AddCheck<DatabaseHealthCheck>("database")
             .AddCheck<RedisHealthCheck>("redis")
             .AddCheck<QdrantHealthCheck>("qdrant");
-
-        // MCP Server：把 AI 技能暴露为 MCP tools（应用管理 key 鉴权）。仅在启用且配置了密钥时注册（fail-closed）。
-        var configuration = context.Services.GetConfiguration();
-        context.Services.Configure<XiHanMcpOptions>(configuration.GetSection(XiHanMcpOptions.SectionName));
-        var mcpOptions = configuration.GetSection(XiHanMcpOptions.SectionName).Get<XiHanMcpOptions>() ?? new XiHanMcpOptions();
-        if (mcpOptions.IsExposable)
-        {
-            context.Services.AddMcpServer().WithHttpTransport(transport => transport.Stateless = mcpOptions.Stateless);
-            context.Services.AddXiHanMcpServerTools();
-        }
     }
 
     /// <summary>
@@ -106,15 +94,6 @@ public class XiHanBasicAppWebHostModule : XiHanModule
         if (app is IEndpointRouteBuilder endpoints)
         {
             _ = endpoints.MapHealthChecks("/health", options).AllowAnonymous();
-
-            // MCP Server 端点：AllowAnonymous 绕过全局 FallbackPolicy，改由应用管理的 key 端点过滤器守门。
-            var mcpOptions = app.ApplicationServices.GetRequiredService<IOptions<XiHanMcpOptions>>().Value;
-            if (mcpOptions.IsExposable)
-            {
-                _ = endpoints.MapMcp(mcpOptions.Path)
-                    .AllowAnonymous()
-                    .AddEndpointFilter(new McpApiKeyEndpointFilter(mcpOptions.ApiKey!, mcpOptions.HeaderName));
-            }
         }
         else
         {
