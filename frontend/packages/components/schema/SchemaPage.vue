@@ -848,6 +848,7 @@ const skeletonColumns = computed(() =>
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: var(--n-color, #fff);
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
 }
 </style>
