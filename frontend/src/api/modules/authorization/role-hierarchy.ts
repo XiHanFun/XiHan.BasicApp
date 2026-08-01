@@ -5,7 +5,7 @@ import type {
   RoleHierarchyDetailDto,
   RoleHierarchyListItemDto,
 } from './role-hierarchy.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const roleHierarchyQueryApi = createDynamicApiClient('RoleHierarchyQuery')
 const roleHierarchyCommandApi = createDynamicApiClient('Role')
@@ -19,25 +19,26 @@ function buildIncludeSelfParams(includeSelf: boolean) {
 export const roleHierarchyApi = {
   ancestors(roleId: ApiId, includeSelf = true) {
     return roleHierarchyQueryApi.get<RoleHierarchyListItemDto[]>(
-      `RoleAncestors/${formatDynamicApiRouteValue(roleId)}`,
-      buildIncludeSelfParams(includeSelf),
+      'RoleAncestors',
+      { ...buildIncludeSelfParams(includeSelf), roleId },
     )
   },
   create(input: RoleHierarchyCreateDto) {
     return roleHierarchyCommandApi.post<RoleHierarchyDetailDto, RoleHierarchyCreateDto>('RoleHierarchy', input)
   },
   delete(id: ApiId) {
-    return roleHierarchyCommandApi.delete(`RoleHierarchy/${formatDynamicApiRouteValue(id)}`)
+    return roleHierarchyCommandApi.delete('RoleHierarchy', { id })
   },
   descendants(roleId: ApiId, includeSelf = true) {
     return roleHierarchyQueryApi.get<RoleHierarchyListItemDto[]>(
-      `RoleDescendants/${formatDynamicApiRouteValue(roleId)}`,
-      buildIncludeSelfParams(includeSelf),
+      'RoleDescendants',
+      { ...buildIncludeSelfParams(includeSelf), roleId },
     )
   },
   detail(id: ApiId) {
     return roleHierarchyQueryApi.get<RoleHierarchyDetailDto | null>(
-      `RoleHierarchyDetail/${formatDynamicApiRouteValue(id)}`,
+      'RoleHierarchyDetail',
+      { id },
     )
   },
 }

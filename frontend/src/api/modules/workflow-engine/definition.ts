@@ -8,7 +8,7 @@ import type {
   WorkflowDefinitionPageQueryDto,
   WorkflowDefinitionUpdateDraftDto,
 } from './definition.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('WorkflowDefinition')
 const query = createDynamicApiClient('WorkflowDefinitionQuery')
@@ -19,7 +19,7 @@ export const workflowDefinitionApi = {
     return query.post<PageResult<WorkflowDefinitionListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<WorkflowDefinitionDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<WorkflowDefinitionDetailDto | null>('Detail', { id })
   },
   // Commands（Create/Update/Delete 动词映射 POST/PUT/DELETE，其余动作保留完整方法名走 POST）
   create(input: WorkflowDefinitionCreateDto) {
@@ -41,6 +41,6 @@ export const workflowDefinitionApi = {
     return command.post<WorkflowDefinitionDetailDto, WorkflowDefinitionIdDto>('Archive', input)
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
 }

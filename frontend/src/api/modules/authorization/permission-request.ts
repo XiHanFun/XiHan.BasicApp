@@ -7,7 +7,7 @@ import type {
   PermissionRequestStatusUpdateDto,
   PermissionRequestUpdateDto,
 } from './permission-request.types'
-import { createCommandApi, createDynamicApiClient, createReadApi, formatDynamicApiRouteValue } from '../../base'
+import { createCommandApi, createDynamicApiClient, createReadApi } from '../../base'
 
 const permissionRequestQueryApi = createDynamicApiClient('PermissionRequestQuery')
 const permissionRequestCommandApi = createDynamicApiClient('PermissionRequest')
@@ -38,7 +38,7 @@ export const permissionRequestApi = {
     return permissionRequestBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return permissionRequestCommandApi.delete(`PermissionRequest/${formatDynamicApiRouteValue(id)}`)
+    return permissionRequestCommandApi.delete('PermissionRequest', { id })
   },
   detail(id: ApiId) {
     return permissionRequestReadApi.detail(id)

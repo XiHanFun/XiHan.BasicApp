@@ -15,7 +15,6 @@ import type {
 } from './message.types'
 import {
   createDynamicApiClient,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const messageQueryApi = createDynamicApiClient('MessageQuery')
@@ -24,13 +23,13 @@ const messageCommandApi = createDynamicApiClient('Message')
 export const messageApi = {
   // Query
   emailDetail(id: EmailDetailDto['basicId']) {
-    return messageQueryApi.get<EmailDetailDto | null>(`EmailDetail/${formatDynamicApiRouteValue(id)}`)
+    return messageQueryApi.get<EmailDetailDto | null>('EmailDetail', { id })
   },
   emailPage(input: EmailPageQueryDto) {
     return messageQueryApi.post<PageResult<EmailListItemDto>>('EmailPage', input)
   },
   smsDetail(id: SmsDetailDto['basicId']) {
-    return messageQueryApi.get<SmsDetailDto | null>(`SmsDetail/${formatDynamicApiRouteValue(id)}`)
+    return messageQueryApi.get<SmsDetailDto | null>('SmsDetail', { id })
   },
   smsPage(input: SmsPageQueryDto) {
     return messageQueryApi.post<PageResult<SmsListItemDto>>('SmsPage', input)
@@ -40,7 +39,7 @@ export const messageApi = {
     return messageCommandApi.post<EmailDetailDto, EmailCreateDto>('Email', input)
   },
   deleteEmail(id: EmailDetailDto['basicId']) {
-    return messageCommandApi.delete(`Email/${formatDynamicApiRouteValue(id)}`)
+    return messageCommandApi.delete('Email', { id })
   },
   updateEmail(input: EmailUpdateDto) {
     return messageCommandApi.put<EmailDetailDto, EmailUpdateDto>('Email', input)
@@ -53,7 +52,7 @@ export const messageApi = {
     return messageCommandApi.post<SmsDetailDto, SmsCreateDto>('Sms', input)
   },
   deleteSms(id: SmsDetailDto['basicId']) {
-    return messageCommandApi.delete(`Sms/${formatDynamicApiRouteValue(id)}`)
+    return messageCommandApi.delete('Sms', { id })
   },
   updateSms(input: SmsUpdateDto) {
     return messageCommandApi.put<SmsDetailDto, SmsUpdateDto>('Sms', input)

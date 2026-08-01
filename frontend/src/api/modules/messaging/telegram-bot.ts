@@ -7,7 +7,7 @@ import type {
   TelegramBotStatusUpdateDto,
   TelegramBotUpdateDto,
 } from './telegram-bot.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const telegramBotQueryApi = createDynamicApiClient('TelegramBotQuery')
 const telegramBotCommandApi = createDynamicApiClient('TelegramBot')
@@ -17,11 +17,12 @@ export const telegramBotApi = {
     return telegramBotCommandApi.post<TelegramBotDetailDto, TelegramBotCreateDto>('TelegramBot', input)
   },
   delete(id: ApiId) {
-    return telegramBotCommandApi.delete(`TelegramBot/${formatDynamicApiRouteValue(id)}`)
+    return telegramBotCommandApi.delete('TelegramBot', { id })
   },
   detail(id: ApiId) {
     return telegramBotQueryApi.get<TelegramBotDetailDto | null>(
-      `TelegramBotDetail/${formatDynamicApiRouteValue(id)}`,
+      'TelegramBotDetail',
+      { id },
     )
   },
   page(input: TelegramBotPageQueryDto) {

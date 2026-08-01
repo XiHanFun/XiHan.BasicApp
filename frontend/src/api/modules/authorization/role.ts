@@ -15,7 +15,6 @@ import {
   createCommandApi,
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const roleQueryApi = createDynamicApiClient('RoleQuery')
@@ -28,7 +27,7 @@ export const roleApi = {
     return roleBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return roleCommandApi.delete(`Role/${formatDynamicApiRouteValue(id)}`)
+    return roleCommandApi.delete('Role', { id })
   },
   detail(id: ApiId) {
     return roleReadApi.detail(id)

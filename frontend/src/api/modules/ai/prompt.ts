@@ -7,7 +7,7 @@ import type {
   AiPromptStatusUpdateDto,
   AiPromptUpdateDto,
 } from './prompt.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('AiPrompt')
 const query = createDynamicApiClient('AiPromptQuery')
@@ -23,12 +23,12 @@ export const aiPromptApi = {
     return command.put<AiPromptDetailDto, AiPromptStatusUpdateDto>('Status', input)
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
   page(input: AiPromptPageQueryDto) {
     return query.post<PageResult<AiPromptListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<AiPromptDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<AiPromptDetailDto | null>('Detail', { id })
   },
 }

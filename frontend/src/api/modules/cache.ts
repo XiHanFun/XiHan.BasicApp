@@ -23,14 +23,10 @@ export const cacheApi = {
   },
   /** 删除单个键 */
   remove(key: string) {
-    return cacheApiClient.delete('Remove', {
-      params: { Key: key },
-    })
+    return cacheApiClient.delete('Remove', { Key: key })
   },
   /** 按模式批量删除键 */
   removeByPattern(pattern = '*') {
-    return cacheApiClient.delete<number>('ByPattern', {
-      params: { Pattern: pattern },
-    })
+    return cacheApiClient.delete<number>('ByPattern', { Pattern: pattern })
   },
 }

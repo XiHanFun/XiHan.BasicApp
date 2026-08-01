@@ -8,7 +8,7 @@ import type {
   BotConfigStatusUpdateDto,
   BotConfigUpdateDto,
 } from './bot-config.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const botConfigQueryApi = createDynamicApiClient('BotConfigQuery')
 const botConfigCommandApi = createDynamicApiClient('BotConfig')
@@ -18,11 +18,12 @@ export const botConfigApi = {
     return botConfigCommandApi.post<BotConfigDetailDto, BotConfigCreateDto>('BotConfig', input)
   },
   delete(id: ApiId) {
-    return botConfigCommandApi.delete(`BotConfig/${formatDynamicApiRouteValue(id)}`)
+    return botConfigCommandApi.delete('BotConfig', { id })
   },
   detail(id: ApiId) {
     return botConfigQueryApi.get<BotConfigDetailDto | null>(
-      `BotConfigDetail/${formatDynamicApiRouteValue(id)}`,
+      'BotConfigDetail',
+      { id },
     )
   },
   page(input: BotConfigPageQueryDto) {

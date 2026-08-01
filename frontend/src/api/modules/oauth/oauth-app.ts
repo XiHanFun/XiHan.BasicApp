@@ -11,7 +11,6 @@ import type {
 import {
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const oauthAppQueryApi = createDynamicApiClient('OAuthAppQuery')
@@ -34,10 +33,10 @@ export const oauthAppApi = {
     return oauthAppCommandApi.post<OAuthAppSecretDto, OAuthAppCreateDto>('OAuthApp', input)
   },
   delete(id: OAuthAppDetailDto['basicId']) {
-    return oauthAppCommandApi.delete(`OAuthApp/${formatDynamicApiRouteValue(id)}`)
+    return oauthAppCommandApi.delete('OAuthApp', { id })
   },
   regenerateSecret(id: OAuthAppDetailDto['basicId']) {
-    return oauthAppCommandApi.post<OAuthAppSecretDto>(`RegenerateOAuthAppSecret/${formatDynamicApiRouteValue(id)}`)
+    return oauthAppCommandApi.post<OAuthAppSecretDto>('RegenerateOAuthAppSecret', { id })
   },
   update(input: OAuthAppUpdateDto) {
     return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppUpdateDto>('OAuthApp', input)

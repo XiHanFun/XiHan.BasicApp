@@ -7,7 +7,7 @@ import type {
   MessageTemplateStatusUpdateDto,
   MessageTemplateUpdateDto,
 } from './message-template.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const messageTemplateQueryApi = createDynamicApiClient('MessageTemplateQuery')
 const messageTemplateCommandApi = createDynamicApiClient('MessageTemplate')
@@ -17,11 +17,12 @@ export const messageTemplateApi = {
     return messageTemplateCommandApi.post<MessageTemplateDetailDto, MessageTemplateCreateDto>('MessageTemplate', input)
   },
   delete(id: ApiId) {
-    return messageTemplateCommandApi.delete(`MessageTemplate/${formatDynamicApiRouteValue(id)}`)
+    return messageTemplateCommandApi.delete('MessageTemplate', { id })
   },
   detail(id: ApiId) {
     return messageTemplateQueryApi.get<MessageTemplateDetailDto | null>(
-      `MessageTemplateDetail/${formatDynamicApiRouteValue(id)}`,
+      'MessageTemplateDetail',
+      { id },
     )
   },
   page(input: MessageTemplatePageQueryDto) {

@@ -8,7 +8,7 @@ import type {
   CodeGenDataSourceStatusUpdateDto,
   CodeGenDataSourceUpdateDto,
 } from './datasource.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('CodeGenDataSource')
 const query = createDynamicApiClient('CodeGenDataSourceQuery')
@@ -24,15 +24,15 @@ export const codeGenDataSourceApi = {
     return command.put<CodeGenDataSourceDetailDto, CodeGenDataSourceStatusUpdateDto>('Status', input)
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
   testConnection(id: ApiId) {
-    return command.post<CodeGenConnectionTestResultDto>(`TestConnection/${formatDynamicApiRouteValue(id)}`)
+    return command.post<CodeGenConnectionTestResultDto>('TestConnection', { id })
   },
   page(input: CodeGenDataSourcePageQueryDto) {
     return query.post<PageResult<CodeGenDataSourceListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<CodeGenDataSourceDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<CodeGenDataSourceDetailDto | null>('Detail', { id })
   },
 }

@@ -6,7 +6,7 @@ import type {
   TenantEditionPermissionListItemDto,
   TenantEditionPermissionStatusUpdateDto,
 } from './tenant-edition-permission.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const tenantEditionPermissionQueryApi = createDynamicApiClient('TenantEditionPermissionQuery')
 const tenantEditionPermissionCommandApi = createDynamicApiClient('TenantEdition')
@@ -14,7 +14,8 @@ const tenantEditionPermissionCommandApi = createDynamicApiClient('TenantEdition'
 export const tenantEditionPermissionApi = {
   detail(id: ApiId) {
     return tenantEditionPermissionQueryApi.get<TenantEditionPermissionDetailDto | null>(
-      `TenantEditionPermissionDetail/${formatDynamicApiRouteValue(id)}`,
+      'TenantEditionPermissionDetail',
+      { id },
     )
   },
   grant(input: TenantEditionPermissionGrantDto) {
@@ -29,14 +30,15 @@ export const tenantEditionPermissionApi = {
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
     return tenantEditionPermissionQueryApi.get<TenantEditionPermissionListItemDto[]>(
-      `TenantEditionPermissions/${formatDynamicApiRouteValue(editionId)}`,
-      params,
+      'TenantEditionPermissions',
+      { ...params, editionId },
     )
   },
   revoke(id: ApiId) {
     // Revoke 前缀不在动态 API 动词表内：路由保留完整方法名且默认 POST
     return tenantEditionPermissionCommandApi.post(
-      `RevokeTenantEditionPermission/${formatDynamicApiRouteValue(id)}`,
+      'RevokeTenantEditionPermission',
+      { id },
     )
   },
   updateStatus(input: TenantEditionPermissionStatusUpdateDto) {

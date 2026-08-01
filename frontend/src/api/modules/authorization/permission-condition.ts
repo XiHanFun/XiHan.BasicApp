@@ -7,7 +7,7 @@ import type {
   PermissionConditionStatusUpdateDto,
   PermissionConditionUpdateDto,
 } from './permission-condition.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const permissionConditionQueryApi = createDynamicApiClient('PermissionConditionQuery')
 const permissionConditionCommandApi = createDynamicApiClient('PermissionCondition')
@@ -26,17 +26,18 @@ export const permissionConditionApi = {
     )
   },
   delete(id: ApiId) {
-    return permissionConditionCommandApi.delete(`PermissionCondition/${formatDynamicApiRouteValue(id)}`)
+    return permissionConditionCommandApi.delete('PermissionCondition', { id })
   },
   detail(id: ApiId) {
     return permissionConditionQueryApi.get<PermissionConditionDetailDto | null>(
-      `PermissionConditionDetail/${formatDynamicApiRouteValue(id)}`,
+      'PermissionConditionDetail',
+      { id },
     )
   },
   rolePermissionConditions(rolePermissionId: ApiId, onlyValid = false) {
     return permissionConditionQueryApi.get<PermissionConditionListItemDto[]>(
-      `RolePermissionConditions/${formatDynamicApiRouteValue(rolePermissionId)}`,
-      buildOnlyValidParams(onlyValid),
+      'RolePermissionConditions',
+      { ...buildOnlyValidParams(onlyValid), rolePermissionId },
     )
   },
   update(input: PermissionConditionUpdateDto) {
@@ -53,8 +54,8 @@ export const permissionConditionApi = {
   },
   userPermissionConditions(userPermissionId: ApiId, onlyValid = false) {
     return permissionConditionQueryApi.get<PermissionConditionListItemDto[]>(
-      `UserPermissionConditions/${formatDynamicApiRouteValue(userPermissionId)}`,
-      buildOnlyValidParams(onlyValid),
+      'UserPermissionConditions',
+      { ...buildOnlyValidParams(onlyValid), userPermissionId },
     )
   },
 }

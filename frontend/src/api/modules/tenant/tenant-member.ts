@@ -10,7 +10,6 @@ import type {
 import {
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const tenantMemberQueryApi = createDynamicApiClient('TenantMemberQuery')
@@ -28,7 +27,7 @@ export const tenantMemberApi = {
     return tenantMemberQueryApi.post<PageResult<TenantMemberListItemDto>>('TenantMemberPage', input)
   },
   revoke(id: ApiId) {
-    return tenantMemberCommandApi.delete(`TenantMember/${formatDynamicApiRouteValue(id)}`)
+    return tenantMemberCommandApi.delete('TenantMember', { id })
   },
   update(input: TenantMemberUpdateDto) {
     return tenantMemberCommandApi.put<TenantMemberDetailDto, TenantMemberUpdateDto>('TenantMember', input)

@@ -9,7 +9,7 @@ import type {
   AiProviderTestConnectionResultDto,
   AiProviderUpdateDto,
 } from './provider.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('AiProvider')
 const query = createDynamicApiClient('AiProviderQuery')
@@ -28,7 +28,7 @@ export const aiProviderApi = {
     return command.post<AiProviderDetailDto, AiProviderActionDto>('SetDefault', { basicId: id })
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
   testConnection(id: ApiId) {
     return command.post<AiProviderTestConnectionResultDto, AiProviderActionDto>('TestConnection', { basicId: id })
@@ -37,6 +37,6 @@ export const aiProviderApi = {
     return query.post<PageResult<AiProviderListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<AiProviderDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<AiProviderDetailDto | null>('Detail', { id })
   },
 }

@@ -18,7 +18,6 @@ import type {
 import {
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const dictQueryApi = createDynamicApiClient('DictQuery')
@@ -31,7 +30,7 @@ export const dictApi = {
     return dictCommandApi.post<DictDetailDto, DictCreateDto>('Dict', input)
   },
   delete(id: ApiId) {
-    return dictCommandApi.delete(`Dict/${formatDynamicApiRouteValue(id)}`)
+    return dictCommandApi.delete('Dict', { id })
   },
   detail(id: ApiId) {
     return dictReadApi.detail(id)
@@ -40,7 +39,7 @@ export const dictApi = {
     return dictCommandApi.post<DictItemDetailDto, DictItemCreateDto>('DictItem', input)
   },
   itemDelete(id: ApiId) {
-    return dictCommandApi.delete(`DictItem/${formatDynamicApiRouteValue(id)}`)
+    return dictCommandApi.delete('DictItem', { id })
   },
   itemDetail(id: ApiId) {
     return dictItemReadApi.detail(id)

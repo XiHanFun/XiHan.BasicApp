@@ -1,9 +1,6 @@
 import type { DynamicApiClient } from './base'
 import type { ApiId, PageRequest, PageResult } from './types'
-import {
-  createDynamicApiClient,
-  formatDynamicApiRouteValue,
-} from './base'
+import { createDynamicApiClient } from './base'
 
 /**
  * 资源工厂配置选项
@@ -95,7 +92,7 @@ export function defineResource<
 
     /** 查询单条详情 */
     detail(id: ApiId): Promise<TDetail | null> {
-      return queryClient.get<TDetail | null>(`${resource}Detail/${formatDynamicApiRouteValue(id)}`)
+      return queryClient.get<TDetail | null>(`${resource}Detail`, { id })
     },
 
     /** 新增资源 */
@@ -110,7 +107,7 @@ export function defineResource<
 
     /** 删除资源 */
     remove(id: ApiId): Promise<void> {
-      return commandClient.delete<void>(`${resource}/${formatDynamicApiRouteValue(id)}`)
+      return commandClient.delete<void>(resource, { id })
     },
   }
 }

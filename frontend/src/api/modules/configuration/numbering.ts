@@ -23,7 +23,7 @@ import type {
   NumberingScope,
   NumberingTimeZoneOptionDto,
 } from './numbering.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const ruleQueryApi = createDynamicApiClient('NumberingRuleQuery')
 const ruleCommandApi = createDynamicApiClient('NumberingRule')
@@ -79,7 +79,7 @@ export const numberingApi = {
    * @throws 已发号规则、权限或并发错误。
    */
   delete(id: ApiId, scope: NumberingScope) {
-    return ruleCommandApi.delete(`NumberingRule/${formatDynamicApiRouteValue(id)}`, { params: { scope } })
+    return ruleCommandApi.delete('NumberingRule', { id, scope })
   },
 
   /**
@@ -111,8 +111,8 @@ export const numberingApi = {
    */
   detail(id: ApiId, scope: NumberingScope) {
     return ruleQueryApi.get<NumberingRuleDetailDto | null>(
-      `NumberingRuleDetail/${formatDynamicApiRouteValue(id)}`,
-      { scope },
+      'NumberingRuleDetail',
+      { scope, id },
     )
   },
 

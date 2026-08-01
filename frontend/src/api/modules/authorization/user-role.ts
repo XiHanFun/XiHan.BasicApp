@@ -7,14 +7,14 @@ import type {
   UserRoleStatusUpdateDto,
   UserRoleUpdateDto,
 } from './user-role.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const userRoleQueryApi = createDynamicApiClient('UserRoleQuery')
 const userRoleCommandApi = createDynamicApiClient('UserRole')
 
 export const userRoleApi = {
   detail(id: ApiId) {
-    return userRoleQueryApi.get<UserRoleDetailDto | null>(`UserRoleDetail/${formatDynamicApiRouteValue(id)}`)
+    return userRoleQueryApi.get<UserRoleDetailDto | null>('UserRoleDetail', { id })
   },
   grant(input: UserRoleGrantDto) {
     return userRoleCommandApi.post<UserRoleDetailDto, UserRoleGrantDto>('UserRole', input)
@@ -23,10 +23,10 @@ export const userRoleApi = {
     const params: DynamicApiParams = {}
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
-    return userRoleQueryApi.get<UserRoleListItemDto[]>(`UserRoles/${formatDynamicApiRouteValue(userId)}`, params)
+    return userRoleQueryApi.get<UserRoleListItemDto[]>('UserRoles', { ...params, userId })
   },
   revoke(id: ApiId) {
-    return userRoleCommandApi.delete(`UserRole/${formatDynamicApiRouteValue(id)}`)
+    return userRoleCommandApi.delete('UserRole', { id })
   },
   update(input: UserRoleUpdateDto) {
     return userRoleCommandApi.put<UserRoleDetailDto, UserRoleUpdateDto>('UserRole', input)

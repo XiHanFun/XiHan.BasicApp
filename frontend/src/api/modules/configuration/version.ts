@@ -11,7 +11,7 @@ import type {
   VersionUpgradeFinishDto,
   VersionUpgradeStartDto,
 } from './version.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const versionQueryApi = createDynamicApiClient('VersionQuery')
 const versionCommandApi = createDynamicApiClient('Version')
@@ -20,12 +20,14 @@ export const versionApi = {
   // Query
   detail(id: ApiId) {
     return versionQueryApi.get<VersionDetailDto | null>(
-      `VersionDetail/${formatDynamicApiRouteValue(id)}`,
+      'VersionDetail',
+      { id },
     )
   },
   migrationHistoryDetail(id: ApiId) {
     return versionQueryApi.get<MigrationHistoryDetailDto | null>(
-      `MigrationHistoryDetail/${formatDynamicApiRouteValue(id)}`,
+      'MigrationHistoryDetail',
+      { id },
     )
   },
   migrationHistoryPage(input: MigrationHistoryPageQueryDto) {
@@ -42,7 +44,7 @@ export const versionApi = {
     return versionCommandApi.post<VersionDetailDto, VersionCreateDto>('Version', input)
   },
   delete(id: ApiId) {
-    return versionCommandApi.delete(`Version/${formatDynamicApiRouteValue(id)}`)
+    return versionCommandApi.delete('Version', { id })
   },
   update(input: VersionUpdateDto) {
     return versionCommandApi.put<VersionDetailDto, VersionUpdateDto>('Version', input)

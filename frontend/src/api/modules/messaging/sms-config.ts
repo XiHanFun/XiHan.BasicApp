@@ -8,7 +8,7 @@ import type {
   SmsConfigStatusUpdateDto,
   SmsConfigUpdateDto,
 } from './sms-config.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const smsConfigQueryApi = createDynamicApiClient('SmsConfigQuery')
 const smsConfigCommandApi = createDynamicApiClient('SmsConfig')
@@ -18,11 +18,12 @@ export const smsConfigApi = {
     return smsConfigCommandApi.post<SmsConfigDetailDto, SmsConfigCreateDto>('SmsConfig', input)
   },
   delete(id: ApiId) {
-    return smsConfigCommandApi.delete(`SmsConfig/${formatDynamicApiRouteValue(id)}`)
+    return smsConfigCommandApi.delete('SmsConfig', { id })
   },
   detail(id: ApiId) {
     return smsConfigQueryApi.get<SmsConfigDetailDto | null>(
-      `SmsConfigDetail/${formatDynamicApiRouteValue(id)}`,
+      'SmsConfigDetail',
+      { id },
     )
   },
   page(input: SmsConfigPageQueryDto) {

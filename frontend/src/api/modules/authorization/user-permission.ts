@@ -7,7 +7,7 @@ import type {
   UserPermissionStatusUpdateDto,
   UserPermissionUpdateDto,
 } from './user-permission.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const userPermissionQueryApi = createDynamicApiClient('UserPermissionQuery')
 const userPermissionCommandApi = createDynamicApiClient('UserPermission')
@@ -15,7 +15,8 @@ const userPermissionCommandApi = createDynamicApiClient('UserPermission')
 export const userPermissionApi = {
   detail(id: ApiId) {
     return userPermissionQueryApi.get<UserPermissionDetailDto | null>(
-      `UserPermissionDetail/${formatDynamicApiRouteValue(id)}`,
+      'UserPermissionDetail',
+      { id },
     )
   },
   grant(input: UserPermissionGrantDto) {
@@ -26,12 +27,12 @@ export const userPermissionApi = {
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
     return userPermissionQueryApi.get<UserPermissionListItemDto[]>(
-      `UserPermissions/${formatDynamicApiRouteValue(userId)}`,
-      params,
+      'UserPermissions',
+      { ...params, userId },
     )
   },
   revoke(id: ApiId) {
-    return userPermissionCommandApi.delete(`UserPermission/${formatDynamicApiRouteValue(id)}`)
+    return userPermissionCommandApi.delete('UserPermission', { id })
   },
   update(input: UserPermissionUpdateDto) {
     return userPermissionCommandApi.put<UserPermissionDetailDto, UserPermissionUpdateDto>('UserPermission', input)

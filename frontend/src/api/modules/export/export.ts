@@ -1,5 +1,5 @@
 import type { ApiId, PageResult } from '../../types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 /** 导出任务状态（与后端 JsonStringEnumConverter 序列化值一致） */
 export enum ExportTaskStatus {
@@ -74,7 +74,7 @@ export const exportTaskApi = {
   },
   /** 任务详情（轮询用） → GET /ExportTaskQuery/Detail/{id} */
   detail(id: ApiId) {
-    return exportQueryApi.get<ExportTaskDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return exportQueryApi.get<ExportTaskDto | null>('Detail', { id })
   },
   /** 取消待执行任务 → POST /ExportTask/Cancel?id= */
   cancel(id: ApiId) {
@@ -82,6 +82,6 @@ export const exportTaskApi = {
   },
   /** 删除任务记录 → DELETE /ExportTask/Delete/{id} */
   remove(id: ApiId) {
-    return exportCommandApi.delete<void>(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return exportCommandApi.delete<void>('Delete', { id })
   },
 }
