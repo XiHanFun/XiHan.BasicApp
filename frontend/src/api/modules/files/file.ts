@@ -16,7 +16,6 @@ import type {
 } from './file.types'
 import {
   createDynamicApiClient,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const fileQueryApi = createDynamicApiClient('FileQuery')
@@ -24,7 +23,7 @@ const fileCommandApi = createDynamicApiClient('File')
 
 export const fileApi = {
   detail(id: ApiId) {
-    return fileQueryApi.get<FileDetailDto | null>(`FileDetail/${formatDynamicApiRouteValue(id)}`)
+    return fileQueryApi.get<FileDetailDto | null>('FileDetail', { id })
   },
   /**
    * 彻底删除：物理删除文件记录与副本；deletePhysical=true 时连物理文件一并删除（不可恢复）。
@@ -32,9 +31,7 @@ export const fileApi = {
    * 且框架约定 DELETE 不收 body，FileDeleteDto 经 query 绑定。
    */
   destroy(input: { basicId: ApiId, deletePhysical: boolean, reason?: string }) {
-    return fileCommandApi.delete<void>('File', {
-      params: { basicId: input.basicId, deletePhysical: input.deletePhysical, reason: input.reason },
-    })
+    return fileCommandApi.delete<void>('File', { basicId: input.basicId, deletePhysical: input.deletePhysical, reason: input.reason })
   },
   download(fileId: ApiId) {
     // 后端 DownloadFileAsync：Download 前缀不在动词约定表，默认 POST；fileId（简单类型）在 POST 下绑定 Query。
@@ -62,7 +59,7 @@ export const fileApi = {
     return fileQueryApi.post<PageResult<FileListItemDto>>('FilePage', input)
   },
   storageDetail(id: ApiId) {
-    return fileQueryApi.get<FileStorageDetailDto | null>(`FileStorageDetail/${formatDynamicApiRouteValue(id)}`)
+    return fileQueryApi.get<FileStorageDetailDto | null>('FileStorageDetail', { id })
   },
   storagePage(input: FileStoragePageQueryDto) {
     return fileQueryApi.post<PageResult<FileStorageListItemDto>>('FileStoragePage', input)

@@ -7,7 +7,7 @@ import type {
   RoleDataScopeStatusUpdateDto,
   RoleDataScopeUpdateDto,
 } from './role-data-scope.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const roleDataScopeQueryApi = createDynamicApiClient('RoleDataScopeQuery')
 const roleDataScopeCommandApi = createDynamicApiClient('Role')
@@ -15,7 +15,8 @@ const roleDataScopeCommandApi = createDynamicApiClient('Role')
 export const roleDataScopeApi = {
   detail(id: ApiId) {
     return roleDataScopeQueryApi.get<RoleDataScopeDetailDto | null>(
-      `RoleDataScopeDetail/${formatDynamicApiRouteValue(id)}`,
+      'RoleDataScopeDetail',
+      { id },
     )
   },
   grant(input: RoleDataScopeGrantDto) {
@@ -26,12 +27,12 @@ export const roleDataScopeApi = {
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
     return roleDataScopeQueryApi.get<RoleDataScopeListItemDto[]>(
-      `RoleDataScopes/${formatDynamicApiRouteValue(roleId)}`,
-      params,
+      'RoleDataScopes',
+      { ...params, roleId },
     )
   },
   revoke(id: ApiId) {
-    return roleDataScopeCommandApi.delete(`RoleDataScope/${formatDynamicApiRouteValue(id)}`)
+    return roleDataScopeCommandApi.delete('RoleDataScope', { id })
   },
   update(input: RoleDataScopeUpdateDto) {
     return roleDataScopeCommandApi.put<RoleDataScopeDetailDto, RoleDataScopeUpdateDto>('RoleDataScope', input)

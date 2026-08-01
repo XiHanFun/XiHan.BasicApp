@@ -8,7 +8,7 @@ import type {
   EmailConfigStatusUpdateDto,
   EmailConfigUpdateDto,
 } from './email-config.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const emailConfigQueryApi = createDynamicApiClient('EmailConfigQuery')
 const emailConfigCommandApi = createDynamicApiClient('EmailConfig')
@@ -18,11 +18,12 @@ export const emailConfigApi = {
     return emailConfigCommandApi.post<EmailConfigDetailDto, EmailConfigCreateDto>('EmailConfig', input)
   },
   delete(id: ApiId) {
-    return emailConfigCommandApi.delete(`EmailConfig/${formatDynamicApiRouteValue(id)}`)
+    return emailConfigCommandApi.delete('EmailConfig', { id })
   },
   detail(id: ApiId) {
     return emailConfigQueryApi.get<EmailConfigDetailDto | null>(
-      `EmailConfigDetail/${formatDynamicApiRouteValue(id)}`,
+      'EmailConfigDetail',
+      { id },
     )
   },
   page(input: EmailConfigPageQueryDto) {

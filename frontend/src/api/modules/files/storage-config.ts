@@ -8,7 +8,7 @@ import type {
   StorageConfigStatusUpdateDto,
   StorageConfigUpdateDto,
 } from './storage-config.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const storageConfigQueryApi = createDynamicApiClient('StorageConfigQuery')
 const storageConfigCommandApi = createDynamicApiClient('StorageConfig')
@@ -18,11 +18,12 @@ export const storageConfigApi = {
     return storageConfigCommandApi.post<StorageConfigDetailDto, StorageConfigCreateDto>('StorageConfig', input)
   },
   delete(id: ApiId) {
-    return storageConfigCommandApi.delete(`StorageConfig/${formatDynamicApiRouteValue(id)}`)
+    return storageConfigCommandApi.delete('StorageConfig', { id })
   },
   detail(id: ApiId) {
     return storageConfigQueryApi.get<StorageConfigDetailDto | null>(
-      `StorageConfigDetail/${formatDynamicApiRouteValue(id)}`,
+      'StorageConfigDetail',
+      { id },
     )
   },
   page(input: StorageConfigPageQueryDto) {

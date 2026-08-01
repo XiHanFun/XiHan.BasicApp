@@ -15,7 +15,6 @@ import {
   createCommandApi,
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const resourceQueryApi = createDynamicApiClient('ResourceQuery')
@@ -37,7 +36,7 @@ export const resourceApi = {
     return resourceBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return resourceCommandApi.delete(`Resource/${formatDynamicApiRouteValue(id)}`)
+    return resourceCommandApi.delete('Resource', { id })
   },
   detail(id: ApiId) {
     return resourceReadApi.detail(id)

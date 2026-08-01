@@ -7,7 +7,7 @@ import type {
   UserDataScopeStatusUpdateDto,
   UserDataScopeUpdateDto,
 } from './user-data-scope.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const userDataScopeQueryApi = createDynamicApiClient('UserDataScopeQuery')
 const userDataScopeCommandApi = createDynamicApiClient('UserDataScope')
@@ -15,7 +15,8 @@ const userDataScopeCommandApi = createDynamicApiClient('UserDataScope')
 export const userDataScopeApi = {
   detail(id: ApiId) {
     return userDataScopeQueryApi.get<UserDataScopeDetailDto | null>(
-      `UserDataScopeDetail/${formatDynamicApiRouteValue(id)}`,
+      'UserDataScopeDetail',
+      { id },
     )
   },
   grant(input: UserDataScopeGrantDto) {
@@ -26,12 +27,12 @@ export const userDataScopeApi = {
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
     return userDataScopeQueryApi.get<UserDataScopeListItemDto[]>(
-      `UserDataScopes/${formatDynamicApiRouteValue(userId)}`,
-      params,
+      'UserDataScopes',
+      { ...params, userId },
     )
   },
   revoke(id: ApiId) {
-    return userDataScopeCommandApi.delete(`UserDataScope/${formatDynamicApiRouteValue(id)}`)
+    return userDataScopeCommandApi.delete('UserDataScope', { id })
   },
   update(input: UserDataScopeUpdateDto) {
     return userDataScopeCommandApi.put<UserDataScopeDetailDto, UserDataScopeUpdateDto>('UserDataScope', input)

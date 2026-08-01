@@ -10,7 +10,6 @@ import type {
 } from './task.types'
 import {
   createDynamicApiClient,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const taskQueryApi = createDynamicApiClient('TaskQuery')
@@ -20,7 +19,8 @@ export const taskApi = {
   // Query
   detail(id: ApiId) {
     return taskQueryApi.get<TaskDetailDto | null>(
-      `TaskDetail/${formatDynamicApiRouteValue(id)}`,
+      'TaskDetail',
+      { id },
     )
   },
   page(input: TaskPageQueryDto) {
@@ -31,7 +31,7 @@ export const taskApi = {
     return taskCommandApi.post<TaskDetailDto, TaskCreateDto>('Task', input)
   },
   delete(id: ApiId) {
-    return taskCommandApi.delete(`Task/${formatDynamicApiRouteValue(id)}`)
+    return taskCommandApi.delete('Task', { id })
   },
   update(input: TaskUpdateDto) {
     return taskCommandApi.put<TaskDetailDto, TaskUpdateDto>('Task', input)

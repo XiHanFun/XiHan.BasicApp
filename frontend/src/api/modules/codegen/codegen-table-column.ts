@@ -4,7 +4,7 @@ import type {
   CodeGenTableColumnListItemDto,
   CodeGenTableColumnUpdateDto,
 } from './codegen-table-column.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('CodeGenTableColumn')
 const query = createDynamicApiClient('CodeGenTableColumnQuery')
@@ -17,6 +17,6 @@ export const codeGenTableColumnApi = {
     return command.put<CodeGenTableColumnListItemDto, CodeGenTableColumnUpdateDto>('Update', input)
   },
   getByTable(tableId: ApiId) {
-    return query.get<CodeGenTableColumnListItemDto[]>(`ByTable/${formatDynamicApiRouteValue(tableId)}`)
+    return query.get<CodeGenTableColumnListItemDto[]>('ByTable', { tableId })
   },
 }

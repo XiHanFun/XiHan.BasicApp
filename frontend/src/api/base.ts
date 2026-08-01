@@ -6,7 +6,7 @@ export type DynamicApiParamValue = boolean | number | string | undefined
 export type DynamicApiParams = Record<string, DynamicApiParamValue>
 
 export interface DynamicApiClient {
-  delete: <TResult = void>(action: string, config?: AxiosRequestConfig) => Promise<TResult>
+  delete: <TResult = void>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig) => Promise<TResult>
   get: <TResult>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig) => Promise<TResult>
   post: <TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig) => Promise<TResult>
   put: <TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig) => Promise<TResult>
@@ -38,8 +38,11 @@ export function createDynamicApiClient(controllerName: string): DynamicApiClient
     put<TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig) {
       return requestClient.put<TResult>(buildActionUrl(normalizedControllerName, action), body, config)
     },
-    delete<TResult = void>(action: string, config?: AxiosRequestConfig) {
-      return requestClient.delete<TResult>(buildActionUrl(normalizedControllerName, action), config)
+    delete<TResult = void>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig) {
+      return requestClient.delete<TResult>(buildActionUrl(normalizedControllerName, action), {
+        ...config,
+        params,
+      })
     },
   }
 }
@@ -57,7 +60,7 @@ export function createReadApi<TListItem, TDetail, TQuery extends PageRequest = P
       return api.post<PageResult<TListItem>, TQuery>(`${normalizedResourceName}Page`, input)
     },
     detail(id: ApiId) {
-      return api.get<TDetail | null>(`${normalizedResourceName}Detail/${formatDynamicApiRouteValue(id)}`)
+      return api.get<TDetail | null>(`${normalizedResourceName}Detail`, { id })
     },
   }
 }

@@ -11,7 +11,7 @@ import type {
   CodeGenSchemaSyncResultDto,
 } from './generation.types'
 import type { CodeGenTableDetailDto } from './table.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const orchestration = createDynamicApiClient('CodeGeneration')
 
@@ -37,7 +37,7 @@ export const codeGenerationApi = {
   },
   /** 同步表结构：人工改过的字段冻结，其余跟随最新表结构重新推断 */
   syncSchema(tableId: ApiId) {
-    return orchestration.post<CodeGenSchemaSyncResultDto>(`SyncSchema/${formatDynamicApiRouteValue(tableId)}`)
+    return orchestration.post<CodeGenSchemaSyncResultDto>('SyncSchema', { tableId })
   },
   /** 预览生成（仅返回产物内容） */
   preview(input: CodeGenPreviewRequestDto) {

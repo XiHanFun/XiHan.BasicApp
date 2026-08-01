@@ -15,7 +15,6 @@ import {
   createCommandApi,
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const permissionQueryApi = createDynamicApiClient('PermissionQuery')
@@ -40,7 +39,7 @@ export const permissionApi = {
     return permissionBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return permissionCommandApi.delete(`Permission/${formatDynamicApiRouteValue(id)}`)
+    return permissionCommandApi.delete('Permission', { id })
   },
   detail(id: ApiId) {
     return permissionReadApi.detail(id)

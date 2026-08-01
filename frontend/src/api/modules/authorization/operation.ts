@@ -15,7 +15,6 @@ import {
   createCommandApi,
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const operationQueryApi = createDynamicApiClient('OperationQuery')
@@ -40,7 +39,7 @@ export const operationApi = {
     return operationBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return operationCommandApi.delete(`Operation/${formatDynamicApiRouteValue(id)}`)
+    return operationCommandApi.delete('Operation', { id })
   },
   detail(id: ApiId) {
     return operationReadApi.detail(id)

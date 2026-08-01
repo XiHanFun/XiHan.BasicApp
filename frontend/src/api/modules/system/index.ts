@@ -5,7 +5,7 @@ import type {
   RoleManagementDetailDto,
   UserManagementDetailDto,
 } from './system.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 import { permissionChangeLogApi } from '../audit'
 import {
   fieldLevelSecurityApi,
@@ -40,7 +40,8 @@ export const userManagementApi = {
   userDepartments: userDepartmentApi,
   detailView(id: ApiId) {
     return userManagementQueryApi.get<UserManagementDetailDto | null>(
-      `UserManagementDetail/${formatDynamicApiRouteValue(id)}`,
+      'UserManagementDetail',
+      { id },
     )
   },
   permissions: userPermissionApi,
@@ -54,7 +55,8 @@ export const roleManagementApi = {
   dataScopes: roleDataScopeApi,
   detailView(id: ApiId) {
     return roleManagementQueryApi.get<RoleManagementDetailDto | null>(
-      `RoleManagementDetail/${formatDynamicApiRouteValue(id)}`,
+      'RoleManagementDetail',
+      { id },
     )
   },
   hierarchy: roleHierarchyApi,
@@ -65,7 +67,8 @@ export const orgManagementApi = {
   ...departmentApi,
   detailView(id: ApiId) {
     return departmentManagementQueryApi.get<DepartmentManagementDetailDto | null>(
-      `DepartmentManagementDetail/${formatDynamicApiRouteValue(id)}`,
+      'DepartmentManagementDetail',
+      { id },
     )
   },
 }
@@ -77,7 +80,8 @@ export const permissionCenterApi = {
   delegations: permissionDelegationApi,
   detailView(id: ApiId) {
     return permissionCenterQueryApi.get<PermissionCenterDetailDto | null>(
-      `PermissionCenterDetail/${formatDynamicApiRouteValue(id)}`,
+      'PermissionCenterDetail',
+      { id },
     )
   },
   fieldSecurity: fieldLevelSecurityApi,

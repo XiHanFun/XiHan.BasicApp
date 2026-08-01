@@ -8,7 +8,7 @@ import type {
   AiAssistantStatusUpdateDto,
   AiAssistantUpdateDto,
 } from './assistant.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('AiAssistant')
 const query = createDynamicApiClient('AiAssistantQuery')
@@ -27,12 +27,12 @@ export const aiAssistantApi = {
     return command.post<AiAssistantDetailDto, AiAssistantActionDto>('SetDefault', { basicId: id })
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
   page(input: AiAssistantPageQueryDto) {
     return query.post<PageResult<AiAssistantListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<AiAssistantDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<AiAssistantDetailDto | null>('Detail', { id })
   },
 }

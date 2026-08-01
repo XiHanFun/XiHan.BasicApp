@@ -8,7 +8,7 @@ import type {
   RolePermissionStatusUpdateDto,
   RolePermissionUpdateDto,
 } from './role-permission.types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const rolePermissionQueryApi = createDynamicApiClient('RolePermissionQuery')
 const rolePermissionCommandApi = createDynamicApiClient('Role')
@@ -16,7 +16,8 @@ const rolePermissionCommandApi = createDynamicApiClient('Role')
 export const rolePermissionApi = {
   detail(id: ApiId) {
     return rolePermissionQueryApi.get<RolePermissionDetailDto | null>(
-      `RolePermissionDetail/${formatDynamicApiRouteValue(id)}`,
+      'RolePermissionDetail',
+      { id },
     )
   },
   grant(input: RolePermissionGrantDto) {
@@ -30,12 +31,12 @@ export const rolePermissionApi = {
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
     return rolePermissionQueryApi.get<RolePermissionListItemDto[]>(
-      `RolePermissions/${formatDynamicApiRouteValue(roleId)}`,
-      params,
+      'RolePermissions',
+      { ...params, roleId },
     )
   },
   revoke(id: ApiId) {
-    return rolePermissionCommandApi.delete(`RolePermission/${formatDynamicApiRouteValue(id)}`)
+    return rolePermissionCommandApi.delete('RolePermission', { id })
   },
   update(input: RolePermissionUpdateDto) {
     return rolePermissionCommandApi.put<RolePermissionDetailDto, RolePermissionUpdateDto>('RolePermission', input)

@@ -6,7 +6,7 @@ import type {
   CodeGenTableStatusUpdateDto,
   CodeGenTableUpdateDto,
 } from './table.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('CodeGenTable')
 const query = createDynamicApiClient('CodeGenTableQuery')
@@ -24,12 +24,12 @@ export const codeGenTableApi = {
     return command.put<CodeGenTableDetailDto, CodeGenTableStatusUpdateDto>('Status', input)
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
   page(input: CodeGenTablePageQueryDto) {
     return query.post<PageResult<CodeGenTableListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<CodeGenTableDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<CodeGenTableDetailDto | null>('Detail', { id })
   },
 }

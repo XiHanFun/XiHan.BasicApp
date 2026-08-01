@@ -4,7 +4,7 @@ import type {
   CodeGenHistoryListItemDto,
   CodeGenHistoryPageQueryDto,
 } from './codegen-history.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const query = createDynamicApiClient('CodeGenHistoryQuery')
 
@@ -13,9 +13,9 @@ export const codeGenHistoryApi = {
     return query.post<PageResult<CodeGenHistoryListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<CodeGenHistoryDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<CodeGenHistoryDetailDto | null>('Detail', { id })
   },
   getByTable(tableId: ApiId) {
-    return query.get<CodeGenHistoryListItemDto[]>(`ByTable/${formatDynamicApiRouteValue(tableId)}`)
+    return query.get<CodeGenHistoryListItemDto[]>('ByTable', { tableId })
   },
 }

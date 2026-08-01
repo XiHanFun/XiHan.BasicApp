@@ -15,7 +15,7 @@ import type {
   ChatMessageSendInput,
   ChatReadPosition,
 } from '~/types'
-import { appendDynamicApiParam, createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const chatCommandApi = createDynamicApiClient('Chat')
 const chatQueryApi = createDynamicApiClient('ChatQuery')
@@ -47,7 +47,7 @@ export const chatApi = {
   },
   /** RemoveMemberAsync：Remove 前缀剥离 → DELETE /Chat/Member；DELETE 无 body，复杂 DTO 兜底 Query 绑定 */
   removeMember(conversationId: string, userId: string) {
-    return chatCommandApi.delete<void>('Member', { params: { conversationId, userId } })
+    return chatCommandApi.delete<void>('Member', { conversationId, userId })
   },
   /** SendMessageAsync → POST /Chat/SendMessage */
   sendMessage(input: ChatMessageSendInput) {
@@ -115,7 +115,7 @@ export const chatApi = {
   },
   /** GetMembersAsync(long conversationId)：GET 的 Id 参数拼路由段 → GET /ChatQuery/Members/{conversationId} */
   members(conversationId: string) {
-    return chatQueryApi.get<ChatMemberItem[]>(`Members/${formatDynamicApiRouteValue(conversationId)}`)
+    return chatQueryApi.get<ChatMemberItem[]>('Members', { conversationId })
   },
   /** GetUserOptionsAsync：Get 前缀剥离 → GET /ChatQuery/UserOptions；仅需 saas:chat:read 的轻量选人（启用用户+超管隐藏） */
   userOptions(keyword: string, limit = 20) {
@@ -125,11 +125,11 @@ export const chatApi = {
   },
   /** GetReadPositionsAsync(long conversationId) → GET /ChatQuery/ReadPositions/{id}（群已读回执） */
   readPositions(conversationId: string) {
-    return chatQueryApi.get<ChatReadPosition[]>(`ReadPositions/${formatDynamicApiRouteValue(conversationId)}`)
+    return chatQueryApi.get<ChatReadPosition[]>('ReadPositions', { conversationId })
   },
   /** GetPinnedMessagesAsync(long conversationId) → GET /ChatQuery/PinnedMessages/{id} */
   pinnedMessages(conversationId: string) {
-    return chatQueryApi.get<ChatMessageItem[]>(`PinnedMessages/${formatDynamicApiRouteValue(conversationId)}`)
+    return chatQueryApi.get<ChatMessageItem[]>('PinnedMessages', { conversationId })
   },
   /** GetAvailableAsync：Get 前缀剥离 → GET /AiAssistantQuery/Available（仅登录态，不看助手管理权限） */
   availableAssistants() {

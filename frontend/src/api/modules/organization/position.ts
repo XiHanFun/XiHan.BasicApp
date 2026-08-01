@@ -10,7 +10,6 @@ import type {
 import {
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const positionQueryApi = createDynamicApiClient('PositionQuery')
@@ -25,7 +24,7 @@ export const positionApi = {
     return positionCommandApi.post<PositionDetailDto, PositionCreateDto>('Position', input)
   },
   delete(id: ApiId) {
-    return positionCommandApi.delete(`Position/${formatDynamicApiRouteValue(id)}`)
+    return positionCommandApi.delete('Position', { id })
   },
   detail(id: ApiId) {
     return positionReadApi.detail(id)

@@ -1,13 +1,14 @@
 import type { ApiId, PageResult } from '../../types'
 import type { OperationLogDetailDto, OperationLogListItemDto, OperationLogPageQueryDto } from './operation-log.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const operationLogQueryApi = createDynamicApiClient('OperationLogQuery')
 
 export const operationLogApi = {
   detail(id: ApiId) {
     return operationLogQueryApi.get<OperationLogDetailDto | null>(
-      `OperationLogDetail/${formatDynamicApiRouteValue(id)}`,
+      'OperationLogDetail',
+      { id },
     )
   },
   page(input: OperationLogPageQueryDto) {

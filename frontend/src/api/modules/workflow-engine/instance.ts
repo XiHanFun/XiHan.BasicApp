@@ -9,7 +9,7 @@ import type {
   WorkflowSignalPublishDto,
   WorkflowSignalPublishResultDto,
 } from './instance.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('WorkflowInstance')
 const query = createDynamicApiClient('WorkflowInstanceQuery')
@@ -20,7 +20,7 @@ export const workflowInstanceApi = {
     return query.post<PageResult<WorkflowInstanceListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<WorkflowInstanceDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<WorkflowInstanceDetailDto | null>('Detail', { id })
   },
   // Commands（Start/Cancel 等不在动词剥离表内：路由保留完整方法名，POST）
   start(input: WorkflowInstanceStartDto) {

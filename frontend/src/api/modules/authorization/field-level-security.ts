@@ -11,7 +11,6 @@ import {
   createCommandApi,
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const fieldLevelSecurityQueryApi = createDynamicApiClient('FieldLevelSecurityQuery')
@@ -32,7 +31,7 @@ export const fieldLevelSecurityApi = {
     return fieldLevelSecurityBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return fieldLevelSecurityCommandApi.delete(`FieldLevelSecurity/${formatDynamicApiRouteValue(id)}`)
+    return fieldLevelSecurityCommandApi.delete('FieldLevelSecurity', { id })
   },
   detail(id: ApiId) {
     return fieldLevelSecurityReadApi.detail(id)

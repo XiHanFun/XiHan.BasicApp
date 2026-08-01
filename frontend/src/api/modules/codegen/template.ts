@@ -9,7 +9,7 @@ import type {
   CodeGenTemplateValidateDto,
   CodeGenTemplateValidateResultDto,
 } from './template.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const command = createDynamicApiClient('CodeGenTemplate')
 const query = createDynamicApiClient('CodeGenTemplateQuery')
@@ -25,7 +25,7 @@ export const codeGenTemplateApi = {
     return command.put<CodeGenTemplateDetailDto, CodeGenTemplateStatusUpdateDto>('Status', input)
   },
   delete(id: ApiId) {
-    return command.delete(`Delete/${formatDynamicApiRouteValue(id)}`)
+    return command.delete('Delete', { id })
   },
   validate(input: CodeGenTemplateValidateDto) {
     return command.post<CodeGenTemplateValidateResultDto, CodeGenTemplateValidateDto>('Validate', input)
@@ -34,6 +34,6 @@ export const codeGenTemplateApi = {
     return query.post<PageResult<CodeGenTemplateListItemDto>>('Page', input)
   },
   detail(id: ApiId) {
-    return query.get<CodeGenTemplateDetailDto | null>(`Detail/${formatDynamicApiRouteValue(id)}`)
+    return query.get<CodeGenTemplateDetailDto | null>('Detail', { id })
   },
 }

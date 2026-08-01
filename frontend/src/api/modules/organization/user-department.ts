@@ -9,7 +9,6 @@ import type {
 import {
   appendDynamicApiParam,
   createDynamicApiClient,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const userDepartmentQueryApi = createDynamicApiClient('UserDepartmentQuery')
@@ -26,20 +25,20 @@ export const userDepartmentApi = {
     appendDynamicApiParam(params, 'IncludeChildren', includeChildren)
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
     return userDepartmentQueryApi.get<UserDepartmentListItemDto[]>(
-      `DepartmentUsers/${formatDynamicApiRouteValue(departmentId)}`,
-      params,
+      'DepartmentUsers',
+      { ...params, departmentId },
     )
   },
   listByUser(userId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
     return userDepartmentQueryApi.get<UserDepartmentListItemDto[]>(
-      `UserDepartments/${formatDynamicApiRouteValue(userId)}`,
-      params,
+      'UserDepartments',
+      { ...params, userId },
     )
   },
   revoke(id: ApiId) {
-    return userDepartmentCommandApi.delete(`UserDepartment/${formatDynamicApiRouteValue(id)}`)
+    return userDepartmentCommandApi.delete('UserDepartment', { id })
   },
   update(input: UserDepartmentUpdateDto) {
     return userDepartmentCommandApi.put<UserDepartmentListItemDto, UserDepartmentUpdateDto>('UserDepartment', input)

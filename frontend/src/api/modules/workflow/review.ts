@@ -9,7 +9,7 @@ import type {
   ReviewUpdateDto,
   ReviewWithdrawDto,
 } from './review.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const reviewQueryApi = createDynamicApiClient('ReviewQuery')
 const reviewCommandApi = createDynamicApiClient('Review')
@@ -18,7 +18,8 @@ export const reviewApi = {
   // Query
   detail(id: ApiId) {
     return reviewQueryApi.get<ReviewDetailDto | null>(
-      `ReviewDetail/${formatDynamicApiRouteValue(id)}`,
+      'ReviewDetail',
+      { id },
     )
   },
   page(input: ReviewPageQueryDto) {
@@ -32,7 +33,7 @@ export const reviewApi = {
     return reviewCommandApi.post<ReviewDetailDto, ReviewCreateDto>('Review', input)
   },
   delete(id: ApiId) {
-    return reviewCommandApi.delete(`Review/${formatDynamicApiRouteValue(id)}`)
+    return reviewCommandApi.delete('Review', { id })
   },
   update(input: ReviewUpdateDto) {
     return reviewCommandApi.put<ReviewDetailDto, ReviewUpdateDto>('Review', input)

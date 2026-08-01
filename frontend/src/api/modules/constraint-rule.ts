@@ -1,6 +1,6 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest, PageResult } from '../types'
 import type { EnableStatus } from './shared'
-import { createDynamicApiClient, createReadApi, formatDynamicApiRouteValue } from '../base'
+import { createDynamicApiClient, createReadApi } from '../base'
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum ConstraintTargetType {
@@ -134,7 +134,7 @@ export const constraintRuleApi = {
     )
   },
   delete(id: ApiId) {
-    return constraintRuleCommandApi.delete(`ConstraintRule/${formatDynamicApiRouteValue(id)}`)
+    return constraintRuleCommandApi.delete('ConstraintRule', { id })
   },
   detail(id: ApiId) {
     return constraintRuleReadApi.detail(id)

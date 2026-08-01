@@ -10,7 +10,6 @@ import type {
 import {
   createDynamicApiClient,
   createReadApi,
-  formatDynamicApiRouteValue,
 } from '../../base'
 
 const configQueryApi = createDynamicApiClient('ConfigQuery')
@@ -22,7 +21,7 @@ export const configApi = {
     return configCommandApi.post<ConfigDetailDto, ConfigCreateDto>('Config', input)
   },
   delete(id: ApiId) {
-    return configCommandApi.delete(`Config/${formatDynamicApiRouteValue(id)}`)
+    return configCommandApi.delete('Config', { id })
   },
   detail(id: ApiId) {
     return configReadApi.detail(id)

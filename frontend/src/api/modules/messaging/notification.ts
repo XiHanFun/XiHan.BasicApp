@@ -14,7 +14,7 @@ import type {
   UserNotificationListItemDto,
   UserNotificationPageQueryDto,
 } from './notification.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const notificationQueryApi = createDynamicApiClient('NotificationQuery')
 const notificationCommandApi = createDynamicApiClient('Notification')
@@ -24,11 +24,12 @@ export const notificationApi = {
     return notificationCommandApi.post<NotificationDetailDto, NotificationCreateDto>('Notification', input)
   },
   delete(id: ApiId) {
-    return notificationCommandApi.delete(`Notification/${formatDynamicApiRouteValue(id)}`)
+    return notificationCommandApi.delete('Notification', { id })
   },
   detail(id: NotificationDetailDto['basicId']) {
     return notificationQueryApi.get<NotificationDetailDto | null>(
-      `NotificationDetail/${formatDynamicApiRouteValue(id)}`,
+      'NotificationDetail',
+      { id },
     )
   },
   page(input: NotificationPageQueryDto) {
@@ -38,7 +39,7 @@ export const notificationApi = {
     return notificationCommandApi.post<NotificationPublishResultDto, NotificationPublishDto>('PublishNotification', input)
   },
   readStats(id: ApiId) {
-    return notificationQueryApi.get<NotificationReadStatsDto>(`NotificationReadStats/${formatDynamicApiRouteValue(id)}`)
+    return notificationQueryApi.get<NotificationReadStatsDto>('NotificationReadStats', { id })
   },
   remind(id: ApiId) {
     // RemindAsync(long id)：非 CRUD 前缀 → 默认 POST，POST 不把 id 拼进路由段，
@@ -53,7 +54,8 @@ export const notificationApi = {
   },
   userDetail(id: UserNotificationDetailDto['basicId']) {
     return notificationQueryApi.get<UserNotificationDetailDto | null>(
-      `UserNotificationDetail/${formatDynamicApiRouteValue(id)}`,
+      'UserNotificationDetail',
+      { id },
     )
   },
   userPage(input: UserNotificationPageQueryDto) {

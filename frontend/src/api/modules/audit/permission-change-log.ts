@@ -4,14 +4,15 @@ import type {
   PermissionChangeLogListItemDto,
   PermissionChangeLogPageQueryDto,
 } from './permission-change-log.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+import { createDynamicApiClient } from '../../base'
 
 const permissionChangeLogQueryApi = createDynamicApiClient('PermissionChangeLogQuery')
 
 export const permissionChangeLogApi = {
   detail(id: ApiId) {
     return permissionChangeLogQueryApi.get<PermissionChangeLogDetailDto | null>(
-      `PermissionChangeLogDetail/${formatDynamicApiRouteValue(id)}`,
+      'PermissionChangeLogDetail',
+      { id },
     )
   },
   page(input: PermissionChangeLogPageQueryDto) {
