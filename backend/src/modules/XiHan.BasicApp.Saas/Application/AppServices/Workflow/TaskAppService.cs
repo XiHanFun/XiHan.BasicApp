@@ -76,6 +76,7 @@ public sealed class TaskAppService : SaasApplicationService, ITaskAppService
     /// <summary>
     /// 同步所有活跃的 SysTask 到框架调度器（用于应用启动时初始化）
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Task.RunStatus)]
     public async Task SyncAllActiveJobsAsync(CancellationToken cancellationToken = default)
     {
         await _taskSchedulerSyncService.SyncAllActiveJobsAsync(cancellationToken);
