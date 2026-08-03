@@ -4,8 +4,10 @@
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Dtos.Monitoring;
 using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Utils.Diagnostics.HardwareInfos;
 using XiHan.Framework.Utils.Reflections;
 using XiHan.Framework.Utils.Runtime;
@@ -14,6 +16,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Monitoring;
 
 /// <summary>
 /// 系统服务器监控服务
+/// 全部读取走 saas:server:read（平台运维专属，与菜单 setting.server 同码）。
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
@@ -32,6 +35,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取主板信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<BoardInfo> GetBoardInfoAsync()
     {
         return await _serverInfoQueryService.GetBoardInfoAsync();
@@ -40,6 +44,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取 CPU 信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<CpuInfo> GetCpuInfoAsync()
     {
         return await _serverInfoQueryService.GetCpuInfoAsync();
@@ -48,6 +53,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取磁盘信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<List<DiskInfo>> GetDiskInfoAsync()
     {
         return await _serverInfoQueryService.GetDiskInfoAsync();
@@ -56,6 +62,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取 GPU 信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<List<GpuInfo>> GetGpuInfoAsync()
     {
         return await _serverInfoQueryService.GetGpuInfoAsync();
@@ -64,6 +71,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取内存信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<RamInfo> GetMemoryInfoAsync()
     {
         return await _serverInfoQueryService.GetMemoryInfoAsync();
@@ -72,6 +80,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取网卡信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<List<NetworkInfo>> GetNetworkInfoAsync()
     {
         return await _serverInfoQueryService.GetNetworkInfoAsync();
@@ -80,6 +89,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取 NuGet 包信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<List<NuGetPackage>> GetNuGetPackagesAsync()
     {
         return await _serverInfoQueryService.GetNuGetPackagesAsync();
@@ -88,6 +98,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取运行时信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<RuntimeInfo> GetRuntimeInfoAsync()
     {
         return await _serverInfoQueryService.GetRuntimeInfoAsync();
@@ -96,6 +107,7 @@ public class ServerAppService : ApplicationServiceBase
     /// <summary>
     /// 获取服务器综合信息
     /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.Server.Read)]
     public async Task<ServerInfoDto> GetServerInfoAsync(bool includeDisk = true, bool includeNetwork = true)
     {
         return await _serverInfoQueryService.GetServerInfoAsync(includeDisk, includeNetwork);
