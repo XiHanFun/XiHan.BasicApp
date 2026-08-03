@@ -67,6 +67,7 @@
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>
   <Folder Name="/2.test/">
+    <Project Path="test/XiHan.BasicApp.Api.Tests/XiHan.BasicApp.Api.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Saas.Tests/XiHan.BasicApp.Saas.Tests.csproj" />
   </Folder>
   <Folder Name="/3.others/" />
