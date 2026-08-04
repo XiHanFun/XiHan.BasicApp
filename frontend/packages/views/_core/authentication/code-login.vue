@@ -18,7 +18,6 @@ const loading = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
 
-
 const formData = ref({
   phone: '',
   code: '',
