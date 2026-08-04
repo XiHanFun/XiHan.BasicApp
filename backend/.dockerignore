@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/TestResults/
+**/*.user
+**/logs/
+**/wwwroot/uploads/
+nupkgs/
+
+# 生产/开发配置含密钥，不进镜像层；由 compose 挂载或环境变量注入
+**/appsettings.Production.json
+**/appsettings.Development.json
