@@ -1,0 +1,8 @@
+node_modules/
+**/node_modules/
+dist/
+.turbo/
+
+# 本地覆盖文件不进镜像，API 源由构建参数决定
+.env.local
+.env.*.local

@@ -1,0 +1,107 @@
+# 自包含运行栈：前端(nginx) + 后端 + PostgreSQL + Redis + Qdrant。
+# 用法：cp .env.example .env && docker compose up -d
+#
+# 后端配置来源有两层，环境变量优先于 JSON 文件（.NET 配置提供器顺序）：
+#   1. 挂载的 appsettings.Production.json —— 提供 JWT 密钥、密码哈希参数等全部调优项
+#   2. 下方 environment —— 只覆盖容器内的服务地址
+# 该 JSON 文件在 .gitignore 内、也不进镜像层，必须由宿主机挂载进来。
+
+name: xihan-basicapp
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # AI 知识库(RAG)的向量库。不启用 AI 模块时可整段删除，
+  # 同时删掉 backend 的 XiHan__AI__Rag__* 与 depends_on。
+  qdrant:
+    image: qdrant/qdrant:v1.15.1
+    restart: unless-stopped
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Hosting__Urls: http://0.0.0.0:9708
+
+      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__ConfigId: '1'
+      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__DbType: PostgreSQL
+      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__IsAutoCloseConnection: 'true'
+      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__ConnectionString: >-
+        Server=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};TrustServerCertificate=true;
+
+      XiHan__Caching__Redis__IsEnabled: 'true'
+      XiHan__Caching__Redis__Configuration: redis:6379,defaultDatabase=0
+
+      XiHan__AI__Rag__QdrantHost: qdrant
+      XiHan__AI__Rag__QdrantPort: '6334'
+      XiHan__AI__Rag__QdrantHttps: 'false'
+
+      # 迁移执行权判据：AutoVersionUpdate 仅在 WorkerId == 1 的节点执行 UpdateScripts。
+      # 多副本部署时只能有一个节点为 1，其余必须改值（否则雪花 ID 重复）。
+      XiHan__DistributedIds__SnowflakeId__WorkerId: '1'
+      # 已知限制：AutoVersionUpdate 把「已执行到哪个版本」记在 /app/version.txt，
+      # 容器重建即丢失，被判定为全新部署并跳过全部升级脚本。UpdateScripts 目前只有
+      # 一个空的 1.0.0.sql，故暂无实际影响；写入真实升级脚本前须先把该状态挪进数据库。
+    volumes:
+      - ./backend/src/main/XiHan.BasicApp.WebHost/appsettings.Production.json:/app/appsettings.Production.json:ro
+      - backend-uploads:/app/wwwroot/uploads
+      - backend-logs:/app/logs
+    ports:
+      - '${BACKEND_PORT:-9708}:9708'
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # 留空 = 同源，由 nginx 反代到 backend。填绝对地址则前端直连该地址。
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '${FRONTEND_PORT:-8080}:80'
+
+volumes:
+  postgres-data:
+  redis-data:
+  qdrant-data:
+  backend-uploads:
+  backend-logs:
