@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Utils.Reflections;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Migrations;
@@ -16,6 +17,13 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Migrations;
 /// <param name="ScriptName">脚本文件名，如 <c>3.10.0.sql</c></param>
 /// <param name="FilePath">脚本文件的完整路径</param>
 public sealed record MigrationScript(string Version, string ScriptName, string FilePath);
+
+/// <summary>
+/// 需要单独升级的租户独立库
+/// </summary>
+/// <param name="TenantId">租户主键</param>
+/// <param name="TenantName">租户名称，仅用于日志</param>
+public sealed record TenantMigrationTarget(long TenantId, string TenantName);
 
 /// <summary>
 /// 升级脚本执行器：按语义化版本顺序执行 <c>UpdateScripts/*.sql</c>，执行台账记入 <c>Sys_Migration_History</c>。
@@ -30,6 +38,10 @@ public sealed record MigrationScript(string Version, string ScriptName, string F
 /// <para>
 /// PostgreSQL 下取 <c>pg_advisory_xact_lock</c> 事务级建议锁，并把本次全部脚本放进同一事务，
 /// 多实例同时启动时只有一个执行、失败整体回滚。其余方言不加锁，需自行保证单实例执行。
+/// </para>
+/// <para>
+/// 平台库之后逐个升级库隔离租户的独立库。每个库各自持有台账、各自判断待执行集合，
+/// 因此租户库在哪个版本开出来都能补齐到当前版本，不会各自漂移。
 /// </para>
 /// </remarks>
 public sealed class SqlScriptMigrationRunner
@@ -50,14 +62,19 @@ public sealed class SqlScriptMigrationRunner
     private const long AdvisoryLockKey = 726_150_318_2026;
 
     private readonly ISqlSugarClientResolver _clientResolver;
+    private readonly ICurrentTenant _currentTenant;
     private readonly ILogger<SqlScriptMigrationRunner> _logger;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SqlScriptMigrationRunner(ISqlSugarClientResolver clientResolver, ILogger<SqlScriptMigrationRunner> logger)
+    public SqlScriptMigrationRunner(
+        ISqlSugarClientResolver clientResolver,
+        ICurrentTenant currentTenant,
+        ILogger<SqlScriptMigrationRunner> logger)
     {
         _clientResolver = clientResolver;
+        _currentTenant = currentTenant;
         _logger = logger;
     }
 
@@ -121,9 +138,73 @@ public sealed class SqlScriptMigrationRunner
     }
 
     /// <summary>
-    /// 执行升级。任何一个脚本失败即回滚本次全部改动、写入失败台账并抛出，阻止应用带着半吊子表结构启动。
+    /// 执行升级：先平台库，再逐个库隔离租户的独立库。
     /// </summary>
+    /// <remarks>
+    /// 每个库各自持有一份台账，各自判断待执行集合，因此租户库在哪个版本开出来都能补齐到当前版本。
+    /// 单个租户失败不影响其余租户继续升级，但全部跑完后会汇总抛出，不允许应用带着落后的租户库对外服务。
+    /// </remarks>
     public async Task RunAsync(CancellationToken cancellationToken = default)
+    {
+        await RunOnCurrentDatabaseAsync("平台库", cancellationToken);
+
+        var tenants = await LoadDatabaseIsolatedTenantsAsync(cancellationToken);
+        if (tenants.Count == 0)
+        {
+            return;
+        }
+
+        _logger.LogInformation("开始升级 {Count} 个库隔离租户的独立库。", tenants.Count);
+
+        var failures = new List<Exception>();
+        foreach (var tenant in tenants)
+        {
+            var scope = $"租户 {tenant.TenantName}({tenant.TenantId}) 独立库";
+            try
+            {
+                using (_currentTenant.Change(tenant.TenantId, tenant.TenantName))
+                {
+                    await RunOnCurrentDatabaseAsync(scope, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Scope} 升级失败，继续处理其余租户。", scope);
+                failures.Add(new InvalidOperationException($"{scope} 升级失败。", ex));
+            }
+        }
+
+        if (failures.Count > 0)
+        {
+            throw new AggregateException($"{failures.Count} 个租户独立库升级失败。", failures);
+        }
+    }
+
+    /// <summary>
+    /// 读取需要随平台库一同升级的租户：库隔离、且独立库已初始化完成。
+    /// </summary>
+    /// <remarks>
+    /// 未完成初始化（Pending / Configuring / Failed）的租户其独立库可能尚不存在，跳过；
+    /// 待其初始化流程建表并落基线后，下次启动自然纳入。
+    /// </remarks>
+    private async Task<IReadOnlyList<TenantMigrationTarget>> LoadDatabaseIsolatedTenantsAsync(CancellationToken cancellationToken)
+    {
+        var db = _clientResolver.GetCurrentClient();
+
+        var tenants = await db.Queryable<SysTenant>()
+            .Where(tenant => !tenant.IsDeleted)
+            .Where(tenant => tenant.IsolationMode == TenantIsolationMode.Database)
+            .Where(tenant => tenant.ConfigStatus == TenantConfigStatus.Configured)
+            .Select(tenant => new TenantMigrationTarget(tenant.BasicId, tenant.TenantName))
+            .ToListAsync(cancellationToken);
+
+        return tenants;
+    }
+
+    /// <summary>
+    /// 对当前租户上下文解析到的那个库执行升级。
+    /// </summary>
+    private async Task RunOnCurrentDatabaseAsync(string scope, CancellationToken cancellationToken)
     {
         var db = _clientResolver.GetCurrentClient();
         var tableName = db.EntityMaintenance.GetTableName<SysMigrationHistory>();
@@ -131,7 +212,7 @@ public sealed class SqlScriptMigrationRunner
         if (!db.DbMaintenance.IsAnyTable(tableName, false))
         {
             throw new InvalidOperationException(
-                $"升级台账表 {tableName} 不存在，无法判断已执行到哪个版本。请先完成建表（XiHan:Data:SqlSugarCore:EnableTableInitialization）。");
+                $"{scope} 的升级台账表 {tableName} 不存在，无法判断已执行到哪个版本。请先完成建表（XiHan:Data:SqlSugarCore:EnableTableInitialization）。");
         }
 
         var currentVersion = GetCurrentProgramVersion();
@@ -143,7 +224,7 @@ public sealed class SqlScriptMigrationRunner
         if (history.Count == 0)
         {
             await WriteHistoryAsync(db, currentVersion, BaselineScriptName, true, null, cancellationToken);
-            _logger.LogInformation("升级台账为空，按全新部署落基线 {Version}，不执行历史脚本。", currentVersion);
+            _logger.LogInformation("{Scope} 升级台账为空，按全新部署落基线 {Version}，不执行历史脚本。", scope, currentVersion);
             return;
         }
 
@@ -159,17 +240,17 @@ public sealed class SqlScriptMigrationRunner
 
         if (pending.Count == 0)
         {
-            _logger.LogInformation("升级脚本无待执行项（当前版本 {Version}，基线 {Baseline}）。", currentVersion, baselineVersion ?? "无");
+            _logger.LogInformation("{Scope} 无待执行升级脚本（当前版本 {Version}，基线 {Baseline}）。", scope, currentVersion, baselineVersion ?? "无");
             return;
         }
 
-        await ExecutePendingAsync(db, pending, cancellationToken);
+        await ExecutePendingAsync(db, scope, pending, cancellationToken);
     }
 
     /// <summary>
     /// 在单个事务内执行全部待执行脚本并写入台账。
     /// </summary>
-    private async Task ExecutePendingAsync(ISqlSugarClient db, IReadOnlyList<MigrationScript> pending, CancellationToken cancellationToken)
+    private async Task ExecutePendingAsync(ISqlSugarClient db, string scope, IReadOnlyList<MigrationScript> pending, CancellationToken cancellationToken)
     {
         var isPostgreSql = db.CurrentConnectionConfig.DbType == DbType.PostgreSQL;
         if (!isPostgreSql)
@@ -193,7 +274,7 @@ public sealed class SqlScriptMigrationRunner
             foreach (var script in pending)
             {
                 executing = script.ScriptName;
-                _logger.LogInformation("执行升级脚本 {Script}。", script.ScriptName);
+                _logger.LogInformation("{Scope} 执行升级脚本 {Script}。", scope, script.ScriptName);
 
                 var sql = await File.ReadAllTextAsync(script.FilePath, cancellationToken);
                 if (!string.IsNullOrWhiteSpace(sql))
@@ -205,7 +286,7 @@ public sealed class SqlScriptMigrationRunner
             }
 
             await db.Ado.CommitTranAsync();
-            _logger.LogInformation("升级脚本执行完成，共 {Count} 个。", pending.Count);
+            _logger.LogInformation("{Scope} 升级脚本执行完成，共 {Count} 个。", scope, pending.Count);
         }
         catch (Exception ex)
         {
@@ -221,7 +302,7 @@ public sealed class SqlScriptMigrationRunner
                 _logger.LogError(recordEx, "写入升级失败台账时再次出错。");
             }
 
-            _logger.LogError(ex, "升级脚本 {Script} 执行失败，本次改动已整体回滚。", executing);
+            _logger.LogError(ex, "{Scope} 的升级脚本 {Script} 执行失败，本次改动已整体回滚。", scope, executing);
             throw;
         }
     }
