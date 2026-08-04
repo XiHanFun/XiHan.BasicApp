@@ -14,6 +14,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Numbering;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Exporting;
+using XiHan.BasicApp.Saas.Infrastructure.Migrations;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
@@ -67,6 +68,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITaskScheduleDomainService, TaskScheduleDomainService>();
         // 编号格式器是无共享可变状态的纯计算服务，可安全注册为单例。
         services.AddSingleton<INumberingFormatter, NumberingFormatter>();
+
+        // 升级脚本执行器：应用初始化阶段调用一次，直接使用 ISqlSugarClient，不经仓储 AOP
+        services.AddScoped<SqlScriptMigrationRunner>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();

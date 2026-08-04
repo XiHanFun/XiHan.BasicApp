@@ -9,7 +9,6 @@ using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.Workflow;
-using XiHan.BasicApp.Web.Core.Extensions;
 using XiHan.BasicApp.WebHost.HealthChecks;
 using XiHan.Framework.Bot.Telegram.Webhook;
 using XiHan.Framework.Core.Application;
@@ -82,9 +81,6 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
-
-        // 自动版本更新：按语义化版本顺序执行 UpdateScripts/*.sql（仅主节点、仅高于历史版本且不超过当前程序版本的脚本）
-        _ = app.UseAutoVersionUpdate();
 
         var options = new HealthCheckOptions
         {

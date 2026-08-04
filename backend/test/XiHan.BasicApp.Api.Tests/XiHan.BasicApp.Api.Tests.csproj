@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- 应用层 HTTP 契约测试项目：覆盖动态 API 暴露面的授权判定完整性。 -->
+  <!-- 宿主层契约测试项目：动态 API 暴露面的授权判定完整性、数据库升级脚本的选取规则。 -->
   <Import Project="..\..\props\netcore.props" />
   <Import Project="..\..\props\common.props" />
 
