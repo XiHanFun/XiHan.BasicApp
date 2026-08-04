@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+# 同一分支上新推送取消尚未完成的旧运行
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: 后端构建与测试
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 缓存 NuGet 包
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/props/*.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # 走 NuGet 包模式：解决方案名不以 XiHanFun 开头，props/framework.props 判定为包引用
+      - name: 还原
+        run: dotnet restore backend/XiHan.BasicApp.slnx
+
+      - name: 构建
+        run: dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
+
+      - name: 测试
+        run: dotnet test backend/XiHan.BasicApp.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: 上传测试结果
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: '**/TestResults/*.trx'
+          if-no-files-found: ignore
+
+  frontend:
+    name: 前端类型检查与静态检查
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本取自 frontend/package.json 的 packageManager 字段
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查
+        run: pnpm run type-check
+
+      - name: 静态检查
+        run: pnpm run lint

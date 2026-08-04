@@ -142,7 +142,7 @@ function getTimezoneFeatures(): string {
   const offset = new Date().getTimezoneOffset()
   let tz = ''
   try {
-    tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+    tz = new Intl.DateTimeFormat().resolvedOptions().timeZone || ''
   }
   catch { /* ignore */ }
   return `${offset}|${tz}`

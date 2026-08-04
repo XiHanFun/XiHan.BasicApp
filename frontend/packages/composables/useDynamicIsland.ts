@@ -157,7 +157,7 @@ function removeTask(id: string, recordHistory = true): void {
 
 function scheduleRemoval(id: string, delay: number): void {
   clearTimer(id)
-  timers.set(id, setTimeout(() => removeTask(id), delay))
+  timers.set(id, setTimeout(removeTask, delay, id))
 }
 
 function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' | 'status', source: 'local' | 'server' = 'local'): void {

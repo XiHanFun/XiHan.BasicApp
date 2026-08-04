@@ -29,6 +29,8 @@ export function debounce<T extends (...args: never[]) => unknown>(fn: T, delay =
   return ((...args: Parameters<T>) => {
     if (timer)
       clearTimeout(timer)
+    // 传参形式 setTimeout(fn, delay, ...args) 命中 DOM 重载、返回 number，与 timer 的 Timeout 类型不符
+    // eslint-disable-next-line e18e/prefer-timer-args
     timer = setTimeout(() => fn(...args), delay)
   }) as T
 }
@@ -59,7 +61,7 @@ export function deepClone<T>(obj: T): T {
     return obj.map(item => deepClone(item)) as unknown as T
   const cloned = {} as T
   for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+    if (Object.hasOwn(obj, key)) {
       cloned[key] = deepClone(obj[key])
     }
   }

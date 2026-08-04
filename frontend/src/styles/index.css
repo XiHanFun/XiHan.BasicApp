@@ -69,8 +69,8 @@
   --color-destructive-surface: hsl(var(--destructive-surface));
 
   --font-sans:
-    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* 暗色模式：class 策略（取代 darkMode: 'class'），匹配 .dark 容器内的元素 */
