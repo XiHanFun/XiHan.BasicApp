@@ -1,6 +1,7 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
+  TenantEditionPermissionBatchUpdateDto,
   TenantEditionPermissionDetailDto,
   TenantEditionPermissionGrantDto,
   TenantEditionPermissionListItemDto,
@@ -12,6 +13,13 @@ const tenantEditionPermissionQueryApi = createDynamicApiClient('TenantEditionPer
 const tenantEditionPermissionCommandApi = createDynamicApiClient('TenantEdition')
 
 export const tenantEditionPermissionApi = {
+  /** 批量提交版本权限改动（授予/撤销/启停一次性下发，后端单事务） */
+  batchUpdate(input: TenantEditionPermissionBatchUpdateDto) {
+    return tenantEditionPermissionCommandApi.post<void, TenantEditionPermissionBatchUpdateDto>(
+      'BatchUpdateTenantEditionPermissions',
+      input,
+    )
+  },
   detail(id: ApiId) {
     return tenantEditionPermissionQueryApi.get<TenantEditionPermissionDetailDto | null>(
       'TenantEditionPermissionDetail',

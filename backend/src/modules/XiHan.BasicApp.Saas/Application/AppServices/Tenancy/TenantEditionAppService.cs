@@ -137,6 +137,36 @@ public sealed class TenantEditionAppService
     }
 
     /// <summary>
+    /// 批量变更租户版本权限（一次性提交授予、撤销与启停，单事务，仅在最后失效一次缓存并回收一次越界授权）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Grant)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Revoke)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Update)]
+    public async Task BatchUpdateTenantEditionPermissionsAsync(TenantEditionPermissionBatchUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _tenantEditionDomainService.BatchUpdateTenantEditionPermissionsAsync(
+            new TenantEditionPermissionBatchUpdateCommand(
+                input.EditionId,
+                input.GrantPermissionIds,
+                input.RevokeEditionPermissionIds,
+                [.. input.StatusChanges.Select(item => new TenantEditionPermissionStatusItem(item.BasicId, item.Status))]),
+            cancellationToken);
+        await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
+
+        // 撤销与映射停用都是白名单收窄，需回收该版本下各租户越界的存量授权（REQ-5.3）；
+        // 纯新增授予是放宽，不必回收。
+        var hasDisable = input.StatusChanges.Exists(item => item.Status != ValidityStatus.Valid);
+        if (result.RevokedCount > 0 || (result.StatusChangedCount > 0 && hasDisable))
+        {
+            _ = await _tenantProvisionDomainService.ReconcileEditionTenantsAuthorizationAsync(input.EditionId, cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// 撤销租户版本权限
     /// </summary>
     [UnitOfWork(true)]

@@ -71,6 +71,14 @@ public interface IUserDomainService
     /// <summary>
     /// 授予用户直授权限
     /// </summary>
+    /// <summary>
+    /// 批量变更用户直授权限（一次性提交授予与撤销）
+    /// </summary>
+    /// <param name="command">批量变更命令</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>本次实际发生变化的权限</returns>
+    Task<UserPermissionBatchUpdateResult> BatchUpdateUserPermissionsAsync(UserPermissionBatchUpdateCommand command, CancellationToken cancellationToken = default);
+
     Task<UserPermissionCommandResult> CreateUserPermissionAsync(UserPermissionGrantCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>

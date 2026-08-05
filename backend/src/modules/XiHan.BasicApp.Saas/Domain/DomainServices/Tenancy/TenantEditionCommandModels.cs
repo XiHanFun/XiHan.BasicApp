@@ -68,3 +68,25 @@ public sealed record TenantEditionCommandResult(SysTenantEdition Edition);
 /// 租户版本权限命令结果
 /// </summary>
 public sealed record TenantEditionPermissionCommandResult(SysTenantEditionPermission EditionPermission, SysPermission? Permission);
+
+/// <summary>
+/// 租户版本权限批量变更中的单条映射状态变更项
+/// </summary>
+public sealed record TenantEditionPermissionStatusItem(long BasicId, ValidityStatus Status);
+
+/// <summary>
+/// 租户版本权限批量变更命令（一次性提交授予、撤销与启停）
+/// </summary>
+public sealed record TenantEditionPermissionBatchUpdateCommand(
+    long EditionId,
+    IReadOnlyList<long> GrantPermissionIds,
+    IReadOnlyList<long> RevokeEditionPermissionIds,
+    IReadOnlyList<TenantEditionPermissionStatusItem> StatusChanges);
+
+/// <summary>
+/// 租户版本权限批量变更结果（本次实际发生的条数）
+/// </summary>
+public sealed record TenantEditionPermissionBatchUpdateResult(
+    int GrantedCount,
+    int RevokedCount,
+    int StatusChangedCount);

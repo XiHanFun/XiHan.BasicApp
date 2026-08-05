@@ -34,3 +34,15 @@ export interface TenantEditionPermissionStatusUpdateDto extends BasicDto {
   remark?: string | null
   status: ValidityStatus
 }
+
+export interface TenantEditionPermissionStatusItemDto {
+  basicId: ApiId
+  status: ValidityStatus
+}
+
+export interface TenantEditionPermissionBatchUpdateDto {
+  editionId: ApiId
+  grantPermissionIds: ApiId[]
+  revokeEditionPermissionIds: ApiId[]
+  statusChanges: TenantEditionPermissionStatusItemDto[]
+}

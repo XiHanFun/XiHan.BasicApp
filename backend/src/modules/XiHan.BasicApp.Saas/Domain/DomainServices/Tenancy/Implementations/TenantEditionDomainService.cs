@@ -102,6 +102,106 @@ public sealed class TenantEditionDomainService
     }
 
     /// <inheritdoc />
+    public async Task<TenantEditionPermissionBatchUpdateResult> BatchUpdateTenantEditionPermissionsAsync(TenantEditionPermissionBatchUpdateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.EditionId, "租户版本主键必须大于 0。");
+
+        var grantPermissionIds = command.GrantPermissionIds.Where(id => id > 0).Distinct().ToList();
+        var revokeIds = command.RevokeEditionPermissionIds.Where(id => id > 0).Distinct().ToList();
+        var statusChanges = command.StatusChanges
+            .Where(item => item.BasicId > 0)
+            .GroupBy(item => item.BasicId)
+            .ToDictionary(group => group.Key, group => group.Last().Status);
+        if (grantPermissionIds.Count == 0 && revokeIds.Count == 0 && statusChanges.Count == 0)
+        {
+            return new TenantEditionPermissionBatchUpdateResult(0, 0, 0);
+        }
+
+        _ = await _tenantEditionRepository.GetByIdAsync(command.EditionId, cancellationToken)
+            ?? throw new InvalidOperationException("租户版本不存在。");
+
+        var revokedCount = 0;
+        var grantedCount = 0;
+        var statusChangedCount = 0;
+
+        // 撤销（硬删除）：批量加载 → 批量删除（单次）
+        if (revokeIds.Count > 0)
+        {
+            var revoking = (await _tenantEditionPermissionRepository.GetListAsync(
+                editionPermission => revokeIds.Contains(editionPermission.BasicId) && editionPermission.EditionId == command.EditionId,
+                cancellationToken)).ToList();
+            if (revoking.Count > 0)
+            {
+                if (!await _tenantEditionPermissionRepository.DeleteRangeAsync(revoking, cancellationToken))
+                {
+                    throw new InvalidOperationException("租户版本权限撤销失败。");
+                }
+
+                revokedCount = revoking.Count;
+            }
+        }
+
+        // 启停：批量加载 → 改状态 → 批量更新（单次）；置为有效时校验权限本身可授予
+        if (statusChanges.Count > 0)
+        {
+            var changeIds = statusChanges.Keys.ToList();
+            var changing = (await _tenantEditionPermissionRepository.GetListAsync(
+                editionPermission => changeIds.Contains(editionPermission.BasicId) && editionPermission.EditionId == command.EditionId,
+                cancellationToken)).ToList();
+            foreach (var editionPermission in changing)
+            {
+                var status = statusChanges[editionPermission.BasicId];
+                if (status == ValidityStatus.Valid)
+                {
+                    _ = await GetGrantablePermissionOrThrowAsync(editionPermission.PermissionId, cancellationToken);
+                }
+
+                editionPermission.Status = status;
+            }
+
+            if (changing.Count > 0)
+            {
+                _ = await _tenantEditionPermissionRepository.UpdateRangeAsync(changing, cancellationToken);
+                statusChangedCount = changing.Count;
+            }
+        }
+
+        // 授予：批量校验权限可授予 + 去重已绑定 → 批量插入（单次）
+        if (grantPermissionIds.Count > 0)
+        {
+            foreach (var permissionId in grantPermissionIds)
+            {
+                _ = await GetGrantablePermissionOrThrowAsync(permissionId, cancellationToken);
+            }
+
+            var bound = await _tenantEditionPermissionRepository.GetListAsync(
+                editionPermission => editionPermission.EditionId == command.EditionId && grantPermissionIds.Contains(editionPermission.PermissionId),
+                cancellationToken);
+            var boundPermissionIds = bound.Select(editionPermission => editionPermission.PermissionId).ToHashSet();
+
+            var adding = grantPermissionIds
+                .Where(permissionId => !boundPermissionIds.Contains(permissionId))
+                .Select(permissionId => new SysTenantEditionPermission
+                {
+                    EditionId = command.EditionId,
+                    PermissionId = permissionId,
+                    Status = ValidityStatus.Valid
+                })
+                .ToList();
+            if (adding.Count > 0)
+            {
+                _ = await _tenantEditionPermissionRepository.AddRangeAsync(adding, cancellationToken);
+                grantedCount = adding.Count;
+            }
+        }
+
+        return new TenantEditionPermissionBatchUpdateResult(grantedCount, revokedCount, statusChangedCount);
+    }
+
+    /// <inheritdoc />
     public async Task<TenantEditionPermissionCommandResult> RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -1,6 +1,7 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
+  UserPermissionBatchUpdateDto,
   UserPermissionDetailDto,
   UserPermissionGrantDto,
   UserPermissionListItemDto,
@@ -18,6 +19,10 @@ export const userPermissionApi = {
       'UserPermissionDetail',
       { id },
     )
+  },
+  /** 批量提交直授改动（授予/拒绝/撤销一次性下发，后端单事务） */
+  batchUpdate(input: UserPermissionBatchUpdateDto) {
+    return userPermissionCommandApi.post<void, UserPermissionBatchUpdateDto>('BatchUpdateUserPermissions', input)
   },
   grant(input: UserPermissionGrantDto) {
     return userPermissionCommandApi.post<UserPermissionDetailDto, UserPermissionGrantDto>('UserPermission', input)
