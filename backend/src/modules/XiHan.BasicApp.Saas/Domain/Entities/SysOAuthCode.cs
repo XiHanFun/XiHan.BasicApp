@@ -93,6 +93,13 @@ public partial class SysOAuthCode : BasicAppCreationEntity
     public virtual string? CodeChallengeMethod { get; set; }
 
     /// <summary>
+    /// OIDC 随机串
+    /// </summary>
+    /// <remarks>授权请求带入，换取令牌时原样写进 id_token 的 nonce 声明，供客户端比对防重放。</remarks>
+    [SugarColumn(ColumnName = "Nonce", ColumnDescription = "OIDC随机串", Length = 200, IsNullable = true)]
+    public virtual string? Nonce { get; set; }
+
+    /// <summary>
     /// 过期时间
     /// </summary>
     [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "过期时间")]

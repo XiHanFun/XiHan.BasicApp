@@ -838,6 +838,8 @@ public sealed class NumberGeneratorTests
 
         public bool IsCompleted => Volatile.Read(ref _finished) == 1;
 
+        public bool IsRolledback => false;
+
         public string? ReservationName => null;
 
         public IServiceProvider ServiceProvider => throw new NotSupportedException();

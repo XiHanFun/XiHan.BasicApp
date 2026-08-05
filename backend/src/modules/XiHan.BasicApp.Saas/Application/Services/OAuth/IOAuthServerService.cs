@@ -46,7 +46,8 @@ public sealed record OAuthAuthorizeRequest(
     string? Scope,
     string? State,
     string? CodeChallenge,
-    string? CodeChallengeMethod);
+    string? CodeChallengeMethod,
+    string? Nonce = null);
 
 /// <summary>
 /// 授权请求校验结果（供同意页预览与创建授权码前置校验）
@@ -124,7 +125,8 @@ public sealed record OAuthTokenResponse(
     string TokenType,
     int ExpiresIn,
     string? RefreshToken,
-    string? Scope);
+    string? Scope,
+    string? IdToken = null);
 
 /// <summary>
 /// 撤销请求（RFC 7009）

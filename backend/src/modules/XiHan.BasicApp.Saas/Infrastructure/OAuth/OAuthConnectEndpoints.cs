@@ -110,6 +110,11 @@ public static class OAuthConnectEndpoints
                 payload["scope"] = response.Scope;
             }
 
+            if (!string.IsNullOrWhiteSpace(response.IdToken))
+            {
+                payload["id_token"] = response.IdToken;
+            }
+
             await httpContext.Response.WriteAsJsonAsync(payload, httpContext.RequestAborted);
             return;
         }

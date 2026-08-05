@@ -14,7 +14,9 @@ using XiHan.BasicApp.Saas.Infrastructure.OAuth;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Saas.Extensions;
 using XiHan.BasicApp.Web.Core;
+using XiHan.Framework.Authentication.Oidc;
 using XiHan.Framework.Core.Application;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Tasks.ScheduledJobs.Extensions;
@@ -44,6 +46,9 @@ public class XiHanBasicAppSaasModule : XiHanModule
         // 注册 SaaS 模块种子数据（系统基线始终播种；演示数据由 Saas:Seed:EnableDemoData 控制）
         services.AddSaasDataSeeders();
         services.AddSaasDemoDataSeeders();
+
+        // OIDC：签名密钥提供器与 id_token 签发服务（端点在下方映射，由 IsEnabled 门控）
+        _ = services.AddXiHanOidc(services.GetConfiguration());
 
         // 注册 SaaS 领域服务
         services.AddSaasDomainServices();
@@ -141,6 +146,9 @@ public class XiHanBasicAppSaasModule : XiHanModule
 
             // OAuth2 授权服务端标准端点：/connect/authorize（跳同意页）+ /connect/token（令牌）+ /connect/revoke（撤销）
             endpoints.MapOAuthConnectEndpoints();
+
+            // OIDC 端点：发现文档 + JWKS + 用户信息（未启用时不注册任何路由）
+            endpoints.MapOidcEndpoints();
         });
     }
 }
