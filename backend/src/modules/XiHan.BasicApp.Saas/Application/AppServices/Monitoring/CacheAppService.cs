@@ -75,4 +75,14 @@ public class CacheAppService : ApplicationServiceBase
         _cacheManagementService.Remove(key);
     }
 
+    /// <summary>
+    /// 按模式批量删除缓存键
+    /// </summary>
+    /// <remarks>缓存管理页的「按模式删除」调用此处；动态 API 剥离 Remove 前缀，实际路由为 /Cache/ByPattern。</remarks>
+    [PermissionAuthorize(SaasPermissionCodes.Cache.Clear)]
+    public long RemoveByPattern(string pattern = "*")
+    {
+        return _cacheManagementService.RemoveByPattern(pattern);
+    }
+
 }
