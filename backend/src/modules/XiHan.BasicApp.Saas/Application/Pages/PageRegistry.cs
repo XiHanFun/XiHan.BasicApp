@@ -72,9 +72,10 @@ public sealed record ButtonDescriptor(
 public static class PageRegistry
 {
     /// <summary>
-    /// 功能配置目录码（与 AI 模块共用的父级，两边定义必须保持一致）
+    /// 工作流目录码（Workflow 模块登记的父级；Saas 种子先于 Workflow 执行，
+    /// 故此处同样登记一份，避免审批两页因父级尚不存在而被静默跳过）
     /// </summary>
-    public const string FeatureDirectoryCode = "setting.feature";
+    public const string WorkflowDirectoryCode = "workflow";
 
     /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
@@ -88,10 +89,10 @@ public static class PageRegistry
         // [1.3] 我的消息
          new("workbench.inbox", "我的消息", "menu.workbench_inbox", MenuType.Menu, "/workbench/inbox", "WorkbenchInbox", "workbench/inbox/index", "workbench", null, "lucide:inbox", 13),
         // [1.4] 个人中心（_core 页面：Component 用 _core/profile/index，前端 dynamic.ts coreComponentMap 解析；无权限码 → 所有登录用户可见）
-         new("workbench.profile", "个人中心", "menu.profile", MenuType.Menu, "/workbench/profile", "Profile", "_core/profile/index", "workbench", null, "lucide:user", 14),
+         new("workbench.profile", "个人中心", "menu.profile", MenuType.Menu, "/workbench/profile", "Profile", "_core/profile/index", "workbench", null, "lucide:user", 15),
 
         // [2] 身份权限
-         new("identity", "身份权限", "menu.identity", MenuType.Directory, "/identity", "Identity", null, null, null, "lucide:shield-check", 100, "/identity/user"),
+         new("identity", "身份与权限", "menu.identity", MenuType.Directory, "/identity", "Identity", null, null, null, "lucide:shield-check", 200, "/identity/user"),
         // [2.1] 用户管理
          new("identity.user", "用户管理", "menu.identity_user", MenuType.Menu, "/identity/user", "IdentityUser", "identity/user/index", "identity", SaasPermissionCodes.User.Read, "lucide:users", 110),
         // [2.2] 角色管理
@@ -110,14 +111,14 @@ public static class PageRegistry
          new("identity.online-user", "在线用户", "menu.identity_online_user", MenuType.Menu, "/identity/online-user", "IdentityOnlineUser", "identity/online-user/index", "identity", SaasPermissionCodes.UserSession.Read, "lucide:radio", 170),
 
         // [3] 租户管理
-         new("tenant", "租户管理", "menu.tenant", MenuType.Directory, "/tenant", "Tenant", null, null, null, "lucide:building-2", 200, "/tenant/list"),
+         new("tenant", "租户", "menu.tenant", MenuType.Directory, "/tenant", "Tenant", null, null, null, "lucide:building-2", 300, "/tenant/list"),
         // [3.1] 租户列表
          new("tenant.list", "租户列表", "menu.tenant_list", MenuType.Menu, "/tenant/list", "TenantList", "tenant/list/index", "tenant", SaasPermissionCodes.Tenant.Read, "lucide:building", 210),
         // [3.2] 版本套餐
          new("tenant.edition", "版本套餐", "menu.tenant_edition", MenuType.Menu, "/tenant/edition", "TenantEdition", "tenant/edition/index", "tenant", SaasPermissionCodes.TenantEdition.Read, "lucide:package", 220),
 
         // [4] 消息中心
-         new("message", "消息中心", "menu.message", MenuType.Directory, "/message", "Message", null, null, null, "lucide:mail", 300, "/message/notification"),
+         new("message", "消息中心", "menu.message", MenuType.Directory, "/message", "Message", null, null, null, "lucide:mail", 500, "/message/notification"),
         // [4.0] 在线聊天
          new("message.chat", "在线聊天", "menu.message_chat", MenuType.Menu, "/message/chat", "MessageChat", "message/chat/index", "message", SaasPermissionCodes.Chat.Read, "lucide:messages-square", 305),
         // [4.0a] 聊天审计（管理侧合规查询）
@@ -131,15 +132,15 @@ public static class PageRegistry
         // 注：邮件/短信/机器人/Telegram 等系统级通道「配置」页归入系统设置（见 [8.8]-[8.11]），
         // 消息中心只保留日常消息运营（聊天/审计/通知/记录/模板）。
 
-        // [5] 审批规则
-         new("approval", "审批规则", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:clipboard-check", 400, "/approval/review"),
+        // [5] 工作流目录（与 Workflow 模块登记同一份定义，两边必须保持一致）
+         new(WorkflowDirectoryCode, "工作流", "menu.workflow", MenuType.Directory, "/workflow", "Workflow", null, null, null, "lucide:workflow", 400),
         // [5.1] 审批中心
-         new("approval.review", "审批中心", "menu.approval_review", MenuType.Menu, "/approval/review", "ApprovalReview", "approval/review/index", "approval", SaasPermissionCodes.Review.Read, "lucide:check-check", 410),
+         new("approval.review", "审批中心", "menu.approval_review", MenuType.Menu, "/approval/review", "ApprovalReview", "approval/review/index", WorkflowDirectoryCode, SaasPermissionCodes.Review.Read, "lucide:check-check", 440),
         // [5.2] 约束规则
-         new("approval.constraint", "约束规则", "menu.approval_constraint", MenuType.Menu, "/approval/constraint", "ApprovalConstraint", "approval/constraint/index", "approval", SaasPermissionCodes.ConstraintRule.Read, "lucide:shield-alert", 420),
+         new("approval.constraint", "审批约束", "menu.approval_constraint", MenuType.Menu, "/approval/constraint", "ApprovalConstraint", "approval/constraint/index", WorkflowDirectoryCode, SaasPermissionCodes.ConstraintRule.Read, "lucide:shield-alert", 450),
 
         // [6] 文件存储
-         new("file", "文件存储", "menu.file", MenuType.Directory, "/file", "File", null, null, null, "lucide:folder", 500, "/file/library"),
+         new("file", "文件中心", "menu.file", MenuType.Directory, "/file", "File", null, null, null, "lucide:folder", 600, "/file/library"),
         // [6.1] 文件管理
          new("file.library", "文件管理", "menu.file_library", MenuType.Menu, "/file/library", "FileLibrary", "file/library/index", "file", SaasPermissionCodes.File.Read, "lucide:folder-open", 510),
         // 注：存储配置移至系统设置（见 [8.7.1]）。
@@ -149,7 +150,7 @@ public static class PageRegistry
         // 注：开放平台仅「应用管理」一页，已移至系统设置（见 [8.12]），故不再单列开放平台目录。
 
         // [8] 系统设置
-         new("setting", "系统设置", "menu.setting", MenuType.Directory, "/setting", "Setting", null, null, null, "lucide:settings", 700, "/setting/menu"),
+         new("setting", "系统管理", "menu.setting", MenuType.Directory, "/setting", "Setting", null, null, null, "lucide:settings", 900, "/setting/menu"),
         // [8.1] 菜单管理
          new("setting.menu", "菜单管理", "menu.setting_menu", MenuType.Menu, "/setting/menu", "SettingMenu", "setting/menu/index", "setting", SaasPermissionCodes.Menu.Read, "lucide:list-tree", 710),
         // [8.2] 字典管理
@@ -157,10 +158,7 @@ public static class PageRegistry
         // [8.3] 参数配置
          new("setting.config", "参数配置", "menu.setting_config", MenuType.Menu, "/setting/config", "SettingConfig", "setting/config/index", "setting", SaasPermissionCodes.Config.Read, "lucide:sliders-horizontal", 730),
         // [8.3.1] 业务编号（租户私有规则 + 可用全局规则；平台态管理全局规则）
-         // 功能配置：各类通道与资源的配置集中于此。AI 模块的「AI 提供商」也挂在此目录下，两边定义必须一致
-         new(FeatureDirectoryCode, "功能配置", "menu.setting_feature", MenuType.Directory, "/setting/feature", "SettingFeature", null, "setting", null, "lucide:puzzle", 735),
-
-         new("setting.numbering", "编号配置", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", FeatureDirectoryCode, SaasPermissionCodes.Numbering.Read, "lucide:hash", 736),
+         new("setting.numbering", "编号配置", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", "setting", SaasPermissionCodes.Numbering.Read, "lucide:hash", 735),
         // [8.4] 任务调度
          new("setting.job", "任务调度", "menu.setting_job", MenuType.Menu, "/setting/job", "SettingJob", "setting/job/index", "setting", SaasPermissionCodes.Task.Read, "lucide:timer", 740),
         // [8.5] 缓存管理（平台运维专属权限）
@@ -169,48 +167,49 @@ public static class PageRegistry
          new("setting.server", "服务监控", "menu.setting_server", MenuType.Menu, "/setting/server", "SettingServer", "setting/server/index", "setting", SaasPermissionCodes.Server.Read, "lucide:server", 760),
         // [8.7] 版本管理（系统版本与升级迁移）
          new("setting.version", "版本管理", "menu.setting_version", MenuType.Menu, "/setting/version", "SettingVersion", "setting/version/index", "setting", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
-        // [8.7.1] 存储配置（菜单归入系统设置；路由/页面仍在 /file/storage）
-         new("file.storage", "存储配置", "menu.file_storage", MenuType.Menu, "/file/storage", "FileStorage", "file/storage/index", FeatureDirectoryCode, SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 737),
+        // [6.3] 存储配置（配置贴近其功能域，随文件中心而非系统管理）
+         new("file.storage", "存储配置", "menu.file_storage", MenuType.Menu, "/file/storage", "FileStorage", "file/storage/index", "file", SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 540),
         // [8.8] 邮件配置（系统级邮件通道）
-         new("setting.email-config", "邮件配置", "menu.setting_email_config", MenuType.Menu, "/setting/email-config", "SettingEmailConfig", "setting/email-config/index", FeatureDirectoryCode, SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 738),
+         new("setting.email-config", "邮件配置", "menu.setting_email_config", MenuType.Menu, "/setting/email-config", "SettingEmailConfig", "setting/email-config/index", "setting", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 780),
         // [8.9] 短信配置
-         new("setting.sms-config", "短信配置", "menu.setting_sms_config", MenuType.Menu, "/setting/sms-config", "SettingSmsConfig", "setting/sms-config/index", FeatureDirectoryCode, SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 739),
+         new("setting.sms-config", "短信配置", "menu.setting_sms_config", MenuType.Menu, "/setting/sms-config", "SettingSmsConfig", "setting/sms-config/index", "setting", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 790),
         // [8.10] 机器人配置（Webhook 型：钉钉/飞书/企微）
-         new("setting.bot-config", "机器人配置", "menu.setting_bot_config", MenuType.Menu, "/setting/bot-config", "SettingBotConfig", "setting/bot-config/index", FeatureDirectoryCode, SaasPermissionCodes.BotConfig.Read, "lucide:bot", 740),
+         new("setting.bot-config", "机器人配置", "menu.setting_bot_config", MenuType.Menu, "/setting/bot-config", "SettingBotConfig", "setting/bot-config/index", "setting", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 800),
         // [8.11] Telegram机器人
-         new("setting.telegram-bot", "Telegram机器人", "menu.setting_telegram_bot", MenuType.Menu, "/setting/telegram-bot", "SettingTelegramBot", "setting/telegram-bot/index", FeatureDirectoryCode, SaasPermissionCodes.TelegramBot.Read, "lucide:send", 741),
-        // [8.12] 应用管理（开放平台 OAuth 应用；菜单归入系统设置，路由/页面仍在 /openapi/app）
-         new("openapi.app", "应用管理", "menu.openapi_app", MenuType.Menu, "/openapi/app", "OpenapiApp", "openapi/app/index", "setting", SaasPermissionCodes.OAuthApp.Read, "lucide:badge-check", 820),
+         new("setting.telegram-bot", "Telegram机器人", "menu.setting_telegram_bot", MenuType.Menu, "/setting/telegram-bot", "SettingTelegramBot", "setting/telegram-bot/index", "setting", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 810),
+        // [7] 开放平台（后续 OAuth / OpenAPI / Webhook / SDK 等对外能力归入此处）
+         new("openapi", "开放平台", "menu.openapi", MenuType.Directory, "/openapi", "Openapi", null, null, null, "lucide:plug-zap", 700, "/openapi/app"),
+         new("openapi.app", "应用管理", "menu.openapi_app", MenuType.Menu, "/openapi/app", "OpenapiApp", "openapi/app/index", "openapi", SaasPermissionCodes.OAuthApp.Read, "lucide:badge-check", 710),
 
         // [9] 日志审计
-         new("log", "日志审计", "menu.log", MenuType.Directory, "/log", "Log", null, null, null, "lucide:file-search", 800, "/log/access"),
+         new("log", "审计中心", "menu.log", MenuType.Directory, "/log", "Log", null, null, null, "lucide:file-search", 1000, "/log/access"),
         // [9.0] 链路追踪（跨类日志综合追踪时间线）
-         new("log.trace", "链路追踪", "menu.log_trace", MenuType.Menu, "/log/trace", "LogTrace", "log/trace/index", "log", SaasPermissionCodes.LogTrace.Read, "lucide:route", 805),
+         new("log.trace", "链路追踪", "menu.log_trace", MenuType.Menu, "/log/trace", "LogTrace", "log/trace/index", "log", SaasPermissionCodes.LogTrace.Read, "lucide:route", 1080),
         // [9.1] 访问日志
-         new("log.access", "访问日志", "menu.log_access", MenuType.Menu, "/log/access", "LogAccess", "log/access/index", "log", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 810),
+         new("log.access", "访问日志", "menu.log_access", MenuType.Menu, "/log/access", "LogAccess", "log/access/index", "log", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 1020),
         // [9.2] 开放接口日志
-         new("log.api", "开放接口日志", "menu.log_api", MenuType.Menu, "/log/api", "LogApi", "log/api/index", "log", SaasPermissionCodes.ApiLog.Read, "lucide:webhook", 820),
+         new("log.api", "开放接口日志", "menu.log_api", MenuType.Menu, "/log/api", "LogApi", "log/api/index", "log", SaasPermissionCodes.ApiLog.Read, "lucide:webhook", 1060),
         // [9.3] 操作日志
-         new("log.operation", "操作日志", "menu.log_operation", MenuType.Menu, "/log/operation", "LogOperation", "log/operation/index", "log", SaasPermissionCodes.OperationLog.Read, "lucide:mouse-pointer-click", 830),
+         new("log.operation", "操作日志", "menu.log_operation", MenuType.Menu, "/log/operation", "LogOperation", "log/operation/index", "log", SaasPermissionCodes.OperationLog.Read, "lucide:mouse-pointer-click", 1030),
         // [9.4] 登录日志
-         new("log.login", "登录日志", "menu.log_login", MenuType.Menu, "/log/login", "LogLogin", "log/login/index", "log", SaasPermissionCodes.LoginLog.Read, "lucide:log-in", 840),
+         new("log.login", "登录日志", "menu.log_login", MenuType.Menu, "/log/login", "LogLogin", "log/login/index", "log", SaasPermissionCodes.LoginLog.Read, "lucide:log-in", 1010),
         // [9.5] 异常日志
-         new("log.exception", "异常日志", "menu.log_exception", MenuType.Menu, "/log/exception", "LogException", "log/exception/index", "log", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 850),
+         new("log.exception", "异常日志", "menu.log_exception", MenuType.Menu, "/log/exception", "LogException", "log/exception/index", "log", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 1070),
         // [9.6] 数据变更
-         new("log.diff", "数据变更", "menu.log_diff", MenuType.Menu, "/log/diff", "LogDiff", "log/diff/index", "log", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 860),
+         new("log.diff", "数据变更", "menu.log_diff", MenuType.Menu, "/log/diff", "LogDiff", "log/diff/index", "log", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 1040),
         // [9.7] 权限变更日志
-         new("log.permission-change", "权限变更", "menu.log_permission_change", MenuType.Menu, "/log/permission-change", "LogPermissionChange", "log/permission-change/index", "log", SaasPermissionCodes.PermissionChangeLog.Read, "lucide:shield-check", 870),
+         new("log.permission-change", "权限变更", "menu.log_permission_change", MenuType.Menu, "/log/permission-change", "LogPermissionChange", "log/permission-change/index", "log", SaasPermissionCodes.PermissionChangeLog.Read, "lucide:shield-check", 1050),
 
         // [10] 关于项目
-         new("about", "关于项目", "menu.about", MenuType.Directory, "/about", "About", null, null, null, "lucide:info", 900, "/about"),
+         new("about", "帮助中心", "menu.about", MenuType.Directory, "/about", "About", null, null, null, "lucide:info", 1100, "/about"),
         // [10.1] 关于项目（复用前端静态 /about 页：RouteName=About 令动态路由按名去重跳过，导航直达静态页）
-         new("about.project", "项目概览", "menu.about_project", MenuType.Menu, "/about/project", "AboutProject", "_core/about/index", "about", null, "lucide:file-text", 910),
+         new("about.project", "项目概览", "menu.about_project", MenuType.Menu, "/about/project", "AboutProject", "_core/about/index", "about", null, "lucide:file-text", 1110),
         // [10.1a] 官方文档（外链，直接打开在线文档）
-         new("about.docs", "官方文档", "menu.about_docs", MenuType.Menu, "/about/docs", "AboutDocs", null, "about", null, "lucide:book-open-text", 915, IsExternal: true, ExternalUrl: "https://docs.xihanfun.com"),
+         new("about.docs", "官方文档", "menu.about_docs", MenuType.Menu, "/about/docs", "AboutDocs", null, "about", null, "lucide:book-open-text", 1120, IsExternal: true, ExternalUrl: "https://docs.xihanfun.com"),
         // [10.2] Github（外链，直接打开）
-         new("about.github", "Github", "menu.about_github", MenuType.Menu, "/about/github", "AboutGithub", null, "about", null, "lucide:github", 920, IsExternal: true, ExternalUrl: "https://github.com/XiHanFun/XiHan.BasicApp"),
+         new("about.github", "Github", "menu.about_github", MenuType.Menu, "/about/github", "AboutGithub", null, "about", null, "lucide:github", 1130, IsExternal: true, ExternalUrl: "https://github.com/XiHanFun/XiHan.BasicApp"),
         // [10.3] Gitee（外链，直接打开）
-         new("about.gitee", "Gitee", "menu.about_gitee", MenuType.Menu, "/about/gitee", "AboutGitee", null, "about", null, "lucide:git-branch", 930, IsExternal: true, ExternalUrl: "https://gitee.com/XiHanFun/XiHan.BasicApp"),
+         new("about.gitee", "Gitee", "menu.about_gitee", MenuType.Menu, "/about/gitee", "AboutGitee", null, "about", null, "lucide:git-branch", 1140, IsExternal: true, ExternalUrl: "https://gitee.com/XiHanFun/XiHan.BasicApp"),
     ];
 
     /// <summary>

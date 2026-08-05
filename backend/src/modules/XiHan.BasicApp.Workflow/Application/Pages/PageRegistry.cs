@@ -24,14 +24,21 @@ public static class PageRegistry
     public const string WorkflowDirectoryCode = "workflow";
 
     /// <summary>
+    /// 工作台目录码（Saas 模块登记的父级，我的待办挂其下）
+    /// </summary>
+    public const string WorkbenchDirectoryCode = "workbench";
+
+    /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
     /// </summary>
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
-        new(WorkflowDirectoryCode, "工作流", "menu.workflow", MenuType.Directory, "/workflow", "Workflow", null, null, null, "lucide:workflow", 430),
-        new("workflow_todo", "我的待办", "menu.workflow_todo", MenuType.Menu, "/workflow/todo", "WorkflowTodo", "Workflow/Todo/Index", WorkflowDirectoryCode, null, "lucide:list-todo", 431),
-        new("workflow_definition", "流程定义", "menu.workflow_definition", MenuType.Menu, "/workflow/definition", "WorkflowDefinition", "Workflow/Definition/Index", WorkflowDirectoryCode, WorkflowPermissionCodes.Read, "lucide:git-branch", 432),
-        new("workflow_instance", "流程实例", "menu.workflow_instance", MenuType.Menu, "/workflow/instance", "WorkflowInstance", "Workflow/Instance/Index", WorkflowDirectoryCode, WorkflowPermissionCodes.Read, "lucide:activity", 433),
+        // 与 Saas 模块登记同一份定义，两边必须保持一致
+        new(WorkflowDirectoryCode, "工作流", "menu.workflow", MenuType.Directory, "/workflow", "Workflow", null, null, null, "lucide:workflow", 400),
+        // 我的待办属于「与当前登录用户相关」，归工作台；工作流目录聚焦流程管理侧
+        new("workflow_todo", "我的待办", "menu.workflow_todo", MenuType.Menu, "/workflow/todo", "WorkflowTodo", "Workflow/Todo/Index", WorkbenchDirectoryCode, null, "lucide:list-todo", 14),
+        new("workflow_definition", "流程定义", "menu.workflow_definition", MenuType.Menu, "/workflow/definition", "WorkflowDefinition", "Workflow/Definition/Index", WorkflowDirectoryCode, WorkflowPermissionCodes.Read, "lucide:git-branch", 410),
+        new("workflow_instance", "流程实例", "menu.workflow_instance", MenuType.Menu, "/workflow/instance", "WorkflowInstance", "Workflow/Instance/Index", WorkflowDirectoryCode, WorkflowPermissionCodes.Read, "lucide:activity", 420),
     ];
 
     /// <summary>

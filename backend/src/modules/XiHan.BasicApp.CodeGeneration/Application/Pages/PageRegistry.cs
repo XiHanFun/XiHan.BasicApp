@@ -26,7 +26,7 @@ public static class PageRegistry
     /// 开发工具目录定义（与 AI 模块登记的同名目录必须保持一致）
     /// </summary>
     public static PageDescriptor DevelopDirectory { get; } =
-        new(DevelopDirectoryCode, "开发工具", "menu.develop", MenuType.Directory, "/develop", "Develop", null, null, null, "lucide:hammer", 801);
+        new(DevelopDirectoryCode, "开发中心", "menu.develop", MenuType.Directory, "/develop", "Develop", null, null, null, "lucide:hammer", 800);
 
     /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
@@ -34,7 +34,7 @@ public static class PageRegistry
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
         DevelopDirectory,
-        new("code_gen", "代码生成", "menu.code_gen", MenuType.Menu, "/develop/codeGen", "DevelopCodeGen", "Develop/CodeGen/Index", DevelopDirectoryCode, CodeGenPermissionCodes.Read, "lucide:code-xml", 801),
+        new("code_gen", "代码生成", "menu.code_gen", MenuType.Menu, "/develop/codeGen", "DevelopCodeGen", "Develop/CodeGen/Index", DevelopDirectoryCode, CodeGenPermissionCodes.Read, "lucide:code-xml", 810),
     ];
 
     /// <summary>

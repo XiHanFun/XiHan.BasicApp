@@ -23,21 +23,10 @@ public static class PageRegistry
     public const string AiAppDirectoryCode = "ai_app";
 
     /// <summary>
-    /// 功能配置目录码（与 Saas 模块共用的父级）
-    /// </summary>
-    public const string FeatureDirectoryCode = "setting.feature";
-
-    /// <summary>
     /// AI 应用目录定义
     /// </summary>
     public static PageDescriptor AiAppDirectory { get; } =
-        new(AiAppDirectoryCode, "AI 应用", "menu.ai_app", MenuType.Directory, "/ai", "AiApp", null, null, null, "lucide:brain-circuit", 600);
-
-    /// <summary>
-    /// 功能配置目录定义（Saas 与本模块共用，两边必须保持一致）
-    /// </summary>
-    public static PageDescriptor FeatureDirectory { get; } =
-        new(FeatureDirectoryCode, "功能配置", "menu.setting_feature", MenuType.Directory, "/setting/feature", "SettingFeature", null, "setting", null, "lucide:puzzle", 735);
+        new(AiAppDirectoryCode, "AI", "menu.ai_app", MenuType.Directory, "/ai", "AiApp", null, null, null, "lucide:brain-circuit", 100);
 
     /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
@@ -45,11 +34,10 @@ public static class PageRegistry
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
         AiAppDirectory,
-        FeatureDirectory,
-        new("ai_provider", "AI 提供商", "menu.ai_provider", MenuType.Menu, "/develop/aiProvider", "DevelopAiProvider", "Develop/AiProvider/Index", FeatureDirectoryCode, AiPermissionCodes.Read, "lucide:sparkles", 742),
-        new("knowledge_base", "AI 知识库", "menu.knowledge_base", MenuType.Menu, "/develop/knowledge", "DevelopKnowledge", "Develop/Knowledge/Index", AiAppDirectoryCode, KnowledgePermissionCodes.Read, "lucide:book-open", 601),
-        new("ai_prompt", "AI 提示词", "menu.ai_prompt", MenuType.Menu, "/develop/aiPrompt", "DevelopAiPrompt", "Develop/AiPrompt/Index", AiAppDirectoryCode, AiPromptPermissionCodes.Read, "lucide:file-text", 602),
-        new("ai_assistant", "AI 助手", "menu.ai_assistant", MenuType.Menu, "/develop/aiAssistant", "DevelopAiAssistant", "Develop/AiAssistant/Index", AiAppDirectoryCode, AiAssistantPermissionCodes.Read, "lucide:bot", 603),
+        new("ai_assistant", "AI 助手", "menu.ai_assistant", MenuType.Menu, "/develop/aiAssistant", "DevelopAiAssistant", "Develop/AiAssistant/Index", AiAppDirectoryCode, AiAssistantPermissionCodes.Read, "lucide:bot", 110),
+        new("ai_prompt", "AI 提示词", "menu.ai_prompt", MenuType.Menu, "/develop/aiPrompt", "DevelopAiPrompt", "Develop/AiPrompt/Index", AiAppDirectoryCode, AiPromptPermissionCodes.Read, "lucide:file-text", 120),
+        new("knowledge_base", "AI 知识库", "menu.knowledge_base", MenuType.Menu, "/develop/knowledge", "DevelopKnowledge", "Develop/Knowledge/Index", AiAppDirectoryCode, KnowledgePermissionCodes.Read, "lucide:book-open", 130),
+        new("ai_provider", "AI 提供商", "menu.ai_provider", MenuType.Menu, "/develop/aiProvider", "DevelopAiProvider", "Develop/AiProvider/Index", AiAppDirectoryCode, AiPermissionCodes.Read, "lucide:sparkles", 140),
     ];
 
     /// <summary>
