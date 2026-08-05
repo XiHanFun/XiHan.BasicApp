@@ -3,18 +3,13 @@ import type {
   MigrationHistoryDetailDto,
   MigrationHistoryListItemDto,
   MigrationHistoryPageQueryDto,
-  VersionCreateDto,
   VersionDetailDto,
   VersionListItemDto,
   VersionPageQueryDto,
-  VersionUpdateDto,
-  VersionUpgradeFinishDto,
-  VersionUpgradeStartDto,
 } from './version.types'
 import { createDynamicApiClient } from '../../base'
 
 const versionQueryApi = createDynamicApiClient('VersionQuery')
-const versionCommandApi = createDynamicApiClient('Version')
 
 export const versionApi = {
   // Query
@@ -38,22 +33,5 @@ export const versionApi = {
   },
   page(input: VersionPageQueryDto) {
     return versionQueryApi.post<PageResult<VersionListItemDto>>('VersionPage', input)
-  },
-  // Commands（动态 API 会剥离方法名动词前缀 Create/Update/Delete：实际路由不含动词）
-  create(input: VersionCreateDto) {
-    return versionCommandApi.post<VersionDetailDto, VersionCreateDto>('Version', input)
-  },
-  delete(id: ApiId) {
-    return versionCommandApi.delete('Version', { id })
-  },
-  update(input: VersionUpdateDto) {
-    return versionCommandApi.put<VersionDetailDto, VersionUpdateDto>('Version', input)
-  },
-  // Start/Finish 不在动词剥离表内：路由保留完整方法名（默认 POST）
-  finishUpgrade(input: VersionUpgradeFinishDto) {
-    return versionCommandApi.post<VersionDetailDto, VersionUpgradeFinishDto>('FinishVersionUpgrade', input)
-  },
-  startUpgrade(input: VersionUpgradeStartDto) {
-    return versionCommandApi.post<VersionDetailDto, VersionUpgradeStartDto>('StartVersionUpgrade', input)
   },
 }
