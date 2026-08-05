@@ -75,7 +75,7 @@ export default {
   menu: '菜单管理',
   permission: '权限管理',
   department: '部门管理',
-  tenant: '租户',
+  tenant: '租户管理',
   config: '参数配置',
   dict: '字典管理',
   notification: '通知管理',
