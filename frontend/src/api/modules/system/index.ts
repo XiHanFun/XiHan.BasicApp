@@ -41,7 +41,8 @@ export const userManagementApi = {
   detailView(id: ApiId) {
     return userManagementQueryApi.get<UserManagementDetailDto | null>(
       'UserManagementDetail',
-      { id },
+      // 后端形参名是 userId，动态 API 按名绑定查询参数，发 id 绑不上会退化成 0
+      { userId: id },
     )
   },
   permissions: userPermissionApi,
@@ -56,7 +57,8 @@ export const roleManagementApi = {
   detailView(id: ApiId) {
     return roleManagementQueryApi.get<RoleManagementDetailDto | null>(
       'RoleManagementDetail',
-      { id },
+      // 后端形参名是 roleId，动态 API 按名绑定查询参数，发 id 绑不上会退化成 0
+      { roleId: id },
     )
   },
   hierarchy: roleHierarchyApi,
@@ -68,7 +70,8 @@ export const orgManagementApi = {
   detailView(id: ApiId) {
     return departmentManagementQueryApi.get<DepartmentManagementDetailDto | null>(
       'DepartmentManagementDetail',
-      { id },
+      // 后端形参名是 departmentId，动态 API 按名绑定查询参数，发 id 绑不上会退化成 0
+      { departmentId: id },
     )
   },
 }
@@ -81,7 +84,8 @@ export const permissionCenterApi = {
   detailView(id: ApiId) {
     return permissionCenterQueryApi.get<PermissionCenterDetailDto | null>(
       'PermissionCenterDetail',
-      { id },
+      // 后端形参名是 permissionId，动态 API 按名绑定查询参数，发 id 绑不上会退化成 0
+      { permissionId: id },
     )
   },
   fieldSecurity: fieldLevelSecurityApi,
