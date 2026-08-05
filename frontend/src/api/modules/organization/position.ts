@@ -20,6 +20,10 @@ const positionReadApi = createReadApi<PositionListItemDto, PositionDetailDto, Po
 )
 
 export const positionApi = {
+  /** 启用岗位全量列表，供下拉一次取全 */
+  enabledList() {
+    return positionQueryApi.get<PositionListItemDto[]>('EnabledPositions')
+  },
   create(input: PositionCreateDto) {
     return positionCommandApi.post<PositionDetailDto, PositionCreateDto>('Position', input)
   },

@@ -10,6 +10,7 @@ using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -88,6 +89,27 @@ public sealed class PositionQueryService
         {
             ExtendDatas = positionPage.ExtendDatas
         };
+    }
+
+    /// <summary>
+    /// 获取启用岗位列表
+    /// </summary>
+    /// <remarks>供任职编辑等下拉一次取全，不走分页。</remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>启用岗位列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Position.Read)]
+    public async Task<IReadOnlyList<PositionListItemDto>> GetEnabledPositionsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var positions = await _positionRepository.GetListAsync(
+            position => position.Status == EnableStatus.Enabled,
+            cancellationToken);
+
+        return [.. positions
+            .OrderBy(position => position.Sort)
+            .ThenBy(position => position.PositionCode, StringComparer.Ordinal)
+            .Select(PositionApplicationMapper.ToListItemDto)];
     }
 
     /// <summary>

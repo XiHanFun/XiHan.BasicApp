@@ -85,7 +85,8 @@ export interface DepartmentStatusUpdateDto extends BasicDto {
 
 export interface DepartmentTreeQueryDto {
   keyword?: string | null
-  limit: number
+  /** 上限，省略则用服务端默认值 */
+  limit?: number
   onlyEnabled?: boolean | null
 }
 

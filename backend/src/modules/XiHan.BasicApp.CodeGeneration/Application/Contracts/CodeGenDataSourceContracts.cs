@@ -44,6 +44,12 @@ public interface ICodeGenDataSourceAppService : IApplicationService
 public interface ICodeGenDataSourceQueryService : IApplicationService
 {
     /// <summary>
+    /// 获取数据源全量列表
+    /// </summary>
+    /// <remarks>供导入表等下拉一次取全，不走分页。</remarks>
+    Task<IReadOnlyList<CodeGenDataSourceListItemDto>> GetOptionsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取数据源分页列表
     /// </summary>
     Task<PageResultDtoBase<CodeGenDataSourceListItemDto>> GetPageAsync(CodeGenDataSourcePageQueryDto input, CancellationToken cancellationToken = default);

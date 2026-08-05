@@ -3,6 +3,7 @@ import type { DataTableColumns, SelectOption } from 'naive-ui'
 import type {
   ApiId,
   DateTimeString,
+  DepartmentTreeNodeDto,
   NotificationDetailDto,
   NotificationListItemDto,
   NotificationReadStatsDto,
@@ -149,6 +150,21 @@ const roleOptions = ref<SelectOption[]>([])
 const departmentOptions = ref<SelectOption[]>([])
 const targetOptionsLoaded = ref(false)
 
+/** 部门树拍平为定向选项，保留树的先序顺序 */
+function flattenDepartments(nodes: DepartmentTreeNodeDto[]): SelectOption[] {
+  const options: SelectOption[] = []
+  const walk = (list: DepartmentTreeNodeDto[]) => {
+    for (const node of list) {
+      options.push({ label: node.departmentName, value: String(node.basicId) })
+      if (node.children?.length) {
+        walk(node.children)
+      }
+    }
+  }
+  walk(nodes)
+  return options
+}
+
 async function loadTargetOptions() {
   if (targetOptionsLoaded.value) {
     return
@@ -156,10 +172,11 @@ async function loadTargetOptions() {
   try {
     const [roles, departments] = await Promise.all([
       roleApi.enabledList({ limit: 200 }),
-      departmentApi.page(createPageRequest({ page: { pageIndex: 1, pageSize: 200 } })),
+      // 部门取已缓存的启用部门树后拍平，避免按分页首页取全集时被页大小截断
+      departmentApi.tree({ onlyEnabled: true }),
     ])
     roleOptions.value = roles.map(r => ({ label: r.roleName, value: String(r.basicId) }))
-    departmentOptions.value = departments.items.map(d => ({ label: d.departmentName, value: String(d.basicId) }))
+    departmentOptions.value = flattenDepartments(departments)
     targetOptionsLoaded.value = true
   }
   catch (e) {

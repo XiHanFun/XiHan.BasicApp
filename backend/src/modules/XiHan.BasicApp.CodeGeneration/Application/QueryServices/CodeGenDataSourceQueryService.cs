@@ -41,6 +41,20 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
 
     /// <inheritdoc />
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<IReadOnlyList<CodeGenDataSourceListItemDto>> GetOptionsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var dataSources = await _dataSourceRepository.GetListAsync(source => true, cancellationToken);
+
+        return [.. dataSources
+            .OrderBy(source => source.Sort)
+            .ThenBy(source => source.SourceName, StringComparer.Ordinal)
+            .Select(CodeGenDataSourceApplicationMapper.ToListItemDto)];
+    }
+
+    /// <inheritdoc />
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<CodeGenDataSourceListItemDto>> GetPageAsync(CodeGenDataSourcePageQueryDto input, CancellationToken cancellationToken = default)
     {

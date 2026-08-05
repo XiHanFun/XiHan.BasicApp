@@ -34,7 +34,6 @@ import {
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  createPageRequest,
   DepartmentType,
   EnableStatus,
   orgManagementApi,
@@ -392,11 +391,8 @@ const positionOptions = ref<{ label: string, value: ApiId }[]>([])
 
 async function loadPositionOptions() {
   try {
-    const res = await positionApi.page({
-      ...createPageRequest({ page: { pageIndex: 1, pageSize: 500 } }),
-      status: EnableStatus.Enabled,
-    })
-    positionOptions.value = res.items.map(item => ({ label: item.positionName, value: item.basicId }))
+    const positions = await positionApi.enabledList()
+    positionOptions.value = positions.map(item => ({ label: item.positionName, value: item.basicId }))
   }
   catch {
     positionOptions.value = []

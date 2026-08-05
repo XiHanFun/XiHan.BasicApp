@@ -835,11 +835,7 @@ async function loadStorageRows() {
   }
   storageListLoading.value = true
   try {
-    const result = await fileManagementApi.storagePage({
-      ...createPageRequest({ page: { pageIndex: 1, pageSize: 100 } }),
-      fileId: file.basicId,
-    })
-    storageRows.value = result.items
+    storageRows.value = await fileManagementApi.storageList(file.basicId)
   }
   catch {
     storageRows.value = []

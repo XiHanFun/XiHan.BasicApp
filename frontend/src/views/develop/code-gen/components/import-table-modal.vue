@@ -15,7 +15,6 @@ import { useI18n } from 'vue-i18n'
 import {
   codeGenDataSourceApi,
   codeGenerationApi,
-  createPageRequest,
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
 } from '@/api'
@@ -73,12 +72,10 @@ function reset() {
  */
 async function loadDataSources() {
   try {
-    const result = await codeGenDataSourceApi.page(
-      createPageRequest({ page: { pageIndex: 1, pageSize: 200 } }),
-    )
+    const dataSources = await codeGenDataSourceApi.options()
     dataSourceOptions.value = [
       { label: t('develop.code_gen.import.data_source_primary'), value: '' },
-      ...(result?.items ?? []).map(item => ({
+      ...(dataSources ?? []).map(item => ({
         label: `${item.sourceName}（${item.databaseType} · ${item.databaseName}）`,
         value: item.basicId,
       })),

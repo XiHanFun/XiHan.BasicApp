@@ -58,6 +58,10 @@ export const fileApi = {
   page(input: FilePageQueryDto) {
     return fileQueryApi.post<PageResult<FileListItemDto>>('FilePage', input)
   },
+  /** 指定文件的全部存储记录，一次取全 */
+  storageList(fileId: ApiId) {
+    return fileQueryApi.get<FileStorageListItemDto[]>('FileStorages', { fileId })
+  },
   storageDetail(id: ApiId) {
     return fileQueryApi.get<FileStorageDetailDto | null>('FileStorageDetail', { id })
   },
