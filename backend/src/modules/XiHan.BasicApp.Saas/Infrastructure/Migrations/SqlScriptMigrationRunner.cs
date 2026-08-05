@@ -186,6 +186,11 @@ public sealed class SqlScriptMigrationRunner
     /// <remarks>
     /// 未完成初始化（Pending / Configuring / Failed）的租户其独立库可能尚不存在，跳过；
     /// 待其初始化流程建表并落基线后，下次启动自然纳入。
+    /// <para>
+    /// 整行取实体后在内存里投影：SqlSugar 物化结果时用 IL 调用目标类型的无参构造函数，
+    /// 投影到只有带参构造函数的类型（如 positional record）会取不到构造器而抛
+    /// <c>ArgumentNullException (Parameter 'con')</c>。租户数量有限，整行读取的代价可忽略。
+    /// </para>
     /// </remarks>
     private async Task<IReadOnlyList<TenantMigrationTarget>> LoadDatabaseIsolatedTenantsAsync(CancellationToken cancellationToken)
     {
@@ -195,10 +200,9 @@ public sealed class SqlScriptMigrationRunner
             .Where(tenant => !tenant.IsDeleted)
             .Where(tenant => tenant.IsolationMode == TenantIsolationMode.Database)
             .Where(tenant => tenant.ConfigStatus == TenantConfigStatus.Configured)
-            .Select(tenant => new TenantMigrationTarget(tenant.BasicId, tenant.TenantName))
             .ToListAsync(cancellationToken);
 
-        return tenants;
+        return [.. tenants.Select(tenant => new TenantMigrationTarget(tenant.BasicId, tenant.TenantName))];
     }
 
     /// <summary>
