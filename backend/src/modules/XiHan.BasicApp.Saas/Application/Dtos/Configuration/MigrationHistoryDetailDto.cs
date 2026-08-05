@@ -17,4 +17,9 @@ public sealed class MigrationHistoryDetailDto : MigrationHistoryListItemDto
     /// 创建者
     /// </summary>
     public string? CreatedBy { get; set; }
+
+    /// <summary>
+    /// 错误信息（执行失败时记录，成功记录为空）
+    /// </summary>
+    public string? ErrorMessage { get; set; }
 }

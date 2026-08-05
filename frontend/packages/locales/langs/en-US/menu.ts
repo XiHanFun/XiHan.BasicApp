@@ -47,6 +47,7 @@ export default {
   log_login: 'Login Logs',
   log_exception: 'Exception Logs',
   log_diff: 'Data Change Logs',
+  log_migration: 'Upgrade Records',
   log_permission_change: 'Permission Change Logs',
   log_trace: 'Log Trace',
   about: 'Help Center',
