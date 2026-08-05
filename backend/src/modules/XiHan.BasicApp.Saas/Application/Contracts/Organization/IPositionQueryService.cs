@@ -21,6 +21,14 @@ public interface IPositionQueryService : IApplicationService
     Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(PositionPageQueryDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取启用岗位列表
+    /// </summary>
+    /// <remarks>供任职编辑等下拉一次取全，不走分页。</remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>启用岗位列表</returns>
+    Task<IReadOnlyList<PositionListItemDto>> GetEnabledPositionsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取岗位详情
     /// </summary>
     /// <param name="id">岗位主键</param>

@@ -35,6 +35,12 @@ public interface ICodeGenTableAppService : IApplicationService
 public interface ICodeGenTableQueryService : IApplicationService
 {
     /// <summary>
+    /// 获取表配置全量列表
+    /// </summary>
+    /// <remarks>供主子表选择等下拉一次取全，不走分页。</remarks>
+    Task<IReadOnlyList<CodeGenTableListItemDto>> GetOptionsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取表配置分页列表
     /// </summary>
     Task<PageResultDtoBase<CodeGenTableListItemDto>> GetPageAsync(CodeGenTablePageQueryDto input, CancellationToken cancellationToken = default);

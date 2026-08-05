@@ -37,6 +37,15 @@ public interface IFileQueryService : IApplicationService
     Task<PageResultDtoBase<FileStorageListItemDto>> GetFileStoragePageAsync(FileStoragePageQueryDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取指定文件的全部存储记录
+    /// </summary>
+    /// <remarks>单个文件的存储记录条数有限，详情面板一次取全，不走分页。</remarks>
+    /// <param name="fileId">系统文件主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>系统文件存储列表</returns>
+    Task<IReadOnlyList<FileStorageListItemDto>> GetFileStoragesAsync(long fileId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取系统文件存储详情
     /// </summary>
     /// <param name="id">系统文件存储主键</param>

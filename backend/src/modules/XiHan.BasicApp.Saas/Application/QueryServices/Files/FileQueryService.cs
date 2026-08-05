@@ -124,6 +124,32 @@ public sealed class FileQueryService
     }
 
     /// <summary>
+    /// 获取指定文件的全部存储记录
+    /// </summary>
+    /// <remarks>单个文件的存储记录条数有限，详情面板一次取全，不走分页。</remarks>
+    /// <param name="fileId">系统文件主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>系统文件存储列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.File.Read)]
+    public async Task<IReadOnlyList<FileStorageListItemDto>> GetFileStoragesAsync(long fileId, CancellationToken cancellationToken = default)
+    {
+        if (fileId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fileId), "系统文件主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var storages = await _fileStorageRepository.GetListAsync(
+            storage => storage.FileId == fileId,
+            cancellationToken);
+
+        return [.. storages
+            .OrderByDescending(storage => storage.CreatedTime)
+            .Select(FileApplicationMapper.ToStorageListItemDto)];
+    }
+
+    /// <summary>
     /// 获取系统文件存储详情
     /// </summary>
     /// <param name="id">系统文件存储主键</param>

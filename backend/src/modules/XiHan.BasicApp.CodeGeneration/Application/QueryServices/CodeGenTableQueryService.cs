@@ -46,6 +46,20 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
 
     /// <inheritdoc />
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<IReadOnlyList<CodeGenTableListItemDto>> GetOptionsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tables = await _tableRepository.GetListAsync(table => true, cancellationToken);
+
+        return [.. tables
+            .OrderBy(table => table.ModuleName, StringComparer.Ordinal)
+            .ThenBy(table => table.TableName, StringComparer.Ordinal)
+            .Select(CodeGenTableApplicationMapper.ToListItemDto)];
+    }
+
+    /// <inheritdoc />
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<CodeGenTableListItemDto>> GetPageAsync(CodeGenTablePageQueryDto input, CancellationToken cancellationToken = default)
     {

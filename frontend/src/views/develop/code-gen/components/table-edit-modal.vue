@@ -19,7 +19,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   codeGenTableApi,
-  createPageRequest,
   DATABASE_TYPE_OPTIONS,
   DatabaseType as DatabaseTypeEnum,
   ENABLED_ACTION_OPTIONS,
@@ -205,10 +204,8 @@ async function ensureTableOptions() {
     return
   }
   try {
-    const result = await codeGenTableApi.page({
-      ...createPageRequest({ page: { pageIndex: 1, pageSize: 200 } }),
-    })
-    tableOptions.value = result.items
+    const tables = await codeGenTableApi.options()
+    tableOptions.value = tables
       .filter(item => item.basicId !== form.value.basicId)
       .map(item => ({ label: `${item.tableName}（${item.className}）`, value: item.basicId }))
   }

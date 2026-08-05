@@ -29,6 +29,10 @@ export const codeGenDataSourceApi = {
   testConnection(id: ApiId) {
     return command.post<CodeGenConnectionTestResultDto>('TestConnection', { id })
   },
+  /** 数据源全量列表，供下拉一次取全 */
+  options() {
+    return query.get<CodeGenDataSourceListItemDto[]>('Options')
+  },
   page(input: CodeGenDataSourcePageQueryDto) {
     return query.post<PageResult<CodeGenDataSourceListItemDto>>('Page', input)
   },

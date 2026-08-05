@@ -26,6 +26,10 @@ export const codeGenTableApi = {
   delete(id: ApiId) {
     return command.delete('Delete', { id })
   },
+  /** 表配置全量列表，供下拉一次取全 */
+  options() {
+    return query.get<CodeGenTableListItemDto[]>('Options')
+  },
   page(input: CodeGenTablePageQueryDto) {
     return query.post<PageResult<CodeGenTableListItemDto>>('Page', input)
   },
