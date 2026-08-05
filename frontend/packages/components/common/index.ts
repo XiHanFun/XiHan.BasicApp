@@ -10,6 +10,8 @@ export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEdit
 
 export { default as XEditModal } from './EditModal.vue'
 export { default as XPageShell } from './PageShell.vue'
+export type { PermissionGrantItem } from './permission-grant-panel'
+export { default as XPermissionGrantPanel } from './PermissionGrantPanel.vue'
 export { resolveSortMove } from './sortable'
 export { default as XSortableItem } from './SortableItem.vue'
 export { default as XUserAvatar } from './UserAvatar.vue'
