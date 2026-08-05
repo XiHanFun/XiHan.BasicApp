@@ -78,4 +78,5 @@ export interface MigrationHistoryListItemDto extends BasicDto {
 export interface MigrationHistoryDetailDto extends MigrationHistoryListItemDto {
   createdBy?: string | null
   createdId?: ApiId | null
+  errorMessage?: string | null
 }

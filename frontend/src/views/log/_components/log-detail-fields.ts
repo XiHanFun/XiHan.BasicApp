@@ -361,3 +361,18 @@ export function permissionChangeLogDetailFields(t: Translate): LogDetailField[] 
     { key: 'createdBy', label: t('common.fields.created_by') },
   ]
 }
+
+/**
+ * 升级记录（数据库升级脚本执行台账）详情字段。
+ */
+export function migrationHistoryDetailFields(t: Translate): LogDetailField[] {
+  return [
+    { key: 'version', label: t('log.migration.version') },
+    { key: 'scriptName', label: t('log.migration.script_name') },
+    { key: 'success', label: t('log.migration.success'), type: 'boolean', trueText: t('log.migration.success_yes'), falseText: t('log.migration.success_no') },
+    { key: 'executedTime', label: t('log.migration.executed_time'), type: 'date' },
+    { key: 'nodeName', label: t('log.migration.node_name') },
+    { key: 'errorMessage', label: t('log.common.error_message'), type: 'code', span: 2 },
+    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
+  ]
+}

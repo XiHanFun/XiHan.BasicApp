@@ -152,6 +152,7 @@ public static class VersionApplicationMapper
             Success = item.Success,
             NodeName = item.NodeName,
             CreatedTime = item.CreatedTime,
+            ErrorMessage = migrationHistory.ErrorMessage,
             CreatedId = migrationHistory.CreatedId,
             CreatedBy = migrationHistory.CreatedBy
         };
