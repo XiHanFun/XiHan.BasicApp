@@ -12,6 +12,9 @@ namespace XiHan.BasicApp.AI.Domain.Permissions;
 /// </remarks>
 public static class AiPermissionCodes
 {
+    /// <summary>模块编码（AI 模块全部权限共用）</summary>
+    public const string Module = "ai";
+
     /// <summary>资源编码</summary>
     public const string Resource = "ai";
 

@@ -66,6 +66,7 @@ public class AssistantPermissionSeeder : PlatformDataSeederBase
 
             addList.Add(new SysPermission
             {
+                ModuleCode = AiPermissionCodes.Module,
                 ResourceId = resource.BasicId,
                 OperationId = operation.BasicId,
                 PermissionCode = permissionCode,

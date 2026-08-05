@@ -75,6 +75,7 @@ public class SysPermissionSeeder : PlatformDataSeederBase
 
                 addList.Add(new SysPermission
                 {
+                    ModuleCode = CodeGenPermissionCodes.Module,
                     ResourceId = resource.BasicId,
                     OperationId = operation.BasicId,
                     PermissionCode = permissionCode,
