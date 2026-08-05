@@ -7,13 +7,14 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Workflow.Domain.Permissions;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
 
 /// <summary>
 /// 系统权限种子数据（资源 × 操作 → workflow:* 权限）
 /// </summary>
-public class SysPermissionSeeder : DataSeederBase
+public class SysPermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 构造函数

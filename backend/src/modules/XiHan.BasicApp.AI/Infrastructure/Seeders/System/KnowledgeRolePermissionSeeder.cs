@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -12,7 +13,7 @@ namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 /// 知识库角色权限种子数据
 /// </summary>
 /// <remarks>知识库属平台级开发工具：仅授予超级管理员角色。菜单可见性绑定已前移至菜单种子。</remarks>
-public class KnowledgeRolePermissionSeeder : DataSeederBase
+public class KnowledgeRolePermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 构造函数

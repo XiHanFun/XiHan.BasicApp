@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
 
@@ -15,7 +16,7 @@ namespace XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
 /// 默认仅授予超级管理员（显式留痕）；业务角色的 workflow:* 授权由各租户管理员在角色管理界面按需分配。
 /// 待办办理不依赖 workflow:* 权限（登录即可，受理人归属服务端校验），普通审批人无需任何授权。
 /// </remarks>
-public class SysRolePermissionSeeder : DataSeederBase
+public class SysRolePermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 构造函数

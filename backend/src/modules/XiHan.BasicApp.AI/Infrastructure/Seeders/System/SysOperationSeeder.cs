@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 /// 若本表为空则整条 AI 权限/菜单/授权链在干净库上静默跳过。
 /// 操作字典为全局共享（TenantId=0），与代码生成模块的同名操作幂等共存（按编码去重）。
 /// </remarks>
-public class SysOperationSeeder : DataSeederBase
+public class SysOperationSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 内置通用操作定义（操作编码与 <see cref="SysPermissionSeeder"/> 的目标操作集一致）
