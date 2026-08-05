@@ -4,7 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.BasicApp.Saas.Infrastructure.Migrations;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -12,10 +12,10 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// 升级通道读取库隔离租户的查询：跑在真实 SqlSugar 引擎上，覆盖纯逻辑测试看不见的结果物化环节。
 /// </summary>
 /// <remarks>
-/// 起因是一次线上启动崩溃：该查询原本把结果投影成 positional record，
+/// 起因是一次线上启动崩溃：该查询原本把结果投影成只有带参构造函数的类型，
 /// 而 SqlSugar 物化时用 IL 调用目标类型的无参构造函数，取不到构造器即抛
-/// <c>ArgumentNullException (Parameter 'con')</c>。纯函数测试只覆盖了选取规则，
-/// 碰不到这一步，所以必须有一条真引擎用例把它钉住。
+/// <c>ArgumentNullException (Parameter 'con')</c>。SaasUpgradeTenantProvider 投影的
+/// BasicTenantInfo 同样只有带参构造函数，故这条真引擎用例继续把该物化路径钉住。
 /// </remarks>
 public sealed class TenantMigrationQuerySqlTests : IDisposable
 {
@@ -53,11 +53,11 @@ public sealed class TenantMigrationQuerySqlTests : IDisposable
             .ToListAsync();
 
         var targets = tenants
-            .Select(tenant => new TenantMigrationTarget(tenant.BasicId, tenant.TenantName))
+            .Select(tenant => new BasicTenantInfo(tenant.BasicId, tenant.TenantName))
             .ToList();
 
         Assert.Single(targets);
-        Assert.Equal("库隔离已配置", targets[0].TenantName);
+        Assert.Equal("库隔离已配置", targets[0].Name);
     }
 
     /// <summary>

@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Hubs;
-using XiHan.BasicApp.Saas.Infrastructure.Migrations;
 using XiHan.BasicApp.Saas.Infrastructure.OAuth;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Saas.Extensions;
@@ -19,6 +18,7 @@ using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
+using XiHan.Framework.Upgrade;
 using XiHan.Framework.Tasks.ScheduledJobs.Extensions;
 using XiHan.Framework.Web.Core.Extensions;
 using XiHan.Framework.Web.RealTime.Constants;
@@ -31,7 +31,9 @@ namespace XiHan.BasicApp.Saas;
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
-    typeof(XiHanBasicAppWebCoreModule)
+    typeof(XiHanBasicAppWebCoreModule),
+    // 升级引擎：本模块提供版本存储、分布式锁、租户分发与迁移执行四个实现槽
+    typeof(XiHanUpgradeModule)
 )]
 public class XiHanBasicAppSaasModule : XiHanModule
 {
@@ -125,14 +127,6 @@ public class XiHanBasicAppSaasModule : XiHanModule
     /// <param name="context"></param>
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
-        // 升级脚本先于任何端点映射执行：失败即抛出，阻止应用带着半吊子表结构对外服务。
-        // 此处晚于框架 XiHanDataModule 的建表与播种，台账表此刻已就绪。
-        using (var migrationScope = context.ServiceProvider.CreateScope())
-        {
-            var runner = migrationScope.ServiceProvider.GetRequiredService<SqlScriptMigrationRunner>();
-            runner.RunAsync().GetAwaiter().GetResult();
-        }
-
         var app = context.GetApplicationBuilder();
 
         app.UseEndpoints(endpoints =>
