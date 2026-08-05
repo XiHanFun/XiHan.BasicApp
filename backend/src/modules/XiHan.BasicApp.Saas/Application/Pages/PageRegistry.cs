@@ -111,7 +111,7 @@ public static class PageRegistry
          new("identity.online-user", "在线用户", "menu.identity_online_user", MenuType.Menu, "/identity/online-user", "IdentityOnlineUser", "identity/online-user/index", "identity", SaasPermissionCodes.UserSession.Read, "lucide:radio", 170),
 
         // [3] 租户管理
-         new("tenant", "租户", "menu.tenant", MenuType.Directory, "/tenant", "Tenant", null, null, null, "lucide:building-2", 300, "/tenant/list"),
+         new("tenant", "租户管理", "menu.tenant", MenuType.Directory, "/tenant", "Tenant", null, null, null, "lucide:building-2", 300, "/tenant/list"),
         // [3.1] 租户列表
          new("tenant.list", "租户列表", "menu.tenant_list", MenuType.Menu, "/tenant/list", "TenantList", "tenant/list/index", "tenant", SaasPermissionCodes.Tenant.Read, "lucide:building", 210),
         // [3.2] 版本套餐
