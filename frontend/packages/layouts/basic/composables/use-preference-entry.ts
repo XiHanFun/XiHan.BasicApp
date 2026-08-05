@@ -1,6 +1,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useContentMaximize } from '~/hooks'
 import { useAppStore } from '~/stores'
+import { useEffectiveLayoutMode } from './use-effective-layout-mode'
 
 /** 窄屏阈值：与布局 isNarrowScreen 保持一致（< 960 走悬浮入口） */
 const NARROW_SCREEN_MAX_WIDTH = 960
@@ -17,10 +18,11 @@ const NARROW_SCREEN_MAX_WIDTH = 960
 export function usePreferenceEntry() {
   const appStore = useAppStore()
   const { contentIsMaximize } = useContentMaximize()
+  const effectiveLayoutMode = useEffectiveLayoutMode()
 
   const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const isNarrowScreen = computed(() => viewportWidth.value < NARROW_SCREEN_MAX_WIDTH)
-  const isFullContentLayout = computed(() => appStore.layoutMode === 'full')
+  const isFullContentLayout = computed(() => effectiveLayoutMode.value === 'full')
 
   function handleResize() {
     viewportWidth.value = window.innerWidth

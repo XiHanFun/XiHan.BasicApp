@@ -9,7 +9,7 @@ import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { NotificationStatus } from '~/types/enums'
-import { useLayoutMenuDomain, usePreferenceEntry } from '../composables'
+import { useEffectiveLayoutMode, useLayoutMenuDomain, usePreferenceEntry } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
@@ -59,9 +59,10 @@ const canGoForward = computed(() => hasForward.value)
 
 const isFullscreen = ref(false)
 
-const isTopNavLayout = computed(() => appStore.layoutMode === 'top')
-const isMixedNavLayout = computed(() => appStore.layoutMode === 'mix')
-const isHeaderMixedLayout = computed(() => appStore.layoutMode === 'header-mix')
+const effectiveLayoutMode = useEffectiveLayoutMode()
+const isTopNavLayout = computed(() => effectiveLayoutMode.value === 'top')
+const isMixedNavLayout = computed(() => effectiveLayoutMode.value === 'mix')
+const isHeaderMixedLayout = computed(() => effectiveLayoutMode.value === 'header-mix')
 const showTopMenu = computed(
   () => isTopNavLayout.value || isMixedNavLayout.value || isHeaderMixedLayout.value,
 )

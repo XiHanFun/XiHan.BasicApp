@@ -4,7 +4,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { MOBILE_BREAKPOINT } from '~/composables/useIsMobile'
 import { useContentMaximize } from '~/hooks'
-import { useAppStore, useLayoutBridgeStore, useLayoutPreferences } from '~/stores'
+import { useAppStore, useLayoutBridgeStore } from '~/stores'
+import { useEffectiveLayoutMode } from './use-effective-layout-mode'
 import { useLayout } from './use-layout'
 
 export function useLayoutShellAdapter() {
@@ -15,7 +16,6 @@ export function useLayoutShellAdapter() {
 
   const appStore = useAppStore()
   const layoutBridgeStore = useLayoutBridgeStore()
-  const layoutPreferences = useLayoutPreferences()
   const route = useRoute()
   const { contentIsMaximize: contentMaximized } = useContentMaximize()
 
@@ -34,7 +34,7 @@ export function useLayoutShellAdapter() {
     isSideMode,
     isDualColumnMode,
     showHeaderNav,
-  } = useLayout(() => (isMobile.value ? 'side' : layoutPreferences.layoutMode.value))
+  } = useLayout(useEffectiveLayoutMode())
 
   const sidebarCollapse = ref(appStore.sidebarCollapsed)
   const sidebarExpandOnHovering = ref(false)

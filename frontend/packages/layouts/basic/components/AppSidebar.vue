@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore } from '~/stores'
-import { useLayoutMenuDomain } from '../composables'
+import { useEffectiveLayoutMode, useLayoutMenuDomain } from '../composables'
 import { renderSidebarBadgeLabel } from './MenuBadge.vue'
 import SidebarBrand from './sidebar/SidebarBrand.vue'
 import SidebarCollapseButton from './sidebar/SidebarCollapseButton.vue'
@@ -105,9 +105,10 @@ const appLogo = computed(
 )
 
 const activeKey = computed(() => String(route.meta?.activePath || route.path || ''))
-const isSideMixedLayout = computed(() => appStore.layoutMode === 'side-mixed')
-const isHeaderMixLayout = computed(() => appStore.layoutMode === 'header-mix')
-const isSplitMenuLayout = computed(() => appStore.navigationSplit && appStore.layoutMode === 'mix')
+const effectiveLayoutMode = useEffectiveLayoutMode()
+const isSideMixedLayout = computed(() => effectiveLayoutMode.value === 'side-mixed')
+const isHeaderMixLayout = computed(() => effectiveLayoutMode.value === 'header-mix')
+const isSplitMenuLayout = computed(() => appStore.navigationSplit && effectiveLayoutMode.value === 'mix')
 
 const extraMenuTheme = computed<'dark' | 'light'>(() => {
   return props.sidebarSubTheme === 'dark' ? 'dark' : 'light'
