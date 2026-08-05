@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
-  MigrationHistoryListItemDto,
   PageResult,
   VersionCreateDto,
   VersionDetailDto,
@@ -11,7 +9,6 @@ import type {
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
-  NDataTable,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
@@ -161,16 +158,10 @@ function onAction(payload: SchemaActionPayload) {
   }
 }
 
-// ── 详情抽屉（版本信息 + 迁移历史） ─────────────────────────────
+// ── 详情抽屉（版本信息） ─────────────────────────────────────
 const detailVisible = ref(false)
 const detailLoading = ref(false)
 const detailData = ref<VersionDetailDto | null>(null)
-
-// ── 迁移历史列表（详情抽屉内）：先于 handleDetail 声明，handleDetail 内会重置 keyword 并加载 ──
-const migrationLoading = ref(false)
-const migrationItems = ref<MigrationHistoryListItemDto[]>([])
-const migrationKeyword = ref('')
-const migrationPagination = ref({ itemCount: 0, page: 1, pageSize: 10 })
 
 async function handleDetail(row: VersionListItemDto) {
   detailVisible.value = true
@@ -184,53 +175,6 @@ async function handleDetail(row: VersionListItemDto) {
   }
   finally {
     detailLoading.value = false
-  }
-  // 迁移历史与版本详情并行展示（Version 为迁移脚本时间戳串，与应用版本无外键，展示全量台账）
-  migrationKeyword.value = ''
-  void loadMigrationHistory(1)
-}
-
-// ── 迁移历史列表（详情抽屉内） ──────────────────────────────────
-const migrationColumns = computed<DataTableColumns<MigrationHistoryListItemDto>>(() => [
-  { key: 'version', title: t('setting.version.migration_version'), width: 130, ellipsis: { tooltip: true } },
-  { key: 'scriptName', title: t('setting.version.migration_script'), minWidth: 160, ellipsis: { tooltip: true } },
-  {
-    key: 'success',
-    title: t('setting.version.migration_result'),
-    width: 80,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: row.success ? 'success' : 'error' },
-      () => (row.success ? t('setting.version.result_success') : t('setting.version.result_failed')),
-    ),
-  },
-  { key: 'nodeName', title: t('setting.version.migration_node'), width: 110, ellipsis: { tooltip: true }, render: row => row.nodeName || '-' },
-  { key: 'executedTime', title: t('setting.version.migration_executed_time'), width: 160, render: row => formatDate(row.executedTime) },
-])
-
-async function loadMigrationHistory(page?: number) {
-  if (page) {
-    migrationPagination.value.page = page
-  }
-  migrationLoading.value = true
-  try {
-    const result = await versionApi.migrationHistoryPage({
-      ...createPageRequest({
-        page: {
-          pageIndex: migrationPagination.value.page,
-          pageSize: migrationPagination.value.pageSize,
-        },
-      }),
-      keyword: migrationKeyword.value.trim() || undefined,
-    })
-    migrationItems.value = result.items
-    migrationPagination.value.itemCount = result.page.totalCount
-  }
-  catch (e) {
-    message.error((e as Error).message || t('setting.version.load_migration_failed'))
-  }
-  finally {
-    migrationLoading.value = false
   }
 }
 
@@ -442,37 +386,6 @@ function handleDelete(row: VersionListItemDto) {
                 {{ detailData.createdBy || '-' }}
               </NDescriptionsItem>
             </NDescriptions>
-
-            <div class="xh-migration-header">
-              <span class="xh-migration-title">{{ t('setting.version.migration_history') }}</span>
-              <NInput
-                v-model:value="migrationKeyword"
-                clearable
-                :placeholder="t('setting.version.migration_search_placeholder')"
-                size="small"
-                style="width: 220px"
-                @clear="loadMigrationHistory(1)"
-                @keyup.enter="loadMigrationHistory(1)"
-              >
-                <template #prefix>
-                  <NIcon><Icon icon="lucide:search" /></NIcon>
-                </template>
-              </NInput>
-            </div>
-            <NDataTable
-              :columns="migrationColumns"
-              :data="migrationItems"
-              :loading="migrationLoading"
-              :pagination="{
-                page: migrationPagination.page,
-                pageSize: migrationPagination.pageSize,
-                itemCount: migrationPagination.itemCount,
-                onUpdatePage: (p: number) => loadMigrationHistory(p),
-              }"
-              :row-key="(row: MigrationHistoryListItemDto) => row.basicId"
-              remote
-              size="small"
-            />
           </NScrollbar>
         </NSpin>
       </NDrawerContent>
@@ -575,18 +488,6 @@ function handleDelete(row: VersionListItemDto) {
 <style scoped>
 .xh-detail-empty {
   padding: 48px 0;
-}
-
-.xh-migration-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 20px 0 10px;
-}
-
-.xh-migration-title {
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .xh-modal-tip {
