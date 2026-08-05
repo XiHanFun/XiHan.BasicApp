@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.AI.Domain.Permissions;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -39,13 +40,13 @@ public class PromptResourceSeeder : PlatformDataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbClient;
-        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "ai_prompt").ToListAsync();
+        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == AiPromptPermissionCodes.Resource).ToListAsync();
         var existsCodes = exists.Select(x => x.ResourceCode).ToHashSet();
         var addList = new List<SysResource>();
 
         if (!existsCodes.Contains("ai_prompt"))
         {
-            addList.Add(new SysResource { ResourceCode = "ai_prompt", ResourceName = "AI 提示词", ResourceType = ResourceType.Api, ResourcePath = "/api/ai-prompt", Description = "AI 提示词库API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 404 });
+            addList.Add(new SysResource { ResourceCode = AiPromptPermissionCodes.Resource, ResourceName = "AI 提示词", ResourceType = ResourceType.Api, ResourcePath = "/api/ai-prompt", Description = "AI 提示词库API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 404 });
         }
 
         if (addList.Count == 0)

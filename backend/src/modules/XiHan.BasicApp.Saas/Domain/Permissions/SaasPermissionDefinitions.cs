@@ -399,10 +399,6 @@ public static class SaasPermissionDefinitions
         new(SaasPermissionCodes.Version.Group, "系统版本",
         [
             new(SaasPermissionCodes.Version.Read, "系统版本查看", "查看当前租户系统版本和迁移历史", true, 890),
-            new(SaasPermissionCodes.Version.Create, "系统版本创建", "创建当前租户系统版本记录", true, 2050),
-            new(SaasPermissionCodes.Version.Update, "系统版本更新", "更新当前租户系统版本记录", true, 2051),
-            new(SaasPermissionCodes.Version.Upgrade, "系统版本升级", "更新当前租户系统升级状态", true, 2052),
-            new(SaasPermissionCodes.Version.Delete, "系统版本删除", "删除当前租户系统版本记录", true, 2053),
             new(SaasPermissionCodes.Version.Export, "版本导出", "导出当前数据范围内的系统版本列表数据", false, 2680),
         ]),
         new(SaasPermissionCodes.File.Group, "系统文件",
