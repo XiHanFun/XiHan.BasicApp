@@ -4,6 +4,7 @@
 using XiHan.Framework.AI;
 using XiHan.Framework.Application;
 using XiHan.Framework.Authentication;
+using XiHan.Framework.Authentication.Oidc;
 using XiHan.Framework.Authorization;
 using XiHan.Framework.Bot;
 using XiHan.Framework.Bot.DingTalk;
@@ -94,6 +95,9 @@ public class XiHanBasicAppCoreModule : XiHanModule
     {
         var services = context.Services;
         var config = services.GetConfiguration();
+
+        // OIDC 签名密钥提供器与 id_token 签发服务（由 XiHan:Authentication:Oidc:IsEnabled 门控）
+        _ = services.AddXiHanOidc(config);
     }
 
     /// <summary>
