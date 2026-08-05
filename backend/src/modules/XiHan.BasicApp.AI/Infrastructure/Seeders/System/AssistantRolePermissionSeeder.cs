@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -12,7 +13,7 @@ namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 /// AI 助手角色权限种子数据
 /// </summary>
 /// <remarks>助手配置属平台级开发工具：仅授予超级管理员角色。使用助手不看这组权限，只看登录态。</remarks>
-public class AssistantRolePermissionSeeder : DataSeederBase
+public class AssistantRolePermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 构造函数

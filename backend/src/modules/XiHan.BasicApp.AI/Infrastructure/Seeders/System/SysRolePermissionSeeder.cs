@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -16,7 +17,7 @@ namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 /// 故其它租户/角色既看不到也调不动。菜单可见性绑定（ai_provider → ai:read）已前移至 AiMenuSeeder（建菜单即绑定），
 /// 本种子只负责角色授权。
 /// </remarks>
-public class SysRolePermissionSeeder : DataSeederBase
+public class SysRolePermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 构造函数

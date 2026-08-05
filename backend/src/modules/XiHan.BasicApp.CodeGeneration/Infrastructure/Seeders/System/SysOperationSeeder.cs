@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
@@ -17,7 +18,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 /// 必须先于 <see cref="SysPermissionSeeder"/> 执行：后者按「资源 × 操作」派生 code_gen:* 权限，
 /// 若本表为空则整条代码生成权限/菜单/授权链在干净库上静默跳过。
 /// </remarks>
-public class SysOperationSeeder : DataSeederBase
+public class SysOperationSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 内置通用操作定义（操作编码与 <see cref="SysPermissionSeeder"/> 的目标操作集一致）
