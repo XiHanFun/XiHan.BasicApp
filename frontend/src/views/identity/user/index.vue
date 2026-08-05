@@ -1057,7 +1057,8 @@ async function openGrantDrawer(row: UserListItemDto) {
   try {
     const [roles, perms] = await Promise.all([
       userManagementApi.roles.list(row.basicId),
-      userManagementApi.permissions.list(row.basicId),
+      // 撤销直授是把行置为失效而非删行，只取有效行，否则撤销后按钮仍显示为已授予
+      userManagementApi.permissions.list(row.basicId, true),
     ])
     grantRoleList.value = roles
     grantPermList.value = perms
@@ -1110,16 +1111,14 @@ async function setPermGrant(permission: PermissionListItemDto, action: Permissio
       await userManagementApi.permissions.revoke(existing.basicId)
     }
     else {
-      if (existing) {
-        await userManagementApi.permissions.revoke(existing.basicId)
-      }
+      // 换授权动作直接重新授予即可，后端按 用户×权限 就地改写；先撤再授会在失败时把原有直授一并丢掉
       await userManagementApi.permissions.grant({
         userId: grantUser.value.basicId,
         permissionId: permission.basicId,
         permissionAction: action,
       })
     }
-    grantPermList.value = await userManagementApi.permissions.list(grantUser.value.basicId)
+    grantPermList.value = await userManagementApi.permissions.list(grantUser.value.basicId, true)
   }
   catch {
     message.error(t('common.messages.operation_failed'))
