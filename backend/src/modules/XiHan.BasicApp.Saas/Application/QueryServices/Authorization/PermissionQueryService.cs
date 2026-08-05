@@ -190,6 +190,35 @@ public sealed class PermissionQueryService
             : item.Items;
     }
 
+    /// <summary>
+    /// 获取权限全量目录
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限全量目录</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Permission.Read)]
+    public async Task<IReadOnlyList<PermissionListItemDto>> GetPermissionCatalogAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var permissions = await _permissionRepository.GetListAsync(permission => true, cancellationToken);
+        if (permissions.Count == 0)
+        {
+            return [];
+        }
+
+        var resourceMap = await BuildResourceMapAsync(permissions.Select(permission => permission.ResourceId), cancellationToken);
+        var operationMap = await BuildOperationMapAsync(permissions.Select(permission => permission.OperationId), cancellationToken);
+
+        return [.. permissions
+            .OrderBy(permission => permission.ModuleCode, StringComparer.Ordinal)
+            .ThenBy(permission => permission.Sort)
+            .ThenBy(permission => permission.PermissionCode, StringComparer.Ordinal)
+            .Select(permission => PermissionApplicationMapper.ToListItemDto(
+                permission,
+                TryGetMapValue(resourceMap, permission.ResourceId),
+                TryGetMapValue(operationMap, permission.OperationId)))];
+    }
+
     private static DistributedCacheEntryOptions CreateCacheOptions()
     {
         return new DistributedCacheEntryOptions
