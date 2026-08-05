@@ -193,7 +193,7 @@ export default {
     device_info: '设备信息',
   },
   diff: {
-    page_name: '数据变更',
+    page_name: '数据变更日志',
     detail_title: '数据变更详情',
     detail_load_failed: '加载数据变更详情失败',
     keyword_placeholder: '搜索实体/表/用户',
@@ -266,7 +266,7 @@ export default {
     change_time: '变更时间',
   },
   trace: {
-    page_name: '链路追踪',
+    page_name: '日志链路追踪',
     action: '追踪',
     dimension: '追踪维度',
     value: '追踪值',

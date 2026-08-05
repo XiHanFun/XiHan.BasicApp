@@ -282,9 +282,9 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.ApiLog.Read, "API日志查看", "查看当前租户 API 调用日志摘要", true, 539),
             new(SaasPermissionCodes.ApiLog.Export, "API日志导出", "导出开放接口日志数据", false, 2490),
         ]),
-        new(SaasPermissionCodes.LogTrace.Group, "链路追踪",
+        new(SaasPermissionCodes.LogTrace.Group, "日志链路追踪",
         [
-            new(SaasPermissionCodes.LogTrace.Read, "链路追踪查看", "按维度跨多类日志综合追踪时间线", true, 540),
+            new(SaasPermissionCodes.LogTrace.Read, "日志链路追踪查看", "按维度跨多类日志综合追踪时间线", true, 540),
         ]),
         new(SaasPermissionCodes.PermissionRequest.Group, "权限申请",
         [
@@ -314,7 +314,7 @@ public static class SaasPermissionDefinitions
         ]),
         new(SaasPermissionCodes.DiffLog.Group, "数据变更日志",
         [
-            new(SaasPermissionCodes.DiffLog.Read, "差异日志查看", "查看当前租户数据变更审计摘要", true, 800),
+            new(SaasPermissionCodes.DiffLog.Read, "数据变更日志查看", "查看当前租户数据变更审计摘要", true, 800),
             new(SaasPermissionCodes.DiffLog.Export, "数据变更日志导出", "导出数据变更（差异）日志数据", false, 2520),
         ]),
         new(SaasPermissionCodes.ExceptionLog.Group, "异常日志",
