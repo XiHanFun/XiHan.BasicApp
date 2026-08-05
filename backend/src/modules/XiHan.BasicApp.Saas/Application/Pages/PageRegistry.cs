@@ -72,6 +72,11 @@ public sealed record ButtonDescriptor(
 public static class PageRegistry
 {
     /// <summary>
+    /// 功能配置目录码（与 AI 模块共用的父级，两边定义必须保持一致）
+    /// </summary>
+    public const string FeatureDirectoryCode = "setting.feature";
+
+    /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
     /// </summary>
     public static IReadOnlyList<PageDescriptor> All { get; } =
@@ -152,7 +157,10 @@ public static class PageRegistry
         // [8.3] 参数配置
          new("setting.config", "参数配置", "menu.setting_config", MenuType.Menu, "/setting/config", "SettingConfig", "setting/config/index", "setting", SaasPermissionCodes.Config.Read, "lucide:sliders-horizontal", 730),
         // [8.3.1] 业务编号（租户私有规则 + 可用全局规则；平台态管理全局规则）
-         new("setting.numbering", "业务编号", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", "setting", SaasPermissionCodes.Numbering.Read, "lucide:hash", 735),
+         // 功能配置：各类通道与资源的配置集中于此。AI 模块的「AI 提供商」也挂在此目录下，两边定义必须一致
+         new(FeatureDirectoryCode, "功能配置", "menu.setting_feature", MenuType.Directory, "/setting/feature", "SettingFeature", null, "setting", null, "lucide:puzzle", 735),
+
+         new("setting.numbering", "编号配置", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", FeatureDirectoryCode, SaasPermissionCodes.Numbering.Read, "lucide:hash", 736),
         // [8.4] 任务调度
          new("setting.job", "任务调度", "menu.setting_job", MenuType.Menu, "/setting/job", "SettingJob", "setting/job/index", "setting", SaasPermissionCodes.Task.Read, "lucide:timer", 740),
         // [8.5] 缓存管理（平台运维专属权限）
@@ -162,15 +170,15 @@ public static class PageRegistry
         // [8.7] 版本管理（系统版本与升级迁移）
          new("setting.version", "版本管理", "menu.setting_version", MenuType.Menu, "/setting/version", "SettingVersion", "setting/version/index", "setting", SaasPermissionCodes.Version.Read, "lucide:git-branch", 770),
         // [8.7.1] 存储配置（菜单归入系统设置；路由/页面仍在 /file/storage）
-         new("file.storage", "存储配置", "menu.file_storage", MenuType.Menu, "/file/storage", "FileStorage", "file/storage/index", "setting", SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 775),
+         new("file.storage", "存储配置", "menu.file_storage", MenuType.Menu, "/file/storage", "FileStorage", "file/storage/index", FeatureDirectoryCode, SaasPermissionCodes.StorageConfig.Read, "lucide:hard-drive", 737),
         // [8.8] 邮件配置（系统级邮件通道）
-         new("setting.email-config", "邮件配置", "menu.setting_email_config", MenuType.Menu, "/setting/email-config", "SettingEmailConfig", "setting/email-config/index", "setting", SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 780),
+         new("setting.email-config", "邮件配置", "menu.setting_email_config", MenuType.Menu, "/setting/email-config", "SettingEmailConfig", "setting/email-config/index", FeatureDirectoryCode, SaasPermissionCodes.EmailConfig.Read, "lucide:mail-plus", 738),
         // [8.9] 短信配置
-         new("setting.sms-config", "短信配置", "menu.setting_sms_config", MenuType.Menu, "/setting/sms-config", "SettingSmsConfig", "setting/sms-config/index", "setting", SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 790),
+         new("setting.sms-config", "短信配置", "menu.setting_sms_config", MenuType.Menu, "/setting/sms-config", "SettingSmsConfig", "setting/sms-config/index", FeatureDirectoryCode, SaasPermissionCodes.SmsConfig.Read, "lucide:message-square-code", 739),
         // [8.10] 机器人配置（Webhook 型：钉钉/飞书/企微）
-         new("setting.bot-config", "机器人配置", "menu.setting_bot_config", MenuType.Menu, "/setting/bot-config", "SettingBotConfig", "setting/bot-config/index", "setting", SaasPermissionCodes.BotConfig.Read, "lucide:bot", 800),
+         new("setting.bot-config", "机器人配置", "menu.setting_bot_config", MenuType.Menu, "/setting/bot-config", "SettingBotConfig", "setting/bot-config/index", FeatureDirectoryCode, SaasPermissionCodes.BotConfig.Read, "lucide:bot", 740),
         // [8.11] Telegram机器人
-         new("setting.telegram-bot", "Telegram机器人", "menu.setting_telegram_bot", MenuType.Menu, "/setting/telegram-bot", "SettingTelegramBot", "setting/telegram-bot/index", "setting", SaasPermissionCodes.TelegramBot.Read, "lucide:send", 810),
+         new("setting.telegram-bot", "Telegram机器人", "menu.setting_telegram_bot", MenuType.Menu, "/setting/telegram-bot", "SettingTelegramBot", "setting/telegram-bot/index", FeatureDirectoryCode, SaasPermissionCodes.TelegramBot.Read, "lucide:send", 741),
         // [8.12] 应用管理（开放平台 OAuth 应用；菜单归入系统设置，路由/页面仍在 /openapi/app）
          new("openapi.app", "应用管理", "menu.openapi_app", MenuType.Menu, "/openapi/app", "OpenapiApp", "openapi/app/index", "setting", SaasPermissionCodes.OAuthApp.Read, "lucide:badge-check", 820),
 
