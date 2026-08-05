@@ -35,6 +35,10 @@ export const permissionApi = {
       toPermissionSelectParams(input),
     )
   },
+  /** 权限全量目录，供勾选面板一次取全 */
+  catalog() {
+    return permissionQueryApi.get<PermissionListItemDto[]>('PermissionCatalog')
+  },
   create(input: PermissionCreateDto) {
     return permissionBaseCommandApi.create(input)
   },

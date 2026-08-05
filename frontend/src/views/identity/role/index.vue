@@ -344,24 +344,12 @@ const permGroups = computed(() => {
   }))
 })
 
-/** 权限目录翻页拉全集（后端 pageSize 受夹紧，按页计数停止） */
+/** 权限目录一次取全 */
 async function loadPermCatalog() {
   if (permCatalog.value.length > 0) {
     return
   }
-  const all: PermissionListItemDto[] = []
-  for (let page = 1; page <= 50; page++) {
-    const result = await permissionApi.page(createPageRequest({ page: { pageIndex: page, pageSize: 100 } }))
-    const items = result.items ?? []
-    if (items.length === 0) {
-      break
-    }
-    all.push(...items)
-    if (all.length >= (result.page?.totalCount ?? all.length)) {
-      break
-    }
-  }
-  permCatalog.value = all
+  permCatalog.value = await permissionApi.catalog()
 }
 
 async function openPermissionDrawer(row: RoleListItemDto) {

@@ -1035,17 +1035,7 @@ async function loadPermCatalog() {
   if (permCatalog.value.length) {
     return
   }
-  const all: PermissionListItemDto[] = []
-  let pageIndex = 1
-  for (;;) {
-    const result = await permissionApi.page(createPageRequest({ page: { pageIndex, pageSize: 100 } }))
-    all.push(...result.items)
-    if (result.items.length === 0 || pageIndex * 100 >= result.page.totalCount) {
-      break
-    }
-    pageIndex += 1
-  }
-  permCatalog.value = all
+  permCatalog.value = await permissionApi.catalog()
 }
 
 async function openGrantDrawer(row: UserListItemDto) {

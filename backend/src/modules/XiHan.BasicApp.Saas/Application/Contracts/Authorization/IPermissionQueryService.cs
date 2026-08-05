@@ -29,6 +29,14 @@ public interface IPermissionQueryService : IApplicationService
     Task<PermissionDetailDto?> GetPermissionDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取权限全量目录
+    /// </summary>
+    /// <remarks>供角色授权、用户直授等勾选面板一次取全，不走分页。</remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限全量目录</returns>
+    Task<IReadOnlyList<PermissionListItemDto>> GetPermissionCatalogAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取可选全局权限列表
     /// </summary>
     /// <param name="input">查询条件</param>
