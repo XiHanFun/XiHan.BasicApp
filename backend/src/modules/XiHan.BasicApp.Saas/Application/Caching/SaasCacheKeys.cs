@@ -166,6 +166,37 @@ public static class SaasCacheKeys
     }
 
     /// <summary>
+    /// 权限全量目录缓存键（平台级，全平台共享单键）。
+    /// </summary>
+    /// <returns>业务缓存键。</returns>
+    public static string PermissionCatalog()
+    {
+        return "permission-catalog";
+    }
+
+    /// <summary>
+    /// 已启用部门选择项缓存键（按租户隔离；platform 表示平台上下文）。
+    /// </summary>
+    /// <param name="tenantId">当前租户上下文（null/0 为平台态）。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string DepartmentSelect(long? tenantId)
+    {
+        var tenantSegment = tenantId is > 0 ? tenantId.Value.ToString() : "platform";
+        return $"tenant:{tenantSegment}:dept-select";
+    }
+
+    /// <summary>
+    /// 已启用岗位选择项缓存键（按租户隔离；platform 表示平台上下文）。
+    /// </summary>
+    /// <param name="tenantId">当前租户上下文（null/0 为平台态）。</param>
+    /// <returns>业务缓存键。</returns>
+    public static string PositionSelect(long? tenantId)
+    {
+        var tenantSegment = tenantId is > 0 ? tenantId.Value.ToString() : "platform";
+        return $"tenant:{tenantSegment}:position-select";
+    }
+
+    /// <summary>
     /// 部门树缓存键（仅无关键字时缓存，按租户隔离 + 是否仅启用/上限区分）。
     /// </summary>
     /// <param name="tenantId">租户标识。</param>

@@ -19,6 +19,8 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasPermissionSelectCacheItem, string> _permissionSelectCache;
 
+    private readonly IDistributedCache<SaasPermissionCatalogCacheItem, string> _permissionCatalogCache;
+
     private readonly IDistributedCache<SaasRoleSelectCacheItem, string> _roleSelectCache;
 
     private readonly IDistributedCache<SaasEnabledEditionsCacheItem, string> _tenantEditionCache;
@@ -28,6 +30,10 @@ public sealed class SaasCacheInvalidator
     private readonly IDistributedCache<SaasOperationSelectCacheItem, string> _operationSelectCache;
 
     private readonly IDistributedCache<SaasDepartmentTreeCacheItem, string> _departmentTreeCache;
+
+    private readonly IDistributedCache<SaasDepartmentSelectCacheItem, string> _departmentSelectCache;
+
+    private readonly IDistributedCache<SaasPositionSelectCacheItem, string> _positionSelectCache;
 
     private readonly IDistributedCache<SaasUserSettingCacheItem, string> _userSettingCache;
 
@@ -52,6 +58,9 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasResourceSelectCacheItem, string> resourceSelectCache,
         IDistributedCache<SaasOperationSelectCacheItem, string> operationSelectCache,
         IDistributedCache<SaasDepartmentTreeCacheItem, string> departmentTreeCache,
+        IDistributedCache<SaasDepartmentSelectCacheItem, string> departmentSelectCache,
+        IDistributedCache<SaasPositionSelectCacheItem, string> positionSelectCache,
+        IDistributedCache<SaasPermissionCatalogCacheItem, string> permissionCatalogCache,
         IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache,
         IDistributedCache<SaasMessageTemplateCacheItem, string> messageTemplateCache,
         IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache,
@@ -67,6 +76,9 @@ public sealed class SaasCacheInvalidator
         _resourceSelectCache = resourceSelectCache;
         _operationSelectCache = operationSelectCache;
         _departmentTreeCache = departmentTreeCache;
+        _departmentSelectCache = departmentSelectCache;
+        _positionSelectCache = positionSelectCache;
+        _permissionCatalogCache = permissionCatalogCache;
         _userSettingCache = userSettingCache;
         _messageTemplateCache = messageTemplateCache;
         _editionGateCache = editionGateCache;
@@ -100,7 +112,9 @@ public sealed class SaasCacheInvalidator
     /// <inheritdoc />
     public Task InvalidatePermissionDefinitionAsync(CancellationToken cancellationToken = default)
     {
-        return _permissionSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+        return Task.WhenAll(
+            _permissionSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken),
+            _permissionCatalogCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken));
     }
 
     /// <inheritdoc />
@@ -130,7 +144,10 @@ public sealed class SaasCacheInvalidator
     /// <inheritdoc />
     public Task InvalidateOrganizationAsync(CancellationToken cancellationToken = default)
     {
-        return _departmentTreeCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken);
+        return Task.WhenAll(
+            _departmentTreeCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken),
+            _departmentSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken),
+            _positionSelectCache.RemoveByPatternAsync("*", hideErrors: true, considerUow: true, token: cancellationToken));
     }
 
     /// <inheritdoc />

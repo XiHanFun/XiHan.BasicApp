@@ -35,6 +35,10 @@ export const departmentApi = {
   delete(id: ApiId) {
     return departmentCommandApi.delete('Department', { id })
   },
+  /** 启用部门全量列表，供下拉一次取全 */
+  enabledList() {
+    return departmentQueryApi.get<DepartmentListItemDto[]>('EnabledDepartments')
+  },
   detail(id: ApiId) {
     return departmentReadApi.detail(id)
   },

@@ -29,6 +29,14 @@ public interface IDepartmentQueryService : IApplicationService
     Task<DepartmentDetailDto?> GetDepartmentDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取启用部门列表
+    /// </summary>
+    /// <remarks>供消息定向等下拉一次取全，不走分页。</remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>启用部门列表</returns>
+    Task<IReadOnlyList<DepartmentListItemDto>> GetEnabledDepartmentsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取部门树
     /// </summary>
     /// <param name="input">查询条件</param>
