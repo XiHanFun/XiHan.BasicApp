@@ -13,12 +13,10 @@ using XiHan.BasicApp.Saas.Infrastructure.OAuth;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.BasicApp.Saas.Extensions;
 using XiHan.BasicApp.Web.Core;
-using XiHan.Framework.Authentication.Oidc;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
-using XiHan.Framework.Upgrade;
 using XiHan.Framework.Tasks.ScheduledJobs.Extensions;
 using XiHan.Framework.Web.Core.Extensions;
 using XiHan.Framework.Web.RealTime.Constants;
@@ -31,9 +29,7 @@ namespace XiHan.BasicApp.Saas;
 /// </summary>
 [DependsOn(
     typeof(XiHanBasicAppCoreModule),
-    typeof(XiHanBasicAppWebCoreModule),
-    // 升级引擎：本模块提供版本存储、分布式锁、租户分发与迁移执行四个实现槽
-    typeof(XiHanUpgradeModule)
+    typeof(XiHanBasicAppWebCoreModule)
 )]
 public class XiHanBasicAppSaasModule : XiHanModule
 {
@@ -48,9 +44,6 @@ public class XiHanBasicAppSaasModule : XiHanModule
         // 注册 SaaS 模块种子数据（系统基线始终播种；演示数据由 Saas:Seed:EnableDemoData 控制）
         services.AddSaasDataSeeders();
         services.AddSaasDemoDataSeeders();
-
-        // OIDC：签名密钥提供器与 id_token 签发服务（端点在下方映射，由 IsEnabled 门控）
-        _ = services.AddXiHanOidc(services.GetConfiguration());
 
         // 注册 SaaS 领域服务
         services.AddSaasDomainServices();
