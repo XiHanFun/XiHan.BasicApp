@@ -95,6 +95,7 @@ public sealed class OAuthConsentAppService
             input.Scope,
             input.State,
             input.CodeChallenge,
-            input.CodeChallengeMethod);
+            input.CodeChallengeMethod,
+            input.Nonce);
     }
 }

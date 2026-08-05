@@ -42,6 +42,11 @@ public sealed class OAuthAuthorizeRequestDto
     /// PKCE 质询方法（S256/plain）
     /// </summary>
     public string? CodeChallengeMethod { get; set; }
+
+    /// <summary>
+    /// OIDC 随机串，原样回填进 id_token 的 nonce 声明
+    /// </summary>
+    public string? Nonce { get; set; }
 }
 
 /// <summary>

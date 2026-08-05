@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -11,6 +13,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Jwt;
+using XiHan.Framework.Authentication.Oidc;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Password;
@@ -37,6 +40,8 @@ public sealed class OAuthServerService : IOAuthServerService
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IAuthTokenIssueService _authTokenIssueService;
     private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
+    private readonly IIdTokenService _idTokenService;
+    private readonly IOptions<OidcOptions> _oidcOptions;
     private readonly ICurrentTenant _currentTenant;
     private readonly ILogger<OAuthServerService> _logger;
 
@@ -52,6 +57,8 @@ public sealed class OAuthServerService : IOAuthServerService
         IJwtTokenService jwtTokenService,
         IAuthTokenIssueService authTokenIssueService,
         IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
+        IIdTokenService idTokenService,
+        IOptions<OidcOptions> oidcOptions,
         ICurrentTenant currentTenant,
         ILogger<OAuthServerService> logger)
     {
@@ -63,6 +70,8 @@ public sealed class OAuthServerService : IOAuthServerService
         _jwtTokenService = jwtTokenService;
         _authTokenIssueService = authTokenIssueService;
         _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
+        _idTokenService = idTokenService;
+        _oidcOptions = oidcOptions;
         _currentTenant = currentTenant;
         _logger = logger;
     }
@@ -157,6 +166,7 @@ public sealed class OAuthServerService : IOAuthServerService
             CsrfState = Truncate(request.State?.Trim(), 200),
             CodeChallenge = Truncate(challenge, 100),
             CodeChallengeMethod = string.IsNullOrWhiteSpace(challenge) ? null : NormalizePkceMethod(request.CodeChallengeMethod),
+            Nonce = Truncate(request.Nonce?.Trim(), 200),
             ExpirationTime = now.AddSeconds(lifetimeSeconds),
             IsUsed = false
         };
@@ -284,7 +294,8 @@ public sealed class OAuthServerService : IOAuthServerService
             code.Scopes,
             issueRefresh: ClientSupportsGrant(app, GrantTypeRefreshToken),
             parentTokenId: null,
-            cancellationToken);
+            cancellationToken,
+            code.Nonce);
         return new OAuthTokenOutcome(true, 200, response, null, null);
     }
 
@@ -444,7 +455,8 @@ public sealed class OAuthServerService : IOAuthServerService
         string? scopes,
         bool issueRefresh,
         long? parentTokenId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? nonce = null)
     {
         var now = DateTimeOffset.UtcNow;
         var effectiveTenantId = tenantId > 0 ? tenantId : (long?)null;
@@ -488,7 +500,69 @@ public sealed class OAuthServerService : IOAuthServerService
         };
         _ = await _oauthTokenRepository.AddAsync(entity, cancellationToken);
 
-        return new OAuthTokenResponse(jwt.AccessToken, jwt.TokenType, jwt.ExpiresIn, refreshToken, scopes);
+        var idToken = TryIssueIdToken(user, app.ClientId, scopes, jwt.AccessToken, nonce);
+
+        return new OAuthTokenResponse(jwt.AccessToken, jwt.TokenType, jwt.ExpiresIn, refreshToken, scopes, idToken);
+    }
+
+    /// <summary>
+    /// 已授予 openid 范围时签发 id_token，否则返回 null（退化为纯 OAuth2）。
+    /// </summary>
+    private string? TryIssueIdToken(SysUser user, string clientId, string? scopes, string accessToken, string? nonce)
+    {
+        if (!_oidcOptions.Value.IsEnabled)
+        {
+            return null;
+        }
+
+        var granted = SplitScopes(scopes);
+        if (!granted.Contains(OidcConstants.Scopes.OpenId, StringComparer.Ordinal))
+        {
+            return null;
+        }
+
+        return _idTokenService.Issue(new IdTokenRequest(
+            Subject: user.BasicId.ToString(CultureInfo.InvariantCulture),
+            Audience: clientId,
+            Nonce: nonce,
+            AuthenticationTime: DateTimeOffset.UtcNow,
+            AccessToken: accessToken,
+            AdditionalClaims: BuildProfileClaims(user, granted)));
+    }
+
+    /// <summary>
+    /// 按已授予 scope 解析用户资料声明。scope 未授予的字段一律不下发。
+    /// </summary>
+    public static IReadOnlyCollection<Claim> BuildProfileClaims(SysUser user, IReadOnlyCollection<string> grantedScopes)
+    {
+        var claims = new List<Claim>();
+
+        if (grantedScopes.Contains(OidcConstants.Scopes.Profile, StringComparer.Ordinal))
+        {
+            claims.Add(new Claim(OidcConstants.Claims.PreferredUserName, user.UserName));
+            if (!string.IsNullOrWhiteSpace(user.NickName))
+            {
+                claims.Add(new Claim(OidcConstants.Claims.Name, user.NickName));
+            }
+            if (!string.IsNullOrWhiteSpace(user.Avatar))
+            {
+                claims.Add(new Claim(OidcConstants.Claims.Picture, user.Avatar));
+            }
+        }
+
+        // 不下发 email_verified / phone_number_verified：验证状态在 SysUserSecurity 上，
+        // 令牌签发路径不加载该实体。二者是可选声明，宁可缺省也不臆断。
+        if (grantedScopes.Contains(OidcConstants.Scopes.Email, StringComparer.Ordinal) && !string.IsNullOrWhiteSpace(user.Email))
+        {
+            claims.Add(new Claim(OidcConstants.Claims.Email, user.Email));
+        }
+
+        if (grantedScopes.Contains(OidcConstants.Scopes.Phone, StringComparer.Ordinal) && !string.IsNullOrWhiteSpace(user.Phone))
+        {
+            claims.Add(new Claim(OidcConstants.Claims.PhoneNumber, user.Phone));
+        }
+
+        return claims;
     }
 
     /// <summary>
