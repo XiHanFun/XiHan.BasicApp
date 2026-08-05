@@ -13,6 +13,11 @@ namespace XiHan.BasicApp.Workflow.Domain.Permissions;
 public static class WorkflowPermissionCodes
 {
     /// <summary>
+    /// 模块编码
+    /// </summary>
+    public const string Module = "workflow";
+
+    /// <summary>
     /// 资源编码
     /// </summary>
     public const string Resource = "workflow";

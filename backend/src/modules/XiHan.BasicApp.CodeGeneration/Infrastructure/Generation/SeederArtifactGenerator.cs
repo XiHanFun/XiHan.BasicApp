@@ -142,6 +142,7 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
 
             permissionAddList.Add(new SysPermission
             {
+                ModuleCode = %CLASS%PermissionDefinitions.Module,
                 ResourceId = resource.BasicId,
                 OperationId = operation.BasicId,
                 PermissionCode = permissionCode,

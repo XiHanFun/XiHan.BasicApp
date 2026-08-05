@@ -11,6 +11,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 /// </remarks>
 public static class CodeGenPermissionCodes
 {
+    /// <summary>模块编码</summary>
+    public const string Module = "code_gen";
+
     /// <summary>资源编码</summary>
     public const string Resource = "code_gen";
 

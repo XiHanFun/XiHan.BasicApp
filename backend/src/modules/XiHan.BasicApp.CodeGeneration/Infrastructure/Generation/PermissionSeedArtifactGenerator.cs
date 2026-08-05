@@ -41,6 +41,9 @@ internal static class PermissionSeedArtifactGenerator
         sb.AppendLine("    /// <summary>资源编码（权限码资源段，取表名，需全局唯一）</summary>");
         sb.AppendLine($"    public const string Resource = \"{resource}\";");
         sb.AppendLine();
+        sb.AppendLine("    /// <summary>模块编码（权限列表按模块筛选用）</summary>");
+        sb.AppendLine($"    public const string Module = \"{Shared.ModuleLower(context)}\";");
+        sb.AppendLine();
         sb.AppendLine("    /// <summary>资源名称</summary>");
         sb.AppendLine($"    public const string ResourceName = \"{display}\";");
         sb.AppendLine();
