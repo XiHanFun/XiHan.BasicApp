@@ -183,8 +183,8 @@ public static class PageRegistry
 
         // [9] 日志审计
          new("log", "审计中心", "menu.log", MenuType.Directory, "/log", "Log", null, null, null, "lucide:file-search", 1000, "/log/access"),
-        // [9.0] 链路追踪（跨类日志综合追踪时间线）
-         new("log.trace", "链路追踪", "menu.log_trace", MenuType.Menu, "/log/trace", "LogTrace", "log/trace/index", "log", SaasPermissionCodes.LogTrace.Read, "lucide:route", 1080),
+        // [9.0] 日志链路追踪（跨类日志综合追踪时间线）
+         new("log.trace", "日志链路追踪", "menu.log_trace", MenuType.Menu, "/log/trace", "LogTrace", "log/trace/index", "log", SaasPermissionCodes.LogTrace.Read, "lucide:route", 1080),
         // [9.1] 访问日志
          new("log.access", "访问日志", "menu.log_access", MenuType.Menu, "/log/access", "LogAccess", "log/access/index", "log", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 1020),
         // [9.2] 开放接口日志
@@ -195,10 +195,10 @@ public static class PageRegistry
          new("log.login", "登录日志", "menu.log_login", MenuType.Menu, "/log/login", "LogLogin", "log/login/index", "log", SaasPermissionCodes.LoginLog.Read, "lucide:log-in", 1010),
         // [9.5] 异常日志
          new("log.exception", "异常日志", "menu.log_exception", MenuType.Menu, "/log/exception", "LogException", "log/exception/index", "log", SaasPermissionCodes.ExceptionLog.Read, "lucide:triangle-alert", 1070),
-        // [9.6] 数据变更
-         new("log.diff", "数据变更", "menu.log_diff", MenuType.Menu, "/log/diff", "LogDiff", "log/diff/index", "log", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 1040),
+        // [9.6] 数据变更日志
+         new("log.diff", "数据变更日志", "menu.log_diff", MenuType.Menu, "/log/diff", "LogDiff", "log/diff/index", "log", SaasPermissionCodes.DiffLog.Read, "lucide:file-diff", 1040),
         // [9.7] 权限变更日志
-         new("log.permission-change", "权限变更", "menu.log_permission_change", MenuType.Menu, "/log/permission-change", "LogPermissionChange", "log/permission-change/index", "log", SaasPermissionCodes.PermissionChangeLog.Read, "lucide:shield-check", 1050),
+         new("log.permission-change", "权限变更日志", "menu.log_permission_change", MenuType.Menu, "/log/permission-change", "LogPermissionChange", "log/permission-change/index", "log", SaasPermissionCodes.PermissionChangeLog.Read, "lucide:shield-check", 1050),
 
         // [10] 关于项目
          new("about", "帮助中心", "menu.about", MenuType.Directory, "/about", "About", null, null, null, "lucide:info", 1100, "/about"),
@@ -433,7 +433,7 @@ public static class PageRegistry
         // [9.5] 异常日志
          new("log.exception.export", "导出", "log.exception", SaasPermissionCodes.ExceptionLog.Export, 1),
 
-        // [9.6] 数据变更
+        // [9.6] 数据变更日志
          new("log.diff.export", "导出", "log.diff", SaasPermissionCodes.DiffLog.Export, 1),
     ];
 }

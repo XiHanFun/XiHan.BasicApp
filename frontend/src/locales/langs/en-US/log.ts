@@ -193,7 +193,7 @@ export default {
     device_info: 'Device Info',
   },
   diff: {
-    page_name: 'Data Changes',
+    page_name: 'Data Change Logs',
     detail_title: 'Data Change Details',
     detail_load_failed: 'Failed to load data change details',
     keyword_placeholder: 'Search entity / table / user',
@@ -235,7 +235,7 @@ export default {
     after_data: 'After Data',
   },
   permission_change: {
-    page_name: 'Permission Change Log',
+    page_name: 'Permission Change Logs',
     detail_title: 'Permission Change Detail',
     detail_load_failed: 'Failed to load permission change detail',
     keyword_placeholder: 'Search reason/description',
@@ -266,7 +266,7 @@ export default {
     change_time: 'Change Time',
   },
   trace: {
-    page_name: 'Trace',
+    page_name: 'Log Trace',
     action: 'Trace',
     dimension: 'Dimension',
     value: 'Value',
