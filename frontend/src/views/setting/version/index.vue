@@ -1,29 +1,16 @@
 <script setup lang="ts">
-import type {
-  PageResult,
-  VersionCreateDto,
-  VersionDetailDto,
-  VersionListItemDto,
-  VersionUpgradeFinishDto,
-} from '@/api'
+import type { PageResult, VersionDetailDto, VersionListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
-  NButton,
   NDescriptions,
   NDescriptionsItem,
   NDrawer,
   NDrawerContent,
   NEmpty,
-  NForm,
-  NFormItem,
   NIcon,
-  NInput,
-  NModal,
   NScrollbar,
-  NSpace,
   NSpin,
   NTag,
-  useDialog,
   useMessage,
 } from 'naive-ui'
 import { computed, h, ref } from 'vue'
@@ -36,13 +23,6 @@ defineOptions({ name: 'SettingVersionPage' })
 
 const { t } = useI18n()
 const message = useMessage()
-const dialog = useDialog()
-
-const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
-
-function reloadVersion() {
-  void schemaPageRef.value?.reload()
-}
 
 // ── 过滤值清洗 ──────────────────────────────────────────────────
 function toStr(v: unknown): string | undefined {
@@ -94,12 +74,11 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'createdTime', title: t('setting.version.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
 ])
 
+// 只读页：版本行由升级引擎写入并把 IsUpgrading 用作分布式锁，页面不再提供任何写操作
 const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.version',
   exportPermission: 'saas:version:export',
   pageName: t('setting.version.page_name'),
-  batchRemovable: true,
-  removePermission: 'saas:version:delete',
   rowKey: 'basicId',
   scrollX: 1200,
   fields: fields.value,
@@ -117,44 +96,16 @@ const schema = computed<PageSchema>(() => ({
         isUpgrading: toBool(f.isUpgrading),
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
     },
-    remove: id => versionApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('setting.version.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:version:create' },
     { key: 'view', title: t('setting.version.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'startUpgrade', title: t('setting.version.start_upgrade'), scope: 'row', icon: 'lucide:rocket', permission: 'saas:version:upgrade', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
-    { key: 'finishUpgrade', title: t('setting.version.finish_upgrade'), scope: 'row', icon: 'lucide:circle-check', permission: 'saas:version:upgrade', disabled: row => !(row as unknown as VersionListItemDto).isUpgrading },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:version:delete', disabled: row => (row as unknown as VersionListItemDto).isUpgrading },
   ],
 }))
 
-// ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as VersionListItemDto | undefined
-  switch (payload.key) {
-    case 'create':
-      handleAdd()
-      break
-    case 'view':
-      if (row) {
-        void handleDetail(row)
-      }
-      break
-    case 'startUpgrade':
-      if (row) {
-        handleStartUpgrade(row)
-      }
-      break
-    case 'finishUpgrade':
-      if (row) {
-        handleFinishUpgrade(row)
-      }
-      break
-    case 'delete':
-      if (row) {
-        handleDelete(row)
-      }
-      break
+  if (payload.key === 'view' && row) {
+    void handleDetail(row)
   }
 }
 
@@ -177,178 +128,19 @@ async function handleDetail(row: VersionListItemDto) {
     detailLoading.value = false
   }
 }
-
-// ── 新增版本 ────────────────────────────────────────────────────
-interface VersionFormModel {
-  appVersion: string
-  dbVersion: string
-  minSupportVersion: string
-}
-
-const createVisible = ref(false)
-const createLoading = ref(false)
-const createForm = ref<VersionFormModel>(createDefaultVersionForm())
-
-function createDefaultVersionForm(): VersionFormModel {
-  return {
-    appVersion: '',
-    dbVersion: '0.0.0',
-    minSupportVersion: '',
-  }
-}
-
-function handleAdd() {
-  createForm.value = createDefaultVersionForm()
-  createVisible.value = true
-}
-
-async function handleCreateSubmit() {
-  if (!createForm.value.appVersion.trim()) {
-    message.warning(t('setting.version.validate_app_version'))
-    return
-  }
-  if (!createForm.value.dbVersion.trim()) {
-    message.warning(t('setting.version.validate_db_version'))
-    return
-  }
-  createLoading.value = true
-  try {
-    const input: VersionCreateDto = {
-      appVersion: createForm.value.appVersion.trim(),
-      dbVersion: createForm.value.dbVersion.trim(),
-      isUpgrading: false,
-      minSupportVersion: createForm.value.minSupportVersion.trim() || null,
-    }
-    await versionApi.create(input)
-    message.success(t('setting.version.version_created'))
-    createVisible.value = false
-    reloadVersion()
-  }
-  catch (e) {
-    message.error((e as Error).message || t('setting.version.create_failed'))
-  }
-  finally {
-    createLoading.value = false
-  }
-}
-
-// ── 开始升级 ────────────────────────────────────────────────────
-const startVisible = ref(false)
-const startLoading = ref(false)
-const startTarget = ref<VersionListItemDto | null>(null)
-const startUpgradeNode = ref('')
-
-function handleStartUpgrade(row: VersionListItemDto) {
-  if (row.isUpgrading) {
-    message.warning(t('setting.version.already_upgrading'))
-    return
-  }
-  startTarget.value = row
-  startUpgradeNode.value = row.upgradeNode ?? ''
-  startVisible.value = true
-}
-
-async function handleStartSubmit() {
-  if (!startTarget.value) {
-    return
-  }
-  startLoading.value = true
-  try {
-    // 升级开始时间留空由后端取当前时间
-    await versionApi.startUpgrade({
-      basicId: startTarget.value.basicId,
-      upgradeNode: startUpgradeNode.value.trim() || null,
-    })
-    message.success(t('setting.version.marked_upgrading'))
-    startVisible.value = false
-    reloadVersion()
-  }
-  catch (e) {
-    message.error((e as Error).message || t('setting.version.start_failed'))
-  }
-  finally {
-    startLoading.value = false
-  }
-}
-
-// ── 完成升级 ────────────────────────────────────────────────────
-const finishVisible = ref(false)
-const finishLoading = ref(false)
-const finishTarget = ref<VersionListItemDto | null>(null)
-const finishForm = ref<VersionFormModel>(createDefaultVersionForm())
-
-function handleFinishUpgrade(row: VersionListItemDto) {
-  if (!row.isUpgrading) {
-    message.warning(t('setting.version.not_upgrading'))
-    return
-  }
-  finishTarget.value = row
-  finishForm.value = {
-    appVersion: row.appVersion,
-    dbVersion: row.dbVersion,
-    minSupportVersion: row.minSupportVersion ?? '',
-  }
-  finishVisible.value = true
-}
-
-async function handleFinishSubmit() {
-  if (!finishTarget.value) {
-    return
-  }
-  finishLoading.value = true
-  try {
-    const input: VersionUpgradeFinishDto = {
-      basicId: finishTarget.value.basicId,
-      // 留空表示沿用原值（后端仅在非空时覆盖）
-      appVersion: finishForm.value.appVersion.trim() || null,
-      dbVersion: finishForm.value.dbVersion.trim() || null,
-      minSupportVersion: finishForm.value.minSupportVersion.trim() || null,
-    }
-    await versionApi.finishUpgrade(input)
-    message.success(t('setting.version.upgrade_finished'))
-    finishVisible.value = false
-    reloadVersion()
-  }
-  catch (e) {
-    message.error((e as Error).message || t('setting.version.finish_failed'))
-  }
-  finally {
-    finishLoading.value = false
-  }
-}
-
-// ── 删除 ────────────────────────────────────────────────────────
-function handleDelete(row: VersionListItemDto) {
-  if (row.isUpgrading) {
-    message.warning(t('setting.version.upgrading_cannot_delete'))
-    return
-  }
-  dialog.warning({
-    title: t('setting.version.delete_title'),
-    content: t('setting.version.delete_content', { version: row.appVersion }),
-    positiveText: t('common.actions.delete'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
-      try {
-        await versionApi.delete(row.basicId)
-        message.success(t('setting.version.version_deleted'))
-        reloadVersion()
-      }
-      catch (e) {
-        message.error((e as Error).message || t('setting.version.delete_failed'))
-      }
-    },
-  })
-}
 </script>
 
 <template>
-  <SchemaPage
-    ref="schemaPageRef"
-    :schema="schema"
-    @action="onAction"
-  >
-    <!-- 详情抽屉：版本信息 + 迁移历史台账 -->
+  <SchemaPage :schema="schema" @action="onAction">
+    <!-- 页面无写操作，工具栏位置改为说明数据来源 -->
+    <template #toolbar>
+      <span class="xh-version-hint">
+        <NIcon size="14"><Icon icon="lucide:info" /></NIcon>
+        {{ t('setting.version.engine_managed_hint') }}
+      </span>
+    </template>
+
+    <!-- 详情抽屉：版本信息 -->
     <NDrawer v-model:show="detailVisible" :width="720">
       <NDrawerContent closable :title="t('setting.version.detail_title')">
         <NSpin :show="detailLoading">
@@ -390,98 +182,6 @@ function handleDelete(row: VersionListItemDto) {
         </NSpin>
       </NDrawerContent>
     </NDrawer>
-
-    <!-- 新增版本 -->
-    <NModal
-      v-model:show="createVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      style="width: 520px; max-width: 92vw"
-      :title="t('setting.version.add_title')"
-    >
-      <NForm :model="createForm" label-placement="top">
-        <NFormItem :label="t('setting.version.app_version')" path="appVersion">
-          <NInput v-model:value="createForm.appVersion" clearable :placeholder="t('setting.version.app_version_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.version.db_version')" path="dbVersion">
-          <NInput v-model:value="createForm.dbVersion" clearable :placeholder="t('setting.version.db_version_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.version.min_support_version')" path="minSupportVersion">
-          <NInput v-model:value="createForm.minSupportVersion" clearable :placeholder="t('setting.version.min_support_input_placeholder')" />
-        </NFormItem>
-      </NForm>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="createVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="createLoading" type="primary" @click="handleCreateSubmit">
-            {{ t('common.actions.save') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- 开始升级 -->
-    <NModal
-      v-model:show="startVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      style="width: 480px; max-width: 92vw"
-      :title="t('setting.version.start_title', { version: startTarget?.appVersion ?? '' })"
-    >
-      <NForm label-placement="top">
-        <NFormItem :label="t('setting.version.upgrade_node')">
-          <NInput v-model:value="startUpgradeNode" clearable :placeholder="t('setting.version.upgrade_node_placeholder')" />
-        </NFormItem>
-      </NForm>
-      <span class="xh-modal-tip">{{ t('setting.version.start_tip') }}</span>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="startVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="startLoading" type="warning" @click="handleStartSubmit">
-            {{ t('setting.version.start_upgrade') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
-
-    <!-- 完成升级 -->
-    <NModal
-      v-model:show="finishVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      style="width: 520px; max-width: 92vw"
-      :title="t('setting.version.finish_title', { version: finishTarget?.appVersion ?? '' })"
-    >
-      <NForm :model="finishForm" label-placement="top">
-        <NFormItem :label="t('setting.version.app_version')">
-          <NInput v-model:value="finishForm.appVersion" clearable :placeholder="t('setting.version.keep_original_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.version.db_version')">
-          <NInput v-model:value="finishForm.dbVersion" clearable :placeholder="t('setting.version.keep_original_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.version.min_support_version')">
-          <NInput v-model:value="finishForm.minSupportVersion" clearable :placeholder="t('setting.version.keep_original_placeholder')" />
-        </NFormItem>
-      </NForm>
-      <span class="xh-modal-tip">{{ t('setting.version.finish_tip') }}</span>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="finishVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton :loading="finishLoading" type="primary" @click="handleFinishSubmit">
-            {{ t('setting.version.finish_upgrade') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
   </SchemaPage>
 </template>
 
@@ -490,9 +190,10 @@ function handleDelete(row: VersionListItemDto) {
   padding: 48px 0;
 }
 
-.xh-modal-tip {
-  display: block;
-  margin-top: 4px;
+.xh-version-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   opacity: 0.65;
 }

@@ -414,10 +414,6 @@ public static class PageRegistry
          new("setting.cache.clear", "清理", "setting.cache", SaasPermissionCodes.Cache.Clear, 1),
 
         // [8.7] 版本管理（系统版本与升级迁移）
-         new("setting.version.create", "新增", "setting.version", SaasPermissionCodes.Version.Create, 1),
-         new("setting.version.update", "编辑", "setting.version", SaasPermissionCodes.Version.Update, 2),
-         new("setting.version.upgrade", "升级", "setting.version", SaasPermissionCodes.Version.Upgrade, 3),
-         new("setting.version.delete", "删除", "setting.version", SaasPermissionCodes.Version.Delete, 4),
          new("setting.version.export", "导出", "setting.version", SaasPermissionCodes.Version.Export, 9),
 
         // [9.1] 访问日志
