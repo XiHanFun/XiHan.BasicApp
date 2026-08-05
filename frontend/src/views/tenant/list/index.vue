@@ -25,6 +25,7 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NPagination,
   NScrollbar,
   NSelect,
   NSpace,
@@ -146,6 +147,9 @@ const currentDetail = ref<TenantDetailDto | null>(null)
 const memberLoading = ref(false)
 const memberError = ref(false)
 const members = ref<TenantMemberListItemDto[]>([])
+const MEMBER_PAGE_SIZE = 10
+const memberPage = ref(1)
+const memberTotal = ref(0)
 const memberEditVisible = ref(false)
 const memberEditLoading = ref(false)
 const editingMember = ref<TenantMemberUpdateDto | null>(null)
@@ -410,6 +414,8 @@ async function handleView(row: TenantListItemDto) {
   detailLoading.value = true
   currentDetail.value = null
   members.value = []
+  memberPage.value = 1
+  memberTotal.value = 0
   try {
     currentDetail.value = await tenantManagementApi.detail(row.basicId)
     if (!currentDetail.value) {
@@ -443,22 +449,29 @@ async function loadMembers() {
   try {
     const result = await tenantManagementApi.members.page({
       ...createPageRequest({
-        page: { pageIndex: 1, pageSize: 200 },
+        page: { pageIndex: memberPage.value, pageSize: MEMBER_PAGE_SIZE },
       }),
       // 必须按当前查看的租户过滤：平台管理员无租户上下文，后端全局租户过滤器在平台态放行全部，
       // 不传这个就会把所有租户的成员关系都拉回来。
       tenantId: currentDetail.value.basicId,
     })
     members.value = result.items
+    memberTotal.value = result.page.totalCount
   }
   catch {
     memberError.value = true
     members.value = []
+    memberTotal.value = 0
     message.error(t('tenant.list.member_list_load_failed'))
   }
   finally {
     memberLoading.value = false
   }
+}
+
+function handleMemberPageChange(page: number) {
+  memberPage.value = page
+  void loadMembers()
 }
 
 function handleEditMember(row: TenantMemberListItemDto) {
@@ -708,51 +721,63 @@ async function handleSubmit() {
                     </NEmpty>
                   </div>
                   <NEmpty v-else-if="!memberLoading && members.length === 0" class="xh-detail-empty" :description="t('tenant.list.member_empty')" />
-                  <table v-else class="xh-detail-table">
-                    <thead>
-                      <tr>
-                        <th>{{ t('tenant.list.member_user_id') }}</th>
-                        <th>{{ t('tenant.list.member_display_name') }}</th>
-                        <th>{{ t('tenant.list.member_type') }}</th>
-                        <th>{{ t('tenant.list.member_invite_status') }}</th>
-                        <th>{{ t('tenant.list.member_status') }}</th>
-                        <th>{{ t('tenant.list.member_join_time') }}</th>
-                        <th>{{ t('tenant.list.member_operation') }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="item in members" :key="item.basicId">
-                        <td>{{ item.userId }}</td>
-                        <td>{{ formatNullable(resolveMemberName(item)) }}</td>
-                        <td>
-                          <NTag :type="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'primary' : 'default'" round size="small">
-                            {{ getOptionLabel(memberTypeOptions, item.memberType) }}
-                          </NTag>
-                        </td>
-                        <td>
-                          <NTag :type="getInviteStatusTagType(item.inviteStatus)" round size="small">
-                            {{ getOptionLabel(inviteStatusOptions, item.inviteStatus) }}
-                          </NTag>
-                        </td>
-                        <td>
-                          <NTag :type="item.status === ValidityStatus.Valid ? 'success' : 'error'" round size="small">
-                            {{ getOptionLabel(validityStatusOptions, item.status) }}
-                          </NTag>
-                        </td>
-                        <td>{{ formatNullableDate(item.createdTime) }}</td>
-                        <td>
-                          <NSpace size="small">
-                            <NButton size="tiny" @click="handleEditMember(item)">
-                              {{ t('tenant.list.member_edit') }}
-                            </NButton>
-                            <NButton size="tiny" type="warning" @click="handleChangeMemberStatus(item)">
-                              {{ t('tenant.list.member_change_status') }}
-                            </NButton>
-                          </NSpace>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <template v-else>
+                    <table class="xh-detail-table">
+                      <thead>
+                        <tr>
+                          <th>{{ t('tenant.list.member_user_id') }}</th>
+                          <th>{{ t('tenant.list.member_display_name') }}</th>
+                          <th>{{ t('tenant.list.member_type') }}</th>
+                          <th>{{ t('tenant.list.member_invite_status') }}</th>
+                          <th>{{ t('tenant.list.member_status') }}</th>
+                          <th>{{ t('tenant.list.member_join_time') }}</th>
+                          <th>{{ t('tenant.list.member_operation') }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="item in members" :key="item.basicId">
+                          <td>{{ item.userId }}</td>
+                          <td>{{ formatNullable(resolveMemberName(item)) }}</td>
+                          <td>
+                            <NTag :type="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'primary' : 'default'" round size="small">
+                              {{ getOptionLabel(memberTypeOptions, item.memberType) }}
+                            </NTag>
+                          </td>
+                          <td>
+                            <NTag :type="getInviteStatusTagType(item.inviteStatus)" round size="small">
+                              {{ getOptionLabel(inviteStatusOptions, item.inviteStatus) }}
+                            </NTag>
+                          </td>
+                          <td>
+                            <NTag :type="item.status === ValidityStatus.Valid ? 'success' : 'error'" round size="small">
+                              {{ getOptionLabel(validityStatusOptions, item.status) }}
+                            </NTag>
+                          </td>
+                          <td>{{ formatNullableDate(item.createdTime) }}</td>
+                          <td>
+                            <NSpace size="small">
+                              <NButton size="tiny" @click="handleEditMember(item)">
+                                {{ t('tenant.list.member_edit') }}
+                              </NButton>
+                              <NButton size="tiny" type="warning" @click="handleChangeMemberStatus(item)">
+                                {{ t('tenant.list.member_change_status') }}
+                              </NButton>
+                            </NSpace>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div class="xh-member-pager">
+                      <NPagination
+                        :page="memberPage"
+                        :item-count="memberTotal"
+                        :page-size="MEMBER_PAGE_SIZE"
+                        :page-slot="5"
+                        size="small"
+                        @update:page="handleMemberPageChange"
+                      />
+                    </div>
+                  </template>
                 </NSpin>
               </NTabPane>
 
@@ -977,6 +1002,12 @@ async function handleSubmit() {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+}
+
+.xh-member-pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 .xh-detail-table th,
