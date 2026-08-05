@@ -14,7 +14,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Numbering;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Exporting;
-using XiHan.BasicApp.Saas.Infrastructure.Migrations;
+using XiHan.BasicApp.Saas.Infrastructure.Upgrade;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
@@ -40,6 +40,7 @@ using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
+using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Web.Api.Security.OpenApi;
 using XiHan.Framework.Web.Api.Session;
@@ -69,8 +70,11 @@ public static class ServiceCollectionExtensions
         // 编号格式器是无共享可变状态的纯计算服务，可安全注册为单例。
         services.AddSingleton<INumberingFormatter, NumberingFormatter>();
 
-        // 升级脚本执行器：应用初始化阶段调用一次，直接使用 ISqlSugarClient，不经仓储 AOP
-        services.AddScoped<SqlScriptMigrationRunner>();
+        // 升级引擎的四个实现槽。框架侧以 TryAdd 注册内存版默认实现，此处后注册即覆盖解析结果。
+        services.AddScoped<IUpgradeVersionStore, SaasUpgradeVersionStore>();
+        services.AddScoped<IUpgradeLockProvider, SaasUpgradeLockProvider>();
+        services.AddScoped<IUpgradeTenantProvider, SaasUpgradeTenantProvider>();
+        services.AddScoped<IUpgradeMigrationExecutor, SaasUpgradeMigrationExecutor>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();
