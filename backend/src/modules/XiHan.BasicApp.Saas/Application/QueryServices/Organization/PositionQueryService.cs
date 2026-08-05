@@ -3,7 +3,9 @@
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
@@ -15,9 +17,11 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -37,14 +41,30 @@ public sealed class PositionQueryService
     /// <summary>
     /// 字段级安全（排序门控）
     /// </summary>
+    /// <summary>
+    /// 启用岗位选择项缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasPositionSelectCacheItem, string> _positionSelectCache;
+
+    /// <summary>
+    /// 当前租户
+    /// </summary>
+    private readonly ICurrentTenant _currentTenant;
+
     private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public PositionQueryService(IPositionRepository positionRepository, IFieldSecurityService fieldSecurityService)
+    public PositionQueryService(
+        IPositionRepository positionRepository,
+        IDistributedCache<SaasPositionSelectCacheItem, string> positionSelectCache,
+        ICurrentTenant currentTenant,
+        IFieldSecurityService fieldSecurityService)
     {
         _positionRepository = positionRepository;
+        _positionSelectCache = positionSelectCache;
+        _currentTenant = currentTenant;
         _fieldSecurity = fieldSecurityService;
     }
 
@@ -102,6 +122,24 @@ public sealed class PositionQueryService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 岗位变动极少，按租户整体缓存。
+        // 失效由岗位写路径触发——PositionAppService 增删改启停调 InvalidateOrganizationAsync。
+        var item = await _positionSelectCache.GetOrAddAsync(
+            SaasCacheKeys.PositionSelect(_currentTenant.Id),
+            async () => new SaasPositionSelectCacheItem
+            {
+                Items = [.. await QueryEnabledPositionsAsync(cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            static () => new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10) },
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item?.Items ?? await QueryEnabledPositionsAsync(cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<PositionListItemDto>> QueryEnabledPositionsAsync(CancellationToken cancellationToken)
+    {
         var positions = await _positionRepository.GetListAsync(
             position => position.Status == EnableStatus.Enabled,
             cancellationToken);

@@ -29,6 +29,11 @@ public static class SaasCacheNames
     public const string PermissionSelect = "basicapp:saas:permission:select";
 
     /// <summary>
+    /// 权限全量目录缓存。
+    /// </summary>
+    public const string PermissionCatalog = "basicapp:saas:permission:catalog";
+
+    /// <summary>
     /// 已启用角色选择项缓存。
     /// </summary>
     public const string RoleSelect = "basicapp:saas:role:select";
@@ -52,6 +57,16 @@ public static class SaasCacheNames
     /// 部门树缓存。
     /// </summary>
     public const string DepartmentTree = "basicapp:saas:organization:dept-tree";
+
+    /// <summary>
+    /// 已启用部门选择项缓存。
+    /// </summary>
+    public const string DepartmentSelect = "basicapp:saas:organization:dept-select";
+
+    /// <summary>
+    /// 已启用岗位选择项缓存。
+    /// </summary>
+    public const string PositionSelect = "basicapp:saas:organization:position-select";
 
     /// <summary>
     /// 用户设置缓存（全场景偏好/页面设置同步）。

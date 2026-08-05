@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -22,13 +23,15 @@ public sealed class PositionAppService
     : SaasApplicationService, IPositionAppService
 {
     private readonly IPositionDomainService _positionDomainService;
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public PositionAppService(IPositionDomainService positionDomainService)
+    public PositionAppService(IPositionDomainService positionDomainService, ISaasCacheInvalidator cacheInvalidator)
     {
         _positionDomainService = positionDomainService;
+        _cacheInvalidator = cacheInvalidator;
     }
 
     /// <summary>
@@ -42,6 +45,10 @@ public sealed class PositionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _positionDomainService.CreatePositionAsync(PositionApplicationMapper.ToCreateCommand(input), cancellationToken);
+
+        // 岗位变更影响岗位选择项缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
+
         return PositionApplicationMapper.ToDetailDto(result.Position);
     }
 
@@ -54,6 +61,9 @@ public sealed class PositionAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _positionDomainService.DeletePositionAsync(id, cancellationToken);
+
+        // 岗位变更影响岗位选择项缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
     }
 
     /// <summary>
@@ -67,6 +77,10 @@ public sealed class PositionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _positionDomainService.UpdatePositionAsync(PositionApplicationMapper.ToUpdateCommand(input), cancellationToken);
+
+        // 岗位变更影响岗位选择项缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
+
         return PositionApplicationMapper.ToDetailDto(result.Position);
     }
 
@@ -81,6 +95,10 @@ public sealed class PositionAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _positionDomainService.UpdatePositionStatusAsync(PositionApplicationMapper.ToStatusCommand(input), cancellationToken);
+
+        // 岗位变更影响岗位选择项缓存，统一失效
+        await _cacheInvalidator.InvalidateOrganizationAsync(cancellationToken);
+
         return PositionApplicationMapper.ToDetailDto(result.Position);
     }
 }

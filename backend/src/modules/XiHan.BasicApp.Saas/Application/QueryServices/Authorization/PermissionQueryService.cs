@@ -53,6 +53,11 @@ public sealed class PermissionQueryService
     private readonly IDistributedCache<SaasPermissionSelectCacheItem, string> _permissionSelectCache;
 
     /// <summary>
+    /// 权限全量目录缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasPermissionCatalogCacheItem, string> _permissionCatalogCache;
+
+    /// <summary>
     /// 字段级安全（排序门控）
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
@@ -65,12 +70,14 @@ public sealed class PermissionQueryService
         IResourceRepository resourceRepository,
         IOperationRepository operationRepository,
         IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
+        IDistributedCache<SaasPermissionCatalogCacheItem, string> permissionCatalogCache,
         IFieldSecurityService fieldSecurityService)
     {
         _permissionRepository = permissionRepository;
         _resourceRepository = resourceRepository;
         _operationRepository = operationRepository;
         _permissionSelectCache = permissionSelectCache;
+        _permissionCatalogCache = permissionCatalogCache;
         _fieldSecurity = fieldSecurityService;
     }
 
@@ -200,6 +207,24 @@ public sealed class PermissionQueryService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 权限定义变动极少，目录整体缓存。
+        // 失效由权限定义写路径触发——PermissionAppService 增删改启停调 InvalidatePermissionDefinitionAsync。
+        var item = await _permissionCatalogCache.GetOrAddAsync(
+            SaasCacheKeys.PermissionCatalog(),
+            async () => new SaasPermissionCatalogCacheItem
+            {
+                Items = [.. await QueryPermissionCatalogAsync(cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item?.Items ?? await QueryPermissionCatalogAsync(cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<PermissionListItemDto>> QueryPermissionCatalogAsync(CancellationToken cancellationToken)
+    {
         var permissions = await _permissionRepository.GetListAsync(permission => true, cancellationToken);
         if (permissions.Count == 0)
         {

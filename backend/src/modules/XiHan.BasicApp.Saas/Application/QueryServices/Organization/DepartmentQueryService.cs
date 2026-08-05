@@ -43,6 +43,11 @@ public sealed class DepartmentQueryService
     private readonly IDistributedCache<SaasDepartmentTreeCacheItem, string> _departmentTreeCache;
 
     /// <summary>
+    /// 启用部门选择项缓存
+    /// </summary>
+    private readonly IDistributedCache<SaasDepartmentSelectCacheItem, string> _departmentSelectCache;
+
+    /// <summary>
     /// 当前租户
     /// </summary>
     private readonly ICurrentTenant _currentTenant;
@@ -53,10 +58,12 @@ public sealed class DepartmentQueryService
     public DepartmentQueryService(
         IDepartmentRepository departmentRepository,
         IDistributedCache<SaasDepartmentTreeCacheItem, string> departmentTreeCache,
+        IDistributedCache<SaasDepartmentSelectCacheItem, string> departmentSelectCache,
         ICurrentTenant currentTenant)
     {
         _departmentRepository = departmentRepository;
         _departmentTreeCache = departmentTreeCache;
+        _departmentSelectCache = departmentSelectCache;
         _currentTenant = currentTenant;
     }
 
@@ -133,6 +140,46 @@ public sealed class DepartmentQueryService
         return item is null
             ? await QueryDepartmentTreeAsync(input, cancellationToken)
             : item.Nodes;
+    }
+
+    /// <summary>
+    /// 获取启用部门列表
+    /// </summary>
+    /// <remarks>供消息定向等下拉一次取全，不走分页。</remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>启用部门列表</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Department.Read)]
+    public async Task<IReadOnlyList<DepartmentListItemDto>> GetEnabledDepartmentsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 部门变动极少，按租户整体缓存。
+        // 失效由部门写路径触发——DepartmentAppService 增删改启停调 InvalidateOrganizationAsync。
+        var item = await _departmentSelectCache.GetOrAddAsync(
+            SaasCacheKeys.DepartmentSelect(_currentTenant.Id),
+            async () => new SaasDepartmentSelectCacheItem
+            {
+                Items = [.. await QueryEnabledDepartmentsAsync(cancellationToken)],
+                CachedAt = DateTimeOffset.UtcNow
+            },
+            CreateCacheOptions,
+            hideErrors: true,
+            token: cancellationToken);
+
+        return item?.Items ?? await QueryEnabledDepartmentsAsync(cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<DepartmentListItemDto>> QueryEnabledDepartmentsAsync(CancellationToken cancellationToken)
+    {
+        var departments = await _departmentRepository.GetListAsync(
+            department => department.Status == EnableStatus.Enabled,
+            cancellationToken);
+
+        return [.. departments
+            .OrderBy(department => department.ParentId)
+            .ThenBy(department => department.Sort)
+            .ThenBy(department => department.DepartmentCode, StringComparer.Ordinal)
+            .Select(DepartmentApplicationMapper.ToListItemDto)];
     }
 
     private static DistributedCacheEntryOptions CreateCacheOptions()
