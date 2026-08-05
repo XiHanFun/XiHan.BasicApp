@@ -57,7 +57,7 @@ export default {
   develop: 'Development',
   code_gen: 'Code Generation',
   ai_provider: 'AI Providers',
-  ai_app: 'AI',
+  ai_app: 'AI Apps',
   knowledge_base: 'AI Knowledge Base',
   ai_prompt: 'AI Prompts',
   ai_assistant: 'AI Assistants',

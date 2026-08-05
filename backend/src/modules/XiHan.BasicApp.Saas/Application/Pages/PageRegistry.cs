@@ -92,7 +92,7 @@ public static class PageRegistry
          new("workbench.profile", "个人中心", "menu.profile", MenuType.Menu, "/workbench/profile", "Profile", "_core/profile/index", "workbench", null, "lucide:user", 15),
 
         // [2] 身份权限
-         new("identity", "身份与权限", "menu.identity", MenuType.Directory, "/identity", "Identity", null, null, null, "lucide:shield-check", 200, "/identity/user"),
+         new("identity", "身份权限", "menu.identity", MenuType.Directory, "/identity", "Identity", null, null, null, "lucide:shield-check", 200, "/identity/user"),
         // [2.1] 用户管理
          new("identity.user", "用户管理", "menu.identity_user", MenuType.Menu, "/identity/user", "IdentityUser", "identity/user/index", "identity", SaasPermissionCodes.User.Read, "lucide:users", 110),
         // [2.2] 角色管理

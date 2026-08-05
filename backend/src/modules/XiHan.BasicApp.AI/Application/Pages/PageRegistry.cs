@@ -26,7 +26,7 @@ public static class PageRegistry
     /// AI 应用目录定义
     /// </summary>
     public static PageDescriptor AiAppDirectory { get; } =
-        new(AiAppDirectoryCode, "AI", "menu.ai_app", MenuType.Directory, "/ai", "AiApp", null, null, null, "lucide:brain-circuit", 100);
+        new(AiAppDirectoryCode, "AI 应用", "menu.ai_app", MenuType.Directory, "/ai", "AiApp", null, null, null, "lucide:brain-circuit", 100);
 
     /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
