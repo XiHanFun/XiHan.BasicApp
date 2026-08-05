@@ -58,3 +58,14 @@ export interface UserPermissionStatusUpdateDto extends BasicUpdateDto {
   remark?: string | null
   status: ValidityStatus
 }
+
+export interface UserPermissionBatchGrantItemDto {
+  permissionId: ApiId
+  permissionAction: PermissionAction
+}
+
+export interface UserPermissionBatchUpdateDto {
+  userId: ApiId
+  grants: UserPermissionBatchGrantItemDto[]
+  revokeUserPermissionIds: ApiId[]
+}

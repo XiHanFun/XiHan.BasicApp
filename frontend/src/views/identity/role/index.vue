@@ -46,7 +46,6 @@ import {
   departmentApi,
   EnableStatus,
   menuApi,
-  PermissionAction,
   permissionApi,
   querySortsFromSchema,
   roleDataScopeApi,
@@ -271,7 +270,8 @@ const permCatalog = ref<PermissionListItemDto[]>([])
 const permGrants = ref<RolePermissionListItemDto[]>([])
 const permLoading = ref(false)
 const permPanelRef = ref<{ reset: () => void } | null>(null)
-const permTogglingId = ref<ApiId | null>(null)
+const permChecked = ref<Set<ApiId>>(new Set())
+const permDirty = ref(false)
 
 /**
  * permissionId → 有效授权记录（收权时取记录主键）
@@ -304,6 +304,7 @@ async function openPermissionDrawer(row: RoleListItemDto) {
   try {
     const [, grantsResult] = await Promise.all([loadPermCatalog(), rolePermissionApi.list(row.basicId)])
     permGrants.value = grantsResult
+    derivePermChecked()
   }
   catch (e: unknown) {
     message.error((e as Error)?.message || t('identity.role.perm_load_failed'))
@@ -313,34 +314,54 @@ async function openPermissionDrawer(row: RoleListItemDto) {
   }
 }
 
-async function togglePermission(permission: PermissionListItemDto, checked: boolean) {
-  if (!permissionRole.value || permTogglingId.value != null) {
+/** 本地勾选态：打开抽屉时由有效授权推导，之后只改本地，保存时一次性提交 */
+function derivePermChecked() {
+  permChecked.value = new Set(permGrantByPermissionId.value.keys())
+  permDirty.value = false
+}
+
+function togglePermission(permission: PermissionListItemDto, checked: boolean) {
+  const next = new Set(permChecked.value)
+  if (checked) {
+    next.add(permission.basicId)
+  }
+  else {
+    next.delete(permission.basicId)
+  }
+  permChecked.value = next
+  permDirty.value = true
+}
+
+async function savePermGrants() {
+  const role = permissionRole.value
+  if (!role || permLoading.value) {
     return
   }
-  permTogglingId.value = permission.basicId
+  const validGrants = permGrants.value.filter(grant => grant.status === ValidityStatus.Valid)
+  const grantedPermIds = new Set(validGrants.map(grant => grant.permissionId))
+  const toGrant = [...permChecked.value].filter(permId => !grantedPermIds.has(permId))
+  const toRevoke = validGrants.filter(grant => !permChecked.value.has(grant.permissionId))
+  if (toGrant.length === 0 && toRevoke.length === 0) {
+    message.info(t('identity.role.perm_no_change'))
+    permDirty.value = false
+    return
+  }
+  permLoading.value = true
   try {
-    if (checked) {
-      await rolePermissionApi.grant({
-        roleId: permissionRole.value.basicId,
-        permissionId: permission.basicId,
-        permissionAction: PermissionAction.Grant,
-      })
-      message.success(t('identity.role.perm_grant_done', { name: permission.permissionName }))
-    }
-    else {
-      const grant = permGrantByPermissionId.value.get(permission.basicId)
-      if (grant) {
-        await rolePermissionApi.revoke(grant.basicId)
-        message.success(t('identity.role.perm_revoke_done', { name: permission.permissionName }))
-      }
-    }
-    permGrants.value = await rolePermissionApi.list(permissionRole.value.basicId)
+    await rolePermissionApi.batchUpdate({
+      roleId: role.basicId,
+      grantPermissionIds: toGrant,
+      revokeRolePermissionIds: toRevoke.map(grant => grant.basicId),
+    })
+    permGrants.value = await rolePermissionApi.list(role.basicId)
+    derivePermChecked()
+    message.success(t('identity.role.perm_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('common.messages.operation_failed'))
+    message.error((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
-    permTogglingId.value = null
+    permLoading.value = false
   }
 }
 
@@ -1073,18 +1094,26 @@ async function handleToggleStatus(row: RoleListItemDto) {
           :items="permCatalog"
           :loading="permLoading"
           :search-placeholder="t('identity.role.perm_search')"
-          :granted-count-label="t('identity.role.perm_granted_count', { count: permGrantByPermissionId.size })"
+          :granted-count-label="t('identity.role.perm_granted_count', { count: permChecked.size })"
           :empty-description="t('identity.role.perm_no_match')"
           :other-group-label="t('identity.role.perm_group_other')"
         >
           <template #action="{ item }">
             <NCheckbox
-              :checked="permGrantByPermissionId.has(item.basicId)"
-              :disabled="permTogglingId === item.basicId"
+              :checked="permChecked.has(item.basicId)"
+              :disabled="permLoading"
               @update:checked="(checked: boolean) => togglePermission(item as PermissionListItemDto, checked)"
             />
           </template>
         </XPermissionGrantPanel>
+        <template #footer>
+          <NButton @click="permissionVisible = false">
+            {{ t('common.actions.cancel') }}
+          </NButton>
+          <NButton type="primary" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+            {{ t('identity.role.perm_save') }}
+          </NButton>
+        </template>
       </NDrawerContent>
     </NDrawer>
 

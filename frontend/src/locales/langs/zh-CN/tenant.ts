@@ -168,6 +168,11 @@ export default {
     perm_group_other: '其他',
     perm_disable: '停用',
     perm_enable: '启用',
+    perm_enabled: '已启用',
+    perm_disabled: '已停用',
+    perm_save: '保存变更',
+    perm_no_change: '权限无变化',
+    perm_saved: '已保存（授予 {grant} 项，撤销 {revoke} 项，启停 {status} 项）',
     perm_revoke: '撤销',
     // 确认框
     confirm_enable_title: '启用版本',
@@ -176,8 +181,6 @@ export default {
     confirm_disable_content: '确定停用版本「{name}」吗？停用后新租户将无法选择该版本。',
     confirm_set_default_title: '设为默认版本',
     confirm_set_default_content: '确定将「{name}」设为默认版本吗？原默认版本将被取消默认标记。',
-    confirm_revoke_title: '撤销权限',
-    confirm_revoke_content: '确定从版本「{edition}」撤销权限「{permission}」吗？',
     // 消息
     validate_edition_code: '请输入版本编码',
     validate_edition_name: '请输入版本名称',
@@ -188,9 +191,5 @@ export default {
     status_update_failed: '状态更新失败',
     set_default_success: '已设为默认版本',
     set_default_failed: '设置默认版本失败',
-    grant_success: '授予成功',
-    grant_failed: '授予失败',
-    revoke_success: '已撤销',
-    revoke_failed: '撤销失败',
   },
 }

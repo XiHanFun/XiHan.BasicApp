@@ -958,21 +958,14 @@ const grantPermList = ref<UserPermissionListItemDto[]>([])
 const permCatalog = ref<PermissionListItemDto[]>([])
 const permPanelRef = ref<{ reset: () => void } | null>(null)
 const grantBusyId = ref<ApiId | null>(null)
+const permActions = ref<Map<ApiId, PermissionAction>>(new Map())
+const permDirty = ref(false)
 
 /** roleId → 用户角色授权记录 */
 const grantRoleByRoleId = computed(() => {
   const map = new Map<ApiId, UserRoleListItemDto>()
   for (const item of grantRoleList.value) {
     map.set(item.roleId, item)
-  }
-  return map
-})
-
-/** permissionId → 用户权限直授记录 */
-const grantPermByPermId = computed(() => {
-  const map = new Map<ApiId, UserPermissionListItemDto>()
-  for (const item of grantPermList.value) {
-    map.set(item.permissionId, item)
   }
   return map
 })
@@ -998,6 +991,7 @@ async function openGrantDrawer(row: UserListItemDto) {
     ])
     grantRoleList.value = roles
     grantPermList.value = perms
+    derivePermActions()
     await loadPermCatalog()
   }
   catch {
@@ -1035,32 +1029,63 @@ async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
   }
 }
 
-async function setPermGrant(permission: PermissionListItemDto, action: PermissionAction) {
-  if (!grantUser.value || grantBusyId.value != null) {
+/** 本地三态：打开抽屉时由有效直授推导，之后只改本地，保存时一次性提交 */
+function derivePermActions() {
+  const map = new Map<ApiId, PermissionAction>()
+  for (const item of grantPermList.value) {
+    map.set(item.permissionId, item.permissionAction)
+  }
+  permActions.value = map
+  permDirty.value = false
+}
+
+function setPermGrant(permission: PermissionListItemDto, action: PermissionAction) {
+  const next = new Map(permActions.value)
+  if (next.get(permission.basicId) === action) {
+    // 再次点击当前态 → 取消直授（回到未设置）
+    next.delete(permission.basicId)
+  }
+  else {
+    next.set(permission.basicId, action)
+  }
+  permActions.value = next
+  permDirty.value = true
+}
+
+async function savePermGrants() {
+  const user = grantUser.value
+  if (!user || grantLoading.value) {
     return
   }
-  grantBusyId.value = permission.basicId
-  try {
-    const existing = grantPermByPermId.value.get(permission.basicId)
-    if (existing && existing.permissionAction === action) {
-      // 再次点击当前态 → 撤销直授
-      await userManagementApi.permissions.revoke(existing.basicId)
-    }
-    else {
-      // 换授权动作直接重新授予即可，后端按 用户×权限 就地改写；先撤再授会在失败时把原有直授一并丢掉
-      await userManagementApi.permissions.grant({
-        userId: grantUser.value.basicId,
-        permissionId: permission.basicId,
-        permissionAction: action,
-      })
-    }
-    grantPermList.value = await userManagementApi.permissions.list(grantUser.value.basicId, true)
+  const current = new Map(grantPermList.value.map(item => [item.permissionId, item] as const))
+  // 新增或改了动作的才下发；动作没变的不必重复提交
+  const grants = [...permActions.value.entries()]
+    .filter(([permissionId, action]) => current.get(permissionId)?.permissionAction !== action)
+    .map(([permissionId, permissionAction]) => ({ permissionId, permissionAction }))
+  const revokeIds = [...current.entries()]
+    .filter(([permissionId]) => !permActions.value.has(permissionId))
+    .map(([, item]) => item.basicId)
+  if (grants.length === 0 && revokeIds.length === 0) {
+    message.info(t('identity.user.grant_perm_no_change'))
+    permDirty.value = false
+    return
   }
-  catch {
-    message.error(t('common.messages.operation_failed'))
+  grantLoading.value = true
+  try {
+    await userManagementApi.permissions.batchUpdate({
+      userId: user.basicId,
+      grants,
+      revokeUserPermissionIds: revokeIds,
+    })
+    grantPermList.value = await userManagementApi.permissions.list(user.basicId, true)
+    derivePermActions()
+    message.success(t('identity.user.grant_perm_saved', { grant: grants.length, revoke: revokeIds.length }))
+  }
+  catch (e: unknown) {
+    message.error((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
-    grantBusyId.value = null
+    grantLoading.value = false
   }
 }
 
@@ -1468,23 +1493,23 @@ async function confirmDelete() {
                 ref="permPanelRef"
                 :items="permCatalog"
                 :search-placeholder="t('identity.user.grant_perm_search')"
-                :granted-count-label="t('identity.user.grant_perm_granted_count', { count: grantPermList.length })"
+                :granted-count-label="t('identity.user.grant_perm_granted_count', { count: permActions.size })"
                 :empty-description="t('identity.user.grant_perm_empty')"
                 :other-group-label="t('identity.user.grant_perm_group_other')"
               >
                 <template #action="{ item }">
                   <NButton
-                    :disabled="grantBusyId === item.basicId"
+                    :disabled="grantLoading"
                     size="tiny"
-                    :type="grantPermByPermId.get(item.basicId)?.permissionAction === PermissionAction.Grant ? 'success' : 'default'"
+                    :type="permActions.get(item.basicId) === PermissionAction.Grant ? 'success' : 'default'"
                     @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Grant)"
                   >
                     {{ t('identity.user.grant_perm_allow') }}
                   </NButton>
                   <NButton
-                    :disabled="grantBusyId === item.basicId"
+                    :disabled="grantLoading"
                     size="tiny"
-                    :type="grantPermByPermId.get(item.basicId)?.permissionAction === PermissionAction.Deny ? 'error' : 'default'"
+                    :type="permActions.get(item.basicId) === PermissionAction.Deny ? 'error' : 'default'"
                     @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Deny)"
                   >
                     {{ t('identity.user.grant_perm_deny') }}
@@ -1494,6 +1519,15 @@ async function confirmDelete() {
             </NTabPane>
           </NTabs>
         </NSpin>
+        <!-- 角色页签逐项即时生效，仅权限直授需要提交 -->
+        <template v-if="grantTab === 'perm'" #footer>
+          <NButton @click="grantVisible = false">
+            {{ t('common.actions.cancel') }}
+          </NButton>
+          <NButton type="primary" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+            {{ t('identity.user.grant_perm_save') }}
+          </NButton>
+        </template>
       </NDrawerContent>
     </NDrawer>
   </SchemaPage>

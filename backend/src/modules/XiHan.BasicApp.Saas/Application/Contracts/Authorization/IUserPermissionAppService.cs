@@ -12,6 +12,13 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IUserPermissionAppService : IApplicationService
 {
     /// <summary>
+    /// 批量变更用户直授权限（一次性提交授予与撤销）
+    /// </summary>
+    /// <param name="input">批量变更输入</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task BatchUpdateUserPermissionsAsync(UserPermissionBatchUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 授予用户直授权限
     /// </summary>
     /// <param name="input">授权参数</param>

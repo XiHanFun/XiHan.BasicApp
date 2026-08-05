@@ -74,6 +74,45 @@ public sealed class UserPermissionAppService
     }
 
     /// <summary>
+    /// 批量变更用户直授权限（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Grant)]
+    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Revoke)]
+    public async Task BatchUpdateUserPermissionsAsync(UserPermissionBatchUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _userDomainService.BatchUpdateUserPermissionsAsync(
+            new UserPermissionBatchUpdateCommand(
+                input.UserId,
+                [.. input.Grants.Select(grant => new UserPermissionBatchGrantItem(grant.PermissionId, grant.PermissionAction))],
+                input.RevokeUserPermissionIds),
+            cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
+        // 逐条记录本次实际发生的直授变更（审计）
+        foreach (var (changeType, permissionIds) in new[]
+        {
+            (PermissionChangeType.UserRevokePermission, result.RevokedPermissionIds),
+            (PermissionChangeType.UserDenyPermission, result.DeniedPermissionIds),
+            (PermissionChangeType.UserGrantPermission, result.GrantedPermissionIds)
+        })
+        {
+            foreach (var permissionId in permissionIds)
+            {
+                await _authorizationChangeNotifier.NotifyAsync(
+                    changeType,
+                    targetUserId: input.UserId,
+                    targetRoleId: null,
+                    permissionId: permissionId,
+                    cancellationToken: cancellationToken);
+            }
+        }
+    }
+
+    /// <summary>
     /// 撤销用户直授权限
     /// </summary>
     [UnitOfWork(true)]

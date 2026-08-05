@@ -542,9 +542,132 @@ public sealed class UserDomainService
     #region 用户直授权限
 
     /// <summary>
+    /// 批量变更用户直授权限（一次性提交授予与撤销）
+    /// </summary>
+    /// <param name="command">批量变更命令</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>本次实际发生变化的权限</returns>
+    public async Task<UserPermissionBatchUpdateResult> BatchUpdateUserPermissionsAsync(UserPermissionBatchUpdateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.UserId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
+        }
+
+        // 同一权限重复下发时以最后一条为准
+        var grants = command.Grants
+            .Where(grant => grant.PermissionId > 0)
+            .GroupBy(grant => grant.PermissionId)
+            .ToDictionary(group => group.Key, group => group.Last().PermissionAction);
+        var revokeIds = command.RevokeUserPermissionIds.Where(id => id > 0).Distinct().ToList();
+        if (grants.Count == 0 && revokeIds.Count == 0)
+        {
+            return new UserPermissionBatchUpdateResult([], [], []);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护直授权限", "平台管理员成员权限必须通过平台运维流程维护。", cancellationToken);
+
+        var grantedPermissionIds = new List<long>();
+        var deniedPermissionIds = new List<long>();
+        var revokedPermissionIds = new List<long>();
+
+        // 撤销（逻辑失效）：批量加载 → 置为无效 → 批量更新（单次）
+        if (revokeIds.Count > 0)
+        {
+            var revoking = (await _userPermissionRepository.GetListAsync(
+                userPermission => revokeIds.Contains(userPermission.BasicId) && userPermission.UserId == command.UserId,
+                cancellationToken)).ToList();
+            if (revoking.Count > 0)
+            {
+                foreach (var userPermission in revoking)
+                {
+                    userPermission.Status = ValidityStatus.Invalid;
+                }
+
+                _ = await _userPermissionRepository.UpdateRangeAsync(revoking, cancellationToken);
+                revokedPermissionIds.AddRange(revoking.Select(userPermission => userPermission.PermissionId));
+            }
+        }
+
+        // 授予：批量校验权限可授予 → 命中历史行就地改写、否则新增（各一次批量写）
+        if (grants.Count > 0)
+        {
+            var permissionIds = grants.Keys.ToList();
+            var permissions = await _permissionRepository.GetListAsync(
+                permission => permissionIds.Contains(permission.BasicId), cancellationToken);
+            var permissionMap = permissions.ToDictionary(permission => permission.BasicId);
+            foreach (var permissionId in permissionIds)
+            {
+                if (!permissionMap.TryGetValue(permissionId, out var permission))
+                {
+                    throw new InvalidOperationException("权限不存在。");
+                }
+
+                if (permission.Status != EnableStatus.Enabled)
+                {
+                    throw new InvalidOperationException("停用权限不能直授给用户。");
+                }
+            }
+
+            // 撤销只置无效不删行，同一 用户×权限 的历史行会留在库里，命中即就地改写
+            var existing = (await _userPermissionRepository.GetListAsync(
+                userPermission => userPermission.UserId == command.UserId && permissionIds.Contains(userPermission.PermissionId),
+                cancellationToken)).ToList();
+            var existingMap = existing.ToDictionary(userPermission => userPermission.PermissionId);
+
+            var updating = new List<SysUserPermission>();
+            var adding = new List<SysUserPermission>();
+            foreach (var (permissionId, action) in grants)
+            {
+                if (existingMap.TryGetValue(permissionId, out var userPermission))
+                {
+                    userPermission.PermissionAction = action;
+                    userPermission.Status = ValidityStatus.Valid;
+                    updating.Add(userPermission);
+                }
+                else
+                {
+                    adding.Add(new SysUserPermission
+                    {
+                        UserId = command.UserId,
+                        PermissionId = permissionId,
+                        PermissionAction = action,
+                        Status = ValidityStatus.Valid
+                    });
+                }
+
+                if (action == PermissionAction.Deny)
+                {
+                    deniedPermissionIds.Add(permissionId);
+                }
+                else
+                {
+                    grantedPermissionIds.Add(permissionId);
+                }
+            }
+
+            if (updating.Count > 0)
+            {
+                _ = await _userPermissionRepository.UpdateRangeAsync(updating, cancellationToken);
+            }
+
+            if (adding.Count > 0)
+            {
+                _ = await _userPermissionRepository.AddRangeAsync(adding, cancellationToken);
+            }
+        }
+
+        return new UserPermissionBatchUpdateResult(grantedPermissionIds, deniedPermissionIds, revokedPermissionIds);
+    }
+
+    /// <summary>
     /// 授予用户直授权限
     /// </summary>
-    /// <param name="command">授权参数</param>
+    /// <param name="command">授权命令</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户直授权限详情</returns>
     public async Task<UserPermissionCommandResult> CreateUserPermissionAsync(UserPermissionGrantCommand command, CancellationToken cancellationToken = default)

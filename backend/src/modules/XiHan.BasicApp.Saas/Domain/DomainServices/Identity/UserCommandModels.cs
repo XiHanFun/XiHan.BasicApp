@@ -113,6 +113,30 @@ public sealed record UserPermissionGrantCommand(
     string? Remark);
 
 /// <summary>
+/// 用户直授权限批量变更中的单条授予项
+/// </summary>
+public sealed record UserPermissionBatchGrantItem(long PermissionId, PermissionAction PermissionAction);
+
+/// <summary>
+/// 用户直授权限批量变更命令（一次性提交授予与撤销）
+/// </summary>
+public sealed record UserPermissionBatchUpdateCommand(
+    long UserId,
+    IReadOnlyList<UserPermissionBatchGrantItem> Grants,
+    IReadOnlyList<long> RevokeUserPermissionIds);
+
+/// <summary>
+/// 用户直授权限批量变更结果（本次实际发生变化的权限，用于审计发事件）
+/// </summary>
+/// <param name="GrantedPermissionIds">实际授予的权限ID</param>
+/// <param name="DeniedPermissionIds">实际拒绝的权限ID</param>
+/// <param name="RevokedPermissionIds">实际撤销的权限ID</param>
+public sealed record UserPermissionBatchUpdateResult(
+    IReadOnlyList<long> GrantedPermissionIds,
+    IReadOnlyList<long> DeniedPermissionIds,
+    IReadOnlyList<long> RevokedPermissionIds);
+
+/// <summary>
 /// 用户直授权限更新命令
 /// </summary>
 public sealed record UserPermissionUpdateCommand(

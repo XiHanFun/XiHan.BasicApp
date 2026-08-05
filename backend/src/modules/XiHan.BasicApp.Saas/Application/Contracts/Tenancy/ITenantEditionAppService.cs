@@ -62,6 +62,13 @@ public interface ITenantEditionAppService : IApplicationService
     Task<TenantEditionPermissionDetailDto> UpdateTenantEditionPermissionStatusAsync(TenantEditionPermissionStatusUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量变更租户版本权限（一次性提交授予、撤销与启停）
+    /// </summary>
+    /// <param name="input">批量变更输入</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task BatchUpdateTenantEditionPermissionsAsync(TenantEditionPermissionBatchUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 撤销租户版本权限
     /// </summary>
     /// <param name="id">租户版本权限绑定主键</param>

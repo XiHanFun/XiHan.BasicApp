@@ -11,6 +11,7 @@ import type {
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
+  NCheckbox,
   NDrawer,
   NDrawerContent,
   NForm,
@@ -34,7 +35,7 @@ import {
   tenantEditionPermissionApi,
   ValidityStatus,
 } from '@/api'
-import { STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
+import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage, XEditModal, XPermissionGrantPanel } from '~/components'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -51,7 +52,6 @@ const { hasPermission } = usePermission()
 const { t } = useI18n()
 
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
-const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
 
 const boolOptions = computed(() => [
   { label: t('tenant.edition.yes'), value: 1 },
@@ -463,10 +463,12 @@ const permLoading = ref(false)
 const permError = ref(false)
 const permEdition = ref<TenantEditionListItemDto | null>(null)
 const permList = ref<TenantEditionPermissionListItemDto[]>([])
-const permActingId = ref<ApiId | null>(null)
 
 const permCatalog = ref<PermissionListItemDto[]>([])
 const permPanelRef = ref<{ reset: () => void } | null>(null)
+const permDraftGranted = ref<Set<ApiId>>(new Set())
+const permDraftStatus = ref<Map<ApiId, ValidityStatus>>(new Map())
+const permDirty = ref(false)
 
 /** permissionId → 该版本的权限映射行（含停用态，停用后仍要能看到并启用回来） */
 const permByPermissionId = computed(() => {
@@ -506,10 +508,12 @@ async function loadPermissionList() {
   permError.value = false
   try {
     permList.value = await tenantEditionPermissionApi.list(permEdition.value.basicId)
+    derivePermDraft()
   }
   catch {
     permError.value = true
     permList.value = []
+    derivePermDraft()
     message.error(t('tenant.edition.perm_load_failed'))
   }
   finally {
@@ -517,67 +521,83 @@ async function loadPermissionList() {
   }
 }
 
-async function handleGrant(permission: PermissionListItemDto) {
-  if (!permEdition.value) {
+/** 本地草稿：打开抽屉时由现有绑定推导，之后只改本地，保存时一次性提交 */
+function derivePermDraft() {
+  permDraftGranted.value = new Set(permList.value.map(item => item.permissionId))
+  permDraftStatus.value = new Map(permList.value.map(item => [item.permissionId, item.status] as const))
+  permDirty.value = false
+}
+
+function togglePermGrant(permission: PermissionListItemDto, checked: boolean) {
+  const granted = new Set(permDraftGranted.value)
+  const status = new Map(permDraftStatus.value)
+  if (checked) {
+    granted.add(permission.basicId)
+    // 新授予默认有效；已有绑定重新勾选时沿用其原状态
+    if (!status.has(permission.basicId)) {
+      status.set(permission.basicId, ValidityStatus.Valid)
+    }
+  }
+  else {
+    granted.delete(permission.basicId)
+  }
+  permDraftGranted.value = granted
+  permDraftStatus.value = status
+  permDirty.value = true
+}
+
+function togglePermStatus(permissionId: ApiId) {
+  const status = new Map(permDraftStatus.value)
+  const next = status.get(permissionId) === ValidityStatus.Valid ? ValidityStatus.Invalid : ValidityStatus.Valid
+  status.set(permissionId, next)
+  permDraftStatus.value = status
+  permDirty.value = true
+}
+
+async function savePermChanges() {
+  const edition = permEdition.value
+  if (!edition || permLoading.value) {
     return
   }
-  permActingId.value = permission.basicId
+  const current = new Map(permList.value.map(item => [item.permissionId, item] as const))
+  const grantPermissionIds = [...permDraftGranted.value].filter(permissionId => !current.has(permissionId))
+  const revokeEditionPermissionIds = [...current.entries()]
+    .filter(([permissionId]) => !permDraftGranted.value.has(permissionId))
+    .map(([, item]) => item.basicId)
+  // 启停只对留存的既有绑定有意义：本次新授予的还没有绑定主键，撤销掉的也不必再改状态
+  const statusChanges = [...current.entries()]
+    .filter(([permissionId, item]) =>
+      permDraftGranted.value.has(permissionId)
+      && permDraftStatus.value.get(permissionId) !== item.status,
+    )
+    .map(([permissionId, item]) => ({ basicId: item.basicId, status: permDraftStatus.value.get(permissionId)! }))
+  if (grantPermissionIds.length === 0 && revokeEditionPermissionIds.length === 0 && statusChanges.length === 0) {
+    message.info(t('tenant.edition.perm_no_change'))
+    permDirty.value = false
+    return
+  }
+  permLoading.value = true
   try {
-    await tenantEditionPermissionApi.grant({
-      editionId: permEdition.value.basicId,
-      permissionId: permission.basicId,
+    await tenantEditionPermissionApi.batchUpdate({
+      editionId: edition.basicId,
+      grantPermissionIds,
+      revokeEditionPermissionIds,
+      statusChanges,
     })
-    message.success(t('tenant.edition.grant_success'))
     await loadPermissionList()
+    derivePermDraft()
+    message.success(t('tenant.edition.perm_saved', {
+      grant: grantPermissionIds.length,
+      revoke: revokeEditionPermissionIds.length,
+      status: statusChanges.length,
+    }))
   }
   catch (e) {
-    message.error((e as Error).message || t('tenant.edition.grant_failed'))
+    message.error((e as Error).message || t('common.messages.save_failed'))
   }
   finally {
-    permActingId.value = null
+    permLoading.value = false
   }
-}
-
-async function handleToggleMappingStatus(item: TenantEditionPermissionListItemDto) {
-  const next = item.status === ValidityStatus.Valid ? ValidityStatus.Invalid : ValidityStatus.Valid
-  permActingId.value = item.basicId
-  try {
-    await tenantEditionPermissionApi.updateStatus({ basicId: item.basicId, status: next })
-    message.success(next === ValidityStatus.Valid ? t('tenant.edition.enabled') : t('tenant.edition.disabled'))
-    await loadPermissionList()
-  }
-  catch (e) {
-    message.error((e as Error).message || t('tenant.edition.status_update_failed'))
-  }
-  finally {
-    permActingId.value = null
-  }
-}
-
-function confirmRevoke(item: TenantEditionPermissionListItemDto) {
-  dialog.warning({
-    title: t('tenant.edition.confirm_revoke_title'),
-    content: t('tenant.edition.confirm_revoke_content', {
-      edition: permEdition.value?.editionName ?? '',
-      permission: item.permissionName ?? item.permissionCode ?? item.permissionId,
-    }),
-    positiveText: t('tenant.edition.perm_revoke'),
-    negativeText: t('tenant.edition.cancel'),
-    onPositiveClick: async () => {
-      permActingId.value = item.basicId
-      try {
-        await tenantEditionPermissionApi.revoke(item.basicId)
-        message.success(t('tenant.edition.revoke_success'))
-        await loadPermissionList()
-      }
-      catch (e) {
-        message.error((e as Error).message || t('tenant.edition.revoke_failed'))
-      }
-      finally {
-        permActingId.value = null
-      }
-    },
-  })
 }
 </script>
 
@@ -682,7 +702,7 @@ function confirmRevoke(item: TenantEditionPermissionListItemDto) {
           :items="permCatalog"
           :loading="permLoading"
           :search-placeholder="t('tenant.edition.perm_grant_placeholder')"
-          :granted-count-label="t('tenant.edition.perm_granted_count', { count: permList.length })"
+          :granted-count-label="t('tenant.edition.perm_granted_count', { count: permDraftGranted.size })"
           :empty-description="t('tenant.edition.perm_empty')"
           :other-group-label="t('tenant.edition.perm_group_other')"
         >
@@ -692,45 +712,30 @@ function confirmRevoke(item: TenantEditionPermissionListItemDto) {
             </NButton>
           </template>
           <template #action="{ item }">
-            <template v-if="permByPermissionId.get(item.basicId)">
-              <NTag
-                :bordered="false"
-                round
-                size="small"
-                :type="permByPermissionId.get(item.basicId)!.status === ValidityStatus.Valid ? 'success' : 'error'"
-              >
-                {{ getOptionLabel(validityStatusOptions, permByPermissionId.get(item.basicId)!.status) }}
-              </NTag>
-              <NButton
-                v-if="canUpdateMapping"
-                :loading="permActingId === permByPermissionId.get(item.basicId)!.basicId"
-                size="tiny"
-                type="warning"
-                @click="handleToggleMappingStatus(permByPermissionId.get(item.basicId)!)"
-              >
-                {{ permByPermissionId.get(item.basicId)!.status === ValidityStatus.Valid ? t('tenant.edition.perm_disable') : t('tenant.edition.perm_enable') }}
-              </NButton>
-              <NButton
-                v-if="canRevokePermission"
-                :loading="permActingId === permByPermissionId.get(item.basicId)!.basicId"
-                size="tiny"
-                type="error"
-                @click="confirmRevoke(permByPermissionId.get(item.basicId)!)"
-              >
-                {{ t('tenant.edition.perm_revoke') }}
-              </NButton>
-            </template>
             <NButton
-              v-else-if="canGrantPermission"
-              :loading="permActingId === item.basicId"
+              v-if="permDraftGranted.has(item.basicId) && permByPermissionId.get(item.basicId)"
+              :disabled="!canUpdateMapping || permLoading"
               size="tiny"
-              type="primary"
-              @click="handleGrant(item as PermissionListItemDto)"
+              :type="permDraftStatus.get(item.basicId) === ValidityStatus.Valid ? 'success' : 'warning'"
+              @click="togglePermStatus(item.basicId)"
             >
-              {{ t('tenant.edition.perm_grant') }}
+              {{ permDraftStatus.get(item.basicId) === ValidityStatus.Valid ? t('tenant.edition.perm_enabled') : t('tenant.edition.perm_disabled') }}
             </NButton>
+            <NCheckbox
+              :checked="permDraftGranted.has(item.basicId)"
+              :disabled="permLoading || (permDraftGranted.has(item.basicId) ? !canRevokePermission : !canGrantPermission)"
+              @update:checked="(checked: boolean) => togglePermGrant(item as PermissionListItemDto, checked)"
+            />
           </template>
         </XPermissionGrantPanel>
+        <template #footer>
+          <NButton @click="permDrawerVisible = false">
+            {{ t('tenant.edition.cancel') }}
+          </NButton>
+          <NButton type="primary" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermChanges">
+            {{ t('tenant.edition.perm_save') }}
+          </NButton>
+        </template>
       </NDrawerContent>
     </NDrawer>
   </SchemaPage>

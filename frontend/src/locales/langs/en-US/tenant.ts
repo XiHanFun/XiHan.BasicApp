@@ -168,6 +168,11 @@ export default {
     perm_group_other: 'Other',
     perm_disable: 'Disable',
     perm_enable: 'Enable',
+    perm_enabled: 'Enabled',
+    perm_disabled: 'Disabled',
+    perm_save: 'Save Changes',
+    perm_no_change: 'No permission changes',
+    perm_saved: 'Saved ({grant} granted, {revoke} revoked, {status} toggled)',
     perm_revoke: 'Revoke',
     // Confirmation dialogs
     confirm_enable_title: 'Enable Edition',
@@ -176,8 +181,6 @@ export default {
     confirm_disable_content: 'Are you sure to disable edition "{name}"? New tenants will not be able to select this edition after it is disabled.',
     confirm_set_default_title: 'Set as Default Edition',
     confirm_set_default_content: 'Are you sure to set "{name}" as the default edition? The current default edition will lose its default mark.',
-    confirm_revoke_title: 'Revoke Permission',
-    confirm_revoke_content: 'Are you sure to revoke permission "{permission}" from edition "{edition}"?',
     // Messages
     validate_edition_code: 'Please enter the edition code',
     validate_edition_name: 'Please enter the edition name',
@@ -188,9 +191,5 @@ export default {
     status_update_failed: 'Failed to update status',
     set_default_success: 'Set as default edition',
     set_default_failed: 'Failed to set default edition',
-    grant_success: 'Granted successfully',
-    grant_failed: 'Failed to grant',
-    revoke_success: 'Revoked',
-    revoke_failed: 'Failed to revoke',
   },
 }
