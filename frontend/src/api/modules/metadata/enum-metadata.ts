@@ -20,6 +20,6 @@ export const enumMetadataApi = {
     return enumApi.get<EnumMetadata[]>('AllEnums')
   },
   getByName(enumTypeName: string) {
-    return enumApi.get<EnumMetadata>(`Enum/${encodeURIComponent(enumTypeName)}`)
+    return enumApi.get<EnumMetadata>('Enum', { enumTypeName })
   },
 }

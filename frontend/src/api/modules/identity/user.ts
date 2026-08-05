@@ -30,7 +30,7 @@ export const userApi = {
     return userBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return userCommandApi.delete(`User/${id}`)
+    return userCommandApi.delete('User', { id })
   },
   detail(id: ApiId) {
     return userReadApi.detail(id)

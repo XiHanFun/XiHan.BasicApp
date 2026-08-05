@@ -28,7 +28,7 @@ export const menuApi = {
     return menuBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return menuCommandApi.delete(`Menu/${id}`)
+    return menuCommandApi.delete('Menu', { id })
   },
   detail(id: ApiId) {
     return menuReadApi.detail(id)
