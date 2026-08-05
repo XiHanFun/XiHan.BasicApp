@@ -47,6 +47,17 @@ public static class PermissionApplicationMapper
     {
         ArgumentNullException.ThrowIfNull(permission);
 
+        var groupCode = SaasPermissionDefinitions.ResolveGroupCode(permission.PermissionCode);
+        var groupName = SaasPermissionDefinitions.ResolveGroupName(permission.PermissionCode);
+
+        // 其它模块（AI / 代码生成 / 工作流）的权限码不在 Saas 的定义表内，解析不出显示名时
+        // ResolveGroupName 原样返回组码，前端分组标题就会显示成 ai、code_gen 这样的原始串。
+        // 资源表里存的是中文名，此处以它兜底，无需让 Saas 反过来认识各业务模块的权限码。
+        if (string.Equals(groupName, groupCode, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(resource?.ResourceName))
+        {
+            groupName = resource.ResourceName;
+        }
+
         return new PermissionListItemDto
         {
             BasicId = permission.BasicId,
@@ -60,8 +71,8 @@ public static class PermissionApplicationMapper
             ModuleCode = permission.ModuleCode,
             PermissionCode = permission.PermissionCode,
             PermissionName = permission.PermissionName,
-            GroupCode = SaasPermissionDefinitions.ResolveGroupCode(permission.PermissionCode),
-            GroupName = SaasPermissionDefinitions.ResolveGroupName(permission.PermissionCode),
+            GroupCode = groupCode,
+            GroupName = groupName,
             PermissionDescription = permission.PermissionDescription,
             IsRequireAudit = permission.IsRequireAudit,
             IsGlobal = permission.IsGlobal,

@@ -33,7 +33,7 @@ export const departmentApi = {
     return departmentBaseCommandApi.create(input)
   },
   delete(id: ApiId) {
-    return departmentCommandApi.delete(`Department/${id}`)
+    return departmentCommandApi.delete('Department', { id })
   },
   detail(id: ApiId) {
     return departmentReadApi.detail(id)
