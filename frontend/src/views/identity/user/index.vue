@@ -20,7 +20,6 @@ import {
   NDatePicker,
   NDrawer,
   NDrawerContent,
-  NEmpty,
   NForm,
   NFormItem,
   NInput,
@@ -54,7 +53,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XEditModal, XPermissionGrantPanel } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
@@ -957,7 +956,7 @@ const grantLoading = ref(false)
 const grantRoleList = ref<UserRoleListItemDto[]>([])
 const grantPermList = ref<UserPermissionListItemDto[]>([])
 const permCatalog = ref<PermissionListItemDto[]>([])
-const grantKeyword = ref('')
+const permPanelRef = ref<{ reset: () => void } | null>(null)
 const grantBusyId = ref<ApiId | null>(null)
 
 /** roleId → 用户角色授权记录 */
@@ -978,59 +977,6 @@ const grantPermByPermId = computed(() => {
   return map
 })
 
-const grantPermFiltered = computed(() => {
-  const kw = grantKeyword.value.trim().toLowerCase()
-  if (!kw) {
-    return permCatalog.value
-  }
-  return permCatalog.value.filter(p =>
-    (p.permissionName ?? '').toLowerCase().includes(kw)
-    || (p.permissionCode ?? '').toLowerCase().includes(kw),
-  )
-})
-
-/** 取权限码的资源段：saas:{resource}:{action} → resource */
-function grantPermResourceKey(code: string): string {
-  const parts = code.split(':')
-  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
-}
-
-/** 一组权限名的公共前缀，作为功能块显示名 */
-function grantPermCommonPrefix(names: string[]): string {
-  if (names.length === 0) {
-    return ''
-  }
-  let prefix = names[0]!
-  for (const name of names) {
-    let i = 0
-    while (i < prefix.length && i < name.length && prefix[i] === name[i]) {
-      i++
-    }
-    prefix = prefix.slice(0, i)
-    if (!prefix) {
-      break
-    }
-  }
-  return prefix
-}
-
-/** 按资源（功能块）分组：每个资源成为独立功能块，组名取该组权限名公共前缀 */
-const grantPermGroups = computed(() => {
-  const map = new Map<string, PermissionListItemDto[]>()
-  for (const p of grantPermFiltered.value) {
-    // 组码优先用后端定义的 groupCode；缺省回退资源段推导（兼容后端未重建时）
-    const key = p.groupCode || p.resourceName || grantPermResourceKey(p.permissionCode) || p.moduleCode || t('identity.user.grant_perm_group_other')
-    const arr = map.get(key) ?? []
-    arr.push(p)
-    map.set(key, arr)
-  }
-  return [...map.entries()].map(([key, items]) => ({
-    key,
-    name: items[0]?.groupName || grantPermCommonPrefix(items.map(item => item.permissionName)) || key,
-    items,
-  }))
-})
-
 async function loadPermCatalog() {
   if (permCatalog.value.length) {
     return
@@ -1042,7 +988,7 @@ async function openGrantDrawer(row: UserListItemDto) {
   grantUser.value = row
   grantVisible.value = true
   grantTab.value = 'role'
-  grantKeyword.value = ''
+  permPanelRef.value?.reset()
   grantLoading.value = true
   try {
     const [roles, perms] = await Promise.all([
@@ -1518,51 +1464,33 @@ async function confirmDelete() {
               </div>
             </NTabPane>
             <NTabPane name="perm" :tab="t('identity.user.grant_tab_perm')">
-              <div class="grant-toolbar">
-                <NInput v-model:value="grantKeyword" clearable :placeholder="t('identity.user.grant_perm_search')" style="width: 240px" />
-                <NTag :bordered="false" round type="success">
-                  {{ t('identity.user.grant_perm_granted_count', { count: grantPermList.length }) }}
-                </NTag>
-              </div>
-              <NEmpty v-if="grantPermGroups.length === 0" class="grant-empty" :description="t('identity.user.grant_perm_empty')" />
-              <div v-else class="grant-perm-groups">
-                <section v-for="group in grantPermGroups" :key="group.name" class="grant-perm-group">
-                  <div class="grant-perm-head">
-                    <span>{{ group.name }}</span>
-                    <span class="grant-perm-count">{{ group.items.length }}</span>
-                  </div>
-                  <div class="grant-perm-list">
-                    <div
-                      v-for="permission in group.items"
-                      :key="String(permission.basicId)"
-                      class="grant-perm-item"
-                    >
-                      <span class="grant-perm-text">
-                        <span class="grant-perm-name">{{ permission.permissionName }}</span>
-                        <span class="grant-perm-code">{{ permission.permissionCode }}</span>
-                      </span>
-                      <NSpace :size="6">
-                        <NButton
-                          :disabled="grantBusyId === permission.basicId"
-                          size="tiny"
-                          :type="grantPermByPermId.get(permission.basicId)?.permissionAction === PermissionAction.Grant ? 'success' : 'default'"
-                          @click="setPermGrant(permission, PermissionAction.Grant)"
-                        >
-                          {{ t('identity.user.grant_perm_allow') }}
-                        </NButton>
-                        <NButton
-                          :disabled="grantBusyId === permission.basicId"
-                          size="tiny"
-                          :type="grantPermByPermId.get(permission.basicId)?.permissionAction === PermissionAction.Deny ? 'error' : 'default'"
-                          @click="setPermGrant(permission, PermissionAction.Deny)"
-                        >
-                          {{ t('identity.user.grant_perm_deny') }}
-                        </NButton>
-                      </NSpace>
-                    </div>
-                  </div>
-                </section>
-              </div>
+              <XPermissionGrantPanel
+                ref="permPanelRef"
+                :items="permCatalog"
+                :search-placeholder="t('identity.user.grant_perm_search')"
+                :granted-count-label="t('identity.user.grant_perm_granted_count', { count: grantPermList.length })"
+                :empty-description="t('identity.user.grant_perm_empty')"
+                :other-group-label="t('identity.user.grant_perm_group_other')"
+              >
+                <template #action="{ item }">
+                  <NButton
+                    :disabled="grantBusyId === item.basicId"
+                    size="tiny"
+                    :type="grantPermByPermId.get(item.basicId)?.permissionAction === PermissionAction.Grant ? 'success' : 'default'"
+                    @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Grant)"
+                  >
+                    {{ t('identity.user.grant_perm_allow') }}
+                  </NButton>
+                  <NButton
+                    :disabled="grantBusyId === item.basicId"
+                    size="tiny"
+                    :type="grantPermByPermId.get(item.basicId)?.permissionAction === PermissionAction.Deny ? 'error' : 'default'"
+                    @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Deny)"
+                  >
+                    {{ t('identity.user.grant_perm_deny') }}
+                  </NButton>
+                </template>
+              </XPermissionGrantPanel>
             </NTabPane>
           </NTabs>
         </NSpin>
@@ -2020,83 +1948,5 @@ async function confirmDelete() {
 
 .grant-role-chip:hover {
   background: rgb(0 0 0 / 0.03);
-}
-
-.grant-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.grant-empty {
-  padding: 40px 0;
-}
-
-.grant-perm-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.grant-perm-group {
-  border: 1px solid var(--n-border-color);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.grant-perm-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--n-merged-th-color, rgb(0 0 0 / 0.02));
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.grant-perm-count {
-  font-size: 12px;
-  font-weight: 400;
-  opacity: 0.55;
-}
-
-.grant-perm-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.grant-perm-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border-top: 1px solid var(--n-border-color);
-}
-
-.grant-perm-item:first-child {
-  border-top: none;
-}
-
-.grant-perm-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.grant-perm-name {
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.grant-perm-code {
-  font-size: 11.5px;
-  opacity: 0.6;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

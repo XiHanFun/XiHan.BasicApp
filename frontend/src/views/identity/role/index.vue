@@ -56,7 +56,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XEditModal, XPermissionGrantPanel } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -270,7 +270,7 @@ const permissionRole = ref<RoleListItemDto | null>(null)
 const permCatalog = ref<PermissionListItemDto[]>([])
 const permGrants = ref<RolePermissionListItemDto[]>([])
 const permLoading = ref(false)
-const permKeyword = ref('')
+const permPanelRef = ref<{ reset: () => void } | null>(null)
 const permTogglingId = ref<ApiId | null>(null)
 
 /**
@@ -288,62 +288,6 @@ const permGrantByPermissionId = computed(() => {
   return map
 })
 
-const permFiltered = computed(() => {
-  const kw = permKeyword.value.trim().toLowerCase()
-  if (!kw) {
-    return permCatalog.value
-  }
-  return permCatalog.value.filter(p =>
-    p.permissionName.toLowerCase().includes(kw) || p.permissionCode.toLowerCase().includes(kw),
-  )
-})
-
-/** 取权限码的资源段作为分组键：saas:{resource}:{action} → resource */
-function permResourceKey(code: string): string {
-  const parts = code.split(':')
-  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
-}
-
-/** 一组权限名的公共前缀，作为功能块显示名（如「租户」「权限定义」「角色」） */
-function permCommonPrefix(names: string[]): string {
-  if (names.length === 0) {
-    return ''
-  }
-  let prefix = names[0]!
-  for (const name of names) {
-    let i = 0
-    while (i < prefix.length && i < name.length && prefix[i] === name[i]) {
-      i++
-    }
-    prefix = prefix.slice(0, i)
-    if (!prefix) {
-      break
-    }
-  }
-  return prefix
-}
-
-/** 按资源（功能块）分组：以权限码资源段为键，组名取该组权限名公共前缀，使每个资源成为独立功能块 */
-const permGroups = computed(() => {
-  const map = new Map<string, PermissionListItemDto[]>()
-  for (const permission of permFiltered.value) {
-    // 组码优先用后端定义的 groupCode；缺省回退资源段推导（兼容后端未重建时）
-    const key = permission.groupCode || permission.resourceName || permResourceKey(permission.permissionCode) || permission.moduleCode || t('identity.role.perm_group_other')
-    const list = map.get(key)
-    if (list) {
-      list.push(permission)
-    }
-    else {
-      map.set(key, [permission])
-    }
-  }
-  return [...map.entries()].map(([key, items]) => ({
-    key,
-    name: items[0]?.groupName || permCommonPrefix(items.map(item => item.permissionName)) || key,
-    items,
-  }))
-})
-
 /** 权限目录一次取全 */
 async function loadPermCatalog() {
   if (permCatalog.value.length > 0) {
@@ -355,7 +299,7 @@ async function loadPermCatalog() {
 async function openPermissionDrawer(row: RoleListItemDto) {
   permissionRole.value = row
   permissionVisible.value = true
-  permKeyword.value = ''
+  permPanelRef.value?.reset()
   permLoading.value = true
   try {
     const [, grantsResult] = await Promise.all([loadPermCatalog(), rolePermissionApi.list(row.basicId)])
@@ -1124,40 +1068,23 @@ async function handleToggleStatus(row: RoleListItemDto) {
 
     <NDrawer v-model:show="permissionVisible" :width="760">
       <NDrawerContent closable :title="t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' })">
-        <div class="perm-toolbar">
-          <NInput v-model:value="permKeyword" clearable :placeholder="t('identity.role.perm_search')" style="width: 240px" />
-          <NTag round type="success" :bordered="false">
-            {{ t('identity.role.perm_granted_count', { count: permGrantByPermissionId.size }) }}
-          </NTag>
-        </div>
-        <NSpin :show="permLoading">
-          <NEmpty v-if="permGroups.length === 0 && !permLoading" class="perm-empty" :description="t('identity.role.perm_no_match')" />
-          <div v-else class="perm-groups">
-            <section v-for="group in permGroups" :key="group.key" class="perm-group">
-              <div class="perm-group-head">
-                <span>{{ group.name }}</span>
-                <span class="perm-group-count">{{ group.items.length }}</span>
-              </div>
-              <div class="perm-list">
-                <label
-                  v-for="permission in group.items"
-                  :key="String(permission.basicId)"
-                  class="perm-item"
-                >
-                  <NCheckbox
-                    :checked="permGrantByPermissionId.has(permission.basicId)"
-                    :disabled="permTogglingId === permission.basicId"
-                    @update:checked="(checked: boolean) => togglePermission(permission, checked)"
-                  />
-                  <span class="perm-text">
-                    <span class="perm-name">{{ permission.permissionName }}</span>
-                    <span class="perm-code">{{ permission.permissionCode }}</span>
-                  </span>
-                </label>
-              </div>
-            </section>
-          </div>
-        </NSpin>
+        <XPermissionGrantPanel
+          ref="permPanelRef"
+          :items="permCatalog"
+          :loading="permLoading"
+          :search-placeholder="t('identity.role.perm_search')"
+          :granted-count-label="t('identity.role.perm_granted_count', { count: permGrantByPermissionId.size })"
+          :empty-description="t('identity.role.perm_no_match')"
+          :other-group-label="t('identity.role.perm_group_other')"
+        >
+          <template #action="{ item }">
+            <NCheckbox
+              :checked="permGrantByPermissionId.has(item.basicId)"
+              :disabled="permTogglingId === item.basicId"
+              @update:checked="(checked: boolean) => togglePermission(item as PermissionListItemDto, checked)"
+            />
+          </template>
+        </XPermissionGrantPanel>
       </NDrawerContent>
     </NDrawer>
 
@@ -1260,85 +1187,6 @@ async function handleToggleStatus(row: RoleListItemDto) {
 }
 
 /* 权限分配抽屉 */
-.perm-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.perm-empty {
-  padding: 48px 0;
-}
-
-.perm-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.perm-group {
-  border: 1px solid var(--n-border-color);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.perm-group-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--n-merged-th-color, rgb(0 0 0 / 0.02));
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.perm-group-count {
-  font-size: 12px;
-  font-weight: 400;
-  opacity: 0.55;
-}
-
-.perm-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 2px 12px;
-  padding: 10px 12px;
-}
-
-.perm-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 5px 6px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.perm-item:hover {
-  background: rgb(0 0 0 / 0.03);
-}
-
-.perm-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.perm-name {
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.perm-code {
-  font-size: 11.5px;
-  opacity: 0.6;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 /* 菜单授权提示 */
 .perm-tip {

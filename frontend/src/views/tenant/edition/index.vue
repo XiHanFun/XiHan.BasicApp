@@ -2,24 +2,22 @@
 import type {
   ApiId,
   PageResult,
+  PermissionListItemDto,
   TenantEditionCreateDto,
   TenantEditionListItemDto,
   TenantEditionPermissionListItemDto,
   TenantEditionUpdateDto,
 } from '@/api'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaSelectOption } from '~/components'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import {
   NButton,
   NDrawer,
   NDrawerContent,
-  NEmpty,
   NForm,
   NFormItem,
   NInput,
   NInputNumber,
   NSelect,
-  NSpace,
-  NSpin,
   NSwitch,
   NTag,
   useDialog,
@@ -36,10 +34,10 @@ import {
   tenantEditionPermissionApi,
   ValidityStatus,
 } from '@/api'
-import { PERMISSION_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal } from '~/components'
+import { STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
+import { SchemaPage, XEditModal, XPermissionGrantPanel } from '~/components'
 import { useEnumOptions, usePermission } from '~/hooks'
-import { formatDate, getOptionLabel } from '~/utils'
+import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'TenantEditionPage' })
 
@@ -54,7 +52,6 @@ const { t } = useI18n()
 
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
-const permissionTypeOptions = useEnumOptions('PermissionType', PERMISSION_TYPE_OPTIONS)
 
 const boolOptions = computed(() => [
   { label: t('tenant.edition.yes'), value: 1 },
@@ -468,24 +465,36 @@ const permEdition = ref<TenantEditionListItemDto | null>(null)
 const permList = ref<TenantEditionPermissionListItemDto[]>([])
 const permActingId = ref<ApiId | null>(null)
 
-const grantPermissionId = ref<ApiId | null>(null)
-const grantOptionsLoading = ref(false)
-const grantSubmitLoading = ref(false)
-const grantOptions = ref<SchemaSelectOption<string>[]>([])
+const permCatalog = ref<PermissionListItemDto[]>([])
+const permPanelRef = ref<{ reset: () => void } | null>(null)
 
-const grantedPermissionIds = computed(() => new Set(permList.value.map(item => String(item.permissionId))))
-const grantSelectOptions = computed(() =>
-  grantOptions.value.filter(option => !grantedPermissionIds.value.has(String(option.value))),
-)
+/** permissionId → 该版本的权限映射行（含停用态，停用后仍要能看到并启用回来） */
+const permByPermissionId = computed(() => {
+  const map = new Map<ApiId, TenantEditionPermissionListItemDto>()
+  for (const item of permList.value) {
+    map.set(item.permissionId, item)
+  }
+  return map
+})
 
 function openPermissionDrawer(row: TenantEditionListItemDto) {
   permEdition.value = row
   permList.value = []
-  grantPermissionId.value = null
   permDrawerVisible.value = true
+  permPanelRef.value?.reset()
   void loadPermissionList()
-  if (canGrantPermission.value) {
-    void loadGrantOptions('')
+  void loadPermCatalog()
+}
+
+async function loadPermCatalog() {
+  if (permCatalog.value.length > 0) {
+    return
+  }
+  try {
+    permCatalog.value = await permissionApi.catalog()
+  }
+  catch {
+    permCatalog.value = []
   }
 }
 
@@ -508,42 +517,24 @@ async function loadPermissionList() {
   }
 }
 
-async function loadGrantOptions(keyword: string) {
-  grantOptionsLoading.value = true
-  try {
-    const items = await permissionApi.availableGlobal({ limit: 50, keyword: keyword.trim() || null })
-    grantOptions.value = items.map(item => ({
-      label: `${item.permissionName} (${item.permissionCode})`,
-      value: String(item.basicId),
-    }))
-  }
-  catch (e) {
-    message.error((e as Error).message || t('tenant.edition.perm_load_options_failed'))
-  }
-  finally {
-    grantOptionsLoading.value = false
-  }
-}
-
-async function handleGrant() {
-  if (!permEdition.value || !grantPermissionId.value) {
+async function handleGrant(permission: PermissionListItemDto) {
+  if (!permEdition.value) {
     return
   }
-  grantSubmitLoading.value = true
+  permActingId.value = permission.basicId
   try {
     await tenantEditionPermissionApi.grant({
       editionId: permEdition.value.basicId,
-      permissionId: grantPermissionId.value,
+      permissionId: permission.basicId,
     })
     message.success(t('tenant.edition.grant_success'))
-    grantPermissionId.value = null
     await loadPermissionList()
   }
   catch (e) {
     message.error((e as Error).message || t('tenant.edition.grant_failed'))
   }
   finally {
-    grantSubmitLoading.value = false
+    permActingId.value = null
   }
 }
 
@@ -587,10 +578,6 @@ function confirmRevoke(item: TenantEditionPermissionListItemDto) {
       }
     },
   })
-}
-
-function formatNullable(value: unknown) {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
 }
 </script>
 
@@ -690,153 +677,61 @@ function formatNullable(value: unknown) {
 
     <NDrawer v-model:show="permDrawerVisible" :width="760">
       <NDrawerContent :title="t('tenant.edition.perm_drawer_title', { name: permEdition?.editionName ?? '' })" closable>
-        <div v-if="canGrantPermission" class="perm-grant">
-          <NSelect
-            v-model:value="grantPermissionId"
-            :loading="grantOptionsLoading"
-            :options="grantSelectOptions"
-            clearable
-            filterable
-            :placeholder="t('tenant.edition.perm_grant_placeholder')"
-            remote
-            @search="loadGrantOptions"
-          />
-          <NButton
-            :disabled="!grantPermissionId"
-            :loading="grantSubmitLoading"
-            type="primary"
-            @click="handleGrant"
-          >
-            {{ t('tenant.edition.perm_grant') }}
-          </NButton>
-        </div>
-
-        <NSpin :show="permLoading">
-          <div v-if="permError" class="xh-detail-empty">
-            <NEmpty :description="t('tenant.edition.perm_load_failed')">
-              <template #extra>
-                <NButton size="small" @click="loadPermissionList">
-                  {{ t('tenant.edition.perm_retry') }}
-                </NButton>
-              </template>
-            </NEmpty>
-          </div>
-          <NEmpty
-            v-else-if="!permLoading && permList.length === 0"
-            class="xh-detail-empty"
-            :description="t('tenant.edition.perm_empty')"
-          />
-          <table v-else class="xh-detail-table">
-            <thead>
-              <tr>
-                <th>{{ t('tenant.edition.perm_col_permission') }}</th>
-                <th>{{ t('tenant.edition.perm_col_module') }}</th>
-                <th>{{ t('tenant.edition.perm_col_type') }}</th>
-                <th>{{ t('tenant.edition.perm_col_mapping_status') }}</th>
-                <th>{{ t('tenant.edition.perm_col_granted_time') }}</th>
-                <th v-if="canUpdateMapping || canRevokePermission">
-                  {{ t('tenant.edition.perm_col_operation') }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in permList" :key="item.basicId">
-                <td>
-                  <div class="perm-cell">
-                    <span class="perm-cell__name">{{ item.permissionName ?? '-' }}</span>
-                    <span class="perm-cell__code">{{ formatNullable(item.permissionCode) }}</span>
-                  </div>
-                </td>
-                <td>{{ formatNullable(item.moduleCode) }}</td>
-                <td>
-                  <NTag v-if="item.permissionType" :bordered="false" round size="small" type="info">
-                    {{ getOptionLabel(permissionTypeOptions, item.permissionType) }}
-                  </NTag>
-                  <span v-else>-</span>
-                </td>
-                <td>
-                  <NTag :type="item.status === ValidityStatus.Valid ? 'success' : 'error'" round size="small">
-                    {{ getOptionLabel(validityStatusOptions, item.status) }}
-                  </NTag>
-                </td>
-                <td>{{ formatDate(item.createdTime) }}</td>
-                <td v-if="canUpdateMapping || canRevokePermission">
-                  <NSpace size="small">
-                    <NButton
-                      v-if="canUpdateMapping"
-                      :loading="permActingId === item.basicId"
-                      size="tiny"
-                      type="warning"
-                      @click="handleToggleMappingStatus(item)"
-                    >
-                      {{ item.status === ValidityStatus.Valid ? t('tenant.edition.perm_disable') : t('tenant.edition.perm_enable') }}
-                    </NButton>
-                    <NButton
-                      v-if="canRevokePermission"
-                      :loading="permActingId === item.basicId"
-                      size="tiny"
-                      type="error"
-                      @click="confirmRevoke(item)"
-                    >
-                      {{ t('tenant.edition.perm_revoke') }}
-                    </NButton>
-                  </NSpace>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </NSpin>
+        <XPermissionGrantPanel
+          ref="permPanelRef"
+          :items="permCatalog"
+          :loading="permLoading"
+          :search-placeholder="t('tenant.edition.perm_grant_placeholder')"
+          :granted-count-label="t('tenant.edition.perm_granted_count', { count: permList.length })"
+          :empty-description="t('tenant.edition.perm_empty')"
+          :other-group-label="t('tenant.edition.perm_group_other')"
+        >
+          <template #toolbar>
+            <NButton v-if="permError" size="small" @click="loadPermissionList">
+              {{ t('tenant.edition.perm_retry') }}
+            </NButton>
+          </template>
+          <template #action="{ item }">
+            <template v-if="permByPermissionId.get(item.basicId)">
+              <NTag
+                :bordered="false"
+                round
+                size="small"
+                :type="permByPermissionId.get(item.basicId)!.status === ValidityStatus.Valid ? 'success' : 'error'"
+              >
+                {{ getOptionLabel(validityStatusOptions, permByPermissionId.get(item.basicId)!.status) }}
+              </NTag>
+              <NButton
+                v-if="canUpdateMapping"
+                :loading="permActingId === permByPermissionId.get(item.basicId)!.basicId"
+                size="tiny"
+                type="warning"
+                @click="handleToggleMappingStatus(permByPermissionId.get(item.basicId)!)"
+              >
+                {{ permByPermissionId.get(item.basicId)!.status === ValidityStatus.Valid ? t('tenant.edition.perm_disable') : t('tenant.edition.perm_enable') }}
+              </NButton>
+              <NButton
+                v-if="canRevokePermission"
+                :loading="permActingId === permByPermissionId.get(item.basicId)!.basicId"
+                size="tiny"
+                type="error"
+                @click="confirmRevoke(permByPermissionId.get(item.basicId)!)"
+              >
+                {{ t('tenant.edition.perm_revoke') }}
+              </NButton>
+            </template>
+            <NButton
+              v-else-if="canGrantPermission"
+              :loading="permActingId === item.basicId"
+              size="tiny"
+              type="primary"
+              @click="handleGrant(item as PermissionListItemDto)"
+            >
+              {{ t('tenant.edition.perm_grant') }}
+            </NButton>
+          </template>
+        </XPermissionGrantPanel>
       </NDrawerContent>
     </NDrawer>
   </SchemaPage>
 </template>
-
-<style scoped>
-.perm-grant {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.perm-grant :deep(.n-select) {
-  flex: 1;
-}
-
-.perm-cell {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.35;
-}
-
-.perm-cell__name {
-  font-weight: 500;
-}
-
-.perm-cell__code {
-  font-size: 12px;
-  opacity: 0.65;
-}
-
-.xh-detail-empty {
-  padding: 48px 0;
-}
-
-.xh-detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.xh-detail-table th,
-.xh-detail-table td {
-  padding: 9px 10px;
-  border: 1px solid var(--n-border-color);
-  text-align: left;
-  vertical-align: top;
-}
-
-.xh-detail-table th {
-  background: var(--n-merged-th-color);
-  font-weight: 500;
-}
-</style>
