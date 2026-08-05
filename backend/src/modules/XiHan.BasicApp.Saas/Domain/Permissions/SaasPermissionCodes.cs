@@ -133,10 +133,6 @@ public static class SaasPermissionCodes
         Dict.Status,
         Dict.Delete,
         Version.Read,
-        Version.Create,
-        Version.Update,
-        Version.Upgrade,
-        Version.Delete,
         File.Read,
         File.Create,
         File.Update,
@@ -1343,26 +1339,6 @@ public static class SaasPermissionCodes
         /// 查看系统版本
         /// </summary>
         public const string Read = "saas:version:read";
-
-        /// <summary>
-        /// 创建系统版本
-        /// </summary>
-        public const string Create = "saas:version:create";
-
-        /// <summary>
-        /// 更新系统版本
-        /// </summary>
-        public const string Update = "saas:version:update";
-
-        /// <summary>
-        /// 更新系统升级状态
-        /// </summary>
-        public const string Upgrade = "saas:version:upgrade";
-
-        /// <summary>
-        /// 删除系统版本
-        /// </summary>
-        public const string Delete = "saas:version:delete";
 
         /// <summary>
         /// 导出系统版本

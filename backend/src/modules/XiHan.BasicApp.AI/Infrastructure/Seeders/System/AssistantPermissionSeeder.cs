@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.AI.Domain.Permissions;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -39,7 +40,7 @@ public class AssistantPermissionSeeder : PlatformDataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbClient;
-        var resource = await client.Queryable<SysResource>().FirstAsync(r => r.ResourceCode == "ai_assistant");
+        var resource = await client.Queryable<SysResource>().FirstAsync(r => r.ResourceCode == AiAssistantPermissionCodes.Resource);
         var operations = await client.Queryable<SysOperation>().ToListAsync();
         if (resource is null || operations.Count == 0)
         {

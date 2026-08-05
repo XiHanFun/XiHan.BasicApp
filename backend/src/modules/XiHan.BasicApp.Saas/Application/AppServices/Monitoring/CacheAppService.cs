@@ -75,12 +75,4 @@ public class CacheAppService : ApplicationServiceBase
         _cacheManagementService.Remove(key);
     }
 
-    /// <summary>
-    /// 按模式批量删除缓存键
-    /// </summary>
-    [PermissionAuthorize(SaasPermissionCodes.Cache.Clear)]
-    public long RemoveByPattern(string pattern = "*")
-    {
-        return _cacheManagementService.RemoveByPattern(pattern);
-    }
 }

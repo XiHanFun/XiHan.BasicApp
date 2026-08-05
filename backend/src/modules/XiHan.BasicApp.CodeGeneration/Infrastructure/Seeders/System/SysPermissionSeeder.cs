@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
@@ -39,7 +40,7 @@ public class SysPermissionSeeder : PlatformDataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbClient;
-        var resources = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "code_gen").ToListAsync();
+        var resources = await client.Queryable<SysResource>().Where(r => r.ResourceCode == CodeGenPermissionCodes.Resource).ToListAsync();
         var operations = await client.Queryable<SysOperation>().ToListAsync();
         if (resources.Count == 0 || operations.Count == 0)
         {
@@ -50,7 +51,7 @@ public class SysPermissionSeeder : PlatformDataSeederBase
         var operationMap = operations.ToDictionary(o => o.OperationCode, o => o);
         var target = new Dictionary<string, string[]>
         {
-            ["code_gen"] = ["read", "create", "update", "delete", "export", "import", "execute"]
+            [CodeGenPermissionCodes.Resource] = ["read", "create", "update", "delete", "import", "execute"]
         };
         var permissionCodes = target.SelectMany(kv => kv.Value.Select(op => $"{kv.Key}:{op}")).ToList();
         var existing = await client.Queryable<SysPermission>().Where(p => permissionCodes.Contains(p.PermissionCode)).ToListAsync();

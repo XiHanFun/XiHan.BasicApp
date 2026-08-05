@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
@@ -39,13 +40,13 @@ public class SysResourceSeeder : PlatformDataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbClient;
-        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "code_gen").ToListAsync();
+        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == CodeGenPermissionCodes.Resource).ToListAsync();
         var existsCodes = exists.Select(x => x.ResourceCode).ToHashSet();
         var addList = new List<SysResource>();
 
         if (!existsCodes.Contains("code_gen"))
         {
-            addList.Add(new SysResource { ResourceCode = "code_gen", ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 401 });
+            addList.Add(new SysResource { ResourceCode = CodeGenPermissionCodes.Resource, ResourceName = "代码生成", ResourceType = ResourceType.Api, ResourcePath = "/api/codegen", Description = "代码生成API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 401 });
         }
 
         if (addList.Count == 0)

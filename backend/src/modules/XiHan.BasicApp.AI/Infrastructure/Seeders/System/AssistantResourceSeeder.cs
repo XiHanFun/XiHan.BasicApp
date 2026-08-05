@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.AI.Domain.Permissions;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Seeders.System;
 
@@ -39,7 +40,7 @@ public class AssistantResourceSeeder : PlatformDataSeederBase
     protected override async Task SeedInternalAsync()
     {
         var client = DbClient;
-        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == "ai_assistant").ToListAsync();
+        var exists = await client.Queryable<SysResource>().Where(r => r.ResourceCode == AiAssistantPermissionCodes.Resource).ToListAsync();
         if (exists.Count > 0)
         {
             Logger.LogInformation("AI 助手资源数据已存在，跳过种子数据");
@@ -48,7 +49,7 @@ public class AssistantResourceSeeder : PlatformDataSeederBase
 
         await BulkInsertAsync(new List<SysResource>
         {
-            new() { ResourceCode = "ai_assistant", ResourceName = "AI 助手", ResourceType = ResourceType.Api, ResourcePath = "/api/ai-assistant", Description = "AI 助手配置API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 405 }
+            new() { ResourceCode = AiAssistantPermissionCodes.Resource, ResourceName = "AI 助手", ResourceType = ResourceType.Api, ResourcePath = "/api/ai-assistant", Description = "AI 助手配置API接口", AccessLevel = ResourceAccessLevel.Authorized, Status = EnableStatus.Enabled, Sort = 405 }
         });
         Logger.LogInformation("成功初始化 AI 助手资源");
     }
