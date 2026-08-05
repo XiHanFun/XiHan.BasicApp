@@ -557,11 +557,23 @@ public sealed class UserDomainService
         var now = DateTimeOffset.UtcNow;
         var tenantMember = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护直授权限", "平台管理员成员权限必须通过平台运维流程维护。", cancellationToken);
         var permission = await GetGrantablePermissionOrThrowAsync(command.PermissionId, cancellationToken);
-        if (await _userPermissionRepository.AnyAsync(
+        // 撤销直授走的是逻辑失效（Status = Invalid）而非删行，因此同一 用户×权限 的历史行会留在库里。
+        // 此处按 upsert 处理：命中历史行就地改写并重新置为有效，避免「授予→拒绝」被自身的历史记录挡住，
+        // 也避免每次切换都堆积一行失效记录。
+        var existing = await _userPermissionRepository.GetFirstAsync(
             userPermission => userPermission.UserId == command.UserId && userPermission.PermissionId == command.PermissionId,
-            cancellationToken))
+            cancellationToken);
+        if (existing is not null)
         {
-            throw new InvalidOperationException("用户直授权限已绑定。");
+            existing.PermissionAction = command.PermissionAction;
+            existing.EffectiveTime = command.EffectiveTime;
+            existing.ExpirationTime = command.ExpirationTime;
+            existing.GrantReason = NormalizeNullable(command.GrantReason);
+            existing.Remark = NormalizeNullable(command.Remark);
+            existing.Status = ValidityStatus.Valid;
+
+            var reactivated = await _userPermissionRepository.UpdateAsync(existing, cancellationToken);
+            return new UserPermissionCommandResult(reactivated, permission, tenantMember, now);
         }
 
         var userPermission = new SysUserPermission
