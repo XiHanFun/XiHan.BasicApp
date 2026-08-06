@@ -756,7 +756,6 @@ async function handleSubmit() {
                 v-else
                 :value="value"
                 type="textarea"
-                :autosize="{ minRows: 20 }"
                 :placeholder="t('message.notification.form_content_placeholder')"
                 @update:value="update"
               />
