@@ -376,7 +376,6 @@ async function handleSubmit() {
               <NInput
                 :value="value"
                 type="textarea"
-                :autosize="{ minRows: 24 }"
                 :placeholder="t('message.template.form_content_placeholder')"
                 @update:value="update"
               />

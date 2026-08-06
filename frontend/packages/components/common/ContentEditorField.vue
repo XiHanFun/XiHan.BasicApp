@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
   summaryLimit?: number
   disabled?: boolean
 }>(), {
-  width: 900,
+  width: 'min(1400px, calc(100vw - 64px))',
   summaryLimit: 160,
 })
 
@@ -153,10 +153,31 @@ function updateDraft(value: null | string) {
   margin-top: 6px;
 }
 
-/* 内容过长时弹窗自身不再无限拉高，改由编辑区内部滚动 */
+/* 编辑区按视口定高并让内部编辑器撑满：md-editor-v3 自带 500px 固定高，
+   不覆盖的话弹窗放多大编辑区都还是那么高 */
 .xh-content-field__editor {
-  max-height: calc(100vh - 260px);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 240px);
+  min-height: 420px;
+}
+
+.xh-content-field__editor > :deep(*) {
+  flex: 1;
+  min-height: 0;
+}
+
+.xh-content-field__editor :deep(.md-editor) {
+  height: 100%;
+}
+
+/* 纯文本编辑同样撑满，不再受 autosize 行数限制 */
+.xh-content-field__editor :deep(.n-input) {
+  height: 100%;
+}
+
+.xh-content-field__editor :deep(.n-input__textarea-el) {
+  height: 100%;
 }
 
 .xh-content-field__count {
