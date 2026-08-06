@@ -8,6 +8,7 @@ export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
 export const NotificationContent = defineAsyncComponent(() => import('./NotificationContent.vue'))
 export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'))
 
+export { default as XContentEditorField } from './ContentEditorField.vue'
 export { default as XEditModal } from './EditModal.vue'
 export { default as XPageShell } from './PageShell.vue'
 export type { PermissionGrantItem } from './permission-grant-panel'
