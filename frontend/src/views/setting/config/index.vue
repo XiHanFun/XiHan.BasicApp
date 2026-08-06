@@ -77,7 +77,8 @@ function reloadConfig() {
   void schemaPageRef.value?.reload()
 }
 
-function canMaintainConfig(row: ConfigListItemDto) {
+/** 仅删除受内置限制：后端 DeleteConfigAsync 对内置配置直接抛错 */
+function canDeleteConfig(row: ConfigListItemDto) {
   return !row.isBuiltIn
 }
 
@@ -151,9 +152,10 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('setting.config.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: t('setting.config.view'), scope: 'row' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
-    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
+    // 内置配置本就是给运维调值的：后端只禁止删除，不限制改值与启停
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row' },
+    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canDeleteConfig(row as unknown as ConfigListItemDto) },
   ],
 }))
 
@@ -510,14 +512,6 @@ async function handleToggleStatus(row: ConfigListItemDto) {
         <NSpace justify="end">
           <NButton size="small" @click="detailVisible = false">
             {{ t('common.actions.close') }}
-          </NButton>
-          <NButton
-            v-if="currentDetail"
-            size="small"
-            type="primary"
-            @click="detailVisible = false; handleEdit(currentDetail as ConfigListItemDto)"
-          >
-            {{ t('common.actions.edit') }}
           </NButton>
         </NSpace>
       </template>
