@@ -1,36 +1,37 @@
 <script setup lang="ts">
-import { NButton, NDrawer, NDrawerContent, NIcon } from 'naive-ui'
+import { NButton, NIcon } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { Icon } from '../../iconify'
+import XEditModal from './EditModal.vue'
 
 defineOptions({ name: 'XContentEditorField' })
 
 const props = withDefaults(defineProps<{
-  /** 抽屉标题 */
+  /** 弹窗标题 */
   title?: string
   /** 空内容时的占位文案 */
   placeholder?: string
   /** 摘要区按钮文案 */
   editText?: string
-  /** 抽屉底部确定/取消文案 */
+  /** 弹窗底部确定/取消文案 */
   confirmText?: string
   cancelText?: string
   /** 字数标签，接收字符数 */
   countLabel?: (count: number) => string
-  /** 抽屉宽度 */
+  /** 弹窗宽度 */
   width?: number | string
   /** 摘要区最多展示的字符数 */
   summaryLimit?: number
   disabled?: boolean
 }>(), {
-  width: 720,
+  width: 900,
   summaryLimit: 160,
 })
 
 const model = defineModel<string>({ default: '' })
 
 const visible = ref(false)
-/** 抽屉内编辑副本：确定才回写，取消丢弃 */
+/** 弹窗内编辑副本：确定才回写，取消丢弃 */
 const draft = ref<string>('')
 
 watch(visible, (open) => {
@@ -82,20 +83,19 @@ function updateDraft(value: null | string) {
       </NButton>
     </div>
 
-    <NDrawer v-model:show="visible" :width="width" placement="right">
-      <NDrawerContent closable :title="title" :native-scrollbar="false">
-        <!-- 编辑器由调用方提供：Markdown / 纯文本 / 富文本各页自选 -->
+    <XEditModal
+      v-model:show="visible"
+      :title="title"
+      :width="width"
+      :save-text="confirmText"
+      :cancel-text="cancelText"
+      @save="confirm"
+    >
+      <!-- 编辑器由调用方提供：Markdown / 纯文本 / 富文本各页自选 -->
+      <div class="xh-content-field__editor">
         <slot name="editor" :value="draft" :update="updateDraft" />
-        <template #footer>
-          <NButton @click="visible = false">
-            {{ cancelText }}
-          </NButton>
-          <NButton type="primary" style="margin-left: 8px" @click="confirm">
-            {{ confirmText }}
-          </NButton>
-        </template>
-      </NDrawerContent>
-    </NDrawer>
+      </div>
+    </XEditModal>
   </div>
 </template>
 
@@ -151,6 +151,12 @@ function updateDraft(value: null | string) {
   justify-content: space-between;
   gap: 8px;
   margin-top: 6px;
+}
+
+/* 内容过长时弹窗自身不再无限拉高，改由编辑区内部滚动 */
+.xh-content-field__editor {
+  max-height: calc(100vh - 260px);
+  overflow: auto;
 }
 
 .xh-content-field__count {
