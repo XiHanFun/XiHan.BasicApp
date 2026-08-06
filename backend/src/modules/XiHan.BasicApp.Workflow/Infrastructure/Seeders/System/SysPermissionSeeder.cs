@@ -6,7 +6,6 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Workflow.Domain.Permissions;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;

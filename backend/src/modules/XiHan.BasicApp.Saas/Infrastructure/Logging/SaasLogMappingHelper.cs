@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Http;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 

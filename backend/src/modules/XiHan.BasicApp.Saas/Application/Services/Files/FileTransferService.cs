@@ -7,7 +7,6 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.ObjectStorage;
 using XiHan.Framework.ObjectStorage.Models;
 using XiHan.Framework.Web.Core.Clients;
 

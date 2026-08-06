@@ -3,8 +3,6 @@
 
 #pragma warning disable CS1591
 
-using XiHan.BasicApp.Core.Dtos;
-
 namespace XiHan.BasicApp.AI.Application.Dtos;
 
 /// <summary>

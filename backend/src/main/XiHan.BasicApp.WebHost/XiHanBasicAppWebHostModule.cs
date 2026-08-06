@@ -1,9 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
@@ -13,9 +11,7 @@ using XiHan.BasicApp.WebHost.HealthChecks;
 using XiHan.Framework.Bot.Telegram.Webhook;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
-using XiHan.Framework.Observability;
 using XiHan.Framework.Web.Core.Extensions;
-using XiHan.Framework.Web.Mcp;
 
 namespace XiHan.BasicApp.WebHost;
 
@@ -27,11 +23,7 @@ namespace XiHan.BasicApp.WebHost;
     typeof(XiHanBasicAppSaasModule),
     typeof(XiHanBasicAppCodeGenerationModule),
     typeof(XiHanBasicAppAIModule),
-    typeof(XiHanBasicAppWorkflowModule),
-    // 可观测性：激活 OpenTelemetry 装配；由 XiHan:Observability 配置门控（Enabled 默认关）
-    typeof(XiHanObservabilityModule),
-    // MCP Server：把 AI 技能暴露为 MCP tools；由 XiHan:AI:Mcp 配置门控（未启用或未配密钥则不暴露端点）
-    typeof(XiHanWebMcpModule)
+    typeof(XiHanBasicAppWorkflowModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
