@@ -29,6 +29,7 @@ using XiHan.Framework.Messaging;
 using XiHan.Framework.MultiTenancy;
 using XiHan.Framework.ObjectMapping;
 using XiHan.Framework.ObjectStorage;
+using XiHan.Framework.Observability;
 using XiHan.Framework.Script;
 using XiHan.Framework.SearchEngines;
 using XiHan.Framework.Security;
@@ -83,6 +84,7 @@ namespace XiHan.BasicApp.Core;
     typeof(XiHanUpgradeModule),
     typeof(XiHanValidationModule),
     typeof(XiHanVirtualFileSystemModule),
+    typeof(XiHanObservabilityModule),
     typeof(XiHanApplicationModule)
 )]
 public class XiHanBasicAppCoreModule : XiHanModule

@@ -1,13 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Reflection;
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.Framework.Data.SqlSugar.Connections;
 using XiHan.Framework.Data.SqlSugar.Metadata;
-using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
