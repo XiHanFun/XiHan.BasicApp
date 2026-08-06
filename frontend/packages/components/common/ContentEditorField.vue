@@ -95,6 +95,10 @@ function updateDraft(value: null | string) {
       <div class="xh-content-field__editor">
         <slot name="editor" :value="draft" :update="updateDraft" />
       </div>
+      <!-- 底部附加操作位：如模板的「校验语法」，作用于当前草稿而非已回写的值 -->
+      <template #footer-extra>
+        <slot name="footer-extra" :value="draft" />
+      </template>
     </XEditModal>
   </div>
 </template>

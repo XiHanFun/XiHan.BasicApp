@@ -34,7 +34,7 @@ import {
   TemplateEngine as TemplateEngineEnum,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XCodeEditor, XEditModal } from '~/components'
+import { Icon, SchemaPage, XCodeEditor, XContentEditorField, XEditModal } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
@@ -231,6 +231,12 @@ const form = ref<TemplateFormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? t('develop.code_gen.template.modal_edit_title') : t('develop.code_gen.template.modal_add_title')))
 
 /** 模板编辑器语言：按目标文件扩展名推断（.sbn 产出 .cs/.ts/.vue，据此高亮字面代码部分） */
+/** 编辑器统一收发 string；表单 templateContent 为 string|null，做空值适配 */
+const templateContentText = computed<string>({
+  get: () => form.value.templateContent ?? '',
+  set: (v) => { form.value.templateContent = v || null },
+})
+
 const editorFileName = computed(() => {
   const ext = form.value.fileExtension?.trim()
   if (!ext) {
@@ -299,15 +305,15 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
   }
 }
 
-async function handleValidate() {
-  if (!form.value.templateContent?.trim()) {
+async function handleValidate(templateContent: string) {
+  if (!templateContent.trim()) {
     message.warning(t('develop.code_gen.template.validate_content_required'))
     return
   }
   validating.value = true
   try {
     const result = await codeGenTemplateApi.validate({
-      templateContent: form.value.templateContent,
+      templateContent,
       templateEngine: form.value.templateEngine,
     })
     if (result.isValid) {
@@ -458,22 +464,35 @@ async function handleSubmit() {
           <NInput v-model:value="form.templateDescription" clearable :rows="2" type="textarea" />
         </NFormItem>
         <NFormItem class="xh-span-2" :label="t('develop.code_gen.template.form_template_content')" path="templateContent">
-          <XCodeEditor
-            v-model:value="form.templateContent"
-            :file-name="editorFileName"
-            height="360px"
-          />
+          <XContentEditorField
+            v-model="templateContentText"
+            :title="t('develop.code_gen.template.form_template_content_modal_title')"
+            :placeholder="t('develop.code_gen.template.form_template_content_placeholder')"
+            :edit-text="t('develop.code_gen.template.form_template_content_edit')"
+            :confirm-text="t('common.actions.confirm')"
+            :cancel-text="t('common.actions.cancel')"
+            :count-label="(count: number) => t('develop.code_gen.template.form_template_content_count', { count })"
+          >
+            <template #editor="{ value, update }">
+              <XCodeEditor
+                :value="value"
+                :file-name="editorFileName"
+                height="100%"
+                @update:value="update"
+              />
+            </template>
+            <!-- 校验的是正在编辑的草稿，而非已回写表单的值 -->
+            <template #footer-extra="{ value }">
+              <NButton size="small" :loading="validating" @click="handleValidate(value)">
+                <template #icon>
+                  <NIcon><Icon icon="lucide:check-check" /></NIcon>
+                </template>
+                {{ t('develop.code_gen.template.validate_syntax') }}
+              </NButton>
+            </template>
+          </XContentEditorField>
         </NFormItem>
       </NForm>
-
-      <template #footer-extra>
-        <NButton size="small" :loading="validating" @click="handleValidate">
-          <template #icon>
-            <NIcon><Icon icon="lucide:check-check" /></NIcon>
-          </template>
-          {{ t('develop.code_gen.template.validate_syntax') }}
-        </NButton>
-      </template>
     </XEditModal>
   </SchemaPage>
 </template>
