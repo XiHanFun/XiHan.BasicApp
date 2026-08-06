@@ -48,7 +48,7 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { IconPicker, NotificationContent, SchemaPage, XEditModal, XMdEditor } from '~/components'
+import { IconPicker, NotificationContent, SchemaPage, XContentEditorField, XEditModal, XMdEditor } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
 
@@ -225,12 +225,11 @@ const isUserTarget = computed(() => notificationForm.value.targetType === Notifi
 const isRoleTarget = computed(() => notificationForm.value.targetType === NotificationTargetType.Role)
 const isDepartmentTarget = computed(() => notificationForm.value.targetType === NotificationTargetType.Department)
 const isMarkdownContent = computed(() => notificationForm.value.contentFormat === NotificationContentFormat.Markdown)
-/** XMdEditor 需要 string；表单 content 为 string|null，做空值适配 */
-const markdownContent = computed<string>({
+/** 编辑器统一收发 string；表单 content 为 string|null，做空值适配 */
+const contentText = computed<string>({
   get: () => notificationForm.value.content ?? '',
   set: (v) => { notificationForm.value.content = v || null },
 })
-
 const detailVisible = ref(false)
 const currentDetail = ref<NotificationDetailDto | null>(null)
 
@@ -738,14 +737,31 @@ async function handleSubmit() {
           <NSelect v-model:value="notificationForm.contentFormat" :options="contentFormatOptions" />
         </NFormItem>
         <NFormItem :label="t('message.notification.form_content')" path="content" class="xh-span-2">
-          <XMdEditor v-if="isMarkdownContent" v-model="markdownContent" />
-          <NInput
-            v-else
-            v-model:value="notificationForm.content"
-            type="textarea"
-            :autosize="{ minRows: 5, maxRows: 12 }"
+          <XContentEditorField
+            v-model="contentText"
+            :title="t('message.notification.form_content_drawer_title')"
             :placeholder="t('message.notification.form_content_placeholder')"
-          />
+            :edit-text="t('message.notification.form_content_edit')"
+            :confirm-text="t('common.actions.confirm')"
+            :cancel-text="t('common.actions.cancel')"
+            :count-label="(count: number) => t('message.notification.form_content_count', { count })"
+          >
+            <template #editor="{ value, update }">
+              <XMdEditor
+                v-if="isMarkdownContent"
+                :model-value="value"
+                @update:model-value="update"
+              />
+              <NInput
+                v-else
+                :value="value"
+                type="textarea"
+                :autosize="{ minRows: 20 }"
+                :placeholder="t('message.notification.form_content_placeholder')"
+                @update:value="update"
+              />
+            </template>
+          </XContentEditorField>
         </NFormItem>
         <NFormItem :label="t('message.notification.form_type')" path="notificationType">
           <NSelect v-model:value="notificationForm.notificationType" :options="notificationTypeOptions" />

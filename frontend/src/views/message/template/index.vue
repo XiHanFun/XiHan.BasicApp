@@ -28,7 +28,7 @@ import {
   messageTemplateApi,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XContentEditorField, XEditModal } from '~/components'
 import { useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
 
@@ -363,12 +363,25 @@ async function handleSubmit() {
           <NInput v-model:value="templateForm.subject" clearable :placeholder="t('message.template.form_subject_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('message.template.form_content')" path="content" class="xh-span-2">
-          <NInput
-            v-model:value="templateForm.content"
-            type="textarea"
-            :autosize="{ minRows: 8, maxRows: 18 }"
+          <XContentEditorField
+            v-model="templateForm.content"
+            :title="t('message.template.form_content_drawer_title')"
             :placeholder="t('message.template.form_content_placeholder')"
-          />
+            :edit-text="t('message.template.form_content_edit')"
+            :confirm-text="t('common.actions.confirm')"
+            :cancel-text="t('common.actions.cancel')"
+            :count-label="(count: number) => t('message.template.form_content_count', { count })"
+          >
+            <template #editor="{ value, update }">
+              <NInput
+                :value="value"
+                type="textarea"
+                :autosize="{ minRows: 24 }"
+                :placeholder="t('message.template.form_content_placeholder')"
+                @update:value="update"
+              />
+            </template>
+          </XContentEditorField>
         </NFormItem>
         <NFormItem :label="t('message.template.form_is_html')" path="isHtml">
           <NSwitch v-model:value="templateForm.isHtml" />
