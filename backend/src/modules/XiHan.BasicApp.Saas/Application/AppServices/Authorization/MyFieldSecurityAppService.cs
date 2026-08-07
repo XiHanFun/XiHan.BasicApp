@@ -30,7 +30,9 @@ public sealed class MyFieldSecurityAppService
         _fieldSecurity = fieldSecurity;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户在指定资源上的有效字段脱敏规则（无规则返回空，前端不脱敏）
+    /// </summary>
     public async Task<List<MyFieldSecurityRuleDto>> GetMineAsync(string resourceCode, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(resourceCode))

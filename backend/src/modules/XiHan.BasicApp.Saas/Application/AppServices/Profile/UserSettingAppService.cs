@@ -54,7 +54,9 @@ public sealed class UserSettingAppService
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 保存（upsert）当前用户指定场景与设置键的设置
+    /// </summary>
     public async Task<UserSettingDto> SaveAsync(UserSettingSaveDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

@@ -67,7 +67,12 @@ public sealed class RoleManagementQueryService
         _superAdminProtector = superAdminProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取角色管理详情聚合视图
+    /// </summary>
+    /// <param name="roleId">角色主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色管理详情聚合视图</returns>
     [PermissionAuthorize(SaasPermissionCodes.Role.Read)]
     public async Task<RoleManagementDetailDto?> GetRoleManagementDetailAsync(long roleId, CancellationToken cancellationToken = default)
     {

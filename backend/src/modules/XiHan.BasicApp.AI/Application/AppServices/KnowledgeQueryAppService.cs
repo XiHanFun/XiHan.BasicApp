@@ -48,7 +48,9 @@ public sealed class KnowledgeQueryAppService : AiApplicationService, IKnowledgeQ
         _ragOptions = ragOptions.Value;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检索知识并（可选）生成带引用的答案
+    /// </summary>
     [PermissionAuthorize(KnowledgePermissionCodes.Execute)]
     [HttpPost]
     public async Task<KnowledgeQueryResultDto> QueryAsync(KnowledgeQueryDto input, CancellationToken cancellationToken = default)

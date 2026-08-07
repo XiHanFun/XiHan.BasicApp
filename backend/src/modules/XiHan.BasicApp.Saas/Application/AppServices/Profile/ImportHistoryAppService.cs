@@ -38,7 +38,9 @@ public sealed class ImportHistoryAppService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 新增导入历史（追加留痕，日志型只写不改）
+    /// </summary>
     public async Task<ImportHistoryDto> CreateAsync(ImportHistoryCreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

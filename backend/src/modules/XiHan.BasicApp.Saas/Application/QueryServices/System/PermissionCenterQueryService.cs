@@ -92,7 +92,12 @@ public sealed class PermissionCenterQueryService
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取权限中心详情聚合视图
+    /// </summary>
+    /// <param name="permissionId">权限主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限中心详情聚合视图</returns>
     [PermissionAuthorize(SaasPermissionCodes.Permission.Read)]
     public async Task<PermissionCenterDetailDto?> GetPermissionCenterDetailAsync(long permissionId, CancellationToken cancellationToken = default)
     {

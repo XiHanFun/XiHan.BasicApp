@@ -35,7 +35,9 @@ public sealed class WorkflowTodoQueryService : WorkflowApplicationService, IWork
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 分页查询当前用户待办（受理人归属服务端锁定为当前用户）
+    /// </summary>
     [HttpPost]
     public async Task<PageResultDtoBase<WorkflowTodoListItemDto>> GetPageAsync(WorkflowTodoPageQueryDto input, CancellationToken cancellationToken = default)
     {

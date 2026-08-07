@@ -28,7 +28,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
         _promptDomainService = promptDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建提示词
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPromptPermissionCodes.Create)]
     public async Task<AiPromptDetailDto> CreateAsync(AiPromptCreateDto input, CancellationToken cancellationToken = default)
@@ -40,7 +42,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
         return AiPromptApplicationMapper.ToDetailDto(result.Prompt);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新提示词
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPromptPermissionCodes.Update)]
     public async Task<AiPromptDetailDto> UpdateAsync(AiPromptUpdateDto input, CancellationToken cancellationToken = default)
@@ -52,7 +56,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
         return AiPromptApplicationMapper.ToDetailDto(result.Prompt);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新提示词状态
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPromptPermissionCodes.Update)]
     public async Task<AiPromptDetailDto> UpdateStatusAsync(AiPromptStatusUpdateDto input, CancellationToken cancellationToken = default)
@@ -64,7 +70,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
         return AiPromptApplicationMapper.ToDetailDto(result.Prompt);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除提示词
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPromptPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)

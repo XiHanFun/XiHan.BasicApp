@@ -41,7 +41,9 @@ public sealed class AiProviderQueryService : AiApplicationService, IAiProviderQu
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取 provider 分页列表
+    /// </summary>
     [PermissionAuthorize(AiPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<AiProviderListItemDto>> GetPageAsync(AiProviderPageQueryDto input, CancellationToken cancellationToken = default)
@@ -78,7 +80,9 @@ public sealed class AiProviderQueryService : AiApplicationService, IAiProviderQu
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取 provider 详情
+    /// </summary>
     [PermissionAuthorize(AiPermissionCodes.Read)]
     public async Task<AiProviderDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

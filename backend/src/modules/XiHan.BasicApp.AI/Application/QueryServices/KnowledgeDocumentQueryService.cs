@@ -41,7 +41,9 @@ public sealed class KnowledgeDocumentQueryService : AiApplicationService, IKnowl
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取文档分页列表
+    /// </summary>
     [PermissionAuthorize(KnowledgePermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<KnowledgeListItemDto>> GetPageAsync(KnowledgePageQueryDto input, CancellationToken cancellationToken = default)
@@ -76,7 +78,9 @@ public sealed class KnowledgeDocumentQueryService : AiApplicationService, IKnowl
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取文档详情
+    /// </summary>
     [PermissionAuthorize(KnowledgePermissionCodes.Read)]
     public async Task<KnowledgeDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

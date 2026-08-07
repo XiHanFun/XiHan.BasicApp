@@ -41,7 +41,9 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取模板分页列表
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<CodeGenTemplateListItemDto>> GetPageAsync(CodeGenTemplatePageQueryDto input, CancellationToken cancellationToken = default)
@@ -78,7 +80,9 @@ public sealed class CodeGenTemplateQueryService : CodeGenerationApplicationServi
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取模板详情
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<CodeGenTemplateDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

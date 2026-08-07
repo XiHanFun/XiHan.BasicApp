@@ -39,7 +39,10 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取数据源全量列表
+    /// </summary>
+    /// <remarks>供导入表等下拉一次取全，不走分页。</remarks>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<IReadOnlyList<CodeGenDataSourceListItemDto>> GetOptionsAsync(CancellationToken cancellationToken = default)
     {
@@ -53,7 +56,9 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
             .Select(CodeGenDataSourceApplicationMapper.ToListItemDto)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取数据源分页列表
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<CodeGenDataSourceListItemDto>> GetPageAsync(CodeGenDataSourcePageQueryDto input, CancellationToken cancellationToken = default)
@@ -91,7 +96,9 @@ public sealed class CodeGenDataSourceQueryService : CodeGenerationApplicationSer
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取数据源详情
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<CodeGenDataSourceDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

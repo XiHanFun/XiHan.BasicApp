@@ -47,7 +47,12 @@ public sealed class MessageQueryService
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取系统邮件分页列表
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>系统邮件分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<EmailListItemDto>> GetEmailPageAsync(EmailPageQueryDto input, CancellationToken cancellationToken = default)
@@ -72,7 +77,12 @@ public sealed class MessageQueryService
         return new PageResultDtoBase<EmailListItemDto>(items, page.Page);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取系统邮件详情
+    /// </summary>
+    /// <param name="id">系统邮件主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>系统邮件详情</returns>
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
     public async Task<EmailDetailDto?> GetEmailDetailAsync(long id, CancellationToken cancellationToken = default)
     {
@@ -87,7 +97,12 @@ public sealed class MessageQueryService
         return email is null ? null : MessageApplicationMapper.ToEmailDetailDto(email);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取系统短信分页列表
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>系统短信分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<SmsListItemDto>> GetSmsPageAsync(SmsPageQueryDto input, CancellationToken cancellationToken = default)
@@ -112,7 +127,12 @@ public sealed class MessageQueryService
         return new PageResultDtoBase<SmsListItemDto>(items, page.Page);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取系统短信详情
+    /// </summary>
+    /// <param name="id">系统短信主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>系统短信详情</returns>
     [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
     public async Task<SmsDetailDto?> GetSmsDetailAsync(long id, CancellationToken cancellationToken = default)
     {

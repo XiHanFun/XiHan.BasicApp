@@ -28,7 +28,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
         _dataSourceDomainService = dataSourceDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建数据源
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Create)]
     public async Task<CodeGenDataSourceDetailDto> CreateAsync(CodeGenDataSourceCreateDto input, CancellationToken cancellationToken = default)
@@ -41,7 +43,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
         return CodeGenDataSourceApplicationMapper.ToDetailDto(result.DataSource);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新数据源
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenDataSourceDetailDto> UpdateAsync(CodeGenDataSourceUpdateDto input, CancellationToken cancellationToken = default)
@@ -54,7 +58,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
         return CodeGenDataSourceApplicationMapper.ToDetailDto(result.DataSource);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新数据源状态
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenDataSourceDetailDto> UpdateStatusAsync(CodeGenDataSourceStatusUpdateDto input, CancellationToken cancellationToken = default)
@@ -67,7 +73,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
         return CodeGenDataSourceApplicationMapper.ToDetailDto(result.DataSource);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除数据源
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
@@ -76,7 +84,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
         await _dataSourceDomainService.DeleteDataSourceAsync(id, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 测试数据源连接（测试通过方可启用/保存）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<CodeGenConnectionTestResultDto> TestConnectionAsync(long id, CancellationToken cancellationToken = default)

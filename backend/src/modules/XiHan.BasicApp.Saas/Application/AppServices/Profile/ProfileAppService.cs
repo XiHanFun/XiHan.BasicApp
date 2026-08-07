@@ -82,13 +82,17 @@ public sealed partial class ProfileAppService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户通知偏好
+    /// </summary>
     public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetNotificationPreferenceAsync(GetCurrentUserIdOrThrow(), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新当前用户通知偏好
+    /// </summary>
     [UnitOfWork(true)]
     public async Task<ProfileNotificationPreferenceDto> UpdateNotificationPreferenceAsync(ProfileNotificationPreferenceDto input, CancellationToken cancellationToken = default)
     {
@@ -113,7 +117,9 @@ public sealed partial class ProfileAppService
         return ProfileQueryService.ToPreferenceDto(preference);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 修改当前用户名
+    /// </summary>
     [UnitOfWork(true)]
     public async Task ChangeUserNameAsync(ProfileChangeUserNameDto input, CancellationToken cancellationToken = default)
     {
@@ -135,7 +141,9 @@ public sealed partial class ProfileAppService
             cancellationToken: cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 停用当前账号
+    /// </summary>
     [UnitOfWork(true)]
     public async Task DeactivateAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {
@@ -149,7 +157,9 @@ public sealed partial class ProfileAppService
         await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 注销当前账号
+    /// </summary>
     /// <remarks>
     /// 显式锁定 POST /Profile/DeleteAccount：按动词剥离约定本方法会推断成 DELETE /Profile/Account，
     /// 带密码确认 body 的 DELETE 不符合习惯，前端也按 POST 完整方法名调用。
@@ -169,25 +179,33 @@ public sealed partial class ProfileAppService
         await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户活跃度统计
+    /// </summary>
     public async Task<ProfileActivityDto> GetActivityAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetActivityAsync(GetCurrentUserIdOrThrow(), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户第三方账号绑定
+    /// </summary>
     public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetLinkedAccountsAsync(GetCurrentUserIdOrThrow(), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户个人资料
+    /// </summary>
     public async Task<UserProfileDto> GetProfileAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetProfileAsync(GetCurrentUserIdOrThrow(), _currentUser.TenantId, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解除第三方账号绑定
+    /// </summary>
     [UnitOfWork(true)]
     public async Task UnlinkAccountAsync(ProfileUnlinkAccountDto input, CancellationToken cancellationToken = default)
     {
@@ -199,7 +217,9 @@ public sealed partial class ProfileAppService
             cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新当前用户个人资料
+    /// </summary>
     [UnitOfWork(true)]
     public async Task<UserProfileDto> UpdateProfileAsync(ProfileUpdateDto input, CancellationToken cancellationToken = default)
     {

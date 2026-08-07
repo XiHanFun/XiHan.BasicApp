@@ -42,7 +42,9 @@ public sealed class AiAssistantQueryService : AiApplicationService, IAiAssistant
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取助手分页列表
+    /// </summary>
     [PermissionAuthorize(AiAssistantPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<AiAssistantListItemDto>> GetPageAsync(AiAssistantPageQueryDto input, CancellationToken cancellationToken = default)
@@ -79,7 +81,9 @@ public sealed class AiAssistantQueryService : AiApplicationService, IAiAssistant
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取助手详情
+    /// </summary>
     [PermissionAuthorize(AiAssistantPermissionCodes.Read)]
     public async Task<AiAssistantDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {
@@ -94,7 +98,9 @@ public sealed class AiAssistantQueryService : AiApplicationService, IAiAssistant
         return assistant is null ? null : AiAssistantApplicationMapper.ToDetailDto(assistant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取可用助手列表（聊天页选择用，仅启用项）
+    /// </summary>
     /// <remarks>
     /// 聊天页人人可见，只按登录态门控：助手管理权限属后台配置，不能拿它挡住普通用户使用助手。
     /// </remarks>

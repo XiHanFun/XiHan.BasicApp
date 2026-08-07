@@ -29,7 +29,9 @@ public sealed class KnowledgeDocumentAppService : AiApplicationService, IKnowled
         _documentDomainService = documentDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 摄取文档（切片嵌入入库）
+    /// </summary>
     [PermissionAuthorize(KnowledgePermissionCodes.Create)]
     [HttpPost]
     public async Task<KnowledgeDetailDto> IngestAsync(KnowledgeIngestDto input, CancellationToken cancellationToken = default)
@@ -41,7 +43,9 @@ public sealed class KnowledgeDocumentAppService : AiApplicationService, IKnowled
         return KnowledgeApplicationMapper.ToDetailDto(result.Document);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 重建文档索引
+    /// </summary>
     [PermissionAuthorize(KnowledgePermissionCodes.Update)]
     [HttpPost]
     public async Task<KnowledgeDetailDto> ReindexAsync(KnowledgeActionDto input, CancellationToken cancellationToken = default)
@@ -53,7 +57,9 @@ public sealed class KnowledgeDocumentAppService : AiApplicationService, IKnowled
         return KnowledgeApplicationMapper.ToDetailDto(result.Document);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除文档
+    /// </summary>
     [PermissionAuthorize(KnowledgePermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {

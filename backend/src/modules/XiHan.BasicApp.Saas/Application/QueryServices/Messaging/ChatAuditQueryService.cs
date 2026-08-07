@@ -38,7 +38,9 @@ public sealed class ChatAuditQueryService
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 聊天消息审计分页
+    /// </summary>
     [HttpPost]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Audit)]
     public async Task<PageResultDtoBase<ChatAuditListItemDto>> GetChatMessagePageAsync(ChatAuditPageQueryDto input, CancellationToken cancellationToken = default)

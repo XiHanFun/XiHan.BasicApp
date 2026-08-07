@@ -60,7 +60,12 @@ public sealed class OnlineUserQueryService
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取在线用户分页列表（一行 = 一个活跃会话）
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>在线用户分页列表</returns>
     [PermissionAuthorize(SaasPermissionCodes.UserSession.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<OnlineUserListItemDto>> GetOnlineUserPageAsync(OnlineUserPageQueryDto input, CancellationToken cancellationToken = default)
@@ -130,7 +135,11 @@ public sealed class OnlineUserQueryService
         return new PageResultDtoBase<OnlineUserListItemDto>(items, sessionPage.Page);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取在线用户概览（实时在线数/活跃会话数/活跃用户数）
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>在线用户概览</returns>
     [PermissionAuthorize(SaasPermissionCodes.UserSession.Read)]
     public async Task<OnlineUserSummaryDto> GetOnlineUserSummaryAsync(CancellationToken cancellationToken = default)
     {

@@ -41,7 +41,9 @@ public sealed class UserSettingQueryService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户指定场景与设置键的设置（无则返回空载荷）
+    /// </summary>
     public async Task<UserSettingDto> GetAsync(UserSettingScene scene, string settingKey, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(settingKey))

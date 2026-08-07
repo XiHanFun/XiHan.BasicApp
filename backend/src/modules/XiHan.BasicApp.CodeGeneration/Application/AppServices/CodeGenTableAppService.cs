@@ -29,7 +29,9 @@ public sealed class CodeGenTableAppService : CodeGenerationApplicationService, I
         _tableDomainService = tableDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新表配置
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenTableDetailDto> UpdateAsync(CodeGenTableUpdateDto input, CancellationToken cancellationToken = default)
@@ -41,7 +43,9 @@ public sealed class CodeGenTableAppService : CodeGenerationApplicationService, I
         return CodeGenTableApplicationMapper.ToDetailDto(result.Table);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新表配置状态
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenTableDetailDto> UpdateStatusAsync(CodeGenTableStatusUpdateDto input, CancellationToken cancellationToken = default)
@@ -53,7 +57,9 @@ public sealed class CodeGenTableAppService : CodeGenerationApplicationService, I
         return CodeGenTableApplicationMapper.ToDetailDto(result.Table);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除表配置
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)

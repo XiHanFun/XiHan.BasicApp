@@ -95,7 +95,12 @@ public sealed class UserManagementQueryService
         _superAdminProtector = superAdminProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取账号管理详情聚合视图
+    /// </summary>
+    /// <param name="userId">用户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>账号管理详情聚合视图</returns>
     [PermissionAuthorize(SaasPermissionCodes.User.Read)]
     public async Task<UserManagementDetailDto?> GetUserManagementDetailAsync(long userId, CancellationToken cancellationToken = default)
     {

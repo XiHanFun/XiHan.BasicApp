@@ -28,7 +28,9 @@ public sealed class CodeGenTableColumnAppService : CodeGenerationApplicationServ
         _columnDomainService = columnDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按表整体保存列配置（前端表格批量提交）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task BatchSaveAsync(CodeGenTableColumnBatchSaveDto input, CancellationToken cancellationToken = default)
@@ -39,7 +41,9 @@ public sealed class CodeGenTableColumnAppService : CodeGenerationApplicationServ
         await _columnDomainService.BatchSaveColumnsAsync(command, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新单列配置
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenTableColumnListItemDto> UpdateAsync(CodeGenTableColumnUpdateDto input, CancellationToken cancellationToken = default)

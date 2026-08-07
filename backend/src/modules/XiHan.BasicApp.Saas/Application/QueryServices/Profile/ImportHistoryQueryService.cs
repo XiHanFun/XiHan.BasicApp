@@ -37,7 +37,9 @@ public sealed class ImportHistoryQueryService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户在指定页面最近的导入记录（按创建时间倒序，最多 50 条）
+    /// </summary>
     public async Task<List<ImportHistoryDto>> GetMineAsync(string pageCode, int count = 10, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(pageCode))

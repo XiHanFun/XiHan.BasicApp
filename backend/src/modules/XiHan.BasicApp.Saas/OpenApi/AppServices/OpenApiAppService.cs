@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Saas.OpenApi.AppServices;
 /// </para>
 /// </remarks>
 [AllowAnonymous]
-[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "开放接口", RouteTemplate = "api/openapi")]
+[DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "开放接口", RouteTemplate = "api/OpenApi")]
 public sealed class OpenApiAppService
     : SaasApplicationService, IOpenApiAppService
 {
@@ -40,7 +40,11 @@ public sealed class OpenApiAppService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 连通性自测：验签通过即回显调用方身份与服务器时间
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>自测结果</returns>
     [HttpGet]
     public Task<OpenApiPingDto> PingAsync(CancellationToken cancellationToken = default)
     {
@@ -57,7 +61,12 @@ public sealed class OpenApiAppService
         });
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 回显自测：原样回显入参，用于验证请求体完整性与内容签名
+    /// </summary>
+    /// <param name="input">回显入参</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>自测结果</returns>
     [HttpPost]
     public Task<OpenApiEchoDto> EchoAsync(OpenApiEchoInputDto input, CancellationToken cancellationToken = default)
     {

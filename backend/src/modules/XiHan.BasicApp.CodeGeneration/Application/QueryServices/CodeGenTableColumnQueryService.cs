@@ -27,7 +27,9 @@ public sealed class CodeGenTableColumnQueryService : CodeGenerationApplicationSe
         _columnRepository = columnRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定表的全部列配置
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<IReadOnlyList<CodeGenTableColumnListItemDto>> GetByTableAsync(long tableId, CancellationToken cancellationToken = default)
     {

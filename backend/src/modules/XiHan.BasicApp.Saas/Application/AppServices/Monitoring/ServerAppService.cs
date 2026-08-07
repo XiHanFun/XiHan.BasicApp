@@ -16,7 +16,6 @@ namespace XiHan.BasicApp.Saas.Application.AppServices.Monitoring;
 
 /// <summary>
 /// 系统服务器监控服务
-/// 全部读取走 saas:server:read（平台运维专属，与菜单 setting.server 同码）。
 /// </summary>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统Saas服务")]
