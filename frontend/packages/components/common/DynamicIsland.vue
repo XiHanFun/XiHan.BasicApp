@@ -337,22 +337,19 @@ const stackDepth = computed(() => {
 })
 
 /**
- * 叠层几何：左右两侧各排一列，逐层向外挪、同时变矮，只露出外侧一条卡片边。
- * 不往下露——岛贴着顶栏，向下露会压住面包屑那一行。
+ * 叠层几何：邻卡与前卡等大，仅整体缩小一档并向左右挪出，露出侧边一条。
+ * 缩放以中心为基点，上下自然内收，不需要额外的纵向位移；
+ * 也不往下露——岛贴着顶栏，向下露会压住面包屑那一行。
  */
 function layerStyle(depth: number, direction: -1 | 1): Record<string, string> {
   const isCard = mode.value === 'card'
-  const baseWidth = isCard ? panelWidth() : pillWidth.value
-  const baseHeight = isCard ? cardHeight.value : PILL_HEIGHT
-  // 露出的宽度：悬停时向外摊开
-  const shift = (hovering.value ? 34 : 24) * depth
-  const height = Math.max(baseHeight - 8 * depth, 12)
+  const shift = (hovering.value ? 34 : 26) * depth
   return {
-    width: `${baseWidth}px`,
-    height: `${height}px`,
+    width: `${isCard ? panelWidth() : pillWidth.value}px`,
+    height: `${isCard ? cardHeight.value : PILL_HEIGHT}px`,
     borderRadius: isCard ? '20px' : '18px',
-    transform: `translateX(calc(-50% + ${direction * shift}px)) translateY(${(baseHeight - height) / 2}px)`,
-    opacity: `${0.55 - (depth - 1) * 0.18}`,
+    transform: `translateX(calc(-50% + ${direction * shift}px)) scale(${1 - 0.07 * depth})`,
+    opacity: `${0.9 - (depth - 1) * 0.22}`,
   }
 }
 
@@ -661,17 +658,15 @@ onBeforeUnmount(() => {
 }
 
 /* ============ 后方叠层：多条活动消息的「还有更多」暗示 ============ */
-/* 与壳体同色但更暗更透，逐层下移缩窄；悬停时轻微散开。
+/* 与壳体同色（压低亮度会糊成灰块，看不出是卡片），靠缩放与左右挪出体现前后。
    不接收指针事件：点击落在壳体上，行为与单条时一致。 */
 .di-stack {
   position: absolute;
   top: 0;
   left: 50%;
   pointer-events: none;
-  background: rgb(18 18 20 / 82%);
-  box-shadow:
-    0 8px 22px rgb(0 0 0 / 26%),
-    inset 0 0 0 1px rgb(255 255 255 / 6%);
+  background: rgb(18 18 20 / 94%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 7%);
   backdrop-filter: blur(14px);
   transition:
     width 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
