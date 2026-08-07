@@ -33,11 +33,6 @@ public sealed class UserPageQueryDto : BasicAppPRDto
     public bool? IsSystemAccount { get; set; }
 
     /// <summary>
-    /// 语言
-    /// </summary>
-    public string? Language { get; set; }
-
-    /// <summary>
     /// 国家/地区
     /// </summary>
     public string? Country { get; set; }

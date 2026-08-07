@@ -103,8 +103,6 @@ export default {
       field_birthday: '生日',
       field_gender: '性别',
       field_country: '国家 / 地区',
-      field_language: '语言',
-      field_timezone: '时区',
       field_bio: '个人简介',
       btn_save_changes: '保存更改',
       gender_unset: '未设置',

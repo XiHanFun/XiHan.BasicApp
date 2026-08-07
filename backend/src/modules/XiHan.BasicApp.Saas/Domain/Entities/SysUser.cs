@@ -133,18 +133,6 @@ public partial class SysUser : BasicAppAggregateRoot
     public virtual string? LastLoginIp { get; set; }
 
     /// <summary>
-    /// 时区
-    /// </summary>
-    [SugarColumn(ColumnName = "Time_Zone", ColumnDescription = "时区", Length = 50, IsNullable = true)]
-    public virtual string? TimeZone { get; set; }
-
-    /// <summary>
-    /// 语言
-    /// </summary>
-    [SugarColumn(ColumnName = "Language", ColumnDescription = "语言", Length = 10, IsNullable = true)]
-    public virtual string? Language { get; set; } = "zh-CN";
-
-    /// <summary>
     /// 国家/地区
     /// </summary>
     [SugarColumn(ColumnName = "Country", ColumnDescription = "国家/地区", Length = 50, IsNullable = true)]

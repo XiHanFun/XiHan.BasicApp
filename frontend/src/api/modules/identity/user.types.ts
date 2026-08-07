@@ -16,7 +16,6 @@ export interface UserPageQueryDto extends PageRequest {
   gender?: UserGender | null
   isSystemAccount?: boolean | null
   keyword?: string | null
-  language?: string | null
   status?: EnableStatus | null
 }
 
@@ -28,7 +27,6 @@ export interface UserListItemDto extends BasicDto {
   gender: UserGender
   isLocked: boolean
   isSystemAccount: boolean
-  language?: string | null
   lastLoginIp?: string | null
   lastLoginTime?: DateTimeString | null
   modifiedTime?: DateTimeString | null
@@ -36,7 +34,6 @@ export interface UserListItemDto extends BasicDto {
   realName?: string | null
   roleNames: string[]
   status: EnableStatus
-  timeZone?: string | null
   twoFactorEnabled: boolean
   userName: string
 }
@@ -60,14 +57,12 @@ export interface UserCreateDto {
   gender: UserGender
   initialPassword: string
   inviteRemark?: string | null
-  language?: string | null
   memberType: TenantMemberType
   nickName?: string | null
   phone?: string | null
   realName?: string | null
   remark?: string | null
   status: EnableStatus
-  timeZone?: string | null
   userName: string
 }
 
@@ -77,12 +72,10 @@ export interface UserUpdateDto extends BasicUpdateDto {
   country?: string | null
   email?: string | null
   gender: UserGender
-  language?: string | null
   nickName?: string | null
   phone?: string | null
   realName?: string | null
   remark?: string | null
-  timeZone?: string | null
 }
 
 export interface UserStatusUpdateDto extends BasicDto {

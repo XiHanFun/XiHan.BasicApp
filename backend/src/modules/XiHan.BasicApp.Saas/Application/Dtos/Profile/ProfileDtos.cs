@@ -56,16 +56,6 @@ public sealed class UserProfileDto
     public DateTimeOffset? Birthday { get; set; }
 
     /// <summary>
-    /// 时区
-    /// </summary>
-    public string? TimeZone { get; set; }
-
-    /// <summary>
-    /// 语言
-    /// </summary>
-    public string? Language { get; set; }
-
-    /// <summary>
     /// 国家或地区
     /// </summary>
     public string? Country { get; set; }
@@ -180,16 +170,6 @@ public sealed class ProfileUpdateDto
     /// 生日
     /// </summary>
     public DateTimeOffset? Birthday { get; set; }
-
-    /// <summary>
-    /// 时区
-    /// </summary>
-    public string? TimeZone { get; set; }
-
-    /// <summary>
-    /// 语言
-    /// </summary>
-    public string? Language { get; set; }
 
     /// <summary>
     /// 国家或地区

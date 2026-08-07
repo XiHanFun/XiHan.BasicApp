@@ -293,7 +293,6 @@ public sealed class SaasSampleIdentitySeeder(
             Email = seed.Email,
             Status = EnableStatus.Enabled,
             IsActive = true,
-            Language = "zh-CN",
             IsSystemAccount = false,
             Remark = "系统初始化演示账号",
         };

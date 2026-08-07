@@ -41,9 +41,7 @@ export default {
     label_phone: 'Phone',
     label_gender: 'Gender',
     label_birthday: 'Birthday',
-    label_language: 'Language',
     label_country: 'Country/Region',
-    label_timezone: 'Time Zone',
     label_status: 'Account Status',
     label_initial_password: 'Initial Password *',
     label_remark: 'Remark',
@@ -69,7 +67,6 @@ export default {
     pick_selected_unit: ' ',
     detail: {
       title: 'User Details',
-      language_timezone: 'Language/Time Zone:',
       country: 'Country:',
       gender: 'Gender:',
       roles: 'Roles:',

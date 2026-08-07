@@ -62,16 +62,6 @@ public sealed class UserCreateDto
     public EnableStatus Status { get; set; } = EnableStatus.Enabled;
 
     /// <summary>
-    /// 时区
-    /// </summary>
-    public string? TimeZone { get; set; }
-
-    /// <summary>
-    /// 语言
-    /// </summary>
-    public string? Language { get; set; } = "zh-CN";
-
-    /// <summary>
     /// 国家/地区
     /// </summary>
     public string? Country { get; set; }

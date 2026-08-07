@@ -103,8 +103,6 @@ export default {
       field_birthday: 'Birthday',
       field_gender: 'Gender',
       field_country: 'Country / Region',
-      field_language: 'Language',
-      field_timezone: 'Time Zone',
       field_bio: 'Bio',
       btn_save_changes: 'Save Changes',
       gender_unset: 'Not set',

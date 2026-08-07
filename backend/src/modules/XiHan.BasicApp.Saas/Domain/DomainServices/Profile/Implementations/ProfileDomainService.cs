@@ -387,8 +387,6 @@ public sealed class ProfileDomainService
         user.Avatar = NormalizeNullable(command.Avatar, 500);
         user.Gender = command.Gender.HasValue ? (UserGender)command.Gender.Value : user.Gender;
         user.Birthday = command.Birthday;
-        user.TimeZone = NormalizeNullable(command.TimeZone, 50);
-        user.Language = NormalizeNullable(command.Language, 10);
         user.Country = NormalizeNullable(command.Country, 50);
         user.Remark = NormalizeNullable(command.Remark, 500);
 
@@ -544,8 +542,6 @@ public sealed class ProfileDomainService
         ValidateOptionalLength(command.NickName, 50, nameof(command.NickName), "昵称不能超过 50 个字符。");
         ValidateOptionalLength(command.RealName, 50, nameof(command.RealName), "真实姓名不能超过 50 个字符。");
         ValidateOptionalLength(command.Avatar, 500, nameof(command.Avatar), "头像不能超过 500 个字符。");
-        ValidateOptionalLength(command.TimeZone, 50, nameof(command.TimeZone), "时区不能超过 50 个字符。");
-        ValidateOptionalLength(command.Language, 10, nameof(command.Language), "语言不能超过 10 个字符。");
         ValidateOptionalLength(command.Country, 50, nameof(command.Country), "国家/地区不能超过 50 个字符。");
         ValidateOptionalLength(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。");
         if (command.Gender.HasValue && !Enum.IsDefined(typeof(UserGender), command.Gender.Value))

@@ -14,8 +14,6 @@ import {
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
-import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
-import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
@@ -115,8 +113,6 @@ const profileForm = ref({
   birthday: null as null | number,
   country: '',
   remark: '',
-  language: 'zh-CN',
-  timeZone: '',
 })
 
 const genderOptions = computed(() => [
@@ -147,8 +143,6 @@ async function persistAvatar(avatar: string) {
     birthday: saved?.birthday ?? undefined,
     country: saved?.country ?? undefined,
     remark: saved?.remark ?? undefined,
-    language: saved?.language ?? undefined,
-    timeZone: saved?.timeZone ?? undefined,
     avatar,
   })
   if (userStore.userInfo) {
@@ -232,8 +226,6 @@ function syncProfileForm() {
     birthday: p.birthday ? new Date(p.birthday).getTime() : null,
     country: p.country ?? '',
     remark: p.remark ?? '',
-    language: p.language ?? 'zh-CN',
-    timeZone: p.timeZone ?? '',
   }
 }
 
@@ -693,14 +685,6 @@ function cancelChange() {
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_country') }}</span>
             <NInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" />
-          </div>
-          <div class="pf-field-card">
-            <span class="pf-field-card__label">{{ t('component.profile.info.field_language') }}</span>
-            <LocaleSwitcher v-model:value="profileForm.language" variant="select" />
-          </div>
-          <div class="pf-field-card">
-            <span class="pf-field-card__label">{{ t('component.profile.info.field_timezone') }}</span>
-            <TimezoneSwitcher v-model:value="profileForm.timeZone" variant="select" />
           </div>
           <div class="pf-field-card pf-field-card--block">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_bio') }}</span>

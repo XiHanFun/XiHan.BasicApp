@@ -41,9 +41,7 @@ export default {
     label_phone: '手机号',
     label_gender: '性别',
     label_birthday: '生日',
-    label_language: '语言',
     label_country: '国家/地区',
-    label_timezone: '时区',
     label_status: '账号状态',
     label_initial_password: '初始密码 *',
     label_remark: '备注',
@@ -69,7 +67,6 @@ export default {
     pick_selected_unit: '个',
     detail: {
       title: '用户详情',
-      language_timezone: '语言/时区：',
       country: '国家：',
       gender: '性别：',
       roles: '角色：',

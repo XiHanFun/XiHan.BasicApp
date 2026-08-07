@@ -32,8 +32,6 @@ public sealed record ProfileUpdateCommand(
     string? Avatar,
     int? Gender,
     DateTimeOffset? Birthday,
-    string? TimeZone,
-    string? Language,
     string? Country,
     string? Remark);
 
