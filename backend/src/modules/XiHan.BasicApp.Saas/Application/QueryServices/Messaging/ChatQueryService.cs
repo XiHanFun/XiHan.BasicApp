@@ -306,9 +306,9 @@ public sealed class ChatQueryService
     /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
     /// </summary>
     /// <summary>
-    /// 解析当前作用域内可参与聊天的用户集合；平台作用域返回 null 表示改用「归属平台」条件
+    /// 解析当前作用域内可参与聊天的用户集合
     /// </summary>
-    private async Task<IReadOnlyList<long>?> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<long>> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
     {
         if (_currentTenant.Id is not { } scopeId || scopeId == 0)
         {
@@ -390,15 +390,14 @@ public sealed class ChatQueryService
         // 作用域收窄：用户表读过滤是「读共享」口径（平台态放行全部租户），
         // 而聊天严格隔离，选到跨作用域的人只会在写入期被拒——候选阶段就不该出现。
         var scopedUserIds = await ResolveScopedUserIdsAsync(cancellationToken);
-        if (scopedUserIds is { Count: 0 })
+        if (scopedUserIds.Count == 0)
         {
             return [];
         }
 
-        if (scopedUserIds is not null)
-        {
-            request.Conditions.AddFilter(nameof(SysUser.BasicId), scopedUserIds, QueryOperator.In);
-        }
+        // 必须走 AddFilterIn：AddFilter(field, value, In) 设的是 QueryFilter.Value，
+        // 而 In 分支读的是 Values，条件 IsValid 为假会被静默丢弃（过滤形同不存在）
+        request.Conditions.AddFilterIn((SysUser user) => user.BasicId, scopedUserIds.Cast<object>());
 
         // 超管隐藏：非超管用户的选择项中排除超管用户（超管自身不受限）
         if (!_superAdminProtector.IsCurrentUserSuperAdmin())
