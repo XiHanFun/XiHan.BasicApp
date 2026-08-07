@@ -5,7 +5,7 @@ import { useDialog, useNotification } from 'naive-ui'
 import { h, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { applyRemotePageSetting, NotificationContent } from '~/components'
-import { applyServerTaskProgress, islandStatus, useSignalR } from '~/composables'
+import { applyServerTaskProgress, islandStatus, playNotificationSound, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 
@@ -108,6 +108,7 @@ export function useSignalRIntegration() {
       closable: false,
     })
 
+    playNotificationSound()
     window.dispatchEvent(new CustomEvent(NOTIFICATION_RECEIVED_EVENT, { detail: payload }))
   }
 

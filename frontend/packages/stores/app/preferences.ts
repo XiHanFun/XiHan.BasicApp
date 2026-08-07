@@ -16,6 +16,7 @@ import {
   FOOTER_FIXED_KEY,
   FOOTER_SHOW_DEV_INFO_KEY,
   LOCALE_KEY,
+  NOTIFY_SOUND_KEY,
   PREFERENCE_SYNC_KEY,
   SEARCH_ENABLED_KEY,
   SEARCH_SYNC_KEY,
@@ -78,6 +79,7 @@ export function createPreferencesSlice() {
   const widgetRefresh = ref<boolean>(LocalStorage.get<boolean>(WIDGET_REFRESH_KEY) ?? true)
   const widgetFavorites = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FAVORITES_KEY) ?? true)
   const widgetDynamicIsland = ref<boolean>(LocalStorage.get<boolean>(WIDGET_DYNAMIC_ISLAND_KEY) ?? true)
+  const notifySound = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_SOUND_KEY) ?? true)
   const widgetPreferencePosition = ref<string>(
     LocalStorage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
@@ -128,6 +130,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGET_REFRESH_KEY, widgetRefresh, true)
   bindPersist(WIDGET_FAVORITES_KEY, widgetFavorites, true)
   bindPersist(WIDGET_DYNAMIC_ISLAND_KEY, widgetDynamicIsland, true)
+  bindPersist(NOTIFY_SOUND_KEY, notifySound, true)
   bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, 'auto')
   bindPersist(FOOTER_ENABLE_KEY, footerEnable, true)
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)
@@ -221,6 +224,9 @@ export function createPreferencesSlice() {
   function setWidgetDynamicIsland(v: boolean) {
     save(WIDGET_DYNAMIC_ISLAND_KEY, widgetDynamicIsland, v)
   }
+  function setNotifySound(v: boolean) {
+    save(NOTIFY_SOUND_KEY, notifySound, v)
+  }
   function setWidgetPreferencePosition(v: string) {
     save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
   }
@@ -290,6 +296,7 @@ export function createPreferencesSlice() {
     widgetRefresh,
     widgetFavorites,
     widgetDynamicIsland,
+    notifySound,
     widgetPreferencePosition,
     footerEnable,
     footerFixed,
@@ -327,6 +334,7 @@ export function createPreferencesSlice() {
     setWidgetRefresh,
     setWidgetFavorites,
     setWidgetDynamicIsland,
+    setNotifySound,
     setWidgetPreferencePosition,
     setFooterEnable,
     setFooterFixed,

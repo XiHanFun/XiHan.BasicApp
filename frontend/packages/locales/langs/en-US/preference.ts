@@ -253,6 +253,7 @@ export default {
     timezone: 'Timezone',
     dynamic_title: 'Dynamic Title',
     dynamic_island: 'Dynamic Island',
+    notify_sound: 'Notification Sound',
     table_row_peek: 'Peek Card',
     preference_sync: 'Preferences',
     favorites_sync: 'Favorites',
@@ -269,6 +270,8 @@ export default {
       'The page title updates dynamically with the current route name, useful for distinguishing multiple browser tabs',
     dynamic_island_tip:
       'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
+    notify_sound_tip:
+      'Plays a short chime when a chat message from someone else or an in-app notification arrives, at most once every 1.5s during a burst. Browsers only allow sound after you have interacted with the page.',
     table_row_peek_tip:
       'On list pages, hovering a row for ~0.5s pops a peek card next to the cursor showing all of the row\'s fields (including columns hidden in the table). Turn off to disable. Not active on mobile.',
     preference_sync_tip:

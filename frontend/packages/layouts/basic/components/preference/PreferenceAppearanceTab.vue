@@ -381,6 +381,13 @@ const loaderItems = computed(() =>
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.notify_sound') }}</span>
+          <PrefTip :content="t('preference.general.notify_sound_tip')" />
+        </div>
+        <NSwitch v-model:value="appStore.notifySound" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.table_row_peek') }}</span>
           <PrefTip :content="t('preference.general.table_row_peek_tip')" />
         </div>
