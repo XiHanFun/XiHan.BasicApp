@@ -67,10 +67,42 @@ const DEVICE_LOCAL_KEYS = new Set<string>([
   WIDGETS_SYNC_KEY,
 ])
 
+/**
+ * 下次上行时随变更携带的动画起点，形如 'x,y'（视口百分比）。
+ * 存百分比而非像素：各端视口尺寸不同，只有相对位置才能在对端还原出「同一个位置」。
+ * 由主题切换登记，上行一次即清空——它描述的是那一次点击，不该粘到后续任何变更上。
+ */
+let pendingOrigin: null | string = null
+
+/** 登记本次变更的动画起点（视口百分比）。传 null 表示无起点（如键盘/程序触发） */
+export function setPendingPreferenceOrigin(origin: null | string): void {
+  pendingOrigin = origin
+}
+
 /** 读注册表里某条偏好的当前值（未注册时回退 localStorage） */
 function readLocalPreference<T>(key: string): T | undefined {
   const source = registry.get(key)
   return source ? (source.value as T) : (LocalStorage.get<T>(key) ?? undefined)
+}
+
+/**
+ * 把发起端携带的视口百分比起点还原为本端坐标。
+ * 各端视口尺寸不同，按百分比换算才能落在「相对位置相同」的点上。
+ */
+function parseTransitionOrigin(origin?: null | string): { clientX: number, clientY: number } | undefined {
+  if (!origin) {
+    return undefined
+  }
+  const [xRaw, yRaw] = origin.split(',')
+  const xPercent = Number(xRaw)
+  const yPercent = Number(yRaw)
+  if (!Number.isFinite(xPercent) || !Number.isFinite(yPercent)) {
+    return undefined
+  }
+  return {
+    clientX: (xPercent / 100) * window.innerWidth,
+    clientY: (yPercent / 100) * window.innerHeight,
+  }
 }
 
 /** 当前实际呈现的明暗（auto 取系统主题） */
@@ -137,11 +169,13 @@ function pushPreferencesToBackend(): void {
     return
   }
   const settingValue = buildPreferenceSnapshot()
+  const origin = pendingOrigin
+  pendingOrigin = null
   const task = settingSyncIsland('pref:save', i18n.global.t('island.sync.name.preferences'))
   void useAppContext()
     .apis
     .userSettingApi
-    .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID })
+    .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID, origin })
     .then(() => task.success())
     .catch(() => task.error())
 }
@@ -326,7 +360,7 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
  * 应用期间暂停回写：watch 照常落地 localStorage，但不把远端值回环上行。
  * 草稿模式（偏好抽屉打开）期间忽略远端推送，避免编辑中界面跳变——按「最后保存者赢」收敛。
  */
-export async function applyRemotePreferenceSnapshot(settingValue?: null | string): Promise<void> {
+export async function applyRemotePreferenceSnapshot(settingValue?: null | string, origin?: null | string): Promise<void> {
   if (!settingValue || !isPreferenceSyncEnabled() || persistSuspended || !backendSyncEnabled) {
     return
   }
@@ -353,12 +387,14 @@ export async function applyRemotePreferenceSnapshot(settingValue?: null | string
     })
   }
 
-  // 明暗真的翻转时走与本机点击切换同一条圆形扩散动画（无点击位置，故从视口中心扩散）；
+  // 明暗真的翻转时走与本机点击切换同一条圆形扩散动画；
   // 其余偏好变更本机也是直接生效，这里同样直接应用
   const toDark = resolveRemoteEffectiveDark(remote)
   if (toDark !== null && toDark !== isCurrentlyDark()) {
     await runThemeTransition({
       toDark,
+      // 发起端带了点击位置就从对应相对位置扩散，否则从视口中心
+      origin: parseTransitionOrigin(origin),
       enabled: readLocalPreference<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
       commit: async () => {
         applyRemoteValues()

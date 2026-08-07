@@ -2,7 +2,7 @@ import type { GlobalThemeOverrides } from 'naive-ui'
 import { darkTheme, lightTheme, useOsTheme } from 'naive-ui'
 import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
-import { useAppStore } from '~/stores'
+import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
 import { runThemeTransition } from '~/utils'
 
 /**
@@ -300,6 +300,11 @@ export function useTheme() {
       commitThemeMode(mode)
       return
     }
+
+    // 把点击位置按视口百分比登记，随本次偏好上行带给其它设备，使对端从相同相对位置扩散
+    setPendingPreferenceOrigin(e
+      ? `${(e.clientX / window.innerWidth) * 100},${(e.clientY / window.innerHeight) * 100}`
+      : null)
 
     void runThemeTransition({
       toDark: willBeDark,

@@ -104,7 +104,8 @@ public sealed class UserSettingAppService
                     scene = (int)input.Scene,
                     settingKey,
                     settingValue = input.SettingValue,
-                    sourceClientId = input.ClientId
+                    sourceClientId = input.ClientId,
+                    origin = input.Origin
                 });
         }
         catch (Exception ex)
