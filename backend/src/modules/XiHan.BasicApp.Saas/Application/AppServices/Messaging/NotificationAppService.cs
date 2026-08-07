@@ -201,17 +201,14 @@ public sealed class NotificationAppService
         {
             try
             {
-                var payload = new
-                {
-                    type = (int)notification.NotificationType,
-                    title = notification.Title,
-                    content = notification.Content,
-                    contentFormat = notification.ContentFormat,
-                    basicId = notification.BasicId,
-                    notificationId = notification.BasicId,
-                    notificationType = (int)notification.NotificationType,
-                    sendTime = notification.SendTime
-                };
+                var payload = NotificationRealtimePayload.Create(
+                    notification.BasicId,
+                    notification.BasicId,
+                    notification.NotificationType,
+                    notification.Title,
+                    notification.Content,
+                    notification.ContentFormat,
+                    notification.SendTime);
                 await _realtimeNotificationService.SendToUsersAsync(
                     [.. unreadUserIds.Select(userId => userId.ToString())],
                     SignalRConstants.ClientMethods.ReceiveNotification,
@@ -238,17 +235,14 @@ public sealed class NotificationAppService
     {
         try
         {
-            var payload = new
-            {
-                type = (int)notification.NotificationType,
-                title = notification.Title,
-                content = notification.Content,
-                contentFormat = notification.ContentFormat,
-                basicId = notification.BasicId,
-                notificationId = notification.BasicId,
-                notificationType = (int)notification.NotificationType,
-                sendTime = notification.SendTime
-            };
+            var payload = NotificationRealtimePayload.Create(
+                notification.BasicId,
+                notification.BasicId,
+                notification.NotificationType,
+                notification.Title,
+                notification.Content,
+                notification.ContentFormat,
+                notification.SendTime);
 
             if (notification.TargetType == NotificationTargetType.All)
             {
