@@ -33,9 +33,24 @@ public sealed class UserDetailDto : BasicAppDto
     public string? Avatar { get; set; }
 
     /// <summary>
+    /// 邮箱
+    /// </summary>
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    public string? Phone { get; set; }
+
+    /// <summary>
     /// 性别
     /// </summary>
     public UserGender Gender { get; set; }
+
+    /// <summary>
+    /// 生日
+    /// </summary>
+    public DateTimeOffset? Birthday { get; set; }
 
     /// <summary>
     /// 状态

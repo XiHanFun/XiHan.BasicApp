@@ -73,6 +73,7 @@ interface UserFormState {
   userName: string
   realName: string
   nickName: string
+  avatar: string | null
   email: string
   phone: string
   gender: UserGender
@@ -222,6 +223,7 @@ function createDefaultForm(): UserFormState {
     userName: '',
     realName: '',
     nickName: '',
+    avatar: null,
     email: '',
     phone: '',
     gender: UserGender.Unknown,
@@ -614,10 +616,11 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
     userName: u.userName,
     realName: u.realName ?? '',
     nickName: u.nickName ?? '',
-    email: '',
-    phone: '',
+    avatar: u.avatar ?? null,
+    email: u.email ?? '',
+    phone: u.phone ?? '',
     gender: u.gender,
-    birthday: null,
+    birthday: u.birthday ? new Date(u.birthday).getTime() : null,
     country: u.country ?? '',
     status: u.status,
     remark: u.remark ?? '',
@@ -729,7 +732,7 @@ async function saveUser() {
     if (userId) {
       const updateInput: UserUpdateDto = {
         basicId: userId,
-        avatar: null,
+        avatar: form.avatar,
         birthday: form.birthday ? new Date(form.birthday).toISOString() : null,
         country: normalizeStr(form.country),
         email: normalizeStr(form.email),
