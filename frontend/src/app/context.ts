@@ -43,7 +43,6 @@ import { ResourceAccessLevel } from '@/api/modules/authorization'
 import { fileApi } from '@/api/modules/files'
 import { chatApi } from '@/api/modules/messaging'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
-import { departmentApi } from '@/api/modules/organization'
 import { tenantApi } from '@/api/modules/tenant'
 import { workbenchApi } from '@/api/modules/workbench'
 import { requestClient } from '@/api/request'
@@ -437,7 +436,8 @@ function createChatApis() {
       }))
     },
     async departmentTree() {
-      const nodes = await departmentApi.tree({ limit: 500, onlyEnabled: true })
+      // 走聊天专属端点：通用部门树是读共享口径，平台态会列出全部租户的部门
+      const nodes = await chatApi.departmentTree()
       return nodes.map(mapDepartmentNode)
     },
     async uploadAttachment(file: File, onProgress?: (percent: number) => void) {

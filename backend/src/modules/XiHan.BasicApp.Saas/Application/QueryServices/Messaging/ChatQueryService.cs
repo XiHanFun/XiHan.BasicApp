@@ -18,6 +18,7 @@ using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -48,6 +49,12 @@ public sealed class ChatQueryService
 
     private readonly ISuperAdminProtector _superAdminProtector;
 
+    private readonly IDepartmentRepository _departmentRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -58,7 +65,10 @@ public sealed class ChatQueryService
         IChatMessageReactionRepository reactionRepository,
         IUserRepository userRepository,
         ICurrentUser currentUser,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        IDepartmentRepository departmentRepository,
+        ITenantUserRepository tenantUserRepository,
+        ICurrentTenant currentTenant)
     {
         _conversationRepository = conversationRepository;
         _memberRepository = memberRepository;
@@ -67,6 +77,9 @@ public sealed class ChatQueryService
         _userRepository = userRepository;
         _currentUser = currentUser;
         _superAdminProtector = superAdminProtector;
+        _departmentRepository = departmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -292,6 +305,61 @@ public sealed class ChatQueryService
     /// <summary>
     /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
     /// </summary>
+    /// <summary>
+    /// 解析当前作用域内可参与聊天的用户集合；平台作用域返回 null 表示改用「归属平台」条件
+    /// </summary>
+    private async Task<IReadOnlyList<long>?> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
+    {
+        if (_currentTenant.Id is not { } scopeId || scopeId == 0)
+        {
+            // 平台作用域：仅平台归属用户
+            var platformUsers = await _userRepository.GetListAsync(user => user.TenantId == 0, cancellationToken);
+            return [.. platformUsers.Select(user => user.BasicId)];
+        }
+
+        // 租户作用域：该租户的成员（含平台归属但已加入该租户的用户）
+        var members = await _tenantUserRepository.GetListAsync(member => member.TenantId == scopeId, cancellationToken);
+        return [.. members.Select(member => member.UserId).Distinct()];
+    }
+
+    /// <summary>
+    /// 获取当前作用域内可参与聊天的部门树
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>部门树</returns>
+    /// <remarks>
+    /// 不复用通用部门树端点：那条走「读共享」口径，平台态会列出全部租户的部门，
+    /// 选中即建出跨作用域会话（写入期会被拒），候选人必须与聊天的严格隔离口径一致。
+    /// </remarks>
+    [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
+    public async Task<IReadOnlyList<DepartmentTreeNodeDto>> GetDepartmentTreeAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var scopeId = _currentTenant.Id ?? 0;
+        var departments = await _departmentRepository.GetListAsync(
+            department => department.TenantId == scopeId && department.Status == EnableStatus.Enabled,
+            cancellationToken);
+
+        return BuildDepartmentTree(departments, parentId: null);
+    }
+
+    /// <summary>
+    /// 递归组装部门树
+    /// </summary>
+    private static IReadOnlyList<DepartmentTreeNodeDto> BuildDepartmentTree(IReadOnlyList<SysDepartment> departments, long? parentId)
+    {
+        return [.. departments
+            .Where(department => (department.ParentId ?? 0) == (parentId ?? 0))
+            .OrderBy(department => department.Sort)
+            .Select(department =>
+            {
+                var node = DepartmentApplicationMapper.ToTreeNodeDto(department);
+                node.Children = [.. BuildDepartmentTree(departments, department.BasicId)];
+                return node;
+            })];
+    }
+
     /// <remarks>
     /// 仅需聊天查看权限的轻量选人端点（发起单聊/建群/加成员）：
     /// 与用户管理 GetEnabledUsersAsync 同语义（固定启用用户 + 超管隐藏），
@@ -318,6 +386,19 @@ public sealed class ChatQueryService
         }
         request.Conditions.AddFilter(nameof(SysUser.Status), EnableStatus.Enabled);
         request.Conditions.AddSort(nameof(SysUser.CreatedTime), SortDirection.Descending, 0);
+
+        // 作用域收窄：用户表读过滤是「读共享」口径（平台态放行全部租户），
+        // 而聊天严格隔离，选到跨作用域的人只会在写入期被拒——候选阶段就不该出现。
+        var scopedUserIds = await ResolveScopedUserIdsAsync(cancellationToken);
+        if (scopedUserIds is { Count: 0 })
+        {
+            return [];
+        }
+
+        if (scopedUserIds is not null)
+        {
+            request.Conditions.AddFilter(nameof(SysUser.BasicId), scopedUserIds, QueryOperator.In);
+        }
 
         // 超管隐藏：非超管用户的选择项中排除超管用户（超管自身不受限）
         if (!_superAdminProtector.IsCurrentUserSuperAdmin())
