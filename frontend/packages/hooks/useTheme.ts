@@ -3,6 +3,7 @@ import { darkTheme, lightTheme, useOsTheme } from 'naive-ui'
 import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { useAppStore } from '~/stores'
+import { runThemeTransition } from '~/utils'
 
 /**
  * 主题扩散动画起点：鼠标事件，或调用方自算的视口坐标
@@ -271,12 +272,6 @@ export function useTheme() {
     appStore.toggleTheme()
   }
 
-  interface VTResult {
-    ready: Promise<void>
-    finished: Promise<void>
-    skipTransition?: () => void
-  }
-
   /** 解析目标模式切换后「实际呈现的明暗」（auto 取当前系统主题） */
   function resolveEffectiveDark(mode: 'light' | 'dark' | 'auto'): boolean {
     if (mode === THEME_AUTO) {
@@ -306,68 +301,16 @@ export function useTheme() {
       return
     }
 
-    // 无动画或浏览器不支持：直接切换，抑制 CSS 过渡一帧
-    if (!appStore.themeAnimationEnabled || !('startViewTransition' in document)) {
-      document.documentElement.classList.add('theme-switching')
-      commitThemeMode(mode)
-      requestAnimationFrame(() => document.documentElement.classList.remove('theme-switching'))
-      return
-    }
-
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-    const x = e?.clientX ?? vw / 2
-    const y = e?.clientY ?? vh / 2
-    // 覆盖全屏所需半径：取点击处到最远视口角的距离
-    const endRadius = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y))
-
-    // 一律用百分比而非 px：::view-transition-* 伪元素的几何空间不跟随浏览器页面缩放，
-    // 写 px 会被按缩放比整体压缩（圆心偏向左上），百分比相对伪元素自身盒子解析，与缩放无关。
-    const xPercent = (x / vw) * 100
-    const yPercent = (y / vh) * 100
-    // circle() 的百分比半径按规范以 √(w²+h²)/√2 为参照解析
-    const radiusPercent = (endRadius / (Math.hypot(vw, vh) / Math.SQRT2)) * 100
-
-    // clipPath 起止：从点击处 0 → 全屏
-    const clipPath = [
-      `circle(0% at ${xPercent}% ${yPercent}%)`,
-      `circle(${radiusPercent}% at ${xPercent}% ${yPercent}%)`,
-    ]
-
-    // 全程抑制 CSS transition，防止截图期间元素颜色渐变产生残影
-    document.documentElement.classList.add('theme-switching')
-
-    const transition = (
-      document as Document & { startViewTransition: (cb: () => Promise<void>) => VTResult }
-    ).startViewTransition(async () => {
-      commitThemeMode(mode)
-      // 等 Vue 全部 DOM 更新完毕，浏览器才截"新主题"快照，缺少此步截图不完整
-      await nextTick()
+    void runThemeTransition({
+      toDark: willBeDark,
+      origin: e,
+      enabled: appStore.themeAnimationEnabled,
+      commit: async () => {
+        commitThemeMode(mode)
+        // 等 Vue 全部 DOM 更新完毕，浏览器才截「新主题」快照，缺少此步截图不完整
+        await nextTick()
+      },
     })
-
-    // 扩散方向按「切换后实际明暗」决定（auto 时取系统主题对应的明暗）
-    const toDark = willBeDark
-    transition.ready
-      .then(() => {
-        // 切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
-        // 切亮色 → 新层（亮）在上，0 → 全屏 扩散
-        const anim = document.documentElement.animate(
-          { clipPath: toDark ? [...clipPath].reverse() : clipPath },
-          {
-            duration: 450,
-            easing: 'ease-in',
-            pseudoElement: toDark ? '::view-transition-old(root)' : '::view-transition-new(root)',
-          } as KeyframeAnimationOptions,
-        )
-        anim.onfinish = () => {
-          // 动画结束后立即跳过剩余 ViewTransition，消除尾帧闪烁
-          transition.skipTransition?.()
-          document.documentElement.classList.remove('theme-switching')
-        }
-      })
-      .catch(() => {
-        document.documentElement.classList.remove('theme-switching')
-      })
   }
 
   function toggleThemeWithTransition(e?: MouseEvent) {
