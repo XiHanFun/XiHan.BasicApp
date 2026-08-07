@@ -81,11 +81,12 @@ export function useSignalRIntegration() {
     })
   }
 
+  // 载荷形态由后端 NotificationRealtimePayload 统一投影：枚举一律发名称，与 REST 接口一致
   function handleReceiveNotification(payload: {
     type?: string
     title?: string
     content?: string
-    contentFormat?: string
+    contentFormat?: NotificationContentFormat
   }) {
     const typeMap: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
       Info: 'info',
@@ -100,7 +101,7 @@ export function useSignalRIntegration() {
       content: () => h('div', { style: 'max-height:160px;overflow:auto' }, [
         h(NotificationContent, {
           content: payload?.content ?? '',
-          format: payload?.contentFormat as NotificationContentFormat,
+          format: payload?.contentFormat,
         }),
       ]),
       duration: 5000,

@@ -92,17 +92,6 @@ public sealed class UserNotificationDispatchService
         return item;
     }
 
-    private static string ToRealtimeType(NotificationType notificationType)
-    {
-        return notificationType switch
-        {
-            NotificationType.Emergency => "Error",
-            NotificationType.Security => "Warning",
-            NotificationType.Business => "Success",
-            _ => "Info"
-        };
-    }
-
     /// <summary>
     /// 尝试实时推送，失败不影响站内信落库
     /// </summary>
@@ -113,18 +102,15 @@ public sealed class UserNotificationDispatchService
             await _realtimeNotificationService.SendToUserAsync(
                 userId.ToString(),
                 SignalRConstants.ClientMethods.ReceiveNotification,
-                new
-                {
-                    type = ToRealtimeType(item.NotificationType),
-                    title = item.Title,
-                    content = item.Content,
-                    contentFormat = item.ContentFormat,
-                    basicId = item.BasicId,
-                    notificationId = item.NotificationId,
-                    notificationType = item.NotificationType,
-                    notificationStatus = item.NotificationStatus,
-                    sendTime = item.SendTime
-                });
+                NotificationRealtimePayload.Create(
+                    item.BasicId,
+                    item.NotificationId,
+                    item.NotificationType,
+                    item.Title,
+                    item.Content,
+                    item.ContentFormat,
+                    item.SendTime,
+                    item.NotificationStatus));
         }
         catch
         {
