@@ -49,8 +49,10 @@ export function useChatIntegration() {
     const sender = message.senderUserName || conversation.conversationName || t('chat.island_new_message_fallback')
     const preview = conversation.lastMessagePreview?.trim() || message.content?.trim() || ''
     // islandStart 只建条目，要靠句柄置终态才会安排移除；此处随即 info() 收尾，
-    // 否则这条通知会一直挂在岛上不消失
-    islandStart(`chat:msg:${message.conversationId}`, sender, {
+    // 否则这条通知会一直挂在岛上不消失。
+    // id 带上 messageId：按会话取 id 会让同一会话的后续消息复用同一条目（更新而非新增），
+    // 岛上永远只有一条，既排不了队也堆不起来
+    islandStart(`chat:msg:${message.conversationId}:${message.messageId}`, sender, {
       icon: 'lucide:message-circle',
       detail: preview,
       link: chatPath,

@@ -102,6 +102,10 @@ export interface ServerTaskProgressPayload {
 const SUCCESS_LINGER = 1600
 const ERROR_LINGER = 3200
 const INFO_LINGER = 2400
+/** 后面还有排队时，队首的停留时间压到这个上限，避免一波消息把岛占住十几秒 */
+const QUEUE_DRAIN_LINGER = 1200
+/** 队列长度上限：超出丢最早的等待项（正在展示的那条不动） */
+const QUEUE_CAP = 5
 const HISTORY_CAP = 20
 const STORAGE_KEY = 'xihan_island_state'
 
@@ -205,6 +209,23 @@ function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' |
   else {
     tasks.value = [...tasks.value, next]
   }
+  trimQueue()
+}
+
+/**
+ * 队列限长：一波消息涌进来时只留最近的若干条，丢最早的等待项。
+ * 正在展示的队首不动——它已经在用户眼前了，抽掉会造成闪跳。
+ */
+function trimQueue(): void {
+  const queued = tasks.value
+    .filter(item => item.state !== 'loading' && !item.persistent)
+    .sort((a, b) => a.order - b.order)
+  if (queued.length <= QUEUE_CAP) {
+    return
+  }
+  for (const task of queued.slice(1, queued.length - (QUEUE_CAP - 1))) {
+    removeTask(task.id)
+  }
 }
 
 function lingerOf(state: IslandState): number {
@@ -219,7 +240,9 @@ watch(messageQueue, (queue) => {
   queue.forEach((task, index) => {
     if (index === 0) {
       if (!timers.has(task.id)) {
-        scheduleRemoval(task.id, lingerOf(task.state))
+        // 有积压时按排空节奏走，单独一条则给足完整停留时间
+        const linger = lingerOf(task.state)
+        scheduleRemoval(task.id, queue.length > 1 ? Math.min(linger, QUEUE_DRAIN_LINGER) : linger)
       }
       return
     }

@@ -250,7 +250,9 @@ function triggerPop(): void {
 }
 
 watch(
-  () => (current.value ? `${current.value.id}:${current.value.state}:${current.value.label}` : null),
+  // 键里带 detail：同一条目内容被更新（如同一任务推来新正文）也要重新呈现卡片，
+  // 否则内容变了却因 id/状态/标题未变而静默停留在胶囊
+  () => (current.value ? `${current.value.id}:${current.value.state}:${current.value.label}:${current.value.detail ?? ''}` : null),
   (next, prev) => {
     const task = current.value
     if (!next || !task || expanded.value) {
