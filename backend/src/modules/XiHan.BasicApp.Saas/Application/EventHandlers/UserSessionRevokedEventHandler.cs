@@ -147,11 +147,20 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
                 .Select(u => new { u.UserName })
                 .FirstAsync();
 
+            // 设备指纹取自被撤销的会话行：撤销可能由后台流程触发，此时没有请求上下文与令牌可依
+            var deviceId = eventData.SessionId.HasValue
+                ? await db.Queryable<SysUserSession>()
+                    .Where(session => session.BasicId == eventData.SessionId.Value)
+                    .Select(session => session.DeviceId)
+                    .FirstAsync()
+                : null;
+
             var log = new SysLoginLog
             {
                 UserId = eventData.UserId,
                 UserName = user?.UserName,
                 SessionId = sessionId,
+                DeviceId = deviceId,
                 LoginResult = LoginResult.SessionRevoked, // 会话撤销（区别于用户主动登出）
                 LoginTime = now,
                 Message = string.IsNullOrEmpty(eventData.Reason)

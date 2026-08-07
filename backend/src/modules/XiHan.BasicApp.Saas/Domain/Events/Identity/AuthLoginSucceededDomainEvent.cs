@@ -26,7 +26,8 @@ public sealed class AuthLoginSucceededDomainEvent : DomainEventBase
         string? location,
         string? browser,
         string? operatingSystem,
-        string? deviceName)
+        string? deviceName,
+        string? deviceId)
     {
         TenantId = tenantId;
         UserId = userId;
@@ -41,6 +42,7 @@ public sealed class AuthLoginSucceededDomainEvent : DomainEventBase
         Browser = browser;
         OperatingSystem = operatingSystem;
         DeviceName = deviceName;
+        DeviceId = deviceId;
     }
 
     /// <summary>
@@ -107,4 +109,9 @@ public sealed class AuthLoginSucceededDomainEvent : DomainEventBase
     /// 设备名称
     /// </summary>
     public string? DeviceName { get; }
+
+    /// <summary>
+    /// 设备指纹（前端生成，登录时随入参上行）
+    /// </summary>
+    public string? DeviceId { get; }
 }
