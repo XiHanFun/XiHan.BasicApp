@@ -510,11 +510,11 @@ async function loadPermissionList() {
     permList.value = await tenantEditionPermissionApi.list(permEdition.value.basicId)
     derivePermDraft()
   }
-  catch {
+  catch (error) {
     permError.value = true
     permList.value = []
     derivePermDraft()
-    message.error(t('tenant.edition.perm_load_failed'))
+    message.error((error as Error)?.message || t('tenant.edition.perm_load_failed'))
   }
   finally {
     permLoading.value = false

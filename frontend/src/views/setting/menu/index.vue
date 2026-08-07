@@ -428,8 +428,8 @@ async function openEdit(row: MenuListItemDto) {
     const detail = await menuManagementApi.detail(row.basicId)
     menuForm.value = buildFormModel(detail ?? row)
   }
-  catch {
-    message.error(t('setting.menu.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
     menuForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -446,8 +446,8 @@ async function openDetail(row: MenuListItemDto) {
       message.warning(t('setting.menu.detail_not_found'))
     }
   }
-  catch {
-    message.error(t('setting.menu.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -462,8 +462,8 @@ async function toggleStatus(row: MenuListItemDto) {
     schemaPageRef.value?.reload()
     void loadTree()
   }
-  catch {
-    message.error(t('setting.menu.status_update_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.menu.status_update_failed'))
   }
 }
 
@@ -474,8 +474,8 @@ async function removeRow(row: MenuListItemDto) {
     schemaPageRef.value?.reload()
     void loadTree()
   }
-  catch {
-    message.error(t('common.messages.delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.delete_failed'))
   }
 }
 
@@ -576,8 +576,8 @@ async function handleSubmit() {
     schemaPageRef.value?.reload()
     void loadTree()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

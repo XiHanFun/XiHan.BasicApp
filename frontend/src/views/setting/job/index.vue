@@ -310,8 +310,8 @@ async function handleDetail(row: TaskListItemDto) {
   try {
     detailData.value = await jobManagementApi.detail(row.basicId) ?? null
   }
-  catch {
-    message.error(t('setting.job.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.job.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -447,8 +447,8 @@ async function handleToggleStatus(row: TaskListItemDto) {
     message.success(newStatus === EnableStatus.Enabled ? t('setting.job.task_enabled') : t('setting.job.task_disabled'))
     reloadJob()
   }
-  catch {
-    message.error(t('setting.job.toggle_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.job.toggle_failed'))
   }
 }
 
@@ -462,8 +462,8 @@ async function handleDelete(row: TaskListItemDto) {
     message.success(t('setting.job.task_deleted'))
     reloadJob()
   }
-  catch {
-    message.error(t('setting.job.delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.job.delete_failed'))
   }
 }
 
@@ -508,8 +508,8 @@ async function handleEdit(row: TaskListItemDto) {
   try {
     detail = await jobManagementApi.detail(row.basicId) ?? null
   }
-  catch {
-    message.error(t('setting.job.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.job.load_detail_failed'))
     return
   }
   const src = detail ?? (row as unknown as TaskDetailDto)
@@ -613,8 +613,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadJob()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

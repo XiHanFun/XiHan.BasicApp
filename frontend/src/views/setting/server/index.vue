@@ -191,8 +191,8 @@ async function fetchData() {
     boardInfo.value = boardRes ?? null
     gpuInfos.value = gpuRes ?? []
   }
-  catch {
-    message.error(t('setting.server.fetch_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.server.fetch_failed'))
   }
   finally {
     loading.value = false

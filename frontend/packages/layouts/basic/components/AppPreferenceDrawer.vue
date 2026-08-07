@@ -97,8 +97,8 @@ async function copyPreferences() {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
     message.success(t('preference.drawer.copy_success'))
   }
-  catch {
-    message.error(t('preference.drawer.copy_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('preference.drawer.copy_failed'))
   }
 }
 

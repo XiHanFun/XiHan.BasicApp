@@ -351,8 +351,8 @@ async function handleView(row: PermissionListItemDto) {
       message.warning(t('identity.permission.msg_detail_not_found'))
     }
   }
-  catch {
-    message.error(t('identity.permission.msg_load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.permission.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -368,8 +368,8 @@ async function loadResourceOptions(keyword = '') {
     })
     resourceOptions.value = mergeOptions(resourceOptions.value, items.map(toResourceOption))
   }
-  catch {
-    message.error(t('identity.permission.msg_load_resource_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.permission.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -385,8 +385,8 @@ async function loadOperationOptions(keyword = '') {
     })
     operationOptions.value = mergeOptions(operationOptions.value, items.map(toOperationOption))
   }
-  catch {
-    message.error(t('identity.permission.msg_load_operation_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.permission.msg_load_operation_failed'))
   }
   finally {
     operationLoading.value = false
@@ -546,8 +546,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadPermission()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

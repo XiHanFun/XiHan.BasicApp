@@ -95,8 +95,8 @@ async function loadTables() {
     })
     tableOptions.value = (tables ?? []).map(name => ({ label: name, value: name }))
   }
-  catch {
-    message.error(t('develop.code_gen.import.load_tables_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.import.load_tables_failed'))
     tableOptions.value = []
   }
   finally {
@@ -137,8 +137,8 @@ async function handleImport() {
       }))
     }
   }
-  catch {
-    message.error(t('develop.code_gen.import.import_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.import.import_failed'))
   }
   finally {
     submitLoading.value = false

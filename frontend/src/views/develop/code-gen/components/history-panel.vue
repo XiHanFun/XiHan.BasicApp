@@ -221,8 +221,8 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
       message.error(t('develop.code_gen.history.not_found'))
     }
   }
-  catch {
-    message.error(t('develop.code_gen.history.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.history.load_detail_failed'))
   }
   finally {
     detailLoading.value = false

@@ -207,9 +207,9 @@ async function openEmailDetail(row: EmailListItemDto) {
   try {
     currentEmailDetail.value = await messageCenterApi.emailDetail(row.basicId)
   }
-  catch {
+  catch (error) {
     currentEmailDetail.value = null
-    message.error(t('message.record.msg_load_email_detail_failed'))
+    message.error((error as Error)?.message || t('message.record.msg_load_email_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -222,8 +222,8 @@ async function resendEmail(row: EmailListItemDto) {
     message.success(t('message.record.msg_email_requeued'))
     void emailPageRef.value?.reload()
   }
-  catch {
-    message.error(t('message.record.msg_email_resend_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('message.record.msg_email_resend_failed'))
   }
 }
 
@@ -243,8 +243,8 @@ async function deleteEmail(row: EmailListItemDto) {
     message.success(t('message.record.msg_email_deleted'))
     void emailPageRef.value?.reload()
   }
-  catch {
-    message.error(t('message.record.msg_email_delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('message.record.msg_email_delete_failed'))
   }
 }
 
@@ -351,9 +351,9 @@ async function openSmsDetail(row: SmsListItemDto) {
   try {
     currentSmsDetail.value = await messageCenterApi.smsDetail(row.basicId)
   }
-  catch {
+  catch (error) {
     currentSmsDetail.value = null
-    message.error(t('message.record.msg_load_sms_detail_failed'))
+    message.error((error as Error)?.message || t('message.record.msg_load_sms_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -366,8 +366,8 @@ async function resendSms(row: SmsListItemDto) {
     message.success(t('message.record.msg_sms_requeued'))
     void smsPageRef.value?.reload()
   }
-  catch {
-    message.error(t('message.record.msg_sms_resend_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('message.record.msg_sms_resend_failed'))
   }
 }
 
@@ -387,8 +387,8 @@ async function deleteSms(row: SmsListItemDto) {
     message.success(t('message.record.msg_sms_deleted'))
     void smsPageRef.value?.reload()
   }
-  catch {
-    message.error(t('message.record.msg_sms_delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('message.record.msg_sms_delete_failed'))
   }
 }
 </script>

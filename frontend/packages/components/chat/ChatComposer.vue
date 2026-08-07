@@ -325,8 +325,8 @@ async function handleSendText() {
       try {
         ({ images, files } = await uploadPending(attachments))
       }
-      catch {
-        message.error(t('chat.composer.upload_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('chat.composer.upload_failed'))
         return
       }
       clearPendingAttachments()

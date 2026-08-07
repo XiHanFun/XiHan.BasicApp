@@ -258,8 +258,8 @@ onMounted(async () => {
   try {
     await loadLoginConfig()
   }
-  catch {
-    message.error(t('page.auth.load_config_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('page.auth.load_config_failed'))
   }
 })
 </script>

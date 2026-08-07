@@ -8,7 +8,6 @@ type ErrorSource = 'vue' | 'window' | 'promise'
  * 后续可在此接入后端日志接口 / Sentry 等错误上报，无需改动各调用点。
  */
 function reportError(source: ErrorSource, error: unknown, info?: string) {
-  // eslint-disable-next-line no-console
   console.error(`[GlobalError:${source}]`, info ?? '', error)
   // TODO: 接入上报通道（如 POST 到后端日志接口），失败需静默避免二次抛错
 }

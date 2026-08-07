@@ -331,8 +331,8 @@ async function handleInitDb(row: TenantListItemDto) {
     message.success(t('tenant.list.init_db_success'))
     reloadTenant()
   }
-  catch {
-    message.error(t('tenant.list.init_db_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.init_db_failed'))
   }
 }
 
@@ -422,8 +422,8 @@ async function handleView(row: TenantListItemDto) {
       message.warning(t('tenant.list.detail_not_found'))
     }
   }
-  catch {
-    message.error(t('tenant.list.detail_load_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.detail_load_failed'))
   }
   finally {
     detailLoading.value = false
@@ -458,11 +458,11 @@ async function loadMembers() {
     members.value = result.items
     memberTotal.value = result.page.totalCount
   }
-  catch {
+  catch (error) {
     memberError.value = true
     members.value = []
     memberTotal.value = 0
-    message.error(t('tenant.list.member_list_load_failed'))
+    message.error((error as Error)?.message || t('tenant.list.member_list_load_failed'))
   }
   finally {
     memberLoading.value = false
@@ -499,8 +499,8 @@ async function handleSaveMember() {
     memberEditVisible.value = false
     await loadMembers()
   }
-  catch {
-    message.error(t('tenant.list.member_update_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.member_update_failed'))
   }
   finally {
     memberEditLoading.value = false
@@ -528,8 +528,8 @@ async function handleSaveMemberStatus() {
     memberStatusVisible.value = false
     await loadMembers()
   }
-  catch {
-    message.error(t('tenant.list.member_status_update_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.member_status_update_failed'))
   }
   finally {
     memberStatusLoading.value = false
@@ -627,8 +627,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadTenant()
   }
-  catch {
-    message.error(t('tenant.list.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.save_failed'))
   }
   finally {
     submitLoading.value = false

@@ -151,8 +151,8 @@ async function loadKeys() {
     selectedKeys.value = []
     expandedKeys.value = cacheKeys.value.length <= 100 ? collectGroupKeys(treeData.value) : []
   }
-  catch {
-    message.error(t('setting.cache.query_keys_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.cache.query_keys_failed'))
   }
   finally {
     loadingKeys.value = false
@@ -197,8 +197,8 @@ async function loadValue(key: string) {
     draft.value = value ?? ''
     format.value = isJson(value ?? '') ? 'json' : 'text'
   }
-  catch {
-    message.error(t('setting.cache.get_value_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.cache.get_value_failed'))
     rawValue.value = null
   }
   finally {
@@ -264,8 +264,8 @@ async function handleCopy() {
     await navigator.clipboard.writeText(displayValue.value)
     message.success(t('setting.cache.copied'))
   }
-  catch {
-    message.error(t('setting.cache.copy_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.cache.copy_failed'))
   }
 }
 
@@ -291,8 +291,8 @@ async function handleSave() {
     editing.value = false
     reloadValue()
   }
-  catch {
-    message.error(t('setting.cache.save_failed_key_protected'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.cache.save_failed_key_protected'))
   }
   finally {
     saving.value = false
@@ -316,8 +316,8 @@ function handleDeleteCurrent() {
         resetDetail()
         await loadKeys()
       }
-      catch {
-        message.error(t('common.messages.delete_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -368,8 +368,8 @@ function handleDeleteByPattern() {
         resetDetail()
         await loadKeys()
       }
-      catch {
-        message.error(t('setting.cache.delete_by_pattern_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('setting.cache.delete_by_pattern_failed'))
       }
     },
   })

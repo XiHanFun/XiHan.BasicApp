@@ -179,8 +179,8 @@ async function runQuery() {
     })
     hasQueried.value = true
   }
-  catch {
-    message.error(t('log.trace.query_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('log.trace.query_failed'))
   }
   finally {
     loading.value = false
@@ -355,9 +355,9 @@ async function openDetail(item: TraceTimelineItemDto) {
     const record = await detailFetchers[item.logType](item.basicId)
     detailData.value = (record as Record<string, unknown> | null) ?? (item as unknown as Record<string, unknown>)
   }
-  catch {
+  catch (error) {
     detailData.value = item as unknown as Record<string, unknown>
-    message.error(t('log.trace.detail_load_failed'))
+    message.error((error as Error)?.message || t('log.trace.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

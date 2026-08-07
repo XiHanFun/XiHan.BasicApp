@@ -143,8 +143,8 @@ async function loadNotifications() {
     items.value = list
     syncHeaderStore(list)
   }
-  catch {
-    message.error(t('workbench.inbox.load_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workbench.inbox.load_failed'))
   }
   finally {
     loading.value = false
@@ -162,8 +162,8 @@ async function handleMarkRead(item: UserInboxItemDto) {
     item.readTime = item.readTime ?? new Date().toISOString()
     notificationStore.markItemRead(item.basicId)
   }
-  catch {
-    message.error(t('workbench.inbox.mark_read_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workbench.inbox.mark_read_failed'))
   }
 }
 
@@ -176,8 +176,8 @@ async function handleConfirm(item: UserInboxItemDto) {
     item.confirmTime = item.confirmTime ?? now
     notificationStore.markItemConfirmed(item.basicId)
   }
-  catch {
-    message.error(t('workbench.inbox.confirm_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workbench.inbox.confirm_failed'))
   }
 }
 
@@ -197,8 +197,8 @@ async function handleMarkAllRead() {
     })
     notificationStore.markAllRead()
   }
-  catch {
-    message.error(t('workbench.inbox.mark_all_read_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workbench.inbox.mark_all_read_failed'))
   }
 }
 

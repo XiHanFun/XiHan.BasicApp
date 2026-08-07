@@ -153,8 +153,8 @@ function handleDelete(row: AiPromptListItemDto) {
         message.success(t('common.messages.delete_success'))
         reload()
       }
-      catch {
-        message.error(t('common.messages.delete_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -209,8 +209,8 @@ async function handleEdit(row: AiPromptListItemDto) {
     }
     modalVisible.value = true
   }
-  catch {
-    message.error(t('develop.ai_prompt.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.ai_prompt.load_detail_failed'))
   }
 }
 
@@ -274,8 +274,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

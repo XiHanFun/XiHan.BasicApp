@@ -268,9 +268,9 @@ async function handleView(row: OAuthAppListItemDto) {
   try {
     currentDetail.value = await appManagementApi.detail(row.basicId)
   }
-  catch {
+  catch (error) {
     currentDetail.value = null
-    message.error(t('openapi.app.msg_load_detail_failed'))
+    message.error((error as Error)?.message || t('openapi.app.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -309,8 +309,8 @@ async function handleEdit(row: OAuthAppListItemDto) {
     }
     modalVisible.value = true
   }
-  catch {
-    message.error(t('openapi.app.msg_load_app_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('openapi.app.msg_load_app_detail_failed'))
   }
 }
 
@@ -390,8 +390,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadApp()
   }
-  catch {
-    message.error(t('openapi.app.msg_save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('openapi.app.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -404,8 +404,8 @@ async function handleRegenerateSecret(id: string) {
     secretVisible.value = true
     message.success(t('openapi.app.msg_secret_regenerated'))
   }
-  catch {
-    message.error(t('openapi.app.msg_secret_regenerate_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('openapi.app.msg_secret_regenerate_failed'))
   }
 }
 
@@ -430,8 +430,8 @@ async function handleToggleStatus(row: OAuthAppListItemDto) {
     message.success(newStatus === EnableStatus.Enabled ? t('openapi.app.msg_app_enabled') : t('openapi.app.msg_app_disabled'))
     reloadApp()
   }
-  catch {
-    message.error(t('openapi.app.msg_update_status_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('openapi.app.msg_update_status_failed'))
   }
 }
 
@@ -441,8 +441,8 @@ async function handleDelete(row: OAuthAppListItemDto) {
     message.success(t('openapi.app.msg_app_deleted'))
     reloadApp()
   }
-  catch {
-    message.error(t('openapi.app.msg_delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('openapi.app.msg_delete_failed'))
   }
 }
 </script>

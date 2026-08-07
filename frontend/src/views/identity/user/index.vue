@@ -643,8 +643,8 @@ async function openEdit(id: ApiId) {
     formTab.value = '0'
     showFormModal.value = true
   }
-  catch {
-    message.error(t('identity.user.msg_load_user_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.user.msg_load_user_failed'))
   }
 }
 
@@ -655,8 +655,8 @@ async function openDetail(id: ApiId) {
   try {
     currentDetail.value = await userManagementApi.detailView(id)
   }
-  catch {
-    message.error(t('identity.user.msg_load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.user.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -787,8 +787,8 @@ async function saveUser() {
     closeModals()
     reloadList()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -807,8 +807,8 @@ async function toggleLock(row: UserListItemDto) {
     message.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
     reloadList()
   }
-  catch {
-    message.error(t('common.messages.operation_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.operation_failed'))
   }
 }
 
@@ -831,8 +831,8 @@ function forceLogout(row: UserListItemDto) {
         message.success(t('identity.user.logout_done'))
         reloadList()
       }
-      catch {
-        message.error(t('identity.user.logout_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('identity.user.logout_failed'))
       }
     },
   })
@@ -891,8 +891,8 @@ function resetPassword(row: UserListItemDto) {
           },
         })
       }
-      catch {
-        message.error(t('identity.user.reset_password_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('identity.user.reset_password_failed'))
       }
     },
   })
@@ -913,8 +913,8 @@ function resetOtp(row: UserListItemDto) {
         message.success(t('identity.user.reset_otp_done'))
         reloadList()
       }
-      catch {
-        message.error(t('identity.user.reset_otp_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('identity.user.reset_otp_failed'))
       }
     },
   })
@@ -966,8 +966,8 @@ async function openGrantDrawer(row: UserListItemDto) {
     derivePermActions()
     await loadPermCatalog()
   }
-  catch {
-    message.error(t('identity.user.grant_load_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.user.grant_load_failed'))
   }
   finally {
     grantLoading.value = false
@@ -993,8 +993,8 @@ async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
     }
     grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
   }
-  catch {
-    message.error(t('common.messages.operation_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1070,8 +1070,8 @@ async function confirmDelete() {
     closeModals()
     reloadList()
   }
-  catch {
-    message.error(t('common.messages.delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.delete_failed'))
   }
 }
 </script>

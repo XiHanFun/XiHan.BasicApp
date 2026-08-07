@@ -94,8 +94,8 @@ async function loadPreview() {
     artifacts.value = result.artifacts ?? []
     activeIndex.value = 0
   }
-  catch {
-    message.error(t('develop.code_gen.generate.preview_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.generate.preview_failed'))
     artifacts.value = []
   }
   finally {
@@ -144,8 +144,8 @@ async function handleGenerate() {
     }
     emit('generated')
   }
-  catch {
-    message.error(t('develop.code_gen.generate.generate_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
   }
   finally {
     generating.value = false

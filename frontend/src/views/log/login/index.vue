@@ -172,9 +172,9 @@ async function handleDetail(row: LoginLogListItemDto) {
   try {
     detailData.value = await logManagementApi.login.detail(row.basicId) ?? row
   }
-  catch {
+  catch (error) {
     detailData.value = row
-    message.error(t('log.login.detail_load_failed'))
+    message.error((error as Error)?.message || t('log.login.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

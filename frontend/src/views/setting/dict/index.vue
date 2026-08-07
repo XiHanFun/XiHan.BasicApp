@@ -112,8 +112,8 @@ async function fetchDictData() {
     dictTotal.value = result.page.totalCount
     syncSelectionAfterDictLoad()
   }
-  catch {
-    message.error(t('setting.dict.query_dict_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.dict.query_dict_failed'))
     dictList.value = []
     dictTotal.value = 0
     currentDict.value = null
@@ -262,8 +262,8 @@ async function fetchItemData() {
     itemList.value = result.items
     itemTotal.value = result.page.totalCount
   }
-  catch {
-    message.error(t('setting.dict.query_item_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.dict.query_item_failed'))
     itemList.value = []
     itemTotal.value = 0
   }
@@ -461,8 +461,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadDict()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -495,8 +495,8 @@ async function handleBatchDeleteDict() {
     await Promise.all(ids.map(id => dictManagementApi.delete(String(id))))
     message.success(t('setting.dict.batch_deleted_dict', { count: ids.length }))
   }
-  catch {
-    message.error(t('common.messages.batch_delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.batch_delete_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -517,8 +517,8 @@ async function handleBatchToggleDict(enable: boolean) {
     })))
     message.success(t('common.messages.status_updated'))
   }
-  catch {
-    message.error(t('common.messages.batch_action_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.batch_action_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -616,8 +616,8 @@ async function handleItemSubmit() {
     itemModalVisible.value = false
     fetchItemData()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     itemSubmitLoading.value = false
@@ -650,8 +650,8 @@ async function handleBatchDeleteItem() {
     await Promise.all(ids.map(id => dictManagementApi.itemDelete(String(id))))
     message.success(t('setting.dict.batch_deleted_item', { count: ids.length }))
   }
-  catch {
-    message.error(t('common.messages.batch_delete_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.batch_delete_failed'))
   }
   finally {
     checkedItemKeys.value = []
@@ -672,8 +672,8 @@ async function handleBatchToggleItem(enable: boolean) {
     })))
     message.success(t('common.messages.status_updated'))
   }
-  catch {
-    message.error(t('common.messages.batch_action_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.batch_action_failed'))
   }
   finally {
     checkedItemKeys.value = []
