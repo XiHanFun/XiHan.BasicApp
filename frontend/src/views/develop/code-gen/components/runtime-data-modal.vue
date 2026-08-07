@@ -97,8 +97,8 @@ async function loadSchema(tableId: ApiId) {
     schema.value = await codeGenRuntimeApi.getSchema(tableId)
     await loadData()
   }
-  catch {
-    message.error(t('develop.code_gen.runtime.load_schema_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.runtime.load_schema_failed'))
     schema.value = null
     rows.value = []
     total.value = 0
@@ -122,8 +122,8 @@ async function loadData() {
     rows.value = result.rows ?? []
     total.value = result.totalCount
   }
-  catch {
-    message.error(t('develop.code_gen.runtime.load_data_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.runtime.load_data_failed'))
     rows.value = []
     total.value = 0
   }

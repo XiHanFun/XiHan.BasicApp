@@ -350,8 +350,8 @@ async function handleCtxSelect(key: string | number) {
         await navigator.clipboard.writeText(target.content ?? '')
         message.success(t('chat.thread.copied'))
       }
-      catch {
-        message.error(t('chat.thread.copy_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('chat.thread.copy_failed'))
       }
       break
     case 'reply':
@@ -507,8 +507,8 @@ async function handleRecall(item: ChatLocalMessage) {
   try {
     await chatStore.recallMessage(conversationId.value, item.messageId)
   }
-  catch {
-    message.error(t('chat.thread.recall_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('chat.thread.recall_failed'))
   }
 }
 

@@ -215,8 +215,8 @@ function handleDelete(row: CodeGenTemplateListItemDto) {
         message.success(t('common.messages.delete_success'))
         reload()
       }
-      catch {
-        message.error(t('common.messages.delete_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -300,8 +300,8 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
     }
     modalVisible.value = true
   }
-  catch {
-    message.error(t('develop.code_gen.template.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.template.load_detail_failed'))
   }
 }
 
@@ -323,8 +323,8 @@ async function handleValidate(templateContent: string) {
       message.error(t('develop.code_gen.template.validate_fail', { errors: result.errors.join('；') || t('develop.code_gen.template.validate_unknown_error') }))
     }
   }
-  catch {
-    message.error(t('develop.code_gen.template.validate_error'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.template.validate_error'))
   }
   finally {
     validating.value = false
@@ -398,8 +398,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

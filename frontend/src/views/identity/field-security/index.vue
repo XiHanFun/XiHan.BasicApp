@@ -184,8 +184,8 @@ async function loadTargetOptions(keyword = '') {
     }
     targetOptions.value = mergeOptions(targetOptions.value, next)
   }
-  catch {
-    message.error(t('identity.field_security.msg_load_target_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.field_security.msg_load_target_failed'))
   }
   finally {
     targetLoading.value = false
@@ -201,8 +201,8 @@ async function loadResourceOptions(keyword = '') {
       items.map(item => ({ label: `${item.resourceName} (${item.resourceCode})`, value: item.basicId })),
     )
   }
-  catch {
-    message.error(t('identity.field_security.msg_load_resource_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.field_security.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -478,8 +478,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadList()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

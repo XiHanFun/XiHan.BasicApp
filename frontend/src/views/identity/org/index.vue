@@ -344,8 +344,8 @@ async function handleEdit(row: DepartmentListItemDto) {
     const detail = await orgManagementApi.detail(row.basicId)
     deptForm.value = buildFormModel(detail ?? row)
   }
-  catch {
-    message.error(t('identity.org.msg_load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
     deptForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -366,8 +366,8 @@ async function handleView(row: DepartmentListItemDto) {
     }
     managementDetail.value = detail
   }
-  catch {
-    message.error(t('identity.org.msg_load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -381,8 +381,8 @@ async function handleToggleStatus(row: DepartmentListItemDto) {
     message.success(t('identity.org.msg_status_updated'))
     await reloadAll()
   }
-  catch {
-    message.error(t('identity.org.msg_status_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.org.msg_status_failed'))
   }
 }
 
@@ -461,8 +461,8 @@ async function submitMembership() {
     membershipVisible.value = false
     await refreshManagementDetail()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     membershipLoading.value = false
@@ -525,8 +525,8 @@ async function handleSubmit() {
     modalVisible.value = false
     await reloadAll()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

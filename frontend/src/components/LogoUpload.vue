@@ -69,9 +69,9 @@ async function handleUpload(options: UploadCustomRequestOptions) {
     options.onFinish()
     message.success(t('component.logo_upload.success'))
   }
-  catch {
+  catch (error) {
     options.onError()
-    message.error(t('component.logo_upload.failed'))
+    message.error((error as Error)?.message || t('component.logo_upload.failed'))
   }
   finally {
     uploading.value = false

@@ -248,8 +248,8 @@ async function handleEdit(row: ConfigListItemDto) {
   try {
     detail = await configManagementApi.detail(row.basicId)
   }
-  catch {
-    message.error(t('setting.config.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.config.load_detail_failed'))
     return
   }
   configForm.value = {
@@ -302,8 +302,8 @@ async function handleView(row: ConfigListItemDto) {
       message.warning(t('setting.config.detail_not_found'))
     }
   }
-  catch {
-    message.error(t('setting.config.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('setting.config.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -381,8 +381,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadConfig()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

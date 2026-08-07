@@ -130,8 +130,8 @@ async function loadUserOptions(keyword = '') {
       result.items.map(u => ({ label: `${u.realName || u.nickName || u.userName} (@${u.userName})`, value: u.basicId })),
     )
   }
-  catch {
-    message.error(t('identity.authorization.msg_load_user_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.authorization.msg_load_user_failed'))
   }
   finally {
     userLoading.value = false
@@ -144,8 +144,8 @@ async function loadRoleOptions(keyword = '') {
     const roles = await roleApi.enabledList({ limit: 50, keyword: normalizeNullable(keyword) })
     roleOptions.value = mergeOptions(roleOptions.value, roles.map(r => ({ label: `${r.roleName} (${r.roleCode})`, value: r.basicId })))
   }
-  catch {
-    message.error(t('identity.authorization.msg_load_role_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.authorization.msg_load_role_failed'))
   }
   finally {
     roleLoading.value = false
@@ -158,8 +158,8 @@ async function loadPermissionOptions(keyword = '') {
     const perms = await permissionApi.availableGlobal({ limit: 50, keyword: normalizeNullable(keyword) })
     permissionOptions.value = mergeOptions(permissionOptions.value, perms.map(p => ({ label: `${p.permissionName} (${p.permissionCode})`, value: p.basicId })))
   }
-  catch {
-    message.error(t('identity.authorization.msg_load_permission_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.authorization.msg_load_permission_failed'))
   }
   finally {
     permissionLoading.value = false
@@ -450,8 +450,8 @@ async function revokeDelegation(row: PermissionDelegationListItemDto) {
     message.success(t('identity.authorization.del_revoked'))
     reloadDelegation()
   }
-  catch {
-    message.error(t('identity.authorization.del_revoke_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.authorization.del_revoke_failed'))
   }
 }
 
@@ -507,8 +507,8 @@ async function submitDelegation() {
     delegationModalVisible.value = false
     reloadDelegation()
   }
-  catch {
-    message.error(t('identity.authorization.msg_create_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.authorization.msg_create_failed'))
   }
   finally {
     delegationSubmitting.value = false

@@ -222,8 +222,8 @@ async function handleDetail(row: WorkflowInstanceListItemDto) {
       }
     }
   }
-  catch {
-    message.error(t('workflow.instance.err_load_detail'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.instance.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -271,8 +271,8 @@ async function handleReasonConfirm() {
     reasonVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('workflow.instance.err_operation'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.instance.err_operation'))
   }
   finally {
     reasonLoading.value = false
@@ -288,8 +288,8 @@ async function handleSimple(action: 'retry' | 'resume', row: WorkflowInstanceLis
     message.success(t('workflow.instance.msg_operated'))
     reload()
   }
-  catch {
-    message.error(t('workflow.instance.err_operation'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.instance.err_operation'))
   }
 }
 
@@ -314,8 +314,8 @@ async function handleSignal() {
     signalVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('workflow.instance.err_operation'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.instance.err_operation'))
   }
   finally {
     signalLoading.value = false

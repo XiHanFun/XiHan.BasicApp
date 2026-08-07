@@ -61,8 +61,8 @@ async function loadColumns() {
   try {
     rows.value = await codeGenTableColumnApi.getByTable(props.tableId)
   }
-  catch {
-    message.error(t('develop.code_gen.column.load_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.column.load_failed'))
     rows.value = []
   }
   finally {
@@ -253,8 +253,8 @@ async function handleSubmit() {
     emit('saved')
     emit('update:show', false)
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

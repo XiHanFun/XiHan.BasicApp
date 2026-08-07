@@ -88,8 +88,8 @@ export function useSchemaTable<TRow extends object>(
       rows.value = result.items
       total.value = result.page?.totalCount ?? 0
     }
-    catch {
-      message.error(options.loadErrorText ?? i18n.global.t('component.schema_page.load_failed'))
+    catch (error) {
+      message.error((error as Error)?.message || (options.loadErrorText ?? i18n.global.t('component.schema_page.load_failed')))
       rows.value = []
       total.value = 0
     }

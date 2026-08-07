@@ -179,8 +179,8 @@ async function handleEdit(row: PositionListItemDto) {
   try {
     detail = await positionApi.detail(row.basicId)
   }
-  catch {
-    message.error(t('identity.position.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.position.load_detail_failed'))
   }
   positionForm.value = {
     basicId: row.basicId,
@@ -204,8 +204,8 @@ async function handleView(row: PositionListItemDto) {
       message.warning(t('identity.position.detail_not_found'))
     }
   }
-  catch {
-    message.error(t('identity.position.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.position.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -225,8 +225,8 @@ async function handleToggleStatus(row: PositionListItemDto) {
     message.success(t('common.messages.status_updated'))
     reloadPage()
   }
-  catch {
-    message.error(t('common.messages.status_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.status_failed'))
   }
 }
 
@@ -273,8 +273,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadPage()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

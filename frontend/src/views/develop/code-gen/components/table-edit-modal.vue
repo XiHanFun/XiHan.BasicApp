@@ -190,8 +190,8 @@ async function loadDetail() {
       void ensureTableOptions()
     }
   }
-  catch {
-    message.error(t('develop.code_gen.table_edit.load_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.table_edit.load_failed'))
   }
   finally {
     loading.value = false
@@ -307,8 +307,8 @@ async function handleSubmit() {
     emit('saved')
     emit('update:show', false)
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

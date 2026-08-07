@@ -150,8 +150,8 @@ function handleReindex(row: KnowledgeListItemDto) {
         message.success(t('develop.knowledge.reindex_success'))
         reload()
       }
-      catch {
-        message.error(t('develop.knowledge.reindex_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('develop.knowledge.reindex_failed'))
       }
     },
   })
@@ -169,8 +169,8 @@ function handleDelete(row: KnowledgeListItemDto) {
         message.success(t('common.messages.delete_success'))
         reload()
       }
-      catch {
-        message.error(t('common.messages.delete_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -261,8 +261,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('develop.knowledge.ingest_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.knowledge.ingest_failed'))
   }
   finally {
     submitLoading.value = false
@@ -296,8 +296,8 @@ async function handleQuery() {
     citations.value = result.citations ?? []
     hasQueried.value = true
   }
-  catch {
-    message.error(t('develop.knowledge.query_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.knowledge.query_failed'))
   }
   finally {
     queryLoading.value = false

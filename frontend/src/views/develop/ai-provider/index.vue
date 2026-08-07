@@ -222,9 +222,9 @@ async function handleTest(row: AiProviderListItemDto) {
       duration: result.success ? 5000 : undefined,
     })
   }
-  catch {
+  catch (error) {
     reset.destroy()
-    message.error(t('develop.ai_provider.test_error'))
+    message.error((error as Error)?.message || t('develop.ai_provider.test_error'))
   }
 }
 
@@ -234,8 +234,8 @@ async function handleSetDefault(row: AiProviderListItemDto) {
     message.success(t('develop.ai_provider.set_default_success'))
     reload()
   }
-  catch {
-    message.error(t('develop.ai_provider.set_default_error'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.ai_provider.set_default_error'))
   }
 }
 
@@ -251,8 +251,8 @@ function handleDelete(row: AiProviderListItemDto) {
         message.success(t('common.messages.delete_success'))
         reload()
       }
-      catch {
-        message.error(t('common.messages.delete_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -322,8 +322,8 @@ async function handleEdit(row: AiProviderListItemDto) {
     }
     modalVisible.value = true
   }
-  catch {
-    message.error(t('develop.ai_provider.load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.ai_provider.load_detail_failed'))
   }
 }
 
@@ -401,8 +401,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

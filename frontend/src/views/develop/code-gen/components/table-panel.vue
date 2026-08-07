@@ -204,8 +204,8 @@ function handleSync(row: CodeGenTableListItemDto) {
         }))
         reload()
       }
-      catch {
-        message.error(t('develop.code_gen.table.sync_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('develop.code_gen.table.sync_failed'))
       }
     },
   })
@@ -223,8 +223,8 @@ function handleDelete(row: CodeGenTableListItemDto) {
         message.success(t('common.messages.delete_success'))
         reload()
       }
-      catch {
-        message.error(t('common.messages.delete_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })

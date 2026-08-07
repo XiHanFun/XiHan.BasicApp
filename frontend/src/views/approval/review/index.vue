@@ -229,8 +229,8 @@ async function handleDetail(row: ReviewListItemDto) {
   try {
     detailData.value = await approvalManagementApi.detail(row.basicId) ?? null
   }
-  catch {
-    message.error(t('approval.review.err_load_detail'))
+  catch (error) {
+    message.error((error as Error)?.message || t('approval.review.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -265,8 +265,8 @@ async function handleAudit() {
     detailVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('approval.review.err_audit'))
+  catch (error) {
+    message.error((error as Error)?.message || t('approval.review.err_audit'))
   }
   finally {
     actionLoading.value = false
@@ -283,8 +283,8 @@ async function handleWithdraw() {
     detailVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('approval.review.err_withdraw'))
+  catch (error) {
+    message.error((error as Error)?.message || t('approval.review.err_withdraw'))
   }
   finally {
     actionLoading.value = false
@@ -298,8 +298,8 @@ async function handleToggleStatus(row: ReviewListItemDto) {
     message.success(newStatus === EnableStatus.Enabled ? t('approval.review.msg_enabled') : t('approval.review.msg_disabled'))
     reload()
   }
-  catch {
-    message.error(t('approval.review.err_update_status'))
+  catch (error) {
+    message.error((error as Error)?.message || t('approval.review.err_update_status'))
   }
 }
 
@@ -309,8 +309,8 @@ async function handleDelete(row: ReviewListItemDto) {
     message.success(t('approval.review.msg_deleted'))
     reload()
   }
-  catch {
-    message.error(t('approval.review.err_delete'))
+  catch (error) {
+    message.error((error as Error)?.message || t('approval.review.err_delete'))
   }
 }
 

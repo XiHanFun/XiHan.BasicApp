@@ -761,8 +761,8 @@ async function handleView(row: RoleListItemDto) {
       message.warning(t('identity.role.msg_detail_not_found'))
     }
   }
-  catch {
-    message.error(t('identity.role.msg_load_detail_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('identity.role.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -832,8 +832,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadRole()
   }
-  catch {
-    message.error(t('common.messages.save_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

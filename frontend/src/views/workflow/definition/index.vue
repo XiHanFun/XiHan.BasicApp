@@ -148,8 +148,8 @@ async function handleDetail(row: WorkflowDefinitionListItemDto) {
   try {
     detailData.value = await workflowDefinitionApi.detail(row.basicId) ?? null
   }
-  catch {
-    message.error(t('workflow.definition.err_load_detail'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.definition.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -207,8 +207,8 @@ async function handleDesignerSave(json: string) {
     editVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('workflow.definition.err_save'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.definition.err_save'))
   }
   finally {
     editLoading.value = false
@@ -238,8 +238,8 @@ async function handleStart() {
     message.success(t('workflow.definition.msg_started'))
     startVisible.value = false
   }
-  catch {
-    message.error(t('workflow.definition.err_start'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.definition.err_start'))
   }
   finally {
     startLoading.value = false
@@ -273,8 +273,8 @@ async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'arch
     }
     reload()
   }
-  catch {
-    message.error(t('workflow.definition.err_operation'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.definition.err_operation'))
   }
 }
 

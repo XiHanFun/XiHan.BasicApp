@@ -205,9 +205,9 @@ async function handleDetail(row: ApiLogListItemDto) {
   try {
     detailData.value = await logManagementApi.api.detail(row.basicId) ?? row
   }
-  catch {
+  catch (error) {
     detailData.value = row
-    message.error(t('log.api.detail_load_failed'))
+    message.error((error as Error)?.message || t('log.api.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

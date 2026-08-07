@@ -99,8 +99,8 @@ async function handleComplete() {
     completeVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('workflow.todo.err_complete'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.todo.err_complete'))
   }
   finally {
     completeLoading.value = false
@@ -139,8 +139,8 @@ async function handleTransfer() {
     transferVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('workflow.todo.err_transfer'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.todo.err_transfer'))
   }
   finally {
     transferLoading.value = false
@@ -179,8 +179,8 @@ async function handleAddSign() {
     addSignVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('workflow.todo.err_add_sign'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.todo.err_add_sign'))
   }
   finally {
     addSignLoading.value = false

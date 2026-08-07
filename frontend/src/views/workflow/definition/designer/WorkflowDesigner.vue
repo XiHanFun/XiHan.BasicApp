@@ -119,8 +119,8 @@ function loadFromJson(json: string): boolean {
     clearSelection()
     return true
   }
-  catch {
-    message.error(t('workflow.designer.err_parse'))
+  catch (error) {
+    message.error((error as Error)?.message || t('workflow.designer.err_parse'))
     return false
   }
 }

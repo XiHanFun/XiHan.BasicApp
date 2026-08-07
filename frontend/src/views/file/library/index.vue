@@ -563,8 +563,8 @@ async function handleSaveMetadata() {
     metadataVisible.value = false
     reload()
   }
-  catch {
-    message.error(t('file.library.metadata.update_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('file.library.metadata.update_failed'))
   }
   finally {
     metadataLoading.value = false
@@ -578,8 +578,8 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, 
     message.success(successText)
     reload()
   }
-  catch {
-    message.error(t('file.library.message.operation_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('file.library.message.operation_failed'))
   }
   finally {
     actionLoading.value = false
@@ -600,8 +600,8 @@ function handleDestroyFile(row: FileListItemDto) {
         message.success(t('file.library.message.destroyed'))
         reload()
       }
-      catch {
-        message.error(t('file.library.message.destroy_failed'))
+      catch (error) {
+        message.error((error as Error)?.message || t('file.library.message.destroy_failed'))
       }
       finally {
         actionLoading.value = false
@@ -661,9 +661,9 @@ async function handleFileDetail(row: FileListItemDto) {
   try {
     currentFileDetail.value = await fileManagementApi.detail(row.basicId)
   }
-  catch {
+  catch (error) {
     currentFileDetail.value = null
-    message.error(t('file.library.message.file_detail_failed'))
+    message.error((error as Error)?.message || t('file.library.message.file_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -699,8 +699,8 @@ async function copyPreviewText() {
     await navigator.clipboard.writeText(previewText.value)
     message.success(t('file.library.preview.copied'))
   }
-  catch {
-    message.error(t('file.library.preview.copy_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('file.library.preview.copy_failed'))
   }
 }
 
@@ -837,9 +837,9 @@ async function loadStorageRows() {
   try {
     storageRows.value = await fileManagementApi.storageList(file.basicId)
   }
-  catch {
+  catch (error) {
     storageRows.value = []
-    message.error(t('file.library.storage_list.load_failed'))
+    message.error((error as Error)?.message || t('file.library.storage_list.load_failed'))
   }
   finally {
     storageListLoading.value = false
@@ -856,9 +856,9 @@ async function viewStorageDetail(storageId: string) {
   try {
     currentStorageDetail.value = await fileManagementApi.storageDetail(storageId)
   }
-  catch {
+  catch (error) {
     currentStorageDetail.value = null
-    message.error(t('file.library.message.storage_detail_failed'))
+    message.error((error as Error)?.message || t('file.library.message.storage_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -877,8 +877,8 @@ async function handleSwitchPrimary(storage: FileStorageListItemDto) {
     message.success(t('file.library.message.set_primary'))
     await loadStorageRows()
   }
-  catch {
-    message.error(t('file.library.message.set_primary_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('file.library.message.set_primary_failed'))
   }
   finally {
     actionLoading.value = false
@@ -893,8 +893,8 @@ async function handleVerifyStorage(storage: FileStorageListItemDto) {
     message.success(t('file.library.message.verify_triggered'))
     await loadStorageRows()
   }
-  catch {
-    message.error(t('file.library.message.verify_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('file.library.message.verify_failed'))
   }
   finally {
     actionLoading.value = false
@@ -912,8 +912,8 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
     message.success(t('file.library.message.storage_status_updated'))
     await loadStorageRows()
   }
-  catch {
-    message.error(t('file.library.message.storage_status_failed'))
+  catch (error) {
+    message.error((error as Error)?.message || t('file.library.message.storage_status_failed'))
   }
   finally {
     actionLoading.value = false
