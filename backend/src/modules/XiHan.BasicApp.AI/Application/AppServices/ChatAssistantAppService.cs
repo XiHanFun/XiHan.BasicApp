@@ -94,7 +94,9 @@ public sealed class ChatAssistantAppService : AiApplicationService, IChatAssista
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 打开与指定助手的会话（不存在则创建，并发送开场白）
+    /// </summary>
     [UnitOfWork(true)]
     [HttpPost]
     public async Task<ChatAssistantConversationDto> OpenConversationAsync(ChatAssistantOpenDto input, CancellationToken cancellationToken = default)
@@ -127,7 +129,9 @@ public sealed class ChatAssistantAppService : AiApplicationService, IChatAssista
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 请求助手回复会话内最后一条用户消息（增量经 SignalR 推送，完成后落库）
+    /// </summary>
     [HttpPost]
     public async Task<ChatAssistantReplyResultDto> ReplyAsync(ChatAssistantReplyDto input, CancellationToken cancellationToken = default)
     {

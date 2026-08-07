@@ -42,7 +42,9 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
         _clientResolver = clientResolver;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定已配置表的字段 schema
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<DynamicRuntimeSchemaDto> GetSchemaAsync(long tableId, CancellationToken ct = default)
     {
@@ -74,7 +76,9 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按表名动态分页查询指定已配置表的数据（只读）
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<DynamicRuntimePageResultDto> GetPageAsync(DynamicRuntimePageQueryDto input, CancellationToken ct = default)
     {

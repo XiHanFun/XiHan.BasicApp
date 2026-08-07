@@ -44,7 +44,10 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取表配置全量列表
+    /// </summary>
+    /// <remarks>供主子表选择等下拉一次取全，不走分页。</remarks>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<IReadOnlyList<CodeGenTableListItemDto>> GetOptionsAsync(CancellationToken cancellationToken = default)
     {
@@ -58,7 +61,9 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
             .Select(CodeGenTableApplicationMapper.ToListItemDto)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取表配置分页列表
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<CodeGenTableListItemDto>> GetPageAsync(CodeGenTablePageQueryDto input, CancellationToken cancellationToken = default)
@@ -96,7 +101,9 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取表配置详情
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<CodeGenTableDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

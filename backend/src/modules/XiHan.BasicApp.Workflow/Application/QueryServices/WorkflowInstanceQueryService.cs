@@ -51,7 +51,9 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 分页查询实例
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<WorkflowInstanceListItemDto>> GetPageAsync(WorkflowInstancePageQueryDto input, CancellationToken cancellationToken = default)
@@ -76,7 +78,9 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取实例详情（含变量、执行历史与待恢复等待点）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Read)]
     public async Task<WorkflowInstanceDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

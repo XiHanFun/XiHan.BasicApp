@@ -35,7 +35,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         _definitionManager = definitionManager;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建定义草稿（版本号自动取编码下最大版本 + 1）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Create)]
     public async Task<WorkflowDefinitionDetailDto> CreateAsync(WorkflowDefinitionCreateDto input, CancellationToken cancellationToken = default)
     {
@@ -46,7 +48,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         return WorkflowApplicationMapper.ToDetailDto(created);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新草稿定义
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Update)]
     public async Task<WorkflowDefinitionDetailDto> UpdateDraftAsync(WorkflowDefinitionUpdateDraftDto input, CancellationToken cancellationToken = default)
     {
@@ -58,7 +62,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         return WorkflowApplicationMapper.ToDetailDto(updated);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发布定义（发布前结构校验）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Update)]
     public async Task<WorkflowDefinitionDetailDto> PublishAsync(WorkflowDefinitionIdDto input, CancellationToken cancellationToken = default)
     {
@@ -68,7 +74,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         return WorkflowApplicationMapper.ToDetailDto(published);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 基于最新版本创建新草稿版本
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Create)]
     public async Task<WorkflowDefinitionDetailDto> NewVersionAsync(WorkflowDefinitionNewVersionDto input, CancellationToken cancellationToken = default)
     {
@@ -79,7 +87,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         return WorkflowApplicationMapper.ToDetailDto(draft);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 停用定义
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Update)]
     public async Task<WorkflowDefinitionDetailDto> DisableAsync(WorkflowDefinitionIdDto input, CancellationToken cancellationToken = default)
     {
@@ -89,7 +99,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         return WorkflowApplicationMapper.ToDetailDto(disabled);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 归档定义
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Update)]
     public async Task<WorkflowDefinitionDetailDto> ArchiveAsync(WorkflowDefinitionIdDto input, CancellationToken cancellationToken = default)
     {
@@ -99,7 +111,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         return WorkflowApplicationMapper.ToDetailDto(archived);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除草稿定义
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {

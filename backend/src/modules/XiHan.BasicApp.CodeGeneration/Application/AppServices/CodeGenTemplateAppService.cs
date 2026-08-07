@@ -34,7 +34,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
         _rendererResolver = rendererResolver;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建模板
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Create)]
     public async Task<CodeGenTemplateDetailDto> CreateAsync(CodeGenTemplateCreateDto input, CancellationToken cancellationToken = default)
@@ -46,7 +48,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
         return CodeGenTemplateApplicationMapper.ToDetailDto(result.Template);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新模板
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenTemplateDetailDto> UpdateAsync(CodeGenTemplateUpdateDto input, CancellationToken cancellationToken = default)
@@ -58,7 +62,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
         return CodeGenTemplateApplicationMapper.ToDetailDto(result.Template);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新模板状态
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Update)]
     public async Task<CodeGenTemplateDetailDto> UpdateStatusAsync(CodeGenTemplateStatusUpdateDto input, CancellationToken cancellationToken = default)
@@ -70,7 +76,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
         return CodeGenTemplateApplicationMapper.ToDetailDto(result.Template);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除模板
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
@@ -79,7 +87,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
         await _templateDomainService.DeleteTemplateAsync(id, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验模板语法（保存前预检）
+    /// </summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public Task<CodeGenTemplateValidateResultDto> ValidateAsync(CodeGenTemplateValidateDto input, CancellationToken cancellationToken = default)
     {

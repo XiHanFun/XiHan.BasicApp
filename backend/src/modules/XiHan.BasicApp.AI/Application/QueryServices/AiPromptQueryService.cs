@@ -41,7 +41,9 @@ public sealed class AiPromptQueryService : AiApplicationService, IAiPromptQueryS
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取提示词分页列表
+    /// </summary>
     [PermissionAuthorize(AiPromptPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<AiPromptListItemDto>> GetPageAsync(AiPromptPageQueryDto input, CancellationToken cancellationToken = default)
@@ -76,7 +78,9 @@ public sealed class AiPromptQueryService : AiApplicationService, IAiPromptQueryS
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取提示词详情
+    /// </summary>
     [PermissionAuthorize(AiPromptPermissionCodes.Read)]
     public async Task<AiPromptDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

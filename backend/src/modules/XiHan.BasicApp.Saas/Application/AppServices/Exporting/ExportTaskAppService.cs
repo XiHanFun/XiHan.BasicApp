@@ -43,7 +43,9 @@ public sealed class ExportTaskAppService
         _unitOfWorkManager = unitOfWorkManager;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 提交导出任务（落 Pending，由后台 worker 异步执行）
+    /// </summary>
     public async Task<ExportTaskDto> SubmitAsync(ExportTaskSubmitDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -93,7 +95,9 @@ public sealed class ExportTaskAppService
         return ToDto(entity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取消待执行任务（仅 Pending 可取消，自鉴权）
+    /// </summary>
     public async Task CancelAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -110,7 +114,9 @@ public sealed class ExportTaskAppService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除任务记录（自鉴权软删）
+    /// </summary>
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)

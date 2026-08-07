@@ -36,7 +36,9 @@ public sealed class WorkflowTodoAppService : WorkflowApplicationService, IWorkfl
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 办理待办（同意/拒绝/自定义结果）
+    /// </summary>
     public async Task<WorkflowTodoCompleteResultDto> CompleteAsync(WorkflowTodoCompleteDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -62,7 +64,9 @@ public sealed class WorkflowTodoAppService : WorkflowApplicationService, IWorkfl
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 转办待办
+    /// </summary>
     public async Task TransferAsync(WorkflowTodoTransferDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -82,7 +86,9 @@ public sealed class WorkflowTodoAppService : WorkflowApplicationService, IWorkfl
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 加签
+    /// </summary>
     public async Task AddAssigneesAsync(WorkflowTodoAddAssigneesDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

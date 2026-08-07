@@ -48,7 +48,7 @@ public sealed class CodeGenerationAppService(
     private readonly ICodeGenTableQueryService _tableQueryService = tableQueryService;
     private readonly ICurrentUser _currentUser = currentUser;
 
-    /// <inheritdoc />
+    /// <summary>列出可导入的数据库表（逆向工程）</summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<IReadOnlyList<string>> ListDatabaseTablesAsync(CodeGenDbTableQueryDto input, CancellationToken cancellationToken = default)
     {
@@ -64,7 +64,12 @@ public sealed class CodeGenerationAppService(
         return [.. tables.Where(table => table.Contains(keyword, StringComparison.OrdinalIgnoreCase))];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导入单表结构
+    /// </summary>
+    /// <param name="input">导入请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>表结构；表不存在返回 null</returns>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Import)]
     public async Task<CodeGenTableDetailDto> ImportTableAsync(CodeGenImportTableDto input, CancellationToken cancellationToken = default)
@@ -91,7 +96,7 @@ public sealed class CodeGenerationAppService(
             ?? throw new InvalidOperationException("导入成功但读取表配置详情失败。");
     }
 
-    /// <inheritdoc />
+    /// <summary>批量从数据库表导入（逐表隔离异常，返回成功/失败明细）</summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Import)]
     public async Task<CodeGenImportTablesResultDto> ImportTablesAsync(CodeGenImportTablesDto input, CancellationToken cancellationToken = default)
     {
@@ -132,7 +137,7 @@ public sealed class CodeGenerationAppService(
         return new CodeGenImportTablesResultDto { Succeeded = succeeded, Failed = failed };
     }
 
-    /// <inheritdoc />
+    /// <summary>同步表结构：按最新库结构重算，人工改过的字段冻结，其余跟随重新推断</summary>
     [HttpPost]
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Import)]
@@ -345,7 +350,12 @@ public sealed class CodeGenerationAppService(
         return !modified.Contains(fieldName) && Set(getter, setter, value);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 预览生成（仅返回产物内容，不打包、不落盘）
+    /// </summary>
+    /// <param name="input">生成请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>生成结果（含产物清单）</returns>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
     public async Task<CodeGenResultDto> PreviewAsync(CodeGenPreviewRequestDto input, CancellationToken cancellationToken = default)
     {
@@ -362,7 +372,12 @@ public sealed class CodeGenerationAppService(
         return ToDto(result);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘 / 预览）
+    /// </summary>
+    /// <param name="input">生成请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>生成结果（Zip 时含 Package 字节流）</returns>
     [UnitOfWork(true)]
     [PermissionAuthorize(CodeGenPermissionCodes.Execute)]
     public async Task<CodeGenResultDto> GenerateAsync(CodeGenGenerateRequestDto input, CancellationToken cancellationToken = default)

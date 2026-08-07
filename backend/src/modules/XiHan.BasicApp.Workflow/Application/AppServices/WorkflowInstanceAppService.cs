@@ -37,7 +37,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发起实例（当前用户为发起人）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowInstanceListItemDto> StartAsync(WorkflowInstanceStartDto input, CancellationToken cancellationToken = default)
     {
@@ -58,7 +60,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取消实例（定义启用补偿时按执行逆序补偿）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowInstanceListItemDto> CancelAsync(WorkflowInstanceOperationDto input, CancellationToken cancellationToken = default)
     {
@@ -68,7 +72,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 终止实例（不补偿）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowInstanceListItemDto> TerminateAsync(WorkflowInstanceOperationDto input, CancellationToken cancellationToken = default)
     {
@@ -78,7 +84,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 重试故障实例
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowInstanceListItemDto> RetryAsync(WorkflowInstanceIdDto input, CancellationToken cancellationToken = default)
     {
@@ -88,7 +96,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 挂起实例
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Update)]
     public async Task<WorkflowInstanceListItemDto> SuspendAsync(WorkflowInstanceOperationDto input, CancellationToken cancellationToken = default)
     {
@@ -98,7 +108,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 恢复挂起实例
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Update)]
     public async Task<WorkflowInstanceListItemDto> ResumeAsync(WorkflowInstanceIdDto input, CancellationToken cancellationToken = default)
     {
@@ -108,7 +120,9 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发布信号（恢复匹配的等待信号节点）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowSignalPublishResultDto> PublishSignalAsync(WorkflowSignalPublishDto input, CancellationToken cancellationToken = default)
     {

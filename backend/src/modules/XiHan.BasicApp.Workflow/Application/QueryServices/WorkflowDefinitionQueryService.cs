@@ -41,7 +41,9 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
         _fieldSecurity = fieldSecurityService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 分页查询定义
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<WorkflowDefinitionListItemDto>> GetPageAsync(WorkflowDefinitionPageQueryDto input, CancellationToken cancellationToken = default)
@@ -67,7 +69,9 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取定义详情（含定义 JSON）
+    /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Read)]
     public async Task<WorkflowDefinitionDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {

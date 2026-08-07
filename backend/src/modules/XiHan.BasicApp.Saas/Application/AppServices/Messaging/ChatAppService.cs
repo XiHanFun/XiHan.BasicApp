@@ -49,7 +49,9 @@ public sealed class ChatAppService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 打开单聊会话（不存在则创建）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<ChatConversationDto> OpenSingleConversationAsync(ChatSingleConversationOpenDto input, CancellationToken cancellationToken = default)
@@ -62,7 +64,9 @@ public sealed class ChatAppService
         return ChatApplicationMapper.ToConversationDto(result.Conversation, result.Created);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建群聊
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task<ChatConversationDto> CreateGroupConversationAsync(ChatGroupCreateDto input, CancellationToken cancellationToken = default)
@@ -76,7 +80,9 @@ public sealed class ChatAppService
         return ChatApplicationMapper.ToConversationDto(result.Conversation, result.Created);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 打开部门群（不存在则创建，成员按部门归属同步）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<ChatConversationDto> OpenDepartmentConversationAsync(ChatDepartmentConversationOpenDto input, CancellationToken cancellationToken = default)
@@ -89,7 +95,9 @@ public sealed class ChatAppService
         return ChatApplicationMapper.ToConversationDto(result.Conversation, result.Created);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 添加群成员
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task AddMembersAsync(ChatMemberAddDto input, CancellationToken cancellationToken = default)
@@ -102,7 +110,9 @@ public sealed class ChatAppService
         await _pushService.PushConversationChangedAsync(input.ConversationId, "member-added", input.UserIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 移除群成员/退群
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task RemoveMemberAsync(ChatMemberRemoveDto input, CancellationToken cancellationToken = default)
@@ -115,7 +125,9 @@ public sealed class ChatAppService
         await _pushService.PushConversationChangedAsync(input.ConversationId, "member-removed", [input.UserId]);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送消息（落库后向会话成员实时推送）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
     public async Task<ChatMessageItemDto> SendMessageAsync(ChatMessageSendDto input, CancellationToken cancellationToken = default)
@@ -131,7 +143,9 @@ public sealed class ChatAppService
         return messageDto;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤回消息（仅本人限时）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
     public async Task RecallMessageAsync(long messageId, CancellationToken cancellationToken = default)
@@ -143,7 +157,9 @@ public sealed class ChatAppService
         await _pushService.PushRecalledAsync(result.Message.ConversationId, result.Message.BasicId, result.RecipientUserIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 编辑消息（仅文本、仅本人、限时窗口）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
     public async Task<ChatMessageItemDto> EditMessageAsync(ChatMessageEditDto input, CancellationToken cancellationToken = default)
@@ -159,7 +175,9 @@ public sealed class ChatAppService
         return ChatApplicationMapper.ToMessageItemDto(result.Message);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 表情回应 toggle（已存在则取消，否则新增）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
     public async Task<ChatReactionToggleResultDto> ToggleReactionAsync(ChatReactionToggleDto input, CancellationToken cancellationToken = default)
@@ -174,7 +192,9 @@ public sealed class ChatAppService
         return new ChatReactionToggleResultDto { Added = result.Added };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Pin 消息（单聊双方皆可，群仅群主/管理员；每会话有上限）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
     public async Task PinMessageAsync(ChatMessagePinDto input, CancellationToken cancellationToken = default)
@@ -187,7 +207,9 @@ public sealed class ChatAppService
         await _pushService.PushConversationChangedAsync(result.Message.ConversationId, "pinned-changed", result.RecipientUserIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取消 Pin 消息
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Send)]
     public async Task UnpinMessageAsync(ChatMessagePinDto input, CancellationToken cancellationToken = default)
@@ -200,7 +222,9 @@ public sealed class ChatAppService
         await _pushService.PushConversationChangedAsync(result.Message.ConversationId, "pinned-changed", result.RecipientUserIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 会话置顶 toggle（个人维度）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<ChatToggleStateDto> TogglePinConversationAsync(ChatConversationToggleDto input, CancellationToken cancellationToken = default)
@@ -216,7 +240,9 @@ public sealed class ChatAppService
         return new ChatToggleStateDto { IsOn = isOn };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 会话免打扰 toggle（个人维度）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<ChatToggleStateDto> ToggleMuteConversationAsync(ChatConversationToggleDto input, CancellationToken cancellationToken = default)
@@ -231,7 +257,9 @@ public sealed class ChatAppService
         return new ChatToggleStateDto { IsOn = isOn };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 标记会话已读
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task MarkReadAsync(ChatMarkReadDto input, CancellationToken cancellationToken = default)
@@ -245,7 +273,9 @@ public sealed class ChatAppService
         await _pushService.PushReadPositionChangedAsync(result.ConversationId, result.UserId, result.LastReadMessageId, result.RecipientUserIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新群信息（群主/管理员；部门群名称禁改；公告变更追加系统提示）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task UpdateConversationInfoAsync(ChatConversationInfoUpdateDto input, CancellationToken cancellationToken = default)
@@ -259,7 +289,9 @@ public sealed class ChatAppService
         await PushGovernanceAsync(result, "info-changed");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 转让群主（仅群聊群主）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task TransferOwnerAsync(ChatOwnerTransferDto input, CancellationToken cancellationToken = default)
@@ -272,7 +304,9 @@ public sealed class ChatAppService
         await PushGovernanceAsync(result, "owner-transferred");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 成员禁言/解除（群主与管理员）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task SetMemberSilenceAsync(ChatMemberSilenceDto input, CancellationToken cancellationToken = default)
@@ -285,7 +319,9 @@ public sealed class ChatAppService
         await PushGovernanceAsync(result, "member-silenced");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置成员角色（仅群主；Admin ↔ Member）
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Manage)]
     public async Task SetMemberRoleAsync(ChatMemberRoleDto input, CancellationToken cancellationToken = default)

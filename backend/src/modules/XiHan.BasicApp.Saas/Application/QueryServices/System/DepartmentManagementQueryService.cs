@@ -49,7 +49,9 @@ public sealed class DepartmentManagementQueryService
         _positionRepository = positionRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取部门管理详情聚合数据
+    /// </summary>
     [PermissionAuthorize(SaasPermissionCodes.Department.Read)]
     public async Task<DepartmentManagementDetailDto?> GetDepartmentManagementDetailAsync(long departmentId, CancellationToken cancellationToken = default)
     {

@@ -36,7 +36,11 @@ public sealed class WorkbenchQueryService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取工作台仪表盘摘要
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>工作台仪表盘摘要</returns>
     [PermissionAuthorize(SaasPermissionCodes.UserStatistics.Read)]
     public async Task<WorkbenchDashboardSummaryDto> GetDashboardSummaryAsync(CancellationToken cancellationToken = default)
     {

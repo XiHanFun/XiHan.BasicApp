@@ -38,7 +38,9 @@ public sealed class ExportTaskQueryService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户的导出任务分页（按创建时间倒序）
+    /// </summary>
     public async Task<PageResultDtoBase<ExportTaskDto>> GetMineAsync(int pageIndex = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
@@ -50,7 +52,9 @@ public sealed class ExportTaskQueryService
         return new PageResultDtoBase<ExportTaskDto>(dtos, normalizedPageIndex, normalizedPageSize, total);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户的导出任务详情（自鉴权；不存在返回 null）
+    /// </summary>
     public async Task<ExportTaskDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)

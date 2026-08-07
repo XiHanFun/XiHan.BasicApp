@@ -28,7 +28,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
         _assistantDomainService = assistantDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建助手
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiAssistantPermissionCodes.Create)]
     public async Task<AiAssistantDetailDto> CreateAsync(AiAssistantCreateDto input, CancellationToken cancellationToken = default)
@@ -40,7 +42,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新助手
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiAssistantPermissionCodes.Update)]
     public async Task<AiAssistantDetailDto> UpdateAsync(AiAssistantUpdateDto input, CancellationToken cancellationToken = default)
@@ -52,7 +56,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新助手状态
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiAssistantPermissionCodes.Update)]
     public async Task<AiAssistantDetailDto> UpdateStatusAsync(AiAssistantStatusUpdateDto input, CancellationToken cancellationToken = default)
@@ -64,7 +70,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设为默认助手
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiAssistantPermissionCodes.Update)]
     public async Task<AiAssistantDetailDto> SetDefaultAsync(AiAssistantActionDto input, CancellationToken cancellationToken = default)
@@ -76,7 +84,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除助手
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiAssistantPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)

@@ -69,7 +69,9 @@ public sealed class ChatQueryService
         _superAdminProtector = superAdminProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取我的会话列表（含未读数，按最后消息时间倒序）
+    /// </summary>
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<List<ChatConversationListItemDto>> GetMyConversationsAsync(CancellationToken cancellationToken = default)
     {
@@ -148,7 +150,9 @@ public sealed class ChatQueryService
             .ThenByDescending(item => item.ConversationId)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取会话消息历史（游标分页 / AroundMessageId 定位，仅会话成员）
+    /// </summary>
     [HttpPost]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<ChatMessageHistoryResultDto> GetMessageHistoryAsync(ChatMessageHistoryQueryDto input, CancellationToken cancellationToken = default)
@@ -186,7 +190,9 @@ public sealed class ChatQueryService
         return new ChatMessageHistoryResultDto { Items = items, HasMore = hasMore };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 会话内消息搜索（关键字匹配正文与文件名，排除已撤回；仅会话成员）
+    /// </summary>
     /// <remarks>GetMessageSearchAsync：Get 前缀剥离 → POST /ChatQuery/MessageSearch（[HttpPost] 显式）</remarks>
     [HttpPost]
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
@@ -211,7 +217,9 @@ public sealed class ChatQueryService
         return new ChatMessageHistoryResultDto { Items = items, HasMore = hasMore };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取会话成员已读位（群已读回执；仅会话成员）
+    /// </summary>
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<List<ChatReadPositionDto>> GetReadPositionsAsync(long conversationId, CancellationToken cancellationToken = default)
     {
@@ -226,7 +234,9 @@ public sealed class ChatQueryService
         })];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取会话内被 Pin 的消息（仅会话成员）
+    /// </summary>
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<List<ChatMessageItemDto>> GetPinnedMessagesAsync(long conversationId, CancellationToken cancellationToken = default)
     {
@@ -257,7 +267,9 @@ public sealed class ChatQueryService
             ChatApplicationMapper.ToMessageItemDto(message, reactionMap.GetValueOrDefault(message.BasicId)))];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取会话成员列表（仅会话成员）
+    /// </summary>
     [PermissionAuthorize(SaasPermissionCodes.Chat.Read)]
     public async Task<List<ChatMemberItemDto>> GetMembersAsync(long conversationId, CancellationToken cancellationToken = default)
     {
@@ -277,7 +289,9 @@ public sealed class ChatQueryService
             .Select(member => ChatApplicationMapper.ToMemberItemDto(member, userMap.GetValueOrDefault(member.UserId)?.UserName))];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
+    /// </summary>
     /// <remarks>
     /// 仅需聊天查看权限的轻量选人端点（发起单聊/建群/加成员）：
     /// 与用户管理 GetEnabledUsersAsync 同语义（固定启用用户 + 超管隐藏），

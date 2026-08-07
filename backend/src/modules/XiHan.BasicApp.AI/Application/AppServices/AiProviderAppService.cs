@@ -54,7 +54,9 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         _embeddingResolver.Invalidate();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建 provider
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPermissionCodes.Create)]
     public async Task<AiProviderDetailDto> CreateAsync(AiProviderCreateDto input, CancellationToken cancellationToken = default)
@@ -67,7 +69,9 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 provider
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPermissionCodes.Update)]
     public async Task<AiProviderDetailDto> UpdateAsync(AiProviderUpdateDto input, CancellationToken cancellationToken = default)
@@ -80,7 +84,9 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 provider 状态
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPermissionCodes.Update)]
     public async Task<AiProviderDetailDto> UpdateStatusAsync(AiProviderStatusUpdateDto input, CancellationToken cancellationToken = default)
@@ -93,7 +99,9 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设为默认 provider
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPermissionCodes.Update)]
     public async Task<AiProviderDetailDto> SetDefaultAsync(AiProviderActionDto input, CancellationToken cancellationToken = default)
@@ -106,7 +114,9 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         return AiProviderApplicationMapper.ToDetailDto(result.Provider);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除 provider
+    /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(AiPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
@@ -116,7 +126,9 @@ public sealed class AiProviderAppService : AiApplicationService, IAiProviderAppS
         InvalidateResolvers();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 测试连接（对指定 provider 发起一次极简推理）
+    /// </summary>
     [PermissionAuthorize(AiPermissionCodes.Execute)]
     [HttpPost]
     public async Task<AiProviderTestConnectionResultDto> TestConnectionAsync(AiProviderActionDto input, CancellationToken cancellationToken = default)
