@@ -87,6 +87,11 @@ public sealed class TenantDetailDto : BasicAppDto
     public int Sort { get; set; }
 
     /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTimeOffset CreatedTime { get; set; }

@@ -314,7 +314,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row) {
-        handleEdit(row)
+        void handleEdit(row)
       }
       break
     case 'initdb':
@@ -385,26 +385,34 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: TenantListItemDto) {
+async function handleEdit(row: TenantListItemDto) {
   editingStatus.value = row.tenantStatus
+  // 列表行不含备注，取详情回填；否则保存时会把备注覆盖为空
+  let detail: TenantDetailDto | null = null
+  try {
+    detail = await tenantManagementApi.detail(row.basicId)
+  }
+  catch {
+    detail = null
+  }
   tenantForm.value = {
     basicId: row.basicId,
     // 连接串敏感、绝不回显：编辑时留空表示保持不变
     connectionString: null,
-    databaseType: row.databaseType ?? null,
-    domain: row.domain ?? null,
-    editionId: row.editionId ?? null,
-    expirationTime: row.expirationTime ?? null,
-    isolationMode: row.isolationMode,
-    logo: row.logo ?? null,
-    remark: null,
-    sort: row.sort,
-    storageLimit: row.storageLimit ?? null,
-    tenantCode: row.tenantCode,
-    tenantName: row.tenantName,
-    tenantShortName: row.tenantShortName ?? null,
-    tenantStatus: row.tenantStatus,
-    userLimit: row.userLimit ?? null,
+    databaseType: detail?.databaseType ?? row.databaseType ?? null,
+    domain: detail?.domain ?? row.domain ?? null,
+    editionId: detail?.editionId ?? row.editionId ?? null,
+    expirationTime: detail?.expirationTime ?? row.expirationTime ?? null,
+    isolationMode: detail?.isolationMode ?? row.isolationMode,
+    logo: detail?.logo ?? row.logo ?? null,
+    remark: detail?.remark ?? null,
+    sort: detail?.sort ?? row.sort,
+    storageLimit: detail?.storageLimit ?? row.storageLimit ?? null,
+    tenantCode: detail?.tenantCode ?? row.tenantCode,
+    tenantName: detail?.tenantName ?? row.tenantName,
+    tenantShortName: detail?.tenantShortName ?? row.tenantShortName ?? null,
+    tenantStatus: detail?.tenantStatus ?? row.tenantStatus,
+    userLimit: detail?.userLimit ?? row.userLimit ?? null,
   }
   modalVisible.value = true
 }

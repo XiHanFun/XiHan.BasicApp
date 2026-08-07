@@ -8,6 +8,7 @@ import type {
   PermissionListItemDto,
   RoleCreateDto,
   RoleDataScopeListItemDto,
+  RoleDetailDto,
   RoleListItemDto,
   RoleManagementDetailDto,
   RolePermissionListItemDto,
@@ -232,7 +233,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row) {
-        handleEdit(row)
+        void handleEdit(row)
       }
       break
     case 'toggle':
@@ -733,19 +734,27 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: RoleListItemDto) {
+async function handleEdit(row: RoleListItemDto) {
   editingStatus.value = row.status
+  // 列表行不含备注，取详情回填；否则保存时会把备注覆盖为空
+  let detail: RoleDetailDto | null = null
+  try {
+    detail = await roleManagementApi.detail(row.basicId)
+  }
+  catch {
+    detail = null
+  }
   roleForm.value = {
     basicId: row.basicId,
-    dataScope: row.dataScope,
-    maxMembers: row.maxMembers,
-    remark: null,
-    roleCode: row.roleCode,
-    roleDescription: row.roleDescription,
-    roleName: row.roleName,
-    roleType: row.roleType,
-    sort: row.sort,
-    status: row.status,
+    dataScope: detail?.dataScope ?? row.dataScope,
+    maxMembers: detail?.maxMembers ?? row.maxMembers,
+    remark: detail?.remark ?? null,
+    roleCode: detail?.roleCode ?? row.roleCode,
+    roleDescription: detail?.roleDescription ?? row.roleDescription,
+    roleName: detail?.roleName ?? row.roleName,
+    roleType: detail?.roleType ?? row.roleType,
+    sort: detail?.sort ?? row.sort,
+    status: detail?.status ?? row.status,
   }
   modalVisible.value = true
 }

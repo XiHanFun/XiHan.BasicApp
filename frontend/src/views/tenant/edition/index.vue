@@ -4,6 +4,7 @@ import type {
   PageResult,
   PermissionListItemDto,
   TenantEditionCreateDto,
+  TenantEditionDetailDto,
   TenantEditionListItemDto,
   TenantEditionPermissionListItemDto,
   TenantEditionUpdateDto,
@@ -268,7 +269,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row) {
-        handleEdit(row)
+        void handleEdit(row)
       }
       break
     case 'enable':
@@ -327,21 +328,29 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: TenantEditionListItemDto) {
+async function handleEdit(row: TenantEditionListItemDto) {
+  // 列表行不含备注，取详情回填；否则保存时会把备注覆盖为空
+  let detail: TenantEditionDetailDto | null = null
+  try {
+    detail = await tenantEditionApi.detail(row.basicId)
+  }
+  catch {
+    detail = null
+  }
   editionForm.value = {
     basicId: row.basicId,
-    billingPeriodMonths: row.billingPeriodMonths ?? null,
-    description: row.description ?? null,
-    editionCode: row.editionCode,
-    editionName: row.editionName,
-    isDefault: row.isDefault,
-    isFree: row.isFree,
-    price: row.price ?? null,
-    remark: null,
-    sort: row.sort,
-    status: row.status,
-    storageLimit: row.storageLimit ?? null,
-    userLimit: row.userLimit ?? null,
+    billingPeriodMonths: detail?.billingPeriodMonths ?? row.billingPeriodMonths ?? null,
+    description: detail?.description ?? row.description ?? null,
+    editionCode: detail?.editionCode ?? row.editionCode,
+    editionName: detail?.editionName ?? row.editionName,
+    isDefault: detail?.isDefault ?? row.isDefault,
+    isFree: detail?.isFree ?? row.isFree,
+    price: detail?.price ?? row.price ?? null,
+    remark: detail?.remark ?? null,
+    sort: detail?.sort ?? row.sort,
+    status: detail?.status ?? row.status,
+    storageLimit: detail?.storageLimit ?? row.storageLimit ?? null,
+    userLimit: detail?.userLimit ?? row.userLimit ?? null,
   }
   modalVisible.value = true
 }

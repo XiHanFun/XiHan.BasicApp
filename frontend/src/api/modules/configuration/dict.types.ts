@@ -29,6 +29,7 @@ export interface DictDetailDto extends DictListItemDto {
   createdId?: ApiId | null
   modifiedBy?: string | null
   modifiedId?: ApiId | null
+  remark?: string | null
 }
 
 export interface DictItemPageQueryDto extends PageRequest {
@@ -59,8 +60,10 @@ export interface DictItemListItemDto extends BasicDto {
 export interface DictItemDetailDto extends DictItemListItemDto {
   createdBy?: string | null
   createdId?: ApiId | null
+  metadata?: string | null
   modifiedBy?: string | null
   modifiedId?: ApiId | null
+  remark?: string | null
 }
 
 export interface DictItemTreeQueryDto {
@@ -95,6 +98,7 @@ export interface DictUpdateDto extends BasicDto {
   dictDescription?: string | null
   dictName: string
   dictType: string
+  remark?: string | null
   sort: number
 }
 
@@ -120,7 +124,9 @@ export interface DictItemUpdateDto extends BasicDto {
   itemDescription?: string | null
   itemName: string
   itemValue?: string | null
+  metadata?: string | null
   parentId?: ApiId | null
+  remark?: string | null
   sort: number
 }
 

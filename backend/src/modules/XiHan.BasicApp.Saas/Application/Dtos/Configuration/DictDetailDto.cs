@@ -9,6 +9,11 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public sealed class DictDetailDto : DictListItemDto
 {
     /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
     /// 创建者主键
     /// </summary>
     public long? CreatedId { get; set; }

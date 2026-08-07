@@ -197,6 +197,7 @@ public static class TenantApplicationMapper
             UserLimit = tenant.UserLimit,
             StorageLimit = tenant.StorageLimit,
             Sort = tenant.Sort,
+            Remark = tenant.Remark,
             CreatedTime = tenant.CreatedTime,
             CreatedId = tenant.CreatedId,
             CreatedBy = tenant.CreatedBy,

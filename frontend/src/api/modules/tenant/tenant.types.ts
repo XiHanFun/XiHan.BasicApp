@@ -42,6 +42,7 @@ export interface TenantDetailDto extends TenantListItemDto {
   createdId?: ApiId | null
   modifiedBy?: string | null
   modifiedId?: ApiId | null
+  remark?: string | null
 }
 
 export interface TenantCreateDto extends BasicCreateDto {
