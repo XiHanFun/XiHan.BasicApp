@@ -1,7 +1,5 @@
 export default {
   bell: 'Chat',
-  /** Dynamic island hint for messages received outside the chat page */
-  island_new_message: '{name}: {preview}',
   island_new_message_fallback: 'New message',
   drawer: {
     title: 'Chat',
