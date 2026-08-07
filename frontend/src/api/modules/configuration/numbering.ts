@@ -21,7 +21,6 @@ import type {
   NumberingRuleStatusUpdateDto,
   NumberingRuleUpdateDto,
   NumberingScope,
-  NumberingTimeZoneOptionDto,
 } from './numbering.types'
 import { createDynamicApiClient } from '../../base'
 
@@ -131,9 +130,6 @@ export const numberingApi = {
    * @returns 后端已验证可解析的时区选项。
    * @throws 查询权限或服务运行环境错误。
    */
-  timeZoneOptions() {
-    return ruleQueryApi.get<NumberingTimeZoneOptionDto[]>('NumberingTimeZoneOptions')
-  },
 
   /**
    * 预览规则格式且不消耗流水。

@@ -8,7 +8,6 @@ import type {
   NumberingRuleDetailDto,
   NumberingRuleUpdateDto,
   NumberingScope,
-  NumberingTimeZoneOptionDto,
 } from '@/api'
 import {
   NAlert,
@@ -33,6 +32,7 @@ import {
   NumberingResetCycle,
 } from '@/api'
 import { XEditModal } from '~/components'
+import { useTimezoneOptions } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 
 defineOptions({ name: 'NumberingRuleEditor' })
@@ -68,10 +68,9 @@ const { t } = useI18n()
 const message = useMessage()
 const submitLoading = ref(false)
 const previewLoading = ref(false)
-const timeZoneLoading = ref(false)
 const previewNumber = ref('')
+const { loading: timeZoneLoading, ensureLoaded, withCurrent } = useTimezoneOptions()
 const form = ref<RuleFormModel>(createDefaultForm())
-const serverTimeZoneOptions = ref<NumberingTimeZoneOptionDto[]>([])
 
 const title = computed(() => props.detail ? t('setting.numbering.edit_title') : t('setting.numbering.add_title'))
 const formatFrozen = computed(() => Boolean(props.detail?.hasAllocated))
@@ -86,19 +85,9 @@ const resetCycleOptions = useEnumOptions('NumberingResetCycle', [
   { label: 'Daily', value: NumberingResetCycle.Daily },
 ])
 
-const timeZoneOptions = computed(() => {
-  const options = serverTimeZoneOptions.value.map(option => ({
-    label: createTimeZoneOptionLabel(option),
-    value: option.id,
-  }))
-  const currentTimeZoneId = form.value.timeZoneId.trim()
-
-  // 历史规则可能来自另一操作系统；保留当前值只用于无损展示，提交时仍由后端再次校验。
-  if (currentTimeZoneId && !options.some(option => option.value === currentTimeZoneId))
-    options.unshift({ label: currentTimeZoneId, value: currentTimeZoneId })
-
-  return options
-})
+// 时区目录与顶栏 / 个人中心共用同一来源，此处不再单独维护
+const timeZoneOptions = computed(() =>
+  withCurrent(form.value.timeZoneId).map(zone => ({ label: zone.label, value: zone.value })))
 
 watch(
   () => [props.show, props.detail] as const,
@@ -107,42 +96,10 @@ watch(
       return
     form.value = props.detail ? toForm(props.detail) : createDefaultForm()
     previewNumber.value = ''
-    void loadTimeZoneOptions()
+    void ensureLoaded()
   },
   { immediate: true },
 )
-
-/** 组合时区标识和后端显示名称，便于在可搜索下拉中识别同偏移地区。 */
-function createTimeZoneOptionLabel(option: NumberingTimeZoneOptionDto): string {
-  const displayName = option.displayName.trim()
-  return displayName && displayName !== option.id
-    ? `${option.id} — ${displayName}`
-    : option.id
-}
-
-/**
- * 加载后端确认可解析的时区目录；组件实例内缓存，避免每次开关弹窗重复请求。
- * @returns 完成信号。
- * @throws 请求异常由统一拦截器包装，并在当前表单显示友好提示。
- */
-async function loadTimeZoneOptions(): Promise<void> {
-  if (timeZoneLoading.value || serverTimeZoneOptions.value.length > 0)
-    return
-
-  timeZoneLoading.value = true
-  try {
-    const options = await numberingApi.timeZoneOptions()
-    if (options.length === 0)
-      throw new Error(t('setting.numbering.time_zone_load_failed'))
-    serverTimeZoneOptions.value = options
-  }
-  catch (error) {
-    message.error((error as Error).message || t('setting.numbering.time_zone_load_failed'))
-  }
-  finally {
-    timeZoneLoading.value = false
-  }
-}
 
 /** 创建安全默认表单。 */
 function createDefaultForm(): RuleFormModel {
