@@ -322,7 +322,7 @@ watch(
   { immediate: true },
 )
 
-// ── 折叠态堆叠：队列里还有几条待展示，就在壳体后方露出几层 ──────────────
+// ── 折叠态堆叠：队列里还有几条待展示，就在壳体左右两侧露出几层 ────────────
 // 叠层只做视觉暗示、不渲染各自文案：岛浮在顶栏之上，平铺多条会盖住工具栏。
 // 「都能看到」由队列保证（逐条完整停留），叠层负责「知道还有多少」。
 const STACK_MAX_LAYERS = 2
@@ -336,17 +336,24 @@ const stackDepth = computed(() => {
   return Math.min(pendingCount.value, STACK_MAX_LAYERS)
 })
 
-/** 叠层几何：与当前折叠形态（胶囊/卡片）同宽同高同圆角，逐层下移并缩窄 */
+/**
+ * 叠层几何：逐层向左右两侧展开、上下收进，从壳体两侧露出边缘。
+ * 不往下露——岛贴着顶栏，向下露会压住面包屑那一行。
+ */
 function stackStyle(index: number): Record<string, string> {
   const depth = index + 1
   const isCard = mode.value === 'card'
-  const offset = (hovering.value ? 9 : 5) * depth
-  const shrink = (hovering.value ? 0.04 : 0.06) * depth
+  const baseWidth = isCard ? panelWidth() : pillWidth.value
+  const baseHeight = isCard ? cardHeight.value : PILL_HEIGHT
+  // 每侧露出的宽度；悬停时摊开一些
+  const spread = (hovering.value ? 12 : 7) * depth
+  // 上下各收进的高度：越靠后越矮，读起来才像叠在后面
+  const inset = 4 * depth
   return {
-    width: `${isCard ? panelWidth() : pillWidth.value}px`,
-    height: `${isCard ? cardHeight.value : PILL_HEIGHT}px`,
+    width: `${baseWidth + spread * 2}px`,
+    height: `${Math.max(baseHeight - inset * 2, 10)}px`,
     borderRadius: isCard ? '20px' : '18px',
-    transform: `translateX(-50%) translateY(${offset}px) scale(${1 - shrink})`,
+    transform: `translateX(-50%) translateY(${inset}px)`,
     opacity: `${0.55 - (depth - 1) * 0.2}`,
   }
 }
