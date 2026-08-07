@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -35,7 +36,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoId_CrTi", nameof(ConversationId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_SeUsId", nameof(SenderUserId), OrderByType.Asc)]
-public partial class SysChatMessage : BasicAppCreationEntity
+public partial class SysChatMessage : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 会话ID
