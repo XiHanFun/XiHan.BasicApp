@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -70,6 +71,10 @@ public sealed class ChatDomainService : IChatDomainService
 
     private readonly IUserDepartmentRepository _userDepartmentRepository;
 
+    private readonly ITenantUserRepository _tenantUserRepository;
+
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -80,7 +85,9 @@ public sealed class ChatDomainService : IChatDomainService
         IChatMessageReactionRepository reactionRepository,
         IUserRepository userRepository,
         IDepartmentRepository departmentRepository,
-        IUserDepartmentRepository userDepartmentRepository)
+        IUserDepartmentRepository userDepartmentRepository,
+        ITenantUserRepository tenantUserRepository,
+        ICurrentTenant currentTenant)
     {
         _conversationRepository = conversationRepository;
         _memberRepository = memberRepository;
@@ -89,6 +96,8 @@ public sealed class ChatDomainService : IChatDomainService
         _userRepository = userRepository;
         _departmentRepository = departmentRepository;
         _userDepartmentRepository = userDepartmentRepository;
+        _tenantUserRepository = tenantUserRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <inheritdoc />
@@ -948,8 +957,54 @@ public sealed class ChatDomainService : IChatDomainService
         }
     }
 
+    /// <summary>
+    /// 校验参与者都能在当前租户作用域内使用该会话
+    /// </summary>
+    /// <remarks>
+    /// 聊天是严格租户隔离的（会话与成员行均标记 IStrictMultiTenantEntity），成员行的 TenantId 取自
+    /// 建行时所处的上下文而非成员自己的归属。若不拦，平台态把租户用户拉进群会得到一行 TenantId=0 的
+    /// 成员记录——关系建成了，但该用户在自己的租户里永远看不到这个会话，只会收到推送，成为死关系。
+    /// 故在唯一收口处校验：平台作用域只收平台归属用户；租户作用域只收该租户的成员。
+    /// </remarks>
+    private async Task EnsureUsersInCurrentScopeAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken)
+    {
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var ids = userIds.Distinct().ToList();
+        var tenantId = _currentTenant.Id;
+
+        if (tenantId is not { } scopeId || scopeId == 0)
+        {
+            // 平台作用域：只允许平台归属用户（SysUser.TenantId = 0）
+            var users = await _userRepository.GetListAsync(user => ids.Contains(user.BasicId), cancellationToken);
+            var outsider = users.FirstOrDefault(user => user.TenantId != 0);
+            if (outsider is not null)
+            {
+                throw new InvalidOperationException($"用户「{outsider.UserName}」属于租户，不能加入平台会话；请在该租户内发起聊天。");
+            }
+
+            return;
+        }
+
+        // 租户作用域：只允许该租户的成员（含平台归属但已加入该租户的用户）
+        var members = await _tenantUserRepository.GetListAsync(
+            member => member.TenantId == scopeId && ids.Contains(member.UserId),
+            cancellationToken);
+        var memberIds = members.Select(member => member.UserId).ToHashSet();
+        var missing = ids.Where(id => !memberIds.Contains(id)).ToList();
+        if (missing.Count > 0)
+        {
+            throw new InvalidOperationException("存在不属于当前租户的用户，不能加入本租户会话。");
+        }
+    }
+
     private async Task AddMemberRowsAsync(long conversationId, IReadOnlyCollection<long> userIds, long? ownerUserId, DateTimeOffset now, CancellationToken cancellationToken)
     {
+        await EnsureUsersInCurrentScopeAsync(userIds, cancellationToken);
+
         foreach (var userId in userIds)
         {
             _ = await _memberRepository.AddAsync(new SysChatConversationMember
