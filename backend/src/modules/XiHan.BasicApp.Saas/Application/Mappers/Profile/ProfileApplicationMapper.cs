@@ -140,8 +140,6 @@ public static class ProfileApplicationMapper
             input.Avatar,
             input.Gender,
             input.Birthday,
-            input.TimeZone,
-            input.Language,
             input.Country,
             input.Remark);
     }

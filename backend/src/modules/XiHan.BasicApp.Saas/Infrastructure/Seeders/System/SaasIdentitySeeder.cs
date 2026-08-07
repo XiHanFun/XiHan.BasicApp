@@ -98,7 +98,6 @@ public sealed class SaasIdentitySeeder(
         changed |= SetIfChanged(user.TenantId, 0, value => user.TenantId = value);
         changed |= SetIfChanged(user.UserName, SuperAdminUserName, value => user.UserName = value);
         changed |= SetIfChanged(user.Status, EnableStatus.Enabled, value => user.Status = value);
-        changed |= SetIfChanged(user.Language, string.IsNullOrWhiteSpace(user.Language) ? "zh-CN" : user.Language, value => user.Language = value);
         changed |= SetIfChanged(user.IsSystemAccount, true, value => user.IsSystemAccount = value);
         changed |= SetIfChanged(user.Remark, "系统初始化超级管理员账号", value => user.Remark = value);
 

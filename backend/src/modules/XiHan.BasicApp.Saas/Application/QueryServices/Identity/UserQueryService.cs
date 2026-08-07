@@ -260,7 +260,6 @@ public sealed class UserQueryService
             input.Gender,
             input.Status,
             input.IsSystemAccount,
-            input.Language,
             input.Country);
         // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetUserPageAsync 处理）
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
@@ -294,7 +293,6 @@ public sealed class UserQueryService
             input.Gender,
             EnableStatus.Enabled,
             input.IsSystemAccount,
-            language: null,
             country: null);
         ApplyUserSorts(request);
         return request;
@@ -309,7 +307,6 @@ public sealed class UserQueryService
         UserGender? gender,
         EnableStatus? status,
         bool? isSystemAccount,
-        string? language,
         string? country)
     {
         if (!string.IsNullOrWhiteSpace(keyword))
@@ -336,11 +333,6 @@ public sealed class UserQueryService
         if (isSystemAccount.HasValue)
         {
             request.Conditions.AddFilter(nameof(SysUser.IsSystemAccount), isSystemAccount.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(language))
-        {
-            request.Conditions.AddFilter(nameof(SysUser.Language), language.Trim());
         }
 
         if (!string.IsNullOrWhiteSpace(country))

@@ -21,8 +21,6 @@ public sealed record UserCreateCommand(
     UserGender Gender,
     DateTimeOffset? Birthday,
     EnableStatus Status,
-    string? TimeZone,
-    string? Language,
     string? Country,
     TenantMemberType MemberType,
     DateTimeOffset? EffectiveTime,
@@ -44,8 +42,6 @@ public sealed record UserUpdateCommand(
     string? Phone,
     UserGender Gender,
     DateTimeOffset? Birthday,
-    string? TimeZone,
-    string? Language,
     string? Country,
     string? Remark);
 

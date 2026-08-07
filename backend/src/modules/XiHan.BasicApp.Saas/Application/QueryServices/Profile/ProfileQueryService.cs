@@ -337,8 +337,6 @@ public sealed class ProfileQueryService
             Phone = user.Phone,
             Gender = (int)user.Gender,
             Birthday = user.Birthday,
-            TimeZone = user.TimeZone,
-            Language = user.Language,
             Country = user.Country,
             Remark = user.Remark,
             TenantId = tenantId,

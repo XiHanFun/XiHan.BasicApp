@@ -166,8 +166,6 @@ public sealed class UserDomainService
             Gender = command.Gender,
             Birthday = command.Birthday,
             Status = command.Status,
-            TimeZone = NormalizeNullable(command.TimeZone),
-            Language = NormalizeNullable(command.Language) ?? "zh-CN",
             Country = NormalizeNullable(command.Country),
             IsSystemAccount = false,
             Remark = NormalizeNullable(command.Remark)
@@ -211,8 +209,6 @@ public sealed class UserDomainService
         user.Phone = normalizedPhone;
         user.Gender = command.Gender;
         user.Birthday = command.Birthday;
-        user.TimeZone = NormalizeNullable(command.TimeZone);
-        user.Language = NormalizeNullable(command.Language);
         user.Country = NormalizeNullable(command.Country);
         user.Remark = NormalizeNullable(command.Remark);
 
@@ -1243,8 +1239,6 @@ public sealed class UserDomainService
         ValidateOptionalLength(command.Avatar, 500, nameof(command.Avatar), "头像不能超过 500 个字符。");
         ValidateOptionalLength(command.Email, 100, nameof(command.Email), "邮箱不能超过 100 个字符。");
         ValidateOptionalLength(command.Phone, 20, nameof(command.Phone), "手机号不能超过 20 个字符。");
-        ValidateOptionalLength(command.TimeZone, 50, nameof(command.TimeZone), "时区不能超过 50 个字符。");
-        ValidateOptionalLength(command.Language, 10, nameof(command.Language), "语言不能超过 10 个字符。");
         ValidateOptionalLength(command.Country, 50, nameof(command.Country), "国家/地区不能超过 50 个字符。");
         ValidateOptionalLength(command.DisplayName, 100, nameof(command.DisplayName), "租户内显示名不能超过 100 个字符。");
         ValidateOptionalLength(command.InviteRemark, 500, nameof(command.InviteRemark), "邀请备注不能超过 500 个字符。");
@@ -1272,8 +1266,6 @@ public sealed class UserDomainService
         ValidateOptionalLength(command.Avatar, 500, nameof(command.Avatar), "头像不能超过 500 个字符。");
         ValidateOptionalLength(command.Email, 100, nameof(command.Email), "邮箱不能超过 100 个字符。");
         ValidateOptionalLength(command.Phone, 20, nameof(command.Phone), "手机号不能超过 20 个字符。");
-        ValidateOptionalLength(command.TimeZone, 50, nameof(command.TimeZone), "时区不能超过 50 个字符。");
-        ValidateOptionalLength(command.Language, 10, nameof(command.Language), "语言不能超过 10 个字符。");
         ValidateOptionalLength(command.Country, 50, nameof(command.Country), "国家/地区不能超过 50 个字符。");
         ValidateOptionalLength(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。");
         ValidateEnum(command.Gender, nameof(command.Gender));

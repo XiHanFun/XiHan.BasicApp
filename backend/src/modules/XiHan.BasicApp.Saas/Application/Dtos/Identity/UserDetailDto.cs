@@ -48,16 +48,6 @@ public sealed class UserDetailDto : BasicAppDto
     public DateTimeOffset? LastLoginTime { get; set; }
 
     /// <summary>
-    /// 时区
-    /// </summary>
-    public string? TimeZone { get; set; }
-
-    /// <summary>
-    /// 语言
-    /// </summary>
-    public string? Language { get; set; }
-
-    /// <summary>
     /// 国家/地区
     /// </summary>
     public string? Country { get; set; }

@@ -597,7 +597,6 @@ public sealed class SaasBusinessTenantSeeder(
             Email = seed.Email,
             Status = EnableStatus.Enabled,
             IsActive = true,
-            Language = "zh-CN",
             IsSystemAccount = false,
             Remark = "系统初始化业务租户账号",
         };

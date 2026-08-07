@@ -77,9 +77,7 @@ interface UserFormState {
   phone: string
   gender: UserGender
   birthday: number | null
-  language: string
   country: string
-  timeZone: string
   status: EnableStatus
   remark: string
   initialPassword: string
@@ -93,20 +91,6 @@ const dialog = useDialog()
 
 /** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
 const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
-
-const languageOptions = [
-  { label: '简体中文', value: 'zh-CN' },
-  { label: '繁体中文', value: 'zh-TW' },
-  { label: 'English', value: 'en-US' },
-  { label: '日本語', value: 'ja-JP' },
-]
-
-const timezoneOptions = [
-  { label: 'Asia/Shanghai (UTC+8)', value: 'Asia/Shanghai' },
-  { label: 'Asia/Tokyo (UTC+9)', value: 'Asia/Tokyo' },
-  { label: 'America/New_York (UTC-5)', value: 'America/New_York' },
-  { label: 'Europe/London (UTC+0)', value: 'Europe/London' },
-]
 
 // 搜索/表单选项
 const statusOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
@@ -190,8 +174,6 @@ const detUser = computed(() => {
     displayName: u.realName || u.nickName || u.userName,
     initials: getInitials(u),
     avatar: getAvatarStyle(u.userName),
-    language: u.language ?? '—',
-    timeZone: u.timeZone ?? '—',
     country: u.country ?? '—',
     gender: getOptionLabel(genderEnumOptions.value, u.gender),
     roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
@@ -244,9 +226,7 @@ function createDefaultForm(): UserFormState {
     phone: '',
     gender: UserGender.Unknown,
     birthday: null,
-    language: 'zh-CN',
     country: '',
-    timeZone: 'Asia/Shanghai',
     status: EnableStatus.Enabled,
     remark: '',
     initialPassword: '',
@@ -400,10 +380,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as UserListItemDto
-      const region = [r.country, r.language].filter(Boolean).join(' · ') || '—'
       return h('div', { class: 'tbl-cell-2l' }, [
-        h('div', { class: 'tbl-cell-2l__primary' }, region),
-        r.timeZone ? h('div', { class: 'tbl-cell-2l__secondary' }, r.timeZone) : null,
+        h('div', { class: 'tbl-cell-2l__primary' }, r.country || '—'),
       ])
     },
   },
@@ -640,9 +618,7 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
     phone: '',
     gender: u.gender,
     birthday: null,
-    language: u.language ?? 'zh-CN',
     country: u.country ?? '',
-    timeZone: u.timeZone ?? 'Asia/Shanghai',
     status: u.status,
     remark: u.remark ?? '',
     initialPassword: '',
@@ -758,12 +734,10 @@ async function saveUser() {
         country: normalizeStr(form.country),
         email: normalizeStr(form.email),
         gender: form.gender,
-        language: form.language,
         nickName: normalizeStr(form.nickName),
         phone: normalizeStr(form.phone),
         realName: normalizeStr(form.realName),
         remark: normalizeStr(form.remark),
-        timeZone: normalizeStr(form.timeZone),
       }
       await userManagementApi.update(updateInput)
       if (form.status !== undefined) {
@@ -781,9 +755,7 @@ async function saveUser() {
         gender: form.gender,
         birthday: form.birthday ? new Date(form.birthday).toISOString() : null,
         status: form.status,
-        language: form.language,
         country: normalizeStr(form.country),
-        timeZone: normalizeStr(form.timeZone),
         memberType: TenantMemberType.Member,
         remark: normalizeStr(form.remark),
         avatar: null,
@@ -1159,19 +1131,9 @@ async function confirmDelete() {
               <NDatePicker v-model:value="userForm.birthday" type="date" />
             </NFormItem>
             <NFormItem
-              :label="t('identity.user.label_language')"
-            >
-              <NSelect v-model:value="userForm.language" :options="languageOptions" />
-            </NFormItem>
-            <NFormItem
               :label="t('identity.user.label_country')"
             >
               <NInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_timezone')"
-            >
-              <NSelect v-model:value="userForm.timeZone" :options="timezoneOptions" />
             </NFormItem>
             <NFormItem
               :label="t('identity.user.label_status')"
@@ -1349,10 +1311,6 @@ async function confirmDelete() {
       </div>
       <template v-else-if="detUser">
         <div class="det-info-grid">
-          <div>
-            <span class="muted">{{ t('identity.user.detail.language_timezone') }}</span>
-            {{ detUser.language }} / {{ detUser.timeZone }}
-          </div>
           <div>
             <span class="muted">{{ t('identity.user.detail.country') }}</span>
             {{ detUser.country }}
