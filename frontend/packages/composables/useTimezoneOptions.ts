@@ -4,7 +4,7 @@ import { useAppContext } from '~/stores/app-context'
 export interface TimezoneOption {
   /** IANA 时区标识，保存值 */
   value: string
-  /** 下拉展示文本：`{IANA ID} — (UTC±hh:mm) {显示名}` */
+  /** 下拉展示文本：`{IANA ID} (UTC±hh:mm)` */
   label: string
   /** 相对 UTC 的基础偏移分钟数 */
   offsetMinutes: number
@@ -50,11 +50,11 @@ async function load(): Promise<void> {
   pending = (async () => {
     try {
       const list = await useAppContext().apis.timeZoneApi.options()
+      // 只取 IANA ID + 偏移：后端 displayName 自带 `(UTC+08:00)` 前缀且拖着一长串城市名，
+      // 拼进来既重复又冗长（Asia/Shanghai — (UTC+08:00) (UTC+08:00) 北京, 重庆, ...）
       options.value = list.map(item => ({
         value: item.id,
-        label: item.displayName && item.displayName !== item.id
-          ? `${item.id} — (${formatOffset(item.baseUtcOffsetMinutes)}) ${item.displayName}`
-          : `${item.id} — (${formatOffset(item.baseUtcOffsetMinutes)})`,
+        label: `${item.id} (${formatOffset(item.baseUtcOffsetMinutes)})`,
         offsetMinutes: item.baseUtcOffsetMinutes,
       }))
     }
