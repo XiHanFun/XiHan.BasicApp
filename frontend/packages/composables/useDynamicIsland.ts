@@ -102,10 +102,8 @@ export interface ServerTaskProgressPayload {
 const SUCCESS_LINGER = 1600
 const ERROR_LINGER = 3200
 const INFO_LINGER = 2400
-/** 后面还有排队时，队首的停留时间压到这个上限，避免一波消息把岛占住十几秒 */
-const QUEUE_DRAIN_LINGER = 1200
-/** 队列长度上限：超出丢最早的等待项（正在展示的那条不动） */
-const QUEUE_CAP = 5
+/** 同时存活的消息条数上限：超出丢最旧的，避免刷屏时堆一长串 */
+const MESSAGE_CAP = 5
 const HISTORY_CAP = 20
 const STORAGE_KEY = 'xihan_island_state'
 
@@ -116,21 +114,27 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>()
 let orderSeq = 0
 
 /**
- * 终态消息栈：非常驻的 success/error/info 后进先出——最新的压在最上面先展示，
- * 旧的在下面等着轮到自己。只有栈顶在展示、也只有栈顶在计时，
- * 所以新消息不会把旧消息挤掉，每条都能轮到并完整停留自己的时长。
+ * 终态消息（非常驻的 success/error/info），由新到旧。
+ *
+ * 多条并存靠「同时可见的堆叠」而不是排队：每条各自计时同时倒数，最新的一条在最前完整展示，
+ * 其余在后方露边，点开面板可看全部——与 Sonner / Ant Design / iOS 通知一致。
+ * 排队逐条展示是 Snackbar 那条路线（一次一条、不堆叠），两者不能混用：
+ * 混起来会既看不到多条、新消息又要等。
  */
 const messageStack = computed(() => tasks.value
   .filter(item => item.state !== 'loading' && !item.persistent)
   .sort((a, b) => b.order - a.order))
 
-/** 进行中与常驻状态：不占栈位（长驻，占位会把消息饿死），栈空时才回到岛上 */
+/** 进行中与常驻状态：长驻，不参与消息堆叠；无消息时才回到岛上 */
 const statusTasks = computed(() => tasks.value.filter(item => item.state === 'loading' || item.persistent))
 
-/** 压在栈顶之下、还没轮到的条数（折叠态据此叠层与计数） */
-const pendingCount = computed(() => Math.max(messageStack.value.length - 1, 0))
+/** 压在最前一条之后的消息（由新到旧；折叠态据此渲染叠层） */
+const pendingTasks = computed(() => messageStack.value.slice(1))
 
-/** 折叠态展示的任务：栈顶消息优先，无消息时回落到最近的进行中/常驻状态 */
+/** 压在最前一条之后的条数 */
+const pendingCount = computed(() => pendingTasks.value.length)
+
+/** 折叠态展示的任务：最新消息优先，无消息时回落到最近的进行中/常驻状态 */
 const current = computed<IslandTask | null>(() => {
   const top = messageStack.value[0]
   if (top) {
@@ -210,18 +214,15 @@ function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' |
   else {
     tasks.value = [...tasks.value, next]
   }
-  trimQueue()
+  trimMessages()
 }
 
-/**
- * 栈限长：一波消息涌进来时只留最近的若干条，压在最底下的最旧几条直接丢掉，
- * 否则一次刷屏能让岛排上小半分钟。
- */
-function trimQueue(): void {
+/** 限长：一波消息涌进来时只留最近的若干条，最旧的直接丢掉，避免堆一长串 */
+function trimMessages(): void {
   const stack = tasks.value
     .filter(item => item.state !== 'loading' && !item.persistent)
     .sort((a, b) => b.order - a.order)
-  for (const task of stack.slice(QUEUE_CAP)) {
+  for (const task of stack.slice(MESSAGE_CAP)) {
     removeTask(task.id)
   }
 }
@@ -230,31 +231,39 @@ function lingerOf(state: IslandState): number {
   return state === 'error' ? ERROR_LINGER : state === 'info' ? INFO_LINGER : SUCCESS_LINGER
 }
 
+/** 终态收尾：非常驻的消息各自开始倒计时（面板展开时不计时，收起后统一重排） */
+function settle(id: string, state: IslandState): void {
+  const task = tasks.value.find(item => item.id === id)
+  if (!task || task.persistent || expanded.value) {
+    return
+  }
+  scheduleRemoval(id, lingerOf(state))
+}
+
 /**
- * 栈调度：只给栈顶排移除计时，压在下面的一律不计时（否则在下面等着就悄悄倒计时完了）。
- * 栈顶已有计时则不重排，避免其它任务变动把它的停留时间一再刷新。
+ * 展开面板时暂停全部消息计时，收起后重新计时。
+ * 否则正看着列表，消息在眼皮底下一条条消失。
  */
-watch(messageStack, (stack) => {
-  stack.forEach((task, index) => {
-    if (index === 0) {
-      if (!timers.has(task.id)) {
-        // 下面还压着就按排空节奏走，单独一条则给足完整停留时间
-        const linger = lingerOf(task.state)
-        scheduleRemoval(task.id, stack.length > 1 ? Math.min(linger, QUEUE_DRAIN_LINGER) : linger)
-      }
-      return
+watch(expanded, (open) => {
+  for (const task of messageStack.value) {
+    if (open) {
+      clearTimer(task.id)
     }
-    clearTimer(task.id)
-  })
-}, { immediate: true })
+    else if (!timers.has(task.id)) {
+      scheduleRemoval(task.id, lingerOf(task.state))
+    }
+  }
+})
 
 function makeHandle(id: string): IslandHandle {
   const apply = (label: string | undefined, state: IslandState, opts?: IslandTaskInit) => {
     const existing = tasks.value.find(item => item.id === id)
     // 终态默认清除常驻标记（如「网络已恢复」短暂展示后消失）
     const persistent = opts?.persistent ?? (state === 'info' ? existing?.persistent : false)
-    // 进队即可，停留计时由队列调度在它排到队首时才开始
     upsert(id, label ?? existing?.label ?? '', { ...opts, state, persistent }, existing?.kind ?? 'event')
+    if (!persistent) {
+      settle(id, state)
+    }
   }
   return {
     update(label) {
@@ -464,6 +473,10 @@ export function applyServerTaskProgress(payload: ServerTaskProgressPayload): voi
     state,
     icon: state === 'loading' ? 'lucide:server' : undefined,
   }, 'event', 'server')
+
+  if (state !== 'loading') {
+    settle(id, state)
+  }
 }
 
 /** 组件订阅入口与操作 */
@@ -474,6 +487,7 @@ export function useDynamicIsland() {
     history,
     expanded,
     loadingCount,
+    pendingTasks,
     pendingCount,
     hasPanel,
     expand: () => {

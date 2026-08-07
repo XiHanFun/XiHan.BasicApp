@@ -41,6 +41,7 @@ const {
   history,
   expanded,
   loadingCount,
+  pendingTasks,
   pendingCount,
   hasPanel,
   expand,
@@ -231,9 +232,9 @@ function onCardClick(): void {
   expand()
 }
 
-// ── 入栈动效：岛已在屏上时，新消息从右侧滑入压到最上面 ─────────────
-// 只认「真的更新的那条」：栈顶到期后浮上来的是更旧的一条，此时再滑一次
-// 就成了「又来新消息」的假象，还会和同时向左滑出的叠层反向打架。
+// ── 入栈动效：岛已在屏上时，新消息自顶缘落下压到最前 ─────────────────
+// 只认「真的更新的那条」：最前一条到期后浮上来的是更旧的一条，此时再落一次
+// 就成了「又来新消息」的假象。
 const sliding = ref(false)
 const lastTopOrder = ref(0)
 let slideTimer: ReturnType<typeof setTimeout> | null = null
@@ -266,8 +267,13 @@ watch(
     if (expanded.value) {
       return
     }
-    // 仅「岛已可见 + 确实来了更新的一条」才滑入；首次出现交给入场动效
-    if (prev && next !== prev && isNewer) {
+    if (!isNewer) {
+      // 前一条到期后浮上来的是更旧的一条，它自己的计时也快到了，
+      // 这时再展成卡片会一闪而过，维持胶囊即可
+      return
+    }
+    // 仅「岛已可见」时才落下；首次出现交给入场动效
+    if (prev && next !== prev) {
       triggerSlideIn()
     }
     // 带正文＝值得抢占视线的更新，自动进卡片态
@@ -329,45 +335,41 @@ watch(
   { immediate: true },
 )
 
-// ── 折叠态堆叠：队列里还有几条待展示，就在壳体左右两侧露出几层 ────────────
-// 叠层只做视觉暗示、不渲染各自文案：岛浮在顶栏之上，平铺多条会盖住工具栏。
-// 「都能看到」由队列保证（逐条完整停留），叠层负责「知道还有多少」。
+// ── 折叠态堆叠：最新一条在最前完整展示，其余在下方露边 ─────────────────
+// 露两层（含最前共三条可见）与 Sonner 的 visibleToasts、AntD 的堆叠阈值一致；
+// 再多的不再露层，改由文案右侧的 +N 兜底，读全部走展开面板。
 const STACK_MAX_LAYERS = 2
 const hovering = ref(false)
 
-/** 后方叠层数量：按队列待展示条数，最多两层 */
-const stackDepth = computed(() => {
-  if (expanded.value) {
-    return 0
-  }
-  return Math.min(pendingCount.value, STACK_MAX_LAYERS)
-})
+/** 露在后方的消息：栈顶之下由新到旧取前几条 */
+const stackTasks = computed(() => (expanded.value ? [] : pendingTasks.value.slice(0, STACK_MAX_LAYERS)))
 
 /**
- * 叠层几何：旧卡与栈顶等大，整体缩小一档并向左退出去，露出左侧一条边。
- * 只往左退——新消息从右侧滑入压到最上面，旧的顺势被推向左后方；
- * 也不往下露，岛贴着顶栏，向下露会压住面包屑那一行。
+ * 叠层几何：与最前一条等大，逐层向下挪并缩小，从下缘露出边。
+ * 位移与缩放的量级取自 Sonner（每层 14px、缩 0.05），方向朝下——
+ * 岛在屏幕顶部，堆叠一律朝屏幕内侧延伸。
  */
 function layerStyle(depth: number): Record<string, string> {
   const isCard = mode.value === 'card'
-  const shift = (hovering.value ? 34 : 26) * depth
+  const lift = (hovering.value ? 18 : 12) * depth
   return {
     width: `${isCard ? panelWidth() : pillWidth.value}px`,
     height: `${isCard ? cardHeight.value : PILL_HEIGHT}px`,
     borderRadius: isCard ? '20px' : '18px',
-    transform: `translateX(calc(-50% - ${shift}px)) scale(${1 - 0.07 * depth})`,
-    opacity: `${0.9 - (depth - 1) * 0.22}`,
+    transform: `translateX(-50%) translateY(${lift}px) scale(${1 - 0.05 * depth})`,
+    opacity: `${0.92 - (depth - 1) * 0.2}`,
+    // 越旧压得越深；负值让整叠都落在壳体之后（.di-root 自成层叠上下文，不会漏到页面底下）
+    zIndex: `${-depth}`,
   }
 }
 
-/** 叠层渲染序列：越旧的越先入 DOM，保证被新的压住 */
-const stackLayers = computed(() => {
-  const layers: Array<{ key: string, style: Record<string, string> }> = []
-  for (let depth = stackDepth.value; depth >= 1; depth--) {
-    layers.push({ key: `layer-${depth}`, style: layerStyle(depth) })
-  }
-  return layers
-})
+/**
+ * 叠层按「消息」取 key 而不是层号：按层号取的话，持续来新消息时层数恒为上限，
+ * key 集合不变，元素只是原地改样式，进出场动画一次都不会触发。
+ * DOM 顺序保持由新到旧固定不变（前后靠 z-index 定），避免 TransitionGroup 走 FLIP 与行内 transform 打架。
+ */
+const stackLayers = computed(() =>
+  stackTasks.value.map((task, index) => ({ key: task.id, style: layerStyle(index + 1) })))
 
 const shellStyle = computed(() => {
   if (expanded.value) {
@@ -516,7 +518,7 @@ onBeforeUnmount(() => {
                 <span v-if="current?.state === 'loading' && current?.progress != null" class="di-pct">
                   {{ Math.round(current.progress) }}%
                 </span>
-                <span v-if="pendingCount > 0" class="di-count">+{{ pendingCount }}</span>
+                <span v-if="pendingCount > STACK_MAX_LAYERS" class="di-count">+{{ pendingCount }}</span>
                 <Icon v-if="hasPanel" icon="lucide:chevron-down" width="13" height="13" class="di-chevron" />
               </span>
             </span>
@@ -682,7 +684,7 @@ onBeforeUnmount(() => {
     opacity 0.24s ease;
 }
 
-/* 入栈动效：新叠层从「栈顶原位、原尺寸」退到左后方，看着就是上一条被压下去。
+/* 入栈动效：新叠层从「最前那条的原位、原尺寸」沉到后方，看着就是上一条被压下去。
    关键帧只写起始态，结束态隐式取元素自身的行内 transform（各层位移不同，写死不了）；
    动画期间关键帧优先级高于行内样式，动画结束自然落回行内位置。 */
 .di-stack-enter-active {
@@ -698,18 +700,25 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 出栈动效：最旧的一层顺着同一方向继续向左滑出并淡出。
+/* 出栈动效：最旧的一层顺着同一方向继续下沉并淡出。
    与入场对称——关键帧只写结束态，起始态隐式取元素自身的行内 transform。 */
 .di-stack-leave-active {
   transition: none;
-  animation: di-stack-drop 0.34s cubic-bezier(0.4, 0, 0.7, 0.3) forwards;
+  animation: di-stack-drop 0.3s cubic-bezier(0.4, 0, 0.7, 0.3) forwards;
 }
 
 @keyframes di-stack-drop {
   to {
-    transform: translateX(calc(-50% - 120px)) scale(0.78);
+    transform: translateX(-50%) translateY(34px) scale(0.8);
     opacity: 0;
   }
+}
+
+/* 关掉 TransitionGroup 的 FLIP：叠层位置全靠行内 transform，而 FLIP 会直接改写
+   el.style.transform 做位移补偿，两者互相覆盖。层间推移交给 .di-stack 自带的
+   transform 过渡即可（深度变了行内值就变，自然滑过去）。 */
+.di-stack-move {
+  transition: none;
 }
 
 /* ============ 单壳体：胶囊 ⇄ 面板形变容器 ============ */
@@ -1200,19 +1209,20 @@ onBeforeUnmount(() => {
   transform: translateY(calc(-100% - 14px)) scale(0.88);
 }
 
-/* 入栈：新消息从右侧滑入压到最上面（岛已在屏上、不重新入场时） */
+/* 入栈：新消息自顶缘落下压到最前（岛已在屏上、不重新入场时）。
+   方向与堆叠一致——堆朝下延伸，新的就从上方来。 */
 .di-slide {
-  animation: di-slide-in 0.46s cubic-bezier(0.25, 1.15, 0.4, 1);
+  animation: di-slide-in 0.42s cubic-bezier(0.25, 1.15, 0.4, 1);
 }
 
 @keyframes di-slide-in {
   0% {
-    transform: translateX(38px) scale(0.94);
-    opacity: 0.25;
+    transform: translateY(-16px) scale(0.94);
+    opacity: 0.3;
   }
 
   100% {
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
