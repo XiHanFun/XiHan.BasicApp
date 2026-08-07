@@ -5,6 +5,7 @@ import type {
   PageResult,
   PermissionCenterDetailDto,
   PermissionCreateDto,
+  PermissionDetailDto,
   PermissionListItemDto,
   PermissionUpdateDto,
   ResourceSelectItemDto,
@@ -295,7 +296,7 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row) {
-        handleEdit(row)
+        void handleEdit(row)
       }
       break
     case 'toggle':
@@ -318,22 +319,30 @@ function handleAdd() {
   void loadOperationOptions()
 }
 
-function handleEdit(row: PermissionListItemDto) {
+async function handleEdit(row: PermissionListItemDto) {
+  // 列表行不含备注与标签，取详情回填；否则保存时会把两者覆盖为空
+  let detail: PermissionDetailDto | null = null
+  try {
+    detail = await permissionCenterApi.detail(row.basicId)
+  }
+  catch {
+    detail = null
+  }
   permissionForm.value = {
     basicId: row.basicId,
-    isRequireAudit: row.isRequireAudit,
-    moduleCode: row.moduleCode ?? null,
-    operationId: row.operationId ?? null,
-    permissionCode: row.permissionCode,
-    permissionDescription: row.permissionDescription ?? null,
-    permissionName: row.permissionName,
-    permissionType: row.permissionType,
-    priority: row.priority,
-    remark: null,
-    resourceId: row.resourceId ?? null,
-    sort: row.sort,
-    status: row.status,
-    tags: null,
+    isRequireAudit: detail?.isRequireAudit ?? row.isRequireAudit,
+    moduleCode: detail?.moduleCode ?? row.moduleCode ?? null,
+    operationId: detail?.operationId ?? row.operationId ?? null,
+    permissionCode: detail?.permissionCode ?? row.permissionCode,
+    permissionDescription: detail?.permissionDescription ?? row.permissionDescription ?? null,
+    permissionName: detail?.permissionName ?? row.permissionName,
+    permissionType: detail?.permissionType ?? row.permissionType,
+    priority: detail?.priority ?? row.priority,
+    remark: detail?.remark ?? null,
+    resourceId: detail?.resourceId ?? row.resourceId ?? null,
+    sort: detail?.sort ?? row.sort,
+    status: detail?.status ?? row.status,
+    tags: detail?.tags ?? null,
   }
   ensureResourceOption(row)
   ensureOperationOption(row)

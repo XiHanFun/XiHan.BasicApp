@@ -390,13 +390,16 @@ function handleAdd() {
 }
 
 async function handleEdit(row: FieldLevelSecurityListItemDto) {
+  // 列表行不含掩码模板与备注，取详情回填；否则保存时会把两者覆盖为空
   let maskPattern: string | null = null
+  let remark: string | null = null
   try {
     const detail = await fieldLevelSecurityApi.detail(row.basicId)
     maskPattern = detail?.maskPattern ?? null
+    remark = detail?.remark ?? null
   }
   catch {
-    // 详情失败不阻断编辑，maskPattern 留空
+    // 详情失败不阻断编辑，掩码模板与备注留空
   }
   flsForm.value = {
     basicId: row.basicId,
@@ -407,7 +410,7 @@ async function handleEdit(row: FieldLevelSecurityListItemDto) {
     maskPattern,
     maskStrategy: row.maskStrategy,
     priority: row.priority,
-    remark: null,
+    remark,
     resourceId: row.resourceId,
     status: row.status,
     targetId: row.targetId,

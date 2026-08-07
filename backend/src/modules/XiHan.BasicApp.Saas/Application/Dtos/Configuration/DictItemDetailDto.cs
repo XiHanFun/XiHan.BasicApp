@@ -9,6 +9,16 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public sealed class DictItemDetailDto : DictItemListItemDto
 {
     /// <summary>
+    /// 元数据（JSON）
+    /// </summary>
+    public string? Metadata { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
     /// 创建者主键
     /// </summary>
     public long? CreatedId { get; set; }

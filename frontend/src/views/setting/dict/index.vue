@@ -2,7 +2,9 @@
 import type { DataTableColumns } from 'naive-ui'
 import type {
   DictCreateDto,
+  DictDetailDto,
   DictItemCreateDto,
+  DictItemDetailDto,
   DictItemListItemDto,
   DictItemUpdateDto,
   DictListItemDto,
@@ -41,6 +43,8 @@ interface DictFormModel {
   dictDescription?: string | null
   dictName: string
   dictType: string
+  // 无表单项，仅按详情原样回传，避免编辑时被清空
+  remark?: string | null
   sort: number
   status: EnableStatus
 }
@@ -53,7 +57,10 @@ interface DictItemFormModel {
   itemDescription?: string | null
   itemName: string
   itemValue?: string | null
+  // 无表单项，仅按详情原样回传，避免编辑时被清空
+  metadata?: string | null
   parentId?: string | null
+  remark?: string | null
   sort: number
   status: EnableStatus
 }
@@ -213,7 +220,7 @@ const dictColumns = computed<DataTableColumns<DictListItemDto>>(() => [
     align: 'center',
     render: (row: DictListItemDto) =>
       h(NSpace, { size: 4, justify: 'center', wrap: false }, () => [
-        h(NButton, { ariaLabel: t('common.actions.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => handleEdit(row)) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: t('common.actions.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: stopAnd(() => { void handleEdit(row) }) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleToggleStatus(row) }, {
           trigger: () => h(NButton, { ariaLabel: t('setting.dict.confirm_toggle_dict'), circle: true, quaternary: true, size: 'small', type: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
           default: () => t('setting.dict.confirm_toggle_dict'),
@@ -317,7 +324,7 @@ const itemColumns = computed<DataTableColumns<DictItemListItemDto>>(() => [
     width: 128,
     render: (row: DictItemListItemDto) =>
       h(NSpace, { size: 'small' }, () => [
-        h(NButton, { ariaLabel: t('common.actions.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => handleItemEdit(row) }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
+        h(NButton, { ariaLabel: t('common.actions.edit'), circle: true, quaternary: true, size: 'small', type: 'primary', onClick: () => { void handleItemEdit(row) } }, { icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:pencil' })) }),
         h(NPopconfirm, { onPositiveClick: () => handleItemToggleStatus(row) }, {
           trigger: () => h(NButton, { ariaLabel: t('setting.dict.confirm_toggle_item'), circle: true, quaternary: true, size: 'small', type: 'warning' }, { icon: () => h(NIcon, null, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })) }),
           default: () => t('setting.dict.confirm_toggle_item'),
@@ -390,16 +397,25 @@ function handleAdd() {
   modalVisible.value = true
 }
 
-function handleEdit(row: DictListItemDto) {
+async function handleEdit(row: DictListItemDto) {
   editingStatus.value = row.status
+  // 列表行不含备注，取详情回填；否则保存时会把备注覆盖为空
+  let detail: DictDetailDto | null = null
+  try {
+    detail = await dictManagementApi.detail(row.basicId)
+  }
+  catch {
+    detail = null
+  }
   dictForm.value = {
     basicId: row.basicId,
-    dictCode: row.dictCode,
-    dictDescription: row.dictDescription ?? null,
-    dictName: row.dictName,
-    dictType: row.dictType,
-    sort: row.sort,
-    status: row.status,
+    dictCode: detail?.dictCode ?? row.dictCode,
+    dictDescription: detail?.dictDescription ?? row.dictDescription ?? null,
+    dictName: detail?.dictName ?? row.dictName,
+    dictType: detail?.dictType ?? row.dictType,
+    remark: detail?.remark ?? null,
+    sort: detail?.sort ?? row.sort,
+    status: detail?.status ?? row.status,
   }
   modalVisible.value = true
 }
@@ -432,6 +448,7 @@ async function handleSubmit() {
         dictDescription: dictForm.value.dictDescription,
         dictName: dictForm.value.dictName.trim(),
         dictType: dictForm.value.dictType.trim(),
+        remark: dictForm.value.remark,
         sort: dictForm.value.sort,
       }
 
@@ -537,19 +554,29 @@ function handleItemAdd() {
   itemModalVisible.value = true
 }
 
-function handleItemEdit(row: DictItemListItemDto) {
+async function handleItemEdit(row: DictItemListItemDto) {
   itemEditingStatus.value = row.status
+  // 列表行不含元数据与备注，取详情回填；否则保存时会把两者覆盖为空
+  let detail: DictItemDetailDto | null = null
+  try {
+    detail = await dictManagementApi.itemDetail(row.basicId)
+  }
+  catch {
+    detail = null
+  }
   itemForm.value = {
     basicId: row.basicId,
-    dictId: row.dictId,
-    isDefault: row.isDefault,
-    itemCode: row.itemCode,
-    itemDescription: row.itemDescription ?? null,
-    itemName: row.itemName,
-    itemValue: row.itemValue ?? null,
-    parentId: row.parentId ?? null,
-    sort: row.sort,
-    status: row.status,
+    dictId: detail?.dictId ?? row.dictId,
+    isDefault: detail?.isDefault ?? row.isDefault,
+    itemCode: detail?.itemCode ?? row.itemCode,
+    itemDescription: detail?.itemDescription ?? row.itemDescription ?? null,
+    itemName: detail?.itemName ?? row.itemName,
+    itemValue: detail?.itemValue ?? row.itemValue ?? null,
+    metadata: detail?.metadata ?? null,
+    parentId: detail?.parentId ?? row.parentId ?? null,
+    remark: detail?.remark ?? null,
+    sort: detail?.sort ?? row.sort,
+    status: detail?.status ?? row.status,
   }
   itemModalVisible.value = true
 }
@@ -583,7 +610,9 @@ async function handleItemSubmit() {
         itemDescription: itemForm.value.itemDescription,
         itemName: itemForm.value.itemName.trim(),
         itemValue: itemForm.value.itemValue,
+        metadata: itemForm.value.metadata,
         parentId: itemForm.value.parentId,
+        remark: itemForm.value.remark,
         sort: itemForm.value.sort,
       }
 
