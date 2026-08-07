@@ -14,9 +14,9 @@ public interface IChatDomainService
     Task<ChatConversationCommandResult> GetOrCreateSingleConversationAsync(ChatSingleConversationCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 创建群聊（发起者为群主并自动入群）
+    /// 创建群聊（发起者为群主并自动入群，追加建群系统提示）
     /// </summary>
-    Task<ChatConversationCommandResult> CreateGroupConversationAsync(ChatGroupCreateCommand command, CancellationToken cancellationToken = default);
+    Task<ChatGovernanceResult> CreateGroupConversationAsync(ChatGroupCreateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取或创建部门群，并把部门现有成员同步进群（操作者须属于该部门）
@@ -34,14 +34,14 @@ public interface IChatDomainService
     Task<ChatMessageSendResult> AppendAssistantMessageAsync(ChatAssistantMessageCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 添加群成员（群主/管理员可操作；单聊/部门群拒绝）
+    /// 添加群成员（群主/管理员可操作；单聊/部门群拒绝）。收件人为入群后的全体成员
     /// </summary>
-    Task<ChatConversationCommandResult> AddMembersAsync(ChatMemberAddCommand command, CancellationToken cancellationToken = default);
+    Task<ChatGovernanceResult> AddMembersAsync(ChatMemberAddCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 移除群成员或主动退群（群主不可退群，需先移交）
+    /// 移除群成员或主动退群（群主不可退群，需先移交）。收件人为移除后的剩余成员，不含被移除者
     /// </summary>
-    Task<ChatConversationCommandResult> RemoveMemberAsync(ChatMemberRemoveCommand command, CancellationToken cancellationToken = default);
+    Task<ChatGovernanceResult> RemoveMemberAsync(ChatMemberRemoveCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 发送消息：成员校验 → 落消息 → 会话最后消息冗余 → 其余成员未读 +1

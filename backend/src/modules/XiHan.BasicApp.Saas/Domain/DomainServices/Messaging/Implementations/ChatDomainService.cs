@@ -57,6 +57,11 @@ public sealed class ChatDomainService : IChatDomainService
     /// </summary>
     private const int MaxReplyPreviewLength = 300;
 
+    /// <summary>
+    /// 系统提示中直接列出的成员名上限，超出折叠为「等 N 人」
+    /// </summary>
+    private const int MaxNamesInSystemMessage = 3;
+
     private readonly IChatConversationRepository _conversationRepository;
 
     private readonly IChatConversationMemberRepository _memberRepository;
@@ -135,7 +140,7 @@ public sealed class ChatDomainService : IChatDomainService
     }
 
     /// <inheritdoc />
-    public async Task<ChatConversationCommandResult> CreateGroupConversationAsync(ChatGroupCreateCommand command, CancellationToken cancellationToken = default)
+    public async Task<ChatGovernanceResult> CreateGroupConversationAsync(ChatGroupCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -149,6 +154,7 @@ public sealed class ChatDomainService : IChatDomainService
             throw new InvalidOperationException("群聊至少需要 2 名成员（含群主）。");
         }
 
+        var owner = await GetUserOrThrowAsync(command.OwnerUserId, cancellationToken);
         var now = DateTimeOffset.UtcNow;
         var conversation = await _conversationRepository.AddAsync(new SysChatConversation
         {
@@ -159,7 +165,12 @@ public sealed class ChatDomainService : IChatDomainService
         }, cancellationToken);
 
         await AddMemberRowsAsync(conversation.BasicId, memberIds, command.OwnerUserId, now, cancellationToken);
-        return new ChatConversationCommandResult(conversation, Created: true);
+
+        var createText = $"{owner.UserName} 创建了群聊";
+        var systemMessage = await AppendSystemMessageAsync(
+            conversation, createText, createText, senderUserId: 0, senderUserName: null, cancellationToken);
+
+        return new ChatGovernanceResult(conversation, systemMessage, memberIds);
     }
 
     /// <inheritdoc />
@@ -207,7 +218,7 @@ public sealed class ChatDomainService : IChatDomainService
     }
 
     /// <inheritdoc />
-    public async Task<ChatConversationCommandResult> AddMembersAsync(ChatMemberAddCommand command, CancellationToken cancellationToken = default)
+    public async Task<ChatGovernanceResult> AddMembersAsync(ChatMemberAddCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -226,22 +237,31 @@ public sealed class ChatDomainService : IChatDomainService
         var missing = candidateIds.Where(id => !existingUserIds.Contains(id)).ToList();
         if (missing.Count == 0)
         {
-            return new ChatConversationCommandResult(conversation, Created: false);
+            return new ChatGovernanceResult(conversation, SystemMessage: null, [.. existingUserIds]);
         }
 
+        var joinedNames = new List<string?>();
         foreach (var userId in missing)
         {
-            _ = await GetUserOrThrowAsync(userId, cancellationToken);
+            var user = await GetUserOrThrowAsync(userId, cancellationToken);
+            joinedNames.Add(user.UserName);
         }
+
+        var operatorUser = await GetUserOrThrowAsync(command.OperatorUserId, cancellationToken);
 
         await AddMemberRowsAsync(conversation.BasicId, missing, ownerUserId: null, DateTimeOffset.UtcNow, cancellationToken);
         conversation.MemberCount = existingUserIds.Count + missing.Count;
         conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
-        return new ChatConversationCommandResult(conversation, Created: false);
+
+        var inviteText = $"{operatorUser.UserName} 邀请 {JoinNames(joinedNames)} 加入群聊";
+        var systemMessage = await AppendSystemMessageAsync(
+            conversation, inviteText, inviteText, senderUserId: 0, senderUserName: null, cancellationToken);
+
+        return new ChatGovernanceResult(conversation, systemMessage, [.. existingUserIds, .. missing]);
     }
 
     /// <inheritdoc />
-    public async Task<ChatConversationCommandResult> RemoveMemberAsync(ChatMemberRemoveCommand command, CancellationToken cancellationToken = default)
+    public async Task<ChatGovernanceResult> RemoveMemberAsync(ChatMemberRemoveCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -271,9 +291,27 @@ public sealed class ChatDomainService : IChatDomainService
             throw new InvalidOperationException("成员移除失败。");
         }
 
+        var target = await GetUserOrThrowAsync(command.UserId, cancellationToken);
         conversation.MemberCount = Math.Max(0, conversation.MemberCount - 1);
         conversation = await _conversationRepository.UpdateAsync(conversation, cancellationToken);
-        return new ChatConversationCommandResult(conversation, Created: false);
+
+        // 主动退群与被管理员移出走同一入口，按操作人是否为本人区分文案
+        string leaveText;
+        if (command.OperatorUserId == command.UserId)
+        {
+            leaveText = $"{target.UserName} 退出群聊";
+        }
+        else
+        {
+            var operatorUser = await GetUserOrThrowAsync(command.OperatorUserId, cancellationToken);
+            leaveText = $"{operatorUser.UserName} 将 {target.UserName} 移出群聊";
+        }
+
+        var systemMessage = await AppendSystemMessageAsync(
+            conversation, leaveText, leaveText, senderUserId: 0, senderUserName: null, cancellationToken);
+
+        var remaining = await _memberRepository.GetByConversationIdAsync(conversation.BasicId, cancellationToken);
+        return new ChatGovernanceResult(conversation, systemMessage, [.. remaining.Select(item => item.UserId)]);
     }
 
     /// <inheritdoc />
@@ -866,6 +904,22 @@ public sealed class ChatDomainService : IChatDomainService
     private static string Truncate(string value, int maxLength)
     {
         return value.Length <= maxLength ? value : value[..maxLength];
+    }
+
+    /// <summary>
+    /// 拼接系统提示中的成员名（超过 3 人折叠为「等 N 人」）
+    /// </summary>
+    private static string JoinNames(IReadOnlyList<string?> names)
+    {
+        var valid = names.Where(name => !string.IsNullOrWhiteSpace(name)).Select(name => name!).ToList();
+        if (valid.Count == 0)
+        {
+            return $"{names.Count} 名成员";
+        }
+
+        return valid.Count <= MaxNamesInSystemMessage
+            ? string.Join("、", valid)
+            : $"{string.Join("、", valid.Take(MaxNamesInSystemMessage))} 等 {valid.Count} 人";
     }
 
     private static string BuildPairKey(long userId, long peerUserId)
