@@ -556,7 +556,8 @@ public sealed class AuthAppService
                     now,
                     _traceIdProvider.GetCurrentTraceId(),
                     clientForFailure.IpAddress,
-                    clientForFailure.UserAgent));
+                    clientForFailure.UserAgent,
+                    input.DeviceId));
             throw new InvalidOperationException(authResult.ErrorMessage ?? "账号或密码错误。");
         }
 
@@ -648,7 +649,8 @@ public sealed class AuthAppService
                     now,
                     _traceIdProvider.GetCurrentTraceId(),
                     clientForFailure.IpAddress,
-                    clientForFailure.UserAgent));
+                    clientForFailure.UserAgent,
+                    input.DeviceId));
             throw new InvalidOperationException(authResult.ErrorMessage ?? "邮箱或验证码错误。");
         }
 
@@ -1611,7 +1613,8 @@ public sealed class AuthAppService
                 client.Location,
                 client.Browser,
                 client.OperatingSystem,
-                client.DeviceName));
+                client.DeviceName,
+                sessionResult.Session.DeviceId));
 
         return tokenIssue.Token;
     }

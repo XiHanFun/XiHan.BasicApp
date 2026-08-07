@@ -23,7 +23,8 @@ public sealed class AuthLoginFailedDomainEvent : DomainEventBase
         DateTimeOffset loginTime,
         string? traceId,
         string? ipAddress,
-        string? userAgent)
+        string? userAgent,
+        string? deviceId = null)
     {
         TenantId = tenantId;
         UserId = userId;
@@ -34,6 +35,7 @@ public sealed class AuthLoginFailedDomainEvent : DomainEventBase
         TraceId = traceId;
         IpAddress = ipAddress;
         UserAgent = userAgent;
+        DeviceId = deviceId;
     }
 
     /// <summary>
@@ -80,4 +82,9 @@ public sealed class AuthLoginFailedDomainEvent : DomainEventBase
     /// 用户代理
     /// </summary>
     public string? UserAgent { get; }
+
+    /// <summary>
+    /// 设备指纹（前端生成，登录时随入参上行）
+    /// </summary>
+    public string? DeviceId { get; }
 }

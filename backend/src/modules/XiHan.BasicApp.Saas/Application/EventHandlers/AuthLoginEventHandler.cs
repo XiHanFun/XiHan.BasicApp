@@ -59,7 +59,8 @@ public sealed class AuthLoginEventHandler
             "登录成功",
             eventData.IpAddress,
             eventData.UserAgent,
-            eventData.LoginTime);
+            eventData.LoginTime,
+            eventData.DeviceId);
 
         // 多设备登录提醒：存在其它活跃会话时升级为告警通知（实时推送会到达其它在线设备），
         // 并区分「新设备」与「已知设备」；无其它会话时保持普通登录成功通知。
@@ -276,7 +277,8 @@ public sealed class AuthLoginEventHandler
         string? message,
         string? loginIp,
         string? userAgent,
-        DateTimeOffset loginTime)
+        DateTimeOffset loginTime,
+        string? deviceId = null)
     {
         try
         {
@@ -290,7 +292,9 @@ public sealed class AuthLoginEventHandler
                 Message = message,
                 LoginIp = loginIp,
                 UserAgent = userAgent,
-                LoginTime = loginTime
+                LoginTime = loginTime,
+                // 未显式携带时由写入器从令牌的设备指纹声明补全
+                DeviceId = deviceId
             };
 
             await _loginLogPipeline.WriteAsync(record);
