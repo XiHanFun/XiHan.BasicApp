@@ -121,13 +121,26 @@ export function setupRouterGuard(router: Router) {
           accessStore.setAccessRoutes(dynamicMenus)
           installDynamicRoutes(mapMenuToRoutes(dynamicMenus))
         }
-        // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁
+      }
+      catch (error) {
+        // 不能静默吞掉：这里失败等于整个会话拿不到任何动态路由，
+        // 之后每次导航都匹配不到而落 404，且无从查起
+        console.error('[router] 动态路由加载失败', error)
+        // 不能调 setAccessRoutes：它会把 isRoutesLoaded 置真，本次会话再也不会重试，
+        // 一次偶发失败就把应用锁死在 404
+        accessStore.accessRoutes = []
+        return { path: SERVER_ERROR_PATH, replace: true }
+      }
+
+      // 刷新恢复会话：进入应用前拉取后端偏好并应用（覆盖本地），避免闪烁。
+      // 单独 try：偏好同步是锦上添花，失败不该连累已经建好的路由表
+      try {
         await hydratePreferencesFromBackend()
-        return { path: to.fullPath, replace: true }
       }
-      catch {
-        accessStore.setAccessRoutes([])
+      catch (error) {
+        console.error('[preferences] 偏好同步失败，已跳过', error)
       }
+      return { path: to.fullPath, replace: true }
     }
 
     const resolvedHomePath = accessStore.homePath || HOME_PATH

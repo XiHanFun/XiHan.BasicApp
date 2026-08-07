@@ -25,9 +25,15 @@ export function goHome(router: Router) {
     return
   }
 
+  // 整页重载是唯一出路：守卫里路由表建失败会把 isRoutesLoaded 留在未加载态，
+  // 重载后守卫会重新拉菜单并注册路由。
+  // 必须显式 reload——hash 模式下只改 hash 不触发重载，守卫按普通导航跑一遍，
+  // 目标路由依然没注册，又被打回 404，表现就是「点了没反应」。
   const base = import.meta.env.VITE_BASE || '/'
   const normalizedBase = base.endsWith('/') ? base : `${base}/`
-  window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history'
+  const href = import.meta.env.VITE_ROUTER_HISTORY === 'history'
     ? target
     : `${normalizedBase}#${target}`
+  window.location.replace(href)
+  window.location.reload()
 }
