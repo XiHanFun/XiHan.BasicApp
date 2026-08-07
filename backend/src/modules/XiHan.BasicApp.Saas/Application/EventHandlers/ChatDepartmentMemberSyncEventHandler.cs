@@ -75,7 +75,9 @@ public sealed class ChatDepartmentMemberSyncEventHandler : ILocalEventHandler<Us
                 });
                 conversation.MemberCount += 1;
                 _ = await _conversationRepository.UpdateAsync(conversation);
-                await _pushService.PushConversationChangedAsync(conversation.BasicId, "department-joined", [eventData.UserId]);
+                // 推给入群后的全体成员：其余成员的成员列表与人数同样需要刷新
+                await _pushService.PushConversationChangedAsync(
+                    conversation.BasicId, "department-joined", await GetMemberUserIdsAsync(conversation.BasicId));
             }
             else
             {
@@ -87,7 +89,10 @@ public sealed class ChatDepartmentMemberSyncEventHandler : ILocalEventHandler<Us
                 _ = await _memberRepository.DeleteAsync(member);
                 conversation.MemberCount = Math.Max(0, conversation.MemberCount - 1);
                 _ = await _conversationRepository.UpdateAsync(conversation);
-                await _pushService.PushConversationChangedAsync(conversation.BasicId, "department-kicked", [eventData.UserId]);
+                // 剩余成员刷新列表，被移出者自己也要收到（其会话列表随之收敛）
+                var remaining = await GetMemberUserIdsAsync(conversation.BasicId);
+                await _pushService.PushConversationChangedAsync(
+                    conversation.BasicId, "department-kicked", [.. remaining, eventData.UserId]);
             }
         }
         catch (Exception ex)
@@ -96,5 +101,11 @@ public sealed class ChatDepartmentMemberSyncEventHandler : ILocalEventHandler<Us
                 "部门群成员同步失败（不阻断主流程），UserId={UserId}, DepartmentId={DepartmentId}, IsAssigned={IsAssigned}",
                 eventData.UserId, eventData.DepartmentId, eventData.IsAssigned);
         }
+    }
+
+    private async Task<IReadOnlyList<long>> GetMemberUserIdsAsync(long conversationId)
+    {
+        var members = await _memberRepository.GetByConversationIdAsync(conversationId);
+        return [.. members.Select(member => member.UserId)];
     }
 }

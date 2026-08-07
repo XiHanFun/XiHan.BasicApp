@@ -76,8 +76,8 @@ public sealed class ChatAppService
 
         var result = await _chatDomainService.CreateGroupConversationAsync(
             new ChatGroupCreateCommand(GetCurrentUserIdOrThrow(), input.ConversationName, input.MemberUserIds), cancellationToken);
-        await _pushService.PushConversationChangedAsync(result.Conversation.BasicId, "created", input.MemberUserIds);
-        return ChatApplicationMapper.ToConversationDto(result.Conversation, result.Created);
+        await PushGovernanceAsync(result, "created");
+        return ChatApplicationMapper.ToConversationDto(result.Conversation, created: true);
     }
 
     /// <summary>
@@ -105,9 +105,9 @@ public sealed class ChatAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        _ = await _chatDomainService.AddMembersAsync(
+        var result = await _chatDomainService.AddMembersAsync(
             new ChatMemberAddCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.UserIds), cancellationToken);
-        await _pushService.PushConversationChangedAsync(input.ConversationId, "member-added", input.UserIds);
+        await PushGovernanceAsync(result, "member-added");
     }
 
     /// <summary>
@@ -120,8 +120,10 @@ public sealed class ChatAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        _ = await _chatDomainService.RemoveMemberAsync(
+        var result = await _chatDomainService.RemoveMemberAsync(
             new ChatMemberRemoveCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.UserId), cancellationToken);
+        // 剩余成员收到系统提示与成员变更；被移出者只收会话变更（其会话列表随之收敛）
+        await PushGovernanceAsync(result, "member-removed");
         await _pushService.PushConversationChangedAsync(input.ConversationId, "member-removed", [input.UserId]);
     }
 
