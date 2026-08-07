@@ -1,8 +1,8 @@
 import { nextTick, ref, watch } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
-import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, USER_SETTING_CLIENT_ID, UserSettingScene, WIDGETS_SYNC_KEY } from '~/constants'
+import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, THEME_ANIMATION_ENABLED_KEY, THEME_AUTO, THEME_MODE_KEY, USER_SETTING_CLIENT_ID, UserSettingScene, WIDGETS_SYNC_KEY } from '~/constants'
 import { i18n } from '~/locales'
-import { LocalStorage } from '~/utils'
+import { LocalStorage, runThemeTransition } from '~/utils'
 import { useAppContext } from './app-context'
 
 const BUILD_TIME_KEY = `${STORAGE_PREFIX}build_time`
@@ -66,6 +66,33 @@ const DEVICE_LOCAL_KEYS = new Set<string>([
   TABLE_SYNC_KEY,
   WIDGETS_SYNC_KEY,
 ])
+
+/** 读注册表里某条偏好的当前值（未注册时回退 localStorage） */
+function readLocalPreference<T>(key: string): T | undefined {
+  const source = registry.get(key)
+  return source ? (source.value as T) : (LocalStorage.get<T>(key) ?? undefined)
+}
+
+/** 当前实际呈现的明暗（auto 取系统主题） */
+function isCurrentlyDark(): boolean {
+  const mode = readLocalPreference<string>(THEME_MODE_KEY)
+  if (mode === THEME_AUTO) {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  }
+  return mode === 'dark'
+}
+
+/** 远端快照应用后实际呈现的明暗；快照未携带主题时返回 null */
+function resolveRemoteEffectiveDark(remote: Record<string, unknown>): boolean | null {
+  const mode = remote[THEME_MODE_KEY]
+  if (typeof mode !== 'string') {
+    return null
+  }
+  if (mode === THEME_AUTO) {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  }
+  return mode === 'dark'
+}
 
 /** 偏好后端同步是否启用（用户开关，默认开启=上行后端并实时推送多端）。读自注册表中的同步开关偏好。 */
 export function isPreferenceSyncEnabled(): boolean {
@@ -314,15 +341,34 @@ export async function applyRemotePreferenceSnapshot(settingValue?: null | string
     return
   }
   backendSyncEnabled = false
-  registry.forEach((source, key) => {
-    // 同步开关为设备本地维度，不受远端覆盖
-    if (DEVICE_LOCAL_KEYS.has(key)) {
-      return
-    }
-    if (key in remote && remote[key] !== undefined) {
-      source.value = remote[key]
-    }
-  })
+  const applyRemoteValues = () => {
+    registry.forEach((source, key) => {
+      // 同步开关为设备本地维度，不受远端覆盖
+      if (DEVICE_LOCAL_KEYS.has(key)) {
+        return
+      }
+      if (key in remote && remote[key] !== undefined) {
+        source.value = remote[key]
+      }
+    })
+  }
+
+  // 明暗真的翻转时走与本机点击切换同一条圆形扩散动画（无点击位置，故从视口中心扩散）；
+  // 其余偏好变更本机也是直接生效，这里同样直接应用
+  const toDark = resolveRemoteEffectiveDark(remote)
+  if (toDark !== null && toDark !== isCurrentlyDark()) {
+    await runThemeTransition({
+      toDark,
+      enabled: readLocalPreference<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
+      commit: async () => {
+        applyRemoteValues()
+        await nextTick()
+      },
+    })
+  }
+  else {
+    applyRemoteValues()
+  }
   // 等本轮 watch flush（写本地、上行被门挡住）后恢复回写
   await nextTick()
   backendSyncEnabled = true
