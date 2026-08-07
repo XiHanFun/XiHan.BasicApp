@@ -41,6 +41,7 @@ const {
   history,
   expanded,
   loadingCount,
+  pendingCount,
   hasPanel,
   expand,
   collapse,
@@ -55,7 +56,8 @@ const shellVisible = computed(() => enabled.value && (expanded.value ? hasPanel.
 // 单任务＝第一形态：中~宽自适应胶囊，显示任务文案。
 // 多任务＝第二形态：固定「宽」档胶囊，常驻聚合文案「N 个任务进行中」+ 计数 + 展开箭头。
 // 不再有更小的极简档（图标+计数），宽度只在「中」「宽」之间。
-const isMulti = computed(() => loadingCount.value > 1)
+// 聚合文案只在「岛上显示的确实是进行中任务」时生效：队首是消息时要显示消息本身
+const isMulti = computed(() => loadingCount.value > 1 && current.value?.state === 'loading')
 const displayLabel = computed(() => {
   if (!current.value) {
     return ''
@@ -311,12 +313,41 @@ watch(panelLayerRef, (layer, _old, onCleanup) => {
 }, { flush: 'post' })
 
 watch(
-  () => [displayLabel.value, current.value?.state, current.value?.progress != null, loadingCount.value] as const,
+  () => [displayLabel.value, current.value?.state, current.value?.progress != null, loadingCount.value, pendingCount.value] as const,
   () => {
     void measurePill()
   },
   { immediate: true },
 )
+
+// ── 折叠态堆叠：队列里还有几条待展示，就在壳体后方露出几层 ──────────────
+// 叠层只做视觉暗示、不渲染各自文案：岛浮在顶栏之上，平铺多条会盖住工具栏。
+// 「都能看到」由队列保证（逐条完整停留），叠层负责「知道还有多少」。
+const STACK_MAX_LAYERS = 2
+const hovering = ref(false)
+
+/** 后方叠层数量：按队列待展示条数，最多两层 */
+const stackDepth = computed(() => {
+  if (expanded.value) {
+    return 0
+  }
+  return Math.min(pendingCount.value, STACK_MAX_LAYERS)
+})
+
+/** 叠层几何：与当前折叠形态（胶囊/卡片）同宽同高同圆角，逐层下移并缩窄 */
+function stackStyle(index: number): Record<string, string> {
+  const depth = index + 1
+  const isCard = mode.value === 'card'
+  const offset = (hovering.value ? 9 : 5) * depth
+  const shrink = (hovering.value ? 0.04 : 0.06) * depth
+  return {
+    width: `${isCard ? panelWidth() : pillWidth.value}px`,
+    height: `${isCard ? cardHeight.value : PILL_HEIGHT}px`,
+    borderRadius: isCard ? '20px' : '18px',
+    transform: `translateX(-50%) translateY(${offset}px) scale(${1 - shrink})`,
+    opacity: `${0.55 - (depth - 1) * 0.2}`,
+  }
+}
 
 const shellStyle = computed(() => {
   if (expanded.value) {
@@ -411,12 +442,24 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <div ref="rootRef" class="di-root">
+      <!-- 后方叠层：先于壳体入 DOM 以保证被壳体压住，仅折叠态且队列里还有待展示时出现 -->
+      <TransitionGroup name="di-stack">
+        <div
+          v-for="index in stackDepth"
+          v-show="shellVisible"
+          :key="`stack-${index}`"
+          class="di-stack"
+          :style="stackStyle(index - 1)"
+        />
+      </TransitionGroup>
       <Transition name="island" appear>
         <div
           v-if="shellVisible"
           class="di-shell"
           :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-pop': popping }]"
           :style="shellStyle"
+          @pointerenter="hovering = true"
+          @pointerleave="hovering = false"
         >
           <!-- 折叠层：胶囊（图标贴最左，按钮贴最右） -->
           <button
@@ -453,7 +496,7 @@ onBeforeUnmount(() => {
                 <span v-if="current?.state === 'loading' && current?.progress != null" class="di-pct">
                   {{ Math.round(current.progress) }}%
                 </span>
-                <span v-if="loadingCount > 1" class="di-count">{{ loadingCount }}</span>
+                <span v-if="pendingCount > 0" class="di-count">+{{ pendingCount }}</span>
                 <Icon v-if="hasPanel" icon="lucide:chevron-down" width="13" height="13" class="di-chevron" />
               </span>
             </span>
@@ -598,6 +641,38 @@ onBeforeUnmount(() => {
   pointer-events: none;
   display: flex;
   justify-content: center;
+}
+
+/* ============ 后方叠层：多条活动消息的「还有更多」暗示 ============ */
+/* 与壳体同色但更暗更透，逐层下移缩窄；悬停时轻微散开。
+   不接收指针事件：点击落在壳体上，行为与单条时一致。 */
+.di-stack {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  pointer-events: none;
+  background: rgb(18 18 20 / 82%);
+  box-shadow:
+    0 8px 22px rgb(0 0 0 / 26%),
+    inset 0 0 0 1px rgb(255 255 255 / 6%);
+  backdrop-filter: blur(14px);
+  transition:
+    width 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
+    height 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
+    border-radius 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
+    transform 0.32s cubic-bezier(0.3, 1.15, 0.35, 1),
+    opacity 0.24s ease;
+}
+
+/* 叠层进出：从壳体正下方长出 / 缩回，不做位移动画以免与自身 transform 打架 */
+.di-stack-enter-active,
+.di-stack-leave-active {
+  transition: opacity 0.24s ease;
+}
+
+.di-stack-enter-from,
+.di-stack-leave-to {
+  opacity: 0 !important;
 }
 
 /* ============ 单壳体：胶囊 ⇄ 面板形变容器 ============ */
