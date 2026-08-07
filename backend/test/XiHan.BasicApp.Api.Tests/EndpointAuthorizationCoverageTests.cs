@@ -53,6 +53,9 @@ public sealed class EndpointAuthorizationCoverageTests
             "EnumMetadataAppService.GetAllEnumsAsync",
             "EnumMetadataAppService.GetEnumAsync",
 
+            // TimeZoneMetadataAppService（1）：时区目录，顶栏/个人中心/编号规则共用，任何登录用户都要能取，类级 Authorize 已门控
+            "TimeZoneMetadataAppService.GetTimeZoneOptionsAsync",
+
             // ExportTaskAppService（3）：导出任务归属当前用户，仓储按 userId 取改，非本人一律拒绝
             "ExportTaskAppService.CancelAsync",
             "ExportTaskAppService.DeleteAsync",

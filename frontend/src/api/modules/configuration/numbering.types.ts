@@ -132,14 +132,6 @@ export interface NumberingAllocationListItemDto extends BasicDto {
   businessId?: string | null
 }
 
-/** 后端运行环境确认可解析的规则时区选项。 */
-export interface NumberingTimeZoneOptionDto {
-  id: string
-  displayName: string
-  baseUtcOffsetMinutes: number
-  supportsDaylightSavingTime: boolean
-}
-
 /** 不消耗流水的格式预览参数。 */
 export interface NumberingPreviewDto {
   prefix?: string | null

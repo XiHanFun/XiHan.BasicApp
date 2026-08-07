@@ -15,12 +15,6 @@ export default {
     en_us: 'English',
   },
   timezone: {
-    utc: 'UTC',
-    shanghai: 'Beijing Time (Asia/Shanghai)',
-    tokyo: 'Tokyo Time (Asia/Tokyo)',
-    london: 'London Time (Europe/London)',
-    new_york: 'New York Time (America/New_York)',
-    los_angeles: 'Los Angeles Time (America/Los_Angeles)',
     switch_success: 'Timezone switched: {timezone}',
   },
   notification: {

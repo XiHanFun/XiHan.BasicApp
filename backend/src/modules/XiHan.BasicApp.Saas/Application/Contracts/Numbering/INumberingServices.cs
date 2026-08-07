@@ -130,15 +130,6 @@ public interface INumberingRuleQueryService : IApplicationService
     Task<PageResultDtoBase<NumberingAllocationListItemDto>> GetNumberingAllocationPageAsync(NumberingAllocationPageQueryDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取当前后端运行环境允许新规则保存的可移植时区选项。
-    /// </summary>
-    /// <param name="cancellationToken">在读取缓存目录前检查的取消令牌。</param>
-    /// <returns>以 IANA ID 为保存值、按 UTC 偏移稳定排序的只读时区列表。</returns>
-    /// <remarks>目录排除无法在 Windows 与 Unix 之间安全映射的时区；历史 Windows ID 仍由格式器兼容解析。</remarks>
-    /// <exception cref="OperationCanceledException">操作被 <paramref name="cancellationToken"/> 取消。</exception>
-    Task<IReadOnlyList<NumberingTimeZoneOptionDto>> GetNumberingTimeZoneOptionsAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 使用指定格式参数预览编号，但不读取或推进任何规则流水。
     /// </summary>
     /// <param name="input">待验证的格式参数和示例流水值。</param>

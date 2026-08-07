@@ -347,6 +347,14 @@ function createShellApis() {
         return requestClient.post<{ scene: number, settingKey: string, settingValue?: null | string }>('/UserSetting/Save', input)
       },
     },
+    timeZoneApi: {
+      options() {
+        return getWithFallback<Array<{ id: string, displayName: string, baseUtcOffsetMinutes: number, supportsDaylightSavingTime: boolean }>>(
+          '/TimeZoneMetadata/TimeZoneOptions',
+          [],
+        )
+      },
+    },
     fieldSecurityApi: {
       getMine(resourceCode: string) {
         return getWithFallback<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>(

@@ -205,30 +205,6 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
     }
 
     /// <summary>
-    /// 获取当前服务实例允许新规则保存的可移植时区目录。
-    /// </summary>
-    /// <param name="cancellationToken">读取线程安全缓存前检查的取消令牌。</param>
-    /// <returns>以 IANA ID 为保存值的只读时区选项。</returns>
-    /// <remarks>格式器已经完成跨平台筛选，本方法只负责映射为 Dynamic API DTO，不从数据库或数据字典读取。</remarks>
-    /// <exception cref="OperationCanceledException">操作被 <paramref name="cancellationToken"/> 取消。</exception>
-    [PermissionAuthorize(SaasPermissionCodes.Numbering.Read)]
-    public Task<IReadOnlyList<NumberingTimeZoneOptionDto>> GetNumberingTimeZoneOptionsAsync(
-        CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var options = _formatter.GetSupportedTimeZones()
-            .Select(timeZone => new NumberingTimeZoneOptionDto
-            {
-                Id = timeZone.Id,
-                DisplayName = timeZone.DisplayName,
-                BaseUtcOffsetMinutes = timeZone.BaseUtcOffsetMinutes,
-                SupportsDaylightSavingTime = timeZone.SupportsDaylightSavingTime
-            })
-            .ToArray();
-        return Task.FromResult<IReadOnlyList<NumberingTimeZoneOptionDto>>(options);
-    }
-
-    /// <summary>
     /// 以指定示例流水值预览编号格式，不消耗真实流水。
     /// </summary>
     /// <param name="input">包含格式、时区和字符串形式示例流水值的预览 DTO。</param>

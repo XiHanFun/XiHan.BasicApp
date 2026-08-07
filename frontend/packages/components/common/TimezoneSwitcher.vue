@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import type { DropdownOption, DropdownProps } from 'naive-ui'
 import { NDropdown, NSelect, useMessage } from 'naive-ui'
-import { computed, h } from 'vue'
+import { computed, h, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useTimezoneOptions } from '~/composables'
 import { useAppStore } from '~/stores'
 
 /**
  * 时区切换组件（统一封装：选项 + 切换逻辑）。
  * - variant=select：行内下拉框（个人中心）。
  * - variant=dropdown：触发器 + 菜单（顶栏），触发器经默认插槽传入。
+ * 选项取自 useTimezoneOptions 的共享目录（顶栏 / 个人中心 / 编号规则同一份），不在此另行硬编码。
  * - apply=true：即时切换并同步应用时区（appStore.appTimezone，随请求头 X-Timezone 上行）并提示；否则受控，仅 emit（如个人中心的资料字段）。
  */
 defineOptions({ name: 'TimezoneSwitcher' })
@@ -41,28 +43,27 @@ const appStore = useAppStore()
 const message = useMessage()
 const { t } = useI18n()
 
-const TIMEZONES = [
-  { value: 'UTC', labelKey: 'header.timezone.utc' },
-  { value: 'Asia/Shanghai', labelKey: 'header.timezone.shanghai' },
-  { value: 'Asia/Tokyo', labelKey: 'header.timezone.tokyo' },
-  { value: 'Europe/London', labelKey: 'header.timezone.london' },
-  { value: 'America/New_York', labelKey: 'header.timezone.new_york' },
-  { value: 'America/Los_Angeles', labelKey: 'header.timezone.los_angeles' },
-] as const
+const { commonOptions, loading, ensureLoaded, withCurrent } = useTimezoneOptions()
+
+onMounted(() => {
+  void ensureLoaded()
+})
 
 /** 当前选中：apply 取应用时区，否则取受控值（兜底应用时区） */
 const current = computed(() => (props.apply ? appStore.appTimezone : (props.value ?? appStore.appTimezone)))
 
-const selectOptions = computed(() => TIMEZONES.map(z => ({ value: z.value, label: t(z.labelKey) })))
+// select 形态给完整目录（可搜索，供编号规则等需要任意时区的场景）；
+// dropdown 形态是顶栏点开即选，只给常用几条，四百多条没法用
+const selectOptions = computed(() => withCurrent(current.value).map(zone => ({ value: zone.value, label: zone.label })))
 const dropdownOptions = computed<DropdownOption[]>(() =>
-  TIMEZONES.map((z) => {
-    const active = z.value === current.value
+  commonOptions.value.map((zone) => {
+    const active = zone.value === current.value
     return {
-      key: z.value,
+      key: zone.value,
       // 当前选中项高亮：主色 + 加粗（内联样式，确保 teleport 弹层生效）
       label: () => h('span', {
         style: active ? { color: 'hsl(var(--primary))', fontWeight: 600 } : undefined,
-      }, t(z.labelKey)),
+      }, zone.label),
     }
   }))
 
@@ -89,6 +90,8 @@ function choose(timezone: string) {
     v-if="variant === 'select'"
     :value="current || null"
     :options="selectOptions"
+    :loading="loading"
+    filterable
     :size="size"
     :style="selectStyle"
     @update:value="(v) => choose(String(v))"

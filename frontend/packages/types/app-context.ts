@@ -171,6 +171,10 @@ export interface AppContextApis {
     /** origin 为不落库的中转字段：携带主题切换的点击位置（视口百分比），供其它设备复现同位置扩散动画 */
     save: (input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string, origin?: null | string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
   }
+  /** 时区目录（顶栏 / 个人中心 / 编号规则共用；后端已筛掉服务端无法解析的时区） */
+  timeZoneApi: {
+    options: () => Promise<Array<{ id: string, displayName: string, baseUtcOffsetMinutes: number, supportsDaylightSavingTime: boolean }>>
+  }
   /** 字段权限（按资源下发当前用户的有效 FLS 规则：可读/可编辑/脱敏策略） */
   fieldSecurityApi: {
     getMine: (resourceCode: string) => Promise<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>
