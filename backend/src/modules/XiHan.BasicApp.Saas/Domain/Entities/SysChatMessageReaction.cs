@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -27,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_MeId_UsId_Em", nameof(TenantId), OrderByType.Asc, nameof(MessageId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(Emoji), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_MeId", nameof(MessageId), OrderByType.Asc)]
-public partial class SysChatMessageReaction : BasicAppCreationEntity
+public partial class SysChatMessageReaction : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 会话ID
