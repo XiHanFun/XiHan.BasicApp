@@ -155,6 +155,8 @@ const pillInnerRef = ref<HTMLElement | null>(null)
 const panelLayerRef = ref<HTMLElement | null>(null)
 const pillWidth = ref<number>(PILL_MIN_WIDTH)
 const panelHeight = ref<number>(120)
+const cardLayerRef = ref<HTMLElement | null>(null)
+const cardHeight = ref<number>(72)
 
 function panelWidth(): number {
   return Math.min(window.innerWidth * 0.86, 340)
@@ -180,6 +182,53 @@ async function measurePill(): Promise<void> {
     : Math.min(Math.max(Math.ceil(intrinsic), Math.min(PILL_MIN_WIDTH, cap)), cap)
 }
 
+// ── 卡片态：参照 iOS 灵动岛「重要更新自动短暂展开、随后自行收回」──────
+// 判据取「任务是否带正文（detail）」：聊天消息一类有正文的才值得抢占视线，
+// 纯状态胶囊（连接断开/任务进行中）不打断。用户手动展开时立刻让位给内容态。
+const CARD_LINGER = 2600
+const cardTaskId = ref<string | null>(null)
+let cardTimer: ReturnType<typeof setTimeout> | null = null
+
+const cardTask = computed<IslandTask | null>(() =>
+  (cardTaskId.value ? activeTasks.value.find(item => item.id === cardTaskId.value) ?? null : null))
+
+function clearCardTimer(): void {
+  if (cardTimer) {
+    clearTimeout(cardTimer)
+    cardTimer = null
+  }
+}
+
+function dismissCard(): void {
+  clearCardTimer()
+  cardTaskId.value = null
+}
+
+function presentCard(task: IslandTask): void {
+  cardTaskId.value = task.id
+  clearCardTimer()
+  cardTimer = setTimeout(dismissCard, CARD_LINGER)
+}
+
+/** 当前形态：内容态优先于卡片态，卡片态优先于胶囊 */
+const mode = computed<'pill' | 'card' | 'panel'>(() => {
+  if (expanded.value) {
+    return 'panel'
+  }
+  return cardTask.value ? 'card' : 'pill'
+})
+
+/** 卡片点击：有跳转目标就直达，否则展开成内容态 */
+function onCardClick(): void {
+  const task = cardTask.value
+  dismissCard()
+  if (task && (task.onClick || task.link)) {
+    onTaskClick(task)
+    return
+  }
+  expand()
+}
+
 // ── 新任务到达脉冲：岛已在屏上时（不重新入场）以轻微弹跳提示 ───────
 const popping = ref(false)
 let popTimer: ReturnType<typeof setTimeout> | null = null
@@ -199,14 +248,51 @@ function triggerPop(): void {
 }
 
 watch(
-  () => (current.value ? `${current.value.id}:${current.value.state}` : null),
+  () => (current.value ? `${current.value.id}:${current.value.state}:${current.value.label}` : null),
   (next, prev) => {
+    const task = current.value
+    if (!next || !task || expanded.value) {
+      return
+    }
+    // 带正文＝值得抢占视线的更新，自动进卡片态；否则维持胶囊，仅脉冲一下
+    if (task.detail) {
+      presentCard(task)
+      return
+    }
     // 仅在"岛已可见且任务/状态切换"时脉冲；首次出现交给入场动效
-    if (next && prev && next !== prev && !expanded.value) {
+    if (prev && next !== prev) {
       triggerPop()
     }
   },
 )
+
+// 手动展开内容态时卡片让位；任务被移除时卡片同步撤下
+watch(expanded, (open) => {
+  if (open) {
+    dismissCard()
+  }
+})
+watch(cardTask, (task) => {
+  if (!task) {
+    dismissCard()
+  }
+})
+
+// 卡片高度随正文行数变化，同样以 ResizeObserver 驱动壳体过渡
+let cardObserver: ResizeObserver | null = null
+watch(cardLayerRef, (layer, _old, onCleanup) => {
+  if (!layer) {
+    return
+  }
+  cardObserver ??= new ResizeObserver(() => {
+    if (cardLayerRef.value) {
+      cardHeight.value = cardLayerRef.value.offsetHeight
+    }
+  })
+  cardObserver.observe(layer)
+  cardHeight.value = layer.offsetHeight
+  onCleanup(() => cardObserver?.unobserve(layer))
+}, { flush: 'post' })
 
 // 面板内容尺寸随任务/历史变化：ResizeObserver 持续驱动壳体高度过渡（惰性创建，规避挂载时序）
 let panelObserver: ResizeObserver | null = null
@@ -238,6 +324,14 @@ const shellStyle = computed(() => {
       width: `${panelWidth()}px`,
       height: `${panelHeight.value}px`,
       borderRadius: '16px',
+    }
+  }
+  // 卡片态：与内容态同宽，高度随正文行数；圆角介于胶囊与面板之间
+  if (mode.value === 'card') {
+    return {
+      width: `${panelWidth()}px`,
+      height: `${cardHeight.value}px`,
+      borderRadius: '20px',
     }
   }
   // 折叠态恒为胶囊圆角：参照 iOS 灵动岛——完成态不改变形状，仅内容从进度环切换为状态图标
@@ -300,6 +394,9 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown)
   panelObserver?.disconnect()
   panelObserver = null
+  cardObserver?.disconnect()
+  cardObserver = null
+  clearCardTimer()
   if (tickTimer) {
     clearInterval(tickTimer)
     tickTimer = null
@@ -325,9 +422,9 @@ onBeforeUnmount(() => {
           <button
             type="button"
             class="di-layer di-pill"
-            :class="{ 'is-active': !expanded }"
+            :class="{ 'is-active': mode === 'pill' }"
             :aria-label="current?.label"
-            :tabindex="expanded ? -1 : 0"
+            :tabindex="mode === 'pill' ? 0 : -1"
             @click="expand"
           >
             <span ref="pillInnerRef" class="di-pill__inner">
@@ -359,6 +456,24 @@ onBeforeUnmount(() => {
                 <span v-if="loadingCount > 1" class="di-count">{{ loadingCount }}</span>
                 <Icon v-if="hasPanel" icon="lucide:chevron-down" width="13" height="13" class="di-chevron" />
               </span>
+            </span>
+          </button>
+
+          <!-- 卡片层：重要更新自动短暂呈现，点击进入目标或展开内容 -->
+          <button
+            ref="cardLayerRef"
+            type="button"
+            class="di-layer di-card"
+            :class="{ 'is-active': mode === 'card' }"
+            :tabindex="mode === 'card' ? 0 : -1"
+            @click="onCardClick"
+          >
+            <span class="di-card__icon">
+              <Icon :icon="cardTask?.icon || stateIcon(cardTask?.state)" width="18" height="18" />
+            </span>
+            <span class="di-card__body">
+              <span class="di-card__title">{{ cardTask?.label }}</span>
+              <span v-if="cardTask?.detail" class="di-card__detail">{{ cardTask.detail }}</span>
             </span>
           </button>
 
@@ -1007,5 +1122,60 @@ onBeforeUnmount(() => {
 .di-text-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+
+/* ── 卡片态：介于胶囊与内容面板之间的中间形态 ── */
+.di-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.di-card__icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+
+.di-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.di-card__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 正文最多两行：再多就该去内容态看，卡片只负责一眼可读 */
+.di-card__detail {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 72%);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
 }
 </style>
