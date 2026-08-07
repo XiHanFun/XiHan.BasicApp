@@ -116,24 +116,25 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>()
 let orderSeq = 0
 
 /**
- * 终态消息队列：非常驻的 success/error/info 按到达顺序排队，只有队首在展示、也只有队首在计时。
- * 新消息不再顶掉正在展示的那条——每条都能完整停留自己的时长。
+ * 终态消息栈：非常驻的 success/error/info 后进先出——最新的压在最上面先展示，
+ * 旧的在下面等着轮到自己。只有栈顶在展示、也只有栈顶在计时，
+ * 所以新消息不会把旧消息挤掉，每条都能轮到并完整停留自己的时长。
  */
-const messageQueue = computed(() => tasks.value
+const messageStack = computed(() => tasks.value
   .filter(item => item.state !== 'loading' && !item.persistent)
-  .sort((a, b) => a.order - b.order))
+  .sort((a, b) => b.order - a.order))
 
-/** 进行中与常驻状态：不占队列位（长驻，占位会把消息饿死），队列空时才回到岛上 */
+/** 进行中与常驻状态：不占栈位（长驻，占位会把消息饿死），栈空时才回到岛上 */
 const statusTasks = computed(() => tasks.value.filter(item => item.state === 'loading' || item.persistent))
 
-/** 队首之后还在排队的条数（折叠态据此叠层与计数） */
-const pendingCount = computed(() => Math.max(messageQueue.value.length - 1, 0))
+/** 压在栈顶之下、还没轮到的条数（折叠态据此叠层与计数） */
+const pendingCount = computed(() => Math.max(messageStack.value.length - 1, 0))
 
-/** 折叠态展示的任务：队首消息优先，无消息时回落到最近的进行中/常驻状态 */
+/** 折叠态展示的任务：栈顶消息优先，无消息时回落到最近的进行中/常驻状态 */
 const current = computed<IslandTask | null>(() => {
-  const head = messageQueue.value[0]
-  if (head) {
-    return head
+  const top = messageStack.value[0]
+  if (top) {
+    return top
   }
   if (statusTasks.value.length === 0) {
     return null
@@ -213,17 +214,14 @@ function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' |
 }
 
 /**
- * 队列限长：一波消息涌进来时只留最近的若干条，丢最早的等待项。
- * 正在展示的队首不动——它已经在用户眼前了，抽掉会造成闪跳。
+ * 栈限长：一波消息涌进来时只留最近的若干条，压在最底下的最旧几条直接丢掉，
+ * 否则一次刷屏能让岛排上小半分钟。
  */
 function trimQueue(): void {
-  const queued = tasks.value
+  const stack = tasks.value
     .filter(item => item.state !== 'loading' && !item.persistent)
-    .sort((a, b) => a.order - b.order)
-  if (queued.length <= QUEUE_CAP) {
-    return
-  }
-  for (const task of queued.slice(1, queued.length - (QUEUE_CAP - 1))) {
+    .sort((a, b) => b.order - a.order)
+  for (const task of stack.slice(QUEUE_CAP)) {
     removeTask(task.id)
   }
 }
@@ -233,16 +231,16 @@ function lingerOf(state: IslandState): number {
 }
 
 /**
- * 队列调度：只给队首排移除计时，排队中的一律不计时（否则在后面排队时就悄悄倒计时完了）。
- * 队首已有计时则不重排，避免其它任务变动把它的停留时间一再刷新。
+ * 栈调度：只给栈顶排移除计时，压在下面的一律不计时（否则在下面等着就悄悄倒计时完了）。
+ * 栈顶已有计时则不重排，避免其它任务变动把它的停留时间一再刷新。
  */
-watch(messageQueue, (queue) => {
-  queue.forEach((task, index) => {
+watch(messageStack, (stack) => {
+  stack.forEach((task, index) => {
     if (index === 0) {
       if (!timers.has(task.id)) {
-        // 有积压时按排空节奏走，单独一条则给足完整停留时间
+        // 下面还压着就按排空节奏走，单独一条则给足完整停留时间
         const linger = lingerOf(task.state)
-        scheduleRemoval(task.id, queue.length > 1 ? Math.min(linger, QUEUE_DRAIN_LINGER) : linger)
+        scheduleRemoval(task.id, stack.length > 1 ? Math.min(linger, QUEUE_DRAIN_LINGER) : linger)
       }
       return
     }

@@ -231,21 +231,21 @@ function onCardClick(): void {
   expand()
 }
 
-// ── 新任务到达脉冲：岛已在屏上时（不重新入场）以轻微弹跳提示 ───────
-const popping = ref(false)
-let popTimer: ReturnType<typeof setTimeout> | null = null
+// ── 入栈动效：岛已在屏上时，新消息从右侧滑入压到最上面 ─────────────
+const sliding = ref(false)
+let slideTimer: ReturnType<typeof setTimeout> | null = null
 
-function triggerPop(): void {
-  popping.value = false
+function triggerSlideIn(): void {
+  sliding.value = false
   requestAnimationFrame(() => {
-    popping.value = true
-    if (popTimer) {
-      clearTimeout(popTimer)
+    sliding.value = true
+    if (slideTimer) {
+      clearTimeout(slideTimer)
     }
-    popTimer = setTimeout(() => {
-      popping.value = false
-      popTimer = null
-    }, 500)
+    slideTimer = setTimeout(() => {
+      sliding.value = false
+      slideTimer = null
+    }, 520)
   })
 }
 
@@ -258,14 +258,13 @@ watch(
     if (!next || !task || expanded.value) {
       return
     }
-    // 带正文＝值得抢占视线的更新，自动进卡片态；否则维持胶囊，仅脉冲一下
+    // 仅在「岛已可见且栈顶换人」时滑入；首次出现交给入场动效
+    if (prev && next !== prev) {
+      triggerSlideIn()
+    }
+    // 带正文＝值得抢占视线的更新，自动进卡片态
     if (task.detail) {
       presentCard(task)
-      return
-    }
-    // 仅在"岛已可见且任务/状态切换"时脉冲；首次出现交给入场动效
-    if (prev && next !== prev) {
-      triggerPop()
     }
   },
 )
@@ -337,28 +336,27 @@ const stackDepth = computed(() => {
 })
 
 /**
- * 叠层几何：邻卡与前卡等大，仅整体缩小一档并向左右挪出，露出侧边一条。
- * 缩放以中心为基点，上下自然内收，不需要额外的纵向位移；
- * 也不往下露——岛贴着顶栏，向下露会压住面包屑那一行。
+ * 叠层几何：旧卡与栈顶等大，整体缩小一档并向左退出去，露出左侧一条边。
+ * 只往左退——新消息从右侧滑入压到最上面，旧的顺势被推向左后方；
+ * 也不往下露，岛贴着顶栏，向下露会压住面包屑那一行。
  */
-function layerStyle(depth: number, direction: -1 | 1): Record<string, string> {
+function layerStyle(depth: number): Record<string, string> {
   const isCard = mode.value === 'card'
   const shift = (hovering.value ? 34 : 26) * depth
   return {
     width: `${isCard ? panelWidth() : pillWidth.value}px`,
     height: `${isCard ? cardHeight.value : PILL_HEIGHT}px`,
     borderRadius: isCard ? '20px' : '18px',
-    transform: `translateX(calc(-50% + ${direction * shift}px)) scale(${1 - 0.07 * depth})`,
+    transform: `translateX(calc(-50% - ${shift}px)) scale(${1 - 0.07 * depth})`,
     opacity: `${0.9 - (depth - 1) * 0.22}`,
   }
 }
 
-/** 叠层渲染序列：越深的越先入 DOM，保证被浅层压住 */
+/** 叠层渲染序列：越旧的越先入 DOM，保证被新的压住 */
 const stackLayers = computed(() => {
   const layers: Array<{ key: string, style: Record<string, string> }> = []
   for (let depth = stackDepth.value; depth >= 1; depth--) {
-    layers.push({ key: `left-${depth}`, style: layerStyle(depth, -1) })
-    layers.push({ key: `right-${depth}`, style: layerStyle(depth, 1) })
+    layers.push({ key: `layer-${depth}`, style: layerStyle(depth) })
   }
   return layers
 })
@@ -446,9 +444,9 @@ onBeforeUnmount(() => {
     clearInterval(tickTimer)
     tickTimer = null
   }
-  if (popTimer) {
-    clearTimeout(popTimer)
-    popTimer = null
+  if (slideTimer) {
+    clearTimeout(slideTimer)
+    slideTimer = null
   }
 })
 </script>
@@ -470,7 +468,7 @@ onBeforeUnmount(() => {
         <div
           v-if="shellVisible"
           class="di-shell"
-          :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-pop': popping }]"
+          :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-slide': sliding }]"
           :style="shellStyle"
           @pointerenter="hovering = true"
           @pointerleave="hovering = false"
@@ -676,13 +674,28 @@ onBeforeUnmount(() => {
     opacity 0.24s ease;
 }
 
-/* 叠层进出：从壳体正下方长出 / 缩回，不做位移动画以免与自身 transform 打架 */
-.di-stack-enter-active,
-.di-stack-leave-active {
-  transition: opacity 0.24s ease;
+/* 入栈动效：新叠层从「栈顶原位、原尺寸」退到左后方，看着就是上一条被压下去。
+   关键帧只写起始态，结束态隐式取元素自身的行内 transform（各层位移不同，写死不了）；
+   动画期间关键帧优先级高于行内样式，动画结束自然落回行内位置。 */
+.di-stack-enter-active {
+  /* 关掉基础 transition：入场只跑关键帧，避免与之并存时 Vue 把过渡类型判成 transition */
+  transition: none;
+  animation: di-stack-push 0.46s cubic-bezier(0.25, 1.15, 0.4, 1);
 }
 
-.di-stack-enter-from,
+@keyframes di-stack-push {
+  from {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.95;
+  }
+}
+
+.di-stack-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
 .di-stack-leave-to {
   opacity: 0 !important;
 }
@@ -1175,22 +1188,20 @@ onBeforeUnmount(() => {
   transform: translateY(calc(-100% - 14px)) scale(0.88);
 }
 
-/* 新任务到达脉冲（岛已在屏上、不重新入场时的轻弹跳提示） */
-.di-pop {
-  animation: di-pop 0.45s cubic-bezier(0.3, 1.3, 0.4, 1);
+/* 入栈：新消息从右侧滑入压到最上面（岛已在屏上、不重新入场时） */
+.di-slide {
+  animation: di-slide-in 0.46s cubic-bezier(0.25, 1.15, 0.4, 1);
 }
 
-@keyframes di-pop {
+@keyframes di-slide-in {
   0% {
-    transform: scale(1);
-  }
-
-  35% {
-    transform: scale(1.05);
+    transform: translateX(38px) scale(0.94);
+    opacity: 0.25;
   }
 
   100% {
-    transform: scale(1);
+    transform: translateX(0) scale(1);
+    opacity: 1;
   }
 }
 
