@@ -138,7 +138,7 @@ export function useSignalRIntegration() {
     }
     if (payload.scene === UserSettingScene.Preference) {
       if (payload.settingKey === PREFERENCE_SETTING_KEY) {
-        void applyRemotePreferenceSnapshot(payload.settingValue)
+        void applyRemotePreferenceSnapshot(payload.settingValue, payload.origin)
       }
       else if (payload.settingKey === FAVORITES_SETTING_KEY) {
         useFavoritesStore().applyRemote(payload.settingValue)

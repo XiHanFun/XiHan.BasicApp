@@ -34,4 +34,6 @@ export interface UserSettingChangedPayload {
   settingKey: string
   settingValue?: null | string
   sourceClientId?: null | string
+  /** 变更来源标记：主题切换的点击位置（视口百分比 'x,y'），由发起端携带、服务端原样中转 */
+  origin?: null | string
 }
