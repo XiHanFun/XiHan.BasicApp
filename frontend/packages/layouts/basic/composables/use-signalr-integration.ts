@@ -108,7 +108,7 @@ export function useSignalRIntegration() {
       closable: false,
     })
 
-    playNotificationSound()
+    playNotificationSound('notice')
     window.dispatchEvent(new CustomEvent(NOTIFICATION_RECEIVED_EVENT, { detail: payload }))
   }
 
