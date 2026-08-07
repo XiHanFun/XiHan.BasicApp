@@ -337,26 +337,34 @@ const stackDepth = computed(() => {
 })
 
 /**
- * 叠层几何：逐层向左右两侧展开、上下收进，从壳体两侧露出边缘。
+ * 叠层几何：左右两侧各排一列，逐层向外挪、同时变矮，只露出外侧一条卡片边。
  * 不往下露——岛贴着顶栏，向下露会压住面包屑那一行。
  */
-function stackStyle(index: number): Record<string, string> {
-  const depth = index + 1
+function layerStyle(depth: number, direction: -1 | 1): Record<string, string> {
   const isCard = mode.value === 'card'
   const baseWidth = isCard ? panelWidth() : pillWidth.value
   const baseHeight = isCard ? cardHeight.value : PILL_HEIGHT
-  // 每侧露出的宽度；悬停时摊开一些
-  const spread = (hovering.value ? 12 : 7) * depth
-  // 上下各收进的高度：越靠后越矮，读起来才像叠在后面
-  const inset = 4 * depth
+  // 露出的宽度：悬停时向外摊开
+  const shift = (hovering.value ? 34 : 24) * depth
+  const height = Math.max(baseHeight - 8 * depth, 12)
   return {
-    width: `${baseWidth + spread * 2}px`,
-    height: `${Math.max(baseHeight - inset * 2, 10)}px`,
+    width: `${baseWidth}px`,
+    height: `${height}px`,
     borderRadius: isCard ? '20px' : '18px',
-    transform: `translateX(-50%) translateY(${inset}px)`,
-    opacity: `${0.55 - (depth - 1) * 0.2}`,
+    transform: `translateX(calc(-50% + ${direction * shift}px)) translateY(${(baseHeight - height) / 2}px)`,
+    opacity: `${0.55 - (depth - 1) * 0.18}`,
   }
 }
+
+/** 叠层渲染序列：越深的越先入 DOM，保证被浅层压住 */
+const stackLayers = computed(() => {
+  const layers: Array<{ key: string, style: Record<string, string> }> = []
+  for (let depth = stackDepth.value; depth >= 1; depth--) {
+    layers.push({ key: `left-${depth}`, style: layerStyle(depth, -1) })
+    layers.push({ key: `right-${depth}`, style: layerStyle(depth, 1) })
+  }
+  return layers
+})
 
 const shellStyle = computed(() => {
   if (expanded.value) {
@@ -454,11 +462,11 @@ onBeforeUnmount(() => {
       <!-- 后方叠层：先于壳体入 DOM 以保证被壳体压住，仅折叠态且队列里还有待展示时出现 -->
       <TransitionGroup name="di-stack">
         <div
-          v-for="index in stackDepth"
+          v-for="layer in stackLayers"
           v-show="shellVisible"
-          :key="`stack-${index}`"
+          :key="layer.key"
           class="di-stack"
-          :style="stackStyle(index - 1)"
+          :style="layer.style"
         />
       </TransitionGroup>
       <Transition name="island" appear>
