@@ -57,7 +57,7 @@ export function useChatIntegration() {
       detail: preview,
       link: chatPath,
     }).info()
-    playNotificationSound()
+    playNotificationSound('chat')
   }
 
   let isListenersBound = false
