@@ -1,5 +1,5 @@
 type AudioWindow = Window & {
-  webkitAudioContext?: typeof AudioContext
+  webkitOfflineAudioContext?: typeof OfflineAudioContext
 }
 
 type DeviceNavigator = Navigator & {
@@ -56,54 +56,52 @@ function getWebGLFingerprint(): string {
   }
 }
 
+/**
+ * 音频指纹：离线渲染一段固定波形，取样本能量作为特征。
+ *
+ * 必须用 OfflineAudioContext 而非实时 AudioContext：登录页在 onMounted 即取指纹，
+ * 此时没有用户手势，自动播放策略会把实时上下文挂起，onaudioprocess 永不触发，只能等超时拿空串；
+ * 而退出登录后客户端跳转过来的登录页已有手势，同一段代码又能拿到真实值——
+ * 同一台设备算出两种指纹，会被判成新设备而反复触发设备变更通知。
+ * 离线渲染不受手势限制，结果只取决于硬件与浏览器实现，因而稳定。
+ */
 function getAudioFingerprint(): Promise<string> {
   return new Promise((resolve) => {
     try {
-      const AudioContextCtor = window.AudioContext || (window as AudioWindow).webkitAudioContext
-      if (!AudioContextCtor) {
+      const OfflineCtor = window.OfflineAudioContext
+        || (window as AudioWindow).webkitOfflineAudioContext
+      if (!OfflineCtor) {
         resolve('')
         return
       }
-      const ctx = new AudioContextCtor()
+
+      const ctx = new OfflineCtor(1, 44100, 44100)
       const oscillator = ctx.createOscillator()
-      const analyser = ctx.createAnalyser()
-      const gain = ctx.createGain()
-      const processor = ctx.createScriptProcessor(4096, 1, 1)
-
-      analyser.fftSize = 2048
-      gain.gain.value = 0 // 静音
-
       oscillator.type = 'triangle'
       oscillator.frequency.setValueAtTime(10000, ctx.currentTime)
-      oscillator.connect(analyser)
-      analyser.connect(processor)
-      processor.connect(gain)
-      gain.connect(ctx.destination)
 
-      let result = ''
-      processor.onaudioprocess = (_event) => {
-        const data = new Float32Array(analyser.frequencyBinCount)
-        analyser.getFloatFrequencyData(data)
-        // 取前 30 个频率分量拼接
-        result = data.slice(0, 30).join(',')
-        oscillator.disconnect()
-        processor.disconnect()
-        gain.disconnect()
-        ctx.close().catch(() => {})
-        resolve(result)
-      }
+      // 压缩器的实现差异是音频指纹的主要熵来源
+      const compressor = ctx.createDynamicsCompressor()
+      compressor.threshold.setValueAtTime(-50, ctx.currentTime)
+      compressor.knee.setValueAtTime(40, ctx.currentTime)
+      compressor.ratio.setValueAtTime(12, ctx.currentTime)
+      compressor.attack.setValueAtTime(0, ctx.currentTime)
+      compressor.release.setValueAtTime(0.25, ctx.currentTime)
 
+      oscillator.connect(compressor)
+      compressor.connect(ctx.destination)
       oscillator.start(0)
-      // 超时保护
-      setTimeout(() => {
-        try {
-          oscillator.disconnect()
-          processor.disconnect()
-          ctx.close().catch(() => {})
-        }
-        catch { /* ignore */ }
-        resolve(result)
-      }, 500)
+
+      void ctx.startRendering()
+        .then((buffer) => {
+          const data = buffer.getChannelData(0)
+          let sum = 0
+          for (let i = 4500; i < 5000; i++) {
+            sum += Math.abs(data[i] ?? 0)
+          }
+          resolve(sum.toString())
+        })
+        .catch(() => resolve(''))
     }
     catch {
       resolve('')
