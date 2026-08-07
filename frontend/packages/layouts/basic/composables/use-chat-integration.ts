@@ -10,9 +10,12 @@ import type {
   ChatTypingPushPayload,
 } from '~/types'
 import { onMounted, onUnmounted, watch } from 'vue'
-import { useSignalR } from '~/composables'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+import { islandStart, useSignalR } from '~/composables'
 import { CHAT_HUB_PATH, CHAT_PERMISSIONS, CHAT_REALTIME_METHODS } from '~/constants'
 import { useAccessStore, useChatStore, useUserStore } from '~/stores'
+import { useAppContext } from '~/stores/app-context'
 
 const CHAT_RECONNECT_INTERVAL_MS = 15000
 
@@ -26,6 +29,32 @@ export function useChatIntegration() {
   const userStore = useUserStore()
   const chatStore = useChatStore()
   const signalR = useSignalR(CHAT_HUB_PATH)
+  const route = useRoute()
+  const { t } = useI18n()
+  const chatPath = useAppContext().shellRoutes.chat
+
+  /**
+   * 不在聊天页时把他人发来的消息弹进灵动岛（点击直达会话）。
+   * 已在聊天页则不弹——消息就在眼前，再弹一次是噪音。
+   */
+  function notifyIncomingMessage(payload: ChatMessagePushPayload) {
+    const { message, conversation } = payload
+    if (message.senderUserId === userStore.userInfo?.basicId || message.messageType === 'System') {
+      return
+    }
+    if (chatPath && route.path.startsWith(chatPath)) {
+      return
+    }
+    const preview = conversation.lastMessagePreview?.trim() || message.content?.trim()
+    const label = preview
+      ? t('chat.island_new_message', { name: message.senderUserName || conversation.conversationName || '', preview })
+      : t('chat.island_new_message_fallback')
+    islandStart(`chat:msg:${message.conversationId}`, label, {
+      icon: 'lucide:message-circle',
+      state: 'info',
+      link: chatPath,
+    })
+  }
 
   let isListenersBound = false
   let reconnectTimer: ReturnType<typeof setInterval> | null = null
@@ -38,8 +67,10 @@ export function useChatIntegration() {
     if (isListenersBound) {
       return
     }
-    signalR.on(CHAT_REALTIME_METHODS.receiveChatMessage, payload =>
-      chatStore.applyIncomingMessage(payload as ChatMessagePushPayload))
+    signalR.on(CHAT_REALTIME_METHODS.receiveChatMessage, (payload) => {
+      chatStore.applyIncomingMessage(payload as ChatMessagePushPayload)
+      notifyIncomingMessage(payload as ChatMessagePushPayload)
+    })
     signalR.on(CHAT_REALTIME_METHODS.chatMessageRecalled, payload =>
       chatStore.applyMessageRecalled(payload as ChatRecalledPushPayload))
     signalR.on(CHAT_REALTIME_METHODS.chatConversationChanged, payload =>

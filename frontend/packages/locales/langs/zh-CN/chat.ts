@@ -1,5 +1,8 @@
 export default {
   bell: '在线聊天',
+  /** 未在聊天页时的新消息灵动岛提示 */
+  island_new_message: '{name}：{preview}',
+  island_new_message_fallback: '收到新消息',
   drawer: {
     title: '在线聊天',
     open_page: '打开独立页',
