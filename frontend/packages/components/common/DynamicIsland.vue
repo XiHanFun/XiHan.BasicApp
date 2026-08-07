@@ -232,7 +232,10 @@ function onCardClick(): void {
 }
 
 // ── 入栈动效：岛已在屏上时，新消息从右侧滑入压到最上面 ─────────────
+// 只认「真的更新的那条」：栈顶到期后浮上来的是更旧的一条，此时再滑一次
+// 就成了「又来新消息」的假象，还会和同时向左滑出的叠层反向打架。
 const sliding = ref(false)
+const lastTopOrder = ref(0)
 let slideTimer: ReturnType<typeof setTimeout> | null = null
 
 function triggerSlideIn(): void {
@@ -255,11 +258,16 @@ watch(
   () => (current.value ? `${current.value.id}:${current.value.state}:${current.value.label}:${current.value.detail ?? ''}` : null),
   (next, prev) => {
     const task = current.value
-    if (!next || !task || expanded.value) {
+    if (!next || !task) {
       return
     }
-    // 仅在「岛已可见且栈顶换人」时滑入；首次出现交给入场动效
-    if (prev && next !== prev) {
+    const isNewer = task.order > lastTopOrder.value
+    lastTopOrder.value = task.order
+    if (expanded.value) {
+      return
+    }
+    // 仅「岛已可见 + 确实来了更新的一条」才滑入；首次出现交给入场动效
+    if (prev && next !== prev && isNewer) {
       triggerSlideIn()
     }
     // 带正文＝值得抢占视线的更新，自动进卡片态
@@ -690,14 +698,18 @@ onBeforeUnmount(() => {
   }
 }
 
+/* 出栈动效：最旧的一层顺着同一方向继续向左滑出并淡出。
+   与入场对称——关键帧只写结束态，起始态隐式取元素自身的行内 transform。 */
 .di-stack-leave-active {
-  transition:
-    opacity 0.22s ease,
-    transform 0.22s ease;
+  transition: none;
+  animation: di-stack-drop 0.34s cubic-bezier(0.4, 0, 0.7, 0.3) forwards;
 }
 
-.di-stack-leave-to {
-  opacity: 0 !important;
+@keyframes di-stack-drop {
+  to {
+    transform: translateX(calc(-50% - 120px)) scale(0.78);
+    opacity: 0;
+  }
 }
 
 /* ============ 单壳体：胶囊 ⇄ 面板形变容器 ============ */
