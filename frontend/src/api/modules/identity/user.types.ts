@@ -39,10 +39,13 @@ export interface UserListItemDto extends BasicDto {
 }
 
 export interface UserDetailDto extends UserListItemDto {
+  birthday?: DateTimeString | null
   createdBy?: string | null
   createdId?: ApiId | null
+  email?: string | null
   modifiedBy?: string | null
   modifiedId?: ApiId | null
+  phone?: string | null
   remark?: string | null
 }
 
