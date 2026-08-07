@@ -111,12 +111,30 @@ const expanded = ref(false)
 const timers = new Map<string, ReturnType<typeof setTimeout>>()
 let orderSeq = 0
 
-/** 折叠态展示的任务：取最近活动（order 最大）的那条 */
+/**
+ * 终态消息队列：非常驻的 success/error/info 按到达顺序排队，只有队首在展示、也只有队首在计时。
+ * 新消息不再顶掉正在展示的那条——每条都能完整停留自己的时长。
+ */
+const messageQueue = computed(() => tasks.value
+  .filter(item => item.state !== 'loading' && !item.persistent)
+  .sort((a, b) => a.order - b.order))
+
+/** 进行中与常驻状态：不占队列位（长驻，占位会把消息饿死），队列空时才回到岛上 */
+const statusTasks = computed(() => tasks.value.filter(item => item.state === 'loading' || item.persistent))
+
+/** 队首之后还在排队的条数（折叠态据此叠层与计数） */
+const pendingCount = computed(() => Math.max(messageQueue.value.length - 1, 0))
+
+/** 折叠态展示的任务：队首消息优先，无消息时回落到最近的进行中/常驻状态 */
 const current = computed<IslandTask | null>(() => {
-  if (tasks.value.length === 0) {
+  const head = messageQueue.value[0]
+  if (head) {
+    return head
+  }
+  if (statusTasks.value.length === 0) {
     return null
   }
-  return tasks.value.reduce((latest, item) => (item.order > latest.order ? item : latest))
+  return statusTasks.value.reduce((latest, item) => (item.order > latest.order ? item : latest))
 })
 
 /** 进行中任务数（折叠态可提示并发数量） */
@@ -189,25 +207,33 @@ function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' |
   }
 }
 
-/** 终态收尾：非常驻则按状态停留后移除 */
-function settle(id: string, lingerByState: IslandState): void {
-  const task = tasks.value.find(item => item.id === id)
-  if (!task || task.persistent) {
-    return
-  }
-  const delay = lingerByState === 'error' ? ERROR_LINGER : lingerByState === 'info' ? INFO_LINGER : SUCCESS_LINGER
-  scheduleRemoval(id, delay)
+function lingerOf(state: IslandState): number {
+  return state === 'error' ? ERROR_LINGER : state === 'info' ? INFO_LINGER : SUCCESS_LINGER
 }
+
+/**
+ * 队列调度：只给队首排移除计时，排队中的一律不计时（否则在后面排队时就悄悄倒计时完了）。
+ * 队首已有计时则不重排，避免其它任务变动把它的停留时间一再刷新。
+ */
+watch(messageQueue, (queue) => {
+  queue.forEach((task, index) => {
+    if (index === 0) {
+      if (!timers.has(task.id)) {
+        scheduleRemoval(task.id, lingerOf(task.state))
+      }
+      return
+    }
+    clearTimer(task.id)
+  })
+}, { immediate: true })
 
 function makeHandle(id: string): IslandHandle {
   const apply = (label: string | undefined, state: IslandState, opts?: IslandTaskInit) => {
     const existing = tasks.value.find(item => item.id === id)
     // 终态默认清除常驻标记（如「网络已恢复」短暂展示后消失）
     const persistent = opts?.persistent ?? (state === 'info' ? existing?.persistent : false)
+    // 进队即可，停留计时由队列调度在它排到队首时才开始
     upsert(id, label ?? existing?.label ?? '', { ...opts, state, persistent }, existing?.kind ?? 'event')
-    if (!persistent) {
-      settle(id, state)
-    }
   }
   return {
     update(label) {
@@ -417,10 +443,6 @@ export function applyServerTaskProgress(payload: ServerTaskProgressPayload): voi
     state,
     icon: state === 'loading' ? 'lucide:server' : undefined,
   }, 'event', 'server')
-
-  if (state !== 'loading') {
-    settle(id, state)
-  }
 }
 
 /** 组件订阅入口与操作 */
@@ -431,6 +453,7 @@ export function useDynamicIsland() {
     history,
     expanded,
     loadingCount,
+    pendingCount,
     hasPanel,
     expand: () => {
       if (hasPanel.value) {
