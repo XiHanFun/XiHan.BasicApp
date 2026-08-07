@@ -32,7 +32,7 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const message = useMessage()
-const { t, locale: i18nLocale } = useI18n()
+const { t } = useI18n()
 const visible = ref(false)
 // 偏好设置入口：头部按钮与悬浮 FAB 互斥，统一由 usePreferenceEntry 判定（auto 模式窄屏走 FAB）
 const { showFab: showFloatingFab } = usePreferenceEntry()
@@ -105,8 +105,6 @@ async function copyPreferences() {
 function resetPreferences() {
   // 草稿模式下仅把内存值恢复默认（实时预览），需点击「保存」才落地；关闭不保存则还原
   appStore.resetPreferences()
-  // 语言为「动作型」偏好（vue-i18n 不响应式跟随 store），重置后手动同步当前界面语言
-  i18nLocale.value = appStore.locale
   message.success(t('preference.drawer.reset_success'))
 }
 
@@ -169,8 +167,6 @@ watch(visible, (open, was) => {
   }
   else if (!open && was) {
     appStore.discardPreferenceDraft()
-    // 还原后同步界面语言（locale 为动作型偏好，vue-i18n 不响应式跟随 store）
-    i18nLocale.value = appStore.locale
   }
 })
 </script>
