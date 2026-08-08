@@ -13,14 +13,14 @@ using XiHan.Framework.Authentication.OAuth;
 namespace XiHan.BasicApp.Saas.Infrastructure.OAuth;
 
 /// <summary>
-/// OAuth2 授权服务端标准端点：/connect/authorize、/connect/token、/connect/revoke。
+/// OAuth2 授权服务端标准端点：/Connect/Authorize、/Connect/Token、/Connect/Revoke。
 /// </summary>
 /// <remarks>
 /// 定位：本平台<b>作为授权服务端</b>对外提供标准 OAuth2 端点（区别于 <see cref="OAuthEndpoints"/> 的"本平台作为第三方登录客户端"）。
 /// <list type="bullet">
-/// <item><c>/connect/authorize</c>：匿名浏览器入口，仅 302 跳转到已登录 SPA 同意页（第一方为 JWT bearer，无会话 Cookie，无法在后端判定登录态）。</item>
-/// <item><c>/connect/token</c>：匿名、表单编码、标准路径；直接注入普通 Scoped <see cref="IOAuthServerService"/>（不跨代理接口边界，避免挂起）。</item>
-/// <item><c>/connect/revoke</c>：匿名、表单编码（RFC 7009）。</item>
+/// <item><c>/Connect/Authorize</c>：匿名浏览器入口，仅 302 跳转到已登录 SPA 同意页（第一方为 JWT bearer，无会话 Cookie，无法在后端判定登录态）。</item>
+/// <item><c>/Connect/Token</c>：匿名、表单编码、标准路径；直接注入普通 Scoped <see cref="IOAuthServerService"/>（不跨代理接口边界，避免挂起）。</item>
+/// <item><c>/Connect/Revoke</c>：匿名、表单编码（RFC 7009）。</item>
 /// </list>
 /// 令牌/撤销端点返回<b>原始 OAuth2 JSON</b>（不套用应用统一响应信封）；Minimal-API 天然不经 MVC 结果过滤器。
 /// </remarks>
@@ -33,9 +33,14 @@ public static class OAuthConnectEndpoints
     /// </summary>
     public static IEndpointRouteBuilder MapOAuthConnectEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/connect/authorize", AuthorizeRedirectAsync).AllowAnonymous();
-        endpoints.MapPost("/connect/token", TokenAsync).AllowAnonymous();
-        endpoints.MapPost("/connect/revoke", RevokeAsync).AllowAnonymous();
+        // OAuth2 授权服务端标准端点
+        endpoints.MapGet("/Connect/Authorize", AuthorizeRedirectAsync).AllowAnonymous();
+
+        // OAuth2 令牌端点（RFC 6749）
+        endpoints.MapPost("/Connect/Token", TokenAsync).AllowAnonymous();
+
+        // OAuth2 撤销端点（RFC 7009）
+        endpoints.MapPost("/Connect/Revoke", RevokeAsync).AllowAnonymous();
         return endpoints;
     }
 
