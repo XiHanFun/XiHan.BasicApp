@@ -944,8 +944,8 @@ public sealed class ChatDomainService : IChatDomainService
         var preview = messageType switch
         {
             ChatMessageType.Image => count > 1 ? $"[图片] {count}张" : "[图片]",
-            ChatMessageType.File => count > 1 ? $"[文件] {count}个" : $"[文件] {attachments?.FirstOrDefault()?.FileName}".TrimEnd(),
             ChatMessageType.Voice => $"[语音] {attachments?.FirstOrDefault()?.DurationSeconds ?? 0}\"",
+            ChatMessageType.File => count > 1 ? $"[文件] {count}个" : $"[文件] {attachments?.FirstOrDefault()?.FileName}".TrimEnd(),
             _ => content ?? string.Empty
         };
         return preview.Length <= MaxPreviewLength ? preview : preview[..MaxPreviewLength];
@@ -1000,15 +1000,6 @@ public sealed class ChatDomainService : IChatDomainService
                 var content = Required(command.Content, MaxContentLength, $"文本消息内容不能为空且不能超过 {MaxContentLength} 个字符。");
                 return content;
 
-            case ChatMessageType.Image:
-            case ChatMessageType.File:
-                if (command.Attachments is not { Count: > 0 } || command.Attachments.Any(attachment => attachment.FileId <= 0))
-                {
-                    throw new InvalidOperationException("图片/文件消息必须关联文件。");
-                }
-
-                return Optional(command.Content, MaxContentLength);
-
             case ChatMessageType.Voice:
                 if (command.Attachments is not { Count: 1 } || command.Attachments[0].FileId <= 0)
                 {
@@ -1027,6 +1018,15 @@ public sealed class ChatDomainService : IChatDomainService
 
                 // 语音无正文：说明文字要么没有、要么该走文本消息，留着只会和气泡内播放器抢位置
                 return null;
+
+            case ChatMessageType.Image:
+            case ChatMessageType.File:
+                if (command.Attachments is not { Count: > 0 } || command.Attachments.Any(attachment => attachment.FileId <= 0))
+                {
+                    throw new InvalidOperationException("图片/文件消息必须关联文件。");
+                }
+
+                return Optional(command.Content, MaxContentLength);
 
             case ChatMessageType.System:
                 throw new InvalidOperationException("系统提示消息由服务端生成，不能直接发送。");

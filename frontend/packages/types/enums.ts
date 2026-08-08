@@ -59,9 +59,9 @@ export enum ChatMemberRole {
 export enum ChatMessageType {
   Text = 'Text',
   Image = 'Image',
+  Voice = 'Voice',
   File = 'File',
   Assistant = 'Assistant',
-  Voice = 'Voice',
   System = 'System',
 }
 
