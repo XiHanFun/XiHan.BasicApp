@@ -15,7 +15,7 @@ import type {
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useSignalR } from '~/composables/useSignalR'
-import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH } from '~/constants'
+import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH, CHAT_VOICE_PLAYED_CAP, CHAT_VOICE_PLAYED_STORAGE_KEY } from '~/constants'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import { useAppContext } from './app-context'
@@ -82,6 +82,13 @@ export const useChatStore = defineStore('chat', () => {
   let mentionSeq = 0
   /** 会话草稿（localStorage 持久化） */
   const drafts = ref<Record<string, string>>(LocalStorage.get<Record<string, string>>(CHAT_DRAFTS_STORAGE_KEY) ?? {})
+  /**
+   * 语音「已听」记录，仅存本机（localStorage）。
+   * 条目形如 `用户ID:消息ID`：同一浏览器换账号登录时不会互相染色。
+   * 服务端不留痕，因此换设备/清缓存后旧语音会重新显示未听红点。
+   */
+  const playedVoiceKeys = ref<string[]>(LocalStorage.get<string[]>(CHAT_VOICE_PLAYED_STORAGE_KEY) ?? [])
+  const playedVoiceSet = computed(() => new Set(playedVoiceKeys.value))
   /** 视口分离态：搜索定位后 bucket 停留在历史上下文，不再追加新消息（回到最新后解除） */
   const detachedConversations = ref<Record<string, boolean>>({})
   /** 搜索命中定位后的高亮消息（3s 自清） */
@@ -411,6 +418,25 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /** 表情回应 toggle：乐观应用，失败回滚 */
+  function voiceKeyOf(messageId: string): string {
+    return `${currentUserId()}:${messageId}`
+  }
+
+  /** 该条语音本机是否听过 */
+  function isVoicePlayed(messageId: string): boolean {
+    return playedVoiceSet.value.has(voiceKeyOf(messageId))
+  }
+
+  /** 标记语音已听（首次播放成功时调用），超出上限丢最旧的 */
+  function markVoicePlayed(messageId: string): void {
+    const key = voiceKeyOf(messageId)
+    if (playedVoiceSet.value.has(key)) {
+      return
+    }
+    playedVoiceKeys.value = [key, ...playedVoiceKeys.value].slice(0, CHAT_VOICE_PLAYED_CAP)
+    LocalStorage.set(CHAT_VOICE_PLAYED_STORAGE_KEY, playedVoiceKeys.value)
+  }
+
   async function toggleReaction(conversationId: string, messageId: string, emoji: string) {
     const me = currentUserId()
     const userStore = useUserStore()
@@ -843,6 +869,8 @@ export const useChatStore = defineStore('chat', () => {
     removeLocalMessage,
     recallMessage,
     editMessage,
+    isVoicePlayed,
+    markVoicePlayed,
     toggleReaction,
     pinMessage,
     unpinMessage,
