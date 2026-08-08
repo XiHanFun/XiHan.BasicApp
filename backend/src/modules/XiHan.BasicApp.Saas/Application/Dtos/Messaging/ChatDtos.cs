@@ -95,6 +95,11 @@ public sealed class ChatMessageAttachmentDto
     /// 文件大小（字节）
     /// </summary>
     public long? FileSize { get; set; }
+
+    /// <summary>
+    /// 音频时长（秒，仅语音消息；由发送端录制时给出）
+    /// </summary>
+    public int? DurationSeconds { get; set; }
 }
 
 /// <summary>

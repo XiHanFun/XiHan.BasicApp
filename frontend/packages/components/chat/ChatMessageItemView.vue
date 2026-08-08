@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
 import { NImageGroup, NTooltip } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
@@ -43,6 +44,7 @@ const isSystem = computed(() => props.message.messageType === ChatMessageType.Sy
 const isAnnouncement = computed(() => isSystem.value && props.message.senderUserId !== '0')
 const isImage = computed(() => props.message.messageType === ChatMessageType.Image)
 const isFile = computed(() => props.message.messageType === ChatMessageType.File)
+const isVoice = computed(() => props.message.messageType === ChatMessageType.Voice)
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
 /** 被 @ 到我：气泡高亮 */
@@ -94,6 +96,51 @@ const imageGridClass = computed(() => {
   }
   return count === 2 ? 'chat-image-grid chat-image-grid--2' : 'chat-image-grid chat-image-grid--3'
 })
+
+// ── 语音气泡：单个音频附件，就地播放 ─────────────────────────────────
+const voiceAttachment = computed(() => (isVoice.value ? attachments.value[0] ?? null : null))
+const voiceUrl = useAvatarUrl(computed(() => voiceAttachment.value?.fileId || null))
+const audioRef = ref<HTMLAudioElement | null>(null)
+const voicePlaying = ref(false)
+const voicePlayedRatio = ref(0)
+
+/** 时长优先取发送端记录的秒数；缺失时回落到音频元数据 */
+const voiceSeconds = computed(() => voiceAttachment.value?.durationSeconds ?? 0)
+
+const voiceDurationText = computed(() => {
+  const seconds = voiceSeconds.value
+  return seconds >= 60 ? `${Math.floor(seconds / 60)}'${String(seconds % 60).padStart(2, '0')}"` : `${seconds}"`
+})
+
+/** 气泡宽度随时长增长，最短 90px、到上限 60 秒时 220px——微信式的长短条 */
+const voiceBarWidth = computed(() => `${Math.round(90 + Math.min(voiceSeconds.value, 60) / 60 * 130)}px`)
+
+function toggleVoicePlay(): void {
+  const audio = audioRef.value
+  if (!audio) {
+    return
+  }
+  if (audio.paused) {
+    void audio.play().catch(() => {
+      // 编解码不被当前浏览器支持（如 Safari 放 webm/opus）时静默失败，保持暂停态
+    })
+    return
+  }
+  audio.pause()
+}
+
+function onVoiceTimeUpdate(): void {
+  const audio = audioRef.value
+  if (!audio?.duration) {
+    return
+  }
+  voicePlayedRatio.value = Math.min(audio.currentTime / audio.duration, 1)
+}
+
+function onVoiceEnded(): void {
+  voicePlaying.value = false
+  voicePlayedRatio.value = 0
+}
 
 async function handleDownload(fileId: string) {
   if (!fileId) {
@@ -208,6 +255,26 @@ async function handleDownload(fileId: string) {
           <div v-if="message.content" class="mt-1 text-[13px]">
             {{ message.content }}
           </div>
+        </template>
+
+        <template v-else-if="isVoice">
+          <button type="button" class="chat-voice" :style="{ width: voiceBarWidth }" @click="toggleVoicePlay">
+            <Icon :icon="voicePlaying ? 'lucide:pause' : 'lucide:play'" width="16" height="16" class="shrink-0" />
+            <span class="chat-voice__track">
+              <span class="chat-voice__bar" :style="{ width: `${voicePlayedRatio * 100}%` }" />
+            </span>
+            <span class="chat-voice__time">{{ voiceDurationText }}</span>
+            <audio
+              v-if="voiceUrl"
+              ref="audioRef"
+              :src="voiceUrl"
+              preload="none"
+              @play="voicePlaying = true"
+              @pause="voicePlaying = false"
+              @timeupdate="onVoiceTimeUpdate"
+              @ended="onVoiceEnded"
+            />
+          </button>
         </template>
 
         <!-- 公告卡片（钉钉式：小喇叭标题 + 全文保留换行，发布人经头像/昵称归属） -->
@@ -347,6 +414,48 @@ async function handleDownload(fileId: string) {
 
 .chat-image-grid--3 {
   grid-template-columns: repeat(3, 88px);
+}
+
+/* 语音条：宽度随时长伸缩（见 voiceBarWidth），播放进度铺在轨道上 */
+.chat-voice {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.chat-voice:hover {
+  border-color: hsl(var(--primary) / 50%);
+}
+
+.chat-voice__track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: hsl(var(--muted-foreground) / 30%);
+  overflow: hidden;
+}
+
+.chat-voice__bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  transition: width 0.15s linear;
+}
+
+.chat-voice__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
 }
 
 .chat-file-card {

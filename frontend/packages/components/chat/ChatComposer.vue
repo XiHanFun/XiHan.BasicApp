@@ -4,6 +4,7 @@ import type { ChatMemberItem, ChatMessageAttachment } from '~/types'
 import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
 import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useVoiceRecorder } from '~/composables'
 import { CHAT_PERMISSIONS, CHAT_SEND_KEY_STORAGE_KEY } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useChatStore, useUserStore } from '~/stores'
@@ -380,6 +381,54 @@ function cancelReply() {
   chatStore.replyTarget = null
 }
 
+// ── 语音消息：录完即传即发，不进待发附件列表 ─────────────────────────
+const voice = useVoiceRecorder()
+
+const voiceElapsedText = computed(() => {
+  const seconds = voice.elapsed.value
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
+})
+
+async function toggleVoice(): Promise<void> {
+  if (voice.recording.value) {
+    const result = await voice.stop()
+    if (!result) {
+      message.warning(t('chat.composer.voice_too_short'))
+      return
+    }
+    sending.value = true
+    try {
+      const uploaded = await appContext.apis.chatApi.uploadAttachment(result.file)
+      await chatStore.sendMessage({
+        conversationId: props.conversationId,
+        messageType: ChatMessageType.Voice,
+        content: null,
+        attachments: [{
+          fileId: uploaded.fileId,
+          fileName: uploaded.fileName,
+          fileSize: uploaded.fileSize,
+          durationSeconds: result.durationSeconds,
+        }],
+      })
+    }
+    catch (error) {
+      message.error((error as Error)?.message || t('chat.composer.voice_failed'))
+    }
+    finally {
+      sending.value = false
+    }
+    return
+  }
+
+  try {
+    await voice.start()
+  }
+  catch {
+    // getUserMedia 被拒绝或无可用设备；也可能是非安全上下文（HTTPS 之外）
+    message.error(t('chat.composer.voice_denied'))
+  }
+}
+
 /** 上传全部待发附件并按类型分组（整批统一进度）；任一失败即上抛，调用方保留待发列表 */
 async function uploadPending(attachments: PendingAttachment[]) {
   const images: ChatMessageAttachment[] = []
@@ -539,6 +588,21 @@ function handlePaste(event: ClipboardEvent) {
           </template>
           {{ t('chat.composer.file') }}
         </NTooltip>
+        <NTooltip v-if="voice.supported.value">
+          <template #trigger>
+            <button
+              type="button"
+              class="chat-composer-btn"
+              :class="{ 'is-recording': voice.recording.value }"
+              :disabled="uploadingPercent != null || isEditing || sending"
+              @click="toggleVoice"
+            >
+              <Icon :icon="voice.recording.value ? 'lucide:square' : 'lucide:mic'" width="18" height="18" />
+              <span v-if="voice.recording.value" class="chat-composer-btn__timer">{{ voiceElapsedText }}</span>
+            </button>
+          </template>
+          {{ voice.recording.value ? t('chat.composer.voice_stop') : t('chat.composer.voice') }}
+        </NTooltip>
         <input
           ref="imageInputRef"
           type="file"
@@ -658,6 +722,20 @@ function handlePaste(event: ClipboardEvent) {
 .chat-composer-btn:hover:not(:disabled) {
   background: hsl(var(--accent));
   color: hsl(var(--foreground));
+}
+
+/* 录音中：按钮变红并撑开显示计时，与其它工具按钮明显区分 */
+.chat-composer-btn.is-recording {
+  width: auto;
+  gap: 4px;
+  padding: 0 8px;
+  background: hsl(var(--destructive) / 12%);
+  color: hsl(var(--destructive));
+}
+
+.chat-composer-btn__timer {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .chat-composer-btn:disabled {

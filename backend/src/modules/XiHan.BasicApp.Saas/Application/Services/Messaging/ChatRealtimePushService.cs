@@ -104,7 +104,8 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
                     {
                         fileId = attachment.FileId.ToString(),
                         fileName = attachment.FileName,
-                        fileSize = attachment.FileSize
+                        fileSize = attachment.FileSize,
+                        durationSeconds = attachment.DurationSeconds
                     }).ToArray(),
                     isRecalled = message.IsRecalled,
                     clientMessageId = message.ClientMessageId,

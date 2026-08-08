@@ -42,9 +42,9 @@ public sealed record ChatMemberAddCommand(long ConversationId, long OperatorUser
 public sealed record ChatMemberRemoveCommand(long ConversationId, long OperatorUserId, long UserId);
 
 /// <summary>
-/// 消息附件载荷（FileId → SysFile；FileName/FileSize 为发送时快照）
+/// 消息附件载荷（FileId → SysFile；FileName/FileSize 为发送时快照；DurationSeconds 仅语音消息有值）
 /// </summary>
-public sealed record ChatMessageAttachment(long FileId, string FileName, long? FileSize);
+public sealed record ChatMessageAttachment(long FileId, string FileName, long? FileSize, int? DurationSeconds = null);
 
 /// <summary>
 /// 消息附件 JSON 序列化辅助（实体 Attachments 列 ↔ 附件载荷，camelCase 存储）

@@ -85,20 +85,37 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         var normalizedExtension = NormalizeExtension(extension);
         var normalizedMimeType = mimeType?.Trim().ToLowerInvariant();
 
-        if (normalizedMimeType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true ||
-            ImageExtensions.Contains(normalizedExtension))
+        // MIME 整体先判、扩展名再兜底：有些扩展名同属多种容器（.webm 既是视频也是音频容器，
+        // 浏览器录音产出的就是 audio/webm），逐档「MIME 或扩展名」会让靠前的档先凭扩展名截胡
+        if (normalizedMimeType is not null)
+        {
+            if (normalizedMimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return FileType.Image;
+            }
+
+            if (normalizedMimeType.StartsWith("video/", StringComparison.OrdinalIgnoreCase))
+            {
+                return FileType.Video;
+            }
+
+            if (normalizedMimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
+            {
+                return FileType.Audio;
+            }
+        }
+
+        if (ImageExtensions.Contains(normalizedExtension))
         {
             return FileType.Image;
         }
 
-        if (normalizedMimeType?.StartsWith("video/", StringComparison.OrdinalIgnoreCase) == true ||
-            VideoExtensions.Contains(normalizedExtension))
+        if (VideoExtensions.Contains(normalizedExtension))
         {
             return FileType.Video;
         }
 
-        if (normalizedMimeType?.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) == true ||
-            AudioExtensions.Contains(normalizedExtension))
+        if (AudioExtensions.Contains(normalizedExtension))
         {
             return FileType.Audio;
         }

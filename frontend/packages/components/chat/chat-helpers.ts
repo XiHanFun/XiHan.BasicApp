@@ -18,6 +18,9 @@ export function messageBodyLabel(message: {
   if (message.messageType === ChatMessageType.Image) {
     return count > 1 ? `[图片] ${count}张` : '[图片]'
   }
+  if (message.messageType === ChatMessageType.Voice) {
+    return `[语音] ${message.attachments?.[0]?.durationSeconds ?? 0}"`
+  }
   if (count > 0) {
     return count > 1 ? `[文件] ${count}个` : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
   }

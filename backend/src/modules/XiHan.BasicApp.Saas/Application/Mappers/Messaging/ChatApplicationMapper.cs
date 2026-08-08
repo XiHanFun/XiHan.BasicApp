@@ -35,7 +35,7 @@ public static class ChatApplicationMapper
     /// </summary>
     private static ChatMessageAttachment ToAttachment(ChatMessageAttachmentDto dto)
     {
-        return new ChatMessageAttachment(dto.FileId, dto.FileName, dto.FileSize);
+        return new ChatMessageAttachment(dto.FileId, dto.FileName, dto.FileSize, dto.DurationSeconds);
     }
 
     /// <summary>
@@ -47,7 +47,8 @@ public static class ChatApplicationMapper
         {
             FileId = attachment.FileId,
             FileName = attachment.FileName,
-            FileSize = attachment.FileSize
+            FileSize = attachment.FileSize,
+            DurationSeconds = attachment.DurationSeconds
         };
     }
 
