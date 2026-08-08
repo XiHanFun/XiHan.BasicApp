@@ -56,6 +56,7 @@ export default {
     typing: '{name} 正在输入…',
     assistant_thinking: '正在生成…',
     assistant_dismiss: '知道了',
+    voice_unplayed: '未听',
     recalled: '消息已撤回',
     recall: '撤回',
     recall_failed: '撤回失败',

@@ -55,6 +55,7 @@ export default {
     typing: '{name} is typing…',
     assistant_thinking: 'Generating…',
     assistant_dismiss: 'Dismiss',
+    voice_unplayed: 'Unplayed',
     recalled: 'Message recalled',
     recall: 'Recall',
     recall_failed: 'Failed to recall message',

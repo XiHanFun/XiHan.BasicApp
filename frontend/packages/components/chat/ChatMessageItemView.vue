@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext, useUserStore } from '~/stores'
+import { useAppContext, useChatStore, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatFileSize, formatMessageTime } from './chat-helpers'
@@ -38,6 +38,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const appContext = useAppContext()
 const userStore = useUserStore()
+const chatStore = useChatStore()
 
 const isSystem = computed(() => props.message.messageType === ChatMessageType.System)
 /** 带操作人身份的系统消息=公告卡片（走对话流归属样式）；无身份的为中性时间线（居中） */
@@ -115,13 +116,20 @@ const voiceDurationText = computed(() => {
 /** 气泡宽度随时长增长，最短 90px、到上限 60 秒时 220px——微信式的长短条 */
 const voiceBarWidth = computed(() => `${Math.round(90 + Math.min(voiceSeconds.value, 60) / 60 * 130)}px`)
 
+/** 他人发来且本机没听过：气泡角上挂红点，播放后消失（记录仅存本机） */
+const voiceUnplayed = computed(() =>
+  isVoice.value && !props.isSelf && !chatStore.isVoicePlayed(props.message.messageId))
+
 function toggleVoicePlay(): void {
   const audio = audioRef.value
   if (!audio) {
     return
   }
   if (audio.paused) {
-    void audio.play().catch(() => {
+    void audio.play().then(() => {
+      // 播成功了才算听过：编解码不支持时 play() 会 reject，不该把红点消掉
+      chatStore.markVoicePlayed(props.message.messageId)
+    }).catch(() => {
       // 编解码不被当前浏览器支持（如 Safari 放 webm/opus）时静默失败，保持暂停态
     })
     return
@@ -258,7 +266,14 @@ async function handleDownload(fileId: string) {
         </template>
 
         <template v-else-if="isVoice">
-          <button type="button" class="chat-voice" :style="{ width: voiceBarWidth }" @click="toggleVoicePlay">
+          <button
+            type="button"
+            class="chat-voice"
+            :class="{ 'is-unplayed': voiceUnplayed }"
+            :style="{ width: voiceBarWidth }"
+            :title="voiceUnplayed ? t('chat.thread.voice_unplayed') : undefined"
+            @click="toggleVoicePlay"
+          >
             <Icon :icon="voicePlaying ? 'lucide:pause' : 'lucide:play'" width="16" height="16" class="shrink-0" />
             <span class="chat-voice__track">
               <span class="chat-voice__bar" :style="{ width: `${voicePlayedRatio * 100}%` }" />
@@ -418,6 +433,7 @@ async function handleDownload(fileId: string) {
 
 /* 语音条：宽度随时长伸缩（见 voiceBarWidth），播放进度铺在轨道上 */
 .chat-voice {
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -456,6 +472,19 @@ async function handleDownload(fileId: string) {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   opacity: 0.75;
+}
+
+/* 未听红点：挂在语音条右上角外沿，播放后随 is-unplayed 一起消失 */
+.chat-voice.is-unplayed::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--destructive));
+  box-shadow: 0 0 0 2px hsl(var(--background));
 }
 
 .chat-file-card {
