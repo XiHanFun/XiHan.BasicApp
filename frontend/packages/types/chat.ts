@@ -61,6 +61,8 @@ export interface ChatMessageAttachment {
   fileName: string
   /** 文件大小（字节） */
   fileSize?: null | number
+  /** 音频时长（秒，仅语音消息） */
+  durationSeconds?: null | number
 }
 
 /** 消息项 */

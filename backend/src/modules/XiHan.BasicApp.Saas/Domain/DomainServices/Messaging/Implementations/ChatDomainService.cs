@@ -62,6 +62,11 @@ public sealed class ChatDomainService : IChatDomainService
     /// </summary>
     private const int MaxNamesInSystemMessage = 3;
 
+    /// <summary>
+    /// 单条语音消息最长秒数
+    /// </summary>
+    private const int MaxVoiceSeconds = 60;
+
     private readonly IChatConversationRepository _conversationRepository;
 
     private readonly IChatConversationMemberRepository _memberRepository;
@@ -940,6 +945,7 @@ public sealed class ChatDomainService : IChatDomainService
         {
             ChatMessageType.Image => count > 1 ? $"[图片] {count}张" : "[图片]",
             ChatMessageType.File => count > 1 ? $"[文件] {count}个" : $"[文件] {attachments?.FirstOrDefault()?.FileName}".TrimEnd(),
+            ChatMessageType.Voice => $"[语音] {attachments?.FirstOrDefault()?.DurationSeconds ?? 0}\"",
             _ => content ?? string.Empty
         };
         return preview.Length <= MaxPreviewLength ? preview : preview[..MaxPreviewLength];
@@ -1002,6 +1008,25 @@ public sealed class ChatDomainService : IChatDomainService
                 }
 
                 return Optional(command.Content, MaxContentLength);
+
+            case ChatMessageType.Voice:
+                if (command.Attachments is not { Count: 1 } || command.Attachments[0].FileId <= 0)
+                {
+                    throw new InvalidOperationException("语音消息必须且只能关联一个音频文件。");
+                }
+
+                if (command.Attachments[0].DurationSeconds is not > 0)
+                {
+                    throw new InvalidOperationException("语音消息必须带时长。");
+                }
+
+                if (command.Attachments[0].DurationSeconds > MaxVoiceSeconds)
+                {
+                    throw new InvalidOperationException($"语音消息不能超过 {MaxVoiceSeconds} 秒。");
+                }
+
+                // 语音无正文：说明文字要么没有、要么该走文本消息，留着只会和气泡内播放器抢位置
+                return null;
 
             case ChatMessageType.System:
                 throw new InvalidOperationException("系统提示消息由服务端生成，不能直接发送。");

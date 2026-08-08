@@ -23,6 +23,7 @@ const messageTypeOptions = computed(() => [
   { label: t('chat.audit.type_text'), value: 'Text' },
   { label: t('chat.audit.type_image'), value: 'Image' },
   { label: t('chat.audit.type_file'), value: 'File' },
+  { label: t('chat.audit.type_voice'), value: 'Voice' },
   { label: t('chat.audit.type_system'), value: 'System' },
 ])
 

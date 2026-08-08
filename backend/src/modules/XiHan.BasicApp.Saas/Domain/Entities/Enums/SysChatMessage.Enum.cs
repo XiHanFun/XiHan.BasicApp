@@ -35,6 +35,12 @@ public enum ChatMessageType
     Assistant = 4,
 
     /// <summary>
+    /// 语音消息（单个音频附件，附件带时长，气泡内播放）
+    /// </summary>
+    [Description("语音")]
+    Voice = 5,
+
+    /// <summary>
     /// 系统提示（入群/退群/撤回等时间线提示，SenderUserId=0）
     /// </summary>
     [Description("系统提示")]

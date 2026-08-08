@@ -61,6 +61,7 @@ export enum ChatMessageType {
   Image = 'Image',
   File = 'File',
   Assistant = 'Assistant',
+  Voice = 'Voice',
   System = 'System',
 }
 
