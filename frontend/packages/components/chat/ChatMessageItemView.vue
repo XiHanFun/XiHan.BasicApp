@@ -43,8 +43,8 @@ const isSystem = computed(() => props.message.messageType === ChatMessageType.Sy
 /** 带操作人身份的系统消息=公告卡片（走对话流归属样式）；无身份的为中性时间线（居中） */
 const isAnnouncement = computed(() => isSystem.value && props.message.senderUserId !== '0')
 const isImage = computed(() => props.message.messageType === ChatMessageType.Image)
-const isFile = computed(() => props.message.messageType === ChatMessageType.File)
 const isVoice = computed(() => props.message.messageType === ChatMessageType.Voice)
+const isFile = computed(() => props.message.messageType === ChatMessageType.File)
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
 /** 被 @ 到我：气泡高亮 */

@@ -23,22 +23,22 @@ public enum ChatMessageType
     Image = 2,
 
     /// <summary>
+    /// 语音消息（单个音频附件，附件带时长，气泡内播放）
+    /// </summary>
+    [Description("语音")]
+    Voice = 3,
+
+    /// <summary>
     /// 文件消息（FileId → SysFile，前端文件卡片下载）
     /// </summary>
     [Description("文件")]
-    File = 3,
+    File = 4,
 
     /// <summary>
     /// AI 助手回复（SenderUserId 为助手主键，内容按 Markdown 渲染，不可撤回/编辑）
     /// </summary>
     [Description("助手回复")]
-    Assistant = 4,
-
-    /// <summary>
-    /// 语音消息（单个音频附件，附件带时长，气泡内播放）
-    /// </summary>
-    [Description("语音")]
-    Voice = 5,
+    Assistant = 5,
 
     /// <summary>
     /// 系统提示（入群/退群/撤回等时间线提示，SenderUserId=0）
