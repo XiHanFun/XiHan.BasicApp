@@ -34,17 +34,30 @@ export function useChatIntegration() {
   const chatPath = useAppContext().shellRoutes.chat
 
   /**
-   * 不在聊天页时把他人发来的消息弹进灵动岛（点击直达会话）。
-   * 已在聊天页则不弹——消息就在眼前，再弹一次是噪音。
+   * 他人发来的消息的提醒。岛提示与提示音的静音条件不同，分开判断：
+   * - 岛提示：只要在聊天页就不弹，消息就在眼前，再弹一次是噪音
+   * - 提示音：只有「正开着这条会话且窗口在前台」才不响。在聊天页但开着别的会话、
+   *   或窗口切到后台，都还是要出声，否则会漏掉
    */
   function notifyIncomingMessage(payload: ChatMessagePushPayload) {
     const { message, conversation } = payload
     if (message.senderUserId === userStore.userInfo?.basicId || message.messageType === 'System') {
       return
     }
-    if (chatPath && route.path.startsWith(chatPath)) {
+
+    const onChatPage = !!chatPath && route.path.startsWith(chatPath)
+    const watchingThisConversation = onChatPage
+      && chatStore.activeConversationId === message.conversationId
+      && typeof document !== 'undefined' && document.hasFocus()
+
+    if (!watchingThisConversation) {
+      playNotificationSound('chat')
+    }
+
+    if (onChatPage) {
       return
     }
+
     // 卡片形态：标题给发送人、副文本给消息正文，与手机通知一致
     const sender = message.senderUserName || conversation.conversationName || t('chat.island_new_message_fallback')
     const preview = conversation.lastMessagePreview?.trim() || message.content?.trim() || ''
@@ -57,7 +70,6 @@ export function useChatIntegration() {
       detail: preview,
       link: chatPath,
     }).info()
-    playNotificationSound('chat')
   }
 
   let isListenersBound = false
