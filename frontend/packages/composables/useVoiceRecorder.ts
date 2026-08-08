@@ -61,6 +61,8 @@ export function useVoiceRecorder() {
   let startedAt = 0
   let autoStopTimer: ReturnType<typeof setTimeout> | null = null
   let resolveResult: ((value: VoiceRecording | null) => void) | null = null
+  /** 到上限自动停下来、但调用方还没来取的结果（按住不放录满 60 秒的情形） */
+  let finishedResult: VoiceRecording | null = null
 
   function cleanup(): void {
     if (tickTimer) {
@@ -104,16 +106,19 @@ export function useVoiceRecorder() {
       const done = resolveResult
       resolveResult = null
       cleanup()
-      if (!done) {
-        return
-      }
       // 太短当误触丢弃；blob 为空说明浏览器没吐出数据，同样按失败处理
-      done(seconds < MIN_VOICE_SECONDS || blob.size === 0
+      const result: VoiceRecording | null = seconds < MIN_VOICE_SECONDS || blob.size === 0
         ? null
         : {
             file: new File([blob], `voice-${startedAt}.${extensionOf(type)}`, { type }),
             durationSeconds: Math.min(seconds, MAX_VOICE_SECONDS),
-          })
+          }
+      if (done) {
+        done(result)
+        return
+      }
+      // 到上限自动停的：调用方还按着没松手，先存住，等它 stop() 时取走
+      finishedResult = result
     }
 
     recorder.start()
@@ -132,8 +137,11 @@ export function useVoiceRecorder() {
    */
   function stop(): Promise<VoiceRecording | null> {
     if (!recorder || recorder.state !== 'recording') {
+      // 已经自动停过则把存住的结果交出去，否则录满 60 秒的那条会凭空消失
+      const parked = finishedResult
+      finishedResult = null
       cleanup()
-      return Promise.resolve(null)
+      return Promise.resolve(parked)
     }
     return new Promise<VoiceRecording | null>((resolve) => {
       resolveResult = resolve
@@ -145,6 +153,7 @@ export function useVoiceRecorder() {
   function cancel(): void {
     const done = resolveResult
     resolveResult = null
+    finishedResult = null
     if (recorder?.state === 'recording') {
       recorder.onstop = null
       recorder.stop()

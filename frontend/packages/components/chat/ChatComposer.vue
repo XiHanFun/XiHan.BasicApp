@@ -101,6 +101,7 @@ watch(() => props.conversationId, (id, oldId) => {
 
 // 组件销毁：释放所有会话待发图片的本地预览 URL
 onBeforeUnmount(() => {
+  exitVoiceMode()
   pendingStash.set(props.conversationId, pendingAttachments.value)
   for (const list of pendingStash.values()) {
     for (const attachment of list) {
@@ -381,52 +382,105 @@ function cancelReply() {
   chatStore.replyTarget = null
 }
 
-// ── 语音消息：录完即传即发，不进待发附件列表 ─────────────────────────
+// ── 语音消息：进入独立的「按住说话」面板，按住空格/按钮录音，松开即发 ────
 const voice = useVoiceRecorder()
+const voiceMode = ref(false)
 
 const voiceElapsedText = computed(() => {
   const seconds = voice.elapsed.value
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
 })
 
-async function toggleVoice(): Promise<void> {
-  if (voice.recording.value) {
-    const result = await voice.stop()
-    if (!result) {
-      message.warning(t('chat.composer.voice_too_short'))
-      return
-    }
-    sending.value = true
-    try {
-      const uploaded = await appContext.apis.chatApi.uploadAttachment(result.file)
-      await chatStore.sendMessage({
-        conversationId: props.conversationId,
-        messageType: ChatMessageType.Voice,
-        content: null,
-        attachments: [{
-          fileId: uploaded.fileId,
-          fileName: uploaded.fileName,
-          fileSize: uploaded.fileSize,
-          durationSeconds: result.durationSeconds,
-        }],
-      })
-    }
-    catch (error) {
-      message.error((error as Error)?.message || t('chat.composer.voice_failed'))
-    }
-    finally {
-      sending.value = false
-    }
+function enterVoiceMode(): void {
+  voiceMode.value = true
+  // 面板接管键盘，输入框留着焦点会让空格打进草稿
+  textInputRef.value?.blur()
+  window.addEventListener('keydown', handleVoiceKeydown)
+  window.addEventListener('keyup', handleVoiceKeyup)
+}
+
+function exitVoiceMode(): void {
+  voice.cancel()
+  voiceMode.value = false
+  window.removeEventListener('keydown', handleVoiceKeydown)
+  window.removeEventListener('keyup', handleVoiceKeyup)
+}
+
+/** 开始说话：麦克风被拒绝时退出面板，免得停在一个按了没反应的界面 */
+async function startTalking(): Promise<void> {
+  if (voice.recording.value || sending.value) {
     return
   }
-
   try {
     await voice.start()
   }
   catch {
     // getUserMedia 被拒绝或无可用设备；也可能是非安全上下文（HTTPS 之外）
     message.error(t('chat.composer.voice_denied'))
+    exitVoiceMode()
   }
+}
+
+/** 松开发送：太短当误触，留在面板可重来 */
+async function stopTalking(): Promise<void> {
+  if (!voice.recording.value) {
+    return
+  }
+  const result = await voice.stop()
+  if (!result) {
+    message.warning(t('chat.composer.voice_too_short'))
+    return
+  }
+  sending.value = true
+  try {
+    const uploaded = await appContext.apis.chatApi.uploadAttachment(result.file)
+    await chatStore.sendMessage({
+      conversationId: props.conversationId,
+      messageType: ChatMessageType.Voice,
+      content: null,
+      attachments: [{
+        fileId: uploaded.fileId,
+        fileName: uploaded.fileName,
+        fileSize: uploaded.fileSize,
+        durationSeconds: result.durationSeconds,
+      }],
+    })
+    // 发完留在面板：连着说几条是常态，退出交给 Esc 或「退出」
+  }
+  catch (error) {
+    message.error((error as Error)?.message || t('chat.composer.voice_failed'))
+  }
+  finally {
+    sending.value = false
+  }
+}
+
+/** 按住后指针滑出按钮：按松手处理，避免录音卡在进行中 */
+function handleOrbLeave(): void {
+  if (voice.recording.value) {
+    void stopTalking()
+  }
+}
+
+function handleVoiceKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    exitVoiceMode()
+    return
+  }
+  if (event.code !== 'Space' || event.repeat) {
+    return
+  }
+  // 阻止空格滚动页面；面板期间输入框已失焦，不会打进草稿
+  event.preventDefault()
+  void startTalking()
+}
+
+function handleVoiceKeyup(event: KeyboardEvent): void {
+  if (event.code !== 'Space') {
+    return
+  }
+  event.preventDefault()
+  void stopTalking()
 }
 
 /** 上传全部待发附件并按类型分组（整批统一进度）；任一失败即上抛，调用方保留待发列表 */
@@ -517,6 +571,35 @@ function handlePaste(event: ClipboardEvent) {
       <Icon icon="lucide:mic-off" width="12" height="12" class="mr-1 inline-block align-[-1px]" />
       {{ t('chat.composer.silenced') }}
     </div>
+    <!-- 语音输入面板：接管整个输入区，按住空格或按钮说话，松开即发 -->
+    <div v-else-if="voiceMode" class="chat-voice-panel">
+      <button
+        type="button"
+        class="chat-voice-orb"
+        :class="{ 'is-recording': voice.recording.value }"
+        :disabled="sending"
+        @pointerdown.prevent="startTalking"
+        @pointerup.prevent="stopTalking"
+        @pointerleave="handleOrbLeave"
+      >
+        <Icon icon="lucide:mic" width="26" height="26" />
+      </button>
+      <div class="chat-voice-panel__hint">
+        <template v-if="sending">
+          {{ t('chat.composer.voice_sending') }}
+        </template>
+        <template v-else-if="voice.recording.value">
+          {{ t('chat.composer.voice_release') }} · {{ voiceElapsedText }}
+        </template>
+        <template v-else>
+          {{ t('chat.composer.voice_hold_tip') }}
+          <button type="button" class="chat-voice-panel__exit" @click="exitVoiceMode">
+            {{ t('chat.composer.voice_exit') }}
+          </button>
+        </template>
+      </div>
+    </div>
+
     <template v-else>
       <!-- 编辑态横条 -->
       <div v-if="isEditing" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-primary/8 px-2 py-1">
@@ -593,15 +676,13 @@ function handlePaste(event: ClipboardEvent) {
             <button
               type="button"
               class="chat-composer-btn"
-              :class="{ 'is-recording': voice.recording.value }"
               :disabled="uploadingPercent != null || isEditing || sending"
-              @click="toggleVoice"
+              @click="enterVoiceMode"
             >
-              <Icon :icon="voice.recording.value ? 'lucide:square' : 'lucide:mic'" width="18" height="18" />
-              <span v-if="voice.recording.value" class="chat-composer-btn__timer">{{ voiceElapsedText }}</span>
+              <Icon icon="lucide:mic" width="18" height="18" />
             </button>
           </template>
-          {{ voice.recording.value ? t('chat.composer.voice_stop') : t('chat.composer.voice') }}
+          {{ t('chat.composer.voice') }}
         </NTooltip>
         <input
           ref="imageInputRef"
@@ -724,18 +805,84 @@ function handlePaste(event: ClipboardEvent) {
   color: hsl(var(--foreground));
 }
 
-/* 录音中：按钮变红并撑开显示计时，与其它工具按钮明显区分 */
-.chat-composer-btn.is-recording {
-  width: auto;
-  gap: 4px;
-  padding: 0 8px;
-  background: hsl(var(--destructive) / 12%);
-  color: hsl(var(--destructive));
+/* ── 语音输入面板 ───────────────────────────────────────────────── */
+.chat-voice-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px 16px 24px;
 }
 
-.chat-composer-btn__timer {
-  font-size: 12px;
+/* 大圆按钮：常态实心带光晕，录音时放大并持续呼吸 */
+.chat-voice-orb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, hsl(var(--primary) / 92%), hsl(var(--primary)));
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  box-shadow:
+    0 0 0 10px hsl(var(--primary) / 10%),
+    0 8px 24px hsl(var(--primary) / 35%);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  /* 按住说话期间不要触发文本选中与长按菜单 */
+  user-select: none;
+  touch-action: none;
+}
+
+.chat-voice-orb:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.chat-voice-orb:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.chat-voice-orb.is-recording {
+  transform: scale(1.08);
+  animation: chat-voice-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes chat-voice-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 10px hsl(var(--primary) / 12%),
+      0 8px 24px hsl(var(--primary) / 35%);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 20px hsl(var(--primary) / 6%),
+      0 8px 28px hsl(var(--primary) / 45%);
+  }
+}
+
+.chat-voice-panel__hint {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
   font-variant-numeric: tabular-nums;
+}
+
+.chat-voice-panel__exit {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: hsl(var(--primary));
+  cursor: pointer;
+}
+
+.chat-voice-panel__exit:hover {
+  text-decoration: underline;
 }
 
 .chat-composer-btn:disabled {
