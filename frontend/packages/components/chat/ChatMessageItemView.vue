@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '~/stores'
 import { NImageGroup, NTooltip } from 'naive-ui'
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
@@ -137,6 +137,16 @@ function toggleVoicePlay(): void {
   audio.pause()
 }
 
+function onVoicePlay(): void {
+  voicePlaying.value = true
+  chatStore.playingVoiceMessageId = props.message.messageId
+}
+
+function onVoicePause(): void {
+  voicePlaying.value = false
+  releaseVoiceSlot()
+}
+
 function onVoiceTimeUpdate(): void {
   const audio = audioRef.value
   if (!audio?.duration) {
@@ -148,7 +158,25 @@ function onVoiceTimeUpdate(): void {
 function onVoiceEnded(): void {
   voicePlaying.value = false
   voicePlayedRatio.value = 0
+  // 播完不触发 pause 事件，独占位得在这里让出来
+  releaseVoiceSlot()
 }
+
+function releaseVoiceSlot(): void {
+  if (chatStore.playingVoiceMessageId === props.message.messageId) {
+    chatStore.playingVoiceMessageId = null
+  }
+}
+
+// 别的语音开始发声：自己让位。暂停会触发 pause 事件，但那时占位已不是自己，不会互相清空
+watch(() => chatStore.playingVoiceMessageId, (playingId) => {
+  if (playingId !== props.message.messageId && audioRef.value && !audioRef.value.paused) {
+    audioRef.value.pause()
+  }
+})
+
+// 正发声时被卸载（切会话、消息滚出等）：占位得还回去，否则一直挂着已不存在的消息
+onBeforeUnmount(releaseVoiceSlot)
 
 async function handleDownload(fileId: string) {
   if (!fileId) {
@@ -284,8 +312,8 @@ async function handleDownload(fileId: string) {
               ref="audioRef"
               :src="voiceUrl"
               preload="none"
-              @play="voicePlaying = true"
-              @pause="voicePlaying = false"
+              @play="onVoicePlay"
+              @pause="onVoicePause"
               @timeupdate="onVoiceTimeUpdate"
               @ended="onVoiceEnded"
             />

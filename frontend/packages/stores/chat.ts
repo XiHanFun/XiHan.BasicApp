@@ -89,6 +89,8 @@ export const useChatStore = defineStore('chat', () => {
    */
   const playedVoiceKeys = ref<string[]>(LocalStorage.get<string[]>(CHAT_VOICE_PLAYED_STORAGE_KEY) ?? [])
   const playedVoiceSet = computed(() => new Set(playedVoiceKeys.value))
+  /** 正在发声的语音消息ID：同一时刻只许一条，其余气泡监听到不是自己就自行暂停 */
+  const playingVoiceMessageId = ref<null | string>(null)
   /** 视口分离态：搜索定位后 bucket 停留在历史上下文，不再追加新消息（回到最新后解除） */
   const detachedConversations = ref<Record<string, boolean>>({})
   /** 搜索命中定位后的高亮消息（3s 自清） */
@@ -871,6 +873,7 @@ export const useChatStore = defineStore('chat', () => {
     editMessage,
     isVoicePlayed,
     markVoicePlayed,
+    playingVoiceMessageId,
     toggleReaction,
     pinMessage,
     unpinMessage,
