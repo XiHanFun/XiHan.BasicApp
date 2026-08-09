@@ -1,5 +1,8 @@
+import { createRequire } from "node:module";
 import { DefaultTheme, HeadConfig, defineConfig } from "vitepress";
-import { release, withNavBadge } from "./versions";
+
+// 导航末项显示的版本号取自本站 package.json，发版时只改那一处
+const { version } = createRequire(import.meta.url)("../package.json");
 
 const title: string = "曦寒基础应用文档";
 const description: string = "基于曦寒开发框架的企业级中后台应用";
@@ -131,8 +134,6 @@ const nav: DefaultTheme.NavItem[] = [
     link: "/frontend/introduction",
     activeMatch: "/frontend/",
   },
-  // 版本徽章挂在更新日志上：徽章上的版本号就是本页最新那条
-  { text: withNavBadge("更新日志", release), link: "/changelog" },
   {
     text: "探索未知",
     items: [
@@ -231,6 +232,10 @@ const nav: DefaultTheme.NavItem[] = [
         link: "https://docs.xihanfun.com/cosmos/sponsor",
       },
     ],
+  },
+  {
+    text: `v${version}`,
+    items: [{ text: "更新日志", link: "/changelog" }],
   },
 ];
 
