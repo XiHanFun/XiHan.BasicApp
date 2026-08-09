@@ -29,12 +29,12 @@ function manual(
   }));
 }
 
-const sidebar: DefaultTheme.SidebarItem[] = [
+const startSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: "开始",
     collapsed: false,
     items: [
-      { text: "应用简介", link: "/" },
+      { text: "应用简介", link: "/introduction" },
       { text: "为什么选择曦寒", link: "/why" },
       { text: "系统概述", link: "/overview" },
       { text: "开发环境", link: "/dev-environment" },
@@ -43,6 +43,20 @@ const sidebar: DefaultTheme.SidebarItem[] = [
       { text: "常见问题", link: "/faq" },
     ],
   },
+  {
+    text: "参考",
+    collapsed: false,
+    items: [
+      { text: "接口对接指南", link: "/api-guide" },
+      { text: "配置参考", link: "/configuration" },
+      { text: "功能清单", link: "/features" },
+      { text: "部署", link: "/deployment" },
+      { text: "更新日志", link: "/changelog" },
+    ],
+  },
+];
+
+const backendSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: "后端手册",
     collapsed: false,
@@ -74,6 +88,9 @@ const sidebar: DefaultTheme.SidebarItem[] = [
       ["AI 能力", "ai"],
     ]),
   },
+];
+
+const frontendSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: "前端手册",
     collapsed: false,
@@ -91,24 +108,27 @@ const sidebar: DefaultTheme.SidebarItem[] = [
       ["常用组件", "components"],
     ]),
   },
-  {
-    text: "参考",
-    collapsed: false,
-    items: [
-      { text: "接口对接指南", link: "/api-guide" },
-      { text: "配置参考", link: "/configuration" },
-      { text: "功能清单", link: "/features" },
-      { text: "部署", link: "/deployment" },
-      { text: "更新日志", link: "/changelog" },
-    ],
-  },
 ];
+
+// 每个顶部导航板块各自一份侧栏，由路径前缀决定用哪一份；
+// 首页是 layout: home，不落任何一份。
+const sidebar: DefaultTheme.Sidebar = {
+  "/backend/": backendSidebar,
+  "/frontend/": frontendSidebar,
+  "/": startSidebar,
+};
 
 const nav: DefaultTheme.NavItem[] = [
   {
     text: withNavBadge("🏠 基础应用", release),
     link: "/",
     activeMatch: "^/$",
+  },
+  {
+    text: "开始",
+    link: "/introduction",
+    activeMatch:
+      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|deployment|changelog)$",
   },
   { text: "后端手册", link: "/backend/introduction", activeMatch: "/backend/" },
   {
