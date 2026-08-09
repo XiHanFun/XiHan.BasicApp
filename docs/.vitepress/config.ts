@@ -120,15 +120,10 @@ const sidebar: DefaultTheme.Sidebar = {
 
 const nav: DefaultTheme.NavItem[] = [
   {
-    text: withNavBadge("🏠 基础应用", release),
-    link: "/",
-    activeMatch: "^/$",
-  },
-  {
     text: "开始",
     link: "/introduction",
     activeMatch:
-      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|deployment|changelog)$",
+      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|deployment)$",
   },
   { text: "后端手册", link: "/backend/introduction", activeMatch: "/backend/" },
   {
@@ -136,7 +131,8 @@ const nav: DefaultTheme.NavItem[] = [
     link: "/frontend/introduction",
     activeMatch: "/frontend/",
   },
-  { text: "更新日志", link: "/changelog" },
+  // 版本徽章挂在更新日志上：徽章上的版本号就是本页最新那条
+  { text: withNavBadge("更新日志", release), link: "/changelog" },
   {
     text: "探索未知",
     items: [

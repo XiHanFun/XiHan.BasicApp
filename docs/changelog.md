@@ -2,8 +2,8 @@
 
 本文件记录 XiHan.BasicApp 各版本的变更。每条标注 **新增 / 修复 / 优化 / 调整 / 升级 / 移除** 类别。升级前请留意「调整」类中的破坏性变更。
 
-::: tip 来源
-本页同步自仓库根目录的 [CHANGELOG.md](https://github.com/XiHanFun/XiHan.BasicApp/blob/main/CHANGELOG.md)，以其为准。
+::: tip 唯一事实源
+本页就是变更记录本身，发版时直接在这里追加。仓库根目录不再单独放一份 `CHANGELOG.md`。
 :::
 
 ## v3.10.1 (2026-08-06)
