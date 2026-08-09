@@ -1,0 +1,179 @@
+.vp-code-group .tabs label {
+  background-color: transparent;
+}
+
+table {
+  width: 100% !important;
+  display: table;
+}
+.message a,
+.copyright a,
+.custom-block.tip .custom-block-title {
+  color: var(--vp-c-brand);
+}
+
+.VPHero .image-bg {
+  z-index: 1;
+  opacity: 0.8;
+  transition: opacity 1s ease;
+}
+
+.VPHero .image-container:hover .image-bg {
+  opacity: 0.2;
+}
+
+/**
+ * 文档页全屏布局（对齐 wot-ui 文档站）
+ * --------------------------------------------------------------------------
+ * 默认主题在 ≥1440px 时会把整站锁进 --vp-layout-max-width（1440px）并左右留白居中，
+ * 同时给正文列 .content-container 加 688px 上限。
+ *
+ * 这里做两件事：
+ *   1. 在 ≥1440px 断点把导航栏 / 侧边栏 / 内容区的居中数学还原成 ≥960px 时的基础值，
+ *      于是它们贴着视口边缘铺开；
+ *   2. 去掉正文列的 688px 上限，让正文、表格、代码块吃满剩余宽度。
+ *
+ * 只影响带侧边栏的文档页。首页（VPHome）与无侧边栏的独立页不受影响——
+ * 它们的容器是写死的 1152px / 1104px，仍然居中，这也是 wot-ui 的做法。
+ *
+ * 选择器把类名写两遍，是为了在不硬编码 scoped 属性（[data-v-xxxxxx]，其 hash 随版本变化）
+ * 的前提下追平默认规则的特异性；本文件下方处理暗色链接时用的是同一套手法。
+ */
+
+/* 顶部导航栏铺满视口。默认主题给它 max-width: calc(--vp-layout-max-width - 64px)（1376px 居中），
+   仅在带侧边栏的文档页放开到 100%，于是首页与独立页的导航栏仍是居中的一条。
+   这里统一放开，左右留白交给 .wrapper 自带的 padding。 */
+.VPNavBar .container.container {
+  max-width: none;
+}
+
+@media (min-width: 1440px) {
+  .VPSidebar.VPSidebar {
+    padding-left: 32px;
+    width: var(--vp-sidebar-width);
+  }
+
+  .VPContent.has-sidebar.has-sidebar {
+    padding-right: 0;
+    padding-left: var(--vp-sidebar-width);
+  }
+
+  .VPLocalNav.has-sidebar.has-sidebar {
+    padding-left: var(--vp-sidebar-width);
+  }
+
+  .VPNavBar.has-sidebar .title.title {
+    padding-left: 32px;
+    width: var(--vp-sidebar-width);
+  }
+
+  .VPNavBar.has-sidebar .content.content {
+    padding-right: 32px;
+    padding-left: var(--vp-sidebar-width);
+  }
+
+  .VPNavBar.has-sidebar .divider.divider {
+    padding-left: var(--vp-sidebar-width);
+  }
+}
+
+/* 正文列不再受 688px 上限约束，铺满侧边栏与右侧目录之间的空间 */
+.VPDoc.has-aside .content-container.content-container {
+  max-width: none;
+}
+
+/**
+ * VitePress: Custom fix
+ * -------------------------------------------------------------------------- */
+
+/*
+  Use lighter colors for links in dark mode for a11y.
+  Also specify some classes twice to have higher specificity
+  over scoped class data attribute.
+*/
+.dark .vp-doc a,
+.dark .vp-doc a > code,
+.dark .VPNavBarMenuLink.VPNavBarMenuLink:hover,
+.dark .VPNavBarMenuLink.VPNavBarMenuLink.active,
+.dark .link.link:hover,
+.dark .link.link.active,
+.dark .edit-link-button.edit-link-button,
+.dark .pager-link .title {
+  color: var(--vp-c-brand-lighter);
+}
+
+.dark .vp-doc a:hover,
+.dark .vp-doc a > code:hover {
+  color: var(--vp-c-brand-lightest);
+  opacity: 1;
+}
+
+/* Transition by color instead of opacity */
+.dark .vp-doc .custom-block a {
+  transition: color 0.25s;
+}
+
+/* VitePress Search */
+.VPLocalSearchBox .result {
+  --vp-c-bg-search-result: var(--vp-c-bg);
+  background: var(--vp-c-bg-search-result) !important;
+  padding: 4px !important;
+  border: 1px solid var(--vp-c-divider) !important;
+}
+.VPLocalSearchBox .result.selected {
+  --vp-c-bg-search-result: var(--vp-c-bg-soft) !important;
+}
+.VPLocalSearchBox .result .excerpt-gradient-top {
+  background: linear-gradient(
+    var(--vp-c-bg-search-result),
+    transparent
+  ) !important;
+}
+.VPLocalSearchBox .result .excerpt-gradient-bottom {
+  background: linear-gradient(
+    transparent,
+    var(--vp-c-bg-search-result)
+  ) !important;
+}
+.VPLocalSearchBox .title-icon {
+  display: none;
+}
+.VPLocalSearchBox .excerpt-wrapper {
+  margin-top: 4px;
+}
+
+/* 主导航三大板块：标题右上方的版本徽章
+   文案（版本号 + 阶段后缀）与配色来自 .vitepress/versions.ts，随 nav 的 item.text 一同渲染，
+   宽屏导航栏与窄屏汉堡菜单共用同一份标题，这里只负责外观。
+   修饰类与 ReleaseStage 的映射：稳定版 tip、预览/候选版 warning、开发/测试版 danger。 */
+.xh-nav-badge {
+  display: inline-block;
+  margin-left: 4px;
+  transform: translateY(-6px);
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.xh-nav-badge--tip {
+  border-color: var(--vp-badge-tip-border);
+  color: var(--vp-badge-tip-text);
+  background-color: var(--vp-badge-tip-bg);
+}
+
+.xh-nav-badge--warning {
+  border-color: var(--vp-badge-warning-border);
+  color: var(--vp-badge-warning-text);
+  background-color: var(--vp-badge-warning-bg);
+}
+
+.xh-nav-badge--danger {
+  border-color: var(--vp-badge-danger-border);
+  color: var(--vp-badge-danger-text);
+  background-color: var(--vp-badge-danger-bg);
+}
