@@ -38,5 +38,3 @@ src/types/components.d.ts
 # Cache
 .eslintcache
 *.tsbuildinfo
-
-pnpm-lock.yaml
