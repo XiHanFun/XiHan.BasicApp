@@ -24,7 +24,7 @@ const head: HeadConfig[] = [
 // 生成手册条目：自动带序号前缀
 function manual(
   dir: "backend" | "frontend",
-  entries: [text: string, name: string][]
+  entries: [text: string, name: string][],
 ): DefaultTheme.SidebarItem[] {
   return entries.map(([text, name], index) => ({
     text: `${index + 1}. ${text}`,
@@ -327,7 +327,8 @@ export default defineConfig({
     },
     editLink: {
       text: "在 GitHub 上编辑此页",
-      pattern: "https://github.com/XiHanFun/XiHan.BasicApp/tree/main/docs/:path",
+      pattern:
+        "https://github.com/XiHanFun/XiHan.BasicApp/tree/main/docs/:path",
     },
     lastUpdated: {
       text: "最后更新于",
