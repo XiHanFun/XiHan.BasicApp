@@ -11,7 +11,7 @@
 <p>
   <a href="https://github.com/XiHanFun/XiHan.BasicApp/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/XiHanFun/XiHan.BasicApp?style=flat-square&logo=github&label=Stars&color=1f6feb" /></a>
   <a href="https://gitee.com/XiHanFun/XiHan.BasicApp"><img alt="Gitee Stars" src="https://gitee.com/XiHanFun/XiHan.BasicApp/badge/star.svg" /></a>
-  <a href="https://atomgit.com/XiHanFun/XiHan.BasicApp"><img alt="AtomGit Stars" src="https://atomgit.com/XiHanFun/XiHan.BasicApp/star/badge.svg" /></a>
+  <a href="https://gitcode.com/XiHanFun/XiHan.BasicApp"><img alt="GitCode Stars" src="https://gitcode.com/XiHanFun/XiHan.BasicApp/star/badge.svg" /></a>
 </p>
 
 
