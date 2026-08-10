@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.BasicApp.Saas.Infrastructure.OAuth;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
@@ -15,6 +16,8 @@ using XiHan.BasicApp.Web.Core;
 using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
+using XiHan.Framework.Data.SqlSugar.Options;
+using XiHan.Framework.MultiTenancy;
 using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Tasks.ScheduledJobs.Extensions;
 using XiHan.Framework.Web.Core.Extensions;
@@ -39,6 +42,17 @@ public class XiHanBasicAppSaasModule : XiHanModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
+
+        // XiHan.Framework 3.10.1 NuGet 包早于 IStrictMultiTenantEntity 发布，无法使用后来加入框架的标记接口。
+        // 对四张聊天表按具体实体注册等价过滤器，确保租户态只见本租户、平台态只见 TenantId=0；
+        // 该过滤同样参与仓储预读及自动 UPDATE/DELETE 过滤，保持聊天数据的读写租户边界一致。
+        services.Configure<XiHanSqlSugarCoreOptions>(options =>
+        {
+            options.AddGlobalFilter<SysChatConversation>(entity => entity.TenantId == ResolveStrictChatTenantScopeId());
+            options.AddGlobalFilter<SysChatConversationMember>(entity => entity.TenantId == ResolveStrictChatTenantScopeId());
+            options.AddGlobalFilter<SysChatMessage>(entity => entity.TenantId == ResolveStrictChatTenantScopeId());
+            options.AddGlobalFilter<SysChatMessageReaction>(entity => entity.TenantId == ResolveStrictChatTenantScopeId());
+        });
 
         // 注册 SaaS 模块种子数据（系统基线始终播种；演示数据由 Saas:Seed:EnableDemoData 控制）
         services.AddSaasDataSeeders();
@@ -89,6 +103,20 @@ public class XiHanBasicAppSaasModule : XiHanModule
 
         // 注册导出中心基础设施（导出引擎 + Provider + 后台执行 worker）
         services.AddSaasExportInfrastructure();
+    }
+
+    /// <summary>
+    /// 解析聊天实体严格隔离所使用的租户标识；无租户上下文时使用平台租户 0。
+    /// </summary>
+    /// <remarks>
+    /// 过滤表达式只调用本方法取得 <see cref="long"/> 标量，避免把复杂租户对象交给 SqlSugar 参数翻译器。
+    /// <see cref="AsyncLocalCurrentTenantAccessor"/> 随当前异步执行流保存上下文，因此无需共享可变锁；
+    /// 每次查询重新求值，可安全支持同一进程内的并发租户请求。
+    /// </remarks>
+    /// <returns>当前租户标识；平台态返回 0。</returns>
+    private static long ResolveStrictChatTenantScopeId()
+    {
+        return AsyncLocalCurrentTenantAccessor.Instance.Current?.TenantId ?? 0;
     }
 
     /// <summary>

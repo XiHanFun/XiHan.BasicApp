@@ -3,7 +3,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -38,7 +37,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_PaKe", nameof(TenantId), OrderByType.Asc, nameof(PairKey), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_LaMeTi", nameof(TenantId), OrderByType.Asc, nameof(LastMessageTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_DeId", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
-public partial class SysChatConversation : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
+public partial class SysChatConversation : BasicAppFullAuditedEntity
 {
     /// <summary>
     /// 会话类型
