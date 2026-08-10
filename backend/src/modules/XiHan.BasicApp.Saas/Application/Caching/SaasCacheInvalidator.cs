@@ -39,6 +39,8 @@ public sealed class SaasCacheInvalidator
 
     private readonly IDistributedCache<SaasMessageTemplateCacheItem, string> _messageTemplateCache;
 
+    private readonly IDistributedCache<SaasPrintTemplateCacheItem, string> _printTemplateCache;
+
     private readonly IDistributedCache<SaasEditionGateCacheItem, string> _editionGateCache;
 
     private readonly IDistributedCache<SaasDictItemTreeCacheItem, string> _dictItemTreeCache;
@@ -63,6 +65,7 @@ public sealed class SaasCacheInvalidator
         IDistributedCache<SaasPermissionCatalogCacheItem, string> permissionCatalogCache,
         IDistributedCache<SaasUserSettingCacheItem, string> userSettingCache,
         IDistributedCache<SaasMessageTemplateCacheItem, string> messageTemplateCache,
+        IDistributedCache<SaasPrintTemplateCacheItem, string> printTemplateCache,
         IDistributedCache<SaasEditionGateCacheItem, string> editionGateCache,
         IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache,
         IDistributedCache<SaasSessionStateCacheItem, string> sessionStateCache)
@@ -81,6 +84,7 @@ public sealed class SaasCacheInvalidator
         _permissionCatalogCache = permissionCatalogCache;
         _userSettingCache = userSettingCache;
         _messageTemplateCache = messageTemplateCache;
+        _printTemplateCache = printTemplateCache;
         _editionGateCache = editionGateCache;
         _dictItemTreeCache = dictItemTreeCache;
         _sessionStateCache = sessionStateCache;
@@ -160,6 +164,14 @@ public sealed class SaasCacheInvalidator
     public Task InvalidateMessageTemplateAsync(CancellationToken cancellationToken = default)
     {
         return _messageTemplateCache.RemoveByPatternAsync(SaasCacheKeys.AllMessageTemplatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task InvalidatePrintTemplateAsync(CancellationToken cancellationToken = default)
+    {
+        // considerUow:true 把失效动作延迟到事务成功提交，避免其它请求在未提交窗口内重新缓存旧模板。
+        return _printTemplateCache.RemoveByPatternAsync(
+            SaasCacheKeys.AllPrintTemplatesPattern(), hideErrors: true, considerUow: true, token: cancellationToken);
     }
 
     /// <inheritdoc />
