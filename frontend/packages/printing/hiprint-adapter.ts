@@ -9,7 +9,7 @@ import type {
   PrintingConfiguration,
 } from './types'
 import printLockUrl from 'vue-plugin-hiprint/dist/print-lock.css?url'
-import { getPrintFieldTid, listPrintDataSources } from './data-source-registry'
+import { getPrintDataSourceRegistryVersion, getPrintFieldTid, listPrintDataSources } from './data-source-registry'
 
 const DEFAULT_HIPRINT_HOST = 'http://localhost:17521'
 const DEFAULT_HIPRINT_TOKEN = 'vue-plugin-hiprint'
@@ -82,8 +82,13 @@ async function loadHiprintAdapter(): Promise<PrintingAdapter> {
   const config = getPrintingConfiguration()
   const DefaultElementTypeProvider = module.defaultElementTypeProvider
 
-  /** 每次创建模板前重建 provider，使后注册的数据源也能进入设计器和运行时。 */
-  function initializeProviders(): void {
+  let appliedRegistryVersion = -1
+
+  /** 数据源注册表有新增时才重建 provider 并重初始化引擎，未变化时跳过（init 会重置连接配置）。 */
+  function ensureProviders(): void {
+    const version = getPrintDataSourceRegistryVersion()
+    if (version === appliedRegistryVersion)
+      return
     const providers = [
       new DefaultElementTypeProvider(),
       ...listPrintDataSources().map(source => createDataSourceProvider(module.hiprint, source)),
@@ -94,18 +99,19 @@ async function loadHiprintAdapter(): Promise<PrintingAdapter> {
       lang: 'cn',
       providers,
     })
+    appliedRegistryVersion = version
   }
 
-  initializeProviders()
+  ensureProviders()
   const PrintTemplate = module.hiprint.PrintTemplate
 
   return {
     createTemplate(template, options = {}) {
-      initializeProviders()
+      ensureProviders()
       return new PrintTemplate({ ...options, template })
     },
     enableFieldDragging(elements) {
-      initializeProviders()
+      ensureProviders()
       const jquery = window.$
       if (typeof jquery !== 'function')
         throw new Error('hiprint 未正确初始化 jQuery 拖拽运行时。')
