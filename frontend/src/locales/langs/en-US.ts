@@ -1,5 +1,4 @@
 import approval from './en-US/approval'
-import develop from './en-US/develop'
 import file from './en-US/file'
 import identity from './en-US/identity'
 import log from './en-US/log'
@@ -8,11 +7,9 @@ import openapi from './en-US/openapi'
 import setting from './en-US/setting'
 import tenant from './en-US/tenant'
 import workbench from './en-US/workbench'
-import workflow from './en-US/workflow'
 
 export default {
   approval,
-  develop,
   file,
   identity,
   log,
@@ -21,5 +18,4 @@ export default {
   setting,
   tenant,
   workbench,
-  workflow,
 }
