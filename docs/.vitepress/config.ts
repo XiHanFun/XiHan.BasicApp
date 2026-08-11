@@ -81,6 +81,7 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["审批与约束", "approval"],
       ["消息通知", "messaging"],
       ["即时通讯", "realtime"],
+      ["打印模板", "printing"],
       ["文件与存储", "file"],
       ["日志审计", "logging"],
       ["健康与可观测性", "health-observability"],
