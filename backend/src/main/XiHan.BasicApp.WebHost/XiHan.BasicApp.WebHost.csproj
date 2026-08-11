@@ -16,6 +16,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.AI\XiHan.BasicApp.AI.csproj" />
+      <ProjectReference Include="..\..\modules\XiHan.BasicApp.Chat\XiHan.BasicApp.Chat.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.CodeGeneration\XiHan.BasicApp.CodeGeneration.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Printing\XiHan.BasicApp.Printing.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />

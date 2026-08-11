@@ -118,7 +118,7 @@ export const chatApi = {
   members(conversationId: string) {
     return chatQueryApi.get<ChatMemberItem[]>('Members', { conversationId })
   },
-  /** GetUserOptionsAsync：Get 前缀剥离 → GET /ChatQuery/UserOptions；仅需 saas:chat:read 的轻量选人（启用用户+超管隐藏） */
+  /** GetUserOptionsAsync：Get 前缀剥离 → GET /ChatQuery/UserOptions；仅需 chat:read 的轻量选人（启用用户+超管隐藏） */
   /** 当前作用域内可参与聊天的部门树（聊天严格租户隔离，不复用读共享的通用部门树） */
   departmentTree() {
     return chatQueryApi.get<DepartmentTreeNodeDto[]>('DepartmentTree')

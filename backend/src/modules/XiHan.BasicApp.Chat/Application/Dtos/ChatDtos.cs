@@ -1,0 +1,762 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Chat.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Entities;
+
+namespace XiHan.BasicApp.Chat.Application.Dtos;
+
+/// <summary>
+/// 打开单聊会话 DTO
+/// </summary>
+public sealed class ChatSingleConversationOpenDto
+{
+    /// <summary>
+    /// 对端用户ID
+    /// </summary>
+    public long PeerUserId { get; set; }
+}
+
+/// <summary>
+/// 创建群聊 DTO
+/// </summary>
+public sealed class ChatGroupCreateDto
+{
+    /// <summary>
+    /// 群聊名称
+    /// </summary>
+    public string ConversationName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 初始成员用户ID集合（自动包含创建者为群主）
+    /// </summary>
+    public List<long> MemberUserIds { get; set; } = [];
+}
+
+/// <summary>
+/// 打开部门群 DTO
+/// </summary>
+public sealed class ChatDepartmentConversationOpenDto
+{
+    /// <summary>
+    /// 部门ID
+    /// </summary>
+    public long DepartmentId { get; set; }
+}
+
+/// <summary>
+/// 添加群成员 DTO
+/// </summary>
+public sealed class ChatMemberAddDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 待添加用户ID集合
+    /// </summary>
+    public List<long> UserIds { get; set; } = [];
+}
+
+/// <summary>
+/// 移除群成员/退群 DTO
+/// </summary>
+public sealed class ChatMemberRemoveDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 被移出用户ID（等于当前用户即主动退群）
+    /// </summary>
+    public long UserId { get; set; }
+}
+
+/// <summary>
+/// 聊天消息附件 DTO（图片/文件消息可带多个，FileId → SysFile，FileName/FileSize 为发送时快照）
+/// </summary>
+public sealed class ChatMessageAttachmentDto
+{
+    /// <summary>
+    /// 关联文件ID
+    /// </summary>
+    public long FileId { get; set; }
+
+    /// <summary>
+    /// 文件名（冗余快照）
+    /// </summary>
+    public string FileName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 文件大小（字节）
+    /// </summary>
+    public long? FileSize { get; set; }
+
+    /// <summary>
+    /// 音频时长（秒，仅语音消息；由发送端录制时给出）
+    /// </summary>
+    public int? DurationSeconds { get; set; }
+}
+
+/// <summary>
+/// 发送聊天消息 DTO
+/// </summary>
+public sealed class ChatMessageSendDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 消息类型
+    /// </summary>
+    public ChatMessageType MessageType { get; set; } = ChatMessageType.Text;
+
+    /// <summary>
+    /// 消息内容（文本正文；图片/文件为可选说明）
+    /// </summary>
+    public string? Content { get; set; }
+
+    /// <summary>
+    /// 附件列表（图片/文件消息必填至少一项；一条图片消息可含多张）
+    /// </summary>
+    public List<ChatMessageAttachmentDto>? Attachments { get; set; }
+
+    /// <summary>
+    /// 客户端消息ID（乐观上屏去重）
+    /// </summary>
+    public string? ClientMessageId { get; set; }
+
+    /// <summary>
+    /// 被回复消息ID（回复消息）
+    /// </summary>
+    public long? ReplyToMessageId { get; set; }
+
+    /// <summary>
+    /// 被 @ 用户ID集合（须均为会话成员）
+    /// </summary>
+    public List<long>? MentionedUserIds { get; set; }
+}
+
+/// <summary>
+/// 编辑消息 DTO（仅文本、仅本人、限时窗口）
+/// </summary>
+public sealed class ChatMessageEditDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+
+    /// <summary>
+    /// 新内容
+    /// </summary>
+    public string Content { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 表情回应 toggle DTO
+/// </summary>
+public sealed class ChatReactionToggleDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+
+    /// <summary>
+    /// 表情（Unicode emoji）
+    /// </summary>
+    public string Emoji { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 消息 Pin/取消 Pin DTO
+/// </summary>
+public sealed class ChatMessagePinDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+}
+
+/// <summary>
+/// 会话个人开关 DTO（置顶/免打扰 toggle）
+/// </summary>
+public sealed class ChatConversationToggleDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+}
+
+/// <summary>
+/// 表情回应 toggle 结果 DTO
+/// </summary>
+public sealed class ChatReactionToggleResultDto
+{
+    /// <summary>
+    /// true=已新增回应，false=已取消回应
+    /// </summary>
+    public bool Added { get; set; }
+}
+
+/// <summary>
+/// 会话个人开关结果 DTO
+/// </summary>
+public sealed class ChatToggleStateDto
+{
+    /// <summary>
+    /// 新状态
+    /// </summary>
+    public bool IsOn { get; set; }
+}
+
+/// <summary>
+/// 群信息更新 DTO（null 字段不改；群聊可改名，部门群名称禁改）
+/// </summary>
+public sealed class ChatConversationInfoUpdateDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 群聊名称（null 不改）
+    /// </summary>
+    public string? ConversationName { get; set; }
+
+    /// <summary>
+    /// 群公告（null 不改；空串清空）
+    /// </summary>
+    public string? Announcement { get; set; }
+
+    /// <summary>
+    /// 群描述（null 不改；空串清空）
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 群头像（文件主键或直链；null 不改；空串清空）
+    /// </summary>
+    public string? Avatar { get; set; }
+}
+
+/// <summary>
+/// 转让群主 DTO
+/// </summary>
+public sealed class ChatOwnerTransferDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 新群主用户ID（须现成员）
+    /// </summary>
+    public long NewOwnerUserId { get; set; }
+}
+
+/// <summary>
+/// 成员角色设置 DTO（仅群主；Admin ↔ Member）
+/// </summary>
+public sealed class ChatMemberRoleDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 目标用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 目标角色（仅 Admin/Member）
+    /// </summary>
+    public ChatMemberRole MemberRole { get; set; } = ChatMemberRole.Member;
+}
+
+/// <summary>
+/// 成员禁言 DTO
+/// </summary>
+public sealed class ChatMemberSilenceDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 目标用户ID（须普通成员）
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// true=禁言，false=解除
+    /// </summary>
+    public bool IsSilenced { get; set; }
+}
+
+/// <summary>
+/// 标记会话已读 DTO
+/// </summary>
+public sealed class ChatMarkReadDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 已读位（读到的最后一条消息ID，可空）
+    /// </summary>
+    public long? UpToMessageId { get; set; }
+}
+
+/// <summary>
+/// 消息历史查询 DTO（游标分页；AroundMessageId 定位模式二选一）
+/// </summary>
+public sealed class ChatMessageHistoryQueryDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 游标：取该消息ID之前（不含）的历史；空取最新一页
+    /// </summary>
+    public long? BeforeMessageId { get; set; }
+
+    /// <summary>
+    /// 定位模式：以该消息为中心取前后各半页（搜索命中跳转用；优先于 BeforeMessageId）
+    /// </summary>
+    public long? AroundMessageId { get; set; }
+
+    /// <summary>
+    /// 每页条数（1-100，默认 20）
+    /// </summary>
+    public int Take { get; set; } = 20;
+}
+
+/// <summary>
+/// 会话内消息搜索 DTO（关键字匹配正文与文件名，排除已撤回）
+/// </summary>
+public sealed class ChatMessageSearchQueryDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 关键字
+    /// </summary>
+    public string Keyword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 游标：取该消息ID之前（不含）的更早命中；空取最新一页
+    /// </summary>
+    public long? BeforeMessageId { get; set; }
+
+    /// <summary>
+    /// 每页条数（1-50，默认 20）
+    /// </summary>
+    public int Take { get; set; } = 20;
+}
+
+/// <summary>
+/// 会话摘要 DTO（打开/创建会话返回）
+/// </summary>
+public sealed class ChatConversationDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 会话类型
+    /// </summary>
+    public ChatConversationType ConversationType { get; set; }
+
+    /// <summary>
+    /// 会话名称（单聊为空）
+    /// </summary>
+    public string? ConversationName { get; set; }
+
+    /// <summary>
+    /// 是否本次新建
+    /// </summary>
+    public bool Created { get; set; }
+}
+
+/// <summary>
+/// 会话列表项 DTO
+/// </summary>
+public sealed class ChatConversationListItemDto
+{
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 会话类型
+    /// </summary>
+    public ChatConversationType ConversationType { get; set; }
+
+    /// <summary>
+    /// 展示名称（单聊=对端用户名；群聊/部门群=会话名）
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 会话头像（单聊=对端头像）
+    /// </summary>
+    public string? Avatar { get; set; }
+
+    /// <summary>
+    /// 单聊对端用户ID
+    /// </summary>
+    public long? PeerUserId { get; set; }
+
+    /// <summary>
+    /// 部门ID（部门群）
+    /// </summary>
+    public long? DepartmentId { get; set; }
+
+    /// <summary>
+    /// 成员数量
+    /// </summary>
+    public int MemberCount { get; set; }
+
+    /// <summary>
+    /// 我在会话中的角色
+    /// </summary>
+    public ChatMemberRole MemberRole { get; set; }
+
+    /// <summary>
+    /// 我的未读消息数
+    /// </summary>
+    public int UnreadCount { get; set; }
+
+    /// <summary>
+    /// 是否免打扰
+    /// </summary>
+    public bool IsMuted { get; set; }
+
+    /// <summary>
+    /// 是否置顶会话（个人维度，列表置顶优先排序）
+    /// </summary>
+    public bool IsPinned { get; set; }
+
+    /// <summary>
+    /// 我是否被禁言（发送/编辑被拦截，前端输入区置灰）
+    /// </summary>
+    public bool IsSilenced { get; set; }
+
+    /// <summary>
+    /// 群公告
+    /// </summary>
+    public string? Announcement { get; set; }
+
+    /// <summary>
+    /// 群描述
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 最后一条消息时间
+    /// </summary>
+    public DateTimeOffset? LastMessageTime { get; set; }
+
+    /// <summary>
+    /// 最后一条消息预览
+    /// </summary>
+    public string? LastMessagePreview { get; set; }
+}
+
+/// <summary>
+/// 聊天消息项 DTO
+/// </summary>
+public sealed class ChatMessageItemDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long MessageId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 发送人用户ID
+    /// </summary>
+    public long SenderUserId { get; set; }
+
+    /// <summary>
+    /// 发送人用户名（快照）
+    /// </summary>
+    public string? SenderUserName { get; set; }
+
+    /// <summary>
+    /// 消息类型
+    /// </summary>
+    public ChatMessageType MessageType { get; set; }
+
+    /// <summary>
+    /// 消息内容（已撤回为空）
+    /// </summary>
+    public string? Content { get; set; }
+
+    /// <summary>
+    /// 附件列表（图片消息可含多张；文本消息为空）
+    /// </summary>
+    public List<ChatMessageAttachmentDto> Attachments { get; set; } = [];
+
+    /// <summary>
+    /// 是否已撤回
+    /// </summary>
+    public bool IsRecalled { get; set; }
+
+    /// <summary>
+    /// 客户端消息ID
+    /// </summary>
+    public string? ClientMessageId { get; set; }
+
+    /// <summary>
+    /// 发送时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+
+    /// <summary>
+    /// 被回复消息ID
+    /// </summary>
+    public long? ReplyToMessageId { get; set; }
+
+    /// <summary>
+    /// 回复快照「{发送人}: {内容截断}」
+    /// </summary>
+    public string? ReplyPreview { get; set; }
+
+    /// <summary>
+    /// 编辑时间（非空即"已编辑"）
+    /// </summary>
+    public DateTimeOffset? EditedTime { get; set; }
+
+    /// <summary>
+    /// 被 @ 用户ID集合
+    /// </summary>
+    public List<long> MentionedUserIds { get; set; } = [];
+
+    /// <summary>
+    /// 是否被 Pin
+    /// </summary>
+    public bool IsPinned { get; set; }
+
+    /// <summary>
+    /// 表情回应列表
+    /// </summary>
+    public List<ChatReactionItemDto> Reactions { get; set; } = [];
+}
+
+/// <summary>
+/// 表情回应项 DTO
+/// </summary>
+public sealed class ChatReactionItemDto
+{
+    /// <summary>
+    /// 表情
+    /// </summary>
+    public string Emoji { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 回应用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 回应用户名（快照）
+    /// </summary>
+    public string? UserName { get; set; }
+}
+
+/// <summary>
+/// 成员已读位 DTO（群已读回执）
+/// </summary>
+public sealed class ChatReadPositionDto
+{
+    /// <summary>
+    /// 用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 最后已读消息ID
+    /// </summary>
+    public long? LastReadMessageId { get; set; }
+}
+
+/// <summary>
+/// 聊天审计分页查询 DTO（管理侧跨会话，权限 chat:audit）
+/// </summary>
+public sealed class ChatAuditPageQueryDto : BasicAppPRDto
+{
+    /// <summary>
+    /// 关键字（正文/发送人用户名/文件名）
+    /// </summary>
+    public string? Keyword { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long? ConversationId { get; set; }
+
+    /// <summary>
+    /// 发送人用户ID
+    /// </summary>
+    public long? SenderUserId { get; set; }
+
+    /// <summary>
+    /// 发送时间起
+    /// </summary>
+    public DateTimeOffset? CreatedTimeStart { get; set; }
+
+    /// <summary>
+    /// 发送时间止
+    /// </summary>
+    public DateTimeOffset? CreatedTimeEnd { get; set; }
+
+    /// <summary>
+    /// 是否包含已撤回消息（默认包含）
+    /// </summary>
+    public bool IncludeRecalled { get; set; } = true;
+}
+
+/// <summary>
+/// 聊天审计列表项 DTO
+/// </summary>
+public sealed class ChatAuditListItemDto
+{
+    /// <summary>
+    /// 消息ID
+    /// </summary>
+    public long BasicId { get; set; }
+
+    /// <summary>
+    /// 会话ID
+    /// </summary>
+    public long ConversationId { get; set; }
+
+    /// <summary>
+    /// 会话名称（单聊为空）
+    /// </summary>
+    public string? ConversationName { get; set; }
+
+    /// <summary>
+    /// 会话类型
+    /// </summary>
+    public ChatConversationType ConversationType { get; set; }
+
+    /// <summary>
+    /// 发送人用户ID（系统提示为 0）
+    /// </summary>
+    public long SenderUserId { get; set; }
+
+    /// <summary>
+    /// 发送人用户名（快照）
+    /// </summary>
+    public string? SenderUserName { get; set; }
+
+    /// <summary>
+    /// 消息类型
+    /// </summary>
+    public ChatMessageType MessageType { get; set; }
+
+    /// <summary>
+    /// 消息内容
+    /// </summary>
+    public string? Content { get; set; }
+
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    public string? FileName { get; set; }
+
+    /// <summary>
+    /// 是否已撤回
+    /// </summary>
+    public bool IsRecalled { get; set; }
+
+    /// <summary>
+    /// 编辑时间
+    /// </summary>
+    public DateTimeOffset? EditedTime { get; set; }
+
+    /// <summary>
+    /// 发送时间
+    /// </summary>
+    public DateTimeOffset CreatedTime { get; set; }
+}
+
+/// <summary>
+/// 消息历史结果 DTO
+/// </summary>
+public sealed class ChatMessageHistoryResultDto
+{
+    /// <summary>
+    /// 消息项（按时间正序，便于前端直接渲染）
+    /// </summary>
+    public List<ChatMessageItemDto> Items { get; set; } = [];
+
+    /// <summary>
+    /// 是否还有更早的历史
+    /// </summary>
+    public bool HasMore { get; set; }
+}
+
+/// <summary>
+/// 会话成员项 DTO
+/// </summary>
+public sealed class ChatMemberItemDto
+{
+    /// <summary>
+    /// 用户ID
+    /// </summary>
+    public long UserId { get; set; }
+
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    public string? UserName { get; set; }
+
+    /// <summary>
+    /// 成员角色
+    /// </summary>
+    public ChatMemberRole MemberRole { get; set; }
+
+    /// <summary>
+    /// 是否被禁言
+    /// </summary>
+    public bool IsSilenced { get; set; }
+
+    /// <summary>
+    /// 入群时间
+    /// </summary>
+    public DateTimeOffset JoinTime { get; set; }
+}

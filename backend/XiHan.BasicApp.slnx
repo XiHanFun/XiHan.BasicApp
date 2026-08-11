@@ -20,6 +20,9 @@
   <Folder Name="/1.src/2.Modules/5.Printing/">
     <Project Path="src/modules/XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
   </Folder>
+  <Folder Name="/1.src/2.Modules/6.Chat/">
+    <Project Path="src/modules/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
+  </Folder>
   <Folder Name="/1.src/3.Business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
   <Folder Name="/1.src/3.Business/1-1.OA/">
     <Project Path="src/business/XiHan.BasicApp.OA/XiHan.BasicApp.OA.csproj" />
@@ -71,6 +74,7 @@
   </Folder>
   <Folder Name="/2.test/">
     <Project Path="test/XiHan.BasicApp.Api.Tests/XiHan.BasicApp.Api.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.Chat.Tests/XiHan.BasicApp.Chat.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Printing.Tests/XiHan.BasicApp.Printing.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Saas.Tests/XiHan.BasicApp.Saas.Tests.csproj" />
   </Folder>

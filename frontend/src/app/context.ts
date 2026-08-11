@@ -426,7 +426,7 @@ function createChatApis() {
   const composed: ChatApiContract = {
     ...chatApi,
     async selectUsers(keyword: string, limit = 20) {
-      // 走聊天专属选人端点（仅需 saas:chat:read）；用户管理的 UserSelect 端点要求 saas:user:read，普通聊天用户会 403
+      // 走聊天专属选人端点（仅需 chat:read）；用户管理的 UserSelect 端点要求 saas:user:read，普通聊天用户会 403
       const items = await chatApi.userOptions(keyword, limit)
       return items.map(u => ({
         userId: u.basicId,

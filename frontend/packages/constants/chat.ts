@@ -37,7 +37,7 @@ export const CHAT_HUB_METHODS = {
 
 /** 聊天权限码（后端 SaasPermissionCodes.Chat） */
 export const CHAT_PERMISSIONS = {
-  read: 'saas:chat:read',
-  send: 'saas:chat:send',
-  manage: 'saas:chat:manage',
+  read: 'chat:read',
+  send: 'chat:send',
+  manage: 'chat:manage',
 } as const

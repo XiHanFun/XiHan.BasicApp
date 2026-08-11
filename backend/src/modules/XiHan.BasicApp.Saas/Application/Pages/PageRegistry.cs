@@ -119,10 +119,6 @@ public static class PageRegistry
 
         // [4] 消息中心
          new("message", "消息中心", "menu.message", MenuType.Directory, "/message", "Message", null, null, null, "lucide:mail", 500, "/message/notification"),
-        // [4.0] 在线聊天
-         new("message.chat", "在线聊天", "menu.message_chat", MenuType.Menu, "/message/chat", "MessageChat", "message/chat/index", "message", SaasPermissionCodes.Chat.Read, "lucide:messages-square", 305),
-        // [4.0a] 聊天审计（管理侧合规查询）
-         new("message.chat-audit", "聊天审计", "menu.message_chat_audit", MenuType.Menu, "/message/chat-audit", "MessageChatAudit", "message/chat-audit/index", "message", SaasPermissionCodes.Chat.Audit, "lucide:shield-check", 306),
         // [4.1] 通知公告
          new("message.notification", "通知公告", "menu.message_notification", MenuType.Menu, "/message/notification", "MessageNotification", "message/notification/index", "message", SaasPermissionCodes.Notification.Read, "lucide:bell", 310),
         // [4.2] 邮件短信
@@ -285,10 +281,6 @@ public static class PageRegistry
          new("tenant.edition.status", "启停", "tenant.edition", SaasPermissionCodes.TenantEdition.Status, 3),
          new("tenant.edition.default", "设为默认", "tenant.edition", SaasPermissionCodes.TenantEdition.Default, 4),
          new("tenant.edition.export", "导出", "tenant.edition", SaasPermissionCodes.TenantEdition.Export, 9),
-
-        // [4.0] 在线聊天
-         new("message.chat.send", "发送", "message.chat", SaasPermissionCodes.Chat.Send, 1),
-         new("message.chat.manage", "会话管理", "message.chat", SaasPermissionCodes.Chat.Manage, 2),
 
         // [4.1] 通知公告
          new("message.notification.create", "新增", "message.notification", SaasPermissionCodes.Notification.Create, 1),
