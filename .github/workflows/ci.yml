@@ -87,3 +87,6 @@ jobs:
 
       - name: 静态检查
         run: pnpm run lint
+
+      - name: 文案与模块门禁
+        run: pnpm run validate

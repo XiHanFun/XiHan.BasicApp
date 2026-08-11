@@ -16,7 +16,8 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const LANGS = join(ROOT, 'packages/locales/langs')
+// 两处文案聚合根：壳层（packages）与应用业务层（src），结构同为 langs/<locale>.ts 聚合 langs/<locale>/*.ts
+const LANGS_ROOTS = [join(ROOT, 'packages/locales/langs'), join(ROOT, 'src/locales/langs')]
 const LOCALES = ['zh-CN', 'en-US']
 
 function read(p) {
@@ -24,16 +25,16 @@ function read(p) {
 }
 
 /** strip `export default` + 尾分号，eval 出模块默认导出对象 */
-function loadModule(locale, name) {
-  let t = read(join(LANGS, locale, `${name}.ts`))
+function loadModule(langs, locale, name) {
+  let t = read(join(langs, locale, `${name}.ts`))
   t = t.replace(/^\s*export\s+default\s*/m, '').trim().replace(/;$/, '')
   // eslint-disable-next-line no-eval
   return (0, eval)(`(${t})`)
 }
 
-/** 解析 index.ts：得出 nest 模块名、spread 模块名、以及内联字面量对象（如 checkUpdates） */
-function parseIndex(locale) {
-  const idx = read(join(LANGS, locale, 'index.ts'))
+/** 解析聚合文件 langs/<locale>.ts：得出 nest 模块名、spread 模块名、以及内联字面量对象（如 checkUpdates） */
+function parseIndex(langs, locale) {
+  const idx = read(join(langs, `${locale}.ts`))
   const body = idx.slice(idx.indexOf('export default') + 'export default'.length)
   const nest = []
   const spread = []
@@ -64,11 +65,11 @@ function parseIndex(locale) {
   return { nest, spread, inline }
 }
 
-function buildMerged(locale) {
-  const { nest, spread, inline } = parseIndex(locale)
+function buildMerged(langs, locale) {
+  const { nest, spread, inline } = parseIndex(langs, locale)
   const m = {}
-  for (const n of nest) m[n] = loadModule(locale, n)
-  for (const n of spread) Object.assign(m, loadModule(locale, n))
+  for (const n of nest) m[n] = loadModule(langs, locale, n)
+  for (const n of spread) Object.assign(m, loadModule(langs, locale, n))
   Object.assign(m, inline)
   return m
 }
@@ -99,11 +100,36 @@ function walk(dir, out = []) {
   return out
 }
 
+/** 加载 src/modules/<模块>/locales/<locale>.ts（模块文案，删除模块目录即随之消失） */
+function loadModuleLocales(locale) {
+  const modulesDir = join(ROOT, 'src/modules')
+  const out = {}
+  let moduleNames = []
+  try {
+    moduleNames = readdirSync(modulesDir).filter(m => statSync(join(modulesDir, m)).isDirectory())
+  }
+  catch { return out }
+  for (const m of moduleNames) {
+    const p = join(modulesDir, m, 'locales', `${locale}.ts`)
+    try {
+      let t = read(p)
+      t = t.replace(/^\s*export\s+default\s*/m, '').trim().replace(/;$/, '')
+      // eslint-disable-next-line no-eval
+      Object.assign(out, flatten((0, eval)(`(${t})`)))
+    }
+    catch { continue }
+  }
+  return out
+}
+
 function main() {
   const merged = {}
   const keys = {}
   for (const loc of LOCALES) {
-    merged[loc] = flatten(buildMerged(loc))
+    merged[loc] = {}
+    for (const langs of LANGS_ROOTS)
+      Object.assign(merged[loc], flatten(buildMerged(langs, loc)))
+    Object.assign(merged[loc], loadModuleLocales(loc))
     keys[loc] = new Set(Object.keys(merged[loc]))
   }
 
