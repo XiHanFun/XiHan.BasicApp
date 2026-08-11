@@ -33,7 +33,7 @@ public static class PageRegistry
     /// </summary>
     public static IReadOnlyList<PageDescriptor> All { get; } =
     [
-        // 与 Saas 模块登记同一份定义，两边必须保持一致
+        // 工作流目录由本模块独占登记（审批目录归 Saas 自持，两者互不共享目录码）
         new(WorkflowDirectoryCode, "工作流", "menu.workflow", MenuType.Directory, "/workflow", "Workflow", null, null, null, "lucide:workflow", 400),
         // 我的待办属于「与当前登录用户相关」，归工作台；工作流目录聚焦流程管理侧
         new("workflow_todo", "我的待办", "menu.workflow_todo", MenuType.Menu, "/workflow/todo", "WorkflowTodo", "Workflow/Todo/Index", WorkbenchDirectoryCode, null, "lucide:list-todo", 14),

@@ -25,6 +25,7 @@ export default {
   setting_sms_config: '短信配置',
   setting_bot_config: '机器人配置',
   setting_telegram_bot: 'Telegram机器人',
+  approval: '审批',
   approval_review: '审批中心',
   approval_constraint: '审批约束',
   file_library: '文件管理',
