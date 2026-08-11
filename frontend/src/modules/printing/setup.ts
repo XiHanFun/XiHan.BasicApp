@@ -4,7 +4,7 @@
  */
 import type { PrintTemplateScope as ApiPrintTemplateScope } from './api/print-template.types'
 import type { PrintTemplateScope as PublicPrintTemplateScope, ResolvedPrintTemplate } from '~/printing'
-import { configurePrinting, registerPrintDataSource } from '~/printing'
+import { configurePrinting, getPrintDataSource, registerPrintDataSource } from '~/printing'
 import { printTemplateApi } from './api/print-template'
 
 /**
@@ -13,6 +13,27 @@ import { printTemplateApi } from './api/print-template'
  * @throws 数据源重复注册或配置不完整。
  */
 export default function setupPrinting(): void {
+  // 热更新会重跑本钩子；已注册的数据源跳过，避免注册表按重复编码拒绝
+  if (!getPrintDataSource('system.print-demo')) {
+    registerDemoDataSource()
+  }
+
+  configurePrinting({
+    host: import.meta.env.VITE_HIPRINT_HOST,
+    token: import.meta.env.VITE_HIPRINT_TOKEN,
+    resolveTemplate: async (templateCode, scope): Promise<ResolvedPrintTemplate> => {
+      const resolved = await printTemplateApi.resolveByCode(templateCode, scope as ApiPrintTemplateScope)
+      return {
+        ...resolved,
+        requestedScope: resolved.requestedScope as PublicPrintTemplateScope,
+        resolvedScope: resolved.resolvedScope as PublicPrintTemplateScope,
+      }
+    },
+  })
+}
+
+/** 注册首版 system.print-demo 代码数据源。 */
+function registerDemoDataSource(): void {
   registerPrintDataSource({
     code: 'system.print-demo',
     name: '系统打印示例',
@@ -50,18 +71,4 @@ export default function setupPrinting(): void {
       ],
     }),
   })
-
-  configurePrinting({
-    host: import.meta.env.VITE_HIPRINT_HOST,
-    token: import.meta.env.VITE_HIPRINT_TOKEN,
-    resolveTemplate: async (templateCode, scope): Promise<ResolvedPrintTemplate> => {
-      const resolved = await printTemplateApi.resolveByCode(templateCode, scope as ApiPrintTemplateScope)
-      return {
-        ...resolved,
-        requestedScope: resolved.requestedScope as PublicPrintTemplateScope,
-        resolvedScope: resolved.resolvedScope as PublicPrintTemplateScope,
-      }
-    },
-  })
-  return undefined
 }
