@@ -1,6 +1,8 @@
+<!-- Markdown 编辑器封装模块：统一编辑、预览、主题以及图片上传交互。 -->
 <script setup lang="ts">
 import type { ToolbarNames } from 'md-editor-v3'
 import { MdEditor as Editor, MdPreview } from 'md-editor-v3'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores'
 import 'md-editor-v3/lib/style.css'

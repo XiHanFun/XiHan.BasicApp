@@ -1,4 +1,6 @@
+<!-- JSON 编辑器封装模块：统一处理主题、高度以及 JSON/Text 双模型绑定。 -->
 <script setup lang="ts">
+import { computed } from 'vue'
 import JsonEditorVue from 'vue3-ts-jsoneditor'
 import { useAppStore } from '~/stores'
 

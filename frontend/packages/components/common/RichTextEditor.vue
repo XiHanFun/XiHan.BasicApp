@@ -1,3 +1,4 @@
+<!-- 富文本编辑器封装模块：管理 Tiptap 生命周期、内容同步及常用格式工具。 -->
 <script setup lang="ts">
 import { Color } from '@tiptap/extension-color'
 import Highlight from '@tiptap/extension-highlight'
@@ -10,6 +11,7 @@ import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { NButton, NButtonGroup, NDivider, NInput, NPopover } from 'naive-ui'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 

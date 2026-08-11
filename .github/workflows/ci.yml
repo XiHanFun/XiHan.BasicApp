@@ -60,9 +60,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 版本取自 frontend/package.json 的 packageManager 字段
+      # action 在仓库根目录执行，无法自动读取 frontend/package.json 中的 packageManager。
+      # 这里与前端清单保持同一精确版本，避免安装步骤在执行任何检查前失败。
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
 
       - name: 安装 Node
         uses: actions/setup-node@v4

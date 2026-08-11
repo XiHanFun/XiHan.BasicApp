@@ -64,6 +64,13 @@ public interface ISaasCacheInvalidator
     Task InvalidateMessageTemplateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 失效打印模板解析缓存；模板增删改或启停后调用。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>缓存失效任务。</returns>
+    Task InvalidatePrintTemplateAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 失效版本门控缓存（版本权限白名单变更/租户换版本后调用，鉴权快照热路径）。
     /// </summary>
     Task InvalidateEditionGateAsync(CancellationToken cancellationToken = default);
