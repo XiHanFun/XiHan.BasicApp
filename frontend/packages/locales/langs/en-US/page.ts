@@ -19,6 +19,7 @@ export default {
     email_login: 'Email Login',
     qrcode_login: 'QR Login',
     third_party_login: 'Third-party login',
+    demo_login: 'One-click demo login',
     no_account: 'Don\'t have an account?',
     back_to_login: 'Back to login',
     // Code login
