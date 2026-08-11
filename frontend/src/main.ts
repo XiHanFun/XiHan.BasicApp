@@ -30,6 +30,9 @@ import './styles/index.css'
   setupBusinessLocales()
   // 仅注册数据源与解析函数；hiprint 及 print-lock.css 在首次设计/打印时才动态加载。
   setupPrinting()
+  // 模块启动钩子（src/modules/<模块>/setup.ts 的默认导出）：删除模块目录即随之消失，无需登记
+  for (const mod of Object.values(import.meta.glob('/src/modules/*/setup.ts', { eager: true })))
+    (mod as { default?: () => void }).default?.()
 
   bindRouter(router)
   bindLogoutHook(() => {

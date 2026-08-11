@@ -50,7 +50,17 @@ import { router } from '@/router'
 import { staticRoutes } from '@/router/routes'
 import { registerAppContext } from '~/stores/app-context'
 
-const viewModules = import.meta.glob('/src/views/**/*.vue')
+const appViewModules = import.meta.glob('/src/views/**/*.vue')
+// 模块视图（src/modules/<模块>/views/**）：键重写为 /src/views/** 形态并入同一张表，
+// 后端菜单的 Component 路径无需感知模块归属；同键冲突以模块侧为准并在控制台报错（构建门禁 validate-modules 兜底）。
+const moduleViewModules = import.meta.glob('/src/modules/*/views/**/*.vue')
+const viewModules: Record<string, () => Promise<unknown>> = { ...appViewModules }
+for (const [path, loader] of Object.entries(moduleViewModules)) {
+  const key = path.replace(/^\/src\/modules\/[^/]+\/views/, '/src/views')
+  if (key in viewModules)
+    console.error(`[modules] 视图键冲突：${key} 已存在，${path} 将覆盖它`)
+  viewModules[key] = loader
+}
 
 const defaultLoginConfig: LoginConfig = {
   loginMethods: ['password'],
