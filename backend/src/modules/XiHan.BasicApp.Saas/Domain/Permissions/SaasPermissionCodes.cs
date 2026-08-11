@@ -127,13 +127,6 @@ public static class SaasPermissionCodes
         Numbering.Generate,
         Numbering.AllocationRead,
         Numbering.GlobalManage,
-        PrintTemplate.Read,
-        PrintTemplate.Create,
-        PrintTemplate.Update,
-        PrintTemplate.Status,
-        PrintTemplate.Delete,
-        PrintTemplate.Use,
-        PrintTemplate.GlobalManage,
         Dict.Read,
         Dict.Create,
         Dict.Update,
@@ -1289,36 +1282,6 @@ public static class SaasPermissionCodes
 
         /// <summary>管理平台全局规则与租户开放状态。</summary>
         public const string GlobalManage = "saas:numbering:global-manage";
-    }
-
-    /// <summary>
-    /// 打印模板管理与使用权限码。
-    /// </summary>
-    public static class PrintTemplate
-    {
-        /// <summary>分组编码（资源段）。</summary>
-        public const string Group = "print-template";
-
-        /// <summary>查看打印模板。</summary>
-        public const string Read = "saas:print-template:read";
-
-        /// <summary>创建打印模板。</summary>
-        public const string Create = "saas:print-template:create";
-
-        /// <summary>更新模板元数据和设计 JSON。</summary>
-        public const string Update = "saas:print-template:update";
-
-        /// <summary>启用或停用打印模板。</summary>
-        public const string Status = "saas:print-template:status";
-
-        /// <summary>删除已经停用的打印模板。</summary>
-        public const string Delete = "saas:print-template:delete";
-
-        /// <summary>按编码解析、预览或直接打印模板。</summary>
-        public const string Use = "saas:print-template:use";
-
-        /// <summary>管理平台全局模板及租户开放状态。</summary>
-        public const string GlobalManage = "saas:print-template:global-manage";
     }
 
     /// <summary>

@@ -10,13 +10,12 @@ namespace XiHan.BasicApp.Saas.Domain.Permissions;
 /// 集中维护「平台专属」权限码并界定「可授予租户」的范围，供多处复用，避免各种子复制粘贴造成口径漂移：
 /// - 租户版本(Enterprise)白名单排除：全部权限减去 <see cref="PlatformOnlyCodes"/>；
 /// - 租户管理员(tenant_admin)授权：仅 Saas 模块自身权限再减去平台专属（见 <see cref="IsTenantGrantable"/>）。
+/// 外部模块的平台专属码经 <see cref="ContributePlatformOnly"/> 在模块 ConfigureServices 阶段登记，
+/// 使版本白名单与租户授权对其保持同一排除口径。
 /// </remarks>
 public static class SaasPlatformPermissions
 {
-    /// <summary>
-    /// 平台专属权限码：仅平台超级管理员可拥有，租户管理员的「全部权限」与企业版白名单均排除之。
-    /// </summary>
-    public static readonly IReadOnlySet<string> PlatformOnlyCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> _platformOnlyCodes = new(StringComparer.OrdinalIgnoreCase)
     {
         SaasPermissionCodes.Tenant.Create,
         SaasPermissionCodes.Tenant.Update,
@@ -45,15 +44,34 @@ public static class SaasPlatformPermissions
         SaasPermissionCodes.Cache.Read,
         SaasPermissionCodes.Cache.Clear,
         SaasPermissionCodes.Server.Read,
-        SaasPermissionCodes.Numbering.GlobalManage,
-        SaasPermissionCodes.PrintTemplate.GlobalManage
+        SaasPermissionCodes.Numbering.GlobalManage
     };
+
+    /// <summary>
+    /// 平台专属权限码：仅平台超级管理员可拥有，租户管理员的「全部权限」与企业版白名单均排除之。
+    /// </summary>
+    public static IReadOnlySet<string> PlatformOnlyCodes => _platformOnlyCodes;
+
+    /// <summary>
+    /// 登记外部模块的平台专属权限码（模块 ConfigureServices 阶段调用，幂等）。
+    /// </summary>
+    /// <param name="codes">平台专属权限码</param>
+    public static void ContributePlatformOnly(params string[] codes)
+    {
+        foreach (var code in codes)
+        {
+            if (!string.IsNullOrWhiteSpace(code))
+            {
+                _ = _platformOnlyCodes.Add(code);
+            }
+        }
+    }
 
     /// <summary>
     /// 该权限码是否可授予租户：仅 Saas 模块自身权限（以模块前缀界定）且非平台专属。
     /// </summary>
     /// <remarks>
-    /// 以 Saas 模块前缀界定，天然排除其它模块的权限——Saas 无需知晓任何外部模块的权限命名。
+    /// 以 Saas 模块前缀界定，天然排除其它模块的权限——外部模块的租户默认授权由各模块自己的角色权限种子承载。
     /// </remarks>
     /// <param name="code">权限码</param>
     public static bool IsTenantGrantable(string code)

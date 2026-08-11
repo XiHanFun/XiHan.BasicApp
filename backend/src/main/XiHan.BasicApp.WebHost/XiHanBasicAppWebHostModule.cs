@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using XiHan.BasicApp.AI;
 using XiHan.BasicApp.CodeGeneration;
+using XiHan.BasicApp.Printing;
 using XiHan.BasicApp.Saas;
 using XiHan.BasicApp.Workflow;
 using XiHan.BasicApp.WebHost.HealthChecks;
@@ -23,7 +24,8 @@ namespace XiHan.BasicApp.WebHost;
     typeof(XiHanBasicAppSaasModule),
     typeof(XiHanBasicAppCodeGenerationModule),
     typeof(XiHanBasicAppAIModule),
-    typeof(XiHanBasicAppWorkflowModule)
+    typeof(XiHanBasicAppWorkflowModule),
+    typeof(XiHanBasicAppPrintingModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {

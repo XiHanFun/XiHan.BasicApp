@@ -79,11 +79,6 @@ public static class SaasCacheNames
     public const string MessageTemplate = "basicapp:saas:message:template";
 
     /// <summary>
-    /// 打印模板解析缓存（请求租户 × 请求作用域 × 模板编码）。
-    /// </summary>
-    public const string PrintTemplate = "basicapp:saas:print:template";
-
-    /// <summary>
     /// 版本门控缓存（租户 → 版本权限白名单，鉴权快照热路径）。
     /// </summary>
     public const string EditionGate = "basicapp:saas:tenancy:edition-gate";

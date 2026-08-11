@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// <summary>
 /// SaaS 租户版本和版本权限种子数据
 /// </summary>
-public sealed class SaasTenantEditionSeeder(
+public class SaasTenantEditionSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasTenantEditionSeeder> logger,
     IServiceProvider serviceProvider,
