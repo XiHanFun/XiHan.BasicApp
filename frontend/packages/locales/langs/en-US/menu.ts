@@ -37,7 +37,6 @@ export default {
   setting_dict: 'Dictionaries',
   setting_config: 'Parameters',
   setting_numbering: 'Numbering',
-  setting_print_template: 'Print Templates',
   setting_job: 'Job Scheduler',
   setting_cache: 'Cache',
   setting_server: 'Server Monitor',

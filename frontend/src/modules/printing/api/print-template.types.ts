@@ -1,9 +1,9 @@
+import type { EnableStatus } from '@/api/modules/shared/types'
 /**
  * 打印模板 Dynamic API 类型契约。
  * 职责：与后端 PrintTemplate DTO、作用域和字符串行版本保持一一对应。
  */
-import type { ApiId, BasicDto, PageRequest } from '../../types'
-import type { EnableStatus } from '../shared/types'
+import type { ApiId, BasicDto, PageRequest } from '@/api/types'
 
 /** 打印模板解析与管理作用域。 */
 export enum PrintTemplateScope {

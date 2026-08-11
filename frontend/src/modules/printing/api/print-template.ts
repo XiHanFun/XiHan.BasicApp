@@ -1,8 +1,3 @@
-/**
- * 打印模板 Dynamic API 客户端。
- * 职责：提供管理端 CRUD、可用全局模板查询和公共打印按编码解析入口。
- */
-import type { PageResult } from '../../types'
 import type {
   PrintTemplateCreateDto,
   PrintTemplateDeleteDto,
@@ -14,7 +9,12 @@ import type {
   PrintTemplateUpdateDto,
   ResolvedPrintTemplateDto,
 } from './print-template.types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '../../base'
+/**
+ * 打印模板 Dynamic API 客户端。
+ * 职责：提供管理端 CRUD、可用全局模板查询和公共打印按编码解析入口。
+ */
+import type { PageResult } from '@/api/types'
+import { createDynamicApiClient, formatDynamicApiRouteValue } from '@/api/base'
 
 const queryApi = createDynamicApiClient('PrintTemplateQuery')
 const commandApi = createDynamicApiClient('PrintTemplate')

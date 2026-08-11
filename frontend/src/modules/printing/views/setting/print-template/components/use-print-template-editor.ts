@@ -1,14 +1,14 @@
+import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 /**
  * 打印模板编辑器会话 Composable。
  * 职责：集中管理元数据与设计草稿、未保存守卫、保存并发锁、样例预览、FIFO 直打和本地打印机偏好。
  */
 import type HiprintDesignerCanvas from './HiprintDesignerCanvas.vue'
 import type { PrintTemplateFormModel } from './models'
-import type { PrintTemplateDetailDto, PrintTemplateScope } from '@/api'
 import { useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { EnableStatus, printTemplateApi } from '@/api'
+import { EnableStatus } from '@/api'
 import {
   createDefaultPrintSampleData,
   directPrintByCode,
@@ -17,6 +17,7 @@ import {
   refreshPrinters,
   setPreferredPrinter,
 } from '~/printing'
+import { printTemplateApi } from '../../../../api/print-template'
 
 /** 编辑器父组件传入的响应式属性。 */
 interface PrintTemplateEditorProps {
