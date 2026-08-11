@@ -473,20 +473,6 @@ onMounted(async () => {
           >
             {{ t('page.login.login_btn') }}
           </NButton>
-
-          <!-- 快捷登录：内置演示账号，一键填入并登录（测试站便于快速登录，超管置顶） -->
-          <div class="grid grid-cols-2 gap-2 mt-3">
-            <NButton
-              v-for="acc in quickAccounts"
-              :key="acc.login"
-              secondary
-              class="!h-10 !rounded-xl !text-sm"
-              :disabled="authStore.loginLoading"
-              @click="quickLogin(acc)"
-            >
-              {{ acc.label }}
-            </NButton>
-          </div>
         </NForm>
 
         <p
@@ -517,6 +503,28 @@ onMounted(async () => {
               <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
             </template>
             {{ provider.displayName }}
+          </NButton>
+        </div>
+
+        <!-- 快捷登录：内置演示账号，一键填入并登录（超管置顶） -->
+        <p
+          class="mt-6 text-xs text-center"
+          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
+        >
+          {{ t('page.auth.demo_login') }}
+        </p>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 justify-center items-center mt-1 text-xs">
+          <NButton
+            v-for="acc in quickAccounts"
+            :key="acc.login"
+            text
+            type="primary"
+            size="tiny"
+            class="!text-xs"
+            :disabled="authStore.loginLoading"
+            @click="quickLogin(acc)"
+          >
+            {{ acc.label }}
           </NButton>
         </div>
       </div>
