@@ -3,8 +3,8 @@
   职责：维护元数据与设计 JSON、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
 -->
 <script setup lang="ts">
+import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import type { PrintTemplateFormModel } from './models'
-import type { PrintTemplateDetailDto, PrintTemplateScope } from '@/api'
 import {
   NButton,
   NDrawer,

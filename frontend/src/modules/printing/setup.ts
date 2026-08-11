@@ -2,17 +2,17 @@
  * 应用打印能力启动注册。
  * 职责：把后端模板解析 API 注入公共 printing 包，并注册首版 system.print-demo 代码数据源。
  */
-import type { PrintTemplateScope as ApiPrintTemplateScope } from '@/api'
+import type { PrintTemplateScope as ApiPrintTemplateScope } from './api/print-template.types'
 import type { PrintTemplateScope as PublicPrintTemplateScope, ResolvedPrintTemplate } from '~/printing'
-import { printTemplateApi } from '@/api'
 import { configurePrinting, registerPrintDataSource } from '~/printing'
+import { printTemplateApi } from './api/print-template'
 
 /**
  * 注册应用打印配置与内置示例数据源。
  * @returns 无返回值；hiprint 本体仍保持惰性加载，首次设计或打印时才产生独立 chunk 请求。
  * @throws 数据源重复注册或配置不完整。
  */
-export function setupPrinting(): void {
+export default function setupPrinting(): void {
   registerPrintDataSource({
     code: 'system.print-demo',
     name: '系统打印示例',

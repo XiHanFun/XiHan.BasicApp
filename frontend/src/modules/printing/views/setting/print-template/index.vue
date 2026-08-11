@@ -3,8 +3,9 @@
   职责：按租户或平台作用域管理模板、切换可用全局模板，并从统一公共 API 发起样例预览与 FIFO 直打。
 -->
 <script setup lang="ts">
+import type { PrintTemplateDetailDto, PrintTemplateListItemDto } from '../../../api/print-template.types'
 import type PrintTemplateEditor from './components/PrintTemplateEditor.vue'
-import type { PageResult, PrintTemplateDetailDto, PrintTemplateListItemDto } from '@/api'
+import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import { NButton, NIcon, NSpin, NTag, NTooltip, useDialog, useMessage } from 'naive-ui'
 import { computed, h, onMounted, ref, watch } from 'vue'
@@ -13,8 +14,6 @@ import { onBeforeRouteLeave } from 'vue-router'
 import {
   createPageRequest,
   EnableStatus,
-  printTemplateApi,
-  PrintTemplateScope,
   querySortsFromSchema,
   tenantApi,
 } from '@/api'
@@ -27,6 +26,8 @@ import {
   PrintTemplateVersionChangedError,
 } from '~/printing'
 import { useUserStore } from '~/stores'
+import { printTemplateApi } from '../../../api/print-template'
+import { PrintTemplateScope } from '../../../api/print-template.types'
 import SampleDataModal from './components/PrintSampleDataModal.vue'
 import TemplateEditor from './components/PrintTemplateEditor.vue'
 
