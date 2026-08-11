@@ -176,11 +176,13 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层与 CQRS，�
 ┌─────────────────────────────────────────────────────────────┐
 │                   XiHan.BasicApp.WebHost                      │
 │                   (启动入口与模块聚合)                          │
-├────────────────────┬────────────────────┬───────────────────┤
-│ XiHan.BasicApp.Saas│ XiHan.BasicApp.    │ XiHan.BasicApp.AI │
-│ (RBAC/多租户/审计)      │ CodeGeneration     │ (AI/提示词/RAG)      │
-│                    │ (代码生成与模板)          │                   │
-├────────────────────┴────────────────────┴───────────────────┤
+├──────────┬──────────┬──────────┬──────────┬─────────────────┤
+│ CodeGen  │    AI    │ Workflow │ Printing │      Chat       │
+│ (代码生成)  │ (AI/RAG) │ (工作流引擎) │ (打印模板)  │   (在线聊天)      │
+├──────────┴──────────┴──────────┴──────────┴─────────────────┤
+│                     XiHan.BasicApp.Saas                       │
+│           (RBAC / 多租户 / 组织 / 审批 / 审计 / 消息中心)          │
+├─────────────────────────────────────────────────────────────┤
 │                   XiHan.BasicApp.Web.Core                     │
 │              (Web 核心能力 / 动态 API / 网关 / 灰度)            │
 ├─────────────────────────────────────────────────────────────┤
@@ -192,30 +194,43 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层与 CQRS，�
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| 项目 | 说明 |
-| --- | --- |
-| `XiHan.BasicApp.Core` | 基础应用能力，集成 DDD / CQRS / 事件总线 / 认证 / 授权 / 缓存 / 多租户 |
-| `XiHan.BasicApp.Web.Core` | Web 核心能力，动态 API / Scalar / SignalR / 网关 / 灰度路由 |
-| `XiHan.BasicApp.Saas` | 核心业务模块：用户 / 角色 / 权限 / 菜单 / 部门 / 租户 / 配置 / 字典 / 文件 / 通知 / 日志 / 任务 |
-| `XiHan.BasicApp.CodeGeneration` | 代码生成：数据源管理 / 表结构导入 / 模板配置 / 全栈生成 |
-| `XiHan.BasicApp.AI` | AI 能力：提供商与密钥管理 / 提示词库 / 知识库 RAG / AI 技能（MCP 工具） |
-| `XiHan.BasicApp.WebHost` | 启动入口，聚合所有模块 |
+| 项目 | 说明 | 可卸载 |
+| --- | --- | --- |
+| `XiHan.BasicApp.Core` | 基础应用能力，集成 DDD / CQRS / 事件总线 / 认证 / 授权 / 缓存 / 多租户 | 否 |
+| `XiHan.BasicApp.Web.Core` | Web 核心能力，动态 API / Scalar / SignalR / 网关 / 灰度路由 | 否 |
+| `XiHan.BasicApp.Saas` | 平台治理模块：用户 / 角色 / 权限 / 菜单 / 部门 / 租户 / 配置 / 字典 / 文件 / 通知 / 审批 / 日志 / 任务 | 否 |
+| `XiHan.BasicApp.CodeGeneration` | 代码生成：数据源管理 / 表结构导入 / 模板配置 / 全栈生成 | 是 |
+| `XiHan.BasicApp.AI` | AI 能力：提供商与密钥管理 / 提示词库 / 知识库 RAG / AI 技能（MCP 工具）/ 聊天 AI 助手 | 是（助手桥接依赖 Chat） |
+| `XiHan.BasicApp.Workflow` | 工作流引擎落地：流程定义 / 实例 / 待办（框架引擎的持久化与 API） | 是 |
+| `XiHan.BasicApp.Printing` | 打印模板：可视化设计 / 租户与平台双作用域 / 按编码解析 | 是 |
+| `XiHan.BasicApp.Chat` | 在线聊天：单聊 / 群聊 / 部门群 / AI 助手会话 / 实时推送 / 合规审计 | 是（删除须连带处理 AI 的助手桥接） |
+| `XiHan.BasicApp.WebHost` | 启动入口，聚合所有模块 | — |
 
 ```text
 XiHan.BasicApp/
 ├── backend/                 # 后端（.NET 10）
 │   ├── src/
 │   │   ├── framework/       #   Core / Web.Core 基础能力
-│   │   ├── modules/         #   Saas、CodeGeneration、AI 模块
+│   │   ├── modules/         #   Saas + 五个可选模块（CodeGen/AI/Workflow/Printing/Chat）
 │   │   └── main/            #   WebHost 启动入口
 │   ├── props/               #   共享 MSBuild 属性
 │   ├── scripts/             #   部署与运维脚本
 │   └── test/                #   测试项目
 ├── frontend/                # 前端（Vue 3 + Naive UI）
-│   ├── src/                 #   应用源码
+│   ├── src/                 #   应用源码（src/modules/ 与后端可选模块一一对应）
 │   └── packages/            #   内部包
 └── assets/                  # README 资源
 ```
+
+### 卸载可选模块
+
+一个可选模块 = 后端一个工程 + 前端一个 `src/modules/<模块>` 目录。卸载步骤：
+
+1. 后端：删除 `backend/src/modules/XiHan.BasicApp.<模块>`，并摘除四处一行级登记——WebHost 的 csproj 引用与 `[DependsOn]`、`backend/XiHan.BasicApp.slnx`、`Api.Tests.csproj`（删漏任何一处编译立刻报错，不会静默残留）；
+2. 前端：删除 `frontend/src/modules/<模块>` 目录（视图/API/文案/启动钩子随目录消失，无需改接线）；个别模块另有自包含功能包（Printing 的 `packages/printing`、Workflow 的 `packages/diagram`）与 catalog 依赖条目可一并清理；
+3. 特例：Chat 被 AI 的助手桥接依赖（`AI → Chat`），删 Chat 须连带删除 AI 模块或摘除其中的 ChatAssistant 桥接文件；聊天前端的壳层集成（灵动岛/布局）尚未完全模块化，删除后壳层聊天入口需单独处理；
+4. **卸载必须伴随重建数据库**：菜单、权限、角色授权、定时任务的种子行不会随模块删除自动回收。
+
 
 ## 快速开始
 
