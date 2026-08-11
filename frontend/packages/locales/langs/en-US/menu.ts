@@ -25,6 +25,7 @@ export default {
   setting_sms_config: 'SMS Config',
   setting_bot_config: 'Bot Config',
   setting_telegram_bot: 'Telegram Bots',
+  approval: 'Approval',
   approval_review: 'Approval Center',
   approval_constraint: 'Approval Constraints',
   file_library: 'Files',

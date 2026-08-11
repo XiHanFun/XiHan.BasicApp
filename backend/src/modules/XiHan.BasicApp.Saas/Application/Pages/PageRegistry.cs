@@ -72,10 +72,9 @@ public sealed record ButtonDescriptor(
 public static class PageRegistry
 {
     /// <summary>
-    /// 工作流目录码（Workflow 模块登记的父级；Saas 种子先于 Workflow 执行，
-    /// 故此处同样登记一份，避免审批两页因父级尚不存在而被静默跳过）
+    /// 审批目录码（Saas 自持：审批与约束属平台治理，不依赖工作流引擎模块）
     /// </summary>
-    public const string WorkflowDirectoryCode = "workflow";
+    public const string ApprovalDirectoryCode = "approval";
 
     /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
@@ -128,12 +127,12 @@ public static class PageRegistry
         // 注：邮件/短信/机器人/Telegram 等系统级通道「配置」页归入系统设置（见 [8.8]-[8.11]），
         // 消息中心只保留日常消息运营（聊天/审计/通知/记录/模板）。
 
-        // [5] 工作流目录（与 Workflow 模块登记同一份定义，两边必须保持一致）
-         new(WorkflowDirectoryCode, "工作流", "menu.workflow", MenuType.Directory, "/workflow", "Workflow", null, null, null, "lucide:workflow", 400),
+        // [5] 审批目录（Saas 自持；工作流目录归 Workflow 模块独占登记）
+         new(ApprovalDirectoryCode, "审批", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:check-check", 430, "/approval/review"),
         // [5.1] 审批中心
-         new("approval.review", "审批中心", "menu.approval_review", MenuType.Menu, "/approval/review", "ApprovalReview", "approval/review/index", WorkflowDirectoryCode, SaasPermissionCodes.Review.Read, "lucide:check-check", 440),
+         new("approval.review", "审批中心", "menu.approval_review", MenuType.Menu, "/approval/review", "ApprovalReview", "approval/review/index", ApprovalDirectoryCode, SaasPermissionCodes.Review.Read, "lucide:check-check", 440),
         // [5.2] 约束规则
-         new("approval.constraint", "审批约束", "menu.approval_constraint", MenuType.Menu, "/approval/constraint", "ApprovalConstraint", "approval/constraint/index", WorkflowDirectoryCode, SaasPermissionCodes.ConstraintRule.Read, "lucide:shield-alert", 450),
+         new("approval.constraint", "审批约束", "menu.approval_constraint", MenuType.Menu, "/approval/constraint", "ApprovalConstraint", "approval/constraint/index", ApprovalDirectoryCode, SaasPermissionCodes.ConstraintRule.Read, "lucide:shield-alert", 450),
 
         // [6] 文件存储
          new("file", "文件中心", "menu.file", MenuType.Directory, "/file", "File", null, null, null, "lucide:folder", 600, "/file/library"),
