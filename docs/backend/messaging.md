@@ -1,6 +1,6 @@
 # 消息中心 / 通知 / 实时聊天
 
-XiHan.BasicApp 的消息能力横跨三块：**企业级消息中心（站内通知/公告）**、**多渠道消息投递（邮件/短信/机器人）** 与 **SignalR 实时（通知推送 + 在线聊天）**。它们共享一套模板、偏好门控与发件箱异步机制，源码集中在 `modules/XiHan.BasicApp.Saas` 的 `Application/AppServices/Messaging`、`Application/Services/Messaging`、`Domain/DomainServices/Messaging`、`Domain/Entities` 与 `Hubs` 下。
+XiHan.BasicApp 的消息能力横跨三块：**企业级消息中心（站内通知/公告）**、**多渠道消息投递（邮件/短信/机器人）** 与 **SignalR 实时（通知推送 + 在线聊天）**。它们共享一套模板、偏好门控与发件箱异步机制，消息中心与多渠道投递的源码集中在 `modules/XiHan.BasicApp.Saas` 的 Messaging 相关目录；**在线聊天已独立为一等模块 `modules/XiHan.BasicApp.Chat`**（实体/领域服务/应用层/Hub 全部自持，权限码前缀 `chat:`），本页聊天小节的源码路径以 Chat 模块为准。
 
 > 部署提示：消息中心涉及 `Sys_Notification`、`Sys_User_Notification`、`Sys_User_Notification_Preference` 与聊天四表等结构。全新库由 CodeFirst 创建；存量库新增或变更这些结构时应提供前向 `UpdateScripts`，详见[升级与迁移](./upgrade)。
 
@@ -258,7 +258,7 @@ Task Typing(string conversationId);             // 向组内其他连接广播 C
 - **站内信"删除消息"**：`NotificationStatus.Deleted` 状态位已定义、查询侧也已按其过滤，但 `UserInboxAppService`/`UserInboxDomainService` 目前没有把消息状态置为 `Deleted` 的写入端点，也没有对应的物理清理定时任务（不同于日志/聊天消息已有 `LogRetentionCleanupTask` 按保留期清理）——用户侧删除消息是预留能力，尚未接线。
 - **偏好类型开关 `TypeApproval`/`TypeMarketing`**：个人中心可设置，但 `NotificationDomainService.FilterByPreferenceAsync` 的门控只区分 `Security`/`Todo`/其余（落 `TypeAnnouncement`）三档，这两个开关当前不影响任何通知的送达判定，是面向未来审批/营销类型的预留位。
 
-以上以仓库源码为准；本页所述字段名/枚举/常量/窗口值均可在对应源码文件核对（`modules/XiHan.BasicApp.Saas` 下 `Domain/Entities`、`Application/AppServices/Messaging`、`Application/Services/Messaging`、`Domain/DomainServices/Messaging`、`Hubs`）。
+以上以仓库源码为准；本页所述字段名/枚举/常量/窗口值均可在对应源码文件核对（消息中心见 `modules/XiHan.BasicApp.Saas` 的 Messaging 目录；在线聊天见 `modules/XiHan.BasicApp.Chat`）。
 
 ## 相关文档
 
