@@ -53,7 +53,7 @@ const contextResolved = ref(false)
 const activeScope = ref<PrintTemplateScope>(isPlatform.value ? PrintTemplateScope.Global : PrintTemplateScope.Tenant)
 
 const canMaintain = computed(() => activeScope.value === PrintTemplateScope.Tenant
-  || (isPlatform.value && userStore.hasPermission('saas:print-template:global-manage')))
+  || (isPlatform.value && userStore.hasPermission('print-template:global-manage')))
 const currentScopeLabel = computed(() => activeScope.value === PrintTemplateScope.Tenant
   ? t('setting.print_template.tenant_templates')
   : t('setting.print_template.available_global_templates'))
@@ -164,13 +164,13 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     ...(canMaintain.value
-      ? [{ key: 'create', title: t('setting.print_template.action_create'), scope: 'page' as const, type: 'primary' as const, icon: 'lucide:plus', permission: 'saas:print-template:create' }]
+      ? [{ key: 'create', title: t('setting.print_template.action_create'), scope: 'page' as const, type: 'primary' as const, icon: 'lucide:plus', permission: 'print-template:create' }]
       : []),
-    { key: 'preview', title: t('setting.print_template.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'saas:print-template:use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
-    { key: 'direct', title: t('setting.print_template.action_direct'), scope: 'row', icon: 'lucide:printer', permission: 'saas:print-template:use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
-    { key: 'edit', title: t('setting.print_template.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'saas:print-template:update', visible: () => canMaintain.value },
-    { key: 'toggle', title: t('setting.print_template.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:print-template:status', visible: () => canMaintain.value },
-    { key: 'delete', title: t('setting.print_template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:print-template:delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Disabled },
+    { key: 'preview', title: t('setting.print_template.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'print-template:use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
+    { key: 'direct', title: t('setting.print_template.action_direct'), scope: 'row', icon: 'lucide:printer', permission: 'print-template:use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
+    { key: 'edit', title: t('setting.print_template.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'print-template:update', visible: () => canMaintain.value },
+    { key: 'toggle', title: t('setting.print_template.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'print-template:status', visible: () => canMaintain.value },
+    { key: 'delete', title: t('setting.print_template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'print-template:delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Disabled },
   ],
 }))
 

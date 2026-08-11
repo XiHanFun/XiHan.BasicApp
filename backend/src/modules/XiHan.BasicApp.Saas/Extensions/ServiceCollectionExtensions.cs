@@ -136,7 +136,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITenantDatabaseInitializer, TenantDatabaseInitializer>();
         services.AddScoped<ITenantEditionDomainService, TenantEditionDomainService>();
         services.AddScoped<INumberingRuleDomainService, NumberingRuleDomainService>();
-        services.AddScoped<IPrintTemplateDomainService, PrintTemplateDomainService>();
 
         return services;
     }
@@ -183,7 +182,6 @@ public static class ServiceCollectionExtensions
         // 通知多渠道扇出：发布后按投递渠道扇出到 邮箱/短信（发件箱异步）与 机器人（UoW 提交后广播）
         services.AddScoped<INotificationFanoutService, NotificationFanoutService>();
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
-        services.AddScoped<IPrintTemplateResolver, PrintTemplateResolver>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
         // 短信配置存储：以数据库实现覆盖框架默认空实现（框架模块 TryAdd 先注册，故须 Replace）
@@ -289,6 +287,8 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasNotificationSeeder>();
         services.AddDataSeeder<SaasStorageConfigSeeder>();
         services.AddDataSeeder<SaasTaskSeeder>();
+        // 版本白名单重算（Order 900）：在全部模块权限种子之后重跑版本权限绑定，模块权限首启即进白名单
+        services.AddDataSeeder<SaasTenantEditionReconcileSeeder>();
         return services;
     }
 
