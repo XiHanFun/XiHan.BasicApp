@@ -159,6 +159,8 @@ public static class PageRegistry
          new("setting.config", "参数配置", "menu.setting_config", MenuType.Menu, "/setting/config", "SettingConfig", "setting/config/index", "setting", SaasPermissionCodes.Config.Read, "lucide:sliders-horizontal", 730),
         // [8.3.1] 业务编号（租户私有规则 + 可用全局规则；平台态管理全局规则）
          new("setting.numbering", "编号配置", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", "setting", SaasPermissionCodes.Numbering.Read, "lucide:hash", 735),
+        // [8.3.2] 打印模板（租户私有模板 + 可用全局模板；平台态管理全局模板）
+         new("setting.print-template", "打印模板", "menu.setting_print_template", MenuType.Menu, "/setting/print-template", "SettingPrintTemplate", "setting/print-template/index", "setting", SaasPermissionCodes.PrintTemplate.Read, "lucide:printer", 737),
         // [8.4] 任务调度
          new("setting.job", "任务调度", "menu.setting_job", MenuType.Menu, "/setting/job", "SettingJob", "setting/job/index", "setting", SaasPermissionCodes.Task.Read, "lucide:timer", 740),
         // [8.5] 缓存管理（平台运维专属权限）
@@ -400,6 +402,14 @@ public static class PageRegistry
          new("setting.numbering.delete", "删除", "setting.numbering", SaasPermissionCodes.Numbering.Delete, 5),
          new("setting.numbering.allocations", "发号记录", "setting.numbering", SaasPermissionCodes.Numbering.AllocationRead, 6),
          new("setting.numbering.global-manage", "全局管理", "setting.numbering", SaasPermissionCodes.Numbering.GlobalManage, 7),
+
+        // [8.3.2] 打印模板
+         new("setting.print-template.create", "新增", "setting.print-template", SaasPermissionCodes.PrintTemplate.Create, 1),
+         new("setting.print-template.update", "设计编辑", "setting.print-template", SaasPermissionCodes.PrintTemplate.Update, 2),
+         new("setting.print-template.status", "启停", "setting.print-template", SaasPermissionCodes.PrintTemplate.Status, 3),
+         new("setting.print-template.delete", "删除", "setting.print-template", SaasPermissionCodes.PrintTemplate.Delete, 4),
+         new("setting.print-template.use", "预览与打印", "setting.print-template", SaasPermissionCodes.PrintTemplate.Use, 5),
+         new("setting.print-template.global-manage", "全局管理", "setting.print-template", SaasPermissionCodes.PrintTemplate.GlobalManage, 6),
 
         // [8.4] 任务调度
          new("setting.job.create", "新增", "setting.job", SaasPermissionCodes.Task.Create, 1),

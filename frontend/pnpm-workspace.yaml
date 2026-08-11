@@ -3,6 +3,7 @@
 packages:
   - 'packages/*'
 allowBuilds:
+  core-js: true
   simple-git-hooks: true
   vue-demi: true
 verifyDepsBeforeRun: false
@@ -71,8 +72,10 @@ catalog:
   unplugin-auto-import: ^21.1.0
   unplugin-vue-components: ^32.1.0
   vite: ^8.2.1
+  vitest: ^4.1.10
   vue: ^3.5.41
   vue-i18n: ^11.4.8
+  vue-plugin-hiprint: 0.0.60
   vue-router: ^5.2.0
   vue-tsc: ^3.3.9
   vue3-ts-jsoneditor: ^3.4.1

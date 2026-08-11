@@ -19,6 +19,21 @@ function createManualChunks(id: string) {
     return undefined
   }
 
+  // hiprint 与其 PDF/Canvas/条码依赖体积较大，单独分块并由 printing 包动态加载，避免进入管理后台首屏。
+  if (
+    normalizedId.includes('/vue-plugin-hiprint/')
+    || normalizedId.includes('/@wtto00/html2canvas/')
+    || normalizedId.includes('/jspdf/')
+    || normalizedId.includes('/canvg/')
+    || normalizedId.includes('/jsbarcode/')
+    || normalizedId.includes('/bwip-js/')
+    || normalizedId.includes('/socket.io-client/')
+    || normalizedId.includes('/@claviska/jquery-minicolors/')
+    || normalizedId.includes('/nzh/')
+  ) {
+    return 'vendor-printing'
+  }
+
   if (
     normalizedId.includes('/vue/')
     || normalizedId.includes('/vue-router/')

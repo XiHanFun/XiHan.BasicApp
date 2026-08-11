@@ -35,6 +35,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "type-check": "vue-tsc --noEmit",
+    "test:printing": "vitest run packages/printing/printing.test.ts",
     "lint": "cross-env CI=true oxlint && cross-env CI=true eslint .",
     "lint:fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix",
     "format": "prettier --write \"**/*.{json,css,html,md}\" --ignore-path .gitignore",
@@ -75,6 +76,7 @@
     "unplugin-auto-import": "catalog:",
     "unplugin-vue-components": "catalog:",
     "vite": "catalog:",
+    "vitest": "catalog:",
     "vue-tsc": "catalog:"
   },
   "simple-git-hooks": {

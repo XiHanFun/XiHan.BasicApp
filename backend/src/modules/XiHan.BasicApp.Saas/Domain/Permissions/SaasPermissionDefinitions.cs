@@ -387,6 +387,16 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Numbering.AllocationRead, "发号记录查看", "查看当前可访问规则的永久发号记录", true, 2797),
             new(SaasPermissionCodes.Numbering.GlobalManage, "全局编号管理", "管理平台全局编号规则及租户开放状态", true, 2798),
         ]),
+        new(SaasPermissionCodes.PrintTemplate.Group, "打印模板",
+        [
+            new(SaasPermissionCodes.PrintTemplate.Read, "打印模板查看", "查看当前作用域打印模板列表与详情", false, 2800),
+            new(SaasPermissionCodes.PrintTemplate.Create, "打印模板创建", "创建当前作用域打印模板", true, 2801),
+            new(SaasPermissionCodes.PrintTemplate.Update, "打印模板编辑", "编辑打印模板元数据和 hiprint 设计 JSON", true, 2802),
+            new(SaasPermissionCodes.PrintTemplate.Status, "打印模板启停", "启用或停用打印模板", true, 2803),
+            new(SaasPermissionCodes.PrintTemplate.Delete, "打印模板删除", "删除已经停用的打印模板", true, 2804),
+            new(SaasPermissionCodes.PrintTemplate.Use, "打印模板使用", "按编码解析模板并执行预览或直接打印", true, 2805),
+            new(SaasPermissionCodes.PrintTemplate.GlobalManage, "全局打印模板管理", "管理平台全局打印模板及租户开放状态", true, 2806),
+        ]),
         new(SaasPermissionCodes.Dict.Group, "系统字典",
         [
             new(SaasPermissionCodes.Dict.Read, "系统字典查看", "查看当前租户系统字典和字典项", false, 880),
