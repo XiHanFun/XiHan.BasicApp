@@ -26,6 +26,7 @@
   <!-- 全部承载动态 API 的业务模块：新增模块时必须在此登记，否则其端点不受本测试约束 -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\modules\XiHan.BasicApp.AI\XiHan.BasicApp.AI.csproj" />
+    <ProjectReference Include="..\..\src\modules\XiHan.BasicApp.Chat\XiHan.BasicApp.Chat.csproj" />
     <ProjectReference Include="..\..\src\modules\XiHan.BasicApp.CodeGeneration\XiHan.BasicApp.CodeGeneration.csproj" />
     <ProjectReference Include="..\..\src\modules\XiHan.BasicApp.Printing\XiHan.BasicApp.Printing.csproj" />
     <ProjectReference Include="..\..\src\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />

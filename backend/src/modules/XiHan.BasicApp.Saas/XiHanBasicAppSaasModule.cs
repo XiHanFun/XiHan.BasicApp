@@ -125,7 +125,6 @@ public class XiHanBasicAppSaasModule : XiHanModule
         {
             // 映射 SignalR Hub 端点
             endpoints.MapXiHanHub<BasicAppNotificationHub>(SignalRConstants.HubPaths.Notification);
-            endpoints.MapXiHanHub<BasicAppChatHub>(SignalRConstants.HubPaths.Chat);
 
             // 第三方登录（OAuth）端点：/api/OAuth/ExternalLogin（发起）+ /api/OAuth/Callback（回调）
             endpoints.MapOAuthEndpoints();

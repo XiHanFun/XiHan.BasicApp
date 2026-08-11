@@ -16,6 +16,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <!-- Chat：AI 助手桥接（ChatAssistantAppService 调用聊天领域写路径与实时推送）；删除聊天模块须连带摘除本引用与桥接三文件 -->
+      <ProjectReference Include="..\XiHan.BasicApp.Chat\XiHan.BasicApp.Chat.csproj" />
       <ProjectReference Include="..\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
     </ItemGroup>
 

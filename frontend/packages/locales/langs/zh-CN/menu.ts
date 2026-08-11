@@ -16,6 +16,7 @@ export default {
   tenant_edition: '版本套餐',
   message: '消息中心',
   message_notification: '通知公告',
+  chat: '聊天',
   message_chat: '在线聊天',
   message_chat_audit: '聊天审计',
   message_record: '邮件短信',

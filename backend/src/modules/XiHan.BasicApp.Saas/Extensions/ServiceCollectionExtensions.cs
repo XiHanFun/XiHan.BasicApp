@@ -131,7 +131,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITelegramBotTokenProtector, DataProtectionTelegramBotTokenProtector>();
         services.AddScoped<INotificationDomainService, NotificationDomainService>();
         services.AddScoped<IUserInboxDomainService, UserInboxDomainService>();
-        services.AddScoped<IChatDomainService, ChatDomainService>();
         services.AddScoped<ITenantDomainService, TenantDomainService>();
         services.AddScoped<ITenantDatabaseInitializer, TenantDatabaseInitializer>();
         services.AddScoped<ITenantEditionDomainService, TenantEditionDomainService>();
@@ -262,9 +261,6 @@ public static class ServiceCollectionExtensions
 
         // 组织层级事件
         services.AddSaasLocalEventHandler<HierarchyChangedEventHandler>();
-
-        // 聊天：部门归属变更 → 部门群成员同步（入部门进群/移出踢群）
-        services.AddSaasLocalEventHandler<ChatDepartmentMemberSyncEventHandler>();
 
         return services;
     }
