@@ -2,19 +2,16 @@
 import { NNumberAnimation, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  CHAT_PERMISSIONS,
-  useChatStore,
-} from '~/chat'
 import { Icon } from '~/iconify'
-import { useLayoutBridgeStore, useUserStore } from '~/stores'
+import { useUserStore } from '~/stores'
+import { CHAT_PERMISSIONS } from '../constants'
+import { useChatStore } from '../store'
 
 defineOptions({ name: 'ChatHeaderButton' })
 
 const { t } = useI18n()
 const chatStore = useChatStore()
 const userStore = useUserStore()
-const layoutBridgeStore = useLayoutBridgeStore()
 
 // 无查看权限直接不渲染（会话预取与实时链路也在集成层被同一权限关闭）
 const visible = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.read))
@@ -27,7 +24,7 @@ const unread = computed(() => chatStore.totalUnread)
       <button
         type="button"
         class="chat-header-btn mr-1"
-        @click="layoutBridgeStore.requestOpenChatDrawer()"
+        @click="chatStore.requestOpenChatDrawer()"
       >
         <Icon icon="lucide:messages-square" width="16" height="16" />
         <span v-if="unread > 0" class="chat-header-btn__badge">

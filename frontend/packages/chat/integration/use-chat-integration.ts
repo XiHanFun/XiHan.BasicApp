@@ -8,20 +8,20 @@ import type {
   ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
-} from '~/chat'
+} from '../types'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { islandStart, playNotificationSound, useSignalR } from '~/composables'
+import { useAccessStore, useUserStore } from '~/stores'
+import { useAppContext } from '~/stores/app-context'
 import {
   CHAT_HUB_PATH,
   CHAT_PERMISSIONS,
   CHAT_REALTIME_METHODS,
-  useChatStore,
-} from '~/chat'
-import { islandStart, playNotificationSound, useSignalR } from '~/composables'
-import { useAccessStore, useUserStore } from '~/stores'
+} from '../constants'
 
-import { useAppContext } from '~/stores/app-context'
+import { useChatStore } from '../store'
 
 const CHAT_RECONNECT_INTERVAL_MS = 15000
 

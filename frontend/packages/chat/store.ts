@@ -105,9 +105,16 @@ export const useChatStore = defineStore('chat', () => {
   /** 助手回复流：conversationId → 本轮增量（落库推送到达后清空，换成正式消息） */
   const assistantStreams = ref<Record<string, ChatAssistantStream>>({})
 
+  /** 聊天抽屉打开请求（版本计数器：顶栏按钮递增、抽屉组件 watch 响应） */
+  const chatDrawerVersion = ref(0)
+
   const markReadTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingClearTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingSentAt = new Map<string, number>()
+
+  function requestOpenChatDrawer() {
+    chatDrawerVersion.value += 1
+  }
 
   function api() {
     return getChatApi()
@@ -860,6 +867,8 @@ export const useChatStore = defineStore('chat', () => {
     requestMention,
     detachedConversations,
     highlightMessageId,
+    chatDrawerVersion,
+    requestOpenChatDrawer,
     totalUnread,
     activeConversation,
     activeMessages,
