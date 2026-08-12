@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
+import type {
+  ChatMessageItem,
+} from '~/chat'
 import type { ChatLocalMessage } from '~/stores'
-import type { ChatMessageItem } from '~/types'
 import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CHAT_PERMISSIONS } from '~/constants'
+import {
+  CHAT_EDIT_WINDOW_MINUTES,
+  CHAT_PERMISSIONS,
+  CHAT_RECALL_WINDOW_MINUTES,
+} from '~/chat'
+
+import { getChatApi } from '~/chat/api-contract'
 import { Icon } from '~/iconify'
-import { useAppContext, useChatStore, useUserStore } from '~/stores'
-import { CHAT_EDIT_WINDOW_MINUTES, CHAT_RECALL_WINDOW_MINUTES } from '~/types'
+import { useChatStore, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatMessageTime, messageBodyLabel } from './chat-helpers'
@@ -36,7 +43,6 @@ const message = useMessage()
 const dialog = useDialog()
 const chatStore = useChatStore()
 const userStore = useUserStore()
-const appContext = useAppContext()
 
 const scrollRef = ref<HTMLDivElement>()
 
@@ -246,7 +252,7 @@ async function openMemberMenu(event: MouseEvent, item: ChatLocalMessage) {
   memberCtxShow.value = true
   // 异步补充目标成员角色/禁言态（群治理项按此显隐，加载前先展示通用项）
   try {
-    const members = await appContext.apis.chatApi.members(convId)
+    const members = await getChatApi().members(convId)
     const target = members.find(member => member.userId === item.senderUserId)
     if (target && memberTarget.value?.senderUserId === target.userId) {
       memberTargetRole.value = target.memberRole
@@ -307,16 +313,16 @@ function handleMemberCtxSelect(key: string) {
       chatStore.requestMention(convId, userId, userName)
       break
     case 'set-admin':
-      appContext.apis.chatApi.setMemberRole(convId, userId, 'Admin').catch(() => {})
+      getChatApi().setMemberRole(convId, userId, 'Admin').catch(() => {})
       break
     case 'unset-admin':
-      appContext.apis.chatApi.setMemberRole(convId, userId, 'Member').catch(() => {})
+      getChatApi().setMemberRole(convId, userId, 'Member').catch(() => {})
       break
     case 'silence':
-      appContext.apis.chatApi.setMemberSilence(convId, userId, true).catch(() => {})
+      getChatApi().setMemberSilence(convId, userId, true).catch(() => {})
       break
     case 'unsilence':
-      appContext.apis.chatApi.setMemberSilence(convId, userId, false).catch(() => {})
+      getChatApi().setMemberSilence(convId, userId, false).catch(() => {})
       break
     case 'remove':
       dialog.warning({
@@ -326,7 +332,7 @@ function handleMemberCtxSelect(key: string) {
         negativeText: t('chat.start.cancel'),
         onPositiveClick: async () => {
           try {
-            await appContext.apis.chatApi.removeMember(convId, userId)
+            await getChatApi().removeMember(convId, userId)
             chatStore.loadConversations().catch(() => {})
           }
           catch {
@@ -393,7 +399,7 @@ async function runSearch(loadMore = false) {
   searchLoading.value = true
   try {
     const before = loadMore ? searchResults.value.at(-1)?.messageId : null
-    const result = await appContext.apis.chatApi.searchMessages({
+    const result = await getChatApi().searchMessages({
       conversationId: id,
       keyword,
       beforeMessageId: before,

@@ -1,5 +1,4 @@
 export * from './app'
-export * from './chat'
 export * from './http'
 export * from './layout-events'
 export * from './notification'

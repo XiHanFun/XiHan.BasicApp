@@ -12,7 +12,6 @@ import type {
   UserInfo,
   VerificationCodeResult,
 } from './auth'
-import type { ChatApiContract } from './chat'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
 import type {
   ApiCredentialItem,
@@ -154,7 +153,6 @@ export interface AppContextApis {
   changePasswordApi: (input: ChangePasswordParams) => Promise<unknown>
   changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
   /** 在线聊天（会话/消息/成员 + 选人/部门树/附件上传，契约见 ~/types/chat） */
-  chatApi: ChatApiContract
   confirmChangeEmailApi: (code: string) => Promise<unknown>
   confirmChangePhoneApi: (code: string) => Promise<unknown>
   deactivateAccountApi: (password: string) => Promise<unknown>

@@ -1,4 +1,4 @@
-import type { ChatConversationType, ChatMemberRole, ChatMessageType } from './enums'
+import type { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
 
 /**
  * 在线聊天契约类型（后端 ChatDtos 的前端镜像）。

@@ -23,7 +23,7 @@ export type {
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
   ChatUserPickerItem,
-} from '~/types'
+} from '~/chat'
 
 // 聊天契约**枚举**（运行时值）：`export type` 带不出枚举值，故单独做值 re-export，补齐 `@/api` 入口。
 // 缺这行时 src 侧只能绕过 `@/api` 直取 '~/types/enums'（chat-audit.types.ts 曾如此）。

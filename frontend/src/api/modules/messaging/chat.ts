@@ -15,7 +15,7 @@ import type {
   ChatMessageSearchQuery,
   ChatMessageSendInput,
   ChatReadPosition,
-} from '~/types'
+} from '~/chat'
 import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
 
 const chatCommandApi = createDynamicApiClient('Chat')

@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import type { DropdownOption, InputInst } from 'naive-ui'
-import type { ChatMemberItem, ChatMessageAttachment } from '~/types'
+import type {
+  ChatMemberItem,
+  ChatMessageAttachment,
+} from '~/chat'
 import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
 import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {
+  CHAT_MAX_CONTENT_LENGTH,
+  CHAT_MAX_MENTION_COUNT,
+  CHAT_PERMISSIONS,
+  CHAT_SEND_KEY_STORAGE_KEY,
+} from '~/chat'
+
+import { getChatApi } from '~/chat/api-contract'
 import { useVoiceRecorder } from '~/composables'
-import { CHAT_PERMISSIONS, CHAT_SEND_KEY_STORAGE_KEY } from '~/constants'
 import { Icon } from '~/iconify'
-import { useAppContext, useChatStore, useUserStore } from '~/stores'
-import { CHAT_MAX_CONTENT_LENGTH, CHAT_MAX_MENTION_COUNT } from '~/types'
+import { useChatStore, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import XUserAvatar from '../common/UserAvatar.vue'
@@ -38,7 +47,6 @@ const { t } = useI18n()
 const message = useMessage()
 const chatStore = useChatStore()
 const userStore = useUserStore()
-const appContext = useAppContext()
 
 const draft = ref('')
 const sending = ref(false)
@@ -239,7 +247,7 @@ async function loadMentionMembers() {
     return
   }
   try {
-    const members = await appContext.apis.chatApi.members(props.conversationId)
+    const members = await getChatApi().members(props.conversationId)
     const me = userStore.userInfo?.basicId
     mentionMembers.value = members.filter(member => member.userId !== me)
   }
@@ -433,7 +441,7 @@ async function stopTalking(): Promise<void> {
   }
   sending.value = true
   try {
-    const uploaded = await appContext.apis.chatApi.uploadAttachment(result.file)
+    const uploaded = await getChatApi().uploadAttachment(result.file)
     await chatStore.sendMessage({
       conversationId: props.conversationId,
       messageType: ChatMessageType.Voice,
@@ -490,7 +498,7 @@ async function uploadPending(attachments: PendingAttachment[]) {
   uploadingPercent.value = 0
   try {
     for (const [index, attachment] of attachments.entries()) {
-      const uploaded = await appContext.apis.chatApi.uploadAttachment(attachment.file, (percent) => {
+      const uploaded = await getChatApi().uploadAttachment(attachment.file, (percent) => {
         uploadingPercent.value = Math.round(((index + percent / 100) / attachments.length) * 100)
       })
       const entry: ChatMessageAttachment = {

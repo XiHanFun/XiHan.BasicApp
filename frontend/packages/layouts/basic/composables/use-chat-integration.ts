@@ -8,12 +8,16 @@ import type {
   ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
-} from '~/types'
+} from '~/chat'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import {
+  CHAT_HUB_PATH,
+  CHAT_PERMISSIONS,
+  CHAT_REALTIME_METHODS,
+} from '~/chat'
 import { islandStart, playNotificationSound, useSignalR } from '~/composables'
-import { CHAT_HUB_PATH, CHAT_PERMISSIONS, CHAT_REALTIME_METHODS } from '~/constants'
 import { useAccessStore, useChatStore, useUserStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
 

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { SelectOption } from 'naive-ui'
-import type { ChatUserPickerItem } from '~/types'
+import type {
+  ChatUserPickerItem,
+} from '~/chat'
 import { NSelect } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAppContext } from '~/stores'
+import { getChatApi } from '~/chat/api-contract'
 
 defineOptions({ name: 'ChatUserSelect' })
 
@@ -23,7 +25,6 @@ const props = withDefaults(defineProps<{
 const model = defineModel<null | string | string[]>({ default: null })
 
 const { t } = useI18n()
-const appContext = useAppContext()
 
 const loading = ref(false)
 const options = ref<SelectOption[]>([])
@@ -35,7 +36,7 @@ async function handleSearch(keyword: string) {
   const seq = ++searchSeq
   loading.value = true
   try {
-    const items = await appContext.apis.chatApi.selectUsers(keyword, 20)
+    const items = await getChatApi().selectUsers(keyword, 20)
     // 仅采纳最后一次检索结果，避免慢响应覆盖新输入
     if (seq !== searchSeq) {
       return

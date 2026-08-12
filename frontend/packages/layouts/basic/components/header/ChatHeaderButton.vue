@@ -2,7 +2,9 @@
 import { NNumberAnimation, NTooltip } from 'naive-ui'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CHAT_PERMISSIONS } from '~/constants'
+import {
+  CHAT_PERMISSIONS,
+} from '~/chat'
 import { Icon } from '~/iconify'
 import { useChatStore, useLayoutBridgeStore, useUserStore } from '~/stores'
 
