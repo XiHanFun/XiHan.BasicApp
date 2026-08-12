@@ -152,7 +152,6 @@ export interface AppUserInboxDisplayItem extends AppUserInboxItem {
 export interface AppContextApis {
   changePasswordApi: (input: ChangePasswordParams) => Promise<unknown>
   changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
-  /** 在线聊天（会话/消息/成员 + 选人/部门树/附件上传，契约见 ~/types/chat） */
   confirmChangeEmailApi: (code: string) => Promise<unknown>
   confirmChangePhoneApi: (code: string) => Promise<unknown>
   deactivateAccountApi: (password: string) => Promise<unknown>

@@ -227,8 +227,8 @@ XiHan.BasicApp/
 一个可选模块 = 后端一个工程 + 前端一个 `src/modules/<模块>` 目录。卸载步骤：
 
 1. 后端：删除 `backend/src/modules/XiHan.BasicApp.<模块>`，并摘除四处一行级登记——WebHost 的 csproj 引用与 `[DependsOn]`、`backend/XiHan.BasicApp.slnx`、`Api.Tests.csproj`（删漏任何一处编译立刻报错，不会静默残留）；
-2. 前端：删除 `frontend/src/modules/<模块>` 目录（视图/API/文案/启动钩子随目录消失，无需改接线）；个别模块另有自包含功能包（Printing 的 `packages/printing`、Workflow 的 `packages/diagram`）与 catalog 依赖条目可一并清理；
-3. 特例：Chat 被 AI 的助手桥接依赖（`AI → Chat`），删 Chat 须连带删除 AI 模块或摘除其中的 ChatAssistant 桥接文件；聊天前端的壳层集成（灵动岛/布局）尚未完全模块化，删除后壳层聊天入口需单独处理；
+2. 前端：删除 `frontend/src/modules/<模块>` 目录（视图/API/文案/启动钩子随目录消失，无需改接线）；个别模块另有自包含功能包（Chat 的 `packages/chat`、Printing 的 `packages/printing`、Workflow 的 `packages/diagram`）与 catalog 依赖条目可一并清理——聊天的顶栏入口、全局抽屉与灵动岛提醒经壳层扩展注册点挂载，随模块删除自动消失；
+3. 特例：Chat 被 AI 的助手桥接依赖（`AI → Chat`），删 Chat 须连带删除 AI 模块或摘除其中的桥接（后端 ChatAssistant 三文件与 csproj 引用、前端 `src/modules/ai/api/chat-assistant.ts` 与 setup 注册）；
 4. **卸载必须伴随重建数据库**：菜单、权限、角色授权、定时任务的种子行不会随模块删除自动回收。
 
 
