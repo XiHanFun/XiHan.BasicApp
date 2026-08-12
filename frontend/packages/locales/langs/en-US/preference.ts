@@ -271,7 +271,7 @@ export default {
     dynamic_island_tip:
       'Top dynamic island aggregates progress for login, settings sync, uploads and network status — click to expand activity & history. When off, these results fall back to message popups.',
     notify_sound_tip:
-      'Plays a chime when a chat message from someone else or an in-app notification arrives, with a distinct tone for each. Every item chimes; during a burst they are spaced out one after another. Browsers only allow sound after you have interacted with the page.',
+      'Plays a chime when an in-app notification or similar alert arrives; each source may use its own tone. Every item chimes; during a burst they are spaced out one after another. Browsers only allow sound after you have interacted with the page.',
     table_row_peek_tip:
       'On list pages, hovering a row for ~0.5s pops a peek card next to the cursor showing all of the row\'s fields (including columns hidden in the table). Turn off to disable. Not active on mobile.',
     preference_sync_tip:

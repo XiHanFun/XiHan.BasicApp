@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NDrawer, NTooltip } from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useIsMobile } from '~/composables'
@@ -25,15 +25,9 @@ watch(() => chatStore.chatDrawerVersion, () => {
   chatStore.ensureConversations().catch(() => {})
 })
 
-// 聊天全屏页的路由由应用注册（后端 PageRegistry 下发），未配置则不展示"展开"按钮
-const chatFullPagePath = computed(() => CHAT_PAGE_PATH)
-
 function handleOpenFullPage() {
-  if (!chatFullPagePath.value) {
-    return
-  }
   show.value = false
-  void router.push(chatFullPagePath.value)
+  void router.push(CHAT_PAGE_PATH)
 }
 </script>
 
@@ -50,7 +44,7 @@ function handleOpenFullPage() {
         <div class="flex items-center gap-1">
           <NTooltip>
             <template #trigger>
-              <button v-if="chatFullPagePath" type="button" class="chat-drawer-btn" @click="handleOpenFullPage">
+              <button type="button" class="chat-drawer-btn" @click="handleOpenFullPage">
                 <Icon icon="lucide:expand" width="15" height="15" />
               </button>
             </template>

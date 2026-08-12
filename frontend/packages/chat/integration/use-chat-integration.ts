@@ -37,7 +37,6 @@ export function useChatIntegration() {
   const signalR = useSignalR(CHAT_HUB_PATH)
   const route = useRoute()
   const { t } = useI18n()
-  const chatPath = CHAT_PAGE_PATH
 
   /**
    * 他人发来的消息的提醒。岛提示与提示音的静音条件不同，分开判断：
@@ -51,7 +50,7 @@ export function useChatIntegration() {
       return
     }
 
-    const onChatPage = !!chatPath && route.path.startsWith(chatPath)
+    const onChatPage = route.path.startsWith(CHAT_PAGE_PATH)
     const watchingThisConversation = onChatPage
       && chatStore.activeConversationId === message.conversationId
       && typeof document !== 'undefined' && document.hasFocus()
@@ -74,7 +73,7 @@ export function useChatIntegration() {
     islandStart(`chat:msg:${message.conversationId}:${message.messageId}`, sender, {
       icon: 'lucide:message-circle',
       detail: preview,
-      link: chatPath,
+      link: CHAT_PAGE_PATH,
     }).info()
   }
 
