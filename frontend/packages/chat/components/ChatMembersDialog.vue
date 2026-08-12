@@ -10,11 +10,11 @@ import XUserAvatar from '~/components/common/UserAvatar.vue'
 import { Icon } from '~/iconify'
 
 import { useUserStore } from '~/stores'
-import { ChatConversationType, ChatMemberRole } from '~/types/enums'
 import { getChatApi } from '../api-contract'
 import {
   CHAT_PERMISSIONS,
 } from '../constants'
+import { ChatConversationType, ChatMemberRole } from '../enums'
 import { useChatStore } from '../store'
 import {
   CHAT_MAX_GROUP_NAME_LENGTH,

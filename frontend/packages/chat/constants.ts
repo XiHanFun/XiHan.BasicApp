@@ -1,6 +1,9 @@
 // ==================== 在线聊天 ====================
 
 /** 聊天 Hub 路径（后端 SignalRConstants.HubPaths.Chat） */
+/** 聊天全屏页路径（对应后端 Chat 模块 PageRegistry 的 message.chat 页面） */
+export const CHAT_PAGE_PATH = '/message/chat'
+
 export const CHAT_HUB_PATH = '/hubs/chat'
 
 /** 服务端 → 客户端推送方法名（后端 ChatRealtimeMethods，按同名字符串订阅，禁止内联） */

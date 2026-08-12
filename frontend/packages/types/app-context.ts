@@ -58,7 +58,7 @@ export interface AppTenantSwitcherItem {
 /**
  * shell 需要跳转、但**由应用侧定义**的路由路径。
  *
- * 底层包不该认识 `/workbench/profile`、`/message/chat` 这类业务路径——它们由 src 的路由表
+ * 底层包不该认识 `/workbench/profile` 这类业务路径——它们由 src 的路由表
  * 或后端 PageRegistry 定义，换一个应用就不存在，硬编码后点击即 404。
  * 未配置的项，对应入口应隐藏（而不是留一个点了没反应的死按钮）。
  */
@@ -69,8 +69,6 @@ export interface AppShellRoutes {
   controlCenter?: string
   /** 收件箱 / 消息中心 */
   inbox?: string
-  /** 聊天全屏页 */
-  chat?: string
 }
 
 export interface AppBackendDependency {
