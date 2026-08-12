@@ -4,7 +4,9 @@ import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import { NBadge, NDropdown, NEmpty, NInput, NScrollbar, NSpin, NTooltip } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CHAT_PERMISSIONS } from '~/constants'
+import {
+  CHAT_PERMISSIONS,
+} from '~/chat'
 import { Icon } from '~/iconify'
 import { useChatStore, useUserStore } from '~/stores'
 import XUserAvatar from '../common/UserAvatar.vue'

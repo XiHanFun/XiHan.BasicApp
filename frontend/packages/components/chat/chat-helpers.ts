@@ -1,6 +1,8 @@
 /** 聊天展示辅助：时间与文件大小格式化（纯函数，i18n 由调用方注入） */
 
-import type { ChatMessageAttachment } from '~/types'
+import type {
+  ChatMessageAttachment,
+} from '~/chat'
 import { ChatMessageType } from '~/types/enums'
 
 type Translate = (key: string, named?: Record<string, unknown>) => string

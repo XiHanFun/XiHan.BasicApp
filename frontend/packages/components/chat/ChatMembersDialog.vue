@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import type { ChatConversationListItem, ChatMemberItem } from '~/types'
+import type {
+  ChatConversationListItem,
+  ChatMemberItem,
+} from '~/chat'
 import { NButton, NEmpty, NInput, NModal, NPopconfirm, NScrollbar, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CHAT_PERMISSIONS } from '~/constants'
+import {
+  CHAT_MAX_GROUP_NAME_LENGTH,
+  CHAT_PERMISSIONS,
+} from '~/chat'
+
+import { getChatApi } from '~/chat/api-contract'
 import { Icon } from '~/iconify'
-import { useAppContext, useChatStore, useUserStore } from '~/stores'
-import { CHAT_MAX_GROUP_NAME_LENGTH } from '~/types'
+import { useChatStore, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMemberRole } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatMessageTime } from './chat-helpers'
@@ -24,7 +31,6 @@ const { t } = useI18n()
 const message = useMessage()
 const chatStore = useChatStore()
 const userStore = useUserStore()
-const appContext = useAppContext()
 
 const loading = ref(false)
 const members = ref<ChatMemberItem[]>([])
@@ -84,7 +90,7 @@ async function loadMembers() {
   }
   loading.value = true
   try {
-    members.value = await appContext.apis.chatApi.members(id)
+    members.value = await getChatApi().members(id)
   }
   catch {
     members.value = []
@@ -116,7 +122,7 @@ async function handleAvatarPicked(event: Event) {
   }
   avatarUploading.value = true
   try {
-    const uploaded = await appContext.apis.chatApi.uploadAttachment(file)
+    const uploaded = await getChatApi().uploadAttachment(file)
     infoAvatar.value = uploaded.fileId
   }
   catch {
@@ -134,7 +140,7 @@ async function handleSaveInfo() {
   }
   infoSaving.value = true
   try {
-    await appContext.apis.chatApi.updateConversationInfo({
+    await getChatApi().updateConversationInfo({
       conversationId: id,
       // 部门群名称随部门同步禁改（null 不改）
       conversationName: isGroup.value ? infoName.value.trim() || null : null,
@@ -159,7 +165,7 @@ async function handleTransferOwner(member: ChatMemberItem) {
     return
   }
   try {
-    await appContext.apis.chatApi.transferOwner(id, member.userId)
+    await getChatApi().transferOwner(id, member.userId)
     await loadMembers()
     chatStore.loadConversations().catch(() => {})
     message.success(t('chat.members.transfer_done'))
@@ -175,7 +181,7 @@ async function handleToggleSilence(member: ChatMemberItem) {
     return
   }
   try {
-    await appContext.apis.chatApi.setMemberSilence(id, member.userId, !member.isSilenced)
+    await getChatApi().setMemberSilence(id, member.userId, !member.isSilenced)
     await loadMembers()
   }
   catch {
@@ -200,7 +206,7 @@ async function handleAddMembers() {
   }
   adding.value = true
   try {
-    await appContext.apis.chatApi.addMembers(id, addUserIds.value)
+    await getChatApi().addMembers(id, addUserIds.value)
     addUserIds.value = []
     showAdd.value = false
     await loadMembers()
@@ -227,7 +233,7 @@ async function handleRemove(member: ChatMemberItem) {
     return
   }
   try {
-    await appContext.apis.chatApi.removeMember(id, member.userId)
+    await getChatApi().removeMember(id, member.userId)
     await loadMembers()
     chatStore.loadConversations().catch(() => {})
   }
@@ -242,7 +248,7 @@ async function handleLeave() {
     return
   }
   try {
-    await appContext.apis.chatApi.removeMember(id, currentUserId.value)
+    await getChatApi().removeMember(id, currentUserId.value)
     show.value = false
     chatStore.closeActiveConversation()
     chatStore.loadConversations().catch(() => {})

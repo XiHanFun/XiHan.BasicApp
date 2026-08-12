@@ -11,14 +11,20 @@ import type {
   ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
-} from '~/types'
+} from '~/chat'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import {
+  CHAT_DRAFTS_STORAGE_KEY,
+  CHAT_HUB_METHODS,
+  CHAT_HUB_PATH,
+  CHAT_VOICE_PLAYED_CAP,
+  CHAT_VOICE_PLAYED_STORAGE_KEY,
+} from '~/chat'
+import { getChatApi } from '~/chat/api-contract'
 import { useSignalR } from '~/composables/useSignalR'
-import { CHAT_DRAFTS_STORAGE_KEY, CHAT_HUB_METHODS, CHAT_HUB_PATH, CHAT_VOICE_PLAYED_CAP, CHAT_VOICE_PLAYED_STORAGE_KEY } from '~/constants'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
-import { useAppContext } from './app-context'
 import { useUserStore } from './user'
 
 /** 本地消息：在契约消息上叠加乐观上屏状态（仅前端可见） */
@@ -55,7 +61,7 @@ function generateClientMessageId(): string {
 
 /**
  * 聊天状态 store —— 会话列表（含未读合计供顶栏角标）+ 按会话的消息缓存 +
- * 乐观上屏/撤回/已读/typing。数据经 appContext.apis.chatApi，实时事件由
+ * 乐观上屏/撤回/已读/typing。数据经 @xihan/chat 注入缝的 ChatApiContract，实时事件由
  * 布局层 use-chat-integration 订阅后回灌本 store。
  */
 export const useChatStore = defineStore('chat', () => {
@@ -104,7 +110,7 @@ export const useChatStore = defineStore('chat', () => {
   const typingSentAt = new Map<string, number>()
 
   function api() {
-    return useAppContext().apis.chatApi
+    return getChatApi()
   }
 
   function currentUserId(): string {

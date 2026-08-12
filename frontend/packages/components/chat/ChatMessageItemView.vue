@@ -3,9 +3,10 @@ import type { ChatLocalMessage } from '~/stores'
 import { NImageGroup, NTooltip } from 'naive-ui'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getChatApi } from '~/chat/api-contract'
 import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext, useChatStore, useUserStore } from '~/stores'
+import { useChatStore, useUserStore } from '~/stores'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import XUserAvatar from '../common/UserAvatar.vue'
 import { formatFileSize, formatMessageTime } from './chat-helpers'
@@ -36,7 +37,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const appContext = useAppContext()
 const userStore = useUserStore()
 const chatStore = useChatStore()
 
@@ -184,7 +184,7 @@ async function handleDownload(fileId: string) {
   }
   try {
     // 预签名 URL 会过期，下载每次即时换取
-    const url = await appContext.apis.chatApi.getFileUrl(fileId)
+    const url = await getChatApi().getFileUrl(fileId)
     if (url) {
       window.open(url, '_blank', 'noopener')
     }

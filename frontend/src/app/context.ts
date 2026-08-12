@@ -1,6 +1,7 @@
 import type { Router } from 'vue-router'
 import type { EnumMetadata } from '@/api/modules/metadata/enum-metadata'
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization'
+import type { ChatApiContract, ChatDepartmentPickerNode } from '~/chat'
 import type {
   ApiCredentialItem,
   ApiCredentialSecret,
@@ -12,8 +13,6 @@ import type {
   ChangePasswordParams,
   ChangePhoneParams,
   ChangeUserNameParams,
-  ChatApiContract,
-  ChatDepartmentPickerNode,
   EmailLoginParams,
   ExternalLoginItem,
   LoginConfig,
@@ -48,6 +47,7 @@ import { workbenchApi } from '@/api/modules/workbench'
 import { requestClient } from '@/api/request'
 import { router } from '@/router'
 import { staticRoutes } from '@/router/routes'
+import { setChatApi } from '~/chat'
 import { registerAppContext } from '~/stores/app-context'
 
 const appViewModules = import.meta.glob('/src/views/**/*.vue')
@@ -489,7 +489,7 @@ function createChatApis() {
       return fileApi.generatePresignedUrl(fileId)
     },
   }
-  return { chatApi: composed }
+  setChatApi(composed)
 }
 
 function createTenantApis() {
@@ -506,12 +506,13 @@ export function createApplicationApis() {
     ...createAuthApis(),
     ...createProfileApis(),
     ...createShellApis(),
-    ...createChatApis(),
     ...createTenantApis(),
   }
 }
 
 export function registerApplicationContext(appRouter: Router = router) {
+  // 聊天 API 经 @xihan/chat 的注入缝注册，不并入 appContext.apis
+  createChatApis()
   registerAppContext({
     apis: createApplicationApis(),
     explicitComponentMap: {},

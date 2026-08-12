@@ -1,0 +1,15 @@
+{
+  "name": "@xihan/chat",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@xihan/composables": "workspace:*",
+    "@xihan/constants": "workspace:*",
+    "@xihan/iconify": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/types": "workspace:*",
+    "@xihan/utils": "workspace:*"
+  }
+}

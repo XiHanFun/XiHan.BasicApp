@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { SelectOption, TreeSelectOption } from 'naive-ui'
-import type { ChatDepartmentPickerNode } from '~/types'
+import type {
+  ChatDepartmentPickerNode,
+} from '~/chat'
 import { NButton, NInput, NModal, NSelect, NTreeSelect, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAppContext, useChatStore, useUserStore } from '~/stores'
-import { CHAT_MAX_GROUP_NAME_LENGTH } from '~/types'
+import { CHAT_MAX_GROUP_NAME_LENGTH, getChatApi } from '~/chat'
+import { useChatStore, useUserStore } from '~/stores'
+
 import ChatUserSelect from './ChatUserSelect.vue'
 
 export type ChatStartMode = 'assistant' | 'department' | 'group' | 'single'
@@ -26,7 +29,6 @@ const { t } = useI18n()
 const message = useMessage()
 const chatStore = useChatStore()
 const userStore = useUserStore()
-const appContext = useAppContext()
 
 const submitting = ref(false)
 const singleUserId = ref<null | string>(null)
@@ -68,7 +70,7 @@ async function loadDepartments() {
   }
   departmentLoading.value = true
   try {
-    const nodes = await appContext.apis.chatApi.departmentTree()
+    const nodes = await getChatApi().departmentTree()
     departmentOptions.value = nodes.map(mapDepartment)
   }
   catch {
@@ -85,7 +87,7 @@ async function loadAssistants() {
   }
   assistantLoading.value = true
   try {
-    const items = await appContext.apis.chatApi.availableAssistants()
+    const items = await getChatApi().availableAssistants()
     assistantOptions.value = items.map(item => ({
       value: item.assistantId,
       label: item.assistantName,
