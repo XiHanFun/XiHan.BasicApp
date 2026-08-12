@@ -14,9 +14,9 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { islandStart, playNotificationSound, useSignalR } from '~/composables'
 import { useAccessStore, useUserStore } from '~/stores'
-import { useAppContext } from '~/stores/app-context'
 import {
   CHAT_HUB_PATH,
+  CHAT_PAGE_PATH,
   CHAT_PERMISSIONS,
   CHAT_REALTIME_METHODS,
 } from '../constants'
@@ -37,7 +37,7 @@ export function useChatIntegration() {
   const signalR = useSignalR(CHAT_HUB_PATH)
   const route = useRoute()
   const { t } = useI18n()
-  const chatPath = useAppContext().shellRoutes.chat
+  const chatPath = CHAT_PAGE_PATH
 
   /**
    * 他人发来的消息的提醒。岛提示与提示音的静音条件不同，分开判断：

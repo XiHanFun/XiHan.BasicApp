@@ -3,7 +3,7 @@
 import type {
   ChatMessageAttachment,
 } from '../types'
-import { ChatMessageType } from '~/types/enums'
+import { ChatMessageType } from '../enums'
 
 type Translate = (key: string, named?: Record<string, unknown>) => string
 

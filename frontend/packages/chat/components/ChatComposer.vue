@@ -11,7 +11,6 @@ import XUserAvatar from '~/components/common/UserAvatar.vue'
 import { Icon } from '~/iconify'
 
 import { useUserStore } from '~/stores'
-import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from '../api-contract'
 import { useVoiceRecorder } from '../composables/useVoiceRecorder'
@@ -19,6 +18,7 @@ import {
   CHAT_PERMISSIONS,
   CHAT_SEND_KEY_STORAGE_KEY,
 } from '../constants'
+import { ChatConversationType, ChatMessageType } from '../enums'
 import { useChatStore } from '../store'
 import {
   CHAT_MAX_CONTENT_LENGTH,

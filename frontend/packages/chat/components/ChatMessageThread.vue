@@ -11,11 +11,11 @@ import XUserAvatar from '~/components/common/UserAvatar.vue'
 import { Icon } from '~/iconify'
 
 import { useUserStore } from '~/stores'
-import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
 import { getChatApi } from '../api-contract'
 import {
   CHAT_PERMISSIONS,
 } from '../constants'
+import { ChatConversationType, ChatMemberRole, ChatMessageType } from '../enums'
 import { useChatStore } from '../store'
 import {
   CHAT_EDIT_WINDOW_MINUTES,

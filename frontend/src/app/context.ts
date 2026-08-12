@@ -450,7 +450,6 @@ export function registerApplicationContext(appRouter: Router = router) {
       profile: '/workbench/profile',
       controlCenter: '/control-center',
       inbox: '/workbench/inbox',
-      chat: '/message/chat',
     },
   })
 }

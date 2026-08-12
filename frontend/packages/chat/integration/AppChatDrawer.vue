@@ -5,15 +5,14 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
 import ChatPanel from '../components/ChatPanel.vue'
+import { CHAT_PAGE_PATH } from '../constants'
 import { useChatStore } from '../store'
 
 defineOptions({ name: 'AppChatDrawer' })
 
 const { t } = useI18n()
 const router = useRouter()
-const appContext = useAppContext()
 const chatStore = useChatStore()
 // 小屏（<768）抽屉全宽，避免留缝
 const { isMobile } = useIsMobile()
@@ -27,7 +26,7 @@ watch(() => chatStore.chatDrawerVersion, () => {
 })
 
 // 聊天全屏页的路由由应用注册（后端 PageRegistry 下发），未配置则不展示"展开"按钮
-const chatFullPagePath = computed(() => appContext.shellRoutes.chat)
+const chatFullPagePath = computed(() => CHAT_PAGE_PATH)
 
 function handleOpenFullPage() {
   if (!chatFullPagePath.value) {

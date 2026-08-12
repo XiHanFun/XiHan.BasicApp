@@ -16,7 +16,6 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useSignalR } from '~/composables/useSignalR'
 import { useUserStore } from '~/stores'
-import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from './api-contract'
 import { getChatAssistantProvider } from './assistant-provider'
@@ -27,6 +26,7 @@ import {
   CHAT_VOICE_PLAYED_CAP,
   CHAT_VOICE_PLAYED_STORAGE_KEY,
 } from './constants'
+import { ChatConversationType, ChatMessageType } from './enums'
 
 /** 本地消息：在契约消息上叠加乐观上屏状态（仅前端可见） */
 export interface ChatLocalMessage extends ChatMessageItem {

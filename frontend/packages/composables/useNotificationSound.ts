@@ -2,7 +2,8 @@
  * 消息提示音。
  *
  * 用 Web Audio 现场合成，不引第三方库、也不往仓库塞音频文件。
- * 聊天消息与站内通知各一套音色，是否发声由偏好 `notifySound` 决定。
+ * 音色按名字注册：内置 notice（站内通知），可选功能模块经
+ * registerNotificationSound 补自己的音色；是否发声由偏好 `notifySound` 决定。
  */
 
 /** 相邻两声的最小间隔（秒）：每条都响，但岔开播放，不叠成一坨噪音 */
@@ -14,10 +15,11 @@ const MAX_QUEUE_AHEAD = 1.4
 /** 主音量：提示音只作提醒，压得比界面音效更低一档 */
 const PEAK_GAIN = 0.09
 
-/** 提示音种类 */
-export type NotifySoundKind = 'chat' | 'notice'
+/** 提示音种类（内置 notice；其余由功能模块注册） */
+export type NotifySoundKind = string
 
-interface ToneSpec {
+/** 单个音的合成参数 */
+export interface NotifyToneSpec {
   /** 频率（Hz） */
   frequency: number
   /** 相对本次发声起点的延迟（秒） */
@@ -28,20 +30,22 @@ interface ToneSpec {
   gain: number
 }
 
-/**
- * 两套音色：
- * - chat  上行纯五度（A5→E6），短促明亮，像有人在叫你
- * - notice 下行小六度（E5→B4），低一档且稍长，偏公告口吻
- */
-const VOICES: Record<NotifySoundKind, ToneSpec[]> = {
-  chat: [
-    { frequency: 880, offset: 0, duration: 0.14, gain: 1 },
-    { frequency: 1318.51, offset: 0.1, duration: 0.2, gain: 0.8 },
-  ],
+/** 音色注册表；notice 内置：下行小六度（E5→B4），低一档且稍长，偏公告口吻 */
+const VOICES: Record<string, NotifyToneSpec[]> = {
   notice: [
     { frequency: 659.25, offset: 0, duration: 0.18, gain: 1 },
     { frequency: 493.88, offset: 0.13, duration: 0.32, gain: 0.85 },
   ],
+}
+
+/**
+ * 注册一套具名音色；同名覆盖。
+ * @param kind 音色名。
+ * @param specs 音序列。
+ * @returns 无返回值。
+ */
+export function registerNotificationSound(kind: NotifySoundKind, specs: NotifyToneSpec[]): void {
+  VOICES[kind] = specs
 }
 
 type AudioContextCtor = typeof AudioContext
@@ -76,7 +80,7 @@ function resolveContext(): AudioContext | null {
 }
 
 /** 单个音：指数包络进出，避免方波式的爆音 */
-function tone(audio: AudioContext, spec: ToneSpec, startAt: number): void {
+function tone(audio: AudioContext, spec: NotifyToneSpec, startAt: number): void {
   const at = startAt + spec.offset
   const peak = PEAK_GAIN * spec.gain
   const oscillator = audio.createOscillator()
@@ -94,10 +98,10 @@ function tone(audio: AudioContext, spec: ToneSpec, startAt: number): void {
 /**
  * 播放一次提示音，每条消息都会响。
  * 密集到达时按 AudioContext 时钟依次排开，排得太靠后的直接丢；
- * 偏好关闭、浏览器不支持或尚未发生用户手势时静默跳过。
+ * 偏好关闭、音色未注册、浏览器不支持或尚未发生用户手势时静默跳过。
  */
 export function playNotificationSound(kind: NotifySoundKind): void {
-  if (enabledResolver && !enabledResolver()) {
+  if (!VOICES[kind] || (enabledResolver && !enabledResolver())) {
     return
   }
   const audio = resolveContext()
