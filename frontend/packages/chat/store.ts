@@ -11,21 +11,21 @@ import type {
   ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
   ChatTypingPushPayload,
-} from '~/chat'
+} from './types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { useSignalR } from '~/composables/useSignalR'
+import { useUserStore } from '~/stores'
+import { ChatConversationType, ChatMessageType } from '~/types/enums'
+import { LocalStorage } from '~/utils'
+import { getChatApi } from './api-contract'
 import {
   CHAT_DRAFTS_STORAGE_KEY,
   CHAT_HUB_METHODS,
   CHAT_HUB_PATH,
   CHAT_VOICE_PLAYED_CAP,
   CHAT_VOICE_PLAYED_STORAGE_KEY,
-} from '~/chat'
-import { getChatApi } from '~/chat/api-contract'
-import { useSignalR } from '~/composables/useSignalR'
-import { ChatConversationType, ChatMessageType } from '~/types/enums'
-import { LocalStorage } from '~/utils'
-import { useUserStore } from './user'
+} from './constants'
 
 /** 本地消息：在契约消息上叠加乐观上屏状态（仅前端可见） */
 export interface ChatLocalMessage extends ChatMessageItem {

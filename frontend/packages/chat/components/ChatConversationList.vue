@@ -4,12 +4,13 @@ import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import { NBadge, NDropdown, NEmpty, NInput, NScrollbar, NSpin, NTooltip } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XUserAvatar from '~/components/common/UserAvatar.vue'
+import { Icon } from '~/iconify'
+import { useUserStore } from '~/stores'
 import {
   CHAT_PERMISSIONS,
-} from '~/chat'
-import { Icon } from '~/iconify'
-import { useChatStore, useUserStore } from '~/stores'
-import XUserAvatar from '../common/UserAvatar.vue'
+} from '../constants'
+import { useChatStore } from '../store'
 import { formatConversationTime } from './chat-helpers'
 import ChatContextMenu from './ChatContextMenu.vue'
 

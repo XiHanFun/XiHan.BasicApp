@@ -4,9 +4,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   CHAT_PERMISSIONS,
+  useChatStore,
 } from '~/chat'
 import { Icon } from '~/iconify'
-import { useChatStore, useLayoutBridgeStore, useUserStore } from '~/stores'
+import { useLayoutBridgeStore, useUserStore } from '~/stores'
 
 defineOptions({ name: 'ChatHeaderButton' })
 

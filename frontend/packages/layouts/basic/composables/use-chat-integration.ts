@@ -16,9 +16,11 @@ import {
   CHAT_HUB_PATH,
   CHAT_PERMISSIONS,
   CHAT_REALTIME_METHODS,
+  useChatStore,
 } from '~/chat'
 import { islandStart, playNotificationSound, useSignalR } from '~/composables'
-import { useAccessStore, useChatStore, useUserStore } from '~/stores'
+import { useAccessStore, useUserStore } from '~/stores'
+
 import { useAppContext } from '~/stores/app-context'
 
 const CHAT_RECONNECT_INTERVAL_MS = 15000

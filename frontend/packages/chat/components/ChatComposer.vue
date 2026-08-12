@@ -3,24 +3,27 @@ import type { DropdownOption, InputInst } from 'naive-ui'
 import type {
   ChatMemberItem,
   ChatMessageAttachment,
-} from '~/chat'
+} from '../types'
 import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
 import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XUserAvatar from '~/components/common/UserAvatar.vue'
+import { Icon } from '~/iconify'
+
+import { useUserStore } from '~/stores'
+import { ChatConversationType, ChatMessageType } from '~/types/enums'
+import { LocalStorage } from '~/utils'
+import { getChatApi } from '../api-contract'
+import { useVoiceRecorder } from '../composables/useVoiceRecorder'
+import {
+  CHAT_PERMISSIONS,
+  CHAT_SEND_KEY_STORAGE_KEY,
+} from '../constants'
+import { useChatStore } from '../store'
 import {
   CHAT_MAX_CONTENT_LENGTH,
   CHAT_MAX_MENTION_COUNT,
-  CHAT_PERMISSIONS,
-  CHAT_SEND_KEY_STORAGE_KEY,
-} from '~/chat'
-
-import { getChatApi } from '~/chat/api-contract'
-import { useVoiceRecorder } from '~/composables'
-import { Icon } from '~/iconify'
-import { useChatStore, useUserStore } from '~/stores'
-import { ChatConversationType, ChatMessageType } from '~/types/enums'
-import { LocalStorage } from '~/utils'
-import XUserAvatar from '../common/UserAvatar.vue'
+} from '../types'
 import { messageBodyLabel } from './chat-helpers'
 
 defineOptions({ name: 'ChatComposer' })

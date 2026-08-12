@@ -2,12 +2,18 @@
 import type { SelectOption, TreeSelectOption } from 'naive-ui'
 import type {
   ChatDepartmentPickerNode,
-} from '~/chat'
+} from '../types'
 import { NButton, NInput, NModal, NSelect, NTreeSelect, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { CHAT_MAX_GROUP_NAME_LENGTH, getChatApi } from '~/chat'
-import { useChatStore, useUserStore } from '~/stores'
+import { useUserStore } from '~/stores'
+import {
+  getChatApi,
+} from '../api-contract'
+import { useChatStore } from '../store'
+import {
+  CHAT_MAX_GROUP_NAME_LENGTH,
+} from '../types'
 
 import ChatUserSelect from './ChatUserSelect.vue'
 

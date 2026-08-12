@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChatPanel } from '~/components'
+import { ChatPanel } from '~/chat'
 
 // 路由名须与后端 PageRegistry 的 RouteName（MessageChat）一致，keepalive 按此匹配
 defineOptions({ name: 'MessageChat' })

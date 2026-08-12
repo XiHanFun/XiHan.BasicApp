@@ -6,7 +6,6 @@
   "dependencies": {
     "@dnd-kit/geometry": "catalog:",
     "@dnd-kit/vue": "catalog:",
-    "@emoji-mart/data": "catalog:",
     "@tiptap/extension-color": "catalog:",
     "@tiptap/extension-highlight": "catalog:",
     "@tiptap/extension-image": "catalog:",
@@ -21,7 +20,6 @@
     "@xihan/constants": "workspace:*",
     "@xihan/stores": "workspace:*",
     "@xihan/utils": "workspace:*",
-    "emoji-mart": "catalog:",
     "highlight.js": "catalog:",
     "md-editor-v3": "catalog:",
     "monaco-editor": "catalog:",

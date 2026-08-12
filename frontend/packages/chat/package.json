@@ -5,11 +5,13 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
+    "@emoji-mart/data": "catalog:",
     "@xihan/composables": "workspace:*",
     "@xihan/constants": "workspace:*",
     "@xihan/iconify": "workspace:*",
     "@xihan/stores": "workspace:*",
     "@xihan/types": "workspace:*",
-    "@xihan/utils": "workspace:*"
+    "@xihan/utils": "workspace:*",
+    "emoji-mart": "catalog:"
   }
 }

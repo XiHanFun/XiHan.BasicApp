@@ -2,20 +2,23 @@
 import type {
   ChatConversationListItem,
   ChatMemberItem,
-} from '~/chat'
+} from '../types'
 import { NButton, NEmpty, NInput, NModal, NPopconfirm, NScrollbar, NSpin, NTag, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XUserAvatar from '~/components/common/UserAvatar.vue'
+import { Icon } from '~/iconify'
+
+import { useUserStore } from '~/stores'
+import { ChatConversationType, ChatMemberRole } from '~/types/enums'
+import { getChatApi } from '../api-contract'
+import {
+  CHAT_PERMISSIONS,
+} from '../constants'
+import { useChatStore } from '../store'
 import {
   CHAT_MAX_GROUP_NAME_LENGTH,
-  CHAT_PERMISSIONS,
-} from '~/chat'
-
-import { getChatApi } from '~/chat/api-contract'
-import { Icon } from '~/iconify'
-import { useChatStore, useUserStore } from '~/stores'
-import { ChatConversationType, ChatMemberRole } from '~/types/enums'
-import XUserAvatar from '../common/UserAvatar.vue'
+} from '../types'
 import { formatMessageTime } from './chat-helpers'
 import ChatUserSelect from './ChatUserSelect.vue'
 
