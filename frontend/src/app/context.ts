@@ -1,7 +1,5 @@
 import type { Router } from 'vue-router'
 import type { EnumMetadata } from '@/api/modules/metadata/enum-metadata'
-import type { DepartmentTreeNodeDto } from '@/api/modules/organization'
-import type { ChatApiContract, ChatDepartmentPickerNode } from '~/chat'
 import type {
   ApiCredentialItem,
   ApiCredentialSecret,
@@ -40,14 +38,12 @@ import type {
 } from '~/types'
 import { ResourceAccessLevel } from '@/api/modules/authorization'
 import { fileApi } from '@/api/modules/files'
-import { chatApi } from '@/api/modules/messaging'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
 import { tenantApi } from '@/api/modules/tenant'
 import { workbenchApi } from '@/api/modules/workbench'
 import { requestClient } from '@/api/request'
 import { router } from '@/router'
 import { staticRoutes } from '@/router/routes'
-import { setChatApi } from '~/chat'
 import { registerAppContext } from '~/stores/app-context'
 
 const appViewModules = import.meta.glob('/src/views/**/*.vue')
@@ -424,74 +420,6 @@ function createShellApis() {
   }
 }
 
-function mapDepartmentNode(node: DepartmentTreeNodeDto): ChatDepartmentPickerNode {
-  return {
-    departmentId: node.basicId,
-    departmentName: node.departmentName,
-    children: node.children?.map(mapDepartmentNode) ?? null,
-  }
-}
-
-function createChatApis() {
-  const composed: ChatApiContract = {
-    ...chatApi,
-    async selectUsers(keyword: string, limit = 20) {
-      // 走聊天专属选人端点（仅需 chat:read）；用户管理的 UserSelect 端点要求 saas:user:read，普通聊天用户会 403
-      const items = await chatApi.userOptions(keyword, limit)
-      return items.map(u => ({
-        userId: u.basicId,
-        userName: u.userName,
-        nickName: u.nickName ?? u.realName,
-        avatar: u.avatar,
-      }))
-    },
-    async departmentTree() {
-      // 走聊天专属端点：通用部门树是读共享口径，平台态会列出全部租户的部门
-      const nodes = await chatApi.departmentTree()
-      return nodes.map(mapDepartmentNode)
-    },
-    async uploadAttachment(file: File, onProgress?: (percent: number) => void) {
-      // 秒传：SHA-256（与后端 FileTransferService 同算法，hex 小写）命中已有文件直接复用 fileId；
-      // 未命中/不支持/超大文件（整读内存有风险）回退普通上传
-      const FAST_UPLOAD_MAX_BYTES = 200 * 1024 * 1024
-      if (file.size > 0 && file.size <= FAST_UPLOAD_MAX_BYTES && globalThis.crypto?.subtle) {
-        try {
-          const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
-          const fileHash = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
-          // 探测语义：命中返回详情，未命中返回 null（不再抛 4xx）
-          const fast = await fileApi.fastUpload({
-            fileHash,
-            originalName: file.name,
-            fileSize: file.size,
-            mimeType: file.type || null,
-          })
-          if (fast) {
-            onProgress?.(100)
-            return {
-              fileId: fast.basicId,
-              fileName: fast.originalName || fast.fileName,
-              fileSize: fast.fileSize,
-            }
-          }
-        }
-        catch {
-          // 探测失败不阻断：回退普通上传
-        }
-      }
-      const detail = await fileApi.upload({ file, directory: 'chat' }, onProgress)
-      return {
-        fileId: detail.basicId,
-        fileName: detail.originalName || detail.fileName,
-        fileSize: detail.fileSize,
-      }
-    },
-    getFileUrl(fileId: string) {
-      return fileApi.generatePresignedUrl(fileId)
-    },
-  }
-  setChatApi(composed)
-}
-
 function createTenantApis() {
   return {
     tenantApi: {
@@ -511,8 +439,6 @@ export function createApplicationApis() {
 }
 
 export function registerApplicationContext(appRouter: Router = router) {
-  // 聊天 API 经 @xihan/chat 的注入缝注册，不并入 appContext.apis
-  createChatApis()
   registerAppContext({
     apis: createApplicationApis(),
     explicitComponentMap: {},

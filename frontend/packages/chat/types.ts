@@ -331,10 +331,4 @@ export interface ChatApiContract {
   uploadAttachment: (file: File, onProgress?: (percent: number) => void) => Promise<ChatAttachmentUploadResult>
   /** fileId 换预签名访问 URL（图片内联/文件下载，会过期） */
   getFileUrl: (fileId: string) => Promise<string>
-  /** 可用助手列表（仅启用项） */
-  availableAssistants: () => Promise<ChatAssistantOption[]>
-  /** 打开与指定助手的会话（不存在则创建） */
-  openAssistantConversation: (assistantId: string) => Promise<ChatAssistantConversationResult>
-  /** 请求助手回复（增量经 SignalR 推送，返回时已落库） */
-  replyAssistant: (conversationId: string, replyId: string) => Promise<ChatAssistantReplyResult>
 }

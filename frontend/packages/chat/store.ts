@@ -19,6 +19,7 @@ import { useUserStore } from '~/stores'
 import { ChatConversationType, ChatMessageType } from '~/types/enums'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from './api-contract'
+import { getChatAssistantProvider } from './assistant-provider'
 import {
   CHAT_DRAFTS_STORAGE_KEY,
   CHAT_HUB_METHODS,
@@ -755,7 +756,10 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function startAssistantConversation(assistantId: string) {
-    const result = await api().openAssistantConversation(assistantId)
+    const provider = getChatAssistantProvider()
+    if (!provider)
+      throw new Error('AI 助手能力未注册（AI 模块未安装），无法发起助手会话。')
+    const result = await provider.openConversation(assistantId)
     await loadConversations()
     await openConversation(result.conversationId)
     return result
@@ -767,12 +771,15 @@ export const useChatStore = defineStore('chat', () => {
     return conversations.value.find(c => c.conversationId === conversationId)?.conversationType ?? null
   }
 
-  /** 请求助手回复本轮提问；增量由 applyAssistantDelta 回灌，落库消息经普通推送到达 */
+  /** 请求助手回复本轮提问；增量由 applyAssistantDelta 回灌，落库消息经普通推送到达。提供方未注册时空转 */
   async function requestAssistantReply(conversationId: string) {
+    const provider = getChatAssistantProvider()
+    if (!provider)
+      return
     const replyId = generateClientMessageId()
     assistantStreams.value[conversationId] = { replyId, text: '', streaming: true }
     try {
-      const result = await api().replyAssistant(conversationId, replyId)
+      const result = await provider.reply(conversationId, replyId)
       if (result.error) {
         markAssistantFailed(conversationId, replyId, result.error)
       }

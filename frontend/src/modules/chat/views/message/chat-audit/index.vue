@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { ChatAuditListItemDto, PageResult } from '@/api'
+import type { ChatAuditListItemDto } from '../../../api/chat-audit.types'
+import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaQueryParams } from '~/components'
 import { NTag } from 'naive-ui'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { chatAuditApi, createPageRequest, querySortsFromSchema } from '@/api'
+import { createPageRequest, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { getOptionLabel } from '~/utils'
+import { chatAuditApi } from '../../../api/chat-audit'
 
 // 路由名须与后端 PageRegistry 的 RouteName（MessageChatAudit）一致
 defineOptions({ name: 'MessageChatAudit' })

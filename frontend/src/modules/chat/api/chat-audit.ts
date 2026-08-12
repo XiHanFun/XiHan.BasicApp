@@ -1,6 +1,6 @@
-import type { PageResult } from '../../types'
 import type { ChatAuditListItemDto, ChatAuditPageQueryDto } from './chat-audit.types'
-import { createDynamicApiClient } from '../../base'
+import type { PageResult } from '@/api/types'
+import { createDynamicApiClient } from '@/api/base'
 
 const chatAuditQueryApi = createDynamicApiClient('ChatAuditQuery')
 

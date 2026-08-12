@@ -1,10 +1,7 @@
-import type { DynamicApiParams } from '../../base'
-import type { UserSelectItemDto } from '../identity/user.types'
-import type { DepartmentTreeNodeDto } from '../organization/department.types'
+import type { DynamicApiParams } from '@/api/base'
+import type { UserSelectItemDto } from '@/api/modules/identity/user.types'
+import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type {
-  ChatAssistantConversationResult,
-  ChatAssistantOption,
-  ChatAssistantReplyResult,
   ChatConversationInfoUpdateInput,
   ChatConversationListItem,
   ChatConversationOpenResult,
@@ -16,12 +13,10 @@ import type {
   ChatMessageSendInput,
   ChatReadPosition,
 } from '~/chat'
-import { appendDynamicApiParam, createDynamicApiClient } from '../../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '@/api/base'
 
 const chatCommandApi = createDynamicApiClient('Chat')
 const chatQueryApi = createDynamicApiClient('ChatQuery')
-const chatAssistantApi = createDynamicApiClient('ChatAssistant')
-const aiAssistantQueryApi = createDynamicApiClient('AiAssistantQuery')
 
 /**
  * 在线聊天 REST API（ChatAppService / ChatQueryService）
@@ -135,17 +130,5 @@ export const chatApi = {
   /** GetPinnedMessagesAsync(long conversationId) → GET /ChatQuery/PinnedMessages/{id} */
   pinnedMessages(conversationId: string) {
     return chatQueryApi.get<ChatMessageItem[]>('PinnedMessages', { conversationId })
-  },
-  /** GetAvailableAsync：Get 前缀剥离 → GET /AiAssistantQuery/Available（仅登录态，不看助手管理权限） */
-  availableAssistants() {
-    return aiAssistantQueryApi.get<ChatAssistantOption[]>('Available')
-  },
-  /** OpenConversationAsync → POST /ChatAssistant/OpenConversation */
-  openAssistantConversation(assistantId: string) {
-    return chatAssistantApi.post<ChatAssistantConversationResult>('OpenConversation', { assistantId })
-  },
-  /** ReplyAsync → POST /ChatAssistant/Reply；生成期间增量走 SignalR，此调用返回即已落库 */
-  replyAssistant(conversationId: string, replyId: string) {
-    return chatAssistantApi.post<ChatAssistantReplyResult>('Reply', { conversationId, replyId })
   },
 }

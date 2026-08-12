@@ -1,5 +1,5 @@
-import type { ApiId, DateTimeString, PageRequest } from '../../types'
 import type { ChatConversationType, ChatMessageType } from './chat.types'
+import type { ApiId, DateTimeString, PageRequest } from '@/api/types'
 
 /** 聊天审计分页查询 DTO（管理侧跨会话，权限 chat:audit） */
 export interface ChatAuditPageQueryDto extends PageRequest {
