@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Reflection;
+using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
@@ -223,9 +224,11 @@ public sealed class PrintTemplateDomainServiceTests
         var currentTenant = new Mock<ICurrentTenant>();
         currentTenant.SetupGet(value => value.Id).Returns(tenantId);
 
+        var registry = new PrintDataSourceRegistry([new PrintDataSourceRegistration(BuiltInPrintDataSources.SystemPrintDemo)]);
         var service = new PrintTemplateDomainService(
             repository.Object,
             currentTenant.Object,
+            registry,
             NullLogger<PrintTemplateDomainService>.Instance);
         return new DomainFixture(service, repository);
     }

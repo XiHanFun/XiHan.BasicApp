@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -27,6 +28,7 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
 
     private readonly IPrintTemplateRepository _repository;
     private readonly ICurrentTenant _currentTenant;
+    private readonly IPrintDataSourceRegistry _dataSourceRegistry;
     private readonly ILogger<PrintTemplateDomainService> _logger;
 
     /// <summary>
@@ -34,15 +36,29 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
     /// </summary>
     /// <param name="repository">打印模板仓储。</param>
     /// <param name="currentTenant">当前租户上下文。</param>
+    /// <param name="dataSourceRegistry">打印数据源注册表。</param>
     /// <param name="logger">结构化日志记录器。</param>
     public PrintTemplateDomainService(
         IPrintTemplateRepository repository,
         ICurrentTenant currentTenant,
+        IPrintDataSourceRegistry dataSourceRegistry,
         ILogger<PrintTemplateDomainService> logger)
     {
         _repository = repository;
         _currentTenant = currentTenant;
+        _dataSourceRegistry = dataSourceRegistry;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// 校验可选数据源编码：为空表示自由模板；非空必须已在数据源注册表登记。
+    /// </summary>
+    private void EnsureDataSourceRegistered(string? dataSourceCode)
+    {
+        if (dataSourceCode is not null && !_dataSourceRegistry.IsRegistered(dataSourceCode))
+        {
+            throw new UserFriendlyException($"打印数据源未注册：{dataSourceCode}。");
+        }
     }
 
     /// <inheritdoc />
@@ -56,6 +72,7 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
         var ownerTenantId = _currentTenant.Id ?? 0;
         var templateCode = NormalizeCode(command.TemplateCode, "模板编码");
         var dataSourceCode = NormalizeOptionalCode(command.DataSourceCode, "数据源编码");
+        EnsureDataSourceRegistered(dataSourceCode);
         ValidateEditableFields(
             command.TemplateName,
             command.TemplateJson,
@@ -115,7 +132,9 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
 
         var template = await GetEditableOrThrowAsync(command.Id, cancellationToken);
         EnsureExpectedVersion(template, command.ExpectedRowVersion);
-        template.DataSourceCode = NormalizeOptionalCode(command.DataSourceCode, "数据源编码");
+        var updatedDataSourceCode = NormalizeOptionalCode(command.DataSourceCode, "数据源编码");
+        EnsureDataSourceRegistered(updatedDataSourceCode);
+        template.DataSourceCode = updatedDataSourceCode;
         template.TemplateName = command.TemplateName.Trim();
         template.TemplateJson = command.TemplateJson;
         template.EngineVersion = command.EngineVersion.Trim();

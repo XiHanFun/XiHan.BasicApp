@@ -171,6 +171,30 @@ export interface PrintingConfiguration {
   token?: string
   /** 调用后端按编码解析模板。 */
   resolveTemplate: (templateCode: string, scope: PrintTemplateScope) => Promise<ResolvedPrintTemplate>
+  /** 拉取后端数据源目录（可选；未注入时仅本地注册的数据源可用）。 */
+  listDataSources?: () => Promise<RemotePrintDataSourceDto[]>
+}
+
+/** 后端数据源目录项（与 Printing 模块 PrintDataSourceDto 一一对应）。 */
+export interface RemotePrintDataSourceDto {
+  /** 数据源编码。 */
+  code: string
+  /** 设计器展示名称。 */
+  name: string
+  /** 字段清单。 */
+  fields: RemotePrintDataSourceFieldDto[]
+  /** 静态样例数据 JSON。 */
+  sampleDataJson: string
+}
+
+/** 后端数据源字段。 */
+export interface RemotePrintDataSourceFieldDto {
+  key: string
+  label: string
+  kind: PrintFieldKind
+  columns?: null | { field: string, title: string, width?: null | number, inputType?: null | string }[]
+  inputType?: null | string
+  placeholder?: null | string
 }
 
 /** hiprint 模板实例最小接口，隔离无官方 TypeScript 声明的第三方实现。 */

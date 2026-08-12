@@ -14,6 +14,7 @@ import type {
 import { requirePrintDataSource } from './data-source-registry'
 import { getPrintingAdapter, getPrintingConfiguration } from './hiprint-adapter'
 import { getPreferredPrinter, savePreferredPrinter } from './printer-preference'
+import { ensureRemotePrintDataSourcesLoaded } from './remote-data-sources'
 
 /**
  * 模拟数据表单打开后，服务端模板版本已经发生变化。
@@ -283,6 +284,7 @@ async function resolveTemplate(
   const normalizedCode = templateCode?.trim()
   if (!normalizedCode)
     throw new Error('打印模板编码不能为空。')
+  await ensureRemotePrintDataSourcesLoaded()
   const resolved = await getPrintingConfiguration().resolveTemplate(normalizedCode, scope)
   if (resolved.dataSourceCode?.trim())
     requirePrintDataSource(resolved.dataSourceCode)

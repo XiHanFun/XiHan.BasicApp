@@ -40,6 +40,14 @@ export function configurePrinting(options: PrintingConfiguration): void {
 }
 
 /**
+ * 返回打印运行配置；尚未配置时返回 null（供不强制要求配置的路径使用）。
+ * @returns 配置或 null。
+ */
+export function tryGetPrintingConfiguration(): PrintingConfiguration | null {
+  return configuration
+}
+
+/**
  * 返回打印运行配置。
  * @returns 已完成默认值归一的配置。
  * @throws 应用尚未调用 configurePrinting。
