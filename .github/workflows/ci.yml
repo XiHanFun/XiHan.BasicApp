@@ -19,15 +19,15 @@ jobs:
     name: 后端构建与测试
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 安装 .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
 
       - name: 缓存 NuGet 包
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/props/*.props') }}
@@ -45,7 +45,7 @@ jobs:
 
       - name: 上传测试结果
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: backend-test-results
           path: '**/TestResults/*.trx'
@@ -58,7 +58,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # action 在仓库根目录执行，默认只找根 package.json；本仓库的清单在 frontend/ 下，
       # 故显式指路，版本仍取自它的 packageManager 字段，不在此处再写一份版本号。
@@ -70,7 +70,7 @@ jobs:
       # 本仓库不跟踪 pnpm-lock.yaml，缓存键改用版本事实源：catalog 所在的
       # pnpm-workspace.yaml 与入口清单 package.json，二者任一变动即失效重装。
       - name: 安装 Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           cache: pnpm
