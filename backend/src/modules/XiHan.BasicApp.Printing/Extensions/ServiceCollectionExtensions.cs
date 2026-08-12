@@ -55,7 +55,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加打印数据源注册表（单例）并登记内置示例数据源。
+    /// 添加打印数据源注册表（单例）并登记内置示例数据源；可重复调用，内置示例只登记一次。
     /// 业务模块在自己的 ConfigureServices 中经 <see cref="RegisterPrintDataSource"/> 追加数据源。
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -63,7 +63,14 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPrintingDataSources(this IServiceCollection services)
     {
         services.TryAddSingleton<IPrintDataSourceRegistry, PrintDataSourceRegistry>();
-        services.RegisterPrintDataSource(BuiltInPrintDataSources.SystemPrintDemo);
+        var demoRegistered = services.Any(descriptor =>
+            descriptor.ImplementationInstance is PrintDataSourceRegistration registration
+            && registration.Definition.Code == BuiltInPrintDataSources.SystemPrintDemo.Code);
+        if (!demoRegistered)
+        {
+            services.RegisterPrintDataSource(BuiltInPrintDataSources.SystemPrintDemo);
+        }
+
         return services;
     }
 

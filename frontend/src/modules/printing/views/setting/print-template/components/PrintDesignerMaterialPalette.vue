@@ -5,10 +5,10 @@
 <script setup lang="ts">
 import type { PrintFieldKind } from '~/printing'
 import { NButton, NCollapseTransition, NIcon, NTag } from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
-import { getPrintDataSource, getPrintFieldTid } from '~/printing'
+import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, getPrintFieldTid } from '~/printing'
 
 defineOptions({ name: 'PrintDesignerMaterialPalette' })
 
@@ -65,7 +65,25 @@ const auxiliaryMaterials: readonly BuiltInMaterial[] = Object.freeze([
   { key: 'qrcode', tid: 'defaultModule.qrcode', icon: 'mdi:qrcode' },
 ])
 
-const activeDataSource = computed(() => getPrintDataSource(props.dataSourceCode))
+// 目录版本号：后端目录异步加载完成后递增，驱动建议字段重算（注册表本身非响应式）；
+// 拉取失败由设计器画布统一提示，这里只记录
+const catalogVersion = ref(0)
+onMounted(async () => {
+  try {
+    await ensureRemotePrintDataSourcesLoaded()
+  }
+  catch (error) {
+    console.error(error)
+  }
+  finally {
+    catalogVersion.value++
+  }
+})
+
+const activeDataSource = computed(() => {
+  void catalogVersion.value
+  return getPrintDataSource(props.dataSourceCode)
+})
 const dataSourceMaterials = computed<readonly DataSourceMaterial[]>(() => activeDataSource.value?.fields.map(field => ({
   icon: getFieldIcon(field.kind ?? 'text'),
   key: field.key,

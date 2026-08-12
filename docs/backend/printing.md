@@ -30,9 +30,17 @@
 
 ## 数据源目录
 
-模板可绑定「代码注册数据源」获得字段素材与样例数据：数据源在前端**编译期注册**（`src/modules/printing/setup.ts` 调 `registerPrintDataSource`），后端只存 `DataSourceCode` 字符串、不校验其存在。当前内置一个示例数据源 `system.print-demo`；业务数据源随业务模块开发时注册。由此推出的两条约束：
+模板可绑定「代码注册数据源」获得字段素材与样例数据。目录以**后端注册表为单一事实源**（`Domain/DataSources/IPrintDataSourceRegistry`）：
 
-- 前端发版删除/改名数据源会使既有模板的绑定静默失效（打印时报「数据源未注册」）；
+- **注册**：业务模块在自己的 `ConfigureServices` 中调 `services.RegisterPrintDataSource(definition)` 登记定义（字段契约 + 静态样例 JSON）；打印模块内置示例数据源 `system.print-demo` 随模块自注册。
+- **启动期校验**：应用启动即收纳全部登记项，重复编码、非法字段契约（未知类型/重复字段/空列明细/非法控件类型）、坏样例 JSON（不可解析或根节点不是对象/数组）都会让启动直接失败。
+- **查询**：`GET /PrintDataSourceQuery/List` 输出目录，持 `print-template:read` 或 `print-template:use` 任一权限即可访问（分别服务模板管理与业务打印两条路径）。
+- **写路径 fail-closed**：创建/更新模板时绑定未注册的 `DataSourceCode` 直接被拒；解析读路径不校验（既有模板宽限，前端打印使用点仍会按未注册报错）。
+- **前端惰性拉取**：设计器与打印路径首次用到目录时经上面的查询端点拉取并并入本地注册表（自由模板打印不依赖目录）；`registerPrintDataSource` 仍可用于纯前端数据源；单个坏目录项只跳过自身、不影响其余数据源。
+
+由此推出的两条约束：
+
+- 数据源随后端代码发版，删除/改名会使既有模板的绑定失效（打印时报「数据源未注册」）；
 - 不绑数据源的「自由模板」按模板内标准字段绑定推断样例表单，不受上述影响。
 
 ## 已知限制

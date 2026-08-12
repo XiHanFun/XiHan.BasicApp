@@ -21,6 +21,7 @@ export default {
       data_source_optional_placeholder: '可选；不选择即使用自由模板',
       data_source_registered_help: '数据源仅提供建议字段、类型和默认样例；模板仍可添加契约外的自定义字段。',
       data_source_free_help: '自由模板直接使用画布元素的标准 field 绑定，实际打印数据由业务调用方按字段传入。',
+      data_source_catalog_load_failed: '打印数据源目录加载失败，仅显示本地已注册数据源，请稍后重试。',
       data_source_missing_option: '{code}（当前前端未注册）',
       data_source_mismatch_warning: '当前画布有 {count} 个字段不在所选数据源契约中；仍可保存和打印，请确认调用方会传入这些字段。',
       data_source_mismatch_compact: '发现 {count} 个契约外字段，点击查看',

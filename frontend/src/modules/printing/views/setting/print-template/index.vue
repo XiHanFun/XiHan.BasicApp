@@ -22,6 +22,7 @@ import { Icon } from '~/iconify'
 import {
   createDefaultPrintSampleData,
   directPrintByCode,
+  ensureRemotePrintDataSourcesLoaded,
   previewPrintByCode,
   PrintTemplateVersionChangedError,
 } from '~/printing'
@@ -276,6 +277,8 @@ async function direct(row: PrintTemplateListItemDto): Promise<void> {
     const detail = await printTemplateApi.detail(row.basicId, activeScope.value)
     if (!detail)
       throw new Error(t('setting.print_template.not_found'))
+    // 样例生成读取数据源注册表，先确保后端目录已加载
+    await ensureRemotePrintDataSourcesLoaded()
     const sample = await createDefaultPrintSampleData(
       parseTemplateJson(detail.templateJson),
       detail.dataSourceCode,

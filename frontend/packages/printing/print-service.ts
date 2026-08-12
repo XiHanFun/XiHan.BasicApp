@@ -284,10 +284,12 @@ async function resolveTemplate(
   const normalizedCode = templateCode?.trim()
   if (!normalizedCode)
     throw new Error('打印模板编码不能为空。')
-  await ensureRemotePrintDataSourcesLoaded()
   const resolved = await getPrintingConfiguration().resolveTemplate(normalizedCode, scope)
-  if (resolved.dataSourceCode?.trim())
+  // 自由模板不依赖目录；仅在模板绑定数据源时才拉取，目录接口异常不影响自由模板打印
+  if (resolved.dataSourceCode?.trim()) {
+    await ensureRemotePrintDataSourcesLoaded()
     requirePrintDataSource(resolved.dataSourceCode)
+  }
   return resolved
 }
 

@@ -61,4 +61,7 @@ public sealed class PrintDataSourceTableColumnDto
 
     /// <summary>样例表格单元格控件类型（可空）。</summary>
     public string? InputType { get; set; }
+
+    /// <summary>样例表格单元格占位文案（可空）。</summary>
+    public string? Placeholder { get; set; }
 }

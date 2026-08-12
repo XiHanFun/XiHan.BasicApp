@@ -25,6 +25,7 @@ import {
   clonePrintSampleRecord,
   createBlankPrintSampleRecord,
   createPrintSamplePayload,
+  ensureRemotePrintDataSourcesLoaded,
   extractPrintSampleFormSchema,
   getPrintDataSource,
   getPrintSampleValue,
@@ -104,6 +105,8 @@ async function initialize(): Promise<void> {
   try {
     if (!props.template)
       throw new Error(t('setting.print_template.sample_template_missing'))
+    // 字段结构与样例工厂读取数据源注册表，先确保后端目录已加载
+    await ensureRemotePrintDataSourcesLoaded()
     const nextSchema = extractPrintSampleFormSchema(props.template, props.dataSourceCode)
     const source = getPrintDataSource(props.dataSourceCode)
     const sample = source
