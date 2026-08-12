@@ -40,8 +40,10 @@ public sealed record PrintDataSourceField(
 /// <param name="Title">列标题</param>
 /// <param name="Width">列宽（pt，可空）</param>
 /// <param name="InputType">样例表格单元格控件类型（可空）</param>
+/// <param name="Placeholder">样例表格单元格占位文案（可空）</param>
 public sealed record PrintDataSourceTableColumn(
     string Field,
     string Title,
     int? Width = null,
-    string? InputType = null);
+    string? InputType = null,
+    string? Placeholder = null);

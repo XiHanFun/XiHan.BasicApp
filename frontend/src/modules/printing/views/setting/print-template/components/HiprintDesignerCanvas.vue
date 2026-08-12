@@ -98,6 +98,8 @@ async function initialize(): Promise<void> {
         queueMicrotask(syncToolbarState)
       },
     })
+    // 素材面板的建议字段在目录加载完成后才渲染，等一帧再收集，保证拖拽绑定覆盖全部素材
+    await nextTick()
     const materials = materialsRef.value?.querySelectorAll('.ep-draggable-item') ?? []
     await enablePrintFieldDragging(materials)
     syncToolbarState()

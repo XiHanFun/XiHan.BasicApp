@@ -10,6 +10,7 @@ import {
   NIcon,
   NPopover,
   NSelect,
+  useMessage,
 } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -24,12 +25,18 @@ const props = defineProps<{
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
+const message = useMessage()
 
 // 目录版本号：后端目录异步加载完成后递增，驱动下拉与字段目录重算（注册表本身非响应式）
 const catalogVersion = ref(0)
 onMounted(async () => {
   try {
     await ensureRemotePrintDataSourcesLoaded()
+  }
+  catch (error) {
+    // 拉取失败明确提示，避免把网络或权限异常误呈现为「数据源不存在」
+    message.error(t('setting.print_template.data_source_catalog_load_failed'))
+    console.error(error)
   }
   finally {
     catalogVersion.value++

@@ -8,6 +8,7 @@ import type {
   PrintElementAlignAction,
   PrintElementSpacingDirection,
   PrintingAdapter,
+  RemotePrintDataSourceDto,
   ResolvedPrintTemplate,
 } from './types'
 import assert from 'node:assert/strict'
@@ -22,7 +23,9 @@ import {
   createPrintDesigner,
   createPrintSamplePayload,
   directPrintByCode,
+  ensureRemotePrintDataSourcesLoaded,
   extractPrintSampleFormSchema,
+  getPrintDataSource,
   getPrintSampleValue,
   inferPrintSampleInputType,
   normalizePrintSampleData,
@@ -573,6 +576,90 @@ it('客户端离线时直接报错且不创建打印模板实例', async () => {
   assert.equal(fixture.createdTemplateCount, 0)
 })
 
+it('未注入 listDataSources 时目录直接完成且不缓存空结果', async () => {
+  configureCatalog(undefined)
+  await ensureRemotePrintDataSourcesLoaded()
+
+  // 注入取数函数后必须真正拉取；若空结果被缓存，这里将拿不到注入函数的拒绝
+  configureCatalog(async () => {
+    throw new Error('catalog-after-configure')
+  })
+  await assert.rejects(ensureRemotePrintDataSourcesLoaded(), /catalog-after-configure/u)
+})
+
+it('目录拉取失败不缓存，下一次调用重新拉取', async () => {
+  let calls = 0
+  configureCatalog(async () => {
+    calls++
+    throw new Error('catalog-unavailable')
+  })
+
+  await assert.rejects(ensureRemotePrintDataSourcesLoaded(), /catalog-unavailable/u)
+  await assert.rejects(ensureRemotePrintDataSourcesLoaded(), /catalog-unavailable/u)
+  assert.equal(calls, 2)
+})
+
+it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例、并发共享一次拉取', async () => {
+  const localCode = uniqueCode('remote-local')
+  registerSource(localCode)
+  const remoteCode = uniqueCode('remote-good')
+  const brokenCode = uniqueCode('remote-broken')
+  let calls = 0
+  configureCatalog(async () => {
+    calls++
+    return [
+      { code: localCode, name: '后端同名数据源', fields: [{ key: 'other', label: '其它', kind: 'text' }], sampleDataJson: '{}' },
+      {
+        code: remoteCode,
+        name: '后端数据源',
+        fields: [
+          { key: 'title', label: '标题', kind: 'text', inputType: 'textarea', placeholder: '请输入' },
+          {
+            key: 'items',
+            label: '明细',
+            kind: 'table',
+            columns: [{ field: 'sku', title: '编码', width: null, inputType: 'number', placeholder: '数量' }],
+          },
+        ],
+        sampleDataJson: '{"title":"示例","items":[{"sku":1}]}',
+      },
+      { code: brokenCode, name: '坏样例', fields: [{ key: 'f', label: '字段', kind: 'text' }], sampleDataJson: '{broken' },
+    ]
+  })
+
+  const originalConsoleError = console.error
+  let isolationLogCount = 0
+  console.error = () => {
+    isolationLogCount++
+  }
+  try {
+    await Promise.all([ensureRemotePrintDataSourcesLoaded(), ensureRemotePrintDataSourcesLoaded()])
+  }
+  finally {
+    console.error = originalConsoleError
+  }
+
+  assert.equal(calls, 1)
+  // 本地已注册的编码保持原定义
+  assert.equal(getPrintDataSource(localCode)?.name, localCode)
+  // 坏样例只跳过自身，不拖垮其余数据源
+  assert.equal(getPrintDataSource(brokenCode), undefined)
+  assert.equal(isolationLogCount, 1)
+
+  const remote = getPrintDataSource(remoteCode)
+  assert.equal(remote?.name, '后端数据源')
+  assert.deepEqual(remote?.fields.map(field => field.key), ['title', 'items'])
+  assert.equal(remote?.fields[0]?.inputType, 'textarea')
+  assert.equal(remote?.fields[1]?.columns?.[0]?.width, undefined)
+  assert.equal(remote?.fields[1]?.columns?.[0]?.placeholder, '数量')
+
+  // 样例工厂每次返回独立副本
+  const first = remote!.createSampleData() as Record<string, unknown>
+  const second = remote!.createSampleData() as Record<string, unknown>
+  first.title = '已修改'
+  assert.equal(second.title, '示例')
+})
+
 /** 注册单字段测试数据源。 */
 function registerSource(code: string): void {
   registerPrintDataSource({
@@ -599,6 +686,18 @@ function configureFor(code: string, rowVersion = '1', dataSourceCode: null | str
       templateJson: TemplateJson,
       templateName: code,
     }),
+  })
+}
+
+/** 注入指定目录取数函数（可为空）的运行配置。 */
+function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceDto[]>) | undefined): void {
+  configurePrinting({
+    host: 'http://localhost:17521',
+    token: 'test-token',
+    resolveTemplate: async () => {
+      throw new Error('目录测试不解析模板。')
+    },
+    listDataSources,
   })
 }
 

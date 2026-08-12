@@ -47,6 +47,42 @@ public sealed class PrintDataSourceRegistryTests
     }
 
     /// <summary>
+    /// 样例数据必须是合法 JSON 且根节点为对象或数组，坏样例在注册时立即失败。
+    /// </summary>
+    [Fact]
+    public void Register_InvalidSampleDataJson_ShouldThrow()
+    {
+        var registry = new PrintDataSourceRegistry([]);
+
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "bad.json", "坏JSON", [new("f", "字段")], "{not-json")));
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "bad.root", "原始值根", [new("f", "字段")], "123")));
+
+        registry.Register(new PrintDataSourceDefinition(
+            "ok.array", "数组根", [new("f", "字段")], "[{\"f\":\"示例\"}]"));
+        Assert.True(registry.IsRegistered("ok.array"));
+    }
+
+    /// <summary>
+    /// 明细表列契约（空列字段/重复列字段）与非法控件类型在注册时立即失败。
+    /// </summary>
+    [Fact]
+    public void Register_InvalidColumnOrInputType_ShouldThrow()
+    {
+        var registry = new PrintDataSourceRegistry([]);
+
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "bad.column", "空列字段", [new("items", "明细", "table", [new(" ", "列")])], "{}")));
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "bad.column-dup", "重复列字段", [new("items", "明细", "table", [new("c", "列一"), new("c", "列二")])], "{}")));
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "bad.input", "非法控件", [new("f", "字段", "text", null, "video")], "{}")));
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "bad.key", "带空白字段", [new("f 1", "字段")], "{}")));
+    }
+
+    /// <summary>
     /// DI 登记项在构造时统一收纳，目录按编码排序输出。
     /// </summary>
     [Fact]

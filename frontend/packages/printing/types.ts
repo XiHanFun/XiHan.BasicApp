@@ -192,7 +192,7 @@ export interface RemotePrintDataSourceFieldDto {
   key: string
   label: string
   kind: PrintFieldKind
-  columns?: null | { field: string, title: string, width?: null | number, inputType?: null | string }[]
+  columns?: null | { field: string, title: string, width?: null | number, inputType?: null | string, placeholder?: null | string }[]
   inputType?: null | string
   placeholder?: null | string
 }
