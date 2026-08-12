@@ -2,15 +2,16 @@
 import type { HeaderToolbarPropsContract } from '../../contracts'
 import type { NotificationItem } from '~/stores'
 import { NDropdown } from 'naive-ui'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
+import { useShellExtensions } from '~/stores'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
-import ChatHeaderButton from './ChatHeaderButton.vue'
 import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
@@ -35,6 +36,9 @@ const emit = defineEmits<{
   preferencesOpen: []
   userAction: [key: string]
 }>()
+
+// 壳层扩展按钮（可选模块注册的顶栏入口）
+const shellHeaderItems = computed(() => useShellExtensions().flatMap(extension => extension.headerToolbarItems ?? []))
 
 const { t } = useI18n()
 // 小屏（<768）：隐藏次要工具（语言/时区/全屏）与用户名文字，避免头部溢出裁切头像菜单
@@ -111,8 +115,8 @@ const { isMobile } = useIsMobile()
     <!-- 分割线 -->
     <div class="mx-1 h-4 w-px bg-border" />
 
-    <!-- 聊天入口（未读角标 + 打开全局聊天抽屉；无权限自隐藏） -->
-    <ChatHeaderButton />
+    <!-- 壳层扩展按钮（可选模块注册的顶栏入口，如聊天） -->
+    <component :is="item" v-for="(item, index) in shellHeaderItems" :key="index" />
 
     <!-- 通知弹窗 -->
     <NotificationPopover

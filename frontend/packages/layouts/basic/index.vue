@@ -6,8 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useSplitViewStore, useTabbarStore } from '~/stores'
-import AppChatDrawer from './components/AppChatDrawer.vue'
+import { useShellExtensions, useSplitViewStore, useTabbarStore } from '~/stores'
 import AppFavorites from './components/AppFavorites.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
@@ -20,7 +19,6 @@ import SplitPane from './components/SplitPane.vue'
 import XihanBackTop from './components/XihanBackTop.vue'
 import XihanIconButton from './components/XihanIconButton.vue'
 import { openTabInNewWindow, useLayoutShellAdapter } from './composables'
-import { useChatIntegration } from './composables/use-chat-integration'
 import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
 import { LayoutContentRenderer } from './core'
@@ -38,8 +36,13 @@ const tabbarStore = useTabbarStore()
 // 初始化 SignalR 连接（实时通知 + 踢下线）
 useSignalRIntegration()
 
-// 初始化聊天实时链路（/hubs/chat 独立连接 + 会话预取供顶栏角标；无权限静默关闭）
-useChatIntegration()
+// 壳层扩展：可选模块注册的布局集成钩子在 setup 顶层逐个调用（如聊天实时链路），浮层组件在模板尾部渲染
+const shellExtensions = useShellExtensions()
+for (const extension of shellExtensions) {
+  for (const integration of extension.integrations ?? [])
+    integration()
+}
+const shellOverlays = computed(() => shellExtensions.flatMap(extension => extension.overlays ?? []))
 
 // 定时检查前端资源更新
 useCheckUpdates()
@@ -512,7 +515,8 @@ const sidebarEnableState = computed(
 
     <!-- ==================== Extra ==================== -->
     <AppPreferenceDrawer />
-    <AppChatDrawer />
+    <!-- 壳层扩展浮层（可选模块注册的抽屉/全局对话框） -->
+    <component :is="overlay" v-for="(overlay, index) in shellOverlays" :key="index" />
     <AppTabOverview />
     <XihanBackTop :scroll-y="shell.scrollY.value" @to-top="shell.scrollContentToTop" />
 

@@ -3,10 +3,11 @@ import { NDrawer, NTooltip } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { ChatPanel, useChatStore } from '~/chat'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext, useLayoutBridgeStore } from '~/stores'
+import { useAppContext } from '~/stores'
+import ChatPanel from '../components/ChatPanel.vue'
+import { useChatStore } from '../store'
 
 defineOptions({ name: 'AppChatDrawer' })
 
@@ -14,14 +15,13 @@ const { t } = useI18n()
 const router = useRouter()
 const appContext = useAppContext()
 const chatStore = useChatStore()
-const layoutBridgeStore = useLayoutBridgeStore()
 // 小屏（<768）抽屉全宽，避免留缝
 const { isMobile } = useIsMobile()
 
 const show = ref(false)
 
 // 顶栏按钮经 layout-bridge 版本计数器请求打开（同偏好抽屉模式）
-watch(() => layoutBridgeStore.chatDrawerVersion, () => {
+watch(() => chatStore.chatDrawerVersion, () => {
   show.value = true
   chatStore.ensureConversations().catch(() => {})
 })

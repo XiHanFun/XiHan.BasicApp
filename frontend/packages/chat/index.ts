@@ -5,5 +5,6 @@
 export * from './api-contract'
 export { default as ChatPanel } from './components/ChatPanel.vue'
 export * from './constants'
+export * from './integration'
 export * from './store'
 export * from './types'
