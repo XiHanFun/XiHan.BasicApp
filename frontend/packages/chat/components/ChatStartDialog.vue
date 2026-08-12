@@ -10,6 +10,7 @@ import { useUserStore } from '~/stores'
 import {
   getChatApi,
 } from '../api-contract'
+import { getChatAssistantProvider } from '../assistant-provider'
 import { useChatStore } from '../store'
 import {
   CHAT_MAX_GROUP_NAME_LENGTH,
@@ -93,7 +94,7 @@ async function loadAssistants() {
   }
   assistantLoading.value = true
   try {
-    const items = await getChatApi().availableAssistants()
+    const items = await getChatAssistantProvider()!.availableAssistants()
     assistantOptions.value = items.map(item => ({
       value: item.assistantId,
       label: item.assistantName,

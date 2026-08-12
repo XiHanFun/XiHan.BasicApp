@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
+import { hasChatAssistantProvider } from '../assistant-provider'
 import {
   CHAT_PERMISSIONS,
 } from '../constants'
@@ -39,8 +40,11 @@ const startOptions = computed<DropdownOption[]>(() => {
   const options: DropdownOption[] = [
     { key: 'single', label: t('chat.start.single') },
     { key: 'department', label: t('chat.start.department') },
-    { key: 'assistant', label: t('chat.start.assistant') },
   ]
+  // AI 助手入口仅在助手提供方已注册（AI 模块在位）时出现
+  if (hasChatAssistantProvider()) {
+    options.push({ key: 'assistant', label: t('chat.start.assistant') })
+  }
   // 建群需要会话管理权限（后端 chat:manage 门控）
   if (userStore.hasPermission(CHAT_PERMISSIONS.manage)) {
     options.splice(1, 0, { key: 'group', label: t('chat.start.group') })
