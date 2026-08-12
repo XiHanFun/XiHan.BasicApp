@@ -2,7 +2,7 @@
 import type { ChatStartMode } from './ChatStartDialog.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useIsMobile } from '~/composables'
-import { useChatStore } from '~/stores'
+import { useChatStore } from '../store'
 import ChatConversationList from './ChatConversationList.vue'
 import ChatMembersDialog from './ChatMembersDialog.vue'
 import ChatMessageThread from './ChatMessageThread.vue'

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ChatLocalMessage } from '~/stores'
+import type { ChatLocalMessage } from '../store'
 import { NEmpty, NInput, NModal, NScrollbar, useMessage } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XUserAvatar from '~/components/common/UserAvatar.vue'
 import { Icon } from '~/iconify'
-import { useChatStore } from '~/stores'
-import XUserAvatar from '../common/UserAvatar.vue'
+import { useChatStore } from '../store'
 
 defineOptions({ name: 'ChatForwardDialog' })
 

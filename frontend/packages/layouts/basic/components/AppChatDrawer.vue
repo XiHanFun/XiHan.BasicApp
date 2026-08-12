@@ -3,10 +3,10 @@ import { NDrawer, NTooltip } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { ChatPanel } from '~/components'
+import { ChatPanel, useChatStore } from '~/chat'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext, useChatStore, useLayoutBridgeStore } from '~/stores'
+import { useAppContext, useLayoutBridgeStore } from '~/stores'
 
 defineOptions({ name: 'AppChatDrawer' })
 

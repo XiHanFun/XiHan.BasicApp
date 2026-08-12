@@ -2,11 +2,11 @@
 import type { SelectOption } from 'naive-ui'
 import type {
   ChatUserPickerItem,
-} from '~/chat'
+} from '../types'
 import { NSelect } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getChatApi } from '~/chat/api-contract'
+import { getChatApi } from '../api-contract'
 
 defineOptions({ name: 'ChatUserSelect' })
 

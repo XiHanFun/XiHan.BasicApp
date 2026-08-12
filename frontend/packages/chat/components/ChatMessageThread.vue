@@ -1,23 +1,26 @@
 <script setup lang="ts">
-import type { ChatContextMenuItem } from './ChatContextMenu.vue'
+import type { ChatLocalMessage } from '../store'
 import type {
   ChatMessageItem,
-} from '~/chat'
-import type { ChatLocalMessage } from '~/stores'
+} from '../types'
+import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XUserAvatar from '~/components/common/UserAvatar.vue'
+import { Icon } from '~/iconify'
+
+import { useUserStore } from '~/stores'
+import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
+import { getChatApi } from '../api-contract'
+import {
+  CHAT_PERMISSIONS,
+} from '../constants'
+import { useChatStore } from '../store'
 import {
   CHAT_EDIT_WINDOW_MINUTES,
-  CHAT_PERMISSIONS,
   CHAT_RECALL_WINDOW_MINUTES,
-} from '~/chat'
-
-import { getChatApi } from '~/chat/api-contract'
-import { Icon } from '~/iconify'
-import { useChatStore, useUserStore } from '~/stores'
-import { ChatConversationType, ChatMemberRole, ChatMessageType } from '~/types/enums'
-import XUserAvatar from '../common/UserAvatar.vue'
+} from '../types'
 import { formatMessageTime, messageBodyLabel } from './chat-helpers'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
