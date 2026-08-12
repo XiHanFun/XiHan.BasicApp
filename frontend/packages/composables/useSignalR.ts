@@ -19,7 +19,7 @@ interface SignalRInstanceState {
   eventHandlers: Map<string, Set<SignalREventHandler>>
 }
 
-// 按 hubPath 各持一条连接：通知 /hubs/notification 与聊天 /hubs/chat 互不干扰
+// 按 hubPath 各持一条连接，不同 Hub 的订阅与重连互不干扰
 const instances = new Map<string, SignalRInstanceState>()
 
 /** negotiate 阶段的 401（token 过期/失效）：signalr 的 HttpError 带 statusCode，包装错误只剩 message */
