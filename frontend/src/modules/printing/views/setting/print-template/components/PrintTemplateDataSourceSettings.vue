@@ -11,10 +11,10 @@ import {
   NPopover,
   NSelect,
 } from 'naive-ui'
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
-import { extractPrintSampleFormSchema, getPrintDataSource, listPrintDataSources } from '~/printing'
+import { ensureRemotePrintDataSourcesLoaded, extractPrintSampleFormSchema, getPrintDataSource, listPrintDataSources } from '~/printing'
 
 defineOptions({ name: 'PrintTemplateDataSourceSettings' })
 
@@ -25,8 +25,23 @@ const props = defineProps<{
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
 
-const selectedSource = computed(() => getPrintDataSource(model.value.dataSourceCode))
+// 目录版本号：后端目录异步加载完成后递增，驱动下拉与字段目录重算（注册表本身非响应式）
+const catalogVersion = ref(0)
+onMounted(async () => {
+  try {
+    await ensureRemotePrintDataSourcesLoaded()
+  }
+  finally {
+    catalogVersion.value++
+  }
+})
+
+const selectedSource = computed(() => {
+  void catalogVersion.value
+  return getPrintDataSource(model.value.dataSourceCode)
+})
 const dataSourceOptions = computed(() => {
+  void catalogVersion.value
   const options = listPrintDataSources().map(source => ({
     label: `${source.name} (${source.code})`,
     value: source.code,

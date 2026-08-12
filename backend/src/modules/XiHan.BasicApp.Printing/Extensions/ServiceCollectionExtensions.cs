@@ -2,9 +2,11 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Printing.Application.Caching;
 using XiHan.BasicApp.Printing.Application.Contracts;
 using XiHan.BasicApp.Printing.Application.Services;
+using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Infrastructure.Seeders.System;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
@@ -49,6 +51,32 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IPrintTemplateResolver, PrintTemplateResolver>();
         services.AddScoped<IPrintingCacheInvalidator, PrintingCacheInvalidator>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加打印数据源注册表（单例）并登记内置示例数据源。
+    /// 业务模块在自己的 ConfigureServices 中经 <see cref="RegisterPrintDataSource"/> 追加数据源。
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddPrintingDataSources(this IServiceCollection services)
+    {
+        services.TryAddSingleton<IPrintDataSourceRegistry, PrintDataSourceRegistry>();
+        services.RegisterPrintDataSource(BuiltInPrintDataSources.SystemPrintDemo);
+        return services;
+    }
+
+    /// <summary>
+    /// 登记一个打印数据源定义（应用启动完成后由注册表统一收纳；重复编码在收纳时抛出）。
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="definition">数据源定义</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection RegisterPrintDataSource(this IServiceCollection services, PrintDataSourceDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        services.AddSingleton(new PrintDataSourceRegistration(definition));
         return services;
     }
 }

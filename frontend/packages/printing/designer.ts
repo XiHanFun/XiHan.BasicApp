@@ -10,6 +10,7 @@ import type {
 } from './types'
 import { requirePrintDataSource } from './data-source-registry'
 import { getPrintingAdapter } from './hiprint-adapter'
+import { ensureRemotePrintDataSourcesLoaded } from './remote-data-sources'
 
 const MIN_ALIGN_SELECTION_COUNT = 2
 const MIN_DISTRIBUTE_SELECTION_COUNT = 3
@@ -33,6 +34,7 @@ const DISTRIBUTE_ACTIONS = new Set<PrintElementAlignAction>(['distributeHor', 'd
  * @throws 非空数据源未注册、DOM 容器不存在或 hiprint 初始化失败。
  */
 export async function createPrintDesigner(options: PrintDesignerOptions): Promise<PrintDesignerHandle> {
+  await ensureRemotePrintDataSourcesLoaded()
   if (options.dataSourceCode?.trim())
     requirePrintDataSource(options.dataSourceCode)
   const adapter = await getPrintingAdapter()

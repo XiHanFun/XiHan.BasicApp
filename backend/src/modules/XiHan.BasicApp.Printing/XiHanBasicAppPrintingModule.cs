@@ -1,6 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Printing.Domain.DataSources;
+using XiHan.Framework.Core.Application;
 using XiHan.BasicApp.Printing.Domain.Permissions;
 using XiHan.BasicApp.Printing.Extensions;
 using XiHan.BasicApp.Saas;
@@ -33,9 +36,19 @@ public class XiHanBasicAppPrintingModule : XiHanModule
         // 全局模板开放管理属平台专属：登记进 Saas 的平台专属权限清单（版本白名单与租户授权双向排除）
         SaasPlatformPermissions.ContributePlatformOnly(PrintingPermissionCodes.GlobalManage);
 
-        // 种子（操作 → 资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + 解析器与缓存
+        // 种子（权限 → 菜单 → 角色授权）+ 领域服务 + 解析器与缓存 + 数据源注册表（含内置示例）
         services.AddPrintingDataSeeders();
         services.AddPrintingDomainServices();
         services.AddPrintingApplicationServices();
+        services.AddPrintingDataSources();
+    }
+
+    /// <summary>
+    /// 应用初始化：解析一次数据源注册表，使重复编码/非法字段契约在启动阶段失败而不是首个请求。
+    /// </summary>
+    /// <param name="context"></param>
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        _ = context.ServiceProvider.GetRequiredService<IPrintDataSourceRegistry>();
     }
 }
