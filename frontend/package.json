@@ -1,8 +1,8 @@
 {
   "name": "XiHanBasicApp",
   "type": "module",
-  "version": "3.11.1",
-  "lastBuildTime": "2026.08.12",
+  "version": "3.12.0",
+  "lastBuildTime": "2026.08.13",
   "packageManager": "pnpm@11.7.0",
   "description": "XiHan BasicApp - A modern Vue3 admin management system built on Naive UI",
   "keyword": [
