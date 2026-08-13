@@ -61,7 +61,7 @@ catalog:
   md-editor-v3: ^6.5.3
   monaco-editor: ^0.52.2
   naive-ui: ^2.44.1
-  oxlint: ^1.77.0
+  oxlint: ^1.78.0
   papaparse: ^5.5.4
   pinia: ^4.0.2
   pinyin-pro: ^3.28.1
