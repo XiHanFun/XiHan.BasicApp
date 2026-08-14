@@ -25,7 +25,9 @@ public sealed class MessageRecordQueryService
         _smsRepository = smsRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取邮件
+    /// </summary>
     public async Task<SysEmail> GetEmailOrThrowAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -37,7 +39,9 @@ public sealed class MessageRecordQueryService
             ?? throw new InvalidOperationException("系统邮件记录不存在。");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取短信
+    /// </summary>
     public async Task<SysSms> GetSmsOrThrowAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)

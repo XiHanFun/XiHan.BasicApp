@@ -37,7 +37,9 @@ public sealed class OAuthAppDomainService
         _passwordHasher = passwordHasher;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建 OAuth 应用
+    /// </summary>
     public async Task<OAuthAppCommandResult> CreateOAuthAppAsync(OAuthAppCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -88,7 +90,9 @@ public sealed class OAuthAppDomainService
         return new OAuthAppCommandResult(await _oauthAppRepository.AddAsync(app, cancellationToken), plaintextSecret);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除 OAuth 应用
+    /// </summary>
     public async Task DeleteOAuthAppAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -110,7 +114,9 @@ public sealed class OAuthAppDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 重新生成 OAuth 应用密钥
+    /// </summary>
     public async Task<OAuthAppCommandResult> RegenerateOAuthAppSecretAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -121,7 +127,9 @@ public sealed class OAuthAppDomainService
         return new OAuthAppCommandResult(await _oauthAppRepository.UpdateAsync(app, cancellationToken), clientSecret);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 OAuth 应用
+    /// </summary>
     public async Task<OAuthAppCommandResult> UpdateOAuthAppAsync(OAuthAppUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -147,7 +155,9 @@ public sealed class OAuthAppDomainService
         return new OAuthAppCommandResult(await _oauthAppRepository.UpdateAsync(app, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 OAuth 应用状态
+    /// </summary>
     public async Task<OAuthAppCommandResult> UpdateOAuthAppStatusAsync(OAuthAppStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

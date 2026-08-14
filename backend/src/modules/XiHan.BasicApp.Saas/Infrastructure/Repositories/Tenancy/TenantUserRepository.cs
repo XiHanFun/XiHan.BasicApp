@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysTenantUser>(clientResolver), ITenantUserRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户可进入的租户成员关系
+    /// </summary>
     public async Task<IReadOnlyList<SysTenantUser>> GetActiveByUserIdAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -28,7 +30,9 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定租户成员关系
+    /// </summary>
     public async Task<SysTenantUser?> GetMembershipAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -38,7 +42,9 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定租户成员关系
+    /// </summary>
     public async Task<SysTenantUser?> GetMembershipAsync(long tenantId, long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

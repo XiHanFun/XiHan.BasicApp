@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class SmsRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysSms>(clientResolver), ISmsRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取待发送短信
+    /// </summary>
     public async Task<IReadOnlyList<SysSms>> GetPendingSmsAsync(int maxCount, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -17,7 +17,9 @@ namespace XiHan.BasicApp.Chat.Infrastructure.Repositories;
 public sealed class ChatConversationRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysChatConversation>(clientResolver), IChatConversationRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按单聊配对键查询（租户内唯一）
+    /// </summary>
     public async Task<SysChatConversation?> GetByPairKeyAsync(string pairKey, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -27,7 +29,9 @@ public sealed class ChatConversationRepository(ISqlSugarClientResolver clientRes
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按部门查询部门群（租户内同一部门至多一个）
+    /// </summary>
     public async Task<SysChatConversation?> GetByDepartmentIdAsync(long departmentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

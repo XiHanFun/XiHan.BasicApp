@@ -30,19 +30,42 @@ public sealed class UserTaskProgressNotifier
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送任务进行中
+    /// </summary>
+    /// <param name="userId">接收用户</param>
+    /// <param name="taskId">任务标识（同 id 复用同一条灵动岛任务）</param>
+    /// <param name="label">任务文案</param>
+    /// <param name="detail">副文本（可空）</param>
+    /// <param name="progress">进度 0-100（空=不确定态）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public Task NotifyRunningAsync(long userId, string taskId, string label, string? detail = null, int? progress = null, CancellationToken cancellationToken = default)
     {
         return PushAsync(userId, taskId, label, detail, "loading", progress, null, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送任务成功
+    /// </summary>
+    /// <param name="userId">接收用户</param>
+    /// <param name="taskId">任务标识</param>
+    /// <param name="label">任务文案</param>
+    /// <param name="detail">副文本（可空）</param>
+    /// <param name="link">点击跳转链接（可空）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public Task NotifySucceededAsync(long userId, string taskId, string label, string? detail = null, string? link = null, CancellationToken cancellationToken = default)
     {
         return PushAsync(userId, taskId, label, detail, "success", 100, link, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送任务失败
+    /// </summary>
+    /// <param name="userId">接收用户</param>
+    /// <param name="taskId">任务标识</param>
+    /// <param name="label">任务文案</param>
+    /// <param name="detail">副文本（可空）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public Task NotifyFailedAsync(long userId, string taskId, string label, string? detail = null, CancellationToken cancellationToken = default)
     {
         return PushAsync(userId, taskId, label, detail, "error", null, null, cancellationToken);

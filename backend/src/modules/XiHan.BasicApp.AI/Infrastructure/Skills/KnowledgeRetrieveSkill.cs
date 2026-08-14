@@ -30,13 +30,19 @@ public sealed class KnowledgeRetrieveSkill : IAiSkill
         _retriever = retriever;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 技能名（唯一；作工具名 / MCP tool 名）
+    /// </summary>
     public string Name => "knowledge_retrieve";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 技能说明（供模型理解何时调用）
+    /// </summary>
     public string Description => "检索 XiHan 知识库，返回与查询最相关的文档片段(带标题/来源/相似度)。回答需要引用知识库内容时调用。";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 转为可供对话工具调用 / MCP 暴露的 <see cref="AIFunction"/>
+    /// </summary>
     public AIFunction AsFunction()
     {
         return AIFunctionFactory.Create(

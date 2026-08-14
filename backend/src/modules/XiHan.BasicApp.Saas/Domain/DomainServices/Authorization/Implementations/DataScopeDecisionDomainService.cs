@@ -11,7 +11,13 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// </summary>
 public sealed class DataScopeDecisionDomainService : IDataScopeDecisionDomainService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 合并数据范围授权快照
+    /// </summary>
+    /// <param name="grants">数据范围授权快照集合</param>
+    /// <param name="userDepartmentIds">当前用户有效部门ID集合</param>
+    /// <param name="now">当前时间</param>
+    /// <returns>数据范围裁决结果</returns>
     public DataScopeDecision Decide(
         IEnumerable<DataScopeGrantSnapshot> grants,
         IEnumerable<long> userDepartmentIds,

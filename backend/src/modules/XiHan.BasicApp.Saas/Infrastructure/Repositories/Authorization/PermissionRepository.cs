@@ -16,7 +16,9 @@ public sealed class PermissionRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysPermission>(clientResolver, unitOfWorkManager), IPermissionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据当前租户和权限编码获取权限
+    /// </summary>
     public async Task<SysPermission?> GetByCodeAsync(string permissionCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
@@ -27,7 +29,9 @@ public sealed class PermissionRepository(
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据权限编码集合获取权限
+    /// </summary>
     public async Task<IReadOnlyList<SysPermission>> GetByCodesAsync(IEnumerable<string> permissionCodes, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(permissionCodes);
@@ -48,7 +52,9 @@ public sealed class PermissionRepository(
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据资源和操作获取权限
+    /// </summary>
     public async Task<SysPermission?> GetByResourceOperationAsync(long resourceId, long operationId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -22,7 +22,9 @@ public sealed class VersionDomainService
         _versionRepository = versionRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建版本
+    /// </summary>
     public async Task<VersionCommandResult> CreateVersionAsync(VersionCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -42,7 +44,9 @@ public sealed class VersionDomainService
         return new VersionCommandResult(await _versionRepository.AddAsync(version, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除版本
+    /// </summary>
     public async Task DeleteVersionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -59,7 +63,9 @@ public sealed class VersionDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 完成版本升级
+    /// </summary>
     public async Task<VersionCommandResult> FinishVersionUpgradeAsync(VersionUpgradeFinishCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -82,7 +88,9 @@ public sealed class VersionDomainService
         return new VersionCommandResult(await _versionRepository.UpdateAsync(version, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 开始版本升级
+    /// </summary>
     public async Task<VersionCommandResult> StartVersionUpgradeAsync(VersionUpgradeStartCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -96,7 +104,9 @@ public sealed class VersionDomainService
         return new VersionCommandResult(await _versionRepository.UpdateAsync(version, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新版本
+    /// </summary>
     public async Task<VersionCommandResult> UpdateVersionAsync(VersionUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

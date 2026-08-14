@@ -31,12 +31,18 @@ public sealed class CodeGenerationMenuSeeder(
     /// </summary>
     public override string Name => "[CodeGeneration]模块菜单种子数据";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 日志中标识模块的名称
+    /// </summary>
     protected override string ModuleName => "代码生成";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 本模块登记的页面（父目录须排在子项之前，按顺序解析 ParentId）
+    /// </summary>
     protected override IReadOnlyList<PageDescriptor> Pages => CodeGenPageRegistry.All;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 本模块登记的页面内按钮
+    /// </summary>
     protected override IReadOnlyList<ButtonDescriptor> Buttons => CodeGenPageRegistry.Buttons;
 }

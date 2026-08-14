@@ -43,7 +43,12 @@ public sealed class TenantDatabaseInitializer : ITenantDatabaseInitializer
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 为库隔离租户初始化独立数据库：建库 → 建表 → 基线种子（幂等）。
+    /// </summary>
+    /// <param name="tenantId">租户标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>初始化后的租户（含最新配置状态）</returns>
     public async Task<SysTenant> InitializeAsync(long tenantId, CancellationToken cancellationToken = default)
     {
         if (tenantId <= 0)

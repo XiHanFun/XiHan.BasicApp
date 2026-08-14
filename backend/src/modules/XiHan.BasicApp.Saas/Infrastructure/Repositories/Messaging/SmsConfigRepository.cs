@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class SmsConfigRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysSmsConfig>(clientResolver), ISmsConfigRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按配置编码查询（租户内唯一）
+    /// </summary>
     public async Task<SysSmsConfig?> GetByCodeAsync(string configCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configCode);
@@ -24,7 +26,9 @@ public sealed class SmsConfigRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取默认且启用的短信网关配置
+    /// </summary>
     public async Task<SysSmsConfig?> GetDefaultAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

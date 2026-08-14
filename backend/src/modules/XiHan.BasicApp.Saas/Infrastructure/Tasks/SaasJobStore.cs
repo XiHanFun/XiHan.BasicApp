@@ -45,7 +45,10 @@ public sealed class SaasJobStore : IJobStore
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 保存任务实例
+    /// </summary>
+    /// <param name="jobInstance">任务实例</param>
     public async Task SaveJobInstanceAsync(JobInstance jobInstance)
     {
         ArgumentNullException.ThrowIfNull(jobInstance);
@@ -69,7 +72,11 @@ public sealed class SaasJobStore : IJobStore
         await repository.UpdateAsync(task);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新任务实例状态
+    /// </summary>
+    /// <param name="instanceId">实例唯一标识</param>
+    /// <param name="status">状态</param>
     public async Task UpdateJobStatusAsync(string instanceId, JobStatus status)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(instanceId);
@@ -109,7 +116,10 @@ public sealed class SaasJobStore : IJobStore
         await repository.UpdateAsync(task);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 保存任务执行历史
+    /// </summary>
+    /// <param name="history">执行历史</param>
     public async Task SaveJobHistoryAsync(JobHistory history)
     {
         ArgumentNullException.ThrowIfNull(history);
@@ -156,7 +166,11 @@ public sealed class SaasJobStore : IJobStore
         await db.Insertable(log).SplitTable().ExecuteCommandAsync();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取任务实例
+    /// </summary>
+    /// <param name="instanceId">实例唯一标识</param>
+    /// <returns>任务实例</returns>
     public async Task<JobInstance?> GetJobInstanceAsync(string instanceId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(instanceId);
@@ -189,7 +203,13 @@ public sealed class SaasJobStore : IJobStore
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取任务执行历史
+    /// </summary>
+    /// <param name="jobName">任务名称</param>
+    /// <param name="pageIndex">页码</param>
+    /// <param name="pageSize">页大小</param>
+    /// <returns>执行历史列表</returns>
     public async Task<IReadOnlyList<JobHistory>> GetJobHistoryAsync(string jobName, int pageIndex = 1, int pageSize = 20)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(jobName);
@@ -209,7 +229,11 @@ public sealed class SaasJobStore : IJobStore
         return logs.Select(MapToJobHistory).ToList();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取运行中的任务实例
+    /// </summary>
+    /// <param name="jobName">任务名称</param>
+    /// <returns>运行中的任务实例列表</returns>
     public async Task<IReadOnlyList<JobInstance>> GetRunningInstancesAsync(string jobName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(jobName);
@@ -242,7 +266,10 @@ public sealed class SaasJobStore : IJobStore
         }).ToList();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 清理过期的历史记录
+    /// </summary>
+    /// <param name="retentionDays">保留天数</param>
     public async Task CleanupHistoryAsync(int retentionDays)
     {
         if (retentionDays < 0)

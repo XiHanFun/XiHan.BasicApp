@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class PermissionConditionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysPermissionCondition>(clientResolver), IPermissionConditionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取角色或用户授权关联的有效 ABAC 条件
+    /// </summary>
     public async Task<IReadOnlyList<SysPermissionCondition>> GetValidByAuthorizationIdsAsync(
         IEnumerable<long> rolePermissionIds,
         IEnumerable<long> userPermissionIds,

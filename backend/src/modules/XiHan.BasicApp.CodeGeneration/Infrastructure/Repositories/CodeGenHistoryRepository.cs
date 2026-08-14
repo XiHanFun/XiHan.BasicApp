@@ -15,7 +15,9 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Repositories;
 public sealed class CodeGenHistoryRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysCodeGenHistory>(clientResolver), ICodeGenHistoryRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按表配置获取生成历史（按生成时间倒序）
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenHistory>> GetByTableIdAsync(long tableId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -26,7 +28,9 @@ public sealed class CodeGenHistoryRepository(ISqlSugarClientResolver clientResol
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按批次号获取
+    /// </summary>
     public async Task<SysCodeGenHistory?> GetByBatchNumberAsync(string batchNumber, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(batchNumber);

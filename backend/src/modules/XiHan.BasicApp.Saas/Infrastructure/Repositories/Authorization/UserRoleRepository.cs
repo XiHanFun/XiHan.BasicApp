@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserRoleRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserRole>(clientResolver), IUserRoleRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户有效角色授权
+    /// </summary>
     public async Task<IReadOnlyList<SysUserRole>> GetValidByUserIdAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

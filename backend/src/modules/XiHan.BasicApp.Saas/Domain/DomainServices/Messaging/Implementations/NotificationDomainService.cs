@@ -51,7 +51,9 @@ public sealed class NotificationDomainService
         _preferenceRepository = preferenceRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建通知
+    /// </summary>
     public async Task<NotificationCommandResult> CreateNotificationAsync(NotificationCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -95,7 +97,9 @@ public sealed class NotificationDomainService
         return new NotificationCommandResult(savedNotification);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除通知
+    /// </summary>
     public async Task DeleteNotificationAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -108,7 +112,9 @@ public sealed class NotificationDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发布通知
+    /// </summary>
     public async Task<NotificationPublishCommandResult> PublishNotificationAsync(NotificationPublishCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -129,7 +135,14 @@ public sealed class NotificationDomainService
         return new NotificationPublishCommandResult(notification, recipientCount);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析通知的邮箱/短信渠道收件人（按投递渠道位；复用定向解析 + 偏好门控单一事实源）
+    /// </summary>
+    /// <remarks>
+    /// 供发布后的多渠道扇出使用：从已发布通知的 TargetType/TargetValue 还原目标并展开为用户集合，
+    /// 再按 邮箱/短信 渠道分别过偏好门控（强制阅读/紧急通知豁免语义与站内信一致）。
+    /// 机器人渠道为通知级广播、无用户维度，不在此解析。
+    /// </remarks>
     public async Task<NotificationChannelRecipientsResult> ResolveChannelRecipientsAsync(SysNotification notification, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(notification);
@@ -161,7 +174,9 @@ public sealed class NotificationDomainService
         return new NotificationChannelRecipientsResult(emailUserIds, smsUserIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新通知
+    /// </summary>
     public async Task<NotificationCommandResult> UpdateNotificationAsync(NotificationUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class FieldLevelSecurityRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysFieldLevelSecurity>(clientResolver), IFieldLevelSecurityRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据资源和角色获取字段级安全规则
+    /// </summary>
     public async Task<IReadOnlyList<SysFieldLevelSecurity>> GetByResourceAndRoleAsync(long resourceId, long roleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

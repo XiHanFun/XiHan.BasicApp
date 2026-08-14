@@ -36,7 +36,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         ".txt", ".md", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".csv", ".json", ".xml"
     };
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 规范上传文件原始名称
+    /// </summary>
     public string NormalizeOriginalName(string originalName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(originalName);
@@ -50,7 +52,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         return fileName.Length <= 200 ? fileName : fileName[^200..];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 生成租户内唯一的系统文件名
+    /// </summary>
     public string BuildStoredFileName(string originalName, string fileHash)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileHash);
@@ -65,7 +69,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         return $"{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}_{hashPrefix}{extension}";
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 生成对象存储路径
+    /// </summary>
     public string BuildStoragePath(string fileName, string? directory, DateTimeOffset now)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
@@ -79,7 +85,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
             : $"{normalizedDirectory}/{dateSegment}/{normalizedFileName}";
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据扩展名和 MIME 推断文件类型
+    /// </summary>
     public FileType ResolveFileType(string? extension, string? mimeType)
     {
         var normalizedExtension = NormalizeExtension(extension);
@@ -136,7 +144,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         return FileType.Other;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据对象存储提供商解析存储类型
+    /// </summary>
     public FileStorageType ResolveStorageType(string providerName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
@@ -151,7 +161,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析对象存储访问控制
+    /// </summary>
     public string ResolveAccessControl(ResourceAccessLevel accessLevel, string? accessControl)
     {
         if (!string.IsNullOrWhiteSpace(accessControl))
@@ -162,7 +174,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         return accessLevel == ResourceAccessLevel.Public ? "public-read" : "private";
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验上传元数据
+    /// </summary>
     public void EnsureUploadMetadata(long fileSize, bool isTemporary, DateTimeOffset? expiresAt, int retentionDays)
     {
         if (fileSize <= 0)
@@ -186,7 +200,9 @@ public sealed class FileStorageDomainService : IFileStorageDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验存储副本可作为主存储
+    /// </summary>
     public void EnsureCanBecomePrimary(SysFileStorage storage)
     {
         ArgumentNullException.ThrowIfNull(storage);

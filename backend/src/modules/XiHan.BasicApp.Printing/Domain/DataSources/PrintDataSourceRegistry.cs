@@ -35,7 +35,10 @@ public sealed class PrintDataSourceRegistry : IPrintDataSourceRegistry
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 注册数据源定义；重复编码抛出异常（后注册模块不得静默覆盖既有字段契约）。
+    /// </summary>
+    /// <param name="definition">数据源定义</param>
     public void Register(PrintDataSourceDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -148,19 +151,28 @@ public sealed class PrintDataSourceRegistry : IPrintDataSourceRegistry
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按编码查找数据源。
+    /// </summary>
+    /// <param name="code">数据源编码</param>
+    /// <returns>数据源定义；未注册返回 null</returns>
     public PrintDataSourceDefinition? Find(string code)
     {
         return string.IsNullOrWhiteSpace(code) ? null : _sources.GetValueOrDefault(code.Trim());
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 数据源是否已注册。
+    /// </summary>
+    /// <param name="code">数据源编码</param>
     public bool IsRegistered(string code)
     {
         return Find(code) is not null;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 全部已注册数据源（按编码排序）。
+    /// </summary>
     public IReadOnlyList<PrintDataSourceDefinition> GetAll()
     {
         return [.. _sources.Values.OrderBy(s => s.Code, StringComparer.Ordinal)];

@@ -38,7 +38,9 @@ public sealed class SaasAiProviderConfigStore : IAiProviderConfigStore
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取指定 provider 的生效配置（null 取默认 provider）；无匹配返回 null（调用方 fail-closed 处理）
+    /// </summary>
     public async Task<AiProviderOptions?> GetAsync(string? providerName = null, CancellationToken cancellationToken = default)
     {
         SysAiProvider? provider;
@@ -53,7 +55,9 @@ public sealed class SaasAiProviderConfigStore : IAiProviderConfigStore
         return provider is null ? null : Map(provider);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取全部启用 provider 配置
+    /// </summary>
     public async Task<IReadOnlyList<AiProviderOptions>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<SysAiProvider> providers;

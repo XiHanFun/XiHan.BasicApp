@@ -12,7 +12,13 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// </summary>
 public sealed class PermissionDecisionDomainService : IPermissionDecisionDomainService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据授权快照裁决指定权限
+    /// </summary>
+    /// <param name="permissionCode">权限编码</param>
+    /// <param name="grants">授权快照集合</param>
+    /// <param name="now">当前时间</param>
+    /// <returns>裁决结果</returns>
     public AuthorizationDecision Decide(string permissionCode, IEnumerable<PermissionGrantSnapshot> grants, DateTimeOffset now)
     {
         if (string.IsNullOrWhiteSpace(permissionCode))

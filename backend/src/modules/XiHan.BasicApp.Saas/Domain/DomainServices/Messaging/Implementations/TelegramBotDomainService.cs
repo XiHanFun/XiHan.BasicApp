@@ -27,7 +27,9 @@ public sealed class TelegramBotDomainService
         _tokenProtector = tokenProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建 Telegram 机器人
+    /// </summary>
     public async Task<TelegramBotCommandResult> CreateTelegramBotAsync(TelegramBotCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -56,7 +58,9 @@ public sealed class TelegramBotDomainService
         return new TelegramBotCommandResult(await _telegramBotRepository.AddAsync(bot, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 Telegram 机器人
+    /// </summary>
     public async Task<TelegramBotCommandResult> UpdateTelegramBotAsync(TelegramBotUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -90,7 +94,9 @@ public sealed class TelegramBotDomainService
         return new TelegramBotCommandResult(await _telegramBotRepository.UpdateAsync(bot, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 Telegram 机器人启用状态
+    /// </summary>
     public async Task<TelegramBotCommandResult> UpdateTelegramBotStatusAsync(TelegramBotStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -103,7 +109,9 @@ public sealed class TelegramBotDomainService
         return new TelegramBotCommandResult(await _telegramBotRepository.UpdateAsync(bot, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除 Telegram 机器人
+    /// </summary>
     public async Task<TelegramBotCommandResult> DeleteTelegramBotAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

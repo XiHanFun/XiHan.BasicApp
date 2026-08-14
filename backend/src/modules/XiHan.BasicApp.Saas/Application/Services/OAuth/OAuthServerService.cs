@@ -78,7 +78,9 @@ public sealed class OAuthServerService : IOAuthServerService
 
     #region 授权（同意页）
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验授权请求（供同意页预览：返回客户端展示信息与解析后的授权范围）
+    /// </summary>
     public async Task<OAuthAuthorizeValidation> ValidateAuthorizeRequestAsync(OAuthAuthorizeRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -130,7 +132,9 @@ public sealed class OAuthServerService : IOAuthServerService
         return new OAuthAuthorizeValidation(true, null, null, true, ToClientInfo(app), scopes);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 用户同意后创建授权码，返回携带 code/state 的最终跳转地址
+    /// </summary>
     public async Task<OAuthCreateCodeResult> CreateAuthorizationCodeAsync(OAuthCreateCodeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -192,7 +196,9 @@ public sealed class OAuthServerService : IOAuthServerService
 
     #region 令牌端点
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 令牌端点：按 grant_type 分发（authorization_code / refresh_token / client_credentials）
+    /// </summary>
     public async Task<OAuthTokenOutcome> ExchangeTokenAsync(OAuthTokenRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -392,7 +398,9 @@ public sealed class OAuthServerService : IOAuthServerService
 
     #region 撤销端点
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销端点：撤销刷新令牌（并按令牌族吊销）；未知令牌按 RFC 7009 静默成功
+    /// </summary>
     public async Task RevokeTokenAsync(OAuthRevokeRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);

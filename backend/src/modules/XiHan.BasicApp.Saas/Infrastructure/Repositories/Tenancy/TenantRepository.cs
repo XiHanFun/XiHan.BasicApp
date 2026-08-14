@@ -17,7 +17,9 @@ public sealed class TenantRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysTenant>(clientResolver, unitOfWorkManager), ITenantRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据租户编码获取租户
+    /// </summary>
     public async Task<SysTenant?> GetByCodeAsync(string tenantCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantCode);
@@ -28,7 +30,9 @@ public sealed class TenantRepository(
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据域名获取租户
+    /// </summary>
     public async Task<SysTenant?> GetByDomainAsync(string domain, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(domain);
@@ -60,7 +64,9 @@ public sealed class TenantRepository(
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建默认查询（租户/软删过滤器由全局 AOP 自动生效）
+    /// </summary>
     protected override ISugarQueryable<SysTenant> CreateQueryable()
     {
         return CreateNoTenantQueryable();

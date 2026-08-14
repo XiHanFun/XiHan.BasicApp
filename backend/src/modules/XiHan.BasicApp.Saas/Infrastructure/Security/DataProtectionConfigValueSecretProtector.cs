@@ -25,7 +25,11 @@ public sealed class DataProtectionConfigValueSecretProtector : IConfigValueSecre
         _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.ConfigValue);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 加密配置值（幂等：已是密文则原样返回；空值透传）
+    /// </summary>
+    /// <param name="plaintext">明文配置值</param>
+    /// <returns>密文（带前缀标记）</returns>
     public string? Protect(string? plaintext)
     {
         if (string.IsNullOrEmpty(plaintext))
@@ -42,7 +46,11 @@ public sealed class DataProtectionConfigValueSecretProtector : IConfigValueSecre
         return SaasSecretProtectionPurposes.CipherPrefix + _protector.Protect(plaintext);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解密配置值（解密失败抛异常，fail-closed；空值透传）
+    /// </summary>
+    /// <param name="value">密文</param>
+    /// <returns>明文配置值</returns>
     public string? Unprotect(string? value)
     {
         if (string.IsNullOrEmpty(value))

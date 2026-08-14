@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class DictRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysDict>(clientResolver), IDictRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据字典编码获取
+    /// </summary>
     public async Task<SysDict?> GetByCodeAsync(string dictCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dictCode);
@@ -24,7 +26,9 @@ public sealed class DictRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查字典编码是否存在
+    /// </summary>
     public async Task<bool> ExistsCodeAsync(string dictCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dictCode);

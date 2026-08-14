@@ -28,7 +28,9 @@ public sealed class SmsConfigDomainService
         _secretProtector = secretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建短信网关配置
+    /// </summary>
     public async Task<SmsConfigCommandResult> CreateSmsConfigAsync(SmsConfigCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -67,7 +69,9 @@ public sealed class SmsConfigDomainService
         return new SmsConfigCommandResult(await _smsConfigRepository.AddAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新短信网关配置
+    /// </summary>
     public async Task<SmsConfigCommandResult> UpdateSmsConfigAsync(SmsConfigUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -96,7 +100,9 @@ public sealed class SmsConfigDomainService
         return new SmsConfigCommandResult(await _smsConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新短信网关配置启用状态
+    /// </summary>
     public async Task<SmsConfigCommandResult> UpdateSmsConfigStatusAsync(SmsConfigStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -113,7 +119,9 @@ public sealed class SmsConfigDomainService
         return new SmsConfigCommandResult(await _smsConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置默认短信网关配置
+    /// </summary>
     public async Task<SmsConfigCommandResult> SetDefaultSmsConfigAsync(SmsConfigDefaultChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -129,7 +137,9 @@ public sealed class SmsConfigDomainService
         return new SmsConfigCommandResult(await _smsConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除短信网关配置
+    /// </summary>
     public async Task<SmsConfigCommandResult> DeleteSmsConfigAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -31,7 +31,9 @@ public sealed class StorageConfigDomainService
         _secretProtector = secretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建存储配置
+    /// </summary>
     public async Task<StorageConfigCommandResult> CreateStorageConfigAsync(StorageConfigCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -69,7 +71,9 @@ public sealed class StorageConfigDomainService
         return new StorageConfigCommandResult(await _storageConfigRepository.AddAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新存储配置
+    /// </summary>
     public async Task<StorageConfigCommandResult> UpdateStorageConfigAsync(StorageConfigUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -97,7 +101,9 @@ public sealed class StorageConfigDomainService
         return new StorageConfigCommandResult(await _storageConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新存储配置启停状态
+    /// </summary>
     public async Task<StorageConfigCommandResult> UpdateStorageConfigStatusAsync(StorageConfigStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -114,7 +120,9 @@ public sealed class StorageConfigDomainService
         return new StorageConfigCommandResult(await _storageConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置默认存储配置
+    /// </summary>
     public async Task<StorageConfigCommandResult> SetDefaultStorageConfigAsync(StorageConfigDefaultChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -130,7 +138,9 @@ public sealed class StorageConfigDomainService
         return new StorageConfigCommandResult(await _storageConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除存储配置
+    /// </summary>
     public async Task<StorageConfigCommandResult> DeleteStorageConfigAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -37,7 +37,14 @@ public sealed class PermissionMergeDomainService
         _permissionRepository = permissionRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 加载并合并用户的全部权限授权快照
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="roleIds">用户持有的角色ID集合（已展开继承链）</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>合并后的权限授权快照集合</returns>
     public async Task<IReadOnlyList<PermissionGrantSnapshot>> MergePermissionGrantsAsync(
         long userId,
         IEnumerable<long> roleIds,

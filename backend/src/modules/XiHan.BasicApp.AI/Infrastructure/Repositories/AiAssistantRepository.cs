@@ -15,7 +15,9 @@ namespace XiHan.BasicApp.AI.Infrastructure.Repositories;
 public sealed class AiAssistantRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysAiAssistant>(clientResolver), IAiAssistantRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按编码获取（任意状态，用于详情/唯一性）
+    /// </summary>
     public async Task<SysAiAssistant?> GetByCodeAsync(string assistantCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(assistantCode);
@@ -27,7 +29,9 @@ public sealed class AiAssistantRepository(ISqlSugarClientResolver clientResolver
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查编码是否存在
+    /// </summary>
     public async Task<bool> ExistsCodeAsync(string assistantCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(assistantCode);
@@ -43,7 +47,9 @@ public sealed class AiAssistantRepository(ISqlSugarClientResolver clientResolver
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取全部启用助手（聊天页助手列表，按 Sort 升序）
+    /// </summary>
     public async Task<IReadOnlyList<SysAiAssistant>> GetEnabledListAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -54,7 +60,9 @@ public sealed class AiAssistantRepository(ISqlSugarClientResolver clientResolver
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按主键获取启用助手（发起会话/回复路径，禁用即拒绝）
+    /// </summary>
     public async Task<SysAiAssistant?> GetEnabledByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -64,7 +72,9 @@ public sealed class AiAssistantRepository(ISqlSugarClientResolver clientResolver
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取除 excludeId 外仍被标记为默认的助手（默认单选互斥）
+    /// </summary>
     public async Task<IReadOnlyList<SysAiAssistant>> GetOtherDefaultsAsync(long excludeId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

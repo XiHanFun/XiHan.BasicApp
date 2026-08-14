@@ -14,13 +14,19 @@ namespace XiHan.BasicApp.Saas.Application.Exporting;
 public sealed class AccessLogExportProvider(IAccessLogQueryService service)
     : QueryServiceExportProviderBase<AccessLogPageQueryDto, AccessLogListItemDto>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 业务类型（= 前端 pageCode）
+    /// </summary>
     public override string BusinessType => "log.access";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// </summary>
     public override string RequiredPermission => SaasPermissionCodes.AccessLog.Read;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 调用对应 QueryService 的分页方法（子类实现）
+    /// </summary>
     protected override Task<PageResultDtoBase<AccessLogListItemDto>> QueryPageAsync(AccessLogPageQueryDto query, CancellationToken cancellationToken)
     {
         return service.GetAccessLogPageAsync(query, cancellationToken);
@@ -33,13 +39,19 @@ public sealed class AccessLogExportProvider(IAccessLogQueryService service)
 public sealed class ApiLogExportProvider(IApiLogQueryService service)
     : QueryServiceExportProviderBase<ApiLogPageQueryDto, ApiLogListItemDto>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 业务类型（= 前端 pageCode）
+    /// </summary>
     public override string BusinessType => "log.api";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// </summary>
     public override string RequiredPermission => SaasPermissionCodes.ApiLog.Read;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 调用对应 QueryService 的分页方法（子类实现）
+    /// </summary>
     protected override Task<PageResultDtoBase<ApiLogListItemDto>> QueryPageAsync(ApiLogPageQueryDto query, CancellationToken cancellationToken)
     {
         return service.GetApiLogPageAsync(query, cancellationToken);
@@ -52,13 +64,19 @@ public sealed class ApiLogExportProvider(IApiLogQueryService service)
 public sealed class LoginLogExportProvider(ILoginLogQueryService service)
     : QueryServiceExportProviderBase<LoginLogPageQueryDto, LoginLogListItemDto>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 业务类型（= 前端 pageCode）
+    /// </summary>
     public override string BusinessType => "log.login";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// </summary>
     public override string RequiredPermission => SaasPermissionCodes.LoginLog.Read;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 调用对应 QueryService 的分页方法（子类实现）
+    /// </summary>
     protected override Task<PageResultDtoBase<LoginLogListItemDto>> QueryPageAsync(LoginLogPageQueryDto query, CancellationToken cancellationToken)
     {
         return service.GetLoginLogPageAsync(query, cancellationToken);
@@ -71,13 +89,19 @@ public sealed class LoginLogExportProvider(ILoginLogQueryService service)
 public sealed class ExceptionLogExportProvider(IExceptionLogQueryService service)
     : QueryServiceExportProviderBase<ExceptionLogPageQueryDto, ExceptionLogListItemDto>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 业务类型（= 前端 pageCode）
+    /// </summary>
     public override string BusinessType => "log.exception";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// </summary>
     public override string RequiredPermission => SaasPermissionCodes.ExceptionLog.Read;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 调用对应 QueryService 的分页方法（子类实现）
+    /// </summary>
     protected override Task<PageResultDtoBase<ExceptionLogListItemDto>> QueryPageAsync(ExceptionLogPageQueryDto query, CancellationToken cancellationToken)
     {
         return service.GetExceptionLogPageAsync(query, cancellationToken);
@@ -90,13 +114,19 @@ public sealed class ExceptionLogExportProvider(IExceptionLogQueryService service
 public sealed class DiffLogExportProvider(IDiffLogQueryService service)
     : QueryServiceExportProviderBase<DiffLogPageQueryDto, DiffLogListItemDto>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 业务类型（= 前端 pageCode）
+    /// </summary>
     public override string BusinessType => "log.diff";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// </summary>
     public override string RequiredPermission => SaasPermissionCodes.DiffLog.Read;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 调用对应 QueryService 的分页方法（子类实现）
+    /// </summary>
     protected override Task<PageResultDtoBase<DiffLogListItemDto>> QueryPageAsync(DiffLogPageQueryDto query, CancellationToken cancellationToken)
     {
         return service.GetDiffLogPageAsync(query, cancellationToken);

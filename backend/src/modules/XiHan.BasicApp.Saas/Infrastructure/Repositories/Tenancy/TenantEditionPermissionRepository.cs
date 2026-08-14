@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class TenantEditionPermissionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysTenantEditionPermission>(clientResolver), ITenantEditionPermissionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据版本ID获取权限映射列表
+    /// </summary>
     public async Task<IReadOnlyList<SysTenantEditionPermission>> GetByEditionIdAsync(long editionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -23,7 +25,9 @@ public sealed class TenantEditionPermissionRepository(ISqlSugarClientResolver cl
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 全量替换版本权限映射（先删后插）
+    /// </summary>
     public async Task ReplaceByEditionIdAsync(long editionId, IEnumerable<SysTenantEditionPermission> items, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

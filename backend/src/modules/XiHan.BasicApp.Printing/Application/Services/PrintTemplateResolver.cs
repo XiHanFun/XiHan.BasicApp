@@ -48,7 +48,13 @@ public sealed class PrintTemplateResolver : IPrintTemplateResolver
         _cache = cache;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按当前租户、请求作用域和模板编码解析启用模板。
+    /// </summary>
+    /// <param name="templateCode">模板编码。</param>
+    /// <param name="scope">解析作用域。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>命中的模板；不存在时返回 <see langword="null"/>。</returns>
     public async Task<ResolvedPrintTemplateDto?> ResolveAsync(
         string templateCode,
         PrintTemplateScope scope = PrintTemplateScope.Auto,

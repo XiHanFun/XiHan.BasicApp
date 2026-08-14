@@ -17,7 +17,9 @@ public sealed class RoleRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysRole>(clientResolver, unitOfWorkManager), IRoleRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据当前租户和角色编码获取角色
+    /// </summary>
     public async Task<SysRole?> GetByCodeAsync(string roleCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleCode);
@@ -28,7 +30,9 @@ public sealed class RoleRepository(
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取有效角色集合
+    /// </summary>
     public async Task<IReadOnlyList<SysRole>> GetEnabledByIdsAsync(IEnumerable<long> roleIds, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(roleIds);

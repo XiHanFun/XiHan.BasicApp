@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserApiCredentialRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserApiCredential>(clientResolver), IUserApiCredentialRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户全部凭证（创建时间倒序）
+    /// </summary>
     public async Task<IReadOnlyList<SysUserApiCredential>> GetListByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -24,7 +26,9 @@ public sealed class UserApiCredentialRepository(ISqlSugarClientResolver clientRe
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按应用键查询凭证（跨租户；开放接口鉴权入口，AppKey 全局唯一）
+    /// </summary>
     public async Task<SysUserApiCredential?> GetByAppKeyAsync(string appKey, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(appKey);

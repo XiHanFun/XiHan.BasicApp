@@ -55,7 +55,12 @@ public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProv
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析指定租户的独立连接描述符
+    /// </summary>
+    /// <param name="tenantId">当前租户标识</param>
+    /// <param name="tenantName">当前租户名称（可空）</param>
+    /// <returns>需要独立连接时返回描述符；无需独立连接（走默认连接）时返回 <c>null</c></returns>
     public SqlSugarTenantConnection? Resolve(long tenantId, string? tenantName)
     {
         if (_cache.TryGetValue(tenantId, out var cached))
@@ -68,7 +73,10 @@ public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProv
         return descriptor;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 使指定租户的连接缓存失效
+    /// </summary>
+    /// <param name="tenantId">租户标识</param>
     public void Invalidate(long tenantId)
     {
         _cache.TryRemove(tenantId, out _);

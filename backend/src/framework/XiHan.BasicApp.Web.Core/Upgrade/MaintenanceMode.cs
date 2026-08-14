@@ -60,7 +60,9 @@ public sealed class BasicAppUpgradeMaintenanceModeManager : IUpgradeMaintenanceM
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 进入维护模式
+    /// </summary>
     public Task EnterAsync(CancellationToken cancellationToken = default)
     {
         _state.Enter();
@@ -68,7 +70,9 @@ public sealed class BasicAppUpgradeMaintenanceModeManager : IUpgradeMaintenanceM
         return Task.CompletedTask;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 退出维护模式
+    /// </summary>
     public Task ExitAsync(CancellationToken cancellationToken = default)
     {
         _state.Exit();

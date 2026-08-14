@@ -45,7 +45,10 @@ public sealed class AuthLoginEventHandler
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(AuthLoginSucceededDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);
@@ -103,7 +106,10 @@ public sealed class AuthLoginEventHandler
             "/workbench/profile");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(AuthLoginFailedDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);
@@ -120,7 +126,10 @@ public sealed class AuthLoginEventHandler
             eventData.LoginTime);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(AuthLogoutDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);
@@ -156,7 +165,10 @@ public sealed class AuthLoginEventHandler
             "/workbench/profile");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(AuthSecurityAuditDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);

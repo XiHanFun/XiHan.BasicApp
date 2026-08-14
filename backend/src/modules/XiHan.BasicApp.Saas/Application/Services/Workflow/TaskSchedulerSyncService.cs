@@ -42,7 +42,9 @@ public sealed class TaskSchedulerSyncService
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 应用单个任务调度同步动作
+    /// </summary>
     public void Apply(SysTask task, TaskSchedulerSyncAction syncAction)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -84,7 +86,9 @@ public sealed class TaskSchedulerSyncService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 同步所有启用任务到调度器
+    /// </summary>
     public async Task SyncAllActiveJobsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

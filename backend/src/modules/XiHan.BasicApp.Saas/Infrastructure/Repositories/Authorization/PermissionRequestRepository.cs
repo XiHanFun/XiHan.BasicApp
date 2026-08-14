@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class PermissionRequestRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysPermissionRequest>(clientResolver), IPermissionRequestRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取某权限的待处理申请
+    /// </summary>
     public async Task<IReadOnlyList<SysPermissionRequest>> GetPendingByPermissionIdAsync(long permissionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

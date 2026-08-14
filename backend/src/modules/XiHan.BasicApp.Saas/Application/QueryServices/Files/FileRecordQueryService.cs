@@ -25,7 +25,9 @@ public sealed class FileRecordQueryService
         _fileStorageRepository = fileStorageRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据主键获取文件
+    /// </summary>
     public async Task<SysFile> GetFileOrThrowAsync(long id, CancellationToken cancellationToken = default)
     {
         EnsureId(id, "系统文件主键必须大于 0。");
@@ -33,7 +35,9 @@ public sealed class FileRecordQueryService
             ?? throw new InvalidOperationException("系统文件不存在。");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据哈希获取正常文件
+    /// </summary>
     public async Task<SysFile?> GetNormalFileByHashAsync(string fileHash, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileHash);
@@ -41,14 +45,18 @@ public sealed class FileRecordQueryService
         return file?.Status == FileStatus.Normal ? file : null;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取文件全部存储副本
+    /// </summary>
     public async Task<IReadOnlyList<SysFileStorage>> GetStoragesByFileIdAsync(long fileId, CancellationToken cancellationToken = default)
     {
         EnsureId(fileId, "系统文件主键必须大于 0。");
         return await _fileStorageRepository.GetByFileIdAsync(fileId, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取主存储
+    /// </summary>
     public async Task<SysFileStorage> GetPrimaryStorageOrThrowAsync(long fileId, string errorMessage, CancellationToken cancellationToken = default)
     {
         EnsureId(fileId, "系统文件主键必须大于 0。");
@@ -56,7 +64,9 @@ public sealed class FileRecordQueryService
             ?? throw new InvalidOperationException(errorMessage);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取存储副本
+    /// </summary>
     public async Task<SysFileStorage> GetStorageOrThrowAsync(long id, CancellationToken cancellationToken = default)
     {
         EnsureId(id, "系统文件存储主键必须大于 0。");

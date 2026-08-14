@@ -12,7 +12,9 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// </summary>
 public sealed class TaskScheduleDomainService : ITaskScheduleDomainService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验任务调度配置
+    /// </summary>
     public void EnsureScheduleConfiguration(
         TriggerType triggerType,
         string? cronExpression,
@@ -86,7 +88,9 @@ public sealed class TaskScheduleDomainService : ITaskScheduleDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验任务允许修改
+    /// </summary>
     public void EnsureCanModify(SysTask task)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -97,7 +101,9 @@ public sealed class TaskScheduleDomainService : ITaskScheduleDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验任务允许删除
+    /// </summary>
     public void EnsureCanDelete(SysTask task)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -108,7 +114,9 @@ public sealed class TaskScheduleDomainService : ITaskScheduleDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 应用启停状态
+    /// </summary>
     public void ApplyStatus(SysTask task, EnableStatus status, string? remark)
     {
         ArgumentNullException.ThrowIfNull(task);
@@ -127,7 +135,9 @@ public sealed class TaskScheduleDomainService : ITaskScheduleDomainService
         task.Remark = NormalizeText(remark, 500) ?? task.Remark;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 应用运行状态
+    /// </summary>
     public void ApplyRunStatus(
         SysTask task,
         RunTaskStatus runTaskStatus,
@@ -167,7 +177,9 @@ public sealed class TaskScheduleDomainService : ITaskScheduleDomainService
         task.Remark = NormalizeText(remark, 500) ?? task.Remark;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析下次执行时间
+    /// </summary>
     public DateTimeOffset? ResolveNextRunTime(SysTask task, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(task);

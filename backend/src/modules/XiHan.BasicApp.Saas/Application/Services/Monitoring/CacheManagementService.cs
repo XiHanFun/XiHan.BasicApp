@@ -34,14 +34,18 @@ public sealed class CacheManagementService
         _distributedCache = distributedCache;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 判断缓存键是否存在
+    /// </summary>
     public bool Exists(string key)
     {
         ValidateKey(key);
         return _distributedCache.Get(key) is not null;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按模式获取缓存键列表
+    /// </summary>
     public IReadOnlyCollection<string> GetKeys(string pattern = "*")
     {
         var normalizedPattern = NormalizePattern(pattern);
@@ -53,14 +57,18 @@ public sealed class CacheManagementService
         return [];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取缓存字符串值
+    /// </summary>
     public string? GetString(string key)
     {
         ValidateKey(key);
         return _distributedCache.GetString(key);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新缓存字符串值（鉴权关键命名空间禁止改写）
+    /// </summary>
     public void SetString(string key, string? value)
     {
         ValidateKey(key);
@@ -68,14 +76,18 @@ public sealed class CacheManagementService
         _distributedCache.SetString(key, value ?? string.Empty);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除指定缓存键
+    /// </summary>
     public void Remove(string key)
     {
         ValidateKey(key);
         _distributedCache.Remove(key);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按模式批量删除缓存键
+    /// </summary>
     public long RemoveByPattern(string pattern = "*")
     {
         var normalizedPattern = NormalizePattern(pattern);

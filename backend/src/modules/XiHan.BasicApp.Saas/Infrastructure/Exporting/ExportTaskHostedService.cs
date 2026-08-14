@@ -22,17 +22,25 @@ public sealed class ExportTaskMessage : IBackgroundTaskItem
     /// </summary>
     public long ExportTaskId { get; init; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 任务创建时间
+    /// </summary>
     public DateTimeOffset CreatedAt { get; init; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 已重试次数
+    /// </summary>
     public int RetryCount { get; set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 任务唯一标识
+    /// </summary>
     [JsonIgnore]
     public string TaskId => ExportTaskId.ToString();
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 任务数据
+    /// </summary>
     [JsonIgnore]
     public object? Data => null;
 }
@@ -65,20 +73,34 @@ public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportT
         _queue = queue;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 执行后台服务的主逻辑
+    /// </summary>
+    /// <param name="stoppingToken">停止令牌</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await RecoverPendingAsync(stoppingToken);
         await base.ExecuteAsync(stoppingToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 从队列/消息源批量获取任务
+    /// 子类需要实现具体的获取逻辑（Redis、RabbitMQ、数据库等）
+    /// </summary>
+    /// <param name="maxCount">最大获取数量</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务项列表，空列表表示当前无任务</returns>
     protected override async Task<IEnumerable<IBackgroundTaskItem>> FetchWorkItemsAsync(int maxCount, CancellationToken cancellationToken)
     {
         return await _queue.DequeueDueAsync(maxCount, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 处理单个任务
+    /// 子类需要实现具体的处理逻辑
+    /// </summary>
+    /// <param name="item">任务项</param>
+    /// <param name="cancellationToken">取消令牌</param>
     protected override async Task ProcessItemAsync(IBackgroundTaskItem item, CancellationToken cancellationToken)
     {
         var message = (ExportTaskMessage)item;

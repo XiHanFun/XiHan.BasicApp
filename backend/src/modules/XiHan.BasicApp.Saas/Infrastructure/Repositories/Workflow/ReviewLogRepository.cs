@@ -21,7 +21,9 @@ public sealed class ReviewLogRepository
     {
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 添加审查日志
+    /// </summary>
     public async Task AddLogAsync(SysReviewLog reviewLog, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(reviewLog);

@@ -16,7 +16,9 @@ public sealed class OAuthAppRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysOAuthApp>(clientResolver, unitOfWorkManager), IOAuthAppRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据客户端ID获取
+    /// </summary>
     public async Task<SysOAuthApp?> GetByClientIdAsync(string clientId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
@@ -27,7 +29,9 @@ public sealed class OAuthAppRepository(
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据客户端ID跨租户获取（ClientId 全局唯一；供匿名 /connect/token 等无租户上下文场景使用）
+    /// </summary>
     public async Task<SysOAuthApp?> GetByClientIdIgnoreTenantAsync(string clientId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);

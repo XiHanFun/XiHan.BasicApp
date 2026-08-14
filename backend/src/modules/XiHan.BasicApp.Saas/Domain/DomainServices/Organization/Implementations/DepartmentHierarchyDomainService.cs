@@ -21,7 +21,13 @@ public sealed class DepartmentHierarchyDomainService
         _departmentHierarchyRepository = departmentHierarchyRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检测部门移动是否会形成环路
+    /// </summary>
+    /// <param name="departmentId">被移动部门ID</param>
+    /// <param name="newParentId">新父级部门ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否存在环路</returns>
     public async Task<bool> WouldCreateCycleAsync(long departmentId, long? newParentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -42,7 +48,12 @@ public sealed class DepartmentHierarchyDomainService
         return descendantIds.Contains(newParentId.Value);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取部门的所有后代ID（含自身）
+    /// </summary>
+    /// <param name="departmentId">部门ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>所有后代部门ID集合</returns>
     public async Task<IReadOnlyList<long>> GetDescendantIdsAsync(long departmentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

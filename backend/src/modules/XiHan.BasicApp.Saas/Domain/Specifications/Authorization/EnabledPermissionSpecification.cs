@@ -13,7 +13,10 @@ namespace XiHan.BasicApp.Saas.Domain.Specifications;
 /// </summary>
 public sealed class EnabledPermissionSpecification : Specification<SysPermission>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 转换为表达式
+    /// </summary>
+    /// <returns>查询表达式</returns>
     public override Expression<Func<SysPermission, bool>> ToExpression()
     {
         return permission => !permission.IsDeleted && permission.Status == EnableStatus.Enabled;

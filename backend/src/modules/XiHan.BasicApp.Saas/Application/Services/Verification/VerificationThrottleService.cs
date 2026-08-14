@@ -33,7 +33,13 @@ public sealed class VerificationThrottleService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验并占用一次发送额度（封禁 → 间隔 → 日配额依序检查，全部通过后记账）
+    /// </summary>
+    /// <param name="userId">用户标识（封禁维度）</param>
+    /// <param name="purpose">验证码用途</param>
+    /// <param name="target">接收目标（手机号/邮箱）</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task EnsureSendAllowedAsync(long userId, ProfileVerificationPurpose purpose, string target, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(target);
@@ -76,7 +82,12 @@ public sealed class VerificationThrottleService
         await SetCounterAsync(ipQuotaKey, ipCount + 1, dayTtl, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验当前是否允许消费验证码（封禁期内拒绝）
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="purpose">验证码用途</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task EnsureVerifyAllowedAsync(long userId, ProfileVerificationPurpose purpose, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -88,7 +99,13 @@ public sealed class VerificationThrottleService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 记录一次校验失败（达到阈值时触发封禁）
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="purpose">验证码用途</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>true 表示本次失败触发了封禁（调用方应作废在途码）</returns>
     public async Task<bool> OnVerifyFailedAsync(long userId, ProfileVerificationPurpose purpose, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -112,7 +129,12 @@ public sealed class VerificationThrottleService
         return true;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 记录一次校验成功（清零失败计数）
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="purpose">验证码用途</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task OnVerifySucceededAsync(long userId, ProfileVerificationPurpose purpose, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

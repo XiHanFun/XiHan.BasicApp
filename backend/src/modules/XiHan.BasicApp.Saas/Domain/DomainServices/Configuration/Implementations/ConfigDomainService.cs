@@ -30,7 +30,9 @@ public sealed class ConfigDomainService
         _configValueSecretProtector = configValueSecretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建参数配置
+    /// </summary>
     public async Task<ConfigCommandResult> CreateConfigAsync(ConfigCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -73,7 +75,9 @@ public sealed class ConfigDomainService
         return new ConfigCommandResult(await _configRepository.AddAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除参数配置
+    /// </summary>
     public async Task DeleteConfigAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -90,7 +94,9 @@ public sealed class ConfigDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新参数配置
+    /// </summary>
     public async Task<ConfigCommandResult> UpdateConfigAsync(ConfigUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -112,7 +118,9 @@ public sealed class ConfigDomainService
         return new ConfigCommandResult(await _configRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新参数配置状态
+    /// </summary>
     public async Task<ConfigCommandResult> UpdateConfigStatusAsync(ConfigStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

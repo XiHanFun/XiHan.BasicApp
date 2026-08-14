@@ -160,7 +160,11 @@ public sealed class SaasDingTalkConfigStore : SaasWebhookBotConfigStoreBase, IDi
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效配置
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>当前生效配置；null 表示未配置（提供者按未配置处理）</returns>
     public async Task<DingTalkOptions?> GetAsync(CancellationToken cancellationToken = default)
     {
         var config = await GetDefaultConfigAsync(BotProviderType.DingTalk, cancellationToken);
@@ -209,7 +213,11 @@ public sealed class SaasLarkConfigStore : SaasWebhookBotConfigStoreBase, ILarkCo
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效配置
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>当前生效配置；null 表示未配置（提供者按未配置处理）</returns>
     public async Task<LarkOptions?> GetAsync(CancellationToken cancellationToken = default)
     {
         var config = await GetDefaultConfigAsync(BotProviderType.Lark, cancellationToken);
@@ -259,7 +267,11 @@ public sealed class SaasWeComConfigStore : SaasWebhookBotConfigStoreBase, IWeCom
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效配置
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>当前生效配置；null 表示未配置（提供者按未配置处理）</returns>
     public async Task<WeComOptions?> GetAsync(CancellationToken cancellationToken = default)
     {
         var config = await GetDefaultConfigAsync(BotProviderType.WeCom, cancellationToken);

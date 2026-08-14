@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserSecurityRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserSecurity>(clientResolver), IUserSecurityRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据用户ID获取安全信息
+    /// </summary>
     public async Task<SysUserSecurity?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

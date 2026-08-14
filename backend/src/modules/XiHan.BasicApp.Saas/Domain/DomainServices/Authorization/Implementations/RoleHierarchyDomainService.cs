@@ -21,7 +21,13 @@ public sealed class RoleHierarchyDomainService
         _roleHierarchyRepository = roleHierarchyRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检测角色继承是否会形成环路
+    /// </summary>
+    /// <param name="parentRoleId">父角色ID</param>
+    /// <param name="childRoleId">子角色ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否存在环路</returns>
     public async Task<bool> WouldCreateCycleAsync(long parentRoleId, long childRoleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -36,7 +42,12 @@ public sealed class RoleHierarchyDomainService
         return ancestorIds.Contains(parentRoleId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取角色完整继承链（含自身）的所有角色ID
+    /// </summary>
+    /// <param name="roleIds">起始角色ID集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>展开后的全部角色ID（含继承链）</returns>
     public async Task<IReadOnlyList<long>> ExpandRoleHierarchyAsync(IEnumerable<long> roleIds, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

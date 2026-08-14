@@ -36,7 +36,9 @@ public sealed class MenuRouteQueryService
         _menuRoutesCache = menuRoutesCache;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按授权快照获取菜单路由
+    /// </summary>
     public async Task<List<MenuRouteDto>> GetRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(snapshot);

@@ -13,7 +13,10 @@ namespace XiHan.BasicApp.Saas.Domain.Specifications;
 /// </summary>
 public sealed class EnabledRoleSpecification : Specification<SysRole>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 转换为表达式
+    /// </summary>
+    /// <returns>查询表达式</returns>
     public override Expression<Func<SysRole, bool>> ToExpression()
     {
         return role => !role.IsDeleted && role.Status == EnableStatus.Enabled;

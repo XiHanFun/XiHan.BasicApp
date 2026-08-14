@@ -25,7 +25,14 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
         _currentTenant = currentTenant ?? throw new ArgumentNullException(nameof(currentTenant));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据提供商和提供商用户标识查找关联的内部用户ID
+    /// </summary>
+    /// <param name="provider">提供商名称</param>
+    /// <param name="providerKey">提供商用户标识</param>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>内部用户ID，未绑定返回 null</returns>
     public async Task<long?> FindUserIdAsync(string provider, string providerKey, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +56,13 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
         return userId == 0 ? null : userId;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建第三方登录绑定记录
+    /// </summary>
+    /// <param name="userId">内部用户ID</param>
+    /// <param name="info">第三方登录信息</param>
+    /// <param name="tenantId">租户ID</param>
+    /// <param name="cancellationToken"></param>
     public async Task CreateAsync(long userId, ExternalLoginInfo info, long? tenantId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -74,7 +87,12 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
         await db.Insertable(record).ExecuteCommandAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除第三方登录绑定记录
+    /// </summary>
+    /// <param name="userId">内部用户ID</param>
+    /// <param name="provider">提供商名称</param>
+    /// <param name="cancellationToken"></param>
     public async Task RemoveAsync(long userId, string provider, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -16,7 +16,9 @@ public sealed class ResourceRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysResource>(clientResolver, unitOfWorkManager), IResourceRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据当前租户和资源编码获取资源
+    /// </summary>
     public async Task<SysResource?> GetByCodeAsync(string resourceCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceCode);

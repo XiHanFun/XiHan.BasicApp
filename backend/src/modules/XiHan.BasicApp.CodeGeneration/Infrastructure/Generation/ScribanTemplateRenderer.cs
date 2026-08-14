@@ -17,10 +17,18 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// </remarks>
 public sealed class ScribanTemplateRenderer : ITemplateRenderer
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 渲染器对应的模板引擎
+    /// </summary>
     public TemplateEngine Engine => TemplateEngine.Scriban;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 渲染模板
+    /// </summary>
+    /// <param name="templateSource">模板源码</param>
+    /// <param name="context">代码生成上下文（模板模型）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>渲染结果文本</returns>
     public async Task<string> RenderAsync(string templateSource, CodeGenerationContext context, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -153,7 +161,11 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
     /// </summary>
     private static string Kebabize(string value) => NamingConventions.Kebabize(value);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验模板语法
+    /// </summary>
+    /// <param name="templateSource">模板源码</param>
+    /// <returns>校验结果</returns>
     public TemplateRenderValidation Validate(string templateSource)
     {
         if (string.IsNullOrWhiteSpace(templateSource))

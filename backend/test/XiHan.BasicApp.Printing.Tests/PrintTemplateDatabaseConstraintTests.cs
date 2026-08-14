@@ -65,7 +65,9 @@ public sealed class PrintTemplateDatabaseConstraintTests : IDisposable
         Assert.Null(saved.DataSourceCode);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 释放占用的资源
+    /// </summary>
     public void Dispose()
     {
         _client.Ado.Connection.Close();

@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysConfig>(clientResolver), IConfigRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据配置键获取
+    /// </summary>
     public async Task<SysConfig?> GetByKeyAsync(string configKey, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
@@ -25,7 +27,9 @@ public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据配置键获取当前租户有效配置，租户级配置优先，全局配置兜底。
+    /// </summary>
     public async Task<SysConfig?> GetEffectiveByKeyAsync(string configKey, long? tenantId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);
@@ -53,7 +57,9 @@ public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
             ?? configs.FirstOrDefault();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查配置键是否存在
+    /// </summary>
     public async Task<bool> ExistsKeyAsync(string configKey, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configKey);

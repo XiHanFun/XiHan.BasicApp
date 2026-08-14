@@ -35,7 +35,9 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         _embeddingGeneratorFactory = embeddingGeneratorFactory;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建 provider（配置编码租户内唯一；ApiKey 加密落库）
+    /// </summary>
     public async Task<AiProviderCommandResult> CreateProviderAsync(AiProviderCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -80,7 +82,9 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         return new AiProviderCommandResult(created);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 provider（编码不可变；ApiKey 为空则保留原密钥）
+    /// </summary>
     public async Task<AiProviderCommandResult> UpdateProviderAsync(AiProviderUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -123,7 +127,9 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         return new AiProviderCommandResult(updated);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新 provider 状态
+    /// </summary>
     public async Task<AiProviderCommandResult> UpdateProviderStatusAsync(AiProviderStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -139,7 +145,9 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         return new AiProviderCommandResult(await _providerRepository.UpdateAsync(provider, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设为默认 provider（清除其它行默认标记）
+    /// </summary>
     public async Task<AiProviderCommandResult> SetDefaultAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -160,7 +168,9 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         return new AiProviderCommandResult(provider);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除 provider
+    /// </summary>
     public async Task DeleteProviderAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -172,7 +182,9 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 测试连接（对指定 provider 发起一次极简推理，验证端点/密钥/模型可用）
+    /// </summary>
     public async Task<AiProviderTestResult> TestConnectionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

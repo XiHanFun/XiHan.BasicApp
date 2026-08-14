@@ -43,7 +43,9 @@ public sealed class SaasConfigValueQueryService
         _configValueSecretProtector = configValueSecretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取配置值缓存项
+    /// </summary>
     public async Task<SaasConfigValueCacheItem> GetValueItemAsync(string configKey, CancellationToken cancellationToken = default)
     {
         var normalizedKey = SaasConfigKeys.Normalize(configKey);

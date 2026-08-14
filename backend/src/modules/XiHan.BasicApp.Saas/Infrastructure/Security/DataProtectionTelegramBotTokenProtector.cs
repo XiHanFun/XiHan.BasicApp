@@ -25,7 +25,11 @@ public sealed class DataProtectionTelegramBotTokenProtector : ITelegramBotTokenP
         _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.TelegramBotToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 加密 Token（幂等：已是密文则原样返回）
+    /// </summary>
+    /// <param name="plaintext">明文 Token</param>
+    /// <returns>密文（带前缀标记）</returns>
     public string? Protect(string? plaintext)
     {
         if (string.IsNullOrEmpty(plaintext))
@@ -42,7 +46,11 @@ public sealed class DataProtectionTelegramBotTokenProtector : ITelegramBotTokenP
         return SaasSecretProtectionPurposes.CipherPrefix + _protector.Protect(plaintext);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解密 Token（解密失败抛异常，fail-closed）
+    /// </summary>
+    /// <param name="value">密文</param>
+    /// <returns>明文 Token</returns>
     public string? Unprotect(string? value)
     {
         if (string.IsNullOrEmpty(value))

@@ -49,7 +49,11 @@ public sealed class SaasTelegramBotConfigStore : ITelegramBotConfigStore
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效的机器人配置列表
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>机器人配置列表</returns>
     public async Task<IReadOnlyList<TelegramBotConfig>> GetBotConfigsAsync(CancellationToken cancellationToken = default)
     {
         var settings = await _settingsStore.GetSettingsAsync(cancellationToken);

@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysFileStorage>(clientResolver), IFileStorageRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取文件的全部存储副本
+    /// </summary>
     public async Task<IReadOnlyList<SysFileStorage>> GetByFileIdAsync(long fileId, CancellationToken cancellationToken = default)
     {
         if (fileId <= 0)
@@ -31,7 +33,9 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取文件主存储
+    /// </summary>
     public async Task<SysFileStorage?> GetPrimaryByFileIdAsync(long fileId, CancellationToken cancellationToken = default)
     {
         if (fileId <= 0)
@@ -47,7 +51,9 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据存储提供商获取列表
+    /// </summary>
     public async Task<IReadOnlyList<SysFileStorage>> GetByProviderAsync(string provider, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(provider);
@@ -58,7 +64,9 @@ public sealed class FileStorageRepository(ISqlSugarClientResolver clientResolver
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 清除文件的主存储标记
+    /// </summary>
     public Task<bool> ClearPrimaryAsync(long fileId, long? excludeStorageId = null, CancellationToken cancellationToken = default)
     {
         if (fileId <= 0)

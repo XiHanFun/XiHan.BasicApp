@@ -13,7 +13,10 @@ namespace XiHan.BasicApp.Saas.Domain.Specifications;
 /// </summary>
 public sealed class ValidUserPermissionSpecification(DateTimeOffset now) : Specification<SysUserPermission>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 转换为表达式
+    /// </summary>
+    /// <returns>查询表达式</returns>
     public override Expression<Func<SysUserPermission, bool>> ToExpression()
     {
         return userPermission => userPermission.Status == ValidityStatus.Valid

@@ -25,7 +25,9 @@ public sealed class DataProtectionUserApiCredentialSecretProtector : IUserApiCre
         _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.UserApiCredentialSecret);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 加密明文密钥（幂等：已是密文则原样返回）
+    /// </summary>
     public string? Protect(string? plaintext)
     {
         if (string.IsNullOrEmpty(plaintext))
@@ -42,7 +44,9 @@ public sealed class DataProtectionUserApiCredentialSecretProtector : IUserApiCre
         return SaasSecretProtectionPurposes.CipherPrefix + _protector.Protect(plaintext);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解密还原明文密钥
+    /// </summary>
     public string? Unprotect(string? value)
     {
         if (string.IsNullOrEmpty(value))

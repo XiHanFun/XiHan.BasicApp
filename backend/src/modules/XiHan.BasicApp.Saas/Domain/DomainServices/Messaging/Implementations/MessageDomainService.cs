@@ -26,7 +26,9 @@ public sealed class MessageDomainService
         _smsRepository = smsRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建发件箱邮件
+    /// </summary>
     public async Task<EmailCommandResult> CreateOutboxEmailAsync(EmailCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -60,7 +62,9 @@ public sealed class MessageDomainService
         return new EmailCommandResult(await _emailRepository.AddAsync(email, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除邮件
+    /// </summary>
     public async Task DeleteEmailAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -77,7 +81,9 @@ public sealed class MessageDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新邮件
+    /// </summary>
     public async Task<EmailCommandResult> UpdateEmailAsync(EmailUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -110,7 +116,9 @@ public sealed class MessageDomainService
         return new EmailCommandResult(await _emailRepository.UpdateAsync(email, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新邮件状态
+    /// </summary>
     public async Task<EmailCommandResult> UpdateEmailStatusAsync(EmailStatusUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -142,7 +150,9 @@ public sealed class MessageDomainService
         return new EmailCommandResult(await _emailRepository.UpdateAsync(email, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建发件箱短信
+    /// </summary>
     public async Task<SmsCommandResult> CreateOutboxSmsAsync(SmsCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -170,7 +180,9 @@ public sealed class MessageDomainService
         return new SmsCommandResult(await _smsRepository.AddAsync(sms, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除短信
+    /// </summary>
     public async Task DeleteSmsAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -187,7 +199,9 @@ public sealed class MessageDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新短信
+    /// </summary>
     public async Task<SmsCommandResult> UpdateSmsAsync(SmsUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -214,7 +228,9 @@ public sealed class MessageDomainService
         return new SmsCommandResult(await _smsRepository.UpdateAsync(sms, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新短信状态
+    /// </summary>
     public async Task<SmsCommandResult> UpdateSmsStatusAsync(SmsStatusUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

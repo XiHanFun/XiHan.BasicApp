@@ -37,7 +37,11 @@ public sealed class SaasSmsConfigStore : ISmsConfigStore
         _secretProtector = secretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效配置
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>当前生效配置（凭证已解密）；null 表示未配置（解析器按未配置处理，fail-closed）</returns>
     public async Task<SmsChannelConfig?> GetAsync(CancellationToken cancellationToken = default)
     {
         Domain.Entities.SysSmsConfig? config;

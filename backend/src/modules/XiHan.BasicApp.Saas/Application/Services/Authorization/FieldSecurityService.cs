@@ -44,7 +44,9 @@ public sealed class FieldSecurityService : IFieldSecurityService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析当前用户在指定资源上的有效字段规则（字段名 → 规则）。无登录/无资源/无规则返回空。
+    /// </summary>
     public async Task<IReadOnlyDictionary<string, EffectiveFieldRule>> ResolveAsync(string resourceCode, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(resourceCode) || !_currentUser.UserId.HasValue)
@@ -90,7 +92,11 @@ public sealed class FieldSecurityService : IFieldSecurityService
             .ToDictionary(rule => rule.FieldName, StringComparer.Ordinal);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 排序字段 FLS 门控：就地剔除当前用户在该资源上「不可读或已脱敏」的排序字段。
+    /// 防止按受保护字段排序时——排序在 SQL 层按真实值进行、展示却被脱敏——通过结果顺序反推被保护的值。
+    /// 字段名按大小写不敏感匹配（前端列键多为 camelCase，FLS 规则名为实体属性名 PascalCase）；无显式规则的字段默认放行。
+    /// </summary>
     public async Task GuardSortsAsync(QueryConditions conditions, string resourceCode, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(conditions);
@@ -118,7 +124,10 @@ public sealed class FieldSecurityService : IFieldSecurityService
         _ = conditions.Sorts.RemoveAll(sort => !string.IsNullOrWhiteSpace(sort.Field) && protectedFields.Contains(sort.Field));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 过滤字段 FLS 门控：就地剔除当前用户在该资源上「不可读或已脱敏」的过滤条件（conditions.filters）。
+    /// 与排序门控同理：防止按受保护字段过滤来探测被脱敏/隐藏的值。字段名大小写不敏感匹配；无显式规则的字段默认放行。
+    /// </summary>
     public async Task GuardFiltersAsync(QueryConditions conditions, string resourceCode, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(conditions);
@@ -146,7 +155,9 @@ public sealed class FieldSecurityService : IFieldSecurityService
         _ = conditions.Filters.RemoveAll(filter => !string.IsNullOrWhiteSpace(filter.Field) && protectedFields.Contains(filter.Field));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 对单个返回对象按有效规则就地脱敏。
+    /// </summary>
     public async Task ApplyAsync<T>(string resourceCode, T? item, CancellationToken cancellationToken = default)
         where T : class
     {
@@ -164,7 +175,9 @@ public sealed class FieldSecurityService : IFieldSecurityService
         MaskInstance(item, rules);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 对单个返回对象按有效规则就地脱敏。
+    /// </summary>
     public async Task ApplyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default)
         where T : class
     {
@@ -183,7 +196,9 @@ public sealed class FieldSecurityService : IFieldSecurityService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验本次更新涉及的字段均可编辑；命中不可编辑字段则抛出异常。
+    /// </summary>
     public async Task EnsureEditableAsync(string resourceCode, IEnumerable<string> changingFields, CancellationToken cancellationToken = default)
     {
         var rules = await ResolveAsync(resourceCode, cancellationToken);
@@ -201,7 +216,9 @@ public sealed class FieldSecurityService : IFieldSecurityService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 写校验：对比更新入参与当前实体（按同名属性），命中不可编辑字段被实际修改则抛出异常。
+    /// </summary>
     public async Task EnsureUpdatableAsync<TInput, TCurrent>(string resourceCode, TInput input, TCurrent current, CancellationToken cancellationToken = default)
         where TInput : class
         where TCurrent : class

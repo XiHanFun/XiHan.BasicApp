@@ -17,7 +17,9 @@ namespace XiHan.BasicApp.Chat.Infrastructure.Repositories;
 public sealed class ChatMessageReactionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysChatMessageReaction>(clientResolver), IChatMessageReactionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按消息ID集合批量获取回应（历史消息聚合带出）
+    /// </summary>
     public async Task<IReadOnlyList<SysChatMessageReaction>> GetByMessageIdsAsync(IReadOnlyCollection<long> messageIds, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -34,7 +36,9 @@ public sealed class ChatMessageReactionRepository(ISqlSugarClientResolver client
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定 (消息, 用户, 表情) 的回应（toggle 判定用）
+    /// </summary>
     public async Task<SysChatMessageReaction?> GetAsync(long messageId, long userId, string emoji, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -32,7 +32,9 @@ public sealed class FileDomainService
         _fileStorageDomainService = fileStorageDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除文件
+    /// </summary>
     public async Task<FileDeleteCommandResult> DeleteFileAsync(FileDeleteCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -64,7 +66,9 @@ public sealed class FileDomainService
         return new FileDeleteCommandResult(file);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 增加文件下载次数（自增 DownloadCount 并记录最后下载时间）
+    /// </summary>
     public async Task IncrementDownloadCountAsync(long fileId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -74,7 +78,9 @@ public sealed class FileDomainService
         _ = await _fileRepository.UpdateAsync(file, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 增加文件访问次数（自增 ViewCount 并记录最后访问时间）
+    /// </summary>
     public async Task IncrementViewCountAsync(long fileId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -84,7 +90,9 @@ public sealed class FileDomainService
         _ = await _fileRepository.UpdateAsync(file, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 秒传文件（按哈希探测：未命中返回 null，调用方回退普通上传）
+    /// </summary>
     public async Task<FileCommandResult?> FastUploadFileAsync(FileFastUploadCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -116,7 +124,9 @@ public sealed class FileDomainService
         return new FileCommandResult(await _fileRepository.UpdateAsync(existing, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 切换主存储
+    /// </summary>
     public async Task<FilePrimaryStorageSwitchCommandResult> SwitchPrimaryStorageAsync(FilePrimaryStorageSwitchCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -141,7 +151,9 @@ public sealed class FileDomainService
         return new FilePrimaryStorageSwitchCommandResult(storage, previousStorage?.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新文件业务元数据
+    /// </summary>
     public async Task<FileCommandResult> UpdateFileMetadataAsync(FileMetadataUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -156,7 +168,9 @@ public sealed class FileDomainService
         return new FileCommandResult(await _fileRepository.UpdateAsync(file, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新文件状态
+    /// </summary>
     public async Task<FileCommandResult> UpdateFileStatusAsync(FileStatusUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -171,7 +185,9 @@ public sealed class FileDomainService
         return new FileCommandResult(await _fileRepository.UpdateAsync(file, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新文件存储状态
+    /// </summary>
     public async Task<FileStorageCommandResult> UpdateFileStorageStatusAsync(FileStorageStatusUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -187,7 +203,9 @@ public sealed class FileDomainService
         return new FileStorageCommandResult(await _fileStorageRepository.UpdateAsync(storage, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建上传中文件
+    /// </summary>
     public async Task<FileCommandResult> CreateUploadingFileAsync(FileCreateUploadingCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -228,7 +246,9 @@ public sealed class FileDomainService
         return new FileCommandResult(await _fileRepository.AddAsync(file, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 标记上传失败
+    /// </summary>
     public async Task<FileCommandResult> MarkUploadFailedAsync(FileUploadFailedCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -240,7 +260,9 @@ public sealed class FileDomainService
         return new FileCommandResult(await _fileRepository.UpdateAsync(file, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 完成文件上传
+    /// </summary>
     public async Task<FileUploadCommandResult> CompleteUploadAsync(FileUploadCompleteCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -281,7 +303,9 @@ public sealed class FileDomainService
         return new FileUploadCommandResult(file, storage);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验文件存储副本
+    /// </summary>
     public async Task<FileStorageCommandResult> VerifyFileStorageAsync(FileStorageVerifyCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

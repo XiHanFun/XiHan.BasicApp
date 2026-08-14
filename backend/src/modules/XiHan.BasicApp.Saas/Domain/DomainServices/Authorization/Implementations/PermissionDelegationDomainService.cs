@@ -37,7 +37,9 @@ public sealed class PermissionDelegationDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建权限委托
+    /// </summary>
     public async Task<PermissionDelegationCommandResult> CreatePermissionDelegationAsync(PermissionDelegationCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -76,7 +78,10 @@ public sealed class PermissionDelegationDomainService
         return ToCommandResult(savedDelegation);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销权限委托
+    /// </summary>
+    /// <returns>被撤销委托的被委托人/权限/角色（供审计发事件）</returns>
     public async Task<PermissionDelegationCommandResult> RevokePermissionDelegationAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -88,7 +93,9 @@ public sealed class PermissionDelegationDomainService
         return ToCommandResult(savedDelegation);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限委托
+    /// </summary>
     public async Task<PermissionDelegationCommandResult> UpdatePermissionDelegationAsync(PermissionDelegationUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -135,7 +142,9 @@ public sealed class PermissionDelegationDomainService
         return ToCommandResult(savedDelegation);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限委托状态
+    /// </summary>
     public async Task<PermissionDelegationCommandResult> UpdatePermissionDelegationStatusAsync(PermissionDelegationStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

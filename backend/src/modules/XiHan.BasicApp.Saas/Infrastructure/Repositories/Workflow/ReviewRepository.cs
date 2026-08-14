@@ -16,7 +16,9 @@ public sealed class ReviewRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysReview>(clientResolver, unitOfWorkManager), IReviewRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取某审批人的待审批记录
+    /// </summary>
     public async Task<IReadOnlyList<SysReview>> GetPendingByReviewerIdAsync(long reviewerId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

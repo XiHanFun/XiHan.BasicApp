@@ -35,7 +35,14 @@ public sealed class SaasUpgradeLockProvider : IUpgradeLockProvider
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 尝试获取锁
+    /// </summary>
+    /// <param name="resourceKey"></param>
+    /// <param name="expiry"></param>
+    /// <param name="nodeName"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<IUpgradeLockToken?> TryAcquireLockAsync(string resourceKey, TimeSpan expiry, string nodeName, CancellationToken cancellationToken = default)
     {
         var db = _clientResolver.GetCurrentClient();
@@ -76,16 +83,24 @@ public sealed class SaasUpgradeLockProvider : IUpgradeLockProvider
             LockId = nodeName;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 资源键
+        /// </summary>
         public string ResourceKey { get; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 锁标识
+        /// </summary>
         public string LockId { get; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 是否已释放
+        /// </summary>
         public bool IsReleased { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 释放锁
+        /// </summary>
         public async Task ReleaseAsync()
         {
             if (IsReleased)
@@ -101,7 +116,10 @@ public sealed class SaasUpgradeLockProvider : IUpgradeLockProvider
             IsReleased = true;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 异步释放占用的资源
+        /// </summary>
+        /// <returns>释放任务</returns>
         public async ValueTask DisposeAsync()
         {
             await ReleaseAsync();
@@ -128,7 +146,9 @@ public sealed class SaasUpgradeTenantProvider : IUpgradeTenantProvider
         _clientResolver = clientResolver;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取租户列表
+    /// </summary>
     public IReadOnlyList<BasicTenantInfo> GetTenants()
     {
         // 整行取实体后在内存里投影：SqlSugar 物化结果时调用目标类型的无参构造函数，
@@ -160,7 +180,12 @@ public sealed class SaasUpgradeMigrationExecutor : IUpgradeMigrationExecutor
         _clientResolver = clientResolver;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 执行迁移脚本（内部保证事务）
+    /// </summary>
+    /// <param name="sql"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task ExecuteAsync(string sql, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(sql))

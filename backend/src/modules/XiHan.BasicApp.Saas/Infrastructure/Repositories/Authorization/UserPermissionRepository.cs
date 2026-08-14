@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserPermissionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserPermission>(clientResolver), IUserPermissionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户有效直授权限
+    /// </summary>
     public async Task<IReadOnlyList<SysUserPermission>> GetValidByUserIdAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

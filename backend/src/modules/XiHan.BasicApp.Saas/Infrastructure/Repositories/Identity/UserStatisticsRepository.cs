@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserStatisticsRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserStatistics>(clientResolver), IUserStatisticsRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据用户ID获取统计信息
+    /// </summary>
     public async Task<SysUserStatistics?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

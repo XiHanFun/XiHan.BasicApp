@@ -56,7 +56,9 @@ public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析当前用户可见的用户主键集合。
+    /// </summary>
     public async Task<UserDataScopeFilter> ResolveAccessibleUsersAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

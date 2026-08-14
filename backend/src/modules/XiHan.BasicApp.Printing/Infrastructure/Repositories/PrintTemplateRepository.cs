@@ -17,7 +17,16 @@ namespace XiHan.BasicApp.Printing.Infrastructure.Repositories;
 public sealed class PrintTemplateRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysPrintTemplate>(clientResolver), IPrintTemplateRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 在明确作用域内按编码查询模板。
+    /// </summary>
+    /// <param name="ownerTenantId">模板所属租户；0 表示平台全局模板。</param>
+    /// <param name="templateCode">模板编码。</param>
+    /// <param name="enabledOnly">是否仅返回启用模板。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>匹配模板；不存在时返回 <see langword="null"/>。</returns>
+    /// <exception cref="ArgumentException"><paramref name="templateCode"/> 为空。</exception>
+    /// <exception cref="OperationCanceledException">查询被取消。</exception>
     public async Task<SysPrintTemplate?> FindByCodeInScopeAsync(
         long ownerTenantId,
         string templateCode,
@@ -38,7 +47,14 @@ public sealed class PrintTemplateRepository(ISqlSugarClientResolver clientResolv
         return await query.FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 在明确作用域内按主键查询模板。
+    /// </summary>
+    /// <param name="ownerTenantId">模板所属租户；0 表示平台全局模板。</param>
+    /// <param name="id">模板主键。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>匹配模板；不存在时返回 <see langword="null"/>。</returns>
+    /// <exception cref="OperationCanceledException">查询被取消。</exception>
     public async Task<SysPrintTemplate?> FindByIdInScopeAsync(
         long ownerTenantId,
         long id,

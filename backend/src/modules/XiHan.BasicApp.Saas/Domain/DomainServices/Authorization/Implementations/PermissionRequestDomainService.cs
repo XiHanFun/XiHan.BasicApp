@@ -51,7 +51,9 @@ public sealed class PermissionRequestDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建权限申请
+    /// </summary>
     public async Task<PermissionRequestCommandResult> CreatePermissionRequestAsync(PermissionRequestCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -109,7 +111,9 @@ public sealed class PermissionRequestDomainService
         return new PermissionRequestCommandResult(savedRequest.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 审批通过权限申请：审批单留痕通过 + 为申请人自动授予角色/权限 + 申请置为已通过。
+    /// </summary>
     public async Task<PermissionRequestCommandResult> ApprovePermissionRequestAsync(PermissionRequestApprovalCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -190,7 +194,9 @@ public sealed class PermissionRequestDomainService
             request.PermissionId is > 0 ? request.PermissionId : null);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 驳回权限申请：审批单留痕驳回 + 申请置为已驳回。
+    /// </summary>
     public async Task<PermissionRequestCommandResult> RejectPermissionRequestAsync(PermissionRequestApprovalCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -234,7 +240,9 @@ public sealed class PermissionRequestDomainService
         return new PermissionRequestCommandResult(savedRequest.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤回权限申请
+    /// </summary>
     public async Task WithdrawPermissionRequestAsync(long id, long requestUserId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -246,7 +254,9 @@ public sealed class PermissionRequestDomainService
         _ = await _permissionRequestRepository.UpdateAsync(permissionRequest, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限申请
+    /// </summary>
     public async Task<PermissionRequestCommandResult> UpdatePermissionRequestAsync(PermissionRequestUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -285,7 +295,9 @@ public sealed class PermissionRequestDomainService
         return new PermissionRequestCommandResult(savedRequest.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限申请状态
+    /// </summary>
     public async Task<PermissionRequestCommandResult> UpdatePermissionRequestStatusAsync(PermissionRequestStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

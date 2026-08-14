@@ -63,7 +63,9 @@ public sealed class ProfileVerificationService
         _verificationThrottleService = verificationThrottleService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 消费验证码并返回待确认值（一次性，消费即销毁）
+    /// </summary>
     public async Task<string> ConsumeCodeAsync(long userId, ProfileVerificationPurpose purpose, string? code, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -91,7 +93,9 @@ public sealed class ProfileVerificationService
         return result.Payload;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验双因素验证码
+    /// </summary>
     public async Task EnsureTwoFactorCodeValidAsync(ProfileUserSecurityContext context, TwoFactorMethod method, string? code, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -118,7 +122,9 @@ public sealed class ProfileVerificationService
         _ = await ConsumeCodeAsync(context.User.BasicId, purpose, code, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送验证码
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendCodeAsync(
         SysUser user,
         ProfileVerificationPurpose purpose,
@@ -211,7 +217,10 @@ public sealed class ProfileVerificationService
         return new ProfileVerificationCodeResultDto { ExpiresInSeconds = VerificationCodeSeconds };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送登录双因素短信验证码（用途与安全操作共用 <see cref="ProfileVerificationPurpose.TwoFactorPhone"/>，
+    /// 使用登录验证码短信模板；校验经 <see cref="ConsumeCodeAsync"/> 一次性消费）
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendLoginTwoFactorSmsAsync(
         SysUser user,
         string phone,

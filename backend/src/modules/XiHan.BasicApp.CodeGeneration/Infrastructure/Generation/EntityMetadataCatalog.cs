@@ -117,7 +117,9 @@ public sealed class EntityMetadataCatalog : IEntityMetadataCatalog
         _splitBases = splitBases;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 还原表名真实大小写（未注册则原样返回）
+    /// </summary>
     public string ResolveTable(string dbTableName)
     {
         if (string.IsNullOrWhiteSpace(dbTableName))
@@ -128,7 +130,9 @@ public sealed class EntityMetadataCatalog : IEntityMetadataCatalog
         return _tables.TryGetValue(dbTableName.ToLowerInvariant(), out var real) ? real : dbTableName;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 还原为逻辑表名：精确匹配优先；分表分片折叠为基础逻辑名；否则原样
+    /// </summary>
     public string ResolveLogical(string dbTableName)
     {
         if (string.IsNullOrWhiteSpace(dbTableName))
@@ -144,7 +148,9 @@ public sealed class EntityMetadataCatalog : IEntityMetadataCatalog
         return TryResolveSplitShard(dbTableName, out var baseName) ? baseName : dbTableName;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 还原列名真实大小写（未注册则原样返回）
+    /// </summary>
     public string ResolveColumn(string realTableName, string dbColumnName)
     {
         if (string.IsNullOrWhiteSpace(realTableName) || string.IsNullOrWhiteSpace(dbColumnName))
@@ -158,13 +164,17 @@ public sealed class EntityMetadataCatalog : IEntityMetadataCatalog
             : dbColumnName;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 是否为分表基础名
+    /// </summary>
     public bool IsSplitBase(string tableName)
     {
         return !string.IsNullOrWhiteSpace(tableName) && _splitBases.Contains(tableName.ToLowerInvariant());
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 是否为某分表实体的物理分片（如 sysdifflog_20260601 → SysDiffLog）
+    /// </summary>
     public bool TryResolveSplitShard(string dbTableName, out string baseRealName)
     {
         baseRealName = string.Empty;
@@ -190,7 +200,11 @@ public sealed class EntityMetadataCatalog : IEntityMetadataCatalog
         return false;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取表对应的已注册实体类型（外部库的表返回 false）
+    /// </summary>
+    /// <param name="tableName">表名（大小写不敏感；逻辑名或物理分片名均可）</param>
+    /// <param name="entityType">命中的实体类型</param>
     public bool TryGetEntityType(string tableName, out Type entityType)
     {
         entityType = typeof(object);

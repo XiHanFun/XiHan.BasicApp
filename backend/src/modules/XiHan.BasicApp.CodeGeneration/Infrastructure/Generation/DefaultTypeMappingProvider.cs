@@ -15,7 +15,13 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// </remarks>
 public sealed class DefaultTypeMappingProvider : ITypeMappingProvider
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 映射列类型
+    /// </summary>
+    /// <param name="databaseType">数据库类型（决定方言）</param>
+    /// <param name="dbColumnType">数据库列类型（如 varchar、bigint、datetime）</param>
+    /// <param name="isNullable">是否可空（影响 C# 可空标注）</param>
+    /// <returns>映射结果</returns>
     public ColumnTypeMapping Map(DatabaseType databaseType, string? dbColumnType, bool isNullable)
     {
         var normalized = Normalize(dbColumnType);

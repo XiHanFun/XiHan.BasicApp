@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class RoleDataScopeRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysRoleDataScope>(clientResolver), IRoleDataScopeRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取角色有效自定义数据范围
+    /// </summary>
     public async Task<IReadOnlyList<SysRoleDataScope>> GetValidByRoleIdsAsync(IEnumerable<long> roleIds, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(roleIds);

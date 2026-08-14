@@ -15,7 +15,9 @@ namespace XiHan.BasicApp.AI.Infrastructure.Repositories;
 public sealed class AiPromptRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysAiPrompt>(clientResolver), IAiPromptRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按编码获取（任意状态，用于详情/唯一性）
+    /// </summary>
     public async Task<SysAiPrompt?> GetByCodeAsync(string promptCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(promptCode);
@@ -27,7 +29,9 @@ public sealed class AiPromptRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查编码是否存在
+    /// </summary>
     public async Task<bool> ExistsCodeAsync(string promptCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(promptCode);
@@ -43,7 +47,9 @@ public sealed class AiPromptRepository(ISqlSugarClientResolver clientResolver)
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按编码获取启用记录（库解析路径；version 为空取任一启用）
+    /// </summary>
     public async Task<SysAiPrompt?> GetEnabledByCodeAsync(string promptCode, string? version, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(promptCode);
@@ -61,7 +67,9 @@ public sealed class AiPromptRepository(ISqlSugarClientResolver clientResolver)
         return await query.OrderBy(prompt => prompt.Sort).FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取全部启用提示词
+    /// </summary>
     public async Task<IReadOnlyList<SysAiPrompt>> GetEnabledListAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

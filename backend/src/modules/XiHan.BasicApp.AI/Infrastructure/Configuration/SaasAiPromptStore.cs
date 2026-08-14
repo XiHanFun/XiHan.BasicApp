@@ -27,7 +27,9 @@ public sealed class SaasAiPromptStore : IAiPromptStore
         _scopeFactory = scopeFactory;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 取模板（version 为空取当前版本），无则返回 null
+    /// </summary>
     public async Task<AiPromptTemplate?> GetAsync(string name, string? version = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -45,7 +47,9 @@ public sealed class SaasAiPromptStore : IAiPromptStore
         return prompt is null ? null : Map(prompt);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 列出全部模板
+    /// </summary>
     public async Task<IReadOnlyList<AiPromptTemplate>> ListAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<SysAiPrompt> prompts;

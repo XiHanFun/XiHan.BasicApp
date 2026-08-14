@@ -57,7 +57,12 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 分页查询指定作用域的打印模板。
+    /// </summary>
+    /// <param name="input">分页和过滤参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>模板分页。</returns>
     [HttpPost]
     [PermissionAuthorize(PrintingPermissionCodes.Read)]
     public async Task<PageResultDtoBase<PrintTemplateListItemDto>> GetPrintTemplatePageAsync(
@@ -72,7 +77,12 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
             () => QueryPageCoreAsync(input, scope, availableGlobalOnly: scope.IsGlobal && scope.RequestTenantId > 0, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查询当前租户可使用的全局打印模板。
+    /// </summary>
+    /// <param name="input">分页和过滤参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>已启用且开放的全局模板分页。</returns>
     [HttpPost]
     [PermissionAuthorize(PrintingPermissionCodes.Read)]
     public async Task<PageResultDtoBase<PrintTemplateListItemDto>> GetAvailableGlobalPrintTemplatePageAsync(
@@ -87,7 +97,13 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
             () => QueryPageCoreAsync(input, scope, availableGlobalOnly: true, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 在指定作用域查询打印模板详情。
+    /// </summary>
+    /// <param name="id">模板主键。</param>
+    /// <param name="scope">查询作用域。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>模板详情；不存在时返回 <see langword="null"/>。</returns>
     [PermissionAuthorize(PrintingPermissionCodes.Read)]
     public async Task<PrintTemplateDetailDto?> GetPrintTemplateDetailAsync(
         long id,
@@ -119,7 +135,14 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
         return PrintTemplateApplicationMapper.ToDetailDto(template);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按模板编码和作用域解析一个可用打印模板。
+    /// </summary>
+    /// <param name="templateCode">模板编码。</param>
+    /// <param name="scope">解析作用域。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>命中的模板及实际作用域。</returns>
+    /// <exception cref="XiHan.Framework.Core.Exceptions.UserFriendlyException">模板不存在、未启用或未向当前租户开放。</exception>
     [PermissionAuthorize(PrintingPermissionCodes.Use)]
     public async Task<ResolvedPrintTemplateDto> GetResolvedPrintTemplateByCodeAsync(
         string templateCode,

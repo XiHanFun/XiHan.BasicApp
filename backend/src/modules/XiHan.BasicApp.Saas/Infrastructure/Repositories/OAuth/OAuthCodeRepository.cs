@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysOAuthCode>(clientResolver), IOAuthCodeRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据授权码获取
+    /// </summary>
     public async Task<SysOAuthCode?> GetByCodeAsync(string code, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -24,7 +26,9 @@ public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据授权码跨租户获取（Code 全局唯一；供匿名 /connect/token 无租户上下文场景使用）
+    /// </summary>
     public async Task<SysOAuthCode?> GetByCodeIgnoreTenantAsync(string code, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -35,7 +39,9 @@ public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 原子消费授权码：仅当未使用时置为已使用，返回是否由本次调用成功翻转（防重放/并发换取）
+    /// </summary>
     public async Task<bool> TryConsumeAsync(long codeId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +55,9 @@ public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
         return affected == 1;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 清理过期授权码
+    /// </summary>
     public async Task<int> CleanExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

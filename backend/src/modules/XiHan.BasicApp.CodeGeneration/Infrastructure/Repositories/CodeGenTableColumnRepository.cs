@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Repositories;
 public sealed class CodeGenTableColumnRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysCodeGenTableColumn>(clientResolver), ICodeGenTableColumnRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定表的全部列配置（按 Sort 升序）
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenTableColumn>> GetByTableIdAsync(long tableId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -25,7 +27,9 @@ public sealed class CodeGenTableColumnRepository(ISqlSugarClientResolver clientR
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除指定表的全部列配置（软删）
+    /// </summary>
     public async Task DeleteByTableIdAsync(long tableId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

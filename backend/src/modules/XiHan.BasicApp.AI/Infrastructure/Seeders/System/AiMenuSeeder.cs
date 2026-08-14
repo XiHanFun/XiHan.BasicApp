@@ -31,12 +31,18 @@ public sealed class AiMenuSeeder(
     /// </summary>
     public override string Name => "[Ai]模块菜单种子数据";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 日志中标识模块的名称
+    /// </summary>
     protected override string ModuleName => "AI";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 本模块登记的页面（父目录须排在子项之前，按顺序解析 ParentId）
+    /// </summary>
     protected override IReadOnlyList<PageDescriptor> Pages => AiPageRegistry.All;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 本模块登记的页面内按钮
+    /// </summary>
     protected override IReadOnlyList<ButtonDescriptor> Buttons => AiPageRegistry.Buttons;
 }

@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserNotificationPreferenceRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserNotificationPreference>(clientResolver), IUserNotificationPreferenceRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据用户ID获取通知偏好信息
+    /// </summary>
     public async Task<SysUserNotificationPreference?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
