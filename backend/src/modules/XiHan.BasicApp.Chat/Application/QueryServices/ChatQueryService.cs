@@ -310,9 +310,6 @@ public sealed class ChatQueryService
     }
 
     /// <summary>
-    /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
-    /// </summary>
-    /// <summary>
     /// 解析当前作用域内可参与聊天的用户集合
     /// </summary>
     private async Task<IReadOnlyList<long>> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
@@ -367,6 +364,9 @@ public sealed class ChatQueryService
             })];
     }
 
+    /// <summary>
+    /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
+    /// </summary>
     /// <remarks>
     /// 仅需聊天查看权限的轻量选人端点（发起单聊/建群/加成员）：
     /// 与用户管理 GetEnabledUsersAsync 同语义（固定启用用户 + 超管隐藏），

@@ -29,8 +29,6 @@ public static class CodeGenPermissionCodes
     /// <summary>删除</summary>
     public const string Delete = "code_gen:delete";
 
-    /// <summary>导出/下载（生成产物 Zip 下载）</summary>
-
     /// <summary>导入（从数据库导入表结构、导入模板）</summary>
     public const string Import = "code_gen:import";
 
