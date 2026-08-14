@@ -24,6 +24,7 @@ import {
   codeGenTableApi,
   EnableStatus,
   GEN_STATUS_OPTIONS,
+  GEN_TYPE_OPTIONS,
   GenStatus as GenStatusEnum,
   GenType,
   TEMPLATE_TYPE_OPTIONS,
@@ -87,6 +88,19 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: row => getOptionLabel(TEMPLATE_TYPE_OPTIONS, (row as unknown as CodeGenTableListItemDto).templateType),
   },
   {
+    key: 'genType',
+    title: t('develop.code_gen.table.col_gen_type'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: GEN_TYPE_OPTIONS,
+    searchPlaceholder: t('develop.code_gen.table.filter_gen_type'),
+    width: 120,
+    order: 6,
+    render: row => getOptionLabel(GEN_TYPE_OPTIONS, (row as unknown as CodeGenTableListItemDto).genType),
+  },
+  {
     key: 'genStatus',
     title: t('develop.code_gen.table.col_gen_status'),
     dataType: 'enum',
@@ -96,7 +110,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: GEN_STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_gen_status'),
     width: 110,
-    order: 6,
+    order: 7,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
       return h(NTag, { size: 'small', round: true, bordered: false, type: genStatusTagType(r.genStatus) }, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus))
@@ -113,20 +127,20 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: STATUS_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_status'),
     width: 90,
-    order: 7,
+    order: 8,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
-  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 8 },
+  { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
 ])
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.table',
   pageName: t('develop.code_gen.tabs.table'),
   rowKey: 'basicId',
-  scrollX: 1448,
+  scrollX: 1568,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -146,15 +160,25 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database' },
     { key: 'preview', title: t('develop.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'generate', title: t('develop.code_gen.table.action_generate'), scope: 'row', type: 'primary', icon: 'lucide:download' },
+    // 两个生成动作按表配置的生成方式二选一呈现，避免同时给出两个入口让人猜该点哪个
+    {
+      key: 'generate',
+      title: t('develop.code_gen.table.action_generate'),
+      scope: 'row',
+      type: 'primary',
+      icon: 'lucide:download',
+      visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.Zip,
+    },
     {
       key: 'generateToDisk',
       title: t('develop.code_gen.table.action_generate_to_disk'),
       scope: 'row',
+      type: 'primary',
       icon: 'lucide:folder-input',
       // 直接写服务端代码目录，且手动文件已存在时会被跳过，属不可撤销操作
       confirm: true,
       confirmText: t('develop.code_gen.table.generate_to_disk_confirm'),
+      visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.CustomPath,
     },
     { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2' },
     { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw' },

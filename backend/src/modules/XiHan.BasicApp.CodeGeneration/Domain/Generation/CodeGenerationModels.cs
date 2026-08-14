@@ -231,8 +231,8 @@ public sealed class GenerationRequest
     /// <summary>指定模板编码集合（为空表示按表的 TemplateGroup 取全部启用模板）</summary>
     public IReadOnlyList<string>? TemplateCodes { get; set; }
 
-    /// <summary>生成方式（预览/Zip/落盘）</summary>
-    public GenType GenType { get; set; } = GenType.Preview;
+    /// <summary>生成方式（Zip 打包 / 落盘）；预览路径不消费本字段</summary>
+    public GenType GenType { get; set; } = GenType.Zip;
 }
 
 /// <summary>

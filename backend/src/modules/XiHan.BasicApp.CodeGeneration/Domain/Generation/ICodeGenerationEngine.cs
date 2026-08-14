@@ -20,7 +20,7 @@ public interface ICodeGenerationEngine
     Task<GenerationResult> PreviewAsync(GenerationRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘 / 预览）
+    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘）
     /// </summary>
     /// <param name="request">生成请求</param>
     /// <param name="cancellationToken">取消令牌</param>

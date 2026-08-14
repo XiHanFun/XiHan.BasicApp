@@ -50,7 +50,7 @@ public sealed class CodeGenerationEngine(
         => RenderCoreAsync(request, cancellationToken);
 
     /// <summary>
-    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘 / 预览）
+    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘）
     /// </summary>
     /// <param name="request">生成请求</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -88,7 +88,6 @@ public sealed class CodeGenerationEngine(
                     request.TableId, table?.GenPath, writeResult.WrittenCount, writeResult.SkippedCount);
                 break;
 
-            case GenType.Preview:
             default:
                 break;
         }

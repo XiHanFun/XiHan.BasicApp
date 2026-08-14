@@ -74,6 +74,7 @@ public static class CodeGenTableApplicationMapper
             BusinessName = table.BusinessName,
             FunctionName = table.FunctionName,
             TemplateType = table.TemplateType,
+            GenType = table.GenType,
             GenStatus = table.GenStatus,
             LastGenTime = table.LastGenTime,
             Status = table.Status,

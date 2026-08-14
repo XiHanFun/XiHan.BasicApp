@@ -27,6 +27,8 @@ export interface CodeGenTableListItemDto extends BasicDto {
   businessName?: string | null
   functionName?: string | null
   templateType: TemplateType
+  /** 生成方式：行操作据此只呈现「生成并下载」或「生成到项目」其中之一 */
+  genType: GenType
   genStatus: GenStatus
   lastGenTime?: DateTimeString | null
   status: EnableStatus
@@ -41,7 +43,6 @@ export interface CodeGenTableListItemDto extends BasicDto {
 export interface CodeGenTableDetailDto extends CodeGenTableListItemDto {
   namespace?: string | null
   author?: string | null
-  genType: GenType
   /** 生成范围（全部/仅后端/仅前端） */
   generationScope: GenerationScope
   /** 包含操作（逗号分隔的 create/update/delete 子集；null/空=全开） */

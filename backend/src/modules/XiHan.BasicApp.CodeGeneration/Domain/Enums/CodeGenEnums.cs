@@ -227,22 +227,16 @@ public enum HtmlType
 public enum GenType
 {
     /// <summary>
-    /// 压缩包下载
+    /// 生成并下载压缩包
     /// </summary>
-    [Description("压缩包下载")]
+    [Description("生成并下载")]
     Zip = 0,
 
     /// <summary>
-    /// 自定义路径
+    /// 生成到项目（按表配置的生成路径落盘）
     /// </summary>
-    [Description("自定义路径")]
-    CustomPath = 1,
-
-    /// <summary>
-    /// 预览
-    /// </summary>
-    [Description("预览")]
-    Preview = 2
+    [Description("生成到项目")]
+    CustomPath = 1
 }
 
 /// <summary>
