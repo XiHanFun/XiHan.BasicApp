@@ -39,9 +39,6 @@ public sealed class PositionQueryService
     private readonly IPositionRepository _positionRepository;
 
     /// <summary>
-    /// 字段级安全（排序门控）
-    /// </summary>
-    /// <summary>
     /// 启用岗位选择项缓存
     /// </summary>
     private readonly IDistributedCache<SaasPositionSelectCacheItem, string> _positionSelectCache;
