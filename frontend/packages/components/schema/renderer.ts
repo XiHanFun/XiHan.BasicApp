@@ -4,6 +4,7 @@ import { NTag } from 'naive-ui'
 import { h } from 'vue'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
+import { resolveStatusTagType } from './status-tag'
 
 /** 安全读取行字段值（兼容具名 DTO 接口，无索引签名） */
 function readField(row: object, key: string): unknown {
@@ -92,7 +93,8 @@ export function renderFieldCell<TRow extends object>(
       return '-'
     }
     const label = getOptionLabel(toMutableOptions(field.options), raw as string | number)
-    return h(NTag, { bordered: false, round: true, size: 'small' }, () => label)
+    const type = resolveStatusTagType(field.dictionaryCode, raw)
+    return h(NTag, { bordered: false, round: true, size: 'small', type }, () => label)
   }
 
   if (field.dataType === 'boolean') {

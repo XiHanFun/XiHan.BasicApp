@@ -14,6 +14,9 @@ export {
   toImportFields,
   toSearchFields,
 } from './selectors'
+export { resolveStatusTagType } from './status-tag'
+
+export type { SchemaTagType } from './status-tag'
 
 export type {
   ActionSchema,

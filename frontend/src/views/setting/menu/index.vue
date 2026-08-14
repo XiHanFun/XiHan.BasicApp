@@ -68,6 +68,14 @@ const menuTypeOptions = computed(() => [
   { label: t('setting.menu.type_button'), value: MenuType.Button },
 ])
 
+/** 菜单类型标签配色：按层级递减强调，目录最显眼、按钮最安静（按钮数量最多，不该抢视线） */
+function menuTypeTagType(menuType: MenuType) {
+  if (menuType === MenuType.Directory) {
+    return 'warning'
+  }
+  return menuType === MenuType.Menu ? 'info' : 'default'
+}
+
 const badgeTypeOptions = computed(() => [
   { label: t('setting.menu.badge_default'), value: 'default' },
   { label: t('setting.menu.badge_primary'), value: 'primary' },
@@ -264,8 +272,14 @@ const schema = computed<PageSchema>(() => ({
       searchPlaceholder: t('setting.menu.type_placeholder'),
       width: 90,
       order: 2,
-      render: row =>
-        h(NTag, { size: 'small', round: true, bordered: false }, () => getOptionLabel(menuTypeOptions.value, (row as unknown as MenuListItemDto).menuType)),
+      render: (row) => {
+        const menuType = (row as unknown as MenuListItemDto).menuType
+        return h(
+          NTag,
+          { size: 'small', round: true, bordered: false, type: menuTypeTagType(menuType) },
+          () => getOptionLabel(menuTypeOptions.value, menuType),
+        )
+      },
     },
     {
       key: 'path',
@@ -592,7 +606,12 @@ const childMenuColumns = computed<DataTableColumns<MenuTreeNodeDto>>(() => [
     title: t('setting.menu.child_type'),
     key: 'menuType',
     width: 80,
-    render: row => getOptionLabel(menuTypeOptions.value, row.menuType),
+    render: row =>
+      h(
+        NTag,
+        { size: 'small', round: true, bordered: false, type: menuTypeTagType(row.menuType) },
+        () => getOptionLabel(menuTypeOptions.value, row.menuType),
+      ),
   },
   {
     title: t('setting.menu.child_path'),
