@@ -25,6 +25,16 @@ public class CodeGenTableColumnListItemDto : BasicAppDto
     public int? DecimalDigits { get; set; }
     public bool IsPrimaryKey { get; set; }
     public bool IsIdentity { get; set; }
+
+    /// <summary>
+    /// 是否基类托管列（主键/租户/审计/软删）
+    /// </summary>
+    /// <remarks>
+    /// 由 <see cref="XiHan.BasicApp.CodeGeneration.Domain.Generation.GeneratedColumnNames"/> 按列名判定，
+    /// 与模板渲染同源。全部模板都跳过基类列，故此类列的一切生成配置都不会进入产物，界面据此禁用编辑。
+    /// </remarks>
+    public bool IsBaseColumn { get; set; }
+
     public bool IsNullable { get; set; }
     public bool IsRequired { get; set; }
     public bool IsList { get; set; }

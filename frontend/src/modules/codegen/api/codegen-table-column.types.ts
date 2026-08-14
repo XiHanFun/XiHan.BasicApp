@@ -18,6 +18,8 @@ export interface CodeGenTableColumnListItemDto extends BasicDto {
   columnLength?: number | null
   decimalDigits?: number | null
   isPrimaryKey: boolean
+  /** 基类托管列（主键/租户/审计/软删）：全部模板都跳过，故生成配置不可编辑 */
+  isBaseColumn: boolean
   isIdentity: boolean
   isNullable: boolean
   isRequired: boolean

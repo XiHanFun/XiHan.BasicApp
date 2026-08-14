@@ -4,6 +4,7 @@
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
 namespace XiHan.BasicApp.CodeGeneration.Application.Mappers;
 
@@ -161,6 +162,7 @@ public static class CodeGenTableApplicationMapper
             ColumnLength = column.ColumnLength,
             DecimalDigits = column.DecimalDigits,
             IsPrimaryKey = column.IsPrimaryKey,
+            IsBaseColumn = GeneratedColumnNames.IsBaseColumn(column.ColumnName),
             IsIdentity = column.IsIdentity,
             IsNullable = column.IsNullable,
             IsRequired = column.IsRequired,
