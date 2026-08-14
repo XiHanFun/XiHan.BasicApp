@@ -88,6 +88,13 @@ public sealed class CodeGenTemplateDomainService
 
         var template = await GetTemplateOrThrowAsync(command.BasicId, cancellationToken);
 
+        // 内置模板随程序版本走，启动时由种子按嵌入资源整体回刷，改了也会被覆盖；
+        // 要定制请复制一份自有模板。与「内置模板不可删除」保持同一口径。
+        if (template.IsBuiltIn)
+        {
+            throw new InvalidOperationException("内置模板不能编辑，请复制为自有模板后修改。");
+        }
+
         // 模板编码不可变（内置或非内置均不允许改编码），故此处不更新 TemplateCode。
         // 内置模板允许修改内容、名称等业务字段。
         template.TemplateName = Required(command.TemplateName, 200, nameof(command.TemplateName), "模板名称不能超过 200 个字符。");

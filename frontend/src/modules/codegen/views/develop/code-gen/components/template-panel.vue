@@ -179,7 +179,8 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('develop.code_gen.template.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
+    // 内置模板随程序版本回刷，改了也会被覆盖，故与删除一样禁用
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', disabled: row => (row as unknown as CodeGenTemplateListItemDto).isBuiltIn },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', disabled: row => (row as unknown as CodeGenTemplateListItemDto).isBuiltIn },
   ],
 }))
@@ -192,6 +193,10 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row) {
+        if (row.isBuiltIn) {
+          message.warning(t('develop.code_gen.template.builtin_cannot_edit'))
+          break
+        }
         void handleEdit(row)
       }
       break
