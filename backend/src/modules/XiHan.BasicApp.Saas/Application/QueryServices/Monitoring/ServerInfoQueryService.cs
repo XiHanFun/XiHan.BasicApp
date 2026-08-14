@@ -14,55 +14,73 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class ServerInfoQueryService
     : IServerInfoQueryService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取主板信息
+    /// </summary>
     public Task<BoardInfo> GetBoardInfoAsync()
     {
         return Task.FromResult(BoardHelper.BoardInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取 CPU 信息
+    /// </summary>
     public Task<CpuInfo> GetCpuInfoAsync()
     {
         return Task.FromResult(CpuHelper.CpuInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取磁盘信息
+    /// </summary>
     public Task<List<DiskInfo>> GetDiskInfoAsync()
     {
         return Task.FromResult(DiskHelper.DiskInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取 GPU 信息
+    /// </summary>
     public Task<List<GpuInfo>> GetGpuInfoAsync()
     {
         return Task.FromResult(GpuHelper.GpuInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取内存信息
+    /// </summary>
     public Task<RamInfo> GetMemoryInfoAsync()
     {
         return Task.FromResult(RamHelper.RamInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取网卡信息
+    /// </summary>
     public Task<List<NetworkInfo>> GetNetworkInfoAsync()
     {
         return Task.FromResult(NetworkHelper.NetworkInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取 NuGet 包信息
+    /// </summary>
     public Task<List<NuGetPackage>> GetNuGetPackagesAsync()
     {
         return Task.FromResult(ReflectionHelper.GetNuGetPackages("XiHan"));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取运行时信息
+    /// </summary>
     public Task<RuntimeInfo> GetRuntimeInfoAsync()
     {
         return Task.FromResult(OsPlatformHelper.RuntimeInfos);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取服务器综合信息
+    /// </summary>
     public Task<ServerInfoDto> GetServerInfoAsync(bool includeDisk = true, bool includeNetwork = true)
     {
         var result = new ServerInfoDto

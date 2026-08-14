@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class ImportHistoryRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysImportHistory>(clientResolver), IImportHistoryRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户在指定页面最近的导入记录（按创建时间倒序）
+    /// </summary>
     public async Task<List<SysImportHistory>> GetRecentByUserAsync(long userId, string pageCode, int count, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

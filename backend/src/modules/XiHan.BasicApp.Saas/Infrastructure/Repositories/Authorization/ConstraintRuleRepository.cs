@@ -17,7 +17,9 @@ public sealed class ConstraintRuleRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysConstraintRule>(clientResolver, unitOfWorkManager), IConstraintRuleRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效的约束规则
+    /// </summary>
     public async Task<IReadOnlyList<SysConstraintRule>> GetActiveRulesAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

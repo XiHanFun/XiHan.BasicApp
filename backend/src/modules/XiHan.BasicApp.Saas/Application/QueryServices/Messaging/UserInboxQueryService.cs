@@ -32,7 +32,9 @@ public sealed class UserInboxQueryService
         _userNotificationRepository = userNotificationRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户站内信列表
+    /// </summary>
     public async Task<List<UserInboxItemDto>> GetListAsync(long userId, bool unreadOnly = false, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -84,7 +86,9 @@ public sealed class UserInboxQueryService
             .Take(MaxInboxItems)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户「未读的强制阅读通知」（供路由守卫拦截）
+    /// </summary>
     public async Task<List<UserInboxItemDto>> GetMandatoryUnreadAsync(long userId, CancellationToken cancellationToken = default)
     {
         EnsureUser(userId);
@@ -95,7 +99,9 @@ public sealed class UserInboxQueryService
         return await ResolveActiveAsync(userNotifications, notification => notification.IsMandatory, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户「当前生效的顶部横幅通知」
+    /// </summary>
     public async Task<List<UserInboxItemDto>> GetBannerAsync(long userId, CancellationToken cancellationToken = default)
     {
         EnsureUser(userId);
@@ -106,7 +112,9 @@ public sealed class UserInboxQueryService
         return await ResolveActiveAsync(userNotifications, notification => notification.IsBanner, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户「待弹出的登录后弹窗通知」（仅弹一次：PopupShownTime 为空）
+    /// </summary>
     public async Task<List<UserInboxItemDto>> GetPopupAsync(long userId, CancellationToken cancellationToken = default)
     {
         EnsureUser(userId);

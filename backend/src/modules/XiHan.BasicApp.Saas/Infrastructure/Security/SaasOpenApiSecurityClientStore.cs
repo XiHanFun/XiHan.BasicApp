@@ -47,7 +47,12 @@ public sealed class SaasOpenApiSecurityClientStore : IOpenApiSecurityClientStore
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据 AccessKey 查找客户端
+    /// </summary>
+    /// <param name="accessKey">访问键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns></returns>
     public async Task<OpenApiSecurityClient?> FindByAccessKeyAsync(string accessKey, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(accessKey))

@@ -47,7 +47,9 @@ public sealed class FileTransferService
         _clientInfoProvider = clientInfoProvider;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除物理文件
+    /// </summary>
     public async Task DeletePhysicalAsync(IReadOnlyList<SysFileStorage> storages, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(storages);
@@ -60,7 +62,9 @@ public sealed class FileTransferService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 下载文件
+    /// </summary>
     public async Task<Stream> DownloadAsync(SysFileStorage storage, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(storage);
@@ -70,7 +74,9 @@ public sealed class FileTransferService
         return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 生成预签名访问地址
+    /// </summary>
     public async Task<string> GeneratePresignedUrlAsync(SysFileStorage storage, TimeSpan? expiresIn, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(storage);
@@ -80,7 +86,9 @@ public sealed class FileTransferService
         return await provider.GeneratePresignedUrlAsync(storage.StoragePath, expiresIn ?? TimeSpan.FromMinutes(30), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 探测文件存储副本
+    /// </summary>
     public async Task<FileStorageProbeResult> ProbeStorageAsync(SysFileStorage storage, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(storage);
@@ -98,7 +106,9 @@ public sealed class FileTransferService
         return new FileStorageProbeResult(exists, metadata?.Size ?? 0, metadata?.Url);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 上传文件
+    /// </summary>
     public async Task<FileTransferUploadResult> UploadAsync(FileUploadDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

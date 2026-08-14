@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class TelegramBotRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysTelegramBot>(clientResolver), ITelegramBotRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按机器人名称查询（租户内唯一）
+    /// </summary>
     public async Task<SysTelegramBot?> GetByNameAsync(string botName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(botName);
@@ -24,7 +26,9 @@ public sealed class TelegramBotRepository(ISqlSugarClientResolver clientResolver
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取全部启用的机器人列表
+    /// </summary>
     public async Task<List<SysTelegramBot>> GetEnabledListAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

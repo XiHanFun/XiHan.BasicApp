@@ -33,7 +33,9 @@ public sealed class AuthContextQueryService
         _tenantRepository = tenantRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取登录租户上下文（租户不可用时抛出带原因的异常，用于显式切换租户等需要明确报错的场景）
+    /// </summary>
     public async Task<LoginTenantContext?> GetLoginTenantOrThrowAsync(long? tenantId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         if (!tenantId.HasValue || tenantId.Value <= 0)
@@ -63,7 +65,9 @@ public sealed class AuthContextQueryService
         return new LoginTenantContext(tenant.BasicId, tenant.TenantName);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查找可登录的租户上下文（租户不存在或不可用时返回 null，不抛异常，用于登录落点判定）
+    /// </summary>
     public async Task<LoginTenantContext?> FindAvailableLoginTenantAsync(long tenantId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         if (tenantId <= 0)
@@ -85,7 +89,9 @@ public sealed class AuthContextQueryService
         return new LoginTenantContext(tenant.BasicId, tenant.TenantName);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户信息
+    /// </summary>
     public async Task<UserInfoDto> GetCurrentUserInfoAsync(
         long userId,
         long? tenantId,

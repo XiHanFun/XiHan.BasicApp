@@ -23,7 +23,9 @@ public sealed class TaskSchedulerQueryService
         _taskRepository = taskRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取启用的任务
+    /// </summary>
     public async Task<IReadOnlyList<SysTask>> GetEnabledTasksAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class PermissionDelegationRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysPermissionDelegation>(clientResolver), IPermissionDelegationRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取被委托人当前有效的权限委派
+    /// </summary>
     public async Task<IReadOnlyList<SysPermissionDelegation>> GetActiveByDelegateeIdAsync(long delegateeUserId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

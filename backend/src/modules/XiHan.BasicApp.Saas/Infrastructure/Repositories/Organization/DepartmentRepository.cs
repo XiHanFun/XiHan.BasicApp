@@ -16,7 +16,9 @@ public sealed class DepartmentRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysDepartment>(clientResolver, unitOfWorkManager), IDepartmentRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据当前租户和部门编码获取部门
+    /// </summary>
     public async Task<SysDepartment?> GetByCodeAsync(string departmentCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(departmentCode);
@@ -27,7 +29,9 @@ public sealed class DepartmentRepository(
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前租户下的子部门
+    /// </summary>
     public async Task<IReadOnlyList<SysDepartment>> GetChildrenAsync(long? parentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -38,7 +42,9 @@ public sealed class DepartmentRepository(
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 当前租户下是否存在子部门
+    /// </summary>
     public async Task<bool> HasChildrenAsync(long departmentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -34,7 +34,9 @@ public sealed class MenuDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建菜单
+    /// </summary>
     public async Task<MenuCommandResult> CreateAsync(MenuCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -83,7 +85,9 @@ public sealed class MenuDomainService
         return new MenuCommandResult(savedMenu, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新菜单
+    /// </summary>
     public async Task<MenuCommandResult> UpdateAsync(MenuUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -122,7 +126,9 @@ public sealed class MenuDomainService
         return new MenuCommandResult(savedMenu, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新菜单状态
+    /// </summary>
     public async Task<MenuCommandResult> UpdateStatusAsync(MenuStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -154,7 +160,9 @@ public sealed class MenuDomainService
         return new MenuCommandResult(savedMenu, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除菜单
+    /// </summary>
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

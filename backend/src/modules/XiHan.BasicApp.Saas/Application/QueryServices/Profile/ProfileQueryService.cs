@@ -77,7 +77,9 @@ public sealed class ProfileQueryService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户安全上下文
+    /// </summary>
     public async Task<ProfileUserSecurityContext> GetSecurityContextAsync(long userId, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -95,7 +97,9 @@ public sealed class ProfileQueryService
         return new ProfileUserSecurityContext(user, security);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户活跃度统计
+    /// </summary>
     public async Task<ProfileActivityDto> GetActivityAsync(long userId, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -177,7 +181,9 @@ public sealed class ProfileQueryService
         return result;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户第三方账号绑定
+    /// </summary>
     public async Task<List<ProfileExternalLoginDto>> GetLinkedAccountsAsync(long userId, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -200,7 +206,9 @@ public sealed class ProfileQueryService
             })];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户登录日志
+    /// </summary>
     public async Task<ProfileLoginLogPageDto> GetLoginLogsAsync(long userId, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -236,14 +244,18 @@ public sealed class ProfileQueryService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户个人资料
+    /// </summary>
     public async Task<UserProfileDto> GetProfileAsync(long userId, long? tenantId, CancellationToken cancellationToken = default)
     {
         var context = await GetSecurityContextAsync(userId, cancellationToken);
         return ToProfileDto(context.User, context.Security, tenantId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户会话列表
+    /// </summary>
     public async Task<List<ProfileSessionDto>> GetSessionsAsync(long userId, string? currentSessionId, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)
@@ -279,7 +291,9 @@ public sealed class ProfileQueryService
             })];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户通知偏好（无记录时返回默认值）
+    /// </summary>
     public async Task<ProfileNotificationPreferenceDto> GetNotificationPreferenceAsync(long userId, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)

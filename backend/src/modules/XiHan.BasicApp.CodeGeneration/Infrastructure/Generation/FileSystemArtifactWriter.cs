@@ -19,7 +19,9 @@ public sealed class FileSystemArtifactWriter(IOptions<CodeGenerationOptions> opt
 {
     private readonly CodeGenerationOptions _options = options.Value;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 将产物写入目标根目录（须命中白名单且不越界，否则整体拒绝）
+    /// </summary>
     public async Task<GeneratedArtifactWriteResult> WriteAsync(IReadOnlyList<GeneratedArtifact> artifacts, string? targetRootPath, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(artifacts);

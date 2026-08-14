@@ -74,7 +74,9 @@ public sealed class AuthorizationSnapshotQueryService
         _editionGateCache = editionGateCache;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 构建用户授权快照
+    /// </summary>
     public async Task<AuthorizationSnapshot> BuildAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         if (userId <= 0)

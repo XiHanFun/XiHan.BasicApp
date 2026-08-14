@@ -35,7 +35,11 @@ public sealed class SaasTelegramMessageAuditStore : ITelegramMessageAuditStore
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 追加一条出站消息审计记录
+    /// </summary>
+    /// <param name="record">审计记录</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task AppendAsync(TelegramMessageAuditRecord record, CancellationToken cancellationToken = default)
     {
         try

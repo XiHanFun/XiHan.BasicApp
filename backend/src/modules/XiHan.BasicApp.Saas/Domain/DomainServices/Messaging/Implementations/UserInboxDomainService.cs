@@ -28,7 +28,9 @@ public sealed class UserInboxDomainService
         _userNotificationRepository = userNotificationRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 投递用户站内信
+    /// </summary>
     public async Task<UserInboxDispatchResult> DispatchToUserAsync(UserInboxDispatchCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -69,7 +71,9 @@ public sealed class UserInboxDomainService
         return new UserInboxDispatchResult(notification, userNotification);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 确认通知
+    /// </summary>
     public async Task ConfirmAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -87,7 +91,9 @@ public sealed class UserInboxDomainService
         _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateAsync(userNotification, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 标记全部已读
+    /// </summary>
     public async Task MarkAllReadAsync(long userId, CancellationToken cancellationToken = default)
     {
         EnsureUserId(userId);
@@ -110,7 +116,9 @@ public sealed class UserInboxDomainService
         _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateRangeAsync(userNotifications, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 标记已读
+    /// </summary>
     public async Task MarkReadAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -120,7 +128,9 @@ public sealed class UserInboxDomainService
         _ = await AsSelfWriteAsync(() => _userNotificationRepository.UpdateAsync(userNotification, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 标记登录后弹窗已展示（仅弹一次，幂等：已弹过不重复写）
+    /// </summary>
     public async Task MarkPopupShownAsync(long userNotificationId, long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

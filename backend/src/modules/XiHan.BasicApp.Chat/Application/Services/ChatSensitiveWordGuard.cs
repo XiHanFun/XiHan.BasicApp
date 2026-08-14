@@ -50,7 +50,9 @@ public sealed class ChatSensitiveWordGuard : IChatSensitiveWordGuard, IScopedDep
         _clientResolver = clientResolver;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验文本内容不含敏感词（命中抛出业务异常）
+    /// </summary>
     public async Task EnsureAllowedAsync(string? content, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(content))

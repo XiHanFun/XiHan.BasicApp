@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class DictItemRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysDictItem>(clientResolver), IDictItemRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据字典ID获取字典项列表
+    /// </summary>
     public async Task<IReadOnlyList<SysDictItem>> GetByDictIdAsync(long dictId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

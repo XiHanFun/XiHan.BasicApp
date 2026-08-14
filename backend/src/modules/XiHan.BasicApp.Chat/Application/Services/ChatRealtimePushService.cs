@@ -82,7 +82,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送新消息（含发送者本人，多端回显）
+    /// </summary>
     public async Task PushMessageAsync(ChatMessageItemDto message, SysChatConversation conversation, IReadOnlyList<long> recipientUserIds)
     {
         ArgumentNullException.ThrowIfNull(message);
@@ -136,7 +138,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送消息撤回
+    /// </summary>
     public async Task PushRecalledAsync(long conversationId, long messageId, IReadOnlyList<long> recipientUserIds)
     {
         try
@@ -150,7 +154,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送会话变更（成员增删/入群/被移出，提示前端刷新会话列表）
+    /// </summary>
     public async Task PushConversationChangedAsync(long conversationId, string changeType, IReadOnlyList<long> recipientUserIds)
     {
         try
@@ -164,7 +170,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送消息编辑
+    /// </summary>
     public async Task PushMessageEditedAsync(long conversationId, long messageId, string? content, DateTimeOffset? editedTime, IReadOnlyList<long> recipientUserIds)
     {
         try
@@ -178,7 +186,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送表情回应变更（delta）
+    /// </summary>
     public async Task PushReactionChangedAsync(long conversationId, long messageId, string emoji, long userId, string? userName, bool added, IReadOnlyList<long> recipientUserIds)
     {
         try
@@ -192,7 +202,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送成员已读位变更（群已读回执实时刷新）
+    /// </summary>
     public async Task PushReadPositionChangedAsync(long conversationId, long userId, long? lastReadMessageId, IReadOnlyList<long> recipientUserIds)
     {
         try
@@ -206,7 +218,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送 AI 助手回复增量
+    /// </summary>
     public async Task PushAssistantDeltaAsync(long conversationId, string replyId, string delta, IReadOnlyList<long> recipientUserIds)
     {
         try
@@ -220,7 +234,9 @@ public sealed class ChatRealtimePushService : IChatRealtimePushService, IScopedD
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推送 AI 助手回复结束（messageId 为空表示失败，error 给出原因）
+    /// </summary>
     public async Task PushAssistantCompletedAsync(long conversationId, string replyId, long? messageId, string? error, IReadOnlyList<long> recipientUserIds)
     {
         try

@@ -41,7 +41,13 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
         _scopeFactory = scopeFactory;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 从队列/消息源批量获取任务
+    /// 子类需要实现具体的获取逻辑（Redis、RabbitMQ、数据库等）
+    /// </summary>
+    /// <param name="maxCount">最大获取数量</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务项列表，空列表表示当前无任务</returns>
     protected override async Task<IEnumerable<IBackgroundTaskItem>> FetchWorkItemsAsync(int maxCount, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -59,7 +65,12 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
         return hasOverdue ? [new TenantExpirationTrigger { CreatedAt = now }] : [];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 处理单个任务
+    /// 子类需要实现具体的处理逻辑
+    /// </summary>
+    /// <param name="item">任务项</param>
+    /// <param name="cancellationToken">取消令牌</param>
     protected override async Task ProcessItemAsync(IBackgroundTaskItem item, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -112,17 +123,25 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
     /// </summary>
     private sealed class TenantExpirationTrigger : IBackgroundTaskItem
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// 任务唯一标识
+        /// </summary>
         public string TaskId => "tenant-expiration-scan";
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 任务数据
+        /// </summary>
         [JsonIgnore]
         public object? Data => null;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 任务创建时间
+        /// </summary>
         public DateTimeOffset CreatedAt { get; init; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 已重试次数
+        /// </summary>
         public int RetryCount { get; set; }
     }
 }

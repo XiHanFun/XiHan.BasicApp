@@ -28,14 +28,18 @@ public sealed partial class ProfileAppService
 
     private const string ApiCredentialBusinessType = "profile.api-credential";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户 API 凭证列表
+    /// </summary>
     public async Task<List<ProfileApiCredentialDto>> GetApiCredentialsAsync(CancellationToken cancellationToken = default)
     {
         var credentials = await _userApiCredentialRepository.GetListByUserIdAsync(GetCurrentUserIdOrThrow(), cancellationToken);
         return [.. credentials.Select(ToApiCredentialDto)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建 API 凭证（明文 Secret 仅本次返回）
+    /// </summary>
     [UnitOfWork(true)]
     public async Task<ProfileApiCredentialSecretDto> CreateApiCredentialAsync(ProfileApiCredentialCreateDto input, CancellationToken cancellationToken = default)
     {
@@ -78,7 +82,9 @@ public sealed partial class ProfileAppService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 滚动 API 凭证密钥（AppKey 不变，旧密钥立即失效，明文 Secret 仅本次返回）
+    /// </summary>
     [UnitOfWork(true)]
     public async Task<ProfileApiCredentialSecretDto> RotateApiCredentialSecretAsync(ProfileApiCredentialIdDto input, CancellationToken cancellationToken = default)
     {
@@ -102,7 +108,9 @@ public sealed partial class ProfileAppService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 启停 API 凭证
+    /// </summary>
     [UnitOfWork(true)]
     public async Task<ProfileApiCredentialDto> UpdateApiCredentialStatusAsync(ProfileApiCredentialStatusDto input, CancellationToken cancellationToken = default)
     {
@@ -123,7 +131,9 @@ public sealed partial class ProfileAppService
         return ToApiCredentialDto(credential);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除 API 凭证
+    /// </summary>
     [UnitOfWork(true)]
     public async Task DeleteApiCredentialAsync(long id, CancellationToken cancellationToken = default)
     {

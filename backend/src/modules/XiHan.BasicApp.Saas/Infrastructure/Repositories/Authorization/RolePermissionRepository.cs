@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class RolePermissionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysRolePermission>(clientResolver), IRolePermissionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取角色有效权限授权
+    /// </summary>
     public async Task<IReadOnlyList<SysRolePermission>> GetValidByRoleIdsAsync(IEnumerable<long> roleIds, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(roleIds);

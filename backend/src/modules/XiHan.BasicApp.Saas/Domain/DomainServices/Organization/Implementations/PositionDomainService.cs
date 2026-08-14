@@ -22,7 +22,9 @@ public sealed class PositionDomainService
         _positionRepository = positionRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建岗位
+    /// </summary>
     public async Task<PositionCommandResult> CreatePositionAsync(PositionCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -48,7 +50,9 @@ public sealed class PositionDomainService
         return new PositionCommandResult(await _positionRepository.AddAsync(position, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除岗位
+    /// </summary>
     public async Task DeletePositionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -60,7 +64,9 @@ public sealed class PositionDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新岗位
+    /// </summary>
     public async Task<PositionCommandResult> UpdatePositionAsync(PositionUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -75,7 +81,9 @@ public sealed class PositionDomainService
         return new PositionCommandResult(await _positionRepository.UpdateAsync(position, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新岗位状态
+    /// </summary>
     public async Task<PositionCommandResult> UpdatePositionStatusAsync(PositionStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

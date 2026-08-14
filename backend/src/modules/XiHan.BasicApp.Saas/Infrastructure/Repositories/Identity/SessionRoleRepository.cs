@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class SessionRoleRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysSessionRole>(clientResolver), ISessionRoleRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据会话ID获取激活的角色列表
+    /// </summary>
     public async Task<IReadOnlyList<SysSessionRole>> GetBySessionIdAsync(long sessionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

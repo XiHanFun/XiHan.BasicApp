@@ -29,14 +29,18 @@ public sealed class SaasConfigurationService
         _configValueQueryService = configValueQueryService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取字符串配置。
+    /// </summary>
     public async Task<string?> GetStringAsync(string configKey, string? defaultValue = null, CancellationToken cancellationToken = default)
     {
         var item = await GetValueItemAsync(configKey, cancellationToken);
         return item.Exists ? item.Value ?? defaultValue : defaultValue;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取布尔配置。
+    /// </summary>
     public async Task<bool> GetBooleanAsync(string configKey, bool defaultValue = false, CancellationToken cancellationToken = default)
     {
         var value = await GetStringAsync(configKey, defaultValue.ToString(CultureInfo.InvariantCulture), cancellationToken);
@@ -53,7 +57,9 @@ public sealed class SaasConfigurationService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取整型配置。
+    /// </summary>
     public async Task<int> GetInt32Async(string configKey, int defaultValue = 0, CancellationToken cancellationToken = default)
     {
         var value = await GetStringAsync(configKey, defaultValue.ToString(CultureInfo.InvariantCulture), cancellationToken);
@@ -62,7 +68,9 @@ public sealed class SaasConfigurationService
             : defaultValue;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取字符串列表配置。
+    /// </summary>
     public async Task<IReadOnlyList<string>> GetStringListAsync(string configKey, IReadOnlyList<string> defaultValue, CancellationToken cancellationToken = default)
     {
         var value = await GetStringAsync(configKey, null, cancellationToken);
@@ -90,7 +98,9 @@ public sealed class SaasConfigurationService
         return items.Count == 0 ? defaultValue : items;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取登录配置。
+    /// </summary>
     public async Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
     {
         // 登录模型为「先登录后选租户」，登录页不再提供租户选择（落点由后端按成员关系决定）

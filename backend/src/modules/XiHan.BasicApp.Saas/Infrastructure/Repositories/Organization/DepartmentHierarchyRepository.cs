@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class DepartmentHierarchyRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysDepartmentHierarchy>(clientResolver), IDepartmentHierarchyRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取后代部门ID
+    /// </summary>
     public async Task<IReadOnlyList<long>> GetDescendantIdsAsync(long departmentId, bool includeSelf, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -28,7 +28,12 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         _scopeFactory = scopeFactory;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按标识查找定义
+    /// </summary>
+    /// <param name="id">定义标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义（不存在返回 null）</returns>
     public async Task<WorkflowDefinition?> FindAsync(string id, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -37,7 +42,13 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         return entity is null ? null : WorkflowStoreMapper.ToModel(entity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按编码和版本查找定义
+    /// </summary>
+    /// <param name="code">流程编码</param>
+    /// <param name="version">版本号</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义（不存在返回 null）</returns>
     public async Task<WorkflowDefinition?> FindByVersionAsync(string code, int version, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -46,7 +57,15 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         return entity is null ? null : WorkflowStoreMapper.ToModel(entity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查找编码下最新的已发布定义
+    /// </summary>
+    /// <remarks>
+    /// 语义契约：过滤 <c>Code 匹配 &amp;&amp; Status == Published</c>，按 <c>Version 降序</c> 取第一条。
+    /// </remarks>
+    /// <param name="code">流程编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义（不存在返回 null）</returns>
     public async Task<WorkflowDefinition?> FindLatestPublishedAsync(string code, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -55,7 +74,12 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         return entity is null ? null : WorkflowStoreMapper.ToModel(entity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取编码下的最大版本号
+    /// </summary>
+    /// <param name="code">流程编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>最大版本号（编码不存在返回 0）</returns>
     public async Task<int> GetMaxVersionAsync(string code, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -63,7 +87,13 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         return await repository.GetMaxVersionAsync(code, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查询定义列表
+    /// </summary>
+    /// <param name="code">流程编码（为空表示不过滤）</param>
+    /// <param name="status">状态（为空表示不过滤）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义列表（按编码升序、版本降序）</returns>
     public async Task<List<WorkflowDefinition>> GetListAsync(
         string? code = null,
         WorkflowDefinitionStatus? status = null,
@@ -75,7 +105,12 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         return [.. entities.Select(WorkflowStoreMapper.ToModel)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 插入定义
+    /// </summary>
+    /// <param name="definition">定义</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task InsertAsync(WorkflowDefinition definition, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -83,7 +118,12 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         await repository.AddAsync(WorkflowStoreMapper.ToEntity(definition), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新定义
+    /// </summary>
+    /// <param name="definition">定义</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task UpdateAsync(WorkflowDefinition definition, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -99,7 +139,12 @@ public sealed class SqlSugarWorkflowDefinitionStore : IWorkflowDefinitionStore
         await repository.UpdateAsync(existing, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除定义
+    /// </summary>
+    /// <param name="id">定义标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();

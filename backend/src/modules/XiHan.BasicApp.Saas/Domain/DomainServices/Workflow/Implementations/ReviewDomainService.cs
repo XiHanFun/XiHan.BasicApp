@@ -29,7 +29,9 @@ public sealed class ReviewDomainService
         _reviewLogRepository = reviewLogRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 审核审查
+    /// </summary>
     public async Task<ReviewCommandResult> AuditReviewAsync(ReviewAuditCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -60,7 +62,9 @@ public sealed class ReviewDomainService
         return new ReviewCommandResult(savedReview);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建审查
+    /// </summary>
     public async Task<ReviewCommandResult> CreateReviewAsync(ReviewCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -106,7 +110,9 @@ public sealed class ReviewDomainService
         return new ReviewCommandResult(await _reviewRepository.AddAsync(review, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除审查
+    /// </summary>
     public async Task DeleteReviewAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -118,7 +124,9 @@ public sealed class ReviewDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新审查
+    /// </summary>
     public async Task<ReviewCommandResult> UpdateReviewAsync(ReviewUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -154,7 +162,9 @@ public sealed class ReviewDomainService
         return new ReviewCommandResult(await _reviewRepository.UpdateAsync(review, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新审查启停状态
+    /// </summary>
     public async Task<ReviewCommandResult> UpdateReviewStatusAsync(ReviewStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -170,7 +180,9 @@ public sealed class ReviewDomainService
         return new ReviewCommandResult(await _reviewRepository.UpdateAsync(review, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤回审查
+    /// </summary>
     public async Task<ReviewCommandResult> WithdrawReviewAsync(ReviewWithdrawCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

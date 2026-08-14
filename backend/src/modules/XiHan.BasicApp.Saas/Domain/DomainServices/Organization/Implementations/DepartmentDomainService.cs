@@ -48,7 +48,9 @@ public sealed class DepartmentDomainService
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建部门
+    /// </summary>
     public async Task<DepartmentCommandResult> CreateAsync(DepartmentCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -86,7 +88,9 @@ public sealed class DepartmentDomainService
         return new DepartmentCommandResult(savedDepartment);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新部门
+    /// </summary>
     public async Task<DepartmentCommandResult> UpdateAsync(DepartmentUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -119,7 +123,9 @@ public sealed class DepartmentDomainService
         return new DepartmentCommandResult(savedDepartment);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新部门状态
+    /// </summary>
     public async Task<DepartmentCommandResult> UpdateStatusAsync(DepartmentStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -152,7 +158,9 @@ public sealed class DepartmentDomainService
         return new DepartmentCommandResult(savedDepartment);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除部门
+    /// </summary>
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -66,7 +66,9 @@ public sealed class PermissionCatalogDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建权限定义
+    /// </summary>
     public async Task<PermissionCatalogCommandResult> CreatePermissionAsync(PermissionCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -109,7 +111,9 @@ public sealed class PermissionCatalogDomainService
         return new PermissionCatalogCommandResult(savedPermission.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除权限定义
+    /// </summary>
     public async Task DeletePermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -123,7 +127,9 @@ public sealed class PermissionCatalogDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限定义
+    /// </summary>
     public async Task<PermissionCatalogCommandResult> UpdatePermissionAsync(PermissionUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -144,7 +150,9 @@ public sealed class PermissionCatalogDomainService
         return new PermissionCatalogCommandResult(savedPermission.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限状态
+    /// </summary>
     public async Task<PermissionCatalogCommandResult> UpdatePermissionStatusAsync(PermissionStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -170,7 +178,9 @@ public sealed class PermissionCatalogDomainService
         return new PermissionCatalogCommandResult(savedPermission.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建资源定义
+    /// </summary>
     public async Task<ResourceCatalogCommandResult> CreateResourceAsync(ResourceCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -202,7 +212,9 @@ public sealed class PermissionCatalogDomainService
         return new ResourceCatalogCommandResult(savedResource.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除资源定义
+    /// </summary>
     public async Task DeleteResourceAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -216,7 +228,9 @@ public sealed class PermissionCatalogDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新资源定义
+    /// </summary>
     public async Task<ResourceCatalogCommandResult> UpdateResourceAsync(ResourceUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -238,7 +252,9 @@ public sealed class PermissionCatalogDomainService
         return new ResourceCatalogCommandResult(savedResource.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新资源状态
+    /// </summary>
     public async Task<ResourceCatalogCommandResult> UpdateResourceStatusAsync(ResourceStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -259,7 +275,9 @@ public sealed class PermissionCatalogDomainService
         return new ResourceCatalogCommandResult(savedResource.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建操作定义
+    /// </summary>
     public async Task<OperationCatalogCommandResult> CreateOperationAsync(OperationCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -294,7 +312,9 @@ public sealed class PermissionCatalogDomainService
         return new OperationCatalogCommandResult(savedOperation.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除操作定义
+    /// </summary>
     public async Task DeleteOperationAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -308,7 +328,9 @@ public sealed class PermissionCatalogDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新操作定义
+    /// </summary>
     public async Task<OperationCatalogCommandResult> UpdateOperationAsync(OperationUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -333,7 +355,9 @@ public sealed class PermissionCatalogDomainService
         return new OperationCatalogCommandResult(savedOperation.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新操作状态
+    /// </summary>
     public async Task<OperationCatalogCommandResult> UpdateOperationStatusAsync(OperationStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

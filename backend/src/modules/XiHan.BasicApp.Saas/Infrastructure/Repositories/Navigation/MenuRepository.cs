@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class MenuRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysMenu>(clientResolver), IMenuRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据父级ID获取子菜单列表
+    /// </summary>
     public async Task<IReadOnlyList<SysMenu>> GetByParentIdAsync(long? parentId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -23,7 +25,9 @@ public sealed class MenuRepository(ISqlSugarClientResolver clientResolver)
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取完整菜单树（全部记录）
+    /// </summary>
     public async Task<IReadOnlyList<SysMenu>> GetTreeAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

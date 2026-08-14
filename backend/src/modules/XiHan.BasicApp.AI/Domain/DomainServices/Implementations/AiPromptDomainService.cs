@@ -21,7 +21,9 @@ public sealed class AiPromptDomainService : IAiPromptDomainService
         _promptRepository = promptRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建提示词（编码租户内唯一）
+    /// </summary>
     public async Task<AiPromptCommandResult> CreatePromptAsync(AiPromptCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -52,7 +54,9 @@ public sealed class AiPromptDomainService : IAiPromptDomainService
         return new AiPromptCommandResult(await _promptRepository.AddAsync(prompt, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新提示词（编码不可变）
+    /// </summary>
     public async Task<AiPromptCommandResult> UpdatePromptAsync(AiPromptUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -73,7 +77,9 @@ public sealed class AiPromptDomainService : IAiPromptDomainService
         return new AiPromptCommandResult(await _promptRepository.UpdateAsync(prompt, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新提示词状态
+    /// </summary>
     public async Task<AiPromptCommandResult> UpdatePromptStatusAsync(AiPromptStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -89,7 +95,9 @@ public sealed class AiPromptDomainService : IAiPromptDomainService
         return new AiPromptCommandResult(await _promptRepository.UpdateAsync(prompt, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除提示词
+    /// </summary>
     public async Task DeletePromptAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

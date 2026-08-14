@@ -39,7 +39,9 @@ public sealed class MessageDeliveryService
         _messageTemplateRenderer = messageTemplateRenderer;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建并投递邮件
+    /// </summary>
     public async Task<EmailCommandResult> CreateEmailAsync(EmailCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -55,7 +57,9 @@ public sealed class MessageDeliveryService
         return result;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建并投递短信
+    /// </summary>
     public async Task<SmsCommandResult> CreateSmsAsync(SmsCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

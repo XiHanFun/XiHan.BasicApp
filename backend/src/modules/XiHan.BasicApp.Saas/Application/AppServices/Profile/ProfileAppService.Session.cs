@@ -12,19 +12,25 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 public sealed partial class ProfileAppService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户登录日志
+    /// </summary>
     public async Task<ProfileLoginLogPageDto> GetLoginLogsAsync(int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetLoginLogsAsync(GetCurrentUserIdOrThrow(), page, pageSize, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前用户会话列表
+    /// </summary>
     public async Task<List<ProfileSessionDto>> GetSessionsAsync(CancellationToken cancellationToken = default)
     {
         return await _profileQueryService.GetSessionsAsync(GetCurrentUserIdOrThrow(), GetCurrentSessionId(), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销其他会话
+    /// </summary>
     [UnitOfWork(true)]
     public async Task RevokeOtherSessionsAsync(CancellationToken cancellationToken = default)
     {
@@ -37,7 +43,9 @@ public sealed partial class ProfileAppService
         await PublishSessionRevokedEventsAsync(result.DomainEvents, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销指定会话
+    /// </summary>
     [UnitOfWork(true)]
     public async Task RevokeSessionAsync(ProfileSessionRevokeDto input, CancellationToken cancellationToken = default)
     {

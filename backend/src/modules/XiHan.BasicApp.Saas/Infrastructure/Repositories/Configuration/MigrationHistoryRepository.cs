@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class MigrationHistoryRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysMigrationHistory>(clientResolver), IMigrationHistoryRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据版本号获取迁移记录
+    /// </summary>
     public async Task<SysMigrationHistory?> GetByVersionAsync(string version, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(version);

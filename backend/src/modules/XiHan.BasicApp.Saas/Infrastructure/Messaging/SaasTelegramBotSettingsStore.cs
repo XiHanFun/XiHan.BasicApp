@@ -30,7 +30,11 @@ public sealed class SaasTelegramBotSettingsStore : ITelegramBotSettingsStore
         _scopeFactory = scopeFactory;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取当前生效的平台全局设置
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>平台全局设置</returns>
     public async Task<TelegramBotSettings> GetSettingsAsync(CancellationToken cancellationToken = default)
     {
         // 以框架默认值实例为兜底基准，读不到的键保持默认

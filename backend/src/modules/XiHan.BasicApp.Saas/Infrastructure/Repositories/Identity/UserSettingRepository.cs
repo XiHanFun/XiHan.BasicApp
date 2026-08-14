@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserSettingRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserSetting>(clientResolver), IUserSettingRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按用户 × 场景 × 设置键获取设置
+    /// </summary>
     public async Task<SysUserSetting?> GetByUserSettingAsync(long userId, UserSettingScene scene, string settingKey, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

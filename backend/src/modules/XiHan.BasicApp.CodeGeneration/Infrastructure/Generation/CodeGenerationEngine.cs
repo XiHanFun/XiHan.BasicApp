@@ -40,11 +40,21 @@ public sealed class CodeGenerationEngine(
     private readonly IPermissionRepository _permissionRepository = permissionRepository;
     private readonly ILogger<CodeGenerationEngine> _logger = logger;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 预览生成（仅返回产物内容，不打包、不落盘）
+    /// </summary>
+    /// <param name="request">生成请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>生成结果（含产物清单）</returns>
     public Task<GenerationResult> PreviewAsync(GenerationRequest request, CancellationToken cancellationToken = default)
         => RenderCoreAsync(request, cancellationToken);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘 / 预览）
+    /// </summary>
+    /// <param name="request">生成请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>生成结果（Zip 时含 Package 字节流）</returns>
     public async Task<GenerationResult> GenerateAsync(GenerationRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);

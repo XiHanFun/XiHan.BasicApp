@@ -26,7 +26,9 @@ public sealed class AuthTokenIssueService
         _jwtTokenService = jwtTokenService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 签发访问令牌
+    /// </summary>
     public AuthAccessTokenIssueResult IssueAccessToken(AuthAccessTokenIssueCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -43,7 +45,9 @@ public sealed class AuthTokenIssueService
         return new AuthAccessTokenIssueResult(tokenResult, ToLoginTokenDto(tokenResult));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 刷新访问令牌
+    /// </summary>
     public LoginTokenDto RefreshAccessToken(string accessToken, string refreshToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
@@ -54,7 +58,9 @@ public sealed class AuthTokenIssueService
         return ToLoginTokenDto(tokenResult);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 从访问令牌解析用户身份（不校验有效期，仅用于审计归属），解析失败返回 null
+    /// </summary>
     public AuthTokenIdentity? ResolveTokenIdentity(string accessToken)
     {
         if (string.IsNullOrWhiteSpace(accessToken))

@@ -24,7 +24,9 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         _columnRepository = columnRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按表批量保存列配置（覆盖各列的可变字段）
+    /// </summary>
     public async Task<CodeGenTableColumnBatchSaveResult> BatchSaveColumnsAsync(CodeGenTableColumnBatchSaveCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -56,7 +58,9 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         return new CodeGenTableColumnBatchSaveResult([.. result]);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 单列更新列配置
+    /// </summary>
     public async Task<CodeGenTableColumnCommandResult> UpdateColumnAsync(CodeGenTableColumnUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

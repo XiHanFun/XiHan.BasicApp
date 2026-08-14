@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class PasswordHistoryRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysPasswordHistory>(clientResolver), IPasswordHistoryRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户最近的密码历史记录
+    /// </summary>
     public async Task<IReadOnlyList<SysPasswordHistory>> GetRecentByUserIdAsync(long userId, int count, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

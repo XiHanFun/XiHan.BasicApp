@@ -18,7 +18,11 @@ public sealed class PasswordPolicyDomainService : IPasswordPolicyDomainService
     /// </summary>
     private const int MaxLength = 128;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验密码强度
+    /// </summary>
+    /// <param name="password">明文密码</param>
+    /// <returns>校验结果（通过返回 null，不通过返回错误消息）</returns>
     public string? ValidateStrength(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -58,7 +62,12 @@ public sealed class PasswordPolicyDomainService : IPasswordPolicyDomainService
         return null;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查密码是否与历史密码重复
+    /// </summary>
+    /// <param name="passwordHash">新密码哈希</param>
+    /// <param name="historicalHashes">历史密码哈希集合</param>
+    /// <returns>是否与历史密码重复</returns>
     public bool IsDuplicateWithHistory(string passwordHash, IEnumerable<string> historicalHashes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);

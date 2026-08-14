@@ -51,7 +51,9 @@ public sealed class TenantDomainService
         _connectionCacheInvalidator = connectionCacheInvalidator;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建租户
+    /// </summary>
     public async Task<TenantCommandResult> CreateTenantAsync(TenantCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -90,7 +92,9 @@ public sealed class TenantDomainService
         return new TenantCommandResult(await _tenantRepository.AddAsync(tenant, cancellationToken), DateTimeOffset.UtcNow);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 添加租户成员（<c>RequiresInvitation</c> 为 true 时落待接受邀请，否则直接生效）
+    /// </summary>
     public async Task<TenantMemberCommandResult> AddTenantMemberAsync(TenantMemberAddCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -138,7 +142,9 @@ public sealed class TenantDomainService
         return new TenantMemberCommandResult(await _tenantUserRepository.AddAsync(member, cancellationToken), now);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除租户（软删，要求租户已停用）
+    /// </summary>
     public async Task DeleteTenantAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -157,7 +163,9 @@ public sealed class TenantDomainService
         _connectionCacheInvalidator.Invalidate(tenant.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销租户成员
+    /// </summary>
     public async Task DeleteTenantMemberAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -172,7 +180,9 @@ public sealed class TenantDomainService
         _ = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户
+    /// </summary>
     public async Task<TenantCommandResult> UpdateTenantAsync(TenantUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -214,7 +224,9 @@ public sealed class TenantDomainService
         return new TenantCommandResult(updated, DateTimeOffset.UtcNow);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户成员
+    /// </summary>
     public async Task<TenantMemberCommandResult> UpdateTenantMemberAsync(TenantMemberUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -235,7 +247,9 @@ public sealed class TenantDomainService
         return new TenantMemberCommandResult(await _tenantUserRepository.UpdateAsync(member, cancellationToken), DateTimeOffset.UtcNow);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户成员邀请状态
+    /// </summary>
     public async Task<TenantMemberCommandResult> UpdateTenantMemberInviteStatusAsync(TenantMemberInviteStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -264,7 +278,9 @@ public sealed class TenantDomainService
         return new TenantMemberCommandResult(await _tenantUserRepository.UpdateAsync(member, cancellationToken), DateTimeOffset.UtcNow);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户成员状态
+    /// </summary>
     public async Task<TenantMemberCommandResult> UpdateTenantMemberStatusAsync(TenantMemberStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -285,7 +301,9 @@ public sealed class TenantDomainService
         return new TenantMemberCommandResult(await _tenantUserRepository.UpdateAsync(member, cancellationToken), DateTimeOffset.UtcNow);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户状态
+    /// </summary>
     public async Task<TenantCommandResult> UpdateTenantStatusAsync(TenantStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

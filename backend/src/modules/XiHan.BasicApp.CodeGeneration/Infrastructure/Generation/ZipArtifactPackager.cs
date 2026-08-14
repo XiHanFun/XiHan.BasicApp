@@ -28,7 +28,12 @@ public sealed class ZipArtifactPackager : IGeneratedArtifactPackager
     /// </summary>
     private const string ManualDirectory = "_manual";
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 打包产物
+    /// </summary>
+    /// <param name="artifacts">产物清单</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>压缩包字节流</returns>
     public async Task<byte[]> PackAsync(IEnumerable<GeneratedArtifact> artifacts, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(artifacts);

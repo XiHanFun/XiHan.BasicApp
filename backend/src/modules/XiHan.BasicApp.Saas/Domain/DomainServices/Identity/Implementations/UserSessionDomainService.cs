@@ -10,7 +10,12 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// </summary>
 public sealed class UserSessionDomainService : IUserSessionDomainService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 判断会话是否有效
+    /// </summary>
+    /// <param name="session">会话实体</param>
+    /// <param name="now">当前时间</param>
+    /// <returns>是否有效</returns>
     public bool IsSessionValid(SysUserSession session, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -28,7 +33,12 @@ public sealed class UserSessionDomainService : IUserSessionDomainService
         return true;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 筛选需要被挤下线的会话（基于并发策略）
+    /// </summary>
+    /// <param name="activeSessions">用户当前活跃会话列表</param>
+    /// <param name="maxConcurrent">最大并发会话数</param>
+    /// <returns>需要被吊销的会话列表</returns>
     public IReadOnlyList<SysUserSession> GetSessionsToRevoke(IReadOnlyList<SysUserSession> activeSessions, int maxConcurrent)
     {
         ArgumentNullException.ThrowIfNull(activeSessions);

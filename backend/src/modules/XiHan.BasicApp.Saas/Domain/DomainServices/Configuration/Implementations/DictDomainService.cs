@@ -31,7 +31,9 @@ public sealed class DictDomainService
         _dictItemRepository = dictItemRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建字典
+    /// </summary>
     public async Task<DictCommandResult> CreateDictAsync(DictCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -60,7 +62,9 @@ public sealed class DictDomainService
         return new DictCommandResult(await _dictRepository.AddAsync(dict, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建字典项
+    /// </summary>
     public async Task<DictItemCommandResult> CreateDictItemAsync(DictItemCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -104,7 +108,9 @@ public sealed class DictDomainService
         return new DictItemCommandResult(await _dictItemRepository.AddAsync(dictItem, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除字典
+    /// </summary>
     public async Task DeleteDictAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -126,7 +132,9 @@ public sealed class DictDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除字典项
+    /// </summary>
     public async Task DeleteDictItemAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -143,7 +151,9 @@ public sealed class DictDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新字典
+    /// </summary>
     public async Task<DictCommandResult> UpdateDictAsync(DictUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -160,7 +170,9 @@ public sealed class DictDomainService
         return new DictCommandResult(await _dictRepository.UpdateAsync(dict, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新字典项
+    /// </summary>
     public async Task<DictItemCommandResult> UpdateDictItemAsync(DictItemUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -186,7 +198,9 @@ public sealed class DictDomainService
         return new DictItemCommandResult(await _dictItemRepository.UpdateAsync(dictItem, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新字典项状态
+    /// </summary>
     public async Task<DictItemCommandResult> UpdateDictItemStatusAsync(DictItemStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -202,7 +216,9 @@ public sealed class DictDomainService
         return new DictItemCommandResult(await _dictItemRepository.UpdateAsync(dictItem, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新字典状态
+    /// </summary>
     public async Task<DictCommandResult> UpdateDictStatusAsync(DictStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

@@ -30,7 +30,12 @@ public sealed class TemplateRendererResolver : ITemplateRendererResolver
         _renderers = map;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解析渲染器
+    /// </summary>
+    /// <param name="engine">模板引擎</param>
+    /// <returns>渲染器实现</returns>
+    /// <exception cref="NotSupportedException">引擎未实现渲染器时抛出</exception>
     public ITemplateRenderer Resolve(TemplateEngine engine)
     {
         return _renderers.TryGetValue(engine, out var renderer)

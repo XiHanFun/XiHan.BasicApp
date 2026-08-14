@@ -45,7 +45,12 @@ public sealed class SaasSessionStateGate : ISessionStateGate
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 评估会话状态
+    /// </summary>
+    /// <param name="sessionId">JWT 中的会话标识（session_id claim）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>判定结果</returns>
     public async Task<SessionGateDecision> EvaluateAsync(string sessionId, CancellationToken cancellationToken = default)
     {
         SaasSessionStateCacheItem? state;

@@ -38,7 +38,11 @@ public partial class SysTenantEdition : IValidatableObject
     [Navigate(NavigateType.OneToMany, nameof(SysTenant.EditionId))]
     public virtual List<SysTenant>? Tenants { get; set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验实体自身的业务规则
+    /// </summary>
+    /// <param name="validationContext">校验上下文</param>
+    /// <returns>校验失败项集合，全部通过时为空集合</returns>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (TenantId != 0)

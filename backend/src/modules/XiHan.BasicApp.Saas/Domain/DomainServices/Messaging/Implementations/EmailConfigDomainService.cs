@@ -27,7 +27,9 @@ public sealed class EmailConfigDomainService
         _secretProtector = secretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建邮件网关配置
+    /// </summary>
     public async Task<EmailConfigCommandResult> CreateEmailConfigAsync(EmailConfigCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -68,7 +70,9 @@ public sealed class EmailConfigDomainService
         return new EmailConfigCommandResult(await _emailConfigRepository.AddAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新邮件网关配置
+    /// </summary>
     public async Task<EmailConfigCommandResult> UpdateEmailConfigAsync(EmailConfigUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -99,7 +103,9 @@ public sealed class EmailConfigDomainService
         return new EmailConfigCommandResult(await _emailConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新邮件网关配置启用状态
+    /// </summary>
     public async Task<EmailConfigCommandResult> UpdateEmailConfigStatusAsync(EmailConfigStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -116,7 +122,9 @@ public sealed class EmailConfigDomainService
         return new EmailConfigCommandResult(await _emailConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置默认邮件网关配置
+    /// </summary>
     public async Task<EmailConfigCommandResult> SetDefaultEmailConfigAsync(EmailConfigDefaultChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -132,7 +140,9 @@ public sealed class EmailConfigDomainService
         return new EmailConfigCommandResult(await _emailConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除邮件网关配置
+    /// </summary>
     public async Task<EmailConfigCommandResult> DeleteEmailConfigAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

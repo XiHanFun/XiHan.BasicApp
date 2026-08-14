@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class BotConfigRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysBotConfig>(clientResolver), IBotConfigRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按配置编码查询（租户内唯一）
+    /// </summary>
     public async Task<SysBotConfig?> GetByCodeAsync(string configCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configCode);
@@ -24,7 +26,9 @@ public sealed class BotConfigRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定服务商默认且启用的机器人配置
+    /// </summary>
     public async Task<SysBotConfig?> GetDefaultAsync(BotProviderType provider, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

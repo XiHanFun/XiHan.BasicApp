@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class ExternalLoginRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysExternalLogin>(clientResolver), IExternalLoginRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据提供商和提供商用户标识获取外部登录
+    /// </summary>
     public async Task<SysExternalLogin?> GetByProviderAndKeyAsync(string provider, string providerKey, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(provider);

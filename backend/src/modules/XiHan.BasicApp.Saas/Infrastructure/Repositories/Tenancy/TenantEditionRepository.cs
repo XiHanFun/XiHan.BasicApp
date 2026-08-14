@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class TenantEditionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysTenantEdition>(clientResolver), ITenantEditionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取默认版本
+    /// </summary>
     public async Task<SysTenantEdition?> GetDefaultEditionAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -23,7 +25,9 @@ public sealed class TenantEditionRepository(ISqlSugarClientResolver clientResolv
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查版本编码是否存在
+    /// </summary>
     public async Task<bool> ExistsCodeAsync(string editionCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(editionCode);

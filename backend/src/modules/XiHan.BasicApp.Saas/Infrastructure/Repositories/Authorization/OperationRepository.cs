@@ -16,7 +16,9 @@ public sealed class OperationRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysOperation>(clientResolver, unitOfWorkManager), IOperationRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据当前租户和操作编码获取操作
+    /// </summary>
     public async Task<SysOperation?> GetByCodeAsync(string operationCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(operationCode);

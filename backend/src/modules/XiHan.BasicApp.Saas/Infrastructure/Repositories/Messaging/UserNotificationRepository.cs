@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserNotificationRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserNotification>(clientResolver), IUserNotificationRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户未读通知
+    /// </summary>
     public async Task<IReadOnlyList<SysUserNotification>> GetUnreadByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -23,7 +25,9 @@ public sealed class UserNotificationRepository(ISqlSugarClientResolver clientRes
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 批量标记已读
+    /// </summary>
     public async Task<int> MarkAsReadAsync(long userId, IEnumerable<long> notificationIds, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

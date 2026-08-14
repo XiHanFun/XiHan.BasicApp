@@ -46,7 +46,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         _currentUser = currentUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查是否有指定权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionName">权限名称</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否有权限</returns>
     public async Task<bool> IsGrantedAsync(string userId, string permissionName, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(permissionName) || !TryResolveUserId(userId, out var id))
@@ -63,7 +69,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         return HasPermission(snapshot, permissionName);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查是否有任意一个权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionNames">权限名称列表</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否有任意一个权限</returns>
     public async Task<bool> IsAnyGrantedAsync(string userId, List<string> permissionNames, CancellationToken cancellationToken = default)
     {
         if (permissionNames is not { Count: > 0 } || !TryResolveUserId(userId, out var id))
@@ -80,7 +92,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         return permissionNames.Any(name => HasPermission(snapshot, name));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查是否有所有权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="permissionNames">权限名称列表</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否有所有权限</returns>
     public async Task<bool> IsAllGrantedAsync(string userId, List<string> permissionNames, CancellationToken cancellationToken = default)
     {
         if (permissionNames is not { Count: > 0 } || !TryResolveUserId(userId, out var id))
@@ -97,7 +115,12 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         return permissionNames.All(name => HasPermission(snapshot, name));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户的所有权限
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>权限列表</returns>
     public async Task<List<string>> GetGrantedPermissionsAsync(string userId, CancellationToken cancellationToken = default)
     {
         if (!TryResolveUserId(userId, out var id) || !await IsCurrentSessionValidAsync(cancellationToken))
@@ -109,7 +132,12 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         return [.. snapshot.Permissions];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查权限是否存在
+    /// </summary>
+    /// <param name="permissionName">权限名称</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否存在</returns>
     public Task<bool> PermissionExistsAsync(string permissionName, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(!string.IsNullOrWhiteSpace(permissionName));

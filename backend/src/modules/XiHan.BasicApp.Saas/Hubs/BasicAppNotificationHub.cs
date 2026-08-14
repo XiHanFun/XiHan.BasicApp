@@ -43,14 +43,21 @@ public class BasicAppNotificationHub : XiHanHub
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 客户端连接时触发
+    /// </summary>
+    /// <returns></returns>
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();
         await TouchSessionActivityAsync();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 客户端断开连接时触发
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <returns></returns>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         await base.OnDisconnectedAsync(exception);

@@ -47,7 +47,9 @@ public sealed class PermissionConditionDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建权限 ABAC 条件
+    /// </summary>
     public async Task<PermissionConditionCommandResult> CreatePermissionConditionAsync(PermissionConditionCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -85,7 +87,9 @@ public sealed class PermissionConditionDomainService
         return new PermissionConditionCommandResult(savedCondition.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除权限 ABAC 条件
+    /// </summary>
     public async Task DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -97,7 +101,9 @@ public sealed class PermissionConditionDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限 ABAC 条件
+    /// </summary>
     public async Task<PermissionConditionCommandResult> UpdatePermissionConditionAsync(PermissionConditionUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -132,7 +138,9 @@ public sealed class PermissionConditionDomainService
         return new PermissionConditionCommandResult(savedCondition.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新权限 ABAC 条件状态
+    /// </summary>
     public async Task<PermissionConditionCommandResult> UpdatePermissionConditionStatusAsync(PermissionConditionStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

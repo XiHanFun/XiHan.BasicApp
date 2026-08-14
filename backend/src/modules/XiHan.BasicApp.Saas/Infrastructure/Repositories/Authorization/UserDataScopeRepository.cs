@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class UserDataScopeRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysUserDataScope>(clientResolver), IUserDataScopeRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户有效数据范围覆盖
+    /// </summary>
     public async Task<IReadOnlyList<SysUserDataScope>> GetValidByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

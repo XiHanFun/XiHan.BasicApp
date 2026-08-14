@@ -13,7 +13,10 @@ namespace XiHan.BasicApp.Saas.Domain.Specifications;
 /// </summary>
 public sealed class ActiveUserSpecification : Specification<SysUser>
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 转换为表达式
+    /// </summary>
+    /// <returns>查询表达式</returns>
     public override Expression<Func<SysUser, bool>> ToExpression()
     {
         return user => !user.IsDeleted && user.Status == EnableStatus.Enabled;

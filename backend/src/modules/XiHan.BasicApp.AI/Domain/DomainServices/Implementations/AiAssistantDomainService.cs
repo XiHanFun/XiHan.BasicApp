@@ -31,7 +31,9 @@ public sealed class AiAssistantDomainService : IAiAssistantDomainService
         _assistantRepository = assistantRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建助手（编码租户内唯一）
+    /// </summary>
     public async Task<AiAssistantCommandResult> CreateAssistantAsync(AiAssistantCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -75,7 +77,9 @@ public sealed class AiAssistantDomainService : IAiAssistantDomainService
         return new AiAssistantCommandResult(created);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新助手（编码不可变）
+    /// </summary>
     public async Task<AiAssistantCommandResult> UpdateAssistantAsync(AiAssistantUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -109,7 +113,9 @@ public sealed class AiAssistantDomainService : IAiAssistantDomainService
         return new AiAssistantCommandResult(updated);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新助手状态
+    /// </summary>
     public async Task<AiAssistantCommandResult> UpdateAssistantStatusAsync(AiAssistantStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -125,7 +131,9 @@ public sealed class AiAssistantDomainService : IAiAssistantDomainService
         return new AiAssistantCommandResult(await _assistantRepository.UpdateAsync(assistant, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设为默认助手（禁用的助手拒绝设默认）
+    /// </summary>
     public async Task<AiAssistantCommandResult> SetDefaultAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -146,7 +154,9 @@ public sealed class AiAssistantDomainService : IAiAssistantDomainService
         return new AiAssistantCommandResult(assistant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除助手
+    /// </summary>
     public async Task DeleteAssistantAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

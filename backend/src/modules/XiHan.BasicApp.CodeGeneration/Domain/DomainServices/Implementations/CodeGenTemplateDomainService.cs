@@ -22,7 +22,9 @@ public sealed class CodeGenTemplateDomainService
         _templateRepository = templateRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建模板（模板编码全局唯一）
+    /// </summary>
     public async Task<CodeGenTemplateCommandResult> CreateTemplateAsync(CodeGenTemplateCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -67,7 +69,9 @@ public sealed class CodeGenTemplateDomainService
         return new CodeGenTemplateCommandResult(await _templateRepository.AddAsync(template, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新模板（编码不可变；内置模板允许改内容）
+    /// </summary>
     public async Task<CodeGenTemplateCommandResult> UpdateTemplateAsync(CodeGenTemplateUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -103,7 +107,9 @@ public sealed class CodeGenTemplateDomainService
         return new CodeGenTemplateCommandResult(await _templateRepository.UpdateAsync(template, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新模板状态
+    /// </summary>
     public async Task<CodeGenTemplateCommandResult> UpdateTemplateStatusAsync(CodeGenTemplateStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -119,7 +125,9 @@ public sealed class CodeGenTemplateDomainService
         return new CodeGenTemplateCommandResult(await _templateRepository.UpdateAsync(template, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除模板（内置模板不允许删除）
+    /// </summary>
     public async Task DeleteTemplateAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

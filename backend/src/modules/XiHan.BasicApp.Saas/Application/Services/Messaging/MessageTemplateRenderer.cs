@@ -46,7 +46,14 @@ public sealed class MessageTemplateRenderer : IMessageTemplateRenderer
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 渲染指定模板
+    /// </summary>
+    /// <param name="channel">消息渠道</param>
+    /// <param name="templateCode">模板编码</param>
+    /// <param name="variables">模板变量</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>渲染结果；模板不存在/停用时为 null</returns>
     public async Task<RenderedMessage?> RenderAsync(
         MessageChannel channel,
         string templateCode,

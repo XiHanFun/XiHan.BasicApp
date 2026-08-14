@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class FileRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysFile>(clientResolver), IFileRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据文件哈希获取
+    /// </summary>
     public async Task<SysFile?> GetByHashAsync(string fileHash, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileHash);

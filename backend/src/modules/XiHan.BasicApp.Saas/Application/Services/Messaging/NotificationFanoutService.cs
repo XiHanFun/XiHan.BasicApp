@@ -92,7 +92,11 @@ public sealed class NotificationFanoutService
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按通知的投递渠道执行多渠道扇出（应在发布成功后、发布事务内调用）
+    /// </summary>
+    /// <param name="notification">已发布的系统通知</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task FanoutAsync(SysNotification notification, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(notification);

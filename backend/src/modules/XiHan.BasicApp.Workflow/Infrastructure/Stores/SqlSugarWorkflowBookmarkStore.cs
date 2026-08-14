@@ -28,7 +28,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         _scopeFactory = scopeFactory;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按标识查找书签
+    /// </summary>
+    /// <param name="id">书签标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>书签（不存在返回 null）</returns>
     public async Task<WorkflowBookmark?> FindAsync(string id, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -37,7 +42,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         return entity is null ? null : WorkflowStoreMapper.ToModel(entity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取实例的全部书签
+    /// </summary>
+    /// <param name="instanceId">实例标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>书签列表</returns>
     public async Task<List<WorkflowBookmark>> GetByInstanceAsync(string instanceId, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -46,7 +56,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         return [.. entities.Select(WorkflowStoreMapper.ToModel)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取节点实例的全部书签
+    /// </summary>
+    /// <param name="nodeInstanceId">节点实例标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>书签列表</returns>
     public async Task<List<WorkflowBookmark>> GetByNodeInstanceAsync(string nodeInstanceId, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -55,7 +70,16 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         return [.. entities.Select(WorkflowStoreMapper.ToModel)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取到期的定时类书签
+    /// </summary>
+    /// <remarks>
+    /// 语义契约：过滤 <c>DueTime 非空 &amp;&amp; DueTime &lt;= now</c>；排序 <c>DueTime 升序</c>；最多返回 <paramref name="maxResultCount"/> 条。
+    /// </remarks>
+    /// <param name="now">当前时间</param>
+    /// <param name="maxResultCount">最大返回条数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>到期书签列表</returns>
     public async Task<List<WorkflowBookmark>> GetDueAsync(DateTime now, int maxResultCount, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -64,7 +88,13 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         return [.. entities.Select(WorkflowStoreMapper.ToModel)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按种类和索引键查询书签
+    /// </summary>
+    /// <param name="kind">书签种类</param>
+    /// <param name="key">索引键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>书签列表（按创建时间升序）</returns>
     public async Task<List<WorkflowBookmark>> GetByKindAndKeyAsync(string kind, string key, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -73,7 +103,18 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         return [.. entities.Select(WorkflowStoreMapper.ToModel)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查询匹配信号的书签
+    /// </summary>
+    /// <remarks>
+    /// 语义契约：过滤 <c>Kind == Signal &amp;&amp; Key == signalName</c>；
+    /// <paramref name="correlationId"/> 非空时额外要求 <c>书签 CorrelationId 为空（不限相关性）或与之相等</c>，
+    /// 为空时表示广播，不按相关性过滤。
+    /// </remarks>
+    /// <param name="signalName">信号名称</param>
+    /// <param name="correlationId">业务相关性标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>书签列表（按创建时间升序）</returns>
     public async Task<List<WorkflowBookmark>> GetBySignalAsync(string signalName, string? correlationId, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -82,7 +123,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         return [.. entities.Select(WorkflowStoreMapper.ToModel)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 插入书签
+    /// </summary>
+    /// <param name="bookmark">书签</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task InsertAsync(WorkflowBookmark bookmark, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -90,7 +136,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         await repository.AddAsync(WorkflowStoreMapper.ToEntity(bookmark), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新书签
+    /// </summary>
+    /// <param name="bookmark">书签</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task UpdateAsync(WorkflowBookmark bookmark, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -98,7 +149,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         await repository.UpdateAsync(WorkflowStoreMapper.ToEntity(bookmark), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除书签
+    /// </summary>
+    /// <param name="id">书签标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -106,7 +162,12 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
         await repository.DeleteByIdAsync(WorkflowStoreMapper.ParseId(id), cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除实例的全部书签
+    /// </summary>
+    /// <param name="instanceId">实例标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务</returns>
     public async Task DeleteByInstanceAsync(string instanceId, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();

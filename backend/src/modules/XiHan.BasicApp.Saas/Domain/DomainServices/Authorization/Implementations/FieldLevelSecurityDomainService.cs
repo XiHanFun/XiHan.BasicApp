@@ -49,7 +49,9 @@ public sealed class FieldLevelSecurityDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建字段级安全策略
+    /// </summary>
     public async Task<FieldLevelSecurityCommandResult> CreateAsync(FieldLevelSecurityCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -82,7 +84,9 @@ public sealed class FieldLevelSecurityDomainService
         return new FieldLevelSecurityCommandResult(savedPolicy, resource, targetCode, targetName);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除字段级安全策略
+    /// </summary>
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -94,7 +98,9 @@ public sealed class FieldLevelSecurityDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新字段级安全策略
+    /// </summary>
     public async Task<FieldLevelSecurityCommandResult> UpdateAsync(FieldLevelSecurityUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -124,7 +130,9 @@ public sealed class FieldLevelSecurityDomainService
         return new FieldLevelSecurityCommandResult(savedPolicy, resource, targetCode, targetName);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新字段级安全策略状态
+    /// </summary>
     public async Task<FieldLevelSecurityCommandResult> UpdateStatusAsync(FieldLevelSecurityStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

@@ -171,7 +171,9 @@ public sealed class NumberingRuleRepositorySqlTests : IDisposable
         Assert.Equal(0, ReadRule().CurrentValue);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 释放占用的资源
+    /// </summary>
     public void Dispose()
     {
         _client.Ado.Connection.Close();
@@ -229,19 +231,32 @@ public sealed class NumberingRuleRepositorySqlTests : IDisposable
     /// </summary>
     private sealed class SingleClientResolver(ISqlSugarClient client) : ISqlSugarClientResolver
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// 获取当前租户对应的客户端
+        /// </summary>
+        /// <returns>当前 Scope 级客户端</returns>
         public ISqlSugarClient GetCurrentClient() => client;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 按 ConfigId 获取指定客户端
+        /// </summary>
+        /// <param name="configId">连接配置标识</param>
+        /// <returns>Scope 级客户端</returns>
         public ISqlSugarClient GetClient(string configId) => client;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 获取全部连接配置标识
+        /// </summary>
         public IReadOnlyCollection<string> GetAllConfigIds() => [];
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 按顺序获取所有库的客户端（初始化/种子数据等场景使用）
+        /// </summary>
         public IEnumerable<ISqlSugarClient> GetAllClients() => [client];
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 底层 SqlSugarScope（仅在需要多库切换/租户管理等高级场景使用）
+        /// </summary>
         public ITenant AsTenant() => throw new NotSupportedException();
     }
 }

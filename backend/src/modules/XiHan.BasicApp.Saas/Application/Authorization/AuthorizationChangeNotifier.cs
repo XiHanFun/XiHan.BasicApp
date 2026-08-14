@@ -33,7 +33,15 @@ public sealed class AuthorizationChangeNotifier : IAuthorizationChangeNotifier
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发布一条授权变更事件。
+    /// </summary>
+    /// <param name="changeType">变更类型</param>
+    /// <param name="targetUserId">目标用户ID（用户级变更时填写）</param>
+    /// <param name="targetRoleId">目标角色ID（角色级变更、或用户分配/移除角色时填写）</param>
+    /// <param name="permissionId">权限ID（权限级变更时填写）</param>
+    /// <param name="reason">变更原因</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public Task NotifyAsync(
         PermissionChangeType changeType,
         long? targetUserId,

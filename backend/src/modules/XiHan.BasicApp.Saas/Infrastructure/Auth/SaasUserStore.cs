@@ -26,7 +26,12 @@ public sealed class SaasUserStore : IUserStore
         _currentTenant = currentTenant ?? throw new ArgumentNullException(nameof(currentTenant));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据用户名获取用户
+    /// </summary>
+    /// <param name="username">用户名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户信息</returns>
     public async Task<UserInfo?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -50,7 +55,12 @@ public sealed class SaasUserStore : IUserStore
         return MapToUserInfo(user, security);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据用户ID获取用户
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户信息</returns>
     public async Task<UserInfo?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -78,7 +88,11 @@ public sealed class SaasUserStore : IUserStore
         return MapToUserInfo(user, security);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新用户信息
+    /// </summary>
+    /// <param name="user">用户信息</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task UpdateUserAsync(UserInfo user, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -144,7 +158,12 @@ public sealed class SaasUserStore : IUserStore
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新用户密码
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="passwordHash">密码哈希</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task UpdatePasswordAsync(string userId, string passwordHash, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -176,7 +195,12 @@ public sealed class SaasUserStore : IUserStore
             .ExecuteCommandAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取登录失败次数
+    /// </summary>
+    /// <param name="username">用户名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>失败次数</returns>
     public async Task<int> GetFailedLoginAttemptsAsync(string username, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -199,7 +223,11 @@ public sealed class SaasUserStore : IUserStore
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 记录登录失败
+    /// </summary>
+    /// <param name="username">用户名</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task IncrementFailedLoginAttemptsAsync(string username, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -233,7 +261,11 @@ public sealed class SaasUserStore : IUserStore
             .ExecuteCommandAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 重置登录失败次数
+    /// </summary>
+    /// <param name="username">用户名</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task ResetFailedLoginAttemptsAsync(string username, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -260,7 +292,12 @@ public sealed class SaasUserStore : IUserStore
             .ExecuteCommandAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置账户锁定时间
+    /// </summary>
+    /// <param name="username">用户名</param>
+    /// <param name="lockoutEnd">锁定结束时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task SetLockoutEndAsync(string username, DateTime? lockoutEnd, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -306,7 +343,12 @@ public sealed class SaasUserStore : IUserStore
             .ExecuteCommandAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取账户锁定结束时间
+    /// </summary>
+    /// <param name="username">用户名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>锁定结束时间</returns>
     public async Task<DateTime?> GetLockoutEndAsync(string username, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

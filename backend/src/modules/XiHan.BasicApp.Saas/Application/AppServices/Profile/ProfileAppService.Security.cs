@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 public sealed partial class ProfileAppService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 修改当前用户密码
+    /// </summary>
     [UnitOfWork(true)]
     public async Task ChangePasswordAsync(ProfileChangePasswordDto input, CancellationToken cancellationToken = default)
     {
@@ -39,7 +41,9 @@ public sealed partial class ProfileAppService
             cancellationToken: cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 禁用双因素认证
+    /// </summary>
     [UnitOfWork(true)]
     public async Task Disable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
     {
@@ -61,7 +65,9 @@ public sealed partial class ProfileAppService
         await PublishSecurityAuditAsync(LoginResult.MfaUnbound, $"解绑两步验证（{method}）");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 启用双因素认证
+    /// </summary>
     [UnitOfWork(true)]
     public async Task Enable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
     {
@@ -78,7 +84,9 @@ public sealed partial class ProfileAppService
         await PublishSecurityAuditAsync(LoginResult.MfaBound, $"绑定两步验证（{method}）");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送双因素设置验证码
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> Send2FASetupCodeAsync(ProfileTwoFactorMethodDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -94,7 +102,9 @@ public sealed partial class ProfileAppService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 初始化 TOTP 双因素认证
+    /// </summary>
     [UnitOfWork(true)]
     public async Task<ProfileTwoFactorSetupDto> Setup2FAAsync(CancellationToken cancellationToken = default)
     {

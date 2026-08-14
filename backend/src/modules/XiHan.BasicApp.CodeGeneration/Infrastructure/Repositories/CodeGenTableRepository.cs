@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Repositories;
 public sealed class CodeGenTableRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysCodeGenTable>(clientResolver), ICodeGenTableRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据数据库表名获取
+    /// </summary>
     public async Task<SysCodeGenTable?> GetByTableNameAsync(string tableName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
@@ -25,7 +27,9 @@ public sealed class CodeGenTableRepository(ISqlSugarClientResolver clientResolve
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查表名是否已配置
+    /// </summary>
     public async Task<bool> ExistsTableNameAsync(string tableName, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tableName);
@@ -40,7 +44,9 @@ public sealed class CodeGenTableRepository(ISqlSugarClientResolver clientResolve
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按模块获取表配置
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenTable>> GetByModuleAsync(string moduleName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(moduleName);
@@ -52,7 +58,9 @@ public sealed class CodeGenTableRepository(ISqlSugarClientResolver clientResolve
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取以指定表为主表的子表配置（主子表生成时反查明细表）
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenTable>> GetByMasterTableIdAsync(long masterTableId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

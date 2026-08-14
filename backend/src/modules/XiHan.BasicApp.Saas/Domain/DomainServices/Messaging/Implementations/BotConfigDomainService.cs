@@ -31,7 +31,9 @@ public sealed class BotConfigDomainService
         _secretProtector = secretProtector;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建机器人配置
+    /// </summary>
     public async Task<BotConfigCommandResult> CreateBotConfigAsync(BotConfigCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -67,7 +69,9 @@ public sealed class BotConfigDomainService
         return new BotConfigCommandResult(await _botConfigRepository.AddAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新机器人配置
+    /// </summary>
     public async Task<BotConfigCommandResult> UpdateBotConfigAsync(BotConfigUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -99,7 +103,9 @@ public sealed class BotConfigDomainService
         return new BotConfigCommandResult(await _botConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新机器人配置启用状态
+    /// </summary>
     public async Task<BotConfigCommandResult> UpdateBotConfigStatusAsync(BotConfigStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -116,7 +122,9 @@ public sealed class BotConfigDomainService
         return new BotConfigCommandResult(await _botConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置默认机器人配置（同租户同服务商内互斥）
+    /// </summary>
     public async Task<BotConfigCommandResult> SetDefaultBotConfigAsync(BotConfigDefaultChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -132,7 +140,9 @@ public sealed class BotConfigDomainService
         return new BotConfigCommandResult(await _botConfigRepository.UpdateAsync(config, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除机器人配置
+    /// </summary>
     public async Task<BotConfigCommandResult> DeleteBotConfigAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -922,7 +922,10 @@ public sealed class NumberGeneratorTests
     /// </summary>
     private sealed class FixedTimeProvider(Func<DateTimeOffset> utcNow) : TimeProvider
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// 获取当前 UTC 时间
+        /// </summary>
+        /// <returns>当前 UTC 时间</returns>
         public override DateTimeOffset GetUtcNow() => utcNow();
     }
 
@@ -933,7 +936,9 @@ public sealed class NumberGeneratorTests
     {
         private int _disposed;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 释放占用的资源
+        /// </summary>
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)

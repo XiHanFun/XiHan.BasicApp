@@ -16,7 +16,9 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Repositories;
 public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysCodeGenTemplate>(clientResolver), ICodeGenTemplateRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据模板编码获取
+    /// </summary>
     public async Task<SysCodeGenTemplate?> GetByCodeAsync(string templateCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(templateCode);
@@ -27,7 +29,9 @@ public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientReso
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查模板编码是否存在
+    /// </summary>
     public async Task<bool> ExistsCodeAsync(string templateCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(templateCode);
@@ -42,7 +46,9 @@ public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientReso
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按分组获取启用模板（用于生成时批量加载）
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenTemplate>> GetEnabledByGroupAsync(string? templateGroup, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -59,7 +65,9 @@ public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientReso
         return await query.OrderBy(template => template.Sort).ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 按模板类型获取启用模板（生成时按表的单表/树表/主子表选取匹配模板集；模板通用、不按业务模块过滤）
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenTemplate>> GetEnabledByTypeAsync(TemplateType templateType, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -75,7 +83,9 @@ public sealed class CodeGenTemplateRepository(ISqlSugarClientResolver clientReso
         return [.. enabled.Where(template => template.TemplateType is null || template.TemplateType == templateType)];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据模板编码集合批量获取
+    /// </summary>
     public async Task<IReadOnlyList<SysCodeGenTemplate>> GetByCodesAsync(IEnumerable<string> templateCodes, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(templateCodes);

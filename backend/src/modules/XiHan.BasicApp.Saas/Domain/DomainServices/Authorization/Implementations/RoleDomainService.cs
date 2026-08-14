@@ -55,7 +55,9 @@ public sealed class RoleDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建角色
+    /// </summary>
     public async Task<RoleCommandResult> CreateRoleAsync(RoleCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -86,7 +88,9 @@ public sealed class RoleDomainService
         return new RoleCommandResult(savedRole);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新角色
+    /// </summary>
     public async Task<RoleCommandResult> UpdateRoleAsync(RoleUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -107,7 +111,9 @@ public sealed class RoleDomainService
         return new RoleCommandResult(savedRole);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新角色状态
+    /// </summary>
     public async Task<RoleCommandResult> UpdateRoleStatusAsync(RoleStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -128,7 +134,9 @@ public sealed class RoleDomainService
         return new RoleCommandResult(savedRole);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除角色
+    /// </summary>
     public async Task DeleteRoleAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -142,7 +150,9 @@ public sealed class RoleDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 授予角色权限
+    /// </summary>
     public async Task<RolePermissionCommandResult> CreateRolePermissionAsync(RolePermissionGrantCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -192,7 +202,10 @@ public sealed class RoleDomainService
         return new RolePermissionCommandResult(savedRolePermission, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 批量变更角色权限（批量撤销 + 批量授予，底层走 UpdateRange/AddRange 单次提交）
+    /// </summary>
+    /// <returns>本次实际发生变化的授予/撤销权限ID（供审计发事件）</returns>
     public async Task<RolePermissionBatchUpdateResult> BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -294,7 +307,9 @@ public sealed class RoleDomainService
         return new RolePermissionBatchUpdateResult(grantedPermissionIds, revokedPermissionIds);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新角色权限
+    /// </summary>
     public async Task<RolePermissionCommandResult> UpdateRolePermissionAsync(RolePermissionUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -316,7 +331,9 @@ public sealed class RoleDomainService
         return new RolePermissionCommandResult(savedRolePermission, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新角色权限状态
+    /// </summary>
     public async Task<RolePermissionCommandResult> UpdateRolePermissionStatusAsync(RolePermissionStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -346,7 +363,9 @@ public sealed class RoleDomainService
         return new RolePermissionCommandResult(savedRolePermission, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销角色权限
+    /// </summary>
     public async Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -357,7 +376,9 @@ public sealed class RoleDomainService
         _ = await _rolePermissionRepository.UpdateAsync(rolePermission, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 授予角色数据范围
+    /// </summary>
     public async Task<RoleDataScopeCommandResult> CreateRoleDataScopeAsync(RoleDataScopeGrantCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -389,7 +410,9 @@ public sealed class RoleDomainService
         return new RoleDataScopeCommandResult(savedDataScope, department);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新角色数据范围
+    /// </summary>
     public async Task<RoleDataScopeCommandResult> UpdateRoleDataScopeAsync(RoleDataScopeUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -410,7 +433,9 @@ public sealed class RoleDomainService
         return new RoleDataScopeCommandResult(savedDataScope, department);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新角色数据范围状态
+    /// </summary>
     public async Task<RoleDataScopeCommandResult> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -440,7 +465,9 @@ public sealed class RoleDomainService
         return new RoleDataScopeCommandResult(savedDataScope, department);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销角色数据范围
+    /// </summary>
     public async Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -451,7 +478,9 @@ public sealed class RoleDomainService
         _ = await _roleDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建角色直接继承关系
+    /// </summary>
     public async Task<RoleHierarchyCommandResult> CreateRoleHierarchyAsync(RoleHierarchyCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -535,7 +564,9 @@ public sealed class RoleDomainService
         return new RoleHierarchyCommandResult(directHierarchy, ancestor, descendant);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除角色直接继承关系
+    /// </summary>
     public async Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -35,7 +35,14 @@ public sealed class SaasConversationStateStore : IConversationStateStore
         _stateCache = stateCache;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定会话的当前状态
+    /// </summary>
+    /// <param name="botName">机器人名称</param>
+    /// <param name="chatId">会话 Id</param>
+    /// <param name="userId">用户 Id</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>会话状态；null 表示无活跃状态</returns>
     public async Task<ConversationState?> GetAsync(string botName, long chatId, long userId, CancellationToken cancellationToken = default)
     {
         var item = await _stateCache.GetAsync(
@@ -54,7 +61,15 @@ public sealed class SaasConversationStateStore : IConversationStateStore
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置指定会话的状态（覆盖已有状态）
+    /// </summary>
+    /// <param name="botName">机器人名称</param>
+    /// <param name="chatId">会话 Id</param>
+    /// <param name="userId">用户 Id</param>
+    /// <param name="state">会话状态</param>
+    /// <param name="ttl">存活时长</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task SetAsync(string botName, long chatId, long userId, ConversationState state, TimeSpan ttl, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(state);
@@ -75,7 +90,13 @@ public sealed class SaasConversationStateStore : IConversationStateStore
             token: cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 清除指定会话的状态
+    /// </summary>
+    /// <param name="botName">机器人名称</param>
+    /// <param name="chatId">会话 Id</param>
+    /// <param name="userId">用户 Id</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task RemoveAsync(string botName, long chatId, long userId, CancellationToken cancellationToken = default)
     {
         await _stateCache.RemoveAsync(

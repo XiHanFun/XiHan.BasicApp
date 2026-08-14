@@ -46,7 +46,9 @@ public sealed class ConstraintRuleDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建约束规则
+    /// </summary>
     public async Task<ConstraintRuleCommandResult> CreateConstraintRuleAsync(ConstraintRuleCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -80,7 +82,9 @@ public sealed class ConstraintRuleDomainService
         return new ConstraintRuleCommandResult(savedRule.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除约束规则
+    /// </summary>
     public async Task DeleteConstraintRuleAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -93,7 +97,9 @@ public sealed class ConstraintRuleDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新约束规则
+    /// </summary>
     public async Task<ConstraintRuleCommandResult> UpdateConstraintRuleAsync(ConstraintRuleUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -121,7 +127,9 @@ public sealed class ConstraintRuleDomainService
         return new ConstraintRuleCommandResult(savedRule.BasicId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新约束规则状态
+    /// </summary>
     public async Task<ConstraintRuleCommandResult> UpdateConstraintRuleStatusAsync(ConstraintRuleStatusCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

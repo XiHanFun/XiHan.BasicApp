@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class VersionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysVersion>(clientResolver), IVersionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取最新版本
+    /// </summary>
     public async Task<SysVersion?> GetLatestAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

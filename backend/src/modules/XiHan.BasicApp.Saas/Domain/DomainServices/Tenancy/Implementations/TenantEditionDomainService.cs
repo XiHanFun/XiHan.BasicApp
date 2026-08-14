@@ -32,7 +32,9 @@ public sealed class TenantEditionDomainService
         _permissionRepository = permissionRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建租户版本
+    /// </summary>
     public async Task<TenantEditionCommandResult> CreateTenantEditionAsync(TenantEditionCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -70,7 +72,9 @@ public sealed class TenantEditionDomainService
         return new TenantEditionCommandResult(await _tenantEditionRepository.AddAsync(edition, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 授予租户版本权限
+    /// </summary>
     public async Task<TenantEditionPermissionCommandResult> GrantTenantEditionPermissionAsync(TenantEditionPermissionGrantCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -101,7 +105,12 @@ public sealed class TenantEditionDomainService
             permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 批量变更租户版本权限（一次性提交授予、撤销与启停）
+    /// </summary>
+    /// <param name="command">批量变更命令</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>本次实际发生的条数</returns>
     public async Task<TenantEditionPermissionBatchUpdateResult> BatchUpdateTenantEditionPermissionsAsync(TenantEditionPermissionBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -201,7 +210,12 @@ public sealed class TenantEditionDomainService
         return new TenantEditionPermissionBatchUpdateResult(grantedCount, revokedCount, statusChangedCount);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销租户版本权限
+    /// </summary>
+    /// <param name="id">租户版本权限绑定主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>被撤销的版本权限映射（调用方据此回收受影响租户的越界授权）</returns>
     public async Task<TenantEditionPermissionCommandResult> RevokeTenantEditionPermissionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -216,7 +230,9 @@ public sealed class TenantEditionDomainService
         return new TenantEditionPermissionCommandResult(editionPermission, permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 设置默认租户版本
+    /// </summary>
     public async Task<TenantEditionCommandResult> UpdateDefaultTenantEditionAsync(TenantEditionDefaultChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -232,7 +248,9 @@ public sealed class TenantEditionDomainService
         return new TenantEditionCommandResult(await _tenantEditionRepository.UpdateAsync(edition, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户版本
+    /// </summary>
     public async Task<TenantEditionCommandResult> UpdateTenantEditionAsync(TenantEditionUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -265,7 +283,9 @@ public sealed class TenantEditionDomainService
         return new TenantEditionCommandResult(await _tenantEditionRepository.UpdateAsync(edition, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户版本权限状态
+    /// </summary>
     public async Task<TenantEditionPermissionCommandResult> UpdateTenantEditionPermissionStatusAsync(TenantEditionPermissionStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -287,7 +307,9 @@ public sealed class TenantEditionDomainService
             permission);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新租户版本状态
+    /// </summary>
     public async Task<TenantEditionCommandResult> UpdateTenantEditionStatusAsync(TenantEditionStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

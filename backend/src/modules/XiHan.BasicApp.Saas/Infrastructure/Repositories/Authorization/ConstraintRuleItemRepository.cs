@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class ConstraintRuleItemRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysConstraintRuleItem>(clientResolver), IConstraintRuleItemRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据规则ID获取规则项列表
+    /// </summary>
     public async Task<IReadOnlyList<SysConstraintRuleItem>> GetByRuleIdAsync(long ruleId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -23,7 +25,9 @@ public sealed class ConstraintRuleItemRepository(ISqlSugarClientResolver clientR
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 全量替换规则项（先删后插）
+    /// </summary>
     public async Task ReplaceByRuleIdAsync(long ruleId, IEnumerable<SysConstraintRuleItem> items, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class EmailRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysEmail>(clientResolver), IEmailRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取待发送邮件
+    /// </summary>
     public async Task<IReadOnlyList<SysEmail>> GetPendingEmailsAsync(int maxCount, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

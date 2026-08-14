@@ -291,7 +291,11 @@ public sealed class TaskLogQueryService
     /// </summary>
     private sealed class ReplaceParameterVisitor(ParameterExpression source, ParameterExpression target) : ExpressionVisitor
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// 访问参数表达式，命中源参数时替换为目标参数
+        /// </summary>
+        /// <param name="node">参数表达式节点</param>
+        /// <returns>替换后的表达式节点</returns>
         protected override Expression VisitParameter(ParameterExpression node)
         {
             return node == source ? target : node;

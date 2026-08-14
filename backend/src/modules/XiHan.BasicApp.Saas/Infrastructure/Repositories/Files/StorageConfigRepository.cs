@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class StorageConfigRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysStorageConfig>(clientResolver), IStorageConfigRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按配置编码查询（租户内唯一）
+    /// </summary>
     public async Task<SysStorageConfig?> GetByCodeAsync(string configCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configCode);
@@ -24,7 +26,9 @@ public sealed class StorageConfigRepository(ISqlSugarClientResolver clientResolv
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取默认且启用的存储配置
+    /// </summary>
     public async Task<SysStorageConfig?> GetDefaultAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

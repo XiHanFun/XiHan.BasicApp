@@ -37,7 +37,11 @@ public sealed class TableConfigInferenceEngine(
     private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
     private readonly CodeGenerationOptions _options = options.Value;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 推断表与列配置
+    /// </summary>
+    /// <param name="schema">DbFirst 扫描结果</param>
+    /// <param name="context">推断上下文（当前用户、数据库类型、全局表前缀等）</param>
     public TableConfigSuggestion Infer(TableSchema schema, InferenceContext context)
     {
         ArgumentNullException.ThrowIfNull(schema);

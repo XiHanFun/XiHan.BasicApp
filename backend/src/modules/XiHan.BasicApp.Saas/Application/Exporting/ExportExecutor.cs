@@ -62,7 +62,9 @@ public sealed class ExportExecutor : IExportExecutor
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 执行一个已领取的导出任务
+    /// </summary>
     public async Task ExecuteAsync(SysExportTask task, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(task);

@@ -63,7 +63,9 @@ public sealed class UserNotificationDispatchService
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 投递用户通知并尝试实时推送
+    /// </summary>
     public async Task<UserInboxItemDto> DispatchToUserAsync(
         long userId,
         string title,

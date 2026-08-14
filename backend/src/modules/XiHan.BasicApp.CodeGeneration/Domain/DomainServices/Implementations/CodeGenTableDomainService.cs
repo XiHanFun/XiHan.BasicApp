@@ -27,7 +27,9 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         _columnRepository = columnRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新表配置（表名唯一，排除自身；load-then-mutate）
+    /// </summary>
     public async Task<CodeGenTableCommandResult> UpdateTableAsync(CodeGenTableUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -101,7 +103,9 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         nameof(SysCodeGenTable.TreeNameColumn)
     ];
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新表配置状态（仅改 Status/Remark）
+    /// </summary>
     public async Task<CodeGenTableCommandResult> UpdateTableStatusAsync(CodeGenTableStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -118,7 +122,9 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         return new CodeGenTableCommandResult(await _tableRepository.UpdateAsync(table, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除表配置（软删表 + 级联软删其列配置）
+    /// </summary>
     public async Task DeleteTableAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

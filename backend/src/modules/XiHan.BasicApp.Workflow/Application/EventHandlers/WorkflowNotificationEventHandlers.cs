@@ -80,7 +80,10 @@ public class WorkflowUserTaskCreatedNotificationHandler : ILocalEventHandler<Wor
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(WorkflowUserTaskCreatedEventData eventData)
     {
         var task = eventData.Task;
@@ -122,7 +125,10 @@ public class WorkflowUserTaskTransferredNotificationHandler : ILocalEventHandler
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(WorkflowUserTaskTransferredEventData eventData)
     {
         await WorkflowNotificationDispatcher.DispatchSafelyAsync(
@@ -152,7 +158,10 @@ public class WorkflowInstanceFaultedNotificationHandler : ILocalEventHandler<Wor
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(WorkflowInstanceFaultedEventData eventData)
     {
         var instance = eventData.Instance;

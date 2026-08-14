@@ -15,7 +15,13 @@ namespace XiHan.BasicApp.Workflow.Infrastructure.Repositories;
 public sealed class WorkflowDefinitionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysWorkflowDefinition>(clientResolver), IWorkflowDefinitionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按编码和版本查找定义
+    /// </summary>
+    /// <param name="code">流程编码</param>
+    /// <param name="version">版本号</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义实体（不存在返回 null）</returns>
     public async Task<SysWorkflowDefinition?> GetByCodeAndVersionAsync(string code, int version, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -26,7 +32,12 @@ public sealed class WorkflowDefinitionRepository(ISqlSugarClientResolver clientR
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查找编码下最新的已发布定义
+    /// </summary>
+    /// <param name="code">流程编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义实体（不存在返回 null）</returns>
     public async Task<SysWorkflowDefinition?> GetLatestPublishedAsync(string code, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -38,7 +49,12 @@ public sealed class WorkflowDefinitionRepository(ISqlSugarClientResolver clientR
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取编码下的最大版本号
+    /// </summary>
+    /// <param name="code">流程编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>最大版本号（编码不存在返回 0）</returns>
     public async Task<int> GetMaxVersionAsync(string code, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -51,7 +67,13 @@ public sealed class WorkflowDefinitionRepository(ISqlSugarClientResolver clientR
         return versions.Count == 0 ? 0 : versions.Max();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 查询定义列表（按编码升序、版本降序）
+    /// </summary>
+    /// <param name="code">流程编码（为空表示不过滤）</param>
+    /// <param name="status">状态（为空表示不过滤）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>定义实体列表</returns>
     public async Task<List<SysWorkflowDefinition>> GetDefinitionListAsync(
         string? code,
         WorkflowDefinitionStatus? status,

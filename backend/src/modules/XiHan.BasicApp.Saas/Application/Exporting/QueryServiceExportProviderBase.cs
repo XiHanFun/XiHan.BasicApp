@@ -25,13 +25,19 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
     /// </summary>
     protected static readonly JsonSerializerOptions QueryJsonOptions = new(JsonSerializerDefaults.Web);
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 业务类型（= 前端 pageCode）
+    /// </summary>
     public abstract string BusinessType { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// </summary>
     public abstract string RequiredPermission { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 流式读取导出行（按 context.Columns 顺序投影为字符串；遵循 context.Scope 单页/全量）
+    /// </summary>
     public async IAsyncEnumerable<IReadOnlyList<string>> ReadRowsAsync(
         ExportContext context,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)

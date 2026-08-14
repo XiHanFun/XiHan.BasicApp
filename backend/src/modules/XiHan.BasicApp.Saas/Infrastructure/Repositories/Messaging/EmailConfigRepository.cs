@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class EmailConfigRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysEmailConfig>(clientResolver), IEmailConfigRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按配置编码查询（租户内唯一）
+    /// </summary>
     public async Task<SysEmailConfig?> GetByCodeAsync(string configCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(configCode);
@@ -24,7 +26,9 @@ public sealed class EmailConfigRepository(ISqlSugarClientResolver clientResolver
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取默认且启用的邮件网关配置
+    /// </summary>
     public async Task<SysEmailConfig?> GetDefaultAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -26,10 +26,18 @@ public sealed class AuthEmailLoginCodeService : IAuthEmailLoginCodeService
         _oneTimeCodeService = oneTimeCodeService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 验证码有效期（秒）
+    /// </summary>
     public int ExpiresInSeconds => 600;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 为指定租户 + 邮箱生成并暂存一条登录验证码
+    /// </summary>
+    /// <param name="tenantId">租户标识（平台态为空）</param>
+    /// <param name="email">邮箱地址</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>生成的验证码</returns>
     public async Task<string> IssueCodeAsync(long? tenantId, string email, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
@@ -43,7 +51,14 @@ public sealed class AuthEmailLoginCodeService : IAuthEmailLoginCodeService
         return result.Code;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验并消费指定租户 + 邮箱的登录验证码（一次性，消费即销毁）
+    /// </summary>
+    /// <param name="tenantId">租户标识（平台态为空）</param>
+    /// <param name="email">邮箱地址</param>
+    /// <param name="code">待校验验证码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>校验是否通过</returns>
     public async Task<bool> TryConsumeAsync(long? tenantId, string email, string? code, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))

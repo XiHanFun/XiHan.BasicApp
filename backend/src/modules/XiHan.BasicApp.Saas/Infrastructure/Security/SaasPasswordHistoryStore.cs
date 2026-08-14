@@ -21,7 +21,13 @@ public sealed class SaasPasswordHistoryStore : IPasswordHistoryStore
         _passwordHistoryRepository = passwordHistoryRepository ?? throw new ArgumentNullException(nameof(passwordHistoryRepository));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取用户最近的密码哈希列表
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="count">获取数量</param>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>密码哈希列表</returns>
     public async Task<IReadOnlyList<string>> GetRecentPasswordHashesAsync(long userId, int count, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

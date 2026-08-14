@@ -42,7 +42,10 @@ public sealed class PermissionChangeLogEventHandler
 
     private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
     public async Task HandleEventAsync(AuthorizationChangedDomainEvent eventData)
     {
         ArgumentNullException.ThrowIfNull(eventData);

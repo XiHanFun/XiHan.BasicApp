@@ -30,7 +30,12 @@ public sealed class PasswordHistoryDomainService : IPasswordHistoryDomainService
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验新密码未与最近 N 次历史密码重复，重复则抛出 <see cref="InvalidOperationException"/>
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="newPlainPassword">新密码明文</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task EnsureNotReusedAsync(long userId, string newPlainPassword, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -52,7 +57,13 @@ public sealed class PasswordHistoryDomainService : IPasswordHistoryDomainService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 记录一条密码历史（密码变更成功后写入新密码哈希）
+    /// </summary>
+    /// <param name="userId">用户标识</param>
+    /// <param name="newPasswordHash">新密码哈希</param>
+    /// <param name="changedTime">变更时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task RecordAsync(long userId, string newPasswordHash, DateTimeOffset changedTime, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -316,7 +316,10 @@ public sealed class NumberingRuleDomainServiceTests
     /// </summary>
     private sealed class StubTimeProvider(DateTimeOffset utcNow) : TimeProvider
     {
-        /// <inheritdoc />
+        /// <summary>
+        /// 获取当前 UTC 时间
+        /// </summary>
+        /// <returns>当前 UTC 时间</returns>
         public override DateTimeOffset GetUtcNow() => utcNow;
     }
 

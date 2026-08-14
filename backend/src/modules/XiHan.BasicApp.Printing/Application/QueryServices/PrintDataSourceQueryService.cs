@@ -40,7 +40,11 @@ public sealed class PrintDataSourceQueryService : PrintingApplicationService, IP
         _permissionChecker = permissionChecker;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 全部已注册的打印数据源（含字段清单与样例数据）。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>数据源目录。</returns>
     public async Task<List<PrintDataSourceDto>> GetListAsync(CancellationToken cancellationToken = default)
     {
         await EnsureCatalogAccessAsync(cancellationToken);

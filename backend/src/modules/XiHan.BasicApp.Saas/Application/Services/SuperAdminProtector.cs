@@ -42,13 +42,17 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
         _userRoleRepository = userRoleRepository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 当前用户是否为超级管理员（持有 <c>super_admin</c> 角色）。
+    /// </summary>
     public bool IsCurrentUserSuperAdmin()
     {
         return _currentUser.IsInRole(SuperAdminRoleCode);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取受保护角色 id 集合（RoleCode == <c>super_admin</c> 的角色）。
+    /// </summary>
     public async Task<IReadOnlyCollection<long>> GetProtectedRoleIdsAsync(CancellationToken cancellationToken = default)
     {
         // 写路径低频，直接查不缓存。RoleCode==super_admin 的角色（System 角色，TenantId=0）。
@@ -59,7 +63,9 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
         return roles.Select(role => role.BasicId).Distinct().ToList();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取受保护用户 id 集合（持有受保护角色、且授权有效的用户）。
+    /// </summary>
     public async Task<IReadOnlyCollection<long>> GetProtectedUserIdsAsync(CancellationToken cancellationToken = default)
     {
         var roleIds = await GetProtectedRoleIdsAsync(cancellationToken);
@@ -76,21 +82,27 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
         return userRoles.Select(userRole => userRole.UserId).Distinct().ToList();
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 指定角色是否受保护（是否为 <c>super_admin</c> 角色）。
+    /// </summary>
     public async Task<bool> IsProtectedRoleAsync(long roleId, CancellationToken cancellationToken = default)
     {
         var roleIds = await GetProtectedRoleIdsAsync(cancellationToken);
         return roleIds.Contains(roleId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 指定用户是否受保护（是否为超管用户）。
+    /// </summary>
     public async Task<bool> IsProtectedUserAsync(long userId, CancellationToken cancellationToken = default)
     {
         var userIds = await GetProtectedUserIdsAsync(cancellationToken);
         return userIds.Contains(userId);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验当前用户可对指定角色执行写操作；非超管且该角色受保护时抛出禁止异常。
+    /// </summary>
     public async Task EnsureCanWriteRoleAsync(long roleId, CancellationToken cancellationToken = default)
     {
         if (IsCurrentUserSuperAdmin())
@@ -104,7 +116,9 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验当前用户可对指定用户执行写操作；非超管且该用户受保护时抛出禁止异常。
+    /// </summary>
     public async Task EnsureCanWriteUserAsync(long userId, CancellationToken cancellationToken = default)
     {
         if (IsCurrentUserSuperAdmin())
@@ -118,7 +132,9 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 校验当前用户可对指定角色执行授予/撤销操作；非超管且该角色为 <c>super_admin</c> 时抛出禁止异常。
+    /// </summary>
     public async Task EnsureCanAssignRoleAsync(long roleId, CancellationToken cancellationToken = default)
     {
         if (IsCurrentUserSuperAdmin())

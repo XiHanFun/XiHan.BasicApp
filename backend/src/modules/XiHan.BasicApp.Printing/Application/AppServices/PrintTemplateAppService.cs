@@ -61,7 +61,13 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 在当前可写作用域创建打印模板。
+    /// </summary>
+    /// <param name="input">创建参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>创建后的模板详情。</returns>
+    /// <exception cref="XiHan.Framework.Core.Exceptions.UserFriendlyException">作用域、权限、JSON 或唯一性校验失败。</exception>
     [UnitOfWork(true)]
     [PermissionAuthorize(PrintingPermissionCodes.Create)]
     public async Task<PrintTemplateDetailDto> CreatePrintTemplateAsync(
@@ -86,7 +92,13 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 使用客户端行版本更新打印模板。
+    /// </summary>
+    /// <param name="input">更新参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>更新后的模板详情。</returns>
+    /// <exception cref="XiHan.Framework.Core.Exceptions.UserFriendlyException">作用域、权限、JSON 或并发校验失败。</exception>
     [UnitOfWork(true)]
     [PermissionAuthorize(PrintingPermissionCodes.Update)]
     public async Task<PrintTemplateDetailDto> UpdatePrintTemplateAsync(
@@ -110,7 +122,13 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 使用客户端行版本启用或停用打印模板。
+    /// </summary>
+    /// <param name="input">状态变更参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>变更后的模板详情。</returns>
+    /// <exception cref="XiHan.Framework.Core.Exceptions.UserFriendlyException">作用域、权限、状态或并发校验失败。</exception>
     [UnitOfWork(true)]
     [PermissionAuthorize(PrintingPermissionCodes.Status)]
     public async Task<PrintTemplateDetailDto> UpdatePrintTemplateStatusAsync(
@@ -134,7 +152,12 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 使用客户端行版本软删除已经停用的打印模板。
+    /// </summary>
+    /// <param name="input">删除参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <exception cref="XiHan.Framework.Core.Exceptions.UserFriendlyException">模板仍启用、无权操作或并发冲突。</exception>
     [UnitOfWork(true)]
     [PermissionAuthorize(PrintingPermissionCodes.Delete)]
     public async Task DeletePrintTemplateAsync(

@@ -17,7 +17,9 @@ namespace XiHan.BasicApp.Chat.Infrastructure.Repositories;
 public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysChatMessage>(clientResolver), IChatMessageRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 会话消息历史游标分页：取 beforeMessageId 之前（不含）的最近 take 条，按消息 ID 倒序
+    /// </summary>
     public async Task<IReadOnlyList<SysChatMessage>> GetHistoryAsync(long conversationId, long? beforeMessageId, int take, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -34,7 +36,9 @@ public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取会话内被 Pin 的消息（按 Pin 时间倒序）
+    /// </summary>
     public async Task<IReadOnlyList<SysChatMessage>> GetPinnedAsync(long conversationId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -45,7 +49,9 @@ public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver
             .ToListAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 定位加载：以 aroundMessageId 为中心，取之前 beforeTake 条（不含）+ 自身及之后 afterTake 条，按消息 ID 正序
+    /// </summary>
     public async Task<IReadOnlyList<SysChatMessage>> GetAroundAsync(long conversationId, long aroundMessageId, int beforeTake, int afterTake, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -64,7 +70,9 @@ public sealed class ChatMessageRepository(ISqlSugarClientResolver clientResolver
         return [.. before.OrderBy(message => message.BasicId), .. fromTarget];
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 会话内关键字搜索（正文/文件名 LIKE，排除已撤回），按消息 ID 倒序游标分页
+    /// </summary>
     public async Task<IReadOnlyList<SysChatMessage>> SearchAsync(long conversationId, string keyword, long? beforeMessageId, int take, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

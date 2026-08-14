@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class RoleHierarchyRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysRoleHierarchy>(clientResolver), IRoleHierarchyRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取角色继承链中的祖先角色ID
+    /// </summary>
     public async Task<IReadOnlyList<long>> GetAncestorIdsAsync(IEnumerable<long> roleIds, bool includeSelf, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(roleIds);

@@ -46,7 +46,12 @@ public sealed class DynamicJobWorker : IJobWorker
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 执行任务
+    /// </summary>
+    /// <param name="context">执行上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>任务结果</returns>
     public async Task<JobResult> ExecuteAsync(IJobContext context, CancellationToken cancellationToken = default)
     {
         var jobName = context.JobInstance.JobName;

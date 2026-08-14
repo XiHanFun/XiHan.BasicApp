@@ -28,7 +28,9 @@ public sealed class MessageTemplateDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建消息模板
+    /// </summary>
     public async Task<MessageTemplateCommandResult> CreateAsync(MessageTemplateCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -68,7 +70,9 @@ public sealed class MessageTemplateDomainService
         return new MessageTemplateCommandResult(saved);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新消息模板
+    /// </summary>
     public async Task<MessageTemplateCommandResult> UpdateAsync(MessageTemplateUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -89,7 +93,9 @@ public sealed class MessageTemplateDomainService
         return new MessageTemplateCommandResult(saved);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新消息模板状态
+    /// </summary>
     public async Task<MessageTemplateCommandResult> UpdateStatusAsync(MessageTemplateStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -104,7 +110,9 @@ public sealed class MessageTemplateDomainService
         return new MessageTemplateCommandResult(saved);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除消息模板（软删）
+    /// </summary>
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

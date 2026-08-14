@@ -14,7 +14,12 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class MessageTemplateRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysMessageTemplate>(clientResolver), IMessageTemplateRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 按 渠道+编码 查找已启用模板（当前租户模板优先，回退平台全局模板）
+    /// </summary>
+    /// <param name="channel">消息渠道</param>
+    /// <param name="templateCode">模板编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task<SysMessageTemplate?> FindEnabledByCodeAsync(MessageChannel channel, string templateCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(templateCode);

@@ -71,7 +71,15 @@ public sealed class TenantProvisionDomainService
         _currentTenant = currentTenant;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 一站式开通租户：确保版本、创建管理员账号、创建 Owner 角色并按版本白名单授权、绑定角色
+    /// </summary>
+    /// <param name="tenant">已创建的租户实体</param>
+    /// <param name="adminUserName">管理员用户名</param>
+    /// <param name="adminEmail">管理员邮箱（登录身份标识，全平台唯一）</param>
+    /// <param name="passwordHash">管理员密码哈希</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>创建的管理员用户</returns>
     public async Task<SysUser> ProvisionTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -104,7 +112,15 @@ public sealed class TenantProvisionDomainService
         return adminUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 初始化租户管理员账号
+    /// </summary>
+    /// <param name="tenant">已创建的租户实体</param>
+    /// <param name="adminUserName">管理员用户名</param>
+    /// <param name="adminEmail">管理员邮箱（登录身份标识，全平台唯一）</param>
+    /// <param name="passwordHash">管理员密码哈希</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>创建的管理员用户</returns>
     public async Task<SysUser> InitializeTenantAdminAsync(SysTenant tenant, string adminUserName, string adminEmail, string passwordHash, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -165,7 +181,13 @@ public sealed class TenantProvisionDomainService
         return adminUser;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 为租户管理员分配默认角色
+    /// </summary>
+    /// <param name="tenant">租户实体</param>
+    /// <param name="adminUserId">管理员用户ID</param>
+    /// <param name="ownerRoleId">Owner 角色ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task AssignAdminRoleAsync(SysTenant tenant, long adminUserId, long ownerRoleId, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -181,7 +203,12 @@ public sealed class TenantProvisionDomainService
         await _userRoleRepository.AddAsync(userRole, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 为租户分配默认版本
+    /// </summary>
+    /// <param name="tenant">租户实体</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>分配的默认版本ID（null 表示无默认版本）</returns>
     public async Task<long?> AssignDefaultEditionAsync(SysTenant tenant, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -197,7 +224,17 @@ public sealed class TenantProvisionDomainService
         return defaultEdition.BasicId;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 套餐变更（含降级）后回收越界授权：将该租户超出其当前版本权限白名单的
+    /// 角色权限/用户直授权限行置为失效（保留行以供审计追溯）
+    /// </summary>
+    /// <remarks>
+    /// 与运行时门控语义一致：版本未绑定或白名单为空（门控未启用）时不做任何回收，避免误清。
+    /// 运行时门控已保证越界权限不生效，本方法负责数据层面的存量清理（REQ-5.3）。
+    /// </remarks>
+    /// <param name="tenant">租户实体</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>回收（置失效）的授权行数</returns>
     public async Task<int> ReconcileTenantAuthorizationWithEditionAsync(SysTenant tenant, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(tenant);
@@ -262,7 +299,12 @@ public sealed class TenantProvisionDomainService
         return staleRolePermissions.Count + staleUserPermissions.Count;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 版本权限白名单收窄（撤销/停用映射）后，对绑定该版本的所有租户回收越界授权
+    /// </summary>
+    /// <param name="editionId">版本ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>回收（置失效）的授权行数合计</returns>
     public async Task<int> ReconcileEditionTenantsAuthorizationAsync(long editionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// </summary>
 public sealed partial class ProfileAppService
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 确认邮箱换绑
+    /// </summary>
     [UnitOfWork(true)]
     public async Task ConfirmChangeEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
@@ -28,7 +30,9 @@ public sealed partial class ProfileAppService
             cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 确认手机换绑
+    /// </summary>
     [UnitOfWork(true)]
     public async Task ConfirmChangePhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
@@ -42,7 +46,9 @@ public sealed partial class ProfileAppService
             cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送邮箱换绑验证码
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendChangeEmailCodeAsync(ProfileChangeEmailDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -55,7 +61,9 @@ public sealed partial class ProfileAppService
         return await _profileVerificationService.SendCodeAsync(result.User, ProfileVerificationPurpose.ChangeEmail, result.Target, "邮箱换绑", cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送手机换绑验证码
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendChangePhoneCodeAsync(ProfileChangePhoneDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -68,7 +76,9 @@ public sealed partial class ProfileAppService
         return await _profileVerificationService.SendCodeAsync(result.User, ProfileVerificationPurpose.ChangePhone, result.Target, "手机换绑", cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送邮箱验证验证码
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendEmailVerifyCodeAsync(CancellationToken cancellationToken = default)
     {
         var context = await _profileQueryService.GetSecurityContextAsync(GetCurrentUserIdOrThrow(), cancellationToken);
@@ -80,7 +90,9 @@ public sealed partial class ProfileAppService
         return await _profileVerificationService.SendCodeAsync(context.User, ProfileVerificationPurpose.VerifyEmail, context.User.Email, "邮箱验证", cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 发送手机验证验证码
+    /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendPhoneVerifyCodeAsync(CancellationToken cancellationToken = default)
     {
         var context = await _profileQueryService.GetSecurityContextAsync(GetCurrentUserIdOrThrow(), cancellationToken);
@@ -92,7 +104,9 @@ public sealed partial class ProfileAppService
         return await _profileVerificationService.SendCodeAsync(context.User, ProfileVerificationPurpose.VerifyPhone, context.User.Phone, "手机验证", cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 验证当前邮箱
+    /// </summary>
     [UnitOfWork(true)]
     public async Task VerifyEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
@@ -106,7 +120,9 @@ public sealed partial class ProfileAppService
             cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 验证当前手机号
+    /// </summary>
     [UnitOfWork(true)]
     public async Task VerifyPhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {

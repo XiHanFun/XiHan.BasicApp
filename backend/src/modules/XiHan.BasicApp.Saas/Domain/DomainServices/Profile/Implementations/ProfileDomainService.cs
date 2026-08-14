@@ -66,7 +66,9 @@ public sealed class ProfileDomainService
         _passwordHistoryDomainService = passwordHistoryDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 修改当前用户密码
+    /// </summary>
     public async Task<ProfileUserSecurityResult> ChangePasswordAsync(ProfileChangePasswordCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -92,7 +94,9 @@ public sealed class ProfileDomainService
         return new ProfileUserSecurityResult(user, savedSecurity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 修改当前用户名
+    /// </summary>
     public async Task<ProfileUserSecurityResult> ChangeUserNameAsync(ProfileChangeUserNameCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -130,7 +134,9 @@ public sealed class ProfileDomainService
         return new ProfileUserSecurityResult(savedUser, savedSecurity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 确认联系方式换绑
+    /// </summary>
     public async Task<ProfileUserSecurityResult> ConfirmContactAsync(ProfileConfirmContactCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -161,7 +167,9 @@ public sealed class ProfileDomainService
         return new ProfileUserSecurityResult(savedUser, savedSecurity);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 停用当前账号
+    /// </summary>
     public async Task<ProfileSessionRevokeResult> DeactivateAccountAsync(ProfilePasswordConfirmCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -180,7 +188,9 @@ public sealed class ProfileDomainService
         return await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心停用账号", command.OperatorUserId, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 注销当前账号
+    /// </summary>
     public async Task<ProfileSessionRevokeResult> DeleteAccountAsync(ProfilePasswordConfirmCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -200,7 +210,9 @@ public sealed class ProfileDomainService
         return await RevokeCurrentUserSessionsAsync(user.BasicId, "用户在个人中心注销账号", command.OperatorUserId, cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 禁用双因素认证方式
+    /// </summary>
     public async Task DisableTwoFactorAsync(ProfileTwoFactorCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -224,7 +236,9 @@ public sealed class ProfileDomainService
         _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 启用双因素认证方式
+    /// </summary>
     public async Task EnableTwoFactorAsync(ProfileTwoFactorCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -253,7 +267,9 @@ public sealed class ProfileDomainService
         _ = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 准备联系方式换绑
+    /// </summary>
     public async Task<ProfileContactPrepareResult> PrepareChangeContactAsync(ProfileChangeContactPrepareCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -265,7 +281,9 @@ public sealed class ProfileDomainService
         return new ProfileContactPrepareResult(user, target);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销其他会话
+    /// </summary>
     public async Task<ProfileSessionRevokeResult> RevokeOtherSessionsAsync(ProfileOtherSessionsRevokeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -296,7 +314,9 @@ public sealed class ProfileDomainService
         return new ProfileSessionRevokeResult([.. sessions.Select(session => BuildSessionRevokedEvent(session, false, command.OperatorUserId, Reason))]);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 撤销指定会话
+    /// </summary>
     public async Task<ProfileSessionRevokeResult> RevokeSessionAsync(ProfileSessionRevokeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -324,7 +344,9 @@ public sealed class ProfileDomainService
         return new ProfileSessionRevokeResult([BuildSessionRevokedEvent(session, false, command.OperatorUserId, Reason)]);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 初始化 TOTP 双因素认证
+    /// </summary>
     public async Task<ProfileTwoFactorSetupResult> SetupTwoFactorAsync(ProfileTwoFactorSetupCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -341,7 +363,9 @@ public sealed class ProfileDomainService
         return new ProfileTwoFactorSetupResult(secret, _otpService.GenerateTotpUri(secret, command.Issuer, user.UserName));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解除第三方账号绑定
+    /// </summary>
     public async Task UnlinkAccountAsync(ProfileUnlinkAccountCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -374,7 +398,9 @@ public sealed class ProfileDomainService
         _ = await AsSelfWriteAsync(() => _externalLoginRepository.UpdateAsync(account, cancellationToken));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新当前用户个人资料
+    /// </summary>
     public async Task<ProfileUserSecurityResult> UpdateProfileAsync(ProfileUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -394,7 +420,9 @@ public sealed class ProfileDomainService
         return new ProfileUserSecurityResult(savedUser, security);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 验证当前联系方式
+    /// </summary>
     public async Task<ProfileUserSecurityResult> VerifyContactAsync(ProfileVerifyContactCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -638,7 +666,16 @@ public sealed class ProfileDomainService
         }
     }
 
-    /// <inheritdoc cref="AsSelfWriteAsync{T}(Func{Task{T}})"/>
+    /// <summary>
+    /// 在写路径租户边界豁免作用域内执行用户自有行写入（无返回值重载）
+    /// </summary>
+    /// <remarks>
+    /// 本服务全部方法都是个人中心自助场景、只写当前用户自己的行（用户/安全/会话/三方绑定）；
+    /// 平台归属用户（行 TenantId=0）在租户上下文内写自己的数据是合法路径，
+    /// 须经 <see cref="TenantWriteGuard"/> 显式豁免（行归属键是 UserId，TenantId 只是注册地元数据）。
+    /// </remarks>
+    /// <param name="write">写入委托</param>
+    /// <returns>写入任务</returns>
     private static async Task AsSelfWriteAsync(Func<Task> write)
     {
         using (TenantWriteGuard.Suppress())

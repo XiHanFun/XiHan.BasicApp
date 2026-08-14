@@ -29,7 +29,9 @@ public sealed class TaskDomainService
         _taskScheduleDomainService = taskScheduleDomainService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建任务
+    /// </summary>
     public async Task<TaskCommandResult> CreateTaskAsync(TaskCreateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -76,7 +78,9 @@ public sealed class TaskDomainService
         return new TaskCommandResult(savedTask, syncAction);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除任务
+    /// </summary>
     public async Task<TaskCommandResult> DeleteTaskAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -91,7 +95,9 @@ public sealed class TaskDomainService
         return new TaskCommandResult(task, TaskSchedulerSyncAction.Unregister);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新任务
+    /// </summary>
     public async Task<TaskCommandResult> UpdateTaskAsync(TaskUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -127,7 +133,9 @@ public sealed class TaskDomainService
         return new TaskCommandResult(savedTask, TaskSchedulerSyncAction.Replace);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新任务运行状态
+    /// </summary>
     public async Task<TaskCommandResult> UpdateTaskRunStatusAsync(TaskRunStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -150,7 +158,9 @@ public sealed class TaskDomainService
         return new TaskCommandResult(savedTask, ResolveRunStatusSyncAction(oldRunStatus, command.RunTaskStatus));
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新任务启停状态
+    /// </summary>
     public async Task<TaskCommandResult> UpdateTaskStatusAsync(TaskStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);

@@ -14,7 +14,9 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Repositories;
 public sealed class CodeGenDataSourceRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysCodeGenDataSource>(clientResolver), ICodeGenDataSourceRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据数据源名称获取
+    /// </summary>
     public async Task<SysCodeGenDataSource?> GetByNameAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
@@ -25,7 +27,9 @@ public sealed class CodeGenDataSourceRepository(ISqlSugarClientResolver clientRe
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查数据源名称是否存在
+    /// </summary>
     public async Task<bool> ExistsNameAsync(string sourceName, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
@@ -40,7 +44,9 @@ public sealed class CodeGenDataSourceRepository(ISqlSugarClientResolver clientRe
         return await query.AnyAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取默认数据源
+    /// </summary>
     public async Task<SysCodeGenDataSource?> GetDefaultAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

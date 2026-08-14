@@ -35,7 +35,9 @@ public sealed class KnowledgeDocumentDomainService : IKnowledgeDocumentDomainSer
         _logger = logger;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 摄取一篇文档（落库元信息 + 切片嵌入入向量库；失败落 Failed 状态不抛）
+    /// </summary>
     public async Task<KnowledgeDocumentCommandResult> IngestAsync(KnowledgeIngestCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -65,7 +67,9 @@ public sealed class KnowledgeDocumentDomainService : IKnowledgeDocumentDomainSer
         return new KnowledgeDocumentCommandResult(document);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 重建索引（清旧向量 + 用原文重新切片嵌入）
+    /// </summary>
     public async Task<KnowledgeDocumentCommandResult> ReindexAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -78,7 +82,9 @@ public sealed class KnowledgeDocumentDomainService : IKnowledgeDocumentDomainSer
         return new KnowledgeDocumentCommandResult(document);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除文档（清向量 + 软删元信息）
+    /// </summary>
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -42,14 +42,18 @@ public sealed class EnumMetadataQueryService
         _enumLocalizationService = enumLocalizationService;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取全部枚举元数据
+    /// </summary>
     public Task<List<EnumMetadataDto>> GetAllEnumsAsync()
     {
         var result = StructureCache.Value.ConvertAll(BuildLocalizedMetadata);
         return Task.FromResult(result);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取指定枚举类型的元数据
+    /// </summary>
     public Task<EnumMetadataDto> GetEnumAsync(string enumTypeName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(enumTypeName);

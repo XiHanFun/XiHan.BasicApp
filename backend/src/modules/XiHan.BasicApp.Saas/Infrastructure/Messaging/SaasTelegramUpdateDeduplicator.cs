@@ -46,7 +46,13 @@ public sealed class SaasTelegramUpdateDeduplicator : ITelegramUpdateDeduplicator
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 尝试将指定 Update 标记为已处理
+    /// </summary>
+    /// <param name="botName">机器人名称</param>
+    /// <param name="updateId">Update Id</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>true 表示首次处理（已占位成功）；false 表示重复投递（应跳过）</returns>
     public async Task<bool> TryMarkProcessedAsync(string botName, int updateId, CancellationToken cancellationToken = default)
     {
         if (_redis is null)
@@ -61,7 +67,12 @@ public sealed class SaasTelegramUpdateDeduplicator : ITelegramUpdateDeduplicator
         return await db.StringSetAsync(BuildKey(botName, updateId), "1", EntryTtl, When.NotExists);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 回滚指定 Update 的幂等标记（处理被取消时调用，保证 at-least-once：允许重发/重投后重新处理）
+    /// </summary>
+    /// <param name="botName">机器人名称</param>
+    /// <param name="updateId">Update Id</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public async Task TryUnmarkAsync(string botName, int updateId, CancellationToken cancellationToken = default)
     {
         if (_redis is null)

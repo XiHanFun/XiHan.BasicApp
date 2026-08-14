@@ -16,7 +16,9 @@ public sealed class TaskRepository(
     IUnitOfWorkManager unitOfWorkManager)
     : SaasAggregateRepository<SysTask>(clientResolver, unitOfWorkManager), ITaskRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取待执行任务列表
+    /// </summary>
     public async Task<IReadOnlyList<SysTask>> GetPendingTasksAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

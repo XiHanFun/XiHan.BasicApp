@@ -13,7 +13,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 public sealed class PositionRepository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<SysPosition>(clientResolver), IPositionRepository
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// 根据岗位编码获取
+    /// </summary>
     public async Task<SysPosition?> GetByCodeAsync(string positionCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(positionCode);
@@ -24,7 +26,9 @@ public sealed class PositionRepository(ISqlSugarClientResolver clientResolver)
             .FirstAsync(cancellationToken);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 检查岗位编码是否存在
+    /// </summary>
     public async Task<bool> ExistsCodeAsync(string positionCode, long? excludeId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(positionCode);

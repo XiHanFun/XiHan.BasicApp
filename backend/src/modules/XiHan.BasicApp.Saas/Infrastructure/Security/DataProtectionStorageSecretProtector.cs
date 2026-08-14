@@ -25,7 +25,9 @@ public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtect
         _protector = dataProtectionProvider.CreateProtector(SaasSecretProtectionPurposes.StorageSecretAccessKey);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 加密（null/空原样返回）
+    /// </summary>
     public string? Protect(string? plaintext)
     {
         if (string.IsNullOrEmpty(plaintext))
@@ -42,7 +44,9 @@ public sealed class DataProtectionStorageSecretProtector : IStorageSecretProtect
         return SaasSecretProtectionPurposes.CipherPrefix + _protector.Protect(plaintext);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 解密（历史明文或解密失败按原值返回）
+    /// </summary>
     public string? Unprotect(string? value)
     {
         if (string.IsNullOrEmpty(value))
