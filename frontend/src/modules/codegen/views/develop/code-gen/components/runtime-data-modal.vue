@@ -165,10 +165,12 @@ function handlePageSizeChange(value: number) {
           :description="t('develop.code_gen.runtime.empty')"
         />
         <template v-else>
+          <!-- flex-height：让表体撑满容器，横向滚动条贴在表格底部而不是跟着内容高度浮在中间 -->
           <NDataTable
             class="runtime__table"
             :columns="columns"
             :data="rows"
+            flex-height
             :loading="dataLoading"
             :scroll-x="scrollX"
             size="small"
@@ -191,10 +193,12 @@ function handlePageSizeChange(value: number) {
 </template>
 
 <style scoped>
+/* 定高容器：flex-height 的表格要求父级高度确定，否则表体无法撑满、滚动条仍会跟着内容走 */
 .runtime {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 60vh;
   min-height: 320px;
 }
 
