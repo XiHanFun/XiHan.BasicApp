@@ -13,6 +13,46 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class TenantMemberApplicationMapper
 {
     /// <summary>
+    /// 映射租户成员添加命令（直接生效）
+    /// </summary>
+    public static TenantMemberAddCommand ToAddCommand(TenantMemberAddDto input, long? operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantMemberAddCommand(
+            input.TenantId,
+            input.UserId,
+            input.MemberType,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.DisplayName,
+            null,
+            input.Remark,
+            RequiresInvitation: false,
+            operatorUserId);
+    }
+
+    /// <summary>
+    /// 映射租户成员邀请命令（待接受）
+    /// </summary>
+    public static TenantMemberAddCommand ToInviteCommand(TenantMemberInviteDto input, long? operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantMemberAddCommand(
+            input.TenantId,
+            input.UserId,
+            input.MemberType,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.DisplayName,
+            input.InviteRemark,
+            input.Remark,
+            RequiresInvitation: true,
+            operatorUserId);
+    }
+
+    /// <summary>
     /// 映射租户成员更新命令
     /// </summary>
     public static TenantMemberUpdateCommand ToUpdateCommand(TenantMemberUpdateDto input)

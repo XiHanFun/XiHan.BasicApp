@@ -47,6 +47,29 @@ export interface TenantMemberDetailDto extends TenantMemberListItemDto {
   remark?: string | null
 }
 
+/** 添加租户成员：把已有用户直接加入租户，邀请状态落「已接受」立即生效 */
+export interface TenantMemberAddDto {
+  displayName?: string | null
+  effectiveTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
+  memberType: TenantMemberType
+  remark?: string | null
+  tenantId: ApiId
+  userId: ApiId
+}
+
+/** 邀请租户成员：邀请状态落「待处理」，被邀请人接受后才生效 */
+export interface TenantMemberInviteDto {
+  displayName?: string | null
+  effectiveTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
+  inviteRemark?: string | null
+  memberType: TenantMemberType
+  remark?: string | null
+  tenantId: ApiId
+  userId: ApiId
+}
+
 export interface TenantMemberUpdateDto extends BasicDto {
   displayName?: string | null
   effectiveTime?: DateTimeString | null

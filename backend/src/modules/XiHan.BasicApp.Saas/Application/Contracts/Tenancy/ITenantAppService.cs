@@ -43,7 +43,30 @@ public interface ITenantAppService : IApplicationService
     /// <returns>租户详情（含最新配置状态）</returns>
     Task<TenantDetailDto> InitializeDatabaseAsync(long id, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// 删除租户（软删，要求租户已停用或暂停）
+    /// </summary>
+    /// <param name="id">租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task DeleteTenantAsync(long id, CancellationToken cancellationToken = default);
+
     #region TenantMembers
+
+    /// <summary>
+    /// 添加租户成员（把已有用户直接加入租户，立即生效）
+    /// </summary>
+    /// <param name="input">添加参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
+    Task<TenantMemberDetailDto> AddTenantMemberAsync(TenantMemberAddDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 邀请租户成员（落待接受邀请，被邀请人接受后生效）
+    /// </summary>
+    /// <param name="input">邀请参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
+    Task<TenantMemberDetailDto> InviteTenantMemberAsync(TenantMemberInviteDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新租户成员

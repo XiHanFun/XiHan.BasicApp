@@ -20,6 +20,8 @@ public sealed class TenantDomainService
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
+    private readonly IUserRepository _userRepository;
+
     private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
 
     private readonly ICurrentTenant _currentTenant;
@@ -34,6 +36,7 @@ public sealed class TenantDomainService
     public TenantDomainService(
         ITenantRepository tenantRepository,
         ITenantUserRepository tenantUserRepository,
+        IUserRepository userRepository,
         ITenantProvisionDomainService tenantProvisionDomainService,
         ICurrentTenant currentTenant,
         ITenantConnectionSecretProtector connectionSecretProtector,
@@ -41,6 +44,7 @@ public sealed class TenantDomainService
     {
         _tenantRepository = tenantRepository;
         _tenantUserRepository = tenantUserRepository;
+        _userRepository = userRepository;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _currentTenant = currentTenant;
         _connectionSecretProtector = connectionSecretProtector;
@@ -76,6 +80,7 @@ public sealed class TenantDomainService
             UserLimit = command.UserLimit,
             StorageLimit = command.StorageLimit,
             TenantStatus = TenantStatus.Normal,
+            ConfigStatus = ResolveInitialConfigStatus(command.IsolationMode),
             Sort = command.Sort,
             Remark = NormalizeNullable(command.Remark)
         };
@@ -83,6 +88,73 @@ public sealed class TenantDomainService
         ApplyConnectionSettings(tenant, command.DatabaseType, command.ConnectionString, requireConnectionString: true);
 
         return new TenantCommandResult(await _tenantRepository.AddAsync(tenant, cancellationToken), DateTimeOffset.UtcNow);
+    }
+
+    /// <inheritdoc />
+    public async Task<TenantMemberCommandResult> AddTenantMemberAsync(TenantMemberAddCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        EnsureId(command.TenantId, "租户主键必须大于 0。");
+        EnsureId(command.UserId, "用户主键必须大于 0。");
+        ValidateEnum(command.MemberType, nameof(command.MemberType));
+        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
+        EnsurePlatformAdminNotAssigned(command.MemberType);
+
+        var tenant = await GetTenantOrThrowAsync(command.TenantId, cancellationToken);
+
+        _ = await _userRepository.GetByIdIgnoreTenantAsync(command.UserId, cancellationToken)
+            ?? throw new UserFriendlyException("用户不存在。");
+
+        var existing = await _tenantUserRepository.GetMembershipAsync(command.TenantId, command.UserId, cancellationToken);
+        if (existing is not null)
+        {
+            throw new UserFriendlyException("该用户已经是本租户成员。");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var member = new SysTenantUser
+        {
+            TenantId = tenant.BasicId,
+            UserId = command.UserId,
+            MemberType = command.MemberType,
+            InviteStatus = command.RequiresInvitation
+                ? TenantMemberInviteStatus.Pending
+                : TenantMemberInviteStatus.Accepted,
+            InvitedBy = command.OperatorUserId,
+            InvitedTime = now,
+            RespondedTime = command.RequiresInvitation ? null : now,
+            EffectiveTime = command.EffectiveTime,
+            ExpirationTime = command.ExpirationTime,
+            DisplayName = NormalizeNullable(command.DisplayName),
+            InviteRemark = NormalizeNullable(command.InviteRemark),
+            Remark = NormalizeNullable(command.Remark),
+            Status = ValidityStatus.Valid
+        };
+
+        // 成员关系是租户自有数据，写入前切到目标租户上下文（与租户开通建 Owner 的路径一致）
+        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
+        return new TenantMemberCommandResult(await _tenantUserRepository.AddAsync(member, cancellationToken), now);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteTenantAsync(long id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tenant = await GetTenantOrThrowAsync(id, cancellationToken);
+
+        // 停用前置：删除会让租户从所有列表消失，先停用是一次可撤销的确认，也保证在此之前会话/定时任务已按停用语义收口
+        if (tenant.TenantStatus is not (TenantStatus.Disabled or TenantStatus.Suspended))
+        {
+            throw new UserFriendlyException("请先停用或暂停租户，再执行删除。");
+        }
+
+        await _tenantRepository.SoftDeleteAsync(tenant, cancellationToken);
+
+        // 库隔离租户的运行时连接按租户缓存，删除后必须失效，否则残留连接仍可被解析出来
+        _connectionCacheInvalidator.Invalidate(tenant.BasicId);
     }
 
     /// <inheritdoc />
@@ -112,6 +184,7 @@ public sealed class TenantDomainService
         await EnsureDomainAvailableAsync(domain, tenant.BasicId, cancellationToken);
 
         var previousEditionId = tenant.EditionId;
+        var previousIsolationMode = tenant.IsolationMode;
 
         tenant.TenantName = command.TenantName.Trim();
         tenant.TenantShortName = NormalizeNullable(command.TenantShortName);
@@ -127,6 +200,7 @@ public sealed class TenantDomainService
 
         // 连接串留空表示保持不变；隔离/连接可能变更，更新后失效运行时连接缓存
         ApplyConnectionSettings(tenant, command.DatabaseType, command.ConnectionString, requireConnectionString: false);
+        ApplyIsolationModeConfigStatus(tenant, previousIsolationMode);
 
         var updated = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
         _connectionCacheInvalidator.Invalidate(tenant.BasicId);
@@ -229,6 +303,41 @@ public sealed class TenantDomainService
     private static string? NormalizeNullable(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>
+    /// 解析新建租户的初始配置状态
+    /// </summary>
+    /// <remarks>
+    /// 只有库隔离租户需要额外开库建表（<see cref="ITenantDatabaseInitializer"/>），保持待配置直到初始化成功；
+    /// 其余隔离模式建完即可用，直接置为已配置——登录链路以 <c>Configured</c> 为准入条件。
+    /// </remarks>
+    /// <param name="isolationMode">隔离模式</param>
+    /// <returns>初始配置状态</returns>
+    private static TenantConfigStatus ResolveInitialConfigStatus(TenantIsolationMode isolationMode)
+    {
+        return isolationMode == TenantIsolationMode.Database
+            ? TenantConfigStatus.Pending
+            : TenantConfigStatus.Configured;
+    }
+
+    /// <summary>
+    /// 隔离模式变更时同步配置状态
+    /// </summary>
+    /// <remarks>
+    /// 切到库隔离要求重新初始化独立库，回落待配置；从库隔离切走则不再需要初始化，置为已配置。
+    /// 隔离模式没变时不动配置状态，避免覆盖 Failed / Disabled 等既有状态。
+    /// </remarks>
+    /// <param name="tenant">租户实体（IsolationMode 须已赋新值）</param>
+    /// <param name="previousIsolationMode">变更前的隔离模式</param>
+    private static void ApplyIsolationModeConfigStatus(SysTenant tenant, TenantIsolationMode previousIsolationMode)
+    {
+        if (tenant.IsolationMode == previousIsolationMode)
+        {
+            return;
+        }
+
+        tenant.MarkConfigStatus(ResolveInitialConfigStatus(tenant.IsolationMode));
     }
 
     /// <summary>

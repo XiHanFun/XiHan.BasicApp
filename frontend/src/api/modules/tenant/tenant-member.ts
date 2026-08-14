@@ -1,6 +1,8 @@
 import type { ApiId, PageResult } from '../../types'
 import type {
+  TenantMemberAddDto,
   TenantMemberDetailDto,
+  TenantMemberInviteDto,
   TenantMemberInviteStatusUpdateDto,
   TenantMemberListItemDto,
   TenantMemberPageQueryDto,
@@ -20,8 +22,16 @@ const tenantMemberReadApi = createReadApi<TenantMemberListItemDto, TenantMemberD
 )
 
 export const tenantMemberApi = {
+  add(input: TenantMemberAddDto) {
+    // POST /api/Tenant/TenantMember（Add 前缀被动态 API 剥离并推导为 POST）
+    return tenantMemberCommandApi.post<TenantMemberDetailDto, TenantMemberAddDto>('TenantMember', input)
+  },
   detail(id: ApiId) {
     return tenantMemberReadApi.detail(id)
+  },
+  invite(input: TenantMemberInviteDto) {
+    // Invite 不在动态 API 的动词前缀表内：方法名整体作为路由，默认 POST
+    return tenantMemberCommandApi.post<TenantMemberDetailDto, TenantMemberInviteDto>('InviteTenantMember', input)
   },
   page(input: TenantMemberPageQueryDto) {
     return tenantMemberQueryApi.post<PageResult<TenantMemberListItemDto>>('TenantMemberPage', input)

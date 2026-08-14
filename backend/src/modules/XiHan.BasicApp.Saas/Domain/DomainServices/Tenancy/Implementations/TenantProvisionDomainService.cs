@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -116,14 +117,24 @@ public sealed class TenantProvisionDomainService
         var normalizedEmail = adminEmail.Trim();
         if (await _userRepository.ExistsEmailGloballyAsync(normalizedEmail, cancellationToken: cancellationToken))
         {
-            throw new InvalidOperationException("管理员邮箱已被其他账号使用。");
+            throw new UserFriendlyException("管理员邮箱已被其他账号使用。");
+        }
+
+        // 用户名在租户内唯一（读共享过滤器会连带平台账号一起比对，避免与平台账号重名）
+        var normalizedUserName = adminUserName.Trim();
+        using (_currentTenant.Change(tenant.BasicId, tenant.TenantName))
+        {
+            if (await _userRepository.ExistsUserNameAsync(normalizedUserName, cancellationToken: cancellationToken))
+            {
+                throw new UserFriendlyException("管理员用户名已被使用。");
+            }
         }
 
         // 创建管理员用户
         var adminUser = new SysUser
         {
             TenantId = tenant.BasicId,
-            UserName = adminUserName.Trim(),
+            UserName = normalizedUserName,
             Email = normalizedEmail,
             Status = EnableStatus.Enabled,
             IsSystemAccount = true
