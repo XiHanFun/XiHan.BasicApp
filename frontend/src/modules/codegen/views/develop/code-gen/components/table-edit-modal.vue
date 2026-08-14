@@ -15,6 +15,7 @@ import {
   NFormItem,
   NInput,
   NSelect,
+  NSpin,
   useMessage,
 } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
@@ -64,6 +65,7 @@ interface TableFormModel {
   functionName?: string | null
   author?: string | null
   templateType: TemplateType
+  // 生成方式：决定列表「更多」里出现哪一个生成动作
   genType: GenType
   generationScope: GenerationScope
   // 包含操作以字符串数组建模（多选控件）；提交时 join 为逗号分隔串，空/全等价全开
@@ -143,7 +145,14 @@ function createDefaultForm(): TableFormModel {
 watch(
   () => props.show,
   (visible) => {
-    if (visible && props.tableId) {
+    if (!visible) {
+      return
+    }
+    // 同步进入加载态并清掉上一行残留：否则弹窗会先渲染一版旧数据、再整体消失等待，高度连跳两次
+    loading.value = true
+    form.value = createDefaultForm()
+    columnOptions.value = []
+    if (props.tableId) {
       void loadDetail()
     }
   },
@@ -151,6 +160,7 @@ watch(
 
 async function loadDetail() {
   if (!props.tableId) {
+    loading.value = false
     return
   }
   loading.value = true
@@ -330,107 +340,110 @@ async function handleSubmit() {
     @update:show="emit('update:show', $event)"
     @save="handleSubmit"
   >
-    <NForm v-if="!loading" :model="form" class="xh-edit-form-grid" label-placement="top">
-      <NFormItem :label="t('develop.code_gen.table_edit.form_table_name')" path="tableName">
-        <NInput v-model:value="form.tableName" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_class_name')" path="className">
-        <NInput v-model:value="form.className" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_namespace')" path="namespace">
-        <NInput v-model:value="form.namespace" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_module_name')" path="moduleName">
-        <NInput v-model:value="form.moduleName" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_business_name')" path="businessName">
-        <NInput v-model:value="form.businessName" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_function_name')" path="functionName">
-        <NInput v-model:value="form.functionName" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_author')" path="author">
-        <NInput v-model:value="form.author" clearable />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_template_type')" path="templateType">
-        <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_gen_type')" path="genType">
-        <NSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_generation_scope')" path="generationScope">
-        <NSelect v-model:value="form.generationScope" :options="GENERATION_SCOPE_OPTIONS" />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_enabled_actions')" path="enabledActions">
-        <NSelect
-          v-model:value="form.enabledActions"
-          multiple
-          :max-tag-count="3"
-          :options="ENABLED_ACTION_OPTIONS"
-          :placeholder="t('develop.code_gen.table_edit.form_enabled_actions_placeholder')"
-        />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_database_type')" path="databaseType">
-        <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_gen_path')" path="genPath">
-        <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.table_edit.form_primary_key_column')" path="primaryKeyColumn">
-        <NSelect
-          v-model:value="form.primaryKeyColumn"
-          clearable
-          filterable
-          :options="columnOptions"
-          :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-        />
-      </NFormItem>
-      <template v-if="isTreeTemplate">
-        <NFormItem :label="t('develop.code_gen.table_edit.form_tree_parent_column')" path="treeParentColumn">
+    <!-- 表单常驻、加载期用 NSpin 遮罩：v-if 摘挂会让弹窗高度在打开瞬间连跳两次 -->
+    <NSpin :show="loading">
+      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem :label="t('develop.code_gen.table_edit.form_table_name')" path="tableName">
+          <NInput v-model:value="form.tableName" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_class_name')" path="className">
+          <NInput v-model:value="form.className" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_namespace')" path="namespace">
+          <NInput v-model:value="form.namespace" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_module_name')" path="moduleName">
+          <NInput v-model:value="form.moduleName" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_business_name')" path="businessName">
+          <NInput v-model:value="form.businessName" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_function_name')" path="functionName">
+          <NInput v-model:value="form.functionName" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_author')" path="author">
+          <NInput v-model:value="form.author" clearable />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_template_type')" path="templateType">
+          <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_gen_type')" path="genType">
+          <NSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_generation_scope')" path="generationScope">
+          <NSelect v-model:value="form.generationScope" :options="GENERATION_SCOPE_OPTIONS" />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_enabled_actions')" path="enabledActions">
           <NSelect
-            v-model:value="form.treeParentColumn"
+            v-model:value="form.enabledActions"
+            multiple
+            :max-tag-count="3"
+            :options="ENABLED_ACTION_OPTIONS"
+            :placeholder="t('develop.code_gen.table_edit.form_enabled_actions_placeholder')"
+          />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_database_type')" path="databaseType">
+          <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_gen_path')" path="genPath">
+          <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('develop.code_gen.table_edit.form_primary_key_column')" path="primaryKeyColumn">
+          <NSelect
+            v-model:value="form.primaryKeyColumn"
             clearable
             filterable
             :options="columnOptions"
             :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
           />
         </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_tree_name_column')" path="treeNameColumn">
-          <NSelect
-            v-model:value="form.treeNameColumn"
-            clearable
-            filterable
-            :options="columnOptions"
-            :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-          />
+        <template v-if="isTreeTemplate">
+          <NFormItem :label="t('develop.code_gen.table_edit.form_tree_parent_column')" path="treeParentColumn">
+            <NSelect
+              v-model:value="form.treeParentColumn"
+              clearable
+              filterable
+              :options="columnOptions"
+              :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+            />
+          </NFormItem>
+          <NFormItem :label="t('develop.code_gen.table_edit.form_tree_name_column')" path="treeNameColumn">
+            <NSelect
+              v-model:value="form.treeNameColumn"
+              clearable
+              filterable
+              :options="columnOptions"
+              :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+            />
+          </NFormItem>
+        </template>
+        <template v-if="isMasterDetailTemplate">
+          <NFormItem :label="t('develop.code_gen.table_edit.form_master_table')" path="masterTableId">
+            <NSelect
+              v-model:value="form.masterTableId"
+              clearable
+              filterable
+              :options="tableOptions"
+              :placeholder="t('develop.code_gen.table_edit.form_master_table_placeholder')"
+            />
+          </NFormItem>
+          <NFormItem :label="t('develop.code_gen.table_edit.form_master_foreign_key')" path="masterForeignKey">
+            <NSelect
+              v-model:value="form.masterForeignKey"
+              clearable
+              filterable
+              :options="columnOptions"
+              :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+            />
+          </NFormItem>
+        </template>
+        <NFormItem :label="t('common.fields.status')" path="status">
+          <NSelect v-model:value="form.status" :options="statusEnumOptions" />
         </NFormItem>
-      </template>
-      <template v-if="isMasterDetailTemplate">
-        <NFormItem :label="t('develop.code_gen.table_edit.form_master_table')" path="masterTableId">
-          <NSelect
-            v-model:value="form.masterTableId"
-            clearable
-            filterable
-            :options="tableOptions"
-            :placeholder="t('develop.code_gen.table_edit.form_master_table_placeholder')"
-          />
+        <NFormItem class="xh-span-2" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
+          <NInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />
         </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_master_foreign_key')" path="masterForeignKey">
-          <NSelect
-            v-model:value="form.masterForeignKey"
-            clearable
-            filterable
-            :options="columnOptions"
-            :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-          />
-        </NFormItem>
-      </template>
-      <NFormItem :label="t('common.fields.status')" path="status">
-        <NSelect v-model:value="form.status" :options="statusEnumOptions" />
-      </NFormItem>
-      <NFormItem class="xh-span-2" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
-        <NInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />
-      </NFormItem>
-    </NForm>
+      </NForm>
+    </NSpin>
   </XEditModal>
 </template>
