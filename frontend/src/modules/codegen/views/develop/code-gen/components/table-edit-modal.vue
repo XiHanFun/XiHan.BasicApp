@@ -82,6 +82,13 @@ interface TableFormModel {
   remark?: string | null
 }
 
+/**
+ * 全部可裁剪写操作（列表/详情为读取基线，不在此列）。
+ * 必须声明在 form 之前：form 的初值由 createDefaultForm() 求得，而它引用本常量，
+ * 声明晚于调用点会落进暂时性死区，setup 直接抛 ReferenceError、整个弹窗渲染不出来。
+ */
+const ALL_ACTIONS = ['create', 'update', 'delete']
+
 const loading = ref(false)
 const submitLoading = ref(false)
 const editingStatus = ref<EnableStatus | null>(null)
@@ -94,9 +101,6 @@ const tableOptions = ref<{ label: string, value: ApiId }[]>([])
 
 const isTreeTemplate = computed(() => form.value.templateType === TemplateTypeEnum.Tree)
 const isMasterDetailTemplate = computed(() => form.value.templateType === TemplateTypeEnum.MasterDetail)
-
-/** 全部可裁剪写操作（列表/详情为读取基线，不在此列） */
-const ALL_ACTIONS = ['create', 'update', 'delete']
 
 /** 后端逗号分隔串 → 多选数组；null/空视为全开（全部勾选） */
 function parseEnabledActions(raw?: string | null): string[] {
