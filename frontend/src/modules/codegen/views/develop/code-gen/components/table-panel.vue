@@ -146,7 +146,16 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database' },
     { key: 'preview', title: t('develop.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'generate', title: t('develop.code_gen.table.action_generate'), scope: 'row', type: 'primary', icon: 'lucide:play' },
+    { key: 'generate', title: t('develop.code_gen.table.action_generate'), scope: 'row', type: 'primary', icon: 'lucide:download' },
+    {
+      key: 'generateToDisk',
+      title: t('develop.code_gen.table.action_generate_to_disk'),
+      scope: 'row',
+      icon: 'lucide:folder-input',
+      // 直接写服务端代码目录，且手动文件已存在时会被跳过，属不可撤销操作
+      confirm: true,
+      confirmText: t('develop.code_gen.table.generate_to_disk_confirm'),
+    },
     { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2' },
     { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
@@ -171,6 +180,11 @@ function onAction(payload: SchemaActionPayload) {
     case 'generate':
       if (row) {
         void handleGenerate(row)
+      }
+      break
+    case 'generateToDisk':
+      if (row) {
+        void handleGenerateToDisk(row)
       }
       break
     case 'columns':
@@ -248,6 +262,35 @@ async function handleGenerate(row: CodeGenTableListItemDto) {
   }
   catch (error) {
     message.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
+  }
+  finally {
+    generating.value = false
+  }
+}
+
+/** 生成到现有代码结构：按表配置的生成路径落盘（后端受白名单与开关门控） */
+async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
+  if (generating.value) {
+    return
+  }
+  generating.value = true
+  try {
+    const result = await codeGenerationApi.generate({
+      tableId: row.basicId,
+      genType: GenType.CustomPath,
+    })
+    if (!result.success) {
+      message.error(result.message || t('develop.code_gen.generate.write_failed'))
+      return
+    }
+    message.success(t('develop.code_gen.generate.write_success', {
+      written: result.writtenCount,
+      skipped: result.skippedPaths?.length ?? 0,
+    }))
+    reload()
+  }
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.generate.write_failed'))
   }
   finally {
     generating.value = false
