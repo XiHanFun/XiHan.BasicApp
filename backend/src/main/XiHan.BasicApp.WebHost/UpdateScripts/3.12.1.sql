@@ -16,3 +16,14 @@ UPDATE sys_tenant
 SET config_status = 2
 WHERE isolation_mode <> 1
   AND config_status = 0;
+
+-- 收敛代码生成的生成方式取值。
+--
+-- gen_type 原有三个取值 0=Zip 1=CustomPath 2=Preview，其中 Preview 从来不是一种「生成方式」：
+-- 预览走独立入口、引擎的 PreviewAsync 直接渲染、根本不读该字段。它出现在表配置下拉里，
+-- 选中后既不影响预览、也让「生成」无从判断该下载还是落盘。枚举已收敛为两个取值，
+-- 存量选了 Preview 的表回落到 Zip（生成并下载）。
+
+UPDATE sys_code_gen_table
+SET gen_type = 0
+WHERE gen_type = 2;

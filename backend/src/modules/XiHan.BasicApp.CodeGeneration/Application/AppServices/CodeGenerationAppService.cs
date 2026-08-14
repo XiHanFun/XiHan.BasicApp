@@ -361,11 +361,11 @@ public sealed class CodeGenerationAppService(
     {
         ArgumentNullException.ThrowIfNull(input);
 
+        // 预览只渲染不产出，引擎的 PreviewAsync 直接走渲染核心、不看 GenType
         var request = new GenerationRequest
         {
             TableId = input.TableId,
-            TemplateCodes = input.TemplateCodes,
-            GenType = GenType.Preview
+            TemplateCodes = input.TemplateCodes
         };
 
         var result = await _generationEngine.PreviewAsync(request, cancellationToken);
@@ -373,7 +373,7 @@ public sealed class CodeGenerationAppService(
     }
 
     /// <summary>
-    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘 / 预览）
+    /// 执行生成（按 GenType 分流：Zip 打包 / 落盘）
     /// </summary>
     /// <param name="input">生成请求</param>
     /// <param name="cancellationToken">取消令牌</param>

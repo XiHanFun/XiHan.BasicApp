@@ -10,6 +10,7 @@ export default {
       table: {
         search_placeholder: '搜索表名 / 类名 / 注释',
         filter_template_type: '模板类型',
+        filter_gen_type: '生成方式',
         filter_gen_status: '生成状态',
         filter_status: '状态',
         import: '导入数据库表',
@@ -18,6 +19,7 @@ export default {
         col_table_comment: '表说明',
         col_module: '模块',
         col_template_type: '模板类型',
+        col_gen_type: '生成方式',
         col_gen_status: '生成状态',
         col_status: '状态',
         col_last_gen: '最近生成',

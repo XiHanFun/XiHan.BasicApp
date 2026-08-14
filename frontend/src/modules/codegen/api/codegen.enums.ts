@@ -19,11 +19,10 @@ export enum GenStatus {
   Failed = 'Failed',
 }
 
-/** 生成代码方式 */
+/** 生成代码方式（预览走独立入口、不消费本枚举） */
 export enum GenType {
   Zip = 'Zip',
   CustomPath = 'CustomPath',
-  Preview = 'Preview',
 }
 
 /** 模板引擎类型（Razor 已移除：需运行时编译能力、框架不支持） */
@@ -103,11 +102,10 @@ export const GEN_STATUS_OPTIONS = [
   { label: '生成失败', value: GenStatus.Failed },
 ]
 
-/** 生成方式选项 */
+/** 生成方式选项（与行操作一一对应：配哪种，「更多」里就只出哪种） */
 export const GEN_TYPE_OPTIONS = [
-  { label: '压缩包下载', value: GenType.Zip },
-  { label: '自定义路径', value: GenType.CustomPath },
-  { label: '预览', value: GenType.Preview },
+  { label: '生成并下载', value: GenType.Zip },
+  { label: '生成到项目', value: GenType.CustomPath },
 ]
 
 /** 模板引擎选项 */

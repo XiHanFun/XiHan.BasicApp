@@ -76,6 +76,10 @@ public class CodeGenTableListItemDto : BasicAppDto
     public string? BusinessName { get; set; }
     public string? FunctionName { get; set; }
     public TemplateType TemplateType { get; set; }
+
+    /// <summary>生成方式（列表需据此决定行操作给「生成并下载」还是「生成到项目」）</summary>
+    public GenType GenType { get; set; }
+
     public GenStatus GenStatus { get; set; }
     public DateTimeOffset? LastGenTime { get; set; }
     public EnableStatus Status { get; set; }
@@ -90,7 +94,6 @@ public sealed class CodeGenTableDetailDto : CodeGenTableListItemDto
 {
     public string? Namespace { get; set; }
     public string? Author { get; set; }
-    public GenType GenType { get; set; }
     /// <summary>生成范围（全部/仅后端/仅前端）</summary>
     public GenerationScope GenerationScope { get; set; }
     /// <summary>包含操作（逗号分隔的 create/update/delete 子集；null/空=全开）</summary>
