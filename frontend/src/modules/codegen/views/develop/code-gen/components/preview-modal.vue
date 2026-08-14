@@ -21,10 +21,9 @@ import { XCodeEditor } from '~/components'
 import {
   ArtifactWriteMode,
   codeGenerationApi,
-  GenType,
 } from '../../../../api'
 
-defineOptions({ name: 'CodeGenGenerateModal' })
+defineOptions({ name: 'CodeGenPreviewModal' })
 
 const props = defineProps<{
   show: boolean
@@ -34,14 +33,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:show': [value: boolean]
-  'generated': []
 }>()
 
 const { t } = useI18n()
 const message = useMessage()
 
 const previewLoading = ref(false)
-const generating = ref(false)
 const artifacts = ref<CodeGenArtifactDto[]>([])
 const activeIndex = ref(0)
 
@@ -56,14 +53,14 @@ const artifactGroups = computed(() => {
   return [
     {
       key: ArtifactWriteMode.AlwaysOverwrite,
-      label: t('develop.code_gen.generate.group_generated'),
-      hint: t('develop.code_gen.generate.group_generated_hint'),
+      label: t('develop.code_gen.preview.group_generated'),
+      hint: t('develop.code_gen.preview.group_generated_hint'),
       items: entries.filter(entry => entry.artifact.writeMode !== ArtifactWriteMode.WriteOnce),
     },
     {
       key: ArtifactWriteMode.WriteOnce,
-      label: t('develop.code_gen.generate.group_manual'),
-      hint: t('develop.code_gen.generate.group_manual_hint'),
+      label: t('develop.code_gen.preview.group_manual'),
+      hint: t('develop.code_gen.preview.group_manual_hint'),
       items: entries.filter(entry => entry.artifact.writeMode === ArtifactWriteMode.WriteOnce),
     },
   ].filter(group => group.items.length > 0)
@@ -71,8 +68,8 @@ const artifactGroups = computed(() => {
 
 const modalTitle = computed(() =>
   props.tableName
-    ? `${t('develop.code_gen.generate.title')} · ${props.tableName}`
-    : t('develop.code_gen.generate.title'),
+    ? `${t('develop.code_gen.preview.title')} · ${props.tableName}`
+    : t('develop.code_gen.preview.title'),
 )
 
 watch(
@@ -96,7 +93,7 @@ async function loadPreview() {
   try {
     const result = await codeGenerationApi.preview({ tableId: props.tableId })
     if (!result.success) {
-      message.error(result.message || t('develop.code_gen.generate.preview_failed'))
+      message.error(result.message || t('develop.code_gen.preview.preview_failed'))
       artifacts.value = []
       return
     }
@@ -104,60 +101,11 @@ async function loadPreview() {
     activeIndex.value = 0
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.generate.preview_failed'))
+    message.error((error as Error)?.message || t('develop.code_gen.preview.preview_failed'))
     artifacts.value = []
   }
   finally {
     previewLoading.value = false
-  }
-}
-
-function downloadZip(base64: string, fileName: string) {
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i)
-  }
-  const blob = new Blob([bytes], { type: 'application/zip' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = fileName
-  document.body.appendChild(anchor)
-  anchor.click()
-  document.body.removeChild(anchor)
-  URL.revokeObjectURL(url)
-}
-
-async function handleGenerate() {
-  if (!props.tableId) {
-    return
-  }
-  generating.value = true
-  try {
-    const result = await codeGenerationApi.generate({
-      tableId: props.tableId,
-      genType: GenType.Zip,
-    })
-    if (!result.success) {
-      message.error(result.message || t('develop.code_gen.generate.generate_failed'))
-      return
-    }
-    if (result.packageBase64) {
-      const fileName = `${props.tableName || 'codegen'}_${Date.now()}.zip`
-      downloadZip(result.packageBase64, fileName)
-      message.success(t('develop.code_gen.generate.generate_success', { count: result.fileCount }))
-    }
-    else {
-      message.warning(t('develop.code_gen.generate.no_package'))
-    }
-    emit('generated')
-  }
-  catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
-  }
-  finally {
-    generating.value = false
   }
 }
 </script>
@@ -193,7 +141,7 @@ async function handleGenerate() {
                   <div class="gen__file-name">
                     {{ entry.artifact.fileName }}
                     <NTag v-if="group.key === ArtifactWriteMode.WriteOnce" :bordered="false" size="tiny" type="success">
-                      {{ t('develop.code_gen.generate.badge_manual') }}
+                      {{ t('develop.code_gen.preview.badge_manual') }}
                     </NTag>
                   </div>
                   <div class="gen__file-path">
@@ -205,7 +153,7 @@ async function handleGenerate() {
           </NScrollbar>
         </div>
         <div class="gen__content">
-          <NEmpty v-if="!activeArtifact" :description="t('develop.code_gen.generate.empty')" />
+          <NEmpty v-if="!activeArtifact" :description="t('develop.code_gen.preview.empty')" />
           <XCodeEditor
             v-else
             :value="activeArtifact.content"
@@ -220,15 +168,10 @@ async function handleGenerate() {
 
     <template #footer>
       <NSpace justify="space-between">
-        <span class="gen__hint">{{ t('develop.code_gen.generate.total_files', { count: artifacts.length }) }}</span>
-        <NSpace>
-          <NButton @click="emit('update:show', false)">
-            {{ t('common.actions.close') }}
-          </NButton>
-          <NButton :disabled="!tableId" :loading="generating" type="primary" @click="handleGenerate">
-            {{ t('develop.code_gen.generate.generate_zip') }}
-          </NButton>
-        </NSpace>
+        <span class="gen__hint">{{ t('develop.code_gen.preview.total_files', { count: artifacts.length }) }}</span>
+        <NButton @click="emit('update:show', false)">
+          {{ t('common.actions.close') }}
+        </NButton>
       </NSpace>
     </template>
   </NModal>
