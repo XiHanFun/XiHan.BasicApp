@@ -25,11 +25,12 @@ import {
   EnableStatus,
   GEN_STATUS_OPTIONS,
   GenStatus as GenStatusEnum,
+  GenType,
   TEMPLATE_TYPE_OPTIONS,
 } from '../../../../api'
 import ColumnConfigModal from './column-config-modal.vue'
-import GenerateModal from './generate-modal.vue'
 import ImportTableModal from './import-table-modal.vue'
+import PreviewModal from './preview-modal.vue'
 import RuntimeDataModal from './runtime-data-modal.vue'
 import TableEditModal from './table-edit-modal.vue'
 
@@ -49,7 +50,8 @@ function reload() {
 const importVisible = ref(false)
 const editVisible = ref(false)
 const columnVisible = ref(false)
-const generateVisible = ref(false)
+const previewVisible = ref(false)
+const generating = ref(false)
 const runtimeVisible = ref(false)
 const currentTableId = ref<ApiId | null>(null)
 const currentTableName = ref('')
@@ -143,6 +145,7 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database' },
+    { key: 'preview', title: t('develop.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye' },
     { key: 'generate', title: t('develop.code_gen.table.action_generate'), scope: 'row', type: 'primary', icon: 'lucide:play' },
     { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2' },
     { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw' },
@@ -158,11 +161,16 @@ function onAction(payload: SchemaActionPayload) {
     case 'import':
       importVisible.value = true
       break
-    case 'generate':
+    case 'preview':
       if (row) {
         currentTableId.value = row.basicId
         currentTableName.value = row.tableName
-        generateVisible.value = true
+        previewVisible.value = true
+      }
+      break
+    case 'generate':
+      if (row) {
+        void handleGenerate(row)
       }
       break
     case 'columns':
@@ -194,6 +202,55 @@ function onAction(payload: SchemaActionPayload) {
         void handleDelete(row)
       }
       break
+  }
+}
+
+/** 把后端返回的 base64 压缩包交给浏览器下载 */
+function downloadZip(base64: string, fileName: string) {
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = fileName
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+  URL.revokeObjectURL(url)
+}
+
+/** 生成并下载：不再经预览弹窗中转，预览是独立动作 */
+async function handleGenerate(row: CodeGenTableListItemDto) {
+  if (generating.value) {
+    return
+  }
+  generating.value = true
+  try {
+    const result = await codeGenerationApi.generate({
+      tableId: row.basicId,
+      genType: GenType.Zip,
+    })
+    if (!result.success) {
+      message.error(result.message || t('develop.code_gen.generate.generate_failed'))
+      return
+    }
+    if (result.packageBase64) {
+      downloadZip(result.packageBase64, `${row.tableName || 'codegen'}_${Date.now()}.zip`)
+      message.success(t('develop.code_gen.generate.generate_success', { count: result.fileCount }))
+    }
+    else {
+      message.warning(t('develop.code_gen.generate.no_package'))
+    }
+    reload()
+  }
+  catch (error) {
+    message.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
+  }
+  finally {
+    generating.value = false
   }
 }
 
@@ -245,11 +302,10 @@ function handleDelete(row: CodeGenTableListItemDto) {
     <ImportTableModal v-model:show="importVisible" @imported="reload" />
     <TableEditModal v-model:show="editVisible" :table-id="currentTableId" @saved="reload" />
     <ColumnConfigModal v-model:show="columnVisible" :table-id="currentTableId" @saved="reload" />
-    <GenerateModal
-      v-model:show="generateVisible"
+    <PreviewModal
+      v-model:show="previewVisible"
       :table-id="currentTableId"
       :table-name="currentTableName"
-      @generated="reload"
     />
     <RuntimeDataModal
       v-model:show="runtimeVisible"
