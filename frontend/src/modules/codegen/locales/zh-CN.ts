@@ -231,6 +231,7 @@ export default {
       column: {
         title: '列配置',
         col_column_name: '列名',
+        base_column: '基类',
         col_column_comment: '列说明',
         col_column_type: '物理类型',
         col_csharp_type: 'C# 类型',

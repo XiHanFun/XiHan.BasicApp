@@ -231,6 +231,7 @@ export default {
       column: {
         title: 'Column Configuration',
         col_column_name: 'Column',
+        base_column: 'Base',
         col_column_comment: 'Comment',
         col_column_type: 'Physical Type',
         col_csharp_type: 'C# Type',
