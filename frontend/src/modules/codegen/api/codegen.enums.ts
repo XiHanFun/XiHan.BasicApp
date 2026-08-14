@@ -10,6 +10,8 @@ export enum TemplateType {
   Single = 'Single',
   Tree = 'Tree',
   MasterDetail = 'MasterDetail',
+  /** 通用：模板适用于全部表类型；表配置不可取此值 */
+  Universal = 'Universal',
 }
 
 /** 代码生成状态 */
@@ -90,10 +92,16 @@ export enum GenerationScope {
 
 /** 模板类型选项（label 取自后端 [Description]） */
 export const TEMPLATE_TYPE_OPTIONS = [
+  { label: '通用', value: TemplateType.Universal },
   { label: '单表', value: TemplateType.Single },
   { label: '树表', value: TemplateType.Tree },
   { label: '主子表', value: TemplateType.MasterDetail },
 ]
+
+/** 表配置可选的模板类型（不含通用：表必须是单表/树表/主子表之一，通用只属于模板） */
+export const TABLE_TEMPLATE_TYPE_OPTIONS = TEMPLATE_TYPE_OPTIONS.filter(
+  option => option.value !== TemplateType.Universal,
+)
 
 /** 生成状态选项 */
 export const GEN_STATUS_OPTIONS = [

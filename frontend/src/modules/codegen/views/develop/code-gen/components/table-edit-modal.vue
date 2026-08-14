@@ -33,7 +33,7 @@ import {
   GENERATION_SCOPE_OPTIONS,
   GenerationScope as GenerationScopeEnum,
   GenType as GenTypeEnum,
-  TEMPLATE_TYPE_OPTIONS,
+  TABLE_TEMPLATE_TYPE_OPTIONS,
   TemplateType as TemplateTypeEnum,
 } from '../../../../api'
 
@@ -365,7 +365,7 @@ async function handleSubmit() {
           <NInput v-model:value="form.author" clearable />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.table_edit.form_template_type')" path="templateType">
-          <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
+          <NSelect v-model:value="form.templateType" :options="TABLE_TEMPLATE_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.table_edit.form_gen_type')" path="genType">
           <NSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />

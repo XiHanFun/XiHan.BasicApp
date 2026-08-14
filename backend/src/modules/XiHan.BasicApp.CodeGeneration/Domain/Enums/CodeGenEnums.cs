@@ -26,7 +26,17 @@ public enum TemplateType
     /// 主子表
     /// </summary>
     [Description("主子表")]
-    MasterDetail = 2
+    MasterDetail = 2,
+
+    /// <summary>
+    /// 通用：模板适用于全部表类型
+    /// </summary>
+    /// <remarks>
+    /// 仅模板（<see cref="XiHan.BasicApp.CodeGeneration.Domain.Entities.SysCodeGenTemplate"/>）可取本值；
+    /// 表配置必须是单表/树表/主子表之一，取本值会被领域校验拒绝。
+    /// </remarks>
+    [Description("通用")]
+    Universal = 3
 }
 
 /// <summary>

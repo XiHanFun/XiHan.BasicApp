@@ -30,11 +30,7 @@ public sealed class CodeGenTemplateDomainService
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 模板类型可为空（通用模板，适用于全部类型），仅在显式指定时校验取值合法
-        if (command.TemplateType is { } templateType)
-        {
-            EnsureEnum(templateType, nameof(command.TemplateType));
-        }
+        EnsureEnum(command.TemplateType, nameof(command.TemplateType));
 
         EnsureEnum(command.TemplateEngine, nameof(command.TemplateEngine));
         EnsureEnum(command.Status, nameof(command.Status));
@@ -78,11 +74,7 @@ public sealed class CodeGenTemplateDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         EnsureId(command.BasicId, "模板主键必须大于 0。");
-        // 模板类型可为空（通用模板，适用于全部类型），仅在显式指定时校验取值合法
-        if (command.TemplateType is { } templateType)
-        {
-            EnsureEnum(templateType, nameof(command.TemplateType));
-        }
+        EnsureEnum(command.TemplateType, nameof(command.TemplateType));
 
         EnsureEnum(command.TemplateEngine, nameof(command.TemplateEngine));
 

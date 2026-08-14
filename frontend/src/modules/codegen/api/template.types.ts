@@ -22,8 +22,8 @@ export interface CodeGenTemplateListItemDto extends BasicDto {
   templateName: string
   templateDescription?: string | null
   templateGroup?: string | null
-  /** 模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表） */
-  templateType?: TemplateType | null
+  /** 模板类型；Universal 表示通用模板，适用于全部表类型（单表/树表/主子表） */
+  templateType: TemplateType
   templateEngine: TemplateEngine
   /** 写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建 */
   writeMode: ArtifactWriteMode
@@ -55,8 +55,8 @@ export interface CodeGenTemplateCreateDto {
   templateName: string
   templateDescription?: string | null
   templateGroup?: string | null
-  /** 模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表） */
-  templateType?: TemplateType | null
+  /** 模板类型；Universal 表示通用模板，适用于全部表类型（单表/树表/主子表） */
+  templateType: TemplateType
   templateEngine: TemplateEngine
   /** 写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建 */
   writeMode: ArtifactWriteMode
@@ -74,8 +74,8 @@ export interface CodeGenTemplateUpdateDto extends BasicDto {
   templateName: string
   templateDescription?: string | null
   templateGroup?: string | null
-  /** 模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表） */
-  templateType?: TemplateType | null
+  /** 模板类型；Universal 表示通用模板，适用于全部表类型（单表/树表/主子表） */
+  templateType: TemplateType
   templateEngine: TemplateEngine
   /** 写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建 */
   writeMode: ArtifactWriteMode

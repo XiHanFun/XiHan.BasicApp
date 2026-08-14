@@ -71,10 +71,10 @@ public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
 
     /// <summary>
     /// 模板类型
-    /// 为空表示通用模板，适用于全部模板类型（单表/树表/主子表）；非空则仅在该类型下生效
+    /// 取 Universal 表示通用模板，适用于全部表类型（单表/树表/主子表）；其余取值仅在该类型下生效
     /// </summary>
-    [SugarColumn(ColumnName = "Template_Type", ColumnDescription = "模板类型", IsNullable = true)]
-    public virtual TemplateType? TemplateType { get; set; }
+    [SugarColumn(ColumnName = "Template_Type", ColumnDescription = "模板类型")]
+    public virtual TemplateType TemplateType { get; set; } = TemplateType.Universal;
 
     /// <summary>
     /// 模板引擎

@@ -243,5 +243,5 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
         string FileExtension,
         string? FilePathExpression,
         ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite,
-        TemplateType? TemplateType = null);
+        TemplateType TemplateType = TemplateType.Universal);
 }
