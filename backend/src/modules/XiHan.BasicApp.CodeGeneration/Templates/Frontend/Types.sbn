@@ -7,7 +7,7 @@ import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 export interface {{ ClassName }}PageQueryDto extends PageRequest {
   keyword?: string | null
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ end ~}}
 {{~ end ~}}
@@ -16,7 +16,7 @@ export interface {{ ClassName }}PageQueryDto extends PageRequest {
 export interface {{ ClassName }}ListItemDto extends BasicDto {
   createdTime: DateTimeString
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ else ~}}

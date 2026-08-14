@@ -4,6 +4,8 @@
 // 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
 // 自定义字段与校验特性请写在 {{ ClassName }}Dtos.cs，两者经 partial 合并。
 
+#nullable enable
+
 #pragma warning disable CS1591
 
 using XiHan.BasicApp.Core.Dtos;
@@ -41,7 +43,7 @@ public sealed partial class {{ ClassName }}PageQueryDto : BasicAppPRDto
 {
     public string? Keyword { get; set; }
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
     public {{ col.CSharpType }}{{ if !(col.CSharpType | string.contains "?") }}?{{ end }} {{ col.CSharpProperty }} { get; set; }
 {{~ end ~}}
 {{~ end ~}}

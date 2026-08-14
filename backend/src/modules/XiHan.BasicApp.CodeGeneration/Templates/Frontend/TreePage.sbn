@@ -27,6 +27,9 @@
   树形取数走 resource.tree（返回嵌套数组、不分页），父级选择器复用同一份树数据。
 -->
 <script setup lang="ts">
+{{~ if has_modal ~}}
+import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
+{{~ end ~}}
 import type {
 {{~ if CanCreate ~}}
   {{ ClassName }}CreateDto,
@@ -48,9 +51,6 @@ import type {
   SchemaActionPayload,
 {{~ end ~}}
 } from '~/components'
-{{~ if has_modal ~}}
-import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
-{{~ end ~}}
 {{~ if has_actions ~}}
 import {
 {{~ if has_modal ~}}
@@ -128,22 +128,6 @@ const schema: PageSchema = {
 {{~ end ~}}
   },
 }
-{{~ if has_modal ~}}
-
-/** 编辑时排除自身及其子树，避免把节点挂到自己的后代下形成环 */
-const parentOptions = computed(() => {
-  const excludeId = form.value.basicId
-  const map = (nodes: {{ ClassName }}TreeNodeDto[]): unknown[] =>
-    nodes
-      .filter(node => node.basicId !== excludeId)
-      .map(node => ({
-        key: node.basicId,
-        label: node.{{ TreeNameColumn.TsProperty }},
-        children: node.children?.length ? map(node.children) : undefined,
-      }))
-  return map(treeNodes.value)
-})
-{{~ end ~}}
 {{~ if has_actions ~}}
 
 function onAction(payload: SchemaActionPayload) {
@@ -179,6 +163,20 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment }}' : '新增{{ TableComment }}'))
+
+/** 编辑时排除自身及其子树，避免把节点挂到自己的后代下形成环 */
+const parentOptions = computed(() => {
+  const excludeId = form.value.basicId
+  const map = (nodes: {{ ClassName }}TreeNodeDto[]): unknown[] =>
+    nodes
+      .filter(node => node.basicId !== excludeId)
+      .map(node => ({
+        key: node.basicId,
+        label: node.{{ TreeNameColumn.TsProperty }},
+        children: node.children?.length ? map(node.children) : undefined,
+      }))
+  return map(treeNodes.value)
+})
 {{~ end ~}}
 {{~ if CanCreate ~}}
 

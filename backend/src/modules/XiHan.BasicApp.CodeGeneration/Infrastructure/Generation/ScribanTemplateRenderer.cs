@@ -129,6 +129,9 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["ColumnComment"] = column.ColumnComment,
             ["DbType"] = column.DbType,
             ["CSharpType"] = column.CSharpType,
+            // 类型语义：模板据此选可空判据（值类型解包取 .Value）与跳过二进制列
+            ["IsValueType"] = CSharpTypeFacts.IsValueType(column.CSharpType),
+            ["IsBinary"] = CSharpTypeFacts.IsBinary(column.CSharpType),
             ["CSharpProperty"] = column.CSharpProperty,
             // 前端属性名（camelCase，对应后端 camelCase JSON 序列化）
             ["TsProperty"] = Camelize(column.CSharpProperty),

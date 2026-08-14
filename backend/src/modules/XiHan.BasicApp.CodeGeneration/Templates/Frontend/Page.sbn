@@ -26,6 +26,9 @@
   会随表结构变化自动更新）；需要增删列或改渲染，改那个文件而不是这里。
 -->
 <script setup lang="ts">
+{{~ if has_modal ~}}
+import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
+{{~ end ~}}
 import type { PageResult } from '@/api'
 {{~ if has_actions ~}}
 import type {
@@ -49,9 +52,6 @@ import type {
   SchemaActionPayload,
 {{~ end ~}}
 } from '~/components'
-{{~ if has_modal ~}}
-import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
-{{~ end ~}}
 {{~ if need_message ~}}
 import {
 {{~ if has_modal ~}}
@@ -165,12 +165,12 @@ const schema: PageSchema = {
   actions,
   resource: {
     page: (params) => {
-      const { keyword{{ for col in Columns }}{{ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") }}, {{ col.TsProperty }}{{ end }}{{ end }} } = params.filters
+      const { keyword{{ for col in Columns }}{{ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") }}, {{ col.TsProperty }}{{ end }}{{ end }} } = params.filters
       return {{ ClassNameCamel }}ManagementApi.page({
         ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
         keyword: (keyword as string | undefined)?.trim() || undefined,
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
         {{ col.TsProperty }}: ({{ col.TsProperty }} as {{ col.TsType }} | undefined) ?? undefined,
 {{~ end ~}}
 {{~ end ~}}

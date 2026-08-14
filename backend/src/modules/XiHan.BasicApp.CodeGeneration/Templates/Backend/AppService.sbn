@@ -5,14 +5,18 @@
 // 要改写下列任意方法的行为，请在 {{ ClassName }}AppService.cs 中 override，
 // 需要保留原逻辑时调用 base.XxxAsync(...)。
 
+#nullable enable
+
 using System.CodeDom.Compiler;
 using Microsoft.AspNetCore.Authorization;
 using {{ Namespace }}.Application.Contracts;
 using {{ Namespace }}.Application.Dtos;
 using {{ Namespace }}.Application.Mappers;
+using {{ Namespace }}.Domain.Permissions;
 using {{ Namespace }}.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
 
 namespace {{ Namespace }}.Application.AppServices;
@@ -44,8 +48,14 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
     }
 {{~ if CanCreate ~}}
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 创建{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}
+    /// </summary>
+    /// <param name="input">创建入参</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>创建后的详情</returns>
     [UnitOfWork(true)]
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Create)]
     public virtual async Task<{{ ClassName }}DetailDto> Create{{ ClassName }}Async({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -58,8 +68,14 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
 {{~ end ~}}
 {{~ if CanUpdate ~}}
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 更新{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}
+    /// </summary>
+    /// <param name="input">更新入参</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>更新后的详情</returns>
     [UnitOfWork(true)]
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Update)]
     public virtual async Task<{{ ClassName }}DetailDto> Update{{ ClassName }}Async({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -74,8 +90,13 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
 {{~ end ~}}
 {{~ if CanDelete ~}}
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 删除{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}
+    /// </summary>
+    /// <param name="id">主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
     [UnitOfWork(true)]
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Delete)]
     public virtual async Task Delete{{ ClassName }}Async(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)

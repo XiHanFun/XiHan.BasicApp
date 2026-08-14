@@ -1,9 +1,10 @@
 {{~ has_command = CanCreate || CanUpdate || CanDelete ~}}
+{{~ has_query_api = TemplateType == "Tree" || MasterTable ~}}
 /**
  * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
  * 自定义请求请写在 {{ ClassNameKebab }}.ts（该文件会 re-export 本文件全部导出）。
  */
-import type { ApiId, PageResult } from '../../types'
+import type { ApiId } from '../../types'
 import type {
 {{~ if CanCreate ~}}
   {{ ClassName }}CreateDto,
@@ -19,16 +20,18 @@ import type {
 {{~ end ~}}
 } from './{{ ClassNameKebab }}.types'
 import {
-  appendDynamicApiParam,
+{{~ if has_command || has_query_api ~}}
   createDynamicApiClient,
-  createPageRequestParams,
+{{~ end ~}}
   createReadApi,
 {{~ if CanDelete ~}}
   formatDynamicApiRouteValue,
 {{~ end ~}}
 } from '../../base'
 
+{{~ if has_query_api ~}}
 const {{ ClassNameCamel }}QueryApi = createDynamicApiClient('{{ ClassName }}Query')
+{{~ end ~}}
 {{~ if has_command ~}}
 const {{ ClassNameCamel }}CommandApi = createDynamicApiClient('{{ ClassName }}')
 {{~ end ~}}
@@ -49,7 +52,7 @@ export const {{ ClassNameCamel }}BaseManagementApi = {
     return {{ ClassNameCamel }}ReadApi.detail(id)
   },
   page(input: {{ ClassName }}PageQueryDto) {
-    return {{ ClassNameCamel }}QueryApi.get<PageResult<{{ ClassName }}ListItemDto>>('{{ ClassName }}Page', to{{ ClassName }}PageParams(input))
+    return {{ ClassNameCamel }}ReadApi.page(input)
   },
 {{~ if TemplateType == "Tree" ~}}
   tree() {
@@ -66,15 +69,4 @@ export const {{ ClassNameCamel }}BaseManagementApi = {
     return {{ ClassNameCamel }}CommandApi.put<{{ ClassName }}DetailDto, {{ ClassName }}UpdateDto>('{{ ClassName }}', input)
   },
 {{~ end ~}}
-}
-
-function to{{ ClassName }}PageParams(input: {{ ClassName }}PageQueryDto) {
-  const params = createPageRequestParams(input)
-  appendDynamicApiParam(params, 'Keyword', input.keyword)
-{{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
-  appendDynamicApiParam(params, '{{ col.CSharpProperty }}', input.{{ col.TsProperty }})
-{{~ end ~}}
-{{~ end ~}}
-  return params
 }
