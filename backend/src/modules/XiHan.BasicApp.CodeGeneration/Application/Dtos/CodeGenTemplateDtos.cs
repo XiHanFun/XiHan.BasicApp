@@ -19,7 +19,7 @@ public sealed class CodeGenTemplateCreateDto
     public string? TemplateDescription { get; set; }
     public string? TemplateGroup { get; set; }
     /// <summary>模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</summary>
-    public TemplateType? TemplateType { get; set; }
+    public TemplateType TemplateType { get; set; } = TemplateType.Universal;
 
     /// <summary>模板引擎（决策 D1：当前仅 Scriban 可渲染）</summary>
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
@@ -45,7 +45,7 @@ public sealed class CodeGenTemplateUpdateDto : BasicAppUDto
     public string? TemplateDescription { get; set; }
     public string? TemplateGroup { get; set; }
     /// <summary>模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</summary>
-    public TemplateType? TemplateType { get; set; }
+    public TemplateType TemplateType { get; set; } = TemplateType.Universal;
     public TemplateEngine TemplateEngine { get; set; } = TemplateEngine.Scriban;
 
     /// <summary>写入策略：自动文件总是覆盖；手动文件仅在目标不存在时创建，用于承载手写代码</summary>
@@ -76,6 +76,7 @@ public sealed class CodeGenTemplatePageQueryDto : BasicAppPRDto
 {
     public string? Keyword { get; set; }
     public string? TemplateGroup { get; set; }
+    /// <summary>模板类型筛选，为空表示不限</summary>
     public TemplateType? TemplateType { get; set; }
     public TemplateEngine? TemplateEngine { get; set; }
     public ArtifactWriteMode? WriteMode { get; set; }
@@ -94,7 +95,7 @@ public class CodeGenTemplateListItemDto : BasicAppDto
     public string? TemplateDescription { get; set; }
     public string? TemplateGroup { get; set; }
     /// <summary>模板类型；为空表示通用模板</summary>
-    public TemplateType? TemplateType { get; set; }
+    public TemplateType TemplateType { get; set; } = TemplateType.Universal;
 
     public TemplateEngine TemplateEngine { get; set; }
 

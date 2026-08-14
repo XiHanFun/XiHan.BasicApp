@@ -27,3 +27,16 @@ WHERE isolation_mode <> 1
 UPDATE sys_code_gen_table
 SET gen_type = 0
 WHERE gen_type = 2;
+
+-- 模板的「通用」由 NULL 改为显式枚举值。
+--
+-- 此前 sys_code_gen_template.template_type 为空表示「适用全部表类型」，这个语义只有后端知道，
+-- 前端列表只能把 NULL 渲染成「-」、表单只能拿占位符冒充选项。现在 TemplateType 增加 Universal(3)，
+-- 模板侧改为非空、默认 Universal；表配置侧仍只允许单表/树表/主子表（领域校验拒绝 Universal）。
+
+UPDATE sys_code_gen_template
+SET template_type = 3
+WHERE template_type IS NULL;
+
+ALTER TABLE sys_code_gen_template
+    ALTER COLUMN template_type SET NOT NULL;

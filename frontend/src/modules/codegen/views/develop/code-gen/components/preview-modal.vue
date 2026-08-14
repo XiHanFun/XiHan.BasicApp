@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TreeOption } from 'naive-ui'
 import type {
   CodeGenArtifactDto,
 } from '../../../../api'
@@ -9,15 +10,18 @@ import {
   NButton,
   NEmpty,
   NModal,
+  NRadioButton,
+  NRadioGroup,
   NScrollbar,
   NSpace,
   NSpin,
   NTag,
+  NTree,
   useMessage,
 } from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XCodeEditor } from '~/components'
+import { Icon, XCodeEditor } from '~/components'
 import {
   ArtifactWriteMode,
   codeGenerationApi,
@@ -44,27 +48,172 @@ const activeIndex = ref(0)
 
 const activeArtifact = computed(() => artifacts.value[activeIndex.value] ?? null)
 
+/** 产物归属：按模板编码前缀判定，二阶产物（菜单/权限接线）随后端 */
+type ArtifactSide = 'all' | 'backend' | 'frontend'
+
+const activeSide = ref<ArtifactSide>('all')
+
+const sideOptions = computed(() => [
+  { label: t('develop.code_gen.preview.side_all'), value: 'all' as const },
+  { label: t('develop.code_gen.preview.side_backend'), value: 'backend' as const },
+  { label: t('develop.code_gen.preview.side_frontend'), value: 'frontend' as const },
+])
+
+function sideOf(artifact: CodeGenArtifactDto): Exclude<ArtifactSide, 'all'> {
+  return artifact.templateCode?.toLowerCase().includes('frontend') ? 'frontend' : 'backend'
+}
+
+/** 当前分栏下的产物（保留原始下标，选中态与内容区据此定位） */
+const visibleArtifacts = computed(() =>
+  artifacts.value
+    .map((artifact, index) => ({ artifact, index }))
+    .filter(entry => activeSide.value === 'all' || sideOf(entry.artifact) === activeSide.value),
+)
+
+/** 文件类型图标：仅用离线预载的 lucide / mdi 图标集 */
+function fileIconOf(fileName: string): string {
+  const ext = fileName.slice(fileName.lastIndexOf('.') + 1).toLowerCase()
+  switch (ext) {
+    case 'cs':
+      return 'mdi:language-csharp'
+    case 'ts':
+      return 'mdi:language-typescript'
+    case 'vue':
+      return 'mdi:vuejs'
+    case 'json':
+      return 'mdi:code-json'
+    case 'md':
+      return 'mdi:language-markdown'
+    case 'sql':
+      return 'mdi:database'
+    default:
+      return 'lucide:file'
+  }
+}
+
+/** 目录树节点：目录以路径前缀为键，文件以产物下标为键 */
+interface ArtifactTreeNode {
+  key: string
+  label: string
+  /** 文件节点携带的产物下标；目录节点为 undefined */
+  index?: number
+  /** 文件节点的类型图标；目录节点由展开态决定 */
+  icon?: string
+  writeOnce?: boolean
+  children?: ArtifactTreeNode[]
+  // NTree 的 TreeOption 要求索引签名
+  [key: string]: unknown
+}
+
 /**
- * 产物按写入策略分组：自动文件（总是覆盖）与手动文件（仅首次创建）。
- * 保留在扁平数组中的原始下标，供选中态使用。
+ * 按 relativePath 组织成目录树：路径逐段建目录，产物挂到末级目录下。
+ * 目录先于文件、各自按名称排序，保证同一份产物每次打开顺序一致。
  */
-const artifactGroups = computed(() => {
-  const entries = artifacts.value.map((artifact, index) => ({ artifact, index }))
-  return [
-    {
-      key: ArtifactWriteMode.AlwaysOverwrite,
-      label: t('develop.code_gen.preview.group_generated'),
-      hint: t('develop.code_gen.preview.group_generated_hint'),
-      items: entries.filter(entry => entry.artifact.writeMode !== ArtifactWriteMode.WriteOnce),
-    },
-    {
-      key: ArtifactWriteMode.WriteOnce,
-      label: t('develop.code_gen.preview.group_manual'),
-      hint: t('develop.code_gen.preview.group_manual_hint'),
-      items: entries.filter(entry => entry.artifact.writeMode === ArtifactWriteMode.WriteOnce),
-    },
-  ].filter(group => group.items.length > 0)
+const artifactTree = computed<ArtifactTreeNode[]>(() => {
+  const roots: ArtifactTreeNode[] = []
+  const dirCache = new Map<string, ArtifactTreeNode>()
+
+  function ensureDir(segments: string[]): ArtifactTreeNode[] {
+    let siblings = roots
+    let prefix = ''
+    for (const segment of segments) {
+      prefix = prefix ? `${prefix}/${segment}` : segment
+      let dir = dirCache.get(prefix)
+      if (!dir) {
+        dir = { key: `dir:${prefix}`, label: segment, children: [] }
+        dirCache.set(prefix, dir)
+        siblings.push(dir)
+      }
+      siblings = dir.children!
+    }
+    return siblings
+  }
+
+  visibleArtifacts.value.forEach(({ artifact, index }) => {
+    // relativePath 是「目录/文件名」（无目录时就等于文件名），取最后一个斜杠之前的部分建目录
+    const path = (artifact.relativePath ?? '').replace(/\\/g, '/')
+    const lastSlash = path.lastIndexOf('/')
+    const dirSegments = lastSlash >= 0
+      ? path.slice(0, lastSlash).split('/').map(segment => segment.trim()).filter(Boolean)
+      : []
+
+    ensureDir(dirSegments).push({
+      key: `file:${index}`,
+      label: artifact.fileName,
+      index,
+      icon: fileIconOf(artifact.fileName),
+      writeOnce: artifact.writeMode === ArtifactWriteMode.WriteOnce,
+    })
+  })
+
+  function sort(nodes: ArtifactTreeNode[]): ArtifactTreeNode[] {
+    nodes.sort((a, b) => {
+      const aIsDir = a.children !== undefined
+      const bIsDir = b.children !== undefined
+      if (aIsDir !== bIsDir) {
+        return aIsDir ? -1 : 1
+      }
+      return a.label.localeCompare(b.label)
+    })
+    nodes.forEach(node => node.children && sort(node.children))
+    return nodes
+  }
+
+  return sort(roots)
 })
+
+/** 展开态：默认全展开，切换分栏后按新树重置；用户手动折叠的结果在同一棵树内保留 */
+const expandedKeys = ref<string[]>([])
+
+function collectDirKeys(node: ArtifactTreeNode): string[] {
+  if (!node.children) {
+    return []
+  }
+  return [node.key, ...node.children.flatMap(collectDirKeys)]
+}
+
+function handleExpand(keys: string[]) {
+  expandedKeys.value = keys
+}
+
+// 树重建（首次加载或切换分栏）：全展开，并把选中项落到当前分栏内第一个文件
+watch(artifactTree, (tree) => {
+  expandedKeys.value = tree.flatMap(collectDirKeys)
+
+  const visible = visibleArtifacts.value
+  const first = visible[0]
+  if (!first) {
+    return
+  }
+  if (!visible.some(entry => entry.index === activeIndex.value)) {
+    activeIndex.value = first.index
+  }
+}, { immediate: true })
+
+const selectedKeys = computed(() => [`file:${activeIndex.value}`])
+
+function handleSelect(keys: string[]) {
+  const fileKey = keys.find(key => key.startsWith('file:'))
+  if (fileKey) {
+    activeIndex.value = Number(fileKey.slice('file:'.length))
+  }
+}
+
+/** 节点左侧图标：目录随展开态切换开合，文件按扩展名取类型图标 */
+function renderPrefix({ option }: { option: TreeOption }) {
+  const icon = option.children
+    ? (expandedKeys.value.includes(option.key as string) ? 'lucide:folder-open' : 'lucide:folder')
+    : (option.icon as string | undefined) ?? 'lucide:file'
+  return h(Icon, { class: 'gen__node-icon', icon })
+}
+
+/** 文件节点右侧的「不覆盖」标记 */
+function renderSuffix({ option }: { option: TreeOption }) {
+  if (!option.writeOnce) {
+    return null
+  }
+  return h(NTag, { bordered: false, size: 'tiny', type: 'success' }, () => t('develop.code_gen.preview.badge_manual'))
+}
 
 const modalTitle = computed(() =>
   props.tableName
@@ -123,33 +272,27 @@ async function loadPreview() {
     <NSpin :show="previewLoading">
       <div class="gen">
         <div class="gen__tree">
-          <NScrollbar style="max-height: 76vh">
-            <div v-for="group in artifactGroups" :key="group.key" class="gen__group">
-              <div class="gen__group-title" :title="group.hint">
-                {{ group.label }}
-                <span class="gen__group-count">{{ group.items.length }}</span>
-              </div>
-              <ul class="gen__file-list">
-                <li
-                  v-for="entry in group.items"
-                  :key="`${entry.artifact.relativePath}/${entry.artifact.fileName}`"
-                  class="gen__file"
-                  :class="{ 'gen__file--active': entry.index === activeIndex }"
-                  :title="`${entry.artifact.relativePath}/${entry.artifact.fileName}`"
-                  @click="activeIndex = entry.index"
-                >
-                  <div class="gen__file-name">
-                    {{ entry.artifact.fileName }}
-                    <NTag v-if="group.key === ArtifactWriteMode.WriteOnce" :bordered="false" size="tiny" type="success">
-                      {{ t('develop.code_gen.preview.badge_manual') }}
-                    </NTag>
-                  </div>
-                  <div class="gen__file-path">
-                    {{ entry.artifact.relativePath }}
-                  </div>
-                </li>
-              </ul>
-            </div>
+          <div class="gen__tree-head">
+            <NRadioGroup v-model:value="activeSide" size="small">
+              <NRadioButton v-for="option in sideOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </NRadioButton>
+            </NRadioGroup>
+          </div>
+          <NScrollbar style="max-height: 70vh">
+            <NEmpty v-if="artifactTree.length === 0" class="gen__tree-empty" size="small" :description="t('develop.code_gen.preview.side_empty')" />
+            <NTree
+              v-else
+              block-line
+              :data="artifactTree"
+              :expanded-keys="expandedKeys"
+              :render-prefix="renderPrefix"
+              :render-suffix="renderSuffix"
+              :selected-keys="selectedKeys"
+              selectable
+              @update:expanded-keys="handleExpand"
+              @update:selected-keys="handleSelect"
+            />
           </NScrollbar>
         </div>
         <div class="gen__content">
@@ -191,64 +334,28 @@ async function loadPreview() {
   overflow: hidden;
 }
 
-.gen__file-list {
-  margin: 0;
-  padding: 4px;
-  list-style: none;
-}
-
-.gen__file {
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.gen__file:hover {
-  background: hsl(var(--muted));
-}
-
-.gen__file--active {
-  background: hsl(var(--primary) / 0.1);
-}
-
-.gen__group + .gen__group {
-  margin-top: 8px;
-  border-top: 1px solid hsl(var(--border));
-}
-
-.gen__group-title {
+.gen__tree {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px 4px;
-  font-size: 11px;
-  font-weight: 600;
+  flex-direction: column;
+}
+
+.gen__tree-head {
+  flex-shrink: 0;
+  padding: 8px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.gen__tree-empty {
+  padding: 32px 0;
+}
+
+.gen__tree :deep(.n-tree) {
+  padding: 6px;
+}
+
+.gen__node-icon {
+  font-size: 15px;
   color: var(--text-secondary);
-}
-
-.gen__group-count {
-  font-weight: 400;
-  opacity: 0.7;
-}
-
-.gen__file-name {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gen__file-path {
-  font-size: 11px;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .gen__content {

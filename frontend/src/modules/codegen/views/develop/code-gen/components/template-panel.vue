@@ -40,6 +40,7 @@ import {
   TEMPLATE_ENGINE_OPTIONS,
   TEMPLATE_TYPE_OPTIONS,
   TemplateEngine as TemplateEngineEnum,
+  TemplateType as TemplateTypeEnum,
 } from '../../../../api'
 
 defineOptions({ name: 'CodeGenTemplatePanel' })
@@ -50,7 +51,7 @@ interface TemplateFormModel {
   templateName: string
   templateDescription?: string | null
   templateGroup?: string | null
-  templateType?: TemplateType | null
+  templateType: TemplateType
   templateEngine: TemplateEngine
   writeMode: ArtifactWriteMode
   templateContent?: string | null
@@ -77,24 +78,7 @@ function reload() {
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
   { key: 'keyword', title: t('develop.code_gen.template.col_template_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('develop.code_gen.template.search_placeholder'), order: 0 },
-  {
-    key: 'templateName',
-    title: t('develop.code_gen.template.col_template_name'),
-    dataType: 'string',
-    minWidth: 160,
-    fixed: 'left',
-    sortable: true,
-    order: 1,
-    render: (row) => {
-      const r = row as unknown as CodeGenTemplateListItemDto
-      return h('div', { class: 'tpl-name' }, [
-        h('span', { class: 'tpl-name__text' }, r.templateName),
-        r.isBuiltIn
-          ? h(NTag, { size: 'tiny', type: 'warning', round: true, bordered: false }, () => t('common.statuses.builtin_tag'))
-          : null,
-      ])
-    },
-  },
+  { key: 'templateName', title: t('develop.code_gen.template.col_template_name'), dataType: 'string', minWidth: 160, fixed: 'left', sortable: true, order: 1 },
   { key: 'templateCode', title: t('develop.code_gen.template.col_template_code'), dataType: 'string', minWidth: 150, sortable: true, order: 2 },
   { key: 'templateGroup', title: t('develop.code_gen.template.col_template_group'), dataType: 'string', width: 120, sortable: true, order: 3 },
   {
@@ -125,12 +109,29 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   { key: 'fileExtension', title: t('develop.code_gen.template.col_file_extension'), dataType: 'string', width: 90, sortable: true, order: 6 },
   {
+    key: 'isBuiltIn',
+    title: t('develop.code_gen.template.col_built_in'),
+    dataType: 'boolean',
+    width: 90,
+    sortable: true,
+    order: 7,
+    // 内置模板随程序版本回刷、不可编辑删除，单列呈现比挂在名称后更容易扫读
+    render: (row) => {
+      const r = row as unknown as CodeGenTemplateListItemDto
+      return h(
+        NTag,
+        { size: 'small', round: true, bordered: false, type: r.isBuiltIn ? 'warning' : 'default' },
+        () => (r.isBuiltIn ? t('develop.code_gen.template.built_in') : t('develop.code_gen.template.custom')),
+      )
+    },
+  },
+  {
     key: 'isEnabled',
     title: t('develop.code_gen.template.col_enabled'),
     dataType: 'boolean',
     width: 80,
     sortable: true,
-    order: 7,
+    order: 8,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.isEnabled ? 'success' : 'default' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
@@ -147,20 +148,20 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: STATUS_OPTIONS,
     searchPlaceholder: t('common.fields.status'),
     width: 90,
-    order: 8,
+    order: 9,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
       return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
-  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 10 },
 ])
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.template',
   pageName: t('develop.code_gen.tabs.template'),
   rowKey: 'basicId',
-  scrollX: 1180,
+  scrollX: 1270,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -261,7 +262,7 @@ function createDefaultForm(): TemplateFormModel {
     templateDescription: null,
     templateGroup: null,
     // 默认通用模板：适用于单表/树表/主子表全部类型
-    templateType: null,
+    templateType: TemplateTypeEnum.Universal,
     templateEngine: TemplateEngineEnum.Scriban,
     writeMode: ArtifactWriteMode.AlwaysOverwrite,
     templateContent: null,
@@ -295,7 +296,7 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
       templateName: detail.templateName,
       templateDescription: detail.templateDescription ?? null,
       templateGroup: detail.templateGroup ?? null,
-      templateType: detail.templateType ?? null,
+      templateType: detail.templateType,
       templateEngine: detail.templateEngine,
       writeMode: detail.writeMode,
       templateContent: detail.templateContent ?? null,
@@ -441,12 +442,7 @@ async function handleSubmit() {
           <NInput v-model:value="form.templateGroup" clearable :placeholder="t('develop.code_gen.template.form_template_group_placeholder')" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_template_type')" path="templateType">
-          <NSelect
-            v-model:value="form.templateType"
-            clearable
-            :options="TEMPLATE_TYPE_OPTIONS"
-            :placeholder="t('develop.code_gen.template.form_template_type_universal')"
-          />
+          <NSelect v-model:value="form.templateType" :options="TEMPLATE_TYPE_OPTIONS" />
         </NFormItem>
         <NFormItem :label="t('develop.code_gen.template.form_template_engine')" path="templateEngine">
           <NSelect v-model:value="form.templateEngine" :options="TEMPLATE_ENGINE_OPTIONS" />
@@ -505,19 +501,3 @@ async function handleSubmit() {
     </XEditModal>
   </SchemaPage>
 </template>
-
-<style scoped>
-.tpl-name {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.tpl-name__text {
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-</style>

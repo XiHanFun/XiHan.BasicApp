@@ -27,7 +27,7 @@ import {
   GEN_TYPE_OPTIONS,
   GenStatus as GenStatusEnum,
   GenType,
-  TEMPLATE_TYPE_OPTIONS,
+  TABLE_TEMPLATE_TYPE_OPTIONS,
 } from '../../../../api'
 import ColumnConfigModal from './column-config-modal.vue'
 import ImportTableModal from './import-table-modal.vue'
@@ -81,11 +81,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchMultiple: true,
     sortable: true,
-    options: TEMPLATE_TYPE_OPTIONS,
+    options: TABLE_TEMPLATE_TYPE_OPTIONS,
     searchPlaceholder: t('develop.code_gen.table.filter_template_type'),
     width: 110,
     order: 5,
-    render: row => getOptionLabel(TEMPLATE_TYPE_OPTIONS, (row as unknown as CodeGenTableListItemDto).templateType),
+    render: row => getOptionLabel(TABLE_TEMPLATE_TYPE_OPTIONS, (row as unknown as CodeGenTableListItemDto).templateType),
   },
   {
     key: 'genType',

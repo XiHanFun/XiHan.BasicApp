@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 
@@ -37,6 +38,7 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
 
         EnsureId(command.BasicId, "表配置主键必须大于 0。");
         ValidateEnum(command.TemplateType, nameof(command.TemplateType));
+        EnsureTableTemplateType(command.TemplateType);
         ValidateEnum(command.GenType, nameof(command.GenType));
         ValidateEnum(command.GenerationScope, nameof(command.GenerationScope));
         ValidateEnum(command.DatabaseType, nameof(command.DatabaseType));
@@ -154,6 +156,17 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         if (!Enum.IsDefined(value))
         {
             throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
+        }
+    }
+
+    /// <summary>
+    /// 表配置的模板类型必须是具体类型：Universal 是模板侧「适用全部类型」的取值，表不能取它
+    /// </summary>
+    private static void EnsureTableTemplateType(TemplateType templateType)
+    {
+        if (templateType == TemplateType.Universal)
+        {
+            throw new InvalidOperationException("表配置的模板类型必须是单表/树表/主子表之一，「通用」仅用于模板。");
         }
     }
 
