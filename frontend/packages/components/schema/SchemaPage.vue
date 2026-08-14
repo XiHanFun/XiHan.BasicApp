@@ -262,7 +262,7 @@ function renderRowActions(row: Row) {
     {
       options,
       trigger: 'click',
-      onSelect: (key: string) => emit('action', { key, scope: 'row', row }),
+      onSelect: (key: string) => dispatchAction(key, { key, scope: 'row', row }),
     },
     {
       default: () =>
@@ -274,12 +274,34 @@ function renderRowActions(row: Row) {
   )
 }
 
+/**
+ * 派发操作：声明了 confirm 的先弹二次确认，确认后才上抛给页面。
+ * 确认在此统一处理，页面侧只管收到事件后执行，不必各自写 dialog。
+ */
+function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
+  const action = (props.schema.actions ?? []).find(item => item.key === key && item.scope === payload.scope)
+  if (!action?.confirm) {
+    emit('action', payload)
+    return
+  }
+
+  dialog.warning({
+    title: action.title,
+    content: action.confirmText ?? t('component.schema_page.action_confirm'),
+    positiveText: t('component.schema_page.confirm'),
+    negativeText: t('component.schema_page.cancel'),
+    onPositiveClick: () => {
+      emit('action', payload)
+    },
+  })
+}
+
 function onPageAction(key: string) {
-  emit('action', { key, scope: 'page' })
+  dispatchAction(key, { key, scope: 'page' })
 }
 
 function onBatchAction(key: string) {
-  emit('action', { key, scope: 'batch', rows: selectedRows.value })
+  dispatchAction(key, { key, scope: 'batch', rows: selectedRows.value })
 }
 
 function clearSelection() {
