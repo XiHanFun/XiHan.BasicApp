@@ -5,17 +5,22 @@
 // 要改写下列任意方法的行为，请在 {{ ClassName }}QueryService.cs 中 override，
 // 需要保留原逻辑时调用 base.XxxAsync(...)。
 
+#nullable enable
+
 using System.CodeDom.Compiler;
 using {{ Namespace }}.Application.Contracts;
 using {{ Namespace }}.Application.Dtos;
 using {{ Namespace }}.Application.Mappers;
 using {{ Namespace }}.Domain.Entities;
+using {{ Namespace }}.Domain.Permissions;
 using {{ Namespace }}.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Application.Services;
+using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
@@ -48,7 +53,14 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         _repository = repository;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}分页列表
+    /// </summary>
+    /// <param name="input">分页查询条件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>分页结果</returns>
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Read)]
+    [HttpPost]
     public virtual async Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> Get{{ ClassName }}PageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -73,7 +85,13 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         };
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}详情
+    /// </summary>
+    /// <param name="id">主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>详情；不存在时返回 null</returns>
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Read)]
     public virtual async Task<{{ ClassName }}DetailDto?> Get{{ ClassName }}DetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -88,11 +106,16 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
     }
 
 {{~ if TemplateType == "Tree" ~}}
-    /// <inheritdoc />
+    /// <summary>
+    /// 获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}树
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>根节点集合</returns>
     /// <remarks>
     /// 取全量后在内存组树：树表数据量小（菜单/组织/分类等），且避免递归查询在各数据库方言上的差异。
     /// 本方法不应用查询过滤——按关键字裁剪会截断父链导致节点丢失；需要搜索请用分页接口。
     /// </remarks>
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Read)]
     public virtual async Task<IReadOnlyList<{{ ClassName }}TreeNodeDto>> Get{{ ClassName }}TreeAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -131,7 +154,13 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
 
 {{~ end ~}}
 {{~ if MasterTable ~}}
-    /// <inheritdoc />
+    /// <summary>
+    /// 按主表主键获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}明细列表
+    /// </summary>
+    /// <param name="masterId">主表主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>明细列表</returns>
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Read)]
     public virtual async Task<IReadOnlyList<{{ ClassName }}ListItemDto>> Get{{ ClassName }}ByMasterAsync(long masterId, CancellationToken cancellationToken = default)
     {
         if (masterId <= 0)
@@ -157,12 +186,11 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         var request = new BasicAppPRDto
         {
             Page = input.Page,
-            Behavior = input.Behavior,
             Conditions = new QueryConditions()
         };
 {{~ has_like = false ~}}
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && col.QueryType == "Like" ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && col.QueryType == "Like" ~}}
 {{~ has_like = true ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -173,18 +201,18 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
             request.Conditions.SetKeyword<{{ ClassName }}>(
                 input.Keyword.Trim()
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && col.QueryType == "Like" ~}},
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && col.QueryType == "Like" ~}},
                 entity => entity.{{ col.CSharpProperty }}
 {{~ end ~}}
 {{~ end ~}});
         }
 {{~ end ~}}
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
 
-        if (input.{{ col.CSharpProperty }}{{ if col.CSharpType | string.contains "?" }} is not null{{ else }}.HasValue{{ end }})
+        if (input.{{ col.CSharpProperty }} is not null)
         {
-            request.Conditions.AddFilter(({{ ClassName }} entity) => entity.{{ col.CSharpProperty }}, input.{{ col.CSharpProperty }}{{ if !(col.CSharpType | string.contains "?") }}.Value{{ end }});
+            request.Conditions.AddFilter(({{ ClassName }} entity) => entity.{{ col.CSharpProperty }}, input.{{ col.CSharpProperty }}{{ if col.IsValueType && !(col.CSharpType | string.contains "?") }}.Value{{ end }});
         }
 {{~ end ~}}
 {{~ end ~}}

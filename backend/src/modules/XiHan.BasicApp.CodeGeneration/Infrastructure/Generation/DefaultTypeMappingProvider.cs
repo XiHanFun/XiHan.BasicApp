@@ -43,11 +43,11 @@ public sealed class DefaultTypeMappingProvider : ITypeMappingProvider
             "time" or "timetz" or "time with time zone" or "time without time zone"
                 => ValueType("TimeSpan", "string", HtmlType.TimePicker, QueryType.Equal, isNullable),
             "uniqueidentifier" or "uuid" or "guid" => ValueType("Guid", "string", HtmlType.Input, QueryType.Equal, isNullable),
-            "text" or "longtext" or "mediumtext" or "ntext" or "clob" => RefType("string", "string", HtmlType.Textarea, QueryType.Like),
-            "varbinary" or "binary" or "blob" or "image" or "bytea" => RefType("byte[]", "string", HtmlType.FileUpload, QueryType.Equal),
-            "json" or "jsonb" => RefType("string", "string", HtmlType.Textarea, QueryType.Like),
+            "text" or "longtext" or "mediumtext" or "ntext" or "clob" => RefType("string", "string", HtmlType.Textarea, QueryType.Like, isNullable),
+            "varbinary" or "binary" or "blob" or "image" or "bytea" => RefType("byte[]", "string", HtmlType.FileUpload, QueryType.Equal, isNullable),
+            "json" or "jsonb" => RefType("string", "string", HtmlType.Textarea, QueryType.Like, isNullable),
             // varchar/nvarchar/char/bpchar/string 及未知类型默认按字符串处理
-            _ => RefType("string", "string", HtmlType.Input, QueryType.Like)
+            _ => RefType("string", "string", HtmlType.Input, QueryType.Like, isNullable)
         };
     }
 
@@ -55,9 +55,9 @@ public sealed class DefaultTypeMappingProvider : ITypeMappingProvider
     private static ColumnTypeMapping ValueType(string csharp, string ts, HtmlType html, QueryType query, bool isNullable)
         => new(isNullable ? csharp + "?" : csharp, ts, html, query);
 
-    /// <summary>引用类型映射（不附加可空标注，由项目可空上下文处理）</summary>
-    private static ColumnTypeMapping RefType(string csharp, string ts, HtmlType html, QueryType query)
-        => new(csharp, ts, html, query);
+    /// <summary>引用类型映射（可空时附加 ? 标注）</summary>
+    private static ColumnTypeMapping RefType(string csharp, string ts, HtmlType html, QueryType query, bool isNullable)
+        => new(isNullable ? csharp + "?" : csharp, ts, html, query);
 
     private static string Normalize(string? dbColumnType)
     {

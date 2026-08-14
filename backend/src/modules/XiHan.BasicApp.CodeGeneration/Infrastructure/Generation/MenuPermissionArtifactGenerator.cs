@@ -122,7 +122,8 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("## 3. 落地步骤（3 步）");
         sb.AppendLine();
         sb.AppendLine("1. **复制文件**：按上表把权限码常量类、权限定义类、两个种子骨架复制到目标模块对应目录。");
-        sb.AppendLine("   同时在生成的 AppService/QueryService 方法上按需应用 `[PermissionAuthorize(" + context.ClassName + "PermissionCodes.Xxx)]`。");
+        sb.AppendLine("   生成的 AppService/QueryService 已逐方法标注 `[PermissionAuthorize(" + context.ClassName + "PermissionCodes.Xxx)]`，");
+        sb.AppendLine("   引用的就是本目录的权限码常量类——不复制该文件，后端编译不过。");
         sb.AppendLine("2. **确认 Order 与注册**：种子骨架里的 `Order` 为占位（默认 200 段），确认不与既有 Seeder 冲突；");
         sb.AppendLine("   在模块 `ServiceCollectionExtensions` 里 `AddDataSeeder<>` 注册两个种子。");
         sb.AppendLine("   菜单如走 Saas `PageRegistry` 单一事实源，则用 `" + context.ClassName + "PageRegistry.snippet.txt` 的条目替代 MenuSeeder。");
