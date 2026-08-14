@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
@@ -13,14 +14,20 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 /// SaaS 演示种子数据基类
 /// </summary>
 /// <remarks>
-/// 演示数据（示例组织/用户/角色、演示业务租户等）与系统基线数据分离，由配置开关
-/// <c>Saas:Seed:EnableDemoData</c> 控制是否播种：
-/// - 缺省或 true：照常播种（保持「跑全部种子」的现状，适合 Demo 环境）；
-/// - 显式 false：所有演示种子整体跳过，库内只保留系统基线数据（适合生产环境）。
+/// 演示数据（示例组织/用户/角色、演示业务租户等）与系统基线数据分离，两个开关都能整体关掉：
+/// - 配置开关 <c>Saas:Seed:EnableDemoData</c>：缺省或 true 照常播种，显式 false 时所有演示种子跳过；
+/// - 框架选取规则：本基类声明的 <see cref="DemoSeedingGroup"/> 分组，可经
+///   <c>XiHan:Data:SqlSugarCore:DataSeeding:ExcludedGroups</c> 排除。
 /// 切换仅需改配置 + 重启，无需改代码。
 /// </remarks>
+[DataSeeding(Group = SaasDemoSeederBase.DemoSeedingGroup)]
 public abstract class SaasDemoSeederBase : DataSeederBase
 {
+    /// <summary>
+    /// 演示种子所属的选取分组
+    /// </summary>
+    public const string DemoSeedingGroup = "Demo";
+
     /// <summary>
     /// 是否启用演示种子数据的配置键
     /// </summary>

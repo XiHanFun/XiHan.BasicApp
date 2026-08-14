@@ -87,8 +87,32 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
 | `EnableDbInitialization` | 启动时自动建库（库不存在则创建）；同时是整个初始化流程的总开关，关掉则建表与播种一并跳过 |
 | `EnableTableInitialization` | 启动时 CodeFirst 建表 |
 | `EnableDataSeeding` | 启动时写入种子数据 |
+| `TableInitialization` | 建哪些表（不填=全部） |
+| `DataSeeding` | 跑哪些种子（不填=全部） |
 
 三个开关都开时，**首次启动一条龙**：建库 → 建表 → 播种。这也是「拿到代码配好连接串就能跑」的原因。
+
+### 挑表挑种子
+
+开关只管开不开，范围由 `TableInitialization` / `DataSeeding` 决定，默认全量。三种用法：
+
+```jsonc
+"TableInitialization": {
+  // All（默认）：扫到的实体都建；OptIn：只建显式标了 [TableInitialization] 的实体
+  "Mode": "All",
+  // 支持 * ? 通配，按实体类名/实体全名/表名任一匹配
+  "ExcludedTables": [ "sys_diff_log" ]
+},
+"DataSeeding": {
+  // 演示种子都标了 Group = "Demo"，排掉即整体不播，与 Saas:Seed:EnableDemoData=false 等效
+  "ExcludedGroups": [ "Demo" ]
+}
+```
+
+实体侧还能直接标注：`[TableInitialization(false)]` 表示这张表由自己维护（框架不建）、
+`[TableInitialization(Target = DbInitializationTarget.Platform)]` 表示只建在平台库、独立库租户不建。
+要整套自己实现就 `Replace` 掉 `IDbEntityTypeProvider` / `IDataSeederSelector`，
+细节见 [Framework 数据访问](https://framework.docs.xihanfun.com/packages/data#选择初始化范围)。
 
 ### 建表只建不改
 
@@ -118,7 +142,7 @@ CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Up
 | **系统基线** | 始终播种 | 身份、权限、租户版本、配置、字典、菜单、消息模板、OAuth 应用、通知、存储配置、任务——应用可运行的最小骨架 |
 | **演示数据** | `Saas:Seed:EnableDemoData` | 示例组织、演示账号、演示业务租户 |
 
-`EnableDemoData` **缺省或非法值都视为启用**，显式 `false` 才整体跳过。
+`EnableDemoData` **缺省或非法值都视为启用**，显式 `false` 才整体跳过。演示种子同时归在框架选取分组 `Demo` 下，配 `DataSeeding:ExcludedGroups: ["Demo"]` 是等效开关。
 
 超管初始密码用 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖，**生产必改**。
 
