@@ -118,20 +118,18 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
         var exists = await client.Queryable<SysCodeGenTemplate>().Where(t => codes.Contains(t.TemplateCode)).ToListAsync();
         var existsCodes = exists.Select(x => x.TemplateCode).ToHashSet();
 
+        var existsMap = exists.ToDictionary(x => x.TemplateCode, StringComparer.Ordinal);
+
         var assembly = typeof(SysCodeGenTemplateSeeder).Assembly;
         var resourceNames = assembly.GetManifestResourceNames();
         var addList = new List<SysCodeGenTemplate>();
+        var updateList = new List<SysCodeGenTemplate>();
         var sort = 1;
 
         foreach (var template in BuiltInTemplates)
         {
             // 即使已存在也推进 Sort，保证插入项的排序与定义顺序一致
             var currentSort = sort++;
-
-            if (existsCodes.Contains(template.Code))
-            {
-                continue;
-            }
 
             // 资源名按 ".Templates." + ResourceFile（/ 转 .）后缀定位，兼容 Backend/ 与 Frontend/，避免硬编码命名空间
             var suffix = $".Templates.{template.ResourceFile.Replace("/", ".")}";
@@ -155,6 +153,40 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
                 content = await reader.ReadToEndAsync();
             }
 
+            // 已存在则回刷：内置模板是随程序版本走的只读资产，改了 .sbn 必须能落到已有库，
+            // 否则模板修复对老库永远不生效。启停状态属运维决定，不在回刷范围。
+            if (existsMap.TryGetValue(template.Code, out var existing))
+            {
+                var changed = existing.TemplateContent != content
+                    || existing.TemplateName != template.Name
+                    || existing.TemplateGroup != template.Group
+                    || existing.TemplateType != template.TemplateType
+                    || existing.FileExtension != template.FileExtension
+                    || existing.FileNameExpression != template.FileNameExpression
+                    || existing.FilePathExpression != template.FilePathExpression
+                    || existing.WriteMode != template.WriteMode
+                    || existing.Sort != currentSort
+                    || !existing.IsBuiltIn;
+                if (!changed)
+                {
+                    continue;
+                }
+
+                existing.TemplateName = template.Name;
+                existing.TemplateGroup = template.Group;
+                existing.TemplateType = template.TemplateType;
+                existing.TemplateEngine = TemplateEngine.Scriban;
+                existing.TemplateContent = content;
+                existing.FileExtension = template.FileExtension;
+                existing.FileNameExpression = template.FileNameExpression;
+                existing.FilePathExpression = template.FilePathExpression;
+                existing.WriteMode = template.WriteMode;
+                existing.IsBuiltIn = true;
+                existing.Sort = currentSort;
+                updateList.Add(existing);
+                continue;
+            }
+
             addList.Add(new SysCodeGenTemplate
             {
                 TemplateCode = template.Code,
@@ -174,9 +206,15 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
             });
         }
 
+        if (updateList.Count > 0)
+        {
+            _ = await client.Updateable(updateList).ExecuteCommandAsync();
+            Logger.LogInformation("已回刷 {Count} 个代码生成内置模板", updateList.Count);
+        }
+
         if (addList.Count == 0)
         {
-            Logger.LogInformation("代码生成内置模板已存在，跳过种子数据");
+            Logger.LogInformation("代码生成内置模板已存在，跳过新增");
             return;
         }
 
