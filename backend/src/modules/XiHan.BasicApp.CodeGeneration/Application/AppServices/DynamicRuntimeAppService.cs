@@ -93,9 +93,15 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
 
         var client = _clientResolver.GetCurrentClient();
         RefAsync<int> total = 0;
-        var rows = await client.Queryable<Dictionary<string, object>>()
+
+        // 必须走「无实体查询 + DataTable」：把 Dictionary<string, object> 当实体交给 Queryable，
+        // SqlSugar 会反射字典自身的成员并把 Comparer/Count/Keys 当成列查，PostgreSQL 直接报
+        // 42703 column "comparer" does not exist。
+        var dataTable = await client.Queryable<object>()
             .AS(table.TableName)
-            .ToPageListAsync(pageIndex, pageSize, total, ct);
+            .Select("*")
+            .ToDataTablePageAsync(pageIndex, pageSize, total);
+        var rows = client.Utilities.DataTableToDictionaryList(dataTable);
 
         return new DynamicRuntimePageResultDto
         {
