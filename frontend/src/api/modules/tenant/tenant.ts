@@ -24,6 +24,10 @@ export const tenantApi = {
   detail(id: TenantDetailDto['basicId']) {
     return tenantReadApi.detail(id)
   },
+  /** 删除租户（软删，后端要求租户已停用或暂停） */
+  remove(id: TenantDetailDto['basicId']) {
+    return tenantCommandApi.delete('Tenant', { id })
+  },
   initializeDatabase(id: TenantDetailDto['basicId']) {
     // 仅库隔离租户：建库 → 建表 → 基线种子（POST /api/Tenant/InitializeDatabase/{id}）
     return tenantCommandApi.post<TenantDetailDto>('InitializeDatabase', { id })

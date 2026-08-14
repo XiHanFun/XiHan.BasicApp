@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   ApiId,
+  DateTimeString,
   PageResult,
   TenantCreateDto,
   TenantDetailDto,
@@ -47,6 +48,7 @@ import {
   TenantMemberInviteStatus,
   TenantMemberType,
   TenantStatus,
+  userApi,
   ValidityStatus,
 } from '@/api'
 import XLogoUpload from '@/components/LogoUpload.vue'
@@ -57,10 +59,34 @@ import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformTenantPage' })
 
-interface TenantFormModel extends TenantCreateDto {
+interface TenantFormModel extends Omit<TenantCreateDto, 'adminUserName' | 'adminEmail' | 'adminPassword'> {
+  // 表单里三个管理员字段恒为字符串（空串代表未填），编辑态不展示但保留占位，避免到处判空
+  adminUserName: string
+  adminEmail: string
+  adminPassword: string
   basicId?: ApiId
   tenantStatus?: TenantStatus
 }
+
+/** 成员添加/邀请表单 */
+interface TenantMemberFormModel {
+  displayName: string
+  effectiveTime: DateTimeString | null
+  expirationTime: DateTimeString | null
+  inviteRemark: string
+  memberType: TenantMemberType
+  remark: string
+  userId: ApiId | null
+}
+
+/** 租户管理员用户名长度区间，与后端 TenantAppService 的校验保持一致 */
+const ADMIN_USER_NAME_MIN_LENGTH = 3
+const ADMIN_USER_NAME_MAX_LENGTH = 50
+/** 前端最低密码长度；真正的密码策略以后端校验为准 */
+const ADMIN_PASSWORD_MIN_LENGTH = 8
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
+/** 成员选择器每次拉取的用户数 */
+const MEMBER_USER_PAGE_SIZE = 20
 
 const message = useMessage()
 const { t } = useI18n()
@@ -154,6 +180,12 @@ const memberEditVisible = ref(false)
 const memberEditLoading = ref(false)
 const editingMember = ref<TenantMemberUpdateDto | null>(null)
 const editingMemberId = ref<ApiId | null>(null)
+const memberAddVisible = ref(false)
+const memberAddLoading = ref(false)
+const memberAddMode = ref<'add' | 'invite'>('add')
+const memberAddForm = ref<TenantMemberFormModel>(createDefaultMemberForm())
+const memberUserOptions = ref<{ label: string, value: string | number }[]>([])
+const memberUserLoading = ref(false)
 const memberStatusVisible = ref(false)
 const memberStatusLoading = ref(false)
 const editingMemberStatusId = ref<ApiId | null>(null)
@@ -297,8 +329,25 @@ const schema = computed<PageSchema>(() => ({
       // 仅库隔离租户可初始化独立数据库
       visible: row => (row as unknown as TenantListItemDto).isolationMode === TenantIsolationMode.Database,
     },
+    {
+      key: 'delete',
+      title: t('tenant.list.delete'),
+      scope: 'row',
+      type: 'error',
+      icon: 'lucide:trash-2',
+      permission: 'saas:tenant:delete',
+      confirm: true,
+      confirmText: t('tenant.list.delete_confirm'),
+      // 后端要求先停用：正常状态下不给入口，避免点了才报错
+      visible: row => isTenantDeletable((row as unknown as TenantListItemDto).tenantStatus),
+    },
   ],
 }))
+
+/** 租户是否可删除：后端要求先停用或暂停 */
+function isTenantDeletable(status: TenantStatus) {
+  return status === TenantStatus.Disabled || status === TenantStatus.Suspended
+}
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
@@ -322,6 +371,22 @@ function onAction(payload: SchemaActionPayload) {
         void handleInitDb(row)
       }
       break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
+  }
+}
+
+async function handleDelete(row: TenantListItemDto) {
+  try {
+    await tenantManagementApi.remove(row.basicId)
+    message.success(t('tenant.list.delete_success'))
+    reloadTenant()
+  }
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.delete_failed'))
   }
 }
 
@@ -338,9 +403,9 @@ async function handleInitDb(row: TenantListItemDto) {
 
 function createDefaultForm(): TenantFormModel {
   return {
-    adminEmail: null,
-    adminPassword: null,
-    adminUserName: null,
+    adminEmail: '',
+    adminPassword: '',
+    adminUserName: '',
     connectionString: null,
     databaseType: null,
     domain: null,
@@ -397,6 +462,10 @@ async function handleEdit(row: TenantListItemDto) {
   }
   tenantForm.value = {
     basicId: row.basicId,
+    // 管理员只在创建时开通，编辑态不展示这三项
+    adminEmail: '',
+    adminPassword: '',
+    adminUserName: '',
     // 连接串敏感、绝不回显：编辑时留空表示保持不变
     connectionString: null,
     databaseType: detail?.databaseType ?? row.databaseType ?? null,
@@ -544,6 +613,90 @@ async function handleSaveMemberStatus() {
   }
 }
 
+function createDefaultMemberForm(): TenantMemberFormModel {
+  return {
+    displayName: '',
+    effectiveTime: null,
+    expirationTime: null,
+    inviteRemark: '',
+    memberType: TenantMemberType.Member,
+    remark: '',
+    userId: null,
+  }
+}
+
+/** 打开成员添加/邀请弹窗；两者共用同一张表单，只有邀请备注和落库后的邀请状态不同 */
+function handleAddMember(mode: 'add' | 'invite') {
+  memberAddMode.value = mode
+  memberAddForm.value = createDefaultMemberForm()
+  memberUserOptions.value = []
+  memberAddVisible.value = true
+  void searchMemberUsers('')
+}
+
+async function searchMemberUsers(keyword: string) {
+  memberUserLoading.value = true
+  try {
+    const items = await userApi.select({ keyword: keyword.trim() || null, limit: MEMBER_USER_PAGE_SIZE })
+    memberUserOptions.value = items.map(item => ({
+      label: item.realName ? `${item.userName}（${item.realName}）` : item.userName,
+      value: item.basicId as string | number,
+    }))
+  }
+  catch {
+    memberUserOptions.value = []
+  }
+  finally {
+    memberUserLoading.value = false
+  }
+}
+
+async function handleSaveNewMember() {
+  const tenant = currentDetail.value
+  if (!tenant) {
+    return
+  }
+  if (!memberAddForm.value.userId) {
+    message.warning(t('tenant.list.validate_member_user'))
+    return
+  }
+
+  memberAddLoading.value = true
+  try {
+    const payload = {
+      displayName: normalizeNullable(memberAddForm.value.displayName),
+      effectiveTime: memberAddForm.value.effectiveTime,
+      expirationTime: memberAddForm.value.expirationTime,
+      memberType: memberAddForm.value.memberType,
+      remark: normalizeNullable(memberAddForm.value.remark),
+      tenantId: tenant.basicId,
+      userId: memberAddForm.value.userId,
+    }
+
+    if (memberAddMode.value === 'invite') {
+      await tenantManagementApi.members.invite({
+        ...payload,
+        inviteRemark: normalizeNullable(memberAddForm.value.inviteRemark),
+      })
+      message.success(t('tenant.list.member_invite_success'))
+    }
+    else {
+      await tenantManagementApi.members.add(payload)
+      message.success(t('tenant.list.member_add_success'))
+    }
+
+    memberAddVisible.value = false
+    memberPage.value = 1
+    await loadMembers()
+  }
+  catch (error) {
+    message.error((error as Error)?.message || t('tenant.list.member_add_failed'))
+  }
+  finally {
+    memberAddLoading.value = false
+  }
+}
+
 function getInviteStatusTagType(status: TenantMemberInviteStatus) {
   if (status === TenantMemberInviteStatus.Accepted) {
     return 'success'
@@ -565,10 +718,30 @@ function validateForm() {
     message.warning(t('tenant.list.validate_tenant_name'))
     return false
   }
-  if (!tenantForm.value.basicId && !tenantForm.value.tenantCode.trim()) {
+  if (tenantForm.value.basicId) {
+    return true
+  }
+
+  if (!tenantForm.value.tenantCode.trim()) {
     message.warning(t('tenant.list.validate_tenant_code'))
     return false
   }
+
+  // 管理员是新建租户的必要组成：没有管理员的租户没有任何账号能登录
+  const adminUserName = tenantForm.value.adminUserName.trim()
+  if (adminUserName.length < ADMIN_USER_NAME_MIN_LENGTH || adminUserName.length > ADMIN_USER_NAME_MAX_LENGTH) {
+    message.warning(t('tenant.list.validate_admin_user_name', { max: ADMIN_USER_NAME_MAX_LENGTH, min: ADMIN_USER_NAME_MIN_LENGTH }))
+    return false
+  }
+  if (!EMAIL_PATTERN.test(tenantForm.value.adminEmail.trim())) {
+    message.warning(t('tenant.list.validate_admin_email'))
+    return false
+  }
+  if (tenantForm.value.adminPassword.trim().length < ADMIN_PASSWORD_MIN_LENGTH) {
+    message.warning(t('tenant.list.validate_admin_password', { min: ADMIN_PASSWORD_MIN_LENGTH }))
+    return false
+  }
+
   return true
 }
 
@@ -609,9 +782,9 @@ async function handleSubmit() {
     }
     else {
       const createInput: TenantCreateDto = {
-        adminEmail: normalizeNullable(tenantForm.value.adminEmail),
-        adminPassword: normalizeNullable(tenantForm.value.adminPassword),
-        adminUserName: normalizeNullable(tenantForm.value.adminUserName),
+        adminEmail: tenantForm.value.adminEmail.trim(),
+        adminPassword: tenantForm.value.adminPassword.trim(),
+        adminUserName: tenantForm.value.adminUserName.trim(),
         connectionString: normalizeNullable(tenantForm.value.connectionString),
         databaseType: tenantForm.value.databaseType ?? null,
         domain: normalizeNullable(tenantForm.value.domain),
@@ -718,6 +891,14 @@ async function handleSubmit() {
               </NTabPane>
 
               <NTabPane name="members" :tab="t('tenant.list.tab_members')">
+                <NSpace class="xh-member-toolbar" size="small">
+                  <NButton size="small" type="primary" @click="handleAddMember('add')">
+                    {{ t('tenant.list.member_add') }}
+                  </NButton>
+                  <NButton size="small" @click="handleAddMember('invite')">
+                    {{ t('tenant.list.member_invite') }}
+                  </NButton>
+                </NSpace>
                 <NSpin :show="memberLoading">
                   <div v-if="memberError" class="xh-detail-empty">
                     <NEmpty :description="t('tenant.list.member_load_failed')">
@@ -823,10 +1004,10 @@ async function handleSubmit() {
       @save="handleSubmit"
     >
       <NForm :model="tenantForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('tenant.list.tenant_name')" path="tenantName">
+        <NFormItem required :label="t('tenant.list.tenant_name')" path="tenantName">
           <NInput v-model:value="tenantForm.tenantName" clearable :placeholder="t('tenant.list.tenant_name_placeholder')" />
         </NFormItem>
-        <NFormItem :label="t('tenant.list.tenant_code')" path="tenantCode">
+        <NFormItem :required="!tenantForm.basicId" :label="t('tenant.list.tenant_code')" path="tenantCode">
           <NInput
             v-model:value="tenantForm.tenantCode"
             :disabled="Boolean(tenantForm.basicId)"
@@ -870,10 +1051,10 @@ async function handleSubmit() {
             :placeholder="t('tenant.list.edition_placeholder')"
           />
         </NFormItem>
-        <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_user_name')" path="adminUserName">
+        <NFormItem v-if="!tenantForm.basicId" required :label="t('tenant.list.admin_user_name')" path="adminUserName">
           <NInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
         </NFormItem>
-        <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_email')" path="adminEmail">
+        <NFormItem v-if="!tenantForm.basicId" required :label="t('tenant.list.admin_email')" path="adminEmail">
           <NInput
             v-model:value="tenantForm.adminEmail"
             clearable
@@ -881,7 +1062,7 @@ async function handleSubmit() {
             :input-props="{ type: 'email', autocomplete: 'off' }"
           />
         </NFormItem>
-        <NFormItem v-if="!tenantForm.basicId" :label="t('tenant.list.admin_password')" path="adminPassword">
+        <NFormItem v-if="!tenantForm.basicId" required :label="t('tenant.list.admin_password')" path="adminPassword">
           <NInput
             v-model:value="tenantForm.adminPassword"
             clearable
@@ -930,6 +1111,68 @@ async function handleSubmit() {
             clearable
             :placeholder="t('tenant.list.remark_placeholder')"
             :rows="3"
+            type="textarea"
+          />
+        </NFormItem>
+      </NForm>
+    </XEditModal>
+
+    <XEditModal
+      v-model:show="memberAddVisible"
+      :title="memberAddMode === 'invite' ? t('tenant.list.member_invite_title') : t('tenant.list.member_add_title')"
+      :loading="memberAddLoading"
+      @save="handleSaveNewMember"
+    >
+      <NForm :model="memberAddForm" class="xh-edit-form-grid" label-placement="top">
+        <NFormItem required :label="t('tenant.list.member_user')" path="userId" class="xh-span-2">
+          <NSelect
+            v-model:value="memberAddForm.userId"
+            clearable
+            filterable
+            remote
+            :loading="memberUserLoading"
+            :options="memberUserOptions"
+            :placeholder="t('tenant.list.member_user_placeholder')"
+            @search="searchMemberUsers"
+          />
+        </NFormItem>
+        <NFormItem :label="t('tenant.list.member_type')" path="memberType">
+          <NSelect v-model:value="memberAddForm.memberType" :options="memberTypeOptions" />
+        </NFormItem>
+        <NFormItem :label="t('tenant.list.member_display_name')" path="displayName">
+          <NInput v-model:value="memberAddForm.displayName" clearable :placeholder="t('tenant.list.member_display_name_placeholder')" />
+        </NFormItem>
+        <NFormItem :label="t('tenant.list.member_effective_time')" path="effectiveTime">
+          <NDatePicker
+            v-model:formatted-value="memberAddForm.effectiveTime"
+            clearable
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </NFormItem>
+        <NFormItem :label="t('tenant.list.member_expiration_time')" path="expirationTime">
+          <NDatePicker
+            v-model:formatted-value="memberAddForm.expirationTime"
+            clearable
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </NFormItem>
+        <NFormItem v-if="memberAddMode === 'invite'" :label="t('tenant.list.member_invite_remark')" path="inviteRemark" class="xh-span-2">
+          <NInput
+            v-model:value="memberAddForm.inviteRemark"
+            clearable
+            :placeholder="t('tenant.list.member_invite_remark_placeholder')"
+            :rows="2"
+            type="textarea"
+          />
+        </NFormItem>
+        <NFormItem :label="t('tenant.list.remark')" path="remark" class="xh-span-2">
+          <NInput
+            v-model:value="memberAddForm.remark"
+            clearable
+            :placeholder="t('tenant.list.remark_placeholder')"
+            :rows="2"
             type="textarea"
           />
         </NFormItem>
@@ -1016,6 +1259,10 @@ async function handleSubmit() {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+.xh-member-toolbar {
+  margin-bottom: 12px;
 }
 
 .xh-detail-table th,

@@ -46,12 +46,12 @@ export interface TenantDetailDto extends TenantListItemDto {
 }
 
 export interface TenantCreateDto extends BasicCreateDto {
-  /** 租户管理员用户名（与 adminEmail/adminPassword 同时提供时一站式开通管理员/角色/授权） */
-  adminUserName?: string | null
-  /** 租户管理员邮箱（登录身份标识，全平台唯一；开通管理员时必填） */
-  adminEmail?: string | null
-  /** 租户管理员初始密码 */
-  adminPassword?: string | null
+  /** 租户管理员用户名（必填，租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权） */
+  adminUserName: string
+  /** 租户管理员邮箱（必填，登录身份标识，全平台唯一） */
+  adminEmail: string
+  /** 租户管理员初始密码（必填，须满足密码策略） */
+  adminPassword: string
   /** 数据库连接字符串（隔离模式为 Database 时必填；加密落库、绝不回显） */
   connectionString?: string | null
   /** 数据库类型（隔离模式为 Database 时必填） */

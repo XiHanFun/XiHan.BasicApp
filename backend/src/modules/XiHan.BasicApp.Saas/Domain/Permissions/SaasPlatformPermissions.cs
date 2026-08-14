@@ -20,6 +20,9 @@ public static class SaasPlatformPermissions
         SaasPermissionCodes.Tenant.Create,
         SaasPermissionCodes.Tenant.Update,
         SaasPermissionCodes.Tenant.Status,
+        SaasPermissionCodes.Tenant.Delete,
+        // InitDb 按租户主键操作且不校验调用方归属，拿到它就能初始化任意租户的独立库，只能留在平台侧
+        SaasPermissionCodes.Tenant.InitDb,
         SaasPermissionCodes.TenantEdition.Read,
         SaasPermissionCodes.TenantEdition.Create,
         SaasPermissionCodes.TenantEdition.Update,

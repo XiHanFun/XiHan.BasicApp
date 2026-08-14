@@ -23,7 +23,10 @@ public static class SaasPermissionCodes
         Tenant.Update,
         Tenant.Status,
         Tenant.InitDb,
+        Tenant.Delete,
         TenantMember.Read,
+        TenantMember.Create,
+        TenantMember.Invite,
         TenantMember.Update,
         TenantMember.Status,
         TenantMember.InviteStatus,
@@ -318,6 +321,11 @@ public static class SaasPermissionCodes
         public const string InitDb = "saas:tenant:initdb";
 
         /// <summary>
+        /// 删除租户
+        /// </summary>
+        public const string Delete = "saas:tenant:delete";
+
+        /// <summary>
         /// 导出租户
         /// </summary>
         public const string Export = "saas:tenant:export";
@@ -337,6 +345,16 @@ public static class SaasPermissionCodes
         /// 查看租户成员
         /// </summary>
         public const string Read = "saas:tenant-member:read";
+
+        /// <summary>
+        /// 添加租户成员（直接生效）
+        /// </summary>
+        public const string Create = "saas:tenant-member:create";
+
+        /// <summary>
+        /// 邀请租户成员（待接受）
+        /// </summary>
+        public const string Invite = "saas:tenant-member:invite";
 
         /// <summary>
         /// 更新租户成员

@@ -14,6 +14,16 @@ public interface ITenantDomainService
     Task<TenantCommandResult> CreateTenantAsync(TenantCreateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 添加租户成员（<c>RequiresInvitation</c> 为 true 时落待接受邀请，否则直接生效）
+    /// </summary>
+    Task<TenantMemberCommandResult> AddTenantMemberAsync(TenantMemberAddCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除租户（软删，要求租户已停用）
+    /// </summary>
+    Task DeleteTenantAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 撤销租户成员
     /// </summary>
     Task DeleteTenantMemberAsync(long id, CancellationToken cancellationToken = default);

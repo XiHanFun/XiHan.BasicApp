@@ -37,4 +37,16 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
             .Where(user => user.UserId == userId)
             .FirstAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<SysTenantUser?> GetMembershipAsync(long tenantId, long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 清租户过滤后按 TenantId 精确匹配：平台态查某个租户的成员，读共享过滤器会把 TenantId=0 的行一并放行
+        return await CreateNoTenantQueryable()
+            .Where(user => user.TenantId == tenantId)
+            .Where(user => user.UserId == userId)
+            .FirstAsync(cancellationToken);
+    }
 }
