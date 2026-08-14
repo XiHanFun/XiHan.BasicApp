@@ -368,7 +368,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       const label = getOptionLabel(genderEnumOptions.value, r.gender)
       return h(
         NTag,
-        { size: 'small', type: GENDER_TAG_TYPE[r.gender] ?? 'default', bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
+        { size: 'small', round: true, type: GENDER_TAG_TYPE[r.gender] ?? 'default', bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
         () => label,
       )
     },
@@ -405,6 +405,7 @@ const fields = computed<ListFieldSchema[]>(() => [
         NTag,
         {
           size: 'small',
+          round: true,
           type: r.status === EnableStatus.Enabled ? 'success' : 'error',
           bordered: false,
           style: { fontSize: '11px', fontWeight: 500 },
@@ -437,9 +438,12 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'string',
     minWidth: 120,
     order: 5.2,
+    // 与角色列同款标签，但取中性色以示区分（角色为 info）
     render: (row) => {
       const r = row as unknown as UserListItemDto
-      return r.departmentName || h('span', { class: 'text-foreground/40' }, '—')
+      return r.departmentName
+        ? h(NTag, { size: 'small', round: true, bordered: false, style: { fontSize: '11px' } }, () => r.departmentName)
+        : h('span', { class: 'text-foreground/40' }, '—')
     },
   },
   // 安全标记（仅列，锁定 / 双因素）

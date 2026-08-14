@@ -80,7 +80,7 @@ function reviewResultTag(result?: AuditResult | null): TagType {
 }
 
 function statusTag(status: EnableStatus): TagType {
-  return status === EnableStatus.Enabled ? 'success' : 'default'
+  return status === EnableStatus.Enabled ? 'success' : 'error'
 }
 
 function formatNullableDate(value?: string | null) {

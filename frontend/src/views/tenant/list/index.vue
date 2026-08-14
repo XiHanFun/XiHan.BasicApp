@@ -41,7 +41,6 @@ import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
-  TenantConfigStatus,
   tenantEditionApi,
   TenantIsolationMode,
   tenantManagementApi,
@@ -53,7 +52,7 @@ import {
 } from '@/api'
 import XLogoUpload from '@/components/LogoUpload.vue'
 import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XUserAvatar } from '~/components'
+import { Icon, resolveStatusTagType, SchemaPage, XEditModal, XUserAvatar } from '~/components'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -853,7 +852,7 @@ async function handleSubmit() {
                     </NTag>
                   </NDescriptionsItem>
                   <NDescriptionsItem :label="t('tenant.list.config_status')">
-                    <NTag :type="currentDetail.configStatus === TenantConfigStatus.Configured ? 'success' : currentDetail.configStatus === TenantConfigStatus.Failed ? 'error' : 'warning'" round size="small">
+                    <NTag :type="resolveStatusTagType('TenantConfigStatus', currentDetail.configStatus)" round size="small">
                       {{ getOptionLabel(configStatusOptions, currentDetail.configStatus) }}
                     </NTag>
                   </NDescriptionsItem>
