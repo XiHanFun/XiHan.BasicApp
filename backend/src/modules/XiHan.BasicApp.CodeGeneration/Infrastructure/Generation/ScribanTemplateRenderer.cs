@@ -147,11 +147,14 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
     /// </summary>
     private static IDictionary<string, object?> BuildColumn(ColumnSchema column)
     {
-        // 查询归类：基类列/主键/二进制列不参与查询；日期区间走 conditions.filters，其余等值走 DTO 顶层字段。
+        // 业务列 = 非基类托管、非主键；基类列与主键由基类承载，不进任何产物的属性列表
+        var isBusinessColumn = !GeneratedColumnNames.IsBaseColumn(column.ColumnName) && !column.IsPrimaryKey;
+
+        // 查询归类：二进制列不参与查询；日期区间走 conditions.filters，其余等值走 DTO 顶层字段。
         // 八个模板共用同一判据，避免各写一份长条件导致取数侧与展现侧漂移。
         var isDateColumn = column.HtmlType is HtmlType.DatePicker or HtmlType.DateTimePicker;
-        var isQueryable = !GeneratedColumnNames.IsBaseColumn(column.ColumnName)
-            && !column.IsPrimaryKey
+        var isQueryable = isBusinessColumn
+            && column.IsQuery
             && !CSharpTypeFacts.IsBinary(column.CSharpType);
         var isRangeQuery = isQueryable && column.QueryType == QueryType.Between && isDateColumn;
         var isScalarQuery = isQueryable && !isRangeQuery
@@ -165,6 +168,13 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["IsScalarQuery"] = isScalarQuery,
             ["IsRangeQuery"] = isRangeQuery,
             ["IsKeywordQuery"] = isKeywordQuery,
+            // 列开关：列配置里的列表/新增/编辑四个开关，折进业务列判定后供模板直接使用
+            ["InList"] = isBusinessColumn && column.IsList,
+            ["InCreate"] = isBusinessColumn && column.IsInsert,
+            ["InUpdate"] = isBusinessColumn && column.IsEdit,
+            ["InForm"] = isBusinessColumn && (column.IsInsert || column.IsEdit),
+            // 详情与实体承载全部业务列：详情要能看到全部字段，实体要能映射全部列
+            ["InDetail"] = isBusinessColumn,
             ["ColumnName"] = column.ColumnName,
             ["ColumnComment"] = column.ColumnComment,
             ["DbType"] = column.DbType,

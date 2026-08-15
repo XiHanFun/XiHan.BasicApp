@@ -16,7 +16,7 @@ export interface {{ ClassName }}PageQueryDto extends PageRequest {
 export interface {{ ClassName }}ListItemDto extends BasicDto {
   createdTime: DateTimeString
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InList ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ else ~}}
@@ -26,7 +26,18 @@ export interface {{ ClassName }}ListItemDto extends BasicDto {
 {{~ end ~}}
 }
 
-export interface {{ ClassName }}DetailDto extends {{ ClassName }}ListItemDto {
+/** 详情承载全部业务列（列表列受「是否进入列表」裁剪，详情与编辑回填需要全量） */
+export interface {{ ClassName }}DetailDto extends BasicDto {
+  createdTime: DateTimeString
+{{~ for col in Columns ~}}
+{{~ if col.InDetail ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ else ~}}
+  {{ col.TsProperty }}: {{ col.TsType }}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
   createdBy?: string | null
   createdId?: ApiId | null
   modifiedBy?: string | null
@@ -42,7 +53,7 @@ export interface {{ ClassName }}TreeNodeDto extends {{ ClassName }}ListItemDto {
 
 export interface {{ ClassName }}CreateDto {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InCreate ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ else ~}}
@@ -54,7 +65,7 @@ export interface {{ ClassName }}CreateDto {
 
 export interface {{ ClassName }}UpdateDto extends BasicDto {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InUpdate ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ else ~}}

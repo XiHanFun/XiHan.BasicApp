@@ -50,7 +50,13 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
                 throw new InvalidOperationException("批量保存的列配置必须属于同一张表。");
             }
 
+            // 与单列更新同口径记录人工修改集合：此前批量保存不写，
+            // 而列配置弹窗只走批量保存，冻结从未对 UI 生效，同步表结构会冲掉人工配置
+            var snapshot = UserModifiedFieldSet.Snapshot(column, TrackedFields);
             ApplyMutableFields(column, columnCommand);
+            var changed = UserModifiedFieldSet.DiffChanged(column, snapshot);
+            column.UserModifiedFields = UserModifiedFieldSet.Merge(column.UserModifiedFields, changed);
+
             updatedColumns.Add(column);
         }
 

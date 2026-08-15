@@ -26,7 +26,7 @@ public static partial class {{ ClassName }}ApplicationMapper
         var entity = new {{ ClassName }}
         {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InCreate ~}}
             {{ col.CSharpProperty }} = input.{{ col.CSharpProperty }},
 {{~ end ~}}
 {{~ end ~}}
@@ -45,7 +45,7 @@ public static partial class {{ ClassName }}ApplicationMapper
         ArgumentNullException.ThrowIfNull(input);
 
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InUpdate ~}}
         entity.{{ col.CSharpProperty }} = input.{{ col.CSharpProperty }};
 {{~ end ~}}
 {{~ end ~}}
@@ -64,7 +64,7 @@ public static partial class {{ ClassName }}ApplicationMapper
         {
             BasicId = entity.BasicId,
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InList ~}}
             {{ col.CSharpProperty }} = entity.{{ col.CSharpProperty }},
 {{~ end ~}}
 {{~ end ~}}
@@ -86,7 +86,7 @@ public static partial class {{ ClassName }}ApplicationMapper
         {
             BasicId = entity.BasicId,
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InDetail ~}}
             {{ col.CSharpProperty }} = entity.{{ col.CSharpProperty }},
 {{~ end ~}}
 {{~ end ~}}
@@ -113,7 +113,7 @@ public static partial class {{ ClassName }}ApplicationMapper
         {
             BasicId = entity.BasicId,
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InList ~}}
             {{ col.CSharpProperty }} = entity.{{ col.CSharpProperty }},
 {{~ end ~}}
 {{~ end ~}}

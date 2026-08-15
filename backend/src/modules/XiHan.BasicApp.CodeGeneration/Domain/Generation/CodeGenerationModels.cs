@@ -53,6 +53,18 @@ public sealed class ColumnSchema
     /// <summary>是否必填（表单）</summary>
     public bool IsRequired { get; set; }
 
+    /// <summary>是否进入列表</summary>
+    public bool IsList { get; set; } = true;
+
+    /// <summary>是否进入新增</summary>
+    public bool IsInsert { get; set; } = true;
+
+    /// <summary>是否进入编辑</summary>
+    public bool IsEdit { get; set; } = true;
+
+    /// <summary>是否参与查询</summary>
+    public bool IsQuery { get; set; }
+
     /// <summary>长度</summary>
     public int? Length { get; set; }
 
