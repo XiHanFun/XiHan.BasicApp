@@ -14,7 +14,7 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 namespace {{ Namespace }}.Infrastructure.Repositories;
 
 /// <summary>
-/// {{ TableComment }}仓储实现
+/// {{ TableComment | xml_doc }}仓储实现
 /// </summary>
 public partial class {{ ClassName }}Repository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<{{ ClassName }}>(clientResolver), I{{ ClassName }}Repository

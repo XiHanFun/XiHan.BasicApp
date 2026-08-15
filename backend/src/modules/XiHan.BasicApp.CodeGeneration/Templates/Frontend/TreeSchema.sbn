@@ -5,7 +5,7 @@
 import type { ListFieldSchema, PageSchema } from '~/components'
 
 /**
- * {{ TableComment }}表单模型
+ * {{ TableComment | block_comment }}表单模型
  */
 export interface {{ ClassName }}FormModel {
   basicId?: string
@@ -25,7 +25,7 @@ export interface {{ ClassName }}FormModel {
  */
 export const basePageMeta = {
   pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
-  pageName: '{{ TableComment }}',
+  pageName: '{{ TableComment | ts_string }}',
   batchRemovable: {{ CanDelete }},
   rowKey: 'basicId',
   scrollX: 1200,
@@ -39,15 +39,15 @@ export const basePageMeta = {
  * 列定义（{{ TreeNameColumn.TsProperty }} 承载展开箭头）
  */
 export const baseFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment }}', width: 250, order: 0 },
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
 {{~ for col in Columns ~}}
 {{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
 {{~ if col.ColumnName == TreeNameColumn.ColumnName ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: 'string', treeColumn: true,{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 220, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: 'string', treeColumn: true,{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 220, order: {{ for.index + 1 }} },
 {{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
 {{~ else ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -59,7 +59,7 @@ export const baseFields: ListFieldSchema[] = [
  */
 export const baseActions: NonNullable<PageSchema['actions']> = [
 {{~ if CanCreate ~}}
-  { key: 'create', title: '新增{{ TableComment }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+  { key: 'create', title: '新增{{ TableComment | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
 {{~ end ~}}
 {{~ if CanUpdate ~}}
   { key: 'edit', title: '编辑', scope: 'row' },

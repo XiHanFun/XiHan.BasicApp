@@ -24,9 +24,6 @@ import {
   createDynamicApiClient,
 {{~ end ~}}
   createReadApi,
-{{~ if CanDelete ~}}
-  formatDynamicApiRouteValue,
-{{~ end ~}}
 } from '../../base'
 
 {{~ if has_query_api ~}}
@@ -45,7 +42,7 @@ export const {{ ClassNameCamel }}BaseManagementApi = {
 {{~ end ~}}
 {{~ if CanDelete ~}}
   delete(id: ApiId) {
-    return {{ ClassNameCamel }}CommandApi.delete(`{{ ClassName }}/${formatDynamicApiRouteValue(id)}`)
+    return {{ ClassNameCamel }}CommandApi.delete('{{ ClassName }}', { id })
   },
 {{~ end ~}}
   detail(id: ApiId) {

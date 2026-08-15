@@ -12,7 +12,7 @@ using {{ Namespace }}.Domain.Entities;
 namespace {{ Namespace }}.Application.Mappers;
 
 /// <summary>
-/// {{ TableComment }}应用层映射器（手写静态映射）
+/// {{ TableComment | xml_doc }}应用层映射器（手写静态映射）
 /// </summary>
 public static partial class {{ ClassName }}ApplicationMapper
 {

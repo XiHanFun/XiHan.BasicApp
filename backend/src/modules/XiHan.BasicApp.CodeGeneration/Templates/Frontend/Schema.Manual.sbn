@@ -1,5 +1,5 @@
 /**
- * {{ TableComment }}页面 schema（自定义部分）
+ * {{ TableComment | block_comment }}页面 schema（自定义部分）
  *
  * 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。
  * 由表结构推导的 base* 在 {{ ClassNameKebab }}.schema.generated.ts，会随表结构变化自动更新；
