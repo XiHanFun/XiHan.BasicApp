@@ -29,6 +29,13 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
+{{~ # 必填文本列（提交前校验用；无则不产出校验函数，避免未被引用） ~}}
+{{~ has_required_text = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm && col.IsRequired && !col.IsNullable && col.TsType == "string" && !col.EnumTypeShortName ~}}
+{{~ has_required_text = true ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{~ # 操作裁剪标志（EnabledActions 门控；读取基线 list/detail 始终生成） ~}}
 {{~ has_modal = CanCreate || CanUpdate ~}}
 {{~ has_row_action = CanUpdate || CanDelete ~}}
@@ -70,9 +77,6 @@ import type {
 } from '~/components'
 {{~ if need_message ~}}
 import {
-{{~ if has_modal ~}}
-  NButton,
-{{~ end ~}}
 {{~ if HasDetailTables ~}}
   NDataTable,
 {{~ end ~}}
@@ -84,14 +88,8 @@ import {
 {{~ if has_modal && has_number ~}}
   NInputNumber,
 {{~ end ~}}
-{{~ if has_modal ~}}
-  NModal,
-{{~ end ~}}
 {{~ if has_modal && has_select ~}}
   NSelect,
-{{~ end ~}}
-{{~ if has_modal ~}}
-  NSpace,
 {{~ end ~}}
 {{~ if has_modal && has_switch ~}}
   NSwitch,
@@ -110,7 +108,7 @@ import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName |
 {{~ for detail in DetailTables ~}}
 import { {{ detail.ClassNameCamel }}ManagementApi } from '@/api/modules/{{ detail.ModuleName | string.downcase }}/{{ detail.ClassNameKebab }}'
 {{~ end ~}}
-import { SchemaPage } from '~/components'
+import { SchemaPage{{ if has_modal }}, XEditModal{{ end }} } from '~/components'
 {{~ if has_modal && has_enum_select ~}}
 import { useEnumOptions } from '~/hooks'
 {{~ end ~}}
@@ -169,8 +167,8 @@ async function loadDetails(masterId: string) {
       },
     }
   }
-  catch {
-    message.error('加载明细失败')
+  catch (error) {
+    message.error((error as Error)?.message || '加载明细失败')
   }
   finally {
     detailLoading.value = { ...detailLoading.value, [masterId]: false }
@@ -314,8 +312,28 @@ async function handleDelete(row: {{ ClassName }}ListItemDto) {
 }
 {{~ end ~}}
 {{~ if has_modal ~}}
+{{~ if has_required_text ~}}
+/** 提交前校验：必填文本列不得为空。仓内约定用提示而非表单规则（全仓 0 处 NForm rules） */
+function validateForm() {
+{{~ for col in Columns ~}}
+{{~ if col.InForm && col.IsRequired && !col.IsNullable && col.TsType == "string" && !col.EnumTypeShortName ~}}
+  if (!form.value.{{ col.TsProperty }}.trim()) {
+    message.warning('请输入{{ col.ColumnComment | ts_string }}')
+    return false
+  }
+{{~ end ~}}
+{{~ end ~}}
+  return true
+}
 
+{{~ end ~}}
 async function handleSubmit() {
+{{~ if has_required_text ~}}
+  if (!validateForm()) {
+    return
+  }
+
+{{~ end ~}}
   submitLoading.value = true
   try {
 {{~ if CanUpdate ~}}
@@ -356,8 +374,8 @@ async function handleSubmit() {
     modalVisible.value = false
     reloadList()
   }
-  catch {
-    message.error('保存失败')
+  catch (error) {
+    message.error((error as Error)?.message || '保存失败')
   }
   finally {
     submitLoading.value = false
@@ -389,13 +407,11 @@ async function handleSubmit() {
     </template>
 {{~ end ~}}
 {{~ if has_modal ~}}
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      :auto-focus="false"
-      :bordered="false"
       :title="modalTitle"
-      preset="card"
-      style="width: 680px; max-width: 92vw"
+      :loading="submitLoading"
+      @save="handleSubmit"
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
 {{~ for col in Columns ~}}
@@ -418,17 +434,7 @@ async function handleSubmit() {
 {{~ end ~}}
 {{~ end ~}}
       </NForm>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="modalVisible = false">
-            取消
-          </NButton>
-          <NButton :loading="submitLoading" type="primary" @click="handleSubmit">
-            保存
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+    </XEditModal>
 {{~ end ~}}
   </SchemaPage>
 </template>

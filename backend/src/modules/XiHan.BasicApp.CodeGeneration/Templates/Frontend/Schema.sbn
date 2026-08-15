@@ -27,9 +27,12 @@ export const basePageMeta = {
   pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
   pageName: '{{ TableComment | ts_string }}',
   batchRemovable: {{ CanDelete }},
+{{~ if CanDelete ~}}
+  removePermission: '{{ TableName }}:delete',
+{{~ end ~}}
   rowKey: 'basicId',
   scrollX: 1200,
-} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'rowKey' | 'scrollX'>
+} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'removePermission' | 'rowKey' | 'scrollX'>
 
 /**
  * 列定义
@@ -58,13 +61,13 @@ export const baseFields: ListFieldSchema[] = [
  */
 export const baseActions: NonNullable<PageSchema['actions']> = [
 {{~ if CanCreate ~}}
-  { key: 'create', title: '新增{{ TableComment | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus' },
+  { key: 'create', title: '新增{{ TableComment | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: '{{ TableName }}:create' },
 {{~ end ~}}
 {{~ if CanUpdate ~}}
-  { key: 'edit', title: '编辑', scope: 'row' },
+  { key: 'edit', title: '编辑', scope: 'row', permission: '{{ TableName }}:update' },
 {{~ end ~}}
 {{~ if CanDelete ~}}
-  { key: 'delete', title: '删除', scope: 'row' },
+  { key: 'delete', title: '删除', scope: 'row', permission: '{{ TableName }}:delete' },
 {{~ end ~}}
 ]
 
