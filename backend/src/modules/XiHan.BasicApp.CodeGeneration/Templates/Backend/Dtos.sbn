@@ -18,7 +18,7 @@ namespace {{ Namespace }}.Application.Dtos;
 public sealed partial class {{ ClassName }}CreateDto
 {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InCreate ~}}
     public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
@@ -30,7 +30,7 @@ public sealed partial class {{ ClassName }}CreateDto
 public sealed partial class {{ ClassName }}UpdateDto : BasicAppUDto
 {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InUpdate ~}}
     public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
@@ -55,7 +55,7 @@ public sealed partial class {{ ClassName }}PageQueryDto : BasicAppPRDto
 public partial class {{ ClassName }}ListItemDto : BasicAppDto
 {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InList ~}}
     public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
@@ -65,8 +65,18 @@ public partial class {{ ClassName }}ListItemDto : BasicAppDto
 /// <summary>
 /// {{ TableComment | xml_doc }}详情 DTO
 /// </summary>
-public sealed partial class {{ ClassName }}DetailDto : {{ ClassName }}ListItemDto
+/// <remarks>
+/// 承载全部业务列而非继承列表项：列表列受「是否进入列表」开关裁剪，
+/// 详情与编辑回填需要看到未进列表的字段。
+/// </remarks>
+public sealed partial class {{ ClassName }}DetailDto : BasicAppDto
 {
+{{~ for col in Columns ~}}
+{{~ if col.InDetail ~}}
+    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+{{~ end ~}}
+{{~ end ~}}
+    public DateTimeOffset CreatedTime { get; set; }
     public long? CreatedId { get; set; }
     public string? CreatedBy { get; set; }
     public long? ModifiedId { get; set; }

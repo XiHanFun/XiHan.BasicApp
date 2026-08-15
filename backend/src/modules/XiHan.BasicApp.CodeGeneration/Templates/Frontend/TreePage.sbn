@@ -3,7 +3,7 @@
 {{~ has_switch = false ~}}
 {{~ has_select = false ~}}
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && col.ColumnName != TreeParentColumn.ColumnName ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName ~}}
 {{~ if col.DictSelectorType ~}}
 {{~ has_select = true ~}}
 {{~ else if col.HtmlType == "Switch" ~}}
@@ -160,7 +160,7 @@ function onAction(payload: SchemaActionPayload) {
 {{~ if has_modal ~}}
 
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && col.ColumnName != TreeParentColumn.ColumnName && col.DictSelectorType == "ConstSelector" ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.DictSelectorType == "ConstSelector" ~}}
 /** {{ col.ColumnComment | block_comment }}常量选项 */
 const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | js_literal }}
 {{~ end ~}}
@@ -199,7 +199,7 @@ async function handleEdit(row: {{ ClassName }}ListItemDto) {
   form.value = {
     basicId: row.basicId,
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InForm ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
     {{ col.TsProperty }}: src.{{ col.TsProperty }} ?? null,
 {{~ else ~}}
@@ -229,7 +229,7 @@ async function handleSubmit() {
       const updateInput: {{ ClassName }}UpdateDto = {
         basicId: form.value.basicId,
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InUpdate ~}}
         {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
 {{~ end ~}}
 {{~ end ~}}
@@ -240,7 +240,7 @@ async function handleSubmit() {
     else {
       const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InCreate ~}}
         {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
 {{~ end ~}}
 {{~ end ~}}
@@ -251,7 +251,7 @@ async function handleSubmit() {
 {{~ else ~}}
     const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InCreate ~}}
       {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
 {{~ end ~}}
 {{~ end ~}}
@@ -285,7 +285,7 @@ async function handleSubmit() {
     >
       <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InForm ~}}
         <NFormItem label="{{ col.ColumnComment | html_attr }}" path="{{ col.TsProperty }}">
 {{~ if col.ColumnName == TreeParentColumn.ColumnName ~}}
           <NTreeSelect

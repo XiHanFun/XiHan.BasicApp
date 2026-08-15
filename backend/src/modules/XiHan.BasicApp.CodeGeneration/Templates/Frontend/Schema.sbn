@@ -10,7 +10,7 @@ import type { ListFieldSchema, PageSchema } from '~/components'
 export interface {{ ClassName }}FormModel {
   basicId?: string
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InForm ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ else ~}}
@@ -34,10 +34,19 @@ export const basePageMeta = {
 /**
  * 列定义
  */
-export const baseFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
+{{~ # 关键词框仅在确有列折进关键词查询时产出，否则是个恒不生效的输入框 ~}}
+{{~ has_keyword = false ~}}
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.IsKeywordQuery ~}}
+{{~ has_keyword = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+export const baseFields: ListFieldSchema[] = [
+{{~ if has_keyword ~}}
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
+{{~ end ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InList ~}}
   { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.HtmlType == "DateTimePicker" }}datetime{{ else if col.HtmlType == "DatePicker" }}date{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if !col.IsBinary }} sortable: true,{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }}{{ if col.IsScalarQuery || col.IsRangeQuery }} searchable: true,{{ end }}{{ if col.IsRangeQuery }} searchRange: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
@@ -67,7 +76,7 @@ export const detailTableColumns = {
 {{~ for detail in DetailTables ~}}
   {{ detail.ClassNameCamel }}: [
 {{~ for col in detail.Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && col.ColumnName != detail.ForeignKeyColumn ~}}
+{{~ if col.InList && col.ColumnName != detail.ForeignKeyColumn ~}}
     { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', minWidth: 120 },
 {{~ end ~}}
 {{~ end ~}}
@@ -82,7 +91,7 @@ export const detailTableColumns = {
 export function createDefaultFormModel(): {{ ClassName }}FormModel {
   return {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InForm ~}}
 {{~ if col.TsType == "number" ~}}
     {{ col.TsProperty }}: 0,
 {{~ else if col.TsType == "boolean" ~}}

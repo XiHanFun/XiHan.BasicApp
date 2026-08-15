@@ -10,7 +10,7 @@ import type { ListFieldSchema, PageSchema } from '~/components'
 export interface {{ ClassName }}FormModel {
   basicId?: string
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InForm ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ else ~}}
@@ -41,7 +41,7 @@ export const basePageMeta = {
 {{~ # 树形取数走 resource.tree（取全量后在内存组树、不接收过滤），故本文件不产出任何 searchable/sortable ~}}
 export const baseFields: ListFieldSchema[] = [
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InList ~}}
 {{~ if col.ColumnName == TreeNameColumn.ColumnName ~}}
   { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: 'string', treeColumn: true, minWidth: 220, order: {{ for.index + 1 }} },
 {{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
@@ -75,7 +75,7 @@ export const baseActions: NonNullable<PageSchema['actions']> = [
 export function createDefaultFormModel(): {{ ClassName }}FormModel {
   return {
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
+{{~ if col.InForm ~}}
 {{~ if col.TsType == "number" ~}}
     {{ col.TsProperty }}: 0,
 {{~ else if col.TsType == "boolean" ~}}
