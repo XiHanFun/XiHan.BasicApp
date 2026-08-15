@@ -133,6 +133,10 @@ public sealed class TableConfigInferenceEngine(
                 suggestion.EnumTypeName = enumType.FullName;
                 suggestion.HtmlType = HtmlType.Select;
                 suggestion.QueryType = QueryType.Equal;
+                // 枚举列产出真枚举类型：线上经全局 JsonStringEnumConverter 传成员名字符串，
+                // 与枚举元数据端点的选项值同形。产出 int 会让选中值与行数据永远对不上。
+                suggestion.CSharpType = column.IsNullable ? enumType.Name + "?" : enumType.Name;
+                suggestion.TsType = "string";
             }
         }
 

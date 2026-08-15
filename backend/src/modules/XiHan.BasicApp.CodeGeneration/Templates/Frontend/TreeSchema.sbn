@@ -47,7 +47,7 @@ export const baseFields: ListFieldSchema[] = [
 {{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
   { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
 {{~ else ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.HtmlType == "DateTimePicker" }}datetime{{ else if col.HtmlType == "DatePicker" }}date{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.HtmlType == "DateTimePicker" }}datetime{{ else if col.HtmlType == "DatePicker" }}date{{ else if col.EnumTypeShortName }}enum{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -76,7 +76,13 @@ export function createDefaultFormModel(): {{ ClassName }}FormModel {
   return {
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
-{{~ if col.TsType == "number" ~}}
+{{~ if col.EnumTypeShortName ~}}
+{{~ if col.IsNullable || !col.IsRequired ~}}
+    {{ col.TsProperty }}: null,
+{{~ else ~}}
+    {{ col.TsProperty }}: '{{ col.EnumDefaultMember }}',
+{{~ end ~}}
+{{~ else if col.TsType == "number" ~}}
     {{ col.TsProperty }}: 0,
 {{~ else if col.TsType == "boolean" ~}}
     {{ col.TsProperty }}: false,

@@ -1,11 +1,12 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Reflection;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Application.Dtos.Metadata;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Localization.Abstractions.Enums;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -16,16 +17,20 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class EnumMetadataQueryService
     : IEnumMetadataQueryService
 {
-    // 扫描业务枚举所在命名空间：Domain.Entities（实体内枚举）+ Domain.Enums（独立业务枚举：
-    // EnableStatus/ValidityStatus/AuthorizationGrantSource）。前端 select/字典经枚举元数据 API 按文化取本地化选项。
-    private static readonly HashSet<string> TargetNamespaces = new(StringComparer.Ordinal)
-    {
-        "XiHan.BasicApp.Saas.Domain.Entities",
-        "XiHan.BasicApp.Saas.Domain.Enums",
-    };
+    // 扫描口径：已加载的 XiHan.BasicApp.* 程序集中、命名空间以 .Domain.Entities 或 .Domain.Enums 结尾的
+    // public 顶层枚举（各模块领域枚举的落位约定），外加显式程序集白名单（实体直接引用的框架枚举）。
+    // 端点只挂登录态、不挂权限码，故不整包放开 XiHan*：那会把框架全部枚举暴露给任意登录用户，并引入短名重复。
+    private static readonly string[] DomainNamespaceSuffixes = [".Domain.Entities", ".Domain.Enums"];
 
-    private static readonly Assembly DomainAssembly = typeof(SysUser).Assembly;
-    private static readonly Lazy<XDocument?> XmlDocCache = new(LoadXmlDocumentation, LazyThreadSafetyMode.ExecutionAndPublication);
+    private static readonly string[] WhitelistedAssemblyNames = ["XiHan.Framework.Workflow.Abstractions"];
+
+    // XML 摘要按程序集各取一份：只读单个程序集的 .xml 会让非本程序集枚举的描述恒为 null
+    private static readonly ConcurrentDictionary<Assembly, XDocument?> XmlDocCache = new();
+
+    // 短名重复记录（缓存首次构建时产生），由构造函数按进程报一次
+    private static readonly List<string> AmbiguousShortNames = [];
+
+    private static int _ambiguityReported;
 
     // 进程内 Lazy 缓存：枚举的结构性元数据（类型、成员名、数值、XML 描述）来自编译期程序集，
     // 仅随发版变化，进程生命周期内恒定，故静态缓存。显示文案（DisplayName）需按当前 UI 文化解析，
@@ -37,9 +42,21 @@ public sealed class EnumMetadataQueryService
     /// <summary>
     /// 构造函数
     /// </summary>
-    public EnumMetadataQueryService(IEnumLocalizationService enumLocalizationService)
+    public EnumMetadataQueryService(
+        IEnumLocalizationService enumLocalizationService,
+        ILogger<EnumMetadataQueryService> logger)
     {
+        ArgumentNullException.ThrowIfNull(logger);
+
         _enumLocalizationService = enumLocalizationService;
+
+        _ = StructureCache.Value;
+        if (AmbiguousShortNames.Count > 0 && Interlocked.Exchange(ref _ambiguityReported, 1) == 0)
+        {
+            logger.LogWarning(
+                "枚举元数据存在短名冲突，冲突组已整体丢弃：{Names}",
+                string.Join(", ", AmbiguousShortNames));
+        }
     }
 
     /// <summary>
@@ -58,8 +75,10 @@ public sealed class EnumMetadataQueryService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(enumTypeName);
 
+        // 短名与全名都受理：列配置里存的是全名，端点键是短名
         var structure = StructureCache.Value
-            .FirstOrDefault(item => string.Equals(item.EnumTypeName, enumTypeName, StringComparison.Ordinal))
+            .FirstOrDefault(item => string.Equals(item.EnumTypeName, enumTypeName, StringComparison.Ordinal)
+                || string.Equals(item.FullName, enumTypeName, StringComparison.Ordinal))
             ?? throw new InvalidOperationException($"枚举类型 '{enumTypeName}' 不存在。");
 
         return Task.FromResult(BuildLocalizedMetadata(structure));
@@ -92,6 +111,7 @@ public sealed class EnumMetadataQueryService
         return new EnumMetadataDto
         {
             EnumTypeName = structure.EnumTypeName,
+            FullName = structure.FullName,
             DisplayName = string.IsNullOrWhiteSpace(definition.DisplayName)
                 ? structure.FallbackDisplayName
                 : definition.DisplayName,
@@ -104,12 +124,113 @@ public sealed class EnumMetadataQueryService
     /// </summary>
     private static List<EnumStructure> BuildAllStructures()
     {
-        var enumTypes = DomainAssembly.GetTypes()
-            .Where(static type => type.IsEnum && type.Namespace is not null && TargetNamespaces.Contains(type.Namespace))
-            .OrderBy(static type => type.Name, StringComparer.Ordinal)
-            .ToList();
+        // 白名单程序集不是模块程序集、按需加载：首次请求早于 CLR 加载它时会永久缺席，故显式预加载
+        foreach (var assemblyName in WhitelistedAssemblyNames)
+        {
+            try
+            {
+                _ = Assembly.Load(new AssemblyName(assemblyName));
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or BadImageFormatException)
+            {
+                // 未部署该程序集时忽略
+            }
+        }
 
-        return enumTypes.ConvertAll(BuildEnumStructure);
+        var candidates = CollectCandidateEnumTypes();
+
+        // 端点以短名为键：同名多类型时取 XiHan.BasicApp 下的；仍并列则整组丢弃并记录，
+        // 不放任静默 last-wins 产出错标签
+        var resolved = new List<Type>();
+        foreach (var group in candidates.GroupBy(static type => type.Name, StringComparer.Ordinal))
+        {
+            var distinct = group.Distinct().ToList();
+            if (distinct.Count == 1)
+            {
+                resolved.Add(distinct[0]);
+                continue;
+            }
+
+            var preferred = distinct
+                .Where(static type => type.Namespace?.StartsWith("XiHan.BasicApp.", StringComparison.Ordinal) == true)
+                .ToList();
+            if (preferred.Count == 1)
+            {
+                resolved.Add(preferred[0]);
+                continue;
+            }
+
+            AmbiguousShortNames.Add(group.Key);
+        }
+
+        return
+        [
+            .. resolved
+                .OrderBy(static type => type.Name, StringComparer.Ordinal)
+                .Select(BuildEnumStructure)
+        ];
+    }
+
+    /// <summary>
+    /// 收集候选枚举类型
+    /// </summary>
+    private static List<Type> CollectCandidateEnumTypes()
+    {
+        var candidates = new List<Type>();
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            if (assembly.IsDynamic)
+            {
+                continue;
+            }
+
+            var name = assembly.GetName().Name;
+            if (name is null)
+            {
+                continue;
+            }
+
+            var isBasicApp = name.StartsWith("XiHan.BasicApp.", StringComparison.Ordinal);
+            var isWhitelisted = WhitelistedAssemblyNames.Contains(name, StringComparer.Ordinal);
+            if (!isBasicApp && !isWhitelisted)
+            {
+                continue;
+            }
+
+            Type?[] assemblyTypes;
+            try
+            {
+                assemblyTypes = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                assemblyTypes = ex.Types;
+            }
+            catch (FileNotFoundException)
+            {
+                continue;
+            }
+
+            foreach (var type in assemblyTypes)
+            {
+                if (type is not { IsEnum: true, IsPublic: true, IsNested: false, Namespace: not null })
+                {
+                    continue;
+                }
+
+                // 白名单程序集整包收录；BasicApp 只收领域枚举命名空间，
+                // 不把应用层 DTO/领域服务里的内部枚举一并暴露
+                if (isBasicApp
+                    && !Array.Exists(DomainNamespaceSuffixes, suffix => type.Namespace.EndsWith(suffix, StringComparison.Ordinal)))
+                {
+                    continue;
+                }
+
+                candidates.Add(type);
+            }
+        }
+
+        return candidates;
     }
 
     private static EnumStructure BuildEnumStructure(Type enumType)
@@ -123,6 +244,7 @@ public sealed class EnumMetadataQueryService
         {
             EnumType = enumType,
             EnumTypeName = enumType.Name,
+            FullName = enumType.FullName!,
             FallbackDisplayName = ResolveEnumTypeDisplayName(enumType),
             Items = items
         };
@@ -142,9 +264,9 @@ public sealed class EnumMetadataQueryService
         };
     }
 
-    private static string? GetXmlDocSummary(string memberId)
+    private static string? GetXmlDocSummary(Assembly assembly, string memberId)
     {
-        var xmlDoc = XmlDocCache.Value;
+        var xmlDoc = XmlDocCache.GetOrAdd(assembly, LoadXmlDocumentation);
         if (xmlDoc is null)
         {
             return null;
@@ -173,7 +295,7 @@ public sealed class EnumMetadataQueryService
     private static string? ResolveEnumMemberDescription(Type enumType, FieldInfo field)
     {
         var memberId = MakeXmlMemberId('F', $"{enumType.FullName}.{field.Name}");
-        return GetXmlDocSummary(memberId);
+        return GetXmlDocSummary(enumType.Assembly, memberId);
     }
 
     private static string ResolveEnumMemberDisplayName(FieldInfo field)
@@ -184,7 +306,7 @@ public sealed class EnumMetadataQueryService
 
     private static string ResolveEnumTypeDisplayName(Type enumType)
     {
-        var xmlSummary = GetXmlDocSummary(MakeXmlMemberId('T', enumType.FullName!));
+        var xmlSummary = GetXmlDocSummary(enumType.Assembly, MakeXmlMemberId('T', enumType.FullName!));
         if (!string.IsNullOrWhiteSpace(xmlSummary))
         {
             return xmlSummary;
@@ -199,11 +321,11 @@ public sealed class EnumMetadataQueryService
         return typeName;
     }
 
-    private static XDocument? LoadXmlDocumentation()
+    private static XDocument? LoadXmlDocumentation(Assembly assembly)
     {
         try
         {
-            var assemblyLocation = DomainAssembly.Location;
+            var assemblyLocation = assembly.Location;
             if (string.IsNullOrEmpty(assemblyLocation))
             {
                 return null;
@@ -231,6 +353,11 @@ public sealed class EnumMetadataQueryService
         public required Type EnumType { get; init; }
 
         public required string EnumTypeName { get; init; }
+
+        /// <summary>
+        /// 枚举类型全名
+        /// </summary>
+        public required string FullName { get; init; }
 
         /// <summary>
         /// 类型显示名缺键回退（来自 XML 摘要或类型名）。

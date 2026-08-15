@@ -19,7 +19,7 @@ public sealed partial class {{ ClassName }}CreateDto
 {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
-    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+    public {{ col.CSharpTypeQualified }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 }
@@ -31,7 +31,7 @@ public sealed partial class {{ ClassName }}UpdateDto : BasicAppUDto
 {
 {{~ for col in Columns ~}}
 {{~ if col.InUpdate ~}}
-    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+    public {{ col.CSharpTypeQualified }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 }
@@ -44,7 +44,7 @@ public sealed partial class {{ ClassName }}PageQueryDto : BasicAppPRDto
     public string? Keyword { get; set; }
 {{~ for col in Columns ~}}
 {{~ if col.IsScalarQuery ~}}
-    public {{ col.CSharpType }}{{ if !(col.CSharpType | string.contains "?") }}?{{ end }} {{ col.CSharpProperty }} { get; set; }
+    public {{ col.CSharpTypeQualified }}{{ if !(col.CSharpTypeQualified | string.contains "?") }}?{{ end }} {{ col.CSharpProperty }} { get; set; }
 {{~ end ~}}
 {{~ end ~}}
 }
@@ -56,7 +56,7 @@ public partial class {{ ClassName }}ListItemDto : BasicAppDto
 {
 {{~ for col in Columns ~}}
 {{~ if col.InList ~}}
-    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+    public {{ col.CSharpTypeQualified }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
     public DateTimeOffset CreatedTime { get; set; }
@@ -73,7 +73,7 @@ public sealed partial class {{ ClassName }}DetailDto : BasicAppDto
 {
 {{~ for col in Columns ~}}
 {{~ if col.InDetail ~}}
-    public {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+    public {{ col.CSharpTypeQualified }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 {{~ end ~}}
 {{~ end ~}}
     public DateTimeOffset CreatedTime { get; set; }

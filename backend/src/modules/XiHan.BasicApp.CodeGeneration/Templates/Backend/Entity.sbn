@@ -26,7 +26,7 @@ public partial class {{ ClassName }} : BasicAppFullAuditedEntity
     /// {{ if col.ColumnComment }}{{ col.ColumnComment | xml_doc }}{{ else }}{{ col.CSharpProperty }}{{ end }}
     /// </summary>
     [SugarColumn(ColumnName = "{{ col.ColumnName }}", ColumnDescription = "{{ col.ColumnComment | cs_string }}"{{ if col.Length }}, Length = {{ col.Length }}{{ end }}{{ if col.DecimalDigits }}, DecimalDigits = {{ col.DecimalDigits }}{{ end }}{{ if col.IsNullable }}, IsNullable = true{{ else }}, IsNullable = false{{ end }})]
-    public virtual {{ col.CSharpType }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
+    public virtual {{ col.CSharpTypeQualified }} {{ col.CSharpProperty }} { get; set; }{{ if col.CSharpType == "string" }} = string.Empty;{{ end }}
 
 {{~ end ~}}
 {{~ end ~}}

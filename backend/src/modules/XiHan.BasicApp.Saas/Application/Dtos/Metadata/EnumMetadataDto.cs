@@ -16,6 +16,12 @@ public sealed class EnumMetadataDto
     public string EnumTypeName { get; init; } = string.Empty;
 
     /// <summary>
+    /// 枚举类型全名
+    /// </summary>
+    /// <example>XiHan.BasicApp.Saas.Domain.Enums.UserGender</example>
+    public string FullName { get; init; } = string.Empty;
+
+    /// <summary>
     /// 枚举类型显示名称
     /// </summary>
     /// <example>用户性别</example>
