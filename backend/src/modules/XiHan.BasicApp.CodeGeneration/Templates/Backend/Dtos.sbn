@@ -43,7 +43,7 @@ public sealed partial class {{ ClassName }}PageQueryDto : BasicAppPRDto
 {
     public string? Keyword { get; set; }
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if col.IsScalarQuery ~}}
     public {{ col.CSharpType }}{{ if !(col.CSharpType | string.contains "?") }}?{{ end }} {{ col.CSharpProperty }} { get; set; }
 {{~ end ~}}
 {{~ end ~}}

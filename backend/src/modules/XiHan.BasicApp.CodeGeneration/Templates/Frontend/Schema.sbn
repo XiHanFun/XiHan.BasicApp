@@ -38,10 +38,10 @@ export const baseFields: ListFieldSchema[] = [
   { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
 {{~ for col in Columns ~}}
 {{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.HtmlType == "DateTimePicker" }}datetime{{ else if col.HtmlType == "DatePicker" }}date{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if !col.IsBinary }} sortable: true,{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }}{{ if col.IsScalarQuery || col.IsRangeQuery }} searchable: true,{{ end }}{{ if col.IsRangeQuery }} searchRange: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
-  { key: 'createdTime', title: '创建时间', dataType: 'datetime', minWidth: 170, order: 99 },
+  { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 99 },
 ]
 
 /**

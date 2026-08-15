@@ -7,7 +7,7 @@ import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
 export interface {{ ClassName }}PageQueryDto extends PageRequest {
   keyword?: string | null
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if col.IsScalarQuery ~}}
   {{ col.TsProperty }}?: {{ col.TsType }} | null
 {{~ end ~}}
 {{~ end ~}}
