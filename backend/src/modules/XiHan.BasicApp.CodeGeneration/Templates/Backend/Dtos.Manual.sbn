@@ -11,35 +11,35 @@ namespace {{ Namespace }}.Application.Dtos;
 // 常见用途：额外的入参字段、校验特性、只读计算属性。
 
 /// <summary>
-/// {{ TableComment }}创建 DTO（自定义部分）
+/// {{ TableComment | xml_doc }}创建 DTO（自定义部分）
 /// </summary>
 public sealed partial class {{ ClassName }}CreateDto
 {
 }
 
 /// <summary>
-/// {{ TableComment }}更新 DTO（自定义部分）
+/// {{ TableComment | xml_doc }}更新 DTO（自定义部分）
 /// </summary>
 public sealed partial class {{ ClassName }}UpdateDto
 {
 }
 
 /// <summary>
-/// {{ TableComment }}分页查询 DTO（自定义部分）
+/// {{ TableComment | xml_doc }}分页查询 DTO（自定义部分）
 /// </summary>
 public sealed partial class {{ ClassName }}PageQueryDto
 {
 }
 
 /// <summary>
-/// {{ TableComment }}列表项 DTO（自定义部分）
+/// {{ TableComment | xml_doc }}列表项 DTO（自定义部分）
 /// </summary>
 public partial class {{ ClassName }}ListItemDto
 {
 }
 
 /// <summary>
-/// {{ TableComment }}详情 DTO（自定义部分）
+/// {{ TableComment | xml_doc }}详情 DTO（自定义部分）
 /// </summary>
 public sealed partial class {{ ClassName }}DetailDto
 {

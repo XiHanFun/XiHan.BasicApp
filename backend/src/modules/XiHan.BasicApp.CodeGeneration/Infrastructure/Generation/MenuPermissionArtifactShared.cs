@@ -73,8 +73,17 @@ internal static class MenuPermissionArtifactShared
     /// </summary>
     public static string ResolveNamespace(CodeGenerationContext context)
         => string.IsNullOrWhiteSpace(context.Namespace)
-            ? ModuleSegment(context)
+            ? EnsureDistinctFromClassName(ModuleSegment(context), context.ClassName)
             : context.Namespace!.Trim();
+
+    /// <summary>
+    /// 命名空间根段与实体类名去重
+    /// </summary>
+    /// <remarks>
+    /// 模块名与命名空间都为空时，模块段回退为类名；同名会让 CS0118（同一个名字既是命名空间又是类型）。
+    /// </remarks>
+    private static string EnsureDistinctFromClassName(string ns, string className)
+        => string.Equals(ns, className, StringComparison.Ordinal) ? ns + "Generated" : ns;
 
     /// <summary>
     /// 模块段（原样，用于命名空间/组件路径；模块名为空时回退类名）

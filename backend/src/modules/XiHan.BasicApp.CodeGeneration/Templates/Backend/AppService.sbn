@@ -22,7 +22,7 @@ using XiHan.Framework.Uow.Attributes;
 namespace {{ Namespace }}.Application.AppServices;
 
 /// <summary>
-/// {{ TableComment }}命令应用服务（生成基类）
+/// {{ TableComment | xml_doc }}命令应用服务（生成基类）
 /// </summary>
 /// <remarks>
 /// 本类为抽象基类，不会被 DI 注册（框架服务发现过滤 IsAbstract）；
@@ -30,12 +30,12 @@ namespace {{ Namespace }}.Application.AppServices;
 /// 类级 [Authorize] / [DynamicApi] 可被派生类继承，改了表配置重新生成即生效。
 /// </remarks>
 [Authorize]
-[DynamicApi(Group = "{{ ModuleName }}", GroupName = "{{ FunctionName }}", Tag = "{{ BusinessName }}")]
+[DynamicApi(Group = "{{ ModuleName | cs_string }}", GroupName = "{{ FunctionName | cs_string }}", Tag = "{{ BusinessName | cs_string }}")]
 [GeneratedCode("XiHan.CodeGen", "1.0")]
 public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{{ ClassName }}AppService
 {
     /// <summary>
-    /// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}仓储
+    /// {{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}仓储
     /// </summary>
     protected readonly I{{ ClassName }}Repository _repository;
 
@@ -49,7 +49,7 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
 {{~ if CanCreate ~}}
 
     /// <summary>
-    /// 创建{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}
+    /// 创建{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}
     /// </summary>
     /// <param name="input">创建入参</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -69,7 +69,7 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
 {{~ if CanUpdate ~}}
 
     /// <summary>
-    /// 更新{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}
+    /// 更新{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}
     /// </summary>
     /// <param name="input">更新入参</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -91,7 +91,7 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
 {{~ if CanDelete ~}}
 
     /// <summary>
-    /// 删除{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}
+    /// 删除{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}
     /// </summary>
     /// <param name="id">主键</param>
     /// <param name="cancellationToken">取消令牌</param>

@@ -10,14 +10,14 @@ namespace {{ Namespace }}.Application.Contracts;
 // 中实现（编译期强制，漏实现会直接报错）。
 
 /// <summary>
-/// {{ TableComment }}命令应用服务接口（自定义部分）
+/// {{ TableComment | xml_doc }}命令应用服务接口（自定义部分）
 /// </summary>
 public partial interface I{{ ClassName }}AppService
 {
 }
 
 /// <summary>
-/// {{ TableComment }}查询应用服务接口（自定义部分）
+/// {{ TableComment | xml_doc }}查询应用服务接口（自定义部分）
 /// </summary>
 public partial interface I{{ ClassName }}QueryService
 {

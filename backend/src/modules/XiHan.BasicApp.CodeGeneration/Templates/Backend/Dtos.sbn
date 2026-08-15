@@ -13,7 +13,7 @@ using XiHan.BasicApp.Core.Dtos;
 namespace {{ Namespace }}.Application.Dtos;
 
 /// <summary>
-/// {{ TableComment }}创建 DTO
+/// {{ TableComment | xml_doc }}创建 DTO
 /// </summary>
 public sealed partial class {{ ClassName }}CreateDto
 {
@@ -25,7 +25,7 @@ public sealed partial class {{ ClassName }}CreateDto
 }
 
 /// <summary>
-/// {{ TableComment }}更新 DTO
+/// {{ TableComment | xml_doc }}更新 DTO
 /// </summary>
 public sealed partial class {{ ClassName }}UpdateDto : BasicAppUDto
 {
@@ -37,7 +37,7 @@ public sealed partial class {{ ClassName }}UpdateDto : BasicAppUDto
 }
 
 /// <summary>
-/// {{ TableComment }}分页查询 DTO
+/// {{ TableComment | xml_doc }}分页查询 DTO
 /// </summary>
 public sealed partial class {{ ClassName }}PageQueryDto : BasicAppPRDto
 {
@@ -50,7 +50,7 @@ public sealed partial class {{ ClassName }}PageQueryDto : BasicAppPRDto
 }
 
 /// <summary>
-/// {{ TableComment }}列表项 DTO
+/// {{ TableComment | xml_doc }}列表项 DTO
 /// </summary>
 public partial class {{ ClassName }}ListItemDto : BasicAppDto
 {
@@ -63,7 +63,7 @@ public partial class {{ ClassName }}ListItemDto : BasicAppDto
 }
 
 /// <summary>
-/// {{ TableComment }}详情 DTO
+/// {{ TableComment | xml_doc }}详情 DTO
 /// </summary>
 public sealed partial class {{ ClassName }}DetailDto : {{ ClassName }}ListItemDto
 {
@@ -75,7 +75,7 @@ public sealed partial class {{ ClassName }}DetailDto : {{ ClassName }}ListItemDt
 {{~ if TemplateType == "Tree" ~}}
 
 /// <summary>
-/// {{ TableComment }}树节点 DTO（按 {{ TreeParentColumn.CSharpProperty }} 组装的嵌套结构）
+/// {{ TableComment | xml_doc }}树节点 DTO（按 {{ TreeParentColumn.CSharpProperty }} 组装的嵌套结构）
 /// </summary>
 public sealed partial class {{ ClassName }}TreeNodeDto : {{ ClassName }}ListItemDto
 {

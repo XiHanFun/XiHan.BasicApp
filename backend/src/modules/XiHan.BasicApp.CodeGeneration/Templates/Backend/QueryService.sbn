@@ -28,7 +28,7 @@ using XiHan.Framework.Domain.Shared.Paging.Models;
 namespace {{ Namespace }}.Application.QueryServices;
 
 /// <summary>
-/// {{ TableComment }}查询应用服务（生成基类）
+/// {{ TableComment | xml_doc }}查询应用服务（生成基类）
 /// </summary>
 /// <remarks>
 /// 本类为抽象基类，不会被 DI 注册（框架服务发现过滤 IsAbstract）；
@@ -36,12 +36,12 @@ namespace {{ Namespace }}.Application.QueryServices;
 /// 类级 [Authorize] / [DynamicApi] 可被派生类继承，改了表配置重新生成即生效。
 /// </remarks>
 [Authorize]
-[DynamicApi(Group = "{{ ModuleName }}", GroupName = "{{ FunctionName }}", Tag = "{{ BusinessName }}")]
+[DynamicApi(Group = "{{ ModuleName | cs_string }}", GroupName = "{{ FunctionName | cs_string }}", Tag = "{{ BusinessName | cs_string }}")]
 [GeneratedCode("XiHan.CodeGen", "1.0")]
 public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, I{{ ClassName }}QueryService
 {
     /// <summary>
-    /// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}仓储
+    /// {{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}仓储
     /// </summary>
     protected readonly I{{ ClassName }}Repository _repository;
 
@@ -54,7 +54,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
     }
 
     /// <summary>
-    /// 获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}分页列表
+    /// 获取{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}分页列表
     /// </summary>
     /// <param name="input">分页查询条件</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -86,7 +86,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
     }
 
     /// <summary>
-    /// 获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}详情
+    /// 获取{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}详情
     /// </summary>
     /// <param name="id">主键</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -96,7 +96,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
     {
         if (id <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "{{ TableComment }}主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(id), "{{ TableComment | cs_string }}主键必须大于 0。");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -107,7 +107,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
 
 {{~ if TemplateType == "Tree" ~}}
     /// <summary>
-    /// 获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}树
+    /// 获取{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}树
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>根节点集合</returns>
@@ -155,7 +155,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
 {{~ end ~}}
 {{~ if MasterTable ~}}
     /// <summary>
-    /// 按主表主键获取{{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}明细列表
+    /// 按主表主键获取{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}明细列表
     /// </summary>
     /// <param name="masterId">主表主键</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -176,7 +176,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
 
 {{~ end ~}}
     /// <summary>
-    /// 构建{{ TableComment }}分页请求
+    /// 构建{{ TableComment | xml_doc }}分页请求
     /// </summary>
     /// <remarks>
     /// 可在派生类中 override 以追加默认过滤、调整默认排序等；调 base 可保留生成的条件构建。

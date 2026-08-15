@@ -12,7 +12,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 namespace {{ Namespace }}.Domain.Repositories;
 
 /// <summary>
-/// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}仓储接口
+/// {{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}仓储接口
 /// </summary>
 public partial interface I{{ ClassName }}Repository : ISaasRepository<{{ ClassName }}>
 {

@@ -13,44 +13,44 @@ using XiHan.Framework.Domain.Shared.Paging.Dtos;
 namespace {{ Namespace }}.Application.Contracts;
 
 /// <summary>
-/// {{ TableComment }}命令应用服务接口
+/// {{ TableComment | xml_doc }}命令应用服务接口
 /// </summary>
 public partial interface I{{ ClassName }}AppService : IApplicationService
 {
 {{~ if CanCreate ~}}
-    /// <summary>创建{{ TableComment }}</summary>
+    /// <summary>创建{{ TableComment | xml_doc }}</summary>
     Task<{{ ClassName }}DetailDto> Create{{ ClassName }}Async({{ ClassName }}CreateDto input, CancellationToken cancellationToken = default);
 {{~ end ~}}
 {{~ if CanUpdate ~}}
 
-    /// <summary>更新{{ TableComment }}</summary>
+    /// <summary>更新{{ TableComment | xml_doc }}</summary>
     Task<{{ ClassName }}DetailDto> Update{{ ClassName }}Async({{ ClassName }}UpdateDto input, CancellationToken cancellationToken = default);
 {{~ end ~}}
 {{~ if CanDelete ~}}
 
-    /// <summary>删除{{ TableComment }}</summary>
+    /// <summary>删除{{ TableComment | xml_doc }}</summary>
     Task Delete{{ ClassName }}Async(long id, CancellationToken cancellationToken = default);
 {{~ end ~}}
 }
 
 /// <summary>
-/// {{ TableComment }}查询应用服务接口
+/// {{ TableComment | xml_doc }}查询应用服务接口
 /// </summary>
 public partial interface I{{ ClassName }}QueryService : IApplicationService
 {
-    /// <summary>分页查询{{ TableComment }}</summary>
+    /// <summary>分页查询{{ TableComment | xml_doc }}</summary>
     Task<PageResultDtoBase<{{ ClassName }}ListItemDto>> Get{{ ClassName }}PageAsync({{ ClassName }}PageQueryDto input, CancellationToken cancellationToken = default);
 
-    /// <summary>查询{{ TableComment }}详情</summary>
+    /// <summary>查询{{ TableComment | xml_doc }}详情</summary>
     Task<{{ ClassName }}DetailDto?> Get{{ ClassName }}DetailAsync(long id, CancellationToken cancellationToken = default);
 {{~ if TemplateType == "Tree" ~}}
 
-    /// <summary>查询{{ TableComment }}完整树（按 {{ TreeParentColumn.CSharpProperty }} 组装嵌套结构，不分页）</summary>
+    /// <summary>查询{{ TableComment | xml_doc }}完整树（按 {{ TreeParentColumn.CSharpProperty }} 组装嵌套结构，不分页）</summary>
     Task<IReadOnlyList<{{ ClassName }}TreeNodeDto>> Get{{ ClassName }}TreeAsync(CancellationToken cancellationToken = default);
 {{~ end ~}}
 {{~ if MasterTable ~}}
 
-    /// <summary>按主表（{{ MasterTable.TableComment }}）主键查询本表明细</summary>
+    /// <summary>按主表（{{ MasterTable.TableComment | xml_doc }}）主键查询本表明细</summary>
     Task<IReadOnlyList<{{ ClassName }}ListItemDto>> Get{{ ClassName }}ByMasterAsync(long masterId, CancellationToken cancellationToken = default);
 {{~ end ~}}
 }

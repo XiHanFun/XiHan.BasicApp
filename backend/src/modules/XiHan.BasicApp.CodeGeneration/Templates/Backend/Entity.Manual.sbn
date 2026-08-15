@@ -4,7 +4,7 @@
 namespace {{ Namespace }}.Domain.Entities;
 
 /// <summary>
-/// {{ if TableComment }}{{ TableComment }}{{ else }}{{ ClassName }}{{ end }}实体（自定义部分）
+/// {{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}实体（自定义部分）
 /// </summary>
 /// <remarks>
 /// 本文件仅在首次生成时创建，重新生成时不会被覆盖——自定义代码写在这里是安全的。

@@ -54,9 +54,30 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             scriptObject.SetValue(key, value, true);
         }
 
+        RegisterEscapeFilters(scriptObject);
+
         var scribanContext = new TemplateContext { MemberRenamer = member => member.Name };
         scribanContext.PushGlobal(scriptObject);
         return await template.RenderAsync(scribanContext);
+    }
+
+    /// <summary>
+    /// 注册转义过滤器
+    /// </summary>
+    /// <remarks>
+    /// 表注释、列注释是自由文本，直插产物会破坏宿主语法。模板据插值点所在上下文选用：
+    /// <c>cs_string</c>（C# 字符串字面量）、<c>xml_doc</c>（XML 文档注释）、
+    /// <c>ts_string</c>（TS 单引号字面量）、<c>html_attr</c>（HTML/Vue 双引号属性）。
+    /// </remarks>
+    private static void RegisterEscapeFilters(ScriptObject scriptObject)
+    {
+        scriptObject.Import("cs_string", new Func<string?, string>(TemplateTextEscaper.CSharpString));
+        scriptObject.Import("xml_doc", new Func<string?, string>(TemplateTextEscaper.XmlDoc));
+        scriptObject.Import("ts_string", new Func<string?, string>(TemplateTextEscaper.TsString));
+        scriptObject.Import("html_attr", new Func<string?, string>(TemplateTextEscaper.HtmlAttribute));
+        scriptObject.Import("block_comment", new Func<string?, string>(TemplateTextEscaper.BlockComment));
+        scriptObject.Import("html_comment", new Func<string?, string>(TemplateTextEscaper.HtmlComment));
+        scriptObject.Import("js_literal", new Func<string?, string>(TemplateTextEscaper.JsLiteral));
     }
 
     /// <summary>
@@ -72,8 +93,11 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             // 前端文件名/标识用：类名的 camelCase 与 kebab-case
             ["ClassNameCamel"] = Camelize(context.ClassName),
             ["ClassNameKebab"] = Kebabize(context.ClassName),
-            ["Namespace"] = context.Namespace,
-            ["ModuleName"] = context.ModuleName,
+            // 命名空间为空时回退到模块段：DbFirst 导入的表未配置命名空间，直插会渲染出 using .Domain.Entities;
+            ["Namespace"] = MenuPermissionArtifactShared.ResolveNamespace(context),
+            // 模块名为空时回退到类名：页面码、落盘路径、菜单组件路径都由它推导，
+            // 裸值为 null 会产出 pageCode '.sys-product' 与 src/views//sys-product
+            ["ModuleName"] = MenuPermissionArtifactShared.ModuleSegment(context),
             ["BusinessName"] = context.BusinessName,
             ["FunctionName"] = context.FunctionName,
             ["Author"] = context.Author,
