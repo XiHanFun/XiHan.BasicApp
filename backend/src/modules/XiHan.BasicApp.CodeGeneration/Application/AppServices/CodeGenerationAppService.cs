@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text;
+using System.Text.Json;
 using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
@@ -9,6 +10,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Application.Attributes;
@@ -37,7 +39,8 @@ public sealed class CodeGenerationAppService(
     ICodeGenTableColumnRepository tableColumnRepository,
     ICodeGenHistoryRepository historyRepository,
     ICodeGenTableQueryService tableQueryService,
-    ICurrentUser currentUser) : CodeGenerationApplicationService, ICodeGenerationAppService
+    ICurrentUser currentUser,
+    IHttpContextAccessor httpContextAccessor) : CodeGenerationApplicationService, ICodeGenerationAppService
 {
     private readonly ICodeGenerationEngine _generationEngine = generationEngine;
     private readonly IDatabaseSchemaImporter _schemaImporter = schemaImporter;
@@ -47,6 +50,7 @@ public sealed class CodeGenerationAppService(
     private readonly ICodeGenHistoryRepository _historyRepository = historyRepository;
     private readonly ICodeGenTableQueryService _tableQueryService = tableQueryService;
     private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     /// <summary>列出可导入的数据库表（逆向工程）</summary>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
@@ -394,19 +398,38 @@ public sealed class CodeGenerationAppService(
 
         var result = await _generationEngine.GenerateAsync(request, cancellationToken);
 
+        var table = await _tableRepository.GetByIdAsync(input.TableId, cancellationToken);
+
         // 无论成功失败均写一条历史留痕
-        await WriteHistoryAsync(input, result, cancellationToken);
+        await WriteHistoryAsync(input, result, table, cancellationToken);
+
+        if (result.Success && table is not null)
+        {
+            await MarkTableGeneratedAsync(table, cancellationToken);
+        }
 
         return ToDto(result);
     }
 
     /// <summary>
+    /// 回写表的生成状态与最后生成时间
+    /// </summary>
+    private async Task MarkTableGeneratedAsync(SysCodeGenTable table, CancellationToken cancellationToken)
+    {
+        table.GenStatus = GenStatus.Generated;
+        table.LastGenTime = DateTimeOffset.UtcNow;
+        _ = await _tableRepository.UpdateAsync(table, cancellationToken);
+    }
+
+    /// <summary>
     /// 写入一条代码生成历史记录（成功/失败均留痕）
     /// </summary>
-    private async Task WriteHistoryAsync(CodeGenGenerateRequestDto input, GenerationResult result, CancellationToken cancellationToken)
+    private async Task WriteHistoryAsync(
+        CodeGenGenerateRequestDto input,
+        GenerationResult result,
+        SysCodeGenTable? table,
+        CancellationToken cancellationToken)
     {
-        var table = await _tableRepository.GetByIdAsync(input.TableId, cancellationToken);
-
         var totalSize = result.Artifacts.Sum(artifact => (long)Encoding.UTF8.GetByteCount(artifact.Content ?? string.Empty));
 
         var history = new SysCodeGenHistory
@@ -420,12 +443,46 @@ public sealed class CodeGenerationAppService(
             Duration = result.DurationMilliseconds,
             FileCount = result.Artifacts.Count,
             TotalSize = totalSize,
+            // 落盘方式才有目标目录；Zip 是即时下载、服务端不留文件
+            GenPath = input.GenType == GenType.CustomPath ? table?.GenPath : null,
+            UsedTemplates = SerializeOrNull(result.Artifacts
+                .Select(artifact => artifact.TemplateCode)
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Distinct(StringComparer.Ordinal)
+                .ToList()),
+            GeneratedFiles = SerializeOrNull(result.Artifacts.Select(artifact => artifact.RelativePath).ToList()),
+            TableSnapshot = table is null ? null : SerializeOrNull(new
+            {
+                table.TableName,
+                table.TableComment,
+                table.ClassName,
+                table.Namespace,
+                table.ModuleName,
+                table.BusinessName,
+                table.TemplateType,
+                table.GenerationScope,
+                table.EnabledActions
+            }),
             ErrorMessage = result.Success ? null : result.Message,
             OperatorId = _currentUser.UserId,
-            OperatorName = _currentUser.UserName
+            OperatorName = _currentUser.UserName,
+            OperatorIp = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString()
         };
 
         await _historyRepository.AddAsync(history, cancellationToken);
+    }
+
+    /// <summary>
+    /// 序列化为 JSON；空集合返回 null，避免历史里存一堆 "[]"
+    /// </summary>
+    private static string? SerializeOrNull(object? value)
+    {
+        if (value is null || (value is System.Collections.ICollection collection && collection.Count == 0))
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(value);
     }
 
     /// <summary>

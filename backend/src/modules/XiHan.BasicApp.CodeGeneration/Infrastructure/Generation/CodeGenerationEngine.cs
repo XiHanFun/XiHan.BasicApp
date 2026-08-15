@@ -140,9 +140,26 @@ public sealed class CodeGenerationEngine(
             cancellationToken.ThrowIfCancellationRequested();
 
             var renderer = _rendererResolver.Resolve(template.TemplateEngine);
-            var content = await renderer.RenderAsync(template.TemplateContent ?? string.Empty, context, cancellationToken);
-            var fileName = await ResolveFileNameAsync(renderer, template, context, cancellationToken);
-            var relativePath = await ResolveRelativePathAsync(renderer, template, context, fileName, cancellationToken);
+
+            string content;
+            string fileName;
+            string relativePath;
+            try
+            {
+                content = await renderer.RenderAsync(template.TemplateContent ?? string.Empty, context, cancellationToken);
+                fileName = await ResolveFileNameAsync(renderer, template, context, cancellationToken);
+                relativePath = await ResolveRelativePathAsync(renderer, template, context, fileName, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // 冒泡会绕过调用方的历史留痕，且异常里不带模板身份，用户只看到一句渲染失败
+                _logger.LogError(ex, "模板 {TemplateCode} 渲染失败（表 {Table}）", template.TemplateCode, table.TableName);
+                return GenerationResult.Fail($"模板 {template.TemplateCode}（{template.TemplateName}）渲染失败：{ex.Message}");
+            }
 
             artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode, template.WriteMode));
         }
