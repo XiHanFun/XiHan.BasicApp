@@ -67,6 +67,11 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildPageRequest(input);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            Apply{{ ClassName }}Sorts(request);
+        }
+
         var page = await _repository.GetPagedAsync(request, cancellationToken);
         if (page.Items.Count == 0)
         {
@@ -190,7 +195,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         };
 {{~ has_like = false ~}}
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && col.QueryType == "Like" ~}}
+{{~ if col.IsKeywordQuery ~}}
 {{~ has_like = true ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -201,14 +206,14 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
             request.Conditions.SetKeyword<{{ ClassName }}>(
                 input.Keyword.Trim()
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && col.QueryType == "Like" ~}},
+{{~ if col.IsKeywordQuery ~}},
                 entity => entity.{{ col.CSharpProperty }}
 {{~ end ~}}
 {{~ end ~}});
         }
 {{~ end ~}}
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
+{{~ if col.IsScalarQuery ~}}
 
         if (input.{{ col.CSharpProperty }} is not null)
         {
@@ -217,7 +222,29 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
 {{~ end ~}}
 {{~ end ~}}
 
-        request.Conditions.AddSort(({{ ClassName }} entity) => entity.CreatedTime, SortDirection.Descending, 0);
+        // 前端选择的排序原样带入（默认兜底在调用方按 Sorts.Count == 0 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端区间/多选过滤原样带入
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
+        }
+
         return request;
+    }
+
+    /// <summary>
+    /// 应用{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}默认排序
+    /// </summary>
+    /// <remarks>
+    /// 仅在前端未选择任何排序时调用；可在派生类中 override 改为业务默认序。
+    /// </remarks>
+    protected virtual void Apply{{ ClassName }}Sorts(BasicAppPRDto request)
+    {
+        request.Conditions.AddSort(({{ ClassName }} entity) => entity.CreatedTime, SortDirection.Descending, 0);
     }
 }

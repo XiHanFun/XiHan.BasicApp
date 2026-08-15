@@ -38,16 +38,16 @@ export const basePageMeta = {
 /**
  * 列定义（{{ TreeNameColumn.TsProperty }} 承载展开箭头）
  */
+{{~ # 树形取数走 resource.tree（取全量后在内存组树、不接收过滤），故本文件不产出任何 searchable/sortable ~}}
 export const baseFields: ListFieldSchema[] = [
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
 {{~ for col in Columns ~}}
 {{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}
 {{~ if col.ColumnName == TreeNameColumn.ColumnName ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: 'string', treeColumn: true,{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 220, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: 'string', treeColumn: true, minWidth: 220, order: {{ for.index + 1 }} },
 {{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
   { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
 {{~ else ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.QueryType == "Like" || col.QueryType == "Equal" }} searchable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.HtmlType == "DateTimePicker" }}datetime{{ else if col.HtmlType == "DatePicker" }}date{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

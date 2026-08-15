@@ -147,8 +147,24 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
     /// </summary>
     private static IDictionary<string, object?> BuildColumn(ColumnSchema column)
     {
+        // 查询归类：基类列/主键/二进制列不参与查询；日期区间走 conditions.filters，其余等值走 DTO 顶层字段。
+        // 八个模板共用同一判据，避免各写一份长条件导致取数侧与展现侧漂移。
+        var isDateColumn = column.HtmlType is HtmlType.DatePicker or HtmlType.DateTimePicker;
+        var isQueryable = !GeneratedColumnNames.IsBaseColumn(column.ColumnName)
+            && !column.IsPrimaryKey
+            && !CSharpTypeFacts.IsBinary(column.CSharpType);
+        var isRangeQuery = isQueryable && column.QueryType == QueryType.Between && isDateColumn;
+        var isScalarQuery = isQueryable && !isRangeQuery
+            && column.QueryType is QueryType.Equal or QueryType.Between;
+        var isKeywordQuery = isQueryable && column.QueryType == QueryType.Like;
+
         return new Dictionary<string, object?>
         {
+            ["IsDateColumn"] = isDateColumn,
+            ["IsQueryable"] = isQueryable,
+            ["IsScalarQuery"] = isScalarQuery,
+            ["IsRangeQuery"] = isRangeQuery,
+            ["IsKeywordQuery"] = isKeywordQuery,
             ["ColumnName"] = column.ColumnName,
             ["ColumnComment"] = column.ColumnComment,
             ["DbType"] = column.DbType,

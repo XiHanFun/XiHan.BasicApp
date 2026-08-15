@@ -13,6 +13,18 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
+{{~ # 标量搜索取值转换需求（按列类型裁剪辅助函数，避免生成未被引用的函数） ~}}
+{{~ has_scalar_number = false ~}}
+{{~ has_scalar_boolean = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.IsScalarQuery ~}}
+{{~ if col.TsType == "number" ~}}
+{{~ has_scalar_number = true ~}}
+{{~ else if col.TsType == "boolean" ~}}
+{{~ has_scalar_boolean = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{~ # 操作裁剪标志（EnabledActions 门控；读取基线 list/detail 始终生成） ~}}
 {{~ has_modal = CanCreate || CanUpdate ~}}
 {{~ has_row_action = CanUpdate || CanDelete ~}}
@@ -89,7 +101,7 @@ import {
 {{~ end ~}}
   ref,
 } from 'vue'
-import { createPageRequest } from '@/api'
+import { createPageRequest, querySortsFromSchema } from '@/api'
 import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
 {{~ for detail in DetailTables ~}}
 import { {{ detail.ClassNameCamel }}ManagementApi } from '@/api/modules/{{ detail.ModuleName | string.downcase }}/{{ detail.ClassNameKebab }}'
@@ -159,19 +171,49 @@ async function loadDetails(masterId: string) {
 }
 {{~ end ~}}
 
+/** 搜索框取值转文本：空串不参与过滤 */
+function toQueryText(value: unknown) {
+  return typeof value === 'string' ? value.trim() || undefined : undefined
+}
+{{~ if has_scalar_number ~}}
+
+/** 搜索框取值转数字：空串与非法值不参与过滤（搜索控件给的是字符串，直传会被后端严格数字解析拒绝） */
+function toQueryNumber(value: unknown) {
+  if (value === undefined || value === null || value === '') {
+    return undefined
+  }
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? undefined : parsed
+}
+{{~ end ~}}
+{{~ if has_scalar_boolean ~}}
+
+/** 搜索下拉取值转布尔：选项以 1/0 承载（schema 选项类型不接受布尔值） */
+function toQueryBoolean(value: unknown) {
+  if (value === undefined || value === null || value === '') {
+    return undefined
+  }
+  return value === true || value === 1 || value === '1'
+}
+{{~ end ~}}
+
 const schema: PageSchema = {
   ...pageMeta,
   fields,
   actions,
   resource: {
     page: (params) => {
-      const { keyword{{ for col in Columns }}{{ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") }}, {{ col.TsProperty }}{{ end }}{{ end }} } = params.filters
+      const { keyword{{ for col in Columns }}{{ if col.IsScalarQuery }}, {{ col.TsProperty }}{{ end }}{{ end }} } = params.filters
       return {{ ClassNameCamel }}ManagementApi.page({
-        ...createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } }),
-        keyword: (keyword as string | undefined)?.trim() || undefined,
+        ...createPageRequest({
+          page: { pageIndex: params.page, pageSize: params.pageSize },
+          // 排序与区间/多选过滤统一走 conditions，由后端 ApplySorts / 通用过滤应用
+          conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
+        }),
+        keyword: toQueryText(keyword),
 {{~ for col in Columns ~}}
-{{~ if !col.IsBaseColumn && !col.IsPrimaryKey && !col.IsBinary && (col.QueryType == "Equal" || col.QueryType == "Between") ~}}
-        {{ col.TsProperty }}: ({{ col.TsProperty }} as {{ col.TsType }} | undefined) ?? undefined,
+{{~ if col.IsScalarQuery ~}}
+        {{ col.TsProperty }}: {{ if col.TsType == "number" }}toQueryNumber({{ col.TsProperty }}){{ else if col.TsType == "boolean" }}toQueryBoolean({{ col.TsProperty }}){{ else }}toQueryText({{ col.TsProperty }}){{ end }},
 {{~ end ~}}
 {{~ end ~}}
       }) as unknown as Promise<PageResult<Record<string, unknown>>>
