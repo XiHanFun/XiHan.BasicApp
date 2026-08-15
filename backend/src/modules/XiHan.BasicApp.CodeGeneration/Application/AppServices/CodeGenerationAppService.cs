@@ -254,12 +254,27 @@ public sealed class CodeGenerationAppService(
             Status = EnableStatus.Enabled
         };
 
+        // 先判空再落库：没有列的表配置生成不出任何东西，留下它只会变成一条看不出问题的僵尸记录
+        if (suggestion.Columns.Count == 0)
+        {
+            throw new UserFriendlyException(
+                new ResourceLocalizableString("Errors", "CodeGeneration.TableHasNoColumn", tableName),
+                $"数据库表“{tableName}”未读到任何列，无法导入。");
+        }
+
         var tableId = await _tableRepository.AddReturnIdAsync(table, cancellationToken);
 
         var columns = suggestion.Columns.Select(column => MapInferredColumn(tableId, column)).ToList();
-        if (columns.Count > 0)
+        try
         {
             await _tableColumnRepository.AddRangeAsync(columns, cancellationToken);
+        }
+        catch
+        {
+            // 批量导入按表隔离、不包环境事务，表与列是两次独立写入；
+            // 列写失败时回删表配置，否则留下 0 列的僵尸配置
+            _ = await _tableRepository.DeleteByIdAsync(tableId, cancellationToken);
+            throw;
         }
 
         return tableId;

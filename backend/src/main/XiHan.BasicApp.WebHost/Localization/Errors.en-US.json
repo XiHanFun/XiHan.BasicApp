@@ -9,6 +9,7 @@
     "Profile.Credential.NotFoundOrNoPermission": "Credential does not exist or you do not have permission to operate.",
     "CodeGeneration.TableNameRequired": "Database table name cannot be empty.",
     "CodeGeneration.TableAlreadyConfigured": "Database table “{0}” already configured. Do not import again.",
+    "CodeGeneration.TableHasNoColumn": "Database table “{0}” has no readable column and cannot be imported.",
     "Tenant.CodeAlreadyExists": "Tenant code already exists.",
     "Authorization.Role.CodeAlreadyExists": "Role code already exists.",
     "Configuration.Dict.CodeAlreadyExists": "Dictionary code already exists."

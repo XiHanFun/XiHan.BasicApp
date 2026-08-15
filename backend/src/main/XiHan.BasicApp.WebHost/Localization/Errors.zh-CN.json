@@ -9,6 +9,7 @@
     "Profile.Credential.NotFoundOrNoPermission": "凭证不存在或无权操作。",
     "CodeGeneration.TableNameRequired": "数据库表名不能为空。",
     "CodeGeneration.TableAlreadyConfigured": "数据库表“{0}”已配置，请勿重复导入。",
+    "CodeGeneration.TableHasNoColumn": "数据库表“{0}”未读到任何列，无法导入。",
     "Tenant.CodeAlreadyExists": "租户编码已存在。",
     "Authorization.Role.CodeAlreadyExists": "角色编码已存在。",
     "Configuration.Dict.CodeAlreadyExists": "字典编码已存在。"
