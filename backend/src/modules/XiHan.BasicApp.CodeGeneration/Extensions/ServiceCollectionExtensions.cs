@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
 
         // 实体元数据目录（反射一次、进程内缓存）+ 表配置推断引擎
         services.AddSingleton<IEntityMetadataCatalog, EntityMetadataCatalog>();
+        services.AddSingleton<IEnumTypeCatalog, EnumTypeCatalog>();
         services.AddTransient<ITableConfigInferrer, TableConfigInferenceEngine>();
 
         // DbFirst 元数据扫描与生成编排（依赖 Scoped 仓储/元数据提供器）

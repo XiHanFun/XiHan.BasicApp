@@ -2,10 +2,14 @@
 {{~ has_number = false ~}}
 {{~ has_switch = false ~}}
 {{~ has_select = false ~}}
+{{~ has_enum_select = false ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName ~}}
 {{~ if col.DictSelectorType ~}}
 {{~ has_select = true ~}}
+{{~ if col.EnumTypeShortName ~}}
+{{~ has_enum_select = true ~}}
+{{~ end ~}}
 {{~ else if col.HtmlType == "Switch" ~}}
 {{~ has_switch = true ~}}
 {{~ else if col.HtmlType != "Textarea" && col.TsType == "number" ~}}
@@ -88,6 +92,9 @@ import {
 } from 'vue'
 import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
 import { SchemaPage } from '~/components'
+{{~ if has_modal && has_enum_select ~}}
+import { useEnumOptions } from '~/hooks'
+{{~ end ~}}
 import {
   actions,
 {{~ if has_modal ~}}
@@ -163,6 +170,12 @@ function onAction(payload: SchemaActionPayload) {
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.DictSelectorType == "ConstSelector" ~}}
 /** {{ col.ColumnComment | block_comment }}常量选项 */
 const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | js_literal }}
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.EnumTypeShortName ~}}
+/** {{ col.ColumnComment | block_comment }}枚举选项（后端枚举元数据按 X-Language 返回标签） */
+const {{ col.TsProperty }}Options = useEnumOptions('{{ col.EnumTypeShortName }}')
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.DictSelectorType ~}}
+/** {{ col.ColumnComment | block_comment }}选项来源未接通（{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode | block_comment }}{{ else }}枚举 {{ col.EnumTypeName | block_comment }}{{ end }}），需业务层提供 */
+const {{ col.TsProperty }}Options = [{ label: '选项来源未接通', value: -1, disabled: true }]
 {{~ end ~}}
 {{~ end ~}}
 const modalVisible = ref(false)
@@ -299,8 +312,7 @@ async function handleSubmit() {
 {{~ else if col.DictSelectorType == "ConstSelector" ~}}
           <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.TsProperty }}ConstOptions" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
 {{~ else if col.DictSelectorType ~}}
-          <!-- TODO：绑定{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode }}{{ else }}枚举 {{ col.EnumTypeName }}{{ end }} 的选项来源（由业务层提供） -->
-          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="[]" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.TsProperty }}Options" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
 {{~ else if col.HtmlType == "Switch" ~}}
           <NSwitch v-model:value="form.{{ col.TsProperty }}" />
 {{~ else if col.HtmlType == "Textarea" ~}}

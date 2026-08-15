@@ -25,6 +25,7 @@ public sealed class CodeGenerationEngine(
     ICodeGenTemplateRepository templateRepository,
     ITemplateRendererResolver rendererResolver,
     ITypeMappingProvider typeMappingProvider,
+    IEnumTypeCatalog enumTypeCatalog,
     IGeneratedArtifactPackager packager,
     IGeneratedArtifactWriter artifactWriter,
     IPermissionRepository permissionRepository,
@@ -35,6 +36,7 @@ public sealed class CodeGenerationEngine(
     private readonly ICodeGenTemplateRepository _templateRepository = templateRepository;
     private readonly ITemplateRendererResolver _rendererResolver = rendererResolver;
     private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
+    private readonly IEnumTypeCatalog _enumTypeCatalog = enumTypeCatalog;
     private readonly IGeneratedArtifactPackager _packager = packager;
     private readonly IGeneratedArtifactWriter _artifactWriter = artifactWriter;
     private readonly IPermissionRepository _permissionRepository = permissionRepository;
@@ -472,7 +474,46 @@ public sealed class CodeGenerationEngine(
             }
         }
 
+        ResolveEnumFacts(table, column, schema);
         return schema;
+    }
+
+    /// <summary>
+    /// 解析枚举列事实（短名/命名空间/首成员）
+    /// </summary>
+    /// <remarks>
+    /// 判据是「持久化的 C# 类型 == 解析出的枚举短名」：旧表配置里该字段仍是 int，
+    /// 于是契约变更只发生在用户对表主动执行重新同步之后，已上线的表不会被动改。
+    /// 解析不到只告警不阻断，产物退化为无选项来源的下拉。
+    /// </remarks>
+    private void ResolveEnumFacts(SysCodeGenTable table, SysCodeGenTableColumn column, ColumnSchema schema)
+    {
+        if (schema.DictSelectorType == DictSelectorType.DictSelector)
+        {
+            _logger.LogWarning(
+                "表 {Table} 的列 {Column} 配置为字典选择器（字典码 {DictCode}），前端尚无字典选项通道，生成的下拉将是禁用占位项。",
+                table.TableName, column.ColumnName, schema.DictCode);
+            return;
+        }
+
+        if (schema.DictSelectorType != DictSelectorType.EnumSelector)
+        {
+            return;
+        }
+
+        var declaredType = schema.CSharpType.TrimEnd('?');
+        if (_enumTypeCatalog.TryResolve(schema.EnumTypeName, out var facts)
+            && string.Equals(declaredType, facts.ShortName, StringComparison.Ordinal))
+        {
+            schema.EnumTypeShortName = facts.ShortName;
+            schema.EnumNamespace = facts.Namespace;
+            schema.EnumDefaultMember = facts.DefaultMemberName;
+            return;
+        }
+
+        _logger.LogWarning(
+            "表 {Table} 的列 {Column} 配置为枚举选择器，但类型 {EnumType} 未解析、或 C# 类型仍为 {CSharpType}；本次生成的下拉不接选项来源，请对该表执行重新同步。",
+            table.TableName, column.ColumnName, schema.EnumTypeName, schema.CSharpType);
     }
 
     /// <summary>

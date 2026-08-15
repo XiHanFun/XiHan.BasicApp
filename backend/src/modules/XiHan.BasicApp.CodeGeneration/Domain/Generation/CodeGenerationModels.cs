@@ -86,6 +86,15 @@ public sealed class ColumnSchema
     /// <summary>枚举类型全名（EnumSelector 时生效）</summary>
     public string? EnumTypeName { get; set; }
 
+    /// <summary>枚举类型短名（解析成功时非空；与枚举元数据端点的键一致）</summary>
+    public string? EnumTypeShortName { get; set; }
+
+    /// <summary>枚举所在命名空间（解析成功时非空；产物写限定类型名用）</summary>
+    public string? EnumNamespace { get; set; }
+
+    /// <summary>枚举首个成员名（解析成功时非空；表单默认值用）</summary>
+    public string? EnumDefaultMember { get; set; }
+
     /// <summary>常量项 JSON（ConstSelector 时生效）</summary>
     public string? ConstValues { get; set; }
 }

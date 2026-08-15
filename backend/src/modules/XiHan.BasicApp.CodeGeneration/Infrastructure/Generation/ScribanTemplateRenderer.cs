@@ -179,8 +179,14 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["ColumnComment"] = column.ColumnComment,
             ["DbType"] = column.DbType,
             ["CSharpType"] = column.CSharpType,
-            // 类型语义：模板据此选可空判据（值类型解包取 .Value）与跳过二进制列
-            ["IsValueType"] = CSharpTypeFacts.IsValueType(column.CSharpType),
+            // 限定类型名：枚举类型不在生成目标命名空间内，直插短名编译不过。
+            // 产物带 auto-generated 头，全限定名不触发命名简化分析器，也免掉 using 排序问题。
+            ["CSharpTypeQualified"] = column.EnumNamespace is null
+                ? column.CSharpType
+                : $"{column.EnumNamespace}.{column.CSharpType}",
+            // 类型语义：模板据此选可空判据（值类型解包取 .Value）与跳过二进制列。
+            // 枚举短名不在类型名白名单里，但它是值类型，须显式并入
+            ["IsValueType"] = CSharpTypeFacts.IsValueType(column.CSharpType) || column.EnumTypeShortName is not null,
             ["IsBinary"] = CSharpTypeFacts.IsBinary(column.CSharpType),
             ["CSharpProperty"] = column.CSharpProperty,
             // 前端属性名（camelCase，对应后端 camelCase JSON 序列化）
@@ -200,6 +206,10 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["DictSelectorType"] = column.DictSelectorType?.ToString(),
             ["DictCode"] = column.DictCode,
             ["EnumTypeName"] = column.EnumTypeName,
+            // 枚举事实：解析成功时非空，模板据此判定「选项来源是否接通」
+            ["EnumTypeShortName"] = column.EnumTypeShortName,
+            ["EnumNamespace"] = column.EnumNamespace,
+            ["EnumDefaultMember"] = column.EnumDefaultMember,
             ["ConstValues"] = column.ConstValues
         };
     }
