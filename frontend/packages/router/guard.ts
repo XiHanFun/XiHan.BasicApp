@@ -1,6 +1,7 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import type { PermissionInfo } from '~/types'
 import { createDiscreteApi } from 'naive-ui'
+import { isLockedState } from '~/composables/session-lock'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { hydratePreferencesFromBackend, useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
@@ -78,6 +79,12 @@ export function setupRouterGuard(router: Router) {
         accessStore.setAccessCodes(authPermission.permissions)
       }
       catch {
+        // 会话锁定（423）：令牌仍有效，放行进入壳层，锁定遮罩（LockScreen）接管 UI；
+        // 解锁后守卫会重新拉取用户信息与权限。
+        if (isLockedState()) {
+          return true
+        }
+
         accessStore.$reset()
         userStore.$reset()
         return {
@@ -123,6 +130,12 @@ export function setupRouterGuard(router: Router) {
         }
       }
       catch (error) {
+        // 会话锁定（423）：权限/菜单接口在解锁前拿不到，直接放行挂壳（遮罩盖住空白内容区），
+        // 解锁改密成功后重新走守卫即可完整加载。
+        if (isLockedState()) {
+          return true
+        }
+
         // 不能静默吞掉：这里失败等于整个会话拿不到任何动态路由，
         // 之后每次导航都匹配不到而落 404，且无从查起
         console.error('[router] 动态路由加载失败', error)

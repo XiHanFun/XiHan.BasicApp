@@ -10,7 +10,7 @@ import type {
 } from '~/types'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { clearLockState } from '~/composables/session-lock'
+import { clearLockState, isLockedState } from '~/composables/session-lock'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { destroyAllSignalRConnections } from '~/composables/useSignalR'
 import { HOME_PATH, LOGIN_PATH } from '~/constants'
@@ -49,6 +49,15 @@ export const useAuthStore = defineStore('auth', () => {
       ])
     }
     catch (error) {
+      // 会话被服务端锁定（默认密码登录 → 强制改密）：登录本身已成功、令牌有效。
+      // 不能清令牌跳登录页——锁定遮罩（LockScreen 强制改密模式）要接管 UI；
+      // 用户信息/权限接口解锁前都会被 423，直接进入应用壳层，解锁后守卫会重新拉取。
+      if (isLockedState()) {
+        await router.replace(accessStore.homePath || HOME_PATH)
+        loginTask.success(i18n.global.t('island.auth.login_success'))
+        return
+      }
+
       accessStore.$reset()
       userStore.$reset()
       loginTask.error(i18n.global.t('island.auth.login_failed'))
