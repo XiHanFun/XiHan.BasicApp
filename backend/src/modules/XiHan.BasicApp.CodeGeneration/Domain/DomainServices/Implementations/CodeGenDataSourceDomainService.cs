@@ -7,6 +7,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Connections;
 using XiHan.Framework.Utils.Security.Cryptography;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
@@ -27,13 +28,29 @@ public sealed class CodeGenDataSourceDomainService : ICodeGenDataSourceDomainSer
     private const string SecretPassword = "XiHan.CodeGen.DataSource.Secret.v1";
 
     private readonly ICodeGenDataSourceRepository _dataSourceRepository;
+    private readonly IDynamicConnectionRegistrar _connectionRegistrar;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CodeGenDataSourceDomainService(ICodeGenDataSourceRepository dataSourceRepository)
+    public CodeGenDataSourceDomainService(
+        ICodeGenDataSourceRepository dataSourceRepository,
+        IDynamicConnectionRegistrar connectionRegistrar)
     {
         _dataSourceRepository = dataSourceRepository;
+        _connectionRegistrar = connectionRegistrar;
+    }
+
+    /// <summary>
+    /// 注销该数据源已注册的动态连接
+    /// </summary>
+    /// <remarks>
+    /// 连接注册按 ConfigId 记账、命中即短路复用，改了主机口令或停用删除后不注销，
+    /// 进程内会一直用旧连接直到重启。
+    /// </remarks>
+    private void InvalidateConnection(long dataSourceId)
+    {
+        _connectionRegistrar.Unregister(dataSourceId.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /// <summary>
@@ -126,7 +143,9 @@ public sealed class CodeGenDataSourceDomainService : ICodeGenDataSourceDomainSer
         }
         dataSource.IsDefault = command.IsDefault;
 
-        return new CodeGenDataSourceCommandResult(await _dataSourceRepository.UpdateAsync(dataSource, cancellationToken));
+        var updated = await _dataSourceRepository.UpdateAsync(dataSource, cancellationToken);
+        InvalidateConnection(dataSource.BasicId);
+        return new CodeGenDataSourceCommandResult(updated);
     }
 
     /// <summary>
@@ -144,7 +163,9 @@ public sealed class CodeGenDataSourceDomainService : ICodeGenDataSourceDomainSer
         dataSource.Status = command.Status;
         dataSource.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。") ?? dataSource.Remark;
 
-        return new CodeGenDataSourceCommandResult(await _dataSourceRepository.UpdateAsync(dataSource, cancellationToken));
+        var updated = await _dataSourceRepository.UpdateAsync(dataSource, cancellationToken);
+        InvalidateConnection(dataSource.BasicId);
+        return new CodeGenDataSourceCommandResult(updated);
     }
 
     /// <summary>
@@ -159,6 +180,8 @@ public sealed class CodeGenDataSourceDomainService : ICodeGenDataSourceDomainSer
         {
             throw new InvalidOperationException("数据源删除失败。");
         }
+
+        InvalidateConnection(id);
     }
 
     /// <summary>
