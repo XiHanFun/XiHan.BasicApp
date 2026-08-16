@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -26,6 +27,10 @@ public sealed class PermissionRequestDomainService
     private readonly IUserRoleRepository _userRoleRepository;
     private readonly ICurrentTenant _currentTenant;
 
+    private readonly IConstraintRuleEnforcementDomainService _constraintRuleEnforcementDomainService;
+
+    private readonly ILogger<PermissionRequestDomainService> _logger;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -38,7 +43,9 @@ public sealed class PermissionRequestDomainService
         IReviewDomainService reviewDomainService,
         IUserRoleRepository userRoleRepository,
         IUserPermissionRepository userPermissionRepository,
-        ICurrentTenant currentTenant)
+        ICurrentTenant currentTenant,
+        IConstraintRuleEnforcementDomainService constraintRuleEnforcementDomainService,
+        ILogger<PermissionRequestDomainService> logger)
     {
         _permissionRequestRepository = permissionRequestRepository;
         _tenantUserRepository = tenantUserRepository;
@@ -49,6 +56,8 @@ public sealed class PermissionRequestDomainService
         _userRoleRepository = userRoleRepository;
         _userPermissionRepository = userPermissionRepository;
         _currentTenant = currentTenant;
+        _constraintRuleEnforcementDomainService = constraintRuleEnforcementDomainService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -140,6 +149,9 @@ public sealed class PermissionRequestDomainService
         var grantReason = $"权限申请[{request.BasicId}]审批通过自动授权";
         if (request.RoleId is > 0)
         {
+            // SSD 执法：审批自动授予角色与手动授予同一约束语义，违规时阻断审批（申请保持待审批可重试）。
+            await EnsureNoSoDConflictOnApprovalAsync(request.RequestUserId, request.RoleId.Value, cancellationToken);
+
             await _userRoleRepository.AddAsync(new SysUserRole
             {
                 UserId = request.RequestUserId,
@@ -449,6 +461,37 @@ public sealed class PermissionRequestDomainService
         if (exists)
         {
             throw new InvalidOperationException("相同权限或角色的待审批申请已存在。");
+        }
+    }
+
+    /// <summary>
+    /// 审批自动授权前的静态职责分离（SSD）执法：违规阻断审批，申请保持待审批状态可重试。
+    /// </summary>
+    private async Task EnsureNoSoDConflictOnApprovalAsync(long userId, long roleId, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var existingRoleIds = (await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
+            .Select(userRole => userRole.RoleId);
+
+        var result = await _constraintRuleEnforcementDomainService.EvaluateRoleAssignmentsAsync(
+            existingRoleIds.Append(roleId),
+            ConstraintType.SSD,
+            cancellationToken);
+
+        var blocking = result.FirstBlockingViolation;
+        if (blocking is not null)
+        {
+            throw new InvalidOperationException(
+                $"权限申请审批通过将违反职责分离约束规则[{blocking.RuleCode}]《{blocking.RuleName}》（冲突角色主键：{string.Join(",", blocking.MatchedTargetIds)}）。");
+        }
+
+        foreach (var violation in result.Violations)
+        {
+            _logger.LogWarning(
+                "权限申请自动授权命中职责分离约束规则[{RuleCode}]《{RuleName}》，按 {ViolationAction} 处理放行。",
+                violation.RuleCode,
+                violation.RuleName,
+                violation.ViolationAction);
         }
     }
 
