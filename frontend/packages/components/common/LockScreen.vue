@@ -20,9 +20,15 @@ const {
   unlockError,
   unlockLoading,
   logoutLoading,
+  changePwdOld,
+  changePwdNew,
+  changePwdConfirm,
+  changePwdError,
+  changePwdLoading,
   confirmLock,
   cancelLock,
   doUnlock,
+  doChangePassword,
   logoutAndRelogin,
 } = useLockScreen()
 </script>
@@ -126,6 +132,76 @@ const {
               {{ t('component.lock_screen.unlock_btn') }}
             </button>
             <!-- 忘了锁屏口令时的出口：结束会话回登录页，而不是把用户永远困在遮罩里 -->
+            <button
+              type="button"
+              class="lock-text-btn"
+              :disabled="logoutLoading"
+              @click="logoutAndRelogin"
+            >
+              <NIcon size="14" style="vertical-align: -2px; margin-right: 4px">
+                <Icon icon="lucide:log-out" />
+              </NIcon>
+              {{ t('component.lock_screen.logout_btn') }}
+            </button>
+          </form>
+        </template>
+
+        <!-- ③ 强制改密：默认密码登录被服务端锁定（仅放行改密/登出/刷新），改密成功自动解锁 -->
+        <template v-else-if="lockMode === 'password-change'">
+          <div class="lock-screen-hint">
+            {{ t('component.lock_screen.change_password_hint') }}
+          </div>
+          <form class="lock-screen-input-wrap" @submit.prevent="doChangePassword">
+            <NInput
+              v-model:value="changePwdOld"
+              type="password"
+              show-password-on="click"
+              :placeholder="t('component.lock_screen.change_old_password_placeholder')"
+              size="large"
+              autocomplete="current-password"
+            >
+              <template #prefix>
+                <NIcon><Icon icon="lucide:key-round" width="16" /></NIcon>
+              </template>
+            </NInput>
+            <NInput
+              v-model:value="changePwdNew"
+              type="password"
+              show-password-on="click"
+              :placeholder="t('component.lock_screen.change_new_password_placeholder')"
+              size="large"
+              style="margin-top: 8px"
+              :status="changePwdError ? 'error' : undefined"
+              autocomplete="new-password"
+            >
+              <template #prefix>
+                <NIcon><Icon icon="lucide:shield-check" width="16" /></NIcon>
+              </template>
+            </NInput>
+            <NInput
+              v-model:value="changePwdConfirm"
+              type="password"
+              show-password-on="click"
+              :placeholder="t('component.lock_screen.confirm_password_placeholder')"
+              size="large"
+              style="margin-top: 8px"
+              :status="changePwdError ? 'error' : undefined"
+              autocomplete="new-password"
+            >
+              <template #prefix>
+                <NIcon><Icon icon="lucide:shield-check" width="16" /></NIcon>
+              </template>
+            </NInput>
+            <div v-if="changePwdError" class="lock-screen-error">
+              {{ changePwdError }}
+            </div>
+            <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="changePwdLoading">
+              <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
+                <Icon icon="lucide:shield-check" />
+              </NIcon>
+              {{ t('component.lock_screen.change_password_btn') }}
+            </button>
+            <!-- 不想改密的出口：结束会话回登录页（下次登录仍会被锁定，直到改密为止） -->
             <button
               type="button"
               class="lock-text-btn"

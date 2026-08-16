@@ -489,6 +489,12 @@ export default {
     password_mismatch: 'The two passwords do not match',
     lock_failed: 'Failed to lock',
     unlock_failed: 'Failed to unlock',
+    change_password_hint: 'Default password login detected. Please change your password to continue.',
+    change_old_password_placeholder: 'Current password',
+    change_new_password_placeholder: 'New password',
+    change_password_btn: 'Change Password & Unlock',
+    change_password_fields_required: 'Please enter your current and new password',
+    change_password_failed: 'Failed to change password',
   },
   code_editor: {
     copy: 'Copy',

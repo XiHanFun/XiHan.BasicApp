@@ -1,6 +1,6 @@
 // 与 useLockScreen 分开：这里是与 Vue 无关的纯锁定状态读写，
 // 供请求层（423 拦截）和入口（main.ts）调用；useLockScreen 才是绑定组件生命周期的那一层。
-import { LOCK_STATE_KEY } from '~/constants'
+import { LOCK_REASON_KEY, LOCK_STATE_KEY } from '~/constants'
 
 /**
  * 会话锁定原因：**锁定不等于锁屏**，锁屏只是其中一种。
@@ -8,6 +8,12 @@ import { LOCK_STATE_KEY } from '~/constants'
  * 应各自引导对应的解锁方式，而不是一律弹锁屏口令框。
  */
 export const SESSION_LOCK_REASON_SCREEN = 'ScreenLock'
+
+/**
+ * 强制改密：默认密码登录成功即锁定会话（服务端仅放行改密/登出/刷新端点），
+ * 修改密码成功自动解锁。与后端 SessionLockReasons.PasswordChangeRequired 对齐。
+ */
+export const SESSION_LOCK_REASON_PASSWORD_CHANGE = 'PasswordChangeRequired'
 
 /**
  * 本标签页内的锁定态变更事件。
@@ -26,9 +32,15 @@ export function isLockedState() {
   return localStorage.getItem(LOCK_STATE_KEY) === '1'
 }
 
-/** 清除锁定 UI 标记（登出/强制登出时调用） */
+/** 当前锁定原因（ScreenLock / PasswordChangeRequired），未锁定或未知返回 null */
+export function lockedReason(): string | null {
+  return localStorage.getItem(LOCK_REASON_KEY)
+}
+
+/** 清除锁定 UI 标记（登出/强制登出/改密成功后调用） */
 export function clearLockState() {
   localStorage.removeItem(LOCK_STATE_KEY)
+  localStorage.removeItem(LOCK_REASON_KEY)
   notifyLockChanged()
 }
 
@@ -42,9 +54,11 @@ export function clearLockState() {
  * 锁定位存在 `SysUserSession.IsLocked`，中间件会以 423 拒绝该会话的一切请求。
  */
 export function markLockedFromServer(reason?: string | null) {
-  if (reason && reason !== SESSION_LOCK_REASON_SCREEN) {
+  // 只接管已知原因：锁屏 → 口令解锁框；强制改密 → 改密表单。未知原因不接管，交由调用方错误提示。
+  if (!reason || (reason !== SESSION_LOCK_REASON_SCREEN && reason !== SESSION_LOCK_REASON_PASSWORD_CHANGE)) {
     return
   }
   localStorage.setItem(LOCK_STATE_KEY, '1')
+  localStorage.setItem(LOCK_REASON_KEY, reason)
   notifyLockChanged()
 }
