@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { LOCK_STATE_KEY } from '~/constants'
+import { HOME_PATH, LOCK_STATE_KEY } from '~/constants'
 import { useAccessStore, useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 import {
   clearLockState,
@@ -165,8 +165,11 @@ export function useLockScreen() {
         oldPassword: changePwdOld.value,
         newPassword: changePwdNew.value,
       })
-      // 服务端已解锁会话；收起源码引导（登出重登也会经过这里，但改密成功无需再登出）
+      // 服务端已解锁会话；收起引导。锁定期间用户信息/动态路由都被 423 挡下没加载，
+      // 重新导航让守卫完整引导一遍（拉用户信息、装路由），壳层恢复正常。
       releaseLock()
+      const router = await ctx.getRouter()
+      await router.replace(HOME_PATH)
     }
     catch (error) {
       // 会话已失效（被其它设备登出、令牌过期）：请求层 401 已强制登出并清令牌，直接收起引导
