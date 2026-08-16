@@ -165,7 +165,9 @@ public static class ServiceCollectionExtensions
                 "/api/Auth/UnlockSession",
                 "/api/Auth/LockSession",
                 "/api/Auth/Logout",
-                "/api/Auth/RefreshToken"
+                "/api/Auth/RefreshToken",
+                // 强制改密锁（PasswordChangeRequired）的解锁方式就是改密：改密端点必须在锁定期间可达
+                "/api/Profile/ChangePassword"
             ];
         });
         services.AddScoped<IMenuRouteQueryService, MenuRouteQueryService>();
@@ -179,6 +181,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEnumMetadataQueryService, EnumMetadataQueryService>();
         services.AddScoped<IServerInfoQueryService, ServerInfoQueryService>();
         services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
+        services.AddScoped<ILoginThrottleService, LoginThrottleService>();
         // 通知多渠道扇出：发布后按投递渠道扇出到 邮箱/短信（发件箱异步）与 机器人（UoW 提交后广播）
         services.AddScoped<INotificationFanoutService, NotificationFanoutService>();
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();

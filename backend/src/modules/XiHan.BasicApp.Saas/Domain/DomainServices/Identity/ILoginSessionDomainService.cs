@@ -24,6 +24,7 @@ public interface ILoginSessionDomainService
     /// <param name="deviceId">设备标识</param>
     /// <param name="client">客户端信息</param>
     /// <param name="now">当前时间</param>
+    /// <param name="initialLockReason">初始锁定原因（如默认密码登录的强制改密）；null 表示不锁定</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>登录会话签发结果</returns>
     Task<LoginSessionIssueResult> IssuePasswordLoginAsync(
@@ -36,6 +37,7 @@ public interface ILoginSessionDomainService
         string? deviceId,
         ClientInfo client,
         DateTimeOffset now,
+        string? initialLockReason = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -117,6 +117,8 @@ public sealed class AuthAppService
 
     private readonly IWebHostEnvironment _webHostEnvironment;
 
+    private readonly ILoginThrottleService _loginThrottleService;
+
     private readonly IConfiguration _configuration;
 
     private readonly ILogger<AuthAppService> _logger;
@@ -153,12 +155,14 @@ public sealed class AuthAppService
         IPasswordHasher passwordHasher,
         ISaasCacheInvalidator cacheInvalidator,
         IWebHostEnvironment webHostEnvironment,
+        ILoginThrottleService loginThrottleService,
         IConfiguration configuration,
         ILogger<AuthAppService> logger)
     {
         _userSessionRepository = userSessionRepository;
         _passwordHasher = passwordHasher;
         _cacheInvalidator = cacheInvalidator;
+        _loginThrottleService = loginThrottleService;
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
         _authContextQueryService = authContextQueryService;
@@ -509,6 +513,9 @@ public sealed class AuthAppService
         var password = NormalizeRequired(input.Password, "密码不能为空。", 200, "密码不能超过 200 个字符。");
         var now = DateTimeOffset.UtcNow;
 
+        // 防爆破节流：账号+IP 与纯 IP 双维度固定窗口计数，先于昂贵/带副作用的认证流程执行
+        await _loginThrottleService.EnsureLoginAllowedAsync(login, _clientInfoProvider.GetCurrent().IpAddress, cancellationToken);
+
         // 先登录后选租户：登录页不再选择租户，统一在平台态完成身份认证
         // （邮箱全平台唯一定位；平台账号可用用户名），登录成功后按成员关系决定落点
         using var platformScope = _currentTenant.Change(null);
@@ -519,6 +526,9 @@ public sealed class AuthAppService
             tenantId: null,
             now,
             cancellationToken);
+
+        // 默认密码登录 → 会话创建即锁定（强制改密）；两条成功路径共用同一判定
+        var initialLockReason = ResolveInitialLockReason(password);
 
         if (authResult.RequiresTwoFactor)
         {
@@ -535,7 +545,8 @@ public sealed class AuthAppService
             // 已提交验证码：按所选方式校验，未通过抛出（记录失败事件）；通过则继续往下签发令牌
             await VerifyTwoFactorCodeOrThrowAsync(twoFactorUser, security, availableMethods, input.TwoFactorMethod, input.TwoFactorCode, tenantId: null, now, login, cancellationToken);
 
-            var twoFactorToken = await IssueLoginTokenWithLandingAsync(twoFactorUser, security, login, input.DeviceId, now, cancellationToken);
+            await NotifyDefaultPasswordLoginIfNeededAsync(twoFactorUser, initialLockReason, cancellationToken);
+            var twoFactorToken = await IssueLoginTokenWithLandingAsync(twoFactorUser, security, login, input.DeviceId, now, initialLockReason, cancellationToken);
             return new LoginResponseDto
             {
                 RequiresTwoFactor = false,
@@ -562,7 +573,8 @@ public sealed class AuthAppService
         }
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
-        var token = await IssueLoginTokenWithLandingAsync(user, authResult.Security, login, input.DeviceId, now, cancellationToken);
+        await NotifyDefaultPasswordLoginIfNeededAsync(user, initialLockReason, cancellationToken);
+        var token = await IssueLoginTokenWithLandingAsync(user, authResult.Security, login, input.DeviceId, now, initialLockReason, cancellationToken);
 
         return new LoginResponseDto
         {
@@ -655,7 +667,7 @@ public sealed class AuthAppService
         }
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
-        return await IssueLoginTokenWithLandingAsync(user, authResult.Security, user.UserName, input.DeviceId, now, cancellationToken);
+        return await IssueLoginTokenWithLandingAsync(user, authResult.Security, user.UserName, input.DeviceId, now, initialLockReason: null, cancellationToken);
     }
 
     /// <summary>
@@ -1175,6 +1187,45 @@ public sealed class AuthAppService
     /// <summary>
     /// 邮箱+IP 频率限制：同一邮箱+IP 在窗口期（60s）内只允许一次，防刷验证码/重置链接。超限抛友好异常。
     /// </summary>
+    /// <summary>
+    /// 判定本次登录是否需要初始锁定（默认密码登录 → 强制改密锁）
+    /// </summary>
+    private string? ResolveInitialLockReason(string password)
+    {
+        return DefaultPasswordPolicy.IsDefaultPassword(password, _configuration[DefaultPasswordPolicy.SeedPasswordConfigKey])
+            ? SessionLockReasons.PasswordChangeRequired
+            : null;
+    }
+
+    /// <summary>
+    /// 默认密码登录时发送安全告警（尽力而为：通知失败不阻断登录主流程，会话锁才是硬约束）
+    /// </summary>
+    private async Task NotifyDefaultPasswordLoginIfNeededAsync(SysUser user, string? initialLockReason, CancellationToken cancellationToken)
+    {
+        if (initialLockReason != SessionLockReasons.PasswordChangeRequired)
+        {
+            return;
+        }
+
+        try
+        {
+            await _userNotificationDispatchService.DispatchToUserAsync(
+                user.BasicId,
+                "检测到默认密码登录",
+                "您的账号正在使用系统默认密码，会话已被限制。请立即前往「个人中心 - 账号安全」修改密码，修改后即可正常使用。",
+                NotificationType.Security,
+                businessType: "auth.default-password",
+                businessId: user.BasicId,
+                link: "/workbench/profile",
+                icon: "lucide:shield-alert",
+                cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "默认密码登录告警通知发送失败 UserId={UserId}", user.BasicId);
+        }
+    }
+
     private async Task EnsureNotRateLimitedAsync(string scope, string email, CancellationToken cancellationToken)
     {
         var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -1232,7 +1283,7 @@ public sealed class AuthAppService
 
         // 平台态签发，落点（控制中心 / 唯一租户）由统一逻辑决定，与密码登录一致
         using var platformScope = _currentTenant.Change(null);
-        var token = await IssueLoginTokenWithLandingAsync(user, security: null, user.UserName, deviceId: null, now, cancellationToken);
+        var token = await IssueLoginTokenWithLandingAsync(user, security: null, user.UserName, deviceId: null, now, initialLockReason: null, cancellationToken);
         _logger.LogInformation("第三方登录成功 provider={Provider} userId={UserId} 新用户={IsNewUser}", info.Provider, user.BasicId, isNewUser);
         return ExternalLoginResultDto.LoginSuccess(token);
     }
@@ -1475,11 +1526,12 @@ public sealed class AuthAppService
         string loginName,
         string? deviceId,
         DateTimeOffset now,
-        CancellationToken cancellationToken)
+        string? initialLockReason = null,
+        CancellationToken cancellationToken = default)
     {
         var landing = await ResolveLoginLandingAsync(user, now, cancellationToken);
         using var landingScope = _currentTenant.Change(landing?.TenantId, landing?.TenantName);
-        return await IssueLoginTokenAsync(user, security, landing?.TenantId, loginName, deviceId, now, cancellationToken);
+        return await IssueLoginTokenAsync(user, security, landing?.TenantId, loginName, deviceId, now, initialLockReason, cancellationToken);
     }
 
     /// <summary>
@@ -1561,7 +1613,8 @@ public sealed class AuthAppService
         string userName,
         string? deviceId,
         DateTimeOffset now,
-        CancellationToken cancellationToken)
+        string? initialLockReason = null,
+        CancellationToken cancellationToken = default)
     {
         // 构建授权快照（角色 + 权限）
         var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
@@ -1591,6 +1644,7 @@ public sealed class AuthAppService
             deviceId,
             client,
             now,
+            initialLockReason,
             cancellationToken);
 
         // 同设备重新登录被顶下线的旧会话：闸门缓存立即失效，旧令牌马上被拒（不清则最多再活 60s）
