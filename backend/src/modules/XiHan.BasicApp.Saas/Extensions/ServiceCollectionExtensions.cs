@@ -84,6 +84,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserDomainService, UserDomainService>();
         services.AddScoped<IPasswordHistoryDomainService, PasswordHistoryDomainService>();
         services.AddScoped<IConstraintRuleDomainService, ConstraintRuleDomainService>();
+        services.AddScoped<IConstraintRuleEnforcementDomainService, ConstraintRuleEnforcementDomainService>();
         services.AddScoped<IFieldLevelSecurityDomainService, FieldLevelSecurityDomainService>();
         services.AddScoped<IFileDomainService, FileDomainService>();
         services.AddScoped<IStorageConfigDomainService, StorageConfigDomainService>();
