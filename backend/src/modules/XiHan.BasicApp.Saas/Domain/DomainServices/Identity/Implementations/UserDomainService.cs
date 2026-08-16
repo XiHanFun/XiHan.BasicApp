@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
@@ -93,6 +94,10 @@ public sealed class UserDomainService
     /// </summary>
     private readonly IPasswordHistoryDomainService _passwordHistoryDomainService;
 
+    private readonly IConstraintRuleEnforcementDomainService _constraintRuleEnforcementDomainService;
+
+    private readonly ILogger<UserDomainService> _logger;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -111,7 +116,9 @@ public sealed class UserDomainService
         IUserDepartmentRepository userDepartmentRepository,
         IUserSessionRepository userSessionRepository,
         ICurrentTenant currentTenant,
-        IPasswordHistoryDomainService passwordHistoryDomainService)
+        IPasswordHistoryDomainService passwordHistoryDomainService,
+        IConstraintRuleEnforcementDomainService constraintRuleEnforcementDomainService,
+        ILogger<UserDomainService> logger)
     {
         _userRepository = userRepository;
         _userSecurityRepository = userSecurityRepository;
@@ -128,6 +135,8 @@ public sealed class UserDomainService
         _userSessionRepository = userSessionRepository;
         _currentTenant = currentTenant;
         _passwordHistoryDomainService = passwordHistoryDomainService;
+        _constraintRuleEnforcementDomainService = constraintRuleEnforcementDomainService;
+        _logger = logger;
     }
 
     #region 用户核心
@@ -441,6 +450,9 @@ public sealed class UserDomainService
         {
             throw new InvalidOperationException("用户角色已绑定。");
         }
+
+        // SSD 执法：以「现有有效角色 + 拟授予角色」为输入评估静态职责分离约束（含继承链展开）。
+        await EnsureNoSoDConflictAsync(command.UserId, command.RoleId, cancellationToken);
 
         var userRole = new SysUserRole
         {
@@ -1818,6 +1830,38 @@ public sealed class UserDomainService
     }
 
     // ---- 用户角色辅助 ----
+
+    /// <summary>
+    /// 静态职责分离（SSD）执法：评估「现有有效角色 + 拟授予角色」的约束违规。
+    /// 拒绝/需审批类违规直接阻断授予；警告/记录日志类违规放行并留痕。
+    /// </summary>
+    private async Task EnsureNoSoDConflictAsync(long userId, long roleId, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var existingRoleIds = (await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
+            .Select(userRole => userRole.RoleId);
+
+        var result = await _constraintRuleEnforcementDomainService.EvaluateRoleAssignmentsAsync(
+            existingRoleIds.Append(roleId),
+            ConstraintType.SSD,
+            cancellationToken);
+
+        var blocking = result.FirstBlockingViolation;
+        if (blocking is not null)
+        {
+            throw new InvalidOperationException(
+                $"角色授权违反职责分离约束规则[{blocking.RuleCode}]《{blocking.RuleName}》（冲突角色主键：{string.Join(",", blocking.MatchedTargetIds)}）。");
+        }
+
+        foreach (var violation in result.Violations)
+        {
+            _logger.LogWarning(
+                "角色授权命中职责分离约束规则[{RuleCode}]《{RuleName}》，按 {ViolationAction} 处理放行。",
+                violation.RuleCode,
+                violation.RuleName,
+                violation.ViolationAction);
+        }
+    }
 
     /// <summary>
     /// 获取用户角色绑定，不存在时抛出异常
