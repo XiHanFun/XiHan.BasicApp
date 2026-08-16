@@ -119,6 +119,8 @@ public sealed class AuthAppService
 
     private readonly ILoginThrottleService _loginThrottleService;
 
+    private readonly ICaptchaService _captchaService;
+
     private readonly IConfiguration _configuration;
 
     private readonly ILogger<AuthAppService> _logger;
@@ -156,6 +158,7 @@ public sealed class AuthAppService
         ISaasCacheInvalidator cacheInvalidator,
         IWebHostEnvironment webHostEnvironment,
         ILoginThrottleService loginThrottleService,
+        ICaptchaService captchaService,
         IConfiguration configuration,
         ILogger<AuthAppService> logger)
     {
@@ -163,6 +166,7 @@ public sealed class AuthAppService
         _passwordHasher = passwordHasher;
         _cacheInvalidator = cacheInvalidator;
         _loginThrottleService = loginThrottleService;
+        _captchaService = captchaService;
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
         _authContextQueryService = authContextQueryService;
@@ -261,7 +265,21 @@ public sealed class AuthAppService
     public async Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return await _saasConfigurationService.GetLoginConfigAsync(cancellationToken);
+        var config = await _saasConfigurationService.GetLoginConfigAsync(cancellationToken);
+        config.CaptchaEnabled = _captchaService.IsEnabled;
+        return config;
+    }
+
+    /// <summary>
+    /// 获取登录图形验证码（匿名；数字码绘制为 SVG 图片，一次性校验、消费即销毁）
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>验证码挑战（标识 + 图片 + 有效秒数）</returns>
+    [AllowAnonymous]
+    public async Task<CaptchaChallengeDto> GetCaptchaAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return await _captchaService.GenerateAsync(cancellationToken);
     }
 
     /// <summary>
@@ -515,6 +533,12 @@ public sealed class AuthAppService
 
         // 防爆破节流：账号+IP 与纯 IP 双维度固定窗口计数，先于昂贵/带副作用的认证流程执行
         await _loginThrottleService.EnsureLoginAllowedAsync(login, _clientInfoProvider.GetCurrent().IpAddress, cancellationToken);
+
+        // 图形验证码（默认开启）：先于认证流程校验，消费即销毁——校验失败不可重试同一枚码
+        if (_captchaService.IsEnabled && !await _captchaService.TryConsumeAsync(input.CaptchaId, input.CaptchaCode, cancellationToken))
+        {
+            throw new InvalidOperationException("验证码错误或已过期，请重试。");
+        }
 
         // 先登录后选租户：登录页不再选择租户，统一在平台态完成身份认证
         // （邮箱全平台唯一定位；平台账号可用用户名），登录成功后按成员关系决定落点
