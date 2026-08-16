@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormInst, FormRules } from 'naive-ui'
-import type { LoginConfig, LoginResponse } from '~/types'
+import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 import {
   NButton,
   NCheckbox,
@@ -34,7 +34,32 @@ const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
   oAuthProviders: [],
+  captchaEnabled: false,
 })
+
+// ==================== 图形验证码 ====================
+
+const captcha = ref<CaptchaChallenge | null>(null)
+const captchaCode = ref('')
+const captchaLoading = ref(false)
+
+/** 拉取新验证码（页面加载、点击图片、验证码错误提示后调用） */
+async function refreshCaptcha() {
+  if (!loginConfig.value.captchaEnabled) {
+    return
+  }
+  captchaLoading.value = true
+  try {
+    captcha.value = await apis.getCaptchaApi()
+    captchaCode.value = ''
+  }
+  catch (error) {
+    message.error((error as Error)?.message || t('page.login.captcha_load_failed'))
+  }
+  finally {
+    captchaLoading.value = false
+  }
+}
 
 // ==================== 2FA 三阶段状态 ====================
 
@@ -128,6 +153,8 @@ function buildLoginParams() {
   return {
     username: formData.value.username,
     password: formData.value.password,
+    captchaId: loginConfig.value.captchaEnabled ? captcha.value?.captchaId : undefined,
+    captchaCode: loginConfig.value.captchaEnabled ? captchaCode.value || undefined : undefined,
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     deviceId: cachedDeviceId.value || undefined,
@@ -138,6 +165,12 @@ async function handleLogin() {
   try {
     if (tfStage.value === 'credentials') {
       await formRef.value?.validate()
+
+      // 图形验证码：提交前校验非空，避免白白消耗一次登录节流计数
+      if (loginConfig.value.captchaEnabled && (!captcha.value || !captchaCode.value.trim())) {
+        message.warning(t('page.login.captcha_required'))
+        return
+      }
     }
 
     const result: LoginResponse | null = await authStore.login(buildLoginParams(), redirect.value)
@@ -175,6 +208,10 @@ async function handleLogin() {
     const error = err as { message?: string }
     if (error?.message) {
       message.error(error.message)
+    }
+    // 验证码一次性消费：无论对错都已销毁，提示后立即换新码，避免反复撞已销毁的码
+    if (error?.message && error.message.includes('验证码')) {
+      void refreshCaptcha()
     }
   }
 }
@@ -257,6 +294,9 @@ function goTo(path: string) {
 onMounted(async () => {
   try {
     await loadLoginConfig()
+    if (loginConfig.value.captchaEnabled) {
+      await refreshCaptcha()
+    }
   }
   catch (error) {
     message.error((error as Error)?.message || t('page.auth.load_config_failed'))
@@ -454,6 +494,39 @@ onMounted(async () => {
                 </NIcon>
               </template>
             </NInput>
+          </NFormItem>
+          <NFormItem
+            v-if="loginConfig.captchaEnabled"
+            path="captchaCode"
+            :show-feedback="false"
+            class="!mb-6"
+          >
+            <div class="flex items-center gap-3">
+              <NInput
+                v-model:value="captchaCode"
+                size="large"
+                :maxlength="4"
+                :placeholder="t('page.login.captcha_placeholder')"
+                :input-props="{ autocomplete: 'off' }"
+              />
+              <div
+                class="flex justify-center items-center shrink-0 w-[120px] h-[40px] rounded-lg overflow-hidden"
+                :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
+                :title="t('page.login.captcha_refresh_title')"
+                @click="refreshCaptcha"
+              >
+                <img
+                  v-if="captcha?.image"
+                  :src="captcha.image"
+                  :alt="t('page.login.captcha_refresh_title')"
+                  class="w-full h-full cursor-pointer select-none"
+                  draggable="false"
+                >
+                <NIcon v-else-if="captchaLoading" :size="18" class="animate-spin">
+                  <Icon icon="lucide:loader-2" />
+                </NIcon>
+              </div>
+            </div>
           </NFormItem>
           <div class="flex justify-between items-center mb-5 text-sm">
             <NCheckbox v-model:checked="rememberMe">

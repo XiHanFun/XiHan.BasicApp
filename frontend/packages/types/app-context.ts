@@ -1,4 +1,5 @@
 import type {
+  CaptchaChallenge,
   EmailLoginParams,
   LoginConfig,
   LoginParams,
@@ -149,6 +150,7 @@ export interface AppUserInboxDisplayItem extends AppUserInboxItem {
 // 同时 `apis.typo` 也不报错（推成 unknown）。去掉后 packages 侧上百个 ctx.apis.* 调用点获得拼写保护。
 export interface AppContextApis {
   changePasswordApi: (input: ChangePasswordParams) => Promise<unknown>
+  getCaptchaApi: () => Promise<CaptchaChallenge>
   changeUserNameApi: (input: ChangeUserNameParams) => Promise<unknown>
   confirmChangeEmailApi: (code: string) => Promise<unknown>
   confirmChangePhoneApi: (code: string) => Promise<unknown>

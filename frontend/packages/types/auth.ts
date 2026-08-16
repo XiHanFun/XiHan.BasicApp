@@ -36,6 +36,8 @@ export interface LoginConfig {
   loginMethods: string[]
   // 与后端序列化键一致：OAuthProviders 经 camelCase 策略输出为 oAuthProviders
   oAuthProviders: OAuthProviderItem[]
+  /** 密码登录是否要求图形验证码 */
+  captchaEnabled: boolean
 }
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
@@ -43,6 +45,10 @@ export interface LoginParams {
   /** 登录账号（邮箱，全平台唯一；平台账号也可用用户名） */
   username: string
   password: string
+  /** 图形验证码标识（后端要求验证码时必填） */
+  captchaId?: string
+  /** 图形验证码（后端要求验证码时必填） */
+  captchaCode?: string
   /** 双因素验证码（开启 2FA 时必填） */
   twoFactorCode?: string
   /** 用户选择的双因素方式（totp/email/phone） */
@@ -74,6 +80,14 @@ export interface EmailLoginParams {
 export interface VerificationCodeResult {
   expiresInSeconds: number
   debugCode?: string
+}
+
+/** 登录图形验证码挑战 */
+export interface CaptchaChallenge {
+  captchaId: string
+  /** SVG Data URL，直接作为 img src */
+  image: string
+  expiresInSeconds: number
 }
 
 export interface PasswordResetResult {
