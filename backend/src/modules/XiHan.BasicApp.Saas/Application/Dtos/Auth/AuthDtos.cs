@@ -17,6 +17,11 @@ public sealed class LoginConfigDto
     /// OAuth 提供商
     /// </summary>
     public List<OAuthProviderItemDto> OAuthProviders { get; set; } = [];
+
+    /// <summary>
+    /// 密码登录是否要求图形验证码（前端据此展示验证码输入区）
+    /// </summary>
+    public bool CaptchaEnabled { get; set; }
 }
 
 /// <summary>
@@ -49,6 +54,16 @@ public sealed class LoginRequestDto
     /// 密码
     /// </summary>
     public string Password { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 图形验证码标识（登录配置要求验证码时必填）
+    /// </summary>
+    public string? CaptchaId { get; set; }
+
+    /// <summary>
+    /// 图形验证码（登录配置要求验证码时必填）
+    /// </summary>
+    public string? CaptchaCode { get; set; }
 
     /// <summary>
     /// 双因素验证码
