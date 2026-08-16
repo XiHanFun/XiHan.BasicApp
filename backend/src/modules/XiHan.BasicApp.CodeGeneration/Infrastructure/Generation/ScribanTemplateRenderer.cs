@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.RegularExpressions;
 using Scriban;
 using Scriban.Runtime;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
@@ -15,7 +16,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 不走框架 ITemplateService：其 string 默认引擎是简单替换引擎、不解析 Scriban 语法（{{ }}/for/if），
 /// 会把模板原样输出。这里以原生 Scriban 解析 + ScriptObject 注入变量渲染。
 /// </remarks>
-public sealed class ScribanTemplateRenderer : ITemplateRenderer
+public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
 {
     /// <summary>
     /// 渲染器对应的模板引擎
@@ -56,6 +57,14 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
 
         RegisterEscapeFilters(scriptObject);
 
+        // 键前缀不合规不会被前端门禁抓到（其孤儿扫描正则对连字符与非 ASCII 是静默漏检），
+        // 只会在运行期渲染裸键，故在生成期 fail-closed
+        var i18nPrefix = BuildI18nPrefix(context);
+        if (!I18nPrefixRegex().IsMatch(i18nPrefix))
+        {
+            throw new InvalidOperationException($"i18n 键前缀不合规：{i18nPrefix}（模块名与类名须可归一化为 [a-z][a-z0-9_]*）");
+        }
+
         var scribanContext = new TemplateContext { MemberRenamer = member => member.Name };
         scribanContext.PushGlobal(scriptObject);
         return await template.RenderAsync(scribanContext);
@@ -77,8 +86,24 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
         scriptObject.Import("html_attr", new Func<string?, string>(TemplateTextEscaper.HtmlAttribute));
         scriptObject.Import("block_comment", new Func<string?, string>(TemplateTextEscaper.BlockComment));
         scriptObject.Import("html_comment", new Func<string?, string>(TemplateTextEscaper.HtmlComment));
+        scriptObject.Import("i18n_message", new Func<string?, string>(TemplateTextEscaper.I18nMessage));
         scriptObject.Import("js_literal", new Func<string?, string>(TemplateTextEscaper.JsLiteral));
     }
+
+    /// <summary>
+    /// 构建 i18n 键前缀（模块段 + 类名段）
+    /// </summary>
+    private static string BuildI18nPrefix(CodeGenerationContext context)
+    {
+        var moduleSegment = NamingConventions.I18nSegment(MenuPermissionArtifactShared.ModuleSegment(context));
+        return $"{moduleSegment}.{NamingConventions.Snakeize(context.ClassName)}";
+    }
+
+    /// <summary>
+    /// i18n 键前缀合规判据（与前端门禁的孤儿扫描正则同源）
+    /// </summary>
+    [GeneratedRegex(@"^[a-z]\w*(?:\.\w+)+$")]
+    private static partial Regex I18nPrefixRegex();
 
     /// <summary>
     /// 上下文 → Scriban 字典模型（PascalCase 键；Columns 为字典列表）
@@ -98,6 +123,13 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             // 模块名为空时回退到类名：页面码、落盘路径、菜单组件路径都由它推导，
             // 裸值为 null 会产出 pageCode '.sys-product' 与 src/views//sys-product
             ["ModuleName"] = MenuPermissionArtifactShared.ModuleSegment(context),
+            // i18n 键段：模块名是自由输入，直插会同时破坏 TS 对象字面量与前端门禁正则；
+            // 类名段用 snake 与手写页对齐
+            ["I18nNamespace"] = NamingConventions.I18nSegment(MenuPermissionArtifactShared.ModuleSegment(context)),
+            ["ClassNameSnake"] = NamingConventions.Snakeize(context.ClassName),
+            ["I18nPrefix"] = BuildI18nPrefix(context),
+            // en-US 侧唯一素材：列注释只有中文，标识符才是英文
+            ["ClassNameEn"] = NamingConventions.HumanizeIdentifier(context.ClassName),
             ["BusinessName"] = context.BusinessName,
             ["FunctionName"] = context.FunctionName,
             ["Author"] = context.Author,
@@ -134,6 +166,8 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["ClassName"] = table.ClassName,
             ["ClassNameCamel"] = table.ClassNameCamel,
             ["ClassNameKebab"] = table.ClassNameKebab,
+            ["ClassNameSnake"] = NamingConventions.Snakeize(table.ClassName),
+            ["ClassNameEn"] = NamingConventions.HumanizeIdentifier(table.ClassName),
             ["ModuleName"] = table.ModuleName,
             ["Namespace"] = table.Namespace,
             ["ForeignKeyColumn"] = table.ForeignKeyColumn,
@@ -191,6 +225,9 @@ public sealed class ScribanTemplateRenderer : ITemplateRenderer
             ["CSharpProperty"] = column.CSharpProperty,
             // 前端属性名（camelCase，对应后端 camelCase JSON 序列化）
             ["TsProperty"] = Camelize(column.CSharpProperty),
+            // 文案键段与推导英文标签（键段从属性名派生：中文列注释会塌缩成同一个键）
+            ["I18nKey"] = NamingConventions.I18nSegment(column.CSharpProperty),
+            ["EnLabel"] = NamingConventions.HumanizeIdentifier(column.CSharpProperty),
             ["TsType"] = column.TsType,
             ["IsPrimaryKey"] = column.IsPrimaryKey,
             ["IsIdentity"] = column.IsIdentity,
