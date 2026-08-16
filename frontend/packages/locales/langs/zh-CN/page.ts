@@ -17,7 +17,6 @@ export default {
   auth: {
     slogan_title: 'B2B SaaS 中台内核',
     slogan_desc: '工程化、智能化、国际化',
-    welcome_back: '欢迎回来',
     login_subtitle: '请输入您的账号密码以登录管理系统',
     mobile_login: '手机登录',
     email_login: '邮箱登录',
