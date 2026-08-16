@@ -19,6 +19,7 @@ export const USER_INFO_KEY = `${STORAGE_PREFIX}user_info`
  * 锁屏口令**不在客户端存任何形式**（连哈希都不存）：由服务端 PBKDF2 校验。
  */
 export const LOCK_STATE_KEY = `${STORAGE_PREFIX}locked`
+export const LOCK_REASON_KEY = `${STORAGE_PREFIX}lock_reason`
 export const LOCALE_KEY = `${STORAGE_PREFIX}locale`
 export const THEME_MODE_KEY = `${STORAGE_PREFIX}theme_mode`
 export const SIDEBAR_COLLAPSED_KEY = `${STORAGE_PREFIX}sidebar_collapsed`

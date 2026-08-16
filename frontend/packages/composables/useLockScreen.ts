@@ -2,9 +2,15 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { LOCK_STATE_KEY } from '~/constants'
 import { useAccessStore, useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
-import { clearLockState, isLockedState, SESSION_LOCK_CHANGED_EVENT } from './session-lock'
+import {
+  clearLockState,
+  isLockedState,
+  lockedReason,
+  SESSION_LOCK_CHANGED_EVENT,
+  SESSION_LOCK_REASON_PASSWORD_CHANGE,
+} from './session-lock'
 
-export type LockMode = 'off' | 'setting' | 'locked'
+export type LockMode = 'off' | 'setting' | 'locked' | 'password-change'
 
 /**
  * 锁屏：**服务端强制**。
@@ -42,6 +48,12 @@ export function useLockScreen() {
   const logoutLoading = ref(false)
   // 服务端强制锁屏必须有口令，因此锁屏态下永远需要输入密码
   const hasLockPwd = ref(true)
+  // 强制改密态（默认密码登录）：当前密码 / 新密码 / 确认密码
+  const changePwdOld = ref('')
+  const changePwdNew = ref('')
+  const changePwdConfirm = ref('')
+  const changePwdError = ref('')
+  const changePwdLoading = ref(false)
 
   function doLock() {
     lockMode.value = 'setting'
@@ -136,6 +148,39 @@ export function useLockScreen() {
     }
   }
 
+  /** 强制改密：改密成功即由服务端解除会话锁定，前端随后收起引导 */
+  async function doChangePassword() {
+    if (!changePwdOld.value || !changePwdNew.value || !changePwdConfirm.value) {
+      changePwdError.value = t('component.lock_screen.change_password_fields_required')
+      return
+    }
+    if (changePwdNew.value !== changePwdConfirm.value) {
+      changePwdError.value = t('component.lock_screen.password_mismatch')
+      return
+    }
+
+    changePwdLoading.value = true
+    try {
+      await ctx.apis.changePasswordApi({
+        oldPassword: changePwdOld.value,
+        newPassword: changePwdNew.value,
+      })
+      // 服务端已解锁会话；收起源码引导（登出重登也会经过这里，但改密成功无需再登出）
+      releaseLock()
+    }
+    catch (error) {
+      // 会话已失效（被其它设备登出、令牌过期）：请求层 401 已强制登出并清令牌，直接收起引导
+      if (!accessStore.accessToken) {
+        releaseLock()
+        return
+      }
+      changePwdError.value = (error as Error)?.message || t('component.lock_screen.change_password_failed')
+    }
+    finally {
+      changePwdLoading.value = false
+    }
+  }
+
   /** 锁屏页的「退出登录」：不解锁，直接结束会话回登录页 */
   async function logoutAndRelogin() {
     logoutLoading.value = true
@@ -159,6 +204,10 @@ export function useLockScreen() {
     lockPwdError.value = ''
     unlockPwd.value = ''
     unlockError.value = ''
+    changePwdOld.value = ''
+    changePwdNew.value = ''
+    changePwdConfirm.value = ''
+    changePwdError.value = ''
   }
 
   /** 以 localStorage 为准同步本标签页的锁屏 UI 态 */
@@ -171,13 +220,23 @@ export function useLockScreen() {
       releaseLock()
       return
     }
-    if (locked && lockMode.value !== 'locked') {
-      lockMode.value = 'locked'
-      lockAttempts.value = 0
-      unlockPwd.value = ''
-      unlockError.value = ''
+    if (locked && lockMode.value !== 'locked' && lockMode.value !== 'password-change') {
+      // 按锁定原因分派引导：锁屏 → 口令框；强制改密 → 改密表单
+      if (lockedReason() === SESSION_LOCK_REASON_PASSWORD_CHANGE) {
+        lockMode.value = 'password-change'
+        changePwdOld.value = ''
+        changePwdNew.value = ''
+        changePwdConfirm.value = ''
+        changePwdError.value = ''
+      }
+      else {
+        lockMode.value = 'locked'
+        lockAttempts.value = 0
+        unlockPwd.value = ''
+        unlockError.value = ''
+      }
     }
-    else if (!locked && lockMode.value === 'locked') {
+    else if (!locked && (lockMode.value === 'locked' || lockMode.value === 'password-change')) {
       lockMode.value = 'off'
       unlockPwd.value = ''
       unlockError.value = ''
@@ -245,9 +304,15 @@ export function useLockScreen() {
     unlockLoading,
     logoutLoading,
     hasLockPwd,
+    changePwdOld,
+    changePwdNew,
+    changePwdConfirm,
+    changePwdError,
+    changePwdLoading,
     confirmLock,
     cancelLock,
     doUnlock,
+    doChangePassword,
     logoutAndRelogin,
     releaseLock,
   }
