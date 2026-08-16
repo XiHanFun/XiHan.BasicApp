@@ -93,6 +93,50 @@ public static class TemplateTextEscaper
     }
 
     /// <summary>
+    /// 转义为 vue-i18n 消息文本（置于 TS 单引号字面量内）
+    /// </summary>
+    /// <param name="value">原始文本（表注释、列注释）</param>
+    /// <returns>
+    /// 反斜杠与单引号按 TS 字面量转义；<c>@</c> <c>|</c> <c>{</c> <c>}</c> 折成
+    /// vue-i18n 字面量插值的单行文本
+    /// </returns>
+    public static string I18nMessage(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        var collapsed = CollapseNewLines(value);
+        var builder = new StringBuilder(collapsed.Length + 16);
+        foreach (var ch in collapsed)
+        {
+            switch (ch)
+            {
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+                case '\'':
+                    builder.Append("\\'");
+                    break;
+                // @ 链接消息、| 复数分隔、{} 具名插值：均为 vue-i18n 保留字符，
+                // 单趟逐字符处理，避免顺序替换把自己产出的括号再转义一次
+                case '@':
+                case '|':
+                case '{':
+                case '}':
+                    builder.Append("{\\'").Append(ch).Append("\\'}");
+                    break;
+                default:
+                    builder.Append(ch);
+                    break;
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
     /// 转义为 HTML/Vue 双引号属性值内容
     /// </summary>
     /// <param name="value">原始文本</param>
