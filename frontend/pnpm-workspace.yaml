@@ -63,7 +63,7 @@ catalog:
   naive-ui: ^2.44.1
   oxlint: ^1.78.0
   papaparse: ^5.5.4
-  pinia: ^4.0.2
+  pinia: ^4.0.3
   pinyin-pro: ^3.28.1
   prettier: ^3.9.6
   simple-git-hooks: ^2.13.1
