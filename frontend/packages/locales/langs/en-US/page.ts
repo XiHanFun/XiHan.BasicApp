@@ -9,6 +9,10 @@ export default {
     remember_me: 'Remember me',
     forgot_password: 'Forgot password',
     register: 'Register now',
+    captcha_placeholder: 'Enter captcha',
+    captcha_required: 'Please enter the captcha',
+    captcha_refresh_title: 'Click to refresh captcha',
+    captcha_load_failed: 'Failed to load captcha, click to retry',
   },
   auth: {
     slogan_title: 'B2B SaaS Middleware Core',

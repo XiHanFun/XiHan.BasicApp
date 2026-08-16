@@ -9,6 +9,10 @@ export default {
     remember_me: '记住我',
     forgot_password: '忘记密码',
     register: '立即注册',
+    captcha_placeholder: '请输入验证码',
+    captcha_required: '请输入图形验证码',
+    captcha_refresh_title: '点击刷新验证码',
+    captcha_load_failed: '验证码加载失败，请点击重试',
   },
   auth: {
     slogan_title: 'B2B SaaS 中台内核',

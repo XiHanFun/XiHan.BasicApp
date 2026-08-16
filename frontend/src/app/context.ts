@@ -7,6 +7,7 @@ import type {
   AppEnumBatchQuery,
   AppEnumDefinition,
   AppEnumNameQuery,
+  CaptchaChallenge,
   ChangeEmailParams,
   ChangePasswordParams,
   ChangePhoneParams,
@@ -61,6 +62,7 @@ for (const [path, loader] of Object.entries(moduleViewModules)) {
 const defaultLoginConfig: LoginConfig = {
   loginMethods: ['password'],
   oAuthProviders: [],
+  captchaEnabled: false,
 }
 
 function emptyEnum(name: string): AppEnumDefinition {
@@ -131,6 +133,9 @@ function createAuthApis() {
     },
     loginApi(input: LoginParams) {
       return requestClient.post<LoginResponse>('/Auth/Login', input)
+    },
+    getCaptchaApi() {
+      return requestClient.get<CaptchaChallenge>('/Auth/Captcha')
     },
     logoutApi() {
       return postWithFallback('/Auth/Logout', undefined, undefined)
