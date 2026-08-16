@@ -448,9 +448,6 @@ onMounted(async () => {
       <!-- 阶段1：常规登录表单 -->
       <div v-else key="credentials">
         <div class="mb-8">
-          <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
-            {{ t('page.auth.welcome_back') }}
-          </h1>
           <p
             class="mt-3 text-[15px] leading-7"
             :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"

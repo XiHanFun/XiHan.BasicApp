@@ -99,9 +99,6 @@ onBeforeUnmount(() => {
 <template>
   <div class="py-1">
     <div class="mb-8">
-      <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
-        {{ t('page.auth.email_login') }}
-      </h1>
       <p
         class="mt-3 text-[15px] leading-7"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
