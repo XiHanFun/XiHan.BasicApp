@@ -20,4 +20,9 @@ public static class SessionLockReasons
     /// 用户主动锁屏（口令解锁；口令存于 <c>SysUserSession.LockPasswordHash</c>，会话级一次性）
     /// </summary>
     public const string ScreenLock = "ScreenLock";
+
+    /// <summary>
+    /// 强制改密：使用默认密码登录成功即锁定会话，客户端引导改密页；修改密码成功自动解锁
+    /// </summary>
+    public const string PasswordChangeRequired = "PasswordChangeRequired";
 }

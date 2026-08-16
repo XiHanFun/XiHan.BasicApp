@@ -5,6 +5,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Uow.Attributes;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
@@ -39,6 +40,34 @@ public sealed partial class ProfileAppService
             "profile.password.changed",
             result.User.BasicId,
             cancellationToken: cancellationToken);
+
+        // 强制改密锁的解锁方式就是改密：改密成功即解除会话锁定，前端随后收起强制改密引导
+        await ReleasePasswordChangeLockIfNeededAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 当前会话若处于强制改密锁定（默认密码登录），修改密码成功后解除锁定并立即失效会话状态缓存。
+    /// 其它原因的锁定（锁屏等）不受影响。
+    /// </summary>
+    private async Task ReleasePasswordChangeLockIfNeededAsync(CancellationToken cancellationToken)
+    {
+        var sessionBusinessId = _currentUser.FindClaim(XiHanClaimTypes.SessionId)?.Value;
+        if (string.IsNullOrWhiteSpace(sessionBusinessId))
+        {
+            return;
+        }
+
+        var session = await _userSessionRepository.GetByUserSessionIdAsync(sessionBusinessId, cancellationToken);
+        if (session is null || !session.IsLocked || session.LockReason != SessionLockReasons.PasswordChangeRequired)
+        {
+            return;
+        }
+
+        session.IsLocked = false;
+        session.LockReason = null;
+        session.LockPasswordHash = null;
+        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
     }
 
     /// <summary>
