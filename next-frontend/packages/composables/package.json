@@ -1,0 +1,16 @@
+{
+  "name": "@xihan/composables",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@microsoft/signalr": "catalog:",
+    "@xihan-ui/kernel": "catalog:",
+    "@xihan-ui/vue": "catalog:",
+    "@xihan/constants": "workspace:*",
+    "@xihan/locales": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/utils": "workspace:*",
+    "pinyin-pro": "catalog:"
+  }
+}

@@ -1,0 +1,1954 @@
+<script setup lang="ts">
+import type {
+  ApiId,
+  PageResult,
+  PermissionListItemDto,
+  RoleSelectItemDto,
+  UserCreateDto,
+  UserListItemDto,
+  UserManagementDetailDto,
+  UserUpdateDto,
+} from '@/api'
+import type { UserPermissionListItemDto } from '@/api/modules/authorization/user-permission.types'
+import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
+import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
+import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
+import { XhBadge, XhButton, XhCheckbox, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, onMounted, ref, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
+import {
+  createPageRequest,
+  EnableStatus,
+  PermissionAction,
+  permissionApi,
+  querySortsFromSchema,
+  roleApi,
+  SessionStatus,
+  StatisticsPeriod,
+  TenantMemberInviteStatus,
+  TenantMemberType,
+  TwoFactorMethod,
+  UserGender,
+  userManagementApi,
+} from '@/api'
+import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
+import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
+import { dialog, prompt, toast } from '~/composables'
+import { useEnumOptions } from '~/hooks'
+import { formatDate, getOptionLabel } from '~/utils'
+import UserAvatarCell from './UserAvatarCell.vue'
+
+defineOptions({ name: 'SystemUserPage' })
+
+const { t } = useI18n()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
+
+const GENDER_TAG_TYPE: Record<UserGender, 'neutral' | 'info' | 'warning'> = {
+  [UserGender.Unknown]: 'neutral',
+  [UserGender.Male]: 'info',
+  [UserGender.Female]: 'warning',
+}
+
+interface UserFormState {
+  basicId?: ApiId
+  userName: string
+  realName: string
+  nickName: string
+  avatar: string | null
+  email: string
+  phone: string
+  gender: UserGender
+  birthday: number | null
+  country: string
+  status: EnableStatus
+  remark: string
+  initialPassword: string
+  isLocked: boolean
+  multiLogin: boolean
+  maxDev: number
+}
+
+/** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
+const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
+
+// 搜索/表单选项
+const statusOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
+const genderOptions = GENDER_OPTIONS
+
+// 响应式枚举选项（后端本地化单一事实源，切语言自动重取；静态常量作兜底）
+const genderEnumOptions = useEnumOptions('UserGender', GENDER_OPTIONS)
+const statusEnumOptions = useEnumOptions('EnableStatus', statusOptions)
+
+const showFormModal = ref(false)
+const showDetModal = ref(false)
+const showDelModal = ref(false)
+const formTab = ref('0')
+const submitLoading = ref(false)
+const detailLoading = ref(false)
+const currentDetail = ref<UserManagementDetailDto | null>(null)
+const delTarget = ref<{ id: ApiId, name: string } | null>(null)
+
+const roleOptions = ref<RoleSelectItemDto[]>([])
+const deptFlatOptions = ref<{ label: string, value: ApiId }[]>([])
+const selRoleIds = ref<ApiId[]>([])
+const existingRoles = ref<UserRoleListItemDto[]>([])
+const selDeptIds = ref<ApiId[]>([])
+const existingDepts = ref<UserDepartmentListItemDto[]>([])
+
+const userForm = ref<UserFormState>(createDefaultForm())
+
+const formTitle = computed(() =>
+  userForm.value.basicId ? t('identity.user.form_edit_title', { name: userForm.value.userName }) : t('identity.user.form_create_title'),
+)
+
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadList() {
+  void schemaPageRef.value?.reload()
+}
+
+const detUser = computed(() => {
+  const d = currentDetail.value
+  if (!d)
+    return null
+  const u = d.user
+  const sec = d.security
+  const todayStat = d.statistics.find(s => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
+  const onlineSession = d.sessions.find(s => s.status === SessionStatus.Active)
+  const badges: { label: string, cls: string, icon: string }[] = []
+  if (sec) {
+    badges.push(
+      sec.emailVerified
+        ? { label: t('identity.user.badge.email_verified'), cls: 'bdg-ok', icon: 'tabler:mail' }
+        : { label: t('identity.user.badge.email_unverified'), cls: 'bdg-gray', icon: 'tabler:mail' },
+    )
+    badges.push(
+      sec.phoneVerified
+        ? { label: t('identity.user.badge.phone_verified'), cls: 'bdg-ok', icon: 'tabler:phone' }
+        : { label: t('identity.user.badge.phone_unverified'), cls: 'bdg-gray', icon: 'tabler:phone' },
+    )
+    if (sec.twoFactorEnabled) {
+      badges.push({
+        label: `2FA: ${formatTwoFa(sec.twoFactorMethod)}`,
+        cls: 'bdg-info',
+        icon: 'tabler:shield-check',
+      })
+    }
+    if (sec.isLocked)
+      badges.push({ label: t('identity.user.badge.account_locked'), cls: 'bdg-no', icon: 'tabler:lock' })
+    if (sec.failedLoginAttempts > 0) {
+      badges.push({
+        label: t('identity.user.badge.failed_login', { count: sec.failedLoginAttempts }),
+        cls: 'bdg-warn',
+        icon: 'tabler:alert-triangle',
+      })
+    }
+  }
+  const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
+  if (d.tenantMembership && !inviteAccepted) {
+    badges.push({ label: t('identity.user.badge.inactive'), cls: 'bdg-warn', icon: 'tabler:clock-pause' })
+  }
+  return {
+    userName: u.userName,
+    displayName: u.realName || u.nickName || u.userName,
+    initials: getInitials(u),
+    avatar: getAvatarStyle(u.userName),
+    country: u.country ?? '—',
+    gender: getOptionLabel(genderEnumOptions.value, u.gender),
+    roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
+    depts: d.departments.map(dep => dep.departmentName ?? '').filter(Boolean),
+    remark: u.remark,
+    badges,
+    metrics: [
+      {
+        label: t('identity.user.detail.metric.login_count'),
+        value: todayStat?.loginCount ?? 0,
+        icon: 'tabler:login-2',
+        cls: 'det-stat-primary',
+      },
+      {
+        label: t('identity.user.detail.metric.access_count'),
+        value: todayStat?.accessCount ?? 0,
+        icon: 'tabler:activity',
+        cls: 'det-stat-info',
+      },
+      {
+        label: t('identity.user.detail.metric.online_time'),
+        value: `${Math.round((todayStat?.onlineTime ?? 0) / 3600)}h`,
+        icon: 'tabler:clock',
+        cls: 'det-stat-warning',
+      },
+      {
+        label: t('identity.user.detail.metric.current_status'),
+        value: onlineSession ? t('identity.user.detail.online') : t('identity.user.detail.offline'),
+        icon: onlineSession ? 'tabler:wifi' : 'tabler:wifi-off',
+        cls: onlineSession ? 'det-stat-info' : 'det-stat-muted',
+      },
+    ],
+    online: !!onlineSession,
+    lastLoginIp: onlineSession?.ipAddressMasked ?? '—',
+    lastLoginTime: onlineSession
+      ? formatDate(onlineSession.lastActivityTime)
+      : formatNullableDate(u.lastLoginTime),
+    sessionLabel: onlineSession
+      ? `${onlineSession.deviceName || t('identity.user.device_default')} · ${onlineSession.browser || ''}`
+      : '',
+  }
+})
+
+function createDefaultForm(): UserFormState {
+  return {
+    userName: '',
+    realName: '',
+    nickName: '',
+    avatar: null,
+    email: '',
+    phone: '',
+    gender: UserGender.Unknown,
+    birthday: null,
+    country: '',
+    status: EnableStatus.Enabled,
+    remark: '',
+    initialPassword: '',
+    isLocked: false,
+    multiLogin: true,
+    maxDev: 0,
+  }
+}
+
+function getAvatarStyle(name: string) {
+  const tone = AVATAR_TONES[name.charCodeAt(0) % AVATAR_TONES.length]!
+  return {
+    bg: `color-mix(in srgb, var(--n-${tone}-color) 16%, hsl(var(--card)))`,
+    fg: `var(--n-${tone}-color)`,
+  }
+}
+
+function getInitials(row: {
+  realName?: string | null
+  nickName?: string | null
+  userName: string
+}) {
+  const name = row.realName || row.nickName || row.userName
+  return name ? name.substring(0, 2) : '?'
+}
+
+function formatTwoFa(method: number) {
+  const parts: string[] = []
+  if (method & TwoFactorMethod.Totp)
+    parts.push('TOTP')
+  if (method & TwoFactorMethod.Email)
+    parts.push(t('identity.user.twofa_email'))
+  if (method & TwoFactorMethod.Phone)
+    parts.push(t('identity.user.twofa_phone'))
+  return parts.join('+') || '—'
+}
+
+function formatNullableDate(value?: string | null) {
+  return value ? formatDate(value) : '—'
+}
+
+function normalizeStr(value?: string | null) {
+  const v = value?.trim()
+  return v || null
+}
+
+function flattenDeptOptions(
+  nodes: DepartmentTreeNodeDto[],
+  depth = 0,
+): { label: string, value: ApiId }[] {
+  const out: { label: string, value: ApiId }[] = []
+  for (const n of nodes) {
+    out.push({ label: `${'　'.repeat(depth)}${n.departmentName}`, value: n.basicId })
+    if (n.children?.length)
+      out.push(...flattenDeptOptions(n.children, depth + 1))
+  }
+  return out
+}
+
+// ── 过滤值辅助：trim 字符串（gender/status 均为后端字符串枚举） ──────
+function toStr(v: unknown): string | undefined {
+  return (v as string | undefined)?.trim() || undefined
+}
+
+/** 查询构建（resource.page 与导出快照复用）。排序：前端选择下发 conditions.sorts，后端 FLS 门控 + 默认兜底 */
+function buildUserQuery(params: SchemaQueryParams) {
+  const f = params.filters
+  return {
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      // 排序 + 区间(createdTime)/多选(status) 等通用过滤统一走 conditions
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
+    }),
+    keyword: toStr(f.keyword),
+    gender: toStr(f.gender) as UserGender | undefined,
+    // status 改为多选，经 conditions.filters In 下发（不再走 DTO 顶层 status 单值字段）
+  }
+}
+
+// ── 字段单一事实源：列 + 常用搜索 ──────────────────────────────────
+const fields = computed<ListFieldSchema[]>(() => [
+  // 仅搜索（不作为列）
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.user.keyword_placeholder'), width: 240, order: 0 },
+  // 头像（仅列）
+  {
+    key: 'avatar',
+    title: t('identity.user.col_avatar'),
+    dataType: 'string',
+    width: 80,
+    order: 1,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const c = getAvatarStyle(r.userName)
+      return h(UserAvatarCell, {
+        avatar: r.avatar,
+        name: r.realName || r.nickName || r.userName,
+        bg: c.bg,
+        fg: c.fg,
+        size: 40,
+      })
+    },
+  },
+  // 用户信息（仅列）
+  {
+    key: 'userName',
+    title: t('identity.user.col_user_info'),
+    dataType: 'string',
+    minWidth: 180,
+    order: 2,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const display = r.realName || r.nickName || r.userName
+      const nickLine = r.nickName && r.nickName !== display ? r.nickName : null
+      const subLine = nickLine ? `${nickLine} · @${r.userName}` : `@${r.userName}`
+      return h('div', { class: 'tbl-cell-2l' }, [
+        h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
+          display,
+          r.isSystemAccount ? h('span', { class: 'sys-tag' }, t('identity.user.tag_system')) : null,
+        ]),
+        h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
+      ])
+    },
+  },
+  // 性别（常用搜索 + 列）
+  {
+    key: 'gender',
+    title: t('identity.user.col_gender'),
+    dataType: 'enum',
+    searchable: true,
+    dictionaryCode: 'UserGender',
+    options: genderOptions,
+    searchPlaceholder: t('identity.user.gender_placeholder'),
+    width: 80,
+    order: 3,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const label = getOptionLabel(genderEnumOptions.value, r.gender)
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: GENDER_TAG_TYPE[r.gender] ?? 'neutral', style: { fontSize: '11px', fontWeight: 500 } }, () => label)
+    },
+  },
+  // 地区/语言（仅列）
+  {
+    key: 'locale',
+    title: t('identity.user.col_locale'),
+    dataType: 'string',
+    width: 140,
+    order: 4,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return h('div', { class: 'tbl-cell-2l' }, [
+        h('div', { class: 'tbl-cell-2l__primary' }, r.country || '—'),
+      ])
+    },
+  },
+  // 账号状态（常用搜索 + 列）
+  {
+    key: 'status',
+    title: t('identity.user.col_status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    dictionaryCode: 'EnableStatus',
+    options: statusOptions,
+    searchPlaceholder: t('identity.user.status_placeholder'),
+    width: 100,
+    order: 5,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger', style: { fontSize: '11px', fontWeight: 500 } }, () => (r.status === EnableStatus.Enabled ? t('identity.user.status_enabled') : t('identity.user.status_disabled')))
+    },
+  },
+  // 角色（仅列，来自后端批量聚合 roleNames）
+  {
+    key: 'roleNames',
+    title: t('identity.user.col_roles'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 5.1,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const names = r.roleNames ?? []
+      if (names.length === 0) {
+        return h('span', { class: 'text-foreground/40' }, '—')
+      }
+      return h('div', { class: 'flex flex-wrap gap-1' }, names.map(name =>
+        h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info', style: { fontSize: '11px' } }, () => name)))
+    },
+  },
+  // 部门（仅列，主部门名称）
+  {
+    key: 'departmentName',
+    title: t('identity.user.col_department'),
+    dataType: 'string',
+    minWidth: 120,
+    order: 5.2,
+    // 与角色列同款标签，但取中性色以示区分（角色为 info）
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return r.departmentName
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', style: { fontSize: '11px' } }, () => r.departmentName)
+        : h('span', { class: 'text-foreground/40' }, '—')
+    },
+  },
+  // 安全标记（仅列，锁定 / 双因素）
+  {
+    key: 'security',
+    title: t('identity.user.col_security'),
+    dataType: 'string',
+    width: 120,
+    order: 5.3,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      const tags = []
+      if (r.isLocked) {
+        tags.push(h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'danger', style: { fontSize: '11px' } }, () => t('identity.user.security_locked')))
+      }
+      if (r.twoFactorEnabled) {
+        tags.push(h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'success', style: { fontSize: '11px' } }, () => '2FA'))
+      }
+      if (tags.length === 0) {
+        return h('span', { class: 'text-foreground/40' }, t('identity.user.security_normal'))
+      }
+      return h('div', { class: 'flex flex-wrap gap-1' }, tags)
+    },
+  },
+  // 最后登录（仅列）
+  {
+    key: 'lastLoginTime',
+    title: t('identity.user.col_last_login'),
+    dataType: 'datetime',
+    minWidth: 150,
+    order: 6,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return formatNullableDate(r.lastLoginTime)
+    },
+  },
+  // 最后登录 IP（仅列）
+  {
+    key: 'lastLoginIp',
+    title: t('identity.user.col_last_login_ip'),
+    dataType: 'string',
+    minWidth: 130,
+    order: 6.1,
+    render: (row) => {
+      const r = row as unknown as UserListItemDto
+      return r.lastLoginIp || h('span', { class: 'text-foreground/40' }, '—')
+    },
+  },
+  // 创建时间（仅列）
+  { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, width: 170, order: 7 },
+])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'system.user',
+  exportPermission: 'saas:user:export',
+  pageName: t('identity.user.page_name'),
+  batchRemovable: true,
+  removePermission: 'saas:user:delete',
+  statusPermission: 'saas:user:status',
+  rowKey: 'basicId',
+  scrollX: 1760,
+  fields: fields.value,
+  resource: {
+    page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    remove: id => userManagementApi.delete(id),
+    updateStatus: (id, enabled) => userManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
+    export: { businessType: 'system.user', buildQuery: buildUserQuery },
+  },
+  actions: [
+    { key: 'create', title: t('identity.user.action_create'), scope: 'page', type: 'primary', icon: 'tabler:plus' },
+    { key: 'view', title: t('identity.user.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'grant', title: t('identity.user.action_grant'), scope: 'row', icon: 'lucide:key-round' },
+    { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', icon: 'lucide:lock' },
+    { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', icon: 'lucide:key-square' },
+    {
+      key: 'resetOtp',
+      title: t('identity.user.action_reset_otp'),
+      scope: 'row',
+      icon: 'lucide:shield-off',
+      visible: row => (row as unknown as UserListItemDto).twoFactorEnabled,
+    },
+    { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', icon: 'lucide:log-out' },
+    {
+      key: 'delete',
+      title: t('identity.user.action_delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      visible: row => !(row as unknown as UserListItemDto).isSystemAccount,
+    },
+  ],
+}))
+
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as UserListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      openCreate()
+      break
+    case 'view':
+      if (row)
+        void openDetail(row.basicId)
+      break
+    case 'edit':
+      if (row)
+        void openEdit(row.basicId)
+      break
+    case 'grant':
+      if (row)
+        void openGrantDrawer(row)
+      break
+    case 'lock':
+      if (row)
+        void toggleLock(row)
+      break
+    case 'resetPassword':
+      if (row)
+        resetPassword(row)
+      break
+    case 'resetOtp':
+      if (row)
+        resetOtp(row)
+      break
+    case 'logout':
+      if (row)
+        forceLogout(row)
+      break
+    case 'delete':
+      if (row)
+        openDelete(row)
+      break
+  }
+}
+
+function closeModals() {
+  showFormModal.value = false
+  showDetModal.value = false
+  showDelModal.value = false
+}
+
+function openCreate() {
+  userForm.value = createDefaultForm()
+  selRoleIds.value = []
+  selDeptIds.value = []
+  existingRoles.value = []
+  existingDepts.value = []
+  formTab.value = '0'
+  showFormModal.value = true
+}
+
+async function loadOptions() {
+  try {
+    const [roles, tree] = await Promise.all([
+      roleApi.enabledList({ limit: 200 }),
+      userManagementApi.departments.tree({ limit: 500, onlyEnabled: true }),
+    ])
+    roleOptions.value = roles
+    deptFlatOptions.value = flattenDeptOptions(tree)
+  }
+  catch {
+    toast.warning(t('identity.user.msg_load_options_failed'))
+  }
+}
+
+onMounted(() => {
+  void loadOptions()
+})
+
+async function fillFormFromDetail(detail: UserManagementDetailDto) {
+  const u = detail.user
+  const sec = detail.security
+  userForm.value = {
+    basicId: u.basicId,
+    userName: u.userName,
+    realName: u.realName ?? '',
+    nickName: u.nickName ?? '',
+    avatar: u.avatar ?? null,
+    email: u.email ?? '',
+    phone: u.phone ?? '',
+    gender: u.gender,
+    birthday: u.birthday ? new Date(u.birthday).getTime() : null,
+    country: u.country ?? '',
+    status: u.status,
+    remark: u.remark ?? '',
+    initialPassword: '',
+    isLocked: sec?.isLocked ?? false,
+    multiLogin: sec?.allowMultiLogin ?? true,
+    maxDev: sec?.maxLoginDevices ?? 0,
+  }
+  existingRoles.value = detail.roles
+  existingDepts.value = detail.departments
+  selRoleIds.value = detail.roles.map(r => r.roleId)
+  selDeptIds.value = detail.departments.map(d => d.departmentId)
+}
+
+async function openEdit(id: ApiId) {
+  try {
+    const detail = await userManagementApi.detailView(id)
+    if (!detail) {
+      toast.warning(t('identity.user.msg_user_not_found'))
+      return
+    }
+    await fillFormFromDetail(detail)
+    formTab.value = '0'
+    showFormModal.value = true
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('identity.user.msg_load_user_failed'))
+  }
+}
+
+async function openDetail(id: ApiId) {
+  showDetModal.value = true
+  detailLoading.value = true
+  currentDetail.value = null
+  try {
+    currentDetail.value = await userManagementApi.detailView(id)
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('identity.user.msg_load_detail_failed'))
+  }
+  finally {
+    detailLoading.value = false
+  }
+}
+
+function openDelete(row: UserListItemDto) {
+  if (row.isSystemAccount)
+    return
+  delTarget.value = { id: row.basicId, name: row.userName }
+  showDelModal.value = true
+}
+
+function togglePick(arr: ApiId[], id: ApiId) {
+  const i = arr.indexOf(id)
+  if (i >= 0)
+    arr.splice(i, 1)
+  else arr.push(id)
+}
+
+async function syncRoles(userId: ApiId) {
+  const current = existingRoles.value
+  const selected = new Set(selRoleIds.value)
+  for (const role of roleOptions.value) {
+    const bound = current.find(c => c.roleId === role.basicId)
+    const want = selected.has(role.basicId)
+    if (want && !bound) {
+      await userManagementApi.roles.grant({ userId, roleId: role.basicId })
+    }
+    else if (!want && bound) {
+      await userManagementApi.roles.revoke(bound.basicId)
+    }
+  }
+}
+
+async function syncDepartments(userId: ApiId) {
+  const current = existingDepts.value
+  const selected = new Set(selDeptIds.value)
+  for (const depId of deptFlatOptions.value.map(d => d.value)) {
+    const bound = current.find(c => c.departmentId === depId)
+    const want = selected.has(depId)
+    if (want && !bound) {
+      await userManagementApi.userDepartments.assign({
+        userId,
+        departmentId: depId,
+        isMain: selected.size === 1 || !current.some(c => c.isMain),
+      })
+    }
+    else if (!want && bound) {
+      await userManagementApi.userDepartments.revoke(bound.basicId)
+    }
+  }
+}
+
+async function saveUser() {
+  const form = userForm.value
+  if (!form.userName.trim()) {
+    toast.warning(t('identity.user.msg_username_required'))
+    formTab.value = '0'
+    return
+  }
+  if (!form.basicId && !form.initialPassword.trim()) {
+    toast.warning(t('identity.user.msg_initial_password_required'))
+    formTab.value = '0'
+    return
+  }
+  submitLoading.value = true
+  try {
+    let userId = form.basicId
+    if (userId) {
+      const updateInput: UserUpdateDto = {
+        basicId: userId,
+        avatar: form.avatar,
+        birthday: form.birthday ? new Date(form.birthday).toISOString() : null,
+        country: normalizeStr(form.country),
+        email: normalizeStr(form.email),
+        gender: form.gender,
+        nickName: normalizeStr(form.nickName),
+        phone: normalizeStr(form.phone),
+        realName: normalizeStr(form.realName),
+        remark: normalizeStr(form.remark),
+      }
+      await userManagementApi.update(updateInput)
+      if (form.status !== undefined) {
+        await userManagementApi.updateStatus({ basicId: userId, status: form.status })
+      }
+    }
+    else {
+      const createInput: UserCreateDto = {
+        userName: form.userName.trim(),
+        initialPassword: form.initialPassword,
+        realName: normalizeStr(form.realName),
+        nickName: normalizeStr(form.nickName),
+        email: normalizeStr(form.email),
+        phone: normalizeStr(form.phone),
+        gender: form.gender,
+        birthday: form.birthday ? new Date(form.birthday).toISOString() : null,
+        status: form.status,
+        country: normalizeStr(form.country),
+        memberType: TenantMemberType.Member,
+        remark: normalizeStr(form.remark),
+        avatar: null,
+        displayName: null,
+        effectiveTime: null,
+        expirationTime: null,
+        inviteRemark: null,
+      }
+      const created = await userManagementApi.create(createInput)
+      userId = created.basicId
+    }
+
+    if (userId) {
+      await userManagementApi.security.updateLock({
+        userId,
+        isLocked: form.isLocked,
+        lockoutEndTime: null,
+      })
+      await userManagementApi.security.updateLoginPolicy({
+        userId,
+        allowMultiLogin: form.multiLogin,
+        maxLoginDevices: form.maxDev || 0,
+      })
+      await syncRoles(userId)
+      await syncDepartments(userId)
+    }
+
+    toast.success(t('common.messages.save_success'))
+    closeModals()
+    reloadList()
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+  }
+  finally {
+    submitLoading.value = false
+  }
+}
+
+async function toggleLock(row: UserListItemDto) {
+  try {
+    const detail = await userManagementApi.detailView(row.basicId)
+    const locked = detail?.security?.isLocked ?? false
+    await userManagementApi.security.updateLock({
+      userId: row.basicId,
+      isLocked: !locked,
+      lockoutEndTime: null,
+    })
+    toast.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
+    reloadList()
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('common.messages.operation_failed'))
+  }
+}
+
+function displayName(row: UserListItemDto): string {
+  return row.nickName || row.userName
+}
+
+function forceLogout(row: UserListItemDto) {
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
+    title: t('identity.user.logout_title'),
+    content: t('identity.user.logout_content', { name: displayName(row) }),
+    okText: t('identity.user.logout_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await userManagementApi.sessions.revokeUserSessions({
+          userId: row.basicId,
+          reason: t('identity.user.logout_reason'),
+        })
+        toast.success(t('identity.user.logout_done'))
+        reloadList()
+      }
+      catch (error) {
+        toast.error((error as Error)?.message || t('identity.user.logout_failed'))
+      }
+    },
+  })
+}
+
+/** 生成临时密码：大小写 + 数字 + 符号，规避易混淆字符（0O1lI） */
+function generateTempPassword(length = 12): string {
+  const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ'
+  const lower = 'abcdefghjkmnpqrstuvwxyz'
+  const digits = '23456789'
+  const symbols = '!@#$%&*'
+  const all = upper + lower + digits + symbols
+  const buf = new Uint32Array(length)
+  crypto.getRandomValues(buf)
+  const pick = (set: string, seed: number) => set[seed % set.length]!
+  const chars = [pick(upper, buf[0]!), pick(lower, buf[1]!), pick(digits, buf[2]!), pick(symbols, buf[3]!)]
+  for (let i = chars.length; i < length; i++) {
+    chars.push(pick(all, buf[i]!))
+  }
+  // Fisher-Yates 打乱（复用随机源）
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = buf[i]! % (i + 1)
+    ;[chars[i], chars[j]] = [chars[j]!, chars[i]!]
+  }
+  return chars.join('')
+}
+
+function resetPassword(row: UserListItemDto) {
+  const tempPassword = generateTempPassword()
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('identity.user.reset_password_title'),
+    content: t('identity.user.reset_password_content', { name: displayName(row) }),
+    okText: t('identity.user.reset_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await userManagementApi.security.resetPassword({
+          userId: row.basicId,
+          newPassword: tempPassword,
+          remark: t('identity.user.reset_password_reason'),
+        })
+        // 新密码要能被选中复制，正文得放一个只读输入框——命令式确认框的正文只收 string，
+        // 因此这一步走取值弹窗：字段只读，确认即复制
+        void prompt({
+          title: t('identity.user.reset_password_done_title'),
+          description: t('identity.user.reset_password_done_content', { name: displayName(row) }),
+          okText: t('identity.user.reset_password_copy'),
+          cancelText: t('common.actions.close'),
+          fields: [{ key: 'password', value: tempPassword }],
+          onOk: () => {
+            void navigator.clipboard?.writeText(tempPassword)
+            toast.success(t('identity.user.reset_password_copied'))
+          },
+        })
+      }
+      catch (error) {
+        toast.error((error as Error)?.message || t('identity.user.reset_password_failed'))
+      }
+    },
+  })
+}
+
+function resetOtp(row: UserListItemDto) {
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('identity.user.reset_otp_title'),
+    content: t('identity.user.reset_otp_content', { name: displayName(row) }),
+    okText: t('identity.user.reset_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await userManagementApi.security.resetTwoFactor({
+          userId: row.basicId,
+          remark: t('identity.user.reset_otp_reason'),
+        })
+        toast.success(t('identity.user.reset_otp_done'))
+        reloadList()
+      }
+      catch (error) {
+        toast.error((error as Error)?.message || t('identity.user.reset_otp_failed'))
+      }
+    },
+  })
+}
+
+// ── 权限直授抽屉（角色直授 + 权限直授 Grant/Deny） ──────────────
+const grantVisible = ref(false)
+const grantUser = ref<UserListItemDto | null>(null)
+const grantTab = ref('role')
+const grantLoading = ref(false)
+const grantRoleList = ref<UserRoleListItemDto[]>([])
+const grantPermList = ref<UserPermissionListItemDto[]>([])
+const permCatalog = ref<PermissionListItemDto[]>([])
+const permPanelRef = ref<{ reset: () => void } | null>(null)
+const grantBusyId = ref<ApiId | null>(null)
+const permActions = ref<Map<ApiId, PermissionAction>>(new Map())
+const permDirty = ref(false)
+
+/** roleId → 用户角色授权记录 */
+const grantRoleByRoleId = computed(() => {
+  const map = new Map<ApiId, UserRoleListItemDto>()
+  for (const item of grantRoleList.value) {
+    map.set(item.roleId, item)
+  }
+  return map
+})
+
+async function loadPermCatalog() {
+  if (permCatalog.value.length) {
+    return
+  }
+  permCatalog.value = await permissionApi.catalog()
+}
+
+async function openGrantDrawer(row: UserListItemDto) {
+  grantUser.value = row
+  grantVisible.value = true
+  grantTab.value = 'role'
+  permPanelRef.value?.reset()
+  grantLoading.value = true
+  try {
+    const [roles, perms] = await Promise.all([
+      userManagementApi.roles.list(row.basicId),
+      // 撤销直授是把行置为失效而非删行，只取有效行，否则撤销后按钮仍显示为已授予
+      userManagementApi.permissions.list(row.basicId, true),
+    ])
+    grantRoleList.value = roles
+    grantPermList.value = perms
+    derivePermActions()
+    await loadPermCatalog()
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('identity.user.grant_load_failed'))
+  }
+  finally {
+    grantLoading.value = false
+  }
+}
+
+async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
+  if (!grantUser.value || grantBusyId.value != null) {
+    return
+  }
+  grantBusyId.value = role.basicId
+  try {
+    if (checked) {
+      await userManagementApi.roles.grant({ userId: grantUser.value.basicId, roleId: role.basicId })
+      toast.success(t('identity.user.grant_role_granted', { name: role.roleName }))
+    }
+    else {
+      const bound = grantRoleByRoleId.value.get(role.basicId)
+      if (bound) {
+        await userManagementApi.roles.revoke(bound.basicId)
+        toast.success(t('identity.user.grant_role_revoked', { name: role.roleName }))
+      }
+    }
+    grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('common.messages.operation_failed'))
+  }
+  finally {
+    grantBusyId.value = null
+  }
+}
+
+/** 本地三态：打开抽屉时由有效直授推导，之后只改本地，保存时一次性提交 */
+function derivePermActions() {
+  const map = new Map<ApiId, PermissionAction>()
+  for (const item of grantPermList.value) {
+    map.set(item.permissionId, item.permissionAction)
+  }
+  permActions.value = map
+  permDirty.value = false
+}
+
+function setPermGrant(permission: PermissionListItemDto, action: PermissionAction) {
+  const next = new Map(permActions.value)
+  if (next.get(permission.basicId) === action) {
+    // 再次点击当前态 → 取消直授（回到未设置）
+    next.delete(permission.basicId)
+  }
+  else {
+    next.set(permission.basicId, action)
+  }
+  permActions.value = next
+  permDirty.value = true
+}
+
+async function savePermGrants() {
+  const user = grantUser.value
+  if (!user || grantLoading.value) {
+    return
+  }
+  const current = new Map(grantPermList.value.map(item => [item.permissionId, item] as const))
+  // 新增或改了动作的才下发；动作没变的不必重复提交
+  const grants = [...permActions.value.entries()]
+    .filter(([permissionId, action]) => current.get(permissionId)?.permissionAction !== action)
+    .map(([permissionId, permissionAction]) => ({ permissionId, permissionAction }))
+  const revokeIds = [...current.entries()]
+    .filter(([permissionId]) => !permActions.value.has(permissionId))
+    .map(([, item]) => item.basicId)
+  if (grants.length === 0 && revokeIds.length === 0) {
+    toast.info(t('identity.user.grant_perm_no_change'))
+    permDirty.value = false
+    return
+  }
+  grantLoading.value = true
+  try {
+    await userManagementApi.permissions.batchUpdate({
+      userId: user.basicId,
+      grants,
+      revokeUserPermissionIds: revokeIds,
+    })
+    grantPermList.value = await userManagementApi.permissions.list(user.basicId, true)
+    derivePermActions()
+    toast.success(t('identity.user.grant_perm_saved', { grant: grants.length, revoke: revokeIds.length }))
+  }
+  catch (e: unknown) {
+    toast.error((e as Error)?.message || t('common.messages.save_failed'))
+  }
+  finally {
+    grantLoading.value = false
+  }
+}
+
+async function confirmDelete() {
+  if (!delTarget.value)
+    return
+  try {
+    await userManagementApi.delete(delTarget.value.id)
+    toast.success(t('identity.user.msg_user_deleted'))
+    closeModals()
+    reloadList()
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+  }
+}
+</script>
+
+<template>
+  <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
+    <!-- 新建/编辑：统一编辑弹窗外壳 + 表单网格 -->
+    <XEditModal
+      v-model:show="showFormModal"
+      :title="formTitle"
+      :loading="submitLoading"
+      :form-id="editFormId"
+      @cancel="closeModals"
+    >
+      <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+      <XhTabsRoot v-model:value="formTab" variant="line">
+        <XhTabsList>
+          <XhTabsTrigger value="0">
+            {{ t('identity.user.tab_basic') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="1">
+            {{ t('identity.user.tab_security') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="2">
+            {{ t('identity.user.tab_roles') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="3">
+            {{ t('identity.user.tab_departments') }}
+          </XhTabsTrigger>
+        </XhTabsList>
+        <XhTabsContent value="0">
+          <!-- NForm 渲染真实 form 元素：密码输入必须在 form 内，否则浏览器告警 -->
+          <XhFormRoot
+            :id="editFormId"
+            validate-on="blur"
+            class="xh-edit-form-grid"
+            @submit="saveUser"
+          >
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="userForm.userName"
+                  :placeholder="t('identity.user.ph_username')"
+                  :disabled="!!userForm.basicId"
+                  :input-props="{ autocomplete: 'off' }"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" :input-props="{ autocomplete: 'off' }" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" :input-props="{ autocomplete: 'off' }" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XDatePicker v-model:value="userForm.birthday" type="date" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XSelect v-model:value="userForm.status" :options="statusEnumOptions" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot v-if="!userForm.basicId">
+              <XhFieldControl>
+                <XInput
+                  v-model:value="userForm.initialPassword"
+                  type="password"
+                  :input-props="{ autocomplete: 'new-password' }"
+                  :placeholder="t('identity.user.ph_initial_password')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot class="xh-span-2">
+              <XhFieldLabel>{{ t('identity.user.label_remark') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="userForm.remark"
+                  type="textarea"
+                  :rows="2"
+                  :placeholder="t('identity.user.ph_remark')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormRoot>
+        </XhTabsContent>
+        <XhTabsContent value="1">
+          <div class="sec-panel">
+            <div class="sec-block">
+              <div class="sec-block-hd">
+                <Icon icon="tabler:shield-lock" :size="14" />
+                <span>{{ t('identity.user.sec_account_security') }}</span>
+              </div>
+              <div class="form-row">
+                <div class="form-row-main">
+                  <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
+                  <div>
+                    <div class="lbl">
+                      {{ t('identity.user.sec_account_lock') }}
+                    </div>
+                    <div class="sub">
+                      {{ t('identity.user.sec_account_lock_hint') }}
+                    </div>
+                  </div>
+                </div>
+                <XhSwitch v-model:checked="userForm.isLocked" />
+              </div>
+            </div>
+            <div class="sec-block">
+              <div class="sec-block-hd">
+                <Icon icon="tabler:devices" :size="14" />
+                <span>{{ t('identity.user.sec_login_session') }}</span>
+              </div>
+              <div class="form-row">
+                <div class="form-row-main">
+                  <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
+                  <div>
+                    <div class="lbl">
+                      {{ t('identity.user.sec_allow_multi_login') }}
+                    </div>
+                    <div class="sub">
+                      {{ t('identity.user.sec_allow_multi_login_hint') }}
+                    </div>
+                  </div>
+                </div>
+                <XhSwitch v-model:checked="userForm.multiLogin" />
+              </div>
+              <div class="form-row">
+                <div class="form-row-main">
+                  <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
+                  <div>
+                    <div class="lbl">
+                      {{ t('identity.user.sec_max_devices') }}
+                    </div>
+                    <div class="sub">
+                      {{ t('identity.user.sec_max_devices_hint') }}
+                    </div>
+                  </div>
+                </div>
+                <XNumberInput
+                  v-model:value="userForm.maxDev"
+                  :min="0"
+                  :max="99"
+                  class="max-dev-input"
+                  size="sm"
+                  :show-button="false"
+                />
+              </div>
+            </div>
+          </div>
+        </XhTabsContent>
+        <XhTabsContent value="2">
+          <div class="pick-panel">
+            <p class="pick-desc">
+              {{ t('identity.user.pick_roles_desc') }}
+            </p>
+            <p v-if="selRoleIds.length" class="pick-summary">
+              {{ t('identity.user.pick_selected') }}
+              <strong>{{ selRoleIds.length }}</strong>
+              {{ t('identity.user.pick_selected_unit') }}
+            </p>
+            <div class="pick-grid">
+              <button
+                v-for="r in roleOptions"
+                :key="r.basicId"
+                type="button"
+                class="pick-chip" :class="[selRoleIds.includes(r.basicId) ? 'on' : '']"
+                @click="togglePick(selRoleIds, r.basicId)"
+              >
+                <Icon icon="tabler:user-check" :size="13" />
+                {{ r.roleName }}
+              </button>
+            </div>
+          </div>
+        </XhTabsContent>
+        <XhTabsContent value="3">
+          <div class="pick-panel">
+            <p class="pick-desc">
+              {{ t('identity.user.pick_depts_desc') }}
+            </p>
+            <p v-if="selDeptIds.length" class="pick-summary">
+              {{ t('identity.user.pick_selected') }}
+              <strong>{{ selDeptIds.length }}</strong>
+              {{ t('identity.user.pick_selected_unit') }}
+            </p>
+            <div class="pick-grid">
+              <button
+                v-for="d in deptFlatOptions"
+                :key="d.value"
+                type="button"
+                class="pick-chip" :class="[selDeptIds.includes(d.value) ? 'on' : '']"
+                @click="togglePick(selDeptIds, d.value)"
+              >
+                <Icon icon="tabler:building" :size="13" />
+                {{ d.label.trim() }}
+              </button>
+            </div>
+          </div>
+        </XhTabsContent>
+      </XhTabsRoot>
+    </XEditModal>
+
+    <!-- 详情 -->
+    <XhDialogRoot v-model:open="showDetModal" :close-on-interact-outside="false">
+      <XhDialogContent style="width: 640px; max-width: calc(100vw - 32px)">
+        <XhDialogTitle v-if="detUser">
+          <div class="det-hd-user">
+            <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
+              {{ detUser.initials }}
+            </div>
+            <div class="min-w-0">
+              <div class="det-name">
+                {{ detUser.displayName }}
+              </div>
+              <div class="det-sub">
+                @{{ detUser.userName }}
+              </div>
+            </div>
+          </div>
+        </XhDialogTitle>
+        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+
+        <div v-if="detailLoading" class="modal-loading">
+          {{ t('common.statuses.loading') }}
+        </div>
+        <template v-else-if="detUser">
+          <div class="det-info-grid">
+            <div>
+              <span class="muted">{{ t('identity.user.detail.country') }}</span>
+              {{ detUser.country }}
+            </div>
+            <div>
+              <span class="muted">{{ t('identity.user.detail.gender') }}</span>
+              {{ detUser.gender }}
+            </div>
+            <div>
+              <span class="muted">{{ t('identity.user.detail.roles') }}</span>
+              {{ detUser.roles.join('、') || '—' }}
+            </div>
+            <div>
+              <span class="muted">{{ t('identity.user.detail.depts') }}</span>
+              {{ detUser.depts.join('、') || '—' }}
+            </div>
+            <div v-if="detUser.remark" class="col-span-2">
+              <span class="muted">{{ t('identity.user.detail.remark') }}</span>
+              {{ detUser.remark }}
+            </div>
+          </div>
+          <div class="det-badges">
+            <span v-for="badge in detUser.badges" :key="badge.label" class="bdg" :class="[badge.cls]">
+              <Icon :icon="badge.icon" :size="12" />
+              {{ badge.label }}
+            </span>
+          </div>
+          <div class="det-divider" />
+          <div class="det-sec">
+            <div class="det-sec-hd">
+              <Icon icon="tabler:chart-bar" :size="14" />
+              <span>{{ t('identity.user.detail.stats_today') }}</span>
+            </div>
+            <div class="det-stat-grid">
+              <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
+                <div class="det-stat-top">
+                  <span class="det-stat-lbl">{{ m.label }}</span>
+                  <Icon :icon="m.icon" :size="13" />
+                </div>
+                <div class="det-stat-val">
+                  {{ m.value }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="det-sec-hd">
+            <Icon icon="tabler:device-desktop" :size="14" />
+            <span>{{ t('identity.user.detail.login_session') }}</span>
+          </div>
+          <div v-if="detUser.online" class="s-row">
+            <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
+            <div class="flex-1 min-w-0">
+              <div class="session-title">
+                {{ detUser.sessionLabel }}
+              </div>
+              <div class="session-sub">
+                {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
+              </div>
+            </div>
+            <span class="bdg bdg-ok">{{ t('identity.user.detail.online') }}</span>
+          </div>
+          <div v-else class="session-empty">
+            {{ t('identity.user.detail.no_active_session') }}
+          </div>
+        </template>
+
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end">
+            <XhButton size="sm" @click="closeModals">
+              {{ t('common.actions.close') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
+
+    <!-- 删除确认 -->
+    <XhDialogRoot v-model:open="showDelModal" :close-on-interact-outside="false">
+      <XhDialogContent style="width: 420px; max-width: calc(100vw - 32px)">
+        <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <div class="del-body">
+          <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
+          <div>
+            <p class="del-title">
+              {{ t('identity.user.del_confirm_prefix') }}
+              <span class="name">{{ delTarget?.name }}</span>
+              {{ t('identity.user.del_confirm_suffix') }}
+            </p>
+            <p class="del-desc">
+              {{ t('identity.user.del_desc') }}
+            </p>
+          </div>
+        </div>
+
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end">
+            <XhButton size="sm" @click="closeModals">
+              {{ t('common.actions.cancel') }}
+            </XhButton>
+            <XhButton size="sm" tone="danger" @click="confirmDelete">
+              {{ t('identity.user.del_confirm_btn') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
+
+    <!-- 权限直授抽屉 -->
+    <XhDrawerRoot v-model:open="grantVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 720px">
+        <XhDrawerTitle>{{ t('identity.user.grant_title', { name: grantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <div class="xh-loading-stage">
+          <div v-if="grantLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+          <XhTabsRoot v-model:value="grantTab" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="role">
+                {{ t('identity.user.grant_tab_role') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="perm">
+                {{ t('identity.user.grant_tab_perm') }}
+              </XhTabsTrigger>
+            </XhTabsList>
+            <XhTabsContent value="role">
+              <p class="grant-desc">
+                {{ t('identity.user.grant_role_desc') }}
+              </p>
+              <div class="grant-role-grid">
+                <label
+                  v-for="r in roleOptions"
+                  :key="r.basicId"
+                  class="grant-role-chip"
+                >
+                  <XhCheckbox
+                    :checked="grantRoleByRoleId.has(r.basicId)"
+                    :disabled="grantBusyId === r.basicId"
+                    @update:checked="(checked: boolean) => toggleGrantRole(r, checked)"
+                  />
+                  <span>{{ r.roleName }}</span>
+                </label>
+              </div>
+            </XhTabsContent>
+            <XhTabsContent value="perm">
+              <XPermissionGrantPanel
+                ref="permPanelRef"
+                :items="permCatalog"
+                :search-placeholder="t('identity.user.grant_perm_search')"
+                :granted-count-label="t('identity.user.grant_perm_granted_count', { count: permActions.size })"
+                :empty-description="t('identity.user.grant_perm_empty')"
+                :other-group-label="t('identity.user.grant_perm_group_other')"
+              >
+                <template #action="{ item }">
+                  <XhButton
+                    :disabled="grantLoading"
+                    size="sm"
+                    :tone="permActions.get(item.basicId) === PermissionAction.Grant ? 'success' : 'neutral'"
+                    @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Grant)"
+                  >
+                    {{ t('identity.user.grant_perm_allow') }}
+                  </XhButton>
+                  <XhButton
+                    :disabled="grantLoading"
+                    size="sm"
+                    :tone="permActions.get(item.basicId) === PermissionAction.Deny ? 'danger' : 'neutral'"
+                    @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Deny)"
+                  >
+                    {{ t('identity.user.grant_perm_deny') }}
+                  </XhButton>
+                </template>
+              </XPermissionGrantPanel>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </div>
+        <!-- 角色页签逐项即时生效，仅权限直授需要提交 -->
+        <template v-if="grantTab === 'perm'" #footer>
+          <XhButton @click="grantVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton tone="brand" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+            {{ t('identity.user.grant_perm_save') }}
+          </XhButton>
+        </template>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+  </SchemaPage>
+</template>
+
+<style scoped>
+.tbl-cell-2l {
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.tbl-cell-2l__primary,
+.tbl-cell-2l__secondary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tbl-cell-2l__primary {
+  font-size: 12px;
+  color: hsl(var(--foreground));
+}
+
+.tbl-cell-2l__primary--strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tbl-cell-2l__secondary {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}
+
+.tbl-av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sys-tag {
+  font-size: 9px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  border-radius: 3px;
+  background: var(--xh-color-warning-600);
+  color: var(--xh-color-warning-500);
+}
+
+/* 图标语义色：勿加页面前缀，弹窗 Teleport 到 body 后不在该子树内 */
+.sec-block-hd :deep(svg),
+.det-sec-hd :deep(svg) {
+  color: hsl(var(--primary));
+}
+
+.det-stat-primary .det-stat-top :deep(svg) {
+  color: hsl(var(--primary));
+}
+
+.det-stat-info .det-stat-top :deep(svg) {
+  color: var(--xh-color-info-500);
+}
+
+.det-stat-warning .det-stat-top :deep(svg) {
+  color: var(--xh-color-warning-500);
+}
+
+.det-stat-muted .det-stat-top :deep(svg) {
+  color: hsl(var(--muted-foreground));
+}
+
+.pick-chip :deep(svg) {
+  color: hsl(var(--muted-foreground));
+}
+
+.pick-chip.on :deep(svg) {
+  color: hsl(var(--primary));
+}
+
+.session-ico {
+  color: var(--xh-color-info-500);
+}
+
+.del-icon {
+  color: var(--xh-color-warning-500);
+}
+
+.bdg :deep(svg) {
+  color: currentColor;
+}
+
+/* 弹窗内容卡 */
+.modal-loading {
+  padding: 48px 0;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+}
+
+.sec-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sec-block-hd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
+  margin-bottom: 8px;
+  background: hsl(var(--muted));
+}
+
+.form-row-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.form-row-ico :deep(svg) {
+  color: hsl(var(--primary));
+}
+
+.form-row-ico.warn :deep(svg) {
+  color: var(--xh-color-warning-500);
+}
+
+.form-row-ico.ok :deep(svg) {
+  color: var(--xh-color-success-500);
+}
+
+.lbl {
+  font-weight: 500;
+  font-size: 13px;
+  color: hsl(var(--foreground));
+}
+
+.sub {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+.pick-desc,
+.pick-summary {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 8px;
+}
+
+.pick-summary strong {
+  color: hsl(var(--primary));
+}
+
+.pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 12px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
+  min-height: 48px;
+}
+
+.pick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--xh-shape-radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  font-family: inherit;
+}
+
+.pick-chip.on {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+.max-dev-input {
+  width: 70px;
+}
+
+/* 详情 */
+.det-hd-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.av-lg {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.det-name {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: hsl(var(--foreground));
+}
+
+.det-sub {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}
+
+.det-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: hsl(var(--foreground));
+}
+
+.det-info-grid .col-span-2 {
+  grid-column: span 2;
+}
+
+.muted {
+  color: hsl(var(--muted-foreground));
+}
+
+.det-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.bdg {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--xh-shape-radius-md);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.bdg-ok {
+  color: var(--xh-color-success-500);
+  background: var(--xh-color-success-600);
+}
+
+.bdg-no {
+  color: var(--xh-color-danger-500);
+  background: var(--xh-color-danger-600);
+}
+
+.bdg-warn {
+  color: var(--xh-color-warning-500);
+  background: var(--xh-color-warning-600);
+}
+
+.bdg-info {
+  color: var(--xh-color-info-500);
+  background: var(--xh-color-info-600);
+}
+
+.bdg-gray {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+}
+
+.det-divider {
+  height: 1px;
+  background: hsl(var(--border));
+  margin: 12px 0;
+}
+
+.det-sec-hd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+}
+
+.det-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.det-stat-card {
+  position: relative;
+  padding: 10px 11px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
+  overflow: hidden;
+}
+
+.det-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: hsl(var(--border));
+}
+
+.det-stat-primary::before {
+  background: hsl(var(--primary));
+}
+
+.det-stat-info::before {
+  background: var(--xh-color-info-500);
+}
+
+.det-stat-warning::before {
+  background: var(--xh-color-warning-500);
+}
+
+.det-stat-muted::before {
+  background: hsl(var(--muted-foreground));
+}
+
+.det-stat-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: hsl(var(--muted-foreground));
+}
+
+.det-stat-lbl {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+
+.det-stat-val {
+  font-size: 18px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+}
+
+.s-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
+  background: hsl(var(--muted));
+}
+
+.session-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.session-sub {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}
+
+.session-empty {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  padding: 8px 0;
+}
+
+.del-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.del-title {
+  margin: 0 0 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: hsl(var(--foreground));
+}
+
+.del-desc {
+  margin: 0;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.55;
+}
+
+.del-title .name {
+  color: var(--xh-color-danger-500);
+}
+
+/* 权限直授抽屉 */
+.grant-desc {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.grant-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+}
+
+.grant-role-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.grant-role-chip:hover {
+  background: rgb(0 0 0 / 0.03);
+}
+</style>

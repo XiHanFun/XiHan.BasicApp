@@ -1,0 +1,35 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "packages/**",
+    "tsconfig.json",
+    "pnpm-workspace.yaml",
+    ".env",
+    ".env.development",
+    ".env.production"
+  ],
+  "globalEnv": ["CI", "NODE_ENV", "VITE_*"],
+  "tasks": {
+    "//#app:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "//#app:build": {
+      "dependsOn": ["//#app:type-check"],
+      "inputs": ["src/**", "public/**", "index.html", "vite.config.ts", "package.json"],
+      "outputs": ["dist/**"]
+    },
+    "//#app:build:dev": {
+      "inputs": ["src/**", "public/**", "index.html", "vite.config.ts", "package.json"],
+      "outputs": ["dist/**"]
+    },
+    "//#app:type-check": {
+      "inputs": ["src/**", "vite.config.ts", "package.json"],
+      "outputs": []
+    },
+    "//#app:test:printing": {
+      "inputs": ["src/**", "package.json"],
+      "outputs": []
+    }
+  }
+}

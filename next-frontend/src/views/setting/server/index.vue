@@ -1,0 +1,1122 @@
+<script setup lang="ts">
+import type {
+  SysBoardInfo,
+  SysCpuInfo,
+  SysDiskInfo,
+  SysGpuInfo,
+  SysMemoryInfo,
+  SysNetworkInfo,
+  SysRuntimeInfo,
+} from '@/api'
+import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot } from '@xihan-ui/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { serverManagementApi } from '@/api'
+import { toast } from '~/composables'
+import { Icon } from '~/iconify'
+
+defineOptions({ name: 'PlatformServerPage' })
+
+const { t } = useI18n()
+const loading = ref(false)
+const initialized = ref(false)
+let timer: ReturnType<typeof setInterval> | null = null
+
+const runtimeInfo = ref<SysRuntimeInfo | null>(null)
+const cpuInfo = ref<SysCpuInfo | null>(null)
+const memoryInfo = ref<SysMemoryInfo | null>(null)
+const diskInfos = ref<SysDiskInfo[]>([])
+const networkInfos = ref<SysNetworkInfo[]>([])
+const boardInfo = ref<SysBoardInfo | null>(null)
+const gpuInfos = ref<SysGpuInfo[]>([])
+
+function fmtBytes(bytes: unknown) {
+  const v = Number(bytes)
+  if (!Number.isFinite(v) || v <= 0)
+    return '-'
+  const u = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.min(Math.floor(Math.log(v) / Math.log(1024)), u.length - 1)
+  return `${(v / 1024 ** i).toFixed(i === 0 ? 0 : 2)} ${u[i]}`
+}
+
+function fmtUptime(raw: unknown) {
+  const s = String(raw ?? '')
+  const dm = s.match(/^(\d+)\.(\d+):(\d+):(\d+)/)
+  if (dm) {
+    const [, day = '0', hour = '0', minute = '0', second = '0'] = dm
+    return t('setting.server.uptime_with_day', { day, hour, minute, second })
+  }
+  const hm = s.match(/^(\d+):(\d+):(\d+)/)
+  if (hm) {
+    const [, hour = '0', minute = '0', second = '0'] = hm
+    return t('setting.server.uptime', { hour, minute, second: second.split('.')[0] ?? '0' })
+  }
+  return s || '-'
+}
+
+function usageColor(pct: number) {
+  if (pct < 50)
+    return 'var(--color-success)'
+  if (pct < 80)
+    return 'var(--color-warning)'
+  return 'var(--color-error)'
+}
+
+function usagePct(used: number, total: number) {
+  if (total <= 0)
+    return 0
+  return Math.round((used / total) * 1000) / 10
+}
+
+const rt = computed(() => runtimeInfo.value)
+const cpu = computed(() => cpuInfo.value)
+const mem = computed(() => memoryInfo.value)
+const cpuPct = computed(() => cpu.value?.usagePercentage ?? 0)
+const memPct = computed(() => mem.value?.usagePercentage ?? 0)
+
+const overviewItems = computed(() => [
+  {
+    icon: 'lucide:cpu',
+    title: t('setting.server.processor'),
+    value: cpu.value?.processorName ?? '-',
+    sub: t('setting.server.cores_threads', { physical: cpu.value?.physicalCoreCount ?? '-', logical: cpu.value?.logicalCoreCount ?? '-' }),
+  },
+  {
+    icon: 'lucide:memory-stick',
+    title: t('setting.server.memory'),
+    value: fmtBytes(mem.value?.totalBytes),
+    sub: t('setting.server.usage_rate_value', { pct: memPct.value }),
+  },
+  {
+    icon: 'lucide:monitor',
+    title: t('setting.server.os'),
+    value: rt.value?.osDescription ?? '-',
+    sub: t('setting.server.arch_suffix', { arch: rt.value?.osArchitecture ?? '-' }),
+  },
+  {
+    icon: 'lucide:box',
+    title: t('setting.server.framework'),
+    value: rt.value?.frameworkDescription ?? '-',
+    sub: rt.value?.machineName ?? '-',
+  },
+  {
+    icon: 'lucide:timer',
+    title: t('setting.server.system_uptime'),
+    value: fmtUptime(rt.value?.systemUptime),
+    sub: t('setting.server.process_uptime', { uptime: fmtUptime(rt.value?.processUptime) }),
+  },
+])
+
+const cpuDetails = computed(() => [
+  { label: t('setting.server.processor_arch'), value: cpu.value?.processorArchitecture ?? '-' },
+  { label: t('setting.server.base_clock'), value: cpu.value?.baseClockSpeed ? `${cpu.value.baseClockSpeed} GHz` : '-' },
+  { label: t('setting.server.cache_size'), value: fmtBytes(cpu.value?.cacheBytes) },
+  { label: t('setting.server.physical_cores'), value: cpu.value?.physicalCoreCount ?? '-' },
+  { label: t('setting.server.logical_cores'), value: cpu.value?.logicalCoreCount ?? '-' },
+])
+
+const memDetails = computed(() => [
+  { label: t('setting.server.total_memory'), value: fmtBytes(mem.value?.totalBytes) },
+  { label: t('setting.server.used'), value: fmtBytes(mem.value?.usedBytes) },
+  { label: t('setting.server.available'), value: fmtBytes(mem.value?.availableBytes ?? mem.value?.freeBytes) },
+  {
+    label: t('setting.server.available_rate'),
+    value: mem.value?.availablePercentage != null ? `${mem.value.availablePercentage}%` : '-',
+  },
+])
+
+const boardDetails = computed(() => [
+  { icon: 'lucide:factory', label: t('setting.server.manufacturer'), value: boardInfo.value?.manufacturer },
+  { icon: 'lucide:tag', label: t('setting.server.model'), value: boardInfo.value?.product },
+  { icon: 'lucide:git-branch', label: t('setting.server.version'), value: boardInfo.value?.version },
+  { icon: 'lucide:barcode', label: t('setting.server.serial_number'), value: boardInfo.value?.serialNumber },
+])
+
+const sysDetails = computed(() => [
+  { icon: 'lucide:monitor', label: t('setting.server.os'), value: rt.value?.osDescription },
+  { icon: 'lucide:hash', label: t('setting.server.os_version'), value: rt.value?.osVersion },
+  { icon: 'lucide:layers', label: t('setting.server.os_arch'), value: rt.value?.osArchitecture },
+  { icon: 'lucide:box', label: t('setting.server.framework'), value: rt.value?.frameworkDescription },
+  { icon: 'lucide:server', label: t('setting.server.machine_name'), value: rt.value?.machineName },
+  { icon: 'lucide:user', label: t('setting.server.current_user'), value: rt.value?.userName },
+  { icon: 'lucide:calendar', label: t('setting.server.system_start'), value: rt.value?.systemStartTime },
+  { icon: 'lucide:play', label: t('setting.server.process_start'), value: rt.value?.processStartTime },
+  { icon: 'lucide:fingerprint', label: t('setting.server.process_id'), value: rt.value?.processId },
+  { icon: 'lucide:terminal', label: t('setting.server.process_name'), value: rt.value?.processName },
+  { icon: 'lucide:hard-drive', label: t('setting.server.working_set'), value: fmtBytes(rt.value?.workingSet) },
+  { icon: 'lucide:toggle-right', label: t('setting.server.interactive_mode'), value: rt.value?.interactiveMode },
+])
+
+const activeNetworks = computed(() =>
+  networkInfos.value.filter(
+    n =>
+      n.operationalStatus === 'Up'
+      && !n.name.includes('WFP')
+      && !n.name.includes('QoS')
+      && !n.name.includes('Filter')
+      && !n.name.includes('vSwitch'),
+  ),
+)
+
+const showSkeleton = computed(() => !initialized.value && loading.value)
+
+async function fetchData() {
+  try {
+    loading.value = true
+    const [rtRes, cpuRes, memRes, diskRes, netRes, boardRes, gpuRes] = await Promise.all([
+      serverManagementApi.getRuntimeInfo(),
+      serverManagementApi.getCpuInfo(),
+      serverManagementApi.getMemoryInfo(),
+      serverManagementApi.getDiskInfo(),
+      serverManagementApi.getNetworkInfo(),
+      serverManagementApi.getBoardInfo(),
+      serverManagementApi.getGpuInfo(),
+    ])
+    runtimeInfo.value = rtRes ?? null
+    cpuInfo.value = cpuRes ?? null
+    memoryInfo.value = memRes ?? null
+    diskInfos.value = diskRes ?? []
+    networkInfos.value = netRes ?? []
+    boardInfo.value = boardRes ?? null
+    gpuInfos.value = gpuRes ?? []
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || t('setting.server.fetch_failed'))
+  }
+  finally {
+    loading.value = false
+    initialized.value = true
+  }
+}
+
+onMounted(() => {
+  fetchData()
+  timer = setInterval(fetchData, 15000)
+})
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+})
+</script>
+
+<template>
+  <div class="sv-page">
+    <template v-if="showSkeleton">
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardBody>
+          <div class="space-y-3">
+            <span class="xh-skeleton-bone" />
+            <XhGridRoot :cols="{ base: 1, sm: 2, lg: 5 }" gap="md">
+              <XhGridItem v-for="i in 5" :key="`ov-${i}`">
+                <div class="sv-skeleton-panel">
+                  <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 36px; block-size: 36px" />
+                  <div class="flex-1 space-y-2">
+                    <span class="xh-skeleton-bone" />
+                    <span class="xh-skeleton-bone" />
+                    <span class="xh-skeleton-bone" />
+                  </div>
+                </div>
+              </XhGridItem>
+            </XhGridRoot>
+          </div>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <XhGridRoot :cols="{ base: 1, md: 2 }" gap="md">
+        <XhGridItem v-for="i in 2" :key="`perf-${i}`">
+          <XhCardRoot variant="ghost" class="sv-card">
+            <XhCardBody>
+              <div class="sv-skeleton-panel-col">
+                <div class="sv-skeleton-circle">
+                  <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 160px; block-size: 160px" />
+                </div>
+                <div class="space-y-2 w-full">
+                  <span class="xh-skeleton-bone" />
+                </div>
+              </div>
+            </XhCardBody>
+          </XhCardRoot>
+        </XhGridItem>
+      </XhGridRoot>
+
+      <XhCardRoot v-for="i in 4" :key="`card-${i}`" variant="ghost" class="sv-card">
+        <XhCardBody>
+          <div class="space-y-3">
+            <span class="xh-skeleton-bone" />
+            <span class="xh-skeleton-bone" />
+          </div>
+        </XhCardBody>
+      </XhCardRoot>
+    </template>
+
+    <template v-else>
+      <!-- 系统概览 -->
+      <div class="sv-banner">
+        <div class="sv-banner-head">
+          <div class="sv-banner-title">
+            <Icon icon="lucide:server" width="18" />
+            <span>{{ t('setting.server.system_overview') }}</span>
+          </div>
+          <div class="sv-banner-actions">
+            <XhBadge variant="subtle" size="sm" tone="success">
+              <Icon icon="lucide:activity" width="12" />
+              {{ t('setting.server.running_normal') }}
+            </XhBadge>
+            <XhButton
+              size="sm"
+              variant="ghost"
+              :loading="loading"
+              class="sv-refresh-btn"
+              @click="fetchData"
+            >
+              <Icon icon="lucide:refresh-cw" width="14" />
+            </XhButton>
+          </div>
+        </div>
+        <div class="sv-overview-grid">
+          <div v-for="item in overviewItems" :key="item.title" class="sv-overview-item">
+            <div class="sv-overview-icon">
+              <Icon :icon="item.icon" width="18" />
+            </div>
+            <div class="sv-overview-body">
+              <div class="sv-overview-label">
+                {{ item.title }}
+              </div>
+              <div class="sv-overview-value" :title="item.value">
+                {{ item.value }}
+              </div>
+              <div class="sv-overview-sub">
+                {{ item.sub }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CPU & 内存 -->
+      <XhGridRoot :cols="{ base: 1, md: 2 }" gap="md">
+        <XhGridItem>
+          <XhCardRoot variant="ghost" class="sv-card">
+            <XhCardHeader>
+              <div class="sv-card-header">
+                <Icon icon="lucide:cpu" width="16" />
+                <span>{{ t('setting.server.cpu_info') }}</span>
+              </div>
+            </XhCardHeader>
+            <XhCardBody>
+              <div class="sv-perf">
+                <div class="sv-gauge">
+                  <XhProgress
+                    variant="circle"
+                    :value="cpuPct"
+                    :stroke-width="8"
+                    :style="{
+                      '--xh-progress-range': usageColor(cpuPct),
+                      '--xh-progress-track': 'var(--border-color)',
+                    }"
+                  >
+                    <div class="sv-gauge-inner">
+                      <div class="sv-gauge-pct" :style="{ color: usageColor(cpuPct) }">
+                        {{ cpuPct }}
+                        <small>%</small>
+                      </div>
+                      <div class="sv-gauge-label">
+                        {{ t('setting.server.usage_rate') }}
+                      </div>
+                    </div>
+                  </XhProgress>
+                </div>
+                <div class="sv-details">
+                  <div v-for="d in cpuDetails" :key="d.label" class="sv-detail-row">
+                    <span class="sv-detail-label">
+                      {{ d.label }}
+                    </span>
+                    <span class="sv-detail-value">
+                      {{ d.value }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </XhCardBody>
+          </XhCardRoot>
+        </XhGridItem>
+        <XhGridItem>
+          <XhCardRoot variant="ghost" class="sv-card">
+            <XhCardHeader>
+              <div class="sv-card-header">
+                <Icon icon="lucide:memory-stick" width="16" />
+                <span>{{ t('setting.server.memory_info') }}</span>
+              </div>
+            </XhCardHeader>
+            <XhCardBody>
+              <div class="sv-perf">
+                <div class="sv-gauge">
+                  <XhProgress
+                    variant="circle"
+                    :value="memPct"
+                    :stroke-width="8"
+                    :style="{
+                      '--xh-progress-range': usageColor(memPct),
+                      '--xh-progress-track': 'var(--border-color)',
+                    }"
+                  >
+                    <div class="sv-gauge-inner">
+                      <div class="sv-gauge-pct" :style="{ color: usageColor(memPct) }">
+                        {{ memPct }}
+                        <small>%</small>
+                      </div>
+                      <div class="sv-gauge-label">
+                        {{ t('setting.server.usage_rate') }}
+                      </div>
+                    </div>
+                  </XhProgress>
+                </div>
+                <div class="sv-details">
+                  <div v-for="d in memDetails" :key="d.label" class="sv-detail-row">
+                    <span class="sv-detail-label">
+                      {{ d.label }}
+                    </span>
+                    <span class="sv-detail-value">
+                      {{ d.value }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </XhCardBody>
+          </XhCardRoot>
+        </XhGridItem>
+      </XhGridRoot>
+
+      <!-- 磁盘 -->
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <div class="sv-card-header">
+            <Icon icon="lucide:hard-drive" width="16" />
+            <span>{{ t('setting.server.disk_info') }}</span>
+          </div>
+        </XhCardHeader>
+        <XhCardBody>
+          <div v-if="!diskInfos.length" class="sv-empty">
+            {{ t('setting.server.no_data') }}
+          </div>
+          <XhGridRoot v-else :cols="{ base: 1, sm: 2, lg: 3 }" gap="md">
+            <XhGridItem v-for="disk in diskInfos" :key="disk.diskName">
+              <div class="sv-disk-item">
+                <div class="sv-disk-head">
+                  <span class="sv-disk-name">
+                    {{ disk.diskName }}
+                  </span>
+                  <div class="sv-disk-head-right">
+                    <XhBadge variant="subtle" size="sm">
+                      {{ disk.typeName }}
+                    </XhBadge>
+                    <span
+                      class="sv-disk-pct"
+                      :style="{ color: usageColor(usagePct(disk.usedSpace, disk.totalSpace)) }"
+                    >
+                      {{ usagePct(disk.usedSpace, disk.totalSpace) }}%
+                    </span>
+                  </div>
+                </div>
+                <XhProgress
+                  variant="line"
+                  :value="usagePct(disk.usedSpace, disk.totalSpace)"
+                  :stroke-width="6"
+                  :style="{
+                    '--xh-progress-range': usageColor(usagePct(disk.usedSpace, disk.totalSpace)),
+                    '--xh-progress-track': 'var(--border-color)',
+                  }"
+                />
+                <div class="sv-disk-stats">
+                  <span>{{ t('setting.server.used_space', { value: fmtBytes(disk.usedSpace) }) }}</span>
+                  <span>{{ t('setting.server.total_space', { value: fmtBytes(disk.totalSpace) }) }}</span>
+                  <span>{{ t('setting.server.free_space', { value: fmtBytes(disk.freeSpace) }) }}</span>
+                </div>
+              </div>
+            </XhGridItem>
+          </XhGridRoot>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <!-- 显卡 -->
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <div class="sv-card-header">
+            <Icon icon="lucide:monitor" width="16" />
+            <span>{{ t('setting.server.gpu_info') }}</span>
+            <XhBadge v-if="gpuInfos.length" variant="subtle" size="sm" tone="info" class="sv-pkg-count">
+              {{ t('setting.server.count_unit', { count: gpuInfos.length }) }}
+            </XhBadge>
+          </div>
+        </XhCardHeader>
+        <XhCardBody>
+          <div v-if="!gpuInfos.length" class="sv-empty">
+            {{ t('setting.server.no_data') }}
+          </div>
+          <XhAccordionRoot v-else collapsible>
+            <XhAccordionItem v-for="(gpu, idx) in gpuInfos" :key="idx" :value="String(idx)">
+              <XhAccordionHeader>
+                <XhAccordionTrigger>
+                  <div class="sv-collapse-title">
+                    <Icon icon="lucide:monitor" width="14" class="sv-collapse-title-icon" />
+                    <span class="sv-collapse-title-text">
+                      {{ gpu.name || `GPU ${idx}` }}
+                    </span>
+                    <XhBadge
+                      v-if="gpu.status"
+                      variant="subtle"
+                      size="sm"
+                      :tone="gpu.status === 'OK' ? 'success' : 'danger'"
+                      class="ml-2"
+                    >
+                      {{ gpu.status }}
+                    </XhBadge>
+                  </div>
+                </XhAccordionTrigger>
+              </XhAccordionHeader>
+              <XhAccordionContent>
+                <div class="sv-collapse-body">
+                  <div v-if="gpu.memoryBytes" class="sv-kv">
+                    <span class="sv-kv-label">{{ t('setting.server.gpu_memory') }}</span>
+                    <span class="sv-kv-value">{{ fmtBytes(gpu.memoryBytes) }}</span>
+                  </div>
+                  <div v-if="gpu.driverVersion" class="sv-kv">
+                    <span class="sv-kv-label">{{ t('setting.server.driver_version') }}</span>
+                    <span class="sv-kv-value">{{ gpu.driverVersion }}</span>
+                  </div>
+                  <div v-if="gpu.videoModeDescription" class="sv-kv">
+                    <span class="sv-kv-label">{{ t('setting.server.resolution') }}</span>
+                    <span class="sv-kv-value">{{ gpu.videoModeDescription }}</span>
+                  </div>
+                  <div v-if="gpu.vendor" class="sv-kv">
+                    <span class="sv-kv-label">{{ t('setting.server.vendor') }}</span>
+                    <span class="sv-kv-value">{{ gpu.vendor }}</span>
+                  </div>
+                  <div v-if="gpu.temperature != null" class="sv-kv">
+                    <span class="sv-kv-label">{{ t('setting.server.temperature') }}</span>
+                    <span class="sv-kv-value">{{ gpu.temperature }}°C</span>
+                  </div>
+                </div>
+              </XhAccordionContent>
+            </XhAccordionItem>
+          </XhAccordionRoot>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <!-- 网络信息 -->
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <div class="sv-card-header">
+            <Icon icon="lucide:network" width="16" />
+            <span>{{ t('setting.server.network_info') }}</span>
+            <XhBadge v-if="activeNetworks.length" variant="subtle" size="sm" tone="info" class="sv-pkg-count">
+              {{ t('setting.server.active_count', { count: activeNetworks.length }) }}
+            </XhBadge>
+          </div>
+        </XhCardHeader>
+        <XhCardBody>
+          <div v-if="!activeNetworks.length" class="sv-empty">
+            {{ t('setting.server.no_data') }}
+          </div>
+          <XhAccordionRoot v-else collapsible>
+            <XhAccordionItem v-for="net in activeNetworks" :key="net.name" :value="String(net.name)">
+              <XhAccordionHeader>
+                <XhAccordionTrigger>
+                  <div class="sv-collapse-title">
+                    <Icon
+                      icon="lucide:wifi"
+                      width="14"
+                      class="sv-collapse-title-icon sv-collapse-title-icon--success"
+                    />
+                    <span class="sv-collapse-title-text">
+                      {{ net.name }}
+                    </span>
+                    <XhBadge variant="subtle" size="sm" class="ml-2">
+                      {{ net.type }}
+                    </XhBadge>
+                  </div>
+                </XhAccordionTrigger>
+              </XhAccordionHeader>
+              <XhGridRoot :cols="{ base: 1, md: 2 }" gap="sm">
+                <XhGridItem>
+                  <XhAccordionContent>
+                    <div class="sv-collapse-body">
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.description') }}</span>
+                        <span class="sv-kv-value">{{ net.description || '-' }}</span>
+                      </div>
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.physical_address') }}</span>
+                        <span class="sv-kv-value">{{ net.physicalAddress || '-' }}</span>
+                      </div>
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.speed') }}</span>
+                        <span class="sv-kv-value">{{ net.speed }}</span>
+                      </div>
+                      <div v-if="net.iPv4Addresses?.length" class="sv-kv">
+                        <span class="sv-kv-label">IPv4</span>
+                        <span class="sv-kv-value">
+                          <XhBadge
+                            v-for="ip in net.iPv4Addresses"
+                            :key="ip.address"
+                            variant="subtle"
+                            size="sm"
+                            class="mr-1"
+                          >
+                            {{ ip.address }}
+                          </XhBadge>
+                        </span>
+                      </div>
+                    </div>
+                  </XhAccordionContent>
+                </XhGridItem>
+                <XhGridItem v-if="net.statistics">
+                  <XhAccordionContent>
+                    <div class="sv-collapse-body">
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.received') }}</span>
+                        <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesReceived) }}</span>
+                      </div>
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.sent') }}</span>
+                        <span class="sv-kv-value">{{ fmtBytes(net.statistics.bytesSent) }}</span>
+                      </div>
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.received_packets') }}</span>
+                        <span class="sv-kv-value">
+                          {{ net.statistics.packetsReceived?.toLocaleString() }}
+                        </span>
+                      </div>
+                      <div class="sv-kv">
+                        <span class="sv-kv-label">{{ t('setting.server.sent_packets') }}</span>
+                        <span class="sv-kv-value">
+                          {{ net.statistics.packetsSent?.toLocaleString() }}
+                        </span>
+                      </div>
+                    </div>
+                  </XhAccordionContent>
+                </XhGridItem>
+              </XhGridRoot>
+            </XhAccordionItem>
+          </XhAccordionRoot>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <!-- 主板信息 -->
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <div class="sv-card-header">
+            <Icon icon="lucide:circuit-board" width="16" />
+            <span>{{ t('setting.server.board_info') }}</span>
+          </div>
+        </XhCardHeader>
+        <XhCardBody>
+          <div class="sv-board-grid">
+            <div v-for="d in boardDetails" :key="d.label" class="sv-sys-item">
+              <div class="sv-sys-icon">
+                <Icon :icon="d.icon" width="14" />
+              </div>
+              <span class="sv-sys-label">
+                {{ d.label }}
+              </span>
+              <span class="sv-sys-value" :title="String(d.value ?? '-')">
+                {{ d.value || '-' }}
+              </span>
+            </div>
+          </div>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <!-- 系统信息 -->
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <div class="sv-card-header">
+            <Icon icon="lucide:settings" width="16" />
+            <span>{{ t('setting.server.system_info') }}</span>
+          </div>
+        </XhCardHeader>
+        <XhCardBody>
+          <div class="sv-sys-grid">
+            <div v-for="d in sysDetails" :key="d.label" class="sv-sys-item">
+              <div class="sv-sys-icon">
+                <Icon :icon="d.icon" width="14" />
+              </div>
+              <span class="sv-sys-label">
+                {{ d.label }}
+              </span>
+              <span class="sv-sys-value" :title="String(d.value ?? '-')">
+                {{ d.value ?? '-' }}
+              </span>
+            </div>
+          </div>
+        </XhCardBody>
+      </XhCardRoot>
+    </template>
+  </div>
+</template>
+
+<style scoped>
+.sv-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sv-skeleton-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+}
+
+.sv-skeleton-panel-col {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sv-skeleton-circle {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.sv-skeleton-circle .n-skeleton {
+  width: 160px !important;
+  height: 160px !important;
+  min-width: 160px !important;
+  min-height: 160px !important;
+  border-radius: 50% !important;
+}
+
+/* ========== Banner ========== */
+.sv-banner {
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  background: hsl(var(--accent));
+  border: 1px solid var(--border-color);
+}
+
+.sv-banner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sv-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sv-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sv-refresh-btn {
+  color: var(--text-secondary) !important;
+}
+
+.sv-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.sv-overview-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  min-width: 0;
+  transition: border-color 0.2s;
+}
+
+.sv-overview-item:hover {
+  border-color: hsl(var(--primary) / 30%);
+}
+
+.sv-overview-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: hsl(var(--primary) / 10%);
+  color: hsl(var(--primary));
+}
+
+.sv-overview-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sv-overview-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.sv-overview-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.sv-overview-sub {
+  font-size: 11px;
+  color: var(--text-disabled);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+/* ========== Card header ========== */
+.sv-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sv-pkg-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========== Performance (CPU/MEM) ========== */
+.sv-perf {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sv-gauge {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sv-gauge-inner {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sv-gauge-pct {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  transition: color 0.4s;
+}
+
+.sv-gauge-pct small {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.65;
+}
+
+.sv-gauge-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.sv-details {
+  flex: 1;
+  min-width: 0;
+  max-width: 180px;
+  margin-inline: auto;
+}
+
+.sv-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px dashed hsl(var(--border) / 60%);
+  gap: 8px;
+}
+
+.sv-detail-row:first-child {
+  padding-top: 0;
+}
+
+.sv-detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sv-detail-label {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.sv-detail-value {
+  flex-shrink: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ========== Disk ========== */
+.sv-disk-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: hsl(var(--muted));
+  transition: background 0.2s;
+}
+
+.sv-disk-item:hover {
+  background: hsl(var(--accent));
+}
+
+.sv-disk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sv-disk-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sv-disk-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sv-disk-pct {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sv-disk-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ========== Collapse shared (GPU / Network) ========== */
+.sv-collapse-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 0;
+}
+
+.sv-collapse-title-icon {
+  color: hsl(var(--primary));
+  flex-shrink: 0;
+}
+
+.sv-collapse-title-icon--success {
+  color: var(--color-success);
+}
+
+.sv-collapse-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sv-collapse-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sv-kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dashed hsl(var(--border) / 40%);
+}
+
+.sv-kv:last-child {
+  border-bottom: none;
+}
+
+.sv-kv-label {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.sv-kv-value {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ========== Board grid ========== */
+.sv-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 6px;
+}
+
+/* ========== System Info items ========== */
+.sv-sys-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 6px;
+}
+
+.sv-sys-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: hsl(var(--muted));
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.sv-sys-item:hover {
+  background: hsl(var(--accent));
+}
+
+.sv-sys-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: hsl(var(--primary) / 8%);
+  color: hsl(var(--primary));
+  font-size: 12px;
+}
+
+.sv-sys-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.sv-sys-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-left: auto;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 55%;
+}
+
+/* ========== Empty state ========== */
+.sv-empty {
+  padding: 20px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1280px) {
+  .sv-overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .sv-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sv-gauge {
+    width: 140px;
+    height: 140px;
+  }
+
+  .sv-gauge-pct {
+    font-size: 22px;
+  }
+
+  .sv-gauge-pct small {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sv-banner {
+    padding: 12px 14px;
+  }
+
+  .sv-overview-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .sv-perf {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sv-gauge {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+  }
+
+  .sv-sys-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
