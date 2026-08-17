@@ -662,24 +662,23 @@ async function submitDelegation() {
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 定高表格卡片，分页贴底）。
    页面主体被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
    使其与用户管理等根级 SchemaPage 页面布局一致。 */
-.auth-page :deep(.n-tabs) {
+.auth-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 /* 标签条与下方 SchemaPage 内容（p-3 = 12px）左对齐，并留出上方呼吸空间 */
-.auth-page :deep(.n-tabs-nav) {
+.auth-page :deep([data-scope='tabs'][data-part='list']) {
   padding: 8px 12px 0;
 }
 
-.auth-page :deep(.n-tabs-pane-wrapper) {
+.auth-page :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   height: 0;
 }
 
-.auth-page :deep(.n-tab-pane) {
-  height: 100%;
+.auth-page :deep([data-scope='tabs'][data-part='content']) {
   padding: 0;
 }
 </style>

@@ -791,14 +791,13 @@ async function handleSubmit() {
                     v-for="option in deliveryChannelOptions"
                     :key="option.value"
                     :value="String(option.value)"
-                    class="xh-checkbox-row"
                   >
                     <XhCheckboxGroupTrigger>
                       <XhCheckboxGroupIndicator>
                         <Icon icon="lucide:check" width="12" height="12" />
                       </XhCheckboxGroupIndicator>
                     </XhCheckboxGroupTrigger>
-                    <XhCheckboxGroupItemText class="xh-checkbox-row__label">
+                    <XhCheckboxGroupItemText>
                       {{ option.label }}
                     </XhCheckboxGroupItemText>
                   </XhCheckboxGroupItem>

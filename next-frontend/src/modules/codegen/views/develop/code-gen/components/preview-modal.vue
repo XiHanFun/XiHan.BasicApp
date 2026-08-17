@@ -335,7 +335,7 @@ async function loadPreview() {
   padding: 32px 0;
 }
 
-.gen__tree :deep(.n-tree) {
+.gen__tree :deep([data-scope='tree'][data-part='root']) {
   padding: 6px;
 }
 

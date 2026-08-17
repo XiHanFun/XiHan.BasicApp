@@ -293,18 +293,6 @@ const recentTimes = computed(() => {
   padding-bottom: 4px;
 }
 
-/* NHeatmap 默认 max-width: fit-content，宽度由固定格子决定而到不了分区右缘；
-   放开后让内部表格撑满容器，列间距自适应拉开，与其它分区同宽对齐。
-   窄屏时单元格有最小内容宽，仍由外层 overflow-x 滚动兜底。 */
-.pf-heat__scroll :deep(.n-heatmap) {
-  width: 100%;
-  max-width: none;
-}
-
-.pf-heat__scroll :deep(.n-heatmap__calendar-table) {
-  width: 100%;
-}
-
 .pf-heat__foot {
   font-size: 12.5px;
   color: var(--text-secondary);

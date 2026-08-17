@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XDropdown from '~/components/common/XDropdown.vue'
 import XInput from '~/components/common/XInput.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { hasChatAssistantProvider } from '../assistant-provider'
@@ -120,11 +121,14 @@ function handleItemAction(key: string) {
           <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
         </template>
       </XInput>
-      <button :title="t('chat.list.refresh')" type="button" class="chat-icon-btn" @click="handleRefresh">
-        <Icon icon="lucide:refresh-cw" width="15" height="15" />
-      </button>
+      <XTooltip :content="t('chat.list.refresh')">
+        <button type="button" class="chat-icon-btn" @click="handleRefresh">
+          <Icon icon="lucide:refresh-cw" width="15" height="15" />
+        </button>
+      </XTooltip>
+      <!-- 下拉与气泡叠在同一颗按钮上：菜单触发器借用它，说明文字走原生 title -->
       <XDropdown :options="startOptions" @select="handleStartSelect">
-        <button :title="t('chat.start.button')" type="button" class="chat-icon-btn">
+        <button type="button" class="chat-icon-btn" :title="t('chat.start.button')">
           <Icon icon="lucide:message-square-plus" width="15" height="15" />
         </button>
       </XDropdown>

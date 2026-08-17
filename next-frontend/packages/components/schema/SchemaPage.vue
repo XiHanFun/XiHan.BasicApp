@@ -669,12 +669,14 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             <template v-if="effectiveExportFields.length && canExportPermitted">
               <XhMenuRoot
                 v-if="canSubmitExport"
-                class="xh-schema-export-menu"
+                trigger-as-child
                 :collection="exportMenuOptions"
                 @select="(details: { value: string }) => onExportSelect(details.value)"
               >
                 <template #trigger>
-                  <Icon icon="lucide:download" />
+                  <button type="button" class="xh-icon-btn" :aria-label="t('component.schema_page.export_csv')">
+                    <Icon icon="lucide:download" />
+                  </button>
                 </template>
               </XhMenuRoot>
               <!-- 未登记页面：维持本地同步 CSV 导出 -->
@@ -861,25 +863,6 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-/* 导出菜单的触发器按图标钮打扮，与相邻的 XIconButton 对齐 */
-.xh-schema-export-menu :deep([data-scope='menu'][data-part='trigger']) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 28px;
-  block-size: 28px;
-  border: 0;
-  border-radius: var(--xh-radius-full);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-}
-
-.xh-schema-export-menu :deep([data-scope='menu'][data-part='trigger']:hover) {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
 }
 
 /* 列表骨架屏：列宽/行高对应真实表格，单元格内边距 + 行分割线还原表格观感，填满表格区并裁剪溢出 */

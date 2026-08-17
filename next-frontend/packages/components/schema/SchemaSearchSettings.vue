@@ -18,6 +18,7 @@ import { useAppStore } from '~/stores'
 import { resolveSortMove } from '../common/sortable'
 import SortableItem from '../common/SortableItem.vue'
 import SyncStatusBadge from '../common/SyncStatusBadge.vue'
+import XTooltip from '../common/XTooltip.vue'
 
 defineOptions({ name: 'SchemaSearchSettings' })
 
@@ -109,17 +110,18 @@ function onDragEnd(event: DragEndEvent) {
                 >
                   {{ item.title }}
                 </span>
-                <span
-                  class="xh-set-row__switch"
-                  :title="item.pinned ? t('component.search_settings.tip_pinned') : t('component.search_settings.tip_advanced')"
-                >
-                  <XhSwitch
-                    :checked="item.pinned"
-                    :disabled="!item.visible"
-                    size="sm"
-                    @update:checked="(value: boolean) => emit('togglePin', item.key, value)"
-                  />
-                </span>
+                <XTooltip :content="item.pinned ? t('component.search_settings.tip_pinned') : t('component.search_settings.tip_advanced')">
+                  <span
+                    class="xh-set-row__switch"
+                  >
+                    <XhSwitch
+                      :checked="item.pinned"
+                      :disabled="!item.visible"
+                      size="sm"
+                      @update:checked="(value: boolean) => emit('togglePin', item.key, value)"
+                    />
+                  </span>
+                </XTooltip>
               </SortableItem>
             </div>
           </DragDropProvider>

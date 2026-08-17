@@ -34,6 +34,7 @@ export { default as XSegmented } from './XSegmented.vue'
 export { default as XSelect } from './XSelect.vue'
 export { default as XSlider } from './XSlider.vue'
 export { default as XTagsInput } from './XTagsInput.vue'
+export { default as XTooltip } from './XTooltip.vue'
 export { default as XTree } from './XTree.vue'
 export { default as XTreeSelect } from './XTreeSelect.vue'
 // dnd-kit 的拖拽容器与事件类型统一经底层暴露：应用层不直接依赖 @dnd-kit/vue

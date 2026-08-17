@@ -23,7 +23,7 @@ import {
   querySortsFromSchema,
   tenantApi,
 } from '@/api'
-import { SchemaPage, XEditModal, XInput } from '~/components'
+import { SchemaPage, XEditModal, XInput, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -384,17 +384,19 @@ function remove(row: NumberingRuleListItemDto): void {
       -->
       <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
         <template v-if="!isPlatform" #toolbar>
-          <XhButton
-            :title="scopeSwitchLabel"
-            data-circle
-            variant="ghost"
-            size="sm"
-            :aria-label="scopeSwitchLabel"
-            @click="switchScope"
-          >
-            <!-- 图标表示点击后进入的目标作用域，Tooltip 同时补充当前状态和完整动作语义。 -->
-            <span><Icon :icon="activeScope === NumberingScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
-          </XhButton>
+          <XTooltip :content="scopeSwitchLabel">
+            <XhButton
+
+              data-circle
+              variant="ghost"
+              size="sm"
+              :aria-label="scopeSwitchLabel"
+              @click="switchScope"
+            >
+              <!-- 图标表示点击后进入的目标作用域，Tooltip 同时补充当前状态和完整动作语义。 -->
+              <span><Icon :icon="activeScope === NumberingScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
+            </XhButton>
+          </XTooltip>
         </template>
       </SchemaPage>
     </template>

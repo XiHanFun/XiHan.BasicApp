@@ -689,7 +689,7 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.sv-skeleton-circle .n-skeleton {
+.sv-skeleton-circle [data-scope='skeleton'][data-part='bone'] {
   width: 160px !important;
   height: 160px !important;
   min-width: 160px !important;

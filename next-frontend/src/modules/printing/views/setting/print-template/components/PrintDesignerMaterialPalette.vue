@@ -121,13 +121,13 @@ function getFieldIcon(kind: PrintFieldKind): string {
     <div class="palette-heading">
       <h2>{{ t('setting.print_template.palette_title') }}</h2>
       <div class="history-actions">
-        <XhButton variant="ghost" circle size="sm" :title="t('setting.print_template.undo')" @click="emit('undo')">
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" :title="t('setting.print_template.undo')" @click="emit('undo')">
           <span><Icon icon="tabler:arrow-back-up" /></span>
         </XhButton>
-        <XhButton variant="ghost" circle size="sm" :title="t('setting.print_template.redo')" @click="emit('redo')">
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" :title="t('setting.print_template.redo')" @click="emit('redo')">
           <span><Icon icon="tabler:arrow-forward-up" /></span>
         </XhButton>
-        <XhButton variant="ghost" circle size="sm" tone="warning" :title="t('setting.print_template.clear')" @click="emit('clear')">
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" tone="warning" :title="t('setting.print_template.clear')" @click="emit('clear')">
           <span><Icon icon="tabler:trash" /></span>
         </XhButton>
       </div>
@@ -244,7 +244,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 .material-palette {
   min-height: 100%;
   padding: 22px 22px 28px;
-  color: var(--n-text-color, #1f2937);
+  color: var(--xh-fg-default);
 }
 
 .palette-heading {
@@ -258,7 +258,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 .material-section h3 {
   margin: 0;
   font-weight: 650;
-  color: var(--n-text-color, #1f2937);
+  color: var(--xh-fg-default);
 }
 
 .palette-heading h2 {

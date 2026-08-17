@@ -492,19 +492,19 @@ function toggleAlignmentTools(): void {
   min-width: 118px;
 }
 
-.alignment-command-group :deep(.n-button) {
+.alignment-command-group :deep([data-scope='button'][data-part='root']) {
   width: 52px;
   min-height: 38px;
 }
 
-.mode-group :deep(.n-button),
-.paper-group :deep(.n-button),
-.zoom-group :deep(.n-button),
-.canvas-command-group :deep(.n-button) {
+.mode-group :deep([data-scope='button'][data-part='root']),
+.paper-group :deep([data-scope='button'][data-part='root']),
+.zoom-group :deep([data-scope='button'][data-part='root']),
+.canvas-command-group :deep([data-scope='button'][data-part='root']) {
   min-height: 38px;
 }
 
-.mode-group :deep(.n-button) {
+.mode-group :deep([data-scope='button'][data-part='root']) {
   min-width: 108px;
 }
 
@@ -512,7 +512,7 @@ function toggleAlignmentTools(): void {
   flex: none;
 }
 
-.paper-group :deep(.n-button) {
+.paper-group :deep([data-scope='button'][data-part='root']) {
   min-width: 52px;
 }
 
@@ -533,7 +533,7 @@ function toggleAlignmentTools(): void {
   gap: 10px;
 }
 
-.canvas-command-group :deep(.n-button:first-child) {
+.canvas-command-group :deep([data-scope='button'][data-part='root']:first-child) {
   min-width: 88px;
 }
 

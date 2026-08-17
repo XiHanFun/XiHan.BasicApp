@@ -573,23 +573,22 @@ async function deleteSms(row: SmsListItemDto) {
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 的表格卡片，分页贴底）。
    被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
    与授权申请等以 NTabs 包裹 SchemaPage 的页面保持一致。 */
-.message-page :deep(.n-tabs) {
+.message-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.message-page :deep(.n-tabs-nav) {
+.message-page :deep([data-scope='tabs'][data-part='list']) {
   padding: 8px 12px 0;
 }
 
-.message-page :deep(.n-tabs-pane-wrapper) {
+.message-page :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   height: 0;
 }
 
-.message-page :deep(.n-tab-pane) {
-  height: 100%;
+.message-page :deep([data-scope='tabs'][data-part='content']) {
   padding: 0;
 }
 </style>

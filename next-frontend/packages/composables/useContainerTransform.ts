@@ -18,7 +18,10 @@ interface SourceCapture {
 }
 
 /** 点击源识别选择器（就近匹配）：表格行优先于行内按钮之外的小元素 */
-const SOURCE_SELECTOR = 'button, [role="button"], a, .n-data-table-tr, .n-card'
+const SOURCE_SELECTOR = 'button, [role="button"], a, [data-scope="table"][data-part="row"], [data-scope="card"][data-part="root"]'
+
+/** 弹窗正文：变形的目标 */
+const DIALOG_SELECTOR = '[data-scope="dialog"][data-part="content"]'
 
 /** 点击 → 弹窗出现 的关联窗口（毫秒） */
 const LINK_WINDOW = 800
@@ -94,10 +97,10 @@ function findModal(node: Node): HTMLElement | null {
   if (!(node instanceof HTMLElement)) {
     return null
   }
-  if (node.classList.contains('n-modal')) {
+  if (node.matches(DIALOG_SELECTOR)) {
     return node
   }
-  return node.querySelector<HTMLElement>('.n-modal')
+  return node.querySelector<HTMLElement>(DIALOG_SELECTOR)
 }
 
 /**

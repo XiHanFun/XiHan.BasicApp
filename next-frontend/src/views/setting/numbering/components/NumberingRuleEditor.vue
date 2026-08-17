@@ -18,7 +18,7 @@ import {
   NumberingDateFormat,
   NumberingResetCycle,
 } from '@/api'
-import { XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 
@@ -301,14 +301,16 @@ async function submit(): Promise<void> {
         <XhFieldLabel>
           <span class="inline-flex items-center gap-1">
             <span>{{ t('setting.numbering.allow_tenant_use') }}</span>
-            <button
-              :title="t('setting.numbering.allow_tenant_use_tip')"
-              type="button"
-              class="inline-flex size-4 cursor-help items-center justify-center rounded-full border border-current text-[11px] leading-none text-gray-400"
-              :aria-label="t('setting.numbering.allow_tenant_use_tip')"
-            >
-              ?
-            </button>
+            <XTooltip :content="t('setting.numbering.allow_tenant_use_tip')">
+              <button
+
+                type="button"
+                class="inline-flex size-4 cursor-help items-center justify-center rounded-full border border-current text-[11px] leading-none text-gray-400"
+                :aria-label="t('setting.numbering.allow_tenant_use_tip')"
+              >
+                ?
+              </button>
+            </XTooltip>
           </span>
         </XhFieldLabel>
         <XhFieldControl>

@@ -170,7 +170,7 @@ const groups = computed(() => {
 }
 
 .xh-perm-panel__group {
-  border: 1px solid var(--n-border-color, rgb(239 239 245));
+  border: 1px solid var(--xh-border-default);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -180,7 +180,7 @@ const groups = computed(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: var(--n-color-modal, rgb(250 250 252));
+  background-color: var(--xh-bg-subtle);
   font-size: 13px;
   font-weight: 500;
 }
@@ -201,7 +201,7 @@ const groups = computed(() => {
   justify-content: space-between;
   gap: 10px;
   padding: 8px 12px;
-  border-top: 1px solid var(--n-border-color, rgb(239 239 245));
+  border-top: 1px solid var(--xh-border-default);
   min-width: 0;
 }
 

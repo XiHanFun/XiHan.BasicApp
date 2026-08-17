@@ -222,7 +222,7 @@ defineExpose({ confirmDiscard })
                 class="printer-select"
                 @update:value="(value: string | number | (string | number)[] | null) => updatePrinterPreference(value as string | null)"
               />
-              <XhButton variant="ghost" circle :loading="printerLoading" :title="t('setting.print_template.refresh_printers')" @click="loadPrinters(true)">
+              <XhButton class="xh-icon-btn" variant="ghost" :loading="printerLoading" :title="t('setting.print_template.refresh_printers')" @click="loadPrinters(true)">
                 <span><Icon icon="tabler:refresh" /></span>
               </XhButton>
             </XhFlex>
@@ -290,7 +290,7 @@ defineExpose({ confirmDiscard })
   border-radius: 0 !important;
 }
 
-.print-template-editor-modal > .n-card-content {
+.print-template-editor-modal > .editor-layout {
   height: 0;
   min-height: 0;
   flex: 1 1 0;
@@ -298,7 +298,7 @@ defineExpose({ confirmDiscard })
   overflow: hidden;
 }
 
-.print-template-editor-modal > .n-card-header {
+.print-template-editor-modal > [data-scope='dialog'][data-part='title'] {
   flex: none;
   padding: 16px 24px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
@@ -372,7 +372,7 @@ defineExpose({ confirmDiscard })
   gap: 10px;
 }
 
-.template-settings-footer > .n-button:first-child {
+.template-settings-footer > [data-scope='button'][data-part='root']:first-child {
   min-width: 92px;
 }
 
@@ -394,7 +394,7 @@ defineExpose({ confirmDiscard })
 }
 
 /* 分层表单自行控制水平留白，移除 Naive UI 默认左右内边距以避免双重缩进。 */
-.print-template-settings-drawer .n-drawer-body-content-wrapper {
+.print-template-settings-drawer [data-scope='drawer'][data-part='content'] {
   padding-right: 0 !important;
   padding-left: 0 !important;
 }

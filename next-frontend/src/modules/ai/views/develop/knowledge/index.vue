@@ -485,13 +485,12 @@ async function handleQuery() {
   min-height: 0;
 }
 
-.knowledge__tabs :deep(.n-tabs-pane-wrapper) {
+.knowledge__tabs :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   min-height: 0;
 }
 
-.knowledge__tabs :deep(.n-tab-pane) {
-  height: 100%;
+.knowledge__tabs :deep([data-scope='tabs'][data-part='content']) {
   padding-top: 8px;
   box-sizing: border-box;
 }

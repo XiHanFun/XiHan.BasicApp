@@ -1238,14 +1238,14 @@ async function handleSubmit() {
 }
 
 .xh-task-log-section.is-error {
-  color: var(--n-color-target, #d03050);
+  color: var(--xh-color-danger-600);
 }
 
 .xh-task-log-pre {
   margin: 0;
   padding: 10px 12px;
   border-radius: 6px;
-  background: var(--n-action-color, rgb(128 128 128 / 8%));
+  background: var(--xh-bg-subtle);
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;

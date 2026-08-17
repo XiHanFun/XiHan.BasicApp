@@ -29,7 +29,9 @@ const byKey = computed(() => indexDropdownOptions(props.options))
 </script>
 
 <template>
+  <!-- 触发器借用调用方给的那个元素（按钮/头像块），不再套一层 button -->
   <XhMenuRoot
+    trigger-as-child
     :collection="collection"
     :placement="placement"
     @select="(details: { value: string }) => emit('select', details.value)"

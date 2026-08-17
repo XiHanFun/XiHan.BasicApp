@@ -377,7 +377,7 @@ function clearSession(): void {
   max-width: 94vw;
 }
 
-.print-sample-data-modal > .n-card-content {
+.print-sample-data-modal > .xh-loading-stage {
   max-height: 68vh;
   overflow: auto;
 }
@@ -413,10 +413,6 @@ function clearSession(): void {
   margin-bottom: 10px;
   color: #475569;
   font-size: 12px;
-}
-
-.sample-record-tabs .n-tabs-pane-wrapper {
-  display: none;
 }
 
 .sample-fields-grid {

@@ -234,56 +234,26 @@ function widthOf(column: SchemaColumn<TRow>): number | undefined {
  * 喂给组件库的列契约：列号、列宽、可排序与吸附的唯一事实源。
  * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位。
  */
-const tableColumns = computed<TableColumnDef[]>(() => [
-  ...prefixColumns.value.map(c => ({ id: c.id, width: c.width })),
-  ...props.columns.map<TableColumnDef>(column => ({
-    id: column.key,
-    label: column.title,
-    ...(column.sortable ? { sortable: true } : {}),
-    ...(column.fixed ? { sticky: true } : {}),
-    ...(widthOf(column) === undefined ? {} : { width: widthOf(column) }),
-  })),
-])
+const tableColumns = computed<TableColumnDef[]>(() => {
+  // 有业务列左固定时，前面的勾选/序号/展开列也钉在行首侧，业务列的偏移才接得上
+  const pinPrefix = props.columns.some(column => column.fixed === 'left')
+  return [
+    ...prefixColumns.value.map<TableColumnDef>(c => ({ id: c.id, width: c.width, ...(pinPrefix ? { sticky: 'start' } : {}) })),
+    ...props.columns.map<TableColumnDef>(column => ({
+      id: column.key,
+      label: column.title,
+      ...(column.sortable ? { sortable: true } : {}),
+      // 吸附偏移由库按列宽累加，这里只报侧别
+      ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+      ...(widthOf(column) === undefined ? {} : { width: widthOf(column) }),
+    })),
+  ]
+})
 
 const tableRows = computed<TableRowDef[]>(() => flatRows.value.map(r => ({
   id: r.key,
   ...(props.renderExpand && (props.rowExpandable?.(r.row) ?? true) ? { expandable: true } : {}),
 })))
-
-// ── 吸附列偏移 ────────────────────────────────────────────────────────
-/**
- * 皮肤只给吸附列写 position: sticky，贴到哪儿要由列宽累加算出来。
- * 左吸附从左缘往右累加，右吸附从右缘往左累加；宽度未知的列不参与（算不出偏移）。
- */
-const stickyOffsets = computed<Record<string, { left?: number, right?: number }>>(() => {
-  const out: Record<string, { left?: number, right?: number }> = {}
-  let left = prefixColumns.value.reduce((sum, c) => sum + c.width, 0)
-  for (const column of props.columns) {
-    if (column.fixed === 'left') {
-      out[column.key] = { left }
-      left += widthOf(column) ?? 0
-    }
-  }
-  let right = 0
-  for (let i = props.columns.length - 1; i >= 0; i--) {
-    const column = props.columns[i]!
-    if (column.fixed === 'right') {
-      out[column.key] = { right }
-      right += widthOf(column) ?? 0
-    }
-  }
-  return out
-})
-
-function stickyStyle(key: string): Record<string, string> | undefined {
-  const offset = stickyOffsets.value[key]
-  if (!offset) {
-    return undefined
-  }
-  return offset.left === undefined
-    ? { insetInlineEnd: `${offset.right}px` }
-    : { insetInlineStart: `${offset.left}px` }
-}
 
 // ── 排序 ──────────────────────────────────────────────────────────────
 /** 应用侧的 { field, order } 与组件库的 { id, direction } 互转；数组顺序即优先级 */
@@ -359,11 +329,9 @@ function rowPeekHandlers(row: TRow) {
       :empty="!loading && flatRows.length === 0"
       :size="density"
       sticky-header
-      :class="{
-        'xh-table-panel__grid--striped': striped,
-        'xh-table-panel__grid--borderless': !bordered,
-        'xh-table-panel__grid--ruled': !singleLine,
-      }"
+      :striped="striped"
+      :borderless="!bordered"
+      :ruled="!singleLine"
       :style="scrollX ? { '--xh-table-scroll-x': `${scrollX}px` } : undefined"
       @update:sort="onSortChange"
       @update:selection="onSelectionChange"
@@ -381,7 +349,6 @@ function rowPeekHandlers(row: TRow) {
             v-for="column in columns"
             :key="column.key"
             :value="column.key"
-            :style="stickyStyle(column.key)"
           >
             <XhTableSortTrigger v-if="column.sortable" class="xh-table-panel__title">
               {{ column.title }}
@@ -416,7 +383,6 @@ function rowPeekHandlers(row: TRow) {
               v-for="column in columns"
               :key="column.key"
               :value="column.key"
-              :style="stickyStyle(column.key)"
             >
               <!-- 树形列：缩进 + 展开箭头，其余列照常渲染 -->
               <template v-if="tree && column.tree">
@@ -506,33 +472,6 @@ function rowPeekHandlers(row: TRow) {
 .xh-table-panel__grid :deep([data-scope='table'][data-part='header']),
 .xh-table-panel__grid :deep([data-scope='table'][data-part='body']) {
   min-inline-size: max(max-content, var(--xh-table-scroll-x, 0px));
-}
-
-/* 斑马纹：偶数数据行加一层浅底。展开出来的详情行不算进条纹节奏 */
-.xh-table-panel__grid--striped :deep([data-scope='table'][data-part='row']:nth-of-type(even)) {
-  background: var(--xh-bg-subtle);
-}
-
-/* 无边框档：去掉外框，只留行间横线 */
-.xh-table-panel__grid--borderless {
-  border: 0;
-}
-
-/* 非单线档：补上纵向分隔线 */
-.xh-table-panel__grid--ruled :deep([data-scope='table'][data-part='cell']),
-.xh-table-panel__grid--ruled :deep([data-scope='table'][data-part='column-header']) {
-  border-inline-end: 1px solid var(--xh-border-subtle);
-}
-
-.xh-table-panel__grid--ruled :deep([data-scope='table'][data-part='cell']:last-child),
-.xh-table-panel__grid--ruled :deep([data-scope='table'][data-part='column-header']:last-child) {
-  border-inline-end: 0;
-}
-
-/* 吸附列要盖住滚过去的普通列：普通单元格 background: inherit，吸附列须自带不透明底 */
-.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-sticky]),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-sticky]) {
-  background: var(--xh-bg-surface);
 }
 
 /* 列标题里的文字段：占满剩余宽度并省略，把手才贴得住右缘 */

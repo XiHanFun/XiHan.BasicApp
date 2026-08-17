@@ -623,8 +623,8 @@ const loaderItems = computed(() =>
 }
 
 /* 内部 NColorPicker 触发块充满整层，确保任意位置点击都能弹出取色器 */
-.custom-color-overlay :deep(.n-color-picker),
-.custom-color-overlay :deep(.n-color-picker__fill) {
+.custom-color-overlay :deep([data-scope='color-picker'][data-part='root']),
+.custom-color-overlay :deep([data-scope='color-picker'][data-part='trigger']) {
   width: 100%;
   height: 100%;
 }

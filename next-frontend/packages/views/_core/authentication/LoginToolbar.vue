@@ -82,7 +82,7 @@ function onAlignChange(align: LoginFormAlign) {
 
     <!-- 布局位置（封装组件，当前项高亮） -->
     <LayoutAlignSwitcher :value="currentAlign" placement="bottom-end" @change="onAlignChange">
-      <XhButton variant="ghost" circle size="sm" class="toolbar-btn">
+      <XhButton variant="ghost" size="sm" class="toolbar-btn xh-icon-btn">
         <Icon width="16" height="16" :icon="getLayoutIcon(currentAlign)" />
       </XhButton>
     </LayoutAlignSwitcher>
@@ -94,7 +94,7 @@ function onAlignChange(align: LoginFormAlign) {
       apply
       placement="bottom-end"
     >
-      <XhButton variant="ghost" circle size="sm" class="toolbar-btn">
+      <XhButton variant="ghost" size="sm" class="toolbar-btn xh-icon-btn">
         <Icon width="16" height="16" icon="lucide:languages" />
       </XhButton>
     </LocaleSwitcher>

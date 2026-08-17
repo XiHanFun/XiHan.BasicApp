@@ -226,7 +226,7 @@ function dictRowProps(row: DictListItemDto) {
     style: 'cursor: pointer;',
     onClick: (e: MouseEvent) => {
       // 点击多选框列不触发整行选中（避免误切当前字典）
-      if ((e.target as HTMLElement | null)?.closest('.n-data-table-td--selection, .n-checkbox')) {
+      if ((e.target as HTMLElement | null)?.closest('[data-scope="table"][data-part="row-select-trigger"], [data-scope="checkbox"]')) {
         return
       }
       selectDict(row)

@@ -345,3 +345,31 @@
   color: var(--xh-fg-muted);
   background: var(--xh-bg-subtle);
 }
+
+/* 圆形图标钮：工具栏里一排 28px 的透明底按钮（列设置/刷新/导出等），XIconButton 与借用它当触发器的菜单共用 */
+.xh-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--xh-radius-full);
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.xh-icon-btn:hover:not(:disabled) {
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
+}
+
+.xh-icon-btn:disabled {
+  opacity: var(--xh-state-disabled-opacity);
+  cursor: not-allowed;
+}

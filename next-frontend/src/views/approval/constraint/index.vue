@@ -1010,7 +1010,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
   padding: 10px 12px;
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
-  background: var(--n-merged-th-color, rgb(0 0 0 / 0.02));
+  background: var(--xh-bg-subtle);
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;
