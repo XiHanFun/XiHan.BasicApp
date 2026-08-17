@@ -1,0 +1,184 @@
+/* ============================================================================
+ * 设计系统基础层（base / components）
+ * Tailwind 核心与设计令牌的引入统一在入口 src/styles/index.css，
+ * 本文件仅保留 @apply 规则，依赖入口中已加载的 utilities 与 @theme 颜色。
+ * ========================================================================== */
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    @apply border-border;
+
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: 0;
+  }
+
+  html {
+    @apply bg-background text-foreground;
+
+    scroll-behavior: smooth;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #app,
+  body,
+  html {
+    @apply size-full;
+  }
+
+  a,
+  a:active,
+  a:hover,
+  a:link,
+  a:visited {
+    @apply no-underline;
+  }
+
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
+    @apply animate-none mix-blend-normal;
+  }
+
+  ::view-transition-old(root) {
+    @apply z-[1];
+  }
+
+  ::view-transition-new(root) {
+    @apply z-[2147483646];
+  }
+
+  html.dark::view-transition-old(root) {
+    @apply z-[2147483646];
+  }
+
+  html.dark::view-transition-new(root) {
+    @apply z-[1];
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply opacity-100;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    @apply m-0 appearance-none;
+  }
+}
+
+@layer components {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-col-center {
+    @apply flex flex-col items-center justify-center;
+  }
+
+  .absolute-full {
+    @apply absolute inset-0;
+  }
+
+  .fixed-full {
+    @apply fixed inset-0;
+  }
+
+  .text-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hover-card {
+    @apply transition-shadow duration-200 hover:shadow-md;
+  }
+
+  /* 系统编辑/更新表单默认双列 */
+  .xh-edit-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+
+  .xh-edit-form-grid [data-scope='field'][data-part='root'] {
+    margin-bottom: 12px;
+  }
+
+  .xh-edit-form-grid [data-scope='field'][data-part='label'] {
+    padding-bottom: 6px;
+  }
+
+  /* 分组分隔线与显式整行项跨满两列，避免标题落在单列导致布局错位 */
+  .xh-edit-form-grid > [data-scope='separator'][data-part='root'],
+  .xh-edit-form-grid > .xh-form-full-row {
+    grid-column: 1 / -1;
+  }
+
+  .xh-edit-form-grid > [data-scope='separator'][data-part='root'] {
+    margin: 4px 0 8px;
+  }
+
+  .xh-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #efeff5;
+  }
+
+  .xh-query-panel__content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* prevent text selection on key interactive layout areas */
+  .app-header-root,
+  .tabbar-root,
+  .chrome-tab,
+  .app-sidebar-root,
+  .app-sidebar-brand,
+  .app-sidebar-menu {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+html.invert-mode {
+  @apply invert;
+}
+
+html.grayscale-mode {
+  @apply grayscale;
+}
+
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+@media (max-width: 960px) {
+  .xh-edit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 磨砂纹理效果 */
+html.frosted-glass::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: var(--frosted-intensity, 0.1);
+}

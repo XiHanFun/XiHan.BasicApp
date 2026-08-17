@@ -1,0 +1,94 @@
+/* ============================================================================
+ * XiHan.UI 令牌桥
+ *
+ * XiHan.UI 组件只认 --xh-* 令牌，本应用的视觉真源是 variables.css 里那套
+ * "H S% L%" 分量令牌（--primary / --background / --radius…），且由 useTheme
+ * 在运行期按用户所选主色、圆角、明暗重写。本文件把前者改写到后者之上，
+ * 于是组件库跟着应用配色走，换主色/换圆角/切暗色都无需组件层配合。
+ *
+ * 两点约束决定了本文件的写法：
+ * 1) 挂在 xihan.overrides 层——它是 tokens.css 声明的五层里的最后一层，
+ *    且选择器用 :root（特指度 0,1,0）压过 tokens.css 的 :where()（特指度 0）。
+ * 2) 同一份映射在 :root 与 .dark 上各写一遍。--x 在嵌套 .dark 容器（深色侧栏、
+ *    深色顶栏）里会重解析，但 --xh-* 若只在 :root 声明就只解析一次，
+ *    嵌套区里的组件会拿到浅色值。与 variables.css 里 --color-* 的处理同因同法。
+ * ========================================================================== */
+
+@layer xihan.overrides {
+  :root,
+  .dark {
+    /* —— 品牌色阶：以用户所选主色为轴推导，供皮肤里直接引 500/600 的地方使用 —— */
+    --xh-color-brand-50: color-mix(in oklab, hsl(var(--primary)) 8%, white);
+    --xh-color-brand-100: color-mix(in oklab, hsl(var(--primary)) 16%, white);
+    --xh-color-brand-200: color-mix(in oklab, hsl(var(--primary)) 32%, white);
+    --xh-color-brand-300: color-mix(in oklab, hsl(var(--primary)) 52%, white);
+    --xh-color-brand-400: hsl(var(--primary-hover));
+    --xh-color-brand-500: hsl(var(--primary));
+    --xh-color-brand-600: hsl(var(--primary-active));
+    --xh-color-brand-700: color-mix(in oklab, hsl(var(--primary)) 82%, black);
+    --xh-color-brand-800: color-mix(in oklab, hsl(var(--primary)) 66%, black);
+    --xh-color-brand-900: color-mix(in oklab, hsl(var(--primary)) 50%, black);
+    --xh-color-brand-950: color-mix(in oklab, hsl(var(--primary)) 34%, black);
+
+    /* —— 功能色：与应用的 success / warning / info / destructive 对齐 —— */
+    --xh-color-success-500: hsl(var(--success));
+    --xh-color-success-600: color-mix(in oklab, hsl(var(--success)) 88%, black);
+    --xh-color-success-700: color-mix(in oklab, hsl(var(--success)) 74%, black);
+    --xh-color-warning-500: hsl(var(--warning));
+    --xh-color-warning-600: color-mix(in oklab, hsl(var(--warning)) 88%, black);
+    --xh-color-warning-700: color-mix(in oklab, hsl(var(--warning)) 74%, black);
+    --xh-color-info-500: hsl(var(--info));
+    --xh-color-info-600: color-mix(in oklab, hsl(var(--info)) 88%, black);
+    --xh-color-danger-400: color-mix(in oklab, hsl(var(--destructive)) 78%, white);
+    --xh-color-danger-500: hsl(var(--destructive));
+    --xh-color-danger-600: color-mix(in oklab, hsl(var(--destructive)) 88%, black);
+    --xh-color-danger-700: color-mix(in oklab, hsl(var(--destructive)) 74%, black);
+
+    /* —— 面：canvas 是页面底、surface 是卡片、raised 是浮层 —— */
+    --xh-bg-canvas: hsl(var(--background-deep));
+    --xh-bg-surface: hsl(var(--card));
+    --xh-bg-surface-raised: hsl(var(--popover));
+    --xh-bg-subtle: hsl(var(--muted));
+    --xh-bg-subtle-hover: hsl(var(--accent));
+    --xh-bg-subtle-active: hsl(var(--heavy));
+    --xh-bg-muted: hsl(var(--muted));
+    --xh-bg-brand: hsl(var(--primary));
+    --xh-bg-brand-hover: hsl(var(--primary-hover));
+    --xh-bg-brand-active: hsl(var(--primary-active));
+    --xh-bg-brand-subtle: hsl(var(--primary) / 12%);
+    --xh-bg-overlay: hsl(var(--overlay));
+
+    /* —— 字 —— */
+    --xh-fg-default: hsl(var(--foreground));
+    --xh-fg-muted: hsl(var(--muted-foreground));
+    --xh-fg-subtle: hsl(var(--foreground) / 60%);
+    --xh-fg-disabled: hsl(var(--foreground) / 38%);
+    --xh-fg-on-brand: hsl(var(--primary-foreground));
+    --xh-fg-brand: hsl(var(--primary));
+    --xh-fg-brand-strong: hsl(var(--primary-active));
+    --xh-fg-success: hsl(var(--success));
+    --xh-fg-danger: hsl(var(--destructive));
+    --xh-fg-danger-hover: hsl(var(--destructive) / 85%);
+
+    /* —— 线与聚焦环 —— */
+    --xh-border-default: hsl(var(--border));
+    --xh-border-subtle: hsl(var(--border) / 60%);
+    --xh-border-strong: hsl(var(--heavy));
+    --xh-border-control: hsl(var(--input));
+    --xh-border-control-hover: hsl(var(--primary) / 50%);
+    --xh-ring-focus: hsl(var(--ring));
+
+    /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
+    --xh-shape-control: var(--radius);
+    --xh-shape-surface: var(--radius-card, var(--radius));
+
+    /* —— 层级：整族抬到应用旧有的 --popup-z-index(2000) 之上，
+           避免遗留的 .z-popup 元素盖住组件库的模态与浮层 —— */
+    --xh-z-sticky: var(--z-sidebar);
+    --xh-z-drawer: 2100;
+    --xh-z-modal: 2200;
+    --xh-z-popover: 2300;
+    --xh-z-toast: 2400;
+    --xh-z-tooltip: 2500;
+  }
+}

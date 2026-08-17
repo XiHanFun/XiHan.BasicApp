@@ -1,0 +1,469 @@
+/* 个人中心子组件共享样式 */
+
+/* ===== Tab 容器（GitHub 设置页风格：单列内容流，分区扁平无卡片背景） ===== */
+.pf-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.pf-tab-body > .n-spin-container > .n-spin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* 分区：无背景、无圆角，靠标题下分隔线划分（GitHub 式） */
+.pf-section {
+  background: transparent;
+}
+
+.pf-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid hsl(var(--border) / 70%);
+}
+
+.pf-section__heading {
+  min-width: 0;
+}
+
+.pf-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.pf-section__title svg {
+  color: hsl(var(--primary));
+}
+
+.pf-section__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.pf-section__extra {
+  flex-shrink: 0;
+}
+
+.pf-section__body {
+  padding: 14px 0 0;
+}
+
+.pf-section__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 0 0;
+  background: transparent;
+}
+
+/* ===== 设置行 ===== */
+.pf-setting-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pf-setting-row {
+  display: flex;
+  flex-wrap: wrap; /* 控件放不下时整体换行，避免把标签压成竖排 */
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 24px;
+  padding: 12px 0;
+}
+
+.pf-setting-row:first-child {
+  padding-top: 4px;
+}
+
+.pf-setting-row:last-child {
+  padding-bottom: 4px;
+}
+
+.pf-setting-row__main {
+  min-width: 0;
+  flex: 1 1 160px; /* 标签列保底宽度，低于该值时控件换行而非压缩标签 */
+}
+
+.pf-setting-row__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.pf-setting-row__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pf-setting-row__control {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pf-setting-row__value {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* 右侧定宽控件 */
+.pf-field {
+  width: 280px;
+  max-width: 100%;
+}
+
+/* 行内展开表单（验证码等） */
+.pf-inline-form {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 整块行（标题上、控件下占满，如简介） */
+.pf-setting-row--block {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.pf-setting-row--block .pf-setting-row__main {
+  flex: none;
+}
+
+/* 允许行内换行（控件 + 展开表单） */
+.pf-setting-row--wrap {
+  flex-wrap: wrap;
+}
+
+/* ===== 表单网格（资料 / 开发者，桌面 2 列、窄屏 1 列） ===== */
+.pf-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+}
+
+.pf-form-span2 {
+  grid-column: 1 / -1;
+}
+
+/* ===== 合并卡片：卡内分组（小标题 + 两列），减少卡片数量 =====
+   按可用宽度自适应：容器放不下两列（每列至少 300px）时自动塌成单列，
+   避免窄卡场景下分组互相挤压、标签竖排 */
+.pf-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px 28px;
+  margin-top: 14px;
+}
+
+.pf-subgroup__title {
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ===== 状态网格（安全状态） ===== */
+.pf-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 4px 24px;
+}
+
+.pf-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.pf-status-item__label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pf-status-item__value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ===== 条目列表（设备 / 日志 / 租户 / 绑定 / 通知） ===== */
+.pf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border) / 70%);
+  border-radius: var(--radius);
+  background: transparent;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.pf-list-item:hover {
+  background: hsl(var(--muted) / 20%);
+}
+
+.pf-list-item--active {
+  border-color: hsl(var(--primary) / 45%);
+  background: hsl(var(--primary) / 5%);
+}
+
+.pf-list-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.pf-list-icon--active {
+  background: hsl(var(--primary) / 12%);
+  color: hsl(var(--primary));
+}
+
+.pf-list-icon--danger {
+  background: hsl(0 80% 55% / 12%);
+  color: var(--color-error);
+}
+
+.pf-list-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-list-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pf-list-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.pf-list-time {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ===== 字段网格（个人信息等，标题在上、控件在下） ===== */
+.pf-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px 20px;
+}
+
+.pf-field-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-field-card__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.pf-field-card--block {
+  grid-column: 1 / -1;
+}
+
+/* ===== 方法卡（两步验证三方式等，可横向并列，按宽度自适应列数） ===== */
+.pf-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.pf-method-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid hsl(var(--border) / 70%);
+  border-radius: var(--radius);
+  background: transparent;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.pf-method-card.is-on {
+  border-color: hsl(var(--primary) / 45%);
+  background: hsl(var(--primary) / 4%);
+}
+
+.pf-method-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-method-card__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.pf-method-card.is-on .pf-method-card__icon {
+  background: hsl(var(--primary) / 12%);
+  color: hsl(var(--primary));
+}
+
+.pf-method-card__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pf-method-card__desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.pf-method-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* ===== 卡片信息项（只读摘要，如安全状态） ===== */
+.pf-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.pf-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid hsl(var(--border) / 70%);
+  border-radius: var(--radius);
+  background: transparent;
+}
+
+.pf-info-card__label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.pf-info-card__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ===== 通用小工具 ===== */
+.pf-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pf-full {
+  width: 100%;
+}
+
+/* 紧凑空状态（替代大面积留白的 NEmpty） */
+.pf-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 13px;
+  background: transparent;
+}
+
+.pf-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+/* ===== 响应式（统一断点 1023 / 768；内容已是单列流，无需列数降级） ===== */
+@media (max-width: 1023px) {
+  .pf-form-grid,
+  .pf-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 小屏：保持与桌面一致的「左标签 + 右控件」行布局（控件放不下时由
+   .pf-setting-row 的 flex-wrap 兜底换行），各网格由 auto-fit 自适应列数，
+   仅收紧分区间距，避免页面被强制单列拉得过长 */
+@media (max-width: 768px) {
+  .pf-tab-body {
+    gap: 20px;
+  }
+}

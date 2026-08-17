@@ -1,0 +1,19 @@
+{
+  "name": "@xihan/layouts",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./basic/index.vue",
+  "dependencies": {
+    "@dnd-kit/geometry": "catalog:",
+    "@dnd-kit/vue": "catalog:",
+    "@xihan-ui/kernel": "catalog:",
+    "@xihan-ui/vue": "catalog:",
+    "@xihan/components": "workspace:*",
+    "@xihan/composables": "workspace:*",
+    "@xihan/constants": "workspace:*",
+    "@xihan/locales": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/types": "workspace:*",
+    "@xihan/utils": "workspace:*"
+  }
+}

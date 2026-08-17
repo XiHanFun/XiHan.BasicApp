@@ -1,0 +1,92 @@
+/* ============================================================================
+ * 样式总入口（由 main.ts 唯一导入；@tailwindcss/vite 统一处理整个 CSS 依赖图）
+ *
+ * 层序在这里一次定死。CSS 的层序由「首次出现」决定，而 @xihan-ui/styles 与
+ * Tailwind 各自也会声明自己那几层——先在这里把两族排好，后面它们的声明就只是
+ * 复述，不会再改动次序。
+ *
+ * 关键取舍：utilities 排在 xihan.components 之后。页面上到处是给组件库部件补
+ * Tailwind 工具类的写法（w-full、shrink-0…），工具类必须压得住皮肤。
+ * xihan.overrides 垫底，它只放令牌改写与皮肤补丁，不产生与工具类的争抢。
+ * 组件自己的 <style scoped> 不进任何层，恒压全部层，这是页面级微调的出口。
+ * ========================================================================== */
+@layer xihan.reset, xihan.tokens, xihan.motion, xihan.components, theme, base, components, utilities,
+  xihan.overrides;
+
+/* 设计令牌（运行时 CSS 变量，含明暗主题），需在 @theme 之前提供 --border 等变量 */
+@import '../../packages/design/variables.css';
+
+/* XiHan.UI 皮肤：自带 reset + 令牌 + 全部组件样式 */
+@import '@xihan-ui/styles';
+
+/* Tailwind v4 核心（不引 preflight：基础重置由 XiHan.UI 的 xihan.reset 层负责） */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* 设计系统层（global.css 使用 @apply，依赖上面的 utilities） */
+@import '../../packages/design/global.css';
+@import '../../packages/design/transition.css';
+@import '../../packages/design/scrollbar.css';
+@import '../../packages/design/ui.css';
+/* XiHan.UI 令牌桥：把 --xh-* 改写到本应用的配色/圆角之上，须排在皮肤之后 */
+@import '../../packages/design/xihan-ui.css';
+@import './admin-page.css';
+
+/* ---------------------------------------------------------------------------
+ * 自定义主题颜色（取代 tailwind.config.mjs 的 theme.extend.colors）
+ * 颜色值引用 variables.css 中的运行时 HSL 令牌，保持明暗主题动态切换能力。
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-background: hsl(var(--background));
+  --color-background-deep: hsl(var(--background-deep));
+  --color-foreground: hsl(var(--foreground));
+  --color-overlay: hsl(var(--overlay));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-deep: hsl(var(--sidebar-deep));
+  --color-header: hsl(var(--header));
+  --color-menu: hsl(var(--menu));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-success-surface: hsl(var(--success-surface));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-warning-surface: hsl(var(--warning-surface));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+  --color-info-surface: hsl(var(--info-surface));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-surface: hsl(var(--destructive-surface));
+
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* 暗色模式：class 策略（取代 darkMode: 'class'），匹配 .dark 容器内的元素 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 内容扫描范围（取代 config.content） */
+@source '../../src';
+@source '../../packages';
+@source '../../index.html';
