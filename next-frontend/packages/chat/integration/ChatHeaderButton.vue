@@ -2,6 +2,7 @@
 import { XhNumberAnimation } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { CHAT_PERMISSIONS } from '../constants'
@@ -19,18 +20,20 @@ const unread = computed(() => chatStore.totalUnread)
 </script>
 
 <template>
-  <button
-    v-if="visible" :title="t('chat.bell')"
-    type="button"
-    class="chat-header-btn mr-1"
-    @click="chatStore.requestOpenChatDrawer()"
-  >
-    <Icon icon="lucide:messages-square" width="16" height="16" />
-    <span v-if="unread > 0" class="chat-header-btn__badge">
-      <XhNumberAnimation :to="Math.min(unread, 99)" :duration="500" :precision="0" />
-      <span v-if="unread > 99">+</span>
-    </span>
-  </button>
+  <XTooltip :content="t('chat.bell')">
+    <button
+      v-if="visible"
+      type="button"
+      class="chat-header-btn mr-1"
+      @click="chatStore.requestOpenChatDrawer()"
+    >
+      <Icon icon="lucide:messages-square" width="16" height="16" />
+      <span v-if="unread > 0" class="chat-header-btn__badge">
+        <XhNumberAnimation :to="Math.min(unread, 99)" :duration="500" :precision="0" />
+        <span v-if="unread > 99">+</span>
+      </span>
+    </button>
+  </XTooltip>
 </template>
 
 <style scoped>

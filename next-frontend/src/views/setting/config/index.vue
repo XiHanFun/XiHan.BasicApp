@@ -720,7 +720,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
   overflow: auto;
   padding: 8px 10px;
   border-radius: 4px;
-  background: var(--n-color-modal, rgba(128, 128, 128, 0.08));
+  background: var(--xh-bg-subtle);
   font-family: var(--font-family-mono, monospace);
   font-size: 12px;
   line-height: 1.5;

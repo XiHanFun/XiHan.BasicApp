@@ -152,30 +152,26 @@ const badgeTone = resolveBadgeTone(props.badge.type)
   line-height: 18px !important;
 }
 
-/* ---- 折叠 + 显示标题时：竖向堆叠 ---- */
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper {
+/* ---- 折叠 + 显示标题时：竖向堆叠（侧栏菜单在这一档挂 .sidebar-menu--collapsed-titled）---- */
+.sidebar-menu--collapsed-titled .menu-badge-wrapper {
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
 }
 
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text {
+.sidebar-menu--collapsed-titled .menu-badge-text {
   white-space: normal;
   text-align: center;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot {
+.sidebar-menu--collapsed-titled .menu-badge-dot {
   margin-left: 0;
 }
 
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag {
+.sidebar-menu--collapsed-titled .menu-badge-tag {
   margin-left: 0;
   font-size: 10px !important;
   padding: 0 4px !important;

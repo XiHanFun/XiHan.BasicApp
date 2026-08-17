@@ -51,30 +51,26 @@ function goTo(path: string) {
   width: 100%;
 }
 
-.entry-switcher :deep(.n-tabs-nav) {
+.entry-switcher :deep([data-scope='tabs'][data-part='list']) {
   margin-bottom: 0 !important;
 }
 
-.entry-switcher :deep(.n-tabs-tab) {
+.entry-switcher :deep([data-scope='tabs'][data-part='trigger']) {
   font-size: 15px;
   font-weight: 500;
   color: hsl(var(--muted-foreground)) !important;
 }
 
-.entry-switcher :deep(.n-tabs-tab:hover:not(.n-tabs-tab--active)) {
+.entry-switcher :deep([data-scope='tabs'][data-part='trigger']:hover:not([data-state='active'])) {
   color: hsl(var(--foreground)) !important;
 }
 
-.entry-switcher :deep(.n-tabs-tab.n-tabs-tab--active .n-tabs-tab__label) {
+.entry-switcher :deep([data-scope='tabs'][data-part='trigger'][data-state='active']) {
   color: hsl(var(--primary)) !important;
   font-weight: 600;
 }
 
-.entry-switcher :deep(.n-tabs-bar) {
-  background: hsl(var(--primary)) !important;
-}
-
-.entry-switcher :deep(.n-tabs-pane-wrapper) {
+.entry-switcher :deep([data-scope='tabs'][data-part='content']) {
   display: none;
 }
 </style>

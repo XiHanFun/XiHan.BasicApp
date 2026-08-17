@@ -4,6 +4,7 @@ import { XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, 
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
@@ -351,16 +352,17 @@ async function handleDownload(fileId: string) {
 
       <!-- 回应汇总 -->
       <div v-if="groupedReactions.length" class="mt-1 flex flex-wrap gap-1" :class="isSelf ? 'justify-end' : ''">
-        <button
-          v-for="group in groupedReactions" :key="group.emoji" :title="group.users.join('、')"
-          type="button"
-          class="chat-reaction-chip"
-          :class="{ 'chat-reaction-chip--mine': group.mine }"
-          @click="emit('react', group.emoji)"
-        >
-          <span>{{ group.emoji }}</span>
-          <span class="text-[11px]">{{ group.count }}</span>
-        </button>
+        <XTooltip v-for="group in groupedReactions" :key="group.emoji" :content="group.users.join('、')">
+          <button
+            type="button"
+            class="chat-reaction-chip"
+            :class="{ 'chat-reaction-chip--mine': group.mine }"
+            @click="emit('react', group.emoji)"
+          >
+            <span>{{ group.emoji }}</span>
+            <span class="text-[11px]">{{ group.count }}</span>
+          </button>
+        </XTooltip>
       </div>
 
       <!-- 元信息：时间 + 状态 + 已读回执 + 悬浮操作 -->

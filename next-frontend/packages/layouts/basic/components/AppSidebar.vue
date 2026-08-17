@@ -380,14 +380,15 @@ function handleBrandClick() {
 function handlePrimaryColumnHover(e: MouseEvent, mode: 'header-mix' | 'side-mixed') {
   if (appStore.sidebarExpandOnHover)
     return
-  const itemEl = (e.target as HTMLElement).closest('.n-menu-item')
+  // 主列的条目是侧栏导航的链接节点，DOM 上带 data-value=选项键；按键找回选项序号，不数 DOM 位置
+  const itemEl = (e.target as HTMLElement).closest<HTMLElement>('[data-scope="side-nav"][data-part="link"]')
   if (!itemEl)
     return
-  const menuEl = itemEl.closest('.n-menu')
-  if (!menuEl)
+  const hoveredKey = itemEl.dataset.value
+  if (!hoveredKey)
     return
-  const items = Array.from(menuEl.children).filter(el => el.classList.contains('n-menu-item'))
-  const idx = items.indexOf(itemEl as Element)
+  const options = mode === 'side-mixed' ? sideMixedPrimaryOptions.value : headerMixPrimaryOptions.value
+  const idx = options.findIndex(option => String(option.key) === hoveredKey)
   const routes = mode === 'side-mixed' ? sideMixedPrimaryRoutes.value : headerMixPrimaryRoutes.value
   if (idx < 0 || idx >= routes.length)
     return
@@ -662,114 +663,6 @@ watch(
  * Light: accent-foreground text, primary hover-text, primary-foreground active-text on primary bg
  * Dark: foreground/80% text, foreground hover-text, primary-foreground active-text on primary bg
  */
-.mixed-primary-menu :deep(.menu-theme-light.n-menu.n-menu--collapsed) {
-  --n-item-text-color: hsl(var(--accent-foreground));
-  --n-item-text-color-hover: hsl(var(--primary));
-  --n-item-icon-color: hsl(var(--accent-foreground));
-  --n-item-icon-color-hover: hsl(var(--primary));
-  --n-item-color-hover: hsl(var(--accent));
-  --n-item-text-color-active: hsl(var(--primary-foreground));
-  --n-item-text-color-active-hover: hsl(var(--primary-foreground));
-  --n-item-icon-color-active: hsl(var(--primary-foreground));
-  --n-item-icon-color-active-hover: hsl(var(--primary-foreground));
-  --n-item-color-active: hsl(var(--primary));
-  --n-item-color-active-hover: hsl(var(--primary));
-}
-
-.mixed-primary-menu :deep(.menu-theme-dark.n-menu.n-menu--collapsed) {
-  --n-item-text-color: hsl(var(--foreground) / 80%);
-  --n-item-text-color-hover: hsl(var(--foreground));
-  --n-item-icon-color: hsl(var(--foreground) / 72%);
-  --n-item-icon-color-hover: hsl(var(--foreground));
-  --n-item-color-hover: hsl(var(--accent));
-  --n-item-text-color-active: hsl(var(--primary-foreground));
-  --n-item-text-color-active-hover: hsl(var(--primary-foreground));
-  --n-item-icon-color-active: hsl(var(--primary-foreground));
-  --n-item-icon-color-active-hover: hsl(var(--primary-foreground));
-  --n-item-color-active: hsl(var(--primary));
-  --n-item-color-active-hover: hsl(var(--primary));
-}
-
-/* ---- 双列主列通用折叠样式 ---- */
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item) {
-  height: auto !important;
-  margin: 4px 0 !important;
-  overflow: visible !important;
-}
-
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content) {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  height: auto !important;
-  margin: 0 6px !important;
-  overflow: visible !important;
-}
-
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content::before) {
-  left: 0;
-  right: 0;
-  border-radius: 6px;
-}
-
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__icon) {
-  font-size: 20px !important;
-  width: 20px;
-  height: 20px;
-  max-height: 20px;
-  margin-right: 0 !important;
-  transition: all 0.25s ease;
-}
-
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content .n-menu-item-content__arrow) {
-  display: none !important;
-}
-
-.mixed-primary-menu :deep(.n-menu.n-menu--collapsed .n-menu-item-content:hover .n-menu-item-content__icon) {
-  transform: scale(1.2);
-}
-
-/* ---- 偏好关闭：仅图标居中 ---- */
-.mixed-primary-menu :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content) {
-  padding: 12px 0 !important;
-}
-
-.mixed-primary-menu :deep(.sidebar-menu-collapsed-icon-center.n-menu.n-menu--collapsed .n-menu-item-content-header) {
-  display: none !important;
-}
-
-/* ---- 偏好开启：图标 + 文字纵向排列 ---- */
-.mixed-primary-menu :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content) {
-  flex-direction: column;
-  padding: 8px 0 !important;
-}
-
-.mixed-primary-menu :deep(.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .n-menu-item-content-header) {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  margin-top: 4px;
-  margin-bottom: 0;
-  overflow: hidden !important;
-  opacity: 1 !important;
-  transform: none !important;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.4;
-  white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-.mixed-primary-menu
-  :deep(
-    .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed
-      .n-menu-item.n-menu-item--selected
-      .n-menu-item-content-header
-  ) {
-  font-weight: 600;
-}
 
 .extra-brand-title {
   color: hsl(var(--foreground));
@@ -786,7 +679,5 @@ watch(
 </style>
 
 <style>
-.n-menu-tooltip {
-  display: none !important;
-}
+
 </style>

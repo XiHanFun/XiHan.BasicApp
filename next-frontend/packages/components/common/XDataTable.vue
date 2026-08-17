@@ -70,11 +70,11 @@ function keyOf(row: T): string {
 const SELECT_COL = '__select__'
 
 const tableColumns = computed<TableColumnDef[]>(() => [
-  ...(props.selectable ? [{ id: SELECT_COL, width: 40 }] : []),
+  ...(props.selectable ? [{ id: SELECT_COL, width: 40, ...(props.columns.some(c => c.fixed === 'left') ? { sticky: 'start' as const } : {}) }] : []),
   ...props.columns.map<TableColumnDef>(column => ({
     id: column.key,
     label: column.title,
-    ...(column.fixed ? { sticky: true } : {}),
+    ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
     ...(column.width === undefined ? {} : { width: column.width }),
   })),
 ])
@@ -82,39 +82,8 @@ const tableColumns = computed<TableColumnDef[]>(() => [
 const rows = computed(() => props.data.map(row => ({ key: keyOf(row), row })))
 const tableRows = computed<TableRowDef[]>(() => rows.value.map(item => ({ id: item.key })))
 
-/**
- * 固定列的横向偏移：左固定按声明顺序累加前面几列的宽度，右固定从右往左累加。
- * 只有给了数字宽度的列参与累加，否则无法预知落位。
- */
-const stickyOffsets = computed(() => {
-  const offsets = new Map<string, { side: 'left' | 'right', offset: number }>()
-  let left = props.selectable ? 40 : 0
-  for (const column of props.columns) {
-    if (column.fixed !== 'left')
-      continue
-    offsets.set(column.key, { side: 'left', offset: left })
-    left += typeof column.width === 'number' ? column.width : 0
-  }
-  let right = 0
-  for (const column of [...props.columns].reverse()) {
-    if (column.fixed !== 'right')
-      continue
-    offsets.set(column.key, { side: 'right', offset: right })
-    right += typeof column.width === 'number' ? column.width : 0
-  }
-  return offsets
-})
-
-function stickyStyle(key: string) {
-  const hit = stickyOffsets.value.get(key)
-  return hit ? { [hit.side]: `${hit.offset}px` } : undefined
-}
-
 function cellStyle(column: XDataTableColumn<T>) {
-  return {
-    ...stickyStyle(column.key),
-    ...(column.align && column.align !== 'left' ? { textAlign: column.align } : {}),
-  }
+  return column.align && column.align !== 'left' ? { textAlign: column.align } : undefined
 }
 
 /** 全选时机器给的是 'all'，摊平成实际的键集合再回传 */

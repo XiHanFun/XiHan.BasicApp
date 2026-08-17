@@ -299,10 +299,6 @@ watch(visible, (open, was) => {
   font-size: 14px;
 }
 
-:deep(.n-drawer-footer) {
-  padding: 8px 16px !important;
-}
-
 .drawer-footer {
   display: flex;
   gap: 10px;
@@ -320,21 +316,17 @@ watch(visible, (open, was) => {
   height: 100%;
 }
 
-:deep(.preference-scrollbar .n-scrollbar-content) {
+:deep(.preference-scrollbar [data-scope='scroll-area'][data-part='content']) {
   padding: 0 16px 16px;
 }
 
-:deep(.preference-tabs > .n-tabs-nav) {
+:deep(.preference-tabs > [data-scope='tabs'][data-part='list']) {
   position: sticky;
   top: 0;
   z-index: 10;
   padding-top: 12px;
   padding-bottom: 4px;
   background: hsl(var(--background));
-}
-
-:deep(.preference-tabs > .n-tabs-nav .n-tabs-rail) {
-  margin-top: 0;
 }
 
 /* 自定义头部 */

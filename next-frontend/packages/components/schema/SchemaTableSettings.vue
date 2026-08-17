@@ -315,7 +315,7 @@ function onDragEnd(event: DragEndEvent) {
 .xh-set-head {
   padding: 2px 6px 6px;
   font-size: 12px;
-  color: var(--n-text-color-3, rgb(148 163 184));
+  color: var(--xh-fg-subtle);
   border-bottom: 1px solid rgb(var(--primary) / 0.08);
 }
 
@@ -367,7 +367,7 @@ function onDragEnd(event: DragEndEvent) {
 }
 
 /* 复选框标题钉死 14px，与搜索设置行标题字号一致；超长列名单行省略（不换行、不撑高），完整名见悬停 title */
-.xh-set-row :deep(.n-checkbox__label) {
+.xh-set-row :deep([data-scope='checkbox'][data-part='text']) {
   font-size: 14px;
   overflow: hidden;
   white-space: nowrap;

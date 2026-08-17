@@ -92,15 +92,18 @@ const moreOptions = computed<MenuNode[]>(() =>
       </XhButton>
     </template>
 
+    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款 -->
     <XhMenuRoot
       v-if="moreOptions.length"
-      class="schema-action-more"
+      trigger-as-child
       :collection="moreOptions"
       @select="(details: { value: string }) => emit('action', details.value)"
     >
       <template #trigger>
-        <Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" />
-        <span v-if="!isMobile">{{ t('component.schema_page.more') }}</span>
+        <XhButton size="sm" variant="outline">
+          <Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" />
+          <span v-if="!isMobile">{{ t('component.schema_page.more') }}</span>
+        </XhButton>
       </template>
     </XhMenuRoot>
 
@@ -110,24 +113,3 @@ const moreOptions = computed<MenuNode[]>(() =>
     <slot name="toolbar" />
   </div>
 </template>
-
-<style scoped>
-/* 「更多」的触发器按普通描边按钮打扮，与左侧一排操作钮同高 */
-.schema-action-more :deep([data-scope='menu'][data-part='trigger']) {
-  display: inline-flex;
-  gap: var(--xh-control-gap-sm);
-  align-items: center;
-  block-size: var(--xh-control-h-sm);
-  padding-inline: var(--xh-control-px-sm);
-  border: var(--xh-stroke-thin) solid var(--xh-border-control);
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: var(--xh-fg-default);
-  font: inherit;
-  cursor: pointer;
-}
-
-.schema-action-more :deep([data-scope='menu'][data-part='trigger']:hover) {
-  background: var(--xh-bg-subtle-hover);
-}
-</style>

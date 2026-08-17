@@ -246,10 +246,16 @@ function handleKeydown(e: KeyboardEvent) {
         </XhFieldRoot>
       </XhFormFieldGroup>
 
+      <!-- 复选框只是那个方框，没有标签插槽：文案是并排的一段，不能塞进它里面 -->
       <div class="mb-6">
         <span class="xh-checkbox-row">
           <XhCheckbox v-model:checked="agreePolicy" size="sm" />
-          <span class="xh-checkbox-row__label" @click="agreePolicy = !agreePolicy"><span class="text-sm"> {{ t('page.auth.agree_text') }} <a class="link-primary" href="#"> {{ t('page.auth.privacy_policy') }} </a> {{ t('page.auth.and') }} <a class="link-primary" href="#"> {{ t('page.auth.terms_of_service') }} </a> </span></span>
+          <span class="xh-checkbox-row__label text-sm">
+            {{ t('page.auth.agree_text') }}
+            <a class="link-primary" href="#">{{ t('page.auth.privacy_policy') }}</a>
+            {{ t('page.auth.and') }}
+            <a class="link-primary" href="#">{{ t('page.auth.terms_of_service') }}</a>
+          </span>
         </span>
       </div>
 

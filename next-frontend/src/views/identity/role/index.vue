@@ -1287,13 +1287,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
             :options="scopeDeptOptions"
             :placeholder="t('identity.role.scope_select_dept')" style="flex: 1"
           />
+          <!-- 开关旁的文字随状态切换：含下级 / 仅本级 -->
           <XhSwitch v-model:checked="scopeIncludeChildren">
-            <template #checked>
-              {{ t('identity.role.scope_include_children') }}
-            </template>
-            <template #unchecked>
-              {{ t('identity.role.scope_only_self') }}
-            </template>
+            {{ scopeIncludeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
           </XhSwitch>
           <XhButton :loading="scopeSubmitting" tone="brand" @click="addScope">
             {{ t('identity.role.scope_add') }}

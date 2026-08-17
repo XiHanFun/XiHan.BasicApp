@@ -17,7 +17,7 @@ import {
   querySortsFromSchema,
   tenantApi,
 } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import {
@@ -374,9 +374,11 @@ function parseTemplateJson(value: string): Record<string, unknown> {
     <XhSpinner v-if="!contextResolved" class="flex-1 py-12" />
     <SchemaPage v-else ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
       <template v-if="!isPlatform" #toolbar>
-        <XhButton :title="scopeSwitchLabel" circle variant="ghost" size="sm" :aria-label="scopeSwitchLabel" @click="switchScope">
-          <span><Icon :icon="activeScope === PrintTemplateScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
-        </XhButton>
+        <XTooltip :content="scopeSwitchLabel">
+          <XhButton class="xh-icon-btn" variant="ghost" size="sm" :aria-label="scopeSwitchLabel" @click="switchScope">
+            <span><Icon :icon="activeScope === PrintTemplateScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
+          </XhButton>
+        </XTooltip>
       </template>
     </SchemaPage>
 

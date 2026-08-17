@@ -1494,7 +1494,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
   gap: 8px;
   align-items: center;
   font-size: 13px;
-  color: var(--n-text-color, inherit);
+  color: var(--xh-fg-default);
 }
 
 .file-upload-dragger {
@@ -1508,7 +1508,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
 .file-upload-dragger__text {
   font-size: 14px;
   font-weight: 500;
-  color: var(--n-text-color, inherit);
+  color: var(--xh-fg-default);
 }
 
 .file-upload-dragger__hint {

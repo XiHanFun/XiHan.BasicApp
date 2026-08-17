@@ -115,15 +115,15 @@ function updateDraft(value: null | string) {
   text-align: left;
   font: inherit;
   color: inherit;
-  background-color: var(--n-color, transparent);
-  border: 1px solid var(--n-border-color, rgb(224 224 230));
+  background-color: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
   border-radius: 3px;
   cursor: pointer;
   transition: border-color 0.2s;
 }
 
 .xh-content-field__summary:hover:not(:disabled) {
-  border-color: var(--n-border-color-hover, rgb(54 143 255));
+  border-color: var(--xh-border-control-hover);
 }
 
 .xh-content-field__summary:disabled {
@@ -174,11 +174,8 @@ function updateDraft(value: null | string) {
 }
 
 /* 纯文本编辑同样撑满，不再受 autosize 行数限制 */
-.xh-content-field__editor :deep(.n-input) {
-  height: 100%;
-}
-
-.xh-content-field__editor :deep(.n-input__textarea-el) {
+.xh-content-field__editor :deep([data-scope='text-field'][data-part='root']),
+.xh-content-field__editor :deep([data-scope='text-field'][data-part='input']) {
   height: 100%;
 }
 

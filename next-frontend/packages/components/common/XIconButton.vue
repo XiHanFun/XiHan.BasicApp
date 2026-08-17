@@ -23,7 +23,7 @@ const emit = defineEmits<{ click: [event: MouseEvent] }>()
   <!-- 提示触发器本身就是那颗按钮：皮肤给的是透明底的 button，不必再套一层 -->
   <XhTooltipRoot>
     <XhTooltipTrigger
-      class="x-icon-button"
+      class="xh-icon-btn"
       :aria-label="label"
       :disabled="disabled || loading"
       @click="(event: MouseEvent) => emit('click', event)"
@@ -39,26 +39,3 @@ const emit = defineEmits<{ click: [event: MouseEvent] }>()
     </XhTooltipPositioner>
   </XhTooltipRoot>
 </template>
-
-<style scoped>
-.x-icon-button {
-  inline-size: 28px;
-  block-size: 28px;
-  border-radius: var(--xh-radius-full);
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.x-icon-button:hover:not(:disabled) {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
-}
-
-.x-icon-button:disabled {
-  opacity: var(--xh-state-disabled-opacity);
-  cursor: not-allowed;
-}
-</style>

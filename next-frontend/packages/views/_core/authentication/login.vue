@@ -510,10 +510,9 @@ onMounted(async () => {
             </XhFieldRoot>
           </XhFormFieldGroup>
           <div class="flex justify-between items-center mb-5 text-sm">
-            <span class="xh-checkbox-row">
-              <XhCheckbox v-model:checked="rememberMe" size="sm" />
-              <span class="xh-checkbox-row__label" @click="rememberMe = !rememberMe">{{ t('page.login.remember_me') }}</span>
-            </span>
+            <XhCheckbox v-model:checked="rememberMe" size="sm">
+              {{ t('page.login.remember_me') }}
+            </XhCheckbox>
             <span class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
               {{ t('page.login.forgot_password') }}?
             </span>

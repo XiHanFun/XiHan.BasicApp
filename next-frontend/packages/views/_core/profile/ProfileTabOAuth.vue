@@ -3,7 +3,7 @@ import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
 import { XhAlertDescription, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XEditModal, XInput, XSelect } from '~/components'
+import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -272,15 +272,21 @@ onMounted(() => {
                   :checked="app.status === 'Enabled'"
                   @update:checked="(v: boolean) => handleToggleStatus(app, v)"
                 />
-                <XhButton :title="t('component.profile.oauth.tooltip_edit')" size="sm" variant="ghost" @click="openEdit(app)">
-                  <span><Icon icon="lucide:pencil" /></span>
-                </XhButton>
-                <XhButton :title="t('component.profile.oauth.tooltip_regenerate')" size="sm" variant="ghost" @click="handleRegenerate(app)">
-                  <span><Icon icon="lucide:rotate-ccw" /></span>
-                </XhButton>
-                <XhButton :title="t('component.profile.oauth.tooltip_delete')" size="sm" variant="ghost" tone="danger" @click="handleDelete(app)">
-                  <span><Icon icon="lucide:trash-2" /></span>
-                </XhButton>
+                <XTooltip :content="t('component.profile.oauth.tooltip_edit')">
+                  <XhButton size="sm" variant="ghost" @click="openEdit(app)">
+                    <span><Icon icon="lucide:pencil" /></span>
+                  </XhButton>
+                </XTooltip>
+                <XTooltip :content="t('component.profile.oauth.tooltip_regenerate')">
+                  <XhButton size="sm" variant="ghost" @click="handleRegenerate(app)">
+                    <span><Icon icon="lucide:rotate-ccw" /></span>
+                  </XhButton>
+                </XTooltip>
+                <XTooltip :content="t('component.profile.oauth.tooltip_delete')">
+                  <XhButton size="sm" variant="ghost" tone="danger" @click="handleDelete(app)">
+                    <span><Icon icon="lucide:trash-2" /></span>
+                  </XhButton>
+                </XTooltip>
               </div>
             </div>
           </div>

@@ -63,13 +63,12 @@ const activeTab = ref<'table' | 'datasource' | 'template' | 'history'>('table')
   min-height: 0;
 }
 
-.code-gen__tabs :deep(.n-tabs-pane-wrapper) {
+.code-gen__tabs :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   min-height: 0;
 }
 
-.code-gen__tabs :deep(.n-tab-pane) {
-  height: 100%;
+.code-gen__tabs :deep([data-scope='tabs'][data-part='content']) {
   padding-top: 8px;
   box-sizing: border-box;
 }

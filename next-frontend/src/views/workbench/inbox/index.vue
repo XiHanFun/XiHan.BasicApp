@@ -247,7 +247,7 @@ onMounted(loadNotifications)
           <span><Icon icon="lucide:check-check" /></span>
           {{ t('workbench.inbox.mark_all_read') }}
         </XhButton>
-        <XhButton :aria-label="t('workbench.inbox.refresh')" circle :loading="loading" size="sm" @click="loadNotifications">
+        <XhButton class="xh-icon-btn" :aria-label="t('workbench.inbox.refresh')" :loading="loading" size="sm" @click="loadNotifications">
           <span><Icon icon="lucide:refresh-cw" /></span>
         </XhButton>
       </div>

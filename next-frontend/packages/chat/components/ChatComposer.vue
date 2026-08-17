@@ -9,6 +9,7 @@ import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watc
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XDropdown from '~/components/common/XDropdown.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { toast } from '~/composables'
 
 import { Icon } from '~/iconify'
@@ -659,33 +660,39 @@ function handlePaste(event: ClipboardEvent) {
             </XhPopoverContent>
           </XhPopoverPositioner>
         </XhPopoverRoot>
-        <button
-          :title="t('chat.composer.image')"
-          type="button"
-          class="chat-composer-btn"
-          :disabled="uploadingPercent != null || isEditing"
-          @click="imageInputRef?.click()"
-        >
-          <Icon icon="lucide:image" width="18" height="18" />
-        </button>
-        <button
-          :title="t('chat.composer.file')"
-          type="button"
-          class="chat-composer-btn"
-          :disabled="uploadingPercent != null || isEditing"
-          @click="fileInputRef?.click()"
-        >
-          <Icon icon="lucide:paperclip" width="18" height="18" />
-        </button>
-        <button
-          v-if="voice.supported.value" :title="t('chat.composer.voice')"
-          type="button"
-          class="chat-composer-btn"
-          :disabled="uploadingPercent != null || isEditing || sending"
-          @click="enterVoiceMode"
-        >
-          <Icon icon="lucide:mic" width="18" height="18" />
-        </button>
+        <XTooltip :content="t('chat.composer.image')">
+          <button
+
+            type="button"
+            class="chat-composer-btn"
+            :disabled="uploadingPercent != null || isEditing"
+            @click="imageInputRef?.click()"
+          >
+            <Icon icon="lucide:image" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <XTooltip :content="t('chat.composer.file')">
+          <button
+
+            type="button"
+            class="chat-composer-btn"
+            :disabled="uploadingPercent != null || isEditing"
+            @click="fileInputRef?.click()"
+          >
+            <Icon icon="lucide:paperclip" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <XTooltip :content="t('chat.composer.voice')">
+          <button
+            v-if="voice.supported.value"
+            type="button"
+            class="chat-composer-btn"
+            :disabled="uploadingPercent != null || isEditing || sending"
+            @click="enterVoiceMode"
+          >
+            <Icon icon="lucide:mic" width="18" height="18" />
+          </button>
+        </XTooltip>
         <input
           ref="imageInputRef"
           type="file"
@@ -891,10 +898,11 @@ function handlePaste(event: ClipboardEvent) {
   cursor: not-allowed;
 }
 
-/* 无边框输入区：去掉聚焦描边，保持 QQ 式纯净输入面 */
-.chat-composer-input :deep(.n-input__border),
-.chat-composer-input :deep(.n-input__state-border) {
-  display: none;
+/* 无边框输入区：去掉描边与聚焦描边，保持 QQ 式纯净输入面（走文本框皮肤留的边框槽） */
+.chat-composer-input :deep([data-scope='text-field'][data-part='input']) {
+  --xh-text-field-input-border: transparent;
+  --xh-text-field-input-border-hover: transparent;
+  --xh-text-field-input-border-focus: transparent;
 }
 
 .chat-composer-inline-btn {

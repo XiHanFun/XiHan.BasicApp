@@ -470,7 +470,7 @@ function handleClickOutside() {
   padding: 0 4px;
 }
 
-.notification-tabs :deep(.n-tabs-nav) {
+.notification-tabs :deep([data-scope='tabs'][data-part='list']) {
   padding: 0 12px;
 }
 
@@ -536,7 +536,7 @@ function handleClickOutside() {
   word-break: break-word;
 }
 
-.notification-item-header :deep(.n-tag) {
+.notification-item-header :deep([data-scope='badge']) {
   flex-shrink: 0;
 }
 

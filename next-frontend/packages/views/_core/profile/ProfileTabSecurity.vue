@@ -5,7 +5,7 @@ import type { UserProfile } from '~/types'
 import { XhAlertDescription, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XInput } from '~/components'
+import { XInput, XTooltip } from '~/components'
 import { prompt, toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
@@ -533,9 +533,11 @@ function handleDeleteAccount() {
                 <span class="pf-hint">{{ t('component.profile.security.manual_key') }}</span>
                 <div class="pf-secret-row">
                   <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
-                  <XhButton :title="t('component.profile.security.copy_key')" size="sm" variant="ghost" @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => toast.success(t('component.profile.security.msg_copied')))">
-                    <span><Icon icon="lucide:copy" /></span>
-                  </XhButton>
+                  <XTooltip :content="t('component.profile.security.copy_key')">
+                    <XhButton size="sm" variant="ghost" @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => toast.success(t('component.profile.security.msg_copied')))">
+                      <span><Icon icon="lucide:copy" /></span>
+                    </XhButton>
+                  </XTooltip>
                 </div>
                 <span class="pf-hint" style="margin-top: 10px; display: block">{{ t('component.profile.security.enter_6_digit') }}</span>
                 <div class="pf-otp-row">

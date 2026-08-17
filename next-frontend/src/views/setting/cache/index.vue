@@ -3,7 +3,7 @@ import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
-import { Icon, XInput, XSegmented, XTree } from '~/components'
+import { Icon, XInput, XSegmented, XTooltip, XTree } from '~/components'
 import { dialog, toast } from '~/composables'
 import { usePermission } from '~/hooks'
 
@@ -394,9 +394,11 @@ onMounted(loadKeys)
                 <Icon width="14" height="14" icon="lucide:search" />
               </template>
             </XInput>
-            <XhButton :title="t('setting.cache.search_by_pattern')" size="sm" tone="brand" :loading="loadingKeys" @click="handleSearch">
-              <span><Icon icon="lucide:search" /></span>
-            </XhButton>
+            <XTooltip :content="t('setting.cache.search_by_pattern')">
+              <XhButton size="sm" tone="brand" :loading="loadingKeys" @click="handleSearch">
+                <span><Icon icon="lucide:search" /></span>
+              </XhButton>
+            </XTooltip>
           </div>
 
           <!-- 滚动区：相对壳 + 绝对内胆（脱离文档流，树高不撑页面），树在内部滚动 -->
@@ -463,19 +465,25 @@ onMounted(loadKeys)
                 {{ sizeText }}
               </XhBadge>
               <XSegmented v-if="!editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" />
-              <XhButton :title="t('common.actions.copy')" size="sm" variant="ghost" @click="handleCopy">
-                <span><Icon icon="lucide:copy" /></span>
-              </XhButton>
-              <XhButton :title="t('common.actions.refresh')" size="sm" variant="ghost" @click="reloadValue">
-                <span><Icon icon="lucide:refresh-cw" /></span>
-              </XhButton>
+              <XTooltip :content="t('common.actions.copy')">
+                <XhButton size="sm" variant="ghost" @click="handleCopy">
+                  <span><Icon icon="lucide:copy" /></span>
+                </XhButton>
+              </XTooltip>
+              <XTooltip :content="t('common.actions.refresh')">
+                <XhButton size="sm" variant="ghost" @click="reloadValue">
+                  <span><Icon icon="lucide:refresh-cw" /></span>
+                </XhButton>
+              </XTooltip>
               <XhButton v-if="canManage && !editing" size="sm" @click="startEdit">
                 <span><Icon icon="lucide:pencil-line" /></span>
                 {{ t('setting.cache.edit') }}
               </XhButton>
-              <XhButton v-if="canManage" :title="t('setting.cache.delete_this_key')" size="sm" variant="ghost" tone="danger" @click="handleDeleteCurrent">
-                <span><Icon icon="lucide:trash-2" /></span>
-              </XhButton>
+              <XTooltip :content="t('setting.cache.delete_this_key')">
+                <XhButton v-if="canManage" size="sm" variant="ghost" tone="danger" @click="handleDeleteCurrent">
+                  <span><Icon icon="lucide:trash-2" /></span>
+                </XhButton>
+              </XTooltip>
             </div>
           </template>
 
@@ -593,7 +601,7 @@ onMounted(loadKeys)
   min-height: 100%;
 }
 
-.cache-scroll-spin :deep(.n-spin-content) {
+.cache-scroll-spin :deep(.xh-loading-stage) {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -619,7 +627,7 @@ onMounted(loadKeys)
   justify-content: space-between;
   padding-top: 8px;
   margin-top: 8px;
-  border-top: 1px solid var(--n-border-color, rgb(239 239 245));
+  border-top: 1px solid var(--xh-border-default);
 }
 
 .cache-batch-count {
@@ -690,7 +698,7 @@ onMounted(loadKeys)
   line-height: 1.6;
   word-break: break-all;
   white-space: pre-wrap;
-  background: var(--n-action-color, rgb(250 250 252));
+  background: var(--xh-bg-subtle);
   border-radius: 6px;
 }
 

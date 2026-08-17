@@ -3,7 +3,7 @@ import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
 import { XhAlertDescription, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XEditModal, XInput, XSelect } from '~/components'
+import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
@@ -267,12 +267,16 @@ onMounted(() => {
                   :checked="cred.status === 'Enabled'"
                   @update:checked="(v: boolean) => handleToggleStatus(cred, v)"
                 />
-                <XhButton :title="t('component.profile.developer.tooltip_rotate')" size="sm" variant="ghost" @click="handleRotateSecret(cred)">
-                  <span><Icon icon="lucide:rotate-ccw" /></span>
-                </XhButton>
-                <XhButton :title="t('component.profile.developer.tooltip_delete')" size="sm" variant="ghost" tone="danger" @click="handleDeleteCredential(cred)">
-                  <span><Icon icon="lucide:trash-2" /></span>
-                </XhButton>
+                <XTooltip :content="t('component.profile.developer.tooltip_rotate')">
+                  <XhButton size="sm" variant="ghost" @click="handleRotateSecret(cred)">
+                    <span><Icon icon="lucide:rotate-ccw" /></span>
+                  </XhButton>
+                </XTooltip>
+                <XTooltip :content="t('component.profile.developer.tooltip_delete')">
+                  <XhButton size="sm" variant="ghost" tone="danger" @click="handleDeleteCredential(cred)">
+                    <span><Icon icon="lucide:trash-2" /></span>
+                  </XhButton>
+                </XTooltip>
               </div>
             </div>
           </div>

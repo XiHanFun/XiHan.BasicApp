@@ -3,6 +3,7 @@ import { XhDrawerContent, XhDrawerRoot } from '@xihan-ui/vue'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 import ChatPanel from '../components/ChatPanel.vue'
@@ -38,9 +39,11 @@ function handleOpenFullPage() {
         <div class="flex items-center justify-between border-b border-border px-4 py-3">
           <span class="text-sm font-semibold text-foreground">{{ t('chat.drawer.title') }}</span>
           <div class="flex items-center gap-1">
-            <button :title="t('chat.drawer.open_page')" type="button" class="chat-drawer-btn" @click="handleOpenFullPage">
-              <Icon icon="lucide:expand" width="15" height="15" />
-            </button>
+            <XTooltip :content="t('chat.drawer.open_page')">
+              <button type="button" class="chat-drawer-btn" @click="handleOpenFullPage">
+                <Icon icon="lucide:expand" width="15" height="15" />
+              </button>
+            </XTooltip>
             <button type="button" class="chat-drawer-btn" @click="show = false">
               <Icon icon="lucide:x" width="15" height="15" />
             </button>

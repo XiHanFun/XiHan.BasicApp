@@ -257,9 +257,9 @@ function confirmRevoke(row: OnlineUserListItemDto) {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid var(--n-border-color, hsl(var(--border)));
+  border: 1px solid var(--xh-border-default);
   border-radius: 10px;
-  background: var(--n-color, hsl(var(--card)));
+  background: var(--xh-bg-surface);
 }
 
 .ou-card__icon {
