@@ -38,5 +38,6 @@ src/types/components.d.ts
 # Cache
 .eslintcache
 *.tsbuildinfo
+.turbo
 
 pnpm-lock.yaml
