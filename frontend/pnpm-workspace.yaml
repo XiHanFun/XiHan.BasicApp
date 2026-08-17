@@ -4,7 +4,6 @@ packages:
   - 'packages/*'
 allowBuilds:
   core-js: true
-  simple-git-hooks: true
   vue-demi: true
 verifyDepsBeforeRun: false
 
@@ -66,7 +65,6 @@ catalog:
   pinia: ^4.0.3
   pinyin-pro: ^3.28.1
   prettier: ^3.9.6
-  simple-git-hooks: ^2.13.1
   tailwindcss: ^4.3.3
   turbo: ^2.10.0
   typescript: ^6.0.3
