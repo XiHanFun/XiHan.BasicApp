@@ -54,7 +54,7 @@
     "rebuild:dev": "pnpm run clean && pnpm run build:dev",
     "deps:check": "pnpm outdated",
     "deps:update": "pnpm update --latest -i",
-    "postinstall": "simple-git-hooks"
+    "postinstall": "node scripts/install-git-hooks.mjs"
   },
   "dependencies": {
     "@vueuse/core": "catalog:",
@@ -76,7 +76,6 @@
     "lint-staged": "catalog:",
     "oxlint": "catalog:",
     "prettier": "catalog:",
-    "simple-git-hooks": "catalog:",
     "tailwindcss": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:",
@@ -86,8 +85,8 @@
     "vitest": "catalog:",
     "vue-tsc": "catalog:"
   },
-  "simple-git-hooks": {
-    "pre-commit": "npx lint-staged"
+  "gitHooks": {
+    "pre-commit": "npx --no -- lint-staged"
   },
   "lint-staged": {
     "*.{ts,vue,js,mjs}": [
