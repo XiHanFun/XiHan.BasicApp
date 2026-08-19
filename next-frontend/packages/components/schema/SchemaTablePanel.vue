@@ -238,9 +238,18 @@ function declaredWidthOf(column: SchemaColumn<TRow>): number {
   return widthOf(column) ?? column.minWidth ?? 120
 }
 
-/** 逐列下限。width 只是 flex 基准，容器不够时各列按比例压缩，压到这个值为止 */
-function minWidthStyle(column: SchemaColumn<TRow>): Record<string, string> | undefined {
-  return column.minWidth === undefined ? undefined : { '--xh-table-cell-min-w': `${column.minWidth}px` }
+/**
+ * 逐列下限。width 只是 flex 基准，容器不够时各列按比例压缩，压到这个值为止。
+ * 没写 minWidth 的列（如操作列）以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值。
+ */
+function minWidthStyle(column: SchemaColumn<TRow>): Record<string, string> {
+  return { '--xh-table-cell-min-w': `${column.minWidth ?? declaredWidthOf(column)}px` }
+}
+
+/** 前缀列（展开/勾选/序号）同样要有自己的下限，否则一并被压到皮肤兜底值 */
+function prefixStyle(id: string): Record<string, string> {
+  const width = prefixColumns.value.find(c => c.id === id)?.width
+  return width === undefined ? {} : { '--xh-table-cell-min-w': `${width}px` }
 }
 
 /** 本次挂载内拖过列宽：拖过之后各列不再吃容器余量，看到的宽度即落库的宽度 */
@@ -353,11 +362,11 @@ function rowPeekHandlers(row: TRow) {
     >
       <XhTableHeader>
         <XhTableRow>
-          <XhTableColumnHeader v-if="renderExpand" :value="EXPAND_COL" />
-          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL">
+          <XhTableColumnHeader v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)" />
+          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL" :style="prefixStyle(SELECT_COL)">
             <XhTableSelectAllTrigger>✓</XhTableSelectAllTrigger>
           </XhTableColumnHeader>
-          <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL">
+          <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
             {{ t('component.schema_table.index') }}
           </XhTableColumnHeader>
           <XhTableColumnHeader
@@ -387,13 +396,13 @@ function rowPeekHandlers(row: TRow) {
       <XhTableBody>
         <template v-for="(item, rowIndex) in flatRows" :key="item.key">
           <XhTableRow :value="item.key" v-bind="rowPeekHandlers(item.row)">
-            <XhTableCell v-if="renderExpand" :value="EXPAND_COL">
+            <XhTableCell v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)">
               <XhTableExpandTrigger>›</XhTableExpandTrigger>
             </XhTableCell>
-            <XhTableCell v-if="selectable" :value="SELECT_COL">
+            <XhTableCell v-if="selectable" :value="SELECT_COL" :style="prefixStyle(SELECT_COL)">
               <XhTableRowSelectTrigger>✓</XhTableRowSelectTrigger>
             </XhTableCell>
-            <XhTableCell v-if="showIndex" :value="INDEX_COL">
+            <XhTableCell v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
               {{ item.indexLabel }}
             </XhTableCell>
             <XhTableCell
