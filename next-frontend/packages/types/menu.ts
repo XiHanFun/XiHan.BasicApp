@@ -54,4 +54,6 @@ export interface AppDropdownOption {
   divider?: boolean
   /** 独立分隔条目：整条只是一根分隔线，没有文案与去处 */
   type?: 'divider'
+  /** 二级子菜单条目：给了就渲染成子菜单触发器，本条自身不可选 */
+  children?: AppDropdownOption[]
 }
