@@ -71,7 +71,16 @@ const collection = computed(() => toCollection(props.menuOptions))
 }
 
 /* 一行的骨架：图标 + 标签 + 箭头。行高与配色对齐旧版侧栏 */
-.sidebar-menu :deep(.sidebar-menu__row) {
+/* 叶子的类名落在 li 上、可交互的是它内部的 link；行盒一律交给交互元素本身，
+   hover 与选中才画在同一个盒子上 */
+.sidebar-menu :deep(li.sidebar-menu__row) {
+  min-block-size: 0;
+  padding-inline: 0;
+  margin-block: 0;
+}
+
+.sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
+  inline-size: 100%;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -83,13 +92,13 @@ const collection = computed(() => toCollection(props.menuOptions))
   font-weight: 500;
 }
 
-.sidebar-menu :deep(.sidebar-menu__row:hover) {
+.sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link']):hover) {
   background: hsl(var(--accent));
   color: hsl(var(--foreground));
 }
 
 /* 只有当前叶子高亮，父级分支不着色 */
-.sidebar-menu :deep([data-part='link'][data-selected].sidebar-menu__row) {
+.sidebar-menu :deep([data-scope='side-nav'][data-part='link'][data-selected]) {
   background: hsl(var(--primary) / 15%);
   color: hsl(var(--primary));
 }
@@ -102,11 +111,12 @@ const collection = computed(() => toCollection(props.menuOptions))
   transition: transform 0.25s ease;
 }
 
-.sidebar-menu :deep(.sidebar-menu__row:hover .sidebar-menu__icon) {
+.sidebar-menu
+  :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link']):hover .sidebar-menu__icon) {
   transform: scale(1.2);
 }
 
-.sidebar-menu :deep([data-selected].sidebar-menu__row .sidebar-menu__icon) {
+.sidebar-menu :deep([data-part='link'][data-selected] .sidebar-menu__icon) {
   color: hsl(var(--primary));
 }
 
@@ -124,18 +134,18 @@ const collection = computed(() => toCollection(props.menuOptions))
 }
 
 /* —— 圆角档 / 直角档 —— */
-.sidebar-menu--rounded :deep(.sidebar-menu__row) {
+.sidebar-menu--rounded :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   margin-inline: 8px;
   border-radius: 8px;
 }
 
-.sidebar-menu--plain :deep(.sidebar-menu__row) {
+.sidebar-menu--plain :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   margin-inline: 0;
   border-radius: 0;
 }
 
 /* —— 折叠：只留图标 —— */
-.sidebar-menu--collapsed-icon :deep(.sidebar-menu__row) {
+.sidebar-menu--collapsed-icon :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   justify-content: center;
   padding-block: 12px;
   padding-inline: 0;
@@ -148,7 +158,7 @@ const collection = computed(() => toCollection(props.menuOptions))
 }
 
 /* —— 折叠：图标在上、小字标题在下 —— */
-.sidebar-menu--collapsed-titled :deep(.sidebar-menu__row) {
+.sidebar-menu--collapsed-titled :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   flex-direction: column;
   gap: 4px;
   justify-content: center;
@@ -174,7 +184,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   overflow-wrap: break-word;
 }
 
-.sidebar-menu--collapsed-titled :deep([data-selected].sidebar-menu__row .sidebar-menu__label) {
+.sidebar-menu--collapsed-titled :deep([data-part='link'][data-selected] .sidebar-menu__label) {
   font-weight: 600;
 }
 
