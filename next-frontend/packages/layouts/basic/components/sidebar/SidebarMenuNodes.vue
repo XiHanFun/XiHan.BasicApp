@@ -9,6 +9,7 @@ import {
   XhSideNavLinkText,
 } from '@xihan-ui/vue'
 import { VNodeRender } from '~/components'
+import { Icon } from '~/iconify'
 
 /**
  * 侧栏菜单条目的递归渲染。
@@ -38,7 +39,8 @@ defineProps<{
           </template>
         </XhSideNavBranchText>
         <XhSideNavBranchIndicator class="sidebar-menu__arrow">
-          ›
+          <!-- 展开态的 90° 旋转由皮肤按 data-state 给，这里只出图标 -->
+          <Icon icon="lucide:chevron-right" width="14" height="14" />
         </XhSideNavBranchIndicator>
       </XhSideNavBranchTrigger>
       <XhSideNavBranchContent>
