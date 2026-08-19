@@ -717,7 +717,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
     </XhCardRoot>
 
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
-    <XhCardRoot class="flex-1" style="height: 0">
+    <XhCardRoot class="flex-1" variant="outline" style="height: 0">
       <XhCardBody class="xh-schema-card__body xh-schema-card__body--table">
         <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
         <XhSkeletonRoot v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
