@@ -4,18 +4,16 @@
  * 本文件仅保留 @apply 规则，依赖入口中已加载的 utilities 与 @theme 颜色。
  * ========================================================================== */
 
-/* 裸元素的边框归零，好让 Tailwind 的 border-* 工具类从 0 起算。
-   必须落在 xihan.reset 层：层序里 base 排在 xihan.components 之后，
-   写在 base 会把整个组件库皮肤的描边一并压成 0。 */
+/* 宿主页面元素的基线。组件库自带的 reset 只作用于 [data-scope] 节点，不碰这些。
+   落在 xihan.reset 层：层序里 base 排在 xihan.components 之后，写在 base 会压掉组件皮肤。 */
 @layer xihan.reset {
   *,
   ::before,
   ::after {
+    /* 只写颜色：宽度与线型由 Tailwind 的 border-* 工具类和组件皮肤各自给全 */
     @apply border-border;
 
     box-sizing: border-box;
-    border-style: solid;
-    border-width: 0;
   }
 }
 
@@ -34,6 +32,9 @@
   body,
   html {
     @apply size-full;
+
+    /* body 的 UA 默认外边距要清掉：应用占满视口，再多 8px 就会给整页挤出上下左右的滚动条 */
+    margin: 0;
   }
 
   a,
