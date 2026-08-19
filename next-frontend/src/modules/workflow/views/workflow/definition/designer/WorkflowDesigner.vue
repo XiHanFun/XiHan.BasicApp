@@ -540,7 +540,7 @@ function onContextSelect(key: string) {
     <div class="mb-2 flex items-center gap-1">
       <!-- 设计 / JSON 切换（内联在工具栏最前） -->
       <XSegmented v-model:value="activeTab" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
-      <XhSeparator vertical class="!mx-1" />
+      <XhSeparator orientation="vertical" class="!mx-1" />
       <XhBadge variant="subtle" size="sm">
         {{ meta.code || t('workflow.designer.untitled') }}
       </XhBadge>
@@ -549,7 +549,7 @@ function onContextSelect(key: string) {
 
       <!-- 撤销/重做/缩放/导出 -->
       <template v-for="(btn, i) in toolButtons" :key="i">
-        <XhSeparator v-if="btn.divider" vertical class="!mx-0.5" />
+        <XhSeparator v-if="btn.divider" orientation="vertical" class="!mx-0.5" />
         <XhButton v-else :title="btn.tip" size="sm" variant="ghost" @click="btn.run">
           <Icon :icon="btn.icon!" />
         </XhButton>
@@ -562,7 +562,7 @@ function onContextSelect(key: string) {
         </XhButton>
       </XDropdown>
 
-      <XhSeparator vertical class="!mx-0.5" />
+      <XhSeparator orientation="vertical" class="!mx-0.5" />
 
       <!-- 校验状态 -->
       <XhButton
@@ -575,7 +575,7 @@ function onContextSelect(key: string) {
         {{ issues.length ? issues.length : t('workflow.designer.tb_validate') }}
       </XhButton>
 
-      <XhSeparator vertical class="!mx-0.5" />
+      <XhSeparator orientation="vertical" class="!mx-0.5" />
 
       <XhButton size="sm" @click="handleAutoLayout">
         <Icon icon="lucide:layout-dashboard" />
@@ -674,7 +674,7 @@ function onContextSelect(key: string) {
                   <XhFieldErrorText />
                 </XhFieldRoot>
                 <div v-if="outcomeHints.length > 0" class="mb-2">
-                  <XhFlex :size="4">
+                  <XhFlex gap="xs">
                     <XhBadge
                       v-for="outcome in outcomeHints"
                       :key="outcome"

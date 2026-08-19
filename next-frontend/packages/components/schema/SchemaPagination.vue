@@ -93,7 +93,14 @@ function onSizeChange(value: string[]): void {
   align-items: center;
 }
 
+/* 每页数量：外框定宽，触发器跟着收进来。
+   触发器有自己的固有宽度，不收就会顶出外框、给分页条挤出一条横向滚动条 */
 .schema-pagination__size {
   inline-size: 110px;
+}
+
+.schema-pagination__size :deep([data-scope='select'][data-part='trigger']) {
+  inline-size: 100%;
+  min-inline-size: 0;
 }
 </style>
