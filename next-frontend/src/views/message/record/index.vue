@@ -143,7 +143,6 @@ const emailSchema = computed<PageSchema>(() => ({
   exportPermission: 'saas:message:export',
   pageName: t('message.record.email_page_name'),
   rowKey: 'basicId',
-  scrollX: 1600,
   fields: emailFields.value,
   resource: {
     page: (params) => {
@@ -288,7 +287,6 @@ const smsSchema = computed<PageSchema>(() => ({
   exportPermission: 'saas:message:export',
   pageName: t('message.record.sms_page_name'),
   rowKey: 'basicId',
-  scrollX: 1600,
   fields: smsFields.value,
   resource: {
     page: (params) => {
@@ -413,7 +411,7 @@ async function deleteSms(row: SmsListItemDto) {
           {{ t('message.record.detail_loading') }}
         </XhFlex>
 
-        <XhDescriptionsRoot v-else-if="detailTab === 'email' && currentEmailDetail" :columns="1" bordered>
+        <XhDescriptionsRoot v-else-if="detailTab === 'email' && currentEmailDetail" :columns="1" bordered size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('message.record.detail_subject') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -482,7 +480,7 @@ async function deleteSms(row: SmsListItemDto) {
           </XhDescriptionsItem>
         </XhDescriptionsRoot>
 
-        <XhDescriptionsRoot v-else-if="detailTab === 'sms' && currentSmsDetail" :columns="1" bordered>
+        <XhDescriptionsRoot v-else-if="detailTab === 'sms' && currentSmsDetail" :columns="1" bordered size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('message.record.detail_provider') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>

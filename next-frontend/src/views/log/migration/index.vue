@@ -71,7 +71,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'log.migration',
   pageName: t('log.migration.page_name'),
   rowKey: 'basicId',
-  scrollX: 1100,
   fields: fields.value,
   resource: {
     page: params => versionApi.migrationHistoryPage(buildMigrationQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

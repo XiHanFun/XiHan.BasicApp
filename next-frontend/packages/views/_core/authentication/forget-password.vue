@@ -81,7 +81,7 @@ function handleKeydown(e: KeyboardEvent) {
               v-model:value="formData.email"
               size="lg"
               placeholder="example@example.com"
-              :input-props="{ autocomplete: 'email' }"
+              autocomplete="email"
             />
           </XhFieldControl>
           <XhFieldErrorText />

@@ -8,7 +8,7 @@ import type {
   NumberingRuleListItemDto,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhButton, XhCardBody, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardBody, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -17,6 +17,7 @@ import {
 } from '@/api'
 import { XDataTable, XInput, XNumberInput, XSegmented } from '~/components'
 import { toast } from '~/composables'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'NumberingPreviewModal' })
 
@@ -230,14 +231,14 @@ async function executePreview(): Promise<void> {
     :open="show"
     @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <XhDialogContent style="width: 1040px; max-width: 94vw">
+    <XhDialogContent style="--xh-dialog-max-w: 1040px">
       <XhDialogTitle>{{ title }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="grid min-h-[480px] grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
         <XhCardRoot variant="ghost">
           <XhCardBody>
-            <XhFlex vertical :size="16">
-              <XhDescriptionsRoot v-if="rule" :columns="1">
+            <XhFlex direction="column" gap="lg">
+              <XhDescriptionsRoot v-if="rule" :columns="1" bordered placement="left" size="sm">
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>
@@ -266,7 +267,7 @@ async function executePreview(): Promise<void> {
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('setting.numbering.preview_start_value') }}</XhFieldLabel>
                   <XhFieldControl>
-                    <XInput v-model:value="sampleValue" maxlength="18" :input-props="{ inputmode: 'numeric' }" />
+                    <XInput v-model:value="sampleValue" :max-length="18" inputmode="numeric" />
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
@@ -295,8 +296,8 @@ async function executePreview(): Promise<void> {
 
         <XhCardRoot variant="ghost">
           <XhCardBody>
-            <XhFlex v-if="metadata" vertical :size="16">
-              <XhDescriptionsRoot :columns="3">
+            <XhFlex v-if="metadata" direction="column" gap="lg">
+              <XhDescriptionsRoot :columns="3" bordered placement="top" size="sm">
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('setting.numbering.preview_period') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>
@@ -319,12 +320,16 @@ async function executePreview(): Promise<void> {
 
               <XDataTable
                 :columns="columns"
-                :data="rows"
-                :row-key="(row: PreviewTableRow) => String(row.sequence)"
+                :data="rows"
+                :row-key="(row: PreviewTableRow) => String(row.sequence)"
               />
             </XhFlex>
             <div v-else class="flex min-h-[400px] items-center justify-center">
               <XhEmptyStateRoot>
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="28" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('setting.numbering.preview_empty') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
             </div>

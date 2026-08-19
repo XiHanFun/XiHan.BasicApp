@@ -54,6 +54,7 @@ export default {
       member: '成员',
     },
     thread: {
+      select_conversation_title: '未选择会话',
       select_conversation: '选择一个会话开始聊天',
       empty: '暂无消息，来说点什么吧',
       load_more: '加载更早消息',

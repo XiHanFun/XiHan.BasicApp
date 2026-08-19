@@ -140,7 +140,7 @@ function changePage(page: number): void {
     <XhDrawerContent style="--xh-drawer-size: 1080px">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
       <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
-      <XhFlex vertical :size="12">
+      <XhFlex direction="column" gap="md">
         <XInput
           v-model:value="keyword"
           clearable
@@ -152,7 +152,6 @@ function changePage(page: number): void {
           :data="items"
           :loading="loading"
           :row-key="(row: NumberingAllocationListItemDto) => row.basicId"
-          :scroll-x="1450"
           :pagination="{
             page: pagination.page,
             pageSize: pagination.pageSize,

@@ -104,7 +104,7 @@ function formatValue(field: LogDetailField) {
 
 <template>
   <XhDrawerRoot v-model:open="visible" side="right">
-    <XhDrawerContent style="--xh-drawer-size: widthpx">
+    <XhDrawerContent :style="{ '--xh-drawer-size': `${width}px` }">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
       <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
       <div class="xh-loading-stage">
@@ -112,7 +112,7 @@ function formatValue(field: LogDetailField) {
           <XhSpinner />
         </div>
         <div class="xh-scroll-area log-detail-scroll">
-          <XhDescriptionsRoot v-if="record" :columns="2" bordered>
+          <XhDescriptionsRoot v-if="record" :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem v-for="field in normalFields" :key="field.key" :style="{ gridColumn: `span ${field.span ?? 1}` }">
               <XhDescriptionsLabel>{{ field.label }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

@@ -329,7 +329,7 @@ function toggleAlignmentTools(): void {
     </XhCollapsibleRoot>
 
     <XhDialogRoot v-model:open="customPaperVisible">
-      <XhDialogContent class="custom-paper-modal" style="width: 420px; max-width: calc(100vw - 32px)">
+      <XhDialogContent class="custom-paper-modal" style="--xh-dialog-max-w: 420px">
         <XhDialogTitle>{{ t('setting.print_template.custom_paper') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <div class="paper-size-fields">

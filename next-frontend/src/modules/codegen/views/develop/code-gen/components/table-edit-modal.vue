@@ -336,7 +336,7 @@ async function handleSubmit() {
     :form-id="editFormId"
     @update:show="emit('update:show', $event)"
   >
-    <!-- 表单常驻、加载期用 NSpin 遮罩：v-if 摘挂会让弹窗高度在打开瞬间连跳两次 -->
+    <!-- 表单常驻、加载期叠一层遮罩：v-if 摘挂会让弹窗高度在打开瞬间连跳两次 -->
     <div class="xh-loading-stage">
       <div v-if="loading" class="xh-loading-stage__veil">
         <XhSpinner />
@@ -478,7 +478,6 @@ async function handleSubmit() {
               <XSelect
                 v-model:value="form.primaryKeyColumn"
                 clearable
-                filterable
                 :options="columnOptions"
                 :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
               />
@@ -494,7 +493,6 @@ async function handleSubmit() {
                 <XSelect
                   v-model:value="form.treeParentColumn"
                   clearable
-                  filterable
                   :options="columnOptions"
                   :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
                 />
@@ -509,7 +507,6 @@ async function handleSubmit() {
                 <XSelect
                   v-model:value="form.treeNameColumn"
                   clearable
-                  filterable
                   :options="columnOptions"
                   :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
                 />
@@ -526,7 +523,6 @@ async function handleSubmit() {
                 <XSelect
                   v-model:value="form.masterTableId"
                   clearable
-                  filterable
                   :options="tableOptions"
                   :placeholder="t('develop.code_gen.table_edit.form_master_table_placeholder')"
                 />
@@ -541,7 +537,6 @@ async function handleSubmit() {
                 <XSelect
                   v-model:value="form.masterForeignKey"
                   clearable
-                  filterable
                   :options="columnOptions"
                   :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
                 />

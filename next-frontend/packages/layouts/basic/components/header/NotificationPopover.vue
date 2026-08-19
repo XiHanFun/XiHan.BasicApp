@@ -5,7 +5,9 @@ import {
   XhBadge,
   XhButton,
   XhEmptyStateDescription,
+  XhEmptyStateIcon,
   XhEmptyStateRoot,
+  XhEmptyStateTitle,
   XhNumberAnimation,
   XhSpinner,
   XhTabsContent,
@@ -237,7 +239,11 @@ function handleClickOutside() {
               <XhTabsContent value="inbox">
                 <div class="notification-scroll">
                   <div v-if="allItems.length === 0" class="notification-empty">
-                    <XhEmptyStateRoot>
+                    <XhEmptyStateRoot size="sm">
+                      <XhEmptyStateIcon>
+                        <Icon icon="lucide:inbox" width="24" />
+                      </XhEmptyStateIcon>
+                      <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('header.notification.empty.inbox') }}</XhEmptyStateDescription>
                     </XhEmptyStateRoot>
                   </div>
@@ -279,7 +285,11 @@ function handleClickOutside() {
               <XhTabsContent value="mention">
                 <div class="notification-scroll">
                   <div v-if="mentionedItems.length === 0" class="notification-empty">
-                    <XhEmptyStateRoot>
+                    <XhEmptyStateRoot size="sm">
+                      <XhEmptyStateIcon>
+                        <Icon icon="lucide:inbox" width="24" />
+                      </XhEmptyStateIcon>
+                      <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('header.notification.empty.mention') }}</XhEmptyStateDescription>
                     </XhEmptyStateRoot>
                   </div>
@@ -332,7 +342,7 @@ function handleClickOutside() {
 </template>
 
 <style scoped>
-/* 加载态：原先由 NSpin 罩住，这里在内容之上叠一层居中旋转标记 */
+/* 加载态：在内容之上叠一层居中旋转标记 */
 .notification-stage {
   position: relative;
 }
@@ -358,30 +368,6 @@ function handleClickOutside() {
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-.xihan-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--foreground) / 65%);
-  cursor: pointer;
-  outline: none;
-  flex-shrink: 0;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.xihan-icon-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
 }
 
 /* 通知未读徽标：与收藏夹徽标同尺寸（14px 小圆 + 9px 字），红色为通知语义色 */

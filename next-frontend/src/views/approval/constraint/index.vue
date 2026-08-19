@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -24,7 +24,7 @@ import {
   ViolationAction,
 } from '@/api'
 import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '@/constants'
-import { SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -198,7 +198,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('approval.constraint.page_name'),
   statusPermission: 'saas:constraint-rule:status',
   rowKey: 'basicId',
-  scrollX: 1600,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -662,10 +661,14 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="rule-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('approval.constraint.empty_detail') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
-            <XhDescriptionsRoot :columns="2" bordered>
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('approval.constraint.rule_code') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -784,7 +787,11 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
                 </tr>
               </tbody>
             </table>
-            <XhEmptyStateRoot v-else style="padding: 24px 0">
+            <XhEmptyStateRoot v-else size="sm" style="padding: 24px 0">
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="24" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('approval.constraint.empty_items') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
           </div>
@@ -949,7 +956,11 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             {{ t('approval.constraint.add_item') }}
           </XhButton>
         </div>
-        <XhEmptyStateRoot v-if="ruleForm.items.length === 0" style="padding: 20px 0">
+        <XhEmptyStateRoot v-if="ruleForm.items.length === 0" size="sm" style="padding: 20px 0">
+          <XhEmptyStateIcon>
+            <Icon icon="lucide:inbox" width="24" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('approval.constraint.empty_no_items') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>
         <div v-for="(item, index) in ruleForm.items" :key="index" class="rule-item-row">
@@ -969,14 +980,10 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <XSelect
             v-model:value="item.targetId"
             clearable
-            filterable
-            :loading="targetLoading[item.targetType]"
             :options="targetOptions[item.targetType]"
             :placeholder="t('approval.constraint.placeholder_target')"
-            remote
             style="flex: 1; min-width: 0"
             @focus="() => loadTargetOptions(item.targetType)"
-            @search="(kw: string) => loadTargetOptions(item.targetType, kw)"
           />
           <XInput
             v-model:value="item.remark"

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
@@ -110,7 +110,7 @@ function handleClear() {
     </XhButton>
 
     <XhDialogRoot v-model:open="visible">
-      <XhDialogContent class="icon-picker-modal" style="width: 560px; max-width: 95vw">
+      <XhDialogContent class="icon-picker-modal" style="--xh-dialog-max-w: 560px">
         <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <div class="icon-picker-body">
@@ -150,7 +150,11 @@ function handleClear() {
                 <div v-if="loading" class="icon-picker-loading">
                   {{ t('common.loading') }}
                 </div>
-                <XhEmptyStateRoot v-else-if="!displayIcons.length">
+                <XhEmptyStateRoot v-else-if="!displayIcons.length" size="sm">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:search-x" width="28" height="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.no_result') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('component.icon_picker.empty') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
                 <XhGridRoot v-else cols="6" gap="sm">

@@ -314,7 +314,6 @@ async function handleSubmit() {
       :loading="loading"
       max-height="60vh"
       :row-key="(row: CodeGenTableColumnListItemDto) => row.basicId"
-      :scroll-x="1770"
       size="sm"
     />
   </XEditModal>

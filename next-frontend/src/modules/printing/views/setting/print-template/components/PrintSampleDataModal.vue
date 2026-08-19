@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
-import { XhAlertDescription, XhAlertRoot, XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -225,16 +225,14 @@ function clearSession(): void {
     <XhDialogContent class="print-sample-data-modal">
       <XhDialogTitle>{{ t('setting.print_template.sample_data_title') }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
-      <template #header-extra>
-        <XhFlex align="center" size="sm">
-          <XhBadge variant="subtle" size="sm" tone="info">
-            {{ dataSourceName || dataSourceCode || t('setting.print_template.free_template') }}
-          </XhBadge>
-          <XhBadge v-if="templateCode" variant="subtle" size="sm">
-            {{ templateCode }}
-          </XhBadge>
-        </XhFlex>
-      </template>
+      <XhFlex align="center" gap="sm" class="sample-data-tags">
+        <XhBadge variant="subtle" size="sm" tone="info">
+          {{ dataSourceName || dataSourceCode || t('setting.print_template.free_template') }}
+        </XhBadge>
+        <XhBadge v-if="templateCode" variant="subtle" size="sm">
+          {{ templateCode }}
+        </XhBadge>
+      </XhFlex>
 
       <div class="xh-loading-stage">
         <div v-if="loading" class="xh-loading-stage__veil">
@@ -242,6 +240,9 @@ function clearSession(): void {
         </div>
         <div class="sample-data-body">
           <XhAlertRoot v-if="loadError" tone="danger">
+            <XhAlertIcon>
+              <Icon icon="lucide:circle-alert" width="16" height="16" />
+            </XhAlertIcon>
             <XhAlertDescription>
               {{ loadError }}
             </XhAlertDescription>
@@ -265,6 +266,9 @@ function clearSession(): void {
             </div>
 
             <XhAlertRoot v-for="field in unregisteredFields" :key="field.key" tone="warning">
+              <XhAlertIcon>
+                <Icon icon="lucide:triangle-alert" width="16" height="16" />
+              </XhAlertIcon>
               <XhAlertDescription>
                 {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
               </XhAlertDescription>
@@ -273,7 +277,7 @@ function clearSession(): void {
             <section v-if="isCollection" class="sample-records">
               <div class="sample-records-heading">
                 <span>{{ t('setting.print_template.sample_records', { count: records.length }) }}</span>
-                <XhFlex size="sm">
+                <XhFlex gap="sm">
                   <XhButton size="sm" variant="subtle" @click="addRecord">
                     <span><Icon icon="tabler:plus" /></span>
                     {{ t('setting.print_template.sample_add_record') }}
@@ -308,8 +312,13 @@ function clearSession(): void {
 
             <XhEmptyStateRoot
               v-if="schema.fields.length === 0"
+              size="sm"
               class="sample-fields-empty"
             >
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('setting.print_template.sample_no_bound_fields') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
             <XhFormRoot

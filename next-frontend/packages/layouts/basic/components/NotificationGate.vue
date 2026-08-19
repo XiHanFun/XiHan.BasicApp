@@ -74,7 +74,7 @@ onMounted(async () => {
     :close-on-escape="false"
     :close-on-interact-outside="false"
   >
-    <XhDialogContent class="notif-gate-modal">
+    <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
       <XhDialogTitle>{{ currentMandatory.title }}</XhDialogTitle>
       <div class="notif-gate-body">
         <NotificationContent
@@ -104,7 +104,7 @@ onMounted(async () => {
     :close-on-interact-outside="false"
     @update:open="(open: boolean) => !open && onPopupConfirm(currentPopup!)"
   >
-    <XhDialogContent class="notif-gate-modal">
+    <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
       <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="notif-gate-body">
@@ -125,12 +125,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* 公告正文较长，弹窗定宽并在小屏收进视口 */
-.notif-gate-modal {
-  inline-size: 820px;
-  max-inline-size: 94vw;
-}
-
 .notif-gate-body {
   max-height: 60vh;
   overflow-y: auto;

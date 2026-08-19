@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BoardItem } from './components'
 import type { DragEndEvent } from '~/components'
-import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger } from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DragDropProvider } from '~/components'
@@ -311,6 +311,10 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
 
     <div v-if="!board.length" class="py-20">
       <XhEmptyStateRoot>
+        <XhEmptyStateIcon>
+          <Icon icon="lucide:inbox" width="28" />
+        </XhEmptyStateIcon>
+        <XhEmptyStateTitle>{{ t('workbench.widgets.empty_title') }}</XhEmptyStateTitle>
         <XhEmptyStateDescription>{{ t('workbench.widgets.empty') }}</XhEmptyStateDescription>
         <XhEmptyStateAction>
           <XhButton size="sm" @click="customizing = true; showAdd = true">
@@ -397,7 +401,11 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
         <XhDrawerTitle>{{ t('workbench.widgets.add_panel_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
         <div v-if="!available.length" class="py-10">
-          <XhEmptyStateRoot>
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="24" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('workbench.widgets.all_added_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('workbench.widgets.all_added') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>

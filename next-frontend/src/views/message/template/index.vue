@@ -155,7 +155,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.template.page_name'),
   statusPermission: 'saas:message-template:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -456,11 +455,11 @@ async function handleSubmit() {
 
     <!-- 详情 -->
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent style="width: 720px">
+      <XhDialogContent style="--xh-dialog-max-w: 720px">
         <XhDialogTitle>{{ t('message.template.detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <template v-if="currentDetail">
-          <XhDescriptionsRoot :columns="2" bordered>
+          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('message.template.detail_template_code') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -485,13 +484,15 @@ async function handleSubmit() {
                 {{ currentDetail.isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant') }}
               </XhDescriptionsValue>
             </XhDescriptionsItem>
-            <XhDescriptionsItem style="grid-column: span 2">
+          </XhDescriptionsRoot>
+          <XhDescriptionsRoot :columns="1" bordered placement="left" size="sm">
+            <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('message.template.detail_subject') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
                 {{ currentDetail.subject || '-' }}
               </XhDescriptionsValue>
             </XhDescriptionsItem>
-            <XhDescriptionsItem style="grid-column: span 2">
+            <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('message.template.detail_description') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
                 {{ currentDetail.description || '-' }}

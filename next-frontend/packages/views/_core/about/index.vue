@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { XhBadge, XhCardBody, XhCardHeader, XhCardRoot, XhTypographyText } from '@xihan-ui/vue'
+import { XhBadge, XhCardBody, XhCardHeader, XhCardRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -331,9 +331,9 @@ onMounted(() => {
           >
             #{{ index + 1 }} {{ value }}
           </XhBadge>
-          <XhTypographyText v-if="keywords.length === 0" depth="3">
+          <span v-if="keywords.length === 0" class="about-empty-hint">
             {{ t('page.about.empty_keywords') }}
-          </XhTypographyText>
+          </span>
         </div>
       </XhCardBody>
     </XhCardRoot>
@@ -341,6 +341,11 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.about-empty-hint {
+  color: var(--xh-fg-muted);
+  font-size: 13px;
+}
+
 .ab-page {
   display: flex;
   flex-direction: column;

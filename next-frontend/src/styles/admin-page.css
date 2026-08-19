@@ -39,6 +39,16 @@
   grid-column: span 2;
 }
 
+/* 分组分隔线与显式整行项跨满两列，避免标题落在单列导致布局错位 */
+.xh-edit-form-grid > [data-scope='separator'][data-part='root'],
+.xh-edit-form-grid > .xh-form-full-row {
+  grid-column: 1 / -1;
+}
+
+.xh-edit-form-grid > [data-scope='separator'][data-part='root'] {
+  margin: 4px 0 8px;
+}
+
 /* 编辑弹窗表单标签紧凑 */
 .xh-edit-form-grid [data-scope='field'][data-part='label'] {
   font-size: 11px;
@@ -47,15 +57,18 @@
 }
 
 /* 网格内日期/数字输入默认占满整格，免去逐个设置宽度 */
+.xh-edit-form-grid [data-scope='cascader'][data-part='root'],
 .xh-edit-form-grid [data-scope='date-picker'][data-part='root'],
 .xh-edit-form-grid [data-scope='number-field'][data-part='root'],
 .xh-edit-form-grid [data-scope='select'][data-part='root'],
-.xh-edit-form-grid [data-scope='text-field'][data-part='root'] {
+.xh-edit-form-grid [data-scope='tags-input'][data-part='root'],
+.xh-edit-form-grid [data-scope='text-field'][data-part='root'],
+.xh-edit-form-grid [data-scope='tree-select'][data-part='root'] {
   width: 100%;
 }
 
 /* 小屏单列 */
-@media (max-width: 560px) {
+@media (max-width: 960px) {
   .xh-edit-form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -117,4 +130,14 @@
 [data-scope='drawer'][data-part='content'][data-side='left'],
 [data-scope='drawer'][data-part='content'][data-side='right'] {
   max-width: calc(100vw - 24px);
+}
+
+/*
+ * 偏好设置抽屉面板：XhDrawerContent 的渲染根是 Teleport，content 那个 div 拿不到 scopeId，
+ * 所以面板自身的规则只能写在非 scoped 表里。类名全仓只此一个元素在用。
+ */
+.preference-drawer-content {
+  --xh-drawer-size: 396px;
+
+  font-size: 14px;
 }

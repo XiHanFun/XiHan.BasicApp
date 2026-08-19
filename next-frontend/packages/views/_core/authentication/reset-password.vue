@@ -97,7 +97,7 @@ function handleKeydown(e: KeyboardEvent) {
               type="password"
               size="lg"
               :placeholder="t('page.auth.reset_new_password_placeholder')"
-              :input-props="{ autocomplete: 'new-password' }"
+              autocomplete="new-password"
             />
           </XhFieldControl>
           <XhFieldErrorText />
@@ -111,7 +111,7 @@ function handleKeydown(e: KeyboardEvent) {
               type="password"
               size="lg"
               :placeholder="t('page.auth.reset_confirm_placeholder')"
-              :input-props="{ autocomplete: 'new-password' }"
+              autocomplete="new-password"
             />
           </XhFieldControl>
           <XhFieldErrorText />

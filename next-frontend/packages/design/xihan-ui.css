@@ -76,7 +76,13 @@
     --xh-border-strong: hsl(var(--heavy));
     --xh-border-control: hsl(var(--input));
     --xh-border-control-hover: hsl(var(--primary) / 50%);
+    --xh-border-invalid: hsl(var(--destructive));
+    --xh-border-at-limit: hsl(var(--warning));
     --xh-ring-focus: hsl(var(--ring));
+
+    /* —— 滚动条：与应用自绘那套同源 —— */
+    --xh-bg-scrollbar-track: hsl(var(--muted));
+    --xh-fg-scrollbar-thumb: hsl(var(--border));
 
     /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
     --xh-shape-control: var(--radius);
@@ -85,7 +91,6 @@
     /* —— 层级：整族抬到应用旧有的 --popup-z-index(2000) 之上，
            避免遗留的 .z-popup 元素盖住组件库的模态与浮层 —— */
     --xh-z-sticky: var(--z-sidebar);
-    --xh-z-drawer: 2100;
     --xh-z-modal: 2200;
     --xh-z-popover: 2300;
     --xh-z-toast: 2400;

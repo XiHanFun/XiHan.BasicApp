@@ -194,7 +194,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('tenant.edition.page_name'),
   statusPermission: 'saas:tenant-edition:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -803,14 +802,15 @@ async function savePermChanges() {
             />
           </template>
         </XPermissionGrantPanel>
-        <template #footer>
+        <!-- 按钮行排在抽屉内容区末尾，右对齐 -->
+        <div class="xh-dialog-footer">
           <XhButton @click="permDrawerVisible = false">
             {{ t('tenant.edition.cancel') }}
           </XhButton>
-          <XhButton tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermChanges">
+          <XhButton tone="brand" :loading="permLoading" :disabled="!permDirty" @click="savePermChanges">
             {{ t('tenant.edition.perm_save') }}
           </XhButton>
-        </template>
+        </div>
       </XhDrawerContent>
     </XhDrawerRoot>
   </SchemaPage>

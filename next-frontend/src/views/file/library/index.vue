@@ -336,7 +336,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:file:export',
   pageName: t('file.library.page_name'),
   rowKey: 'basicId',
-  scrollX: 1800,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -967,10 +966,10 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     @action="onAction"
   >
     <XhDialogRoot v-model:open="uploadVisible">
-      <XhDialogContent style="width: 520px; max-width: calc(100vw - 32px)">
+      <XhDialogContent style="--xh-dialog-max-w: 520px">
         <XhDialogTitle>{{ t('file.library.upload.title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
-        <XhFlex vertical :size="16">
+        <XhFlex direction="column" gap="lg">
           <!-- 拖拽区：点击或拖入文件即上传（按当前默认存储配置保存） -->
           <XhFileUploadRoot
             :upload="handleUploadRequest"
@@ -1039,7 +1038,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
       <XhDrawerContent style="--xh-drawer-size: 460px">
         <XhDrawerTitle>{{ t('file.library.metadata.title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
-        <XhFlex vertical :size="16">
+        <XhFlex direction="column" gap="lg">
           <div class="file-upload-field">
             <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
             <XSelect
@@ -1089,7 +1088,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           {{ t('common.statuses.loading') }}
         </XhFlex>
 
-        <XhDescriptionsRoot v-else-if="detailKind === 'file' && currentFileDetail" :columns="2">
+        <XhDescriptionsRoot v-else-if="detailKind === 'file' && currentFileDetail" :columns="2" bordered placement="left" size="sm">
           <XhDescriptionsItem style="grid-column: span 2">
             <XhDescriptionsLabel>{{ t('file.library.detail.original_name') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -1224,7 +1223,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           </XhDescriptionsItem>
         </XhDescriptionsRoot>
 
-        <XhDescriptionsRoot v-else-if="detailKind === 'storage' && currentStorageDetail" :columns="1">
+        <XhDescriptionsRoot v-else-if="detailKind === 'storage' && currentStorageDetail" :columns="1" bordered size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('file.library.detail.storage_basic_id') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -1388,7 +1387,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
       <XhDrawerContent style="--xh-drawer-size: 760px">
         <XhDrawerTitle>{{ t('file.library.storage_list.title', { name: storageFile?.originalName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
-        <XhFlex vertical :size="12">
+        <XhFlex direction="column" gap="md">
           <div class="flex items-center justify-between">
             <span class="text-sm text-foreground/60">{{ t('file.library.storage_list.total', { count: storageRows.length }) }}</span>
             <XhButton size="sm" :loading="storageListLoading" @click="loadStorageRows">
@@ -1401,7 +1400,6 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             :data="storageRows"
             :loading="storageListLoading"
             :row-key="(row: FileStorageListItemDto) => row.basicId"
-            :scroll-x="720"
             size="sm"
           />
         </XhFlex>
@@ -1410,7 +1408,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
 
     <!-- 文件预览弹窗：仅零依赖、浏览器可直接渲染的类型（图片/音视频/Markdown/文本与源码高亮/CSV） -->
     <XhDialogRoot v-model:open="previewVisible">
-      <XhDialogContent style="width: 80vw;">
+      <XhDialogContent style="--xh-dialog-max-w: 80vw">
         <XhDialogTitle>{{ t('file.library.preview.title', { name: previewName }) }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <div
@@ -1445,7 +1443,6 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             v-else-if="previewKind === 'csv'"
             :columns="csvColumns"
             :data="csvData"
-            :scroll-x="Math.max(csvColumns.length * 120, 600)"
             max-height="66vh"
             size="sm"
             class="file-preview-csv"

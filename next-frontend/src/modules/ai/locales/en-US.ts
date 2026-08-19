@@ -173,6 +173,7 @@ export default {
       validate_query: 'Please enter a question',
       answer_title: 'Answer',
       citations_title: 'Retrieved chunks ({count})',
+      no_result_title: 'No matching results',
       no_result: 'No relevant chunks found',
     },
   },

@@ -123,6 +123,7 @@ function choose(key: string) {
 
   <XhMenuRoot
     v-else
+    trigger-as-child
     :collection="options"
     :placement="placement"
     @select="(details: { value: string }) => choose(details.value)"

@@ -98,7 +98,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.telegram_bot.page_name'),
   statusPermission: 'saas:telegram-bot:status',
   rowKey: 'basicId',
-  scrollX: 1000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -352,7 +351,7 @@ function handleDelete(row: TelegramBotListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.telegram_bot.form.bot_name') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.botName" clearable :placeholder="t('message.telegram_bot.form.bot_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.botName" clearable :placeholder="t('message.telegram_bot.form.bot_name_placeholder')" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -364,7 +363,7 @@ function handleDelete(row: TelegramBotListItemDto) {
               <XInput
                 v-model:value="form.token"
                 type="password"
-                :input-props="{ autocomplete: 'new-password' }"
+                autocomplete="new-password"
                 :placeholder="tokenPlaceholder"
               />
             </XhFieldControl>

@@ -7,7 +7,7 @@ import type {
   OAuthAppUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
@@ -145,7 +145,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:oauth-app:delete',
   statusPermission: 'saas:oauth-app:status',
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -447,10 +446,14 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('openapi.app.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 180px)">
-            <XhDescriptionsRoot :columns="1" bordered>
+            <XhDescriptionsRoot :columns="1" bordered size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('openapi.app.detail_app_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -737,8 +740,8 @@ async function handleDelete(row: OAuthAppListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 420px">
         <XhDrawerTitle>{{ t('openapi.app.secret_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
-        <XhFlex v-if="currentSecret" vertical>
-          <XhDescriptionsRoot :columns="1" bordered>
+        <XhFlex v-if="currentSecret" direction="column" gap="md">
+          <XhDescriptionsRoot :columns="1" bordered size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('openapi.app.secret_client_id') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

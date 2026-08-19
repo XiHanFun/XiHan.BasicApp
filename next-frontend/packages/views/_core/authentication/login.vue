@@ -21,7 +21,6 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { apis } = useAppContext()
 const rememberMe = ref(true)
-const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
   oAuthProviders: [],
@@ -450,7 +449,7 @@ onMounted(async () => {
                   v-model:value="formData.username"
                   size="lg"
                   :placeholder="t('page.login.username_placeholder')"
-                  :input-props="{ autocomplete: 'username' }"
+                  autocomplete="username"
                 />
               </XhFieldControl>
               <XhFieldErrorText />
@@ -461,51 +460,44 @@ onMounted(async () => {
               <XhFieldControl>
                 <XInput
                   v-model:value="formData.password"
-                  :type="showPassword ? 'text' : 'password'"
+                  type="password"
                   size="lg"
                   :placeholder="t('page.login.password_placeholder')"
-                  :input-props="{ autocomplete: 'current-password' }"
-                >
-                  <template #suffix>
-                    <span
-                      class="cursor-pointer"
-                      :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-                      @click="showPassword = !showPassword"
-                    ><Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" /></span>
-                  </template>
-                </XInput>
+                  autocomplete="current-password"
+                />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
           <XhFormFieldGroup v-if="loginConfig.captchaEnabled" value="captchaCode" class="!mb-6">
             <XhFieldRoot>
-              <XhFieldControl>
-                <div class="flex items-center gap-3">
+              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆 -->
+              <div class="flex items-center gap-3">
+                <XhFieldControl>
                   <XInput
                     v-model:value="captchaCode"
                     size="lg"
-                    :maxlength="4"
+                    :max-length="4"
                     :placeholder="t('page.login.captcha_placeholder')"
-                    :input-props="{ autocomplete: 'off' }"
+                    autocomplete="off"
                   />
-                  <div
-                    class="flex justify-center items-center shrink-0 w-[120px] h-[40px] rounded-lg overflow-hidden"
-                    :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
-                    :title="t('page.login.captcha_refresh_title')"
-                    @click="refreshCaptcha"
+                </XhFieldControl>
+                <div
+                  class="flex justify-center items-center shrink-0 w-[120px] h-[40px] rounded-lg overflow-hidden"
+                  :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
+                  :title="t('page.login.captcha_refresh_title')"
+                  @click="refreshCaptcha"
+                >
+                  <img
+                    v-if="captcha?.image"
+                    :src="captcha.image"
+                    :alt="t('page.login.captcha_refresh_title')"
+                    class="w-full h-full cursor-pointer select-none"
+                    draggable="false"
                   >
-                    <img
-                      v-if="captcha?.image"
-                      :src="captcha.image"
-                      :alt="t('page.login.captcha_refresh_title')"
-                      class="w-full h-full cursor-pointer select-none"
-                      draggable="false"
-                    >
-                    <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
-                  </div>
+                  <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
                 </div>
-              </XhFieldControl>
+              </div>
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>

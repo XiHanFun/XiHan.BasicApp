@@ -3,9 +3,10 @@
   职责：在不占用常驻画布空间的前提下，提供当前设计导出到 TextArea、手工编辑和回写画布入口。
 -->
 <script setup lang="ts">
-import { XhAlertDescription, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { XInput } from '~/components'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'PrintDesignerJsonModal' })
 
@@ -33,7 +34,7 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
     :open="show"
     @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <XhDialogContent class="json-template-modal" style="width: 920px; max-width: calc(100vw - 32px)">
+    <XhDialogContent class="json-template-modal" style="--xh-dialog-max-w: 920px">
       <XhDialogTitle>{{ t('setting.print_template.json_editor_title') }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="json-editor-toolbar">
@@ -48,17 +49,21 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
 
       <label class="json-textarea-field" :for="textareaId">
         <XInput
+          :id="textareaId"
           :value="value"
           type="textarea"
           :autosize="{ minRows: 15, maxRows: 22 }"
           :disabled="disabled || applying"
           :placeholder="t('setting.print_template.json_textarea_placeholder')"
-          :input-props="{ id: textareaId, spellcheck: 'false' }"
+          spellcheck="false"
           @update:value="emit('update:value', $event)"
         />
       </label>
 
       <XhAlertRoot v-if="error" tone="danger" class="json-error">
+        <XhAlertIcon>
+          <Icon icon="lucide:circle-alert" width="16" />
+        </XhAlertIcon>
         <XhAlertDescription>
           {{ error }}
         </XhAlertDescription>

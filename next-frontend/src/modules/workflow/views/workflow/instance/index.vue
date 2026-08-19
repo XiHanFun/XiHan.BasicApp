@@ -125,7 +125,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'workflow.instance',
   pageName: t('workflow.instance.page_name'),
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -351,7 +350,7 @@ function onAction(payload: SchemaActionPayload) {
           {{ t('workflow.instance.loading') }}
         </div>
         <template v-else-if="detailData">
-          <XhDescriptionsRoot :columns="2" bordered>
+          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.instance.name') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -390,13 +389,21 @@ function onAction(payload: SchemaActionPayload) {
                 {{ formatDate(detailData.creationTime) }}
               </XhDescriptionsValue>
             </XhDescriptionsItem>
-            <XhDescriptionsItem v-if="detailData.faultMessage" style="grid-column: span 2">
+          </XhDescriptionsRoot>
+          <XhDescriptionsRoot
+            v-if="detailData.faultMessage || detailData.cancellationReason"
+            :columns="1"
+            bordered
+            placement="left"
+            size="sm"
+          >
+            <XhDescriptionsItem v-if="detailData.faultMessage">
               <XhDescriptionsLabel>{{ t('workflow.instance.fault_message') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
                 <span class="text-red-500">{{ detailData.faultMessage }}</span>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
-            <XhDescriptionsItem v-if="detailData.cancellationReason" style="grid-column: span 2">
+            <XhDescriptionsItem v-if="detailData.cancellationReason">
               <XhDescriptionsLabel>{{ t('workflow.instance.cancellation_reason') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
                 {{ detailData.cancellationReason }}
@@ -459,7 +466,7 @@ function onAction(payload: SchemaActionPayload) {
             <div class="flex items-center gap-3 my-3">
               <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.bookmarks_label') }}</span><XhSeparator class="flex-1" />
             </div>
-            <XhFlex vertical :size="4">
+            <XhFlex direction="column" gap="xs">
               <div v-for="bookmark in detailData.pendingBookmarks" :key="bookmark.id" class="text-xs text-gray-500">
                 <XhBadge variant="subtle" size="sm">
                   {{ bookmark.kind }}
@@ -480,10 +487,10 @@ function onAction(payload: SchemaActionPayload) {
 
     <!-- 带原因操作 -->
     <XhDialogRoot v-model:open="reasonVisible">
-      <XhDialogContent style="width: 480px">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ reasonTitle }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
-        <XhFlex vertical>
+        <XhFlex direction="column" gap="md">
           <XInput
             v-model:value="reasonText"
             type="textarea"
@@ -499,7 +506,7 @@ function onAction(payload: SchemaActionPayload) {
 
     <!-- 发布信号 -->
     <XhDialogRoot v-model:open="signalVisible">
-      <XhDialogContent style="width: 520px">
+      <XhDialogContent style="--xh-dialog-max-w: 520px">
         <XhDialogTitle>{{ t('workflow.instance.signal_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <XhFormRoot

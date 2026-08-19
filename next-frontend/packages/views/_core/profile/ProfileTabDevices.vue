@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserSessionItem } from '~/types'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTitle, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTitle, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { dialog, toast } from '~/composables'
@@ -95,7 +95,7 @@ onMounted(loadSessions)
           </div>
         </div>
         <div class="pf-section__extra">
-          <XhFlex :size="8">
+          <XhFlex gap="sm">
             <XhButton size="sm" variant="ghost" @click="loadSessions">
               <span><Icon icon="lucide:refresh-cw" /></span>
             </XhButton>
@@ -111,6 +111,10 @@ onMounted(loadSessions)
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="sessions.length === 0 && sessionsLoaded">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('component.profile.devices.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else class="pf-list">

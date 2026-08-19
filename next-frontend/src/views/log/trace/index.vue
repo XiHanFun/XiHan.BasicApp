@@ -3,12 +3,13 @@ import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
-import { XhCardBody, XhCardRoot, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner, XhTypographyText } from '@xihan-ui/vue'
+import { XhCardBody, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
 import { SchemaSearchPanel } from '~/components'
 import { toast } from '~/composables'
+import { Icon } from '~/iconify'
 import { formatDate } from '~/utils'
 import {
   accessLogDetailFields,
@@ -415,9 +416,9 @@ watch(tracePreset, (preset) => {
           @reset="reset"
           @search="runQuery"
         />
-        <XhTypographyText v-if="showUnsupportedHint" depth="3" class="trace-hint">
+        <span v-if="showUnsupportedHint" class="trace-hint">
           {{ t('log.trace.unsupported_hint') }}
-        </XhTypographyText>
+        </span>
       </XhCardBody>
     </XhCardRoot>
 
@@ -494,11 +495,19 @@ watch(tracePreset, (preset) => {
             </div>
 
             <XhEmptyStateRoot v-else class="trace-empty">
+              <XhEmptyStateIcon>
+                <Icon height="28" icon="lucide:search-x" width="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
           </div>
 
           <XhEmptyStateRoot v-else class="trace-empty">
+            <XhEmptyStateIcon>
+              <Icon height="28" icon="lucide:search-x" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>
@@ -536,6 +545,7 @@ watch(tracePreset, (preset) => {
 .trace-hint {
   display: block;
   margin-top: 8px;
+  color: var(--xh-fg-muted);
   font-size: 12px;
 }
 

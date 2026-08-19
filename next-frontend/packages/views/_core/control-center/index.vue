@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { XhBadge, XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
@@ -195,6 +195,10 @@ onMounted(loadTenants)
               {{ t('page.control_center.my_tenants') }}
             </div>
             <XhEmptyStateRoot v-if="tenants.length === 0 && loaded" class="cc-empty">
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('page.control_center.no_tenants') }}</XhEmptyStateDescription>
               <XhEmptyStateAction>
                 <span class="cc-empty__hint">{{ t('page.control_center.no_tenants_hint') }}</span>

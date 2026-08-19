@@ -164,7 +164,7 @@ function handleKeydown(e: KeyboardEvent) {
               v-model:value="formData.username"
               size="lg"
               :placeholder="t('page.auth.username_placeholder')"
-              :input-props="{ autocomplete: 'username' }"
+              autocomplete="username"
             />
           </XhFieldControl>
           <XhFieldErrorText />
@@ -177,7 +177,7 @@ function handleKeydown(e: KeyboardEvent) {
               v-model:value="formData.email"
               size="lg"
               :placeholder="`${t('page.auth.email_placeholder')}（${t('page.auth.register_email_tip')}）`"
-              :input-props="{ autocomplete: 'email', type: 'email' }"
+              autocomplete="email"
             />
           </XhFieldControl>
           <XhFieldErrorText />
@@ -191,7 +191,7 @@ function handleKeydown(e: KeyboardEvent) {
               :type="showPassword ? 'text' : 'password'"
               size="lg"
               :placeholder="t('page.login.password_placeholder')"
-              :input-props="{ autocomplete: 'new-password' }"
+              autocomplete="new-password"
             >
               <template #suffix>
                 <span
@@ -231,7 +231,7 @@ function handleKeydown(e: KeyboardEvent) {
               :type="showConfirmPassword ? 'text' : 'password'"
               size="lg"
               :placeholder="t('page.auth.confirm_password_placeholder')"
-              :input-props="{ autocomplete: 'new-password' }"
+              autocomplete="new-password"
             >
               <template #suffix>
                 <span

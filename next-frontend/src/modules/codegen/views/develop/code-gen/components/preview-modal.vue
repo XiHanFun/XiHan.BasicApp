@@ -5,7 +5,7 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFlex, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XCodeEditor, XSegmented, XTree } from '~/components'
@@ -251,7 +251,7 @@ async function loadPreview() {
     :open="show"
     @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <XhDialogContent style="width: 96vw; max-width: 1840px">
+    <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1840px)">
       <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="xh-loading-stage">
@@ -264,7 +264,9 @@ async function loadPreview() {
               <XSegmented v-model:value="activeSide" :options="sideOptions" size="sm" />
             </div>
             <div class="xh-scroll-area" style="max-height: 70vh">
-              <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty">
+              <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
+                <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
               <XTree
@@ -280,6 +282,8 @@ async function loadPreview() {
           </div>
           <div class="gen__content">
             <XhEmptyStateRoot v-if="!activeArtifact">
+              <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('develop.code_gen.preview.empty') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
             <XCodeEditor

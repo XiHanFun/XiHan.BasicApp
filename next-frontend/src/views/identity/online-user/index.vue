@@ -138,7 +138,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:user-session:export',
   pageName: t('identity.online_user.page_name'),
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: (params) => {

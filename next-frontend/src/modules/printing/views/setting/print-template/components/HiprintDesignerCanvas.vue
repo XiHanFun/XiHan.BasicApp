@@ -13,7 +13,7 @@ import type {
   PrintElementAlignAction,
   PrintElementSpacingDirection,
 } from '~/printing'
-import { XhAlertDescription, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
@@ -482,6 +482,9 @@ defineExpose({ clear, getJson, preview, redo, undo })
         >
           <XhSpinner v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center" />
           <XhAlertRoot v-if="loadError" tone="danger" class="canvas-error">
+            <XhAlertIcon>
+              <Icon icon="lucide:alert-circle" width="16" />
+            </XhAlertIcon>
             <XhAlertDescription>
               {{ loadError }}
             </XhAlertDescription>
@@ -506,7 +509,11 @@ defineExpose({ clear, getJson, preview, redo, undo })
         </div>
         <div :id="settingId" class="property-setting-host" />
         <div class="property-empty">
-          <XhEmptyStateRoot>
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="24" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('setting.print_template.properties_empty_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('setting.print_template.properties_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>

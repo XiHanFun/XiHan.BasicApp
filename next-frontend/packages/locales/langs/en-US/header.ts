@@ -59,6 +59,10 @@ export default {
     preferences: 'Preferences',
     refresh_page: 'Refresh page',
     back_top: 'Back to top',
+    nav_back: 'Back',
+    nav_forward: 'Forward',
+    sidebar_collapse: 'Collapse sidebar',
+    sidebar_expand: 'Expand sidebar',
   },
   search: {
     placeholder: 'Command Palette',

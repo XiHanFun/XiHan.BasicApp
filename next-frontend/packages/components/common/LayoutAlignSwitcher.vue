@@ -55,6 +55,7 @@ function choose(key: string) {
 
 <template>
   <XhMenuRoot
+    trigger-as-child
     :collection="options"
     :placement="placement"
     @select="(details: { value: string }) => choose(details.value)"

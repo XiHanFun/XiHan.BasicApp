@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
-import { XhAlertDescription, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -203,6 +203,9 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <XhAlertRoot v-if="newSecret" tone="warning" class="pf-secret-alert">
+          <XhAlertIcon>
+            <Icon icon="lucide:triangle-alert" width="16" height="16" />
+          </XhAlertIcon>
           <XhAlertTitle>{{ t('component.profile.developer.secret_alert_title') }}</XhAlertTitle>
           <XhAlertDescription>
             <div class="pf-secret-row">
@@ -210,16 +213,14 @@ onMounted(() => {
               <div class="xh-input-group">
                 <XInput :value="newSecret.appKey" readonly size="sm" />
                 <XhButton size="sm" @click="copyText(newSecret.appKey)">
-                  <template #icon>
-                    <span><Icon icon="lucide:copy" /></span>
-                  </template>
+                  <span><Icon icon="lucide:copy" /></span>
                 </XhButton>
               </div>
             </div>
             <div class="pf-secret-row">
               <span class="pf-secret-label">Secret</span>
               <div class="xh-input-group">
-                <XInput :value="newSecret.appSecret" readonly size="sm" type="password" show-password-on="click" />
+                <XInput :value="newSecret.appSecret" readonly size="sm" type="password" />
                 <XhButton size="sm" @click="copyText(newSecret.appSecret)">
                   <span><Icon icon="lucide:copy" /></span>
                 </XhButton>
@@ -233,6 +234,10 @@ onMounted(() => {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="credentials.length === 0 && !credentialsLoading" class="pf-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('component.profile.developer.empty_credentials') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else class="pf-list">
@@ -347,7 +352,7 @@ onMounted(() => {
         <div class="pf-create-form__tip">
           {{ t('component.profile.developer.create_form_tip') }}
         </div>
-        <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" maxlength="100" show-count @keydown.enter="handleCreateCredential" />
+        <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" :max-length="100" show-count @keydown.enter="handleCreateCredential" />
       </div>
     </XEditModal>
   </div>

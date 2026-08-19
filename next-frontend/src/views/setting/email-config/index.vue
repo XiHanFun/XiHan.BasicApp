@@ -105,7 +105,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.email_config.page_name'),
   statusPermission: 'saas:email-config:status',
   rowKey: 'basicId',
-  scrollX: 1300,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -462,7 +461,7 @@ function handleDelete(row: EmailConfigListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.email_config.form.from_email') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.fromEmail" clearable :placeholder="t('message.email_config.form.from_email_placeholder')" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.fromEmail" clearable :placeholder="t('message.email_config.form.from_email_placeholder')" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -480,7 +479,7 @@ function handleDelete(row: EmailConfigListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.email_config.form.user_name') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.userName" clearable :placeholder="t('message.email_config.form.user_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.userName" clearable :placeholder="t('message.email_config.form.user_name_placeholder')" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -492,7 +491,7 @@ function handleDelete(row: EmailConfigListItemDto) {
               <XInput
                 v-model:value="form.password"
                 type="password"
-                :input-props="{ autocomplete: 'new-password' }"
+                autocomplete="new-password"
                 :placeholder="passwordPlaceholder"
               />
             </XhFieldControl>

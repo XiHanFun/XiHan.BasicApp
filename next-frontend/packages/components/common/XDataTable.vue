@@ -41,8 +41,8 @@ const props = withDefaults(defineProps<{
   /** 勾选列；给了才出选择列 */
   selectable?: boolean
   size?: 'sm' | 'md' | 'lg'
-  /** 横向滚动阈值（px）；列宽总和超过容器时用 */
-  scrollX?: number
+  /** 表格最大高度；不给则用皮肤缺省的 24rem */
+  maxHeight?: number | string
   /** 表头吸顶 */
   stickyHeader?: boolean
   emptyText?: string
@@ -53,7 +53,7 @@ const props = withDefaults(defineProps<{
   loading: false,
   selectable: false,
   size: 'sm',
-  scrollX: undefined,
+  maxHeight: undefined,
   stickyHeader: true,
   emptyText: undefined,
   rowProps: undefined,
@@ -68,14 +68,24 @@ function keyOf(row: T): string {
 }
 
 const SELECT_COL = '__select__'
+/** 勾选列宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
+const SELECT_COL_W = 48
+
+/**
+ * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
+ * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐。
+ */
+function declaredWidth(column: XDataTableColumn<T>): number | string {
+  return column.width ?? column.minWidth ?? 120
+}
 
 const tableColumns = computed<TableColumnDef[]>(() => [
-  ...(props.selectable ? [{ id: SELECT_COL, width: 40, ...(props.columns.some(c => c.fixed === 'left') ? { sticky: 'start' as const } : {}) }] : []),
+  ...(props.selectable ? [{ id: SELECT_COL, width: SELECT_COL_W, ...(props.columns.some(c => c.fixed === 'left') ? { sticky: 'start' as const } : {}) }] : []),
   ...props.columns.map<TableColumnDef>(column => ({
     id: column.key,
     label: column.title,
     ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
-    ...(column.width === undefined ? {} : { width: column.width }),
+    width: declaredWidth(column),
   })),
 ])
 
@@ -105,10 +115,9 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
     :selection="checkedKeys"
     :selection-mode="selectable ? 'multiple' : 'none'"
     :loading="loading"
-    :empty="!loading && rows.length === 0"
     :size="size"
     :sticky-header="stickyHeader"
-    :style="scrollX ? { '--xh-table-scroll-x': `${scrollX}px` } : undefined"
+    :style="maxHeight ? { '--xh-table-max-h': typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight } : undefined"
     @update:selection="onSelectionChange"
   >
     <XhTableHeader>
@@ -142,15 +151,20 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
           :key="column.key"
           :value="column.key"
           :style="cellStyle(column)"
-          :class="{ 'x-data-table__cell--ellipsis': column.ellipsis }"
         >
-          <VNodeRender :content="cellContent(column, item.row, rowIndex)" />
+          <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
+          <span v-if="column.ellipsis" class="x-data-table__cell-text">
+            <VNodeRender :content="cellContent(column, item.row, rowIndex)" />
+          </span>
+          <VNodeRender v-else :content="cellContent(column, item.row, rowIndex)" />
         </XhTableCell>
       </XhTableRow>
     </XhTableBody>
 
     <XhTableLoadingState>
-      <slot name="loading" />
+      <slot name="loading">
+        {{ t('common.loading') }}
+      </slot>
     </XhTableLoadingState>
     <XhTableEmpty>
       <slot name="empty">
@@ -161,7 +175,9 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 </template>
 
 <style scoped>
-.x-data-table__cell--ellipsis {
+.x-data-table__cell-text {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

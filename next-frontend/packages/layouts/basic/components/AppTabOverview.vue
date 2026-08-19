@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { DragDropProvider } from '@dnd-kit/vue'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -294,9 +295,13 @@ function onKeydown(e: KeyboardEvent): void {
                 </button>
               </SortableItem>
 
-              <div v-if="!filteredCards.length" class="tab-ov__empty">
-                {{ t('tabbar.overview_empty') }}
-              </div>
+              <XhEmptyStateRoot v-if="!filteredCards.length" class="tab-ov__empty">
+                <XhEmptyStateIcon>
+                  <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:app-window'" width="28" height="28" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('tabbar.overview_empty') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
             </div>
           </DragDropProvider>
 
@@ -514,12 +519,14 @@ function onKeydown(e: KeyboardEvent): void {
   cursor: grabbing;
 }
 
+/* 空态整行占满网格；文字与图标改亮色，落在暗色遮罩上保持可读 */
 .tab-ov__empty {
   grid-column: 1 / -1;
-  padding: 48px 0;
-  text-align: center;
-  font-size: 13px;
-  color: rgb(255 255 255 / 70%);
+  padding: 24px 0;
+
+  --xh-empty-state-title-fg: #fff;
+  --xh-empty-state-description-fg: rgb(255 255 255 / 70%);
+  --xh-empty-state-icon-fg: rgb(255 255 255 / 60%);
 }
 
 .tab-ov__footer {

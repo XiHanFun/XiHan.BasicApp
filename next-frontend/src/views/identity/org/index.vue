@@ -11,7 +11,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -129,7 +129,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:department:delete',
   statusPermission: 'saas:department:status',
   rowKey: 'basicId',
-  scrollX: 1400,
   tree: { childrenKey: 'children', defaultExpandAll: false },
   fields: fields.value,
   resource: {
@@ -526,7 +525,7 @@ onMounted(() => {
     @action="onAction"
   >
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="width: 720px; max-width: calc(100vw - 32px);">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
         <XhDialogTitle v-if="detDept">
           <div class="det-hd-entity">
             <div class="det-hd-ico">
@@ -561,7 +560,7 @@ onMounted(() => {
             </XhTabsTrigger>
           </XhTabsList>
           <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2">
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('identity.org.label_department_type') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -635,7 +634,11 @@ onMounted(() => {
                 size="sm"
                 :row-key="(row: DepartmentListItemDto) => row.basicId"
               />
-              <XhEmptyStateRoot v-else style="padding: 32px 0">
+              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="24" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('identity.org.empty_children') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
             </div>
@@ -649,13 +652,21 @@ onMounted(() => {
                 size="sm"
                 :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
               />
-              <XhEmptyStateRoot v-else style="padding: 32px 0">
+              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="24" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('identity.org.empty_members') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
             </div>
           </XhTabsContent>
         </XhTabsRoot>
         <XhEmptyStateRoot v-else style="padding: 48px 0">
+          <XhEmptyStateIcon>
+            <Icon icon="lucide:inbox" width="28" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('identity.org.msg_detail_not_found') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>
 
@@ -805,7 +816,6 @@ onMounted(() => {
                 v-model:value="membershipForm.positionId"
                 :options="positionOptions"
                 clearable
-                filterable
                 :placeholder="t('identity.org.ph_position')"
               />
             </XhFieldControl>

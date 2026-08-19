@@ -102,6 +102,7 @@ function choose(timezone: string) {
   />
   <XhMenuRoot
     v-else
+    trigger-as-child
     :collection="dropdownOptions"
     :placement="placement"
     @select="(details: { value: string }) => choose(details.value)"

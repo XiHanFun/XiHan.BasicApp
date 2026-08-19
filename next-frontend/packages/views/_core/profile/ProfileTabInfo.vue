@@ -565,7 +565,7 @@ function cancelChange() {
                   </XhButton>
                 </div>
                 <div v-if="verifyTarget === 'email'" class="pf-inline-form">
-                  <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :maxlength="6" class="pf-field" />
+                  <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :max-length="6" class="pf-field" />
                   <XhButton tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
@@ -608,7 +608,7 @@ function cancelChange() {
                   </XhButton>
                 </div>
                 <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
-                  <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :maxlength="6" class="pf-field" />
+                  <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :max-length="6" class="pf-field" />
                   <XhButton tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
@@ -640,7 +640,7 @@ function cancelChange() {
         <div class="pf-field-grid">
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_real_name') }}</span>
-            <XInput v-model:value="profileForm.realName" :placeholder="t('component.profile.info.real_name_placeholder')" :maxlength="50" />
+            <XInput v-model:value="profileForm.realName" :placeholder="t('component.profile.info.real_name_placeholder')" :max-length="50" />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_birthday') }}</span>
@@ -668,7 +668,7 @@ function cancelChange() {
               type="textarea"
               :placeholder="t('component.profile.info.bio_placeholder')"
               :autosize="{ minRows: 3, maxRows: 6 }"
-              :maxlength="200"
+              :max-length="200"
               show-count
             />
           </div>
@@ -718,9 +718,9 @@ function cancelChange() {
                 <XInput
                   v-model:value="changeCode"
                   :placeholder="t('component.profile.info.verify_code_placeholder')"
-                  :maxlength="6"
+                  :max-length="6"
                 />
-                <XhFlex :size="8">
+                <XhFlex gap="sm">
                   <XhButton tone="brand" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
                     {{ t('common.actions.confirm') }}
                   </XhButton>

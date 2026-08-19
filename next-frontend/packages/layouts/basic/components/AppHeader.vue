@@ -402,6 +402,7 @@ watch(() => route.fullPath, () => {
   <template v-if="appStore.breadcrumbNavButtons">
     <XihanIconButton
       class="my-0 rounded-md"
+      :tooltip="t('header.toolbar.nav_back')"
       :disabled="!canGoBack"
       @click="router.back()"
     >
@@ -409,6 +410,7 @@ watch(() => route.fullPath, () => {
     </XihanIconButton>
     <XihanIconButton
       class="my-0 rounded-md"
+      :tooltip="t('header.toolbar.nav_forward')"
       :disabled="!canGoForward"
       @click="router.forward()"
     >

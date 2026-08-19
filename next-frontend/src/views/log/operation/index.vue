@@ -142,7 +142,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:operation-log:export',
   pageName: t('log.operation.page_name'),
   rowKey: 'basicId',
-  scrollX: 2200,
   fields: decorateTraceFields(fields.value, router, { timeField: 'operationTime', ipKey: 'operationIp' }),
   resource: {
     page: params => logManagementApi.operation.page(buildOperationQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

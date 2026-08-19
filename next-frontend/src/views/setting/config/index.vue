@@ -99,7 +99,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:config:delete',
   statusPermission: 'saas:config:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -400,7 +399,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     @action="onAction"
   >
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="width: 720px; max-width: calc(100vw - 32px);">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
         <XhDialogTitle v-if="currentDetail">
           <div class="det-hd-entity">
             <div class="det-hd-ico">
@@ -432,7 +431,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             </XhTabsTrigger>
           </XhTabsList>
           <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2" bordered>
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.config.config_group') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -483,12 +482,6 @@ async function handleToggleStatus(row: ConfigListItemDto) {
                   {{ currentDetail.sort }}
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
-              <XhDescriptionsItem style="grid-column: span 2">
-                <XhDescriptionsLabel>{{ t('setting.config.description') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.configDescription) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.config.created_time') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -513,10 +506,17 @@ async function handleToggleStatus(row: ConfigListItemDto) {
                   {{ formatNullable(currentDetail.modifiedBy) }}
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
+              <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
+              <XhDescriptionsItem style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('setting.config.description') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.configDescription) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
             </XhDescriptionsRoot>
           </XhTabsContent>
           <XhTabsContent value="values">
-            <XhDescriptionsRoot :columns="1" bordered>
+            <XhDescriptionsRoot :columns="1" bordered size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.config.current_value') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -548,7 +548,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
         </XhTabsRoot>
 
         <div class="xh-dialog-footer">
-          <XhFlex justify="end">
+          <XhFlex justify="end" gap="md">
             <XhButton size="sm" @click="detailVisible = false">
               {{ t('common.actions.close') }}
             </XhButton>

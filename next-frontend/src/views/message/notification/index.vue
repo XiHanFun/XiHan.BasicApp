@@ -288,7 +288,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:notification:export',
   pageName: t('message.notification.page_name'),
   rowKey: 'basicId',
-  scrollX: 1470,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -705,7 +704,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_title') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="notificationForm.title" clearable :maxlength="200" :placeholder="t('message.notification.form_title_placeholder')" />
+              <XInput v-model:value="notificationForm.title" clearable :max-length="200" :placeholder="t('message.notification.form_title_placeholder')" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -781,8 +780,8 @@ async function handleSubmit() {
         <XhFormFieldGroup value="deliveryChannels" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_delivery_channels') }}</XhFieldLabel>
-            <XhFieldControl>
-              <div>
+            <div>
+              <XhFieldControl>
                 <XhCheckboxGroupRoot
                   :value="notificationForm.deliveryChannels.map(String)"
                   @update:value="(value: string[]) => (notificationForm.deliveryChannels = value as unknown as MessageChannel[])"
@@ -802,11 +801,11 @@ async function handleSubmit() {
                     </XhCheckboxGroupItemText>
                   </XhCheckboxGroupItem>
                 </XhCheckboxGroupRoot>
-                <p class="channel-hint">
-                  {{ t('message.notification.form_delivery_channels_hint') }}
-                </p>
-              </div>
-            </XhFieldControl>
+              </XhFieldControl>
+              <p class="channel-hint">
+                {{ t('message.notification.form_delivery_channels_hint') }}
+              </p>
+            </div>
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
@@ -850,7 +849,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_link') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="notificationForm.link" clearable :maxlength="500" :placeholder="t('message.notification.form_link_placeholder')" />
+              <XInput v-model:value="notificationForm.link" clearable :max-length="500" :placeholder="t('message.notification.form_link_placeholder')" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -930,7 +929,7 @@ async function handleSubmit() {
         <XhDrawerTitle>{{ t('message.notification.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
         <template v-if="currentDetail">
-          <XhDescriptionsRoot :columns="2">
+          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem style="grid-column: span 2">
               <XhDescriptionsLabel>{{ t('message.notification.detail.label.title') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

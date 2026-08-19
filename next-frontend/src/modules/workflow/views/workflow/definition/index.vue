@@ -100,7 +100,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'workflow.definition',
   pageName: t('workflow.definition.page_name'),
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -313,7 +312,7 @@ function onAction(payload: SchemaActionPayload) {
           {{ t('workflow.definition.loading') }}
         </div>
         <template v-else-if="detailData">
-          <XhDescriptionsRoot :columns="2" bordered>
+          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.definition.code') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -375,7 +374,7 @@ function onAction(payload: SchemaActionPayload) {
 
     <!-- 创建/编辑（可视化设计器，内置 JSON 视图） -->
     <XhDialogRoot v-model:open="editVisible">
-      <XhDialogContent style="width: 96vw; max-width: 1600px">
+      <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1600px)">
         <XhDialogTitle>{{ editMode === 'create' ? t('workflow.definition.create_title') : t('workflow.definition.edit_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <WorkflowDesigner
@@ -389,12 +388,12 @@ function onAction(payload: SchemaActionPayload) {
 
     <!-- 发起实例 -->
     <XhDialogRoot v-model:open="startVisible">
-      <XhDialogContent style="width: 560px">
+      <XhDialogContent style="--xh-dialog-max-w: 560px">
         <XhDialogTitle>{{ t('workflow.definition.start_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <XhFormRoot
           validate-on="blur"
-          layout="horizontal"
+          layout="horizontal"
         >
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.code') }}</XhFieldLabel>

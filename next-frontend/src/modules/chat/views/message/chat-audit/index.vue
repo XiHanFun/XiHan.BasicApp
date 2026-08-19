@@ -107,7 +107,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'message.chat-audit',
   pageName: t('chat.audit.page_name'),
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: params => chatAuditApi.page(buildAuditQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

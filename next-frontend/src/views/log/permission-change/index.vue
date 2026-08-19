@@ -114,7 +114,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'log.permission-change',
   pageName: t('log.permission_change.page_name'),
   rowKey: 'basicId',
-  scrollX: 2600,
   fields: decorateTraceFields(fields.value, router, {
     timeField: 'changeTime',
     ipKey: 'operationIp',

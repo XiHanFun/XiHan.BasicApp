@@ -53,6 +53,7 @@ export default {
       member: 'Member',
     },
     thread: {
+      select_conversation_title: 'No conversation selected',
       select_conversation: 'Select a conversation to start chatting',
       empty: 'No messages yet. Say something!',
       load_more: 'Load earlier messages',

@@ -67,7 +67,7 @@ const { isMobile } = useIsMobile()
       variant="dropdown"
       apply
     >
-      <XihanIconButton class="mr-1 mt-[2px]" :tooltip="t('header.toolbar.switch_timezone')">
+      <XihanIconButton class="mr-1" :tooltip="t('header.toolbar.switch_timezone')">
         <Icon icon="lucide:clock-3" width="16" height="16" />
       </XihanIconButton>
     </TimezoneSwitcher>
@@ -75,7 +75,7 @@ const { isMobile } = useIsMobile()
     <!-- 主题切换 -->
     <XihanIconButton
       v-if="props.appStore.widgetThemeToggle"
-      class="mr-1 mt-[2px]"
+      class="mr-1"
       :tooltip="props.isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
       @mousedown.prevent
       @click="(event: MouseEvent) => emit('themeToggle', event)"

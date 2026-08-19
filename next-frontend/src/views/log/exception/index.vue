@@ -179,7 +179,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:exception-log:export',
   pageName: t('log.exception.page_name'),
   rowKey: 'basicId',
-  scrollX: 2800,
   fields: decorateTraceFields(fields.value, router, { timeField: 'exceptionTime', ipKey: 'operationIp' }),
   resource: {
     page: params => logManagementApi.exception.page(buildExceptionQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

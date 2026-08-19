@@ -10,7 +10,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { EnumOptionItem } from '~/hooks'
-import { XhAlertDescription, XhAlertRoot, XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -168,7 +168,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.numbering',
   pageName: t('setting.numbering.page_name'),
   rowKey: 'basicId',
-  scrollX: 1380,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -412,10 +411,10 @@ function remove(row: NumberingRuleListItemDto): void {
     <NumberingPreviewModal v-model:show="previewVisible" :rule="previewRule" />
 
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent style="width: 680px; max-width: 92vw">
+      <XhDialogContent style="--xh-dialog-max-w: 680px">
         <XhDialogTitle>{{ t('setting.numbering.detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
-        <XhDescriptionsRoot v-if="detail" :columns="2" bordered>
+        <XhDescriptionsRoot v-if="detail" :columns="2" bordered placement="left">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -464,6 +463,9 @@ function remove(row: NumberingRuleListItemDto): void {
 
     <XEditModal v-model:show="resetVisible" :title="t('setting.numbering.reset_title')" :loading="actionLoading" :form-id="editFormId">
       <XhAlertRoot tone="warning" class="mb-3">
+        <XhAlertIcon>
+          <Icon icon="lucide:triangle-alert" width="16" />
+        </XhAlertIcon>
         <XhAlertDescription>
           {{ t('setting.numbering.reset_tip') }}
         </XhAlertDescription>
@@ -477,14 +479,14 @@ function remove(row: NumberingRuleListItemDto): void {
         <XhFieldRoot>
           <XhFieldLabel>{{ t('setting.numbering.next_value') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="resetForm.nextValue" maxlength="18" />
+            <XInput v-model:value="resetForm.nextValue" :max-length="18" />
           </XhFieldControl>
           <XhFieldErrorText />
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('setting.numbering.reset_reason') }}</XhFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="resetForm.reason" type="textarea" maxlength="500" />
+            <XInput v-model:value="resetForm.reason" type="textarea" :max-length="500" />
           </XhFieldControl>
           <XhFieldErrorText />
         </XhFieldRoot>
