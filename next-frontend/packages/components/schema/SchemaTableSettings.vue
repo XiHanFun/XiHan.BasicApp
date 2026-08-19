@@ -312,12 +312,11 @@ function onDragEnd(event: DragEndEvent) {
   color: var(--xh-fg-default);
 }
 
-/* 选项按钮比头部动作按钮低一档。组件库最小档是 sm(28px)，且 sm 那条规则直接读
-   --xh-control-h-sm 一类的档位令牌，不经过 --xh-button-* 槽，所以覆盖的是前者 */
+/* 选项按钮比头部动作按钮低一档：组件库最小档是 sm(28px)，没有更小的一档 */
 .xh-set-chip {
-  --xh-control-h-sm: 22px;
-  --xh-control-px-sm: 6px;
-  --xh-font-size-sm: 12px;
+  --xh-button-h: 22px;
+  --xh-button-px: 6px;
+  --xh-button-font-size: 12px;
 }
 
 .xh-set-panel {
