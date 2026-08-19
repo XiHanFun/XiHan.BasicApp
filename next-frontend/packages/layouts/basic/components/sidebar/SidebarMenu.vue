@@ -56,6 +56,12 @@ const collection = computed(() => toCollection(props.menuOptions))
 
 <style scoped>
 .sidebar-menu {
+  /* 组件库的侧栏根自带 240px / 折叠 56px 的固定宽度（它设计上自己就是侧栏）。
+     本应用的侧栏宽度由用户偏好控制，外层 aside 说了算，故让根跟着容器走，
+     否则菜单比容器宽的那一截会被 overflow-x:hidden 裁掉，行尾的箭头首当其冲 */
+  --xh-side-nav-w: 100%;
+  --xh-side-nav-collapsed-w: 100%;
+
   background: transparent;
   font-size: 14px;
 }
