@@ -102,7 +102,8 @@ export function useTableSettings(
   }
 
   const columns = ref<ColumnSetting[]>(buildDefault())
-  const density = ref<TableDensity>('small')
+  /** 缺省密度：中间档 */
+  const density = ref<TableDensity>('medium')
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
@@ -139,7 +140,7 @@ export function useTableSettings(
       }
     }
     columns.value = ordered
-    density.value = persisted.density ?? 'small'
+    density.value = persisted.density ?? 'medium'
     style.value = { ...DEFAULT_STYLE, ...persisted.style }
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
@@ -270,7 +271,7 @@ export function useTableSettings(
   function resetDefault() {
     // buildDefault 不含 sort，列重建后 defaultSorts 计算属性自然清空
     columns.value = buildDefault()
-    density.value = 'small'
+    density.value = 'medium'
     style.value = { ...DEFAULT_STYLE }
     selectable.value = defaultSelectable
     showIndex.value = true
