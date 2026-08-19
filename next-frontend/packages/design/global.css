@@ -4,7 +4,10 @@
  * 本文件仅保留 @apply 规则，依赖入口中已加载的 utilities 与 @theme 颜色。
  * ========================================================================== */
 
-@layer base {
+/* 裸元素的边框归零，好让 Tailwind 的 border-* 工具类从 0 起算。
+   必须落在 xihan.reset 层：层序里 base 排在 xihan.components 之后，
+   写在 base 会把整个组件库皮肤的描边一并压成 0。 */
+@layer xihan.reset {
   *,
   ::before,
   ::after {
@@ -14,7 +17,9 @@
     border-style: solid;
     border-width: 0;
   }
+}
 
+@layer base {
   html {
     @apply bg-background text-foreground;
 
