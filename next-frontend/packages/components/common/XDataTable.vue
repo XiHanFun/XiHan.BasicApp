@@ -186,10 +186,13 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 </template>
 
 <style scoped>
-/* 让区段跟着容器收：皮肤把它钉在 max-content 上，容器再窄也不压缩、必出横向滚动 */
+/* 区段的下限从 max-content 换成 min-content：
+   max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
+   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。
+   min-content 正是各列下限之和：既允许按比例压缩，行盒又始终罩得住所有单元格 */
 .x-data-table :deep([data-scope='table'][data-part='header']),
 .x-data-table :deep([data-scope='table'][data-part='body']) {
-  min-inline-size: 0;
+  min-inline-size: min-content;
 }
 
 .x-data-table__cell-text {
