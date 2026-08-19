@@ -32,8 +32,11 @@ const placeholder = computed(() => props.field.placeholder
 const stringValue = computed(() => props.value === null || props.value === undefined ? '' : String(props.value))
 const numberValue = computed(() => typeof props.value === 'number' ? props.value : null)
 const booleanValue = computed(() => props.value === true)
-const dateValue = computed(() => stringValue.value || null)
-const dateFormat = computed(() => inputType.value === 'datetime' ? 'yyyy-MM-dd HH:mm:ss' : 'yyyy-MM-dd')
+/** 样值以文本存，日期选择收发时间戳：解析不出来就当未填 */
+const dateValue = computed(() => {
+  const parsed = stringValue.value ? new Date(stringValue.value).getTime() : Number.NaN
+  return Number.isNaN(parsed) ? null : parsed
+})
 
 /**
  * 发布文本值；不自动转换数字，避免条码、二维码和前导零编码被破坏。
@@ -49,8 +52,17 @@ function updateText(value: string): void {
  * @param value DatePicker 格式化值。
  * @returns 无返回值。
  */
-function updateDate(value: null | string): void {
-  emit('update:value', value ?? '')
+function updateDate(value: null | number | [number, number]): void {
+  if (value == null || Array.isArray(value)) {
+    emit('update:value', '')
+    return
+  }
+  const date = new Date(value)
+  const pad = (part: number) => String(part).padStart(2, '0')
+  const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  emit('update:value', inputType.value === 'datetime'
+    ? `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+    : day)
 }
 </script>
 
@@ -70,13 +82,12 @@ function updateDate(value: null | string): void {
   />
   <XDatePicker
     v-else-if="inputType === 'date' || inputType === 'datetime'"
-    :formatted-value="dateValue"
+    :value="dateValue"
     :type="inputType === 'datetime' ? 'datetime' : 'date'"
-    :value-format="dateFormat"
     :placeholder="placeholder"
     class="w-full"
     clearable
-    @update:formatted-value="updateDate"
+    @update:value="updateDate"
   />
   <XInput
     v-else

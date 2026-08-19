@@ -133,7 +133,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('file.storage.page_name'),
   statusPermission: 'saas:storage-config:status',
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -511,7 +510,7 @@ function handleDelete(row: StorageConfigListItemDto) {
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.access_key_id') }}</XhFieldLabel>
               <XhFieldControl>
-                <XInput v-model:value="form.accessKeyId" clearable placeholder="AccessKeyId" :input-props="{ autocomplete: 'off' }" />
+                <XInput v-model:value="form.accessKeyId" clearable placeholder="AccessKeyId" autocomplete="off" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
@@ -523,7 +522,7 @@ function handleDelete(row: StorageConfigListItemDto) {
                 <XInput
                   v-model:value="form.secretAccessKey"
                   type="password"
-                  :input-props="{ autocomplete: 'new-password' }"
+                  autocomplete="new-password"
                   :placeholder="secretPlaceholder"
                 />
               </XhFieldControl>

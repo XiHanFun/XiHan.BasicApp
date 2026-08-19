@@ -238,7 +238,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
             :max="320"
             size="sm"
             button-placement="both"
-            :input-props="{ style: 'text-align: center' }"
+            class="pref-num pref-num--center"
             style="width: 130px"
             :disabled="sidebarItemDisabled"
           />
@@ -390,7 +390,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
             :max="30"
             size="sm"
             button-placement="both"
-            :input-props="{ style: 'text-align: center' }"
+            class="pref-num pref-num--center"
             style="width: 120px"
             :disabled="!appStore.tabbarEnabled"
           />
@@ -543,7 +543,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.copyrightName"
           size="sm"
           style="width: 150px"
-          :input-props="{ style: 'text-align: right' }"
+          class="pref-num pref-num--right"
           :disabled="copyrightItemDisabled"
         />
       </div>
@@ -553,7 +553,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.copyrightSite"
           size="sm"
           style="width: 150px"
-          :input-props="{ style: 'text-align: right' }"
+          class="pref-num pref-num--right"
           :disabled="copyrightItemDisabled"
         />
       </div>
@@ -563,7 +563,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.copyrightDate"
           size="sm"
           style="width: 90px"
-          :input-props="{ style: 'text-align: right' }"
+          class="pref-num pref-num--right"
           placeholder="2016"
           :disabled="copyrightItemDisabled"
         />
@@ -574,7 +574,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.copyrightIcp"
           size="sm"
           style="width: 150px"
-          :input-props="{ style: 'text-align: right' }"
+          class="pref-num pref-num--right"
           :placeholder="t('preference.layout.copyright.optional')"
           :disabled="copyrightItemDisabled"
         />
@@ -585,7 +585,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.copyrightIcpUrl"
           size="sm"
           style="width: 150px"
-          :input-props="{ style: 'text-align: right' }"
+          class="pref-num pref-num--right"
           :placeholder="t('preference.layout.copyright.optional')"
           :disabled="copyrightItemDisabled"
         />
@@ -675,5 +675,14 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   font-weight: 500;
+}
+
+/* 数字输入框里的文字对齐：input 由组件库渲染，只能经 :deep 够到 */
+.pref-num--center :deep([data-scope='number-field'][data-part='input']) {
+  text-align: center;
+}
+
+.pref-num--right :deep([data-scope='number-field'][data-part='input']) {
+  text-align: right;
 }
 </style>

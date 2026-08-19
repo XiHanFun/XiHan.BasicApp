@@ -148,7 +148,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.datasource',
   pageName: t('develop.code_gen.tabs.datasource'),
   rowKey: 'basicId',
-  scrollX: 1100,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -451,7 +450,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_user_name') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.userName" clearable :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.userName" clearable autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -460,7 +459,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ form.basicId ? t('develop.code_gen.datasource.form_password_edit') : t('develop.code_gen.datasource.form_password') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.password" clearable show-password-on="click" type="password" />
+              <XInput v-model:value="form.password" clearable type="password" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

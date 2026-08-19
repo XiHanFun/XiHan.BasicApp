@@ -7,11 +7,12 @@ import type {
   ApiId,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SchemaPagination, XDataTable } from '~/components'
 import { toast } from '~/composables'
+import { Icon } from '~/iconify'
 import {
   codeGenRuntimeApi,
 } from '../../../../api'
@@ -56,8 +57,6 @@ const columns = computed<XDataTableColumn<RuntimeRow>[]>(() => {
     render: (row: RuntimeRow) => formatCell(row[column.propertyName]),
   }))
 })
-
-const scrollX = computed(() => Math.max(640, columns.value.length * 160))
 
 function formatCell(value: unknown): string {
   if (value === null || value === undefined) {
@@ -147,7 +146,7 @@ function handlePageSizeChange(value: number) {
     :open="show"
     @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <XhDialogContent style="width: 96vw; max-width: 1200px">
+    <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1200px)">
       <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="xh-loading-stage">
@@ -158,6 +157,10 @@ function handlePageSizeChange(value: number) {
           <XhEmptyStateRoot
             v-if="!schemaLoading && (!schema || schema.columns.length === 0)"
           >
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('develop.code_gen.runtime.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <template v-else>
@@ -167,7 +170,6 @@ function handlePageSizeChange(value: number) {
               :columns="columns"
               :data="rows"
               :loading="dataLoading"
-              :scroll-x="scrollX"
               size="sm"
             />
             <div class="runtime__foot">

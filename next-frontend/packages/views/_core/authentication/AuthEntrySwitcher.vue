@@ -70,6 +70,17 @@ function goTo(path: string) {
   font-weight: 600;
 }
 
+/* 选中下划线：line 档只换文字色，选中态与未选中只差一档灰，这里把指示条补回来 */
+.entry-switcher :deep([data-scope='tabs'][data-part='trigger'][data-state='active'])::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(-1 * var(--xh-stroke-thin));
+  block-size: 2px;
+  border-radius: 1px;
+  background: hsl(var(--primary));
+}
+
 .entry-switcher :deep([data-scope='tabs'][data-part='content']) {
   display: none;
 }

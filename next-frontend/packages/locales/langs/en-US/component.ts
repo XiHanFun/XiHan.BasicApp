@@ -631,6 +631,7 @@ export default {
     select_placeholder: 'Select icon',
     modal_title: 'Select Icon',
     search_placeholder: 'Search icon name...',
+    empty: 'No icons found',
   },
   search_settings: {
     title: 'Search Settings',
@@ -648,6 +649,9 @@ export default {
     reset: 'Reset',
     hide_conditions: 'Hide conditions',
     advanced_search: 'Advanced search',
+  },
+  date_picker: {
+    label: 'Select date',
   },
   search_date_range: {
     start: 'Start',

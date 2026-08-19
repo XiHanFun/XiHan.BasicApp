@@ -140,8 +140,8 @@ onBeforeUnmount(() => {
 
       <XhFormFieldGroup v-slot="{ value, setValue }" value="code" class="!mb-6">
         <XhFieldRoot>
-          <XhFieldControl>
-            <div class="xh-input-group">
+          <div class="xh-input-group">
+            <XhFieldControl>
               <XInput
                 size="lg"
                 :value="(value as string)"
@@ -149,18 +149,18 @@ onBeforeUnmount(() => {
                 :max-length="6"
                 @update:value="setValue"
               />
-              <XhButton
-                tone="brand"
-                variant="outline"
-                :disabled="countdown > 0"
-                size="lg"
-                style="min-width: 132px"
-                @click="handleSendCode"
-              >
-                {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
-              </XhButton>
-            </div>
-          </XhFieldControl>
+            </XhFieldControl>
+            <XhButton
+              tone="brand"
+              variant="outline"
+              :disabled="countdown > 0"
+              size="lg"
+              style="min-width: 132px"
+              @click="handleSendCode"
+            >
+              {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
+            </XhButton>
+          </div>
           <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>

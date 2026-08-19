@@ -47,8 +47,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const modalStyle = computed(() => ({
-  inlineSize: typeof props.width === 'number' ? `${props.width}px` : props.width,
-  maxInlineSize: 'calc(100vw - 32px)',
+  '--xh-dialog-max-w': typeof props.width === 'number' ? `${props.width}px` : props.width,
 }))
 
 function handleCancel() {
@@ -108,6 +107,5 @@ function handleCancel() {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-  margin-block-start: 16px;
 }
 </style>

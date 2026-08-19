@@ -125,7 +125,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.assistant',
   pageName: t('develop.ai_assistant.page_name'),
   rowKey: 'basicId',
-  scrollX: 1200,
   batchRemovable: true,
   fields: fields.value,
   resource: {

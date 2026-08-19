@@ -115,7 +115,7 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   color: var(--xh-fg-on-brand);
 }
 
-/* 搜索区作为高级浮层的定位上下文（外层由 NCard 提供卡片容器与内边距） */
+/* 搜索区作为高级浮层的定位上下文（外层卡片提供容器与内边距） */
 .xh-search {
   position: relative;
 }
@@ -157,7 +157,7 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
 }
 
 /* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表）。
-   left/right 用负值抵消 NCard 内容内边距（16px），使浮层铺满卡片宽度；
+   left/right 用负值抵消外层卡片内容内边距（16px），使浮层铺满卡片宽度；
    自身 padding 再以同样 16px 内缩，让高级字段左边缘与常用字段严格对齐。 */
 .xh-search__advanced {
   position: absolute;

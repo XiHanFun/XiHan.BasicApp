@@ -43,7 +43,7 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
         <XhFieldControl>
           <XInput
             v-model:value="model.templateName"
-            maxlength="100"
+            :max-length="100"
             :placeholder="t('setting.print_template.template_name_placeholder')"
           />
         </XhFieldControl>
@@ -56,7 +56,7 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
           <XInput
             v-model:value="model.templateCode"
             :disabled="editing"
-            maxlength="100"
+            :max-length="100"
             :placeholder="t('setting.print_template.template_code_placeholder')"
           >
             <template v-if="editing" #suffix>

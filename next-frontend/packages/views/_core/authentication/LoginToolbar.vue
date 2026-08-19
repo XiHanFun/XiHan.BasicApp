@@ -54,7 +54,7 @@ function onAlignChange(align: LoginFormAlign) {
     <!-- 颜色 -->
     <XhPopoverRoot v-model:open="showColorPicker" placement="bottom-end">
       <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
-      <XhPopoverTrigger class="toolbar-btn">
+      <XhPopoverTrigger class="toolbar-btn xh-icon-btn">
         <Icon width="16" height="16" icon="lucide:palette" />
       </XhPopoverTrigger>
       <XhPopoverPositioner>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot } from '@xihan-ui/vue'
+import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -67,7 +67,7 @@ async function handleForward(conversationId: string) {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="width: 380px; max-width: calc(100vw - 24px);">
+    <XhDialogContent style="--xh-dialog-max-w: 380px">
       <XhDialogTitle>{{ t('chat.forward.title') }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <XInput
@@ -82,7 +82,11 @@ async function handleForward(conversationId: string) {
       </XInput>
 
       <div v-if="!candidates.length" class="py-8">
-        <XhEmptyStateRoot>
+        <XhEmptyStateRoot size="sm">
+          <XhEmptyStateIcon>
+            <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="24" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.empty') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>
       </div>

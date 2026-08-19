@@ -58,6 +58,7 @@ export default {
     delete_failed: '删除失败',
     status_updated: '状态已更新',
     status_failed: '状态更新失败',
+    load_failed: '加载失败',
     operation_failed: '操作失败',
     batch_delete_failed: '批量删除失败',
     batch_action_failed: '批量操作失败',
@@ -69,4 +70,7 @@ export default {
     female: '女',
   },
   no_data: '暂无数据',
+  empty: '暂无数据',
+  no_result: '没有匹配的结果',
+  loading: '加载中…',
 }

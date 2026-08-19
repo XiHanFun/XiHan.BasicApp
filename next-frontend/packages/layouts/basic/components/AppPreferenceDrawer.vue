@@ -284,19 +284,12 @@ watch(visible, (open, was) => {
 </template>
 
 <style scoped>
-/* 抽屉定宽；底部三颗图标钮走圆形 */
-.preference-drawer-content {
-  --xh-drawer-size: 396px;
-}
-
+/* 底部三颗图标钮走圆形。面板自身的宽度与字号在 src/styles/admin-page.css：
+   content 被 portal 到 body，scopeId 不跟过去，scoped 规则选不中它 */
 .footer-round {
   inline-size: 32px;
   padding-inline: 0;
   border-radius: var(--xh-radius-full);
-}
-
-.preference-drawer-content {
-  font-size: 14px;
 }
 
 .drawer-footer {
@@ -312,15 +305,17 @@ watch(visible, (open, was) => {
   flex: none;
 }
 
-:deep(.preference-scrollbar) {
+/* 这几个目标元素都写在本组件模板里、自带 scopeId；
+   套上 :deep() 反而要求祖先带 scopeId，而它们的祖先在 portal 之后一个都没有 */
+.preference-scrollbar {
   height: 100%;
 }
 
-:deep(.preference-scrollbar [data-scope='scroll-area'][data-part='content']) {
+.preference-scrollbar [data-scope='scroll-area'][data-part='content'] {
   padding: 0 16px 16px;
 }
 
-:deep(.preference-tabs > [data-scope='tabs'][data-part='list']) {
+.preference-tabs > [data-scope='tabs'][data-part='list'] {
   position: sticky;
   top: 0;
   z-index: 10;

@@ -159,7 +159,6 @@ async function handleImport() {
       <XSelect
         v-model:value="dataSourceId"
         class="import-filters__item"
-        filterable
         :options="dataSourceOptions"
         :placeholder="t('develop.code_gen.import.data_source_placeholder')"
         @update:value="onDataSourceChange"
@@ -195,9 +194,7 @@ async function handleImport() {
           <XSelect
             v-model:value="selectedTables"
             clearable
-            filterable
             multiple
-            :loading="tableLoading"
             :max-tag-count="6"
             :options="tableOptions"
             :placeholder="t('develop.code_gen.import.select_tables_placeholder')"

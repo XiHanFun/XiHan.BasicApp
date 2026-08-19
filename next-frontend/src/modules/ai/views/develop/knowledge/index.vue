@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -17,6 +17,7 @@ import {
 } from '@/api'
 import { SchemaPage, XEditModal, XInput, XNumberInput } from '~/components'
 import { dialog, toast } from '~/composables'
+import { Icon } from '~/iconify'
 import { getOptionLabel } from '~/utils'
 import {
   KNOWLEDGE_INDEX_STATUS_OPTIONS,
@@ -87,7 +88,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.knowledge',
   pageName: t('develop.knowledge.tabs.documents'),
   rowKey: 'basicId',
-  scrollX: 1000,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -348,23 +348,23 @@ async function handleQuery() {
               <XhFormFieldGroup value="text" class="xh-span-2">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('develop.knowledge.form_text') }}</XhFieldLabel>
-                  <XhFieldControl>
-                    <div class="knowledge__text">
-                      <XhFlex class="knowledge__text-bar" justify="between">
-                        <XhButton size="sm" @click="triggerFilePicker">
-                          {{ t('develop.knowledge.form_pick_file') }}
-                        </XhButton>
-                        <span v-if="form.source" class="knowledge__source">{{ form.source }}</span>
-                      </XhFlex>
+                  <div class="knowledge__text">
+                    <XhFlex class="knowledge__text-bar" justify="between">
+                      <XhButton size="sm" @click="triggerFilePicker">
+                        {{ t('develop.knowledge.form_pick_file') }}
+                      </XhButton>
+                      <span v-if="form.source" class="knowledge__source">{{ form.source }}</span>
+                    </XhFlex>
+                    <XhFieldControl>
                       <XInput
                         v-model:value="form.text"
                         :placeholder="t('develop.knowledge.form_text_placeholder')"
                         :rows="12"
                         type="textarea"
                       />
-                      <input ref="fileInput" accept=".txt,.md,.markdown,.cs,.ts,.vue,.js,.json,.py,.java,.go,.sql,.yml,.yaml,.html,.css" style="display: none" type="file" @change="onFileSelected">
-                    </div>
-                  </XhFieldControl>
+                    </XhFieldControl>
+                    <input ref="fileInput" accept=".txt,.md,.markdown,.cs,.ts,.vue,.js,.json,.py,.java,.go,.sql,.yml,.yaml,.html,.css" style="display: none" type="file" @change="onFileSelected">
+                  </div>
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
@@ -399,7 +399,7 @@ async function handleQuery() {
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
-                <XhFlex align="center" :wrap="true">
+                <XhFlex align="center" gap="md" :wrap="true">
                   <XhFieldRoot>
                     <XhFieldLabel>{{ t('develop.knowledge.query_topk') }}</XhFieldLabel>
                     <XhFieldControl>
@@ -443,7 +443,7 @@ async function handleQuery() {
             </div>
             <XhCardRoot v-for="(citation, idx) in citations" :key="`${citation.documentId}-${citation.index}`" variant="outline" class="playground__citation">
               <XhCardHeader>
-                <XhFlex align="center" :size="8">
+                <XhFlex align="center" gap="sm">
                   <XhBadge variant="subtle" size="sm" tone="info">
                     [{{ idx + 1 }}]
                   </XhBadge>
@@ -462,6 +462,10 @@ async function handleQuery() {
           </div>
 
           <XhEmptyStateRoot v-if="hasQueried && citations.length === 0" class="playground__empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:search-x" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('develop.knowledge.no_result_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('develop.knowledge.no_result') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>

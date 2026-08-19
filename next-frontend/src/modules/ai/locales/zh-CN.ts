@@ -173,6 +173,7 @@ export default {
       validate_query: '请输入问题',
       answer_title: '答案',
       citations_title: '命中片段（{count}）',
+      no_result_title: '没有匹配的结果',
       no_result: '未检索到相关片段',
     },
   },

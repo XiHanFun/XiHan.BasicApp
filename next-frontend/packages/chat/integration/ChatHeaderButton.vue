@@ -24,7 +24,7 @@ const unread = computed(() => chatStore.totalUnread)
     <button
       v-if="visible"
       type="button"
-      class="chat-header-btn mr-1"
+      class="xihan-icon-btn chat-header-btn mr-1"
       @click="chatStore.requestOpenChatDrawer()"
     >
       <Icon icon="lucide:messages-square" width="16" height="16" />
@@ -37,30 +37,9 @@ const unread = computed(() => chatStore.totalUnread)
 </template>
 
 <style scoped>
-/* 与通知铃铛同款按钮/徽标规格（14px 小圆 + 9px 字） */
+/* 皮肤走全局 .xihan-icon-btn，这里只留徽标需要的定位（14px 小圆 + 9px 字） */
 .chat-header-btn {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--foreground) / 65%);
-  cursor: pointer;
-  outline: none;
-  flex-shrink: 0;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.chat-header-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
 }
 
 .chat-header-btn__badge {

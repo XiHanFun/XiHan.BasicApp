@@ -99,7 +99,7 @@ const { t } = useI18n()
             :max="300"
             :step="10"
             size="sm"
-            :input-props="{ style: 'text-align: center' }"
+            class="pref-num pref-num--center"
             style="width: 90px"
           />
           <span class="unit-label">{{ t('preference.general.check_updates_interval_unit') }}</span>
@@ -108,3 +108,10 @@ const { t } = useI18n()
     </section>
   </div>
 </template>
+
+<style scoped>
+/* 数字输入框里的文字居中：input 由组件库渲染，只能经 :deep 够到 */
+.pref-num--center :deep([data-scope='number-field'][data-part='input']) {
+  text-align: center;
+}
+</style>

@@ -737,7 +737,7 @@ function handlePaste(event: ClipboardEvent) {
               v-model:value="draft"
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 7 }"
-              :maxlength="CHAT_MAX_CONTENT_LENGTH"
+              :max-length="CHAT_MAX_CONTENT_LENGTH"
               :placeholder="placeholder"
               class="chat-composer-input"
               @input="handleInput"
@@ -792,6 +792,18 @@ function handlePaste(event: ClipboardEvent) {
 </template>
 
 <style scoped>
+/* 浮层触发器恒渲染成 button：这里只当锚点用，去掉按钮相，让它像一个普通块 */
+.chat-composer-anchor {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: auto;
+}
+
 .chat-composer-btn {
   display: inline-flex;
   align-items: center;

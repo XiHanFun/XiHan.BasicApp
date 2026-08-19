@@ -218,6 +218,12 @@
 .xh-input-group > * {
   --xh-text-field-input-radius: 0;
   --xh-button-radius: 0;
+
+  margin-inline-end: calc(-1 * var(--xh-stroke-thin));
+}
+
+.xh-input-group > *:last-child {
+  margin-inline-end: 0;
 }
 
 .xh-input-group > *:first-child {
@@ -277,7 +283,6 @@
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-  margin-block-start: 16px;
 }
 
 /* 定高滚动区（原先由 NScrollbar 承担；这里只需要溢出滚动，不需要自绘滚动条） */
@@ -289,7 +294,7 @@
    而这些占位散落在各处容器里 */
 .xh-skeleton-bone {
   display: block;
-  border-radius: var(--xh-radius-sm);
+  border-radius: var(--xh-shape-control);
   background: linear-gradient(
     90deg,
     var(--xh-bg-subtle) 25%,
@@ -297,14 +302,14 @@
     var(--xh-bg-subtle) 63%
   );
   background-size: 400% 100%;
-  animation: xh-skeleton-shimmer 1.4s ease infinite;
+  animation: xh-app-skeleton-shimmer 1.4s ease infinite;
 }
 
 .xh-skeleton-bone--circle {
   border-radius: var(--xh-radius-full);
 }
 
-@keyframes xh-skeleton-shimmer {
+@keyframes xh-app-skeleton-shimmer {
   0% {
     background-position: 100% 50%;
   }
@@ -372,4 +377,46 @@
 .xh-icon-btn:disabled {
   opacity: var(--xh-state-disabled-opacity);
   cursor: not-allowed;
+}
+
+/* 顶栏 32px 圆角图标钮：主题/全屏/偏好/语言/时区/铃铛/星标/聊天入口共用。
+   与上面 28px 圆形的 .xh-icon-btn 是两族，按语境密度分工，勿混用 */
+.xihan-icon-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--xh-radius-md, 6px);
+  outline: none;
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.xihan-icon-btn:hover:not(:disabled) {
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
+}
+
+.xihan-icon-btn:active:not(:disabled) {
+  background: var(--xh-bg-subtle-active);
+}
+
+.xihan-icon-btn:disabled {
+  opacity: var(--xh-state-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 双类加权：在同文件里也稳压 :hover，不依赖书写顺序 */
+.xihan-icon-btn.xihan-icon-btn--active {
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-brand);
 }

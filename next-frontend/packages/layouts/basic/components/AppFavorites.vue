@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { DragDropProvider } from '@dnd-kit/vue'
-import { XhEmptyStateDescription, XhEmptyStateRoot, XhNumberAnimation, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhNumberAnimation, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -94,12 +94,12 @@ onBeforeUnmount(() => {
          anchorRef 仍留在外层 span 上——它是灵动岛的落位参照，不能跟着浮层开合动 -->
     <span ref="anchorRef" class="mr-1 inline-flex">
       <XhPopoverTrigger
-        class="fav-btn"
-        :class="{ 'fav-btn--active': showPanel, 'fav-btn--pulse': pulsing }"
+        class="xihan-icon-btn fav-btn"
+        :class="{ 'xihan-icon-btn--active': showPanel, 'fav-btn--pulse': pulsing }"
         :title="t('header.favorites.title')"
         :aria-label="t('header.favorites.title')"
       >
-        <Icon icon="lucide:star" width="18" height="18" />
+        <Icon icon="lucide:star" width="16" height="16" />
         <span v-if="favoritesStore.count > 0" class="fav-btn__badge">
           <XhNumberAnimation :to="Math.min(favoritesStore.count, 99)" :duration="500" :precision="0" />
           <span v-if="favoritesStore.count > 99">+</span>
@@ -121,7 +121,11 @@ onBeforeUnmount(() => {
           <XhSeparator class="my-1" />
 
           <!-- 空态 -->
-          <XhEmptyStateRoot v-if="items.length === 0" class="fav-empty">
+          <XhEmptyStateRoot v-if="items.length === 0" class="fav-empty" size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('header.favorites.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
 
@@ -172,35 +176,9 @@ onBeforeUnmount(() => {
   inline-size: 340px;
 }
 
-/* 收藏夹触发按钮（与 XihanIconButton 视觉一致） */
+/* 收藏夹触发按钮：皮肤走全局 .xihan-icon-btn，这里只留徽标与脉冲需要的定位 */
 .fav-btn {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--foreground) / 65%);
-  cursor: pointer;
-  outline: none;
-  flex-shrink: 0;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.fav-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
-}
-
-.fav-btn--active {
-  background: hsl(var(--accent));
-  color: hsl(var(--primary));
 }
 
 .fav-btn__badge {

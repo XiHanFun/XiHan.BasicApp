@@ -183,7 +183,7 @@ async function handleConfirm() {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="width: 420px; max-width: calc(100vw - 32px);">
+    <XhDialogContent style="--xh-dialog-max-w: 420px">
       <XhDialogTitle>{{ title }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="flex flex-col gap-3">
@@ -198,7 +198,7 @@ async function handleConfirm() {
         <template v-else-if="props.mode === 'group'">
           <XInput
             v-model:value="groupName"
-            :maxlength="CHAT_MAX_GROUP_NAME_LENGTH"
+            :max-length="CHAT_MAX_GROUP_NAME_LENGTH"
             show-count
             :placeholder="t('chat.start.group_name_placeholder')"
           />
@@ -214,8 +214,6 @@ async function handleConfirm() {
           <XSelect
             v-model:value="assistantId"
             :options="assistantOptions"
-            :loading="assistantLoading"
-            filterable
             clearable
             :placeholder="t('chat.start.assistant_placeholder')"
           />

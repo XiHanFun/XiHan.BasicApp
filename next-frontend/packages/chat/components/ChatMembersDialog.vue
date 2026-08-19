@@ -3,7 +3,7 @@ import type {
   ChatConversationListItem,
   ChatMemberItem,
 } from '../types'
-import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -266,7 +266,7 @@ async function handleLeave() {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="width: 480px; max-width: calc(100vw - 24px);">
+    <XhDialogContent style="--xh-dialog-max-w: 480px">
       <XhDialogTitle>{{ t('chat.members.title', { n: members.length }) }}</XhDialogTitle>
       <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
       <div class="xh-loading-stage">
@@ -302,7 +302,7 @@ async function handleLeave() {
               <XInput
                 v-model:value="infoName"
                 size="sm"
-                :maxlength="CHAT_MAX_GROUP_NAME_LENGTH"
+                :max-length="CHAT_MAX_GROUP_NAME_LENGTH"
                 :disabled="isDepartment"
                 :placeholder="t('chat.members.info_name')"
               />
@@ -318,7 +318,7 @@ async function handleLeave() {
               type="textarea"
               size="sm"
               :autosize="{ minRows: 2, maxRows: 5 }"
-              :maxlength="2000"
+              :max-length="2000"
               show-count
               :placeholder="t('chat.members.info_announcement_placeholder')"
             />
@@ -333,7 +333,7 @@ async function handleLeave() {
               type="textarea"
               size="sm"
               :autosize="{ minRows: 1, maxRows: 3 }"
-              :maxlength="500"
+              :max-length="500"
               :placeholder="t('chat.members.info_description')"
             />
           </div>
@@ -397,7 +397,11 @@ async function handleLeave() {
 
         <!-- 成员列表 -->
         <div v-if="!members.length && !loading" class="py-8">
-          <XhEmptyStateRoot>
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('common.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>

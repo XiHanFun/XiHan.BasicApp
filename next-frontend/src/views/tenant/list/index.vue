@@ -13,7 +13,7 @@ import type {
   TenantUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -30,7 +30,7 @@ import {
 } from '@/api'
 import XLogoUpload from '@/components/LogoUpload.vue'
 import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { resolveStatusTagTone, SchemaPage, SchemaPagination, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
+import { Icon, resolveStatusTagTone, SchemaPage, SchemaPagination, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -163,10 +163,59 @@ const memberEditVisible = ref(false)
 const memberEditLoading = ref(false)
 const editingMember = ref<TenantMemberUpdateDto | null>(null)
 const editingMemberId = ref<ApiId | null>(null)
+
+/**
+ * 日期选择收发的是毫秒时间戳，而这几个表单字段存的是后端的时间串：在此两向换算。
+ * 换算放在这一层，表单模型与提交载荷都不必跟着改类型。
+ */
+function timestampModel(
+  read: () => DateTimeString | null | undefined,
+  write: (value: DateTimeString | null) => void,
+) {
+  return computed<number | null>({
+    get: () => {
+      const raw = read()
+      return raw ? new Date(raw).getTime() : null
+    },
+    set: (next) => {
+      write(next == null ? null : (new Date(next).toISOString() as DateTimeString))
+    },
+  })
+}
 const memberAddVisible = ref(false)
 const memberAddLoading = ref(false)
 const memberAddMode = ref<'add' | 'invite'>('add')
 const memberAddForm = ref<TenantMemberFormModel>(createDefaultMemberForm())
+
+const tenantExpirationTs = timestampModel(
+  () => tenantForm.value.expirationTime,
+  (value) => { tenantForm.value.expirationTime = value },
+)
+const memberAddEffectiveTs = timestampModel(
+  () => memberAddForm.value.effectiveTime,
+  (value) => { memberAddForm.value.effectiveTime = value },
+)
+const memberAddExpirationTs = timestampModel(
+  () => memberAddForm.value.expirationTime,
+  (value) => { memberAddForm.value.expirationTime = value },
+)
+const editingMemberEffectiveTs = timestampModel(
+  () => editingMember.value?.effectiveTime,
+  (value) => {
+    if (editingMember.value) {
+      editingMember.value.effectiveTime = value
+    }
+  },
+)
+const editingMemberExpirationTs = timestampModel(
+  () => editingMember.value?.expirationTime,
+  (value) => {
+    if (editingMember.value) {
+      editingMember.value.expirationTime = value
+    }
+  },
+)
+
 const memberUserOptions = ref<{ label: string, value: string | number }[]>([])
 const memberUserLoading = ref(false)
 const memberStatusVisible = ref(false)
@@ -281,7 +330,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:tenant:export',
   pageName: t('tenant.list.page_name'),
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -815,6 +863,10 @@ async function handleSubmit() {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('tenant.list.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
@@ -832,7 +884,7 @@ async function handleSubmit() {
                 </XhTabsTrigger>
               </XhTabsList>
               <XhTabsContent value="overview">
-                <XhDescriptionsRoot :columns="2" bordered>
+                <XhDescriptionsRoot :columns="2" bordered size="sm">
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenant.list.tenant_name') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
@@ -936,7 +988,7 @@ async function handleSubmit() {
                 </XhDescriptionsRoot>
               </XhTabsContent>
               <XhTabsContent value="members">
-                <XhFlex class="xh-member-toolbar" size="sm">
+                <XhFlex class="xh-member-toolbar" gap="sm">
                   <XhButton size="sm" tone="brand" @click="handleAddMember('add')">
                     {{ t('tenant.list.member_add') }}
                   </XhButton>
@@ -950,6 +1002,10 @@ async function handleSubmit() {
                   </div>
                   <div v-if="memberError" class="xh-detail-empty">
                     <XhEmptyStateRoot>
+                      <XhEmptyStateIcon>
+                        <Icon icon="lucide:alert-circle" />
+                      </XhEmptyStateIcon>
+                      <XhEmptyStateTitle>{{ t('common.messages.load_failed') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('tenant.list.member_load_failed') }}</XhEmptyStateDescription>
                       <XhEmptyStateAction>
                         <XhButton size="sm" @click="loadMembers">
@@ -959,6 +1015,10 @@ async function handleSubmit() {
                     </XhEmptyStateRoot>
                   </div>
                   <XhEmptyStateRoot v-else-if="!memberLoading && members.length === 0" class="xh-detail-empty">
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:inbox" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('tenant.list.member_empty') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                   <template v-else>
@@ -995,7 +1055,7 @@ async function handleSubmit() {
                           </td>
                           <td>{{ formatNullableDate(item.createdTime) }}</td>
                           <td>
-                            <XhFlex size="sm">
+                            <XhFlex gap="sm">
                               <XhButton size="sm" @click="handleEditMember(item)">
                                 {{ t('tenant.list.member_edit') }}
                               </XhButton>
@@ -1019,7 +1079,7 @@ async function handleSubmit() {
                 </div>
               </XhTabsContent>
               <XhTabsContent value="config">
-                <XhDescriptionsRoot :columns="1" bordered>
+                <XhDescriptionsRoot :columns="1" bordered size="sm">
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenant.list.logo') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
@@ -1169,7 +1229,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_user_name') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="tenantForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -1182,7 +1242,8 @@ async function handleSubmit() {
                 v-model:value="tenantForm.adminEmail"
                 clearable
                 :placeholder="t('tenant.list.admin_email_placeholder')"
-                :input-props="{ type: 'email', autocomplete: 'off' }"
+                inputmode="email"
+                autocomplete="off"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1197,7 +1258,7 @@ async function handleSubmit() {
                 clearable
                 :placeholder="t('tenant.list.admin_password_placeholder')"
                 type="password"
-                :input-props="{ autocomplete: 'new-password' }"
+                autocomplete="new-password"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1254,10 +1315,9 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('tenant.list.expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:formatted-value="tenantForm.expirationTime"
+                v-model:value="tenantExpirationTs"
                 clearable
                 type="datetime"
-                value-format="yyyy-MM-dd HH:mm:ss"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1309,9 +1369,6 @@ async function handleSubmit() {
               <XSelect
                 v-model:value="memberAddForm.userId"
                 clearable
-                filterable
-                remote
-                :loading="memberUserLoading"
                 :options="memberUserOptions"
                 :placeholder="t('tenant.list.member_user_placeholder')"
                 @search="searchMemberUsers"
@@ -1343,10 +1400,9 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('tenant.list.member_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:formatted-value="memberAddForm.effectiveTime"
+                v-model:value="memberAddEffectiveTs"
                 clearable
                 type="datetime"
-                value-format="yyyy-MM-dd HH:mm:ss"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1357,10 +1413,9 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('tenant.list.member_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:formatted-value="memberAddForm.expirationTime"
+                v-model:value="memberAddExpirationTs"
                 clearable
                 type="datetime"
-                value-format="yyyy-MM-dd HH:mm:ss"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1435,10 +1490,9 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('tenant.list.member_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:formatted-value="editingMember.effectiveTime"
+                v-model:value="editingMemberEffectiveTs"
                 clearable
                 type="datetime"
-                value-format="yyyy-MM-dd HH:mm:ss"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1449,10 +1503,9 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('tenant.list.member_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:formatted-value="editingMember.expirationTime"
+                v-model:value="editingMemberExpirationTs"
                 clearable
                 type="datetime"
-                value-format="yyyy-MM-dd HH:mm:ss"
               />
             </XhFieldControl>
             <XhFieldErrorText />

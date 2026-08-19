@@ -141,6 +141,7 @@ export default {
       material_barcode: '条形码',
       material_qrcode: '二维码',
       element_properties: '元素属性',
+      properties_empty_title: '未选中元素',
       properties_empty: '选中画布中的元素后，可在此调整属性',
       designer_toolbar: '打印设计快捷工具栏',
       template_operations: '模板操作',

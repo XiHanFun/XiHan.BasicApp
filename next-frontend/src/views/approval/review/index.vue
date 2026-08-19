@@ -155,7 +155,6 @@ const schema = computed<PageSchema>(() => ({
   batchRemovable: true,
   removePermission: 'saas:review:delete',
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -336,7 +335,7 @@ function onAction(payload: SchemaActionPayload) {
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
           {{ t('approval.review.loading') }}
         </div>
-        <XhDescriptionsRoot v-else-if="detailData" :columns="1" bordered>
+        <XhDescriptionsRoot v-else-if="detailData" :columns="1" bordered placement="left" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('approval.review.review_title') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -481,12 +480,13 @@ function onAction(payload: SchemaActionPayload) {
           {{ t('approval.review.empty_detail') }}
         </div>
 
-        <template v-if="detailData && !detailLoading" #footer>
+        <!-- 审批操作条排在详情之后，抽屉内容区的末尾 -->
+        <template v-if="detailData && !detailLoading">
           <XhSeparator style="margin: 12px 0" />
           <div class="text-sm font-medium mb-2">
             {{ t('approval.review.review_operation') }}
           </div>
-          <XhFlex justify="start" :size="8">
+          <XhFlex justify="start" gap="sm">
             <XhButton tone="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
               <span><Icon icon="lucide:check" /></span>
               {{ t('approval.review.btn_pass') }}
@@ -525,7 +525,7 @@ function onAction(payload: SchemaActionPayload) {
       <XhDrawerContent style="--xh-drawer-size: 420px">
         <XhDrawerTitle>{{ auditResult === AuditResult.Pass ? t('approval.review.approve_dialog_pass') : auditResult === AuditResult.Reject ? t('approval.review.approve_dialog_reject') : t('approval.review.approve_dialog_return') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
-        <XhFlex vertical>
+        <XhFlex direction="column" gap="md">
           <XInput
             v-model:value="auditComment"
             :placeholder="t('approval.review.comment_placeholder')"

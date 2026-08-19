@@ -47,7 +47,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'workflow.todo',
   pageName: t('workflow.todo.page_name'),
   rowKey: 'taskId',
-  scrollX: 1300,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -210,10 +209,10 @@ function onAction(payload: SchemaActionPayload) {
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 办理（同意/拒绝） -->
     <XhDialogRoot v-model:open="completeVisible">
-      <XhDialogContent style="width: 480px">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ completeOutcome === 'approved' ? t('workflow.todo.approve_title') : t('workflow.todo.reject_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
-        <XhFlex vertical>
+        <XhFlex direction="column" gap="md">
           <XInput
             v-model:value="completeComment"
             type="textarea"
@@ -229,7 +228,7 @@ function onAction(payload: SchemaActionPayload) {
 
     <!-- 转办 -->
     <XhDialogRoot v-model:open="transferVisible">
-      <XhDialogContent style="width: 480px">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ t('workflow.todo.transfer_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <XhFormRoot
@@ -259,7 +258,7 @@ function onAction(payload: SchemaActionPayload) {
 
     <!-- 加签 -->
     <XhDialogRoot v-model:open="addSignVisible">
-      <XhDialogContent style="width: 480px">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ t('workflow.todo.add_sign_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <XhFormRoot

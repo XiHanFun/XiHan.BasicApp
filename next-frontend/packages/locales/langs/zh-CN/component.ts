@@ -631,6 +631,7 @@ export default {
     select_placeholder: '选择图标',
     modal_title: '选择图标',
     search_placeholder: '搜索图标名称...',
+    empty: '未找到图标',
   },
   search_settings: {
     title: '搜索设置',
@@ -648,6 +649,9 @@ export default {
     reset: '重置',
     hide_conditions: '隐藏条件',
     advanced_search: '高级搜索',
+  },
+  date_picker: {
+    label: '选择日期',
   },
   search_date_range: {
     start: '开始时间',

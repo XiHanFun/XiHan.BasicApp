@@ -319,7 +319,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:field-level-security:delete',
   statusPermission: 'saas:field-level-security:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -530,11 +529,8 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
               <XSelect
                 v-model:value="flsForm.targetId"
                 clearable
-                filterable
-                :loading="targetLoading"
                 :options="targetOptions"
                 :placeholder="targetPlaceholder"
-                remote
                 @focus="loadTargetOptions()"
                 @search="(kw: string) => loadTargetOptions(kw)"
               />
@@ -549,11 +545,8 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
               <XSelect
                 v-model:value="flsForm.resourceId"
                 clearable
-                filterable
-                :loading="resourceLoading"
                 :options="resourceOptions"
                 :placeholder="t('identity.field_security.ph_resource')"
-                remote
                 @focus="loadResourceOptions()"
                 @search="(kw: string) => loadResourceOptions(kw)"
               />

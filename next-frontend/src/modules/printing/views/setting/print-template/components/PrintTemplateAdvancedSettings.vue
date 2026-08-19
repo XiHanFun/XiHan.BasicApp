@@ -34,7 +34,7 @@ const { t } = useI18n()
       <XhFieldRoot>
         <XhFieldLabel>{{ t('setting.print_template.engine_version') }}</XhFieldLabel>
         <XhFieldControl>
-          <XInput v-model:value="model.engineVersion" maxlength="32" disabled />
+          <XInput v-model:value="model.engineVersion" :max-length="32" disabled />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>
@@ -74,7 +74,7 @@ const { t } = useI18n()
           <XInput
             v-model:value="model.remark"
             type="textarea"
-            maxlength="500"
+            :max-length="500"
             :placeholder="t('setting.print_template.remark_placeholder')"
             :autosize="{ minRows: 4, maxRows: 8 }"
           />

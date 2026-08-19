@@ -4,7 +4,7 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -566,7 +566,11 @@ onBeforeUnmount(() => {
 <template>
   <!-- 未选择会话的空态 -->
   <div v-if="!conversation" class="flex h-full items-center justify-center">
-    <XhEmptyStateRoot>
+    <XhEmptyStateRoot size="sm">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:mouse-pointer-click" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('chat.thread.select_conversation_title') }}</XhEmptyStateTitle>
       <XhEmptyStateDescription>{{ t('chat.thread.select_conversation') }}</XhEmptyStateDescription>
     </XhEmptyStateRoot>
   </div>
@@ -717,7 +721,11 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-if="!chatStore.activeMessages.length && !historyLoading" class="py-12">
-        <XhEmptyStateRoot>
+        <XhEmptyStateRoot size="sm">
+          <XhEmptyStateIcon>
+            <Icon icon="lucide:inbox" width="28" height="28" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('chat.thread.empty') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>
       </div>

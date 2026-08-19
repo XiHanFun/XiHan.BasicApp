@@ -156,7 +156,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.history',
   pageName: t('develop.code_gen.tabs.history'),
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -229,14 +228,14 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
 <template>
   <SchemaPage :schema="schema" @action="onAction">
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent style="width: 820px; max-width: 94vw">
+      <XhDialogContent style="--xh-dialog-max-w: 820px">
         <XhDialogTitle>{{ t('develop.code_gen.history.detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <XhFlex v-if="detailLoading" justify="center">
           {{ t('common.statuses.loading') }}
         </XhFlex>
         <template v-else-if="detail">
-          <XhDescriptionsRoot :columns="2">
+          <XhDescriptionsRoot :columns="2" placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_table_name') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

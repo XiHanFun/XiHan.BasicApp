@@ -218,7 +218,6 @@ defineExpose({ confirmDiscard })
               <XSelect
                 :value="selectedPrinter ?? ''"
                 :options="printerOptions"
-                :loading="printerLoading"
                 class="printer-select"
                 @update:value="(value: string | number | (string | number)[] | null) => updatePrinterPreference(value as string | null)"
               />
@@ -246,7 +245,7 @@ defineExpose({ confirmDiscard })
         :close-on-interact-outside="!saveLoading"
         @update:open="handleMetadataVisible"
       >
-        <XhDrawerContent style="--xh-drawer-size: min(444px, 100vw)">
+        <XhDrawerContent style="--xh-drawer-size: min(444px, 100vw); --xh-drawer-px: 0">
           <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
           <MetadataForm
             :key="metadataSessionKey"
@@ -280,14 +279,17 @@ defineExpose({ confirmDiscard })
 
 <style>
 .print-template-editor-modal {
+  /* 皮肤的宽度上限读这个公开槽，缺省 32rem 会把满屏弹窗夹成 512px */
+  --xh-dialog-max-w: 100vw;
+
   display: flex;
-  width: 100vw !important;
-  height: 100vh !important;
+  width: 100vw;
+  height: 100vh;
   max-height: 100vh;
   flex-direction: column;
   margin: 0;
   overflow: hidden;
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 .print-template-editor-modal > .editor-layout {
@@ -391,12 +393,6 @@ defineExpose({ confirmDiscard })
   border-radius: 50%;
   background: #f59e0b;
   box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.12);
-}
-
-/* 分层表单自行控制水平留白，移除 Naive UI 默认左右内边距以避免双重缩进。 */
-.print-template-settings-drawer [data-scope='drawer'][data-part='content'] {
-  padding-right: 0 !important;
-  padding-left: 0 !important;
 }
 
 .dark .template-context {

@@ -140,7 +140,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:login-log:export',
   pageName: t('log.login.page_name'),
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: decorateTraceFields(fields.value, router, { timeField: 'loginTime', ipKey: 'loginIp' }),
   resource: {
     page: params => logManagementApi.login.page(buildLoginQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

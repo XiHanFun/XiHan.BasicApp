@@ -10,7 +10,7 @@ import type {
   TaskUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
@@ -204,7 +204,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:task:delete',
   statusPermission: 'saas:task:status',
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -611,7 +610,7 @@ async function handleSubmit() {
     <!-- 行下拉展开：触发器信息（触发类型 / Cron / 间隔 / 运行态 / 上下次执行 / 起止 / 执行统计） -->
     <template #expand="{ row }">
       <div class="xh-trigger-expand">
-        <XhDescriptionsRoot :columns="3">
+        <XhDescriptionsRoot :columns="3" bordered placement="left" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('setting.job.trigger_type') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -682,10 +681,14 @@ async function handleSubmit() {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !detailData" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('setting.job.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
-            <XhDescriptionsRoot :columns="1">
+            <XhDescriptionsRoot :columns="1" bordered placement="left" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -832,7 +835,7 @@ async function handleSubmit() {
           </div>
         </div>
         <template v-if="detailData" #footer>
-          <XhFlex justify="end">
+          <XhFlex justify="end" gap="md">
             <XhButton @click="handleLogs(detailData); detailVisible = false">
               <span><Icon icon="lucide:history" /></span>
               {{ t('setting.job.logs') }}
@@ -909,7 +912,7 @@ async function handleSubmit() {
 
     <!-- 执行日志详情：执行结果 / 异常信息 / 异常堆栈 / 输出日志 -->
     <XhDialogRoot v-model:open="logDetailVisible">
-      <XhDialogContent style="width: 760px; max-width: 92vw">
+      <XhDialogContent style="--xh-dialog-max-w: 760px">
         <XhDialogTitle>{{ t('setting.job.log_detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <div class="xh-loading-stage">
@@ -917,10 +920,14 @@ async function handleSubmit() {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!logDetailLoading && !logDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('setting.job.log_detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="logDetail" class="xh-scroll-area" style="max-height: 70vh">
-            <XhDescriptionsRoot :columns="2">
+            <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>

@@ -273,7 +273,7 @@ const loaderItems = computed(() =>
             :step="1"
             size="sm"
             button-placement="both"
-            :input-props="{ style: 'text-align: center' }"
+            class="pref-num pref-num--center"
             style="width: 130px"
             @update:value="(value) => value !== null && appStore.setFontSize(value)"
           />
@@ -925,5 +925,14 @@ const loaderItems = computed(() =>
 }
 .anim-skew-slide {
   animation: anim-skew-slide 2.2s ease-in-out infinite;
+}
+
+/* 数字输入框里的文字对齐：input 由组件库渲染，只能经 :deep 够到 */
+.pref-num--center :deep([data-scope='number-field'][data-part='input']) {
+  text-align: center;
+}
+
+.pref-num--right :deep([data-scope='number-field'][data-part='input']) {
+  text-align: right;
 }
 </style>

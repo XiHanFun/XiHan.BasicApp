@@ -42,8 +42,6 @@ const props = withDefaults(defineProps<{
   page?: number
   /** 每页数量 */
   pageSize?: number
-  /** 横向滚动宽度 */
-  scrollX?: number
   /** 每页可选数量 */
   pageSizes?: number[]
   /** 是否启用多选 */
@@ -82,7 +80,6 @@ const props = withDefaults(defineProps<{
   total: 0,
   page: 1,
   pageSize: 20,
-  scrollX: undefined,
   pageSizes: () => [10, 20, 50, 100],
   selectable: false,
   showIndex: false,
@@ -111,6 +108,8 @@ const emit = defineEmits<{
 const SELECT_COL = '__select__'
 const EXPAND_COL = '__expand__'
 const INDEX_COL = '__index__'
+/** 展开列与勾选列的宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
+const PREFIX_COL_W = 48
 
 const { t } = useI18n()
 const { isMobile } = useIsMobile()
@@ -212,10 +211,10 @@ const flatRows = computed<FlatRow[]>(() => {
 const prefixColumns = computed<Array<{ id: string, width: number }>>(() => {
   const list: Array<{ id: string, width: number }> = []
   if (props.renderExpand) {
-    list.push({ id: EXPAND_COL, width: 40 })
+    list.push({ id: EXPAND_COL, width: PREFIX_COL_W })
   }
   if (props.selectable) {
-    list.push({ id: SELECT_COL, width: 40 })
+    list.push({ id: SELECT_COL, width: PREFIX_COL_W })
   }
   if (props.showIndex) {
     list.push({ id: INDEX_COL, width: props.tree ? 90 : 60 })
@@ -229,6 +228,18 @@ const draggedWidths = ref<Record<string, number>>({})
 function widthOf(column: SchemaColumn<TRow>): number | undefined {
   return draggedWidths.value[column.key] ?? column.width
 }
+
+/**
+ * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
+ * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐。
+ * minWidth 在这里坍缩成初始宽，容器的余量仍由 flex-grow 均摊，每行摊法一致。
+ */
+function declaredWidthOf(column: SchemaColumn<TRow>): number {
+  return widthOf(column) ?? column.minWidth ?? 120
+}
+
+/** 本次挂载内拖过列宽：拖过之后各列不再吃容器余量，看到的宽度即落库的宽度 */
+const hasDraggedWidth = computed(() => Object.keys(draggedWidths.value).length > 0)
 
 /**
  * 喂给组件库的列契约：列号、列宽、可排序与吸附的唯一事实源。
@@ -245,7 +256,7 @@ const tableColumns = computed<TableColumnDef[]>(() => {
       ...(column.sortable ? { sortable: true } : {}),
       // 吸附偏移由库按列宽累加，这里只报侧别
       ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
-      ...(widthOf(column) === undefined ? {} : { width: widthOf(column) }),
+      width: declaredWidthOf(column),
     })),
   ]
 })
@@ -320,19 +331,18 @@ function rowPeekHandlers(row: TRow) {
     <XhTableRoot
       :key="remountKey"
       class="xh-table-panel__grid"
+      :class="{ 'xh-table-panel__grid--fixed-cols': hasDraggedWidth }"
       :columns="tableColumns"
       :rows="tableRows"
       :sort="sortChain"
       :selection="selection"
       :selection-mode="selectable ? 'multiple' : 'none'"
       :loading="loading"
-      :empty="!loading && flatRows.length === 0"
       :size="density"
       sticky-header
       :striped="striped"
       :borderless="!bordered"
       :ruled="!singleLine"
-      :style="scrollX ? { '--xh-table-scroll-x': `${scrollX}px` } : undefined"
       @update:sort="onSortChange"
       @update:selection="onSelectionChange"
     >
@@ -350,8 +360,9 @@ function rowPeekHandlers(row: TRow) {
             :key="column.key"
             :value="column.key"
           >
-            <XhTableSortTrigger v-if="column.sortable" class="xh-table-panel__title">
-              {{ column.title }}
+            <!-- 截断落在内部文字节点上：皮肤把排序箭头做成把手的伪元素，加在把手上会连箭头一起裁掉 -->
+            <XhTableSortTrigger v-if="column.sortable" class="xh-table-panel__sort">
+              <span class="xh-table-panel__title">{{ column.title }}</span>
             </XhTableSortTrigger>
             <span v-else class="xh-table-panel__title">{{ column.title }}</span>
             <!-- 调宽把手与排序把手是兄弟节点，拖它不会连带触发排序 -->
@@ -398,7 +409,11 @@ function rowPeekHandlers(row: TRow) {
                 </button>
                 <span v-else class="xh-table-panel__tree-toggle xh-table-panel__tree-toggle--leaf" />
               </template>
-              <VNodeRender :content="column.render(item.row, rowIndex)" />
+              <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
+              <span v-if="column.ellipsis" class="xh-table-panel__cell-text">
+                <VNodeRender :content="column.render(item.row, rowIndex)" />
+              </span>
+              <VNodeRender v-else :content="column.render(item.row, rowIndex)" />
             </XhTableCell>
           </XhTableRow>
 
@@ -468,10 +483,36 @@ function rowPeekHandlers(row: TRow) {
   --xh-table-max-h: 100%;
 }
 
-/* 横向滚动宽度：撑在三个区段上，列窄时也保持一条横向滚动轴 */
-.xh-table-panel__grid :deep([data-scope='table'][data-part='header']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='body']) {
-  min-inline-size: max(max-content, var(--xh-table-scroll-x, 0px));
+/* 前缀列与操作列不吃余量：容器有富余时只让业务列变宽，勾选框与「更多」钮保持原尺寸 */
+.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__expand__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__expand__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__select__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__select__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__index__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__index__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__actions__']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__actions__']) {
+  flex-grow: 0;
+}
+
+/* 拖过列宽之后所有列都不再吃余量：拖到多少就是多少，与落库的数值一致 */
+.xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='column-header']),
+.xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='cell']) {
+  flex-grow: 0;
+}
+
+/* 排序把手：文字段占满、箭头贴右缘 */
+.xh-table-panel__sort {
+  min-width: 0;
+}
+
+/* 单元格里的文字段：超宽出省略号 */
+.xh-table-panel__cell-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 列标题里的文字段：占满剩余宽度并省略，把手才贴得住右缘 */

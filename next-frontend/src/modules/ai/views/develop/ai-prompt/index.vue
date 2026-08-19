@@ -94,7 +94,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.prompt',
   pageName: t('develop.ai_prompt.page_name'),
   rowKey: 'basicId',
-  scrollX: 1050,
   batchRemovable: true,
   fields: fields.value,
   resource: {

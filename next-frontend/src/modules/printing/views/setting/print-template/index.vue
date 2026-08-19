@@ -145,7 +145,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.print-template',
   pageName: t('setting.print_template.page_name'),
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {

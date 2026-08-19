@@ -65,7 +65,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:position:delete',
   statusPermission: 'saas:position:status',
   rowKey: 'basicId',
-  scrollX: 980,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -279,7 +278,7 @@ async function handleSubmit() {
     @action="onAction"
   >
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="width: 640px; max-width: calc(100vw - 32px);">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
         <XhDialogTitle v-if="currentDetail">
           <div class="det-hd-entity">
             <div class="det-hd-ico">
@@ -300,7 +299,7 @@ async function handleSubmit() {
         <div v-if="detailLoading" class="modal-loading">
           {{ t('common.statuses.loading') }}
         </div>
-        <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" bordered>
+        <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" bordered size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('identity.position.position_code') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -336,7 +335,7 @@ async function handleSubmit() {
         </XhDescriptionsRoot>
 
         <div class="xh-dialog-footer">
-          <XhFlex justify="end">
+          <XhFlex justify="end" gap="md">
             <XhButton size="sm" @click="detailVisible = false">
               {{ t('common.actions.close') }}
             </XhButton>

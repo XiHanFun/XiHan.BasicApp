@@ -148,7 +148,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.template',
   pageName: t('develop.code_gen.tabs.template'),
   rowKey: 'basicId',
-  scrollX: 1270,
   batchRemovable: true,
   fields: fields.value,
   resource: {

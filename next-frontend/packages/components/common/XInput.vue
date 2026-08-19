@@ -83,7 +83,7 @@ defineExpose({ el, focus, blur })
 <template>
   <XhTextFieldRoot
     class="x-input"
-    :class="[{ 'x-input--has-prefix': hasPrefix }, attrs.class]"
+    :class="[{ 'x-input--has-prefix': hasPrefix, 'x-input--has-reveal': type === 'password' }, attrs.class]"
     :style="attrs.style"
     :value="value ?? ''"
     :placeholder="placeholder"
@@ -148,6 +148,11 @@ defineExpose({ el, focus, blur })
 /* 有前缀时给输入框让出左侧位置 */
 .x-input--has-prefix .x-input__box :deep([data-scope='text-field'][data-part='input']) {
   padding-inline-start: 30px;
+}
+
+/* 密码档的显隐钮压在输入框右侧，文字要提前收住，否则长密文钻到图标底下 */
+.x-input--has-reveal .x-input__box :deep([data-scope='text-field'][data-part='input']) {
+  padding-inline-end: 30px;
 }
 
 .x-input__prefix {

@@ -87,6 +87,8 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   searchPlaceholder?: string
   /** 自定义单元格渲染（最高优先级，覆盖内置渲染器） */
   render?: (row: TRow) => VNodeChild
+  /** 单元格超宽时省略号截断。缺省对走内置渲染的列开启，写了 render 的列须显式声明 */
+  ellipsis?: boolean
   /** 树形列：该列承载展开/缩进箭头（仅树形模式生效，应有且仅有一个字段标记） */
   treeColumn?: boolean
 }
@@ -252,8 +254,6 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   removePermission?: string
   /** 批量启停所需权限码（声明后多选「批量启用/停用」仅在用户拥有该权限时可用；依赖 resource.updateStatus） */
   statusPermission?: string
-  /** 表格横向滚动宽度 */
-  scrollX?: number
   /** 默认每页数量 */
   pageSize?: number
   /**
@@ -290,6 +290,8 @@ export interface SchemaColumn<TRow = Record<string, unknown>> {
   sortable?: boolean
   /** 承载树形展开箭头与层级缩进的列（树形模式下应有且仅有一列标记） */
   tree?: boolean
+  /** 单元格超宽时省略号截断（内容包进一层行内块，并挂上全文的原生提示） */
+  ellipsis?: boolean
   /** 单元格渲染 */
   render: (row: TRow, rowIndex: number) => VNodeChild
 }

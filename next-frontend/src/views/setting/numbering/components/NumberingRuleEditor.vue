@@ -9,7 +9,7 @@ import type {
   NumberingRuleUpdateDto,
   NumberingScope,
 } from '@/api'
-import { XhAlertDescription, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -21,6 +21,7 @@ import {
 import { XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'NumberingRuleEditor' })
 
@@ -224,6 +225,9 @@ async function submit(): Promise<void> {
     @update:show="emit('update:show', $event)"
   >
     <XhAlertRoot v-if="formatFrozen" tone="warning" class="mb-3">
+      <XhAlertIcon>
+        <Icon icon="lucide:triangle-alert" width="16" height="16" />
+      </XhAlertIcon>
       <XhAlertDescription>
         {{ t('setting.numbering.format_frozen_tip') }}
       </XhAlertDescription>
@@ -238,28 +242,28 @@ async function submit(): Promise<void> {
       <XhFieldRoot>
         <XhFieldLabel>{{ t('setting.numbering.rule_code') }}</XhFieldLabel>
         <XhFieldControl>
-          <XInput v-model:value="form.ruleCode" :disabled="Boolean(detail)" maxlength="100" />
+          <XInput v-model:value="form.ruleCode" :disabled="Boolean(detail)" :max-length="100" />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>
       <XhFieldRoot>
         <XhFieldLabel>{{ t('setting.numbering.rule_name') }}</XhFieldLabel>
         <XhFieldControl>
-          <XInput v-model:value="form.ruleName" maxlength="100" />
+          <XInput v-model:value="form.ruleName" :max-length="100" />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>
       <XhFieldRoot>
         <XhFieldLabel>{{ t('setting.numbering.prefix') }}</XhFieldLabel>
         <XhFieldControl>
-          <XInput v-model:value="form.prefix" :disabled="formatFrozen" maxlength="50" />
+          <XInput v-model:value="form.prefix" :disabled="formatFrozen" :max-length="50" />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>
       <XhFieldRoot>
         <XhFieldLabel>{{ t('setting.numbering.separator') }}</XhFieldLabel>
         <XhFieldControl>
-          <XInput v-model:value="form.separator" :disabled="formatFrozen" maxlength="10" />
+          <XInput v-model:value="form.separator" :disabled="formatFrozen" :max-length="10" />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>
@@ -338,7 +342,7 @@ async function submit(): Promise<void> {
       <XhFieldRoot class="xh-span-2">
         <XhFieldLabel>{{ t('setting.numbering.remark') }}</XhFieldLabel>
         <XhFieldControl>
-          <XInput v-model:value="form.remark" type="textarea" maxlength="500" />
+          <XInput v-model:value="form.remark" type="textarea" :max-length="500" />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>

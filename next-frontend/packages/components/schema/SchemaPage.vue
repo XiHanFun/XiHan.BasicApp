@@ -763,7 +763,6 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             :page="page"
             :page-size="pageSize"
             :row-key="schema.rowKey ?? 'basicId'"
-            :scroll-x="schema.scrollX"
             :selectable="settings.selectable.value"
             :sorts="sorts"
             :total="total"

@@ -119,7 +119,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.sms_config.page_name'),
   statusPermission: 'saas:sms-config:status',
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -497,7 +496,7 @@ function handleDelete(row: SmsConfigListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.access_key_id') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.accessKeyId" clearable :placeholder="t('message.sms_config.form.access_key_id_placeholder')" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.accessKeyId" clearable :placeholder="t('message.sms_config.form.access_key_id_placeholder')" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -509,7 +508,7 @@ function handleDelete(row: SmsConfigListItemDto) {
               <XInput
                 v-model:value="form.accessKeySecret"
                 type="password"
-                :input-props="{ autocomplete: 'new-password' }"
+                autocomplete="new-password"
                 :placeholder="secretPlaceholder"
               />
             </XhFieldControl>

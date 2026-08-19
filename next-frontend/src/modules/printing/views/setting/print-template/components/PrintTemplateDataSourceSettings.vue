@@ -80,68 +80,67 @@ function switchToFreeTemplate(): void {
 <template>
   <XhFieldRoot>
     <XhFieldLabel>{{ `${t('setting.print_template.data_source')} (${t('setting.print_template.optional')})` }}</XhFieldLabel>
-    <XhFieldControl>
-      <div class="data-source-field">
+    <div class="data-source-field">
+      <XhFieldControl>
         <XSelect
           v-model:value="model.dataSourceCode"
           :options="dataSourceOptions"
           :placeholder="t('setting.print_template.data_source_optional_placeholder')"
           clearable
-          filterable
         />
+      </XhFieldControl>
 
-        <div class="data-source-guidance">
-          <span color="#4f7cf7" style="display: inline-flex; font-size: 18px"><Icon icon="tabler:info-circle" /></span>
-          <div>
-            <strong>{{ t('setting.print_template.data_source_guidance_title') }}</strong>
-            <p>
-              {{ selectedSource
-                ? t('setting.print_template.data_source_registered_compact_help')
-                : t('setting.print_template.data_source_free_compact_help') }}
-            </p>
-          </div>
+      <div class="data-source-guidance">
+        <span color="#4f7cf7" style="display: inline-flex; font-size: 18px"><Icon icon="tabler:info-circle" /></span>
+        <div>
+          <strong>{{ t('setting.print_template.data_source_guidance_title') }}</strong>
+          <p>
+            {{ selectedSource
+              ? t('setting.print_template.data_source_registered_compact_help')
+              : t('setting.print_template.data_source_free_compact_help') }}
+          </p>
         </div>
+      </div>
 
-        <div v-if="selectedSource" class="data-source-actions">
-          <XhButton size="sm" variant="subtle" tone="brand" @click="switchToFreeTemplate">
-            {{ t('setting.print_template.switch_to_free_template') }}
-          </XhButton>
-          <XhPopoverRoot placement="bottom-end">
-            <XhPopoverTrigger class="xh-linklike-trigger">
-              {{ t('setting.print_template.view_field_list') }}
-              <span><Icon icon="tabler:list-details" /></span>
-            </XhPopoverTrigger>
-            <XhPopoverPositioner>
-              <XhPopoverContent>
-                <div class="data-source-field-list">
-                  <div class="field-list-heading">
-                    <strong>{{ selectedSource.name }}</strong>
-                    <span>{{ selectedSource.code }}</span>
-                  </div>
-                  <div v-for="field in selectedSource.fields" :key="field.key" class="field-list-row">
-                    <span>{{ field.label }}</span>
-                    <code>{{ field.key }}</code>
-                  </div>
-                </div>
-              </XhPopoverContent>
-            </XhPopoverPositioner>
-          </XhPopoverRoot>
-        </div>
-
-        <XhPopoverRoot v-if="unmatchedFieldCount > 0" placement="bottom">
+      <div v-if="selectedSource" class="data-source-actions">
+        <XhButton size="sm" variant="subtle" tone="brand" @click="switchToFreeTemplate">
+          {{ t('setting.print_template.switch_to_free_template') }}
+        </XhButton>
+        <XhPopoverRoot placement="bottom-end">
           <XhPopoverTrigger class="xh-linklike-trigger">
-            <Icon width="17" height="17" icon="tabler:alert-triangle" />
-            <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
-            <Icon width="16" height="16" icon="tabler:chevron-right" />
+            {{ t('setting.print_template.view_field_list') }}
+            <span><Icon icon="tabler:list-details" /></span>
           </XhPopoverTrigger>
           <XhPopoverPositioner>
             <XhPopoverContent>
-              {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
+              <div class="data-source-field-list">
+                <div class="field-list-heading">
+                  <strong>{{ selectedSource.name }}</strong>
+                  <span>{{ selectedSource.code }}</span>
+                </div>
+                <div v-for="field in selectedSource.fields" :key="field.key" class="field-list-row">
+                  <span>{{ field.label }}</span>
+                  <code>{{ field.key }}</code>
+                </div>
+              </div>
             </XhPopoverContent>
           </XhPopoverPositioner>
         </XhPopoverRoot>
       </div>
-    </XhFieldControl>
+
+      <XhPopoverRoot v-if="unmatchedFieldCount > 0" placement="bottom">
+        <XhPopoverTrigger class="xh-linklike-trigger">
+          <Icon width="17" height="17" icon="tabler:alert-triangle" />
+          <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
+          <Icon width="16" height="16" icon="tabler:chevron-right" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
+    </div>
     <XhFieldErrorText />
   </XhFieldRoot>
 </template>

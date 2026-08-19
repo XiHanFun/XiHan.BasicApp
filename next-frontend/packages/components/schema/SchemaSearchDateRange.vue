@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { XhButton } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XDatePicker from '../common/XDatePicker.vue'
@@ -7,7 +6,7 @@ import XDatePicker from '../common/XDatePicker.vue'
 /**
  * 搜索区间日期组件（封装：双端日期 + 便捷预设区间）。
  * - 值为 [startTs, endTs]（毫秒时间戳）或 null，受控 v-model:value。
- * - 内置快捷区间：今天/昨天/近7天/近30天/本月/上月，摆成日历下方的一排按钮。
+ * - 内置快捷区间：今天/昨天/近7天/近30天/本月/上月，摆在日历浮层里。
  * - 起止两端按整日取：起点当日 00:00:00、终点当日 23:59:59.999，datetime 字段同此口径
  *   （查询侧 queryFiltersFromSchema 也是按整日补齐的）。
  */
@@ -83,42 +82,20 @@ function onRangeChange(next: number | [number, number] | null): void {
 </script>
 
 <template>
-  <div class="schema-date-range">
-    <XDatePicker
-      range
-      clearable
-      size="sm"
-      class="w-full"
-      :value="value ?? null"
-      :placeholder="placeholder ?? t('component.search_date_range.start')"
-      @update:value="onRangeChange"
-    />
-    <div class="schema-date-range__shortcuts">
-      <XhButton
-        v-for="item in shortcuts"
-        :key="item.label"
-        variant="ghost"
-        size="sm"
-        @click="emit('update:value', item.resolve())"
-      >
-        {{ item.label }}
-      </XhButton>
-    </div>
-  </div>
+  <XDatePicker
+    range
+    clearable
+    size="sm"
+    class="schema-date-range"
+    :value="value ?? null"
+    :placeholder="placeholder ?? t('component.search_date_range.start')"
+    :shortcuts="shortcuts"
+    @update:value="onRangeChange"
+  />
 </template>
 
 <style scoped>
 .schema-date-range {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   min-width: 0;
-}
-
-/* 预设区间排成一行，窄屏折行；它跟着搜索行走，不进日历浮层 */
-.schema-date-range__shortcuts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
 }
 </style>

@@ -471,7 +471,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:user:delete',
   statusPermission: 'saas:user:status',
   rowKey: 'basicId',
-  scrollX: 1760,
   fields: fields.value,
   resource: {
     page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -1091,7 +1090,7 @@ async function confirmDelete() {
                   v-model:value="userForm.userName"
                   :placeholder="t('identity.user.ph_username')"
                   :disabled="!!userForm.basicId"
-                  :input-props="{ autocomplete: 'off' }"
+                  autocomplete="off"
                 />
               </XhFieldControl>
               <XhFieldErrorText />
@@ -1110,13 +1109,13 @@ async function confirmDelete() {
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" :input-props="{ autocomplete: 'off' }" />
+                <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" autocomplete="off" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" :input-props="{ autocomplete: 'off' }" />
+                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" autocomplete="off" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
@@ -1149,7 +1148,7 @@ async function confirmDelete() {
                 <XInput
                   v-model:value="userForm.initialPassword"
                   type="password"
-                  :input-props="{ autocomplete: 'new-password' }"
+                  autocomplete="new-password"
                   :placeholder="t('identity.user.ph_initial_password')"
                 />
               </XhFieldControl>
@@ -1287,7 +1286,7 @@ async function confirmDelete() {
 
     <!-- 详情 -->
     <XhDialogRoot v-model:open="showDetModal" :close-on-interact-outside="false">
-      <XhDialogContent style="width: 640px; max-width: calc(100vw - 32px)">
+      <XhDialogContent style="--xh-dialog-max-w: 640px">
         <XhDialogTitle v-if="detUser">
           <div class="det-hd-user">
             <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
@@ -1388,7 +1387,7 @@ async function confirmDelete() {
 
     <!-- 删除确认 -->
     <XhDialogRoot v-model:open="showDelModal" :close-on-interact-outside="false">
-      <XhDialogContent style="width: 420px; max-width: calc(100vw - 32px)">
+      <XhDialogContent style="--xh-dialog-max-w: 420px">
         <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
         <div class="del-body">

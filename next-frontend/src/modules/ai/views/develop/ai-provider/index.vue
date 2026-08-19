@@ -132,7 +132,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.provider',
   pageName: t('develop.ai_provider.page_name'),
   rowKey: 'basicId',
-  scrollX: 1100,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -449,8 +448,6 @@ async function handleSubmit() {
             <XhFieldControl>
               <XSelect
                 v-model:value="form.provider"
-                filterable
-                tag
                 :options="AI_PROVIDER_OPTIONS"
                 :placeholder="t('develop.ai_provider.form_provider_placeholder')"
               />
@@ -480,7 +477,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_base_url') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -494,7 +491,7 @@ async function handleSubmit() {
                 clearable
                 :placeholder="t('develop.ai_provider.form_api_key_placeholder')"
                 type="password"
-                :input-props="{ autocomplete: 'new-password' }"
+                autocomplete="new-password"
               />
             </XhFieldControl>
             <XhFieldErrorText />

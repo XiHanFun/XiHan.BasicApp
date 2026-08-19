@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LayoutBreadcrumbItem } from '../../contracts'
 import type { useAppStore } from '~/stores'
-import { XhBreadcrumbItem, XhBreadcrumbList, XhBreadcrumbRoot, XhBreadcrumbSeparator } from '@xihan-ui/vue'
+import { XhBreadcrumbItem, XhBreadcrumbLink, XhBreadcrumbList, XhBreadcrumbRoot, XhBreadcrumbSeparator } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { XDropdown } from '~/components'
 import { Icon } from '~/iconify'
@@ -57,10 +57,13 @@ function isLast(isHome: boolean, index?: number): boolean {
   >
     <XhBreadcrumbList class="flex items-center">
       <XhBreadcrumbItem v-if="appStore.breadcrumbShowHome">
-        <div
+        <XhBreadcrumbLink
           class="crumb-item"
           :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
+          :current="isLast(true)"
+          :tabindex="isLast(true) ? undefined : 0"
           @click="!isLast(true) && emit('homeClick')"
+          @keydown.enter="!isLast(true) && emit('homeClick')"
         >
           <Icon
             v-if="appStore.breadcrumbShowIcon"
@@ -70,7 +73,7 @@ function isLast(isHome: boolean, index?: number): boolean {
             class="crumb-icon"
           />
           <span>Home</span>
-        </div>
+        </XhBreadcrumbLink>
       </XhBreadcrumbItem>
       <XhBreadcrumbSeparator v-if="appStore.breadcrumbShowHome && !isLast(true)">
         <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
@@ -85,9 +88,11 @@ function isLast(isHome: boolean, index?: number): boolean {
             placement="bottom-start"
             @select="(key: string) => emit('breadcrumbSelect', key)"
           >
-            <div
+            <XhBreadcrumbLink
               class="crumb-item"
               :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+              :current="isLast(false, index)"
+              :tabindex="isLast(false, index) ? undefined : 0"
             >
               <Icon
                 v-if="appStore.breadcrumbShowIcon && item.icon"
@@ -97,14 +102,17 @@ function isLast(isHome: boolean, index?: number): boolean {
                 class="crumb-icon"
               />
               <span>{{ item.title }}</span>
-            </div>
+            </XhBreadcrumbLink>
           </XDropdown>
 
-          <div
+          <XhBreadcrumbLink
             v-else
             class="crumb-item"
             :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+            :current="isLast(false, index)"
+            :tabindex="isLast(false, index) ? undefined : 0"
             @click="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
+            @keydown.enter="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
           >
             <Icon
               v-if="appStore.breadcrumbShowIcon && item.icon"
@@ -114,7 +122,7 @@ function isLast(isHome: boolean, index?: number): boolean {
               class="crumb-icon"
             />
             <span>{{ item.title }}</span>
-          </div>
+          </XhBreadcrumbLink>
         </XhBreadcrumbItem>
         <XhBreadcrumbSeparator v-if="!isLast(false, index)">
           <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />

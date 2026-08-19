@@ -2,7 +2,7 @@
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import type { PageSchema, SchemaActionPayload, SchemaQueryParams, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -217,7 +217,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:menu:delete',
   statusPermission: 'saas:menu:status',
   rowKey: 'basicId',
-  scrollX: 2000,
   tree: { childrenKey: 'children', defaultExpandAll: false },
   resource: {
     tree: (params: SchemaQueryParams) => {
@@ -638,7 +637,7 @@ onMounted(() => {
     <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction" />
 
     <XhDialogRoot v-model:open="detailVisible">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="width: 720px; max-width: calc(100vw - 32px);">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
         <XhDialogTitle v-if="currentDetail">
           <div class="det-hd-entity">
             <div class="det-hd-ico">
@@ -670,7 +669,7 @@ onMounted(() => {
             </XhTabsTrigger>
           </XhTabsList>
           <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2">
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.menu.menu_type') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -803,7 +802,11 @@ onMounted(() => {
                 size="sm"
                 :row-key="(row: MenuTreeNodeDto) => row.basicId"
               />
-              <XhEmptyStateRoot v-else style="padding: 32px 0">
+              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="24" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('setting.menu.no_children') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
             </div>

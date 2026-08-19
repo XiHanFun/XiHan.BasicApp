@@ -126,7 +126,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'file.export-center',
   pageName: t('file.export_center.page_name'),
   rowKey: 'basicId',
-  scrollX: 1400,
   fields: fields.value,
   resource: {
     page: params => exportTaskApi.mine(params.page, params.pageSize) as unknown as Promise<PageResult<Record<string, unknown>>>,

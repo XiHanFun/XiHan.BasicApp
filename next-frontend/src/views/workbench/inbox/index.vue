@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/kernel'
 import type { UserInboxItemDto } from '@/api'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhFlex } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -233,7 +233,7 @@ onMounted(loadNotifications)
         <XhBadge variant="subtle" size="sm">
           {{ t('workbench.inbox.unread_count', { n: unreadCount }) }}
         </XhBadge>
-        <XhBadge variant="subtle" size="sm" :type="confirmCount > 0 ? 'warning' : 'default'">
+        <XhBadge variant="subtle" size="sm" :tone="confirmCount > 0 ? 'warning' : 'neutral'">
           {{ t('workbench.inbox.confirm_count', { n: confirmCount }) }}
         </XhBadge>
         <XhButton
@@ -264,6 +264,10 @@ onMounted(loadNotifications)
     </div>
 
     <XhEmptyStateRoot v-else-if="visibleItems.length === 0" class="inbox-empty">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:inbox" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
       <XhEmptyStateDescription>{{ t('workbench.inbox.empty') }}</XhEmptyStateDescription>
     </XhEmptyStateRoot>
 
@@ -313,7 +317,7 @@ onMounted(loadNotifications)
           </div>
         </div>
 
-        <XhFlex class="inbox-item-actions" :size="4">
+        <XhFlex class="inbox-item-actions" gap="xs">
           <XhButton
             v-if="item.notificationStatus === NotificationStatus.Unread"
             :aria-label="t('workbench.inbox.mark_read')"

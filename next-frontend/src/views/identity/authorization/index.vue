@@ -220,7 +220,6 @@ const requestSchema = computed<PageSchema>(() => ({
   exportPermission: 'saas:permission-request:export',
   pageName: t('identity.authorization.req_page_name'),
   rowKey: 'basicId',
-  scrollX: 1300,
   fields: requestFields.value,
   resource: {
     page: (params) => {
@@ -358,7 +357,6 @@ const delegationSchema = computed<PageSchema>(() => ({
   pageCode: 'system.authorization.delegation',
   pageName: t('identity.authorization.del_page_name'),
   rowKey: 'basicId',
-  scrollX: 1300,
   fields: delegationFields.value,
   resource: {
     page: (params) => {
@@ -535,13 +533,9 @@ async function submitDelegation() {
                     <XSelect
                       v-model:value="delegationForm.delegatorUserId"
                       clearable
-                      filterable
-                      :loading="userLoading"
                       :options="userOptions"
                       :placeholder="t('identity.authorization.ph_delegator')"
-                      remote
                       @focus="loadUserOptions()"
-                      @search="(kw: string) => loadUserOptions(kw)"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />
@@ -554,13 +548,9 @@ async function submitDelegation() {
                     <XSelect
                       v-model:value="delegationForm.delegateeUserId"
                       clearable
-                      filterable
-                      :loading="userLoading"
                       :options="userOptions"
                       :placeholder="t('identity.authorization.ph_delegatee')"
-                      remote
                       @focus="loadUserOptions()"
-                      @search="(kw: string) => loadUserOptions(kw)"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />
@@ -582,13 +572,9 @@ async function submitDelegation() {
                     <XSelect
                       v-model:value="delegationForm.roleId"
                       clearable
-                      filterable
-                      :loading="roleLoading"
                       :options="roleOptions"
                       :placeholder="t('identity.authorization.ph_role')"
-                      remote
                       @focus="loadRoleOptions()"
-                      @search="(kw: string) => loadRoleOptions(kw)"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />
@@ -601,13 +587,9 @@ async function submitDelegation() {
                     <XSelect
                       v-model:value="delegationForm.permissionId"
                       clearable
-                      filterable
-                      :loading="permissionLoading"
                       :options="permissionOptions"
                       :placeholder="t('identity.authorization.ph_permission')"
-                      remote
                       @focus="loadPermissionOptions()"
-                      @search="(kw: string) => loadPermissionOptions(kw)"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />

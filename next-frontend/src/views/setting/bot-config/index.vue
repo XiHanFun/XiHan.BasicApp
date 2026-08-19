@@ -116,7 +116,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.bot_config.page_name'),
   statusPermission: 'saas:bot-config:status',
   rowKey: 'basicId',
-  scrollX: 1100,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -459,7 +458,7 @@ function handleDelete(row: BotConfigListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.bot_config.form.webhook_url') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.webhookUrl" clearable :placeholder="webhookPlaceholder" :input-props="{ autocomplete: 'off' }" />
+              <XInput v-model:value="form.webhookUrl" clearable :placeholder="webhookPlaceholder" autocomplete="off" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -473,7 +472,7 @@ function handleDelete(row: BotConfigListItemDto) {
                 <XInput
                   v-model:value="form.secret"
                   type="password"
-                  :input-props="{ autocomplete: 'new-password' }"
+                  autocomplete="new-password"
                   :placeholder="secretPlaceholder"
                 />
               </XhFieldControl>

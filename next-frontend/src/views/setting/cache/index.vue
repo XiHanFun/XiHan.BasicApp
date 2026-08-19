@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
@@ -409,7 +409,11 @@ onMounted(loadKeys)
                   <XhSpinner />
                 </div>
                 <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
-                  <XhEmptyStateRoot>
+                  <XhEmptyStateRoot size="sm">
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:inbox" width="28" height="28" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('setting.cache.empty_keys') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                 </div>
@@ -452,14 +456,6 @@ onMounted(loadKeys)
         <XhCardHeader>
           <div v-if="detailKey" class="cache-detail-header">
             <span class="cache-detail-key" :title="detailKey">{{ detailKey }}</span>
-          </div>
-          <div v-else class="cache-card-header">
-            <Icon icon="lucide:file-json" width="15" />
-            <span>{{ t('setting.cache.cache_content') }}</span>
-          </div>
-        </XhCardHeader>
-        <XhCardBody :style="cardContentStyle">
-          <template v-if="detailKey" #header-extra>
             <div class="cache-detail-actions">
               <XhBadge v-if="sizeText" variant="subtle" size="sm">
                 {{ sizeText }}
@@ -485,8 +481,13 @@ onMounted(loadKeys)
                 </XhButton>
               </XTooltip>
             </div>
-          </template>
-
+          </div>
+          <div v-else class="cache-card-header">
+            <Icon icon="lucide:file-json" width="15" />
+            <span>{{ t('setting.cache.cache_content') }}</span>
+          </div>
+        </XhCardHeader>
+        <XhCardBody :style="cardContentStyle">
           <!-- 滚动区：相对壳 + 绝对内胆，详情在内部滚动 -->
           <div class="cache-scroll-host">
             <div class="cache-scroll-body">
@@ -496,11 +497,19 @@ onMounted(loadKeys)
                 </div>
                 <div v-if="!detailKey" class="cache-empty">
                   <XhEmptyStateRoot>
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:mouse-pointer-click" width="28" height="28" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('setting.cache.select_key_hint_title') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('setting.cache.select_key_hint') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                 </div>
                 <div v-else-if="rawValue === null" class="cache-empty">
                   <XhEmptyStateRoot>
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:search-x" width="28" height="28" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('setting.cache.key_not_exist') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                 </div>

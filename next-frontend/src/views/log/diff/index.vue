@@ -159,7 +159,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:diff-log:export',
   pageName: t('log.diff.page_name'),
   rowKey: 'basicId',
-  scrollX: 2300,
   fields: decorateTraceFields(fields.value, router, { timeField: 'auditTime', ipKey: 'operationIp' }),
   resource: {
     page: params => diffLogApi.page(buildDiffQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

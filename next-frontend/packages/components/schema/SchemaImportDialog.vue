@@ -4,6 +4,7 @@ import type { ListFieldSchema } from './types'
 import type { ImportSummary } from './useSchemaImport'
 import {
   XhAlertDescription,
+  XhAlertIcon,
   XhAlertRoot,
   XhBadge,
   XhButton,
@@ -156,7 +157,7 @@ function handleClose(): void {
     :close-on-interact-outside="phase !== 'importing'"
     @update:open="(value: boolean) => (show = value)"
   >
-    <XhDialogContent class="xh-import-modal">
+    <XhDialogContent class="xh-import-modal" style="--xh-dialog-max-w: 720px">
       <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
       <XhDialogCloseTrigger v-if="phase !== 'importing'">
         ✕
@@ -165,6 +166,9 @@ function handleClose(): void {
       <div class="xh-import-body">
         <!-- 模板说明 + 下载 -->
         <XhAlertRoot tone="info">
+          <XhAlertIcon>
+            <Icon icon="lucide:info" width="16" height="16" />
+          </XhAlertIcon>
           <XhAlertDescription>
             <div class="xh-import-tip">
               <span>{{ t('component.schema_import.tip') }}</span>
@@ -194,6 +198,9 @@ function handleClose(): void {
 
         <!-- 文件级错误 -->
         <XhAlertRoot v-for="error in fileErrors" :key="error" tone="danger">
+          <XhAlertIcon>
+            <Icon icon="lucide:circle-alert" width="16" height="16" />
+          </XhAlertIcon>
           <XhAlertDescription>{{ error }}</XhAlertDescription>
         </XhAlertRoot>
 
@@ -249,6 +256,9 @@ function handleClose(): void {
           v-if="phase === 'done' && summary"
           :tone="summary.failed === 0 ? 'success' : 'warning'"
         >
+          <XhAlertIcon>
+            <Icon :icon="summary.failed === 0 ? 'lucide:circle-check' : 'lucide:triangle-alert'" width="16" height="16" />
+          </XhAlertIcon>
           <XhAlertDescription>
             {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
             <template v-if="summary.failed > 0">
@@ -304,12 +314,6 @@ function handleClose(): void {
 </template>
 
 <style scoped>
-/* 弹窗本体：定宽、窄屏收进视口，内容超高时内部滚动 */
-.xh-import-modal {
-  inline-size: 720px;
-  max-inline-size: calc(100vw - 32px);
-}
-
 /* 内容纵向堆叠，替掉原先的 NSpace vertical */
 .xh-import-body {
   display: flex;

@@ -125,7 +125,6 @@ function onDragEnd(event: DragEndEvent) {
     <XhPopoverTrigger
       class="xh-set-trigger"
       :aria-label="t('component.schema_table_settings.title')"
-      :title="t('component.schema_table_settings.title')"
     >
       <Icon icon="lucide:settings-2" />
     </XhPopoverTrigger>

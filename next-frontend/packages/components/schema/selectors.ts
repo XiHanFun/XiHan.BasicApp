@@ -137,6 +137,10 @@ export function toColumns<TRow extends object>(
       // 拖拽调宽的下限；字段声明了更大的 minWidth 就以它为准
       minWidth: field.minWidth ?? 80,
     }
+    // 截断：内置渲染出的是纯文本或标签，一律开；写了 render 的列内容形态不定，须自己声明
+    if (field.ellipsis ?? !field.render) {
+      column.ellipsis = true
+    }
     // 树形列：承载展开箭头（仅当 schema.tree 启用、页面 schema 标记 treeColumn）
     if (field.treeColumn) {
       column.tree = true

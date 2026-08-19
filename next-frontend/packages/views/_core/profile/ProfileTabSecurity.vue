@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 
 import type { UserProfile } from '~/types'
-import { XhAlertDescription, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XTooltip } from '~/components'
@@ -442,32 +442,41 @@ function handleDeleteAccount() {
           >
             <XhFormFieldGroup value="oldPassword">
               <XhFieldRoot>
-                <XhFieldLabel>false</XhFieldLabel>
+                <!-- 三个字段靠占位文案表意，标签只留给读屏 -->
+                <XhFieldLabel class="sr-only">
+                  {{ t('component.profile.security.old_password_placeholder') }}
+                </XhFieldLabel>
                 <XhFieldControl>
-                  <XInput v-model:value="pwdForm.oldPassword" type="password" :placeholder="t('component.profile.security.old_password_placeholder')" show-password-on="click" />
+                  <XInput v-model:value="pwdForm.oldPassword" type="password" :placeholder="t('component.profile.security.old_password_placeholder')" />
                 </XhFieldControl>
                 <XhFieldErrorText />
               </XhFieldRoot>
             </XhFormFieldGroup>
             <XhFormFieldGroup value="newPassword">
               <XhFieldRoot>
-                <XhFieldLabel>false</XhFieldLabel>
+                <!-- 三个字段靠占位文案表意，标签只留给读屏 -->
+                <XhFieldLabel class="sr-only">
+                  {{ t('component.profile.security.new_password_placeholder') }}
+                </XhFieldLabel>
                 <XhFieldControl>
-                  <XInput v-model:value="pwdForm.newPassword" type="password" :placeholder="t('component.profile.security.new_password_placeholder')" show-password-on="click" />
+                  <XInput v-model:value="pwdForm.newPassword" type="password" :placeholder="t('component.profile.security.new_password_placeholder')" />
                 </XhFieldControl>
                 <XhFieldErrorText />
               </XhFieldRoot>
             </XhFormFieldGroup>
             <XhFormFieldGroup value="confirmPassword">
               <XhFieldRoot>
-                <XhFieldLabel>false</XhFieldLabel>
+                <!-- 三个字段靠占位文案表意，标签只留给读屏 -->
+                <XhFieldLabel class="sr-only">
+                  {{ t('component.profile.security.confirm_password_placeholder') }}
+                </XhFieldLabel>
                 <XhFieldControl>
-                  <XInput v-model:value="pwdForm.confirmPassword" type="password" :placeholder="t('component.profile.security.confirm_password_placeholder')" show-password-on="click" />
+                  <XInput v-model:value="pwdForm.confirmPassword" type="password" :placeholder="t('component.profile.security.confirm_password_placeholder')" />
                 </XhFieldControl>
                 <XhFieldErrorText />
               </XhFieldRoot>
             </XhFormFieldGroup>
-            <XhButton class="pf-pwd__submit" tone="brand" :loading="pwdSaving">
+            <XhButton class="pf-pwd__submit" type="submit" tone="brand" :loading="pwdSaving">
               {{ t('component.profile.security.btn_update_password') }}
             </XhButton>
           </XhFormRoot>
@@ -567,6 +576,9 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_TOTP">
             <div class="pf-inline-form">
               <XhAlertRoot tone="warning" class="pf-full">
+                <XhAlertIcon>
+                  <Icon icon="lucide:triangle-alert" width="16" height="16" />
+                </XhAlertIcon>
                 <XhAlertDescription>
                   {{ t('component.profile.security.totp_disable_hint') }}
                 </XhAlertDescription>
@@ -659,6 +671,9 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_EMAIL">
             <div class="pf-inline-form">
               <XhAlertRoot tone="warning" class="pf-full">
+                <XhAlertIcon>
+                  <Icon icon="lucide:triangle-alert" width="16" height="16" />
+                </XhAlertIcon>
                 <XhAlertDescription>
                   {{ t('component.profile.security.email_disable_hint') }}
                 </XhAlertDescription>
@@ -758,6 +773,9 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_PHONE">
             <div class="pf-inline-form">
               <XhAlertRoot tone="warning" class="pf-full">
+                <XhAlertIcon>
+                  <Icon icon="lucide:triangle-alert" width="16" height="16" />
+                </XhAlertIcon>
                 <XhAlertDescription>
                   {{ t('component.profile.security.phone_disable_hint') }}
                 </XhAlertDescription>

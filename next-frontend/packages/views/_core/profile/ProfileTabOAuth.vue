@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import { XhAlertDescription, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -205,6 +205,9 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <XhAlertRoot v-if="newSecret" tone="warning" class="pf-secret-alert">
+          <XhAlertIcon>
+            <Icon icon="lucide:triangle-alert" width="16" height="16" />
+          </XhAlertIcon>
           <XhAlertTitle>{{ t('component.profile.oauth.secret_alert_title') }}</XhAlertTitle>
           <XhAlertDescription>
             <div class="pf-secret-row">
@@ -212,16 +215,14 @@ onMounted(() => {
               <div class="xh-input-group">
                 <XInput :value="newSecret.clientId" readonly size="sm" />
                 <XhButton size="sm" @click="copyText(newSecret.clientId)">
-                  <template #icon>
-                    <span><Icon icon="lucide:copy" /></span>
-                  </template>
+                  <span><Icon icon="lucide:copy" /></span>
                 </XhButton>
               </div>
             </div>
             <div v-if="newSecret.clientType === 'Confidential' && newSecret.clientSecret" class="pf-secret-row">
               <span class="pf-secret-label">Secret</span>
               <div class="xh-input-group">
-                <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" show-password-on="click" />
+                <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" />
                 <XhButton size="sm" @click="copyText(newSecret.clientSecret)">
                   <span><Icon icon="lucide:copy" /></span>
                 </XhButton>
@@ -238,6 +239,10 @@ onMounted(() => {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="apps.length === 0 && !loading" class="pf-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('component.profile.oauth.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else class="pf-list">
@@ -305,7 +310,7 @@ onMounted(() => {
       <div class="pf-oauth-form">
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_name') }}</label>
-          <XInput v-model:value="form.appName" :placeholder="t('component.profile.oauth.field_name_ph')" maxlength="100" />
+          <XInput v-model:value="form.appName" :placeholder="t('component.profile.oauth.field_name_ph')" :max-length="100" />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_type') }}</label>
@@ -318,12 +323,12 @@ onMounted(() => {
             type="textarea"
             :placeholder="t('component.profile.oauth.field_callback_ph')"
             :autosize="{ minRows: 2, maxRows: 4 }"
-            maxlength="2000"
+            :max-length="2000"
           />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_homepage') }}</label>
-          <XInput v-model:value="form.homepage" placeholder="https://example.com" maxlength="200" />
+          <XInput v-model:value="form.homepage" placeholder="https://example.com" :max-length="200" />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_desc') }}</label>
@@ -332,12 +337,12 @@ onMounted(() => {
             type="textarea"
             :placeholder="t('component.profile.oauth.field_desc_ph')"
             :autosize="{ minRows: 2, maxRows: 3 }"
-            maxlength="500"
+            :max-length="500"
           />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_logo') }}</label>
-          <XInput v-model:value="form.logo" placeholder="https://example.com/logo.png" maxlength="500" />
+          <XInput v-model:value="form.logo" placeholder="https://example.com/logo.png" :max-length="500" />
         </div>
       </div>
     </XEditModal>

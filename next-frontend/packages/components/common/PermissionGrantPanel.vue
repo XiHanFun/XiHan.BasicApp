@@ -1,7 +1,9 @@
 <script setup lang="ts" generic="T extends PermissionGrantItem">
 import type { PermissionGrantItem } from './permission-grant-panel'
-import { XhBadge, XhEmptyStateDescription, XhEmptyStateRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhBadge, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
 import XInput from './XInput.vue'
 
 defineOptions({ name: 'XPermissionGrantPanel' })
@@ -17,6 +19,8 @@ const props = defineProps<{
   emptyDescription?: string
   otherGroupLabel?: string
 }>()
+
+const { t } = useI18n()
 
 const keyword = ref('')
 
@@ -105,6 +109,10 @@ const groups = computed(() => {
         <XhSpinner :label="searchPlaceholder" />
       </div>
       <XhEmptyStateRoot v-if="groups.length === 0 && !loading" class="xh-perm-panel__empty">
+        <XhEmptyStateIcon>
+          <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="28" height="28" />
+        </XhEmptyStateIcon>
+        <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.no_data') }}</XhEmptyStateTitle>
         <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
       </XhEmptyStateRoot>
       <div v-else class="xh-perm-panel__groups">
@@ -136,7 +144,7 @@ const groups = computed(() => {
 </template>
 
 <style scoped>
-/* 加载态：原先由 NSpin 罩住内容，这里改成内容之上叠一层居中的旋转标记 */
+/* 加载态：内容之上叠一层居中的旋转标记 */
 .xh-perm-panel__stage {
   position: relative;
 }
