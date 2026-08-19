@@ -79,6 +79,21 @@ const showIssues = ref(false)
 const scheduleValidate = useDebounceFn(runValidate, 250)
 const contextMenu = reactive<{ show: boolean, x: number, y: number, targetType: 'node' | 'edge' | null, targetId: string | null }>({ show: false, x: 0, y: 0, targetType: null, targetId: null })
 
+/** 菜单钉在坐标上，坐标经实例命令 openAt 交进去，开合随之走命令而非受控 open */
+const contextMenuRef = ref<{ openAt: (x: number, y: number) => void, setOpen: (open: boolean) => void } | null>(null)
+
+watch(
+  () => [contextMenu.show, contextMenu.x, contextMenu.y] as const,
+  ([show, x, y]) => {
+    if (show) {
+      contextMenuRef.value?.openAt(x, y)
+    }
+    else {
+      contextMenuRef.value?.setOpen(false)
+    }
+  },
+)
+
 function clearSelection() {
   if (api && selectedNodeId.value && nodeForm.value)
     api.updateNodeData(selectedNodeId.value, { ...snapshot(nodeForm.value), __selected: false })
@@ -987,24 +1002,17 @@ function onContextSelect(key: string) {
 
   <!-- 右键上下文菜单 -->
   <XhContextMenuRoot
+    ref="contextMenuRef"
     :collection="contextCollection"
-    :open="contextMenu.show"
     placement="bottom-start"
     @update:open="(open: boolean) => !open && (contextMenu.show = false)"
     @select="(details: { value: string }) => onContextSelect(details.value)"
   >
     <template #trigger>
-      <!-- 落点由右键事件记下的坐标决定：触发区是定位到该坐标的零尺寸锚点 -->
+      <!-- 触发插槽的占位：菜单钉在 openAt 交进去的坐标上，不靠它定位 -->
       <span
         aria-hidden="true"
-        :style="{
-          position: 'fixed',
-          insetInlineStart: `${contextMenu.x}px`,
-          insetBlockStart: `${contextMenu.y}px`,
-          inlineSize: '1px',
-          blockSize: '1px',
-          pointerEvents: 'none',
-        }"
+        :style="{ position: 'fixed', inset: '0 auto auto 0', inlineSize: '0', blockSize: '0', pointerEvents: 'none' }"
       />
     </template>
     <template #item="node">

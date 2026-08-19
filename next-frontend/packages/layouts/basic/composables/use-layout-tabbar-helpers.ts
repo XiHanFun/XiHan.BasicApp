@@ -69,18 +69,16 @@ export function buildTabContextOptions(params: {
   }
   else if (splitEnabled && splitTargets.length > 0) {
     splitItems = [
-      // 组件库的菜单没有子菜单机制，「右侧分屏打开」由不可点的分组标题带出一段平铺条目
       {
         key: 'splitParent',
         label: t('tabbar.split_right'),
         icon: createDropdownIcon('lucide:columns-2'),
-        disabled: true,
+        children: splitTargets.map(target => ({
+          key: `split:${target.path}`,
+          label: target.title,
+          icon: createDropdownIcon('lucide:file'),
+        })),
       },
-      ...splitTargets.map(target => ({
-        key: `split:${target.path}`,
-        label: target.title,
-        icon: createDropdownIcon('lucide:file'),
-      })),
     ]
   }
 
