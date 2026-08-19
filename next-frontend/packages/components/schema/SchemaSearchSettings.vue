@@ -154,7 +154,11 @@ function onDragEnd(event: DragEndEvent) {
 }
 
 .xh-set-panel {
+  /* 皮肤给浮层的宽高上限是 rem 值，本应用根字号 14px 会把它们压到 280px / 224px，
+     不显式盖掉的话这个面板会被夹窄、列清单也露不出来 */
   inline-size: 340px;
+  max-inline-size: 340px;
+  --xh-popover-max-h: 560px;
 }
 
 /* 表头 */
