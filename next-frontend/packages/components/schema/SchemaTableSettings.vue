@@ -156,6 +156,7 @@ function onDragEnd(event: DragEndEvent) {
                 v-for="opt in densityOptions"
                 :key="opt.value"
                 size="sm"
+                class="xh-set-chip"
                 :variant="density === opt.value ? 'solid' : 'outline'"
                 @click="emit('setDensity', opt.value)"
               >
@@ -172,6 +173,7 @@ function onDragEnd(event: DragEndEvent) {
                 v-for="opt in styleOptions"
                 :key="opt.key"
                 size="sm"
+                class="xh-set-chip"
                 :variant="(opt.invert ? !tableStyle[opt.key] : tableStyle[opt.key]) ? 'solid' : 'outline'"
                 @click="emit('setStyle', opt.key, !tableStyle[opt.key])"
               >
@@ -186,6 +188,7 @@ function onDragEnd(event: DragEndEvent) {
             <div class="flex gap-1">
               <XhButton
                 size="sm"
+                class="xh-set-chip"
                 :variant="selectable ? 'solid' : 'outline'"
                 @click="emit('setSelectable', !selectable)"
               >
@@ -193,6 +196,7 @@ function onDragEnd(event: DragEndEvent) {
               </XhButton>
               <XhButton
                 size="sm"
+                class="xh-set-chip"
                 :variant="showIndex ? 'solid' : 'outline'"
                 @click="emit('setShowIndex', !showIndex)"
               >
@@ -254,6 +258,7 @@ function onDragEnd(event: DragEndEvent) {
                   <XhButton
                     v-if="col.sortable"
                     size="sm"
+                    class="xh-set-chip"
                     variant="ghost"
                     :tone="col.sort ? 'brand' : 'neutral'"
                     :title="t('component.schema_table_settings.sort_tip', { label: sortLabel(col.sort) })"
@@ -266,6 +271,7 @@ function onDragEnd(event: DragEndEvent) {
                 <span class="xh-set-row__fixed">
                   <XhButton
                     size="sm"
+                    class="xh-set-chip"
                     variant="ghost"
                     :tone="col.fixed ? 'brand' : 'neutral'"
                     :title="t('component.schema_table_settings.fixed_tip', { label: fixedLabel(col.fixed) })"
@@ -304,6 +310,14 @@ function onDragEnd(event: DragEndEvent) {
 .xh-set-trigger:hover {
   background: var(--xh-bg-subtle-hover);
   color: var(--xh-fg-default);
+}
+
+/* 选项按钮比头部动作按钮低一档。组件库最小档是 sm(28px)，且 sm 那条规则直接读
+   --xh-control-h-sm 一类的档位令牌，不经过 --xh-button-* 槽，所以覆盖的是前者 */
+.xh-set-chip {
+  --xh-control-h-sm: 22px;
+  --xh-control-px-sm: 6px;
+  --xh-font-size-sm: 12px;
 }
 
 .xh-set-panel {
