@@ -92,8 +92,19 @@ const tableColumns = computed<TableColumnDef[]>(() => [
 const rows = computed(() => props.data.map(row => ({ key: keyOf(row), row })))
 const tableRows = computed<TableRowDef[]>(() => rows.value.map(item => ({ id: item.key })))
 
+/**
+ * 单元格内联样式：对齐 + 逐列下限。
+ * width 只是 flex 基准，容器不够时各列按比例压缩，压到 --xh-table-cell-min-w 为止。
+ */
 function cellStyle(column: XDataTableColumn<T>) {
-  return column.align && column.align !== 'left' ? { textAlign: column.align } : undefined
+  const style: Record<string, string> = {}
+  if (column.align && column.align !== 'left') {
+    style.textAlign = column.align
+  }
+  if (column.minWidth !== undefined) {
+    style['--xh-table-cell-min-w'] = `${column.minWidth}px`
+  }
+  return Object.keys(style).length > 0 ? style : undefined
 }
 
 /** 全选时机器给的是 'all'，摊平成实际的键集合再回传 */
@@ -175,6 +186,12 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 </template>
 
 <style scoped>
+/* 让区段跟着容器收：皮肤把它钉在 max-content 上，容器再窄也不压缩、必出横向滚动 */
+.x-data-table :deep([data-scope='table'][data-part='header']),
+.x-data-table :deep([data-scope='table'][data-part='body']) {
+  min-inline-size: 0;
+}
+
 .x-data-table__cell-text {
   flex: 1;
   min-width: 0;

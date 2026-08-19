@@ -238,6 +238,11 @@ function declaredWidthOf(column: SchemaColumn<TRow>): number {
   return widthOf(column) ?? column.minWidth ?? 120
 }
 
+/** 逐列下限。width 只是 flex 基准，容器不够时各列按比例压缩，压到这个值为止 */
+function minWidthStyle(column: SchemaColumn<TRow>): Record<string, string> | undefined {
+  return column.minWidth === undefined ? undefined : { '--xh-table-cell-min-w': `${column.minWidth}px` }
+}
+
 /** 本次挂载内拖过列宽：拖过之后各列不再吃容器余量，看到的宽度即落库的宽度 */
 const hasDraggedWidth = computed(() => Object.keys(draggedWidths.value).length > 0)
 
@@ -359,6 +364,7 @@ function rowPeekHandlers(row: TRow) {
             v-for="column in columns"
             :key="column.key"
             :value="column.key"
+            :style="minWidthStyle(column)"
           >
             <!-- 截断落在内部文字节点上：皮肤把排序箭头做成把手的伪元素，加在把手上会连箭头一起裁掉 -->
             <XhTableSortTrigger v-if="column.sortable" class="xh-table-panel__sort">
@@ -394,6 +400,7 @@ function rowPeekHandlers(row: TRow) {
               v-for="column in columns"
               :key="column.key"
               :value="column.key"
+              :style="minWidthStyle(column)"
             >
               <!-- 树形列：缩进 + 展开箭头，其余列照常渲染 -->
               <template v-if="tree && column.tree">
@@ -481,6 +488,13 @@ function rowPeekHandlers(row: TRow) {
   flex: 1;
   min-height: 0;
   --xh-table-max-h: 100%;
+}
+
+/* 让区段跟着容器收：皮肤把它钉在 max-content 上，等于各列恒按声明宽排布、容器再窄也不压缩。
+   放开之后各列按 flex 比例一起收，收到各自的 --xh-table-cell-min-w 为止才横向滚动 */
+.xh-table-panel__grid :deep([data-scope='table'][data-part='header']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='body']) {
+  min-inline-size: 0;
 }
 
 /* 前缀列与操作列不吃余量：容器有富余时只让业务列变宽，勾选框与「更多」钮保持原尺寸 */
