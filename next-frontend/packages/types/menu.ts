@@ -54,6 +54,10 @@ export interface AppDropdownOption {
   divider?: boolean
   /** 独立分隔条目：整条只是一根分隔线，没有文案与去处 */
   type?: 'divider'
-  /** 二级子菜单条目：给了就渲染成子菜单触发器，本条自身不可选 */
+  /**
+   * 二级子菜单条目：给了就渲染成子菜单触发器，本条自身不可选。
+   * 只有摆部件的那条路认它（见 TabbarContextMenu.vue）；交 collection 代铺的菜单
+   * （XDropdown 等）会丢掉子层，组件库的 MenuNode 没有 children。
+   */
   children?: AppDropdownOption[]
 }

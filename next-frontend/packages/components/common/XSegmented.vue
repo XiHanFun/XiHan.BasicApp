@@ -1,5 +1,5 @@
 <script lang="ts" setup generic="V extends string">
-import { XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
+import { XhSegmentedRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useControlAttrs } from './control-attrs'
 
@@ -26,33 +26,24 @@ const collection = computed(() => props.options.map(option => ({
   ...(option.disabled ? { disabled: true } : {}),
 })))
 
-/** 分段选择器不允许空选，机器给回 null 时保持原值 */
-function onValueChange(details: { value: string | string[] | null }) {
-  const next = Array.isArray(details.value) ? details.value[0] : details.value
-  if (next !== null && next !== undefined)
-    value.value = next as V
+/** 选不空，机器给回 null 时保持原值 */
+function onValueChange(details: { value: string | null }) {
+  if (details.value != null) {
+    value.value = details.value as V
+  }
 }
 </script>
 
 <template>
-  <XhToggleGroupRoot
+  <!-- 条目由 collection 代铺，滑动指示器与连体皮肤归组件库 -->
+  <XhSegmentedRoot
     v-bind="controlAttrs"
-    class="x-segmented"
     :class="attrs.class"
     :style="attrs.style"
     :collection="collection"
     :value="String(value)"
     :disabled="disabled"
     :size="size"
-    disallow-empty
     @value-change="onValueChange"
-  >
-    <XhToggleGroupItem
-      v-for="option in collection"
-      :key="option.value"
-      :value="option.value"
-    >
-      {{ option.label }}
-    </XhToggleGroupItem>
-  </XhToggleGroupRoot>
+  />
 </template>
