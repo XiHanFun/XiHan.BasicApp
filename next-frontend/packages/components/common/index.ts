@@ -9,7 +9,6 @@ export const NotificationContent = defineAsyncComponent(() => import('./Notifica
 export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'))
 
 export { default as XContentEditorField } from './ContentEditorField.vue'
-export { default as XContributionHeatmap } from './ContributionHeatmap.vue'
 export { indexDropdownOptions, toDropdownCollection } from './dropdown-collection'
 export { default as XEditModal } from './EditModal.vue'
 export { default as XPageShell } from './PageShell.vue'
