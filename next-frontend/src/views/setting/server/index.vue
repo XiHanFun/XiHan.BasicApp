@@ -540,9 +540,9 @@ onUnmounted(() => {
                   </div>
                 </XhAccordionTrigger>
               </XhAccordionHeader>
-              <XhGridRoot :cols="{ base: 1, md: 2 }" gap="sm">
-                <XhGridItem>
-                  <XhAccordionContent>
+              <XhAccordionContent>
+                <XhGridRoot :cols="{ base: 1, md: 2 }" gap="sm">
+                  <XhGridItem>
                     <div class="sv-collapse-body">
                       <div class="sv-kv">
                         <span class="sv-kv-label">{{ t('setting.server.description') }}</span>
@@ -571,10 +571,8 @@ onUnmounted(() => {
                         </span>
                       </div>
                     </div>
-                  </XhAccordionContent>
-                </XhGridItem>
-                <XhGridItem v-if="net.statistics">
-                  <XhAccordionContent>
+                  </XhGridItem>
+                  <XhGridItem v-if="net.statistics">
                     <div class="sv-collapse-body">
                       <div class="sv-kv">
                         <span class="sv-kv-label">{{ t('setting.server.received') }}</span>
@@ -597,9 +595,9 @@ onUnmounted(() => {
                         </span>
                       </div>
                     </div>
-                  </XhAccordionContent>
-                </XhGridItem>
-              </XhGridRoot>
+                  </XhGridItem>
+                </XhGridRoot>
+              </XhAccordionContent>
             </XhAccordionItem>
           </XhAccordionRoot>
         </XhCardBody>
