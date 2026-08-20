@@ -1,20 +1,19 @@
 <script lang="ts" setup>
 import type { UserActivity } from '~/types'
-import { XhSpinner } from '@xihan-ui/vue'
+import { XhHeatmapRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XContributionHeatmap } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
-/** 热力图逐日数据点 */
-interface HeatmapPoint { timestamp: number, value: number }
+/** 热力图逐日数据点：组件库按 ISO 日期串铺网格，缺的日子自动算 0 */
+interface HeatmapPoint { date: string, count: number }
 
 defineOptions({ name: 'ProfileTabStats' })
 
 const { apis } = useAppContext()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const loading = ref(false)
 const activity = ref<UserActivity | null>(null)
@@ -69,7 +68,7 @@ const periodSummary = computed(() => {
   ]
 })
 
-/** 操作趋势：铺成 { timestamp(ms), value } 的逐日序列，覆盖近一年 */
+/** 操作趋势原始序列，覆盖近一年 */
 const trend = computed(() => activity.value?.trend ?? [])
 
 function dateKey(d: Date): string {
@@ -78,27 +77,41 @@ function dateKey(d: Date): string {
   return `${d.getFullYear()}-${m}-${day}`
 }
 
-const heatmapData = computed<HeatmapPoint[]>(() => {
-  const countByDate = new Map<string, number>()
+/** 逐日操作量。同一天可能有多条趋势记录，按日累加 */
+const countByDate = computed(() => {
+  const map = new Map<string, number>()
   for (const point of trend.value) {
     const key = point.date.slice(0, 10)
-    countByDate.set(key, (countByDate.get(key) ?? 0) + point.operationCount)
+    map.set(key, (map.get(key) ?? 0) + point.operationCount)
   }
+  return map
+})
 
-  // 近一年连续日序列（本地零点），值取自真实操作量，无记录的日子为 0
+/** 近一年的区间端点（本地零点） */
+const heatRange = computed(() => {
   const end = new Date()
   end.setHours(0, 0, 0, 0)
   const start = new Date(end)
   start.setFullYear(start.getFullYear() - 1)
   start.setDate(start.getDate() + 1)
+  return { start: dateKey(start), end: dateKey(end) }
+})
 
-  const data: HeatmapPoint[] = []
-  const cursor = new Date(start)
-  while (cursor.getTime() <= end.getTime()) {
-    data.push({ timestamp: cursor.getTime(), value: countByDate.get(dateKey(cursor)) ?? 0 })
-    cursor.setDate(cursor.getDate() + 1)
+const heatmapData = computed<HeatmapPoint[]>(() =>
+  [...countByDate.value].map(([date, count]) => ({ date, count })),
+)
+
+/**
+ * 五档的下界，升序。用分位而不是固定阈值，稀疏数据也能拉开层次。
+ * 首档钉在 1：只要当天有操作就得着色，否则会和「这天没干活」画成同一格。
+ */
+const heatThresholds = computed(() => {
+  const positives = [...countByDate.value.values()].filter(v => v > 0).sort((a, b) => a - b)
+  if (positives.length === 0) {
+    return [1, 2, 3, 4]
   }
-  return data
+  const at = (ratio: number) => positives[Math.min(positives.length - 1, Math.floor(positives.length * ratio))] ?? 1
+  return [1, at(0.25) + 1, at(0.5) + 1, at(0.75) + 1]
 })
 
 /** 热力图底部摘要 */
@@ -174,9 +187,15 @@ const recentTimes = computed(() => {
         </div>
         <div class="pf-section__body">
           <div class="pf-heat">
-            <div class="pf-heat__scroll">
-              <XContributionHeatmap :data="heatmapData" :first-day-of-week="0" />
-            </div>
+            <!-- 横向自滚与聚焦环留位都在组件库的根规则里，外面不再套滚动容器 -->
+            <XhHeatmapRoot
+              :value="heatmapData"
+              :start-date="heatRange.start"
+              :end-date="heatRange.end"
+              :thresholds="heatThresholds"
+              :first-day-of-week="0"
+              :locale="locale"
+            />
             <div class="pf-heat__foot">
               {{ t('component.profile.stats.heat_foot', { ops: heatTotalOps, days: heatActiveDays }) }}
             </div>
@@ -286,11 +305,6 @@ const recentTimes = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.pf-heat__scroll {
-  overflow-x: auto;
-  padding-bottom: 4px;
 }
 
 .pf-heat__foot {
