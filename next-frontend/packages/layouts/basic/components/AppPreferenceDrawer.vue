@@ -325,6 +325,11 @@ watch(visible, (open, was) => {
   box-shadow: 0 0 0 12px hsl(var(--background));
 }
 
+/* 四段等分铺满：组件库不定各段宽度，由使用者按容器决定 */
+.preference-tabs > [data-scope='tabs'][data-part='list'] > [data-scope='tabs'][data-part='trigger'] {
+  flex: 1;
+}
+
 /* 自定义头部 */
 .drawer-header {
   display: flex;

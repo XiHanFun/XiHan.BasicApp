@@ -677,7 +677,11 @@ const loaderItems = computed(() =>
   border-radius: var(--radius);
   border: 2px solid hsl(var(--border));
   background: hsl(var(--muted));
-  overflow: visible;
+  /* clip-path 只在视觉上裁，元素照样算进祖先的可滚动区：预览块滑到 115% 时看不见，
+     却把抽屉撑出一条横向滚动条。overflow: clip 才真正把它移出滚动区，
+     clip-margin 与 clip-path 的 -7px 外扩对齐，观感不变 */
+  overflow: clip;
+  overflow-clip-margin: 7px;
   clip-path: inset(-7px round calc(var(--radius) + 5px));
   position: relative;
   /* 居中容器内的加载器（绝对定位的 .preview-block 不受影响） */
