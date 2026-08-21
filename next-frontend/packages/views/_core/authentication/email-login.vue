@@ -3,7 +3,6 @@ import type { FormRules } from '@xihan-ui/headless'
 import {
   XhButton,
   XhFieldControl,
-  XhFieldErrorText,
   XhFieldRoot,
   XhFormFieldGroup,
   XhFormRoot,
@@ -15,6 +14,7 @@ import { XInput } from '~/components'
 import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'EmailLoginPage' })
 
@@ -104,6 +104,7 @@ onBeforeUnmount(() => {
     clearInterval(timer)
   }
 })
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -122,6 +123,7 @@ onBeforeUnmount(() => {
       v-model:values="formData"
       :rules="rules"
       validate-on="blur"
+      @invalid="onAuthInvalid"
       @submit="onSubmit"
     >
       <XhFormFieldGroup v-slot="{ value, setValue }" value="email" class="!mb-6">
@@ -134,7 +136,6 @@ onBeforeUnmount(() => {
               @update:value="setValue"
             />
           </XhFieldControl>
-          <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
 
@@ -161,7 +162,6 @@ onBeforeUnmount(() => {
               {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
             </XhButton>
           </div>
-          <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
 

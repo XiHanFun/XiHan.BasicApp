@@ -115,13 +115,21 @@ const heatThresholds = computed(() => {
 })
 
 /**
+ * 一格的读数。悬停详情条与该格的可及名字共用这一句，两处才不会各说各的。
+ */
+function heatReadout(details: { date: string, count: number } | null): string {
+  return details
+    ? t('component.profile.stats.heat_cell_label', { date: details.date, count: details.count })
+    : ''
+}
+
+/**
  * 热力图的文案。库的缺省是英文网格名 + 硬编码中文图例两端，两个方向都会串味，
  * 六条里除矩阵形态那条外全部给出（这里是日历形态）。
  */
 const heatTranslations = computed(() => ({
   gridLabel: t('component.profile.stats.heat_grid_label'),
-  cellLabel: (d: { date: string, count: number }) =>
-    t('component.profile.stats.heat_cell_label', { date: d.date, count: d.count }),
+  cellLabel: heatReadout,
   legendLabel: t('component.profile.stats.heat_legend_label'),
   legendLow: t('component.profile.stats.heat_legend_low'),
   legendHigh: t('component.profile.stats.heat_legend_high'),
@@ -209,7 +217,12 @@ const recentTimes = computed(() => {
               :first-day-of-week="0"
               :locale="locale"
               :translations="heatTranslations"
-            />
+            >
+              <!-- 写了这个插槽才铺出详情条；同一句也是该格的可及名字 -->
+              <template #tooltip="details">
+                {{ heatReadout(details) }}
+              </template>
+            </XhHeatmapRoot>
             <div class="pf-heat__foot">
               {{ t('component.profile.stats.heat_foot', { ops: heatTotalOps, days: heatActiveDays }) }}
             </div>

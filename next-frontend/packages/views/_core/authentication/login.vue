@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 
-import { XhButton, XhCheckbox, XhFieldControl, XhFieldErrorText, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhSeparator } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhSeparator } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -11,6 +11,7 @@ import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAuthStore } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'LoginPage' })
 
@@ -290,6 +291,7 @@ onMounted(async () => {
     toast.error((error as Error)?.message || t('page.auth.load_config_failed'))
   }
 })
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -439,6 +441,7 @@ onMounted(async () => {
           v-model:values="formData"
           :rules="rules"
           validate-on="blur"
+          @invalid="onAuthInvalid"
           @keydown="handleKeydown"
           @submit="onSubmit"
         >
@@ -452,7 +455,6 @@ onMounted(async () => {
                   autocomplete="username"
                 />
               </XhFieldControl>
-              <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
           <XhFormFieldGroup value="password" class="!mb-6">
@@ -466,7 +468,6 @@ onMounted(async () => {
                   autocomplete="current-password"
                 />
               </XhFieldControl>
-              <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
           <XhFormFieldGroup v-if="loginConfig.captchaEnabled" value="captchaCode" class="!mb-6">
@@ -498,7 +499,6 @@ onMounted(async () => {
                   <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
                 </div>
               </div>
-              <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
           <div class="flex justify-between items-center mb-5 text-sm">

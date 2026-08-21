@@ -21,6 +21,7 @@ export default {
     mobile_login: '手机登录',
     email_login: '邮箱登录',
     qrcode_login: '扫码登录',
+    login_method: '登录方式',
     third_party_login: '第三方登录',
     demo_login: '演示账号一键登录',
     no_account: '还没有账号?',

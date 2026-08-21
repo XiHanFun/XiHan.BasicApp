@@ -52,6 +52,7 @@ export default {
   },
   // Common messages
   messages: {
+    validate_failed: 'Please check the form',
     save_success: 'Saved successfully',
     save_failed: 'Save failed',
     delete_success: 'Deleted successfully',

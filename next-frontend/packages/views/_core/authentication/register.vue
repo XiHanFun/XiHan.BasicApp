@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
-import { XhCheckbox, XhFieldControl, XhFieldErrorText, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
+import { XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
 
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -11,6 +11,7 @@ import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'RegisterPage' })
 
@@ -134,6 +135,7 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter')
     onSubmit()
 }
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -154,6 +156,7 @@ function handleKeydown(e: KeyboardEvent) {
       v-model:values="formData"
       :rules="rules"
       validate-on="blur"
+      @invalid="onAuthInvalid"
       @keydown="handleKeydown"
       @submit="onSubmit"
     >
@@ -167,7 +170,6 @@ function handleKeydown(e: KeyboardEvent) {
               autocomplete="username"
             />
           </XhFieldControl>
-          <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
       <XhFormFieldGroup value="email" class="!mb-6">
@@ -180,7 +182,6 @@ function handleKeydown(e: KeyboardEvent) {
               autocomplete="email"
             />
           </XhFieldControl>
-          <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
       <XhFormFieldGroup value="password" class="!mb-3">
@@ -202,7 +203,6 @@ function handleKeydown(e: KeyboardEvent) {
               </template>
             </XInput>
           </XhFieldControl>
-          <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
 
@@ -242,7 +242,6 @@ function handleKeydown(e: KeyboardEvent) {
               </template>
             </XInput>
           </XhFieldControl>
-          <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
 
