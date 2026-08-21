@@ -4,8 +4,7 @@ import type { VNodeChild } from 'vue'
 import {
   XhTreeBranch,
   XhTreeBranchContent,
-  XhTreeBranchControl,
-  XhTreeBranchIndicator,
+  XhTreeBranchControl,
   XhTreeBranchText,
   XhTreeItem,
   XhTreeItemIndicator,
@@ -26,16 +25,15 @@ defineProps<{
 <template>
   <template v-for="node in nodes" :key="node.value">
     <XhTreeBranch v-if="node.children?.length" :value="String(node.value)">
+      <!-- 触发器只包箭头：把文字也包进去，点目录名就只剩展开、选不中这一枝 -->
       <XhTreeBranchControl>
-        <XhTreeBranchIndicator>▸</XhTreeBranchIndicator>
-        <XhTreeBranchTrigger>
-          <XhTreeBranchText>
-            <VNodeRender v-if="renderLabel" :content="renderLabel(node as unknown as Record<string, unknown>)" />
-            <template v-else>
-              {{ node.label }}
-            </template>
-          </XhTreeBranchText>
-        </XhTreeBranchTrigger>
+        <XhTreeBranchTrigger>▸</XhTreeBranchTrigger>
+        <XhTreeBranchText>
+          <VNodeRender v-if="renderLabel" :content="renderLabel(node as unknown as Record<string, unknown>)" />
+          <template v-else>
+            {{ node.label }}
+          </template>
+        </XhTreeBranchText>
       </XhTreeBranchControl>
       <XhTreeBranchContent>
         <XTreeNodes :nodes="node.children" :render-label="renderLabel" />

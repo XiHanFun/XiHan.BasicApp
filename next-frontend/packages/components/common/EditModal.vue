@@ -28,6 +28,12 @@ const props = withDefaults(defineProps<{
    * 校验通过才会走到表单的 @submit；此时本组件不再发 save 事件。
    */
   formId?: string
+  /**
+   * 展开后先把焦点落到 content 内匹配此选择器的元素。
+   * 不给即走组件库的默认可 tab 顺序——那会落在右上角的关闭钮上。
+   * 组件库聚焦输入框时会连带全选其中的值，编辑既有记录的弹窗慎用。
+   */
+  initialFocus?: string
 }>(), {
   title: undefined,
   width: 640,
@@ -36,6 +42,7 @@ const props = withDefaults(defineProps<{
   saveText: undefined,
   cancelText: undefined,
   formId: undefined,
+  initialFocus: undefined,
 })
 
 const emit = defineEmits<{
@@ -62,6 +69,7 @@ function handleCancel() {
        点遮罩不关：编辑到一半误点外面就丢内容，只能由取消/保存/Esc 收场 -->
   <XhDialogRoot
     :open="show"
+    :initial-focus="initialFocus"
     :close-on-interact-outside="false"
     @update:open="(value: boolean) => emit('update:show', value)"
   >

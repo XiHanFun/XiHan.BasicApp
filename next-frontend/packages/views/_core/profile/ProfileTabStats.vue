@@ -114,6 +114,19 @@ const heatThresholds = computed(() => {
   return [1, at(0.25) + 1, at(0.5) + 1, at(0.75) + 1]
 })
 
+/**
+ * 热力图的文案。库的缺省是英文网格名 + 硬编码中文图例两端，两个方向都会串味，
+ * 六条里除矩阵形态那条外全部给出（这里是日历形态）。
+ */
+const heatTranslations = computed(() => ({
+  gridLabel: t('component.profile.stats.heat_grid_label'),
+  cellLabel: (d: { date: string, count: number }) =>
+    t('component.profile.stats.heat_cell_label', { date: d.date, count: d.count }),
+  legendLabel: t('component.profile.stats.heat_legend_label'),
+  legendLow: t('component.profile.stats.heat_legend_low'),
+  legendHigh: t('component.profile.stats.heat_legend_high'),
+}))
+
 /** 热力图底部摘要 */
 const heatActiveDays = computed(() => trend.value.filter(t => t.operationCount > 0).length)
 const heatTotalOps = computed(() => trend.value.reduce((sum, t) => sum + t.operationCount, 0))
@@ -195,6 +208,7 @@ const recentTimes = computed(() => {
               :thresholds="heatThresholds"
               :first-day-of-week="0"
               :locale="locale"
+              :translations="heatTranslations"
             />
             <div class="pf-heat__foot">
               {{ t('component.profile.stats.heat_foot', { ops: heatTotalOps, days: heatActiveDays }) }}
