@@ -52,6 +52,7 @@ export default {
   },
   // 通用消息
   messages: {
+    validate_failed: '请检查表单填写',
     save_success: '保存成功',
     save_failed: '保存失败',
     delete_success: '删除成功',

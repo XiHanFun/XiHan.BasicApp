@@ -21,6 +21,7 @@ export default {
     mobile_login: 'Phone Login',
     email_login: 'Email Login',
     qrcode_login: 'QR Login',
+    login_method: 'Sign-in method',
     third_party_login: 'Third-party login',
     demo_login: 'One-click demo login',
     no_account: 'Don\'t have an account?',

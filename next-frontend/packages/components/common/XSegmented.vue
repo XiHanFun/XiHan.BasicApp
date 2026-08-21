@@ -10,9 +10,12 @@ const props = withDefaults(defineProps<{
   options: ReadonlyArray<{ label: string, value: V, disabled?: boolean }>
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
+  /** 铺满容器宽度，各段等分 */
+  block?: boolean
 }>(), {
   size: 'sm',
   disabled: false,
+  block: false,
 })
 
 // 组本身就是控件，字段挂来的 id 与 aria-* 落在根上，见 control-attrs.ts
@@ -44,6 +47,7 @@ function onValueChange(details: { value: string | null }) {
     :value="String(value)"
     :disabled="disabled"
     :size="size"
+    :block="block"
     @value-change="onValueChange"
   />
 </template>

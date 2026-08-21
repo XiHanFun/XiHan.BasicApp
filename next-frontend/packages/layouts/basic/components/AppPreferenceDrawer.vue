@@ -315,13 +315,14 @@ watch(visible, (open, was) => {
   padding: 0 16px 16px;
 }
 
+/* 标签栏吸顶。底色与内边距归 segment 档的皮肤（灰底轨道 + 白色活动药丸），
+   在这里改写会把轨道盖成白底、活动项就此看不出来；滚动时挡住下方内容改用外扩投影 */
 .preference-tabs > [data-scope='tabs'][data-part='list'] {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding-top: 12px;
-  padding-bottom: 4px;
-  background: hsl(var(--background));
+  margin-block-start: 12px;
+  box-shadow: 0 0 0 12px hsl(var(--background));
 }
 
 /* 自定义头部 */

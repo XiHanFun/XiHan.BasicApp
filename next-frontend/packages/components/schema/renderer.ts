@@ -1,6 +1,6 @@
 import type { VNodeChild } from 'vue'
 import type { ListFieldSchema } from './types'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { h } from 'vue'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -94,7 +94,7 @@ export function renderFieldCell<TRow extends object>(
     }
     const label = getOptionLabel(toMutableOptions(field.options), raw as string | number)
     const tone = resolveStatusTagTone(field.dictionaryCode, raw)
-    return h(XhBadge, { variant: 'subtle', size: 'sm', tone: tone ?? 'neutral' }, () => label)
+    return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: tone ?? 'neutral' }, () => h(XhTagLabel, null, () => label))
   }
 
   if (field.dataType === 'boolean') {
@@ -102,9 +102,9 @@ export function renderFieldCell<TRow extends object>(
       return '-'
     }
     return h(
-      XhBadge,
+      XhTagRoot,
       { variant: 'subtle', size: 'sm', tone: raw ? 'success' : 'neutral' },
-      () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no')),
+      () => h(XhTagLabel, null, () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no'))),
     )
   }
 
