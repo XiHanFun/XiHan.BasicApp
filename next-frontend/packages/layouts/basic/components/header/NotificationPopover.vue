@@ -8,7 +8,6 @@ import {
   XhEmptyStateIcon,
   XhEmptyStateRoot,
   XhEmptyStateTitle,
-  XhNumberAnimation,
   XhSpinner,
   XhTabsContent,
   XhTabsList,
@@ -174,10 +173,12 @@ function handleClickOutside() {
         @click="showPopover = !showPopover"
       >
         <Icon icon="lucide:bell" width="16" height="16" />
-        <span v-if="props.unreadCount > 0" class="notification-btn__badge">
-          <XhNumberAnimation :to="Math.min(props.unreadCount, 99)" :duration="500" :precision="0" />
-          <span v-if="props.unreadCount > 99">+</span>
-        </span>
+        <!-- 数字、99+ 与「零则收起」都归组件库算 -->
+        <XhBadge
+          class="notification-btn__badge"
+          :count="props.unreadCount"
+          :label="t('header.notification.unread_label')"
+        />
       </XhTooltipTrigger>
       <XhTooltipPositioner>
         <XhTooltipContent>

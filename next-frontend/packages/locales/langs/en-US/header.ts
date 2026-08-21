@@ -19,6 +19,7 @@ export default {
   },
   notification: {
     bell: 'Notifications',
+    unread_label: 'Unread messages',
     title: 'Notifications',
     refresh: 'Refresh',
     mark_all_read: 'Mark all read',

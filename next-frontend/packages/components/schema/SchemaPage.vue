@@ -277,11 +277,17 @@ function renderRowActions(row: Row) {
     XhMenuRoot,
     {
       collection,
+      // 借用下面那颗按钮当触发器。不借的话菜单根会自己包一颗裸 button，
+      // 而 menu 皮肤没有 trigger 这一部件，露出的是浏览器默认按钮样式
+      triggerAsChild: true,
       onSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
     },
     {
-      // 触发器内容归作者：菜单根自己铺开浮层与条目
-      trigger: () => [t('component.schema_page.more'), h(Icon, { icon: 'lucide:chevron-down' })],
+      trigger: () => h(
+        XhButton,
+        { variant: 'outline', size: 'sm' },
+        () => [t('component.schema_page.more'), h(Icon, { icon: 'lucide:chevron-down' })],
+      ),
     },
   )
 }

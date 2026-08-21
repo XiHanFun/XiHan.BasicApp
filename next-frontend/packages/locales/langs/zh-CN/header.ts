@@ -19,6 +19,7 @@ export default {
   },
   notification: {
     bell: '通知',
+    unread_label: '未读消息数',
     title: '通知中心',
     refresh: '刷新',
     mark_all_read: '全部已读',
