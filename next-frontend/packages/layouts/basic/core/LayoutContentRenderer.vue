@@ -48,6 +48,10 @@ const appStore = useAppStore()
 .layout-content-renderer {
   position: relative;
   height: 100%;
+
+  /* 进场动画带 translateX(30px)，落在外层的滚动容器里会横向撑出一条滚动条。
+     用 clip 而不是 hidden：hidden 会把另一根轴一并变成滚动容器，动到整层的滚动模型 */
+  overflow-x: clip;
 }
 
 /* 统一禁用页面离场动画（覆盖所有动画风格），并避免新旧页并存一帧的跳动；排除加载遮罩 */
