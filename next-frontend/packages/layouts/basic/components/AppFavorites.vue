@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DragEndEvent } from '@dnd-kit/vue'
 import { DragDropProvider } from '@dnd-kit/vue'
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhNumberAnimation, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -100,10 +100,12 @@ onBeforeUnmount(() => {
         :aria-label="t('header.favorites.title')"
       >
         <Icon icon="lucide:star" width="16" height="16" />
-        <span v-if="favoritesStore.count > 0" class="fav-btn__badge">
-          <XhNumberAnimation :to="Math.min(favoritesStore.count, 99)" :duration="500" :precision="0" />
-          <span v-if="favoritesStore.count > 99">+</span>
-        </span>
+        <!-- 数字、99+ 与「零则收起」都归组件库算 -->
+        <XhBadge
+          class="fav-btn__badge"
+          :count="favoritesStore.count"
+          :label="t('header.favorites.title')"
+        />
       </XhPopoverTrigger>
     </span>
 
