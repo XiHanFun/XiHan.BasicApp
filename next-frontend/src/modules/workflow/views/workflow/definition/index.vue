@@ -307,7 +307,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
         <XhDrawerTitle>{{ t('workflow.definition.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
           {{ t('workflow.definition.loading') }}
         </div>
@@ -376,7 +376,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="editVisible">
       <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1600px)">
         <XhDialogTitle>{{ editMode === 'create' ? t('workflow.definition.create_title') : t('workflow.definition.edit_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <WorkflowDesigner
           :key="designerKey"
           :initial-json="editJson"
@@ -390,7 +390,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="startVisible">
       <XhDialogContent style="--xh-dialog-max-w: 560px">
         <XhDialogTitle>{{ t('workflow.definition.start_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFormRoot
           validate-on="blur"
           layout="horizontal"

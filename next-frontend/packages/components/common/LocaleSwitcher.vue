@@ -101,7 +101,7 @@ function choose(key: string) {
           <LocaleFlag :locale="current" :size="16" />
           <span>{{ options.find(o => o.value === current)?.label }}</span>
         </span>
-        <XhSelectIndicator>▾</XhSelectIndicator>
+        <XhSelectIndicator />
       </XhSelectTrigger>
     </XhSelectControl>
     <XhSelectPositioner>
@@ -114,7 +114,7 @@ function choose(key: string) {
                 <span>{{ node.label }}</span>
               </span>
             </XhSelectItemText>
-            <XhSelectItemIndicator>✓</XhSelectItemIndicator>
+            <XhSelectItemIndicator />
           </XhSelectItem>
         </XhSelectList>
       </XhSelectContent>

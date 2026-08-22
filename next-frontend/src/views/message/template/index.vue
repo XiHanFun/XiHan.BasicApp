@@ -457,7 +457,7 @@ async function handleSubmit() {
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent style="--xh-dialog-max-w: 720px">
         <XhDialogTitle>{{ t('message.template.detail_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <template v-if="currentDetail">
           <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem>

@@ -413,7 +413,7 @@ function remove(row: NumberingRuleListItemDto): void {
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent style="--xh-dialog-max-w: 680px">
         <XhDialogTitle>{{ t('setting.numbering.detail_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhDescriptionsRoot v-if="detail" :columns="2" bordered placement="left">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>

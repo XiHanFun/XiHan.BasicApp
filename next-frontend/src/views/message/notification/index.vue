@@ -927,7 +927,7 @@ async function handleSubmit() {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 560px">
         <XhDrawerTitle>{{ t('message.notification.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <template v-if="currentDetail">
           <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
             <XhDescriptionsItem style="grid-column: span 2">
@@ -1072,7 +1072,7 @@ async function handleSubmit() {
     <XhDrawerRoot v-model:open="statsVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 640px">
         <XhDrawerTitle>{{ statsRow ? `${t('message.notification.stats_title')} · ${statsRow.title}` : t('message.notification.stats_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div v-if="readStats" class="stats">
           <!-- 统计区 -->
           <div class="stats__cards">

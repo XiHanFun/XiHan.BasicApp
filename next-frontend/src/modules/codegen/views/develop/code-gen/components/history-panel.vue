@@ -230,7 +230,7 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent style="--xh-dialog-max-w: 820px">
         <XhDialogTitle>{{ t('develop.code_gen.history.detail_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFlex v-if="detailLoading" justify="center">
           {{ t('common.statuses.loading') }}
         </XhFlex>

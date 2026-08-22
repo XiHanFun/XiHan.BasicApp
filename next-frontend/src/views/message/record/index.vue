@@ -406,7 +406,7 @@ async function deleteSms(row: SmsListItemDto) {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 620px">
         <XhDrawerTitle>{{ detailTab === 'email' ? t('message.record.detail_email_title') : t('message.record.detail_sms_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XhFlex v-if="detailLoading" justify="center">
           {{ t('message.record.detail_loading') }}
         </XhFlex>

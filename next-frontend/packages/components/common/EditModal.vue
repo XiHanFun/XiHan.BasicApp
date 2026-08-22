@@ -77,7 +77,7 @@ function handleCancel() {
       <XhDialogTitle v-if="title">
         {{ title }}
       </XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
 
       <div class="xh-edit-modal__body">
         <slot />

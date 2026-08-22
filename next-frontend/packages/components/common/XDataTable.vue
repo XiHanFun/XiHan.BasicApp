@@ -134,7 +134,7 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
     <XhTableHeader>
       <XhTableRow>
         <XhTableColumnHeader v-if="selectable" :value="SELECT_COL">
-          <XhTableSelectAllTrigger>✓</XhTableSelectAllTrigger>
+          <XhTableSelectAllTrigger />
         </XhTableColumnHeader>
         <XhTableColumnHeader
           v-for="column in columns"
@@ -155,7 +155,7 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
         v-bind="rowProps?.(item.row, rowIndex)"
       >
         <XhTableCell v-if="selectable" :value="SELECT_COL">
-          <XhTableRowSelectTrigger>✓</XhTableRowSelectTrigger>
+          <XhTableRowSelectTrigger />
         </XhTableCell>
         <XhTableCell
           v-for="column in columns"

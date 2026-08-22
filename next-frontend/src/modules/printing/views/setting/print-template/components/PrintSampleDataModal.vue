@@ -224,7 +224,7 @@ function clearSession(): void {
   >
     <XhDialogContent class="print-sample-data-modal">
       <XhDialogTitle>{{ t('setting.print_template.sample_data_title') }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <XhFlex align="center" gap="sm" class="sample-data-tags">
         <XhBadge variant="subtle" size="sm" tone="info">
           {{ dataSourceName || dataSourceCode || t('setting.print_template.free_template') }}

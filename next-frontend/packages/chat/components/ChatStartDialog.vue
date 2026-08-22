@@ -185,7 +185,7 @@ async function handleConfirm() {
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 420px">
       <XhDialogTitle>{{ title }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <div class="flex flex-col gap-3">
         <template v-if="props.mode === 'single'">
           <ChatUserSelect

@@ -268,7 +268,7 @@ async function handleLeave() {
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 480px">
       <XhDialogTitle>{{ t('chat.members.title', { n: members.length }) }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <div class="xh-loading-stage">
         <div v-if="loading" class="xh-loading-stage__veil">
           <XhSpinner />

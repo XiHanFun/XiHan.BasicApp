@@ -20,6 +20,7 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
+import { Icon } from '~/iconify'
 import { VNodeRender } from '../common/VNodeRender'
 import SchemaPagination from './SchemaPagination.vue'
 import SchemaRowPeek from './SchemaRowPeek.vue'
@@ -364,7 +365,7 @@ function rowPeekHandlers(row: TRow) {
         <XhTableRow>
           <XhTableColumnHeader v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)" />
           <XhTableColumnHeader v-if="selectable" :value="SELECT_COL" :style="prefixStyle(SELECT_COL)">
-            <XhTableSelectAllTrigger>✓</XhTableSelectAllTrigger>
+            <XhTableSelectAllTrigger />
           </XhTableColumnHeader>
           <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
             {{ t('component.schema_table.index') }}
@@ -397,10 +398,10 @@ function rowPeekHandlers(row: TRow) {
         <template v-for="(item, rowIndex) in flatRows" :key="item.key">
           <XhTableRow :value="item.key" v-bind="rowPeekHandlers(item.row)">
             <XhTableCell v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)">
-              <XhTableExpandTrigger>›</XhTableExpandTrigger>
+              <XhTableExpandTrigger />
             </XhTableCell>
             <XhTableCell v-if="selectable" :value="SELECT_COL" :style="prefixStyle(SELECT_COL)">
-              <XhTableRowSelectTrigger>✓</XhTableRowSelectTrigger>
+              <XhTableRowSelectTrigger />
             </XhTableCell>
             <XhTableCell v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
               {{ item.indexLabel }}
@@ -421,7 +422,7 @@ function rowPeekHandlers(row: TRow) {
                   :aria-expanded="isTreeOpen(item.key)"
                   @click="toggleTreeRow(item.key)"
                 >
-                  {{ isTreeOpen(item.key) ? '▾' : '▸' }}
+                  <Icon :icon="isTreeOpen(item.key) ? 'lucide:chevron-down' : 'lucide:chevron-right'" width="14" height="14" />
                 </button>
                 <span v-else class="xh-table-panel__tree-toggle xh-table-panel__tree-toggle--leaf" />
               </template>

@@ -271,12 +271,12 @@ async function handleDownload(fileId: string) {
                 <XhImageViewerImage />
               </XhImageViewerViewport>
               <XhImageViewerToolbar>
-                <XhImageViewerPrevTrigger>‹</XhImageViewerPrevTrigger>
+                <XhImageViewerPrevTrigger />
                 <XhImageViewerCounter />
-                <XhImageViewerNextTrigger>›</XhImageViewerNextTrigger>
+                <XhImageViewerNextTrigger />
                 <XhImageViewerZoomOutTrigger>−</XhImageViewerZoomOutTrigger>
                 <XhImageViewerZoomInTrigger>+</XhImageViewerZoomInTrigger>
-                <XhImageViewerCloseTrigger>✕</XhImageViewerCloseTrigger>
+                <XhImageViewerCloseTrigger />
               </XhImageViewerToolbar>
             </XhImageViewerContent>
           </XhImageViewerRoot>

@@ -399,7 +399,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     <XhDrawerRoot v-model:open="showAdd" side="right">
       <XhDrawerContent style="--xh-drawer-size: 340px">
         <XhDrawerTitle>{{ t('workbench.widgets.add_panel_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div v-if="!available.length" class="py-10">
           <XhEmptyStateRoot size="sm">
             <XhEmptyStateIcon>

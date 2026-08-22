@@ -770,7 +770,7 @@ async function savePermChanges() {
     <XhDrawerRoot v-model:open="permDrawerVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 760px">
         <XhDrawerTitle>{{ t('tenant.edition.perm_drawer_title', { name: permEdition?.editionName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XPermissionGrantPanel
           ref="permPanelRef"
           :items="permCatalog"

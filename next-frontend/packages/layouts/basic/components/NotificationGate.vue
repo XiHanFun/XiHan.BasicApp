@@ -106,7 +106,7 @@ onMounted(async () => {
   >
     <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
       <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <div class="notif-gate-body">
         <NotificationContent
           v-if="currentPopup.content"

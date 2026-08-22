@@ -87,9 +87,7 @@ function onValueChange(details: { value: readonly string[] | readonly (readonly 
   >
     <XhCascaderTrigger v-bind="controlAttrs">
       <XhCascaderValueText :placeholder="placeholder" />
-      <XhCascaderClearTrigger v-if="clearable">
-        ✕
-      </XhCascaderClearTrigger>
+      <XhCascaderClearTrigger v-if="clearable" />
     </XhCascaderTrigger>
     <XhCascaderPositioner>
       <XhCascaderContent>

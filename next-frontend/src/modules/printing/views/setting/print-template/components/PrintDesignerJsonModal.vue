@@ -36,7 +36,7 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
   >
     <XhDialogContent class="json-template-modal" style="--xh-dialog-max-w: 920px">
       <XhDialogTitle>{{ t('setting.print_template.json_editor_title') }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <div class="json-editor-toolbar">
         <div class="json-editor-intro">
           <strong>{{ t('setting.print_template.json_template_content') }}</strong>

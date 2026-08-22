@@ -112,7 +112,7 @@ function handleClear() {
     <XhDialogRoot v-model:open="visible">
       <XhDialogContent class="icon-picker-modal" style="--xh-dialog-max-w: 560px">
         <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <div class="icon-picker-body">
           <XhFlex class="mb-3" justify="between">
             <XInput

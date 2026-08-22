@@ -27,7 +27,7 @@ defineProps<{
     <XhTreeBranch v-if="node.children?.length" :value="String(node.value)">
       <!-- 触发器只包箭头：把文字也包进去，点目录名就只剩展开、选不中这一枝 -->
       <XhTreeBranchControl>
-        <XhTreeBranchTrigger>▸</XhTreeBranchTrigger>
+        <XhTreeBranchTrigger />
         <XhTreeBranchText>
           <VNodeRender v-if="renderLabel" :content="renderLabel(node as unknown as Record<string, unknown>)" />
           <template v-else>
@@ -41,7 +41,7 @@ defineProps<{
     </XhTreeBranch>
 
     <XhTreeItem v-else :value="String(node.value)" :disabled="node.disabled">
-      <XhTreeItemIndicator>✓</XhTreeItemIndicator>
+      <XhTreeItemIndicator />
       <XhTreeItemText>
         <VNodeRender v-if="renderLabel" :content="renderLabel(node as unknown as Record<string, unknown>)" />
         <template v-else>

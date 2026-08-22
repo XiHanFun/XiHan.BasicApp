@@ -968,7 +968,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     <XhDialogRoot v-model:open="uploadVisible">
       <XhDialogContent style="--xh-dialog-max-w: 520px">
         <XhDialogTitle>{{ t('file.library.upload.title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFlex direction="column" gap="lg">
           <!-- 拖拽区：点击或拖入文件即上传（按当前默认存储配置保存） -->
           <XhFileUploadRoot
@@ -1037,7 +1037,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     <XhDrawerRoot v-model:open="metadataVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 460px">
         <XhDrawerTitle>{{ t('file.library.metadata.title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XhFlex direction="column" gap="lg">
           <div class="file-upload-field">
             <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
@@ -1083,7 +1083,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 680px">
         <XhDrawerTitle>{{ detailTitle }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XhFlex v-if="detailLoading" justify="center">
           {{ t('common.statuses.loading') }}
         </XhFlex>
@@ -1386,7 +1386,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     <XhDrawerRoot v-model:open="storageListVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 760px">
         <XhDrawerTitle>{{ t('file.library.storage_list.title', { name: storageFile?.originalName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XhFlex direction="column" gap="md">
           <div class="flex items-center justify-between">
             <span class="text-sm text-foreground/60">{{ t('file.library.storage_list.total', { count: storageRows.length }) }}</span>
@@ -1410,7 +1410,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     <XhDialogRoot v-model:open="previewVisible">
       <XhDialogContent style="--xh-dialog-max-w: 80vw">
         <XhDialogTitle>{{ t('file.library.preview.title', { name: previewName }) }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <div
           class="file-preview-body"
           :class="{ 'is-text': isBlockPreview }"

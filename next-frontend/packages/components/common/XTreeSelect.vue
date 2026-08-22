@@ -65,9 +65,7 @@ function handleChange(next: string[]) {
   >
     <XhTreeSelectTrigger v-bind="controlAttrs">
       <XhTreeSelectValueText />
-      <XhTreeSelectClearTrigger v-if="clearable && selected.length">
-        ✕
-      </XhTreeSelectClearTrigger>
+      <XhTreeSelectClearTrigger v-if="clearable && selected.length" />
       <XhTreeSelectIndicator>
         <Icon icon="lucide:chevron-down" width="14" height="14" />
       </XhTreeSelectIndicator>
