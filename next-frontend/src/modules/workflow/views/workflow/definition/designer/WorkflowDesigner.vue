@@ -3,7 +3,7 @@ import type { ActivityTypeMeta } from './catalog'
 import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import { useDebounceFn } from '@vueuse/core'
-import { XhBadge, XhButton, XhCheckbox, XhContextMenuRoot, XhDynamicInputAddTrigger, XhDynamicInputItem, XhDynamicInputItemAction, XhDynamicInputItemContent, XhDynamicInputRemoveTrigger, XhDynamicInputRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhCheckbox, XhContextMenuRoot, XhDynamicInputAddTrigger, XhDynamicInputItem, XhDynamicInputItemAction, XhDynamicInputItemContent, XhDynamicInputItemDeleteTrigger, XhDynamicInputRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
@@ -965,7 +965,7 @@ function onContextSelect(key: string) {
                           </div>
                         </XhDynamicInputItemContent>
                         <XhDynamicInputItemAction>
-                          <XhDynamicInputRemoveTrigger>−</XhDynamicInputRemoveTrigger>
+                          <XhDynamicInputItemDeleteTrigger>−</XhDynamicInputItemDeleteTrigger>
                           <XhDynamicInputAddTrigger>＋</XhDynamicInputAddTrigger>
                         </XhDynamicInputItemAction>
                       </XhDynamicInputItem>
