@@ -8,6 +8,7 @@ import {
   XhScrollAreaRoot,
   XhScrollAreaScrollbar,
   XhScrollAreaThumb,
+  XhScrollAreaTrack,
   XhScrollAreaViewport,
   XhTabsContent,
   XhTabsList,
@@ -247,8 +248,11 @@ watch(visible, (open, was) => {
             </XhTabsRoot>
           </XhScrollAreaContent>
         </XhScrollAreaViewport>
+        <!-- 滑块的行程按轨道节点量：少了 Track 这层，拖滑块与点轨道都会变成空操作 -->
         <XhScrollAreaScrollbar orientation="vertical">
-          <XhScrollAreaThumb />
+          <XhScrollAreaTrack>
+            <XhScrollAreaThumb />
+          </XhScrollAreaTrack>
         </XhScrollAreaScrollbar>
       </XhScrollAreaRoot>
 

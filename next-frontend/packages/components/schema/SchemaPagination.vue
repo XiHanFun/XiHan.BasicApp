@@ -9,6 +9,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'SchemaPagination' })
 
@@ -63,7 +64,9 @@ function onSizeChange(value: string[]): void {
       :size="compact ? 'sm' : 'md'"
       @update:page="(value: number) => emit('update:page', value)"
     >
-      <XhPaginationPrevTrigger />
+      <XhPaginationPrevTrigger>
+        <Icon icon="lucide:chevron-left" width="14" height="14" />
+      </XhPaginationPrevTrigger>
       <template v-for="(item, index) in pages" :key="`${item}-${index}`">
         <XhPaginationItem v-if="item !== 'ellipsis'" :value="item">
           {{ item }}
@@ -72,7 +75,9 @@ function onSizeChange(value: string[]): void {
           …
         </XhPaginationEllipsis>
       </template>
-      <XhPaginationNextTrigger />
+      <XhPaginationNextTrigger>
+        <Icon icon="lucide:chevron-right" width="14" height="14" />
+      </XhPaginationNextTrigger>
     </XhPaginationRoot>
 
     <XhSelectRoot
@@ -99,7 +104,7 @@ function onSizeChange(value: string[]): void {
   inline-size: 110px;
 }
 
-.schema-pagination__size :deep([data-scope='select'][data-part='trigger']) {
+.schema-pagination__size :deep([data-scope='select'][data-part='control']) {
   inline-size: 100%;
   min-inline-size: 0;
 }

@@ -6,6 +6,7 @@ import {
   XhColorPickerChannelSliderThumb,
   XhColorPickerChannelSliderTrack,
   XhColorPickerContent,
+  XhColorPickerControl,
   XhColorPickerPositioner,
   XhColorPickerRoot,
   XhColorPickerSwatch,
@@ -45,10 +46,13 @@ const emit = defineEmits<{
     :disabled="disabled"
     @update:value="(next: string) => emit('update:value', next)"
   >
-    <XhColorPickerTrigger>
-      <XhColorPickerSwatch />
-      <XhColorPickerValueText />
-    </XhColorPickerTrigger>
+    <!-- 视觉盒（边框/高度/内边距/聚焦环）在 Control 上，少这层触发钮就退回裸按钮 -->
+    <XhColorPickerControl>
+      <XhColorPickerTrigger>
+        <XhColorPickerSwatch />
+        <XhColorPickerValueText />
+      </XhColorPickerTrigger>
+    </XhColorPickerControl>
     <XhColorPickerPositioner>
       <XhColorPickerContent>
         <XhColorPickerArea>

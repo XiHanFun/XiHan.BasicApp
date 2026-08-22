@@ -5,6 +5,8 @@ import {
   XhCascaderClearTrigger,
   XhCascaderColumn,
   XhCascaderContent,
+  XhCascaderControl,
+  XhCascaderIndicator,
   XhCascaderItem,
   XhCascaderItemText,
   XhCascaderPositioner,
@@ -85,10 +87,14 @@ function onValueChange(details: { value: readonly string[] | readonly (readonly 
     :disabled="disabled"
     @value-change="onValueChange"
   >
-    <XhCascaderTrigger v-bind="controlAttrs">
-      <XhCascaderValueText :placeholder="placeholder" />
+    <!-- 视觉盒在 Control 上；清空钮是 Trigger 的兄弟，塞进去会变成按钮套按钮、且点它会冒泡把浮层打开 -->
+    <XhCascaderControl>
+      <XhCascaderTrigger v-bind="controlAttrs">
+        <XhCascaderValueText :placeholder="placeholder" />
+        <XhCascaderIndicator />
+      </XhCascaderTrigger>
       <XhCascaderClearTrigger v-if="clearable" />
-    </XhCascaderTrigger>
+    </XhCascaderControl>
     <XhCascaderPositioner>
       <XhCascaderContent>
         <XhCascaderColumn

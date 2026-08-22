@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { TreeSelectOption } from '~/types'
-import { XhTreeSelectClearTrigger, XhTreeSelectContent, XhTreeSelectIndicator, XhTreeSelectPositioner, XhTreeSelectRoot, XhTreeSelectTree, XhTreeSelectTrigger, XhTreeSelectValueText } from '@xihan-ui/vue'
+import { XhTreeSelectClearTrigger, XhTreeSelectContent, XhTreeSelectControl, XhTreeSelectIndicator, XhTreeSelectPositioner, XhTreeSelectRoot, XhTreeSelectTree, XhTreeSelectTrigger, XhTreeSelectValueText } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
@@ -63,13 +63,16 @@ function handleChange(next: string[]) {
     :disabled="disabled || loading"
     @update:value="handleChange"
   >
-    <XhTreeSelectTrigger v-bind="controlAttrs">
-      <XhTreeSelectValueText />
+    <!-- 视觉盒在 Control 上；清空钮是 Trigger 的兄弟，塞进去会变成按钮套按钮、且点它会冒泡把浮层打开 -->
+    <XhTreeSelectControl>
+      <XhTreeSelectTrigger v-bind="controlAttrs">
+        <XhTreeSelectValueText />
+        <XhTreeSelectIndicator>
+          <Icon icon="lucide:chevron-down" width="14" height="14" />
+        </XhTreeSelectIndicator>
+      </XhTreeSelectTrigger>
       <XhTreeSelectClearTrigger v-if="clearable && selected.length" />
-      <XhTreeSelectIndicator>
-        <Icon icon="lucide:chevron-down" width="14" height="14" />
-      </XhTreeSelectIndicator>
-    </XhTreeSelectTrigger>
+    </XhTreeSelectControl>
     <XhTreeSelectPositioner>
       <XhTreeSelectContent>
         <XhTreeSelectTree>

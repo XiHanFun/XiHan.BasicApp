@@ -98,7 +98,7 @@ const collection = computed(() => toCollection(props.menuOptions))
 }
 
 /* 只有当前叶子高亮，父级分支不着色 */
-.sidebar-menu :deep([data-scope='side-nav'][data-part='link'][data-selected]) {
+.sidebar-menu :deep([data-scope='side-nav'][data-part='link'][data-current]) {
   background: hsl(var(--primary) / 15%);
   color: hsl(var(--primary));
 }
@@ -116,7 +116,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   transform: scale(1.2);
 }
 
-.sidebar-menu :deep([data-part='link'][data-selected] .sidebar-menu__icon) {
+.sidebar-menu :deep([data-part='link'][data-current] .sidebar-menu__icon) {
   color: hsl(var(--primary));
 }
 
@@ -184,7 +184,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   overflow-wrap: break-word;
 }
 
-.sidebar-menu--collapsed-titled :deep([data-part='link'][data-selected] .sidebar-menu__label) {
+.sidebar-menu--collapsed-titled :deep([data-part='link'][data-current] .sidebar-menu__label) {
   font-weight: 600;
 }
 
