@@ -109,6 +109,7 @@ const emit = defineEmits<{
 const SELECT_COL = '__select__'
 const EXPAND_COL = '__expand__'
 const INDEX_COL = '__index__'
+const ACTION_COL = '__actions__'
 /** 展开列与勾选列的宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
 const PREFIX_COL_W = 48
 
@@ -242,15 +243,25 @@ function declaredWidthOf(column: SchemaColumn<TRow>): number {
 /**
  * 逐列下限。width 只是 flex 基准，容器不够时各列按比例压缩，压到这个值为止。
  * 没写 minWidth 的列（如操作列）以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值。
+ *
+ * 「不吃余量」也写在这里：表头格与表体格由同一个函数出样式，两侧必然一致。
+ * 组件库只给表头格发列号（data-value），按列号写的 CSS 选择器只命中表头，
+ * 表体那一半静默落空，同一列在两个区段就会分到不同的余量、列边界跟着错开。
  */
 function minWidthStyle(column: SchemaColumn<TRow>): Record<string, string> {
-  return { '--xh-table-cell-min-w': `${column.minWidth ?? declaredWidthOf(column)}px` }
+  return {
+    '--xh-table-cell-min-w': `${column.minWidth ?? declaredWidthOf(column)}px`,
+    ...(column.key === ACTION_COL ? { flexGrow: '0' } : {}),
+  }
 }
 
-/** 前缀列（展开/勾选/序号）同样要有自己的下限，否则一并被压到皮肤兜底值 */
+/** 前缀列（展开/勾选/序号）同样要有自己的下限，否则一并被压到皮肤兜底值；它们也不吃余量 */
 function prefixStyle(id: string): Record<string, string> {
   const width = prefixColumns.value.find(c => c.id === id)?.width
-  return width === undefined ? {} : { '--xh-table-cell-min-w': `${width}px` }
+  return {
+    ...(width === undefined ? {} : { '--xh-table-cell-min-w': `${width}px` }),
+    flexGrow: '0',
+  }
 }
 
 /** 本次挂载内拖过列宽：拖过之后各列不再吃容器余量，看到的宽度即落库的宽度 */
@@ -509,17 +520,8 @@ function rowPeekHandlers(row: TRow) {
   min-inline-size: min-content;
 }
 
-/* 前缀列与操作列不吃余量：容器有富余时只让业务列变宽，勾选框与「更多」钮保持原尺寸 */
-.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__expand__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__expand__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__select__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__select__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__index__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__index__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='column-header'][data-value='__actions__']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='cell'][data-value='__actions__']) {
-  flex-grow: 0;
-}
+/* 前缀列与操作列的「不吃余量」改由 minWidthStyle / prefixStyle 写成内联样式，
+   两侧同一个函数出，见脚本区 */
 
 /* 拖过列宽之后所有列都不再吃余量：拖到多少就是多少，与落库的数值一致 */
 .xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='column-header']),

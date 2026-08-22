@@ -360,6 +360,13 @@ function onDragEnd(event: DragEndEvent) {
   flex-shrink: 0;
 }
 
+/* 输入控件自带一道 12rem 的固有最小宽，不收就会顶穿这个格子、
+   盖住右侧的排序与固定两栏，并给列表挤出一条横向滚动条 */
+.xh-set-row__width :deep([data-scope='number-field'][data-part='control']) {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
 /* 排序列：单图标按钮，居中（与表头「排序」列等宽对齐） */
 .xh-set-row__sort {
   width: 40px;
