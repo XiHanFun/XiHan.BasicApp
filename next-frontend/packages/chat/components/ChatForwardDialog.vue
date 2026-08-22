@@ -69,7 +69,7 @@ async function handleForward(conversationId: string) {
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 380px">
       <XhDialogTitle>{{ t('chat.forward.title') }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <XInput
         v-model:value="keyword"
         size="sm"

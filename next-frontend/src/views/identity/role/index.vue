@@ -865,7 +865,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 900px">
         <XhDrawerTitle>{{ t('identity.role.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="detailLoading" class="xh-loading-stage__veil">
             <XhSpinner />
@@ -1238,7 +1238,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
     <XhDrawerRoot v-model:open="permissionVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 760px">
         <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XPermissionGrantPanel
           ref="permPanelRef"
           :items="permCatalog"
@@ -1270,7 +1270,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
     <XhDrawerRoot v-model:open="menuVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 520px">
         <XhDrawerTitle>{{ t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="menuLoading" class="xh-loading-stage__veil">
             <XhSpinner />
@@ -1307,7 +1307,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
     <XhDrawerRoot v-model:open="scopeVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 560px">
         <XhDrawerTitle>{{ t('identity.role.scope_drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="scope-add">
           <XTreeSelect
             v-model:value="scopeSelectedDept"

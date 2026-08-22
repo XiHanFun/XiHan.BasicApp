@@ -440,7 +440,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 560px">
         <XhDrawerTitle>{{ t('openapi.app.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="detailLoading" class="xh-loading-stage__veil">
             <XhSpinner />
@@ -739,7 +739,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
     <XhDrawerRoot v-model:open="secretVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 420px">
         <XhDrawerTitle>{{ t('openapi.app.secret_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <XhFlex v-if="currentSecret" direction="column" gap="md">
           <XhDescriptionsRoot :columns="1" bordered size="sm">
             <XhDescriptionsItem>

@@ -211,7 +211,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="completeVisible">
       <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ completeOutcome === 'approved' ? t('workflow.todo.approve_title') : t('workflow.todo.reject_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFlex direction="column" gap="md">
           <XInput
             v-model:value="completeComment"
@@ -230,7 +230,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="transferVisible">
       <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ t('workflow.todo.transfer_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFormRoot
           validate-on="blur"
           layout="horizontal"
@@ -260,7 +260,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="addSignVisible">
       <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ t('workflow.todo.add_sign_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFormRoot
           validate-on="blur"
           layout="horizontal"

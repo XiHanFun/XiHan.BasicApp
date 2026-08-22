@@ -101,18 +101,16 @@ function onValueChange(next: string[]): void {
     <XhSelectControl>
       <XhSelectTrigger v-bind="controlAttrs">
         <XhSelectValueText />
-        <XhSelectIndicator>▾</XhSelectIndicator>
+        <XhSelectIndicator />
       </XhSelectTrigger>
-      <XhSelectClearTrigger v-if="clearable">
-        ✕
-      </XhSelectClearTrigger>
+      <XhSelectClearTrigger v-if="clearable" />
     </XhSelectControl>
     <XhSelectPositioner>
       <XhSelectContent>
         <XhSelectList>
           <XhSelectItem v-for="node in collection" :key="node.value" :value="node.value">
             <XhSelectItemText>{{ node.label }}</XhSelectItemText>
-            <XhSelectItemIndicator>✓</XhSelectItemIndicator>
+            <XhSelectItemIndicator />
           </XhSelectItem>
         </XhSelectList>
       </XhSelectContent>

@@ -541,7 +541,7 @@ onMounted(() => {
             </div>
           </div>
         </XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
 
         <div v-if="detailLoading" class="modal-loading">
           {{ t('common.statuses.loading') }}

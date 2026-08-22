@@ -139,7 +139,7 @@ function changePage(page: number): void {
   >
     <XhDrawerContent style="--xh-drawer-size: 1080px">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
-      <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+      <XhDrawerCloseTrigger />
       <XhFlex direction="column" gap="md">
         <XInput
           v-model:value="keyword"

@@ -345,7 +345,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 820px">
         <XhDrawerTitle>{{ t('workflow.instance.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
           {{ t('workflow.instance.loading') }}
         </div>
@@ -489,7 +489,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="reasonVisible">
       <XhDialogContent style="--xh-dialog-max-w: 480px">
         <XhDialogTitle>{{ reasonTitle }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFlex direction="column" gap="md">
           <XInput
             v-model:value="reasonText"
@@ -508,7 +508,7 @@ function onAction(payload: SchemaActionPayload) {
     <XhDialogRoot v-model:open="signalVisible">
       <XhDialogContent style="--xh-dialog-max-w: 520px">
         <XhDialogTitle>{{ t('workflow.instance.signal_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <XhFormRoot
           validate-on="blur"
           layout="horizontal"

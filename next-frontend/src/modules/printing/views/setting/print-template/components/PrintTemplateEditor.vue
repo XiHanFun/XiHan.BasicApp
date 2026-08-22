@@ -163,9 +163,7 @@ defineExpose({ confirmDiscard })
           </XhBadge>
         </div>
       </XhDialogTitle>
-      <XhDialogCloseTrigger v-if="!saveLoading && !directLoading">
-        ✕
-      </XhDialogCloseTrigger>
+      <XhDialogCloseTrigger v-if="!saveLoading && !directLoading" />
 
       <div class="editor-layout">
         <DesignerCanvas
@@ -246,7 +244,7 @@ defineExpose({ confirmDiscard })
         @update:open="handleMetadataVisible"
       >
         <XhDrawerContent style="--xh-drawer-size: min(444px, 100vw); --xh-drawer-px: 0">
-          <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+          <XhDrawerCloseTrigger />
           <MetadataForm
             :key="metadataSessionKey"
             v-model="metadataDraft"

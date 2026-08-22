@@ -675,7 +675,7 @@ async function handleSubmit() {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 640px">
         <XhDrawerTitle>{{ t('setting.job.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="detailLoading" class="xh-loading-stage__veil">
             <XhSpinner />
@@ -865,7 +865,7 @@ async function handleSubmit() {
     <XhDrawerRoot v-model:open="logVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 860px">
         <XhDrawerTitle>{{ t('setting.job.log_title', { name: logTask?.taskName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-task-log-toolbar">
           <XSelect
             v-model:value="logStatusFilter"
@@ -914,7 +914,7 @@ async function handleSubmit() {
     <XhDialogRoot v-model:open="logDetailVisible">
       <XhDialogContent style="--xh-dialog-max-w: 760px">
         <XhDialogTitle>{{ t('setting.job.log_detail_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="logDetailLoading" class="xh-loading-stage__veil">
             <XhSpinner />

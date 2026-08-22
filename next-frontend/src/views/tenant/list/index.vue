@@ -857,7 +857,7 @@ async function handleSubmit() {
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 800px">
         <XhDrawerTitle>{{ t('tenant.list.detail_title') }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="detailLoading" class="xh-loading-stage__veil">
             <XhSpinner />

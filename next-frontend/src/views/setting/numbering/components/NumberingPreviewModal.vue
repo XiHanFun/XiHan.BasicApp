@@ -233,7 +233,7 @@ async function executePreview(): Promise<void> {
   >
     <XhDialogContent style="--xh-dialog-max-w: 1040px">
       <XhDialogTitle>{{ title }}</XhDialogTitle>
-      <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+      <XhDialogCloseTrigger />
       <div class="grid min-h-[480px] grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
         <XhCardRoot variant="ghost">
           <XhCardBody>

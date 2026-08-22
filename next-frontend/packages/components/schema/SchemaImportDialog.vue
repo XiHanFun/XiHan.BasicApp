@@ -159,9 +159,7 @@ function handleClose(): void {
   >
     <XhDialogContent class="xh-import-modal" style="--xh-dialog-max-w: 720px">
       <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
-      <XhDialogCloseTrigger v-if="phase !== 'importing'">
-        ✕
-      </XhDialogCloseTrigger>
+      <XhDialogCloseTrigger v-if="phase !== 'importing'" />
 
       <div class="xh-import-body">
         <!-- 模板说明 + 下载 -->

@@ -106,7 +106,7 @@ function formatValue(field: LogDetailField) {
   <XhDrawerRoot v-model:open="visible" side="right">
     <XhDrawerContent :style="{ '--xh-drawer-size': `${width}px` }">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
-      <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+      <XhDrawerCloseTrigger />
       <div class="xh-loading-stage">
         <div v-if="loading" class="xh-loading-stage__veil">
           <XhSpinner />

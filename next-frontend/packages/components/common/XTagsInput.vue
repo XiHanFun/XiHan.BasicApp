@@ -45,7 +45,7 @@ const value = defineModel<string[]>('value', { default: () => [] })
       <XhTagsInputItem v-for="item in items" :key="item" :value="item">
         <XhTagsInputItemPreview>
           <XhTagsInputItemText>{{ item }}</XhTagsInputItemText>
-          <XhTagsInputItemDeleteTrigger>✕</XhTagsInputItemDeleteTrigger>
+          <XhTagsInputItemDeleteTrigger />
         </XhTagsInputItemPreview>
       </XhTagsInputItem>
       <XhTagsInputInput :placeholder="placeholder" v-bind="controlAttrs" />

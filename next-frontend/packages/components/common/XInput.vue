@@ -121,9 +121,7 @@ defineExpose({ el, focus, blur })
       >
         <Icon :icon="revealed ? 'lucide:eye-off' : 'lucide:eye'" width="15" />
       </button>
-      <XhTextFieldClearTrigger v-else-if="clearable">
-        ✕
-      </XhTextFieldClearTrigger>
+      <XhTextFieldClearTrigger v-else-if="clearable" />
     </div>
   </XhTextFieldRoot>
 </template>

@@ -16,6 +16,7 @@ import {
 } from '@xihan-ui/vue'
 import { ref, watch } from 'vue'
 import { VNodeRender } from '~/components'
+import { Icon } from '~/iconify'
 
 /**
  * 标签页右键菜单。
@@ -78,7 +79,7 @@ watch(
               <template v-else>
                 {{ option.label }}
               </template>
-              <span aria-hidden="true" class="tabbar-context-arrow">›</span>
+              <Icon class="tabbar-context-arrow" icon="lucide:chevron-right" width="14" height="14" />
             </XhContextMenuSubTrigger>
             <XhMenuPositioner>
               <XhMenuContent>

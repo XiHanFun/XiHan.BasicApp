@@ -331,7 +331,7 @@ function toggleAlignmentTools(): void {
     <XhDialogRoot v-model:open="customPaperVisible">
       <XhDialogContent class="custom-paper-modal" style="--xh-dialog-max-w: 420px">
         <XhDialogTitle>{{ t('setting.print_template.custom_paper') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <div class="paper-size-fields">
           <label class="paper-size-field">
             <span>{{ t('setting.print_template.paper_width') }}</span>

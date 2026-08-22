@@ -63,7 +63,7 @@ function onSizeChange(value: string[]): void {
       :size="compact ? 'sm' : 'md'"
       @update:page="(value: number) => emit('update:page', value)"
     >
-      <XhPaginationPrevTrigger>‹</XhPaginationPrevTrigger>
+      <XhPaginationPrevTrigger />
       <template v-for="(item, index) in pages" :key="`${item}-${index}`">
         <XhPaginationItem v-if="item !== 'ellipsis'" :value="item">
           {{ item }}
@@ -72,7 +72,7 @@ function onSizeChange(value: string[]): void {
           …
         </XhPaginationEllipsis>
       </template>
-      <XhPaginationNextTrigger>›</XhPaginationNextTrigger>
+      <XhPaginationNextTrigger />
     </XhPaginationRoot>
 
     <XhSelectRoot

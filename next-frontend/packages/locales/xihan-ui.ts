@@ -44,7 +44,7 @@ const zhCN: XhTranslationOverrides = {
   'file-upload': {
     dropzone: '拖拽文件到此处，或点击选择',
     deleteFile: file => `移除 ${file.name}`,
-    clearFiles: '清空已选文件',
+    clearTrigger: '清空已选文件',
   },
   'float-button': { trigger: '悬浮操作' },
   'image-viewer': {
@@ -73,7 +73,7 @@ const zhCN: XhTranslationOverrides = {
   },
   'pin-input': { input: (index, length) => `第 ${index} 位，共 ${length} 位` },
   'popover': { close: '关闭' },
-  'select': { clear: '清空', removeTag: '移除', content: '选项列表' },
+  'select': { clearTrigger: '清空', removeTag: '移除', content: '选项列表' },
   'side-nav': { root: '侧边导航' },
   'spinner': { label: '加载中' },
   'tags-input': {

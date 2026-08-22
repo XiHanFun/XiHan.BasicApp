@@ -1302,7 +1302,7 @@ async function confirmDelete() {
             </div>
           </div>
         </XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
 
         <div v-if="detailLoading" class="modal-loading">
           {{ t('common.statuses.loading') }}
@@ -1389,7 +1389,7 @@ async function confirmDelete() {
     <XhDialogRoot v-model:open="showDelModal" :close-on-interact-outside="false">
       <XhDialogContent style="--xh-dialog-max-w: 420px">
         <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger>✕</XhDialogCloseTrigger>
+        <XhDialogCloseTrigger />
         <div class="del-body">
           <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
           <div>
@@ -1421,7 +1421,7 @@ async function confirmDelete() {
     <XhDrawerRoot v-model:open="grantVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
         <XhDrawerTitle>{{ t('identity.user.grant_title', { name: grantUser?.userName ?? '' }) }}</XhDrawerTitle>
-        <XhDrawerCloseTrigger>✕</XhDrawerCloseTrigger>
+        <XhDrawerCloseTrigger />
         <div class="xh-loading-stage">
           <div v-if="grantLoading" class="xh-loading-stage__veil">
             <XhSpinner />
