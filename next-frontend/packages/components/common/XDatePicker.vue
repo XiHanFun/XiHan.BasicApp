@@ -24,6 +24,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
 
 /**
@@ -147,9 +148,13 @@ function onValueChange(next: string[]): void {
         <XhDatePickerPresets v-if="presets?.length" />
         <XhDatePickerCalendar v-for="panel in panels" :key="panel.index">
           <XhDatePickerHeader>
-            <XhDatePickerPrevTrigger />
+            <XhDatePickerPrevTrigger>
+              <Icon icon="lucide:chevron-left" width="14" height="14" />
+            </XhDatePickerPrevTrigger>
             <XhDatePickerHeading />
-            <XhDatePickerNextTrigger />
+            <XhDatePickerNextTrigger>
+              <Icon icon="lucide:chevron-right" width="14" height="14" />
+            </XhDatePickerNextTrigger>
           </XhDatePickerHeader>
           <XhDatePickerGrid>
             <XhDatePickerGridHead>

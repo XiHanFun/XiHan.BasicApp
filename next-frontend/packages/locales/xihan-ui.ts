@@ -20,7 +20,7 @@ const zhCN: XhTranslationOverrides = {
     indicator: page => `第 ${page} 张`,
     item: (index, count) => `第 ${index} 张，共 ${count} 张`,
   },
-  'cascader': { empty: '暂无数据', noMatch: '无匹配项', column: '选项列' },
+  'cascader': { empty: '暂无数据', noMatch: '无匹配项', column: '选项列', clearTrigger: '清空' },
   'color-picker': {
     area: '色彩区域',
     areaValueText: (saturation, brightness) => `饱和度 ${saturation}%，明度 ${brightness}%`,
@@ -31,9 +31,10 @@ const zhCN: XhTranslationOverrides = {
     swatchGroup: '预设色卡',
     eyeDropperTrigger: '取色器',
   },
+  'combobox': { clearTrigger: '清空' },
   'composer': { send: '发送', stop: '停止', input: '输入消息' },
   'context-menu': { content: '右键菜单' },
-  'date-picker': { startDate: '开始日期', endDate: '结束日期' },
+  'date-picker': { startDate: '开始日期', endDate: '结束日期', presets: '快捷选项', clearTrigger: '清空' },
   'dialog': { close: '关闭' },
   'drawer': { close: '关闭' },
   'dynamic-input': {
@@ -81,11 +82,12 @@ const zhCN: XhTranslationOverrides = {
     editTagInput: value => `编辑 ${value}`,
     clearTrigger: '清空全部',
   },
+  'text-field': { clearTrigger: '清空' },
   'thread': { scrollToBottom: '滚到底部', log: '消息列表' },
   'toast': { close: '关闭' },
   'toaster': { region: '通知' },
   'tour': { close: '结束引导', progress: (step, count) => `第 ${step} 步，共 ${count} 步` },
-  'tree-select': { tree: '树形选项' },
+  'tree-select': { tree: '树形选项', clearTrigger: '清空' },
 }
 
 /** en-US 不覆盖：组件内建文案本身就是英文。 */
