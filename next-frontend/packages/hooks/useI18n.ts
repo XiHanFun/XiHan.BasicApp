@@ -1,10 +1,11 @@
 import type { XhConfig } from '@xihan-ui/vue'
 import { computed } from 'vue'
+import { getScrollRoot } from '~/composables/useScrollRoot'
 import { xhTranslations } from '~/locales/xihan-ui'
 import { useAppStore } from '~/stores'
 
 /**
- * 喂给 provideXhConfig 的全局配置：语言标记与组件内建文案。
+ * 喂给 provideXhConfig 的全局配置：语言标记、组件内建文案与滚动源。
  *
  * 返回的是 computed，切语言时组件库跟着重渲——日期系组件按 locale 排星期、
  * 其余组件换掉 aria-label 那几句。App 根组件调一次即可。
@@ -15,6 +16,8 @@ export function useXhUiConfig() {
   return computed<XhConfig>(() => ({
     locale: appStore.locale,
     translations: xhTranslations[appStore.locale] ?? xhTranslations['zh-CN'],
+    // 滚动搬进了内容容器，不指过去模态浮层背后照样能滚
+    scrollRoot: getScrollRoot,
   }))
 }
 

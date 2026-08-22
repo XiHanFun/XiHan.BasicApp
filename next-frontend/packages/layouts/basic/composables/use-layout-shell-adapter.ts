@@ -3,6 +3,7 @@ import type { HeaderMode } from '../contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { MOBILE_BREAKPOINT } from '~/composables/useIsMobile'
+import { setScrollRoot } from '~/composables/useScrollRoot'
 import { useContentMaximize } from '~/hooks'
 import { useAppStore, useLayoutBridgeStore } from '~/stores'
 import { useEffectiveLayoutMode } from './use-effective-layout-mode'
@@ -406,6 +407,8 @@ export function useLayoutShellAdapter() {
     contentScrollEl.value?.removeEventListener('scroll', handleScroll)
     contentScrollEl.value = next
     next?.addEventListener('scroll', handleScroll, { passive: true })
+    // 组件库的滚动锁默认探 body，本应用的滚动在容器里，得把它指过去
+    setScrollRoot(next)
     handleScroll()
   }
 
@@ -482,6 +485,7 @@ export function useLayoutShellAdapter() {
   onBeforeUnmount(() => {
     window.removeEventListener('resize', updateViewportWidth)
     contentScrollEl.value?.removeEventListener('scroll', handleScroll)
+    setScrollRoot(null)
     window.removeEventListener('mousemove', handleMouseMove)
   })
 
