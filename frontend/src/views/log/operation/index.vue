@@ -2,12 +2,13 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { OperationLogDetailDto, OperationLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { operationLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -16,7 +17,6 @@ import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 defineOptions({ name: 'LogOperationPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 const router = useRouter()
 
 const detailVisible = ref(false)
@@ -33,7 +33,7 @@ function resultTagType(result: OperationExecuteResult) {
   switch (result) {
     case OperationExecuteResult.Success: return 'success'
     case OperationExecuteResult.PartialSuccess: return 'warning'
-    default: return 'error'
+    default: return 'danger'
   }
 }
 
@@ -94,11 +94,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.operation.result_placeholder'),
     width: 90,
     order: 26,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: resultTagType((row as unknown as OperationLogListItemDto).result) },
-      () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: resultTagType((row as unknown as OperationLogListItemDto).result) }, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result)),
   },
   { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },
@@ -146,7 +142,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:operation-log:export',
   pageName: t('log.operation.page_name'),
   rowKey: 'basicId',
-  scrollX: 2200,
   fields: decorateTraceFields(fields.value, router, { timeField: 'operationTime', ipKey: 'operationIp' }),
   resource: {
     page: params => logManagementApi.operation.page(buildOperationQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -167,7 +162,7 @@ function onAction(payload: SchemaActionPayload) {
   }
   else if (payload.key === 'trace' && row) {
     if (!gotoTrace(router, row, row.operationTime)) {
-      message.warning(t('log.trace.value_required'))
+      toast.warning(t('log.trace.value_required'))
     }
   }
 }
@@ -180,7 +175,7 @@ async function handleDetail(row: OperationLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.operation.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.operation.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

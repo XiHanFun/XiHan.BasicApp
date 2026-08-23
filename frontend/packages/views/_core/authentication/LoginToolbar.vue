@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NIcon, NPopover } from 'naive-ui'
+import { XhButton, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LayoutAlignSwitcher from '~/components/common/LayoutAlignSwitcher.vue'
@@ -52,49 +52,39 @@ function onAlignChange(align: LoginFormAlign) {
 <template>
   <div class="login-toolbar">
     <!-- 颜色 -->
-    <NPopover
-      v-model:show="showColorPicker"
-      trigger="click"
-      placement="bottom-end"
-      :show-arrow="false"
-    >
-      <template #trigger>
-        <NButton quaternary circle size="small" class="toolbar-btn">
-          <template #icon>
-            <NIcon size="16">
-              <Icon icon="lucide:palette" />
-            </NIcon>
-          </template>
-        </NButton>
-      </template>
-      <div class="color-grid">
-        <button
-          v-for="preset in colorPresets"
-          :key="preset.color"
-          type="button"
-          class="color-dot"
-          :class="{ 'is-active': appStore.themeColor === preset.color }"
-          :style="{ backgroundColor: preset.color }"
-          :title="preset.label"
-          @click="
-            () => {
-              setThemeColor(preset.color)
-              showColorPicker = false
-            }
-          "
-        />
-      </div>
-    </NPopover>
+    <XhPopoverRoot v-model:open="showColorPicker" placement="bottom-end">
+      <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
+      <XhPopoverTrigger class="toolbar-btn xh-icon-btn">
+        <Icon width="16" height="16" icon="lucide:palette" />
+      </XhPopoverTrigger>
+      <XhPopoverPositioner>
+        <XhPopoverContent>
+          <div class="color-grid">
+            <button
+              v-for="preset in colorPresets"
+              :key="preset.color"
+              type="button"
+              class="color-dot"
+              :class="{ 'is-active': appStore.themeColor === preset.color }"
+              :style="{ backgroundColor: preset.color }"
+              :title="preset.label"
+              @click="
+                () => {
+                  setThemeColor(preset.color)
+                  showColorPicker = false
+                }
+              "
+            />
+          </div>
+        </XhPopoverContent>
+      </XhPopoverPositioner>
+    </XhPopoverRoot>
 
     <!-- 布局位置（封装组件，当前项高亮） -->
     <LayoutAlignSwitcher :value="currentAlign" placement="bottom-end" @change="onAlignChange">
-      <NButton quaternary circle size="small" class="toolbar-btn">
-        <template #icon>
-          <NIcon size="16">
-            <Icon :icon="getLayoutIcon(currentAlign)" />
-          </NIcon>
-        </template>
-      </NButton>
+      <XhButton variant="ghost" size="sm" class="toolbar-btn xh-icon-btn">
+        <Icon width="16" height="16" :icon="getLayoutIcon(currentAlign)" />
+      </XhButton>
     </LayoutAlignSwitcher>
 
     <!-- 语言 -->
@@ -104,30 +94,22 @@ function onAlignChange(align: LoginFormAlign) {
       apply
       placement="bottom-end"
     >
-      <NButton quaternary circle size="small" class="toolbar-btn">
-        <template #icon>
-          <NIcon size="16">
-            <Icon icon="lucide:languages" />
-          </NIcon>
-        </template>
-      </NButton>
+      <XhButton variant="ghost" size="sm" class="toolbar-btn xh-icon-btn">
+        <Icon width="16" height="16" icon="lucide:languages" />
+      </XhButton>
     </LocaleSwitcher>
 
     <!-- 主题 -->
-    <NButton
+    <XhButton
       v-if="appStore.widgetThemeToggle"
-      quaternary
-      circle
-      size="small"
+      variant="ghost"
+      data-circle
+      size="sm"
       class="toolbar-btn"
       @click="(e: MouseEvent) => toggleThemeWithTransition(e)"
     >
-      <template #icon>
-        <NIcon size="16">
-          <Icon :icon="isDark ? 'lucide:sun' : 'lucide:moon'" />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon width="16" height="16" :icon="isDark ? 'lucide:sun' : 'lucide:moon'" />
+    </XhButton>
   </div>
 </template>
 

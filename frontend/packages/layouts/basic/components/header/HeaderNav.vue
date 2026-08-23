@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { LayoutBreadcrumbItem } from '../../contracts'
 import type { useAppStore } from '~/stores'
-import { NBreadcrumb, NBreadcrumbItem, NDropdown } from 'naive-ui'
+import { XhBreadcrumbItem, XhBreadcrumbLink, XhBreadcrumbList, XhBreadcrumbRoot, XhBreadcrumbSeparator } from '@xihan-ui/vue'
 import { computed } from 'vue'
+import { XDropdown } from '~/components'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'HeaderNav' })
@@ -48,73 +49,87 @@ function isLast(isHome: boolean, index?: number): boolean {
 </script>
 
 <template>
-  <NBreadcrumb
+  <!-- 分隔符在组件库里是独立部件，摆在两项之间；旧版靠每项的 #separator 插槽给，语义相同 -->
+  <XhBreadcrumbRoot
     v-if="shouldShowBreadcrumb"
     class="flex items-center"
     :class="appStore.breadcrumbStyle === 'background' ? 'rounded-md bg-muted px-2 py-1' : ''"
   >
-    <NBreadcrumbItem v-if="appStore.breadcrumbShowHome">
-      <template v-if="!isLast(true)" #separator>
-        <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
-      </template>
-      <div
-        class="crumb-item"
-        :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
-        @click="!isLast(true) && emit('homeClick')"
-      >
-        <Icon
-          v-if="appStore.breadcrumbShowIcon"
-          icon="lucide:house"
-          width="14"
-          height="14"
-          class="crumb-icon"
-        />
-        <span>Home</span>
-      </div>
-    </NBreadcrumbItem>
-
-    <NBreadcrumbItem v-for="(item, index) in breadcrumbs" :key="item.path">
-      <template v-if="!isLast(false, index)" #separator>
-        <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
-      </template>
-
-      <NDropdown
-        v-if="item.siblings.length > 1"
-        :options="item.siblings"
-        @select="(key: string) => emit('breadcrumbSelect', String(key))"
-      >
-        <div
+    <XhBreadcrumbList class="flex items-center">
+      <XhBreadcrumbItem v-if="appStore.breadcrumbShowHome">
+        <XhBreadcrumbLink
           class="crumb-item"
-          :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+          :class="isLast(true) ? 'crumb-item--active' : 'crumb-item--link'"
+          :current="isLast(true)"
+          :tabindex="isLast(true) ? undefined : 0"
+          @click="!isLast(true) && emit('homeClick')"
+          @keydown.enter="!isLast(true) && emit('homeClick')"
         >
           <Icon
-            v-if="appStore.breadcrumbShowIcon && item.icon"
-            :icon="resolveIcon(item.icon!)"
+            v-if="appStore.breadcrumbShowIcon"
+            icon="lucide:house"
             width="14"
             height="14"
             class="crumb-icon"
           />
-          <span>{{ item.title }}</span>
-        </div>
-      </NDropdown>
+          <span>Home</span>
+        </XhBreadcrumbLink>
+      </XhBreadcrumbItem>
+      <XhBreadcrumbSeparator v-if="appStore.breadcrumbShowHome && !isLast(true)">
+        <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
+      </XhBreadcrumbSeparator>
 
-      <div
-        v-else
-        class="crumb-item"
-        :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
-        @click="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
-      >
-        <Icon
-          v-if="appStore.breadcrumbShowIcon && item.icon"
-          :icon="resolveIcon(item.icon!)"
-          width="14"
-          height="14"
-          class="crumb-icon"
-        />
-        <span>{{ item.title }}</span>
-      </div>
-    </NBreadcrumbItem>
-  </NBreadcrumb>
+      <template v-for="(item, index) in breadcrumbs" :key="item.path">
+        <XhBreadcrumbItem>
+          <!-- 有同级去处：点它出下拉，可横向跳到兄弟节点 -->
+          <XDropdown
+            v-if="item.siblings.length > 1"
+            :options="item.siblings"
+            placement="bottom-start"
+            @select="(key: string) => emit('breadcrumbSelect', key)"
+          >
+            <XhBreadcrumbLink
+              class="crumb-item"
+              :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+              :current="isLast(false, index)"
+              :tabindex="isLast(false, index) ? undefined : 0"
+            >
+              <Icon
+                v-if="appStore.breadcrumbShowIcon && item.icon"
+                :icon="resolveIcon(item.icon!)"
+                width="14"
+                height="14"
+                class="crumb-icon"
+              />
+              <span>{{ item.title }}</span>
+            </XhBreadcrumbLink>
+          </XDropdown>
+
+          <XhBreadcrumbLink
+            v-else
+            class="crumb-item"
+            :class="isLast(false, index) ? 'crumb-item--active' : 'crumb-item--link'"
+            :current="isLast(false, index)"
+            :tabindex="isLast(false, index) ? undefined : 0"
+            @click="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
+            @keydown.enter="!isLast(false, index) && emit('breadcrumbSelect', item.path)"
+          >
+            <Icon
+              v-if="appStore.breadcrumbShowIcon && item.icon"
+              :icon="resolveIcon(item.icon!)"
+              width="14"
+              height="14"
+              class="crumb-icon"
+            />
+            <span>{{ item.title }}</span>
+          </XhBreadcrumbLink>
+        </XhBreadcrumbItem>
+        <XhBreadcrumbSeparator v-if="!isLast(false, index)">
+          <Icon icon="lucide:chevron-right" width="12" height="12" class="crumb-sep" />
+        </XhBreadcrumbSeparator>
+      </template>
+    </XhBreadcrumbList>
+  </XhBreadcrumbRoot>
 </template>
 
 <style scoped>

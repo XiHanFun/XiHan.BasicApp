@@ -1,41 +1,26 @@
 <script setup lang="ts">
-import type { DataTableColumns, TreeSelectOption } from 'naive-ui'
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
-import type { PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import {
-  NButton,
-  NDataTable,
-  NDescriptions,
-  NDescriptionsItem,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace,
-  NSwitch,
-  NTabPane,
-  NTabs,
-  NTag,
-  NTreeSelect,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, ref } from 'vue'
+import type { PageSchema, SchemaActionPayload, SchemaQueryParams, XDataTableColumn } from '~/components'
+import type { TreeSelectOption } from '~/types'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   EnableStatus,
   menuManagementApi,
   MenuType,
 } from '@/api'
-import { Icon, IconPicker, SchemaPage, XEditModal } from '~/components'
+import { Icon, IconPicker, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
+import { toast } from '~/composables'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
 
 const { t } = useI18n()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const userStore = useUserStore()
 
 /**
@@ -55,8 +40,6 @@ interface MenuTreeItem extends MenuListItemDto {
   children?: MenuTreeItem[]
 }
 
-const message = useMessage()
-
 const statusOptions = computed(() => [
   { label: t('common.actions.enable'), value: EnableStatus.Enabled },
   { label: t('common.actions.disable'), value: EnableStatus.Disabled },
@@ -73,7 +56,7 @@ function menuTypeTagType(menuType: MenuType) {
   if (menuType === MenuType.Directory) {
     return 'warning'
   }
-  return menuType === MenuType.Menu ? 'info' : 'default'
+  return menuType === MenuType.Menu ? 'info' : 'neutral'
 }
 
 const badgeTypeOptions = computed(() => [
@@ -85,7 +68,18 @@ const badgeTypeOptions = computed(() => [
   { label: t('setting.menu.badge_error'), value: 'error' },
 ])
 
+/** 菜单徽标类型：存库取值，不随组件库词汇变动 */
 type BadgeTagType = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
+
+/** 存库取值 → 组件库语气 */
+const BADGE_TONE: Record<BadgeTagType, 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'danger'> = {
+  default: 'neutral',
+  primary: 'brand',
+  info: 'info',
+  success: 'success',
+  warning: 'warning',
+  error: 'danger',
+}
 
 const badgeDotColorMap: Record<string, string> = {
   default: '#909399',
@@ -96,15 +90,16 @@ const badgeDotColorMap: Record<string, string> = {
   error: '#d03050',
 }
 
-function badgeTagType(value?: string | null): BadgeTagType {
-  return (value && badgeTypeOptions.value.some(o => o.value === value) ? value : 'default') as BadgeTagType
+function badgeTone(value?: string | null) {
+  const stored = (value && badgeTypeOptions.value.some(o => o.value === value) ? value : 'default') as BadgeTagType
+  return BADGE_TONE[stored]
 }
 
 function badgeDotColor(value?: string | null) {
   return (value && badgeDotColorMap[value]) || badgeDotColorMap.default
 }
 
-// 上级菜单树（NTreeSelect 选项来源，独立 ref，增删改后与表格一起 reload）
+// 上级菜单树（树选择器的选项来源，独立 ref，增删改后与表格一起 reload）
 const treeNodes = ref<MenuTreeNodeDto[]>([])
 
 const detailVisible = ref(false)
@@ -172,10 +167,10 @@ function createDefaultForm(): MenuFormModel {
   }
 }
 
-// --- 上级菜单 NTreeSelect（key-field=key / label-field=label） ---
+// --- 上级菜单树选择器 ---
 function buildTreeSelectOptions(nodes: MenuTreeNodeDto[]): TreeSelectOption[] {
   return nodes.map(node => ({
-    key: node.basicId,
+    value: node.basicId,
     label: t('setting.menu.tree_label', { name: node.menuName, path: node.path }),
     children: node.children?.length ? buildTreeSelectOptions(node.children) : undefined,
   }))
@@ -222,7 +217,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:menu:delete',
   statusPermission: 'saas:menu:status',
   rowKey: 'basicId',
-  scrollX: 2000,
   tree: { childrenKey: 'children', defaultExpandAll: false },
   resource: {
     tree: (params: SchemaQueryParams) => {
@@ -274,11 +268,7 @@ const schema = computed<PageSchema>(() => ({
       order: 2,
       render: (row) => {
         const menuType = (row as unknown as MenuListItemDto).menuType
-        return h(
-          NTag,
-          { size: 'small', round: true, bordered: false, type: menuTypeTagType(menuType) },
-          () => getOptionLabel(menuTypeOptions.value, menuType),
-        )
+        return h(XhBadge, { variant: 'subtle', size: 'sm', tone: menuTypeTagType(menuType) }, () => getOptionLabel(menuTypeOptions.value, menuType))
       },
     },
     {
@@ -325,7 +315,7 @@ const schema = computed<PageSchema>(() => ({
           })
         }
         if (item.badge) {
-          return h(NTag, { size: 'small', round: true, bordered: false, type: badgeTagType(item.badgeType) }, () => item.badge)
+          return h(XhBadge, { variant: 'subtle', size: 'sm', tone: badgeTone(item.badgeType) }, () => item.badge)
         }
         return '-'
       },
@@ -337,7 +327,7 @@ const schema = computed<PageSchema>(() => ({
       width: 80,
       order: 6,
       render: row =>
-        h(NTag, { size: 'small', round: true, type: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'default' }, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no'))),
+        h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'neutral' }, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no'))),
     },
     {
       key: 'status',
@@ -350,7 +340,7 @@ const schema = computed<PageSchema>(() => ({
       width: 90,
       order: 7,
       render: row =>
-        h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusOptions.value, (row as unknown as MenuListItemDto).status)),
+        h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusOptions.value, (row as unknown as MenuListItemDto).status)),
     },
     {
       key: 'sort',
@@ -443,7 +433,7 @@ async function openEdit(row: MenuListItemDto) {
     menuForm.value = buildFormModel(detail ?? row)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
+    toast.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
     menuForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -457,11 +447,11 @@ async function openDetail(row: MenuListItemDto) {
   try {
     currentDetail.value = await menuManagementApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.warning(t('setting.menu.detail_not_found'))
+      toast.warning(t('setting.menu.detail_not_found'))
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
+    toast.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -472,50 +462,50 @@ async function toggleStatus(row: MenuListItemDto) {
   const next = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
     await menuManagementApi.updateStatus({ basicId: row.basicId, status: next })
-    message.success(t('setting.menu.status_update_success'))
+    toast.success(t('setting.menu.status_update_success'))
     schemaPageRef.value?.reload()
     void loadTree()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.menu.status_update_failed'))
+    toast.error((error as Error)?.message || t('setting.menu.status_update_failed'))
   }
 }
 
 async function removeRow(row: MenuListItemDto) {
   try {
     await menuManagementApi.delete(row.basicId)
-    message.success(t('common.messages.delete_success'))
+    toast.success(t('common.messages.delete_success'))
     schemaPageRef.value?.reload()
     void loadTree()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.delete_failed'))
+    toast.error((error as Error)?.message || t('common.messages.delete_failed'))
   }
 }
 
 function validateForm() {
   const form = menuForm.value
   if (!form.menuName.trim()) {
-    message.warning(t('setting.menu.validate_menu_name'))
+    toast.warning(t('setting.menu.validate_menu_name'))
     return false
   }
   if (!form.basicId && !form.menuCode.trim()) {
-    message.warning(t('setting.menu.validate_menu_code'))
+    toast.warning(t('setting.menu.validate_menu_code'))
     return false
   }
   // 按钮无路由，目录/菜单需要路由路径
   if (form.menuType !== MenuType.Button && !form.path.trim()) {
-    message.warning(t('setting.menu.validate_path'))
+    toast.warning(t('setting.menu.validate_path'))
     return false
   }
   // 非外链菜单需要组件路径（与后端校验一致）
   if (form.menuType === MenuType.Menu && !form.isExternal && !form.component?.trim()) {
-    message.warning(t('setting.menu.validate_component'))
+    toast.warning(t('setting.menu.validate_component'))
     return false
   }
   // 外链菜单需要外链地址
   if (form.isExternal && !form.externalUrl?.trim()) {
-    message.warning(t('setting.menu.validate_external_url'))
+    toast.warning(t('setting.menu.validate_external_url'))
     return false
   }
   return true
@@ -585,13 +575,13 @@ async function handleSubmit() {
       await menuManagementApi.create(createInput)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     schemaPageRef.value?.reload()
     void loadTree()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -599,25 +589,21 @@ async function handleSubmit() {
 }
 
 // 详情弹窗子菜单（从菜单树定位当前节点的 children 展示）
-const childMenuColumns = computed<DataTableColumns<MenuTreeNodeDto>>(() => [
-  { title: t('setting.menu.child_menu_name'), key: 'menuName', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: t('setting.menu.child_code'), key: 'menuCode', width: 110, ellipsis: { tooltip: true } },
+const childMenuColumns = computed<XDataTableColumn<MenuTreeNodeDto>[]>(() => [
+  { title: t('setting.menu.child_menu_name'), key: 'menuName', minWidth: 120, ellipsis: true },
+  { title: t('setting.menu.child_code'), key: 'menuCode', width: 110, ellipsis: true },
   {
     title: t('setting.menu.child_type'),
     key: 'menuType',
     width: 80,
     render: row =>
-      h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: menuTypeTagType(row.menuType) },
-        () => getOptionLabel(menuTypeOptions.value, row.menuType),
-      ),
+      h(XhBadge, { variant: 'subtle', size: 'sm', tone: menuTypeTagType(row.menuType) }, () => getOptionLabel(menuTypeOptions.value, row.menuType)),
   },
   {
     title: t('setting.menu.child_path'),
     key: 'path',
     minWidth: 120,
-    ellipsis: { tooltip: true },
+    ellipsis: true,
     render: row => formatNullable(row.path),
   },
 ])
@@ -650,223 +636,408 @@ onMounted(() => {
   <div class="flex overflow-hidden flex-col h-full">
     <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction" />
 
-    <NModal
-      v-model:show="detailVisible"
-      class="xh-mgmt-detail-modal"
-      preset="card"
-      :bordered="false"
-      :mask-closable="true"
-      style="width: 720px; max-width: calc(100vw - 32px);"
-    >
-      <template v-if="currentDetail" #header>
-        <div class="det-hd-entity">
-          <div class="det-hd-ico">
-            <Icon icon="tabler:menu-2" :size="22" />
-          </div>
-          <div class="min-w-0">
-            <div class="det-hd-name">
-              {{ currentDetail.menuName }}
+    <XhDialogRoot v-model:open="detailVisible">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
+        <XhDialogTitle v-if="currentDetail">
+          <div class="det-hd-entity">
+            <div class="det-hd-ico">
+              <Icon icon="tabler:menu-2" :size="22" />
             </div>
-            <div class="det-hd-sub">
-              {{ currentDetail.menuCode }}
+            <div class="min-w-0">
+              <div class="det-hd-name">
+                {{ currentDetail.menuName }}
+              </div>
+              <div class="det-hd-sub">
+                {{ currentDetail.menuCode }}
+              </div>
             </div>
           </div>
+        </XhDialogTitle>
+        <XhDialogCloseTrigger />
+
+        <div v-if="detailLoading" class="modal-loading">
+          {{ t('common.statuses.loading') }}
         </div>
-      </template>
-
-      <div v-if="detailLoading" class="modal-loading">
-        {{ t('common.statuses.loading') }}
-      </div>
-      <NTabs v-else-if="currentDetail" type="line" animated size="small">
-        <NTabPane name="overview" :tab="t('setting.menu.overview')">
-          <NDescriptions :column="2" bordered size="small">
-            <NDescriptionsItem :label="t('setting.menu.menu_type')">
-              {{ getOptionLabel(menuTypeOptions, currentDetail.menuType) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.status')">
-              <NTag size="small" :type="currentDetail.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
-                {{ formatStatus(currentDetail.status) }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.route_path')">
-              {{ formatNullable(currentDetail.path) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.component_path')">
-              {{ formatNullable(currentDetail.component) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.route_name')">
-              {{ formatNullable(currentDetail.routeName) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.icon')">
-              <span v-if="currentDetail.icon" style="display: inline-flex; align-items: center; gap: 6px">
-                <Icon :icon="currentDetail.icon" width="16" />
-                <span>{{ currentDetail.icon }}</span>
-              </span>
-              <span v-else>-</span>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.title')">
-              {{ formatNullable(currentDetail.title) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.i18n_key')">
-              {{ formatNullable(currentDetail.i18nKey) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.badge')">
-              <NTag v-if="currentDetail.badge" size="small" round :bordered="false" :type="badgeTagType(currentDetail.badgeType)">
-                {{ currentDetail.badge }}
-              </NTag>
-              <span
-                v-else-if="currentDetail.badgeDot"
-                :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"
+        <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+        <XhTabsRoot v-else-if="currentDetail" default-value="overview" variant="line">
+          <XhTabsList>
+            <XhTabsTrigger value="overview">
+              {{ t('setting.menu.overview') }}
+            </XhTabsTrigger>
+            <XhTabsTrigger value="children">
+              {{ t('setting.menu.children_tab', { count: childMenus.length }) }}
+            </XhTabsTrigger>
+          </XhTabsList>
+          <XhTabsContent value="overview">
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.menu_type') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(menuTypeOptions, currentDetail.menuType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                    {{ formatStatus(currentDetail.status) }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.route_path') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.path) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.component_path') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.component) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.route_name') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.routeName) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.icon') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <span v-if="currentDetail.icon" style="display: inline-flex; align-items: center; gap: 6px">
+                    <Icon :icon="currentDetail.icon" width="16" />
+                    <span>{{ currentDetail.icon }}</span>
+                  </span>
+                  <span v-else>-</span>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.title') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.title) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.i18n_key') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.i18nKey) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.badge') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge v-if="currentDetail.badge" variant="subtle" size="sm" :tone="badgeTone(currentDetail.badgeType)">
+                    {{ currentDetail.badge }}
+                  </XhBadge>
+                  <span
+                    v-else-if="currentDetail.badgeDot"
+                    :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"
+                  />
+                  <span v-else>-</span>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.is_external') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isExternal) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="currentDetail.isExternal" style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('setting.menu.external_url') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.externalUrl) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.is_cache') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isCache) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.is_visible') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isVisible) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.is_affix') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isAffix) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.sort') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.sort }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.permission_id') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.permissionId) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.menu.created_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(currentDetail.createdTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="currentDetail.remark" style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('setting.menu.remark') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.remark }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </XhTabsContent>
+          <XhTabsContent value="children">
+            <div class="xh-detail-table-wrap">
+              <XDataTable
+                v-if="childMenus.length"
+                :columns="childMenuColumns"
+                :data="childMenus"
+                size="sm"
+                :row-key="(row: MenuTreeNodeDto) => row.basicId"
               />
-              <span v-else>-</span>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.is_external')">
-              {{ formatBoolean(currentDetail.isExternal) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem v-if="currentDetail.isExternal" :label="t('setting.menu.external_url')" :span="2">
-              {{ formatNullable(currentDetail.externalUrl) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.is_cache')">
-              {{ formatBoolean(currentDetail.isCache) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.is_visible')">
-              {{ formatBoolean(currentDetail.isVisible) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.is_affix')">
-              {{ formatBoolean(currentDetail.isAffix) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.sort')">
-              {{ currentDetail.sort }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.permission_id')">
-              {{ formatNullable(currentDetail.permissionId) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.menu.created_time')">
-              {{ formatNullableDate(currentDetail.createdTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem v-if="currentDetail.remark" :label="t('setting.menu.remark')" :span="2">
-              {{ currentDetail.remark }}
-            </NDescriptionsItem>
-          </NDescriptions>
-        </NTabPane>
-        <NTabPane name="children" :tab="t('setting.menu.children_tab', { count: childMenus.length })">
-          <div class="xh-detail-table-wrap">
-            <NDataTable
-              v-if="childMenus.length"
-              :columns="childMenuColumns"
-              :data="childMenus"
-              :bordered="false"
-              size="small"
-              :row-key="(row: MenuTreeNodeDto) => row.basicId"
-            />
-            <NEmpty v-else :description="t('setting.menu.no_children')" style="padding: 32px 0" />
-          </div>
-        </NTabPane>
-      </NTabs>
+              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="24" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('setting.menu.no_children') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+            </div>
+          </XhTabsContent>
+        </XhTabsRoot>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="detailVisible = false">
-            {{ t('common.actions.close') }}
-          </NButton>
-          <NButton
-            v-if="currentDetail"
-            size="small"
-            type="primary"
-            @click="detailVisible = false; openEdit(currentDetail as unknown as MenuListItemDto)"
-          >
-            {{ t('common.actions.edit') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end">
+            <XhButton size="sm" @click="detailVisible = false">
+              {{ t('common.actions.close') }}
+            </XhButton>
+            <XhButton
+              v-if="currentDetail"
+              size="sm"
+              tone="brand"
+              @click="detailVisible = false; openEdit(currentDetail as unknown as MenuListItemDto)"
+            >
+              {{ t('common.actions.edit') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="menuForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('setting.menu.menu_name')" path="menuName">
-          <NInput v-model:value="menuForm.menuName" clearable :placeholder="t('setting.menu.menu_name_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.menu_code')" path="menuCode">
-          <NInput
-            v-model:value="menuForm.menuCode"
-            :disabled="Boolean(menuForm.basicId)"
-            clearable
-            :placeholder="t('setting.menu.menu_code_input_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.parent_menu')" path="parentId">
-          <NTreeSelect
-            v-model:value="menuForm.parentId"
-            :options="treeSelectOptions"
-            key-field="key"
-            label-field="label"
-            clearable
-            :placeholder="t('setting.menu.parent_menu_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.menu_type')" path="menuType">
-          <NSelect v-model:value="menuForm.menuType" :options="menuTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.route_path')" path="path">
-          <NInput v-model:value="menuForm.path" clearable :placeholder="t('setting.menu.path_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.route_name')" path="routeName">
-          <NInput v-model:value="menuForm.routeName" clearable :placeholder="t('setting.menu.route_name_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.component_path')" path="component">
-          <NInput v-model:value="menuForm.component" clearable :placeholder="t('setting.menu.component_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.redirect')" path="redirect">
-          <NInput v-model:value="menuForm.redirect" clearable :placeholder="t('setting.menu.redirect_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.icon')" path="icon">
-          <IconPicker v-model="menuForm.icon" :placeholder="t('setting.menu.icon_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.title')" path="title">
-          <NInput v-model:value="menuForm.title" clearable :placeholder="t('setting.menu.title_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.i18n_key')" path="i18nKey">
-          <NInput v-model:value="menuForm.i18nKey" clearable :placeholder="t('setting.menu.i18n_key_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.sort')" path="sort">
-          <NInputNumber v-model:value="menuForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.badge_content')" path="badge">
-          <NInput v-model:value="menuForm.badge" clearable :placeholder="t('setting.menu.badge_content_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.badge_type')" path="badgeType">
-          <NSelect v-model:value="menuForm.badgeType" :options="badgeTypeOptions" clearable :placeholder="t('setting.menu.badge_type_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.badge_dot')">
-          <NSwitch v-model:value="menuForm.badgeDot" />
-        </NFormItem>
-        <NFormItem v-if="!menuForm.basicId" :label="t('setting.menu.status')" path="status">
-          <NSelect v-model:value="menuForm.status" :options="statusOptions" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.visible')">
-          <NSwitch v-model:value="menuForm.isVisible" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.cache')">
-          <NSwitch v-model:value="menuForm.isCache" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.affix')">
-          <NSwitch v-model:value="menuForm.isAffix" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.external')">
-          <NSwitch v-model:value="menuForm.isExternal" />
-        </NFormItem>
-        <NFormItem v-if="menuForm.isExternal" :label="t('setting.menu.external_url')" path="externalUrl" class="xh-span-2">
-          <NInput v-model:value="menuForm.externalUrl" clearable :placeholder="t('setting.menu.external_url_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.menu.remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="menuForm.remark" clearable :placeholder="t('setting.menu.remark_placeholder')" :rows="3" type="textarea" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="menuForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="menuName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.menu_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.menuName" clearable :placeholder="t('setting.menu.menu_name_input_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="menuCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.menu_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="menuForm.menuCode"
+                :disabled="Boolean(menuForm.basicId)"
+                clearable
+                :placeholder="t('setting.menu.menu_code_input_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="parentId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.parent_menu') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XTreeSelect v-model:value="menuForm.parentId" :options="treeSelectOptions" clearable :placeholder="t('setting.menu.parent_menu_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="menuType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.menu_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="menuForm.menuType" :options="menuTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="path">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.route_path') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.path" clearable :placeholder="t('setting.menu.path_input_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="routeName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.route_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.routeName" clearable :placeholder="t('setting.menu.route_name_input_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="component">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.component_path') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.component" clearable :placeholder="t('setting.menu.component_input_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="redirect">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.redirect') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.redirect" clearable :placeholder="t('setting.menu.redirect_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="icon">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.icon') }}</XhFieldLabel>
+            <XhFieldControl>
+              <IconPicker v-model="menuForm.icon" :placeholder="t('setting.menu.icon_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="title">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.title') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.title" clearable :placeholder="t('setting.menu.title_input_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="i18nKey">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.i18n_key') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.i18nKey" clearable :placeholder="t('setting.menu.i18n_key_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="menuForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="badge">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.badge_content') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.badge" clearable :placeholder="t('setting.menu.badge_content_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="badgeType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.badge_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="menuForm.badgeType" :options="badgeTypeOptions" clearable :placeholder="t('setting.menu.badge_type_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.menu.badge_dot') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="menuForm.badgeDot" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFormFieldGroup v-if="!menuForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="menuForm.status" :options="statusOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.menu.visible') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="menuForm.isVisible" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.menu.cache') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="menuForm.isCache" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.menu.affix') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="menuForm.isAffix" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.menu.external') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="menuForm.isExternal" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFormFieldGroup v-if="menuForm.isExternal" value="externalUrl" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.external_url') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.externalUrl" clearable :placeholder="t('setting.menu.external_url_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.menu.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="menuForm.remark" clearable :placeholder="t('setting.menu.remark_placeholder')" :rows="3" type="textarea" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </div>
 </template>

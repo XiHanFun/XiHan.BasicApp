@@ -20,7 +20,12 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@/*": ["./src/*"],
-      "~/*": ["./packages/*"]
+      "~/*": ["./packages/*"],
+      // @xihan-ui/* 链到同级 XiHan.UI 仓，其 .d.ts 会把 vue 类型解析到那边的 node_modules。
+      // 不钉死就会出现两份 Vue 类型身份，组件与 Ref 之间到处报不可赋值。与 vite dedupe 对应。
+      "vue": ["./node_modules/vue"],
+      "vue-router": ["./node_modules/vue-router"],
+      "pinia": ["./node_modules/pinia"]
     },
     "resolveJsonModule": true,
     "types": ["node", "vite/client"],

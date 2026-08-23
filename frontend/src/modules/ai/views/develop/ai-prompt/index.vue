@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type {
   AiPromptCreateDto,
   AiPromptListItemDto,
@@ -9,25 +8,16 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import {
@@ -51,8 +41,9 @@ interface PromptFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -76,7 +67,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as AiPromptListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isEnabled ? 'success' : 'default' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.isEnabled ? 'success' : 'neutral' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
     },
   },
   {
@@ -93,7 +84,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as AiPromptListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
@@ -103,7 +94,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.prompt',
   pageName: t('develop.ai_prompt.page_name'),
   rowKey: 'basicId',
-  scrollX: 1050,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -146,19 +136,21 @@ function onAction(payload: SchemaActionPayload) {
 }
 
 function handleDelete(row: AiPromptListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('common.actions.delete'),
     content: t('develop.ai_prompt.confirm_delete'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await aiPromptApi.delete(row.basicId)
-        message.success(t('common.messages.delete_success'))
+        toast.success(t('common.messages.delete_success'))
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -195,7 +187,7 @@ async function handleEdit(row: AiPromptListItemDto) {
   try {
     const detail = await aiPromptApi.detail(row.basicId)
     if (!detail) {
-      message.error(t('develop.ai_prompt.not_found'))
+      toast.error(t('develop.ai_prompt.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -214,21 +206,21 @@ async function handleEdit(row: AiPromptListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.ai_prompt.load_detail_failed'))
+    toast.error((error as Error)?.message || t('develop.ai_prompt.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.promptName.trim()) {
-    message.warning(t('develop.ai_prompt.validate_name'))
+    toast.warning(t('develop.ai_prompt.validate_name'))
     return false
   }
   if (!form.value.basicId && !form.value.promptCode.trim()) {
-    message.warning(t('develop.ai_prompt.validate_code'))
+    toast.warning(t('develop.ai_prompt.validate_code'))
     return false
   }
   if (!form.value.content.trim()) {
-    message.warning(t('develop.ai_prompt.validate_content'))
+    toast.warning(t('develop.ai_prompt.validate_content'))
     return false
   }
   return true
@@ -274,12 +266,12 @@ async function handleSubmit() {
       }
       await aiPromptApi.create(createInput)
     }
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -293,48 +285,108 @@ async function handleSubmit() {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('develop.ai_prompt.form_prompt_code')" path="promptCode">
-          <NInput
-            v-model:value="form.promptCode"
-            clearable
-            :disabled="Boolean(form.basicId)"
-            :placeholder="t('develop.ai_prompt.form_prompt_code_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_prompt.form_prompt_name')" path="promptName">
-          <NInput v-model:value="form.promptName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_prompt.form_category')" path="category">
-          <NInput v-model:value="form.category" clearable :placeholder="t('develop.ai_prompt.form_category_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_prompt.form_version')" path="version">
-          <NInput v-model:value="form.version" clearable :placeholder="t('develop.ai_prompt.form_version_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_prompt.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_prompt.form_is_enabled')" path="isEnabled">
-          <NSwitch v-model:value="form.isEnabled" />
-        </NFormItem>
-        <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
-          <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('develop.ai_prompt.form_content')" path="content">
-          <NInput
-            v-model:value="form.content"
-            class="prompt-content-input"
-            :placeholder="t('develop.ai_prompt.form_content_placeholder')"
-            :rows="12"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('common.fields.remark')" path="remark">
-          <NInput v-model:value="form.remark" clearable :rows="2" type="textarea" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="promptCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_prompt_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.promptCode"
+                clearable
+                :disabled="Boolean(form.basicId)"
+                :placeholder="t('develop.ai_prompt.form_prompt_code_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="promptName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_prompt_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.promptName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="category">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_category') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.category" clearable :placeholder="t('develop.ai_prompt.form_category_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="version">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_version') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.version" clearable :placeholder="t('develop.ai_prompt.form_version_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isEnabled">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_is_enabled') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="form.isEnabled" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!form.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.status" :options="statusEnumOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="content" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_prompt.form_content') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.content"
+                class="prompt-content-input"
+                :placeholder="t('develop.ai_prompt.form_content_placeholder')"
+                :rows="12"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('common.fields.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.remark" clearable :rows="2" type="textarea" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

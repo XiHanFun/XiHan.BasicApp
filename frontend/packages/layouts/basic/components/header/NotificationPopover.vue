@@ -1,6 +1,24 @@
 <script setup lang="ts">
+import type { Tone } from '@xihan-ui/kernel'
 import type { NotificationItem } from '~/stores'
-import { NButton, NEmpty, NNumberAnimation, NScrollbar, NSpin, NTabPane, NTabs, NTag, NTooltip } from 'naive-ui'
+import {
+  XhBadge,
+  XhButton,
+  XhEmptyStateDescription,
+  XhEmptyStateIcon,
+  XhEmptyStateRoot,
+  XhEmptyStateTitle,
+  XhSpinner,
+  XhTabsContent,
+  XhTabsList,
+  XhTabsRoot,
+  XhTabsTrigger,
+  XhTooltipArrow,
+  XhTooltipContent,
+  XhTooltipPositioner,
+  XhTooltipRoot,
+  XhTooltipTrigger,
+} from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
@@ -66,9 +84,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', updateDropdownPosition, true)
 })
 
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
-
-function getTypeTag(type: NotificationType): TagType {
+function getTypeTag(type: NotificationType): Tone {
   switch (type) {
     case NotificationType.System:
       return 'info'
@@ -77,11 +93,11 @@ function getTypeTag(type: NotificationType): TagType {
     case NotificationType.Business:
       return 'success'
     case NotificationType.Todo:
-      return 'default'
+      return 'neutral'
     case NotificationType.Emergency:
-      return 'error'
+      return 'danger'
     default:
-      return 'default'
+      return 'neutral'
   }
 }
 
@@ -150,23 +166,27 @@ function handleClickOutside() {
 <template>
   <div class="notification-popover-wrapper" @click.stop>
     <!-- 铃铛触发按钮 -->
-    <NTooltip>
-      <template #trigger>
-        <button
-          ref="triggerRef"
-          type="button"
-          class="xihan-icon-btn notification-btn mr-1"
-          @click="showPopover = !showPopover"
-        >
-          <Icon icon="lucide:bell" width="16" height="16" />
-          <span v-if="props.unreadCount > 0" class="notification-btn__badge">
-            <NNumberAnimation :to="Math.min(props.unreadCount, 99)" :duration="500" :precision="0" />
-            <span v-if="props.unreadCount > 99">+</span>
-          </span>
-        </button>
-      </template>
-      {{ t('header.notification.bell') }}
-    </NTooltip>
+    <XhTooltipRoot>
+      <XhTooltipTrigger
+        ref="triggerRef"
+        class="xihan-icon-btn notification-btn mr-1"
+        @click="showPopover = !showPopover"
+      >
+        <Icon icon="lucide:bell" width="16" height="16" />
+        <!-- 数字、99+ 与「零则收起」都归组件库算 -->
+        <XhBadge
+          class="notification-btn__badge"
+          :count="props.unreadCount"
+          :label="t('header.notification.unread_label')"
+        />
+      </XhTooltipTrigger>
+      <XhTooltipPositioner>
+        <XhTooltipContent>
+          {{ t('header.notification.bell') }}
+          <XhTooltipArrow />
+        </XhTooltipContent>
+      </XhTooltipPositioner>
+    </XhTooltipRoot>
 
     <!-- 遮罩 + 下拉弹窗 Teleport 到 body，脱离 header 层叠上下文 -->
     <Teleport to="body">
@@ -181,32 +201,52 @@ function handleClickOutside() {
           <div class="notification-dropdown-header">
             <span class="notification-dropdown-title">{{ t('header.notification.title') }}</span>
             <div class="notification-dropdown-actions">
-              <NTooltip>
-                <template #trigger>
-                  <button type="button" class="notification-header-btn" @click="emit('refresh')">
-                    <Icon icon="lucide:refresh-cw" width="14" height="14" />
-                  </button>
-                </template>
-                {{ t('header.notification.refresh') }}
-              </NTooltip>
-              <NButton
+              <XhTooltipRoot>
+                <XhTooltipTrigger class="notification-header-btn" @click="emit('refresh')">
+                  <Icon icon="lucide:refresh-cw" width="14" height="14" />
+                </XhTooltipTrigger>
+                <XhTooltipPositioner>
+                  <XhTooltipContent>
+                    {{ t('header.notification.refresh') }}
+                    <XhTooltipArrow />
+                  </XhTooltipContent>
+                </XhTooltipPositioner>
+              </XhTooltipRoot>
+              <XhButton
                 v-if="unreadCount > 0"
-                text
-                size="small"
-                type="primary"
+                variant="ghost"
+                size="sm"
+                tone="brand"
                 @click="emit('markAllRead')"
               >
                 {{ t('header.notification.mark_all_read') }}
-              </NButton>
+              </XhButton>
             </div>
           </div>
 
-          <NSpin :show="props.loading">
-            <NTabs v-model:value="activeTab" type="line" size="small" class="notification-tabs">
-              <NTabPane name="inbox" :tab="inboxTabLabel">
-                <NScrollbar style="max-height: 360px">
+          <div class="notification-stage">
+            <div v-if="props.loading" class="notification-loading">
+              <XhSpinner :label="t('header.notification.title')" />
+            </div>
+            <XhTabsRoot v-model:value="activeTab" variant="line" size="sm" class="notification-tabs">
+              <XhTabsList>
+                <XhTabsTrigger value="inbox">
+                  {{ inboxTabLabel }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="mention">
+                  {{ mentionTabLabel }}
+                </XhTabsTrigger>
+              </XhTabsList>
+              <XhTabsContent value="inbox">
+                <div class="notification-scroll">
                   <div v-if="allItems.length === 0" class="notification-empty">
-                    <NEmpty :description="t('header.notification.empty.inbox')" size="small" />
+                    <XhEmptyStateRoot size="sm">
+                      <XhEmptyStateIcon>
+                        <Icon icon="lucide:inbox" width="24" />
+                      </XhEmptyStateIcon>
+                      <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                      <XhEmptyStateDescription>{{ t('header.notification.empty.inbox') }}</XhEmptyStateDescription>
+                    </XhEmptyStateRoot>
                   </div>
                   <div
                     v-for="item in allItems"
@@ -219,34 +259,40 @@ function handleClickOutside() {
                     <div class="notification-item-body">
                       <div class="notification-item-header">
                         <span class="notification-item-title">{{ item.title }}</span>
-                        <NTag :type="getTypeInfo(item.notificationType).type" size="small" :bordered="false" round>
+                        <XhBadge :tone="getTypeInfo(item.notificationType).type" size="sm" variant="subtle">
                           {{ getTypeInfo(item.notificationType).label }}
-                        </NTag>
+                        </XhBadge>
                       </div>
                       <div v-if="item.content" class="notification-item-content">
                         <NotificationContent :content="item.content" :format="item.contentFormat" />
                       </div>
                       <div class="notification-item-footer">
                         <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
-                        <NButton
+                        <XhButton
                           v-if="item.needConfirm && !item.confirmTime"
-                          size="tiny"
-                          type="warning"
-                          secondary
+                          size="sm"
+                          tone="warning"
+                          variant="subtle"
                           @click.stop="emit('confirm', item.basicId)"
                         >
                           {{ t('header.notification.confirm') }}
-                        </NButton>
+                        </XhButton>
                       </div>
                     </div>
                   </div>
-                </NScrollbar>
-              </NTabPane>
+                </div>
+              </XhTabsContent>
 
-              <NTabPane name="mention" :tab="mentionTabLabel">
-                <NScrollbar style="max-height: 360px">
+              <XhTabsContent value="mention">
+                <div class="notification-scroll">
                   <div v-if="mentionedItems.length === 0" class="notification-empty">
-                    <NEmpty :description="t('header.notification.empty.mention')" size="small" />
+                    <XhEmptyStateRoot size="sm">
+                      <XhEmptyStateIcon>
+                        <Icon icon="lucide:inbox" width="24" />
+                      </XhEmptyStateIcon>
+                      <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                      <XhEmptyStateDescription>{{ t('header.notification.empty.mention') }}</XhEmptyStateDescription>
+                    </XhEmptyStateRoot>
                   </div>
                   <div
                     v-for="item in mentionedItems"
@@ -259,36 +305,36 @@ function handleClickOutside() {
                     <div class="notification-item-body">
                       <div class="notification-item-header">
                         <span class="notification-item-title">{{ item.title }}</span>
-                        <NTag :type="getTypeInfo(item.notificationType).type" size="small" :bordered="false" round>
+                        <XhBadge :tone="getTypeInfo(item.notificationType).type" size="sm" variant="subtle">
                           {{ getTypeInfo(item.notificationType).label }}
-                        </NTag>
+                        </XhBadge>
                       </div>
                       <div v-if="item.content" class="notification-item-content">
                         <NotificationContent :content="item.content" :format="item.contentFormat" />
                       </div>
                       <div class="notification-item-footer">
                         <span class="notification-item-time">{{ formatTime(item.sendTime) }}</span>
-                        <NButton
+                        <XhButton
                           v-if="item.needConfirm && !item.confirmTime"
-                          size="tiny"
-                          type="warning"
-                          secondary
+                          size="sm"
+                          tone="warning"
+                          variant="subtle"
                           @click.stop="emit('confirm', item.basicId)"
                         >
                           {{ t('header.notification.confirm') }}
-                        </NButton>
+                        </XhButton>
                       </div>
                     </div>
                   </div>
-                </NScrollbar>
-              </NTabPane>
-            </NTabs>
-          </NSpin>
+                </div>
+              </XhTabsContent>
+            </XhTabsRoot>
+          </div>
 
           <div class="notification-dropdown-footer">
-            <NButton text type="primary" size="small" @click="emit('viewAll'); showPopover = false">
+            <XhButton variant="ghost" tone="brand" size="sm" @click="emit('viewAll'); showPopover = false">
               {{ t('header.notification.view_all') }}
-            </NButton>
+            </XhButton>
           </div>
         </div>
       </Transition>
@@ -297,34 +343,32 @@ function handleClickOutside() {
 </template>
 
 <style scoped>
+/* 加载态：在内容之上叠一层居中旋转标记 */
+.notification-stage {
+  position: relative;
+}
+
+.notification-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--xh-bg-surface);
+  opacity: 0.7;
+}
+
+/* 列表定高内部滚动 */
+.notification-scroll {
+  max-block-size: 360px;
+  overflow-y: auto;
+}
+
 .notification-popover-wrapper {
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-.xihan-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--foreground) / 65%);
-  cursor: pointer;
-  outline: none;
-  flex-shrink: 0;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.xihan-icon-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
 }
 
 /* 通知未读徽标：与收藏夹徽标同尺寸（14px 小圆 + 9px 字），红色为通知语义色 */
@@ -413,7 +457,7 @@ function handleClickOutside() {
   padding: 0 4px;
 }
 
-.notification-tabs :deep(.n-tabs-nav) {
+.notification-tabs :deep([data-scope='tabs'][data-part='list']) {
   padding: 0 12px;
 }
 
@@ -479,7 +523,7 @@ function handleClickOutside() {
   word-break: break-word;
 }
 
-.notification-item-header :deep(.n-tag) {
+.notification-item-header :deep([data-scope='badge']) {
   flex-shrink: 0;
 }
 

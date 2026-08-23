@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintTableColumn } from '~/printing'
-import { NButton, NEmpty, NIcon } from 'naive-ui'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -141,12 +141,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   <section class="sample-table-editor">
     <div class="sample-table-toolbar">
       <span>{{ t('setting.print_template.sample_table_rows', { count: rows.length }) }}</span>
-      <NButton size="small" type="primary" secondary @click="addRow">
-        <template #icon>
-          <NIcon><Icon icon="tabler:plus" /></NIcon>
-        </template>
+      <XhButton size="sm" tone="brand" variant="subtle" @click="addRow">
+        <span><Icon icon="tabler:plus" /></span>
         {{ t('setting.print_template.sample_add_row') }}
-      </NButton>
+      </XhButton>
     </div>
 
     <div v-if="rows.length" class="sample-table-scroll">
@@ -171,35 +169,37 @@ function isRecord(value: unknown): value is Record<string, unknown> {
               />
             </td>
             <td class="sample-row-actions">
-              <NButton
-                quaternary
-                circle
-                size="small"
+              <XhButton
+                variant="ghost"
+                data-circle
+                size="sm"
                 :title="t('setting.print_template.sample_duplicate_row')"
                 @click="duplicateRow(rowIndex)"
               >
-                <template #icon>
-                  <NIcon><Icon icon="tabler:copy" /></NIcon>
-                </template>
-              </NButton>
-              <NButton
-                quaternary
-                circle
-                size="small"
-                type="error"
+                <span><Icon icon="tabler:copy" /></span>
+              </XhButton>
+              <XhButton
+                variant="ghost"
+                data-circle
+                size="sm"
+                tone="danger"
                 :title="t('setting.print_template.sample_delete_row')"
                 @click="removeRow(rowIndex)"
               >
-                <template #icon>
-                  <NIcon><Icon icon="tabler:trash" /></NIcon>
-                </template>
-              </NButton>
+                <span><Icon icon="tabler:trash" /></span>
+              </XhButton>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <NEmpty v-else size="small" :description="t('setting.print_template.sample_table_empty')" />
+    <XhEmptyStateRoot v-else size="sm">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:inbox" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+      <XhEmptyStateDescription>{{ t('setting.print_template.sample_table_empty') }}</XhEmptyStateDescription>
+    </XhEmptyStateRoot>
   </section>
 </template>
 

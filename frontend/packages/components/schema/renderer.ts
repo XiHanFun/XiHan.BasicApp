@@ -1,10 +1,10 @@
 import type { VNodeChild } from 'vue'
 import type { ListFieldSchema } from './types'
-import { NTag } from 'naive-ui'
+import { XhBadge, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { h } from 'vue'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
-import { resolveStatusTagType } from './status-tag'
+import { resolveStatusTagTone } from './status-tag'
 
 /** 安全读取行字段值（兼容具名 DTO 接口，无索引签名） */
 function readField(row: object, key: string): unknown {
@@ -87,23 +87,27 @@ export function renderFieldCell<TRow extends object>(
 
   const raw = readField(row, field.key)
 
-  // 标签型：用字典 options 映射 label，并以 NTag 着色
+  // 标签型：用字典 options 映射 label，并按语气着色
   if ((field.dataType === 'tag' || field.dataType === 'enum') && field.options) {
     if (raw == null) {
       return '-'
     }
     const label = getOptionLabel(toMutableOptions(field.options), raw as string | number)
-    const type = resolveStatusTagType(field.dictionaryCode, raw)
-    return h(NTag, { bordered: false, round: true, size: 'small', type }, () => label)
+    const tone = resolveStatusTagTone(field.dictionaryCode, raw)
+    // 状态类字典说的是「此刻怎么样」，走徽标；其余枚举是分类身份，走标签
+    return tone
+      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone }, () => label)
+      : h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => h(XhTagLabel, null, () => label))
   }
 
   if (field.dataType === 'boolean') {
     if (raw == null) {
       return '-'
     }
+    // 是 / 否是状态，不是身份
     return h(
-      NTag,
-      { bordered: false, round: true, size: 'small', type: raw ? 'success' : 'default' },
+      XhBadge,
+      { variant: 'subtle', size: 'sm', tone: raw ? 'success' : 'neutral' },
       () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no')),
     )
   }

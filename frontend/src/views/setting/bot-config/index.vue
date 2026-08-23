@@ -1,21 +1,12 @@
 <script setup lang="ts">
 import type { BotConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { botConfigApi, BotProviderType, createPageRequest, querySortsFromSchema } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { dialog, toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SettingBotConfigPage' })
@@ -35,8 +26,9 @@ interface BotConfigFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -80,11 +72,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.bot_config.columns.provider_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: 'info' },
-      () => getOptionLabel(providerOptions.value, (row as unknown as BotConfigListItemDto).provider),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => getOptionLabel(providerOptions.value, (row as unknown as BotConfigListItemDto).provider)),
   },
   {
     key: 'isDefault',
@@ -99,7 +87,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as BotConfigListItemDto).isDefault
       return isDefault
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'warning' }, () => t('message.bot_config.tag.default'))
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => t('message.bot_config.tag.default'))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -115,11 +103,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const enabled = (row as unknown as BotConfigListItemDto).isEnabled
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: enabled ? 'success' : 'error' },
-        () => enabled ? t('message.bot_config.tag.enabled') : t('message.bot_config.tag.disabled'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => enabled ? t('message.bot_config.tag.enabled') : t('message.bot_config.tag.disabled'))
     },
   },
   { key: 'sort', title: t('message.bot_config.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 6 },
@@ -132,7 +116,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.bot_config.page_name'),
   statusPermission: 'saas:bot-config:status',
   rowKey: 'basicId',
-  scrollX: 1100,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -252,7 +235,7 @@ async function handleEdit(row: BotConfigListItemDto) {
   try {
     const detail = await botConfigApi.detail(row.basicId)
     if (!detail) {
-      message.warning(t('message.bot_config.message.detail_not_found'))
+      toast.warning(t('message.bot_config.message.detail_not_found'))
       return
     }
 
@@ -273,23 +256,23 @@ async function handleEdit(row: BotConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('message.bot_config.message.load_detail_failed'))
+    toast.error((e as Error).message || t('message.bot_config.message.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.basicId && !form.value.configCode.trim()) {
-    message.warning(t('message.bot_config.message.input_config_code'))
+    toast.warning(t('message.bot_config.message.input_config_code'))
     return false
   }
 
   if (!form.value.configName.trim()) {
-    message.warning(t('message.bot_config.message.input_config_name'))
+    toast.warning(t('message.bot_config.message.input_config_name'))
     return false
   }
 
   if (!form.value.webhookUrl.trim()) {
-    message.warning(t('message.bot_config.message.input_webhook_url'))
+    toast.warning(t('message.bot_config.message.input_webhook_url'))
     return false
   }
 
@@ -334,12 +317,12 @@ async function handleSubmit() {
       })
     }
 
-    message.success(t('message.bot_config.message.save_success'))
+    toast.success(t('message.bot_config.message.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (e) {
-    message.error((e as Error).message || t('message.bot_config.message.save_failed'))
+    toast.error((e as Error).message || t('message.bot_config.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -348,59 +331,63 @@ async function handleSubmit() {
 
 function handleToggleStatus(row: BotConfigListItemDto) {
   const next = !row.isEnabled
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: next ? t('message.bot_config.message.enable_title') : t('message.bot_config.message.disable_title'),
     content: next
       ? t('message.bot_config.message.enable_content', { name: row.configName })
       : t('message.bot_config.message.disable_content', { name: row.configName }),
-    positiveText: next ? t('message.bot_config.message.enable') : t('message.bot_config.message.disable'),
-    negativeText: t('message.bot_config.form.cancel'),
-    onPositiveClick: async () => {
+    okText: next ? t('message.bot_config.message.enable') : t('message.bot_config.message.disable'),
+    cancelText: t('message.bot_config.form.cancel'),
+    onOk: async () => {
       try {
         await botConfigApi.updateStatus({ basicId: row.basicId, isEnabled: next })
-        message.success(t('message.bot_config.message.status_updated'))
+        toast.success(t('message.bot_config.message.status_updated'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.bot_config.message.status_update_failed'))
+        toast.error((e as Error).message || t('message.bot_config.message.status_update_failed'))
       }
     },
   })
 }
 
 function handleSetDefault(row: BotConfigListItemDto) {
-  dialog.info({
+  void dialog.confirm({
+    badge: 'info',
     title: t('message.bot_config.message.set_default_title'),
     content: t('message.bot_config.message.set_default_content', { name: row.configName }),
-    positiveText: t('message.bot_config.message.set_default'),
-    negativeText: t('message.bot_config.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('message.bot_config.message.set_default'),
+    cancelText: t('message.bot_config.form.cancel'),
+    onOk: async () => {
       try {
         await botConfigApi.setDefault({ basicId: row.basicId })
-        message.success(t('message.bot_config.message.set_default_success'))
+        toast.success(t('message.bot_config.message.set_default_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.bot_config.message.set_default_failed'))
+        toast.error((e as Error).message || t('message.bot_config.message.set_default_failed'))
       }
     },
   })
 }
 
 function handleDelete(row: BotConfigListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('message.bot_config.message.delete_title'),
     content: t('message.bot_config.message.delete_content', { name: row.configName }),
-    positiveText: t('message.bot_config.message.delete'),
-    negativeText: t('message.bot_config.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('message.bot_config.message.delete'),
+    cancelText: t('message.bot_config.form.cancel'),
+    onOk: async () => {
       try {
         await botConfigApi.delete(row.basicId)
-        message.success(t('message.bot_config.message.delete_success'))
+        toast.success(t('message.bot_config.message.delete_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.bot_config.message.delete_failed'))
+        toast.error((e as Error).message || t('message.bot_config.message.delete_failed'))
       }
     },
   })
@@ -417,58 +404,123 @@ function handleDelete(row: BotConfigListItemDto) {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('message.bot_config.form.config_code')" path="configCode">
-          <NInput
-            v-model:value="form.configCode"
-            clearable
-            :disabled="Boolean(form.basicId)"
-            :placeholder="t('message.bot_config.form.config_code_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.bot_config.form.config_name')" path="configName">
-          <NInput v-model:value="form.configName" clearable :placeholder="t('message.bot_config.form.config_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.bot_config.form.provider')" path="provider">
-          <NSelect v-model:value="form.provider" :options="providerOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.bot_config.form.sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('message.bot_config.form.webhook_url')" path="webhookUrl" class="xh-span-2">
-          <NInput v-model:value="form.webhookUrl" clearable :placeholder="webhookPlaceholder" :input-props="{ autocomplete: 'off' }" />
-        </NFormItem>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="configCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.bot_config.form.config_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.configCode"
+                clearable
+                :disabled="Boolean(form.basicId)"
+                :placeholder="t('message.bot_config.form.config_code_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.bot_config.form.config_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.configName" clearable :placeholder="t('message.bot_config.form.config_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="provider">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.bot_config.form.provider') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.provider" :options="providerOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.bot_config.form.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="webhookUrl" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.bot_config.form.webhook_url') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.webhookUrl" clearable :placeholder="webhookPlaceholder" autocomplete="off" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
 
         <template v-if="!isWeCom">
-          <NFormItem :label="t('message.bot_config.form.secret')" path="secret">
-            <NInput
-              v-model:value="form.secret"
-              type="password"
-              :input-props="{ autocomplete: 'new-password' }"
-              show-password-on="click"
-              :placeholder="secretPlaceholder"
-            />
-          </NFormItem>
-          <NFormItem :label="t('message.bot_config.form.keyword')" path="keyword">
-            <NInput v-model:value="form.keyword" clearable :placeholder="t('message.bot_config.form.keyword_placeholder')" />
-          </NFormItem>
+          <XhFormFieldGroup value="secret">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.bot_config.form.secret') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="form.secret"
+                  type="password"
+                  autocomplete="new-password"
+                  :placeholder="secretPlaceholder"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="keyword">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.bot_config.form.keyword') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.keyword" clearable :placeholder="t('message.bot_config.form.keyword_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
         <template v-if="!form.basicId">
-          <NFormItem :label="t('message.bot_config.form.is_enabled')" path="isEnabled">
-            <NSwitch v-model:value="form.isEnabled" />
-          </NFormItem>
-          <NFormItem :label="t('message.bot_config.form.is_default')" path="isDefault">
-            <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
-          </NFormItem>
+          <XhFormFieldGroup value="isEnabled">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.bot_config.form.is_enabled') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="isDefault">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.bot_config.form.is_default') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isDefault" :disabled="!form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
-        <NFormItem :label="t('message.bot_config.form.remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="form.remark" clearable :placeholder="t('message.bot_config.form.remark_placeholder')" />
-        </NFormItem>
-      </NForm>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.bot_config.form.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.remark" clearable :placeholder="t('message.bot_config.form.remark_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

@@ -4,9 +4,10 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
-import { NForm, NFormItem, NInput, NInputNumber, NSwitch } from 'naive-ui'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { EnableStatus } from '@/api'
+import { XInput, XNumberInput } from '~/components'
 
 defineOptions({ name: 'PrintTemplateAdvancedSettings' })
 
@@ -26,10 +27,17 @@ const { t } = useI18n()
       <span>{{ t('setting.print_template.advanced_settings_help') }}</span>
     </div>
 
-    <NForm :model="model" label-placement="top">
-      <NFormItem :label="t('setting.print_template.engine_version')">
-        <NInput v-model:value="model.engineVersion" maxlength="32" disabled />
-      </NFormItem>
+    <XhFormRoot
+      v-model:values="(model as unknown as Record<string, unknown>)"
+      validate-on="blur"
+    >
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.print_template.engine_version') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput v-model:value="model.engineVersion" :max-length="32" disabled />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
 
       <div class="switch-settings">
         <div v-if="!editing" class="switch-setting-row">
@@ -37,9 +45,9 @@ const { t } = useI18n()
             <strong>{{ t('setting.print_template.initial_status') }}</strong>
             <span>{{ t('setting.print_template.initial_status_help') }}</span>
           </div>
-          <NSwitch
-            :value="model.status === EnableStatus.Enabled"
-            @update:value="model.status = $event ? EnableStatus.Enabled : EnableStatus.Disabled"
+          <XhSwitch
+            :checked="model.status === EnableStatus.Enabled"
+            @update:checked="model.status = $event ? EnableStatus.Enabled : EnableStatus.Disabled"
           />
         </div>
 
@@ -48,24 +56,32 @@ const { t } = useI18n()
             <strong>{{ t('setting.print_template.allow_tenant_use') }}</strong>
             <span>{{ t('setting.print_template.allow_tenant_use_help') }}</span>
           </div>
-          <NSwitch v-model:value="model.allowTenantUse" />
+          <XhSwitch v-model:checked="model.allowTenantUse" />
         </div>
       </div>
 
-      <NFormItem :label="t('setting.print_template.sort')">
-        <NInputNumber v-model:value="model.sort" :min="0" class="w-full" />
-      </NFormItem>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.print_template.sort') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XNumberInput v-model:value="model.sort" :min="0" class="w-full" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
 
-      <NFormItem :label="t('setting.print_template.remark')">
-        <NInput
-          v-model:value="model.remark"
-          type="textarea"
-          maxlength="500"
-          :placeholder="t('setting.print_template.remark_placeholder')"
-          :autosize="{ minRows: 4, maxRows: 8 }"
-        />
-      </NFormItem>
-    </NForm>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.print_template.remark') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput
+            v-model:value="model.remark"
+            type="textarea"
+            :max-length="500"
+            :placeholder="t('setting.print_template.remark_placeholder')"
+            :autosize="{ minRows: 4, maxRows: 8 }"
+          />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+    </XhFormRoot>
   </section>
 </template>
 

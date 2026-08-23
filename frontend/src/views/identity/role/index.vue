@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TreeSelectOption } from 'naive-ui'
 import type {
   ApiId,
   DepartmentTreeNodeDto,
@@ -15,31 +14,9 @@ import type {
   RoleUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NCheckbox,
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NInputNumber,
-  NScrollbar,
-  NSelect,
-  NSpin,
-  NSwitch,
-  NTabPane,
-  NTabs,
-  NTag,
-  NTree,
-  NTreeSelect,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import type { TreeSelectOption } from '~/types'
+import { XhBadge, XhButton, XhCheckbox, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -56,8 +33,10 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XPermissionGrantPanel } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect, XTree, XTreeSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemRolePage' })
@@ -67,7 +46,9 @@ interface RoleFormModel extends RoleCreateDto {
 }
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 const roleTypeOptions = useEnumOptions('RoleType', ROLE_TYPE_OPTIONS)
@@ -125,7 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.role_type_placeholder'),
     minWidth: 110,
     order: 4,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(roleTypeOptions.value, (row as unknown as RoleListItemDto).roleType)),
+    render: row => h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, getOptionLabel(roleTypeOptions.value, (row as unknown as RoleListItemDto).roleType)),
   },
   {
     key: 'isGlobal',
@@ -136,7 +117,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.is_global_placeholder'),
     width: 82,
     order: 5,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'default', bordered: false }, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'neutral' }, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no')),
   },
   {
     key: 'dataScope',
@@ -150,7 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.data_scope_placeholder'),
     minWidth: 130,
     order: 6,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(dataScopeOptions.value, (row as unknown as RoleListItemDto).dataScope)),
+    render: row => h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, getOptionLabel(dataScopeOptions.value, (row as unknown as RoleListItemDto).dataScope)),
   },
   { key: 'maxMembers', title: t('identity.role.col_max_members'), dataType: 'number', sortable: true, minWidth: 100, order: 7 },
   { key: 'sort', title: t('identity.role.col_sort'), dataType: 'number', sortable: true, minWidth: 80, order: 8 },
@@ -166,7 +147,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.status_placeholder'),
     width: 82,
     order: 9,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
   },
   {
     key: 'createdTime',
@@ -175,7 +156,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     sortable: true,
     minWidth: 170,
     order: 10,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatDate((row as unknown as RoleListItemDto).createdTime)),
+    render: row => h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, formatDate((row as unknown as RoleListItemDto).createdTime)),
   },
 ])
 
@@ -188,7 +169,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:role:delete',
   statusPermission: 'saas:role:status',
   rowKey: 'basicId',
-  scrollX: 1600,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -308,7 +288,7 @@ async function openPermissionDrawer(row: RoleListItemDto) {
     derivePermChecked()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.role.perm_load_failed'))
+    toast.error((e as Error)?.message || t('identity.role.perm_load_failed'))
   }
   finally {
     permLoading.value = false
@@ -343,7 +323,7 @@ async function savePermGrants() {
   const toGrant = [...permChecked.value].filter(permId => !grantedPermIds.has(permId))
   const toRevoke = validGrants.filter(grant => !permChecked.value.has(grant.permissionId))
   if (toGrant.length === 0 && toRevoke.length === 0) {
-    message.info(t('identity.role.perm_no_change'))
+    toast.info(t('identity.role.perm_no_change'))
     permDirty.value = false
     return
   }
@@ -356,10 +336,10 @@ async function savePermGrants() {
     })
     permGrants.value = await rolePermissionApi.list(role.basicId)
     derivePermChecked()
-    message.success(t('identity.role.perm_saved', { grant: toGrant.length, revoke: toRevoke.length }))
+    toast.success(t('identity.role.perm_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('common.messages.save_failed'))
+    toast.error((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     permLoading.value = false
@@ -371,13 +351,23 @@ interface MenuNode {
   basicId: ApiId
   menuName: string
   permissionId?: ApiId | null
-  // 叶子节点省略 children（undefined），NTree 据此判定为末节点、不显示展开箭头
+  // 叶子节点省略 children（undefined），树据此判定为末节点、不显示展开箭头
   children?: MenuNode[]
 }
 
 const menuVisible = ref(false)
 const menuRole = ref<RoleListItemDto | null>(null)
 const menuTreeData = ref<MenuNode[]>([])
+
+/** 菜单节点 → 通用树选项：原先靠 key-field/label-field 指字段，现在显式映射 */
+function toMenuOptions(nodes: MenuNode[]): TreeSelectOption[] {
+  return nodes.map(node => ({
+    value: String(node.basicId),
+    label: node.menuName,
+    ...(node.children?.length ? { children: toMenuOptions(node.children) } : {}),
+  }))
+}
+const menuTreeOptions = computed(() => toMenuOptions(menuTreeData.value))
 const menuGrants = ref<RolePermissionListItemDto[]>([])
 const menuCheckedKeys = ref<ApiId[]>([])
 const menuLoading = ref(false)
@@ -488,7 +478,7 @@ function buildMenuTree(flat: MenuListItemDto[]): MenuNode[] {
       roots.push(node)
     }
   }
-  // 末节点的 children 置为 undefined（而非空数组），使 NTree 视其为叶子、不显示展开箭头
+  // 末节点的 children 置为 undefined（而非空数组），使树视其为叶子、不显示展开箭头
   const prune = (nodes: MenuNode[]) => {
     for (const node of nodes) {
       if (node.children && node.children.length > 0) {
@@ -522,7 +512,7 @@ async function openMenuDrawer(row: RoleListItemDto) {
     menuDirty.value = false
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.role.menu_load_failed'))
+    toast.error((e as Error)?.message || t('identity.role.menu_load_failed'))
   }
   finally {
     menuLoading.value = false
@@ -577,7 +567,7 @@ async function saveMenuGrants() {
   const toGrant = [...targetPermIds].filter(permId => !grantedPermIds.has(permId))
   const toRevoke = validGrants.filter(grant => !targetPermIds.has(grant.permissionId))
   if (toGrant.length === 0 && toRevoke.length === 0) {
-    message.info(t('identity.role.menu_no_change'))
+    toast.info(t('identity.role.menu_no_change'))
     menuDirty.value = false
     return
   }
@@ -592,10 +582,10 @@ async function saveMenuGrants() {
     menuGrants.value = await rolePermissionApi.list(role.basicId)
     deriveMenuChecked()
     menuDirty.value = false
-    message.success(t('identity.role.menu_saved', { grant: toGrant.length, revoke: toRevoke.length }))
+    toast.success(t('identity.role.menu_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('common.messages.save_failed'))
+    toast.error((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     menuLoading.value = false
@@ -614,7 +604,7 @@ const scopeSubmitting = ref(false)
 
 function toDeptOptions(nodes: DepartmentTreeNodeDto[]): TreeSelectOption[] {
   return nodes.map(node => ({
-    key: node.basicId,
+    value: node.basicId,
     label: node.departmentName,
     children: node.children?.length ? toDeptOptions(node.children) : undefined,
   }))
@@ -635,7 +625,7 @@ async function openScopeDrawer(row: RoleListItemDto) {
     scopeGrants.value = grants
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.role.scope_load_failed'))
+    toast.error((e as Error)?.message || t('identity.role.scope_load_failed'))
   }
   finally {
     scopeLoading.value = false
@@ -644,7 +634,7 @@ async function openScopeDrawer(row: RoleListItemDto) {
 
 async function addScope() {
   if (!scopeRole.value || scopeSelectedDept.value == null) {
-    message.warning(t('identity.role.scope_select_dept_required'))
+    toast.warning(t('identity.role.scope_select_dept_required'))
     return
   }
   scopeSubmitting.value = true
@@ -654,12 +644,12 @@ async function addScope() {
       departmentId: scopeSelectedDept.value,
       includeChildren: scopeIncludeChildren.value,
     })
-    message.success(t('identity.role.scope_added'))
+    toast.success(t('identity.role.scope_added'))
     scopeSelectedDept.value = null
     scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.role.scope_add_failed'))
+    toast.error((e as Error)?.message || t('identity.role.scope_add_failed'))
   }
   finally {
     scopeSubmitting.value = false
@@ -672,11 +662,11 @@ async function removeScope(grant: RoleDataScopeListItemDto) {
   }
   try {
     await roleDataScopeApi.revoke(grant.basicId)
-    message.success(t('identity.role.scope_removed'))
+    toast.success(t('identity.role.scope_removed'))
     scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('identity.role.scope_remove_failed'))
+    toast.error((e as Error)?.message || t('identity.role.scope_remove_failed'))
   }
 }
 
@@ -767,11 +757,11 @@ async function handleView(row: RoleListItemDto) {
   try {
     currentDetail.value = await roleManagementApi.detailView(row.basicId)
     if (!currentDetail.value) {
-      message.warning(t('identity.role.msg_detail_not_found'))
+      toast.warning(t('identity.role.msg_detail_not_found'))
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.role.msg_load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.role.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -780,12 +770,12 @@ async function handleView(row: RoleListItemDto) {
 
 function validateRoleForm() {
   if (!roleForm.value.roleName.trim()) {
-    message.warning(t('identity.role.msg_role_name_required'))
+    toast.warning(t('identity.role.msg_role_name_required'))
     return false
   }
 
   if (!roleForm.value.basicId && !roleForm.value.roleCode.trim()) {
-    message.warning(t('identity.role.msg_role_code_required'))
+    toast.warning(t('identity.role.msg_role_code_required'))
     return false
   }
 
@@ -837,12 +827,12 @@ async function handleSubmit() {
       await roleManagementApi.create(createInput)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadRole()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -851,7 +841,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: RoleListItemDto) {
   await roleManagementApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadRole()
 }
 
@@ -861,7 +851,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('identity.role.front_disable_remark') : t('identity.role.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('common.messages.status_updated'))
+  toast.success(t('common.messages.status_updated'))
   reloadRole()
 }
 </script>
@@ -872,58 +862,121 @@ async function handleToggleStatus(row: RoleListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NDrawer v-model:show="detailVisible" :width="900">
-      <NDrawerContent closable :title="t('identity.role.detail_title')">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" :description="t('identity.role.detail_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
-            <NTabs animated type="line">
-              <NTabPane name="overview" :tab="t('identity.role.tab_overview')">
-                <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem :label="t('identity.role.label_role_name')">
-                    {{ currentDetail.role.roleName }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_role_code')">
-                    {{ currentDetail.role.roleCode }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_role_type')">
-                    {{ getOptionLabel(roleTypeOptions, currentDetail.role.roleType) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_data_scope')">
-                    {{ getOptionLabel(dataScopeOptions, currentDetail.role.dataScope) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_is_global')">
-                    {{ formatBoolean(currentDetail.role.isGlobal) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_status')">
-                    {{ formatStatus(currentDetail.role.status) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_max_members')">
-                    {{ currentDetail.role.maxMembers }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_sort')">
-                    {{ currentDetail.role.sort }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_description')">
-                    {{ formatNullable(currentDetail.role.roleDescription) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_remark')">
-                    {{ formatNullable(currentDetail.role.remark) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_create_time')">
-                    {{ formatNullableDate(currentDetail.role.createdTime) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.role.label_generated_time')">
-                    {{ formatNullableDate(currentDetail.generatedTime) }}
-                  </NDescriptionsItem>
-                </NDescriptions>
-              </NTabPane>
-
-              <NTabPane name="permissions" :tab="t('identity.role.tab_permissions', { count: currentDetail.permissions.length })">
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 900px">
+        <XhDrawerTitle>{{ t('identity.role.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="detailLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('identity.role.detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+            <XhTabsRoot default-value="overview" variant="line">
+              <XhTabsList>
+                <XhTabsTrigger value="overview">
+                  {{ t('identity.role.tab_overview') }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="permissions">
+                  {{ t('identity.role.tab_permissions', { count: currentDetail.permissions.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="dataScopes">
+                  {{ t('identity.role.tab_data_scopes', { count: currentDetail.dataScopes.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="ancestors">
+                  {{ t('identity.role.tab_ancestors', { count: currentDetail.ancestors.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="descendants">
+                  {{ t('identity.role.tab_descendants', { count: currentDetail.descendants.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="grantedUsers">
+                  {{ t('identity.role.tab_granted_users', { count: currentDetail.grantedUsers.length }) }}
+                </XhTabsTrigger>
+              </XhTabsList>
+              <XhTabsContent value="overview">
+                <XhDescriptionsRoot :columns="2" bordered size="sm">
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_role_name') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.role.roleName }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_role_code') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.role.roleCode }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_role_type') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(roleTypeOptions, currentDetail.role.roleType) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_data_scope') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(dataScopeOptions, currentDetail.role.dataScope) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_is_global') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatBoolean(currentDetail.role.isGlobal) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_status') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatStatus(currentDetail.role.status) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_max_members') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.role.maxMembers }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_sort') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.role.sort }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_description') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.role.roleDescription) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_remark') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.role.remark) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_create_time') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullableDate(currentDetail.role.createdTime) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.role.label_generated_time') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullableDate(currentDetail.generatedTime) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                </XhDescriptionsRoot>
+              </XhTabsContent>
+              <XhTabsContent value="permissions">
                 <table v-if="currentDetail.permissions.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -944,10 +997,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.role.empty_permissions')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="dataScopes" :tab="t('identity.role.tab_data_scopes', { count: currentDetail.dataScopes.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.role.empty_permissions') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="dataScopes">
                 <table v-if="currentDetail.dataScopes.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -968,10 +1026,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.role.empty_data_scopes')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="ancestors" :tab="t('identity.role.tab_ancestors', { count: currentDetail.ancestors.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.role.empty_data_scopes') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="ancestors">
                 <table v-if="currentDetail.ancestors.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -992,10 +1055,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.role.empty_ancestors')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="descendants" :tab="t('identity.role.tab_descendants', { count: currentDetail.descendants.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.role.empty_ancestors') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="descendants">
                 <table v-if="currentDetail.descendants.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -1016,10 +1084,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.role.empty_descendants')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="grantedUsers" :tab="t('identity.role.tab_granted_users', { count: currentDetail.grantedUsers.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.role.empty_descendants') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="grantedUsers">
                 <table v-if="currentDetail.grantedUsers.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -1040,64 +1113,132 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.role.empty_granted_users')" style="padding: 40px 0" />
-              </NTabPane>
-            </NTabs>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.role.empty_granted_users') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+            </XhTabsRoot>
+          </div>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="roleForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('identity.role.label_role_name')" path="roleName">
-          <NInput v-model:value="roleForm.roleName" clearable :placeholder="t('identity.role.ph_role_name')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_role_code')" path="roleCode">
-          <NInput
-            v-model:value="roleForm.roleCode"
-            clearable
-            :disabled="Boolean(roleForm.basicId)"
-            :placeholder="t('identity.role.ph_role_code')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_role_type')" path="roleType">
-          <NSelect v-model:value="roleForm.roleType" :options="maintainableRoleTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_data_scope')" path="dataScope">
-          <NSelect v-model:value="roleForm.dataScope" :options="dataScopeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_max_members')" path="maxMembers">
-          <NInputNumber v-model:value="roleForm.maxMembers" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_sort')" path="sort">
-          <NInputNumber v-model:value="roleForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_status')" path="status">
-          <NSelect v-model:value="roleForm.status" :options="statusOptions" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_remark')" path="remark">
-          <NInput v-model:value="roleForm.remark" clearable :placeholder="t('identity.role.ph_remark')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.role.label_description')" path="roleDescription" class="xh-span-2">
-          <NInput
-            v-model:value="roleForm.roleDescription"
-            clearable
-            :placeholder="t('identity.role.ph_description')"
-            :rows="3"
-            type="textarea"
-          />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="roleForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="roleName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_role_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="roleForm.roleName" clearable :placeholder="t('identity.role.ph_role_name')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="roleCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_role_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="roleForm.roleCode"
+                clearable
+                :disabled="Boolean(roleForm.basicId)"
+                :placeholder="t('identity.role.ph_role_code')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="roleType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_role_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="roleForm.roleType" :options="maintainableRoleTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="dataScope">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_data_scope') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="roleForm.dataScope" :options="dataScopeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="maxMembers">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_max_members') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="roleForm.maxMembers" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="roleForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="roleForm.status" :options="statusOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="roleForm.remark" clearable :placeholder="t('identity.role.ph_remark')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="roleDescription" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.role.label_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="roleForm.roleDescription"
+                clearable
+                :placeholder="t('identity.role.ph_description')"
+                :rows="3"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
 
-    <NDrawer v-model:show="permissionVisible" :width="760">
-      <NDrawerContent closable :title="t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' })">
+    <XhDrawerRoot v-model:open="permissionVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 760px">
+        <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <XPermissionGrantPanel
           ref="permPanelRef"
           :items="permCatalog"
@@ -1108,7 +1249,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           :other-group-label="t('identity.role.perm_group_other')"
         >
           <template #action="{ item }">
-            <NCheckbox
+            <XhCheckbox
               :checked="permChecked.has(item.basicId)"
               :disabled="permLoading"
               @update:checked="(checked: boolean) => togglePermission(item as PermissionListItemDto, checked)"
@@ -1116,87 +1257,97 @@ async function handleToggleStatus(row: RoleListItemDto) {
           </template>
         </XPermissionGrantPanel>
         <template #footer>
-          <NButton @click="permissionVisible = false">
+          <XhButton @click="permissionVisible = false">
             {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton type="primary" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+          </XhButton>
+          <XhButton tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
             {{ t('identity.role.perm_save') }}
-          </NButton>
+          </XhButton>
         </template>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
-    <NDrawer v-model:show="menuVisible" :width="520">
-      <NDrawerContent closable :title="t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' })">
-        <NSpin :show="menuLoading">
-          <NEmpty v-if="menuTreeData.length === 0 && !menuLoading" class="perm-empty" :description="t('identity.role.menu_empty')" />
-          <NTree
+    <XhDrawerRoot v-model:open="menuVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 520px">
+        <XhDrawerTitle>{{ t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="menuLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="menuTreeData.length === 0 && !menuLoading" size="sm" class="perm-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('identity.role.menu_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <XTree
             v-else
-            block-line
-            checkable
-            :cascade="false"
-            :checked-keys="menuCheckedKeys"
-            children-field="children"
-            :data="menuTreeData"
-            :default-expand-all="false"
-            key-field="basicId"
-            label-field="menuName"
-            :selectable="false"
-            @update:checked-keys="onMenuCheck"
+            :data="menuTreeOptions"
+            selection-mode="multiple"
+            :selected-keys="menuCheckedKeys.map(String)"
+            @update:selected-keys="onMenuCheck"
           />
-        </NSpin>
+        </div>
         <p class="perm-tip">
           {{ t('identity.role.menu_tip') }}
         </p>
         <template #footer>
-          <NButton @click="menuVisible = false">
+          <XhButton @click="menuVisible = false">
             {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton type="primary" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
+          </XhButton>
+          <XhButton tone="brand" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
             {{ t('identity.role.menu_save') }}
-          </NButton>
+          </XhButton>
         </template>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
-    <NDrawer v-model:show="scopeVisible" :width="560">
-      <NDrawerContent closable :title="t('identity.role.scope_drawer_title', { name: scopeRole?.roleName ?? '' })">
+    <XhDrawerRoot v-model:open="scopeVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 560px">
+        <XhDrawerTitle>{{ t('identity.role.scope_drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <div class="scope-add">
-          <NTreeSelect
+          <XTreeSelect
             v-model:value="scopeSelectedDept"
             clearable
             :options="scopeDeptOptions"
-            :placeholder="t('identity.role.scope_select_dept')"
-            style="flex: 1"
+            :placeholder="t('identity.role.scope_select_dept')" style="flex: 1"
           />
-          <NSwitch v-model:value="scopeIncludeChildren">
-            <template #checked>
-              {{ t('identity.role.scope_include_children') }}
-            </template>
-            <template #unchecked>
-              {{ t('identity.role.scope_only_self') }}
-            </template>
-          </NSwitch>
-          <NButton :loading="scopeSubmitting" type="primary" @click="addScope">
+          <!-- 开关旁的文字随状态切换：含下级 / 仅本级 -->
+          <XhSwitch v-model:checked="scopeIncludeChildren">
+            {{ scopeIncludeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
+          </XhSwitch>
+          <XhButton :loading="scopeSubmitting" tone="brand" @click="addScope">
             {{ t('identity.role.scope_add') }}
-          </NButton>
+          </XhButton>
         </div>
-        <NSpin :show="scopeLoading">
-          <NEmpty v-if="scopeGrants.length === 0 && !scopeLoading" class="perm-empty" :description="t('identity.role.scope_empty')" />
+        <div class="xh-loading-stage">
+          <div v-if="scopeLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="scopeGrants.length === 0 && !scopeLoading" size="sm" class="perm-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('identity.role.scope_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
           <div v-else class="scope-list">
             <div v-for="grant in scopeGrants" :key="String(grant.basicId)" class="scope-row">
               <span class="scope-dept">{{ grant.departmentName || grant.departmentId }}</span>
-              <NTag :bordered="false" size="small" :type="grant.includeChildren ? 'info' : 'default'">
+              <XhBadge variant="subtle" size="sm" :tone="grant.includeChildren ? 'info' : 'neutral'">
                 {{ grant.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
-              </NTag>
-              <NButton quaternary size="small" type="error" @click="removeScope(grant)">
+              </XhBadge>
+              <XhButton variant="ghost" size="sm" tone="danger" @click="removeScope(grant)">
                 {{ t('identity.role.scope_remove') }}
-              </NButton>
+              </XhButton>
             </div>
           </div>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>
 
@@ -1214,13 +1365,13 @@ async function handleToggleStatus(row: RoleListItemDto) {
 .xh-detail-table th,
 .xh-detail-table td {
   padding: 9px 10px;
-  border: 1px solid var(--n-border-color);
+  border: 1px solid hsl(var(--border));
   text-align: left;
   vertical-align: top;
 }
 
 .xh-detail-table th {
-  background: var(--n-merged-th-color);
+  background: hsl(var(--muted));
   font-weight: 500;
 }
 
@@ -1252,7 +1403,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border: 1px solid var(--n-border-color);
+  border: 1px solid hsl(var(--border));
   border-radius: 8px;
 }
 

@@ -1,19 +1,27 @@
 <script lang="ts" setup>
-import type { FormInst, FormRules } from 'naive-ui'
-import { NButton, NForm, NFormItem, NInput, NInputGroup, useMessage } from 'naive-ui'
-import { onBeforeUnmount, ref } from 'vue'
+import type { FormRules } from '@xihan-ui/headless'
+import {
+  XhButton,
+  XhFieldControl,
+  XhFieldRoot,
+  XhFormFieldGroup,
+  XhFormRoot,
+  XhFormSubmitTrigger,
+} from '@xihan-ui/vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'EmailLoginPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
-const message = useMessage()
 const authStore = useAuthStore()
 const { apis } = useAppContext()
-const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
@@ -23,50 +31,58 @@ const formData = ref({
   code: '',
 })
 
-const rules: FormRules = {
+// 规则写成 computed：文案要跟着语言切换
+const rules = computed<FormRules>(() => ({
   email: [
-    { required: true, message: () => t('page.auth.email_placeholder'), trigger: 'blur' },
-    { type: 'email', message: () => t('page.auth.email_invalid'), trigger: 'blur' },
+    { required: true, message: t('page.auth.email_placeholder') },
+    { type: 'email', message: t('page.auth.email_invalid') },
   ],
   code: [
-    { required: true, message: () => t('page.auth.code_placeholder'), trigger: 'blur' },
-    { len: 6, message: () => t('page.auth.code_length_tip'), trigger: 'blur' },
+    { required: true, message: t('page.auth.code_placeholder') },
+    // 组件库按 min/max 比长度，没有 len 这一档；两端同值即定长
+    { min: 6, max: 6, message: t('page.auth.code_length_tip') },
   ],
-}
+}))
 
+const EMAIL_RE = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
+
+/**
+ * 发验证码只关邮箱这一个字段，而表单的公开 API 没有「单字段校验」这一项
+ * （逐字段校验是 blur / change 模式下的内部动作）。这里就地判一次格式，
+ * 提交那一路仍走表单自己的整表校验。
+ */
 function handleSendCode() {
-  formRef.value?.validate(
-    async (errors) => {
-      if (errors)
-        return
-      try {
-        const response = await apis.sendEmailLoginCodeApi(formData.value.email)
-        countdown.value = 60
-        timer = setInterval(() => {
-          countdown.value--
-          if (countdown.value <= 0) {
-            clearInterval(timer!)
-            timer = null
-          }
-        }, 1000)
-        if (response.debugCode) {
-          formData.value.code = response.debugCode
+  if (!EMAIL_RE.test(formData.value.email)) {
+    toast.warning(t('page.auth.email_invalid'))
+    return
+  }
+  void (async () => {
+    try {
+      const response = await apis.sendEmailLoginCodeApi(formData.value.email)
+      countdown.value = 60
+      timer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) {
+          clearInterval(timer!)
+          timer = null
         }
-        message.success(t('page.auth.code_sent'))
+      }, 1000)
+      if (response.debugCode) {
+        formData.value.code = response.debugCode
       }
-      catch (err: unknown) {
-        const error = err as { message?: string }
-        message.error(error?.message || '发送验证码失败')
-      }
-    },
-    rule => rule?.key === 'email',
-  )
+      toast.success(t('page.auth.code_sent'))
+    }
+    catch (err: unknown) {
+      const error = err as { message?: string }
+      toast.error(error?.message || t('page.auth.code_send_failed'))
+    }
+  })()
 }
 
-async function handleLogin() {
+/** 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显 */
+async function onSubmit() {
+  loading.value = true
   try {
-    await formRef.value?.validate()
-    loading.value = true
     await authStore.loginByEmailCode({
       email: formData.value.email,
       code: formData.value.code,
@@ -75,7 +91,7 @@ async function handleLogin() {
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
-      message.error(error.message)
+      toast.error(error.message)
     }
   }
   finally {
@@ -83,17 +99,12 @@ async function handleLogin() {
   }
 }
 
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter')
-    handleLogin()
-}
-
 onBeforeUnmount(() => {
-  if (!timer)
-    return
-  clearInterval(timer)
-  timer = null
+  if (timer) {
+    clearInterval(timer)
+  }
 })
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -107,53 +118,56 @@ onBeforeUnmount(() => {
       </p>
     </div>
 
-    <NForm
-      ref="formRef"
-      :model="formData"
+    <!-- 校验归表单：通过才发 submit，被拦下的错误由各字段的 error-text 自己显 -->
+    <XhFormRoot
+      v-model:values="formData"
       :rules="rules"
-      label-placement="top"
-      size="large"
-      :show-label="false"
-      @keydown="handleKeydown"
+      validate-on="blur"
+      @invalid="onAuthInvalid"
+      @submit="onSubmit"
     >
-      <NFormItem path="email" :show-feedback="false" class="!mb-6">
-        <NInput
-          v-model:value="formData.email"
-          size="large"
-          :placeholder="t('page.auth.email_placeholder')"
-          :input-props="{ autocomplete: 'email' }"
-        />
-      </NFormItem>
-      <NFormItem path="code" :show-feedback="false" class="!mb-6">
-        <NInputGroup>
-          <NInput
-            v-model:value="formData.code"
-            size="large"
-            :placeholder="t('page.auth.code_placeholder')"
-            :maxlength="6"
-          />
-          <NButton
-            type="primary"
-            ghost
-            :disabled="countdown > 0"
-            size="large"
-            style="min-width: 132px"
-            @click="handleSendCode"
-          >
-            {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
-          </NButton>
-        </NInputGroup>
-      </NFormItem>
+      <XhFormFieldGroup v-slot="{ value, setValue }" value="email" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              size="lg"
+              :value="(value as string)"
+              :placeholder="t('page.auth.email_placeholder')"
+              @update:value="setValue"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
 
-      <NButton
-        type="primary"
-        block
-        :loading="loading"
-        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
-        @click="handleLogin"
-      >
+      <XhFormFieldGroup v-slot="{ value, setValue }" value="code" class="!mb-6">
+        <XhFieldRoot>
+          <div class="xh-input-group">
+            <XhFieldControl>
+              <XInput
+                size="lg"
+                :value="(value as string)"
+                :placeholder="t('page.auth.code_placeholder')"
+                :max-length="6"
+                @update:value="setValue"
+              />
+            </XhFieldControl>
+            <XhButton
+              tone="brand"
+              variant="outline"
+              :disabled="countdown > 0"
+              size="lg"
+              style="min-width: 132px"
+              @click="handleSendCode"
+            >
+              {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
+            </XhButton>
+          </div>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+
+      <XhFormSubmitTrigger class="auth-submit" :disabled="loading">
         {{ t('page.login.login_btn') }}
-      </NButton>
-    </NForm>
+      </XhFormSubmitTrigger>
+    </XhFormRoot>
   </div>
 </template>

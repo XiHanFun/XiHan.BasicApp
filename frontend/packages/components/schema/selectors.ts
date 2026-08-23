@@ -1,5 +1,4 @@
-import type { DataTableColumn } from 'naive-ui'
-import type { ListFieldSchema, PageSchema, SchemaSortRule } from './types'
+import type { ListFieldSchema, PageSchema, SchemaColumn } from './types'
 import type { QueryFilter } from '~/types/contracts'
 import { QueryOperator } from '~/types/contracts'
 import { renderFieldCell } from './renderer'
@@ -110,10 +109,8 @@ export function toColumns<TRow extends object>(
     columnOrder?: string[]
     fixedMap?: Record<string, 'left' | 'right' | undefined>
     widthMap?: Record<string, number | undefined>
-    /** 当前多字段排序（用于受控回显各列排序箭头与优先级） */
-    sorts?: ReadonlyArray<SchemaSortRule>
   },
-): DataTableColumn<TRow>[] {
+): SchemaColumn<TRow>[] {
   let fields = schema.fields.filter(f => f.visible !== false && isFieldPermitted(f, can))
 
   if (options?.visibleKeys) {
@@ -132,12 +129,17 @@ export function toColumns<TRow extends object>(
   }
 
   // 按需写入可选属性，规避 exactOptionalPropertyTypes 下显式 undefined 报错
-  return fields.map<DataTableColumn<TRow>>((field) => {
-    const column: Record<string, unknown> = {
+  return fields.map<SchemaColumn<TRow>>((field) => {
+    const column: SchemaColumn<TRow> = {
       key: field.key,
       title: field.title,
-      ellipsis: { tooltip: true },
       render: (row: TRow) => renderFieldCell(field, row),
+      // 拖拽调宽的下限；字段声明了更大的 minWidth 就以它为准
+      minWidth: field.minWidth ?? 80,
+    }
+    // 截断：内置渲染出的是纯文本或标签，一律开；写了 render 的列内容形态不定，须自己声明
+    if (field.ellipsis ?? !field.render) {
+      column.ellipsis = true
     }
     // 树形列：承载展开箭头（仅当 schema.tree 启用、页面 schema 标记 treeColumn）
     if (field.treeColumn) {
@@ -151,32 +153,20 @@ export function toColumns<TRow extends object>(
     else if (field.width !== undefined) {
       column.width = field.width
     }
-    if (field.minWidth !== undefined) {
-      column.minWidth = field.minWidth
-    }
     // 固定方向：列设置/视图覆盖优先（含「取消固定」），否则用字段默认
     const overriddenFixed = options?.fixedMap && field.key in options.fixedMap
       ? options.fixedMap[field.key]
       : field.fixed
     if (overriddenFixed !== undefined) {
       column.fixed = overriddenFixed
-      // Naive UI 固定列必须有确定 width；仅声明 minWidth/无宽度的列回退一个宽度，否则固定会错位失效
+      // 吸附列须有确定宽度，否则左右偏移算不出来、吸附会错位
       if (column.width === undefined) {
         column.width = field.minWidth ?? 120
       }
     }
     if (field.sortable) {
-      // 多字段服务端排序：{ multiple } 让点多个列头累加排序（remote 模式 Naive 不本地排序，仅上抛 update:sorter 数组）。
-      // 受控 sortOrder 让各列箭头反映当前排序态（含「表格设置」的默认多字段排序、方案恢复的排序）；优先级由 sorts 顺序决定。
-      column.sorter = { multiple: 1 }
-      const rule = options?.sorts?.find(s => s.field === field.key)
-      column.sortOrder = rule ? (rule.order === 'asc' ? 'ascend' : 'descend') : false
+      column.sortable = true
     }
-    // 列宽可拖拽调整（拖动表头右边框）；缺省 minWidth 给一个下限，避免拖到过窄
-    column.resizable = true
-    if (column.minWidth === undefined) {
-      column.minWidth = 80
-    }
-    return column as unknown as DataTableColumn<TRow>
+    return column
   })
 }

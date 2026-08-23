@@ -5,10 +5,10 @@ import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api
  */
 import type HiprintDesignerCanvas from './HiprintDesignerCanvas.vue'
 import type { PrintTemplateFormModel } from './models'
-import { useDialog, useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EnableStatus } from '@/api'
+import { dialog, toast } from '~/composables'
 import {
   createDefaultPrintSampleData,
   directPrintByCode,
@@ -45,8 +45,6 @@ export function usePrintTemplateEditor(
   emit: PrintTemplateEditorEmit,
 ) {
   const { t } = useI18n()
-  const dialog = useDialog()
-  const message = useMessage()
   const designerRef = ref<InstanceType<typeof HiprintDesignerCanvas> | null>(null)
   const form = ref<PrintTemplateFormModel>(createDefaultForm())
   const draftTemplate = ref<Record<string, unknown>>(createEmptyTemplate())
@@ -104,7 +102,7 @@ export function usePrintTemplateEditor(
         designerReady.value = false
       }
       catch (error) {
-        message.error((error as Error).message || t('setting.print_template.designer_not_ready'))
+        toast.error((error as Error).message || t('setting.print_template.designer_not_ready'))
       }
     },
     { flush: 'sync' },
@@ -140,7 +138,7 @@ export function usePrintTemplateEditor(
       void loadPrinters(false)
     }
     catch (error) {
-      message.error((error as Error).message || t('setting.print_template.invalid_json'))
+      toast.error((error as Error).message || t('setting.print_template.invalid_json'))
       emit('update:show', false)
     }
     finally {
@@ -176,7 +174,7 @@ export function usePrintTemplateEditor(
       return null
     const effectiveForm = metadataOverride ?? form.value
     if (!effectiveForm.templateCode.trim() || !effectiveForm.templateName.trim()) {
-      message.warning(t('setting.print_template.required_fields'))
+      toast.warning(t('setting.print_template.required_fields'))
       return null
     }
     const templateSnapshot = (designerRef.value?.getJson() ?? draftTemplate.value) as Record<string, unknown>
@@ -225,11 +223,11 @@ export function usePrintTemplateEditor(
       }
       selectedPrinter.value = getPreferredPrinter(saved.templateCode)
       emit('saved', saved)
-      message.success(t('setting.print_template.save_success'))
+      toast.success(t('setting.print_template.save_success'))
       return saved
     }
     catch (error) {
-      message.error((error as Error).message || t('setting.print_template.save_failed'))
+      toast.error((error as Error).message || t('setting.print_template.save_failed'))
       return null
     }
     finally {
@@ -246,7 +244,7 @@ export function usePrintTemplateEditor(
       samplePreviewVisible.value = true
     }
     catch (error) {
-      message.error((error as Error).message || t('setting.print_template.preview_failed'))
+      toast.error((error as Error).message || t('setting.print_template.preview_failed'))
     }
   }
 
@@ -264,7 +262,7 @@ export function usePrintTemplateEditor(
       samplePreviewVisible.value = false
     }
     catch (error) {
-      message.error((error as Error).message || t('setting.print_template.preview_failed'))
+      toast.error((error as Error).message || t('setting.print_template.preview_failed'))
     }
     finally {
       previewLoading.value = false
@@ -289,11 +287,11 @@ export function usePrintTemplateEditor(
         title: saved.templateName,
         signal: abortController.signal,
       })
-      message.success(t('setting.print_template.direct_success'))
+      toast.success(t('setting.print_template.direct_success'))
     }
     catch (error) {
       if ((error as Error).name !== 'AbortError')
-        message.error((error as Error).message || t('setting.print_template.direct_failed'))
+        toast.error((error as Error).message || t('setting.print_template.direct_failed'))
     }
     finally {
       directLoading.value = false
@@ -312,7 +310,7 @@ export function usePrintTemplateEditor(
     catch (error) {
       printers.value = []
       if (forceRefresh)
-        message.error((error as Error).message || t('setting.print_template.printer_load_failed'))
+        toast.error((error as Error).message || t('setting.print_template.printer_load_failed'))
     }
     finally {
       printerLoading.value = false
@@ -328,7 +326,7 @@ export function usePrintTemplateEditor(
       await setPreferredPrinter(form.value.templateCode, selectedPrinter.value)
     }
     catch (error) {
-      message.error((error as Error).message)
+      toast.error((error as Error).message)
     }
   }
 
@@ -342,15 +340,14 @@ export function usePrintTemplateEditor(
   function confirmDiscard(): Promise<boolean> {
     if (!dirty.value)
       return Promise.resolve(true)
-    return new Promise(resolve => dialog.warning({
+    // confirm 本身以布尔兑现：确定为 true，取消与关闭都是 false
+    return dialog.confirm({
+      badge: 'warning',
       title: t('setting.print_template.unsaved_title'),
       content: t('setting.print_template.unsaved_content'),
-      positiveText: t('setting.print_template.discard'),
-      negativeText: t('common.actions.cancel'),
-      onPositiveClick: () => resolve(true),
-      onNegativeClick: () => resolve(false),
-      onClose: () => resolve(false),
-    }))
+      okText: t('setting.print_template.discard'),
+      cancelText: t('common.actions.cancel'),
+    })
   }
 
   /** 浏览器刷新/关闭时使用原生未保存提示。 */

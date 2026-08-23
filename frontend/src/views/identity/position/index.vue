@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelectOption } from 'naive-ui'
 import type {
   PositionCreateDto,
   PositionDetailDto,
@@ -7,21 +6,9 @@ import type {
   PositionUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NDescriptions,
-  NDescriptionsItem,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, ref } from 'vue'
+import type { SelectOption } from '~/types'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot } from '@xihan-ui/vue'
+import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -30,7 +17,8 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -46,7 +34,9 @@ interface PositionFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
@@ -60,7 +50,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('identity.position.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.position.keyword_placeholder'), width: 250, order: 0 },
   { key: 'positionName', title: t('identity.position.position_name'), dataType: 'string', sortable: true, importable: true, required: true, minWidth: 180, order: 1 },
   { key: 'positionCode', title: t('identity.position.position_code'), dataType: 'string', sortable: true, importable: true, required: true, minWidth: 160, order: 2 },
-  // enum + options 由框架自动渲染为 NTag，无需自定义 render
+  // enum + options 由框架自动渲染为徽标，无需自定义 render
   { key: 'status', title: t('identity.position.status'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'EnableStatus', options: statusOptions.value, searchPlaceholder: t('identity.position.status_placeholder'), width: 100, order: 3 },
   { key: 'sort', title: t('identity.position.sort'), dataType: 'number', sortable: true, importable: true, width: 90, order: 4 },
   { key: 'createdTime', title: t('identity.position.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 5 },
@@ -75,7 +65,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:position:delete',
   statusPermission: 'saas:position:status',
   rowKey: 'basicId',
-  scrollX: 980,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -180,7 +169,7 @@ async function handleEdit(row: PositionListItemDto) {
     detail = await positionApi.detail(row.basicId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.position.load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.position.load_detail_failed'))
   }
   positionForm.value = {
     basicId: row.basicId,
@@ -201,11 +190,11 @@ async function handleView(row: PositionListItemDto) {
   try {
     currentDetail.value = await positionApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.warning(t('identity.position.detail_not_found'))
+      toast.warning(t('identity.position.detail_not_found'))
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.position.load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.position.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -214,7 +203,7 @@ async function handleView(row: PositionListItemDto) {
 
 async function handleDelete(row: PositionListItemDto) {
   await positionApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadPage()
 }
 
@@ -222,21 +211,21 @@ async function handleToggleStatus(row: PositionListItemDto) {
   const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
     await positionApi.updateStatus({ basicId: row.basicId, status: nextStatus })
-    message.success(t('common.messages.status_updated'))
+    toast.success(t('common.messages.status_updated'))
     reloadPage()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.status_failed'))
+    toast.error((error as Error)?.message || t('common.messages.status_failed'))
   }
 }
 
 function validateForm() {
   if (!positionForm.value.positionName.trim()) {
-    message.warning(t('identity.position.validate_position_name'))
+    toast.warning(t('identity.position.validate_position_name'))
     return false
   }
   if (!positionForm.value.basicId && !positionForm.value.positionCode.trim()) {
-    message.warning(t('identity.position.validate_position_code'))
+    toast.warning(t('identity.position.validate_position_code'))
     return false
   }
   return true
@@ -269,12 +258,12 @@ async function handleSubmit() {
       await positionApi.create(createInput)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadPage()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -288,98 +277,145 @@ async function handleSubmit() {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
-      v-model:show="detailVisible"
-      class="xh-mgmt-detail-modal"
-      preset="card"
-      :bordered="false"
-      :mask-closable="true"
-      style="width: 640px; max-width: calc(100vw - 32px);"
-    >
-      <template v-if="currentDetail" #header>
-        <div class="det-hd-entity">
-          <div class="det-hd-ico">
-            <Icon icon="lucide:briefcase" :size="22" />
-          </div>
-          <div class="min-w-0">
-            <div class="det-hd-name">
-              {{ currentDetail.positionName }}
+    <XhDialogRoot v-model:open="detailVisible">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
+        <XhDialogTitle v-if="currentDetail">
+          <div class="det-hd-entity">
+            <div class="det-hd-ico">
+              <Icon icon="lucide:briefcase" :size="22" />
             </div>
-            <div class="det-hd-sub">
-              {{ currentDetail.positionCode }}
+            <div class="min-w-0">
+              <div class="det-hd-name">
+                {{ currentDetail.positionName }}
+              </div>
+              <div class="det-hd-sub">
+                {{ currentDetail.positionCode }}
+              </div>
             </div>
           </div>
+        </XhDialogTitle>
+        <XhDialogCloseTrigger />
+
+        <div v-if="detailLoading" class="modal-loading">
+          {{ t('common.statuses.loading') }}
         </div>
-      </template>
+        <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" bordered size="sm">
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('identity.position.position_code') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentDetail.positionCode }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('identity.position.status') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <XhBadge variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                {{ formatStatus(currentDetail.status) }}
+              </XhBadge>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('identity.position.sort') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentDetail.sort }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('identity.position.created_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(currentDetail.createdTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem style="grid-column: span 2">
+            <XhDescriptionsLabel>{{ t('identity.position.remark') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullable(currentDetail.remark) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+        </XhDescriptionsRoot>
 
-      <div v-if="detailLoading" class="modal-loading">
-        {{ t('common.statuses.loading') }}
-      </div>
-      <NDescriptions v-else-if="currentDetail" :column="2" bordered size="small">
-        <NDescriptionsItem :label="t('identity.position.position_code')">
-          {{ currentDetail.positionCode }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('identity.position.status')">
-          <NTag size="small" :type="currentDetail.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
-            {{ formatStatus(currentDetail.status) }}
-          </NTag>
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('identity.position.sort')">
-          {{ currentDetail.sort }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('identity.position.created_time')">
-          {{ formatNullableDate(currentDetail.createdTime) }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('identity.position.remark')" :span="2">
-          {{ formatNullable(currentDetail.remark) }}
-        </NDescriptionsItem>
-      </NDescriptions>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="detailVisible = false">
-            {{ t('common.actions.close') }}
-          </NButton>
-          <NButton
-            v-if="currentDetail"
-            size="small"
-            type="primary"
-            @click="detailVisible = false; handleEdit(currentDetail as PositionListItemDto)"
-          >
-            {{ t('common.actions.edit') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end" gap="md">
+            <XhButton size="sm" @click="detailVisible = false">
+              {{ t('common.actions.close') }}
+            </XhButton>
+            <XhButton
+              v-if="currentDetail"
+              size="sm"
+              tone="brand"
+              @click="detailVisible = false; handleEdit(currentDetail as PositionListItemDto)"
+            >
+              {{ t('common.actions.edit') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="positionForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('identity.position.position_name')" path="positionName">
-          <NInput v-model:value="positionForm.positionName" clearable :placeholder="t('identity.position.ph_position_name')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.position.position_code')" path="positionCode">
-          <NInput
-            v-model:value="positionForm.positionCode"
-            :disabled="Boolean(positionForm.basicId)"
-            clearable
-            :placeholder="t('identity.position.ph_position_code')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.position.sort')" path="sort">
-          <NInputNumber v-model:value="positionForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem v-if="!positionForm.basicId" :label="t('identity.position.status')" path="status">
-          <NSelect v-model:value="positionForm.status" :options="(statusOptions as SelectOption[])" />
-        </NFormItem>
-        <NFormItem :label="t('identity.position.remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="positionForm.remark" clearable :rows="3" type="textarea" :placeholder="t('identity.position.ph_remark')" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="positionForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="positionName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.position.position_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="positionForm.positionName" clearable :placeholder="t('identity.position.ph_position_name')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="positionCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.position.position_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="positionForm.positionCode"
+                :disabled="Boolean(positionForm.basicId)"
+                clearable
+                :placeholder="t('identity.position.ph_position_code')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.position.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="positionForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!positionForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.position.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="positionForm.status" :options="(statusOptions as SelectOption[])" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.position.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="positionForm.remark" clearable :rows="3" type="textarea" :placeholder="t('identity.position.ph_remark')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

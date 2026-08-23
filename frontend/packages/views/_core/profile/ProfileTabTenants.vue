@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
+import { toast } from '~/composables'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -13,7 +14,6 @@ import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabTenants' })
 
-const message = useMessage()
 const { apis } = useAppContext()
 const accessStore = useAccessStore()
 const { t } = useI18n()
@@ -36,7 +36,7 @@ async function loadTenants() {
     loaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.tenants.err_load_failed'))
+    toast.error((e as Error)?.message || t('component.profile.tenants.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -53,12 +53,12 @@ async function switchTo(tenantId: string, label: string) {
     const token = await apis.tenantApi.switchTenant({ tenantId })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
-    message.success(t('component.profile.tenants.msg_switched_to', { label }))
+    toast.success(t('component.profile.tenants.msg_switched_to', { label }))
     // 新上下文的权限/菜单需重新引导，直接重载以确保一致
     window.location.reload()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.tenants.err_switch_failed'))
+    toast.error((e as Error)?.message || t('component.profile.tenants.err_switch_failed'))
     switching.value = false
   }
 }
@@ -69,9 +69,9 @@ function memberTagType(type: TenantMemberType) {
     return 'warning'
   }
   if (type === TenantMemberType.Admin || type === TenantMemberType.PlatformAdmin) {
-    return 'primary'
+    return 'brand'
   }
-  return 'default'
+  return 'neutral'
 }
 
 onMounted(loadTenants)
@@ -91,17 +91,24 @@ onMounted(loadTenants)
           </div>
         </div>
         <div class="pf-section__extra">
-          <NButton size="tiny" quaternary @click="loadTenants">
-            <template #icon>
-              <Icon icon="lucide:refresh-cw" />
-            </template>
-          </NButton>
+          <XhButton size="sm" variant="ghost" @click="loadTenants">
+            <Icon icon="lucide:refresh-cw" />
+          </XhButton>
         </div>
       </div>
       <div class="pf-section__body">
-        <NSpin :show="loading">
+        <div class="xh-loading-stage">
+          <div v-if="loading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
           <div class="pf-list">
-            <NEmpty v-if="tenants.length === 0 && loaded" :description="t('component.profile.tenants.empty')" />
+            <XhEmptyStateRoot v-if="tenants.length === 0 && loaded">
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('component.profile.tenants.empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
             <div
               v-for="tenant in tenants"
               :key="tenant.membershipId"
@@ -120,9 +127,9 @@ onMounted(loadTenants)
                 <div class="pf-list-title">
                   {{ tenant.tenantName }}
                   <span v-if="tenant.tenantShortName" class="pf-tenant-short">{{ tenant.tenantShortName }}</span>
-                  <NTag v-if="tenant.isCurrent" type="success" size="tiny" :bordered="false">
+                  <XhBadge v-if="tenant.isCurrent" variant="subtle" tone="success" size="sm">
                     {{ t('component.profile.tenants.tag_current') }}
-                  </NTag>
+                  </XhBadge>
                 </div>
                 <div class="pf-list-desc">
                   {{ memberTypeLabel(tenant.memberType) }}
@@ -138,22 +145,22 @@ onMounted(loadTenants)
                 </div>
               </div>
               <div class="pf-tenant-actions">
-                <NTag :type="memberTagType(tenant.memberType)" size="small" round :bordered="false">
+                <XhBadge variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
                   {{ memberTypeLabel(tenant.memberType) }}
-                </NTag>
-                <NButton
+                </XhBadge>
+                <XhButton
                   v-if="!tenant.isCurrent"
-                  size="small"
-                  secondary
+                  size="sm"
+                  variant="subtle"
                   :loading="switching"
                   @click="switchTo(String(tenant.tenantId), tenant.tenantName)"
                 >
                   {{ t('component.profile.tenants.btn_switch') }}
-                </NButton>
+                </XhButton>
               </div>
             </div>
           </div>
-        </NSpin>
+        </div>
       </div>
     </section>
   </div>

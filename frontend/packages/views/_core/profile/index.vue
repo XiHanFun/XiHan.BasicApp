@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { Component } from 'vue'
 import type { UserProfile } from '~/types'
-import { NSpin, useMessage } from 'naive-ui'
+import { XhSpinner } from '@xihan-ui/vue'
 import { computed, markRaw, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { XUserAvatar } from '~/components'
+import { toast } from '~/composables'
 import { PROFILE_ACTIVE_TAB_KEY } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
@@ -34,7 +35,6 @@ interface ProfileNavGroup {
   items: ProfileNavItem[]
 }
 
-const message = useMessage()
 const { apis } = useAppContext()
 const userStore = useUserStore()
 const route = useRoute()
@@ -130,7 +130,7 @@ async function loadProfile() {
     profile.value = await apis.getProfileApi()
   }
   catch (error: unknown) {
-    message.error(error instanceof Error && error.message ? error.message : t('component.profile.msg_load_profile_failed'))
+    toast.error(error instanceof Error && error.message ? error.message : t('component.profile.msg_load_profile_failed'))
   }
   finally {
     profileLoading.value = false
@@ -188,7 +188,10 @@ onMounted(loadProfile)
 
       <!-- 右侧：内容区 -->
       <main class="pc__content">
-        <NSpin :show="profileLoading && !profile">
+        <div class="xh-loading-stage">
+          <div v-if="profileLoading && !profile" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
           <KeepAlive>
             <component
               :is="activeComponent"
@@ -197,7 +200,7 @@ onMounted(loadProfile)
               @updated="loadProfile"
             />
           </KeepAlive>
-        </NSpin>
+        </div>
       </main>
     </div>
   </div>

@@ -5,7 +5,7 @@ import { useEnumService } from './useEnumService'
 export interface EnumOptionItem {
   label: string
   value: string | number
-  // 兼容 naive-ui SelectBaseOption（含索引签名），使返回选项可直接绑定 NSelect :options
+  // 保留索引签名，使返回的选项对象能直接喂给下拉组件的 collection
   [k: string]: unknown
 }
 

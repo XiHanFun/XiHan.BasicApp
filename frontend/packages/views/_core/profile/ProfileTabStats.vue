@@ -1,20 +1,19 @@
 <script lang="ts" setup>
-import type { HeatmapData } from 'naive-ui/es/heatmap'
 import type { UserActivity } from '~/types'
-import { NSpin, useMessage } from 'naive-ui'
-// naive-ui 2.44.1 主入口尚未导出 Heatmap，子模块直引（无 exports 限制，可正常解析）
-import { NHeatmap } from 'naive-ui/es/heatmap'
+import { XhHeatmapRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
+/** 热力图逐日数据点：组件库按 ISO 日期串铺网格，缺的日子自动算 0 */
+interface HeatmapPoint { date: string, count: number }
 
 defineOptions({ name: 'ProfileTabStats' })
 
-const message = useMessage()
 const { apis } = useAppContext()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const loading = ref(false)
 const activity = ref<UserActivity | null>(null)
@@ -25,7 +24,7 @@ async function loadActivity() {
     activity.value = await apis.getActivityApi()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.stats.err_load_failed'))
+    toast.error((e as Error)?.message || t('component.profile.stats.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -53,9 +52,9 @@ function formatOnline(seconds: number): string {
 const statCards = computed(() => {
   const m = activity.value?.thisMonth
   return [
-    { key: 'login', label: t('component.profile.stats.card_login'), icon: 'lucide:log-in', value: m?.loginCount ?? 0, tone: 'primary' },
+    { key: 'login', label: t('component.profile.stats.card_login'), icon: 'lucide:log-in', value: m?.loginCount ?? 0, tone: 'brand' },
     { key: 'access', label: t('component.profile.stats.card_access'), icon: 'lucide:eye', value: m?.accessCount ?? 0, tone: 'sky' },
-    { key: 'operation', label: t('component.profile.stats.card_operation'), icon: 'lucide:mouse-pointer-click', value: m?.operationCount ?? 0, tone: 'primary' },
+    { key: 'operation', label: t('component.profile.stats.card_operation'), icon: 'lucide:mouse-pointer-click', value: m?.operationCount ?? 0, tone: 'brand' },
     { key: 'online', label: t('component.profile.stats.card_online'), icon: 'lucide:clock', value: formatOnline(m?.onlineTime ?? 0), tone: 'amber', isText: true },
   ]
 })
@@ -69,7 +68,7 @@ const periodSummary = computed(() => {
   ]
 })
 
-/** 操作趋势：转换为 naive-ui Heatmap 的 { timestamp(ms), value } 数据，覆盖近一年连续日序列 */
+/** 操作趋势原始序列，覆盖近一年 */
 const trend = computed(() => activity.value?.trend ?? [])
 
 function dateKey(d: Date): string {
@@ -78,28 +77,63 @@ function dateKey(d: Date): string {
   return `${d.getFullYear()}-${m}-${day}`
 }
 
-const heatmapData = computed<HeatmapData>(() => {
-  const countByDate = new Map<string, number>()
+/** 逐日操作量。同一天可能有多条趋势记录，按日累加 */
+const countByDate = computed(() => {
+  const map = new Map<string, number>()
   for (const point of trend.value) {
     const key = point.date.slice(0, 10)
-    countByDate.set(key, (countByDate.get(key) ?? 0) + point.operationCount)
+    map.set(key, (map.get(key) ?? 0) + point.operationCount)
   }
+  return map
+})
 
-  // 近一年连续日序列（本地零点），值取自真实操作量，无记录的日子为 0
+/** 近一年的区间端点（本地零点） */
+const heatRange = computed(() => {
   const end = new Date()
   end.setHours(0, 0, 0, 0)
   const start = new Date(end)
   start.setFullYear(start.getFullYear() - 1)
   start.setDate(start.getDate() + 1)
-
-  const data: HeatmapData = []
-  const cursor = new Date(start)
-  while (cursor.getTime() <= end.getTime()) {
-    data.push({ timestamp: cursor.getTime(), value: countByDate.get(dateKey(cursor)) ?? 0 })
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return data
+  return { start: dateKey(start), end: dateKey(end) }
 })
+
+const heatmapData = computed<HeatmapPoint[]>(() =>
+  [...countByDate.value].map(([date, count]) => ({ date, count })),
+)
+
+/**
+ * 五档的下界，升序。用分位而不是固定阈值，稀疏数据也能拉开层次。
+ * 首档钉在 1：只要当天有操作就得着色，否则会和「这天没干活」画成同一格。
+ */
+const heatThresholds = computed(() => {
+  const positives = [...countByDate.value.values()].filter(v => v > 0).sort((a, b) => a - b)
+  if (positives.length === 0) {
+    return [1, 2, 3, 4]
+  }
+  const at = (ratio: number) => positives[Math.min(positives.length - 1, Math.floor(positives.length * ratio))] ?? 1
+  return [1, at(0.25) + 1, at(0.5) + 1, at(0.75) + 1]
+})
+
+/**
+ * 一格的读数。悬停详情条与该格的可及名字共用这一句，两处才不会各说各的。
+ */
+function heatReadout(details: { date: string, count: number } | null): string {
+  return details
+    ? t('component.profile.stats.heat_cell_label', { date: details.date, count: details.count })
+    : ''
+}
+
+/**
+ * 热力图的文案。库的缺省是英文网格名 + 硬编码中文图例两端，两个方向都会串味，
+ * 六条里除矩阵形态那条外全部给出（这里是日历形态）。
+ */
+const heatTranslations = computed(() => ({
+  gridLabel: t('component.profile.stats.heat_grid_label'),
+  cellLabel: heatReadout,
+  legendLabel: t('component.profile.stats.heat_legend_label'),
+  legendLow: t('component.profile.stats.heat_legend_low'),
+  legendHigh: t('component.profile.stats.heat_legend_high'),
+}))
 
 /** 热力图底部摘要 */
 const heatActiveDays = computed(() => trend.value.filter(t => t.operationCount > 0).length)
@@ -118,7 +152,10 @@ const recentTimes = computed(() => {
 
 <template>
   <div class="pf-tab-body">
-    <NSpin :show="loading && !activity">
+    <div class="xh-loading-stage">
+      <div v-if="loading && !activity" class="xh-loading-stage__veil">
+        <XhSpinner />
+      </div>
       <!-- 本月概览 -->
       <section class="pf-section">
         <div class="pf-section__head">
@@ -171,18 +208,21 @@ const recentTimes = computed(() => {
         </div>
         <div class="pf-section__body">
           <div class="pf-heat">
-            <div class="pf-heat__scroll">
-              <NHeatmap
-                :data="heatmapData"
-                :first-day-of-week="0"
-                size="small"
-                :show-week-labels="true"
-                :show-month-labels="true"
-                :show-color-indicator="true"
-                :tooltip="true"
-                :fill-calendar-leading="true"
-              />
-            </div>
+            <!-- 横向自滚与聚焦环留位都在组件库的根规则里，外面不再套滚动容器 -->
+            <XhHeatmapRoot
+              :value="heatmapData"
+              :start-date="heatRange.start"
+              :end-date="heatRange.end"
+              :thresholds="heatThresholds"
+              :first-day-of-week="0"
+              :locale="locale"
+              :translations="heatTranslations"
+            >
+              <!-- 写了这个插槽才铺出详情条；同一句也是该格的可及名字 -->
+              <template #tooltip="details">
+                {{ heatReadout(details) }}
+              </template>
+            </XhHeatmapRoot>
             <div class="pf-heat__foot">
               {{ t('component.profile.stats.heat_foot', { ops: heatTotalOps, days: heatActiveDays }) }}
             </div>
@@ -233,7 +273,7 @@ const recentTimes = computed(() => {
           </div>
         </div>
       </section>
-    </NSpin>
+    </div>
   </div>
 </template>
 
@@ -287,28 +327,11 @@ const recentTimes = computed(() => {
   margin-top: 2px;
 }
 
-/* 操作趋势热力图（naive-ui Heatmap 容器） */
+/* 操作趋势热力图容器 */
 .pf-heat {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.pf-heat__scroll {
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-/* NHeatmap 默认 max-width: fit-content，宽度由固定格子决定而到不了分区右缘；
-   放开后让内部表格撑满容器，列间距自适应拉开，与其它分区同宽对齐。
-   窄屏时单元格有最小内容宽，仍由外层 overflow-x 滚动兜底。 */
-.pf-heat__scroll :deep(.n-heatmap) {
-  width: 100%;
-  max-width: none;
-}
-
-.pf-heat__scroll :deep(.n-heatmap__calendar-table) {
-  width: 100%;
 }
 
 .pf-heat__foot {

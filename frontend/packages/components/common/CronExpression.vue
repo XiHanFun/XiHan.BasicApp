@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { NButton, NInput, NInputGroup, NInputNumber, NModal, NRadio, NRadioGroup, NSelect, NSwitch, NTabPane, NTabs, NTag } from 'naive-ui'
+import type { TabsNode } from '@xihan-ui/headless'
+import { XhBadge, XhButton, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
+import XEditModal from './EditModal.vue'
+import XInput from './XInput.vue'
+import XNumberInput from './XNumberInput.vue'
+import XSelect from './XSelect.vue'
 
 /**
  * Cron 表达式编辑组件（公共组件）。
@@ -85,6 +90,10 @@ const fields = reactive<Record<FieldKey, FieldState>>({
   month: createField(1),
   week: createField(0),
 })
+const tabCollection = computed<TabsNode[]>(() =>
+  activeFieldDefs.value.map(def => ({ value: def.key, label: def.label })),
+)
+
 const activeTab = ref<FieldKey>('minute')
 
 // 防止「解析回填」触发「再次 emit」造成回环
@@ -370,119 +379,148 @@ function applyPreset(v: string): void {
 
 <template>
   <div class="cron-field">
-    <NInputGroup>
-      <NInput
+    <!-- 输入框与「生成」钮拼成一组：两者贴合，中缝不留描边 -->
+    <div class="cron-input-group">
+      <XInput
         v-model:value="rawText"
-        :status="isValid ? undefined : 'error'"
+        :invalid="!isValid"
         :placeholder="placeholder ?? '* * * * * ?'"
         @blur="applyRaw"
-        @keyup.enter="applyRaw"
+        @enter="applyRaw"
       />
-      <NButton ghost type="primary" :focusable="false" @click="builderVisible = true">
-        <template #icon>
-          <Icon icon="lucide:wand-2" />
-        </template>
+      <XhButton variant="outline" tone="brand" @click="builderVisible = true">
+        <Icon icon="lucide:wand-2" />
         {{ t('component.cron.build') }}
-      </NButton>
-    </NInputGroup>
+      </XhButton>
+    </div>
 
-    <NModal
+    <XEditModal
       v-model:show="builderVisible"
-      preset="card"
-      :auto-focus="false"
-      :bordered="false"
       :title="t('component.cron.title')"
-      style="width: 600px; max-width: 94vw"
+      :width="600"
+      :save-text="t('component.cron.done')"
+      @save="builderVisible = false"
     >
       <div class="cron-editor">
         <!-- 预设 + 秒开关 -->
         <div class="cron-toolbar">
           <div class="cron-presets">
-            <NTag
+            <button
               v-for="p in presets"
               :key="p.value"
+              type="button"
               class="cron-preset"
-              :bordered="false"
-              size="small"
-              round
               @click="applyPreset(p.value)"
             >
-              {{ p.label }}
-            </NTag>
+              <XhBadge variant="subtle" size="sm" tone="neutral">
+                {{ p.label }}
+              </XhBadge>
+            </button>
           </div>
           <label class="cron-seconds">
             <span>{{ t('component.cron.with_seconds') }}</span>
-            <NSwitch v-model:value="hasSeconds" size="small" />
+            <XhSwitch v-model:checked="hasSeconds" size="sm" />
           </label>
         </div>
 
-        <!-- 字段编辑 -->
-        <NTabs v-model:value="activeTab" type="line" size="small" animated>
-          <NTabPane v-for="def in activeFieldDefs" :key="def.key" :name="def.key" :tab="def.label">
-            <NRadioGroup v-model:value="fields[def.key].mode" class="cron-modes">
+        <!-- 字段编辑：标签由 collection 铺开，面板内容按当前字段渲染 -->
+        <XhTabsRoot
+          v-model:value="activeTab"
+          :collection="tabCollection"
+          variant="line"
+          size="sm"
+        >
+          <template #panel="node">
+            <XhRadioGroupRoot
+              v-if="defOf(node.value as FieldKey)"
+              v-model:value="fields[node.value as FieldKey].mode"
+              class="cron-modes"
+            >
               <div class="cron-mode-row">
-                <NRadio value="every">
-                  {{ t('component.cron.mode_every', { unit: def.label }) }}
-                </NRadio>
+                <XhRadioGroupItem value="every">
+                  <XhRadioGroupItemText>
+                    {{ t('component.cron.mode_every', { unit: defOf(node.value as FieldKey).label }) }}
+                  </XhRadioGroupItemText>
+                </XhRadioGroupItem>
               </div>
               <div class="cron-mode-row">
-                <NRadio value="interval">
-                  {{ t('component.cron.mode_interval') }}
-                </NRadio>
-                <span class="cron-inline" :class="{ 'is-disabled': fields[def.key].mode !== 'interval' }">
+                <XhRadioGroupItem value="interval">
+                  <XhRadioGroupItemText>{{ t('component.cron.mode_interval') }}</XhRadioGroupItemText>
+                </XhRadioGroupItem>
+                <span class="cron-inline" :class="{ 'is-disabled': fields[node.value as FieldKey].mode !== 'interval' }">
                   {{ t('component.cron.from') }}
-                  <NInputNumber
-                    v-model:value="fields[def.key].start" size="tiny" :min="def.min" :max="def.max"
-                    :disabled="fields[def.key].mode !== 'interval'" style="width: 76px"
+                  <XNumberInput
+                    v-model:value="fields[node.value as FieldKey].start"
+                    size="sm"
+                    :show-button="false"
+                    :min="defOf(node.value as FieldKey).min"
+                    :max="defOf(node.value as FieldKey).max"
+                    :disabled="fields[node.value as FieldKey].mode !== 'interval'"
+                    style="inline-size: 76px"
                   />
                   {{ t('component.cron.every_step') }}
-                  <NInputNumber
-                    v-model:value="fields[def.key].step" size="tiny" :min="1" :max="def.max"
-                    :disabled="fields[def.key].mode !== 'interval'" style="width: 76px"
+                  <XNumberInput
+                    v-model:value="fields[node.value as FieldKey].step"
+                    size="sm"
+                    :show-button="false"
+                    :min="1"
+                    :max="defOf(node.value as FieldKey).max"
+                    :disabled="fields[node.value as FieldKey].mode !== 'interval'"
+                    style="inline-size: 76px"
                   />
-                  {{ def.label }}
+                  {{ defOf(node.value as FieldKey).label }}
                 </span>
               </div>
               <div class="cron-mode-row">
-                <NRadio value="range">
-                  {{ t('component.cron.mode_range') }}
-                </NRadio>
-                <span class="cron-inline" :class="{ 'is-disabled': fields[def.key].mode !== 'range' }">
+                <XhRadioGroupItem value="range">
+                  <XhRadioGroupItemText>{{ t('component.cron.mode_range') }}</XhRadioGroupItemText>
+                </XhRadioGroupItem>
+                <span class="cron-inline" :class="{ 'is-disabled': fields[node.value as FieldKey].mode !== 'range' }">
                   {{ t('component.cron.from') }}
-                  <NInputNumber
-                    v-model:value="fields[def.key].from" size="tiny" :min="def.min" :max="def.max"
-                    :disabled="fields[def.key].mode !== 'range'" style="width: 76px"
+                  <XNumberInput
+                    v-model:value="fields[node.value as FieldKey].from"
+                    size="sm"
+                    :show-button="false"
+                    :min="defOf(node.value as FieldKey).min"
+                    :max="defOf(node.value as FieldKey).max"
+                    :disabled="fields[node.value as FieldKey].mode !== 'range'"
+                    style="inline-size: 76px"
                   />
                   {{ t('component.cron.to') }}
-                  <NInputNumber
-                    v-model:value="fields[def.key].to" size="tiny" :min="def.min" :max="def.max"
-                    :disabled="fields[def.key].mode !== 'range'" style="width: 76px"
+                  <XNumberInput
+                    v-model:value="fields[node.value as FieldKey].to"
+                    size="sm"
+                    :show-button="false"
+                    :min="defOf(node.value as FieldKey).min"
+                    :max="defOf(node.value as FieldKey).max"
+                    :disabled="fields[node.value as FieldKey].mode !== 'range'"
+                    style="inline-size: 76px"
                   />
                 </span>
               </div>
               <div class="cron-mode-row">
-                <NRadio value="specific">
-                  {{ t('component.cron.mode_specific') }}
-                </NRadio>
-                <NSelect
-                  v-model:value="fields[def.key].values"
+                <XhRadioGroupItem value="specific">
+                  <XhRadioGroupItemText>{{ t('component.cron.mode_specific') }}</XhRadioGroupItemText>
+                </XhRadioGroupItem>
+                <XSelect
+                  v-model:value="fields[node.value as FieldKey].values"
                   class="cron-specific"
                   multiple
-                  size="tiny"
-                  :options="specificOptions(def)"
+                  size="sm"
+                  :options="specificOptions(defOf(node.value as FieldKey))"
                   :max-tag-count="6"
-                  :placeholder="t('component.cron.specific_placeholder', { unit: def.label })"
-                  :disabled="fields[def.key].mode !== 'specific'"
+                  :placeholder="t('component.cron.specific_placeholder', { unit: defOf(node.value as FieldKey).label })"
+                  :disabled="fields[node.value as FieldKey].mode !== 'specific'"
                 />
               </div>
-              <div v-if="def.unspecified" class="cron-mode-row">
-                <NRadio value="unspecified">
-                  {{ t('component.cron.mode_unspecified') }}
-                </NRadio>
+              <div v-if="defOf(node.value as FieldKey).unspecified" class="cron-mode-row">
+                <XhRadioGroupItem value="unspecified">
+                  <XhRadioGroupItemText>{{ t('component.cron.mode_unspecified') }}</XhRadioGroupItemText>
+                </XhRadioGroupItem>
               </div>
-            </NRadioGroup>
-          </NTabPane>
-        </NTabs>
+            </XhRadioGroupRoot>
+          </template>
+        </XhTabsRoot>
 
         <!-- 预览 -->
         <div class="cron-preview">
@@ -500,15 +538,10 @@ function applyPreset(v: string): void {
         </div>
       </div>
 
-      <template #footer>
-        <div class="cron-footer">
-          <code class="cron-footer-expr">{{ expression }}</code>
-          <NButton type="primary" @click="builderVisible = false">
-            {{ t('component.cron.done') }}
-          </NButton>
-        </div>
+      <template #footer-extra>
+        <code class="cron-footer-expr">{{ expression }}</code>
       </template>
-    </NModal>
+    </XEditModal>
   </div>
 </template>
 

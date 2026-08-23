@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import {
-  NButton,
-  NDrawer,
-  NDrawerContent,
-  NIcon,
-  NScrollbar,
-  NSpace,
-  NTabPane,
-  NTabs,
-  useMessage,
-} from 'naive-ui'
+  XhButton,
+  XhDrawerContent,
+  XhDrawerRoot,
+  XhDrawerTitle,
+  XhScrollAreaContent,
+  XhScrollAreaRoot,
+  XhScrollAreaScrollbar,
+  XhScrollAreaThumb,
+  XhScrollAreaTrack,
+  XhScrollAreaViewport,
+  XhTabsContent,
+  XhTabsList,
+  XhTabsRoot,
+  XhTabsTrigger,
+} from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
+import { toast } from '~/composables'
 import {
   LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER,
 } from '~/constants'
@@ -31,9 +37,9 @@ defineOptions({ name: 'AppPreferenceDrawer' })
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const layoutBridgeStore = useLayoutBridgeStore()
-const message = useMessage()
 const { t } = useI18n()
 const visible = ref(false)
+const activeTab = ref('appearance')
 // 偏好设置入口：头部按钮与悬浮 FAB 互斥，统一由 usePreferenceEntry 判定（auto 模式窄屏走 FAB）
 const { showFab: showFloatingFab } = usePreferenceEntry()
 const { animateThemeTransition } = useTheme()
@@ -95,23 +101,23 @@ async function clearAndLogout() {
 async function copyPreferences() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(appStore.$state, null, 2))
-    message.success(t('preference.drawer.copy_success'))
+    toast.success(t('preference.drawer.copy_success'))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('preference.drawer.copy_failed'))
+    toast.error((error as Error)?.message || t('preference.drawer.copy_failed'))
   }
 }
 
 function resetPreferences() {
   // 草稿模式下仅把内存值恢复默认（实时预览），需点击「保存」才落地；关闭不保存则还原
   appStore.resetPreferences()
-  message.success(t('preference.drawer.reset_success'))
+  toast.success(t('preference.drawer.reset_success'))
 }
 
 /** 保存草稿：把当前预览的偏好提交落地（本地 + 按开关上行后端） */
 function savePreferences() {
   appStore.commitPreferenceDraft()
-  message.success(t('preference.drawer.save_success'))
+  toast.success(t('preference.drawer.save_success'))
 }
 
 function openDrawer() {
@@ -174,105 +180,120 @@ watch(visible, (open, was) => {
 <template>
   <PreferenceFab :show="showFloatingFab" @click="handleFabClick" />
 
-  <NDrawer v-model:show="visible" :width="396" placement="right">
-    <NDrawerContent
-      class="preference-drawer-content"
-      :body-content-style="{ padding: 0, overflow: 'hidden', height: '100%' }"
-    >
-      <template #header>
-        <div class="drawer-header">
-          <div class="flex items-center gap-2">
-            <span class="drawer-title">{{ t('preference.drawer.title') }}</span>
-            <SyncStatusBadge :synced="appStore.preferenceSyncEnabled" />
-          </div>
-          <button
-            tabindex="-1"
-            class="close-btn"
-            :aria-label="t('common.actions.close')"
-            @click="visible = false"
-          >
-            <NIcon size="16">
-              <Icon icon="lucide:x" />
-            </NIcon>
-          </button>
+  <XhDrawerRoot v-model:open="visible" side="right">
+    <XhDrawerContent class="preference-drawer-content">
+      <div class="drawer-header">
+        <div class="flex items-center gap-2">
+          <XhDrawerTitle class="drawer-title">
+            {{ t('preference.drawer.title') }}
+          </XhDrawerTitle>
+          <SyncStatusBadge :synced="appStore.preferenceSyncEnabled" />
         </div>
-      </template>
-      <NScrollbar class="preference-scrollbar">
-        <NTabs class="preference-tabs" type="segment" animated>
-          <NTabPane name="appearance" :tab="t('preference.drawer.tab.appearance')">
-            <PreferenceAppearanceTab
-              :app-store="appStore"
-              :theme-mode="themeMode"
-              @theme-mode-change="handleThemeModeChange"
-            />
-          </NTabPane>
+        <button
+          tabindex="-1"
+          class="close-btn"
+          :aria-label="t('common.actions.close')"
+          @click="visible = false"
+        >
+          <Icon icon="lucide:x" width="16" height="16" />
+        </button>
+      </div>
 
-          <NTabPane name="layout" :tab="t('preference.drawer.tab.layout')">
-            <PreferenceLayoutTab
-              :app-store="appStore"
-              :layout-mode="layoutMode"
-              :content-mode="contentMode"
-              :layout-presets="layoutPresets"
-              @layout-mode-change="handleLayoutModeChange"
-              @content-mode-change="handleContentModeChange"
-            />
-          </NTabPane>
+      <XhScrollAreaRoot class="preference-scrollbar">
+        <XhScrollAreaViewport>
+          <XhScrollAreaContent>
+            <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+            <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment">
+              <XhTabsList>
+                <XhTabsTrigger value="appearance">
+                  {{ t('preference.drawer.tab.appearance') }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="layout">
+                  {{ t('preference.drawer.tab.layout') }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="shortcut">
+                  {{ t('preference.drawer.tab.shortcut') }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="general">
+                  {{ t('preference.drawer.tab.general') }}
+                </XhTabsTrigger>
+              </XhTabsList>
 
-          <NTabPane name="shortcut" :tab="t('preference.drawer.tab.shortcut')">
-            <PreferenceShortcutTab :app-store="appStore" />
-          </NTabPane>
+              <XhTabsContent value="appearance">
+                <PreferenceAppearanceTab
+                  :app-store="appStore"
+                  :theme-mode="themeMode"
+                  @theme-mode-change="handleThemeModeChange"
+                />
+              </XhTabsContent>
 
-          <NTabPane name="general" :tab="t('preference.drawer.tab.general')">
-            <PreferenceGeneralTab :app-store="appStore" />
-          </NTabPane>
-        </NTabs>
-      </NScrollbar>
-      <template #footer>
-        <div class="drawer-footer">
-          <NSpace :wrap="false">
-            <NButton
-              circle
-              type="primary"
-              secondary
-              :title="t('preference.drawer.copy')"
-              @click="copyPreferences"
-            >
-              <template #icon>
-                <Icon icon="lucide:copy" width="16" />
-              </template>
-            </NButton>
-            <NButton circle :title="t('preference.drawer.reset')" @click="resetPreferences">
-              <template #icon>
-                <Icon icon="lucide:rotate-ccw" width="16" />
-              </template>
-            </NButton>
-            <NButton circle :title="t('preference.drawer.clear_cache')" @click="clearAndLogout">
-              <template #icon>
-                <Icon icon="lucide:trash-2" width="16" />
-              </template>
-            </NButton>
-          </NSpace>
-          <NButton
-            type="primary"
-            class="footer-save"
-            :disabled="!appStore.preferenceDraftDirty"
-            @click="savePreferences"
+              <XhTabsContent value="layout">
+                <PreferenceLayoutTab
+                  :app-store="appStore"
+                  :layout-mode="layoutMode"
+                  :content-mode="contentMode"
+                  :layout-presets="layoutPresets"
+                  @layout-mode-change="handleLayoutModeChange"
+                  @content-mode-change="handleContentModeChange"
+                />
+              </XhTabsContent>
+
+              <XhTabsContent value="shortcut">
+                <PreferenceShortcutTab :app-store="appStore" />
+              </XhTabsContent>
+
+              <XhTabsContent value="general">
+                <PreferenceGeneralTab :app-store="appStore" />
+              </XhTabsContent>
+            </XhTabsRoot>
+          </XhScrollAreaContent>
+        </XhScrollAreaViewport>
+        <!-- 滑块的行程按轨道节点量：少了 Track 这层，拖滑块与点轨道都会变成空操作 -->
+        <XhScrollAreaScrollbar orientation="vertical">
+          <XhScrollAreaTrack>
+            <XhScrollAreaThumb />
+          </XhScrollAreaTrack>
+        </XhScrollAreaScrollbar>
+      </XhScrollAreaRoot>
+
+      <div class="drawer-footer">
+        <div class="flex gap-2">
+          <XhButton
+            variant="subtle"
+            tone="brand"
+            class="footer-round"
+            :title="t('preference.drawer.copy')"
+            @click="copyPreferences"
           >
-            {{ t('preference.drawer.save') }}
-          </NButton>
+            <Icon icon="lucide:copy" width="16" />
+          </XhButton>
+          <XhButton variant="outline" class="footer-round" :title="t('preference.drawer.reset')" @click="resetPreferences">
+            <Icon icon="lucide:rotate-ccw" width="16" />
+          </XhButton>
+          <XhButton variant="outline" class="footer-round" :title="t('preference.drawer.clear_cache')" @click="clearAndLogout">
+            <Icon icon="lucide:trash-2" width="16" />
+          </XhButton>
         </div>
-      </template>
-    </NDrawerContent>
-  </NDrawer>
+        <XhButton
+          variant="solid"
+          class="footer-save"
+          :disabled="!appStore.preferenceDraftDirty"
+          @click="savePreferences"
+        >
+          {{ t('preference.drawer.save') }}
+        </XhButton>
+      </div>
+    </XhDrawerContent>
+  </XhDrawerRoot>
 </template>
 
 <style scoped>
-.preference-drawer-content {
-  font-size: 14px;
-}
-
-:deep(.n-drawer-footer) {
-  padding: 8px 16px !important;
+/* 底部三颗图标钮走圆形。面板自身的宽度与字号在 src/styles/admin-page.css：
+   content 被 portal 到 body，scopeId 不跟过去，scoped 规则选不中它 */
+.footer-round {
+  inline-size: 32px;
+  padding-inline: 0;
+  border-radius: var(--xh-radius-full);
 }
 
 .drawer-footer {
@@ -288,25 +309,29 @@ watch(visible, (open, was) => {
   flex: none;
 }
 
-:deep(.preference-scrollbar) {
+/* 这几个目标元素都写在本组件模板里、自带 scopeId；
+   套上 :deep() 反而要求祖先带 scopeId，而它们的祖先在 portal 之后一个都没有 */
+.preference-scrollbar {
   height: 100%;
 }
 
-:deep(.preference-scrollbar .n-scrollbar-content) {
+.preference-scrollbar [data-scope='scroll-area'][data-part='content'] {
   padding: 0 16px 16px;
 }
 
-:deep(.preference-tabs > .n-tabs-nav) {
+/* 标签栏吸顶。底色与内边距归 segment 档的皮肤（灰底轨道 + 白色活动药丸），
+   在这里改写会把轨道盖成白底、活动项就此看不出来；滚动时挡住下方内容改用外扩投影 */
+.preference-tabs > [data-scope='tabs'][data-part='list'] {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding-top: 12px;
-  padding-bottom: 4px;
-  background: var(--n-color);
+  margin-block-start: 12px;
+  box-shadow: 0 0 0 12px hsl(var(--background));
 }
 
-:deep(.preference-tabs > .n-tabs-nav .n-tabs-rail) {
-  margin-top: 0;
+/* 四段等分铺满：组件库不定各段宽度，由使用者按容器决定 */
+.preference-tabs > [data-scope='tabs'][data-part='list'] > [data-scope='tabs'][data-part='trigger'] {
+  flex: 1;
 }
 
 /* 自定义头部 */

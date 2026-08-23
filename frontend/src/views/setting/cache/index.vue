@@ -1,38 +1,22 @@
 <script setup lang="ts">
-import type { TreeOption } from 'naive-ui'
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NIcon,
-  NInput,
-  NRadioButton,
-  NRadioGroup,
-  NSpin,
-  NTag,
-  NTooltip,
-  NTree,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
-import { Icon } from '~/components'
+import { Icon, XInput, XSegmented, XTooltip, XTree } from '~/components'
+import { dialog, toast } from '~/composables'
 import { usePermission } from '~/hooks'
 
 defineOptions({ name: 'PlatformCachePage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 const { hasPermission } = usePermission()
 
 /** 维护权限（写入/删除）；无则只读浏览 */
 const canManage = computed(() => hasPermission('saas:cache:clear'))
 
 /**
- * NCard 内容容器样式：经 content-style prop 直传内联样式，不依赖 naive 内部 class（class 名随版本/前缀变动会失效）。
+ * 卡片内容容器样式：让内容区成为定高 flex 列。
  * 让内容区成为定高 flex 列，使内部滚动壳能撑满并收敛——与 SchemaPage 的做法一致。
  */
 const cardContentStyle = {
@@ -62,14 +46,18 @@ const saving = ref(false)
 
 const GROUP_PREFIX = '__group__'
 
-interface CacheTreeOption extends TreeOption {
+interface CacheTreeOption {
+  value: string
+  label: string
+  /** 分组节点的叶子数；叶子节点没有 */
   leafCount?: number
+  children?: CacheTreeOption[]
 }
 
 /**
  * 扁平键 → 树（按 : 分组）。叶子与分组分槽存储：
  * 同一路径既是某键又是更深键前缀（如 a:b 与 a:b:c 并存）时不互相覆盖、不丢键。
- * 分组节点不可选（selectable:false），仅叶子参与选择，避免多选时混入分组。
+ * 分组键带 __group__ 前缀，选中回调据此只取叶子，避免多选时混入分组。
  */
 const treeData = computed<CacheTreeOption[]>(() => {
   const root: CacheTreeOption[] = []
@@ -79,7 +67,7 @@ const treeData = computed<CacheTreeOption[]>(() => {
   const ensureGroup = (pathAccum: string, segment: string, parent: CacheTreeOption[]): CacheTreeOption => {
     let node = groupMap.get(pathAccum)
     if (!node) {
-      node = { key: `${GROUP_PREFIX}${pathAccum}`, label: segment, isLeaf: false, selectable: false, children: [], leafCount: 0 }
+      node = { value: `${GROUP_PREFIX}${pathAccum}`, label: segment, children: [], leafCount: 0 }
       groupMap.set(pathAccum, node)
       parent.push(node)
     }
@@ -96,12 +84,12 @@ const treeData = computed<CacheTreeOption[]>(() => {
       pathAccum = pathAccum ? `${pathAccum}:${segment}` : segment
       const group = ensureGroup(pathAccum, segment, parentChildren)
       group.leafCount = (group.leafCount ?? 0) + 1
-      parentChildren = group.children as CacheTreeOption[]
+      parentChildren = group.children!
     }
 
     const leafSegment = parts[parts.length - 1]!
     if (!leafMap.has(key)) {
-      const leaf: CacheTreeOption = { key, label: leafSegment, isLeaf: true }
+      const leaf: CacheTreeOption = { value: key, label: leafSegment }
       leafMap.set(key, leaf)
       parentChildren.push(leaf)
     }
@@ -110,19 +98,15 @@ const treeData = computed<CacheTreeOption[]>(() => {
   return root
 })
 
-function renderTreeLabel({ option }: { option: TreeOption }) {
-  const node = option as CacheTreeOption
-  if (node.isLeaf) {
-    return h('span', { class: 'cache-tree-leaf', title: String(node.key) }, String(node.label ?? ''))
+function renderTreeLabel(option: Record<string, unknown>) {
+  const node = option as unknown as CacheTreeOption
+  if (!node.children?.length) {
+    return h('span', { class: 'cache-tree-leaf', title: node.value }, String(node.label ?? ''))
   }
   return h('span', { class: 'cache-tree-group' }, [
     h('span', null, String(node.label ?? '')),
-    // 键数用徽标显示（与顶部「缓存键」计数同款 NTag），不再用括号
-    h(
-      NTag,
-      { size: 'tiny', type: 'info', bordered: false, round: true },
-      { default: () => String(node.leafCount ?? 0) },
-    ),
+    // 键数用徽标显示（与顶部「缓存键」计数同款），不再用括号
+    h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, { default: () => String(node.leafCount ?? 0) }),
   ])
 }
 
@@ -133,9 +117,9 @@ function collectGroupKeys(nodes: CacheTreeOption[]): string[] {
   const keys: string[] = []
   const walk = (list: CacheTreeOption[]) => {
     for (const node of list) {
-      if (!node.isLeaf) {
-        keys.push(String(node.key))
-        walk((node.children ?? []) as CacheTreeOption[])
+      if (node.children?.length) {
+        keys.push(node.value)
+        walk(node.children ?? [])
       }
     }
   }
@@ -152,7 +136,7 @@ async function loadKeys() {
     expandedKeys.value = cacheKeys.value.length <= 100 ? collectGroupKeys(treeData.value) : []
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.cache.query_keys_failed'))
+    toast.error((error as Error)?.message || t('setting.cache.query_keys_failed'))
   }
   finally {
     loadingKeys.value = false
@@ -176,14 +160,13 @@ function resetDetail() {
  * 单击 = 替换为单选；Ctrl/⌘ 点击 = 累加；Shift 点击 = 范围选（Naive 原生）。
  * 本次点击的叶子（meta.node）加载到右侧详情。
  */
-function handleSelect(
-  keys: Array<number | string>,
-  _option: Array<null | TreeOption>,
-  meta: { action: 'select' | 'unselect', node: null | TreeOption },
-) {
-  selectedKeys.value = keys.map(String)
-  if (meta.action === 'select' && meta.node?.isLeaf) {
-    void loadValue(String(meta.node.key))
+function handleSelect(keys: string[]) {
+  // 分组键只用于展开，不参与选择
+  const leaves = keys.filter(key => !key.startsWith(GROUP_PREFIX))
+  selectedKeys.value = leaves
+  const last = leaves[leaves.length - 1]
+  if (last && last !== detailKey.value) {
+    void loadValue(last)
   }
 }
 
@@ -198,7 +181,7 @@ async function loadValue(key: string) {
     format.value = isJson(value ?? '') ? 'json' : 'text'
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.cache.get_value_failed'))
+    toast.error((error as Error)?.message || t('setting.cache.get_value_failed'))
     rawValue.value = null
   }
   finally {
@@ -262,10 +245,10 @@ async function handleCopy() {
   }
   try {
     await navigator.clipboard.writeText(displayValue.value)
-    message.success(t('setting.cache.copied'))
+    toast.success(t('setting.cache.copied'))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.cache.copy_failed'))
+    toast.error((error as Error)?.message || t('setting.cache.copy_failed'))
   }
 }
 
@@ -287,12 +270,12 @@ async function handleSave() {
   saving.value = true
   try {
     await cacheApi.updateString(detailKey.value, draft.value)
-    message.success(t('setting.cache.saved'))
+    toast.success(t('setting.cache.saved'))
     editing.value = false
     reloadValue()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.cache.save_failed_key_protected'))
+    toast.error((error as Error)?.message || t('setting.cache.save_failed_key_protected'))
   }
   finally {
     saving.value = false
@@ -304,20 +287,22 @@ function handleDeleteCurrent() {
   if (!key) {
     return
   }
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('setting.cache.confirm_delete_title'),
     content: t('setting.cache.confirm_delete_content', { key }),
-    positiveText: t('common.actions.delete'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.delete'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await cacheApi.remove(key)
-        message.success(t('common.messages.delete_success'))
+        toast.success(t('common.messages.delete_success'))
         resetDetail()
         await loadKeys()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -332,19 +317,21 @@ function handleBatchDelete() {
   if (targets.length === 0) {
     return
   }
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('setting.cache.batch_delete_title'),
     content: t('setting.cache.batch_delete_content', { count: targets.length }),
-    positiveText: t('setting.cache.confirm_delete_btn'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('setting.cache.confirm_delete_btn'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       const results = await Promise.allSettled(targets.map(key => cacheApi.remove(key)))
       const failed = results.filter(result => result.status === 'rejected').length
       if (failed === 0) {
-        message.success(t('setting.cache.batch_deleted', { count: targets.length }))
+        toast.success(t('setting.cache.batch_deleted', { count: targets.length }))
       }
       else {
-        message.warning(t('setting.cache.batch_delete_partial', { success: targets.length - failed, failed }))
+        toast.warning(t('setting.cache.batch_delete_partial', { success: targets.length - failed, failed }))
       }
       if (detailKey.value && targets.includes(detailKey.value)) {
         resetDetail()
@@ -356,20 +343,22 @@ function handleBatchDelete() {
 
 function handleDeleteByPattern() {
   const pattern = keyPattern.value.trim() || '*'
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('setting.cache.delete_by_pattern_title'),
     content: t('setting.cache.delete_by_pattern_content', { pattern }),
-    positiveText: t('setting.cache.confirm_delete_btn'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('setting.cache.confirm_delete_btn'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         const count = await cacheApi.removeByPattern(pattern)
-        message.success(t('setting.cache.deleted_by_pattern', { count }))
+        toast.success(t('setting.cache.deleted_by_pattern', { count }))
         resetDetail()
         await loadKeys()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('setting.cache.delete_by_pattern_failed'))
+        toast.error((error as Error)?.message || t('setting.cache.delete_by_pattern_failed'))
       }
     },
   })
@@ -382,194 +371,174 @@ onMounted(loadKeys)
   <div class="cache-page">
     <div class="cache-body">
       <!-- 左侧：键树 -->
-      <NCard
-        :bordered="false"
-        size="small"
-        class="cache-tree-card"
-        :content-style="cardContentStyle"
-      >
-        <template #header>
+      <XhCardRoot class="cache-tree-card">
+        <XhCardHeader>
           <div class="cache-card-header">
             <Icon icon="lucide:database-backup" width="15" />
             <span>{{ t('setting.cache.cache_keys') }}</span>
-            <NTag v-if="keyCount > 0" size="tiny" type="info" :bordered="false" round>
+            <XhBadge v-if="keyCount > 0" variant="subtle" size="sm" tone="info">
               {{ keyCount }}
-            </NTag>
+            </XhBadge>
           </div>
-        </template>
+        </XhCardHeader>
+        <XhCardBody :style="cardContentStyle">
+          <div class="cache-tree-toolbar">
+            <XInput
+              v-model:value="keyPattern"
+              size="sm"
+              :placeholder="t('setting.cache.key_pattern_placeholder')"
+              clearable
+              @keydown.enter="handleSearch"
+            >
+              <template #prefix>
+                <Icon width="14" height="14" icon="lucide:search" />
+              </template>
+            </XInput>
+            <XTooltip :content="t('setting.cache.search_by_pattern')">
+              <XhButton size="sm" tone="brand" :loading="loadingKeys" @click="handleSearch">
+                <span><Icon icon="lucide:search" /></span>
+              </XhButton>
+            </XTooltip>
+          </div>
 
-        <div class="cache-tree-toolbar">
-          <NInput
-            v-model:value="keyPattern"
-            size="small"
-            :placeholder="t('setting.cache.key_pattern_placeholder')"
-            clearable
-            @keydown.enter="handleSearch"
-          >
-            <template #prefix>
-              <NIcon :size="14">
-                <Icon icon="lucide:search" />
-              </NIcon>
-            </template>
-          </NInput>
-          <NTooltip>
-            <template #trigger>
-              <NButton size="small" type="primary" :loading="loadingKeys" @click="handleSearch">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:search" /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ t('setting.cache.search_by_pattern') }}
-          </NTooltip>
-        </div>
-
-        <!-- 滚动区：相对壳 + 绝对内胆（脱离文档流，树高不撑页面），树在内部滚动 -->
-        <div class="cache-scroll-host">
-          <div class="cache-scroll-body">
-            <NSpin class="cache-scroll-spin" :show="loadingKeys" size="small">
-              <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
-                <NEmpty :description="t('setting.cache.empty_keys')" />
+          <!-- 滚动区：相对壳 + 绝对内胆（脱离文档流，树高不撑页面），树在内部滚动 -->
+          <div class="cache-scroll-host">
+            <div class="cache-scroll-body">
+              <div class="xh-loading-stage">
+                <div v-if="loadingKeys" class="xh-loading-stage__veil">
+                  <XhSpinner />
+                </div>
+                <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
+                  <XhEmptyStateRoot size="sm">
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:inbox" width="28" height="28" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                    <XhEmptyStateDescription>{{ t('setting.cache.empty_keys') }}</XhEmptyStateDescription>
+                  </XhEmptyStateRoot>
+                </div>
+                <XTree
+                  v-else
+                  v-model:expanded-keys="expandedKeys"
+                  :selected-keys="selectedKeys"
+                  :data="treeData"
+                  :selection-mode="canManage ? 'multiple' : 'single'"
+                  :render-label="renderTreeLabel"
+                  @update:selected-keys="handleSelect"
+                />
               </div>
-              <NTree
-                v-else
-                v-model:selected-keys="selectedKeys"
-                v-model:expanded-keys="expandedKeys"
-                :data="treeData"
-                block-line
-                :multiple="canManage"
-                selectable
-                :render-label="renderTreeLabel"
-                @update:selected-keys="handleSelect"
-              />
-            </NSpin>
+            </div>
           </div>
-        </div>
 
-        <!-- 选中/批量操作条（始终一行，不占树空间） -->
-        <div v-if="canManage" class="cache-batch-bar">
-          <span v-if="selectedCount > 0" class="cache-batch-count">
-            {{ t('setting.cache.selected') }} <strong>{{ selectedCount }}</strong> {{ t('setting.cache.count_unit') }}
-          </span>
-          <span v-else class="cache-batch-hint">{{ t('setting.cache.multi_select_hint') }}</span>
-          <div class="cache-batch-actions">
-            <NButton v-if="selectedCount > 0" size="tiny" quaternary @click="clearSelection">
-              {{ t('setting.cache.clear') }}
-            </NButton>
-            <NButton v-if="selectedCount > 0" size="tiny" type="error" @click="handleBatchDelete">
-              {{ t('setting.cache.delete_selected') }}
-            </NButton>
-            <NButton v-else size="tiny" quaternary type="warning" @click="handleDeleteByPattern">
-              {{ t('setting.cache.delete_by_pattern') }}
-            </NButton>
+          <!-- 选中/批量操作条（始终一行，不占树空间） -->
+          <div v-if="canManage" class="cache-batch-bar">
+            <span v-if="selectedCount > 0" class="cache-batch-count">
+              {{ t('setting.cache.selected') }} <strong>{{ selectedCount }}</strong> {{ t('setting.cache.count_unit') }}
+            </span>
+            <span v-else class="cache-batch-hint">{{ t('setting.cache.multi_select_hint') }}</span>
+            <div class="cache-batch-actions">
+              <XhButton v-if="selectedCount > 0" size="sm" variant="ghost" @click="clearSelection">
+                {{ t('setting.cache.clear') }}
+              </XhButton>
+              <XhButton v-if="selectedCount > 0" size="sm" tone="danger" @click="handleBatchDelete">
+                {{ t('setting.cache.delete_selected') }}
+              </XhButton>
+              <XhButton v-else size="sm" variant="ghost" tone="warning" @click="handleDeleteByPattern">
+                {{ t('setting.cache.delete_by_pattern') }}
+              </XhButton>
+            </div>
           </div>
-        </div>
-      </NCard>
+        </XhCardBody>
+      </XhCardRoot>
 
       <!-- 右侧：键值 -->
-      <NCard
-        :bordered="false"
-        size="small"
-        class="cache-detail-card"
-        :content-style="cardContentStyle"
-      >
-        <template #header>
+      <XhCardRoot class="cache-detail-card">
+        <XhCardHeader>
           <div v-if="detailKey" class="cache-detail-header">
             <span class="cache-detail-key" :title="detailKey">{{ detailKey }}</span>
+            <div class="cache-detail-actions">
+              <XhBadge v-if="sizeText" variant="subtle" size="sm">
+                {{ sizeText }}
+              </XhBadge>
+              <XSegmented v-if="!editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" />
+              <XTooltip :content="t('common.actions.copy')">
+                <XhButton size="sm" variant="ghost" @click="handleCopy">
+                  <span><Icon icon="lucide:copy" /></span>
+                </XhButton>
+              </XTooltip>
+              <XTooltip :content="t('common.actions.refresh')">
+                <XhButton size="sm" variant="ghost" @click="reloadValue">
+                  <span><Icon icon="lucide:refresh-cw" /></span>
+                </XhButton>
+              </XTooltip>
+              <XhButton v-if="canManage && !editing" size="sm" @click="startEdit">
+                <span><Icon icon="lucide:pencil-line" /></span>
+                {{ t('setting.cache.edit') }}
+              </XhButton>
+              <XTooltip :content="t('setting.cache.delete_this_key')">
+                <XhButton v-if="canManage" size="sm" variant="ghost" tone="danger" @click="handleDeleteCurrent">
+                  <span><Icon icon="lucide:trash-2" /></span>
+                </XhButton>
+              </XTooltip>
+            </div>
           </div>
           <div v-else class="cache-card-header">
             <Icon icon="lucide:file-json" width="15" />
             <span>{{ t('setting.cache.cache_content') }}</span>
           </div>
-        </template>
-
-        <template v-if="detailKey" #header-extra>
-          <div class="cache-detail-actions">
-            <NTag v-if="sizeText" size="tiny" :bordered="false">
-              {{ sizeText }}
-            </NTag>
-            <NRadioGroup v-if="!editing" v-model:value="format" size="small">
-              <NRadioButton value="text">
-                Text
-              </NRadioButton>
-              <NRadioButton value="json">
-                Json
-              </NRadioButton>
-            </NRadioGroup>
-            <NTooltip>
-              <template #trigger>
-                <NButton size="tiny" quaternary @click="handleCopy">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:copy" /></NIcon>
+        </XhCardHeader>
+        <XhCardBody :style="cardContentStyle">
+          <!-- 滚动区：相对壳 + 绝对内胆，详情在内部滚动 -->
+          <div class="cache-scroll-host">
+            <div class="cache-scroll-body">
+              <div class="xh-loading-stage">
+                <div v-if="loadingValue" class="xh-loading-stage__veil">
+                  <XhSpinner />
+                </div>
+                <div v-if="!detailKey" class="cache-empty">
+                  <XhEmptyStateRoot>
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:mouse-pointer-click" width="28" height="28" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('setting.cache.select_key_hint_title') }}</XhEmptyStateTitle>
+                    <XhEmptyStateDescription>{{ t('setting.cache.select_key_hint') }}</XhEmptyStateDescription>
+                  </XhEmptyStateRoot>
+                </div>
+                <div v-else-if="rawValue === null" class="cache-empty">
+                  <XhEmptyStateRoot>
+                    <XhEmptyStateIcon>
+                      <Icon icon="lucide:search-x" width="28" height="28" />
+                    </XhEmptyStateIcon>
+                    <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                    <XhEmptyStateDescription>{{ t('setting.cache.key_not_exist') }}</XhEmptyStateDescription>
+                  </XhEmptyStateRoot>
+                </div>
+                <template v-else>
+                  <!-- 编辑态：文本域 + 保存/取消 -->
+                  <template v-if="editing">
+                    <XInput
+                      v-model:value="draft"
+                      type="textarea"
+                      class="cache-value-editor"
+                      :placeholder="t('setting.cache.value_placeholder')"
+                    />
+                    <div class="cache-edit-actions">
+                      <XhButton size="sm" @click="cancelEdit">
+                        {{ t('common.actions.cancel') }}
+                      </XhButton>
+                      <XhButton size="sm" tone="brand" :loading="saving" @click="handleSave">
+                        {{ t('common.actions.save') }}
+                      </XhButton>
+                    </div>
                   </template>
-                </NButton>
-              </template>
-              {{ t('common.actions.copy') }}
-            </NTooltip>
-            <NTooltip>
-              <template #trigger>
-                <NButton size="tiny" quaternary @click="reloadValue">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              {{ t('common.actions.refresh') }}
-            </NTooltip>
-            <NButton v-if="canManage && !editing" size="tiny" @click="startEdit">
-              <template #icon>
-                <NIcon><Icon icon="lucide:pencil-line" /></NIcon>
-              </template>
-              {{ t('setting.cache.edit') }}
-            </NButton>
-            <NTooltip v-if="canManage">
-              <template #trigger>
-                <NButton size="tiny" quaternary type="error" @click="handleDeleteCurrent">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              {{ t('setting.cache.delete_this_key') }}
-            </NTooltip>
-          </div>
-        </template>
-
-        <!-- 滚动区：相对壳 + 绝对内胆，详情在内部滚动 -->
-        <div class="cache-scroll-host">
-          <div class="cache-scroll-body">
-            <NSpin class="cache-scroll-spin" :show="loadingValue" size="small">
-              <div v-if="!detailKey" class="cache-empty">
-                <NEmpty :description="t('setting.cache.select_key_hint')" />
-              </div>
-              <div v-else-if="rawValue === null" class="cache-empty">
-                <NEmpty :description="t('setting.cache.key_not_exist')" />
-              </div>
-              <template v-else>
-                <!-- 编辑态：文本域 + 保存/取消 -->
-                <template v-if="editing">
-                  <NInput
-                    v-model:value="draft"
-                    type="textarea"
-                    class="cache-value-editor"
-                    :placeholder="t('setting.cache.value_placeholder')"
-                  />
-                  <div class="cache-edit-actions">
-                    <NButton size="small" @click="cancelEdit">
-                      {{ t('common.actions.cancel') }}
-                    </NButton>
-                    <NButton size="small" type="primary" :loading="saving" @click="handleSave">
-                      {{ t('common.actions.save') }}
-                    </NButton>
-                  </div>
+                  <!-- 预览态：只读 -->
+                  <pre v-else class="cache-value-pre">{{ displayValue }}</pre>
                 </template>
-                <!-- 预览态：只读 -->
-                <pre v-else class="cache-value-pre">{{ displayValue }}</pre>
-              </template>
-            </NSpin>
+              </div>
+            </div>
           </div>
-        </div>
-      </NCard>
+        </XhCardBody>
+      </XhCardRoot>
     </div>
   </div>
 </template>
@@ -634,14 +603,14 @@ onMounted(loadKeys)
   overflow: auto;
 }
 
-/* NSpin 占满内胆（内容少时空态居中/编辑器撑满），内容多时自然撑高、由内胆滚动 */
+/* 加载态占满内胆（内容少时空态居中/编辑器撑满），内容多时自然撑高、由内胆滚动 */
 .cache-scroll-spin {
   display: flex;
   flex-direction: column;
   min-height: 100%;
 }
 
-.cache-scroll-spin :deep(.n-spin-content) {
+.cache-scroll-spin :deep(.xh-loading-stage) {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -667,7 +636,7 @@ onMounted(loadKeys)
   justify-content: space-between;
   padding-top: 8px;
   margin-top: 8px;
-  border-top: 1px solid var(--n-border-color, rgb(239 239 245));
+  border-top: 1px solid var(--xh-border-default);
 }
 
 .cache-batch-count {
@@ -676,7 +645,7 @@ onMounted(loadKeys)
 }
 
 .cache-batch-count strong {
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .cache-batch-hint {
@@ -738,7 +707,7 @@ onMounted(loadKeys)
   line-height: 1.6;
   word-break: break-all;
   white-space: pre-wrap;
-  background: var(--n-action-color, rgb(250 250 252));
+  background: var(--xh-bg-subtle);
   border-radius: 6px;
 }
 

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import type { DataTableColumn, DropdownOption } from 'naive-ui'
-import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload } from './types'
+import type { MenuNode } from '@xihan-ui/headless'
+import type { Tone } from '@xihan-ui/kernel'
+import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
 import type { ApiId } from '~/types/contracts'
-import { NButton, NCard, NDropdown, NIcon, NSkeleton, NTooltip, useDialog, useMessage } from 'naive-ui'
+import { XhButton, XhCardBody, XhCardRoot, XhMenuRoot, XhSkeletonBone, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { dialog, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore } from '~/stores'
+import XIconButton from '../common/XIconButton.vue'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
@@ -43,8 +46,6 @@ type Row = Record<string, any>
 const { t } = useI18n()
 const { hasPermission } = usePermission()
 const appStore = useAppStore()
-const dialog = useDialog()
-const message = useMessage()
 
 const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
@@ -219,24 +220,23 @@ const selectedRows = computed(() => {
 })
 
 /** 列：schema 派生列（应用列设置：显隐/顺序/固定）+ 行操作列 */
-const columns = computed<DataTableColumn<Row>[]>(() => {
+const columns = computed<SchemaColumn<Row>[]>(() => {
   const base = toColumns(resolvedSchema.value, hasPermission, {
     visibleKeys: settings.visibleKeys.value,
     columnOrder: settings.columnOrder.value,
     fixedMap: settings.fixedMap.value,
     widthMap: settings.widthMap.value,
-    sorts: sorts.value,
   })
   if (rowActions.value.length === 0) {
     return base
   }
-  const actionColumn = {
+  const actionColumn: SchemaColumn<Row> = {
     key: '__actions__',
     title: t('component.schema_page.actions_column'),
     width: 90,
     fixed: 'right',
     render: (row: Row) => renderRowActions(row),
-  } as unknown as DataTableColumn<Row>
+  }
   return [...base, actionColumn]
 })
 
@@ -248,28 +248,46 @@ function visibleRowActions(row: Row): ActionSchema<Row>[] {
   return rowActions.value.filter(a => !a.visible || a.visible(row))
 }
 
+/** 操作 Schema 的 type 到组件库 tone 轴的换算（Schema 里的词汇沿用页面既有声明，不改） */
+function toneOfActionType(type: ActionSchema<Row>['type']): Tone {
+  switch (type) {
+    case 'primary':
+      return 'brand'
+    case 'error':
+      return 'danger'
+    case 'info':
+    case 'success':
+    case 'warning':
+      return type
+    default:
+      return 'neutral'
+  }
+}
+
 function renderRowActions(row: Row) {
-  const options: DropdownOption[] = visibleRowActions(row).map(a => ({
-    key: a.key,
+  const collection: MenuNode[] = visibleRowActions(row).map(a => ({
+    value: a.key,
     label: a.title,
     disabled: a.disabled ? a.disabled(row) : false,
   }))
-  if (options.length === 0) {
+  if (collection.length === 0) {
     return h('span', { class: 'text-foreground/30' }, '-')
   }
   return h(
-    NDropdown,
+    XhMenuRoot,
     {
-      options,
-      trigger: 'click',
-      onSelect: (key: string) => dispatchAction(key, { key, scope: 'row', row }),
+      collection,
+      // 借用下面那颗按钮当触发器。不借的话菜单根会自己包一颗裸 button，
+      // 而 menu 皮肤没有 trigger 这一部件，露出的是浏览器默认按钮样式
+      triggerAsChild: true,
+      onSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
     },
     {
-      default: () =>
-        h(NButton, { quaternary: true, size: 'small' }, {
-          default: () => t('component.schema_page.more'),
-          icon: () => h(NIcon, null, () => h(Icon, { icon: 'lucide:chevron-down' })),
-        }),
+      trigger: () => h(
+        XhButton,
+        { variant: 'outline', size: 'sm' },
+        () => [t('component.schema_page.more'), h(Icon, { icon: 'lucide:chevron-down' })],
+      ),
     },
   )
 }
@@ -285,12 +303,13 @@ function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
     return
   }
 
-  dialog.warning({
+  void dialog.confirm({
     title: action.title,
     content: action.confirmText ?? t('component.schema_page.action_confirm'),
-    positiveText: t('component.schema_page.confirm'),
-    negativeText: t('component.schema_page.cancel'),
-    onPositiveClick: () => {
+    badge: 'warning',
+    okText: t('component.schema_page.confirm'),
+    cancelText: t('component.schema_page.cancel'),
+    onOk: () => {
       emit('action', payload)
     },
   })
@@ -323,12 +342,14 @@ function handleBatchRemove() {
     return
   }
   const rowKey = props.schema.rowKey ?? 'basicId'
-  dialog.warning({
+  void dialog.confirm({
     title: t('component.schema_page.batch_delete_title'),
     content: t('component.schema_page.batch_delete_content', { count: targets.length }),
-    positiveText: t('component.schema_page.batch_delete_confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    badge: 'warning',
+    tone: 'danger',
+    okText: t('component.schema_page.batch_delete_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       batchRemoving.value = true
       try {
         const results = await Promise.allSettled(
@@ -336,10 +357,10 @@ function handleBatchRemove() {
         )
         const failed = results.filter(r => r.status === 'rejected').length
         if (failed === 0) {
-          message.success(t('component.schema_page.deleted_count', { count: targets.length }))
+          toast.success(t('component.schema_page.deleted_count', { count: targets.length }))
         }
         else {
-          message.warning(t('component.schema_page.delete_partial', { success: targets.length - failed, failed }))
+          toast.warning(t('component.schema_page.delete_partial', { success: targets.length - failed, failed }))
         }
         clearSelection()
         await table.load()
@@ -360,12 +381,13 @@ function handleBatchStatus(enabled: boolean) {
   }
   const rowKey = props.schema.rowKey ?? 'basicId'
   const label = enabled ? t('component.schema_page.label_enable') : t('component.schema_page.label_disable')
-  dialog.warning({
+  void dialog.confirm({
     title: t('component.schema_page.batch_action_title', { label }),
     content: t('component.schema_page.batch_action_content', { label, count: targets.length }),
-    positiveText: t('component.schema_page.batch_status_confirm', { label }),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    badge: 'warning',
+    okText: t('component.schema_page.batch_status_confirm', { label }),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       batchStatusUpdating.value = true
       try {
         const results = await Promise.allSettled(
@@ -373,10 +395,10 @@ function handleBatchStatus(enabled: boolean) {
         )
         const failed = results.filter(r => r.status === 'rejected').length
         if (failed === 0) {
-          message.success(t('component.schema_page.status_done_count', { label, count: targets.length }))
+          toast.success(t('component.schema_page.status_done_count', { label, count: targets.length }))
         }
         else {
-          message.warning(t('component.schema_page.status_partial', { label, success: targets.length - failed, failed }))
+          toast.warning(t('component.schema_page.status_partial', { label, success: targets.length - failed, failed }))
         }
         clearSelection()
         await table.load()
@@ -457,12 +479,12 @@ const appContext = useAppContext()
 const canSubmitExport = computed(() => !!props.schema.resource.export)
 const submittingExport = ref(false)
 
-const exportMenuOptions = computed(() => [
-  { key: 'center:1', label: t('component.schema_page.export_results') },
-  { key: 'center:0', label: t('component.schema_page.export_current_page') },
-  { key: 'center:2', label: t('component.schema_page.export_all') },
-  { key: 'divider', type: 'divider' },
-  { key: 'local', label: t('component.schema_page.export_csv_local') },
+const exportMenuOptions = computed<MenuNode[]>(() => [
+  { value: 'center:1', label: t('component.schema_page.export_results') },
+  { value: 'center:0', label: t('component.schema_page.export_current_page') },
+  { value: 'center:2', label: t('component.schema_page.export_all') },
+  // 本地 CSV 与三档「提交到导出中心」不是一类事，条前画一条分隔线
+  { value: 'local', label: t('component.schema_page.export_csv_local'), separatorBefore: true },
 ])
 
 /** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
@@ -566,247 +588,254 @@ const SKELETON_CELL_FILL = ['62%', '48%', '80%', '55%', '70%', '45%', '75%', '58
 
 const skeletonRowHeight = computed(() => SKELETON_ROW_HEIGHT[settings.density.value] ?? 40)
 
-const skeletonColumns = computed(() =>
-  columns.value.map((col, i) => {
-    const c = col as { width?: number | string, type?: string }
-    const control = c.type === 'selection' || c.type === 'expand'
-    const rawWidth = typeof c.width === 'number'
-      ? `${c.width}px`
-      : typeof c.width === 'string' ? c.width : undefined
-    return {
-      key: i,
-      // 选择/展开列固定窄格；其余列按真实列宽，无宽度则 flex 平分剩余空间
-      width: control ? '40px' : rawWidth,
-      control,
+const skeletonColumns = computed(() => {
+  // 前缀列（展开/多选/序号）不在 columns 里——它们由表格面板按开关插入，骨架屏照同一套开关补上
+  const prefix: Array<{ key: string, width: string, control: boolean, fill: string }> = []
+  if (renderExpand.value) {
+    prefix.push({ key: '__expand__', width: '40px', control: true, fill: '' })
+  }
+  if (settings.selectable.value) {
+    prefix.push({ key: '__select__', width: '40px', control: true, fill: '' })
+  }
+  if (settings.showIndex.value) {
+    prefix.push({ key: '__index__', width: '60px', control: false, fill: '40%' })
+  }
+  return [
+    ...prefix,
+    ...columns.value.map((col, i) => ({
+      key: col.key,
+      // 按真实列宽，无宽度则 flex 平分剩余空间
+      width: col.width === undefined ? '' : `${col.width}px`,
+      control: false,
       fill: SKELETON_CELL_FILL[i % SKELETON_CELL_FILL.length] as string,
-    }
-  }),
-)
+    })),
+  ]
+})
+
+/**
+ * 密度：用户偏好存的是 small/medium/large（后端 PagePreference 里也是这套词），
+ * 组件库用的是 sm/md/lg。在此换算，不改存储词汇。
+ */
+const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
+  const density = settings.density.value
+  return density === 'small' ? 'sm' : density === 'large' ? 'lg' : 'md'
+})
 </script>
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板：用 NCard 包裹（与表格同款容器），高级条件浮层在卡片内对齐 -->
-    <NCard
+    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉 -->
+    <XhCardRoot
       v-if="searchFields.length || advancedFields.length"
-      size="small"
-      :content-style="{ padding: '12px 16px' }"
-      :style="{ overflow: 'visible' }"
+      variant="outline"
+      style="overflow: visible"
     >
-      <SchemaSearchPanel
-        :advanced-fields="advancedFields"
-        :common-fields="searchFields"
-        :model="filters"
-        @reset="reset"
-        @search="search"
-      >
-        <template #settings>
-          <SchemaSearchSettings
-            :settings="searchSettings.settings.value"
-            @move="searchSettings.move"
-            @reset="searchSettings.resetDefault"
-            @toggle-pin="searchSettings.togglePin"
-            @toggle-visible="searchSettings.toggleVisible"
-            @save="onSaveSearchSettings"
-          />
-        </template>
-      </SchemaSearchPanel>
-    </NCard>
-
-    <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/列设置/全屏） -->
-    <NCard size="small" :content-style="{ padding: '8px 16px' }">
-      <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
-        <template #toolbar>
-          <!-- 页面自定义工具栏项 -->
-          <slot name="toolbar" :reload="reload" />
-          <!-- 内置工具：刷新 / 列设置 / 全屏 -->
-          <NTooltip>
-            <template #trigger>
-              <NButton circle quaternary size="small" :aria-label="t('common.actions.refresh')" @click="reload">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ t('common.actions.refresh') }}
-          </NTooltip>
-          <NTooltip v-if="canImport">
-            <template #trigger>
-              <NButton circle quaternary size="small" :aria-label="t('common.actions.import')" @click="importVisible = true">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:upload" /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ t('component.schema_page.import_csv') }}
-          </NTooltip>
-          <!-- 导出按钮：仅在页面声明 exportPermission 且用户有该权限时显示（精准门控）；
-               已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口，否则本地同步 CSV -->
-          <template v-if="effectiveExportFields.length && canExportPermitted">
-            <!-- 已登记导出 Provider 的页面：提供「提交到导出中心」异步入口 + 本地同步 CSV 兜底 -->
-            <NDropdown v-if="canSubmitExport" trigger="click" :options="exportMenuOptions" @select="onExportSelect">
-              <NButton circle quaternary size="small" :aria-label="t('common.actions.export')" :loading="exporting || submittingExport">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:download" /></NIcon>
-                </template>
-              </NButton>
-            </NDropdown>
-            <!-- 未登记页面：维持本地同步 CSV 导出 -->
-            <NTooltip v-else>
-              <template #trigger>
-                <NButton circle quaternary size="small" :aria-label="t('common.actions.export')" :loading="exporting" @click="exportCsv">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:download" /></NIcon>
-                  </template>
-                </NButton>
-              </template>
-              {{ t('component.schema_page.export_csv') }}
-            </NTooltip>
+      <XhCardBody class="xh-schema-card__body">
+        <SchemaSearchPanel
+          :advanced-fields="advancedFields"
+          :common-fields="searchFields"
+          :model="filters"
+          @reset="reset"
+          @search="search"
+        >
+          <template #settings>
+            <SchemaSearchSettings
+              :settings="searchSettings.settings.value"
+              @move="searchSettings.move"
+              @reset="searchSettings.resetDefault"
+              @toggle-pin="searchSettings.togglePin"
+              @toggle-visible="searchSettings.toggleVisible"
+              @save="onSaveSearchSettings"
+            />
           </template>
-          <SchemaTableSettings
-            :columns="settings.columns.value"
-            :density="settings.density.value"
-            :table-style="settings.style.value"
-            :selectable="settings.selectable.value"
-            :show-index="settings.showIndex.value"
-            @move="settings.move"
-            @reset="onResetTableSettings"
-            @set-density="settings.setDensity"
-            @set-fixed="settings.setFixed"
-            @set-width="onColumnWidthInput"
-            @set-style="settings.setStyle"
-            @set-selectable="settings.setSelectable"
-            @set-show-index="settings.setShowIndex"
-            @cycle-sort="onCycleSort"
-            @toggle-visible="settings.toggleVisible"
-            @save="onSaveTableSettings"
-          />
-          <NTooltip>
-            <template #trigger>
-              <NButton circle quaternary size="small" :aria-label="t('component.schema_page.fullscreen')" @click="toggleFullscreen">
-                <template #icon>
-                  <NIcon><Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" /></NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ isFullscreen ? t('component.schema_page.exit_fullscreen') : t('component.schema_page.enter_fullscreen') }}
-          </NTooltip>
-        </template>
-      </SchemaActionPanel>
-    </NCard>
+        </SchemaSearchPanel>
+      </XhCardBody>
+    </XhCardRoot>
 
-    <!-- 表格容器：定高卡片（flex-1 + height:0），content 成为定高 flex 列，滚动只发生在表格内部 -->
-    <NCard
-      class="flex-1"
-      style="height: 0"
-      :content-style="{ height: '100%', display: 'flex', flexDirection: 'column', padding: '12px 16px' }"
-    >
-      <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
-      <div v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
-        <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
-          <div
-            v-for="col in skeletonColumns"
-            :key="`h-${col.key}`"
-            class="xh-skel-cell"
-            :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
-          >
-            <NSkeleton v-if="!col.control" round :height="13" width="52%" />
-          </div>
-        </div>
-        <div
-          v-for="row in SKELETON_ROWS"
-          :key="row"
-          class="xh-skel-row"
-          :style="{ height: `${skeletonRowHeight}px` }"
-        >
-          <div
-            v-for="col in skeletonColumns"
-            :key="`r${row}-${col.key}`"
-            class="xh-skel-cell"
-            :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
-          >
-            <NSkeleton v-if="col.control" :sharp="false" :width="16" :height="16" />
-            <NSkeleton v-else round :height="15" :width="col.fill" />
-          </div>
-        </div>
-      </div>
-      <template v-else>
-        <!-- 表格：列表/树形两种模式（树形不分页、按 childrenKey 展开） -->
-        <SchemaTablePanel
-          v-model:checked-keys="checkedKeys"
-          :columns="columns"
-          :data="rows"
-          :density="settings.density.value"
-          :striped="settings.style.value.striped"
-          :bordered="settings.style.value.bordered"
-          :single-line="settings.style.value.singleLine"
-          :show-index="settings.showIndex.value"
-          :loading="loading"
-          :page="page"
-          :page-size="pageSize"
-          :row-key="schema.rowKey ?? 'basicId'"
-          :scroll-x="schema.scrollX"
-          :selectable="settings.selectable.value"
-          :total="total"
-          :tree="!!schema.tree"
-          :children-key="schema.tree?.childrenKey ?? 'children'"
-          :default-expand-all="schema.tree?.defaultExpandAll ?? true"
-          :remount-key="tableRemountKey"
-          :peek-fields="peekFields"
-          :render-expand="renderExpand"
-          @sort="changeSort"
-          @update:page="changePage"
-          @update:page-size="changePageSize"
-          @resize-column="onColumnResize"
-        >
-          <!-- 批量浮条：放在页脚，选中后不挤压表格空间 -->
-          <template v-if="checkedKeys.length" #footer-actions>
-            <div class="xh-batch-bar">
-              <span class="xh-batch-bar__count">{{ t('component.schema_page.selected_count_prefix') }} <strong>{{ checkedKeys.length }}</strong> {{ t('component.schema_page.selected_count_suffix') }}</span>
-              <NButton quaternary size="small" @click="clearSelection">
-                {{ t('component.schema_page.clear_selection') }}
-              </NButton>
-              <NButton
-                v-if="canBatchStatus"
-                size="small"
-                type="success"
-                :loading="batchStatusUpdating"
-                @click="handleBatchStatus(true)"
+    <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/导入/导出/列设置/全屏） -->
+    <XhCardRoot variant="outline" style="overflow: visible">
+      <XhCardBody class="xh-schema-card__body xh-schema-card__body--toolbar">
+        <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
+          <template #toolbar>
+            <!-- 页面自定义工具栏项 -->
+            <slot name="toolbar" :reload="reload" />
+            <XIconButton
+              icon="lucide:refresh-cw"
+              :label="t('common.actions.refresh')"
+              @click="reload"
+            />
+            <XIconButton
+              v-if="canImport"
+              icon="lucide:upload"
+              :label="t('component.schema_page.import_csv')"
+              @click="importVisible = true"
+            />
+            <!-- 导出按钮：仅在页面声明 exportPermission 且用户有该权限时显示（精准门控）；
+                 已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口，否则本地同步 CSV -->
+            <template v-if="effectiveExportFields.length && canExportPermitted">
+              <XhMenuRoot
+                v-if="canSubmitExport"
+                trigger-as-child
+                :collection="exportMenuOptions"
+                @select="(details: { value: string }) => onExportSelect(details.value)"
               >
-                {{ t('component.schema_page.batch_enable') }}
-              </NButton>
-              <NButton
-                v-if="canBatchStatus"
-                size="small"
-                type="warning"
-                :loading="batchStatusUpdating"
-                @click="handleBatchStatus(false)"
-              >
-                {{ t('component.schema_page.batch_disable') }}
-              </NButton>
-              <NButton
-                v-if="canBatchRemove"
-                size="small"
-                type="error"
-                :loading="batchRemoving"
-                @click="handleBatchRemove"
-              >
-                {{ t('component.schema_page.batch_delete') }}
-              </NButton>
-              <NButton
-                v-for="action in batchActions"
-                :key="action.key"
-                size="small"
-                :type="action.type ?? 'default'"
-                @click="onBatchAction(action.key)"
-              >
-                {{ action.title }}
-              </NButton>
+                <template #trigger>
+                  <button type="button" class="xh-icon-btn" :aria-label="t('component.schema_page.export_csv')">
+                    <Icon icon="lucide:download" />
+                  </button>
+                </template>
+              </XhMenuRoot>
+              <!-- 未登记页面：维持本地同步 CSV 导出 -->
+              <XIconButton
+                v-else
+                icon="lucide:download"
+                :label="t('component.schema_page.export_csv')"
+                :loading="exporting"
+                @click="exportCsv"
+              />
+            </template>
+            <SchemaTableSettings
+              :columns="settings.columns.value"
+              :density="settings.density.value"
+              :table-style="settings.style.value"
+              :selectable="settings.selectable.value"
+              :show-index="settings.showIndex.value"
+              @move="settings.move"
+              @reset="onResetTableSettings"
+              @set-density="settings.setDensity"
+              @set-fixed="settings.setFixed"
+              @set-width="onColumnWidthInput"
+              @set-style="settings.setStyle"
+              @set-selectable="settings.setSelectable"
+              @set-show-index="settings.setShowIndex"
+              @cycle-sort="onCycleSort"
+              @toggle-visible="settings.toggleVisible"
+              @save="onSaveTableSettings"
+            />
+            <XIconButton
+              :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
+              :label="isFullscreen ? t('component.schema_page.exit_fullscreen') : t('component.schema_page.enter_fullscreen')"
+              @click="toggleFullscreen"
+            />
+          </template>
+        </SchemaActionPanel>
+      </XhCardBody>
+    </XhCardRoot>
+
+    <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
+    <XhCardRoot class="flex-1" variant="outline" style="height: 0">
+      <XhCardBody class="xh-schema-card__body xh-schema-card__body--table">
+        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
+        <XhSkeletonRoot v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
+          <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
+            <div
+              v-for="col in skeletonColumns"
+              :key="`h-${col.key}`"
+              class="xh-skel-cell"
+              :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+            >
+              <XhSkeletonBone v-if="!col.control" class="xh-skel-bar" style="inline-size: 52%; block-size: 13px" />
             </div>
-          </template>
-        </SchemaTablePanel>
-      </template>
-    </NCard>
+          </div>
+          <div
+            v-for="row in SKELETON_ROWS"
+            :key="row"
+            class="xh-skel-row"
+            :style="{ height: `${skeletonRowHeight}px` }"
+          >
+            <div
+              v-for="col in skeletonColumns"
+              :key="`r${row}-${col.key}`"
+              class="xh-skel-cell"
+              :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+            >
+              <XhSkeletonBone v-if="col.control" class="xh-skel-bar xh-skel-bar--square" style="inline-size: 16px; block-size: 16px" />
+              <XhSkeletonBone v-else class="xh-skel-bar" :style="{ inlineSize: col.fill, blockSize: '15px' }" />
+            </div>
+          </div>
+        </XhSkeletonRoot>
+        <template v-else>
+          <!-- 表格：列表/树形两种模式（树形不分页、按 childrenKey 展开） -->
+          <SchemaTablePanel
+            v-model:checked-keys="checkedKeys"
+            :columns="columns"
+            :data="rows"
+            :density="tableDensity"
+            :striped="settings.style.value.striped"
+            :bordered="settings.style.value.bordered"
+            :single-line="settings.style.value.singleLine"
+            :show-index="settings.showIndex.value"
+            :loading="loading"
+            :page="page"
+            :page-size="pageSize"
+            :row-key="schema.rowKey ?? 'basicId'"
+            :selectable="settings.selectable.value"
+            :sorts="sorts"
+            :total="total"
+            :tree="!!schema.tree"
+            :children-key="schema.tree?.childrenKey ?? 'children'"
+            :default-expand-all="schema.tree?.defaultExpandAll ?? true"
+            :remount-key="tableRemountKey"
+            :peek-fields="peekFields"
+            :render-expand="renderExpand"
+            @sort="changeSort"
+            @update:page="changePage"
+            @update:page-size="changePageSize"
+            @resize-column="onColumnResize"
+          >
+            <!-- 批量浮条：放在页脚，选中后不挤压表格空间 -->
+            <template v-if="checkedKeys.length" #footer-actions>
+              <div class="xh-batch-bar">
+                <span class="xh-batch-bar__count">{{ t('component.schema_page.selected_count_prefix') }} <strong>{{ checkedKeys.length }}</strong> {{ t('component.schema_page.selected_count_suffix') }}</span>
+                <XhButton variant="ghost" size="sm" @click="clearSelection">
+                  {{ t('component.schema_page.clear_selection') }}
+                </XhButton>
+                <XhButton
+                  v-if="canBatchStatus"
+                  size="sm"
+                  variant="solid"
+                  tone="success"
+                  :loading="batchStatusUpdating"
+                  @click="handleBatchStatus(true)"
+                >
+                  {{ t('component.schema_page.batch_enable') }}
+                </XhButton>
+                <XhButton
+                  v-if="canBatchStatus"
+                  size="sm"
+                  variant="solid"
+                  tone="warning"
+                  :loading="batchStatusUpdating"
+                  @click="handleBatchStatus(false)"
+                >
+                  {{ t('component.schema_page.batch_disable') }}
+                </XhButton>
+                <XhButton
+                  v-if="canBatchRemove"
+                  size="sm"
+                  variant="solid"
+                  tone="danger"
+                  :loading="batchRemoving"
+                  @click="handleBatchRemove"
+                >
+                  {{ t('component.schema_page.batch_delete') }}
+                </XhButton>
+                <XhButton
+                  v-for="action in batchActions"
+                  :key="action.key"
+                  size="sm"
+                  variant="outline"
+                  :tone="toneOfActionType(action.type)"
+                  @click="onBatchAction(action.key)"
+                >
+                  {{ action.title }}
+                </XhButton>
+              </div>
+            </template>
+          </SchemaTablePanel>
+        </template>
+      </XhCardBody>
+    </XhCardRoot>
 
     <!-- 内置导入对话框（模板下载/解析/预校验/批量创建） -->
     <SchemaImportDialog
@@ -825,6 +854,22 @@ const skeletonColumns = computed(() =>
 </template>
 
 <style scoped>
+/* 卡片体内边距：卡片皮肤给的是通用值，管理页三块卡片各有自己的紧凑档 */
+.xh-schema-card__body {
+  padding: 12px 16px;
+}
+
+.xh-schema-card__body--toolbar {
+  padding: 8px 16px;
+}
+
+/* 表格卡片：卡片体成为定高 flex 列，内部滚动 */
+.xh-schema-card__body--table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /* 列表骨架屏：列宽/行高对应真实表格，单元格内边距 + 行分割线还原表格观感，填满表格区并裁剪溢出 */
 .xh-table-skeleton {
   display: flex;
@@ -849,6 +894,14 @@ const skeletonColumns = computed(() =>
   padding: 0 12px;
 }
 
+.xh-skel-bar {
+  border-radius: var(--xh-radius-full);
+}
+
+.xh-skel-bar--square {
+  border-radius: var(--xh-radius-sm);
+}
+
 .xh-batch-bar {
   display: flex;
   gap: 8px;
@@ -857,13 +910,12 @@ const skeletonColumns = computed(() =>
 
 .xh-batch-bar__count {
   font-size: 13px;
-  color: var(--n-text-color);
+  color: var(--xh-fg-default);
   white-space: nowrap;
 }
 
 .xh-batch-bar__count strong {
   font-weight: 600;
-  color: var(--n-text-color);
 }
 
 .xh-schema-fullscreen {

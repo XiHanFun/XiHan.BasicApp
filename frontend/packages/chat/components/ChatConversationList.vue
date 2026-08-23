@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { DropdownOption } from 'naive-ui'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { NBadge, NDropdown, NEmpty, NInput, NScrollbar, NSpin, NTooltip } from 'naive-ui'
+import type { AppDropdownOption } from '~/types'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XDropdown from '~/components/common/XDropdown.vue'
+import XInput from '~/components/common/XInput.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { hasChatAssistantProvider } from '../assistant-provider'
@@ -36,8 +39,8 @@ const filteredConversations = computed(() => {
   return chatStore.conversations.filter(c => c.displayName.toLowerCase().includes(key))
 })
 
-const startOptions = computed<DropdownOption[]>(() => {
-  const options: DropdownOption[] = [
+const startOptions = computed<AppDropdownOption[]>(() => {
+  const options: AppDropdownOption[] = [
     { key: 'single', label: t('chat.start.single') },
     { key: 'department', label: t('chat.start.department') },
   ]
@@ -108,45 +111,43 @@ function handleItemAction(key: string) {
   <div class="flex h-full min-h-0 flex-col">
     <!-- 头部：搜索 + 发起聊天（固定高度与消息区会话头对齐，底部分割线） -->
     <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
-      <NInput
+      <XInput
         v-model:value="keyword"
-        size="small"
+        size="sm"
         clearable
         :placeholder="t('chat.list.search_placeholder')"
       >
         <template #prefix>
           <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
         </template>
-      </NInput>
-      <NTooltip>
-        <template #trigger>
-          <button type="button" class="chat-icon-btn" @click="handleRefresh">
-            <Icon icon="lucide:refresh-cw" width="15" height="15" />
-          </button>
-        </template>
-        {{ t('chat.list.refresh') }}
-      </NTooltip>
-      <NDropdown :options="startOptions" trigger="click" @select="handleStartSelect">
-        <NTooltip>
-          <template #trigger>
-            <button type="button" class="chat-icon-btn">
-              <Icon icon="lucide:message-square-plus" width="15" height="15" />
-            </button>
-          </template>
-          {{ t('chat.start.button') }}
-        </NTooltip>
-      </NDropdown>
+      </XInput>
+      <XTooltip :content="t('chat.list.refresh')">
+        <button type="button" class="chat-icon-btn" @click="handleRefresh">
+          <Icon icon="lucide:refresh-cw" width="15" height="15" />
+        </button>
+      </XTooltip>
+      <!-- 下拉与气泡叠在同一颗按钮上：菜单触发器借用它，说明文字走原生 title -->
+      <XDropdown :options="startOptions" @select="handleStartSelect">
+        <button type="button" class="chat-icon-btn" :title="t('chat.start.button')">
+          <Icon icon="lucide:message-square-plus" width="15" height="15" />
+        </button>
+      </XDropdown>
     </div>
 
     <!-- 会话列表 -->
-    <NSpin
-      :show="chatStore.conversationsLoading && !chatStore.conversations.length"
-      class="min-h-0 flex-1"
-      :content-style="{ height: '100%' }"
-    >
-      <NScrollbar class="h-full">
+    <div class="xh-loading-stage min-h-0 flex-1" :class="{ 'is-loading': chatStore.conversationsLoading && !chatStore.conversations.length }">
+      <div class="xh-loading-stage__veil">
+        <XhSpinner size="md" />
+      </div>
+      <div class="xh-scroll-area h-full">
         <div v-if="!filteredConversations.length" class="py-10">
-          <NEmpty :description="t('chat.list.empty')" size="small" />
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
         </div>
         <div
           v-for="conv in filteredConversations"
@@ -159,9 +160,12 @@ function handleItemAction(key: string) {
           @click="emit('select', conv.conversationId)"
           @contextmenu="openItemContextMenu($event, conv.conversationId)"
         >
-          <NBadge :value="conv.isMuted ? 0 : conv.unreadCount" :max="99" :offset="[-2, 2]">
+          <div class="chat-conv-avatar">
             <XUserAvatar :avatar="conv.avatar" :name="conv.displayName" :size="38" />
-          </NBadge>
+            <span v-if="!conv.isMuted && conv.unreadCount > 0" class="chat-conv-avatar__badge">
+              {{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}
+            </span>
+          </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center justify-between gap-2">
               <span class="flex min-w-0 items-center gap-1">
@@ -203,8 +207,8 @@ function handleItemAction(key: string) {
             </div>
           </div>
         </div>
-      </NScrollbar>
-    </NSpin>
+      </div>
+    </div>
 
     <!-- 会话右键菜单（QQ 式） -->
     <ChatContextMenu
@@ -218,6 +222,26 @@ function handleItemAction(key: string) {
 </template>
 
 <style scoped>
+/* 未读计数贴在头像右上角 */
+.chat-conv-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chat-conv-avatar__badge {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  min-inline-size: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--xh-color-danger-500);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}
+
 .chat-icon-btn {
   display: inline-flex;
   align-items: center;

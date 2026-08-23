@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import type { DropdownOption, InputInst } from 'naive-ui'
 import type {
   ChatMemberItem,
   ChatMessageAttachment,
 } from '../types'
-import { NButton, NDropdown, NInput, NPopover, NProgress, NTooltip, useMessage } from 'naive-ui'
+import type { AppDropdownOption } from '~/types'
+import { XhButton, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhProgress } from '@xihan-ui/vue'
 import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
-import { Icon } from '~/iconify'
+import XDropdown from '~/components/common/XDropdown.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
+import { toast } from '~/composables'
 
+import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from '../api-contract'
@@ -47,7 +50,6 @@ interface PendingAttachment {
 }
 
 const { t } = useI18n()
-const message = useMessage()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 
@@ -56,7 +58,8 @@ const sending = ref(false)
 const uploadingPercent = ref<null | number>(null)
 const imageInputRef = ref<HTMLInputElement>()
 const fileInputRef = ref<HTMLInputElement>()
-const textInputRef = ref<InputInst | null>(null)
+/** XInput 暴露底层元素与聚焦，插入 @ / 换行时按光标位置改写正文 */
+const textInputRef = ref<{ el: HTMLInputElement | HTMLTextAreaElement | null, focus: () => void, blur: () => void } | null>(null)
 const showEmojiPicker = ref(false)
 const showMentionPicker = ref(false)
 const mentionMembers = ref<ChatMemberItem[]>([])
@@ -85,7 +88,7 @@ const placeholder = computed(() =>
   sendKey.value === 'enter' ? t('chat.composer.placeholder_enter') : t('chat.composer.placeholder_ctrl_enter'))
 
 /** 发送模式下拉（当前项打勾，另一项占位对齐） */
-const sendKeyOptions = computed<DropdownOption[]>(() => {
+const sendKeyOptions = computed<AppDropdownOption[]>(() => {
   const check = () => h(Icon, { icon: 'lucide:check', width: 14, height: 14 })
   const blank = () => h('span', { style: 'display:inline-block;width:14px' })
   return [
@@ -140,7 +143,7 @@ watch(() => chatStore.mentionRequest, (request) => {
     return
   }
   const name = request.userName || request.userId
-  const textarea = textInputRef.value?.textareaElRef
+  const textarea = textInputRef.value?.el
   const pos = textarea?.selectionStart ?? draft.value.length
   draft.value = `${draft.value.slice(0, pos)}@${name} ${draft.value.slice(pos)}`
   mentionDrafts.set(name, request.userId)
@@ -181,7 +184,7 @@ function handleInput() {
 
 /** 在光标处插入换行（Enter 直发模式下 Ctrl+Enter 换行，textarea 默认不插入需手动） */
 function insertNewlineAtCursor() {
-  const textarea = textInputRef.value?.textareaElRef
+  const textarea = textInputRef.value?.el
   const start = textarea?.selectionStart ?? draft.value.length
   const end = textarea?.selectionEnd ?? draft.value.length
   draft.value = `${draft.value.slice(0, start)}\n${draft.value.slice(end)}`
@@ -237,7 +240,7 @@ function detectMentionTrigger() {
   if (!isGroupLike.value || isEditing.value) {
     return
   }
-  const textarea = textInputRef.value?.textareaElRef
+  const textarea = textInputRef.value?.el
   const pos = textarea?.selectionStart ?? draft.value.length
   if (pos > 0 && draft.value[pos - 1] === '@') {
     void loadMentionMembers()
@@ -260,7 +263,7 @@ async function loadMentionMembers() {
 }
 
 function insertMention(member: ChatMemberItem) {
-  const textarea = textInputRef.value?.textareaElRef
+  const textarea = textInputRef.value?.el
   const pos = textarea?.selectionStart ?? draft.value.length
   const before = draft.value.slice(0, pos)
   const atIndex = before.lastIndexOf('@')
@@ -285,7 +288,7 @@ function insertEmoji(emoji: string) {
   if (draft.value.length + emoji.length > CHAT_MAX_CONTENT_LENGTH) {
     return
   }
-  const textarea = textInputRef.value?.textareaElRef
+  const textarea = textInputRef.value?.el
   const start = textarea?.selectionStart ?? draft.value.length
   const end = textarea?.selectionEnd ?? draft.value.length
   draft.value = draft.value.slice(0, start) + emoji + draft.value.slice(end)
@@ -306,7 +309,7 @@ async function handleSendText() {
     return
   }
   if (content.length > CHAT_MAX_CONTENT_LENGTH) {
-    message.warning(t('chat.composer.too_long', { max: CHAT_MAX_CONTENT_LENGTH }))
+    toast.warning(t('chat.composer.too_long', { max: CHAT_MAX_CONTENT_LENGTH }))
     return
   }
 
@@ -339,7 +342,7 @@ async function handleSendText() {
         ({ images, files } = await uploadPending(attachments))
       }
       catch (error) {
-        message.error((error as Error)?.message || t('chat.composer.upload_failed'))
+        toast.error((error as Error)?.message || t('chat.composer.upload_failed'))
         return
       }
       clearPendingAttachments()
@@ -427,7 +430,7 @@ async function startTalking(): Promise<void> {
   }
   catch {
     // getUserMedia 被拒绝或无可用设备；也可能是非安全上下文（HTTPS 之外）
-    message.error(t('chat.composer.voice_denied'))
+    toast.error(t('chat.composer.voice_denied'))
     exitVoiceMode()
   }
 }
@@ -439,7 +442,7 @@ async function stopTalking(): Promise<void> {
   }
   const result = await voice.stop()
   if (!result) {
-    message.warning(t('chat.composer.voice_too_short'))
+    toast.warning(t('chat.composer.voice_too_short'))
     return
   }
   sending.value = true
@@ -459,7 +462,7 @@ async function stopTalking(): Promise<void> {
     // 发完留在面板：连着说几条是常态，退出交给 Esc 或「退出」
   }
   catch (error) {
-    message.error((error as Error)?.message || t('chat.composer.voice_failed'))
+    toast.error((error as Error)?.message || t('chat.composer.voice_failed'))
   }
   finally {
     sending.value = false
@@ -634,11 +637,10 @@ function handlePaste(event: ClipboardEvent) {
 
       <!-- 附件上传进度 -->
       <div v-if="uploadingPercent != null" class="mx-2.5 mt-2 flex items-center gap-2">
-        <NProgress
-          type="line"
-          :percentage="uploadingPercent"
-          :show-indicator="false"
-          :height="4"
+        <XhProgress
+          :value="uploadingPercent"
+          variant="line"
+          size="sm"
           class="flex-1"
         />
         <span class="shrink-0 text-[11px] text-muted-foreground">
@@ -648,53 +650,49 @@ function handlePaste(event: ClipboardEvent) {
 
       <!-- 工具条（QQ 式：表情/图片/文件在输入区上方一排） -->
       <div class="flex items-center gap-0.5 px-2 pt-1.5">
-        <NPopover v-model:show="showEmojiPicker" trigger="click" placement="top-start" :show-arrow="false" raw>
-          <template #trigger>
-            <button type="button" class="chat-composer-btn" :title="t('chat.composer.emoji')">
-              <Icon icon="lucide:smile" width="18" height="18" />
-            </button>
-          </template>
-          <ChatEmojiPicker @select="insertEmoji" />
-        </NPopover>
-        <NTooltip>
-          <template #trigger>
-            <button
-              type="button"
-              class="chat-composer-btn"
-              :disabled="uploadingPercent != null || isEditing"
-              @click="imageInputRef?.click()"
-            >
-              <Icon icon="lucide:image" width="18" height="18" />
-            </button>
-          </template>
-          {{ t('chat.composer.image') }}
-        </NTooltip>
-        <NTooltip>
-          <template #trigger>
-            <button
-              type="button"
-              class="chat-composer-btn"
-              :disabled="uploadingPercent != null || isEditing"
-              @click="fileInputRef?.click()"
-            >
-              <Icon icon="lucide:paperclip" width="18" height="18" />
-            </button>
-          </template>
-          {{ t('chat.composer.file') }}
-        </NTooltip>
-        <NTooltip v-if="voice.supported.value">
-          <template #trigger>
-            <button
-              type="button"
-              class="chat-composer-btn"
-              :disabled="uploadingPercent != null || isEditing || sending"
-              @click="enterVoiceMode"
-            >
-              <Icon icon="lucide:mic" width="18" height="18" />
-            </button>
-          </template>
-          {{ t('chat.composer.voice') }}
-        </NTooltip>
+        <XhPopoverRoot v-model:open="showEmojiPicker" placement="top-start">
+          <XhPopoverTrigger class="xh-linklike-trigger">
+            <Icon icon="lucide:smile" width="18" height="18" />
+          </XhPopoverTrigger>
+          <XhPopoverPositioner>
+            <XhPopoverContent>
+              <ChatEmojiPicker @select="insertEmoji" />
+            </XhPopoverContent>
+          </XhPopoverPositioner>
+        </XhPopoverRoot>
+        <XTooltip :content="t('chat.composer.image')">
+          <button
+
+            type="button"
+            class="chat-composer-btn"
+            :disabled="uploadingPercent != null || isEditing"
+            @click="imageInputRef?.click()"
+          >
+            <Icon icon="lucide:image" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <XTooltip :content="t('chat.composer.file')">
+          <button
+
+            type="button"
+            class="chat-composer-btn"
+            :disabled="uploadingPercent != null || isEditing"
+            @click="fileInputRef?.click()"
+          >
+            <Icon icon="lucide:paperclip" width="18" height="18" />
+          </button>
+        </XTooltip>
+        <XTooltip :content="t('chat.composer.voice')">
+          <button
+            v-if="voice.supported.value"
+            type="button"
+            class="chat-composer-btn"
+            :disabled="uploadingPercent != null || isEditing || sending"
+            @click="enterVoiceMode"
+          >
+            <Icon icon="lucide:mic" width="18" height="18" />
+          </button>
+        </XTooltip>
         <input
           ref="imageInputRef"
           type="file"
@@ -731,63 +729,62 @@ function handlePaste(event: ClipboardEvent) {
 
       <!-- 大面积无边框输入区；群聊输入 @ 唤起成员选择 -->
       <div class="relative px-1">
-        <NPopover
-          v-model:show="showMentionPicker"
-          trigger="manual"
-          placement="top-start"
-          :show-arrow="false"
-        >
-          <template #trigger>
-            <NInput
+        <!-- 浮层由输入内容驱动开合（打 @ 才弹），触发器只作锚点、不接管点击 -->
+        <XhPopoverRoot v-model:open="showMentionPicker" placement="top-start">
+          <XhPopoverTrigger as="div" class="chat-composer-anchor">
+            <XInput
               ref="textInputRef"
               v-model:value="draft"
               type="textarea"
-              :bordered="false"
               :autosize="{ minRows: 3, maxRows: 7 }"
-              :maxlength="CHAT_MAX_CONTENT_LENGTH"
+              :max-length="CHAT_MAX_CONTENT_LENGTH"
               :placeholder="placeholder"
               class="chat-composer-input"
               @input="handleInput"
               @keydown="handleKeydown"
               @paste="handlePaste"
             />
-          </template>
-          <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
-            <div v-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
-              {{ t('chat.composer.mention_empty') }}
-            </div>
-            <button
-              v-for="member in mentionMembers"
-              :key="member.userId"
-              type="button"
-              class="chat-mention-item"
-              @click="insertMention(member)"
-            >
-              <XUserAvatar :name="member.userName" :size="24" />
-              <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
-            </button>
-          </div>
-        </NPopover>
+          </XhPopoverTrigger>
+          <XhPopoverPositioner>
+            <XhPopoverContent>
+              <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
+                <div v-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
+                  {{ t('chat.composer.mention_empty') }}
+                </div>
+                <button
+                  v-for="member in mentionMembers"
+                  :key="member.userId"
+                  type="button"
+                  class="chat-mention-item"
+                  @click="insertMention(member)"
+                >
+                  <XUserAvatar :name="member.userName" :size="24" />
+                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
+                </button>
+              </div>
+            </XhPopoverContent>
+          </XhPopoverPositioner>
+        </XhPopoverRoot>
       </div>
 
       <!-- 底部：发送按钮 + 发送模式下拉（QQ 式分体按钮） -->
       <div class="flex items-center justify-end px-2.5 pb-2.5">
         <div class="chat-send-group">
-          <NButton
-            type="primary"
-            size="small"
+          <XhButton
+            tone="brand"
+            size="sm"
             :disabled="(!trimmedDraft && !pendingAttachments.length) || sending"
             :loading="sending"
             class="chat-send-main"
             @click="handleSendText"
           >
             {{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}
-          </NButton>
-          <NDropdown :options="sendKeyOptions" trigger="click" placement="top-end" @select="handleSendKeySelect">
-            <NButton type="primary" size="small" class="chat-send-arrow">
+          </XhButton>
+          <XDropdown :options="sendKeyOptions" placement="top-end" @select="handleSendKeySelect">
+            <XhButton tone="brand" size="sm" class="chat-send-arrow">
               <Icon icon="lucide:chevron-up" width="14" height="14" />
-            </NButton>
-          </NDropdown>
+            </XhButton>
+          </XDropdown>
         </div>
       </div>
     </template>
@@ -795,6 +792,18 @@ function handlePaste(event: ClipboardEvent) {
 </template>
 
 <style scoped>
+/* 浮层触发器恒渲染成 button：这里只当锚点用，去掉按钮相，让它像一个普通块 */
+.chat-composer-anchor {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: auto;
+}
+
 .chat-composer-btn {
   display: inline-flex;
   align-items: center;
@@ -901,10 +910,11 @@ function handlePaste(event: ClipboardEvent) {
   cursor: not-allowed;
 }
 
-/* 无边框输入区：去掉聚焦描边，保持 QQ 式纯净输入面 */
-.chat-composer-input :deep(.n-input__border),
-.chat-composer-input :deep(.n-input__state-border) {
-  display: none;
+/* 无边框输入区：去掉描边与聚焦描边，保持 QQ 式纯净输入面（走文本框皮肤留的边框槽） */
+.chat-composer-input :deep([data-scope='text-field'][data-part='input']) {
+  --xh-text-field-input-border: transparent;
+  --xh-text-field-input-border-hover: transparent;
+  --xh-text-field-input-border-focus: transparent;
 }
 
 .chat-composer-inline-btn {

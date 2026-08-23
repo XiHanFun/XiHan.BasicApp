@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { CascaderOption, DataTableColumns } from 'naive-ui'
 import type {
   ApiId,
   DepartmentCreateDto,
@@ -10,28 +9,10 @@ import type {
   DepartmentTreeNodeDto,
   DepartmentUpdateDto,
 } from '@/api'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NCascader,
-  NDataTable,
-  NDatePicker,
-  NDescriptions,
-  NDescriptionsItem,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace,
-  NTabPane,
-  NTabs,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, ref } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
+import type { TreeSelectOption } from '~/types'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   DepartmentType,
@@ -42,7 +23,8 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XCascader, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -50,11 +32,14 @@ defineOptions({ name: 'SystemOrgPage' })
 
 const { t } = useI18n()
 
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
+const membershipFormId = useId()
+
 interface DeptFormModel extends DepartmentCreateDto {
   basicId?: ApiId
 }
 
-const message = useMessage()
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 const deptTypeOptions = useEnumOptions('DepartmentType', DEPARTMENT_TYPE_OPTIONS)
 
@@ -63,7 +48,7 @@ const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 // 上级部门 Cascader 选项：单独维护一份树，随 reload 同步刷新
 const treeNodes = ref<DepartmentTreeNodeDto[]>([])
 
-function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): CascaderOption[] {
+function treeToCascaderOptions(nodes: DepartmentTreeNodeDto[]): TreeSelectOption[] {
   return nodes.map(node => ({
     children: node.children && node.children.length > 0 ? treeToCascaderOptions(node.children) : undefined,
     label: node.departmentName,
@@ -114,7 +99,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 100,
     order: 3,
     render: row =>
-      h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(deptTypeOptions.value, (row as unknown as DepartmentListItemDto).departmentType)),
+      h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, getOptionLabel(deptTypeOptions.value, (row as unknown as DepartmentListItemDto).departmentType)),
   },
   {
     key: 'status',
@@ -125,7 +110,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dictionaryCode: 'EnableStatus',
     render: (row) => {
       const status = (row as unknown as DepartmentListItemDto).status
-      return h(NTag, { size: 'small', round: true, type: status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => getOptionLabel(statusOptions.value, status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusOptions.value, status))
     },
   },
   { key: 'phone', title: t('identity.org.col_phone'), dataType: 'phone', minWidth: 130, order: 5 },
@@ -144,7 +129,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:department:delete',
   statusPermission: 'saas:department:status',
   rowKey: 'basicId',
-  scrollX: 1400,
   tree: { childrenKey: 'children', defaultExpandAll: false },
   fields: fields.value,
   resource: {
@@ -261,9 +245,9 @@ function findDepartmentName(parentId: ApiId) {
   return walk(treeNodes.value) ?? formatNullable(parentId)
 }
 
-const childDeptColumns = computed<DataTableColumns<DepartmentListItemDto>>(() => [
-  { title: t('identity.org.detail_table_dept_name'), key: 'departmentName', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: t('identity.org.detail_table_code'), key: 'departmentCode', width: 100, ellipsis: { tooltip: true } },
+const childDeptColumns = computed<XDataTableColumn<DepartmentListItemDto>[]>(() => [
+  { title: t('identity.org.detail_table_dept_name'), key: 'departmentName', minWidth: 120, ellipsis: true },
+  { title: t('identity.org.detail_table_code'), key: 'departmentCode', width: 100, ellipsis: true },
   {
     title: t('identity.org.detail_table_type'),
     key: 'departmentType',
@@ -274,44 +258,39 @@ const childDeptColumns = computed<DataTableColumns<DepartmentListItemDto>>(() =>
     title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
-    render: row => h(NTag, { size: 'small', round: true, type: row.status === EnableStatus.Enabled ? 'success' : 'error', bordered: false }, () => formatStatus(row.status)),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => formatStatus(row.status)),
   },
 ])
 
-const memberColumns = computed<DataTableColumns<DepartmentManagementMemberDto>>(() => [
+const memberColumns = computed<XDataTableColumn<DepartmentManagementMemberDto>[]>(() => [
   {
     title: t('identity.org.detail_table_user'),
     key: 'user',
     minWidth: 140,
     render: row => row.realName || row.nickName || row.userName || String(row.userId),
   },
-  { title: t('identity.org.detail_table_username'), key: 'userName', width: 110, ellipsis: { tooltip: true }, render: row => row.userName ?? '—' },
-  { title: t('identity.org.detail_table_position'), key: 'positionName', width: 120, ellipsis: { tooltip: true }, render: row => row.positionName ?? '—' },
-  { title: t('identity.org.detail_table_job_number'), key: 'jobNumber', width: 100, ellipsis: { tooltip: true }, render: row => row.jobNumber ?? '—' },
+  { title: t('identity.org.detail_table_username'), key: 'userName', width: 110, ellipsis: true, render: row => row.userName ?? '—' },
+  { title: t('identity.org.detail_table_position'), key: 'positionName', width: 120, ellipsis: true, render: row => row.positionName ?? '—' },
+  { title: t('identity.org.detail_table_job_number'), key: 'jobNumber', width: 100, ellipsis: true, render: row => row.jobNumber ?? '—' },
   {
     title: t('identity.org.detail_table_is_main'),
     key: 'isMain',
     width: 72,
     render: row => row.isMain
-      ? h(NTag, { size: 'small', type: 'info', bordered: false }, () => t('common.statuses.yes'))
-      : h('span', { style: 'color:var(--n-text-color-3)' }, '—'),
+      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('common.statuses.yes'))
+      : h('span', { style: 'color:hsl(var(--muted-foreground))' }, '—'),
   },
   {
     title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
-    render: row => h(NTag, {
-      size: 'small',
-      round: true,
-      type: row.status === ValidityStatus.Valid ? 'success' : 'default',
-      bordered: false,
-    }, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid'))),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: row.status === ValidityStatus.Valid ? 'success' : 'neutral' }, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid'))),
   },
   {
     title: t('identity.org.detail_table_actions'),
     key: 'actions',
     width: 90,
-    render: row => h(NButton, { size: 'tiny', text: true, type: 'primary', onClick: () => openEditMembership(row) }, () => t('identity.org.action_edit_membership')),
+    render: row => h(XhButton, { size: 'sm', variant: 'ghost', tone: 'brand', onClick: () => openEditMembership(row) }, () => t('identity.org.action_edit_membership')),
   },
 ])
 
@@ -345,7 +324,7 @@ async function handleEdit(row: DepartmentListItemDto) {
     deptForm.value = buildFormModel(detail ?? row)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
     deptForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -361,13 +340,13 @@ async function handleView(row: DepartmentListItemDto) {
     // 后端异常时可能返回非 DTO 形状（缺少 department/childDepartments/members），按未找到处理，避免渲染崩溃
     if (!detail || !detail.department) {
       managementDetail.value = null
-      message.warning(t('identity.org.msg_detail_not_found'))
+      toast.warning(t('identity.org.msg_detail_not_found'))
       return
     }
     managementDetail.value = detail
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -378,11 +357,11 @@ async function handleToggleStatus(row: DepartmentListItemDto) {
   const nextStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
     await orgManagementApi.updateStatus({ basicId: row.basicId, status: nextStatus })
-    message.success(t('identity.org.msg_status_updated'))
+    toast.success(t('identity.org.msg_status_updated'))
     await reloadAll()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.org.msg_status_failed'))
+    toast.error((error as Error)?.message || t('identity.org.msg_status_failed'))
   }
 }
 
@@ -457,12 +436,12 @@ async function submitMembership() {
       positionId: membershipForm.value.positionId,
       remark: toStr(membershipForm.value.remark),
     })
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     membershipVisible.value = false
     await refreshManagementDetail()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     membershipLoading.value = false
@@ -471,11 +450,11 @@ async function submitMembership() {
 
 function validateForm() {
   if (!deptForm.value.departmentName.trim()) {
-    message.warning(t('identity.org.msg_department_name_required'))
+    toast.warning(t('identity.org.msg_department_name_required'))
     return false
   }
   if (!deptForm.value.basicId && !deptForm.value.departmentCode.trim()) {
-    message.warning(t('identity.org.msg_department_code_required'))
+    toast.warning(t('identity.org.msg_department_code_required'))
     return false
   }
   return true
@@ -521,12 +500,12 @@ async function handleSubmit() {
       await orgManagementApi.create(createInput)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     await reloadAll()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -545,194 +524,341 @@ onMounted(() => {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
-      v-model:show="detailVisible"
-      class="xh-mgmt-detail-modal"
-      preset="card"
-      :bordered="false"
-      :mask-closable="true"
-      style="width: 720px; max-width: calc(100vw - 32px);"
-    >
-      <template v-if="detDept" #header>
-        <div class="det-hd-entity">
-          <div class="det-hd-ico">
-            <Icon icon="tabler:building" :size="22" />
-          </div>
-          <div class="min-w-0">
-            <div class="det-hd-name">
-              {{ detDept.departmentName }}
+    <XhDialogRoot v-model:open="detailVisible">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
+        <XhDialogTitle v-if="detDept">
+          <div class="det-hd-entity">
+            <div class="det-hd-ico">
+              <Icon icon="tabler:building" :size="22" />
             </div>
-            <div class="det-hd-sub">
-              {{ detDept.departmentCode }}
+            <div class="min-w-0">
+              <div class="det-hd-name">
+                {{ detDept.departmentName }}
+              </div>
+              <div class="det-hd-sub">
+                {{ detDept.departmentCode }}
+              </div>
             </div>
           </div>
+        </XhDialogTitle>
+        <XhDialogCloseTrigger />
+
+        <div v-if="detailLoading" class="modal-loading">
+          {{ t('common.statuses.loading') }}
         </div>
-      </template>
+        <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+        <XhTabsRoot v-else-if="managementDetail && detDept" default-value="overview" variant="line">
+          <XhTabsList>
+            <XhTabsTrigger value="overview">
+              {{ t('identity.org.tab_overview') }}
+            </XhTabsTrigger>
+            <XhTabsTrigger value="children">
+              {{ t('identity.org.tab_children', { count: managementDetail.childDepartments?.length ?? 0 }) }}
+            </XhTabsTrigger>
+            <XhTabsTrigger value="members">
+              {{ t('identity.org.tab_members', { count: managementDetail.members?.length ?? 0 }) }}
+            </XhTabsTrigger>
+          </XhTabsList>
+          <XhTabsContent value="overview">
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_department_type') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(deptTypeOptions, detDept!.departmentType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_parent') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detDept!.parentId ? findDepartmentName(detDept!.parentId) : '—' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_leader_id') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(detDept!.leaderId) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" size="sm" :tone="detDept!.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                    {{ formatStatus(detDept!.status) }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_phone') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(detDept!.phone) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_email') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(detDept!.email) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('identity.org.label_address') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(detDept!.address) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_sort') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detDept!.sort }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('identity.org.label_create_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detDept!.createdTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="detDept!.remark" style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('identity.org.label_remark') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detDept!.remark }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </XhTabsContent>
+          <XhTabsContent value="children">
+            <div class="xh-detail-table-wrap">
+              <XDataTable
+                v-if="managementDetail.childDepartments?.length"
+                :columns="childDeptColumns"
+                :data="managementDetail.childDepartments"
+                size="sm"
+                :row-key="(row: DepartmentListItemDto) => row.basicId"
+              />
+              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="24" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('identity.org.empty_children') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+            </div>
+          </XhTabsContent>
+          <XhTabsContent value="members">
+            <div class="xh-detail-table-wrap">
+              <XDataTable
+                v-if="managementDetail.members?.length"
+                :columns="memberColumns"
+                :data="managementDetail.members"
+                size="sm"
+                :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
+              />
+              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="24" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('identity.org.empty_members') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+            </div>
+          </XhTabsContent>
+        </XhTabsRoot>
+        <XhEmptyStateRoot v-else style="padding: 48px 0">
+          <XhEmptyStateIcon>
+            <Icon icon="lucide:inbox" width="28" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+          <XhEmptyStateDescription>{{ t('identity.org.msg_detail_not_found') }}</XhEmptyStateDescription>
+        </XhEmptyStateRoot>
 
-      <div v-if="detailLoading" class="modal-loading">
-        {{ t('common.statuses.loading') }}
-      </div>
-      <NTabs v-else-if="managementDetail && detDept" type="line" animated size="small">
-        <NTabPane name="overview" :tab="t('identity.org.tab_overview')">
-          <NDescriptions :column="2" bordered size="small">
-            <NDescriptionsItem :label="t('identity.org.label_department_type')">
-              {{ getOptionLabel(deptTypeOptions, detDept!.departmentType) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_parent')">
-              {{ detDept!.parentId ? findDepartmentName(detDept!.parentId) : '—' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_leader_id')">
-              {{ formatNullable(detDept!.leaderId) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_status')">
-              <NTag size="small" :type="detDept!.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
-                {{ formatStatus(detDept!.status) }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_phone')">
-              {{ formatNullable(detDept!.phone) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_email')">
-              {{ formatNullable(detDept!.email) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_address')" :span="2">
-              {{ formatNullable(detDept!.address) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_sort')">
-              {{ detDept!.sort }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('identity.org.label_create_time')">
-              {{ formatNullableDate(detDept!.createdTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem v-if="detDept!.remark" :label="t('identity.org.label_remark')" :span="2">
-              {{ detDept!.remark }}
-            </NDescriptionsItem>
-          </NDescriptions>
-        </NTabPane>
-        <NTabPane name="children" :tab="t('identity.org.tab_children', { count: managementDetail.childDepartments?.length ?? 0 })">
-          <div class="xh-detail-table-wrap">
-            <NDataTable
-              v-if="managementDetail.childDepartments?.length"
-              :columns="childDeptColumns"
-              :data="managementDetail.childDepartments"
-              :bordered="false"
-              size="small"
-              :row-key="(row: DepartmentListItemDto) => row.basicId"
-            />
-            <NEmpty v-else :description="t('identity.org.empty_children')" style="padding: 32px 0" />
-          </div>
-        </NTabPane>
-        <NTabPane name="members" :tab="t('identity.org.tab_members', { count: managementDetail.members?.length ?? 0 })">
-          <div class="xh-detail-table-wrap">
-            <NDataTable
-              v-if="managementDetail.members?.length"
-              :columns="memberColumns"
-              :data="managementDetail.members"
-              :bordered="false"
-              size="small"
-              :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
-            />
-            <NEmpty v-else :description="t('identity.org.empty_members')" style="padding: 32px 0" />
-          </div>
-        </NTabPane>
-      </NTabs>
-      <NEmpty v-else :description="t('identity.org.msg_detail_not_found')" style="padding: 48px 0" />
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="detailVisible = false">
-            {{ t('common.actions.close') }}
-          </NButton>
-          <NButton
-            v-if="detDept"
-            size="small"
-            type="primary"
-            @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
-          >
-            {{ t('common.actions.edit') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end">
+            <XhButton size="sm" @click="detailVisible = false">
+              {{ t('common.actions.close') }}
+            </XhButton>
+            <XhButton
+              v-if="detDept"
+              size="sm"
+              tone="brand"
+              @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
+            >
+              {{ t('common.actions.edit') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="deptForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('identity.org.label_department_name')" path="departmentName">
-          <NInput v-model:value="deptForm.departmentName" clearable :placeholder="t('identity.org.ph_department_name')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_department_code')" path="departmentCode">
-          <NInput
-            v-model:value="deptForm.departmentCode"
-            :disabled="Boolean(deptForm.basicId)"
-            clearable
-            :placeholder="t('identity.org.ph_department_code')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_parent_dept')" path="parentId">
-          <NCascader
-            v-model:value="deptForm.parentId"
-            :options="cascaderOptions"
-            check-strategy="child"
-            clearable
-            :placeholder="t('identity.org.ph_parent')"
-            style="width: 100%"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_department_type')" path="departmentType">
-          <NSelect v-model:value="deptForm.departmentType" :options="deptTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_phone')" path="phone">
-          <NInput v-model:value="deptForm.phone" clearable :placeholder="t('identity.org.ph_phone')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_email')" path="email">
-          <NInput v-model:value="deptForm.email" clearable :placeholder="t('identity.org.ph_email')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_address')" path="address">
-          <NInput v-model:value="deptForm.address" clearable :placeholder="t('identity.org.ph_address')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_sort')" path="sort">
-          <NInputNumber v-model:value="deptForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="deptForm.remark" clearable :placeholder="t('identity.org.ph_remark')" :rows="3" type="textarea" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="deptForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="departmentName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_department_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="deptForm.departmentName" clearable :placeholder="t('identity.org.ph_department_name')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="departmentCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_department_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="deptForm.departmentCode"
+                :disabled="Boolean(deptForm.basicId)"
+                clearable
+                :placeholder="t('identity.org.ph_department_code')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="parentId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_parent_dept') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XCascader
+                v-model:value="deptForm.parentId"
+                :options="cascaderOptions"
+                clearable
+                :placeholder="t('identity.org.ph_parent')"
+                style="width: 100%"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="departmentType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_department_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="deptForm.departmentType" :options="deptTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="phone">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_phone') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="deptForm.phone" clearable :placeholder="t('identity.org.ph_phone')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="email">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_email') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="deptForm.email" clearable :placeholder="t('identity.org.ph_email')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="address">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_address') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="deptForm.address" clearable :placeholder="t('identity.org.ph_address')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="deptForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="deptForm.remark" clearable :placeholder="t('identity.org.ph_remark')" :rows="3" type="textarea" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
 
     <XEditModal
       v-model:show="membershipVisible"
       :title="t('identity.org.membership_title', { name: membershipMemberName })"
       :loading="membershipLoading"
-      @save="submitMembership"
+      :form-id="membershipFormId"
     >
-      <NForm :model="membershipForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('identity.org.label_position')" path="positionId">
-          <NSelect
-            v-model:value="membershipForm.positionId"
-            :options="positionOptions"
-            clearable
-            filterable
-            :placeholder="t('identity.org.ph_position')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_job_number')" path="jobNumber">
-          <NInput v-model:value="membershipForm.jobNumber" clearable :placeholder="t('identity.org.ph_job_number')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_job_level')" path="jobLevel">
-          <NInput v-model:value="membershipForm.jobLevel" clearable :placeholder="t('identity.org.ph_job_level')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_join_time')" path="joinTime">
-          <NDatePicker v-model:value="membershipForm.joinTime" type="date" clearable />
-        </NFormItem>
-        <NFormItem :label="t('identity.org.label_remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="membershipForm.remark" clearable :rows="2" type="textarea" :placeholder="t('identity.org.ph_remark')" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        v-model:values="membershipForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="submitMembership"
+      >
+        <XhFormFieldGroup value="positionId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_position') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="membershipForm.positionId"
+                :options="positionOptions"
+                clearable
+                :placeholder="t('identity.org.ph_position')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="jobNumber">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_job_number') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="membershipForm.jobNumber" clearable :placeholder="t('identity.org.ph_job_number')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="jobLevel">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_job_level') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="membershipForm.jobLevel" clearable :placeholder="t('identity.org.ph_job_level')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="joinTime">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_join_time') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XDatePicker v-model:value="membershipForm.joinTime" type="date" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.org.label_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="membershipForm.remark" clearable :rows="2" type="textarea" :placeholder="t('identity.org.ph_remark')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

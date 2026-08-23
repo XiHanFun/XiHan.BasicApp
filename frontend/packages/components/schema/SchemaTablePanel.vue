@@ -1,11 +1,28 @@
 <script setup lang="ts" generic="TRow extends object">
-import type { DataTableBaseColumn, DataTableColumn, DataTableSortState } from 'naive-ui'
+import type { TableColumnDef, TableRowDef, TableSelection, TableSortDescriptor } from '@xihan-ui/headless'
 import type { VNodeChild } from 'vue'
-import type { ListFieldSchema, SchemaSortRule } from './types'
-import { NDataTable, NPagination } from 'naive-ui'
-import { computed } from 'vue'
+import type { ListFieldSchema, SchemaColumn, SchemaSortRule } from './types'
+import {
+  XhTableBody,
+  XhTableCell,
+  XhTableColumnHeader,
+  XhTableEmpty,
+  XhTableExpandedRow,
+  XhTableExpandTrigger,
+  XhTableHeader,
+  XhTableLoadingState,
+  XhTableRoot,
+  XhTableRow,
+  XhTableRowSelectTrigger,
+  XhTableSelectAllTrigger,
+  XhTableSortTrigger,
+} from '@xihan-ui/vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
+import { Icon } from '~/iconify'
+import { VNodeRender } from '../common/VNodeRender'
+import SchemaPagination from './SchemaPagination.vue'
 import SchemaRowPeek from './SchemaRowPeek.vue'
 import { useRowPeek } from './useRowPeek'
 
@@ -13,8 +30,8 @@ defineOptions({ name: 'SchemaTablePanel' })
 
 const props = withDefaults(defineProps<{
   /** 列定义（由 selectors.toColumns 派生） */
-  columns: DataTableColumn<TRow>[]
-  /** 数据行 */
+  columns: SchemaColumn<TRow>[]
+  /** 数据行；树形模式下是嵌套数组 */
   data: TRow[]
   /** 加载态 */
   loading?: boolean
@@ -26,8 +43,6 @@ const props = withDefaults(defineProps<{
   page?: number
   /** 每页数量 */
   pageSize?: number
-  /** 横向滚动宽度 */
-  scrollX?: number
   /** 每页可选数量 */
   pageSizes?: number[]
   /** 是否启用多选 */
@@ -36,8 +51,10 @@ const props = withDefaults(defineProps<{
   showIndex?: boolean
   /** 已选行主键 */
   checkedKeys?: Array<string | number>
-  /** 密度（映射 NDataTable size） */
-  density?: 'small' | 'medium' | 'large'
+  /** 当前多字段排序（受控回显各列箭头与优先级） */
+  sorts?: ReadonlyArray<SchemaSortRule>
+  /** 密度 */
+  density?: 'sm' | 'md' | 'lg'
   /** 斑马纹（条纹） */
   striped?: boolean
   /** 边框 */
@@ -50,7 +67,7 @@ const props = withDefaults(defineProps<{
   childrenKey?: string
   /** 默认展开全部（默认 true） */
   defaultExpandAll?: boolean
-  /** 重挂载令牌：变化即重建表格（用于清空 Naive 内部列宽拖拽缓存，如「恢复默认」） */
+  /** 重挂载令牌：变化即重建表格（用于清空展开态与拖拽列宽，如「恢复默认」） */
   remountKey?: number
   /** 悬停速览字段（提供即启用：悬停行 ~450ms 浮出全字段详情卡） */
   peekFields?: ListFieldSchema<TRow>[]
@@ -64,12 +81,12 @@ const props = withDefaults(defineProps<{
   total: 0,
   page: 1,
   pageSize: 20,
-  scrollX: undefined,
   pageSizes: () => [10, 20, 50, 100],
   selectable: false,
   showIndex: false,
   checkedKeys: () => [],
-  density: 'small',
+  sorts: () => [],
+  density: 'sm',
   striped: true,
   bordered: true,
   singleLine: true,
@@ -81,7 +98,6 @@ const props = withDefaults(defineProps<{
   renderExpand: undefined,
   rowExpandable: undefined,
 })
-
 const emit = defineEmits<{
   'update:page': [value: number]
   'update:pageSize': [value: number]
@@ -89,128 +105,356 @@ const emit = defineEmits<{
   'sort': [sorts: SchemaSortRule[]]
   'resizeColumn': [key: string, width: number]
 }>()
+/** 多选列、展开列、序号列的列 id：与数据列同处一个列号空间，故取不会撞车的名字 */
+const SELECT_COL = '__select__'
+const EXPAND_COL = '__expand__'
+const INDEX_COL = '__index__'
+const ACTION_COL = '__actions__'
+/** 展开列与勾选列的宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
+const PREFIX_COL_W = 48
 
 const { t } = useI18n()
 const { isMobile } = useIsMobile()
-
-const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
 
 // ── 悬停速览（Peek & Pop）：移动端 / 未提供字段时禁用 ──────────────
 const peek = useRowPeek<TRow>({
   enabled: () => !isMobile.value && (props.peekFields?.length ?? 0) > 0,
 })
-const peekRowProps = computed(() =>
-  (props.peekFields?.length ?? 0) > 0 ? (row: TRow) => peek.rowProps(row) : undefined,
-)
+const peekEnabled = computed(() => (props.peekFields?.length ?? 0) > 0)
 
-function rowKeyGetter(row: TRow) {
-  return (row as Record<string, unknown>)[props.rowKey] as string | number
+function rowKeyOf(row: TRow): string {
+  return String((row as Record<string, unknown>)[props.rowKey])
 }
 
-/**
- * 树形序号映射：按层级生成大纲式编号（key → 如 "1" / "1.1" / "1.2.3"）。
- * Naive 在树形模式下 render 的 rowIndex 是「根级祖先下标」而非展开后的位置，
- * 故需自行按层级路径编号。
- */
-const treeIndexMap = computed(() => {
-  const map = new Map<string | number, string>()
-  if (!props.tree) {
-    return map
+function childrenOf(row: TRow): TRow[] | undefined {
+  return (row as Record<string, unknown>)[props.childrenKey] as TRow[] | undefined
+}
+
+// ── 行铺平 ────────────────────────────────────────────────────────────
+/** 铺平后的一行：树形模式带层级与展开态，列表模式层级恒为 0 */
+interface FlatRow {
+  key: string
+  row: TRow
+  level: number
+  /** 大纲编号（树形）或全局序号（列表） */
+  indexLabel: string
+  /** 有子节点 */
+  branch: boolean
+}
+
+/** 树形展开集合。收起的分支其子树整段不进序列，行号因此始终连续 */
+const treeExpanded = ref<Set<string> | null>(null)
+
+function isTreeOpen(key: string): boolean {
+  // null 表示还没人动过：按 defaultExpandAll 决定
+  return treeExpanded.value === null ? props.defaultExpandAll : treeExpanded.value.has(key)
+}
+
+function toggleTreeRow(key: string): void {
+  if (treeExpanded.value === null) {
+    // 首次交互：把当前的隐式展开态摊成显式集合，再翻这一行
+    const seed = new Set<string>()
+    if (props.defaultExpandAll) {
+      const walk = (nodes: TRow[]) => {
+        for (const node of nodes) {
+          const children = childrenOf(node)
+          if (children?.length) {
+            seed.add(rowKeyOf(node))
+            walk(children)
+          }
+        }
+      }
+      walk(props.data)
+    }
+    treeExpanded.value = seed
   }
-  const walk = (nodes: TRow[], prefix: string) => {
+  const set = treeExpanded.value
+  if (set.has(key)) {
+    set.delete(key)
+  }
+  else {
+    set.add(key)
+  }
+  treeExpanded.value = new Set(set)
+}
+
+const flatRows = computed<FlatRow[]>(() => {
+  const out: FlatRow[] = []
+  if (!props.tree) {
+    props.data.forEach((row, i) => {
+      out.push({
+        key: rowKeyOf(row),
+        row,
+        level: 0,
+        indexLabel: String((props.page - 1) * props.pageSize + i + 1),
+        branch: false,
+      })
+    })
+    return out
+  }
+  const walk = (nodes: TRow[], level: number, prefix: string) => {
     nodes.forEach((node, i) => {
+      const key = rowKeyOf(node)
       const label = prefix ? `${prefix}.${i + 1}` : `${i + 1}`
-      map.set(rowKeyGetter(node), label)
-      const children = (node as Record<string, unknown>)[props.childrenKey] as TRow[] | undefined
-      if (children?.length) {
-        walk(children, label)
+      const children = childrenOf(node)
+      const branch = !!children?.length
+      out.push({ key, row: node, level, indexLabel: label, branch })
+      if (branch && isTreeOpen(key)) {
+        walk(children!, level + 1, label)
       }
     })
   }
-  walk(props.data, '')
-  return map
+  walk(props.data, 0, '')
+  return out
 })
 
-/** 序号：列表模式按全局位置（含翻页），树形模式按层级大纲编号（1 / 1.1 / 1.2） */
-function indexLabel(row: TRow, rowIndex: number): string | number {
-  if (props.tree) {
-    return treeIndexMap.value.get(rowKeyGetter(row)) ?? rowIndex + 1
-  }
-  return (props.page - 1) * props.pageSize + rowIndex + 1
-}
-
-/** 列首前缀：多选列、序号列（按需依次插入到数据列之前） */
-const resolvedColumns = computed<DataTableColumn<TRow>[]>(() => {
-  const prefix: DataTableColumn<TRow>[] = []
+// ── 列 ────────────────────────────────────────────────────────────────
+/** 列首前缀：展开列、多选列、序号列（按需依次插入到数据列之前） */
+const prefixColumns = computed<Array<{ id: string, width: number }>>(() => {
+  const list: Array<{ id: string, width: number }> = []
   if (props.renderExpand) {
-    prefix.push({
-      type: 'expand',
-      renderExpand: props.renderExpand,
-      expandable: props.rowExpandable,
-    } as unknown as DataTableColumn<TRow>)
+    list.push({ id: EXPAND_COL, width: PREFIX_COL_W })
   }
   if (props.selectable) {
-    prefix.push({ type: 'selection' } as unknown as DataTableColumn<TRow>)
+    list.push({ id: SELECT_COL, width: PREFIX_COL_W })
   }
   if (props.showIndex) {
-    prefix.push({
-      key: '__index__',
-      title: t('component.schema_table.index'),
-      width: props.tree ? 90 : 60,
-      align: props.tree ? 'left' : 'center',
-      render: (row: TRow, rowIndex: number) => indexLabel(row, rowIndex),
-    } as unknown as DataTableColumn<TRow>)
+    list.push({ id: INDEX_COL, width: props.tree ? 90 : 60 })
   }
-  if (prefix.length === 0) {
-    return props.columns
-  }
-  return [...prefix, ...props.columns]
+  return list
 })
 
-// 多字段排序：Naive 在 { multiple } 列上抛出 SortState 数组（数组顺序即列顺序，作为优先级）；
-// 过滤掉 order=false（取消排序）的项，归一化为 { field, order } 列表上交。
-function onSort(sorter: DataTableSortState | DataTableSortState[] | null) {
-  const list = sorter == null ? [] : Array.isArray(sorter) ? sorter : [sorter]
-  const sorts: SchemaSortRule[] = list
-    .filter(state => state.order)
-    .map(state => ({
-      field: String(state.columnKey),
-      order: state.order === 'ascend' ? 'asc' : 'desc',
-    }))
-  emit('sort', sorts)
+/** 拖拽产生的列宽覆盖：只活在本次挂载内，落库由上层的列设置负责 */
+const draggedWidths = ref<Record<string, number>>({})
+
+function widthOf(column: SchemaColumn<TRow>): number | undefined {
+  return draggedWidths.value[column.key] ?? column.width
 }
 
-/** 列宽拖拽：Naive 在拖动中持续回调，取 clamp 后的宽度回写列设置（即时生效、待「保存」落库） */
-function onColumnResize(_resizedWidth: number, limitedWidth: number, column: DataTableBaseColumn) {
-  emit('resizeColumn', String(column.key), Math.round(limitedWidth))
+/**
+ * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
+ * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐。
+ * minWidth 在这里坍缩成初始宽，容器的余量仍由 flex-grow 均摊，每行摊法一致。
+ */
+function declaredWidthOf(column: SchemaColumn<TRow>): number {
+  return widthOf(column) ?? column.minWidth ?? 120
+}
+
+/**
+ * 逐列下限。width 只是 flex 基准，容器不够时各列按比例压缩，压到这个值为止。
+ * 没写 minWidth 的列（如操作列）以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值。
+ *
+ * 「不吃余量」也写在这里：表头格与表体格由同一个函数出样式，两侧必然一致。
+ * 组件库只给表头格发列号（data-value），按列号写的 CSS 选择器只命中表头，
+ * 表体那一半静默落空，同一列在两个区段就会分到不同的余量、列边界跟着错开。
+ */
+function minWidthStyle(column: SchemaColumn<TRow>): Record<string, string> {
+  return {
+    '--xh-table-cell-min-w': `${column.minWidth ?? declaredWidthOf(column)}px`,
+    ...(column.key === ACTION_COL ? { flexGrow: '0' } : {}),
+  }
+}
+
+/** 前缀列（展开/勾选/序号）同样要有自己的下限，否则一并被压到皮肤兜底值；它们也不吃余量 */
+function prefixStyle(id: string): Record<string, string> {
+  const width = prefixColumns.value.find(c => c.id === id)?.width
+  return {
+    ...(width === undefined ? {} : { '--xh-table-cell-min-w': `${width}px` }),
+    flexGrow: '0',
+  }
+}
+
+/** 本次挂载内拖过列宽：拖过之后各列不再吃容器余量，看到的宽度即落库的宽度 */
+const hasDraggedWidth = computed(() => Object.keys(draggedWidths.value).length > 0)
+
+/**
+ * 喂给组件库的列契约：列号、列宽、可排序与吸附的唯一事实源。
+ * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位。
+ */
+const tableColumns = computed<TableColumnDef[]>(() => {
+  // 有业务列左固定时，前面的勾选/序号/展开列也钉在行首侧，业务列的偏移才接得上
+  const pinPrefix = props.columns.some(column => column.fixed === 'left')
+  return [
+    ...prefixColumns.value.map<TableColumnDef>(c => ({ id: c.id, width: c.width, ...(pinPrefix ? { sticky: 'start' } : {}) })),
+    ...props.columns.map<TableColumnDef>(column => ({
+      id: column.key,
+      label: column.title,
+      ...(column.sortable ? { sortable: true } : {}),
+      // 吸附偏移由库按列宽累加，这里只报侧别
+      ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+      width: declaredWidthOf(column),
+    })),
+  ]
+})
+
+const tableRows = computed<TableRowDef[]>(() => flatRows.value.map(r => ({
+  id: r.key,
+  ...(props.renderExpand && (props.rowExpandable?.(r.row) ?? true) ? { expandable: true } : {}),
+})))
+
+// ── 排序 ──────────────────────────────────────────────────────────────
+/** 应用侧的 { field, order } 与组件库的 { id, direction } 互转；数组顺序即优先级 */
+const sortChain = computed<TableSortDescriptor[]>(() =>
+  props.sorts.map(rule => ({ id: rule.field, direction: rule.order === 'asc' ? 'asc' : 'desc' })),
+)
+
+function onSortChange(chain: TableSortDescriptor[]): void {
+  emit('sort', chain.map(item => ({ field: item.id, order: item.direction === 'asc' ? 'asc' : 'desc' })))
+}
+
+// ── 多选 ──────────────────────────────────────────────────────────────
+const selection = computed<TableSelection>(() => props.checkedKeys.map(String))
+
+function onSelectionChange(next: TableSelection): void {
+  // 裸 'all' 摊成当前页的显式键：上层按键数组做批量操作
+  const keys = next === 'all' ? flatRows.value.map(r => r.key) : next
+  emit('update:checkedKeys', keys)
+}
+
+// ── 列宽拖拽 ──────────────────────────────────────────────────────────
+let grabbed: { key: string, startX: number, startWidth: number } | null = null
+
+function onResizeGrab(event: PointerEvent, column: SchemaColumn<TRow>): void {
+  const el = event.currentTarget as HTMLElement
+  // 未显式给宽的列以当前实测宽度起量，拖拽不会跳一下
+  const startWidth = widthOf(column) ?? el.parentElement?.getBoundingClientRect().width ?? 120
+  grabbed = { key: column.key, startX: event.clientX, startWidth }
+  el.setPointerCapture(event.pointerId)
+  event.preventDefault()
+}
+
+function onResizeDrag(event: PointerEvent): void {
+  if (!grabbed) {
+    return
+  }
+  const column = props.columns.find(c => c.key === grabbed!.key)
+  const min = column?.minWidth ?? 80
+  draggedWidths.value = {
+    ...draggedWidths.value,
+    [grabbed.key]: Math.max(min, Math.round(grabbed.startWidth + event.clientX - grabbed.startX)),
+  }
+}
+
+function onResizeRelease(): void {
+  if (grabbed) {
+    const width = draggedWidths.value[grabbed.key]
+    if (width !== undefined) {
+      emit('resizeColumn', grabbed.key, width)
+    }
+  }
+  grabbed = null
+}
+
+// 悬停速览的行事件：未启用时不挂，省掉每行三个监听
+function rowPeekHandlers(row: TRow) {
+  return peekEnabled.value ? peek.rowProps(row) : {}
 }
 </script>
 
 <template>
   <!-- 定高 flex 列：表格占满中段并在内部滚动，分页栏固定底部，整体不撑破父容器 -->
   <div class="xh-table-panel">
-    <NDataTable
+    <XhTableRoot
       :key="remountKey"
       class="xh-table-panel__grid"
-      flex-height
-      :checked-row-keys="checkedKeys"
-      :columns="resolvedColumns"
-      :data="data"
+      :class="{ 'xh-table-panel__grid--fixed-cols': hasDraggedWidth }"
+      :columns="tableColumns"
+      :rows="tableRows"
+      :sort="sortChain"
+      :selection="selection"
+      :selection-mode="selectable ? 'multiple' : 'none'"
       :loading="loading"
-      :remote="!tree"
-      :row-key="rowKeyGetter"
-      :scroll-x="scrollX"
       :size="density"
-      :children-key="childrenKey"
-      :default-expand-all="tree && defaultExpandAll"
+      sticky-header
       :striped="striped"
-      :bordered="bordered"
-      :single-line="singleLine"
-      :row-props="peekRowProps"
-      :on-unstable-column-resize="onColumnResize"
-      @update:checked-row-keys="(keys) => emit('update:checkedKeys', keys as Array<string | number>)"
-      @update:sorter="onSort"
-    />
+      :borderless="!bordered"
+      :ruled="!singleLine"
+      @update:sort="onSortChange"
+      @update:selection="onSelectionChange"
+    >
+      <XhTableHeader>
+        <XhTableRow>
+          <XhTableColumnHeader v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)" />
+          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL" :style="prefixStyle(SELECT_COL)">
+            <XhTableSelectAllTrigger />
+          </XhTableColumnHeader>
+          <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
+            {{ t('component.schema_table.index') }}
+          </XhTableColumnHeader>
+          <XhTableColumnHeader
+            v-for="column in columns"
+            :key="column.key"
+            :value="column.key"
+            :style="minWidthStyle(column)"
+          >
+            <!-- 截断落在内部文字节点上：皮肤把排序箭头做成把手的伪元素，加在把手上会连箭头一起裁掉 -->
+            <XhTableSortTrigger v-if="column.sortable" class="xh-table-panel__sort">
+              <span class="xh-table-panel__title">{{ column.title }}</span>
+            </XhTableSortTrigger>
+            <span v-else class="xh-table-panel__title">{{ column.title }}</span>
+            <!-- 调宽把手与排序把手是兄弟节点，拖它不会连带触发排序 -->
+            <span
+              aria-hidden="true"
+              class="xh-table-panel__resize"
+              @pointerdown="onResizeGrab($event, column)"
+              @pointermove="onResizeDrag"
+              @pointerup="onResizeRelease"
+              @pointercancel="onResizeRelease"
+            />
+          </XhTableColumnHeader>
+        </XhTableRow>
+      </XhTableHeader>
+
+      <XhTableBody>
+        <template v-for="(item, rowIndex) in flatRows" :key="item.key">
+          <XhTableRow :value="item.key" v-bind="rowPeekHandlers(item.row)">
+            <XhTableCell v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)">
+              <XhTableExpandTrigger />
+            </XhTableCell>
+            <XhTableCell v-if="selectable" :value="SELECT_COL" :style="prefixStyle(SELECT_COL)">
+              <XhTableRowSelectTrigger />
+            </XhTableCell>
+            <XhTableCell v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
+              {{ item.indexLabel }}
+            </XhTableCell>
+            <XhTableCell
+              v-for="column in columns"
+              :key="column.key"
+              :value="column.key"
+              :style="minWidthStyle(column)"
+            >
+              <!-- 树形列：缩进 + 展开箭头，其余列照常渲染 -->
+              <template v-if="tree && column.tree">
+                <span class="xh-table-panel__indent" :style="{ inlineSize: `${item.level * 16}px` }" />
+                <button
+                  v-if="item.branch"
+                  type="button"
+                  class="xh-table-panel__tree-toggle"
+                  :aria-expanded="isTreeOpen(item.key)"
+                  @click="toggleTreeRow(item.key)"
+                >
+                  <Icon :icon="isTreeOpen(item.key) ? 'lucide:chevron-down' : 'lucide:chevron-right'" width="14" height="14" />
+                </button>
+                <span v-else class="xh-table-panel__tree-toggle xh-table-panel__tree-toggle--leaf" />
+              </template>
+              <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
+              <span v-if="column.ellipsis" class="xh-table-panel__cell-text">
+                <VNodeRender :content="column.render(item.row, rowIndex)" />
+              </span>
+              <VNodeRender v-else :content="column.render(item.row, rowIndex)" />
+            </XhTableCell>
+          </XhTableRow>
+
+          <XhTableExpandedRow v-if="renderExpand" :value="item.key">
+            <VNodeRender :content="renderExpand(item.row)" />
+          </XhTableExpandedRow>
+        </template>
+      </XhTableBody>
+
+      <XhTableEmpty>{{ t('component.schema_table.empty') }}</XhTableEmpty>
+      <XhTableLoadingState>{{ t('component.schema_table.loading') }}</XhTableLoadingState>
+    </XhTableRoot>
+
     <!-- 悬停速览卡（Teleport 到 body，pointer-events none 不干扰交互） -->
     <SchemaRowPeek
       :visible="peek.visible.value"
@@ -219,6 +463,7 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
       :x="peek.x.value"
       :y="peek.y.value"
     />
+
     <div class="xh-table-panel__footer">
       <!-- 底部左侧：数据量/页码提示 + 批量操作浮条（选中后在此展示，避免挤压表格） -->
       <div class="xh-table-panel__footer-left">
@@ -227,21 +472,19 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
             {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}
           </template>
           <template v-else>
-            {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}{{ t('component.schema_table.page_sep') }} <strong>{{ page }}</strong> {{ t('component.schema_table.page_of', { pageCount }) }}
+            {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}{{ t('component.schema_table.page_sep') }} <strong>{{ page }}</strong> {{ t('component.schema_table.page_of', { pageCount: Math.max(1, Math.ceil(total / pageSize)) }) }}
           </template>
         </div>
         <slot name="footer-actions" />
       </div>
-      <NPagination
+      <SchemaPagination
         v-if="!tree"
         class="xh-table-panel__pagination"
-        :item-count="total"
+        :total="total"
         :page="page"
         :page-size="pageSize"
         :page-sizes="pageSizes"
-        :page-slot="isMobile ? 5 : 9"
-        :size="isMobile ? 'small' : 'medium'"
-        :show-size-picker="!isMobile"
+        :compact="isMobile"
         @update:page="(value: number) => emit('update:page', value)"
         @update:page-size="(value: number) => emit('update:pageSize', value)"
       />
@@ -259,10 +502,91 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
   height: 100%;
 }
 
-/* 表格占满中段；flex-height 使其内部纵向滚动而非撑高外层 */
+/* 表格占满中段，内部纵向滚动而非撑高外层。
+ * 皮肤给表格的缺省高度上限是 24rem，管理页要的是「填满卡片剩余高度」，故改写这个槽位；
+ * 溢出滚动皮肤已经给了，这里不重复声明。 */
 .xh-table-panel__grid {
   flex: 1;
   min-height: 0;
+  --xh-table-max-h: 100%;
+}
+
+/* 区段的下限从 max-content 换成 min-content：
+   max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
+   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。
+   min-content 正是各列下限之和：既允许按比例压缩，行盒又始终罩得住所有单元格 */
+.xh-table-panel__grid :deep([data-scope='table'][data-part='header']),
+.xh-table-panel__grid :deep([data-scope='table'][data-part='body']) {
+  min-inline-size: min-content;
+}
+
+/* 前缀列与操作列的「不吃余量」改由 minWidthStyle / prefixStyle 写成内联样式，
+   两侧同一个函数出，见脚本区 */
+
+/* 拖过列宽之后所有列都不再吃余量：拖到多少就是多少，与落库的数值一致 */
+.xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='column-header']),
+.xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='cell']) {
+  flex-grow: 0;
+}
+
+/* 排序把手：文字段占满、箭头贴右缘 */
+.xh-table-panel__sort {
+  min-width: 0;
+}
+
+/* 单元格里的文字段：超宽出省略号 */
+.xh-table-panel__cell-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 列标题里的文字段：占满剩余宽度并省略，把手才贴得住右缘 */
+.xh-table-panel__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 调宽把手：贴列标题右缘的一条窄带，悬停才显形 */
+.xh-table-panel__resize {
+  flex: none;
+  align-self: stretch;
+  inline-size: 5px;
+  margin-inline-end: -4px;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.xh-table-panel__resize:hover {
+  background: var(--xh-border-strong);
+}
+
+/* 树形缩进与展开箭头 */
+.xh-table-panel__indent {
+  flex: none;
+}
+
+.xh-table-panel__tree-toggle {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  margin-inline-end: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.xh-table-panel__tree-toggle--leaf {
+  cursor: default;
 }
 
 /* 底部统计 + 分页：固定在底，不随表格滚动 */
@@ -292,12 +616,11 @@ function onColumnResize(_resizedWidth: number, limitedWidth: number, column: Dat
 
 .xh-table__count {
   font-size: 13px;
-  color: var(--n-text-color);
+  color: var(--xh-fg-default);
   white-space: nowrap;
 }
 
 .xh-table__count strong {
   font-weight: 600;
-  color: var(--n-text-color);
 }
 </style>

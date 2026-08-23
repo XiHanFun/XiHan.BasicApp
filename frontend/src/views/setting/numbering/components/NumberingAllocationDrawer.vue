@@ -3,16 +3,18 @@
   职责：按规则远程分页、对关键词输入防抖，并展示格式快照重建的首尾编号；不允许修改或删除审计记录。
 -->
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   NumberingAllocationListItemDto,
   NumberingRuleListItemDto,
   NumberingScope,
 } from '@/api'
-import { NDataTable, NDrawer, NDrawerContent, NInput, NSpace, useMessage } from 'naive-ui'
+import type { XDataTableColumn } from '~/components'
+import { XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex } from '@xihan-ui/vue'
 import { computed, h, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, numberingApi } from '@/api'
+import { XDataTable, XInput } from '~/components'
+import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'NumberingAllocationDrawer' })
@@ -29,7 +31,6 @@ const emit = defineEmits<{
 
 const SearchDebounceMilliseconds = 300
 const { t } = useI18n()
-const message = useMessage()
 const loading = ref(false)
 const items = ref<NumberingAllocationListItemDto[]>([])
 const keyword = ref('')
@@ -39,15 +40,15 @@ let requestVersion = 0
 
 const title = computed(() => t('setting.numbering.allocation_title', { code: props.rule?.ruleCode ?? '' }))
 
-const columns = computed<DataTableColumns<NumberingAllocationListItemDto>>(() => [
+const columns = computed<XDataTableColumn<NumberingAllocationListItemDto>[]>(() => [
   { key: 'generatedTime', title: t('setting.numbering.generated_time'), width: 170, render: row => formatDate(row.generatedTime) },
   { key: 'requestTenantId', title: t('setting.numbering.request_tenant'), width: 110 },
-  { key: 'idempotencyKey', title: t('setting.numbering.idempotency_key'), minWidth: 180, ellipsis: { tooltip: true } },
+  { key: 'idempotencyKey', title: t('setting.numbering.idempotency_key'), minWidth: 180, ellipsis: true },
   { key: 'periodKey', title: t('setting.numbering.period'), width: 110 },
   { key: 'range', title: t('setting.numbering.serial_range'), width: 130, render: row => `${row.startValue} - ${row.endValue}` },
   { key: 'count', title: t('setting.numbering.count'), width: 80 },
-  { key: 'firstNumber', title: t('setting.numbering.first_number'), minWidth: 170, ellipsis: { tooltip: true } },
-  { key: 'lastNumber', title: t('setting.numbering.last_number'), minWidth: 170, ellipsis: { tooltip: true } },
+  { key: 'firstNumber', title: t('setting.numbering.first_number'), minWidth: 170, ellipsis: true },
+  { key: 'lastNumber', title: t('setting.numbering.last_number'), minWidth: 170, ellipsis: true },
   {
     key: 'business',
     title: t('setting.numbering.business'),
@@ -111,7 +112,7 @@ async function load(): Promise<void> {
   }
   catch (error) {
     if (version === requestVersion)
-      message.error((error as Error).message || t('setting.numbering.allocation_load_failed'))
+      toast.error((error as Error).message || t('setting.numbering.allocation_load_failed'))
   }
   finally {
     if (version === requestVersion)
@@ -131,22 +132,26 @@ function changePage(page: number): void {
 </script>
 
 <template>
-  <NDrawer :show="show" :width="1080" @update:show="emit('update:show', $event)">
-    <NDrawerContent closable :title="title">
-      <NSpace vertical :size="12">
-        <NInput
+  <XhDrawerRoot
+    :open="show"
+    side="right"
+    @update:open="(open: boolean) => emit('update:show', open)"
+  >
+    <XhDrawerContent style="--xh-drawer-size: 1080px">
+      <XhDrawerTitle>{{ title }}</XhDrawerTitle>
+      <XhDrawerCloseTrigger />
+      <XhFlex direction="column" gap="md">
+        <XInput
           v-model:value="keyword"
           clearable
           :placeholder="t('setting.numbering.allocation_search_placeholder')"
           style="max-width: 360px"
         />
-        <NDataTable
-          remote
+        <XDataTable
           :columns="columns"
           :data="items"
           :loading="loading"
           :row-key="(row: NumberingAllocationListItemDto) => row.basicId"
-          :scroll-x="1450"
           :pagination="{
             page: pagination.page,
             pageSize: pagination.pageSize,
@@ -154,7 +159,7 @@ function changePage(page: number): void {
             onUpdatePage: changePage,
           }"
         />
-      </NSpace>
-    </NDrawerContent>
-  </NDrawer>
+      </XhFlex>
+    </XhDrawerContent>
+  </XhDrawerRoot>
 </template>

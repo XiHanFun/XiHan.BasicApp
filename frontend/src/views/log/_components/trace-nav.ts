@@ -1,6 +1,6 @@
 import type { Router } from 'vue-router'
 import type { ListFieldSchema } from '~/components'
-import { NButton } from 'naive-ui'
+import { XhButton } from '@xihan-ui/vue'
 import { h, ref } from 'vue'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -99,13 +99,9 @@ function traceLink(router: Router, dimension: string, value: unknown, time: stri
   if (value == null || value === '')
     return '-'
 
-  return h(
-    NButton,
-    {
-      text: true,
-      type: 'primary',
-      onClick: () => gotoTraceDimension(router, dimension, value as string, time),
-    },
-    () => String(value),
-  )
+  return h(XhButton, {
+    variant: 'ghost',
+    tone: 'brand',
+    onClick: () => gotoTraceDimension(router, dimension, value as string, time),
+  }, () => String(value))
 }

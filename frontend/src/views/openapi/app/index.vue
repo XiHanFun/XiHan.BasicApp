@@ -7,31 +7,13 @@ import type {
   OAuthAppUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NInputNumber,
-  NScrollbar,
-  NSelect,
-  NSpace,
-  NSpin,
-  NSwitch,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -57,7 +39,9 @@ interface AppFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 const appTypeOptions = useEnumOptions('OAuthAppType', OAUTH_APP_TYPE_OPTIONS)
 
@@ -111,7 +95,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('openapi.app.app_type_placeholder'),
     minWidth: 110,
     order: 3,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(appTypeOptions.value, (row as unknown as OAuthAppListItemDto).appType)),
+    render: row => h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, getOptionLabel(appTypeOptions.value, (row as unknown as OAuthAppListItemDto).appType)),
   },
   { key: 'grantTypes', title: t('openapi.app.grant_types'), dataType: 'string', sortable: true, minWidth: 180, order: 4 },
   { key: 'scopes', title: t('openapi.app.scopes'), dataType: 'string', sortable: true, minWidth: 160, order: 5 },
@@ -122,7 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     sortable: true,
     minWidth: 130,
     order: 6,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, formatSeconds(Number((row as unknown as OAuthAppListItemDto).accessTokenLifetime || 0))),
+    render: row => h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, formatSeconds(Number((row as unknown as OAuthAppListItemDto).accessTokenLifetime || 0))),
   },
   {
     key: 'skipConsent',
@@ -134,7 +118,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('openapi.app.skip_consent_placeholder'),
     width: 110,
     order: 7,
-    render: row => h(NTag, { size: 'small', round: true, type: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'default', bordered: false }, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'neutral' }, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm')),
   },
   {
     key: 'status',
@@ -161,7 +145,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:oauth-app:delete',
   statusPermission: 'saas:oauth-app:status',
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -270,7 +253,7 @@ async function handleView(row: OAuthAppListItemDto) {
   }
   catch (error) {
     currentDetail.value = null
-    message.error((error as Error)?.message || t('openapi.app.msg_load_detail_failed'))
+    toast.error((error as Error)?.message || t('openapi.app.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -286,7 +269,7 @@ async function handleEdit(row: OAuthAppListItemDto) {
   try {
     const detail = await appManagementApi.detail(row.basicId)
     if (!detail) {
-      message.error(t('openapi.app.msg_load_app_detail_failed'))
+      toast.error(t('openapi.app.msg_load_app_detail_failed'))
       return
     }
     appForm.value = {
@@ -310,25 +293,25 @@ async function handleEdit(row: OAuthAppListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('openapi.app.msg_load_app_detail_failed'))
+    toast.error((error as Error)?.message || t('openapi.app.msg_load_app_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!appForm.value.appName.trim()) {
-    message.warning(t('openapi.app.msg_input_app_name'))
+    toast.warning(t('openapi.app.msg_input_app_name'))
     return false
   }
   if (!appForm.value.basicId && !appForm.value.clientId.trim()) {
-    message.warning(t('openapi.app.msg_input_client_id'))
+    toast.warning(t('openapi.app.msg_input_client_id'))
     return false
   }
   if (!appForm.value.grantTypes.trim()) {
-    message.warning(t('openapi.app.msg_input_grant_types'))
+    toast.warning(t('openapi.app.msg_input_grant_types'))
     return false
   }
   if (!appForm.value.scopes.trim()) {
-    message.warning(t('openapi.app.msg_input_scopes'))
+    toast.warning(t('openapi.app.msg_input_scopes'))
     return false
   }
   return true
@@ -358,7 +341,7 @@ async function handleSubmit() {
         skipConsent: appForm.value.skipConsent,
       }
       await appManagementApi.update(updateInput)
-      message.success(t('openapi.app.msg_save_success'))
+      toast.success(t('openapi.app.msg_save_success'))
     }
     else {
       const createInput: OAuthAppCreateDto = {
@@ -381,7 +364,7 @@ async function handleSubmit() {
       }
       // 新增成功返回客户端密钥，弹出密钥抽屉（仅显示一次）
       const secret = await appManagementApi.create(createInput)
-      message.success(t('openapi.app.msg_save_success'))
+      toast.success(t('openapi.app.msg_save_success'))
       if (secret) {
         currentSecret.value = secret
         secretVisible.value = true
@@ -391,7 +374,7 @@ async function handleSubmit() {
     reloadApp()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('openapi.app.msg_save_failed'))
+    toast.error((error as Error)?.message || t('openapi.app.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -402,10 +385,10 @@ async function handleRegenerateSecret(id: string) {
   try {
     currentSecret.value = await appManagementApi.regenerateSecret(id)
     secretVisible.value = true
-    message.success(t('openapi.app.msg_secret_regenerated'))
+    toast.success(t('openapi.app.msg_secret_regenerated'))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('openapi.app.msg_secret_regenerate_failed'))
+    toast.error((error as Error)?.message || t('openapi.app.msg_secret_regenerate_failed'))
   }
 }
 
@@ -414,9 +397,9 @@ function copySecret() {
     return
   }
   navigator.clipboard.writeText(currentSecret.value.clientSecret).then(() => {
-    message.success(t('openapi.app.msg_secret_copied'))
+    toast.success(t('openapi.app.msg_secret_copied'))
   }).catch(() => {
-    message.error(t('openapi.app.msg_copy_failed'))
+    toast.error(t('openapi.app.msg_copy_failed'))
   })
 }
 
@@ -427,22 +410,22 @@ async function handleToggleStatus(row: OAuthAppListItemDto) {
       basicId: row.basicId,
       status: newStatus,
     })
-    message.success(newStatus === EnableStatus.Enabled ? t('openapi.app.msg_app_enabled') : t('openapi.app.msg_app_disabled'))
+    toast.success(newStatus === EnableStatus.Enabled ? t('openapi.app.msg_app_enabled') : t('openapi.app.msg_app_disabled'))
     reloadApp()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('openapi.app.msg_update_status_failed'))
+    toast.error((error as Error)?.message || t('openapi.app.msg_update_status_failed'))
   }
 }
 
 async function handleDelete(row: OAuthAppListItemDto) {
   try {
     await appManagementApi.delete(row.basicId)
-    message.success(t('openapi.app.msg_app_deleted'))
+    toast.success(t('openapi.app.msg_app_deleted'))
     reloadApp()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('openapi.app.msg_delete_failed'))
+    toast.error((error as Error)?.message || t('openapi.app.msg_delete_failed'))
   }
 }
 </script>
@@ -454,173 +437,339 @@ async function handleDelete(row: OAuthAppListItemDto) {
     @action="onAction"
   >
     <!-- 详情抽屉 -->
-    <NDrawer v-model:show="detailVisible" :width="560">
-      <NDrawerContent closable :title="t('openapi.app.detail_title')">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" :description="t('openapi.app.detail_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 180px)">
-            <NDescriptions :column="1" bordered size="small">
-              <NDescriptionsItem :label="t('openapi.app.detail_app_name')">
-                {{ currentDetail.appName }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_app_description')">
-                {{ formatNullable(currentDetail.appDescription) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_client_id')">
-                {{ currentDetail.clientId }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_app_type')">
-                {{ getOptionLabel(appTypeOptions, currentDetail.appType) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_grant_types')">
-                {{ formatNullable(currentDetail.grantTypes) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_scopes')">
-                {{ formatNullable(currentDetail.scopes) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_redirect_uris')">
-                {{ formatNullable(currentDetail.redirectUris) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_homepage')">
-                {{ formatNullable(currentDetail.homepage) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_logo')">
-                {{ formatNullable(currentDetail.logo) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_access_token_lifetime')">
-                {{ formatSeconds(currentDetail.accessTokenLifetime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_refresh_token_lifetime')">
-                {{ formatSeconds(currentDetail.refreshTokenLifetime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_authorization_code_lifetime')">
-                {{ formatSeconds(currentDetail.authorizationCodeLifetime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_skip_consent')">
-                {{ currentDetail.skipConsent ? t('openapi.app.detail_skip_consent_yes') : t('openapi.app.detail_skip_consent_no') }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_status')">
-                {{ getOptionLabel(statusOptions, currentDetail.status) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_remark')">
-                {{ formatNullable(currentDetail.remark) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_created_time')">
-                {{ formatNullableDate(currentDetail.createdTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('openapi.app.detail_modified_time')">
-                {{ formatNullableDate(currentDetail.modifiedTime) }}
-              </NDescriptionsItem>
-            </NDescriptions>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 560px">
+        <XhDrawerTitle>{{ t('openapi.app.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="detailLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('openapi.app.detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 180px)">
+            <XhDescriptionsRoot :columns="1" bordered size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_app_name') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.appName }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_app_description') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.appDescription) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_client_id') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.clientId }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_app_type') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(appTypeOptions, currentDetail.appType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_grant_types') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.grantTypes) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_scopes') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.scopes) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_redirect_uris') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.redirectUris) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_homepage') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.homepage) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_logo') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.logo) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_access_token_lifetime') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatSeconds(currentDetail.accessTokenLifetime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_refresh_token_lifetime') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatSeconds(currentDetail.refreshTokenLifetime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_authorization_code_lifetime') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatSeconds(currentDetail.authorizationCodeLifetime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_skip_consent') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.skipConsent ? t('openapi.app.detail_skip_consent_yes') : t('openapi.app.detail_skip_consent_no') }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(statusOptions, currentDetail.status) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_remark') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.remark) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_created_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(currentDetail.createdTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('openapi.app.detail_modified_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(currentDetail.modifiedTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </div>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
     <!-- 新增/编辑弹窗 -->
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="appForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('openapi.app.form_app_name')" path="appName">
-          <NInput v-model:value="appForm.appName" clearable :placeholder="t('openapi.app.form_app_name_placeholder')" />
-        </NFormItem>
-        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_client_id')" path="clientId">
-          <NInput v-model:value="appForm.clientId" clearable :placeholder="t('openapi.app.form_client_id_placeholder')" />
-        </NFormItem>
-        <NFormItem v-else :label="t('openapi.app.form_client_id')" path="clientId">
-          <NInput v-model:value="appForm.clientId" disabled />
-        </NFormItem>
-        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_app_type')" path="appType">
-          <NSelect v-model:value="appForm.appType" :options="appTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_grant_types')" path="grantTypes">
-          <NInput v-model:value="appForm.grantTypes" clearable :placeholder="t('openapi.app.form_grant_types_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_scopes')" path="scopes">
-          <NInput v-model:value="appForm.scopes" clearable :placeholder="t('openapi.app.form_scopes_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_redirect_uris')" path="redirectUris" class="xh-span-2">
-          <NInput v-model:value="appForm.redirectUris" clearable :placeholder="t('openapi.app.form_redirect_uris_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_homepage')" path="homepage">
-          <NInput v-model:value="appForm.homepage" clearable :placeholder="t('openapi.app.form_homepage_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_logo')" path="logo">
-          <NInput v-model:value="appForm.logo" clearable :placeholder="t('openapi.app.form_logo_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_access_token_lifetime')" path="accessTokenLifetime">
-          <NInputNumber v-model:value="appForm.accessTokenLifetime" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_refresh_token_lifetime')" path="refreshTokenLifetime">
-          <NInputNumber v-model:value="appForm.refreshTokenLifetime" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_authorization_code_lifetime')" path="authorizationCodeLifetime">
-          <NInputNumber v-model:value="appForm.authorizationCodeLifetime" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_skip_consent')" path="skipConsent">
-          <NSwitch v-model:value="appForm.skipConsent" />
-        </NFormItem>
-        <NFormItem v-if="!appForm.basicId" :label="t('openapi.app.form_status')" path="status">
-          <NSelect v-model:value="appForm.status" :options="statusOptions" />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_app_description')" path="appDescription" class="xh-span-2">
-          <NInput
-            v-model:value="appForm.appDescription"
-            clearable
-            :placeholder="t('openapi.app.form_app_description_placeholder')"
-            :rows="2"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('openapi.app.form_remark')" path="remark" class="xh-span-2">
-          <NInput
-            v-model:value="appForm.remark"
-            clearable
-            :placeholder="t('openapi.app.form_remark_placeholder')"
-            :rows="2"
-            type="textarea"
-          />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="appForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="appName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_app_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.appName" clearable :placeholder="t('openapi.app.form_app_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!appForm.basicId" value="clientId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_client_id') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.clientId" clearable :placeholder="t('openapi.app.form_client_id_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-else value="clientId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_client_id') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.clientId" disabled />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!appForm.basicId" value="appType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_app_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="appForm.appType" :options="appTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="grantTypes">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_grant_types') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.grantTypes" clearable :placeholder="t('openapi.app.form_grant_types_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="scopes">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_scopes') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.scopes" clearable :placeholder="t('openapi.app.form_scopes_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="redirectUris" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_redirect_uris') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.redirectUris" clearable :placeholder="t('openapi.app.form_redirect_uris_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="homepage">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_homepage') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.homepage" clearable :placeholder="t('openapi.app.form_homepage_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="logo">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_logo') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="appForm.logo" clearable :placeholder="t('openapi.app.form_logo_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="accessTokenLifetime">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_access_token_lifetime') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="appForm.accessTokenLifetime" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="refreshTokenLifetime">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_refresh_token_lifetime') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="appForm.refreshTokenLifetime" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="authorizationCodeLifetime">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_authorization_code_lifetime') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="appForm.authorizationCodeLifetime" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="skipConsent">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_skip_consent') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="appForm.skipConsent" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!appForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="appForm.status" :options="statusOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="appDescription" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_app_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="appForm.appDescription"
+                clearable
+                :placeholder="t('openapi.app.form_app_description_placeholder')"
+                :rows="2"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('openapi.app.form_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="appForm.remark"
+                clearable
+                :placeholder="t('openapi.app.form_remark_placeholder')"
+                :rows="2"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
 
     <!-- 密钥抽屉 -->
-    <NDrawer v-model:show="secretVisible" :width="420">
-      <NDrawerContent closable :title="t('openapi.app.secret_title')">
-        <NSpace v-if="currentSecret" vertical>
-          <NDescriptions :column="1" bordered size="small">
-            <NDescriptionsItem :label="t('openapi.app.secret_client_id')">
-              {{ currentSecret.clientId }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('openapi.app.secret_client_secret')">
-              <div class="p-3 font-mono text-sm break-all bg-gray-50 rounded dark:bg-gray-800">
-                {{ currentSecret.clientSecret }}
-              </div>
-            </NDescriptionsItem>
-          </NDescriptions>
+    <XhDrawerRoot v-model:open="secretVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 420px">
+        <XhDrawerTitle>{{ t('openapi.app.secret_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <XhFlex v-if="currentSecret" direction="column" gap="md">
+          <XhDescriptionsRoot :columns="1" bordered size="sm">
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('openapi.app.secret_client_id') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentSecret.clientId }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('openapi.app.secret_client_secret') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <div class="p-3 font-mono text-sm break-all bg-gray-50 rounded dark:bg-gray-800">
+                  {{ currentSecret.clientSecret }}
+                </div>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
           <div class="mt-2 text-xs text-gray-400">
             {{ t('openapi.app.secret_tip') }}
           </div>
-          <NButton block type="primary" @click="copySecret">
-            <template #icon>
-              <NIcon><Icon icon="lucide:copy" /></NIcon>
-            </template>
+          <XhButton block tone="brand" @click="copySecret">
+            <span><Icon icon="lucide:copy" /></span>
             {{ t('openapi.app.secret_copy') }}
-          </NButton>
-          <NButton block @click="secretVisible = false">
+          </XhButton>
+          <XhButton block @click="secretVisible = false">
             {{ t('openapi.app.secret_close') }}
-          </NButton>
-        </NSpace>
-      </NDrawerContent>
-    </NDrawer>
+          </XhButton>
+        </XhFlex>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>
 

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type {
   CodeGenDataSourceCreateDto,
   CodeGenDataSourceListItemDto,
@@ -10,25 +9,16 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import {
@@ -60,8 +50,9 @@ interface DatasourceFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -88,7 +79,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h('div', { class: 'ds-name' }, [
         h('span', { class: 'ds-name__text' }, r.sourceName),
         r.isDefault
-          ? h(NTag, { size: 'tiny', type: 'info', round: true, bordered: false }, () => t('common.statuses.default_tag'))
+          ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('common.statuses.default_tag'))
           : null,
       ])
     },
@@ -129,8 +120,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
       return r.lastTestTime
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: r.lastTestResult ? 'success' : 'error' }, () => (r.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed')))
-        : h(NTag, { size: 'small', round: true, bordered: false, type: 'default' }, () => t('develop.code_gen.datasource.tag_untested'))
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.lastTestResult ? 'success' : 'danger' }, () => (r.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed')))
+        : h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => t('develop.code_gen.datasource.tag_untested'))
     },
   },
   {
@@ -147,7 +138,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
@@ -157,7 +148,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.datasource',
   pageName: t('develop.code_gen.tabs.datasource'),
   rowKey: 'basicId',
-  scrollX: 1100,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -212,15 +202,15 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
   try {
     const result = await codeGenDataSourceApi.testConnection(row.basicId)
     if (result.success) {
-      message.success(t('develop.code_gen.datasource.test_success', { ms: result.elapsedMilliseconds }))
+      toast.success(t('develop.code_gen.datasource.test_success', { ms: result.elapsedMilliseconds }))
     }
     else {
-      message.error(result.message || t('develop.code_gen.datasource.test_failed'))
+      toast.error(result.message || t('develop.code_gen.datasource.test_failed'))
     }
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.datasource.test_error'))
+    toast.error((error as Error)?.message || t('develop.code_gen.datasource.test_error'))
   }
   finally {
     testingId.value = null
@@ -228,19 +218,21 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
 }
 
 function handleDelete(row: CodeGenDataSourceListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('common.actions.delete'),
     content: t('develop.code_gen.datasource.confirm_delete'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await codeGenDataSourceApi.delete(row.basicId)
-        message.success(t('common.messages.delete_success'))
+        toast.success(t('common.messages.delete_success'))
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -283,7 +275,7 @@ async function handleEdit(row: CodeGenDataSourceListItemDto) {
   try {
     const detail = await codeGenDataSourceApi.detail(row.basicId)
     if (!detail) {
-      message.error(t('develop.code_gen.datasource.not_found'))
+      toast.error(t('develop.code_gen.datasource.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -308,21 +300,21 @@ async function handleEdit(row: CodeGenDataSourceListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.datasource.load_detail_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.datasource.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.sourceName.trim()) {
-    message.warning(t('develop.code_gen.datasource.validate_source_name'))
+    toast.warning(t('develop.code_gen.datasource.validate_source_name'))
     return false
   }
   if (!form.value.host.trim()) {
-    message.warning(t('develop.code_gen.datasource.validate_host'))
+    toast.warning(t('develop.code_gen.datasource.validate_host'))
     return false
   }
   if (!form.value.databaseName.trim()) {
-    message.warning(t('develop.code_gen.datasource.validate_database_name'))
+    toast.warning(t('develop.code_gen.datasource.validate_database_name'))
     return false
   }
   return true
@@ -381,12 +373,12 @@ async function handleSubmit() {
       }
       await codeGenDataSourceApi.create(createInput)
     }
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -400,55 +392,139 @@ async function handleSubmit() {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('develop.code_gen.datasource.form_source_name')" path="sourceName">
-          <NInput v-model:value="form.sourceName" clearable :placeholder="t('develop.code_gen.datasource.form_source_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_database_type')" path="databaseType">
-          <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_host')" path="host">
-          <NInput v-model:value="form.host" clearable :placeholder="t('develop.code_gen.datasource.form_host_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_port')" path="port">
-          <NInputNumber v-model:value="form.port" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_database_name')" path="databaseName">
-          <NInput v-model:value="form.databaseName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_user_name')" path="userName">
-          <NInput v-model:value="form.userName" clearable :input-props="{ autocomplete: 'off' }" />
-        </NFormItem>
-        <NFormItem :label="form.basicId ? t('develop.code_gen.datasource.form_password_edit') : t('develop.code_gen.datasource.form_password')" path="password">
-          <NInput v-model:value="form.password" clearable show-password-on="click" type="password" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_connection_timeout')" path="connectionTimeout">
-          <NInputNumber v-model:value="form.connectionTimeout" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.datasource.form_is_default')" path="isDefault">
-          <NSwitch v-model:value="form.isDefault" />
-        </NFormItem>
-        <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
-          <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('develop.code_gen.datasource.form_connection_string')" path="connectionString">
-          <NInput
-            v-model:value="form.connectionString"
-            clearable
-            :placeholder="t('develop.code_gen.datasource.form_connection_string_placeholder')"
-            :rows="2"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('develop.code_gen.datasource.form_description')" path="sourceDescription">
-          <NInput v-model:value="form.sourceDescription" clearable :rows="2" type="textarea" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="sourceName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_source_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.sourceName" clearable :placeholder="t('develop.code_gen.datasource.form_source_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="databaseType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_database_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="host">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_host') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.host" clearable :placeholder="t('develop.code_gen.datasource.form_host_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="port">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_port') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.port" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="databaseName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_database_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.databaseName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="userName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_user_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.userName" clearable autocomplete="off" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="password">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ form.basicId ? t('develop.code_gen.datasource.form_password_edit') : t('develop.code_gen.datasource.form_password') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.password" clearable type="password" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="connectionTimeout">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_connection_timeout') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.connectionTimeout" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isDefault">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_is_default') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="form.isDefault" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!form.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.status" :options="statusEnumOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="connectionString" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_connection_string') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.connectionString"
+                clearable
+                :placeholder="t('develop.code_gen.datasource.form_connection_string_placeholder')"
+                :rows="2"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sourceDescription" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.datasource.form_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.sourceDescription" clearable :rows="2" type="textarea" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

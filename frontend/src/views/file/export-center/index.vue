@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { ExportTaskDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { NProgress, NTag, useDialog, useMessage } from 'naive-ui'
+import { XhBadge, XhProgress } from '@xihan-ui/vue'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ExportFormat, ExportScope, exportTaskApi, ExportTaskStatus, fileApi } from '@/api'
 import { SchemaPage } from '~/components'
+import { dialog, toast } from '~/composables'
 import { downloadBlob, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SettingExportCenterPage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 
@@ -57,12 +56,12 @@ const formatOptions = [
   { label: 'Excel', value: ExportFormat.Xlsx },
 ]
 
-function statusTagType(status: ExportTaskStatus): 'default' | 'error' | 'info' | 'success' {
+function statusTagType(status: ExportTaskStatus): 'neutral' | 'danger' | 'info' | 'success' {
   switch (status) {
     case ExportTaskStatus.Success: return 'success'
-    case ExportTaskStatus.Failed: return 'error'
+    case ExportTaskStatus.Failed: return 'danger'
     case ExportTaskStatus.Processing: return 'info'
-    default: return 'default'
+    default: return 'neutral'
   }
 }
 
@@ -90,11 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: statusOptions.value,
     width: 100,
     order: 12,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: statusTagType((row as unknown as ExportTaskDto).status) },
-      () => getOptionLabel(statusOptions.value, (row as unknown as ExportTaskDto).status),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTagType((row as unknown as ExportTaskDto).status) }, () => getOptionLabel(statusOptions.value, (row as unknown as ExportTaskDto).status)),
   },
   {
     key: 'progress',
@@ -105,7 +100,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as ExportTaskDto
       if (r.status === ExportTaskStatus.Processing) {
-        return h(NProgress, {
+        return h(XhProgress, {
           type: 'line',
           percentage: r.progress,
           height: 8,
@@ -131,7 +126,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'file.export-center',
   pageName: t('file.export_center.page_name'),
   rowKey: 'basicId',
-  scrollX: 1400,
   fields: fields.value,
   resource: {
     page: params => exportTaskApi.mine(params.page, params.pageSize) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -161,7 +155,7 @@ function onAction(payload: SchemaActionPayload) {
 
 async function handleDownload(row: ExportTaskDto) {
   if (!row.fileId) {
-    message.warning(t('file.export_center.product_not_exist'))
+    toast.warning(t('file.export_center.product_not_exist'))
     return
   }
   try {
@@ -169,35 +163,37 @@ async function handleDownload(row: ExportTaskDto) {
     downloadBlob(blob, row.fileName || `${row.taskName}.csv`)
   }
   catch (e) {
-    message.error((e as Error).message || t('file.export_center.download_failed'))
+    toast.error((e as Error).message || t('file.export_center.download_failed'))
   }
 }
 
 async function handleCancel(row: ExportTaskDto) {
   try {
     await exportTaskApi.cancel(row.basicId)
-    message.success(t('file.export_center.canceled'))
+    toast.success(t('file.export_center.canceled'))
     reload()
   }
   catch (e) {
-    message.error((e as Error).message || t('file.export_center.cancel_failed'))
+    toast.error((e as Error).message || t('file.export_center.cancel_failed'))
   }
 }
 
 function handleDelete(row: ExportTaskDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('file.export_center.delete_title'),
     content: t('file.export_center.delete_content', { name: row.taskName }),
-    positiveText: t('file.export_center.actions.delete'),
-    negativeText: t('file.export_center.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('file.export_center.actions.delete'),
+    cancelText: t('file.export_center.actions.cancel'),
+    onOk: async () => {
       try {
         await exportTaskApi.remove(row.basicId)
-        message.success(t('file.export_center.deleted'))
+        toast.success(t('file.export_center.deleted'))
         reload()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.export_center.delete_failed'))
+        toast.error((e as Error).message || t('file.export_center.delete_failed'))
       }
     },
   })

@@ -1,12 +1,14 @@
 <script setup lang="ts" generic="TRow extends object">
-import type { DropdownOption } from 'naive-ui'
+import type { MenuNode } from '@xihan-ui/headless'
+import type { Tone } from '@xihan-ui/kernel'
 import type { ActionSchema } from './types'
-import { NButton, NDropdown, NIcon, NTooltip } from 'naive-ui'
+import { XhButton, XhMenuRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
+import XIconButton from '../common/XIconButton.vue'
 
 defineOptions({ name: 'SchemaActionPanel' })
 
@@ -35,6 +37,22 @@ function isIconOnly(action: ActionSchema<TRow>): boolean {
   return isMobile.value && !!action.icon
 }
 
+/** 操作 Schema 的 type 到组件库 tone 轴的换算 */
+function toneOf(type: ActionSchema<TRow>['type']): Tone {
+  switch (type) {
+    case 'primary':
+      return 'brand'
+    case 'error':
+      return 'danger'
+    case 'info':
+    case 'success':
+    case 'warning':
+      return type
+    default:
+      return 'neutral'
+  }
+}
+
 /** 有权限的页面操作 */
 const permitted = computed(() =>
   props.actions.filter(a => a.scope === 'page' && (!a.permission || hasPermission(a.permission))),
@@ -46,51 +64,48 @@ const primaryActions = computed(() => permitted.value.slice(0, props.maxButtons)
 /** 收入「更多」的操作 */
 const moreActions = computed(() => permitted.value.slice(props.maxButtons))
 
-const moreOptions = computed<DropdownOption[]>(() =>
-  moreActions.value.map(a => ({ key: a.key, label: a.title })),
+const moreOptions = computed<MenuNode[]>(() =>
+  moreActions.value.map(a => ({ value: a.key, label: a.title })),
 )
-
-function onMoreSelect(key: string) {
-  emit('action', key)
-}
 </script>
 
 <template>
   <div class="flex flex-wrap gap-2 items-center">
-    <NTooltip
-      v-for="action in primaryActions"
-      :key="action.key"
-      :disabled="!isIconOnly(action)"
+    <template v-for="action in primaryActions" :key="action.key">
+      <!-- 小屏收成纯图标钮，文案退到提示里；宽屏照常出文字 -->
+      <XIconButton
+        v-if="isIconOnly(action)"
+        :icon="action.icon!"
+        :label="action.title"
+        @click="emit('action', action.key)"
+      />
+      <XhButton
+        v-else
+        size="sm"
+        :variant="action.type && action.type !== 'default' ? 'solid' : 'outline'"
+        :tone="toneOf(action.type)"
+        :aria-label="action.title"
+        @click="emit('action', action.key)"
+      >
+        <Icon v-if="action.icon" :icon="action.icon" />
+        {{ action.title }}
+      </XhButton>
+    </template>
+
+    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款 -->
+    <XhMenuRoot
+      v-if="moreOptions.length"
+      trigger-as-child
+      :collection="moreOptions"
+      @select="(details: { value: string }) => emit('action', details.value)"
     >
       <template #trigger>
-        <NButton
-          size="small"
-          :circle="isIconOnly(action)"
-          :type="action.type ?? 'default'"
-          :aria-label="action.title"
-          @click="emit('action', action.key)"
-        >
-          <template v-if="action.icon" #icon>
-            <NIcon><Icon :icon="action.icon" /></NIcon>
-          </template>
-          <template v-if="!isIconOnly(action)">
-            {{ action.title }}
-          </template>
-        </NButton>
+        <XhButton size="sm" variant="outline">
+          <Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" />
+          <span v-if="!isMobile">{{ t('component.schema_page.more') }}</span>
+        </XhButton>
       </template>
-      {{ action.title }}
-    </NTooltip>
-
-    <NDropdown v-if="moreOptions.length" :options="moreOptions" trigger="click" @select="onMoreSelect">
-      <NButton size="small" :circle="isMobile" :aria-label="t('component.schema_page.more')">
-        <template #icon>
-          <NIcon><Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" /></NIcon>
-        </template>
-        <template v-if="!isMobile">
-          {{ t('component.schema_page.more') }}
-        </template>
-      </NButton>
-    </NDropdown>
+    </XhMenuRoot>
 
     <div class="flex-1" />
 

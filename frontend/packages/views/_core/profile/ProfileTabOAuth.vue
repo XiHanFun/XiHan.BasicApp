@@ -1,23 +1,10 @@
 <script lang="ts" setup>
 import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import {
-  NAlert,
-  NButton,
-  NEmpty,
-  NIcon,
-  NInput,
-  NInputGroup,
-  NModal,
-  NSelect,
-  NSpin,
-  NSwitch,
-  NTag,
-  NTooltip,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
+import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
@@ -25,8 +12,6 @@ import { copyToClipboard, formatDate } from '~/utils'
 defineOptions({ name: 'ProfileTabOAuth' })
 
 const { apis } = useAppContext()
-const message = useMessage()
-const dialog = useDialog()
 const { t } = useI18n()
 
 const loading = ref(false)
@@ -57,7 +42,7 @@ async function loadApps() {
     apps.value = await apis.getMyOAuthAppsApi()
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.oauth.err_load_failed'))
+    toast.error((e as Error).message || t('component.profile.oauth.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -88,11 +73,11 @@ function openEdit(app: MyOAuthAppItem) {
 
 async function handleSubmit() {
   if (!form.appName.trim()) {
-    message.error(t('component.profile.oauth.err_name_required'))
+    toast.error(t('component.profile.oauth.err_name_required'))
     return false
   }
   if (!form.redirectUris.trim()) {
-    message.error(t('component.profile.oauth.err_callback_required'))
+    toast.error(t('component.profile.oauth.err_callback_required'))
     return false
   }
 
@@ -107,7 +92,7 @@ async function handleSubmit() {
         redirectUris: form.redirectUris.trim(),
         logo: form.logo.trim() || undefined,
       })
-      message.success(t('component.profile.oauth.msg_created'))
+      toast.success(t('component.profile.oauth.msg_created'))
     }
     else {
       await apis.updateMyOAuthAppApi({
@@ -118,14 +103,14 @@ async function handleSubmit() {
         redirectUris: form.redirectUris.trim(),
         logo: form.logo.trim() || undefined,
       })
-      message.success(t('component.profile.oauth.msg_updated'))
+      toast.success(t('component.profile.oauth.msg_updated'))
     }
     modalVisible.value = false
     await loadApps()
     return true
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
+    toast.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
     return false
   }
   finally {
@@ -134,19 +119,20 @@ async function handleSubmit() {
 }
 
 function handleRegenerate(app: MyOAuthAppItem) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: t('component.profile.oauth.regenerate_title'),
     content: t('component.profile.oauth.regenerate_content', { name: app.appName }),
-    positiveText: t('component.profile.oauth.confirm_regenerate'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('component.profile.oauth.confirm_regenerate'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         newSecret.value = await apis.regenerateMyOAuthAppSecretApi(app.basicId)
-        message.success(t('component.profile.oauth.msg_secret_regenerated'))
+        toast.success(t('component.profile.oauth.msg_secret_regenerated'))
         await loadApps()
       }
       catch (e) {
-        message.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
+        toast.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
       }
     },
   })
@@ -155,39 +141,41 @@ function handleRegenerate(app: MyOAuthAppItem) {
 async function handleToggleStatus(app: MyOAuthAppItem, enabled: boolean) {
   try {
     await apis.updateMyOAuthAppStatusApi(app.basicId, enabled ? 'Enabled' : 'Disabled')
-    message.success(enabled ? t('component.profile.oauth.msg_enabled') : t('component.profile.oauth.msg_disabled'))
+    toast.success(enabled ? t('component.profile.oauth.msg_enabled') : t('component.profile.oauth.msg_disabled'))
     await loadApps()
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
+    toast.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
     await loadApps()
   }
 }
 
 function handleDelete(app: MyOAuthAppItem) {
-  dialog.error({
+  void dialog.confirm({
+    badge: 'error',
+    tone: 'danger',
     title: t('component.profile.oauth.delete_title'),
     content: t('component.profile.oauth.delete_content', { name: app.appName }),
-    positiveText: t('component.profile.oauth.confirm_delete'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('component.profile.oauth.confirm_delete'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await apis.deleteMyOAuthAppApi(app.basicId)
         if (newSecret.value?.basicId === app.basicId) {
           newSecret.value = null
         }
-        message.success(t('component.profile.oauth.msg_deleted'))
+        toast.success(t('component.profile.oauth.msg_deleted'))
         await loadApps()
       }
       catch (e) {
-        message.error((e as Error).message || t('component.profile.oauth.err_delete_failed'))
+        toast.error((e as Error).message || t('component.profile.oauth.err_delete_failed'))
       }
     },
   })
 }
 
 function copyText(text: string) {
-  void copyToClipboard(text).then(() => message.success(t('component.profile.oauth.msg_copied')))
+  void copyToClipboard(text).then(() => toast.success(t('component.profile.oauth.msg_copied')))
 }
 
 onMounted(() => {
@@ -209,63 +197,71 @@ onMounted(() => {
           </div>
         </div>
         <div class="pf-section__extra">
-          <NButton size="small" type="primary" @click="openCreate">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>{{ t('component.profile.oauth.btn_create') }}
-          </NButton>
+          <XhButton size="sm" tone="brand" @click="openCreate">
+            <span><Icon icon="lucide:plus" /></span>
+            {{ t('component.profile.oauth.btn_create') }}
+          </XhButton>
         </div>
       </div>
       <div class="pf-section__body">
-        <NAlert v-if="newSecret" type="warning" :title="t('component.profile.oauth.secret_alert_title')" :bordered="false" class="pf-secret-alert">
-          <div class="pf-secret-row">
-            <span class="pf-secret-label">Client ID</span>
-            <NInputGroup>
-              <NInput :value="newSecret.clientId" readonly size="small" />
-              <NButton size="small" @click="copyText(newSecret.clientId)">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:copy" /></NIcon>
-                </template>
-              </NButton>
-            </NInputGroup>
-          </div>
-          <div v-if="newSecret.clientType === 'Confidential' && newSecret.clientSecret" class="pf-secret-row">
-            <span class="pf-secret-label">Secret</span>
-            <NInputGroup>
-              <NInput :value="newSecret.clientSecret" readonly size="small" type="password" show-password-on="click" />
-              <NButton size="small" @click="copyText(newSecret.clientSecret)">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:copy" /></NIcon>
-                </template>
-              </NButton>
-            </NInputGroup>
-          </div>
-          <div v-else class="pf-secret-public-hint">
-            {{ t('component.profile.oauth.secret_alert_public') }}
-          </div>
-        </NAlert>
+        <XhAlertRoot v-if="newSecret" tone="warning" class="pf-secret-alert">
+          <XhAlertIcon>
+            <Icon icon="lucide:triangle-alert" width="16" height="16" />
+          </XhAlertIcon>
+          <XhAlertTitle>{{ t('component.profile.oauth.secret_alert_title') }}</XhAlertTitle>
+          <XhAlertDescription>
+            <div class="pf-secret-row">
+              <span class="pf-secret-label">Client ID</span>
+              <div class="xh-input-group">
+                <XInput :value="newSecret.clientId" readonly size="sm" />
+                <XhButton size="sm" @click="copyText(newSecret.clientId)">
+                  <span><Icon icon="lucide:copy" /></span>
+                </XhButton>
+              </div>
+            </div>
+            <div v-if="newSecret.clientType === 'Confidential' && newSecret.clientSecret" class="pf-secret-row">
+              <span class="pf-secret-label">Secret</span>
+              <div class="xh-input-group">
+                <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" />
+                <XhButton size="sm" @click="copyText(newSecret.clientSecret)">
+                  <span><Icon icon="lucide:copy" /></span>
+                </XhButton>
+              </div>
+            </div>
+            <div v-else class="pf-secret-public-hint">
+              {{ t('component.profile.oauth.secret_alert_public') }}
+            </div>
+          </XhAlertDescription>
+        </XhAlertRoot>
 
-        <NSpin :show="loading">
-          <NEmpty v-if="apps.length === 0 && !loading" class="pf-empty" :description="t('component.profile.oauth.empty')" />
+        <div class="xh-loading-stage">
+          <div v-if="loading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="apps.length === 0 && !loading" class="pf-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('component.profile.oauth.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
           <div v-else class="pf-list">
             <div v-for="app in apps" :key="String(app.basicId)" class="pf-list-item pf-credential">
               <div class="pf-list-body">
                 <div class="pf-list-title pf-credential__name">
                   <span>{{ app.appName }}</span>
-                  <NTag size="small" round :bordered="false" :type="app.clientType === 'Public' ? 'info' : 'default'">
+                  <XhBadge variant="subtle" size="sm" :tone="app.clientType === 'Public' ? 'info' : 'neutral'">
                     {{ app.clientType === 'Public' ? t('component.profile.oauth.tag_public') : t('component.profile.oauth.tag_confidential') }}
-                  </NTag>
-                  <NTag size="small" round :bordered="false" :type="app.status === 'Enabled' ? 'success' : 'default'">
+                  </XhBadge>
+                  <XhBadge variant="subtle" size="sm" :tone="app.status === 'Enabled' ? 'success' : 'neutral'">
                     {{ app.status === 'Enabled' ? t('component.profile.oauth.tag_enabled') : t('component.profile.oauth.tag_disabled') }}
-                  </NTag>
+                  </XhBadge>
                 </div>
                 <div class="pf-credential__key">
                   <code>{{ app.clientId }}</code>
-                  <NButton size="tiny" quaternary @click="copyText(app.clientId)">
-                    <template #icon>
-                      <NIcon><Icon icon="lucide:copy" /></NIcon>
-                    </template>
-                  </NButton>
+                  <XhButton size="sm" variant="ghost" @click="copyText(app.clientId)">
+                    <span><Icon icon="lucide:copy" /></span>
+                  </XhButton>
                 </div>
                 <div v-if="app.redirectUris" class="pf-list-desc pf-oauth__callback">
                   {{ t('component.profile.oauth.callback_label') }}: {{ app.redirectUris }}
@@ -275,98 +271,81 @@ onMounted(() => {
                 </div>
               </div>
               <div class="pf-credential__actions">
-                <NTooltip>
-                  <template #trigger>
-                    <NSwitch
-                      size="small"
-                      :value="app.status === 'Enabled'"
-                      @update:value="(v: boolean) => handleToggleStatus(app, v)"
-                    />
-                  </template>{{ t('component.profile.oauth.tooltip_toggle') }}
-                </NTooltip>
-                <NTooltip>
-                  <template #trigger>
-                    <NButton size="tiny" quaternary @click="openEdit(app)">
-                      <template #icon>
-                        <NIcon><Icon icon="lucide:pencil" /></NIcon>
-                      </template>
-                    </NButton>
-                  </template>{{ t('component.profile.oauth.tooltip_edit') }}
-                </NTooltip>
-                <NTooltip v-if="app.clientType === 'Confidential'">
-                  <template #trigger>
-                    <NButton size="tiny" quaternary @click="handleRegenerate(app)">
-                      <template #icon>
-                        <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-                      </template>
-                    </NButton>
-                  </template>{{ t('component.profile.oauth.tooltip_regenerate') }}
-                </NTooltip>
-                <NTooltip>
-                  <template #trigger>
-                    <NButton size="tiny" quaternary type="error" @click="handleDelete(app)">
-                      <template #icon>
-                        <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                      </template>
-                    </NButton>
-                  </template>{{ t('component.profile.oauth.tooltip_delete') }}
-                </NTooltip>
+                <XhSwitch
+                  :title="t('component.profile.oauth.tooltip_toggle')"
+                  size="sm"
+                  :checked="app.status === 'Enabled'"
+                  @update:checked="(v: boolean) => handleToggleStatus(app, v)"
+                />
+                <XTooltip :content="t('component.profile.oauth.tooltip_edit')">
+                  <XhButton size="sm" variant="ghost" @click="openEdit(app)">
+                    <span><Icon icon="lucide:pencil" /></span>
+                  </XhButton>
+                </XTooltip>
+                <XTooltip :content="t('component.profile.oauth.tooltip_regenerate')">
+                  <XhButton size="sm" variant="ghost" @click="handleRegenerate(app)">
+                    <span><Icon icon="lucide:rotate-ccw" /></span>
+                  </XhButton>
+                </XTooltip>
+                <XTooltip :content="t('component.profile.oauth.tooltip_delete')">
+                  <XhButton size="sm" variant="ghost" tone="danger" @click="handleDelete(app)">
+                    <span><Icon icon="lucide:trash-2" /></span>
+                  </XhButton>
+                </XTooltip>
               </div>
             </div>
           </div>
-        </NSpin>
+        </div>
       </div>
     </section>
 
-    <NModal
+    <XEditModal
       v-model:show="modalVisible"
-      preset="dialog"
-      style="width: 520px"
+      :width="520"
       :title="editingId == null ? t('component.profile.oauth.create_title') : t('component.profile.oauth.edit_title')"
-      :positive-text="t('component.profile.oauth.btn_submit')"
-      :negative-text="t('common.actions.cancel')"
+      :save-text="t('component.profile.oauth.btn_submit')"
       :loading="submitting"
-      @positive-click="handleSubmit"
+      @save="handleSubmit"
     >
       <div class="pf-oauth-form">
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_name') }}</label>
-          <NInput v-model:value="form.appName" :placeholder="t('component.profile.oauth.field_name_ph')" maxlength="100" />
+          <XInput v-model:value="form.appName" :placeholder="t('component.profile.oauth.field_name_ph')" :max-length="100" />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_type') }}</label>
-          <NSelect v-model:value="form.clientType" :options="clientTypeOptions" :disabled="editingId != null" />
+          <XSelect v-model:value="form.clientType" :options="clientTypeOptions" :disabled="editingId != null" />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_callback') }}</label>
-          <NInput
+          <XInput
             v-model:value="form.redirectUris"
             type="textarea"
             :placeholder="t('component.profile.oauth.field_callback_ph')"
             :autosize="{ minRows: 2, maxRows: 4 }"
-            maxlength="2000"
+            :max-length="2000"
           />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_homepage') }}</label>
-          <NInput v-model:value="form.homepage" placeholder="https://example.com" maxlength="200" />
+          <XInput v-model:value="form.homepage" placeholder="https://example.com" :max-length="200" />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_desc') }}</label>
-          <NInput
+          <XInput
             v-model:value="form.appDescription"
             type="textarea"
             :placeholder="t('component.profile.oauth.field_desc_ph')"
             :autosize="{ minRows: 2, maxRows: 3 }"
-            maxlength="500"
+            :max-length="500"
           />
         </div>
         <div class="pf-oauth-field">
           <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_logo') }}</label>
-          <NInput v-model:value="form.logo" placeholder="https://example.com/logo.png" maxlength="500" />
+          <XInput v-model:value="form.logo" placeholder="https://example.com/logo.png" :max-length="500" />
         </div>
       </div>
-    </NModal>
+    </XEditModal>
   </div>
 </template>
 

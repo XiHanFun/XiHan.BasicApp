@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { OAuthAuthorizeRequestDto, OAuthConsentPreviewDto } from '@/api'
-import { NAvatar, NButton, NIcon, NSpin } from 'naive-ui'
+import { XhAvatarFallback, XhAvatarImage, XhAvatarRoot, XhButton, XhSpinner } from '@xihan-ui/vue'
+
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -139,7 +140,7 @@ onMounted(async () => {
     >
       <!-- 加载态 -->
       <div v-if="loading" class="flex flex-col justify-center items-center py-12">
-        <NSpin :size="40" />
+        <XhSpinner />
         <p class="mt-6 text-sm text-[hsl(var(--muted-foreground))]">
           {{ t('page.oauth.loading') }}
         </p>
@@ -151,9 +152,7 @@ onMounted(async () => {
           class="flex justify-center items-center w-16 h-16 rounded-full"
           :class="isDark ? 'bg-red-500/10' : 'bg-red-50'"
         >
-          <NIcon :size="32" class="text-red-500">
-            <Icon icon="lucide:shield-alert" />
-          </NIcon>
+          <span class="text-red-500" style="display: inline-flex; font-size: 32px"><Icon icon="lucide:shield-alert" /></span>
         </div>
         <p class="mt-5 text-base font-medium text-[hsl(var(--foreground))]">
           {{ errorMsg }}
@@ -165,13 +164,10 @@ onMounted(async () => {
 
       <!-- 授权确认态 -->
       <div v-else-if="preview?.valid" class="flex flex-col items-center">
-        <NAvatar
-          v-if="preview.logo"
-          :size="64"
-          :src="preview.logo"
-          round
-          class="shadow-sm"
-        />
+        <XhAvatarRoot v-if="preview.logo" class="shadow-sm" :style="{ '--xh-avatar-size': '64px' }">
+          <XhAvatarImage :src="preview.logo" :alt="preview.appName ?? ''" />
+          <XhAvatarFallback>{{ appInitial }}</XhAvatarFallback>
+        </XhAvatarRoot>
         <div
           v-else
           class="flex justify-center items-center w-16 h-16 text-2xl font-semibold text-white rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500"
@@ -203,18 +199,14 @@ onMounted(async () => {
               :key="scope"
               class="flex gap-2.5 items-center text-sm text-[hsl(var(--foreground))]"
             >
-              <NIcon :size="16" class="text-emerald-500 shrink-0">
-                <Icon icon="lucide:check" />
-              </NIcon>
+              <span class="text-emerald-500 shrink-0" style="display: inline-flex; font-size: 16px"><Icon icon="lucide:check" /></span>
               <span class="break-all">{{ scope }}</span>
             </li>
             <li
               v-if="scopes.length === 0"
               class="flex gap-2.5 items-center text-sm text-[hsl(var(--foreground))]"
             >
-              <NIcon :size="16" class="text-emerald-500 shrink-0">
-                <Icon icon="lucide:check" />
-              </NIcon>
+              <span class="text-emerald-500 shrink-0" style="display: inline-flex; font-size: 16px"><Icon icon="lucide:check" /></span>
               <span>{{ t('page.oauth.no_scopes') }}</span>
             </li>
           </ul>
@@ -227,21 +219,21 @@ onMounted(async () => {
 
         <!-- 操作按钮 -->
         <div class="grid grid-cols-2 gap-3 mt-6 w-full">
-          <NButton
-            size="large"
+          <XhButton
+            size="lg"
             :disabled="submitting"
             @click="deny"
           >
             {{ t('page.oauth.deny') }}
-          </NButton>
-          <NButton
-            type="primary"
-            size="large"
+          </XhButton>
+          <XhButton
+            tone="brand"
+            size="lg"
             :loading="submitting"
             @click="approve"
           >
             {{ submitting ? t('page.oauth.approving') : t('page.oauth.approve') }}
-          </NButton>
+          </XhButton>
         </div>
 
         <p class="mt-4 text-xs text-center text-[hsl(var(--muted-foreground))]">

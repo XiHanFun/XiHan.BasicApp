@@ -1,45 +1,46 @@
 <script lang="ts" setup>
-import type { FormInst, FormRules } from 'naive-ui'
-import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
-import { ref } from 'vue'
+import type { FormRules } from '@xihan-ui/headless'
+import { XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
+
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppContext } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'ForgetPasswordPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
-const message = useMessage()
 const { apis } = useAppContext()
-const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 
 const formData = ref({
   email: '',
 })
 
-const rules: FormRules = {
+const rules = computed<FormRules>(() => ({
   email: [
-    { required: true, message: () => t('page.auth.email_placeholder'), trigger: 'blur' },
-    { type: 'email', message: () => t('page.auth.email_invalid'), trigger: 'blur' },
+    { required: true, message: t('page.auth.email_placeholder') },
+    { type: 'email', message: t('page.auth.email_invalid') },
   ],
-}
+}))
 
-async function handleSubmit() {
+async function onSubmit() {
   try {
-    await formRef.value?.validate()
     loading.value = true
     const result = await apis.requestPasswordResetApi(formData.value.email)
     if (result.debugResetUrl) {
       // 开发环境（未配 SMTP）回显重置链接，便于本地联调
-      message.success(`${t('page.auth.reset_link_sent')}（重置链接：${result.debugResetUrl}）`)
+      toast.success(`${t('page.auth.reset_link_sent')}（重置链接：${result.debugResetUrl}）`)
     }
     else {
-      message.success(t('page.auth.reset_link_sent'))
+      toast.success(t('page.auth.reset_link_sent'))
     }
   }
   finally {
@@ -49,8 +50,9 @@ async function handleSubmit() {
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter')
-    handleSubmit()
+    onSubmit()
 }
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -67,34 +69,31 @@ function handleKeydown(e: KeyboardEvent) {
       </p>
     </div>
 
-    <NForm
-      ref="formRef"
-      :model="formData"
+    <XhFormRoot
+      v-model:values="formData"
       :rules="rules"
-      label-placement="top"
-      size="large"
-      :show-label="false"
+      validate-on="blur"
+      @invalid="onAuthInvalid"
       @keydown="handleKeydown"
+      @submit="onSubmit"
     >
-      <NFormItem path="email" :show-feedback="false" class="!mb-6">
-        <NInput
-          v-model:value="formData.email"
-          size="large"
-          placeholder="example@example.com"
-          :input-props="{ autocomplete: 'email' }"
-        />
-      </NFormItem>
+      <XhFormFieldGroup value="email" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.email"
+              size="lg"
+              placeholder="example@example.com"
+              autocomplete="email"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
 
-      <NButton
-        type="primary"
-        block
-        :loading="loading"
-        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
-        @click="handleSubmit"
-      >
+      <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="loading">
         {{ t('page.auth.send_reset_link') }}
-      </NButton>
-    </NForm>
+      </XhFormSubmitTrigger>
+    </XhFormRoot>
 
     <p
       class="mt-6 text-sm text-center"

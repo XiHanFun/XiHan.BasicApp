@@ -9,21 +9,8 @@ import type {
   NumberingRuleUpdateDto,
   NumberingScope,
 } from '@/api'
-import {
-  NAlert,
-  NButton,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSpace,
-  NSwitch,
-  NTag,
-  NTooltip,
-  useMessage,
-} from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   EnableStatus,
@@ -31,9 +18,10 @@ import {
   NumberingDateFormat,
   NumberingResetCycle,
 } from '@/api'
-import { XEditModal } from '~/components'
-import { useTimezoneOptions } from '~/composables'
+import { XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
+import { toast, useTimezoneOptions } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'NumberingRuleEditor' })
 
@@ -65,7 +53,9 @@ interface RuleFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const submitLoading = ref(false)
 const previewLoading = ref(false)
 const previewNumber = ref('')
@@ -168,7 +158,7 @@ async function preview(): Promise<void> {
     previewNumber.value = result.number
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.numbering.preview_failed'))
+    toast.error((error as Error).message || t('setting.numbering.preview_failed'))
   }
   finally {
     previewLoading.value = false
@@ -184,7 +174,7 @@ async function submit(): Promise<void> {
   if (submitLoading.value)
     return
   if (!form.value.ruleCode.trim() || !form.value.ruleName.trim() || !form.value.timeZoneId.trim()) {
-    message.warning(t('setting.numbering.required_fields'))
+    toast.warning(t('setting.numbering.required_fields'))
     return
   }
 
@@ -213,12 +203,12 @@ async function submit(): Promise<void> {
         status: form.value.status,
       } satisfies NumberingRuleCreateDto)
     }
-    message.success(t('setting.numbering.save_success'))
+    toast.success(t('setting.numbering.save_success'))
     emit('update:show', false)
     emit('saved')
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.numbering.save_failed'))
+    toast.error((error as Error).message || t('setting.numbering.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -231,85 +221,145 @@ async function submit(): Promise<void> {
     :show="show"
     :title="title"
     :loading="submitLoading"
+    :form-id="editFormId"
     @update:show="emit('update:show', $event)"
-    @save="submit"
   >
-    <NAlert v-if="formatFrozen" class="mb-3" type="warning" :show-icon="true">
-      {{ t('setting.numbering.format_frozen_tip') }}
-    </NAlert>
-    <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-      <NFormItem :label="t('setting.numbering.rule_code')">
-        <NInput v-model:value="form.ruleCode" :disabled="Boolean(detail)" maxlength="100" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.rule_name')">
-        <NInput v-model:value="form.ruleName" maxlength="100" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.prefix')">
-        <NInput v-model:value="form.prefix" :disabled="formatFrozen" maxlength="50" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.separator')">
-        <NInput v-model:value="form.separator" :disabled="formatFrozen" maxlength="10" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.date_format')">
-        <NSelect v-model:value="form.dateFormat" :disabled="formatFrozen" :options="dateFormatOptions" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.serial_length')">
-        <NInputNumber v-model:value="form.serialLength" :disabled="formatFrozen" :min="1" :max="18" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.reset_cycle')">
-        <NSelect v-model:value="form.resetCycle" :disabled="formatFrozen" :options="resetCycleOptions" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.time_zone')">
-        <NSelect
-          v-model:value="form.timeZoneId"
-          :disabled="formatFrozen"
-          :loading="timeZoneLoading"
-          :options="timeZoneOptions"
-          filterable
-        />
-      </NFormItem>
-      <NFormItem v-if="globalMode">
-        <template #label>
+    <XhAlertRoot v-if="formatFrozen" tone="warning" class="mb-3">
+      <XhAlertIcon>
+        <Icon icon="lucide:triangle-alert" width="16" height="16" />
+      </XhAlertIcon>
+      <XhAlertDescription>
+        {{ t('setting.numbering.format_frozen_tip') }}
+      </XhAlertDescription>
+    </XhAlertRoot>
+    <XhFormRoot
+      :id="editFormId"
+      v-model:values="form"
+      validate-on="blur"
+      class="xh-edit-form-grid"
+      @submit="submit"
+    >
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.rule_code') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput v-model:value="form.ruleCode" :disabled="Boolean(detail)" :max-length="100" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.rule_name') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput v-model:value="form.ruleName" :max-length="100" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.prefix') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput v-model:value="form.prefix" :disabled="formatFrozen" :max-length="50" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.separator') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput v-model:value="form.separator" :disabled="formatFrozen" :max-length="10" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.date_format') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XSelect v-model:value="form.dateFormat" :disabled="formatFrozen" :options="dateFormatOptions" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.serial_length') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XNumberInput v-model:value="form.serialLength" :disabled="formatFrozen" :min="1" :max="18" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.reset_cycle') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XSelect v-model:value="form.resetCycle" :disabled="formatFrozen" :options="resetCycleOptions" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.time_zone') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XSelect
+            v-model:value="form.timeZoneId"
+            :disabled="formatFrozen"
+            :loading="timeZoneLoading"
+            :options="timeZoneOptions"
+            filterable
+          />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot v-if="globalMode">
+        <XhFieldLabel>
           <span class="inline-flex items-center gap-1">
             <span>{{ t('setting.numbering.allow_tenant_use') }}</span>
-            <NTooltip trigger="hover" :style="{ maxWidth: '360px' }">
-              <template #trigger>
-                <button
-                  type="button"
-                  class="inline-flex size-4 cursor-help items-center justify-center rounded-full border border-current text-[11px] leading-none text-gray-400"
-                  :aria-label="t('setting.numbering.allow_tenant_use_tip')"
-                >
-                  ?
-                </button>
-              </template>
-              {{ t('setting.numbering.allow_tenant_use_tip') }}
-            </NTooltip>
+            <XTooltip :content="t('setting.numbering.allow_tenant_use_tip')">
+              <button
+
+                type="button"
+                class="inline-flex size-4 cursor-help items-center justify-center rounded-full border border-current text-[11px] leading-none text-gray-400"
+                :aria-label="t('setting.numbering.allow_tenant_use_tip')"
+              >
+                ?
+              </button>
+            </XTooltip>
           </span>
-        </template>
-        <NSwitch v-model:value="form.allowTenantUse" />
-      </NFormItem>
-      <NFormItem v-if="!detail" :label="t('setting.numbering.status')">
-        <NSwitch
-          :value="form.status === EnableStatus.Enabled"
-          @update:value="form.status = $event ? EnableStatus.Enabled : EnableStatus.Disabled"
-        />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.sort')">
-        <NInputNumber v-model:value="form.sort" :min="0" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.remark')" class="xh-span-2">
-        <NInput v-model:value="form.remark" type="textarea" maxlength="500" />
-      </NFormItem>
-      <NFormItem :label="t('setting.numbering.preview')" class="xh-span-2">
-        <NSpace align="center">
-          <NButton :loading="previewLoading" @click="preview">
-            {{ t('setting.numbering.preview_action') }}
-          </NButton>
-          <NTag v-if="previewNumber" type="info" size="large">
-            {{ previewNumber }}
-          </NTag>
-        </NSpace>
-      </NFormItem>
-    </NForm>
+        </XhFieldLabel>
+        <XhFieldControl>
+          <XhSwitch v-model:checked="form.allowTenantUse" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot v-if="!detail">
+        <XhFieldLabel>{{ t('setting.numbering.status') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XhSwitch
+            :checked="form.status === EnableStatus.Enabled"
+            @update:checked="form.status = $event ? EnableStatus.Enabled : EnableStatus.Disabled"
+          />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.numbering.sort') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XNumberInput v-model:value="form.sort" :min="0" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot class="xh-span-2">
+        <XhFieldLabel>{{ t('setting.numbering.remark') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput v-model:value="form.remark" type="textarea" :max-length="500" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot class="xh-span-2">
+        <XhFieldLabel>{{ t('setting.numbering.preview') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XhFlex align="center">
+            <XhButton :loading="previewLoading" @click="preview">
+              {{ t('setting.numbering.preview_action') }}
+            </XhButton>
+            <XhBadge v-if="previewNumber" variant="subtle" tone="info" size="lg">
+              {{ previewNumber }}
+            </XhBadge>
+          </XhFlex>
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+    </XhFormRoot>
   </XEditModal>
 </template>

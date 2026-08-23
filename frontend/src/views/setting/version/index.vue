@@ -1,28 +1,17 @@
 <script setup lang="ts">
 import type { PageResult, VersionDetailDto, VersionListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
-  NIcon,
-  NScrollbar,
-  NSpin,
-  NTag,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, versionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'SettingVersionPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 
 // ── 过滤值清洗 ──────────────────────────────────────────────────
 function toStr(v: unknown): string | undefined {
@@ -62,11 +51,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const upgrading = (row as unknown as VersionListItemDto).isUpgrading
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: upgrading ? 'warning' : 'success' },
-        () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal')),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: upgrading ? 'warning' : 'success' }, () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal')))
     },
   },
   { key: 'upgradeNode', title: t('setting.version.upgrade_node'), dataType: 'string', sortable: true, minWidth: 140, order: 5 },
@@ -80,7 +65,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:version:export',
   pageName: t('setting.version.page_name'),
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -122,7 +106,7 @@ async function handleDetail(row: VersionListItemDto) {
     detailData.value = await versionApi.detail(row.basicId) ?? null
   }
   catch (e) {
-    message.error((e as Error).message || t('setting.version.load_detail_failed'))
+    toast.error((e as Error).message || t('setting.version.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -135,53 +119,84 @@ async function handleDetail(row: VersionListItemDto) {
     <!-- 页面无写操作，工具栏位置改为说明数据来源 -->
     <template #toolbar>
       <span class="xh-version-hint">
-        <NIcon size="14"><Icon icon="lucide:info" /></NIcon>
+        <Icon width="14" height="14" icon="lucide:info" />
         {{ t('setting.version.engine_managed_hint') }}
       </span>
     </template>
 
     <!-- 详情抽屉：版本信息 -->
-    <NDrawer v-model:show="detailVisible" :width="720">
-      <NDrawerContent closable :title="t('setting.version.detail_title')">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" :description="t('setting.version.detail_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="detailData" style="max-height: calc(100vh - 120px)">
-            <NDescriptions :column="2" bordered label-placement="left" size="small">
-              <NDescriptionsItem :label="t('setting.version.app_version')">
-                {{ detailData.appVersion }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.db_version')">
-                {{ detailData.dbVersion }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.min_support_version')">
-                {{ detailData.minSupportVersion || '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.upgrade_status')">
-                <NTag :type="detailData.isUpgrading ? 'warning' : 'success'" round size="small">
-                  {{ detailData.isUpgrading ? t('setting.version.upgrading') : t('setting.version.normal') }}
-                </NTag>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.upgrade_node')">
-                {{ detailData.upgradeNode || '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.upgrade_start_time')">
-                {{ formatNullableDate(detailData.upgradeStartTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.created_time')">
-                {{ formatNullableDate(detailData.createdTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.version.created_by')">
-                {{ detailData.createdBy || '-' }}
-              </NDescriptionsItem>
-            </NDescriptions>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 720px">
+        <XhDrawerTitle>{{ t('setting.version.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="detailLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!detailLoading && !detailData" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('setting.version.detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.app_version') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.appVersion }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.db_version') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.dbVersion }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.min_support_version') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.minSupportVersion || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.upgrade_status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" :tone="detailData.isUpgrading ? 'warning' : 'success'" size="sm">
+                    {{ detailData.isUpgrading ? t('setting.version.upgrading') : t('setting.version.normal') }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.upgrade_node') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.upgradeNode || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.upgrade_start_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.upgradeStartTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.created_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.createdTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.version.created_by') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.createdBy || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </div>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>
 

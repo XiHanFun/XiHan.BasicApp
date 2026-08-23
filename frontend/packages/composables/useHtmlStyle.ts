@@ -16,6 +16,10 @@ export function useHtmlStyle() {
     el.classList.toggle('dark', isDark.value)
     el.classList.toggle('light', !isDark.value)
 
+    // XiHan.UI 的令牌按 [data-theme] 取值（color-scheme 也在那儿声明），
+    // 与上面两个类名一并写，组件库与应用样式才认同一个明暗
+    el.dataset.theme = isDark.value ? 'dark' : 'light'
+
     el.style.filter = appStore.grayscaleEnabled
       ? 'grayscale(100%)'
       : appStore.colorWeaknessEnabled

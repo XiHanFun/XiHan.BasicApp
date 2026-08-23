@@ -10,18 +10,12 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NSelect,
-  NSpin,
-  useMessage,
-} from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { STATUS_OPTIONS } from '@/constants'
-import { XEditModal } from '~/components'
+import { XEditModal, XInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import {
   codeGenTableApi,
@@ -50,7 +44,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -167,7 +163,7 @@ async function loadDetail() {
   try {
     const detail = await codeGenTableApi.detail(props.tableId)
     if (!detail) {
-      message.error(t('develop.code_gen.table_edit.not_found'))
+      toast.error(t('develop.code_gen.table_edit.not_found'))
       emit('update:show', false)
       return
     }
@@ -207,7 +203,7 @@ async function loadDetail() {
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.table_edit.load_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.table_edit.load_failed'))
   }
   finally {
     loading.value = false
@@ -247,30 +243,30 @@ watch(() => form.value.templateType, (type) => {
 
 function validateForm() {
   if (!form.value.tableName.trim()) {
-    message.warning(t('develop.code_gen.table_edit.validate_table_name'))
+    toast.warning(t('develop.code_gen.table_edit.validate_table_name'))
     return false
   }
   if (!form.value.className.trim()) {
-    message.warning(t('develop.code_gen.table_edit.validate_class_name'))
+    toast.warning(t('develop.code_gen.table_edit.validate_class_name'))
     return false
   }
   if (isTreeTemplate.value) {
     if (!form.value.treeParentColumn) {
-      message.warning(t('develop.code_gen.table_edit.validate_tree_parent_column'))
+      toast.warning(t('develop.code_gen.table_edit.validate_tree_parent_column'))
       return false
     }
     if (!form.value.treeNameColumn) {
-      message.warning(t('develop.code_gen.table_edit.validate_tree_name_column'))
+      toast.warning(t('develop.code_gen.table_edit.validate_tree_name_column'))
       return false
     }
   }
   if (isMasterDetailTemplate.value) {
     if (!form.value.masterTableId) {
-      message.warning(t('develop.code_gen.table_edit.validate_master_table'))
+      toast.warning(t('develop.code_gen.table_edit.validate_master_table'))
       return false
     }
     if (!form.value.masterForeignKey) {
-      message.warning(t('develop.code_gen.table_edit.validate_master_foreign_key'))
+      toast.warning(t('develop.code_gen.table_edit.validate_master_foreign_key'))
       return false
     }
   }
@@ -319,12 +315,12 @@ async function handleSubmit() {
         status: form.value.status,
       })
     }
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     emit('saved')
     emit('update:show', false)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -337,113 +333,237 @@ async function handleSubmit() {
     :show="show"
     :title="t('develop.code_gen.table_edit.title')"
     :loading="submitLoading"
+    :form-id="editFormId"
     @update:show="emit('update:show', $event)"
-    @save="handleSubmit"
   >
-    <!-- 表单常驻、加载期用 NSpin 遮罩：v-if 摘挂会让弹窗高度在打开瞬间连跳两次 -->
-    <NSpin :show="loading">
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('develop.code_gen.table_edit.form_table_name')" path="tableName">
-          <NInput v-model:value="form.tableName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_class_name')" path="className">
-          <NInput v-model:value="form.className" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_namespace')" path="namespace">
-          <NInput v-model:value="form.namespace" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_module_name')" path="moduleName">
-          <NInput v-model:value="form.moduleName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_business_name')" path="businessName">
-          <NInput v-model:value="form.businessName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_function_name')" path="functionName">
-          <NInput v-model:value="form.functionName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_author')" path="author">
-          <NInput v-model:value="form.author" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_template_type')" path="templateType">
-          <NSelect v-model:value="form.templateType" :options="TABLE_TEMPLATE_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_gen_type')" path="genType">
-          <NSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_generation_scope')" path="generationScope">
-          <NSelect v-model:value="form.generationScope" :options="GENERATION_SCOPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_enabled_actions')" path="enabledActions">
-          <NSelect
-            v-model:value="form.enabledActions"
-            multiple
-            :max-tag-count="3"
-            :options="ENABLED_ACTION_OPTIONS"
-            :placeholder="t('develop.code_gen.table_edit.form_enabled_actions_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_database_type')" path="databaseType">
-          <NSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_gen_path')" path="genPath">
-          <NInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.code_gen.table_edit.form_primary_key_column')" path="primaryKeyColumn">
-          <NSelect
-            v-model:value="form.primaryKeyColumn"
-            clearable
-            filterable
-            :options="columnOptions"
-            :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-          />
-        </NFormItem>
+    <!-- 表单常驻、加载期叠一层遮罩：v-if 摘挂会让弹窗高度在打开瞬间连跳两次 -->
+    <div class="xh-loading-stage">
+      <div v-if="loading" class="xh-loading-stage__veil">
+        <XhSpinner />
+      </div>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="tableName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_table_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.tableName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="className">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_class_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.className" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="namespace">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_namespace') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.namespace" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="moduleName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_module_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.moduleName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="businessName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_business_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.businessName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="functionName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_function_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.functionName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="author">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_author') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.author" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="templateType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_template_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.templateType" :options="TABLE_TEMPLATE_TYPE_OPTIONS" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="genType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_gen_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.genType" :options="GEN_TYPE_OPTIONS" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="generationScope">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_generation_scope') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.generationScope" :options="GENERATION_SCOPE_OPTIONS" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="enabledActions">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_enabled_actions') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="form.enabledActions"
+                multiple
+                :max-tag-count="3"
+                :options="ENABLED_ACTION_OPTIONS"
+                :placeholder="t('develop.code_gen.table_edit.form_enabled_actions_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="databaseType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_database_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="genPath">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_gen_path') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="primaryKeyColumn">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_primary_key_column') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="form.primaryKeyColumn"
+                clearable
+                :options="columnOptions"
+                :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
         <template v-if="isTreeTemplate">
-          <NFormItem :label="t('develop.code_gen.table_edit.form_tree_parent_column')" path="treeParentColumn">
-            <NSelect
-              v-model:value="form.treeParentColumn"
-              clearable
-              filterable
-              :options="columnOptions"
-              :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('develop.code_gen.table_edit.form_tree_name_column')" path="treeNameColumn">
-            <NSelect
-              v-model:value="form.treeNameColumn"
-              clearable
-              filterable
-              :options="columnOptions"
-              :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-            />
-          </NFormItem>
+          <XhFormFieldGroup value="treeParentColumn">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_tree_parent_column') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect
+                  v-model:value="form.treeParentColumn"
+                  clearable
+                  :options="columnOptions"
+                  :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="treeNameColumn">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_tree_name_column') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect
+                  v-model:value="form.treeNameColumn"
+                  clearable
+                  :options="columnOptions"
+                  :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
         <template v-if="isMasterDetailTemplate">
-          <NFormItem :label="t('develop.code_gen.table_edit.form_master_table')" path="masterTableId">
-            <NSelect
-              v-model:value="form.masterTableId"
-              clearable
-              filterable
-              :options="tableOptions"
-              :placeholder="t('develop.code_gen.table_edit.form_master_table_placeholder')"
-            />
-          </NFormItem>
-          <NFormItem :label="t('develop.code_gen.table_edit.form_master_foreign_key')" path="masterForeignKey">
-            <NSelect
-              v-model:value="form.masterForeignKey"
-              clearable
-              filterable
-              :options="columnOptions"
-              :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
-            />
-          </NFormItem>
+          <XhFormFieldGroup value="masterTableId">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_master_table') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect
+                  v-model:value="form.masterTableId"
+                  clearable
+                  :options="tableOptions"
+                  :placeholder="t('develop.code_gen.table_edit.form_master_table_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="masterForeignKey">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_master_foreign_key') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect
+                  v-model:value="form.masterForeignKey"
+                  clearable
+                  :options="columnOptions"
+                  :placeholder="t('develop.code_gen.table_edit.form_column_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
-        <NFormItem :label="t('common.fields.status')" path="status">
-          <NSelect v-model:value="form.status" :options="statusEnumOptions" />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('develop.code_gen.table_edit.form_table_comment')" path="tableComment">
-          <NInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />
-        </NFormItem>
-      </NForm>
-    </NSpin>
+        <XhFormFieldGroup value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.status" :options="statusEnumOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="tableComment" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_table_comment') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.tableComment" clearable :rows="2" type="textarea" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </div>
   </XEditModal>
 </template>

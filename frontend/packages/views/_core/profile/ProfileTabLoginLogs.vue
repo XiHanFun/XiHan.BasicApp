@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import type { LoginAuditResult, LoginLogItem } from '~/types'
-import { NButton, NPagination, NSpin, NTag, useMessage } from 'naive-ui'
+import { XhBadge, XhButton, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { SchemaPagination } from '~/components'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -10,7 +12,6 @@ import { formatDate } from '~/utils'
 defineOptions({ name: 'ProfileTabLoginLogs' })
 
 const { apis } = useAppContext()
-const message = useMessage()
 const { t } = useI18n()
 
 /** 紧凑行布局下一屏约可容纳的条数 */
@@ -40,7 +41,7 @@ const loginResultLabel = computed<Record<LoginAuditResult, string>>(() => ({
   Failed: t('component.profile.login_logs.result_failed'),
 }))
 
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
+type TagType = 'neutral' | 'danger' | 'info' | 'success' | 'warning'
 
 const ERROR_RESULTS: LoginAuditResult[] = ['InvalidCredentials', 'TwoFactorFailed', 'Failed']
 const NEUTRAL_RESULTS: LoginAuditResult[] = ['Logout', 'TokenRefreshed', 'TenantSwitched']
@@ -51,7 +52,7 @@ function resultTagType(result: LoginAuditResult): TagType {
   if (NEUTRAL_RESULTS.includes(result))
     return 'info'
   if (ERROR_RESULTS.includes(result))
-    return 'error'
+    return 'danger'
   return 'warning'
 }
 
@@ -87,7 +88,7 @@ async function loadLogs(nextPage = 1) {
   catch (e: unknown) {
     logs.value = []
     total.value = 0
-    message.error((e as Error)?.message || t('component.profile.login_logs.err_load_failed'))
+    toast.error((e as Error)?.message || t('component.profile.login_logs.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -111,15 +112,16 @@ onMounted(() => loadLogs())
           </div>
         </div>
         <div class="pf-section__extra">
-          <NButton size="tiny" quaternary @click="loadLogs(page)">
-            <template #icon>
-              <Icon icon="lucide:refresh-cw" />
-            </template>
-          </NButton>
+          <XhButton size="sm" variant="ghost" @click="loadLogs(page)">
+            <Icon icon="lucide:refresh-cw" />
+          </XhButton>
         </div>
       </div>
       <div class="pf-section__body">
-        <NSpin :show="loading">
+        <div class="xh-loading-stage">
+          <div v-if="loading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
           <div v-if="logs.length === 0 && !loading" class="pf-empty">
             <span class="pf-empty__icon"><Icon icon="lucide:inbox" width="16" /></span>
             <span>{{ t('component.profile.login_logs.empty') }}</span>
@@ -131,9 +133,9 @@ onMounted(() => loadLogs())
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
-                  <NTag :type="resultTagType(log.loginResult)" size="tiny" :bordered="false">
+                  <XhBadge variant="subtle" :tone="resultTagType(log.loginResult)" size="sm">
                     {{ loginResultLabel[log.loginResult] || t('component.profile.login_logs.result_unknown', { result: log.loginResult }) }}
-                  </NTag>
+                  </XhBadge>
                   <span v-if="log.message" class="pf-log-message">{{ log.message }}</span>
                 </div>
                 <div class="pf-list-desc">
@@ -155,15 +157,15 @@ onMounted(() => loadLogs())
             </div>
           </div>
           <div v-if="total > PAGE_SIZE" class="pf-log-pagination">
-            <NPagination
+            <SchemaPagination
+              compact
               :page="page"
               :page-size="PAGE_SIZE"
-              :item-count="total"
-              simple
+              :total="total"
               @update:page="loadLogs"
             />
           </div>
-        </NSpin>
+        </div>
       </div>
     </section>
   </div>

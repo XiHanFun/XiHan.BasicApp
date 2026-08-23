@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintFieldKind } from '~/printing'
-import { NButton, NCollapseTransition, NIcon, NTag } from 'naive-ui'
+import { XhBadge, XhButton, XhCollapsibleContent, XhCollapsibleRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -121,21 +121,15 @@ function getFieldIcon(kind: PrintFieldKind): string {
     <div class="palette-heading">
       <h2>{{ t('setting.print_template.palette_title') }}</h2>
       <div class="history-actions">
-        <NButton quaternary circle size="small" :title="t('setting.print_template.undo')" @click="emit('undo')">
-          <template #icon>
-            <NIcon><Icon icon="tabler:arrow-back-up" /></NIcon>
-          </template>
-        </NButton>
-        <NButton quaternary circle size="small" :title="t('setting.print_template.redo')" @click="emit('redo')">
-          <template #icon>
-            <NIcon><Icon icon="tabler:arrow-forward-up" /></NIcon>
-          </template>
-        </NButton>
-        <NButton quaternary circle size="small" type="warning" :title="t('setting.print_template.clear')" @click="emit('clear')">
-          <template #icon>
-            <NIcon><Icon icon="tabler:trash" /></NIcon>
-          </template>
-        </NButton>
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" :title="t('setting.print_template.undo')" @click="emit('undo')">
+          <span><Icon icon="tabler:arrow-back-up" /></span>
+        </XhButton>
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" :title="t('setting.print_template.redo')" @click="emit('redo')">
+          <span><Icon icon="tabler:arrow-forward-up" /></span>
+        </XhButton>
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" tone="warning" :title="t('setting.print_template.clear')" @click="emit('clear')">
+          <span><Icon icon="tabler:trash" /></span>
+        </XhButton>
       </div>
     </div>
 
@@ -159,9 +153,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
         @click="toggleDataSourceFields"
       >
         <span class="data-source-icon" aria-hidden="true">
-          <NIcon :size="20">
-            <Icon :icon="activeDataSource ? 'tabler:database' : 'tabler:database-off'" />
-          </NIcon>
+          <Icon width="20" height="20" :icon="activeDataSource ? 'tabler:database' : 'tabler:database-off'" />
         </span>
         <span class="data-source-copy">
           <strong>{{ activeDataSource
@@ -171,40 +163,37 @@ function getFieldIcon(kind: PrintFieldKind): string {
             {{ activeDataSource?.name || t('setting.print_template.palette_free_mode_compact_hint') }}
           </span>
         </span>
-        <NTag v-if="activeDataSource" size="small" type="info" :bordered="false">
+        <XhBadge v-if="activeDataSource" variant="subtle" size="sm" tone="info">
           {{ t('setting.print_template.palette_field_count', { count: dataSourceMaterials.length }) }}
-        </NTag>
-        <NIcon
+        </XhBadge>
+        <span
           v-if="activeDataSource"
           class="data-source-chevron"
           :class="{ 'data-source-chevron--expanded': dataSourceExpanded }"
-          :size="18"
-          aria-hidden="true"
-        >
-          <Icon icon="tabler:chevron-down" />
-        </NIcon>
+          aria-hidden="true" style="display: inline-flex; font-size: 18px"
+        ><Icon icon="tabler:chevron-down" /></span>
       </button>
 
-      <NCollapseTransition :show="Boolean(activeDataSource) && dataSourceExpanded">
-        <div :id="dataSourceFieldsId" class="material-grid data-source-grid">
-          <button
-            v-for="material in dataSourceMaterials"
-            :key="material.tid"
-            type="button"
-            class="ep-draggable-item material-item data-source-item"
-            :deltax="EXTERNAL_DRAG_POINTER_OFFSET_PX"
-            :deltay="EXTERNAL_DRAG_POINTER_OFFSET_PX"
-            :data-testid="`print-data-field-${material.key}`"
-            :tid="material.tid"
-            :aria-label="material.label"
-          >
-            <NIcon class="material-icon" :size="30">
-              <Icon :icon="material.icon" />
-            </NIcon>
-            <span>{{ material.label }}</span>
-          </button>
-        </div>
-      </NCollapseTransition>
+      <XhCollapsibleRoot :open="Boolean(activeDataSource) && dataSourceExpanded">
+        <XhCollapsibleContent>
+          <div :id="dataSourceFieldsId" class="material-grid data-source-grid">
+            <button
+              v-for="material in dataSourceMaterials"
+              :key="material.tid"
+              type="button"
+              class="ep-draggable-item material-item data-source-item"
+              :deltax="EXTERNAL_DRAG_POINTER_OFFSET_PX"
+              :deltay="EXTERNAL_DRAG_POINTER_OFFSET_PX"
+              :data-testid="`print-data-field-${material.key}`"
+              :tid="material.tid"
+              :aria-label="material.label"
+            >
+              <span class="material-icon" style="display: inline-flex; font-size: 30px"><Icon :icon="material.icon" /></span>
+              <span>{{ material.label }}</span>
+            </button>
+          </div>
+        </XhCollapsibleContent>
+      </XhCollapsibleRoot>
     </section>
 
     <section class="material-section common-section" :aria-label="t('setting.print_template.palette_common')">
@@ -221,9 +210,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
           :tid="material.tid"
           :aria-label="t(`setting.print_template.material_${material.key}`)"
         >
-          <NIcon class="material-icon" :size="48">
-            <Icon :icon="material.icon" />
-          </NIcon>
+          <span class="material-icon" style="display: inline-flex; font-size: 48px"><Icon :icon="material.icon" /></span>
           <span>{{ t(`setting.print_template.material_${material.key}`) }}</span>
         </button>
       </div>
@@ -245,9 +232,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
           :tid="material.tid"
           :aria-label="t(`setting.print_template.material_${material.key}`)"
         >
-          <NIcon class="material-icon" :size="48">
-            <Icon :icon="material.icon" />
-          </NIcon>
+          <span class="material-icon" style="display: inline-flex; font-size: 48px"><Icon :icon="material.icon" /></span>
           <span>{{ t(`setting.print_template.material_${material.key}`) }}</span>
         </button>
       </div>
@@ -259,7 +244,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 .material-palette {
   min-height: 100%;
   padding: 22px 22px 28px;
-  color: var(--n-text-color, #1f2937);
+  color: var(--xh-fg-default);
 }
 
 .palette-heading {
@@ -273,7 +258,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 .material-section h3 {
   margin: 0;
   font-weight: 650;
-  color: var(--n-text-color, #1f2937);
+  color: var(--xh-fg-default);
 }
 
 .palette-heading h2 {

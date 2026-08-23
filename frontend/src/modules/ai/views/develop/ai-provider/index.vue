@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelectMixedOption } from 'naive-ui/es/select/src/interface'
 import type {
   AiProviderCreateDto,
   AiProviderListItemDto,
@@ -10,26 +9,16 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-  useNotification,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import {
@@ -61,9 +50,9 @@ interface ProviderFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
-const notification = useNotification()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -88,7 +77,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h('div', { class: 'ap-name' }, [
         h('span', { class: 'ap-name__text' }, r.configName),
         r.isDefault
-          ? h(NTag, { size: 'tiny', type: 'info', round: true, bordered: false }, () => t('common.statuses.default_tag'))
+          ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('common.statuses.default_tag'))
           : null,
       ])
     },
@@ -104,7 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as AiProviderListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.hasApiKey ? 'success' : 'warning' }, () => (r.hasApiKey ? t('develop.ai_provider.tag_configured') : t('develop.ai_provider.tag_unconfigured')))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.hasApiKey ? 'success' : 'warning' }, () => (r.hasApiKey ? t('develop.ai_provider.tag_configured') : t('develop.ai_provider.tag_unconfigured')))
     },
   },
   {
@@ -116,7 +105,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as AiProviderListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.isEnabled ? 'success' : 'default' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.isEnabled ? 'success' : 'neutral' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
     },
   },
   {
@@ -133,7 +122,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as AiProviderListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 8 },
@@ -143,7 +132,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.provider',
   pageName: t('develop.ai_provider.page_name'),
   rowKey: 'basicId',
-  scrollX: 1100,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -211,7 +199,7 @@ function describeProbe(label: string, probe: AiProviderProbeResultDto) {
 }
 
 async function handleTest(row: AiProviderListItemDto) {
-  const reset = message.loading(t('develop.ai_provider.testing'), { duration: 0 })
+  const reset = toast.loading(t('develop.ai_provider.testing'), { duration: 0 })
   try {
     const result = await aiProviderApi.testConnection(row.basicId)
     reset.destroy()
@@ -220,43 +208,45 @@ async function handleTest(row: AiProviderListItemDto) {
       ? describeProbe(t('develop.ai_provider.probe_embedding'), result.embedding)
       : t('develop.ai_provider.probe_embedding_absent'))
 
-    notification[result.success ? 'success' : 'error']({
-      title: t(result.success ? 'develop.ai_provider.test_success' : 'develop.ai_provider.test_failed'),
-      content: () => h('div', { class: 'flex flex-col gap-1' }, lines.map(line => h('div', line))),
-      duration: result.success ? 5000 : undefined,
-    })
+    // 探测结果逐行罗列；描述里的换行由轻提示描述部件的 pre-line 保留
+    toast[result.success ? 'success' : 'error'](
+      t(result.success ? 'develop.ai_provider.test_success' : 'develop.ai_provider.test_failed'),
+      { description: lines.join('\n'), duration: result.success ? 5000 : 0 },
+    )
   }
   catch (error) {
     reset.destroy()
-    message.error((error as Error)?.message || t('develop.ai_provider.test_error'))
+    toast.error((error as Error)?.message || t('develop.ai_provider.test_error'))
   }
 }
 
 async function handleSetDefault(row: AiProviderListItemDto) {
   try {
     await aiProviderApi.setDefault(row.basicId)
-    message.success(t('develop.ai_provider.set_default_success'))
+    toast.success(t('develop.ai_provider.set_default_success'))
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.ai_provider.set_default_error'))
+    toast.error((error as Error)?.message || t('develop.ai_provider.set_default_error'))
   }
 }
 
 function handleDelete(row: AiProviderListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('common.actions.delete'),
     content: t('develop.ai_provider.confirm_delete'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await aiProviderApi.delete(row.basicId)
-        message.success(t('common.messages.delete_success'))
+        toast.success(t('common.messages.delete_success'))
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -300,7 +290,7 @@ async function handleEdit(row: AiProviderListItemDto) {
   try {
     const detail = await aiProviderApi.detail(row.basicId)
     if (!detail) {
-      message.error(t('develop.ai_provider.not_found'))
+      toast.error(t('develop.ai_provider.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -327,21 +317,21 @@ async function handleEdit(row: AiProviderListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.ai_provider.load_detail_failed'))
+    toast.error((error as Error)?.message || t('develop.ai_provider.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.configName.trim()) {
-    message.warning(t('develop.ai_provider.validate_config_name'))
+    toast.warning(t('develop.ai_provider.validate_config_name'))
     return false
   }
   if (!form.value.basicId && !form.value.configCode.trim()) {
-    message.warning(t('develop.ai_provider.validate_config_code'))
+    toast.warning(t('develop.ai_provider.validate_config_code'))
     return false
   }
   if (!form.value.model.trim()) {
-    message.warning(t('develop.ai_provider.validate_model'))
+    toast.warning(t('develop.ai_provider.validate_model'))
     return false
   }
   return true
@@ -401,12 +391,12 @@ async function handleSubmit() {
       }
       await aiProviderApi.create(createInput)
     }
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -420,79 +410,172 @@ async function handleSubmit() {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('develop.ai_provider.form_config_code')" path="configCode">
-          <NInput
-            v-model:value="form.configCode"
-            clearable
-            :disabled="Boolean(form.basicId)"
-            :placeholder="t('develop.ai_provider.form_config_code_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_config_name')" path="configName">
-          <NInput v-model:value="form.configName" clearable />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_provider')" path="provider">
-          <NSelect
-            v-model:value="form.provider"
-            filterable
-            tag
-            :options="AI_PROVIDER_OPTIONS as unknown as SelectMixedOption[]"
-            :placeholder="t('develop.ai_provider.form_provider_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_model')" path="model">
-          <NInput v-model:value="form.model" clearable :placeholder="t('develop.ai_provider.form_model_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_embedding_model')" path="embeddingModel">
-          <NInput v-model:value="form.embeddingModel" clearable :placeholder="t('develop.ai_provider.form_embedding_model_placeholder')" />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('develop.ai_provider.form_base_url')" path="baseUrl">
-          <NInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" :input-props="{ autocomplete: 'off' }" />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="form.basicId ? t('develop.ai_provider.form_api_key_edit') : t('develop.ai_provider.form_api_key')" path="apiKey">
-          <NInput
-            v-model:value="form.apiKey"
-            clearable
-            :placeholder="t('develop.ai_provider.form_api_key_placeholder')"
-            show-password-on="click"
-            type="password"
-            :input-props="{ autocomplete: 'new-password' }"
-          />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_max_output_tokens')" path="maxOutputTokens">
-          <NInputNumber v-model:value="form.maxOutputTokens" :min="1" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_temperature')" path="temperature">
-          <NInputNumber v-model:value="form.temperature" :max="2" :min="0" :precision="2" :step="0.1" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_timeout_seconds')" path="timeoutSeconds">
-          <NInputNumber v-model:value="form.timeoutSeconds" :min="1" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_is_default')" path="isDefault">
-          <NSwitch v-model:value="form.isDefault" />
-        </NFormItem>
-        <NFormItem :label="t('develop.ai_provider.form_is_enabled')" path="isEnabled">
-          <NSwitch v-model:value="form.isEnabled" />
-        </NFormItem>
-        <NFormItem v-if="!form.basicId" :label="t('common.fields.status')" path="status">
-          <NSelect v-model:value="form.status" :options="statusEnumOptions as unknown as SelectMixedOption[]" />
-        </NFormItem>
-        <NFormItem class="xh-span-2" :label="t('develop.ai_provider.form_extra_json')" path="extraJson">
-          <NInput
-            v-model:value="form.extraJson"
-            clearable
-            :placeholder="t('develop.ai_provider.form_extra_json_placeholder')"
-            :rows="3"
-            type="textarea"
-          />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="configCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_config_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.configCode"
+                clearable
+                :disabled="Boolean(form.basicId)"
+                :placeholder="t('develop.ai_provider.form_config_code_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_config_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.configName" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="provider">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_provider') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="form.provider"
+                :options="AI_PROVIDER_OPTIONS"
+                :placeholder="t('develop.ai_provider.form_provider_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="model">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_model') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.model" clearable :placeholder="t('develop.ai_provider.form_model_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="embeddingModel">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_embedding_model') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.embeddingModel" clearable :placeholder="t('develop.ai_provider.form_embedding_model_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="baseUrl" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_base_url') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.baseUrl" clearable :placeholder="t('develop.ai_provider.form_base_url_placeholder')" autocomplete="off" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="apiKey" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ form.basicId ? t('develop.ai_provider.form_api_key_edit') : t('develop.ai_provider.form_api_key') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.apiKey"
+                clearable
+                :placeholder="t('develop.ai_provider.form_api_key_placeholder')"
+                type="password"
+                autocomplete="new-password"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="maxOutputTokens">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_max_output_tokens') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.maxOutputTokens" :min="1" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="temperature">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_temperature') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.temperature" :max="2" :min="0" :precision="2" :step="0.1" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="timeoutSeconds">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_timeout_seconds') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.timeoutSeconds" :min="1" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isDefault">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_is_default') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="form.isDefault" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isEnabled">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_is_enabled') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="form.isEnabled" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!form.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.status" :options="statusEnumOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="extraJson" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.ai_provider.form_extra_json') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.extraJson"
+                clearable
+                :placeholder="t('develop.ai_provider.form_extra_json_placeholder')"
+                :rows="3"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

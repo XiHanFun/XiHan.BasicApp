@@ -1,27 +1,15 @@
 <script setup lang="ts">
-import type { TreeOption } from 'naive-ui'
 import type {
   CodeGenArtifactDto,
 } from '../../../../api'
 import type {
   ApiId,
 } from '@/api'
-import {
-  NButton,
-  NEmpty,
-  NModal,
-  NRadioButton,
-  NRadioGroup,
-  NScrollbar,
-  NSpace,
-  NSpin,
-  NTag,
-  NTree,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XCodeEditor } from '~/components'
+import { Icon, XCodeEditor, XSegmented, XTree } from '~/components'
+import { toast } from '~/composables'
 import {
   ArtifactWriteMode,
   codeGenerationApi,
@@ -40,7 +28,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
 
 const previewLoading = ref(false)
 const artifacts = ref<CodeGenArtifactDto[]>([])
@@ -93,7 +80,7 @@ function fileIconOf(fileName: string): string {
 
 /** 目录树节点：目录以路径前缀为键，文件以产物下标为键 */
 interface ArtifactTreeNode {
-  key: string
+  value: string
   label: string
   /** 文件节点携带的产物下标；目录节点为 undefined */
   index?: number
@@ -101,8 +88,6 @@ interface ArtifactTreeNode {
   icon?: string
   writeOnce?: boolean
   children?: ArtifactTreeNode[]
-  // NTree 的 TreeOption 要求索引签名
-  [key: string]: unknown
 }
 
 /**
@@ -120,7 +105,7 @@ const artifactTree = computed<ArtifactTreeNode[]>(() => {
       prefix = prefix ? `${prefix}/${segment}` : segment
       let dir = dirCache.get(prefix)
       if (!dir) {
-        dir = { key: `dir:${prefix}`, label: segment, children: [] }
+        dir = { value: `dir:${prefix}`, label: segment, children: [] }
         dirCache.set(prefix, dir)
         siblings.push(dir)
       }
@@ -138,7 +123,7 @@ const artifactTree = computed<ArtifactTreeNode[]>(() => {
       : []
 
     ensureDir(dirSegments).push({
-      key: `file:${index}`,
+      value: `file:${index}`,
       label: artifact.fileName,
       index,
       icon: fileIconOf(artifact.fileName),
@@ -169,7 +154,7 @@ function collectDirKeys(node: ArtifactTreeNode): string[] {
   if (!node.children) {
     return []
   }
-  return [node.key, ...node.children.flatMap(collectDirKeys)]
+  return [node.value, ...node.children.flatMap(collectDirKeys)]
 }
 
 function handleExpand(keys: string[]) {
@@ -199,20 +184,22 @@ function handleSelect(keys: string[]) {
   }
 }
 
-/** 节点左侧图标：目录随展开态切换开合，文件按扩展名取类型图标 */
-function renderPrefix({ option }: { option: TreeOption }) {
-  const icon = option.children
-    ? (expandedKeys.value.includes(option.key as string) ? 'lucide:folder-open' : 'lucide:folder')
-    : (option.icon as string | undefined) ?? 'lucide:file'
-  return h(Icon, { class: 'gen__node-icon', icon })
-}
-
-/** 文件节点右侧的「不覆盖」标记 */
-function renderSuffix({ option }: { option: TreeOption }) {
-  if (!option.writeOnce) {
-    return null
-  }
-  return h(NTag, { bordered: false, size: 'tiny', type: 'success' }, () => t('develop.code_gen.preview.badge_manual'))
+/**
+ * 节点标签：目录图标随展开态切换开合，文件按扩展名取类型图标，
+ * 右侧带「不覆盖」标记。
+ */
+function renderNodeLabel(node: Record<string, unknown>) {
+  const item = node as unknown as ArtifactTreeNode
+  const icon = item.children
+    ? (expandedKeys.value.includes(item.value) ? 'lucide:folder-open' : 'lucide:folder')
+    : item.icon ?? 'lucide:file'
+  return h('span', { class: 'gen__node' }, [
+    h(Icon, { class: 'gen__node-icon', icon }),
+    h('span', null, item.label),
+    item.writeOnce
+      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'success' }, () => t('develop.code_gen.preview.badge_manual'))
+      : null,
+  ])
 }
 
 const modalTitle = computed(() =>
@@ -242,7 +229,7 @@ async function loadPreview() {
   try {
     const result = await codeGenerationApi.preview({ tableId: props.tableId })
     if (!result.success) {
-      message.error(result.message || t('develop.code_gen.preview.preview_failed'))
+      toast.error(result.message || t('develop.code_gen.preview.preview_failed'))
       artifacts.value = []
       return
     }
@@ -250,7 +237,7 @@ async function loadPreview() {
     activeIndex.value = 0
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.preview.preview_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.preview.preview_failed'))
     artifacts.value = []
   }
   finally {
@@ -260,64 +247,67 @@ async function loadPreview() {
 </script>
 
 <template>
-  <NModal
-    :auto-focus="false"
-    :bordered="false"
-    preset="card"
-    :show="show"
-    style="width: 96vw; max-width: 1840px"
-    :title="modalTitle"
-    @update:show="emit('update:show', $event)"
+  <XhDialogRoot
+    :open="show"
+    @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <NSpin :show="previewLoading">
-      <div class="gen">
-        <div class="gen__tree">
-          <div class="gen__tree-head">
-            <NRadioGroup v-model:value="activeSide" size="small">
-              <NRadioButton v-for="option in sideOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </NRadioButton>
-            </NRadioGroup>
-          </div>
-          <NScrollbar style="max-height: 70vh">
-            <NEmpty v-if="artifactTree.length === 0" class="gen__tree-empty" size="small" :description="t('develop.code_gen.preview.side_empty')" />
-            <NTree
-              v-else
-              block-line
-              :data="artifactTree"
-              :expanded-keys="expandedKeys"
-              :render-prefix="renderPrefix"
-              :render-suffix="renderSuffix"
-              :selected-keys="selectedKeys"
-              selectable
-              @update:expanded-keys="handleExpand"
-              @update:selected-keys="handleSelect"
-            />
-          </NScrollbar>
+    <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1840px)">
+      <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <div class="xh-loading-stage">
+        <div v-if="previewLoading" class="xh-loading-stage__veil">
+          <XhSpinner />
         </div>
-        <div class="gen__content">
-          <NEmpty v-if="!activeArtifact" :description="t('develop.code_gen.preview.empty')" />
-          <XCodeEditor
-            v-else
-            :value="activeArtifact.content"
-            :file-name="activeArtifact.fileName"
-            copyable
-            height="76vh"
-            readonly
-          />
+        <div class="gen">
+          <div class="gen__tree">
+            <div class="gen__tree-head">
+              <XSegmented v-model:value="activeSide" :options="sideOptions" size="sm" />
+            </div>
+            <div class="xh-scroll-area" style="max-height: 70vh">
+              <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
+                <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+              <XTree
+                v-else
+                :data="artifactTree"
+                :render-label="renderNodeLabel"
+                :expanded-keys="expandedKeys"
+                :selected-keys="selectedKeys"
+                @update:expanded-keys="handleExpand"
+                @update:selected-keys="handleSelect"
+              />
+            </div>
+          </div>
+          <div class="gen__content">
+            <XhEmptyStateRoot v-if="!activeArtifact">
+              <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('develop.code_gen.preview.empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <XCodeEditor
+              v-else
+              :value="activeArtifact.content"
+              :file-name="activeArtifact.fileName"
+              copyable
+              height="76vh"
+              readonly
+            />
+          </div>
         </div>
       </div>
-    </NSpin>
 
-    <template #footer>
-      <NSpace justify="space-between">
-        <span class="gen__hint">{{ t('develop.code_gen.preview.total_files', { count: artifacts.length }) }}</span>
-        <NButton @click="emit('update:show', false)">
-          {{ t('common.actions.close') }}
-        </NButton>
-      </NSpace>
-    </template>
-  </NModal>
+      <div class="xh-dialog-footer">
+        <XhFlex justify="between">
+          <span class="gen__hint">{{ t('develop.code_gen.preview.total_files', { count: artifacts.length }) }}</span>
+          <XhButton @click="emit('update:show', false)">
+            {{ t('common.actions.close') }}
+          </XhButton>
+        </XhFlex>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style scoped>
@@ -349,7 +339,7 @@ async function loadPreview() {
   padding: 32px 0;
 }
 
-.gen__tree :deep(.n-tree) {
+.gen__tree :deep([data-scope='tree'][data-part='root']) {
   padding: 6px;
 }
 

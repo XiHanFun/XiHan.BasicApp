@@ -6,7 +6,6 @@
   "dependencies": {
     "@xihan/constants": "workspace:*",
     "dayjs": "catalog:",
-    "highlight.js": "catalog:",
     "papaparse": "catalog:"
   },
   "devDependencies": {

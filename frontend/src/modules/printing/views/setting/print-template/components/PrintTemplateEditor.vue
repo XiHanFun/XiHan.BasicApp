@@ -5,18 +5,10 @@
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import type { PrintTemplateFormModel } from './models'
-import {
-  NButton,
-  NDrawer,
-  NDrawerContent,
-  NIcon,
-  NModal,
-  NSelect,
-  NSpace,
-  NTag,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhFlex } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XSelect } from '~/components'
 import { Icon } from '~/iconify'
 import DesignerCanvas from './HiprintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
@@ -154,161 +146,151 @@ defineExpose({ confirmDiscard })
 </script>
 
 <template>
-  <NModal
-    :show="show"
-    preset="card"
-    :title="title"
-    :mask-closable="false"
-    :closable="!saveLoading && !directLoading"
-    class="print-template-editor-modal"
-    @update:show="requestVisible"
+  <!-- 关闭走 requestVisible：有未保存改动时先确认，避免误关丢设计稿 -->
+  <XhDialogRoot
+    :open="show"
+    :close-on-interact-outside="false"
+    :close-on-escape="!saveLoading && !directLoading"
+    @update:open="requestVisible"
   >
-    <template #header-extra>
-      <NTag :type="dirty ? 'warning' : 'success'" size="small">
-        {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
-      </NTag>
-    </template>
+    <XhDialogContent class="print-template-editor-modal">
+      <XhDialogTitle>
+        <div class="template-settings-header">
+          <strong>{{ title }}</strong>
+          <span>{{ t('setting.print_template.template_settings_subtitle') }}</span>
+          <XhBadge variant="subtle" :tone="dirty ? 'warning' : 'success'" size="sm">
+            {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
+          </XhBadge>
+        </div>
+      </XhDialogTitle>
+      <XhDialogCloseTrigger v-if="!saveLoading && !directLoading" />
 
-    <div class="editor-layout">
-      <DesignerCanvas
-        :key="`${designerKey}:${form.dataSourceCode}`"
-        :ref="setDesignerRef"
-        class="min-h-0 flex-1"
-        :data-source-code="form.dataSourceCode"
-        :template="draftTemplate"
-        @changed="onDesignerChanged"
-        @ready="onDesignerReady"
-      >
-        <template #template-actions>
-          <div class="toolbar-primary-actions">
-            <NButton data-testid="print-template-save" type="primary" :loading="saveLoading" :disabled="!designerReady" @click="handleSave">
-              <template #icon>
-                <NIcon><Icon icon="tabler:device-floppy" /></NIcon>
-              </template>
-              {{ t('common.actions.save') }}
-            </NButton>
-            <NButton :loading="previewLoading" :disabled="!designerReady" @click="openSamplePreview">
-              <template #icon>
-                <NIcon><Icon icon="tabler:eye" /></NIcon>
-              </template>
-              {{ t('setting.print_template.sample_preview') }}
-            </NButton>
-            <NButton type="success" :loading="directLoading" :disabled="!designerReady || (currentDetail !== null && !canDirectPrint)" @click="directPrint">
-              <template #icon>
-                <NIcon><Icon icon="tabler:printer" /></NIcon>
-              </template>
-              {{ t('setting.print_template.direct_print') }}
-            </NButton>
-
-            <span class="action-divider" aria-hidden="true" />
-
-            <NButton
-              data-testid="print-template-settings"
-              :type="metadataIncomplete ? 'warning' : 'default'"
-              secondary
-              @click="openMetadata"
-            >
-              <template #icon>
-                <NIcon><Icon icon="tabler:settings" /></NIcon>
-              </template>
-              {{ t('setting.print_template.template_settings') }}
-            </NButton>
-            <NTag v-if="metadataIncomplete" size="small" type="warning" :bordered="false">
-              {{ t('setting.print_template.metadata_incomplete') }}
-            </NTag>
-            <span v-else class="template-context" :title="form.dataSourceCode || t('setting.print_template.free_template')">
-              <NIcon :size="16"><Icon :icon="form.dataSourceCode ? 'tabler:database' : 'tabler:database-off'" /></NIcon>
-              {{ form.templateCode }} · {{ form.dataSourceCode || t('setting.print_template.free_template') }}
-            </span>
-          </div>
-        </template>
-
-        <template #printer-actions>
-          <NSpace class="printer-actions" align="center" :wrap="false">
-            <NSelect
-              :value="selectedPrinter ?? ''"
-              :options="printerOptions"
-              :loading="printerLoading"
-              class="printer-select"
-              @update:value="updatePrinterPreference"
-            />
-            <NButton quaternary circle :loading="printerLoading" :title="t('setting.print_template.refresh_printers')" @click="loadPrinters(true)">
-              <template #icon>
-                <NIcon><Icon icon="tabler:refresh" /></NIcon>
-              </template>
-            </NButton>
-          </NSpace>
-        </template>
-      </DesignerCanvas>
-    </div>
-
-    <SampleDataModal
-      v-model:show="samplePreviewVisible"
-      :data-source-code="form.dataSourceCode"
-      :submitting="previewLoading"
-      :template="samplePreviewTemplate"
-      :template-code="form.templateCode || undefined"
-      :template-name="form.templateName || undefined"
-      @preview="preview"
-    />
-
-    <NDrawer
-      :show="metadataVisible"
-      width="min(444px, 100vw)"
-      placement="left"
-      :mask-closable="!saveLoading"
-      class="print-template-settings-drawer"
-      @update:show="handleMetadataVisible"
-    >
-      <NDrawerContent :closable="!saveLoading" :native-scrollbar="false">
-        <template #header>
-          <div class="template-settings-header">
-            <strong>{{ t('setting.print_template.template_settings') }}</strong>
-            <span>{{ t('setting.print_template.template_settings_subtitle') }}</span>
-          </div>
-        </template>
-        <MetadataForm
-          :key="metadataSessionKey"
-          v-model="metadataDraft"
-          :editing="Boolean(currentDetail)"
-          :global-mode="globalMode"
+      <div class="editor-layout">
+        <DesignerCanvas
+          :key="`${designerKey}:${form.dataSourceCode}`"
+          :ref="setDesignerRef"
+          class="min-h-0 flex-1"
+          :data-source-code="form.dataSourceCode"
           :template="draftTemplate"
-        />
-        <template #footer>
-          <div class="template-settings-footer">
-            <NButton :disabled="saveLoading" @click="cancelMetadata">
-              {{ t('common.actions.cancel') }}
-            </NButton>
-            <NButton
-              type="primary"
-              :loading="saveLoading"
-              :disabled="metadataDraftIncomplete"
-              class="template-settings-submit"
-              @click="saveMetadata"
-            >
-              {{ t('setting.print_template.save_and_return') }}
-              <span v-if="metadataDraftDirty && !saveLoading" class="metadata-dirty-dot" aria-hidden="true" />
-            </NButton>
-          </div>
-        </template>
-      </NDrawerContent>
-    </NDrawer>
-  </NModal>
+          @changed="onDesignerChanged"
+          @ready="onDesignerReady"
+        >
+          <template #template-actions>
+            <div class="toolbar-primary-actions">
+              <XhButton data-testid="print-template-save" tone="brand" :loading="saveLoading" :disabled="!designerReady" @click="handleSave">
+                <span><Icon icon="tabler:device-floppy" /></span>
+                {{ t('common.actions.save') }}
+              </XhButton>
+              <XhButton :loading="previewLoading" :disabled="!designerReady" @click="openSamplePreview">
+                <span><Icon icon="tabler:eye" /></span>
+                {{ t('setting.print_template.sample_preview') }}
+              </XhButton>
+              <XhButton tone="success" :loading="directLoading" :disabled="!designerReady || (currentDetail !== null && !canDirectPrint)" @click="directPrint">
+                <span><Icon icon="tabler:printer" /></span>
+                {{ t('setting.print_template.direct_print') }}
+              </XhButton>
+
+              <span class="action-divider" aria-hidden="true" />
+
+              <XhButton
+                data-testid="print-template-settings"
+                :tone="metadataIncomplete ? 'warning' : 'neutral'"
+                variant="subtle"
+                @click="openMetadata"
+              >
+                <span><Icon icon="tabler:settings" /></span>
+                {{ t('setting.print_template.template_settings') }}
+              </XhButton>
+              <XhBadge v-if="metadataIncomplete" variant="subtle" size="sm" tone="warning">
+                {{ t('setting.print_template.metadata_incomplete') }}
+              </XhBadge>
+              <span v-else class="template-context" :title="form.dataSourceCode || t('setting.print_template.free_template')">
+                <Icon width="16" height="16" :icon="form.dataSourceCode ? 'tabler:database' : 'tabler:database-off'" />
+                {{ form.templateCode }} · {{ form.dataSourceCode || t('setting.print_template.free_template') }}
+              </span>
+            </div>
+          </template>
+
+          <template #printer-actions>
+            <XhFlex class="printer-actions" align="center" :wrap="false">
+              <XSelect
+                :value="selectedPrinter ?? ''"
+                :options="printerOptions"
+                class="printer-select"
+                @update:value="(value: string | number | (string | number)[] | null) => updatePrinterPreference(value as string | null)"
+              />
+              <XhButton class="xh-icon-btn" variant="ghost" :loading="printerLoading" :title="t('setting.print_template.refresh_printers')" @click="loadPrinters(true)">
+                <span><Icon icon="tabler:refresh" /></span>
+              </XhButton>
+            </XhFlex>
+          </template>
+        </DesignerCanvas>
+      </div>
+
+      <SampleDataModal
+        v-model:show="samplePreviewVisible"
+        :data-source-code="form.dataSourceCode"
+        :submitting="previewLoading"
+        :template="samplePreviewTemplate"
+        :template-code="form.templateCode || undefined"
+        :template-name="form.templateName || undefined"
+        @preview="preview"
+      />
+
+      <XhDrawerRoot
+        :open="metadataVisible"
+        side="left"
+        :close-on-interact-outside="!saveLoading"
+        @update:open="handleMetadataVisible"
+      >
+        <XhDrawerContent style="--xh-drawer-size: min(444px, 100vw); --xh-drawer-px: 0">
+          <XhDrawerCloseTrigger />
+          <MetadataForm
+            :key="metadataSessionKey"
+            v-model="metadataDraft"
+            :editing="Boolean(currentDetail)"
+            :global-mode="globalMode"
+            :template="draftTemplate"
+          />
+        </XhDrawerContent>
+      </XhDrawerRoot>
+      <div class="xh-dialog-footer">
+        <div class="template-settings-footer">
+          <XhButton :disabled="saveLoading" @click="cancelMetadata">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton
+            tone="brand"
+            :loading="saveLoading"
+            :disabled="metadataDraftIncomplete"
+            class="template-settings-submit"
+            @click="saveMetadata"
+          >
+            {{ t('setting.print_template.save_and_return') }}
+            <span v-if="metadataDraftDirty && !saveLoading" class="metadata-dirty-dot" aria-hidden="true" />
+          </XhButton>
+        </div>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style>
 .print-template-editor-modal {
+  /* 皮肤的宽度上限读这个公开槽，缺省 32rem 会把满屏弹窗夹成 512px */
+  --xh-dialog-max-w: 100vw;
+
   display: flex;
-  width: 100vw !important;
-  height: 100vh !important;
+  width: 100vw;
+  height: 100vh;
   max-height: 100vh;
   flex-direction: column;
   margin: 0;
   overflow: hidden;
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
-.print-template-editor-modal > .n-card-content {
+.print-template-editor-modal > .editor-layout {
   height: 0;
   min-height: 0;
   flex: 1 1 0;
@@ -316,7 +298,7 @@ defineExpose({ confirmDiscard })
   overflow: hidden;
 }
 
-.print-template-editor-modal > .n-card-header {
+.print-template-editor-modal > [data-scope='dialog'][data-part='title'] {
   flex: none;
   padding: 16px 24px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
@@ -390,7 +372,7 @@ defineExpose({ confirmDiscard })
   gap: 10px;
 }
 
-.template-settings-footer > .n-button:first-child {
+.template-settings-footer > [data-scope='button'][data-part='root']:first-child {
   min-width: 92px;
 }
 
@@ -409,12 +391,6 @@ defineExpose({ confirmDiscard })
   border-radius: 50%;
   background: #f59e0b;
   box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.12);
-}
-
-/* 分层表单自行控制水平留白，移除 Naive UI 默认左右内边距以避免双重缩进。 */
-.print-template-settings-drawer .n-drawer-body-content-wrapper {
-  padding-right: 0 !important;
-  padding-left: 0 !important;
 }
 
 .dark .template-context {

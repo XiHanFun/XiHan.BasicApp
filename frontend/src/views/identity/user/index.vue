@@ -14,28 +14,8 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import {
-  NButton,
-  NCheckbox,
-  NDatePicker,
-  NDrawer,
-  NDrawerContent,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace,
-  NSpin,
-  NSwitch,
-  NTabPane,
-  NTabs,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, ref } from 'vue'
+import { XhBadge, XhButton, XhCheckbox, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -53,7 +33,8 @@ import {
   userManagementApi,
 } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XPermissionGrantPanel } from '~/components'
+import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
+import { dialog, prompt, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
@@ -62,8 +43,11 @@ defineOptions({ name: 'SystemUserPage' })
 
 const { t } = useI18n()
 
-const GENDER_TAG_TYPE: Record<UserGender, 'default' | 'info' | 'warning'> = {
-  [UserGender.Unknown]: 'default',
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
+
+const GENDER_TAG_TYPE: Record<UserGender, 'neutral' | 'info' | 'warning'> = {
+  [UserGender.Unknown]: 'neutral',
   [UserGender.Male]: 'info',
   [UserGender.Female]: 'warning',
 }
@@ -86,9 +70,6 @@ interface UserFormState {
   multiLogin: boolean
   maxDev: number
 }
-
-const message = useMessage()
-const dialog = useDialog()
 
 /** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
 const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
@@ -241,7 +222,7 @@ function createDefaultForm(): UserFormState {
 function getAvatarStyle(name: string) {
   const tone = AVATAR_TONES[name.charCodeAt(0) % AVATAR_TONES.length]!
   return {
-    bg: `color-mix(in srgb, var(--n-${tone}-color) 16%, var(--n-card-color))`,
+    bg: `color-mix(in srgb, var(--n-${tone}-color) 16%, hsl(var(--card)))`,
     fg: `var(--n-${tone}-color)`,
   }
 }
@@ -366,11 +347,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as UserListItemDto
       const label = getOptionLabel(genderEnumOptions.value, r.gender)
-      return h(
-        NTag,
-        { size: 'small', round: true, type: GENDER_TAG_TYPE[r.gender] ?? 'default', bordered: false, style: { fontSize: '11px', fontWeight: 500 } },
-        () => label,
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: GENDER_TAG_TYPE[r.gender] ?? 'neutral', style: { fontSize: '11px', fontWeight: 500 } }, () => label)
     },
   },
   // 地区/语言（仅列）
@@ -401,17 +378,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as UserListItemDto
-      return h(
-        NTag,
-        {
-          size: 'small',
-          round: true,
-          type: r.status === EnableStatus.Enabled ? 'success' : 'error',
-          bordered: false,
-          style: { fontSize: '11px', fontWeight: 500 },
-        },
-        () => (r.status === EnableStatus.Enabled ? t('identity.user.status_enabled') : t('identity.user.status_disabled')),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger', style: { fontSize: '11px', fontWeight: 500 } }, () => (r.status === EnableStatus.Enabled ? t('identity.user.status_enabled') : t('identity.user.status_disabled')))
     },
   },
   // 角色（仅列，来自后端批量聚合 roleNames）
@@ -428,7 +395,7 @@ const fields = computed<ListFieldSchema[]>(() => [
         return h('span', { class: 'text-foreground/40' }, '—')
       }
       return h('div', { class: 'flex flex-wrap gap-1' }, names.map(name =>
-        h(NTag, { size: 'small', round: true, bordered: false, type: 'info', style: { fontSize: '11px' } }, () => name)))
+        h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info', style: { fontSize: '11px' } }, () => name)))
     },
   },
   // 部门（仅列，主部门名称）
@@ -442,7 +409,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as UserListItemDto
       return r.departmentName
-        ? h(NTag, { size: 'small', round: true, bordered: false, style: { fontSize: '11px' } }, () => r.departmentName)
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', style: { fontSize: '11px' } }, () => r.departmentName)
         : h('span', { class: 'text-foreground/40' }, '—')
     },
   },
@@ -457,10 +424,10 @@ const fields = computed<ListFieldSchema[]>(() => [
       const r = row as unknown as UserListItemDto
       const tags = []
       if (r.isLocked) {
-        tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'error', style: { fontSize: '11px' } }, () => t('identity.user.security_locked')))
+        tags.push(h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'danger', style: { fontSize: '11px' } }, () => t('identity.user.security_locked')))
       }
       if (r.twoFactorEnabled) {
-        tags.push(h(NTag, { size: 'small', round: true, bordered: false, type: 'success', style: { fontSize: '11px' } }, () => '2FA'))
+        tags.push(h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'success', style: { fontSize: '11px' } }, () => '2FA'))
       }
       if (tags.length === 0) {
         return h('span', { class: 'text-foreground/40' }, t('identity.user.security_normal'))
@@ -504,7 +471,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:user:delete',
   statusPermission: 'saas:user:status',
   rowKey: 'basicId',
-  scrollX: 1760,
   fields: fields.value,
   resource: {
     page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -604,7 +570,7 @@ async function loadOptions() {
     deptFlatOptions.value = flattenDeptOptions(tree)
   }
   catch {
-    message.warning(t('identity.user.msg_load_options_failed'))
+    toast.warning(t('identity.user.msg_load_options_failed'))
   }
 }
 
@@ -643,7 +609,7 @@ async function openEdit(id: ApiId) {
   try {
     const detail = await userManagementApi.detailView(id)
     if (!detail) {
-      message.warning(t('identity.user.msg_user_not_found'))
+      toast.warning(t('identity.user.msg_user_not_found'))
       return
     }
     await fillFormFromDetail(detail)
@@ -651,7 +617,7 @@ async function openEdit(id: ApiId) {
     showFormModal.value = true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.user.msg_load_user_failed'))
+    toast.error((error as Error)?.message || t('identity.user.msg_load_user_failed'))
   }
 }
 
@@ -663,7 +629,7 @@ async function openDetail(id: ApiId) {
     currentDetail.value = await userManagementApi.detailView(id)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.user.msg_load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.user.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -721,12 +687,12 @@ async function syncDepartments(userId: ApiId) {
 async function saveUser() {
   const form = userForm.value
   if (!form.userName.trim()) {
-    message.warning(t('identity.user.msg_username_required'))
+    toast.warning(t('identity.user.msg_username_required'))
     formTab.value = '0'
     return
   }
   if (!form.basicId && !form.initialPassword.trim()) {
-    message.warning(t('identity.user.msg_initial_password_required'))
+    toast.warning(t('identity.user.msg_initial_password_required'))
     formTab.value = '0'
     return
   }
@@ -790,12 +756,12 @@ async function saveUser() {
       await syncDepartments(userId)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     closeModals()
     reloadList()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -811,11 +777,11 @@ async function toggleLock(row: UserListItemDto) {
       isLocked: !locked,
       lockoutEndTime: null,
     })
-    message.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
+    toast.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
     reloadList()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.operation_failed'))
+    toast.error((error as Error)?.message || t('common.messages.operation_failed'))
   }
 }
 
@@ -824,22 +790,24 @@ function displayName(row: UserListItemDto): string {
 }
 
 function forceLogout(row: UserListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('identity.user.logout_title'),
     content: t('identity.user.logout_content', { name: displayName(row) }),
-    positiveText: t('identity.user.logout_confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('identity.user.logout_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await userManagementApi.sessions.revokeUserSessions({
           userId: row.basicId,
           reason: t('identity.user.logout_reason'),
         })
-        message.success(t('identity.user.logout_done'))
+        toast.success(t('identity.user.logout_done'))
         reloadList()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('identity.user.logout_failed'))
+        toast.error((error as Error)?.message || t('identity.user.logout_failed'))
       }
     },
   })
@@ -869,59 +837,58 @@ function generateTempPassword(length = 12): string {
 
 function resetPassword(row: UserListItemDto) {
   const tempPassword = generateTempPassword()
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: t('identity.user.reset_password_title'),
     content: t('identity.user.reset_password_content', { name: displayName(row) }),
-    positiveText: t('identity.user.reset_confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('identity.user.reset_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await userManagementApi.security.resetPassword({
           userId: row.basicId,
           newPassword: tempPassword,
           remark: t('identity.user.reset_password_reason'),
         })
-        dialog.success({
+        // 新密码要能被选中复制，正文得放一个只读输入框——命令式确认框的正文只收 string，
+        // 因此这一步走取值弹窗：字段只读，确认即复制
+        void prompt({
           title: t('identity.user.reset_password_done_title'),
-          content: () => h('div', { class: 'space-y-2' }, [
-            h('div', t('identity.user.reset_password_done_content', { name: displayName(row) })),
-            h('div', {
-              class: 'rounded bg-[hsl(var(--muted))] px-3 py-2 font-mono text-base font-semibold tracking-wider select-all',
-            }, tempPassword),
-          ]),
-          positiveText: t('identity.user.reset_password_copy'),
-          negativeText: t('common.actions.close'),
-          onPositiveClick: () => {
+          description: t('identity.user.reset_password_done_content', { name: displayName(row) }),
+          okText: t('identity.user.reset_password_copy'),
+          cancelText: t('common.actions.close'),
+          fields: [{ key: 'password', value: tempPassword }],
+          onOk: () => {
             void navigator.clipboard?.writeText(tempPassword)
-            message.success(t('identity.user.reset_password_copied'))
-            return false
+            toast.success(t('identity.user.reset_password_copied'))
           },
         })
       }
       catch (error) {
-        message.error((error as Error)?.message || t('identity.user.reset_password_failed'))
+        toast.error((error as Error)?.message || t('identity.user.reset_password_failed'))
       }
     },
   })
 }
 
 function resetOtp(row: UserListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: t('identity.user.reset_otp_title'),
     content: t('identity.user.reset_otp_content', { name: displayName(row) }),
-    positiveText: t('identity.user.reset_confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('identity.user.reset_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await userManagementApi.security.resetTwoFactor({
           userId: row.basicId,
           remark: t('identity.user.reset_otp_reason'),
         })
-        message.success(t('identity.user.reset_otp_done'))
+        toast.success(t('identity.user.reset_otp_done'))
         reloadList()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('identity.user.reset_otp_failed'))
+        toast.error((error as Error)?.message || t('identity.user.reset_otp_failed'))
       }
     },
   })
@@ -974,7 +941,7 @@ async function openGrantDrawer(row: UserListItemDto) {
     await loadPermCatalog()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.user.grant_load_failed'))
+    toast.error((error as Error)?.message || t('identity.user.grant_load_failed'))
   }
   finally {
     grantLoading.value = false
@@ -989,19 +956,19 @@ async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
   try {
     if (checked) {
       await userManagementApi.roles.grant({ userId: grantUser.value.basicId, roleId: role.basicId })
-      message.success(t('identity.user.grant_role_granted', { name: role.roleName }))
+      toast.success(t('identity.user.grant_role_granted', { name: role.roleName }))
     }
     else {
       const bound = grantRoleByRoleId.value.get(role.basicId)
       if (bound) {
         await userManagementApi.roles.revoke(bound.basicId)
-        message.success(t('identity.user.grant_role_revoked', { name: role.roleName }))
+        toast.success(t('identity.user.grant_role_revoked', { name: role.roleName }))
       }
     }
     grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.operation_failed'))
+    toast.error((error as Error)?.message || t('common.messages.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1045,7 +1012,7 @@ async function savePermGrants() {
     .filter(([permissionId]) => !permActions.value.has(permissionId))
     .map(([, item]) => item.basicId)
   if (grants.length === 0 && revokeIds.length === 0) {
-    message.info(t('identity.user.grant_perm_no_change'))
+    toast.info(t('identity.user.grant_perm_no_change'))
     permDirty.value = false
     return
   }
@@ -1058,10 +1025,10 @@ async function savePermGrants() {
     })
     grantPermList.value = await userManagementApi.permissions.list(user.basicId, true)
     derivePermActions()
-    message.success(t('identity.user.grant_perm_saved', { grant: grants.length, revoke: revokeIds.length }))
+    toast.success(t('identity.user.grant_perm_saved', { grant: grants.length, revoke: revokeIds.length }))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('common.messages.save_failed'))
+    toast.error((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     grantLoading.value = false
@@ -1073,12 +1040,12 @@ async function confirmDelete() {
     return
   try {
     await userManagementApi.delete(delTarget.value.id)
-    message.success(t('identity.user.msg_user_deleted'))
+    toast.success(t('identity.user.msg_user_deleted'))
     closeModals()
     reloadList()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.delete_failed'))
+    toast.error((error as Error)?.message || t('common.messages.delete_failed'))
   }
 }
 </script>
@@ -1090,86 +1057,118 @@ async function confirmDelete() {
       v-model:show="showFormModal"
       :title="formTitle"
       :loading="submitLoading"
-      @save="saveUser"
+      :form-id="editFormId"
       @cancel="closeModals"
     >
-      <NTabs v-model:value="formTab" type="line" animated>
-        <NTabPane name="0" :tab="t('identity.user.tab_basic')" display-directive="show">
+      <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+      <XhTabsRoot v-model:value="formTab" variant="line">
+        <XhTabsList>
+          <XhTabsTrigger value="0">
+            {{ t('identity.user.tab_basic') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="1">
+            {{ t('identity.user.tab_security') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="2">
+            {{ t('identity.user.tab_roles') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="3">
+            {{ t('identity.user.tab_departments') }}
+          </XhTabsTrigger>
+        </XhTabsList>
+        <XhTabsContent value="0">
           <!-- NForm 渲染真实 form 元素：密码输入必须在 form 内，否则浏览器告警 -->
-          <NForm class="xh-edit-form-grid" label-placement="top">
-            <NFormItem
-              :label="t('identity.user.label_username')"
-            >
-              <NInput
-                v-model:value="userForm.userName"
-                :placeholder="t('identity.user.ph_username')"
-                :disabled="!!userForm.basicId"
-                :input-props="{ autocomplete: 'off' }"
-              />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_real_name')"
-            >
-              <NInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_nickname')"
-            >
-              <NInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_email')"
-            >
-              <NInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" :input-props="{ autocomplete: 'off' }" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_phone')"
-            >
-              <NInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" :input-props="{ autocomplete: 'off' }" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_gender')"
-            >
-              <NSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_birthday')"
-            >
-              <NDatePicker v-model:value="userForm.birthday" type="date" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_country')"
-            >
-              <NInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
-            </NFormItem>
-            <NFormItem
-              :label="t('identity.user.label_status')"
-            >
-              <NSelect v-model:value="userForm.status" :options="statusEnumOptions" />
-            </NFormItem>
-            <NFormItem
-              v-if="!userForm.basicId"
-              :label="t('identity.user.label_initial_password')"
-            >
-              <NInput
-                v-model:value="userForm.initialPassword"
-                type="password"
-                :input-props="{ autocomplete: 'new-password' }"
-                :placeholder="t('identity.user.ph_initial_password')"
-              />
-            </NFormItem>
-            <NFormItem :label="t('identity.user.label_remark')" class="xh-span-2">
-              <NInput
-                v-model:value="userForm.remark"
-                type="textarea"
-                :rows="2"
-                :placeholder="t('identity.user.ph_remark')"
-              />
-            </NFormItem>
-          </NForm>
-        </NTabPane>
-
-        <NTabPane name="1" :tab="t('identity.user.tab_security')" display-directive="show">
+          <XhFormRoot
+            :id="editFormId"
+            validate-on="blur"
+            class="xh-edit-form-grid"
+            @submit="saveUser"
+          >
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="userForm.userName"
+                  :placeholder="t('identity.user.ph_username')"
+                  :disabled="!!userForm.basicId"
+                  autocomplete="off"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" autocomplete="off" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" autocomplete="off" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XDatePicker v-model:value="userForm.birthday" type="date" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XSelect v-model:value="userForm.status" :options="statusEnumOptions" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot v-if="!userForm.basicId">
+              <XhFieldControl>
+                <XInput
+                  v-model:value="userForm.initialPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  :placeholder="t('identity.user.ph_initial_password')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot class="xh-span-2">
+              <XhFieldLabel>{{ t('identity.user.label_remark') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="userForm.remark"
+                  type="textarea"
+                  :rows="2"
+                  :placeholder="t('identity.user.ph_remark')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormRoot>
+        </XhTabsContent>
+        <XhTabsContent value="1">
           <div class="sec-panel">
             <div class="sec-block">
               <div class="sec-block-hd">
@@ -1188,7 +1187,7 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <NSwitch v-model:value="userForm.isLocked" />
+                <XhSwitch v-model:checked="userForm.isLocked" />
               </div>
             </div>
             <div class="sec-block">
@@ -1208,7 +1207,7 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <NSwitch v-model:value="userForm.multiLogin" />
+                <XhSwitch v-model:checked="userForm.multiLogin" />
               </div>
               <div class="form-row">
                 <div class="form-row-main">
@@ -1222,20 +1221,19 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <NInputNumber
+                <XNumberInput
                   v-model:value="userForm.maxDev"
                   :min="0"
                   :max="99"
                   class="max-dev-input"
-                  size="small"
+                  size="sm"
                   :show-button="false"
                 />
               </div>
             </div>
           </div>
-        </NTabPane>
-
-        <NTabPane name="2" :tab="t('identity.user.tab_roles')" display-directive="show">
+        </XhTabsContent>
+        <XhTabsContent value="2">
           <div class="pick-panel">
             <p class="pick-desc">
               {{ t('identity.user.pick_roles_desc') }}
@@ -1258,9 +1256,8 @@ async function confirmDelete() {
               </button>
             </div>
           </div>
-        </NTabPane>
-
-        <NTabPane name="3" :tab="t('identity.user.tab_departments')" display-directive="show">
+        </XhTabsContent>
+        <XhTabsContent value="3">
           <div class="pick-panel">
             <p class="pick-desc">
               {{ t('identity.user.pick_depts_desc') }}
@@ -1283,158 +1280,163 @@ async function confirmDelete() {
               </button>
             </div>
           </div>
-        </NTabPane>
-      </NTabs>
+        </XhTabsContent>
+      </XhTabsRoot>
     </XEditModal>
 
     <!-- 详情 -->
-    <NModal
-      v-model:show="showDetModal"
-      :mask-closable="false"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      :title="t('identity.user.detail.title')"
-      style="width: 640px; max-width: calc(100vw - 32px)"
-    >
-      <template v-if="detUser" #header>
-        <div class="det-hd-user">
-          <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
-            {{ detUser.initials }}
-          </div>
-          <div class="min-w-0">
-            <div class="det-name">
-              {{ detUser.displayName }}
+    <XhDialogRoot v-model:open="showDetModal" :close-on-interact-outside="false">
+      <XhDialogContent style="--xh-dialog-max-w: 640px">
+        <XhDialogTitle v-if="detUser">
+          <div class="det-hd-user">
+            <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
+              {{ detUser.initials }}
             </div>
-            <div class="det-sub">
-              @{{ detUser.userName }}
+            <div class="min-w-0">
+              <div class="det-name">
+                {{ detUser.displayName }}
+              </div>
+              <div class="det-sub">
+                @{{ detUser.userName }}
+              </div>
             </div>
           </div>
-        </div>
-      </template>
+        </XhDialogTitle>
+        <XhDialogCloseTrigger />
 
-      <div v-if="detailLoading" class="modal-loading">
-        {{ t('common.statuses.loading') }}
-      </div>
-      <template v-else-if="detUser">
-        <div class="det-info-grid">
-          <div>
-            <span class="muted">{{ t('identity.user.detail.country') }}</span>
-            {{ detUser.country }}
-          </div>
-          <div>
-            <span class="muted">{{ t('identity.user.detail.gender') }}</span>
-            {{ detUser.gender }}
-          </div>
-          <div>
-            <span class="muted">{{ t('identity.user.detail.roles') }}</span>
-            {{ detUser.roles.join('、') || '—' }}
-          </div>
-          <div>
-            <span class="muted">{{ t('identity.user.detail.depts') }}</span>
-            {{ detUser.depts.join('、') || '—' }}
-          </div>
-          <div v-if="detUser.remark" class="col-span-2">
-            <span class="muted">{{ t('identity.user.detail.remark') }}</span>
-            {{ detUser.remark }}
-          </div>
+        <div v-if="detailLoading" class="modal-loading">
+          {{ t('common.statuses.loading') }}
         </div>
-        <div class="det-badges">
-          <span v-for="badge in detUser.badges" :key="badge.label" class="bdg" :class="[badge.cls]">
-            <Icon :icon="badge.icon" :size="12" />
-            {{ badge.label }}
-          </span>
-        </div>
-        <div class="det-divider" />
-        <div class="det-sec">
+        <template v-else-if="detUser">
+          <div class="det-info-grid">
+            <div>
+              <span class="muted">{{ t('identity.user.detail.country') }}</span>
+              {{ detUser.country }}
+            </div>
+            <div>
+              <span class="muted">{{ t('identity.user.detail.gender') }}</span>
+              {{ detUser.gender }}
+            </div>
+            <div>
+              <span class="muted">{{ t('identity.user.detail.roles') }}</span>
+              {{ detUser.roles.join('、') || '—' }}
+            </div>
+            <div>
+              <span class="muted">{{ t('identity.user.detail.depts') }}</span>
+              {{ detUser.depts.join('、') || '—' }}
+            </div>
+            <div v-if="detUser.remark" class="col-span-2">
+              <span class="muted">{{ t('identity.user.detail.remark') }}</span>
+              {{ detUser.remark }}
+            </div>
+          </div>
+          <div class="det-badges">
+            <span v-for="badge in detUser.badges" :key="badge.label" class="bdg" :class="[badge.cls]">
+              <Icon :icon="badge.icon" :size="12" />
+              {{ badge.label }}
+            </span>
+          </div>
+          <div class="det-divider" />
+          <div class="det-sec">
+            <div class="det-sec-hd">
+              <Icon icon="tabler:chart-bar" :size="14" />
+              <span>{{ t('identity.user.detail.stats_today') }}</span>
+            </div>
+            <div class="det-stat-grid">
+              <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
+                <div class="det-stat-top">
+                  <span class="det-stat-lbl">{{ m.label }}</span>
+                  <Icon :icon="m.icon" :size="13" />
+                </div>
+                <div class="det-stat-val">
+                  {{ m.value }}
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="det-sec-hd">
-            <Icon icon="tabler:chart-bar" :size="14" />
-            <span>{{ t('identity.user.detail.stats_today') }}</span>
+            <Icon icon="tabler:device-desktop" :size="14" />
+            <span>{{ t('identity.user.detail.login_session') }}</span>
           </div>
-          <div class="det-stat-grid">
-            <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
-              <div class="det-stat-top">
-                <span class="det-stat-lbl">{{ m.label }}</span>
-                <Icon :icon="m.icon" :size="13" />
+          <div v-if="detUser.online" class="s-row">
+            <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
+            <div class="flex-1 min-w-0">
+              <div class="session-title">
+                {{ detUser.sessionLabel }}
               </div>
-              <div class="det-stat-val">
-                {{ m.value }}
+              <div class="session-sub">
+                {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
               </div>
             </div>
+            <span class="bdg bdg-ok">{{ t('identity.user.detail.online') }}</span>
           </div>
-        </div>
-        <div class="det-sec-hd">
-          <Icon icon="tabler:device-desktop" :size="14" />
-          <span>{{ t('identity.user.detail.login_session') }}</span>
-        </div>
-        <div v-if="detUser.online" class="s-row">
-          <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
-          <div class="flex-1 min-w-0">
-            <div class="session-title">
-              {{ detUser.sessionLabel }}
-            </div>
-            <div class="session-sub">
-              {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
-            </div>
+          <div v-else class="session-empty">
+            {{ t('identity.user.detail.no_active_session') }}
           </div>
-          <span class="bdg bdg-ok">{{ t('identity.user.detail.online') }}</span>
-        </div>
-        <div v-else class="session-empty">
-          {{ t('identity.user.detail.no_active_session') }}
-        </div>
-      </template>
+        </template>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="closeModals">
-            {{ t('common.actions.close') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end">
+            <XhButton size="sm" @click="closeModals">
+              {{ t('common.actions.close') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <!-- 删除确认 -->
-    <NModal
-      v-model:show="showDelModal"
-      :mask-closable="false"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      :title="t('identity.user.del_title')"
-      style="width: 420px; max-width: calc(100vw - 32px)"
-    >
-      <div class="del-body">
-        <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
-        <div>
-          <p class="del-title">
-            {{ t('identity.user.del_confirm_prefix') }}
-            <span class="name">{{ delTarget?.name }}</span>
-            {{ t('identity.user.del_confirm_suffix') }}
-          </p>
-          <p class="del-desc">
-            {{ t('identity.user.del_desc') }}
-          </p>
+    <XhDialogRoot v-model:open="showDelModal" :close-on-interact-outside="false">
+      <XhDialogContent style="--xh-dialog-max-w: 420px">
+        <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <div class="del-body">
+          <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
+          <div>
+            <p class="del-title">
+              {{ t('identity.user.del_confirm_prefix') }}
+              <span class="name">{{ delTarget?.name }}</span>
+              {{ t('identity.user.del_confirm_suffix') }}
+            </p>
+            <p class="del-desc">
+              {{ t('identity.user.del_desc') }}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="closeModals">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton size="small" type="error" @click="confirmDelete">
-            {{ t('identity.user.del_confirm_btn') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end">
+            <XhButton size="sm" @click="closeModals">
+              {{ t('common.actions.cancel') }}
+            </XhButton>
+            <XhButton size="sm" tone="danger" @click="confirmDelete">
+              {{ t('identity.user.del_confirm_btn') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <!-- 权限直授抽屉 -->
-    <NDrawer v-model:show="grantVisible" :width="720">
-      <NDrawerContent closable :title="t('identity.user.grant_title', { name: grantUser?.userName ?? '' })">
-        <NSpin :show="grantLoading">
-          <NTabs v-model:value="grantTab" animated type="line">
-            <NTabPane name="role" :tab="t('identity.user.grant_tab_role')">
+    <XhDrawerRoot v-model:open="grantVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 720px">
+        <XhDrawerTitle>{{ t('identity.user.grant_title', { name: grantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="grantLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+          <XhTabsRoot v-model:value="grantTab" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="role">
+                {{ t('identity.user.grant_tab_role') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="perm">
+                {{ t('identity.user.grant_tab_perm') }}
+              </XhTabsTrigger>
+            </XhTabsList>
+            <XhTabsContent value="role">
               <p class="grant-desc">
                 {{ t('identity.user.grant_role_desc') }}
               </p>
@@ -1444,7 +1446,7 @@ async function confirmDelete() {
                   :key="r.basicId"
                   class="grant-role-chip"
                 >
-                  <NCheckbox
+                  <XhCheckbox
                     :checked="grantRoleByRoleId.has(r.basicId)"
                     :disabled="grantBusyId === r.basicId"
                     @update:checked="(checked: boolean) => toggleGrantRole(r, checked)"
@@ -1452,8 +1454,8 @@ async function confirmDelete() {
                   <span>{{ r.roleName }}</span>
                 </label>
               </div>
-            </NTabPane>
-            <NTabPane name="perm" :tab="t('identity.user.grant_tab_perm')">
+            </XhTabsContent>
+            <XhTabsContent value="perm">
               <XPermissionGrantPanel
                 ref="permPanelRef"
                 :items="permCatalog"
@@ -1463,38 +1465,38 @@ async function confirmDelete() {
                 :other-group-label="t('identity.user.grant_perm_group_other')"
               >
                 <template #action="{ item }">
-                  <NButton
+                  <XhButton
                     :disabled="grantLoading"
-                    size="tiny"
-                    :type="permActions.get(item.basicId) === PermissionAction.Grant ? 'success' : 'default'"
+                    size="sm"
+                    :tone="permActions.get(item.basicId) === PermissionAction.Grant ? 'success' : 'neutral'"
                     @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Grant)"
                   >
                     {{ t('identity.user.grant_perm_allow') }}
-                  </NButton>
-                  <NButton
+                  </XhButton>
+                  <XhButton
                     :disabled="grantLoading"
-                    size="tiny"
-                    :type="permActions.get(item.basicId) === PermissionAction.Deny ? 'error' : 'default'"
+                    size="sm"
+                    :tone="permActions.get(item.basicId) === PermissionAction.Deny ? 'danger' : 'neutral'"
                     @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Deny)"
                   >
                     {{ t('identity.user.grant_perm_deny') }}
-                  </NButton>
+                  </XhButton>
                 </template>
               </XPermissionGrantPanel>
-            </NTabPane>
-          </NTabs>
-        </NSpin>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </div>
         <!-- 角色页签逐项即时生效，仅权限直授需要提交 -->
         <template v-if="grantTab === 'perm'" #footer>
-          <NButton @click="grantVisible = false">
+          <XhButton @click="grantVisible = false">
             {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton type="primary" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+          </XhButton>
+          <XhButton tone="brand" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
             {{ t('identity.user.grant_perm_save') }}
-          </NButton>
+          </XhButton>
         </template>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>
 
@@ -1513,7 +1515,7 @@ async function confirmDelete() {
 
 .tbl-cell-2l__primary {
   font-size: 12px;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .tbl-cell-2l__primary--strong {
@@ -1523,7 +1525,7 @@ async function confirmDelete() {
 
 .tbl-cell-2l__secondary {
   font-size: 11px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .tbl-av {
@@ -1542,46 +1544,46 @@ async function confirmDelete() {
   padding: 1px 4px;
   margin-left: 4px;
   border-radius: 3px;
-  background: var(--n-warning-color-suppl);
-  color: var(--n-warning-color);
+  background: var(--xh-color-warning-600);
+  color: var(--xh-color-warning-500);
 }
 
 /* 图标语义色：勿加页面前缀，弹窗 Teleport 到 body 后不在该子树内 */
 .sec-block-hd :deep(svg),
 .det-sec-hd :deep(svg) {
-  color: var(--n-primary-color);
+  color: hsl(var(--primary));
 }
 
 .det-stat-primary .det-stat-top :deep(svg) {
-  color: var(--n-primary-color);
+  color: hsl(var(--primary));
 }
 
 .det-stat-info .det-stat-top :deep(svg) {
-  color: var(--n-info-color);
+  color: var(--xh-color-info-500);
 }
 
 .det-stat-warning .det-stat-top :deep(svg) {
-  color: var(--n-warning-color);
+  color: var(--xh-color-warning-500);
 }
 
 .det-stat-muted .det-stat-top :deep(svg) {
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .pick-chip :deep(svg) {
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .pick-chip.on :deep(svg) {
-  color: var(--n-primary-color);
+  color: hsl(var(--primary));
 }
 
 .session-ico {
-  color: var(--n-info-color);
+  color: var(--xh-color-info-500);
 }
 
 .del-icon {
-  color: var(--n-warning-color);
+  color: var(--xh-color-warning-500);
 }
 
 .bdg :deep(svg) {
@@ -1592,7 +1594,7 @@ async function confirmDelete() {
 .modal-loading {
   padding: 48px 0;
   text-align: center;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .sec-panel {
@@ -1607,7 +1609,7 @@ async function confirmDelete() {
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   margin-bottom: 8px;
 }
 
@@ -1616,10 +1618,10 @@ async function confirmDelete() {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border: 1px solid var(--n-border-color);
-  border-radius: var(--n-border-radius);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
   margin-bottom: 8px;
-  background: var(--n-action-color);
+  background: hsl(var(--muted));
 }
 
 .form-row-main {
@@ -1630,38 +1632,38 @@ async function confirmDelete() {
 }
 
 .form-row-ico :deep(svg) {
-  color: var(--n-primary-color);
+  color: hsl(var(--primary));
 }
 
 .form-row-ico.warn :deep(svg) {
-  color: var(--n-warning-color);
+  color: var(--xh-color-warning-500);
 }
 
 .form-row-ico.ok :deep(svg) {
-  color: var(--n-success-color);
+  color: var(--xh-color-success-500);
 }
 
 .lbl {
   font-weight: 500;
   font-size: 13px;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .sub {
   font-size: 11px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   margin-top: 2px;
 }
 
 .pick-desc,
 .pick-summary {
   font-size: 12px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   margin: 0 0 8px;
 }
 
 .pick-summary strong {
-  color: var(--n-primary-color);
+  color: hsl(var(--primary));
 }
 
 .pick-grid {
@@ -1669,9 +1671,9 @@ async function confirmDelete() {
   flex-wrap: wrap;
   gap: 7px;
   padding: 12px;
-  background: var(--n-action-color);
-  border: 1px solid var(--n-border-color);
-  border-radius: var(--n-border-radius);
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
   min-height: 48px;
 }
 
@@ -1680,20 +1682,20 @@ async function confirmDelete() {
   align-items: center;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: var(--n-border-radius);
+  border-radius: var(--xh-shape-radius-md);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid var(--n-border-color);
-  background: var(--n-card-color);
-  color: var(--n-text-color-2);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
   font-family: inherit;
 }
 
 .pick-chip.on {
-  background: var(--n-primary-color-suppl);
-  border-color: var(--n-primary-color);
-  color: var(--n-primary-color);
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
 }
 
 .max-dev-input {
@@ -1726,12 +1728,12 @@ async function confirmDelete() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .det-sub {
   font-size: 11px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .det-info-grid {
@@ -1740,7 +1742,7 @@ async function confirmDelete() {
   gap: 7px;
   margin-bottom: 14px;
   font-size: 12px;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .det-info-grid .col-span-2 {
@@ -1748,7 +1750,7 @@ async function confirmDelete() {
 }
 
 .muted {
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .det-badges {
@@ -1763,40 +1765,40 @@ async function confirmDelete() {
   align-items: center;
   gap: 3px;
   padding: 2px 7px;
-  border-radius: var(--n-border-radius);
+  border-radius: var(--xh-shape-radius-md);
   font-size: 11px;
   font-weight: 500;
 }
 
 .bdg-ok {
-  color: var(--n-success-color);
-  background: var(--n-success-color-suppl);
+  color: var(--xh-color-success-500);
+  background: var(--xh-color-success-600);
 }
 
 .bdg-no {
-  color: var(--n-error-color);
-  background: var(--n-error-color-suppl);
+  color: var(--xh-color-danger-500);
+  background: var(--xh-color-danger-600);
 }
 
 .bdg-warn {
-  color: var(--n-warning-color);
-  background: var(--n-warning-color-suppl);
+  color: var(--xh-color-warning-500);
+  background: var(--xh-color-warning-600);
 }
 
 .bdg-info {
-  color: var(--n-info-color);
-  background: var(--n-info-color-suppl);
+  color: var(--xh-color-info-500);
+  background: var(--xh-color-info-600);
 }
 
 .bdg-gray {
-  color: var(--n-text-color-3);
-  background: var(--n-action-color);
-  border: 1px solid var(--n-border-color);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
 }
 
 .det-divider {
   height: 1px;
-  background: var(--n-border-color);
+  background: hsl(var(--border));
   margin: 12px 0;
 }
 
@@ -1806,7 +1808,7 @@ async function confirmDelete() {
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   margin-bottom: 8px;
 }
 
@@ -1819,9 +1821,9 @@ async function confirmDelete() {
 .det-stat-card {
   position: relative;
   padding: 10px 11px;
-  background: var(--n-card-color);
-  border: 1px solid var(--n-border-color);
-  border-radius: var(--n-border-radius);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
   overflow: hidden;
 }
 
@@ -1832,23 +1834,23 @@ async function confirmDelete() {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--n-border-color);
+  background: hsl(var(--border));
 }
 
 .det-stat-primary::before {
-  background: var(--n-primary-color);
+  background: hsl(var(--primary));
 }
 
 .det-stat-info::before {
-  background: var(--n-info-color);
+  background: var(--xh-color-info-500);
 }
 
 .det-stat-warning::before {
-  background: var(--n-warning-color);
+  background: var(--xh-color-warning-500);
 }
 
 .det-stat-muted::before {
-  background: var(--n-text-color-3);
+  background: hsl(var(--muted-foreground));
 }
 
 .det-stat-top {
@@ -1856,18 +1858,18 @@ async function confirmDelete() {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 6px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .det-stat-lbl {
   font-size: 10px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .det-stat-val {
   font-size: 18px;
   font-weight: 600;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
   font-variant-numeric: tabular-nums;
 }
 
@@ -1876,25 +1878,25 @@ async function confirmDelete() {
   align-items: center;
   gap: 8px;
   padding: 9px 10px;
-  border: 1px solid var(--n-border-color);
-  border-radius: var(--n-border-radius);
-  background: var(--n-action-color);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--xh-shape-radius-md);
+  background: hsl(var(--muted));
 }
 
 .session-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .session-sub {
   font-size: 11px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .session-empty {
   font-size: 12px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   padding: 8px 0;
 }
 
@@ -1908,25 +1910,25 @@ async function confirmDelete() {
   margin: 0 0 8px;
   font-weight: 500;
   font-size: 14px;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .del-desc {
   margin: 0;
   font-size: 12px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   line-height: 1.55;
 }
 
 .del-title .name {
-  color: var(--n-error-color);
+  color: var(--xh-color-danger-500);
 }
 
 /* 权限直授抽屉 */
 .grant-desc {
   margin: 0 0 12px;
   font-size: 12px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .grant-role-grid {

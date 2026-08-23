@@ -390,6 +390,11 @@ export default {
       section_trend: '操作趋势',
       section_trend_desc: '近一年每日操作活跃度，颜色越深表示当日操作越多。',
       heat_foot: '近一年共 {ops} 次操作 · {days} 天活跃',
+      heat_grid_label: '操作热力图',
+      heat_cell_label: '{date}：{count} 次操作',
+      heat_legend_label: '颜色深浅对照',
+      heat_legend_low: '少',
+      heat_legend_high: '多',
       section_activity: '活跃概要',
       section_activity_desc: '今日 / 本周活跃数据与最近活动时间。',
       stat_login: '登录',
@@ -544,6 +549,11 @@ export default {
     total_suffix: '条',
     page_sep: '，第',
     page_of: '/ {pageCount} 页',
+    empty: '暂无数据',
+    loading: '加载中…',
+  },
+  pagination: {
+    per_page: '{size} 条/页',
   },
   schema_import: {
     title: '导入数据',
@@ -626,6 +636,7 @@ export default {
     select_placeholder: '选择图标',
     modal_title: '选择图标',
     search_placeholder: '搜索图标名称...',
+    empty: '未找到图标',
   },
   search_settings: {
     title: '搜索设置',
@@ -643,6 +654,9 @@ export default {
     reset: '重置',
     hide_conditions: '隐藏条件',
     advanced_search: '高级搜索',
+  },
+  date_picker: {
+    label: '选择日期',
   },
   search_date_range: {
     start: '开始时间',

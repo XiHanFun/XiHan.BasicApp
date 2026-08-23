@@ -3,8 +3,10 @@
   职责：在不占用常驻画布空间的前提下，提供当前设计导出到 TextArea、手工编辑和回写画布入口。
 -->
 <script setup lang="ts">
-import { NAlert, NButton, NInput, NModal } from 'naive-ui'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
+import { XInput } from '~/components'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'PrintDesignerJsonModal' })
 
@@ -28,62 +30,66 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
 </script>
 
 <template>
-  <NModal
-    :show="show"
-    preset="card"
-    class="json-template-modal"
-    :title="t('setting.print_template.json_editor_title')"
-    :mask-closable="!applying"
-    :closable="!applying"
-    :style="{ width: '920px', maxWidth: 'calc(100vw - 32px)' }"
-    @update:show="emit('update:show', $event)"
+  <XhDialogRoot
+    :open="show"
+    @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <div class="json-editor-toolbar">
-      <div class="json-editor-intro">
-        <strong>{{ t('setting.print_template.json_template_content') }}</strong>
-        <span>{{ t('setting.print_template.json_editor_hint') }}</span>
+    <XhDialogContent class="json-template-modal" style="--xh-dialog-max-w: 920px">
+      <XhDialogTitle>{{ t('setting.print_template.json_editor_title') }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <div class="json-editor-toolbar">
+        <div class="json-editor-intro">
+          <strong>{{ t('setting.print_template.json_template_content') }}</strong>
+          <span>{{ t('setting.print_template.json_editor_hint') }}</span>
+        </div>
+        <XhButton :disabled="disabled || applying" @click="emit('export')">
+          {{ t('setting.print_template.export_json_to_textarea') }}
+        </XhButton>
       </div>
-      <NButton :disabled="disabled || applying" @click="emit('export')">
-        {{ t('setting.print_template.export_json_to_textarea') }}
-      </NButton>
-    </div>
 
-    <label class="json-textarea-field" :for="textareaId">
-      <NInput
-        :value="value"
-        type="textarea"
-        :autosize="{ minRows: 15, maxRows: 22 }"
-        :disabled="disabled || applying"
-        :placeholder="t('setting.print_template.json_textarea_placeholder')"
-        :input-props="{ id: textareaId, spellcheck: 'false' }"
-        @update:value="emit('update:value', $event)"
-      />
-    </label>
+      <label class="json-textarea-field" :for="textareaId">
+        <XInput
+          :id="textareaId"
+          :value="value"
+          type="textarea"
+          :autosize="{ minRows: 15, maxRows: 22 }"
+          :disabled="disabled || applying"
+          :placeholder="t('setting.print_template.json_textarea_placeholder')"
+          spellcheck="false"
+          @update:value="emit('update:value', $event)"
+        />
+      </label>
 
-    <NAlert v-if="error" class="json-error" type="error" :show-icon="true">
-      {{ error }}
-    </NAlert>
+      <XhAlertRoot v-if="error" tone="danger" class="json-error">
+        <XhAlertIcon>
+          <Icon icon="lucide:circle-alert" width="16" />
+        </XhAlertIcon>
+        <XhAlertDescription>
+          {{ error }}
+        </XhAlertDescription>
+      </XhAlertRoot>
 
-    <p class="json-memory-tip">
-      {{ t('setting.print_template.json_memory_only') }}
-    </p>
+      <p class="json-memory-tip">
+        {{ t('setting.print_template.json_memory_only') }}
+      </p>
 
-    <template #footer>
-      <div class="json-modal-actions">
-        <NButton :disabled="applying" @click="emit('update:show', false)">
-          {{ t('common.actions.cancel') }}
-        </NButton>
-        <NButton
-          type="primary"
-          :loading="applying"
-          :disabled="disabled || !value.trim()"
-          @click="emit('apply')"
-        >
-          {{ t('setting.print_template.apply_json_template') }}
-        </NButton>
+      <div class="xh-dialog-footer">
+        <div class="json-modal-actions">
+          <XhButton :disabled="applying" @click="emit('update:show', false)">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton
+            tone="brand"
+            :loading="applying"
+            :disabled="disabled || !value.trim()"
+            @click="emit('apply')"
+          >
+            {{ t('setting.print_template.apply_json_template') }}
+          </XhButton>
+        </div>
       </div>
-    </template>
-  </NModal>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style scoped>

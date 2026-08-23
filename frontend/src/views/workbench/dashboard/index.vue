@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BoardItem } from './components'
 import type { DragEndEvent } from '~/components'
-import { NButton, NDrawer, NDrawerContent, NEmpty, NPopover } from 'naive-ui'
+import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger } from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DragDropProvider } from '~/components'
@@ -277,32 +277,24 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
             </div>
             <div class="mx-0.5 h-5 w-px bg-border/70" />
             <template v-if="customizing">
-              <NButton size="small" @click="showAdd = true">
-                <template #icon>
-                  <Icon icon="lucide:plus" />
-                </template>
+              <XhButton size="sm" @click="showAdd = true">
+                <Icon icon="lucide:plus" />
                 {{ t('workbench.widgets.add') }}
-              </NButton>
-              <NButton size="small" @click="resetBoard">
-                <template #icon>
-                  <Icon icon="lucide:rotate-ccw" />
-                </template>
+              </XhButton>
+              <XhButton size="sm" @click="resetBoard">
+                <Icon icon="lucide:rotate-ccw" />
                 {{ t('workbench.widgets.reset') }}
-              </NButton>
-              <NButton size="small" type="primary" @click="finishCustomize">
-                <template #icon>
-                  <Icon icon="lucide:check" />
-                </template>
+              </XhButton>
+              <XhButton size="sm" tone="brand" @click="finishCustomize">
+                <Icon icon="lucide:check" />
                 {{ t('workbench.widgets.done') }}
-              </NButton>
+              </XhButton>
             </template>
             <template v-else>
-              <NButton size="small" secondary @click="customizing = true">
-                <template #icon>
-                  <Icon icon="lucide:layout-grid" />
-                </template>
+              <XhButton size="sm" variant="subtle" @click="customizing = true">
+                <Icon icon="lucide:layout-grid" />
                 {{ t('workbench.widgets.customize') }}
-              </NButton>
+              </XhButton>
               <button
                 type="button"
                 :title="t('workbench.widgets.collapse')"
@@ -318,13 +310,18 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     </div>
 
     <div v-if="!board.length" class="py-20">
-      <NEmpty :description="t('workbench.widgets.empty')">
-        <template #extra>
-          <NButton size="small" @click="customizing = true; showAdd = true">
+      <XhEmptyStateRoot>
+        <XhEmptyStateIcon>
+          <Icon icon="lucide:inbox" width="28" />
+        </XhEmptyStateIcon>
+        <XhEmptyStateTitle>{{ t('workbench.widgets.empty_title') }}</XhEmptyStateTitle>
+        <XhEmptyStateDescription>{{ t('workbench.widgets.empty') }}</XhEmptyStateDescription>
+        <XhEmptyStateAction>
+          <XhButton size="sm" @click="customizing = true; showAdd = true">
             {{ t('workbench.widgets.add') }}
-          </NButton>
-        </template>
-      </NEmpty>
+          </XhButton>
+        </XhEmptyStateAction>
+      </XhEmptyStateRoot>
     </div>
 
     <DragDropProvider v-else @drag-end="onDragEnd">
@@ -369,25 +366,27 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
               >
                 <Icon icon="lucide:grip-vertical" width="15" />
               </span>
-              <NPopover trigger="click" placement="bottom-end" :show-arrow="false">
-                <template #trigger>
-                  <button type="button" class="flex h-6 min-w-[2.25rem] items-center justify-center rounded px-1 text-xs font-medium text-muted-foreground hover:bg-muted" :title="t('workbench.widgets.span')">
-                    {{ spanLabel(item.span) }}
-                  </button>
-                </template>
-                <div class="grid grid-cols-6 gap-1">
-                  <button
-                    v-for="s in SIZE_OPTIONS"
-                    :key="s"
-                    type="button"
-                    class="flex h-7 min-w-[2.75rem] items-center justify-center rounded px-1 text-xs transition-colors"
-                    :class="s === item.span ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
-                    @click="setSpan(item, s)"
-                  >
-                    {{ spanLabel(s) }}
-                  </button>
-                </div>
-              </NPopover>
+              <XhPopoverRoot placement="bottom-end">
+                <XhPopoverTrigger class="xh-linklike-trigger">
+                  {{ spanLabel(item.span) }}
+                </XhPopoverTrigger>
+                <XhPopoverPositioner>
+                  <XhPopoverContent>
+                    <div class="grid grid-cols-6 gap-1">
+                      <button
+                        v-for="s in SIZE_OPTIONS"
+                        :key="s"
+                        type="button"
+                        class="flex h-7 min-w-[2.75rem] items-center justify-center rounded px-1 text-xs transition-colors"
+                        :class="s === item.span ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
+                        @click="setSpan(item, s)"
+                      >
+                        {{ spanLabel(s) }}
+                      </button>
+                    </div>
+                  </XhPopoverContent>
+                </XhPopoverPositioner>
+              </XhPopoverRoot>
               <button type="button" class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]" @click="removeWidget(item.key)">
                 <Icon icon="lucide:x" width="15" />
               </button>
@@ -397,10 +396,18 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
       </div>
     </DragDropProvider>
 
-    <NDrawer v-model:show="showAdd" :width="340" placement="right">
-      <NDrawerContent :title="t('workbench.widgets.add_panel_title')" closable>
+    <XhDrawerRoot v-model:open="showAdd" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 340px">
+        <XhDrawerTitle>{{ t('workbench.widgets.add_panel_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <div v-if="!available.length" class="py-10">
-          <NEmpty :description="t('workbench.widgets.all_added')" />
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="24" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('workbench.widgets.all_added_title') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('workbench.widgets.all_added') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
         </div>
         <div v-else class="flex flex-col gap-2">
           <div v-for="widget in available" :key="widget.key" class="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
@@ -415,15 +422,13 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
                 {{ t(widget.descKey) }}
               </div>
             </div>
-            <NButton size="small" type="primary" secondary @click="addWidget(widget.key)">
-              <template #icon>
-                <Icon icon="lucide:plus" />
-              </template>
-            </NButton>
+            <XhButton size="sm" tone="brand" variant="subtle" @click="addWidget(widget.key)">
+              <Icon icon="lucide:plus" />
+            </XhButton>
           </div>
         </div>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </div>
 </template>
 

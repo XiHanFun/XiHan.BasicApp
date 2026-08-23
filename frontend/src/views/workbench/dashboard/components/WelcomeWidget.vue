@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton } from 'naive-ui'
+import { XhButton } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import WidgetCard from './WidgetCard.vue'
@@ -23,18 +23,14 @@ function open(url: string) {
         {{ t('workbench.widgets.welcome_tip') }}
       </p>
       <div class="mt-auto flex gap-2 pt-2">
-        <NButton size="small" type="primary" secondary @click="open('https://docs.xihanfun.com')">
-          <template #icon>
-            <Icon icon="lucide:book-open" />
-          </template>
+        <XhButton size="sm" tone="brand" variant="subtle" @click="open('https://docs.xihanfun.com')">
+          <Icon icon="lucide:book-open" />
           {{ t('workbench.widgets.welcome_docs') }}
-        </NButton>
-        <NButton size="small" tertiary @click="open('https://github.com/XiHanFun/XiHan.BasicApp')">
-          <template #icon>
-            <Icon icon="tabler:brand-github" />
-          </template>
+        </XhButton>
+        <XhButton size="sm" variant="ghost" @click="open('https://github.com/XiHanFun/XiHan.BasicApp')">
+          <Icon icon="tabler:brand-github" />
           {{ t('workbench.widgets.welcome_github') }}
-        </NButton>
+        </XhButton>
       </div>
     </div>
   </WidgetCard>

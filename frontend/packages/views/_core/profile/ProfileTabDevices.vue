@@ -1,18 +1,9 @@
 <script lang="ts" setup>
 import type { UserSessionItem } from '~/types'
-import {
-  NButton,
-  NEmpty,
-  NIcon,
-  NPopconfirm,
-  NSpace,
-  NSpin,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTitle, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -20,9 +11,7 @@ import { formatDate } from '~/utils'
 defineOptions({ name: 'ProfileTabDevices' })
 
 const { apis } = useAppContext()
-const message = useMessage()
 const { t } = useI18n()
-const dialog = useDialog()
 
 const sessionsLoading = ref(false)
 const sessions = ref<UserSessionItem[]>([])
@@ -35,7 +24,7 @@ async function loadSessions() {
     sessionsLoaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.devices.err_load_failed'))
+    toast.error((e as Error)?.message || t('component.profile.devices.err_load_failed'))
   }
   finally {
     sessionsLoading.value = false
@@ -45,33 +34,35 @@ async function loadSessions() {
 async function handleRevokeSession(sid: string) {
   try {
     await apis.revokeSessionApi(sid)
-    message.success(t('component.profile.devices.msg_device_logged_out'))
+    toast.success(t('component.profile.devices.msg_device_logged_out'))
     await loadSessions()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
+    toast.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
   }
 }
 
 function handleRevokeOthers() {
   const cnt = sessions.value.filter(s => !s.isCurrent).length
   if (!cnt) {
-    message.info(t('component.profile.devices.info_no_other_devices'))
+    toast.info(t('component.profile.devices.info_no_other_devices'))
     return
   }
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('component.profile.devices.logout_all_title'),
     content: t('component.profile.devices.logout_all_content', { count: cnt }),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await apis.revokeOtherSessionsApi()
-        message.success(t('component.profile.devices.msg_others_logged_out'))
+        toast.success(t('component.profile.devices.msg_others_logged_out'))
         await loadSessions()
       }
       catch (e: unknown) {
-        message.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
+        toast.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
       }
     },
   })
@@ -104,23 +95,28 @@ onMounted(loadSessions)
           </div>
         </div>
         <div class="pf-section__extra">
-          <NSpace :size="8">
-            <NButton size="tiny" quaternary @click="loadSessions">
-              <template #icon>
-                <NIcon>
-                  <Icon icon="lucide:refresh-cw" />
-                </NIcon>
-              </template>
-            </NButton>
-            <NButton size="tiny" @click="handleRevokeOthers">
+          <XhFlex gap="sm">
+            <XhButton size="sm" variant="ghost" @click="loadSessions">
+              <span><Icon icon="lucide:refresh-cw" /></span>
+            </XhButton>
+            <XhButton size="sm" @click="handleRevokeOthers">
               {{ t('component.profile.devices.btn_logout_others') }}
-            </NButton>
-          </NSpace>
+            </XhButton>
+          </XhFlex>
         </div>
       </div>
       <div class="pf-section__body">
-        <NSpin :show="sessionsLoading">
-          <NEmpty v-if="sessions.length === 0 && sessionsLoaded" :description="t('component.profile.devices.empty')" />
+        <div class="xh-loading-stage">
+          <div v-if="sessionsLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="sessions.length === 0 && sessionsLoaded">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('component.profile.devices.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
           <div v-else class="pf-list">
             <div
               v-for="s in sessions"
@@ -146,20 +142,27 @@ onMounted(loadSessions)
                   · {{ s.isCurrent ? t('component.profile.devices.status_online') : formatDate(s.lastActivityTime, 'MM-DD HH:mm') }}
                 </div>
               </div>
-              <NTag v-if="s.isCurrent" type="success" size="small" :bordered="false">
+              <XhBadge v-if="s.isCurrent" variant="subtle" tone="success" size="sm">
                 {{ t('component.profile.devices.tag_current') }}
-              </NTag>
-              <NPopconfirm v-else @positive-click="handleRevokeSession(s.sessionId)">
-                <template #trigger>
-                  <NButton size="tiny" type="error" text>
-                    {{ t('component.profile.devices.btn_kick') }}
-                  </NButton>
-                </template>
-                {{ t('component.profile.devices.confirm_logout_device') }}
-              </NPopconfirm>
+              </XhBadge>
+              <XhPopconfirmRoot v-else @confirm="handleRevokeSession(s.sessionId)">
+                <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
+                <XhPopconfirmTrigger class="xh-linklike-trigger xh-linklike-trigger--danger">
+                  {{ t('component.profile.devices.btn_kick') }}
+                </XhPopconfirmTrigger>
+                <XhPopconfirmPositioner>
+                  <XhPopconfirmContent>
+                    <XhPopconfirmTitle>
+                      {{ t('component.profile.devices.confirm_logout_device') }}
+                    </XhPopconfirmTitle>
+                    <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+                    <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+                  </XhPopconfirmContent>
+                </XhPopconfirmPositioner>
+              </XhPopconfirmRoot>
             </div>
           </div>
-        </NSpin>
+        </div>
       </div>
     </section>
   </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
+import type { Tone } from '@xihan-ui/kernel'
 import type {
   PageResult,
   TaskCreateDto,
@@ -9,41 +9,19 @@ import type {
   TaskLogListItemDto,
   TaskUpdateDto,
 } from '@/api'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NDataTable,
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NInputNumber,
-  NModal,
-  NScrollbar,
-  NSelect,
-  NSpace,
-  NSpin,
-  NSwitch,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import CronExpression from '~/components/common/CronExpression.vue'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformJobPage' })
-
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
 
 interface JobFormModel {
   allowConcurrent: boolean
@@ -69,7 +47,9 @@ interface JobFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
 const triggerTypeOptions = computed(() => [
@@ -108,24 +88,24 @@ function toBool(v: unknown): boolean | undefined {
   return v == null || v === '' ? undefined : Boolean(Number(v))
 }
 
-function runStatusTag(status: RunTaskStatus): TagType {
+function runStatusTag(status: RunTaskStatus): Tone {
   switch (status) {
     case RunTaskStatus.Success:
       return 'success'
     case RunTaskStatus.Failed:
-      return 'error'
+      return 'danger'
     case RunTaskStatus.Running:
       return 'warning'
     case RunTaskStatus.Paused:
     case RunTaskStatus.Stopped:
-      return 'default'
+      return 'neutral'
     default:
       return 'info'
   }
 }
 
-function statusTag(status: EnableStatus): TagType {
-  return status === EnableStatus.Enabled ? 'success' : 'error'
+function statusTag(status: EnableStatus): Tone {
+  return status === EnableStatus.Enabled ? 'success' : 'danger'
 }
 
 function formatNullableDate(value?: string | null) {
@@ -162,7 +142,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('setting.job.trigger_type_placeholder'),
     minWidth: 120,
     order: 4,
-    render: row => h('span', { style: 'font-size:13px;color:var(--n-text-color-3);' }, getOptionLabel(triggerTypeOptions.value, (row as unknown as TaskListItemDto).triggerType)),
+    render: row => h('span', { style: 'font-size:13px;color:hsl(var(--muted-foreground));' }, getOptionLabel(triggerTypeOptions.value, (row as unknown as TaskListItemDto).triggerType)),
   },
   {
     key: 'runTaskStatus',
@@ -176,7 +156,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: runStatusTag(r.runTaskStatus), bordered: false }, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: runStatusTag(r.runTaskStatus) }, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus))
     },
   },
   {
@@ -191,7 +171,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: statusTag(r.status), bordered: false }, () => getOptionLabel(statusOptions.value, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => getOptionLabel(statusOptions.value, r.status))
     },
   },
   {
@@ -205,7 +185,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(NTag, { size: 'small', round: true, type: r.allowConcurrent ? 'warning' : 'info', bordered: false }, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid')))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.allowConcurrent ? 'warning' : 'info' }, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid')))
     },
   },
   { key: 'executedCount', title: t('setting.job.executed_count'), dataType: 'number', minWidth: 100, order: 8 },
@@ -224,7 +204,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:task:delete',
   statusPermission: 'saas:task:status',
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -311,7 +290,7 @@ async function handleDetail(row: TaskListItemDto) {
     detailData.value = await jobManagementApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.job.load_detail_failed'))
+    toast.error((error as Error)?.message || t('setting.job.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -335,11 +314,11 @@ function formatExecutionTime(value: string) {
   return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms} ms`
 }
 
-const taskLogColumns = computed<DataTableColumns<TaskLogListItemDto>>(() => [
-  { ellipsis: { tooltip: true }, key: 'batchNumber', render: row => row.batchNumber || '-', title: t('setting.job.batch_number'), width: 150 },
+const taskLogColumns = computed<XDataTableColumn<TaskLogListItemDto>[]>(() => [
+  { ellipsis: true, key: 'batchNumber', render: row => row.batchNumber || '-', title: t('setting.job.batch_number'), width: 150 },
   {
     key: 'taskStatus',
-    render: row => h(NTag, { bordered: false, round: true, size: 'small', type: runStatusTag(row.taskStatus) }, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus)),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: runStatusTag(row.taskStatus) }, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus)),
     title: t('setting.job.log_status'),
     width: 96,
   },
@@ -385,7 +364,7 @@ async function loadTaskLogs(page?: number) {
     logPagination.value.itemCount = result.page.totalCount
   }
   catch (e) {
-    message.error((e as Error).message || t('setting.job.load_logs_failed'))
+    toast.error((e as Error).message || t('setting.job.load_logs_failed'))
   }
   finally {
     logLoading.value = false
@@ -405,7 +384,7 @@ async function handleLogDetail(row: TaskLogListItemDto) {
     logDetail.value = await taskLogApi.detail(row.basicId) ?? null
   }
   catch (e) {
-    message.error((e as Error).message || t('setting.job.load_log_detail_failed'))
+    toast.error((e as Error).message || t('setting.job.load_log_detail_failed'))
   }
   finally {
     logDetailLoading.value = false
@@ -415,27 +394,27 @@ async function handleLogDetail(row: TaskLogListItemDto) {
 // ── 行操作：立即执行 / 启停 / 删除 ──────────────────────────────
 async function handleTrigger(row: TaskListItemDto) {
   if (row.status !== EnableStatus.Enabled) {
-    message.warning(t('setting.job.disabled_cannot_trigger'))
+    toast.warning(t('setting.job.disabled_cannot_trigger'))
     return
   }
   if (row.runTaskStatus === RunTaskStatus.Running) {
-    message.warning(t('setting.job.running_cannot_trigger'))
+    toast.warning(t('setting.job.running_cannot_trigger'))
     return
   }
   try {
     // 经调度器真正触发一次执行（旧实现仅改写运行状态字段，不会执行任务）
     await jobManagementApi.run(row.basicId)
-    message.success(t('setting.job.triggered'))
+    toast.success(t('setting.job.triggered'))
     reloadJob()
   }
   catch (e) {
-    message.error((e as Error)?.message || t('setting.job.trigger_failed'))
+    toast.error((e as Error)?.message || t('setting.job.trigger_failed'))
   }
 }
 
 async function handleToggleStatus(row: TaskListItemDto) {
   if (row.runTaskStatus === RunTaskStatus.Running) {
-    message.warning(t('setting.job.running_cannot_toggle'))
+    toast.warning(t('setting.job.running_cannot_toggle'))
     return
   }
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
@@ -444,26 +423,26 @@ async function handleToggleStatus(row: TaskListItemDto) {
       basicId: row.basicId,
       status: newStatus,
     })
-    message.success(newStatus === EnableStatus.Enabled ? t('setting.job.task_enabled') : t('setting.job.task_disabled'))
+    toast.success(newStatus === EnableStatus.Enabled ? t('setting.job.task_enabled') : t('setting.job.task_disabled'))
     reloadJob()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.job.toggle_failed'))
+    toast.error((error as Error)?.message || t('setting.job.toggle_failed'))
   }
 }
 
 async function handleDelete(row: TaskListItemDto) {
   if (row.runTaskStatus === RunTaskStatus.Running) {
-    message.warning(t('setting.job.running_cannot_delete'))
+    toast.warning(t('setting.job.running_cannot_delete'))
     return
   }
   try {
     await jobManagementApi.delete(row.basicId)
-    message.success(t('setting.job.task_deleted'))
+    toast.success(t('setting.job.task_deleted'))
     reloadJob()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.job.delete_failed'))
+    toast.error((error as Error)?.message || t('setting.job.delete_failed'))
   }
 }
 
@@ -509,7 +488,7 @@ async function handleEdit(row: TaskListItemDto) {
     detail = await jobManagementApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.job.load_detail_failed'))
+    toast.error((error as Error)?.message || t('setting.job.load_detail_failed'))
     return
   }
   const src = detail ?? (row as unknown as TaskDetailDto)
@@ -539,15 +518,15 @@ async function handleEdit(row: TaskListItemDto) {
 
 function validateJobForm() {
   if (!jobForm.value.taskName.trim()) {
-    message.warning(t('setting.job.validate_task_name'))
+    toast.warning(t('setting.job.validate_task_name'))
     return false
   }
   if (!jobForm.value.basicId && !jobForm.value.taskCode.trim()) {
-    message.warning(t('setting.job.validate_task_code'))
+    toast.warning(t('setting.job.validate_task_code'))
     return false
   }
   if (!jobForm.value.taskClass.trim()) {
-    message.warning(t('setting.job.validate_task_class'))
+    toast.warning(t('setting.job.validate_task_class'))
     return false
   }
   return true
@@ -609,12 +588,12 @@ async function handleSubmit() {
       }
       await jobManagementApi.create(createInput)
     }
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadJob()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -631,198 +610,290 @@ async function handleSubmit() {
     <!-- 行下拉展开：触发器信息（触发类型 / Cron / 间隔 / 运行态 / 上下次执行 / 起止 / 执行统计） -->
     <template #expand="{ row }">
       <div class="xh-trigger-expand">
-        <NDescriptions :column="3" label-placement="left" size="small" bordered>
-          <NDescriptionsItem :label="t('setting.job.trigger_type')">
-            {{ getOptionLabel(triggerTypeOptions, asTask(row).triggerType) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.cron_expression')">
-            <code v-if="asTask(row).cronExpression">{{ asTask(row).cronExpression }}</code>
-            <span v-else>-</span>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.interval_label')">
-            {{ asTask(row).intervalSeconds ? `${asTask(row).intervalSeconds}s` : '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.run_status')">
-            <NTag size="small" round :bordered="false" :type="runStatusTag(asTask(row).runTaskStatus)">
-              {{ getOptionLabel(runTaskStatusOptions, asTask(row).runTaskStatus) }}
-            </NTag>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.next_run')">
-            {{ formatNullableDate(asTask(row).nextRunTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.last_run')">
-            {{ formatNullableDate(asTask(row).lastRunTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.start_time')">
-            {{ formatNullableDate(asTask(row).startTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.end_time')">
-            {{ formatNullableDate(asTask(row).endTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('setting.job.exec_stats')">
-            {{ t('setting.job.exec_stats_value', { executed: asTask(row).executedCount, repeat: asTask(row).repeatCount, retry: asTask(row).retryCount, maxRetry: asTask(row).maxRetryCount }) }}
-          </NDescriptionsItem>
-        </NDescriptions>
+        <XhDescriptionsRoot :columns="3" bordered placement="left" size="sm">
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.trigger_type') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ getOptionLabel(triggerTypeOptions, asTask(row).triggerType) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.cron_expression') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <code v-if="asTask(row).cronExpression">{{ asTask(row).cronExpression }}</code>
+              <span v-else>-</span>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.interval_label') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ asTask(row).intervalSeconds ? `${asTask(row).intervalSeconds}s` : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.run_status') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <XhBadge variant="subtle" size="sm" :tone="runStatusTag(asTask(row).runTaskStatus)">
+                {{ getOptionLabel(runTaskStatusOptions, asTask(row).runTaskStatus) }}
+              </XhBadge>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.next_run') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(asTask(row).nextRunTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.last_run') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(asTask(row).lastRunTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.start_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(asTask(row).startTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.end_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(asTask(row).endTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.job.exec_stats') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ t('setting.job.exec_stats_value', { executed: asTask(row).executedCount, repeat: asTask(row).repeatCount, retry: asTask(row).retryCount, maxRetry: asTask(row).maxRetryCount }) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+        </XhDescriptionsRoot>
       </div>
     </template>
 
-    <NDrawer v-model:show="detailVisible" :width="640">
-      <NDrawerContent closable :title="t('setting.job.detail_title')">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !detailData" class="xh-detail-empty" :description="t('setting.job.detail_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="detailData" style="max-height: calc(100vh - 120px)">
-            <NDescriptions :column="1" bordered label-placement="left" size="small">
-              <NDescriptionsItem :label="t('setting.job.task_name')">
-                {{ detailData.taskName }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.task_code')">
-                {{ detailData.taskCode }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.task_group')">
-                {{ detailData.taskGroup || '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.task_description')">
-                {{ detailData.taskDescription || '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.task_class')">
-                {{ detailData.taskClass }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.task_method')">
-                {{ detailData.taskMethod || '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.task_params')">
-                <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.trigger_type')">
-                {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.cron_expression')">
-                {{ detailData.cronExpression || '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.run_status')">
-                <NTag :type="runStatusTag(detailData.runTaskStatus)" round size="small">
-                  {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
-                </NTag>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.status')">
-                <NTag :type="statusTag(detailData.status)" round size="small">
-                  {{ getOptionLabel(statusOptions, detailData.status) }}
-                </NTag>
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.priority')">
-                {{ detailData.priority }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.allow_concurrent')">
-                {{ formatBoolean(detailData.allowConcurrent) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.timeout_seconds')">
-                {{ detailData.timeoutSeconds }}s
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.interval_seconds')">
-                {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.exec_stats')">
-                {{ t('setting.job.exec_stats_value', { executed: detailData.executedCount, repeat: detailData.repeatCount, retry: detailData.retryCount, maxRetry: detailData.maxRetryCount }) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.start_time')">
-                {{ formatNullableDate(detailData.startTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.end_time')">
-                {{ formatNullableDate(detailData.endTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.next_run')">
-                {{ formatNullableDate(detailData.nextRunTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.last_run')">
-                {{ formatNullableDate(detailData.lastRunTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.created_time')">
-                {{ formatNullableDate(detailData.createdTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.modified_time')">
-                {{ formatNullableDate(detailData.modifiedTime) }}
-              </NDescriptionsItem>
-              <NDescriptionsItem :label="t('setting.job.remark')">
-                {{ detailData.remark || '-' }}
-              </NDescriptionsItem>
-            </NDescriptions>
-          </NScrollbar>
-        </NSpin>
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 640px">
+        <XhDrawerTitle>{{ t('setting.job.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="detailLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!detailLoading && !detailData" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('setting.job.detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <XhDescriptionsRoot :columns="1" bordered placement="left" size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.taskName }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_code') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.taskCode }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_group') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.taskGroup || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_description') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.taskDescription || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_class') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.taskClass }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_method') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.taskMethod || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_params') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.trigger_type') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.cron_expression') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.cronExpression || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.run_status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" :tone="runStatusTag(detailData.runTaskStatus)" size="sm">
+                    {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                    {{ getOptionLabel(statusOptions, detailData.status) }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.priority') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.priority }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.allow_concurrent') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(detailData.allowConcurrent) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.timeout_seconds') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.timeoutSeconds }}s
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.interval_seconds') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.exec_stats') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ t('setting.job.exec_stats_value', { executed: detailData.executedCount, repeat: detailData.repeatCount, retry: detailData.retryCount, maxRetry: detailData.maxRetryCount }) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.start_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.startTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.end_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.endTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.next_run') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.nextRunTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.last_run') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.lastRunTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.created_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.createdTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.modified_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(detailData.modifiedTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.remark') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detailData.remark || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </div>
+        </div>
         <template v-if="detailData" #footer>
-          <NSpace justify="end">
-            <NButton @click="handleLogs(detailData); detailVisible = false">
-              <template #icon>
-                <NIcon><Icon icon="lucide:history" /></NIcon>
-              </template>
+          <XhFlex justify="end" gap="md">
+            <XhButton @click="handleLogs(detailData); detailVisible = false">
+              <span><Icon icon="lucide:history" /></span>
               {{ t('setting.job.logs') }}
-            </NButton>
-            <NButton
-              type="primary"
+            </XhButton>
+            <XhButton
+              tone="brand"
               :disabled="triggerDisabled(detailData)"
               @click="handleTrigger(detailData); detailVisible = false"
             >
-              <template #icon>
-                <NIcon><Icon icon="lucide:zap" /></NIcon>
-              </template>
+              <span><Icon icon="lucide:zap" /></span>
               {{ t('setting.job.trigger_immediate') }}
-            </NButton>
-            <NButton
-              :type="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
+            </XhButton>
+            <XhButton
+              :tone="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
               :disabled="detailData.runTaskStatus === RunTaskStatus.Running"
               @click="handleToggleStatus(detailData); detailVisible = false"
             >
-              <template #icon>
-                <NIcon><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></NIcon>
-              </template>
+              <span><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></span>
               {{ detailData.status === EnableStatus.Enabled ? t('common.actions.disable') : t('common.actions.enable') }}
-            </NButton>
-          </NSpace>
+            </XhButton>
+          </XhFlex>
         </template>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
     <!-- 执行日志抽屉：按任务过滤的执行历史，行点击查看异常堆栈/输出日志 -->
-    <NDrawer v-model:show="logVisible" :width="860">
-      <NDrawerContent
-        closable
-        :title="t('setting.job.log_title', { name: logTask?.taskName ?? '' })"
-        :body-content-style="{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }"
-      >
+    <XhDrawerRoot v-model:open="logVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 860px">
+        <XhDrawerTitle>{{ t('setting.job.log_title', { name: logTask?.taskName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <div class="xh-task-log-toolbar">
-          <NSelect
+          <XSelect
             v-model:value="logStatusFilter"
             clearable
             :options="runTaskStatusOptions"
             :placeholder="t('setting.job.log_status_filter_placeholder')"
-            size="small"
+            size="sm"
             style="width: 140px"
             @update:value="loadTaskLogs(1)"
           />
-          <NInput
+          <XInput
             v-model:value="logBatchFilter"
             clearable
             :placeholder="t('setting.job.batch_number_placeholder')"
-            size="small"
+            size="sm"
             style="width: 180px"
             @clear="loadTaskLogs(1)"
             @keyup.enter="loadTaskLogs(1)"
           />
-          <NButton size="small" @click="loadTaskLogs(1)">
-            <template #icon>
-              <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-            </template>
+          <XhButton size="sm" @click="loadTaskLogs(1)">
+            <span><Icon icon="lucide:refresh-cw" /></span>
             {{ t('common.actions.refresh') }}
-          </NButton>
+          </XhButton>
           <span class="xh-task-log-tip">{{ t('setting.job.log_row_tip') }}</span>
         </div>
         <div class="xh-task-log-body">
-          <NDataTable
+          <XDataTable
             class="xh-task-log-table"
-            flex-height
             :columns="taskLogColumns"
             :data="logItems"
             :loading="logLoading"
@@ -830,172 +901,298 @@ async function handleSubmit() {
               page: logPagination.page,
               pageSize: logPagination.pageSize,
               itemCount: logPagination.itemCount,
-              onUpdatePage: (p: number) => loadTaskLogs(p),
-            }"
+              onUpdatePage: (p: number) => loadTaskLogs(p) }"
             :row-key="(row: TaskLogListItemDto) => row.basicId"
             :row-props="taskLogRowProps"
-            remote
-            size="small"
+            size="sm"
           />
         </div>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
     <!-- 执行日志详情：执行结果 / 异常信息 / 异常堆栈 / 输出日志 -->
-    <NModal
-      v-model:show="logDetailVisible"
-      :auto-focus="false"
-      :bordered="false"
-      preset="card"
-      style="width: 760px; max-width: 92vw"
-      :title="t('setting.job.log_detail_title')"
-    >
-      <NSpin :show="logDetailLoading">
-        <NEmpty v-if="!logDetailLoading && !logDetail" class="xh-detail-empty" :description="t('setting.job.log_detail_empty')">
-          <template #icon>
-            <NIcon><Icon icon="lucide:inbox" /></NIcon>
-          </template>
-        </NEmpty>
-        <NScrollbar v-else-if="logDetail" style="max-height: 70vh">
-          <NDescriptions :column="2" bordered label-placement="left" size="small">
-            <NDescriptionsItem :label="t('setting.job.task_name')">
-              {{ logDetail.taskName }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.task_code')">
-              {{ logDetail.taskCode }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.batch_number')">
-              {{ logDetail.batchNumber || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.log_status')">
-              <NTag :type="runStatusTag(logDetail.taskStatus)" round size="small">
-                {{ getOptionLabel(runTaskStatusOptions, logDetail.taskStatus) }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.trigger_mode')">
-              {{ logDetail.triggerMode || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.retry_count')">
-              {{ logDetail.retryCount }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.start_time')">
-              {{ formatDate(logDetail.startTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.end_time')">
-              {{ formatNullableDate(logDetail.endTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.exec_duration')">
-              {{ formatExecutionTime(logDetail.executionTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.job.remark')">
-              {{ logDetail.remark || '-' }}
-            </NDescriptionsItem>
-          </NDescriptions>
+    <XhDialogRoot v-model:open="logDetailVisible">
+      <XhDialogContent style="--xh-dialog-max-w: 760px">
+        <XhDialogTitle>{{ t('setting.job.log_detail_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="logDetailLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!logDetailLoading && !logDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('setting.job.log_detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="logDetail" class="xh-scroll-area" style="max-height: 70vh">
+            <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ logDetail.taskName }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.task_code') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ logDetail.taskCode }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.batch_number') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ logDetail.batchNumber || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.log_status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" :tone="runStatusTag(logDetail.taskStatus)" size="sm">
+                    {{ getOptionLabel(runTaskStatusOptions, logDetail.taskStatus) }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.trigger_mode') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ logDetail.triggerMode || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.retry_count') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ logDetail.retryCount }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.start_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatDate(logDetail.startTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.end_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(logDetail.endTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.exec_duration') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatExecutionTime(logDetail.executionTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.job.remark') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ logDetail.remark || '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
 
-          <template v-if="logDetail.executionResult">
-            <div class="xh-task-log-section">
-              {{ t('setting.job.exec_result') }}
-            </div>
-            <pre class="xh-task-log-pre">{{ logDetail.executionResult }}</pre>
-          </template>
-          <template v-if="logDetail.exceptionMessage">
-            <div class="xh-task-log-section is-error">
-              {{ t('setting.job.exception_message') }}
-            </div>
-            <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionMessage }}</pre>
-          </template>
-          <template v-if="logDetail.exceptionStackTrace">
-            <div class="xh-task-log-section is-error">
-              {{ t('setting.job.exception_stack') }}
-            </div>
-            <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionStackTrace }}</pre>
-          </template>
-          <template v-if="logDetail.outputLog">
-            <div class="xh-task-log-section">
-              {{ t('setting.job.output_log') }}
-            </div>
-            <pre class="xh-task-log-pre">{{ logDetail.outputLog }}</pre>
-          </template>
-        </NScrollbar>
-      </NSpin>
-    </NModal>
+            <template v-if="logDetail.executionResult">
+              <div class="xh-task-log-section">
+                {{ t('setting.job.exec_result') }}
+              </div>
+              <pre class="xh-task-log-pre">{{ logDetail.executionResult }}</pre>
+            </template>
+            <template v-if="logDetail.exceptionMessage">
+              <div class="xh-task-log-section is-error">
+                {{ t('setting.job.exception_message') }}
+              </div>
+              <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionMessage }}</pre>
+            </template>
+            <template v-if="logDetail.exceptionStackTrace">
+              <div class="xh-task-log-section is-error">
+                {{ t('setting.job.exception_stack') }}
+              </div>
+              <pre class="xh-task-log-pre is-error">{{ logDetail.exceptionStackTrace }}</pre>
+            </template>
+            <template v-if="logDetail.outputLog">
+              <div class="xh-task-log-section">
+                {{ t('setting.job.output_log') }}
+              </div>
+              <pre class="xh-task-log-pre">{{ logDetail.outputLog }}</pre>
+            </template>
+          </div>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="jobForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('setting.job.task_code')" path="taskCode">
-          <NInput
-            v-model:value="jobForm.taskCode"
-            clearable
-            :disabled="Boolean(jobForm.basicId)"
-            :placeholder="t('setting.job.task_code_input_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.task_name')" path="taskName">
-          <NInput v-model:value="jobForm.taskName" clearable :placeholder="t('setting.job.task_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.task_group')" path="taskGroup">
-          <NInput v-model:value="jobForm.taskGroup" clearable :placeholder="t('setting.job.task_group_input_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.trigger_type')" path="triggerType">
-          <NSelect v-model:value="jobForm.triggerType" :options="triggerTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.task_class')" path="taskClass">
-          <NInput v-model:value="jobForm.taskClass" clearable :placeholder="t('setting.job.task_class_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.task_method')" path="taskMethod">
-          <NInput v-model:value="jobForm.taskMethod" clearable :placeholder="t('setting.job.task_method_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.cron_expression')" path="cronExpression" class="xh-span-2">
-          <CronExpression v-model:value="jobForm.cronExpression" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.interval_label')" path="intervalSeconds">
-          <NInputNumber v-model:value="jobForm.intervalSeconds" :min="0" clearable />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.priority')" path="priority">
-          <NInputNumber v-model:value="jobForm.priority" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.timeout_label')" path="timeoutSeconds">
-          <NInputNumber v-model:value="jobForm.timeoutSeconds" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.max_retry_count')" path="maxRetryCount">
-          <NInputNumber v-model:value="jobForm.maxRetryCount" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.allow_concurrent')" path="allowConcurrent">
-          <NSwitch v-model:value="jobForm.allowConcurrent" />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.task_params')" path="taskParams" class="xh-span-2">
-          <NInput
-            v-model:value="jobForm.taskParams"
-            clearable
-            :placeholder="t('setting.job.task_params_placeholder')"
-            :rows="3"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.task_description')" path="taskDescription" class="xh-span-2">
-          <NInput
-            v-model:value="jobForm.taskDescription"
-            clearable
-            :placeholder="t('setting.job.task_description_placeholder')"
-            :rows="2"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.job.remark')" path="remark" class="xh-span-2">
-          <NInput
-            v-model:value="jobForm.remark"
-            clearable
-            :placeholder="t('setting.job.remark_placeholder')"
-            :rows="2"
-            type="textarea"
-          />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="jobForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="taskCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="jobForm.taskCode"
+                clearable
+                :disabled="Boolean(jobForm.basicId)"
+                :placeholder="t('setting.job.task_code_input_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="taskName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="jobForm.taskName" clearable :placeholder="t('setting.job.task_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="taskGroup">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_group') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="jobForm.taskGroup" clearable :placeholder="t('setting.job.task_group_input_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="triggerType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.trigger_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="jobForm.triggerType" :options="triggerTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="taskClass">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_class') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="jobForm.taskClass" clearable :placeholder="t('setting.job.task_class_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="taskMethod">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_method') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="jobForm.taskMethod" clearable :placeholder="t('setting.job.task_method_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="cronExpression" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.cron_expression') }}</XhFieldLabel>
+            <XhFieldControl>
+              <CronExpression v-model:value="jobForm.cronExpression" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="intervalSeconds">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.interval_label') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="jobForm.intervalSeconds" :min="0" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="priority">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.priority') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="jobForm.priority" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="timeoutSeconds">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.timeout_label') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="jobForm.timeoutSeconds" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="maxRetryCount">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.max_retry_count') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="jobForm.maxRetryCount" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="allowConcurrent">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.allow_concurrent') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="jobForm.allowConcurrent" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="taskParams" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_params') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="jobForm.taskParams"
+                clearable
+                :placeholder="t('setting.job.task_params_placeholder')"
+                :rows="3"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="taskDescription" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.task_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="jobForm.taskDescription"
+                clearable
+                :placeholder="t('setting.job.task_description_placeholder')"
+                :rows="2"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.job.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="jobForm.remark"
+                clearable
+                :placeholder="t('setting.job.remark_placeholder')"
+                :rows="2"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>
@@ -1012,7 +1209,7 @@ async function handleSubmit() {
 .xh-trigger-expand code {
   font-family: ui-monospace, SFMono-Regular, monospace;
   font-size: 12px;
-  color: var(--n-text-color);
+  color: hsl(var(--foreground));
 }
 
 .xh-task-log-toolbar {
@@ -1048,14 +1245,14 @@ async function handleSubmit() {
 }
 
 .xh-task-log-section.is-error {
-  color: var(--n-color-target, #d03050);
+  color: var(--xh-color-danger-600);
 }
 
 .xh-task-log-pre {
   margin: 0;
   padding: 10px 12px;
   border-radius: 6px;
-  background: var(--n-action-color, rgb(128 128 128 / 8%));
+  background: var(--xh-bg-subtle);
   font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;

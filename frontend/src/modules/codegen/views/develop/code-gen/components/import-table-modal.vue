@@ -6,19 +6,11 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import {
-  NButton,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NSelect,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XEditModal } from '~/components'
+import { Icon, XEditModal, XInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import {
   codeGenDataSourceApi,
   codeGenerationApi,
@@ -38,7 +30,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const tableLoading = ref(false)
 const submitLoading = ref(false)
@@ -102,7 +96,7 @@ async function loadTables() {
     tableOptions.value = (tables ?? []).map(name => ({ label: name, value: name }))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.import.load_tables_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.import.load_tables_failed'))
     tableOptions.value = []
   }
   finally {
@@ -117,7 +111,7 @@ function onDataSourceChange() {
 
 async function handleImport() {
   if (selectedTables.value.length === 0) {
-    message.warning(t('develop.code_gen.import.validate_select_table'))
+    toast.warning(t('develop.code_gen.import.validate_select_table'))
     return
   }
   submitLoading.value = true
@@ -132,19 +126,19 @@ async function handleImport() {
     emit('imported')
 
     if (result.failed.length === 0) {
-      message.success(t('develop.code_gen.import.import_batch_success', { count: result.succeeded.length }))
+      toast.success(t('develop.code_gen.import.import_batch_success', { count: result.succeeded.length }))
       emit('update:show', false)
     }
     else {
       // 有失败：保留弹窗展示明细，成功的已刷新到列表
-      message.warning(t('develop.code_gen.import.import_batch_partial', {
+      toast.warning(t('develop.code_gen.import.import_batch_partial', {
         ok: result.succeeded.length,
         fail: result.failed.length,
       }))
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.import.import_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.import.import_failed'))
   }
   finally {
     submitLoading.value = false
@@ -158,58 +152,66 @@ async function handleImport() {
     :title="t('develop.code_gen.import.title')"
     :loading="submitLoading"
     :save-text="t('develop.code_gen.import.action_import')"
+    :form-id="editFormId"
     @update:show="emit('update:show', $event)"
-    @save="handleImport"
   >
     <div class="import-filters">
-      <NSelect
+      <XSelect
         v-model:value="dataSourceId"
         class="import-filters__item"
-        filterable
         :options="dataSourceOptions"
         :placeholder="t('develop.code_gen.import.data_source_placeholder')"
         @update:value="onDataSourceChange"
       />
-      <NInput
+      <XInput
         v-model:value="queryKeyword"
         class="import-filters__item"
         clearable
         :placeholder="t('develop.code_gen.import.keyword_placeholder')"
         @keyup.enter="loadTables"
       />
-      <NButton :loading="tableLoading" type="primary" @click="loadTables">
-        <template #icon>
-          <NIcon><Icon icon="lucide:search" /></NIcon>
-        </template>
+      <XhButton :loading="tableLoading" tone="brand" @click="loadTables">
+        <span><Icon icon="lucide:search" /></span>
         {{ t('common.actions.search') }}
-      </NButton>
+      </XhButton>
     </div>
-    <NForm class="xh-edit-form-grid" label-placement="top">
-      <NFormItem :label="t('develop.code_gen.import.form_database_type')">
-        <NSelect v-model:value="databaseType" :options="DATABASE_TYPE_OPTIONS" />
-      </NFormItem>
-      <NFormItem :label="t('develop.code_gen.import.form_select_tables', { count: selectedCount })">
-        <NSelect
-          v-model:value="selectedTables"
-          clearable
-          filterable
-          multiple
-          :loading="tableLoading"
-          :max-tag-count="6"
-          :options="tableOptions"
-          :placeholder="t('develop.code_gen.import.select_tables_placeholder')"
-        />
-      </NFormItem>
-    </NForm>
+    <XhFormRoot
+      :id="editFormId"
+      validate-on="blur"
+      class="xh-edit-form-grid"
+      @submit="handleImport"
+    >
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('develop.code_gen.import.form_database_type') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XSelect v-model:value="databaseType" :options="DATABASE_TYPE_OPTIONS" />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('develop.code_gen.import.form_select_tables', { count: selectedCount }) }}</XhFieldLabel>
+        <XhFieldControl>
+          <XSelect
+            v-model:value="selectedTables"
+            clearable
+            multiple
+            :max-tag-count="6"
+            :options="tableOptions"
+            :placeholder="t('develop.code_gen.import.select_tables_placeholder')"
+          />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
+    </XhFormRoot>
 
     <div v-if="importResult && importResult.failed.length > 0" class="import-result">
       <div class="import-result__title">
         {{ t('develop.code_gen.import.result_failed_title') }}
       </div>
       <div v-for="item in importResult.failed" :key="item.tableName" class="import-result__row">
-        <NTag :bordered="false" size="small" type="error">
+        <XhBadge variant="subtle" size="sm" tone="danger">
           {{ item.tableName }}
-        </NTag>
+        </XhBadge>
         <span class="import-result__reason">{{ item.reason }}</span>
       </div>
     </div>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NAvatar } from 'naive-ui'
+import { XhAvatarFallback, XhAvatarImage, XhAvatarRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useAvatarUrl } from '~/composables'
 
@@ -34,24 +34,17 @@ const fontSize = computed(() => `${Math.max(12, Math.round(props.size * 0.4))}px
 </script>
 
 <template>
-  <!-- 有图：显示图片；无图/换取中：显示首字母。slot 与 src 互斥——naive 的 NAvatar 一旦有默认插槽就忽略 src，故必须分支渲染 -->
-  <NAvatar
-    v-if="resolvedUrl"
+  <!-- 头像根自带回退：图片没给/加载失败时自动显示 fallback，不必在外面分支渲染 -->
+  <XhAvatarRoot
     class="xh-user-avatar"
-    :round="round"
-    :size="size"
-    :src="resolvedUrl"
-    object-fit="cover"
-  />
-  <NAvatar
-    v-else
-    class="xh-user-avatar"
-    :round="round"
-    :size="size"
-    color="hsl(var(--primary) / 12%)"
+    :src="resolvedUrl || undefined"
+    :style="{ inlineSize: `${size}px`, blockSize: `${size}px`, borderRadius: round ? 'var(--xh-radius-full)' : 'var(--xh-shape-control)' }"
   >
-    <span class="xh-user-avatar__initials" :style="{ fontSize }">{{ initials }}</span>
-  </NAvatar>
+    <XhAvatarImage :alt="initials" />
+    <XhAvatarFallback class="xh-user-avatar__initials" :style="{ fontSize }">
+      {{ initials }}
+    </XhAvatarFallback>
+  </XhAvatarRoot>
 </template>
 
 <style scoped>

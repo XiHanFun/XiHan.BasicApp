@@ -129,13 +129,13 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  */
 export function getStatusType(
   status: number,
-): 'success' | 'warning' | 'error' | 'info' | 'default' {
-  const map: Record<number, 'success' | 'warning' | 'error' | 'info' | 'default'> = {
+): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
+  const map: Record<number, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
     1: 'success',
-    0: 'error',
+    0: 'danger',
     2: 'warning',
   }
-  return map[status] ?? 'default'
+  return map[status] ?? 'neutral'
 }
 
 /**

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NInputNumber, NSwitch } from 'naive-ui'
+import { XhSwitch } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
+import { XNumberInput } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import PrefTip from './PrefTip.vue'
@@ -14,29 +15,29 @@ const { t } = useI18n()
 
 <template>
   <div class="space-y-4">
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.general.title') }}
       </div>
       <div class="pref-row">
         <span>{{ t('preference.general.language') }}</span>
-        <LocaleSwitcher variant="select" apply size="small" :select-width="130" />
+        <LocaleSwitcher variant="select" apply size="sm" :select-width="130" />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.general.timezone') }}</span>
-        <TimezoneSwitcher variant="select" apply size="small" :select-width="190" />
+        <TimezoneSwitcher variant="select" apply size="sm" :select-width="190" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.dynamic_title') }}</span>
           <PrefTip :content="t('preference.general.dynamic_title_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.dynamicTitle" />
+        <XhSwitch v-model:checked="appStore.dynamicTitle" />
       </div>
-    </NCard>
+    </section>
 
     <!-- 同步 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.general.sync_title') }}
       </div>
@@ -45,40 +46,40 @@ const { t } = useI18n()
           <span>{{ t('preference.general.preference_sync') }}</span>
           <PrefTip :content="t('preference.general.preference_sync_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.preferenceSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.preferenceSyncEnabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.widgets_sync') }}</span>
           <PrefTip :content="t('preference.general.widgets_sync_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.widgetsSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.widgetsSyncEnabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.favorites_sync') }}</span>
           <PrefTip :content="t('preference.general.favorites_sync_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.favoritesSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.favoritesSyncEnabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.search_sync') }}</span>
           <PrefTip :content="t('preference.general.search_sync_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.searchSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.searchSyncEnabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.table_sync') }}</span>
           <PrefTip :content="t('preference.general.table_sync_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.tableSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.tableSyncEnabled" />
       </div>
-    </NCard>
+    </section>
 
     <!-- 更新 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.general.update_title') }}
       </div>
@@ -87,23 +88,30 @@ const { t } = useI18n()
           <span>{{ t('preference.general.check_updates') }}</span>
           <PrefTip :content="t('preference.general.check_updates_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.enableCheckUpdates" />
+        <XhSwitch v-model:checked="appStore.enableCheckUpdates" />
       </div>
       <div v-if="appStore.enableCheckUpdates" class="pref-row">
         <span>{{ t('preference.general.check_updates_interval') }}</span>
         <div class="flex items-center gap-1">
-          <NInputNumber
+          <XNumberInput
             v-model:value="appStore.checkUpdatesInterval"
             :min="10"
             :max="300"
             :step="10"
-            size="small"
-            :input-props="{ style: 'text-align: center' }"
+            size="sm"
+            class="pref-num pref-num--center"
             style="width: 90px"
           />
           <span class="unit-label">{{ t('preference.general.check_updates_interval_unit') }}</span>
         </div>
       </div>
-    </NCard>
+    </section>
   </div>
 </template>
+
+<style scoped>
+/* 数字输入框里的文字居中：input 由组件库渲染，只能经 :deep 够到 */
+.pref-num--center :deep([data-scope='number-field'][data-part='input']) {
+  text-align: center;
+}
+</style>

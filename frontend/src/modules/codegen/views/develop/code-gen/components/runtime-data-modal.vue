@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   DynamicRuntimeColumnDto,
   DynamicRuntimeSchemaDto,
@@ -7,16 +6,13 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import {
-  NDataTable,
-  NEmpty,
-  NModal,
-  NPagination,
-  NSpin,
-  useMessage,
-} from 'naive-ui'
+import type { XDataTableColumn } from '~/components'
+import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { SchemaPagination, XDataTable } from '~/components'
+import { toast } from '~/composables'
+import { Icon } from '~/iconify'
 import {
   codeGenRuntimeApi,
 } from '../../../../api'
@@ -36,7 +32,6 @@ const emit = defineEmits<{
 type RuntimeRow = Record<string, unknown>
 
 const { t } = useI18n()
-const message = useMessage()
 
 const modalTitle = computed(() =>
   props.tableName
@@ -52,18 +47,16 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 
-const columns = computed<DataTableColumns<RuntimeRow>>(() => {
+const columns = computed<XDataTableColumn<RuntimeRow>[]>(() => {
   const cols = schema.value?.columns ?? []
   return cols.map((column: DynamicRuntimeColumnDto) => ({
     key: column.propertyName,
     title: column.label || column.columnName,
     minWidth: 140,
-    ellipsis: { tooltip: true },
+    ellipsis: true,
     render: (row: RuntimeRow) => formatCell(row[column.propertyName]),
   }))
 })
-
-const scrollX = computed(() => Math.max(640, columns.value.length * 160))
 
 function formatCell(value: unknown): string {
   if (value === null || value === undefined) {
@@ -102,7 +95,7 @@ async function loadSchema(tableId: ApiId) {
     await loadData()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.runtime.load_schema_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.runtime.load_schema_failed'))
     schema.value = null
     rows.value = []
     total.value = 0
@@ -127,7 +120,7 @@ async function loadData() {
     total.value = result.totalCount
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.runtime.load_data_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.runtime.load_data_failed'))
     rows.value = []
     total.value = 0
   }
@@ -149,47 +142,50 @@ function handlePageSizeChange(value: number) {
 </script>
 
 <template>
-  <NModal
-    :auto-focus="false"
-    :bordered="false"
-    preset="card"
-    :show="show"
-    style="width: 96vw; max-width: 1200px"
-    :title="modalTitle"
-    @update:show="emit('update:show', $event)"
+  <XhDialogRoot
+    :open="show"
+    @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <NSpin :show="schemaLoading">
-      <div class="runtime">
-        <NEmpty
-          v-if="!schemaLoading && (!schema || schema.columns.length === 0)"
-          :description="t('develop.code_gen.runtime.empty')"
-        />
-        <template v-else>
-          <!-- flex-height：让表体撑满容器，横向滚动条贴在表格底部而不是跟着内容高度浮在中间 -->
-          <NDataTable
-            class="runtime__table"
-            :columns="columns"
-            :data="rows"
-            flex-height
-            :loading="dataLoading"
-            :scroll-x="scrollX"
-            size="small"
-          />
-          <div class="runtime__foot">
-            <NPagination
-              v-model:page="page"
-              v-model:page-size="pageSize"
-              :item-count="total"
-              :page-sizes="[10, 20, 50, 100]"
-              show-size-picker
-              @update:page="handlePageChange"
-              @update:page-size="handlePageSizeChange"
+    <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1200px)">
+      <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <div class="xh-loading-stage">
+        <div v-if="schemaLoading" class="xh-loading-stage__veil">
+          <XhSpinner />
+        </div>
+        <div class="runtime">
+          <XhEmptyStateRoot
+            v-if="!schemaLoading && (!schema || schema.columns.length === 0)"
+          >
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('develop.code_gen.runtime.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <template v-else>
+            <!-- flex-height：让表体撑满容器，横向滚动条贴在表格底部而不是跟着内容高度浮在中间 -->
+            <XDataTable
+              class="runtime__table"
+              :columns="columns"
+              :data="rows"
+              :loading="dataLoading"
+              size="sm"
             />
-          </div>
-        </template>
+            <div class="runtime__foot">
+              <SchemaPagination
+                v-model:page="page"
+                v-model:page-size="pageSize"
+                :total="total"
+                :page-sizes="[10, 20, 50, 100]" @update:page="handlePageChange"
+                @update:page-size="handlePageSizeChange"
+              />
+            </div>
+          </template>
+        </div>
       </div>
-    </NSpin>
-  </NModal>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style scoped>

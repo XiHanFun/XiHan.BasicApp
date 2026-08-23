@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import { NImageGroup, NTooltip } from 'naive-ui'
+import { XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerRoot, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { useAvatarUrl } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
@@ -255,7 +256,7 @@ async function handleDownload(fileId: string) {
 
         <!-- 图片（相册：点击预览可左右切换） -->
         <template v-if="isImage">
-          <NImageGroup>
+          <XhImageViewerRoot>
             <div :class="imageGridClass">
               <ChatMessageImage
                 v-for="att in attachments"
@@ -265,7 +266,20 @@ async function handleDownload(fileId: string) {
                 :thumb="attachments.length > 1"
               />
             </div>
-          </NImageGroup>
+            <XhImageViewerContent>
+              <XhImageViewerViewport>
+                <XhImageViewerImage />
+              </XhImageViewerViewport>
+              <XhImageViewerToolbar>
+                <XhImageViewerPrevTrigger />
+                <XhImageViewerCounter />
+                <XhImageViewerNextTrigger />
+                <XhImageViewerZoomOutTrigger>−</XhImageViewerZoomOutTrigger>
+                <XhImageViewerZoomInTrigger>+</XhImageViewerZoomInTrigger>
+                <XhImageViewerCloseTrigger />
+              </XhImageViewerToolbar>
+            </XhImageViewerContent>
+          </XhImageViewerRoot>
           <div v-if="message.content" class="mt-1 text-[13px]">
             {{ message.content }}
           </div>
@@ -338,20 +352,17 @@ async function handleDownload(fileId: string) {
 
       <!-- 回应汇总 -->
       <div v-if="groupedReactions.length" class="mt-1 flex flex-wrap gap-1" :class="isSelf ? 'justify-end' : ''">
-        <NTooltip v-for="group in groupedReactions" :key="group.emoji">
-          <template #trigger>
-            <button
-              type="button"
-              class="chat-reaction-chip"
-              :class="{ 'chat-reaction-chip--mine': group.mine }"
-              @click="emit('react', group.emoji)"
-            >
-              <span>{{ group.emoji }}</span>
-              <span class="text-[11px]">{{ group.count }}</span>
-            </button>
-          </template>
-          {{ group.users.join('、') }}
-        </NTooltip>
+        <XTooltip v-for="group in groupedReactions" :key="group.emoji" :content="group.users.join('、')">
+          <button
+            type="button"
+            class="chat-reaction-chip"
+            :class="{ 'chat-reaction-chip--mine': group.mine }"
+            @click="emit('react', group.emoji)"
+          >
+            <span>{{ group.emoji }}</span>
+            <span class="text-[11px]">{{ group.count }}</span>
+          </button>
+        </XTooltip>
       </div>
 
       <!-- 元信息：时间 + 状态 + 已读回执 + 悬浮操作 -->

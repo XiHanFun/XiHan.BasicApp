@@ -6,23 +6,15 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NDynamicTags,
-  NForm,
-  NFormItem,
-  NInput,
-  NModal,
-  NSpace,
-  useMessage,
-} from 'naive-ui'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XInput, XTagsInput } from '~/components'
+import { toast } from '~/composables'
 import {
   workflowTodoApi,
 } from '../../../api'
@@ -30,7 +22,6 @@ import {
 defineOptions({ name: 'WorkflowTodoPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 function reload() {
@@ -56,7 +47,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'workflow.todo',
   pageName: t('workflow.todo.page_name'),
   rowKey: 'taskId',
-  scrollX: 1300,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -102,12 +92,12 @@ async function handleComplete() {
       outcome: completeOutcome.value,
       comment: completeComment.value.trim() || undefined,
     })
-    message.success(completeOutcome.value === 'approved' ? t('workflow.todo.msg_approved') : t('workflow.todo.msg_rejected'))
+    toast.success(completeOutcome.value === 'approved' ? t('workflow.todo.msg_approved') : t('workflow.todo.msg_rejected'))
     completeVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workflow.todo.err_complete'))
+    toast.error((error as Error)?.message || t('workflow.todo.err_complete'))
   }
   finally {
     completeLoading.value = false
@@ -132,7 +122,7 @@ async function handleTransfer() {
   if (!transferTarget.value)
     return
   if (!transferTargetUser.value.trim()) {
-    message.warning(t('workflow.todo.transfer_target_required'))
+    toast.warning(t('workflow.todo.transfer_target_required'))
     return
   }
   transferLoading.value = true
@@ -142,12 +132,12 @@ async function handleTransfer() {
       targetAssigneeId: transferTargetUser.value.trim(),
       comment: transferComment.value.trim() || undefined,
     })
-    message.success(t('workflow.todo.msg_transferred'))
+    toast.success(t('workflow.todo.msg_transferred'))
     transferVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workflow.todo.err_transfer'))
+    toast.error((error as Error)?.message || t('workflow.todo.err_transfer'))
   }
   finally {
     transferLoading.value = false
@@ -172,7 +162,7 @@ async function handleAddSign() {
   if (!addSignTarget.value)
     return
   if (addSignUsers.value.length === 0) {
-    message.warning(t('workflow.todo.add_sign_required'))
+    toast.warning(t('workflow.todo.add_sign_required'))
     return
   }
   addSignLoading.value = true
@@ -182,12 +172,12 @@ async function handleAddSign() {
       assigneeIds: addSignUsers.value,
       comment: addSignComment.value.trim() || undefined,
     })
-    message.success(t('workflow.todo.msg_add_signed'))
+    toast.success(t('workflow.todo.msg_add_signed'))
     addSignVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workflow.todo.err_add_sign'))
+    toast.error((error as Error)?.message || t('workflow.todo.err_add_sign'))
   }
   finally {
     addSignLoading.value = false
@@ -218,48 +208,82 @@ function onAction(payload: SchemaActionPayload) {
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 办理（同意/拒绝） -->
-    <NModal v-model:show="completeVisible" preset="card" :title="completeOutcome === 'approved' ? t('workflow.todo.approve_title') : t('workflow.todo.reject_title')" style="width: 480px">
-      <NSpace vertical>
-        <NInput
-          v-model:value="completeComment"
-          type="textarea"
-          :autosize="{ minRows: 2, maxRows: 5 }"
-          :placeholder="t('workflow.todo.comment_placeholder')"
-        />
-        <NButton block :type="completeOutcome === 'approved' ? 'success' : 'error'" :loading="completeLoading" @click="handleComplete">
-          {{ completeOutcome === 'approved' ? t('workflow.todo.btn_approve') : t('workflow.todo.btn_reject') }}
-        </NButton>
-      </NSpace>
-    </NModal>
+    <XhDialogRoot v-model:open="completeVisible">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
+        <XhDialogTitle>{{ completeOutcome === 'approved' ? t('workflow.todo.approve_title') : t('workflow.todo.reject_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <XhFlex direction="column" gap="md">
+          <XInput
+            v-model:value="completeComment"
+            type="textarea"
+            :autosize="{ minRows: 2, maxRows: 5 }"
+            :placeholder="t('workflow.todo.comment_placeholder')"
+          />
+          <XhButton block :tone="completeOutcome === 'approved' ? 'success' : 'danger'" :loading="completeLoading" @click="handleComplete">
+            {{ completeOutcome === 'approved' ? t('workflow.todo.btn_approve') : t('workflow.todo.btn_reject') }}
+          </XhButton>
+        </XhFlex>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <!-- 转办 -->
-    <NModal v-model:show="transferVisible" preset="card" :title="t('workflow.todo.transfer_title')" style="width: 480px">
-      <NForm label-placement="left" :label-width="100">
-        <NFormItem :label="t('workflow.todo.transfer_target')">
-          <NInput v-model:value="transferTargetUser" :placeholder="t('workflow.todo.transfer_target_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('workflow.todo.comment')">
-          <NInput v-model:value="transferComment" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" />
-        </NFormItem>
-      </NForm>
-      <NButton block type="primary" :loading="transferLoading" @click="handleTransfer">
-        {{ t('workflow.todo.btn_transfer') }}
-      </NButton>
-    </NModal>
+    <XhDialogRoot v-model:open="transferVisible">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
+        <XhDialogTitle>{{ t('workflow.todo.transfer_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <XhFormRoot
+          validate-on="blur"
+          layout="horizontal"
+        >
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('workflow.todo.transfer_target') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="transferTargetUser" :placeholder="t('workflow.todo.transfer_target_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="transferComment" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormRoot>
+        <XhButton block tone="brand" :loading="transferLoading" @click="handleTransfer">
+          {{ t('workflow.todo.btn_transfer') }}
+        </XhButton>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <!-- 加签 -->
-    <NModal v-model:show="addSignVisible" preset="card" :title="t('workflow.todo.add_sign_title')" style="width: 480px">
-      <NForm label-placement="left" :label-width="100">
-        <NFormItem :label="t('workflow.todo.add_sign_users')">
-          <NDynamicTags v-model:value="addSignUsers" />
-        </NFormItem>
-        <NFormItem :label="t('workflow.todo.comment')">
-          <NInput v-model:value="addSignComment" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" />
-        </NFormItem>
-      </NForm>
-      <NButton block type="primary" :loading="addSignLoading" @click="handleAddSign">
-        {{ t('workflow.todo.btn_add_sign') }}
-      </NButton>
-    </NModal>
+    <XhDialogRoot v-model:open="addSignVisible">
+      <XhDialogContent style="--xh-dialog-max-w: 480px">
+        <XhDialogTitle>{{ t('workflow.todo.add_sign_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <XhFormRoot
+          validate-on="blur"
+          layout="horizontal"
+        >
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('workflow.todo.add_sign_users') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XTagsInput v-model:value="addSignUsers" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="addSignComment" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormRoot>
+        <XhButton block tone="brand" :loading="addSignLoading" @click="handleAddSign">
+          {{ t('workflow.todo.btn_add_sign') }}
+        </XhButton>
+      </XhDialogContent>
+    </XhDialogRoot>
   </SchemaPage>
 </template>

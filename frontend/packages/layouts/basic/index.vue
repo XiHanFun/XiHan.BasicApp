@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { darkTheme, NConfigProvider, NDropdown } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { XDropdown } from '~/components'
 import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -25,7 +25,7 @@ import { LayoutContentRenderer } from './core'
 
 defineOptions({ name: 'BasicLayout' })
 
-const { isDark, themeOverrides } = useTheme()
+const { isDark } = useTheme()
 const shell = useLayoutShellAdapter()
 const route = useRoute()
 const router = useRouter()
@@ -250,11 +250,11 @@ const sidebarEnableState = computed(
 <template>
   <div class="relative flex h-full w-full">
     <!-- ==================== Sidebar ==================== -->
-    <NConfigProvider
+    <div
       v-if="sidebarEnableState"
       v-show="!shell.contentMaximized.value"
-      :theme="sidebarForceDark ? darkTheme : undefined"
-      :theme-overrides="themeOverrides"
+      :class="{ dark: sidebarForceDark }"
+      :data-theme="sidebarForceDark ? 'dark' : undefined"
     >
       <AppSidebar
         v-model:collapse="shell.sidebarCollapse.value"
@@ -283,7 +283,7 @@ const sidebarEnableState = computed(
         @sidebar-mouse-enter="shell.handleSidebarMouseEnter"
         @sidebar-mouse-leave="shell.handleSidebarMouseLeave"
       />
-    </NConfigProvider>
+    </div>
 
     <!-- ==================== Main Content ==================== -->
     <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
@@ -308,34 +308,34 @@ const sidebarEnableState = computed(
             v-if="shell.showHeaderLogo.value"
             :style="{ minWidth: `${shell.isMobile.value ? 40 : shell.appStore.sidebarWidth}px` }"
           >
-            <NConfigProvider
-              :theme="headerForceDark ? darkTheme : undefined"
-              :theme-overrides="themeOverrides"
+            <div
+              :class="{ dark: headerForceDark }"
+              :data-theme="headerForceDark ? 'dark' : undefined"
             >
               <AppSidebar mode="header-logo" :effective-collapsed="shell.isMobile.value" />
-            </NConfigProvider>
+            </div>
           </div>
 
           <!-- Toggle sidebar button -->
           <XihanIconButton
             v-if="shell.showHeaderToggleButton.value"
             class="my-0 mr-1"
+            :tooltip="shell.showSider.value ? t('header.toolbar.sidebar_collapse') : t('header.toolbar.sidebar_expand')"
             @click="shell.handleHeaderToggle"
           >
-            <Icon :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" width="18" height="18" />
+            <Icon :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" width="16" height="16" />
           </XihanIconButton>
 
           <!-- 收藏夹（收藏常用菜单，跨端同步；可在偏好设置中开关） -->
           <AppFavorites v-if="shell.appStore.widgetFavorites" />
 
           <!-- Header content (flex-1 fills remaining header space) -->
-          <NConfigProvider
-            :theme="headerForceDark ? darkTheme : undefined"
-            :theme-overrides="themeOverrides"
-            class="flex min-w-0 flex-1 items-center"
+          <div
+            class="flex min-w-0 flex-1 items-center" :class="[{ dark: headerForceDark }]"
+            :data-theme="headerForceDark ? 'dark' : undefined"
           >
             <AppHeader :theme="headerTheme" />
-          </NConfigProvider>
+          </div>
         </header>
 
         <!-- Tabbar：随「深色顶栏」一起暗化（与 header 同款：本地 dark class + Naive 暗色） -->
@@ -344,12 +344,12 @@ const sidebarEnableState = computed(
           :class="headerTheme"
           :style="shell.tabbarStyle.value"
         >
-          <NConfigProvider
-            :theme="headerForceDark ? darkTheme : undefined"
-            :theme-overrides="themeOverrides"
+          <div
+            :class="{ dark: headerForceDark }"
+            :data-theme="headerForceDark ? 'dark' : undefined"
           >
             <AppTabbar />
-          </NConfigProvider>
+          </div>
         </div>
       </div>
 
@@ -399,11 +399,11 @@ const sidebarEnableState = computed(
             <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作 -->
             <div class="split-tools" @pointerdown.stop>
               <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
-              <NDropdown trigger="click" :options="splitTabOptions" @select="(key: string | number) => onSideSelect('left', key)">
+              <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('left', key)">
                 <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')">
                   <Icon icon="lucide:replace" width="16" height="16" />
                 </button>
-              </NDropdown>
+              </XDropdown>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @click="onSideReload('left')">
                 <Icon icon="lucide:rotate-cw" width="16" height="16" />
               </button>
@@ -424,11 +424,11 @@ const sidebarEnableState = computed(
               <span class="split-tools__sep" />
 
               <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
-              <NDropdown trigger="click" :options="splitTabOptions" @select="(key: string | number) => onSideSelect('right', key)">
+              <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('right', key)">
                 <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')">
                   <Icon icon="lucide:replace" width="16" height="16" />
                 </button>
-              </NDropdown>
+              </XDropdown>
               <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @click="onSideReload('right')">
                 <Icon icon="lucide:rotate-cw" width="16" height="16" />
               </button>

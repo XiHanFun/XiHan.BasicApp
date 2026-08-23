@@ -1,12 +1,11 @@
-import type { DropdownOption } from 'naive-ui'
-import type { TabItem } from '~/types'
-import { NIcon } from 'naive-ui'
+import type { AppDropdownOption, TabItem } from '~/types'
+
 import { h } from 'vue'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 
 export function createDropdownIcon(icon: string) {
-  return () => h(NIcon, { size: 16 }, { default: () => h(Icon, { icon }) })
+  return () => h(Icon, { icon, width: 16, height: 16 })
 }
 
 export function getTabByPath(tabs: TabItem[], path: string) {
@@ -62,7 +61,7 @@ export function buildTabContextOptions(params: {
 
   // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）。
   // 小屏（splitEnabled=false）不提供「分屏打开」，但仍允许对既有分屏「关闭分屏」。
-  let splitItems: DropdownOption[] = []
+  let splitItems: AppDropdownOption[] = []
   if (isSplitTab) {
     splitItems = [
       { key: 'splitClose', label: t('tabbar.split_close'), icon: createDropdownIcon('lucide:columns-2') },
@@ -139,7 +138,7 @@ export function buildTabContextOptions(params: {
       disabled: closeAllDisabled,
       icon: createDropdownIcon('lucide:rows-3'),
     },
-  ] as DropdownOption[]
+  ] as AppDropdownOption[]
 }
 
 export function openTabInNewWindow(path: string) {

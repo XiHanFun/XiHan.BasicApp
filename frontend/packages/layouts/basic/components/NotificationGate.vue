@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AppUserInboxDisplayItem } from '~/types'
-import { NButton, NModal } from 'naive-ui'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
@@ -67,64 +67,61 @@ onMounted(async () => {
 
 <template>
   <!-- 强制阅读（不可关闭，遮罩拦截系统操作；逐条「我已阅读」清空后自动关闭） -->
-  <NModal
+  <XhDialogRoot
     v-if="currentMandatory"
-    :show="mandatoryVisible"
-    preset="card"
-    :title="currentMandatory.title"
-    :mask-closable="false"
-    :closable="false"
-    :close-on-esc="false"
-    style="width: 820px; max-width: 94vw"
+    :open="mandatoryVisible"
+    role="alertdialog"
+    :close-on-escape="false"
+    :close-on-interact-outside="false"
   >
-    <div class="notif-gate-body">
-      <NotificationContent
-        v-if="currentMandatory.content"
-        :content="currentMandatory.content"
-        :format="currentMandatory.contentFormat"
-      />
-      <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
-    </div>
-    <template #footer>
+    <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
+      <XhDialogTitle>{{ currentMandatory.title }}</XhDialogTitle>
+      <div class="notif-gate-body">
+        <NotificationContent
+          v-if="currentMandatory.content"
+          :content="currentMandatory.content"
+          :format="currentMandatory.contentFormat"
+        />
+        <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
+      </div>
       <div class="flex justify-end">
-        <NButton
-          size="small"
-          type="primary"
+        <XhButton
+          size="sm"
+          variant="solid"
           :loading="markingId === currentMandatory.basicId"
           @click="onMandatoryRead(currentMandatory)"
         >
           {{ t('header.notification.gate.mandatory_read') }}
-        </NButton>
+        </XhButton>
       </div>
-    </template>
-  </NModal>
+    </XhDialogContent>
+  </XhDialogRoot>
 
   <!-- 登录后弹窗（逐条；点「我知道了」标记已展示并弹下一条） -->
-  <NModal
+  <XhDialogRoot
     v-if="currentPopup"
-    :show="popupVisible"
-    preset="card"
-    :title="currentPopup.title"
-    :mask-closable="false"
-    style="width: 820px; max-width: 94vw"
-    @close="onPopupConfirm(currentPopup)"
+    :open="popupVisible"
+    :close-on-interact-outside="false"
+    @update:open="(open: boolean) => !open && onPopupConfirm(currentPopup!)"
   >
-    <div class="notif-gate-body">
-      <NotificationContent
-        v-if="currentPopup.content"
-        :content="currentPopup.content"
-        :format="currentPopup.contentFormat"
-      />
-      <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
-    </div>
-    <template #footer>
-      <div class="flex justify-end">
-        <NButton size="small" type="primary" @click="onPopupConfirm(currentPopup)">
-          {{ t('header.notification.gate.popup_ok') }}
-        </NButton>
+    <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
+      <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <div class="notif-gate-body">
+        <NotificationContent
+          v-if="currentPopup.content"
+          :content="currentPopup.content"
+          :format="currentPopup.contentFormat"
+        />
+        <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
       </div>
-    </template>
-  </NModal>
+      <div class="flex justify-end">
+        <XhButton size="sm" variant="solid" @click="onPopupConfirm(currentPopup)">
+          {{ t('header.notification.gate.popup_ok') }}
+        </XhButton>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style scoped>

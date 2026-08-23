@@ -2,13 +2,13 @@
   "name": "XiHanBasicApp",
   "type": "module",
   "version": "3.13.0",
-  "lastBuildTime": "2026.08.16",
+  "lastBuildTime": "2026.08.17",
   "packageManager": "pnpm@11.7.0",
-  "description": "XiHan BasicApp - A modern Vue3 admin management system built on Naive UI",
+  "description": "XiHan BasicApp - A modern Vue3 admin management system built on XiHan.UI",
   "keyword": [
     "Vue",
     "Vue3",
-    "Naive UI",
+    "XiHan.UI",
     "Pinia",
     "Vite",
     "Tailwind CSS",
@@ -58,7 +58,15 @@
   },
   "dependencies": {
     "@vueuse/core": "catalog:",
-    "naive-ui": "catalog:",
+    "@xihan-ui/animations": "catalog:",
+    "@xihan-ui/code-highlight": "catalog:",
+    "@xihan-ui/headless": "catalog:",
+    "@xihan-ui/icons": "catalog:",
+    "@xihan-ui/kernel": "catalog:",
+    "@xihan-ui/motion": "catalog:",
+    "@xihan-ui/styles": "catalog:",
+    "@xihan-ui/tokens": "catalog:",
+    "@xihan-ui/vue": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
     "vue-i18n": "catalog:",
@@ -87,14 +95,5 @@
   },
   "gitHooks": {
     "pre-commit": "npx --no -- lint-staged"
-  },
-  "lint-staged": {
-    "*.{ts,vue,js,mjs}": [
-      "oxlint --fix",
-      "eslint --fix"
-    ],
-    "*.{json,css,html,md,yaml}": [
-      "prettier --write"
-    ]
   }
 }

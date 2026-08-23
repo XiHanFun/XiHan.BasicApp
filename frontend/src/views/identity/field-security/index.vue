@@ -7,17 +7,8 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref, watch } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -33,13 +24,17 @@ import {
   userManagementApi,
 } from '@/api'
 import { FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemFieldSecurityPage' })
 
 const { t } = useI18n()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 interface FlsFormModel extends FieldLevelSecurityCreateDto {
   basicId?: ApiId
@@ -49,8 +44,6 @@ interface NumericSelectOption {
   label: string
   value: ApiId
 }
-
-const message = useMessage()
 
 const submitLoading = ref(false)
 const modalVisible = ref(false)
@@ -185,7 +178,7 @@ async function loadTargetOptions(keyword = '') {
     targetOptions.value = mergeOptions(targetOptions.value, next)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.field_security.msg_load_target_failed'))
+    toast.error((error as Error)?.message || t('identity.field_security.msg_load_target_failed'))
   }
   finally {
     targetLoading.value = false
@@ -202,7 +195,7 @@ async function loadResourceOptions(keyword = '') {
     )
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.field_security.msg_load_resource_failed'))
+    toast.error((error as Error)?.message || t('identity.field_security.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -226,11 +219,7 @@ function ensureRowOptions(row: FieldLevelSecurityListItemDto) {
 }
 
 function boolTag(value: boolean, onText: string, offText: string) {
-  return h(
-    NTag,
-    { size: 'small', bordered: false, type: value ? 'success' : 'error', style: { fontSize: '11px' } },
-    () => (value ? onText : offText),
-  )
+  return h(XhBadge, { variant: 'subtle', size: 'sm', tone: value ? 'success' : 'danger', style: { fontSize: '11px' } }, () => (value ? onText : offText))
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
@@ -330,7 +319,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:field-level-security:delete',
   statusPermission: 'saas:field-level-security:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -423,15 +411,15 @@ async function handleEdit(row: FieldLevelSecurityListItemDto) {
 function validateForm() {
   const form = flsForm.value
   if (!form.targetId) {
-    message.warning(t('identity.field_security.msg_target_required'))
+    toast.warning(t('identity.field_security.msg_target_required'))
     return false
   }
   if (!form.resourceId) {
-    message.warning(t('identity.field_security.msg_resource_required'))
+    toast.warning(t('identity.field_security.msg_resource_required'))
     return false
   }
   if (!form.fieldName.trim()) {
-    message.warning(t('identity.field_security.msg_field_name_required'))
+    toast.warning(t('identity.field_security.msg_field_name_required'))
     return false
   }
   return true
@@ -477,12 +465,12 @@ async function handleSubmit() {
       }
       await fieldLevelSecurityApi.create(createInput)
     }
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -491,7 +479,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: FieldLevelSecurityListItemDto) {
   await fieldLevelSecurityApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadList()
 }
 
@@ -501,7 +489,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('identity.field_security.front_disable_remark') : t('identity.field_security.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('common.messages.status_updated'))
+  toast.success(t('common.messages.status_updated'))
   reloadList()
 }
 </script>
@@ -512,80 +500,152 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="flsForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('identity.field_security.label_target_type')" path="targetType">
-          <NSelect
-            v-model:value="flsForm.targetType"
-            :disabled="Boolean(flsForm.basicId)"
-            :options="targetTypeOptions"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_target')" path="targetId">
-          <NSelect
-            v-model:value="flsForm.targetId"
-            clearable
-            filterable
-            :loading="targetLoading"
-            :options="targetOptions"
-            :placeholder="targetPlaceholder"
-            remote
-            @focus="loadTargetOptions()"
-            @search="(kw: string) => loadTargetOptions(kw)"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_resource')" path="resourceId">
-          <NSelect
-            v-model:value="flsForm.resourceId"
-            clearable
-            filterable
-            :loading="resourceLoading"
-            :options="resourceOptions"
-            :placeholder="t('identity.field_security.ph_resource')"
-            remote
-            @focus="loadResourceOptions()"
-            @search="(kw: string) => loadResourceOptions(kw)"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_field_name')" path="fieldName">
-          <NInput v-model:value="flsForm.fieldName" clearable :placeholder="t('identity.field_security.ph_field_name')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_readable')" path="isReadable">
-          <NSwitch v-model:value="flsForm.isReadable" />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_editable')" path="isEditable">
-          <NSwitch v-model:value="flsForm.isEditable" />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_mask_strategy')" path="maskStrategy">
-          <NSelect v-model:value="flsForm.maskStrategy" :options="maskStrategyOptions" />
-        </NFormItem>
-        <NFormItem v-if="needMaskPattern" :label="t('identity.field_security.label_mask_pattern')" path="maskPattern">
-          <NInput
-            v-model:value="flsForm.maskPattern"
-            clearable
-            :placeholder="t('identity.field_security.ph_mask_pattern')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_priority')" path="priority">
-          <NInputNumber v-model:value="flsForm.priority" :min="0" />
-        </NFormItem>
-        <NFormItem v-if="!flsForm.basicId" :label="t('identity.field_security.label_status')" path="status">
-          <NSelect v-model:value="flsForm.status" :options="statusEnumOptions" />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_description')" path="description" class="xh-span-2">
-          <NInput
-            v-model:value="flsForm.description"
-            clearable
-            :placeholder="t('identity.field_security.ph_description')"
-            :rows="2"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.field_security.label_remark')" path="remark">
-          <NInput v-model:value="flsForm.remark" clearable :placeholder="t('identity.field_security.ph_remark')" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="flsForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="targetType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_target_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="flsForm.targetType"
+                :disabled="Boolean(flsForm.basicId)"
+                :options="targetTypeOptions"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="targetId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_target') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="flsForm.targetId"
+                clearable
+                :options="targetOptions"
+                :placeholder="targetPlaceholder"
+                @focus="loadTargetOptions()"
+                @search="(kw: string) => loadTargetOptions(kw)"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="resourceId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_resource') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="flsForm.resourceId"
+                clearable
+                :options="resourceOptions"
+                :placeholder="t('identity.field_security.ph_resource')"
+                @focus="loadResourceOptions()"
+                @search="(kw: string) => loadResourceOptions(kw)"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="fieldName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_field_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="flsForm.fieldName" clearable :placeholder="t('identity.field_security.ph_field_name')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isReadable">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_readable') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="flsForm.isReadable" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isEditable">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_editable') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="flsForm.isEditable" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="maskStrategy">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_mask_strategy') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="flsForm.maskStrategy" :options="maskStrategyOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="needMaskPattern" value="maskPattern">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_mask_pattern') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="flsForm.maskPattern"
+                clearable
+                :placeholder="t('identity.field_security.ph_mask_pattern')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="priority">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_priority') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="flsForm.priority" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!flsForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="flsForm.status" :options="statusEnumOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="description" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="flsForm.description"
+                clearable
+                :placeholder="t('identity.field_security.ph_description')"
+                :rows="2"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.field_security.label_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="flsForm.remark" clearable :placeholder="t('identity.field_security.ph_remark')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

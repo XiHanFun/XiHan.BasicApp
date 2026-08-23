@@ -1,23 +1,17 @@
 <script lang="ts" setup>
-import type { FormInst, FormRules } from 'naive-ui'
+import type { FormRules } from '@xihan-ui/headless'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
-import {
-  NButton,
-  NCheckbox,
-  NDivider,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NInputOtp,
-  useMessage,
-} from 'naive-ui'
+
+import { XhButton, XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhSeparator } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAuthStore } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'LoginPage' })
 
@@ -27,10 +21,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { apis } = useAppContext()
-const message = useMessage()
-const formRef = ref<FormInst | null>(null)
 const rememberMe = ref(true)
-const showPassword = ref(false)
 const loginConfig = ref<LoginConfig>({
   loginMethods: ['password'],
   oAuthProviders: [],
@@ -54,7 +45,7 @@ async function refreshCaptcha() {
     captchaCode.value = ''
   }
   catch (error) {
-    message.error((error as Error)?.message || t('page.login.captcha_load_failed'))
+    toast.error((error as Error)?.message || t('page.login.captcha_load_failed'))
   }
   finally {
     captchaLoading.value = false
@@ -88,14 +79,14 @@ const formData = ref({
   password: '',
 })
 
-const rules: FormRules = {
+const rules = computed<FormRules>(() => ({
   username: [
-    { required: true, message: () => t('page.login.username_placeholder'), trigger: 'blur' },
+    { required: true, message: t('page.login.username_placeholder') },
   ],
   password: [
-    { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
+    { required: true, message: t('page.login.password_placeholder') },
   ],
-}
+}))
 
 // 快捷登录账号（种子数据内置；用于演示不同权限层级 / 便于测试站快速登录）
 // 登录标识：
@@ -113,7 +104,7 @@ const quickAccounts = [
 function quickLogin(account: { login: string, password: string }) {
   formData.value.username = account.login
   formData.value.password = account.password
-  handleLogin()
+  onSubmit()
 }
 
 const redirect = computed(() => {
@@ -161,14 +152,12 @@ function buildLoginParams() {
   }
 }
 
-async function handleLogin() {
+async function onSubmit() {
   try {
     if (tfStage.value === 'credentials') {
-      await formRef.value?.validate()
-
       // 图形验证码：提交前校验非空，避免白白消耗一次登录节流计数
       if (loginConfig.value.captchaEnabled && (!captcha.value || !captchaCode.value.trim())) {
-        message.warning(t('page.login.captcha_required'))
+        toast.warning(t('page.login.captcha_required'))
         return
       }
     }
@@ -207,7 +196,7 @@ async function handleLogin() {
     }
     const error = err as { message?: string }
     if (error?.message) {
-      message.error(error.message)
+      toast.error(error.message)
     }
     // 验证码一次性消费：无论对错都已销毁，提示后立即换新码，避免反复撞已销毁的码
     if (error?.message && error.message.includes('验证码')) {
@@ -219,7 +208,7 @@ async function handleLogin() {
 /** 用户选好方式后，发起带 twoFactorMethod 的登录请求 */
 async function handleSelectMethod() {
   if (!selectedMethod.value) {
-    message.warning(t('page.auth.select_method_required'))
+    toast.warning(t('page.auth.select_method_required'))
     return
   }
 
@@ -242,7 +231,7 @@ async function handleSelectMethod() {
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
-      message.error(error.message)
+      toast.error(error.message)
     }
   }
   finally {
@@ -257,13 +246,13 @@ async function handleResendCode() {
     const result = await authStore.login(buildLoginParams(), redirect.value)
     if (result?.codeSent) {
       codeSent.value = true
-      message.success(t('page.auth.code_resent'))
+      toast.success(t('page.auth.code_resent'))
     }
   }
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message)
-      message.error(error.message)
+      toast.error(error.message)
   }
   finally {
     sendingCode.value = false
@@ -272,7 +261,7 @@ async function handleResendCode() {
 
 function handleOtpComplete(codes: string[]) {
   twoFactorCode.value = codes
-  nextTick(() => handleLogin())
+  nextTick(() => onSubmit())
 }
 
 /** 返回双因素方式选择（多种方式时可换一种验证） */
@@ -284,7 +273,7 @@ function handleBackToMethodSelect() {
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter')
-    handleLogin()
+    onSubmit()
 }
 
 function goTo(path: string) {
@@ -299,9 +288,10 @@ onMounted(async () => {
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('page.auth.load_config_failed'))
+    toast.error((error as Error)?.message || t('page.auth.load_config_failed'))
   }
 })
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -315,9 +305,7 @@ onMounted(async () => {
               class="flex justify-center items-center w-11 h-11 rounded-xl"
               :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
             >
-              <NIcon :size="22" :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'">
-                <Icon :icon="methodIcons[selectedMethod] || 'lucide:shield-check'" />
-              </NIcon>
+              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon :icon="methodIcons[selectedMethod] || 'lucide:shield-check'" /></span>
             </div>
             <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
               {{ t('page.auth.two_factor_title') }}
@@ -339,14 +327,19 @@ onMounted(async () => {
           </p>
         </div>
 
-        <div class="flex flex-col items-center py-4" @keydown.enter="handleLogin">
-          <NInputOtp
+        <div class="flex flex-col items-center py-4" @keydown.enter="onSubmit">
+          <XhPinInputRoot
             v-model:value="twoFactorCode"
             :length="6"
-            size="large"
-            autofocus
-            @complete="handleOtpComplete"
-          />
+            otp
+            size="lg"
+            @value-complete="(details: { value: string[] }) => handleOtpComplete(details.value)"
+          >
+            <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+            <div style="display: flex">
+              <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
+            </div>
+          </XhPinInputRoot>
           <p
             class="mt-4 text-xs"
             :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
@@ -355,35 +348,28 @@ onMounted(async () => {
           </p>
         </div>
 
-        <NButton
-          type="primary"
-          block
-          :loading="authStore.loginLoading"
-          :disabled="twoFactorCode.filter(Boolean).length < 6"
-          class="!mt-4 !h-12 !rounded-xl !text-[15px] !font-semibold"
-          @click="handleLogin"
-        >
+        <XhFormSubmitTrigger class="!mt-4 !h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="authStore.loginLoading">
           {{ t('page.auth.two_factor_verify') }}
-        </NButton>
+        </XhFormSubmitTrigger>
 
         <div class="flex gap-2 mt-3">
-          <NButton
+          <XhButton
             v-if="selectedMethod !== 'totp'"
             class="!h-11 flex-1 !rounded-xl"
-            quaternary
+            variant="ghost"
             :loading="sendingCode"
             @click="handleResendCode"
           >
             重新发送
-          </NButton>
-          <NButton
+          </XhButton>
+          <XhButton
             v-if="availableMethods.length > 1"
             class="!h-11 flex-1 !rounded-xl"
-            quaternary
+            variant="ghost"
             @click="handleBackToMethodSelect"
           >
             换种方式
-          </NButton>
+          </XhButton>
         </div>
       </div>
 
@@ -395,9 +381,7 @@ onMounted(async () => {
               class="flex justify-center items-center w-11 h-11 rounded-xl"
               :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
             >
-              <NIcon :size="22" :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'">
-                <Icon icon="lucide:shield-check" />
-              </NIcon>
+              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon icon="lucide:shield-check" /></span>
             </div>
             <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
               选择验证方式
@@ -422,27 +406,24 @@ onMounted(async () => {
               : isDark ? 'border-white/10 hover:border-white/25' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)]'"
             @click="selectedMethod = m"
           >
-            <NIcon
-              :size="20"
+            <span
               :class="selectedMethod === m
                 ? 'text-[hsl(var(--primary))]'
-                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
-            >
-              <Icon :icon="methodIcons[m] || 'lucide:shield-check'" />
-            </NIcon>
+                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'" style="display: inline-flex; font-size: 20px"
+            ><Icon :icon="methodIcons[m] || 'lucide:shield-check'" /></span>
             <span class="text-[15px]">{{ methodLabels[m] || m }}</span>
           </button>
         </div>
 
-        <NButton
-          type="primary"
+        <XhButton
+          tone="brand"
           block
           :loading="sendingCode"
           class="!h-12 !rounded-xl !text-[15px] !font-semibold"
           @click="handleSelectMethod"
         >
           继续
-        </NButton>
+        </XhButton>
       </div>
 
       <!-- 阶段1：常规登录表单 -->
@@ -456,94 +437,83 @@ onMounted(async () => {
           </p>
         </div>
 
-        <NForm
-          ref="formRef"
-          :model="formData"
+        <XhFormRoot
+          v-model:values="formData"
           :rules="rules"
-          label-placement="top"
-          size="large"
-          :show-label="false"
+          validate-on="blur"
+          @invalid="onAuthInvalid"
           @keydown="handleKeydown"
+          @submit="onSubmit"
         >
-          <NFormItem path="username" :show-feedback="false" class="!mb-6">
-            <NInput
-              v-model:value="formData.username"
-              size="large"
-              :placeholder="t('page.login.username_placeholder')"
-              :input-props="{ autocomplete: 'username' }"
-            />
-          </NFormItem>
-          <NFormItem path="password" :show-feedback="false" class="!mb-6">
-            <NInput
-              v-model:value="formData.password"
-              :type="showPassword ? 'text' : 'password'"
-              size="large"
-              :placeholder="t('page.login.password_placeholder')"
-              :input-props="{ autocomplete: 'current-password' }"
-            >
-              <template #suffix>
-                <NIcon
-                  class="cursor-pointer"
-                  :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-                  @click="showPassword = !showPassword"
+          <XhFormFieldGroup value="username" class="!mb-6">
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="formData.username"
+                  size="lg"
+                  :placeholder="t('page.login.username_placeholder')"
+                  autocomplete="username"
+                />
+              </XhFieldControl>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="password" class="!mb-6">
+            <XhFieldRoot>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="formData.password"
+                  type="password"
+                  size="lg"
+                  :placeholder="t('page.login.password_placeholder')"
+                  autocomplete="current-password"
+                />
+              </XhFieldControl>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup v-if="loginConfig.captchaEnabled" value="captchaCode" class="!mb-6">
+            <XhFieldRoot>
+              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆 -->
+              <div class="flex items-center gap-3">
+                <XhFieldControl>
+                  <XInput
+                    v-model:value="captchaCode"
+                    size="lg"
+                    :max-length="4"
+                    :placeholder="t('page.login.captcha_placeholder')"
+                    autocomplete="off"
+                  />
+                </XhFieldControl>
+                <div
+                  class="flex justify-center items-center shrink-0 w-[120px] h-[40px] rounded-lg overflow-hidden"
+                  :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
+                  :title="t('page.login.captcha_refresh_title')"
+                  @click="refreshCaptcha"
                 >
-                  <Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" />
-                </NIcon>
-              </template>
-            </NInput>
-          </NFormItem>
-          <NFormItem
-            v-if="loginConfig.captchaEnabled"
-            path="captchaCode"
-            :show-feedback="false"
-            class="!mb-6"
-          >
-            <div class="flex items-center gap-3">
-              <NInput
-                v-model:value="captchaCode"
-                size="large"
-                :maxlength="4"
-                :placeholder="t('page.login.captcha_placeholder')"
-                :input-props="{ autocomplete: 'off' }"
-              />
-              <div
-                class="flex justify-center items-center shrink-0 w-[120px] h-[40px] rounded-lg overflow-hidden"
-                :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
-                :title="t('page.login.captcha_refresh_title')"
-                @click="refreshCaptcha"
-              >
-                <img
-                  v-if="captcha?.image"
-                  :src="captcha.image"
-                  :alt="t('page.login.captcha_refresh_title')"
-                  class="w-full h-full cursor-pointer select-none"
-                  draggable="false"
-                >
-                <NIcon v-else-if="captchaLoading" :size="18" class="animate-spin">
-                  <Icon icon="lucide:loader-2" />
-                </NIcon>
+                  <img
+                    v-if="captcha?.image"
+                    :src="captcha.image"
+                    :alt="t('page.login.captcha_refresh_title')"
+                    class="w-full h-full cursor-pointer select-none"
+                    draggable="false"
+                  >
+                  <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
+                </div>
               </div>
-            </div>
-          </NFormItem>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
           <div class="flex justify-between items-center mb-5 text-sm">
-            <NCheckbox v-model:checked="rememberMe">
+            <XhCheckbox v-model:checked="rememberMe" size="sm">
               {{ t('page.login.remember_me') }}
-            </NCheckbox>
+            </XhCheckbox>
             <span class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
               {{ t('page.login.forgot_password') }}?
             </span>
           </div>
 
-          <NButton
-            type="primary"
-            block
-            :loading="authStore.loginLoading"
-            class="!h-12 !rounded-xl !text-[15px] !font-semibold"
-            @click="handleLogin"
-          >
+          <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="authStore.loginLoading">
             {{ t('page.login.login_btn') }}
-          </NButton>
-        </NForm>
+          </XhFormSubmitTrigger>
+        </XhFormRoot>
 
         <p
           class="mt-6 text-sm text-center"
@@ -555,25 +525,25 @@ onMounted(async () => {
           </span>
         </p>
 
-        <NDivider
-          v-if="oauthProviders.length > 0"
-          :class="isDark ? '!my-6 !border-white/10' : '!my-6 !border-[hsl(var(--border))]'"
-        >
-          {{ t('page.auth.third_party_login') }}
-        </NDivider>
+        <!-- 分隔线是纯线条、没有插槽，中缝那句文案要自己摆 -->
+        <div v-if="oauthProviders.length > 0" class="flex gap-3 items-center my-6">
+          <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
+          <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'">
+            {{ t('page.auth.third_party_login') }}
+          </span>
+          <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
+        </div>
         <div v-if="oauthProviders.length > 0" class="flex flex-wrap gap-3 justify-center items-center">
-          <NButton
+          <XhButton
             v-for="provider in oauthProviders"
             :key="provider.name"
-            secondary
+            variant="subtle"
             class="!h-10 !rounded-xl !px-4 !text-sm"
             @click="handleOAuthLogin(provider)"
           >
-            <template #icon>
-              <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
-            </template>
+            <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
             {{ provider.displayName }}
-          </NButton>
+          </XhButton>
         </div>
 
         <!-- 快捷登录：内置演示账号，一键填入并登录（超管置顶） -->
@@ -584,18 +554,18 @@ onMounted(async () => {
           {{ t('page.auth.demo_login') }}
         </p>
         <div class="flex flex-wrap gap-x-3 gap-y-1 justify-center items-center mt-1 text-xs">
-          <NButton
+          <XhButton
             v-for="acc in quickAccounts"
             :key="acc.login"
-            text
-            type="primary"
-            size="tiny"
+            variant="ghost"
+            tone="brand"
+            size="sm"
             class="!text-xs"
             :disabled="authStore.loginLoading"
             @click="quickLogin(acc)"
           >
             {{ acc.label }}
-          </NButton>
+          </XhButton>
         </div>
       </div>
     </Transition>
