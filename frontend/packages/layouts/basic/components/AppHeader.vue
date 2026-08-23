@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { DropdownOption, MenuGroupOption, MenuOption } from 'naive-ui'
-import type { VNodeChild } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
-import { NMenu } from 'naive-ui'
+import type { AppDropdownOption, AppMenuOption } from '~/types'
+
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '~/hooks'
@@ -12,6 +11,7 @@ import { NotificationStatus } from '~/types/enums'
 import { useEffectiveLayoutMode, useLayoutMenuDomain, usePreferenceEntry } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
+import HeaderTopMenu from './header/HeaderTopMenu.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
 import XihanIconButton from './XihanIconButton.vue'
 
@@ -84,31 +84,11 @@ function renderRouteIcon(icon: string) {
   return () => h(Icon, { icon: resolveIcon(icon) })
 }
 
-function renderTopMenuLabel(option: MenuOption | MenuGroupOption): VNodeChild {
-  const rawLabel = option.label
-  const label = typeof rawLabel === 'function' ? rawLabel(option) : rawLabel
-  const children = (option as MenuOption).children
-  const hasChildren = Array.isArray(children) && children.length > 0
-  const key = (option as MenuOption).key
-  // eslint-disable-next-line ts/no-use-before-define
-  const isTopLevel = key != null && topLevelKeys.value.has(key)
-  if (!hasChildren || !isTopLevel) {
-    return label
-  }
-  return h('span', { class: 'inline-flex items-center gap-1' }, [
-    label,
-    h(Icon, {
-      icon: 'lucide:chevron-down',
-      class: 'size-6 shrink-0 opacity-70',
-    }),
-  ])
-}
-
 function translateMenuTitle(title: string, _fallback: string) {
   return te(title) ? t(title) : title
 }
 
-const topMenuOptions = computed<MenuOption[]>(() => {
+const topMenuOptions = computed<AppMenuOption[]>(() => {
   const options = buildMenuOptionsFromRoutes(topMenuSource.value, {
     keyBy: 'path',
     translate: translateMenuTitle,
@@ -121,10 +101,6 @@ const topMenuOptions = computed<MenuOption[]>(() => {
   }
   return options
 })
-
-const topLevelKeys = computed(() => new Set(
-  topMenuOptions.value.map((opt: MenuOption) => opt.key).filter(Boolean),
-))
 
 const topMenuActive = computed(() => {
   if (!isSplitMode.value) {
@@ -178,7 +154,7 @@ const shortcutKbdStyle = [
   'white-space:nowrap',
 ].join(';')
 
-const userOptions = computed<DropdownOption[]>(() => [
+const userOptions = computed<AppDropdownOption[]>(() => [
   // 个人中心 / 控制中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，
   // 免得留一个点了没反应的死菜单
   ...(appContext.shellRoutes.profile
@@ -208,10 +184,10 @@ const userOptions = computed<DropdownOption[]>(() => [
             ]),
           key: 'lock',
           icon: () => h(Icon, { icon: 'lucide:lock' }),
-        } as DropdownOption,
+        },
       ]
     : []),
-  { type: 'divider', key: 'divider' },
+  { key: 'divider', divider: true },
   {
     label: () =>
       h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
@@ -426,6 +402,7 @@ watch(() => route.fullPath, () => {
   <template v-if="appStore.breadcrumbNavButtons">
     <XihanIconButton
       class="my-0 rounded-md"
+      :tooltip="t('header.toolbar.nav_back')"
       :disabled="!canGoBack"
       @click="router.back()"
     >
@@ -433,6 +410,7 @@ watch(() => route.fullPath, () => {
     </XihanIconButton>
     <XihanIconButton
       class="my-0 rounded-md"
+      :tooltip="t('header.toolbar.nav_forward')"
       :disabled="!canGoForward"
       @click="router.forward()"
     >
@@ -463,12 +441,10 @@ watch(() => route.fullPath, () => {
   <!-- Menu area -->
   <div :class="`menu-align-${appStore.headerMenuAlign}`" class="flex flex-1 items-center min-w-0">
     <div v-if="showTopMenu" class="hidden items-center min-w-0 xihan-top-menu lg:flex">
-      <NMenu
-        mode="horizontal"
-        :value="topMenuActive"
+      <HeaderTopMenu
         :options="topMenuOptions"
-        :render-label="renderTopMenuLabel"
-        @update:value="(key: string | number) => handleTopMenuSelect(String(key))"
+        :active-key="topMenuActive"
+        @select="handleTopMenuSelect"
       />
     </div>
   </div>
@@ -510,61 +486,5 @@ watch(() => route.fullPath, () => {
 
 .menu-align-end {
   justify-content: flex-end;
-}
-
-.xihan-top-menu .n-menu.n-menu--horizontal {
-  --n-item-height: 40px;
-  --n-item-font-size-horizontal: 14px;
-  --n-item-text-color-horizontal: hsl(var(--foreground) / 80%);
-  --n-item-text-color-hover-horizontal: hsl(var(--foreground));
-  --n-item-text-color-active-horizontal: hsl(var(--primary));
-  --n-item-color-active-horizontal: hsl(var(--primary) / 15%);
-  --n-item-color-hover-horizontal: hsl(var(--accent));
-  height: auto;
-  align-items: center;
-  background: transparent;
-}
-
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-submenu > .n-menu-item {
-  display: flex;
-  align-items: center;
-}
-
-.xihan-top-menu .n-menu.n-menu--horizontal .n-menu-item-content {
-  display: flex;
-  align-items: center;
-}
-
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-submenu
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--child-active,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-submenu
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected {
-  background-color: transparent;
-  border-radius: 6px;
-}
-
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-submenu
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--child-active::before,
-.xihan-top-menu
-  .n-menu.n-menu--horizontal
-  > .n-submenu
-  > .n-menu-item
-  > .n-menu-item-content.n-menu-item-content--selected::before,
-.xihan-top-menu .n-menu.n-menu--horizontal > .n-menu-item > .n-menu-item-content.n-menu-item-content--selected::before {
-  background-color: hsl(var(--primary) / 0.15) !important;
-  border-radius: 6px !important;
-  box-shadow: none !important;
 }
 </style>

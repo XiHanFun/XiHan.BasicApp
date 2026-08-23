@@ -2,12 +2,13 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { DiffLogDetailDto, DiffLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { AuditOperationType, AuditRiskLevel, createPageRequest, diffLogApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { diffLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -16,7 +17,6 @@ import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 defineOptions({ name: 'LogDiffPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 const router = useRouter()
 
 const detailVisible = ref(false)
@@ -51,7 +51,7 @@ const riskLevelOptions = computed(() => [
 /** 风险等级 → 标签类型 */
 function riskTagType(level: AuditRiskLevel) {
   if (level === AuditRiskLevel.Critical || level === AuditRiskLevel.VeryHigh) {
-    return 'error'
+    return 'danger'
   }
   if (level === AuditRiskLevel.High) {
     return 'warning'
@@ -59,7 +59,7 @@ function riskTagType(level: AuditRiskLevel) {
   if (level === AuditRiskLevel.Medium) {
     return 'info'
   }
-  return 'default'
+  return 'neutral'
 }
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
@@ -99,7 +99,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 19,
     render: (row) => {
       const level = (row as unknown as DiffLogListItemDto).riskLevel
-      return h(NTag, { size: 'small', round: true, bordered: false, type: riskTagType(level) }, () => getOptionLabel(riskLevelOptions.value, level))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: riskTagType(level) }, () => getOptionLabel(riskLevelOptions.value, level))
     },
   },
   {
@@ -112,7 +112,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.diff.is_success_placeholder'),
     width: 90,
     order: 20,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as DiffLogListItemDto).isSuccess ? 'success' : 'error' }, () => (row as unknown as DiffLogListItemDto).isSuccess ? t('log.diff.result_success') : t('log.diff.result_failed')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as DiffLogListItemDto).isSuccess ? 'success' : 'danger' }, () => (row as unknown as DiffLogListItemDto).isSuccess ? t('log.diff.result_success') : t('log.diff.result_failed')),
   },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as DiffLogListItemDto).executionTime}ms` },
   { key: 'operationIp', title: t('log.diff.operation_ip'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('log.diff.operation_ip_placeholder'), minWidth: 130, order: 22 },
@@ -159,7 +159,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:diff-log:export',
   pageName: t('log.diff.page_name'),
   rowKey: 'basicId',
-  scrollX: 2300,
   fields: decorateTraceFields(fields.value, router, { timeField: 'auditTime', ipKey: 'operationIp' }),
   resource: {
     page: params => diffLogApi.page(buildDiffQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -180,7 +179,7 @@ function onAction(payload: SchemaActionPayload) {
   }
   else if (payload.key === 'trace' && row) {
     if (!gotoTrace(router, row, row.auditTime)) {
-      message.warning(t('log.trace.value_required'))
+      toast.warning(t('log.trace.value_required'))
     }
   }
 }
@@ -193,7 +192,7 @@ async function handleDetail(row: DiffLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.diff.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.diff.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

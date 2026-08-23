@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import type { UploadFileInfo } from 'naive-ui'
+import type { TableColumnDef } from '@xihan-ui/headless'
 import type { ListFieldSchema } from './types'
 import type { ImportSummary } from './useSchemaImport'
 import {
-  NAlert,
-  NButton,
-  NDataTable,
-  NIcon,
-  NModal,
-  NProgress,
-  NSpace,
-  NTag,
-  NUpload,
-  NUploadDragger,
-} from 'naive-ui'
+  XhAlertDescription,
+  XhAlertIcon,
+  XhAlertRoot,
+  XhBadge,
+  XhButton,
+  XhDialogCloseTrigger,
+  XhDialogContent,
+  XhDialogRoot,
+  XhDialogTitle,
+  XhFileUploadDropzone,
+  XhFileUploadHiddenInput,
+  XhFileUploadRoot,
+  XhProgress,
+  XhTableBody,
+  XhTableCell,
+  XhTableColumnHeader,
+  XhTableHeader,
+  XhTableRoot,
+  XhTableRow,
+} from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -92,13 +101,12 @@ function reportHistory(result: ImportSummary): void {
     .catch(() => undefined)
 }
 
-/** 选择文件即解析校验（阻止真实上传） */
-function onBeforeUpload(data: { file: UploadFileInfo }): boolean {
-  const file = data.file.file
+/** 选择文件即解析校验；不给 upload 回调即不会发起任何真实上传 */
+function onFilesChange(files: File[]): void {
+  const file = files[0]
   if (file) {
     void importer.loadFile(file)
   }
-  return false
 }
 
 /** 校验/创建错误平铺为表格行 */
@@ -113,11 +121,14 @@ const errorItems = computed(() =>
   ),
 )
 
-const errorColumns = computed(() => [
-  { key: 'row', title: t('component.schema_import.col_row'), width: 70 },
-  { key: 'field', title: t('component.schema_import.col_field'), width: 120 },
-  { key: 'message', title: t('component.schema_import.col_problem'), ellipsis: { tooltip: true } },
+const errorColumns = computed<TableColumnDef[]>(() => [
+  { id: 'row', label: t('component.schema_import.col_row'), width: 70 },
+  { id: 'field', label: t('component.schema_import.col_field'), width: 120 },
+  { id: 'message', label: t('component.schema_import.col_problem') },
 ])
+
+/** 行号与行序的事实源；这张表不排序不选中，只报身份 */
+const errorRowDefs = computed(() => errorItems.value.map(item => ({ id: item.key })))
 
 const importPercent = computed(() =>
   validRows.value.length === 0 ? 0 : Math.round((progress.value / validRows.value.length) * 100),
@@ -140,145 +151,198 @@ function handleClose(): void {
 </script>
 
 <template>
-  <NModal
-    v-model:show="show"
-    preset="card"
-    :title="t('component.schema_import.title')"
-    :auto-focus="false"
-    :bordered="false"
-    :mask-closable="phase !== 'importing'"
-    :closable="phase !== 'importing'"
-    style="width: 720px; max-width: calc(100vw - 32px)"
+  <XhDialogRoot
+    :open="show"
+    :close-on-escape="phase !== 'importing'"
+    :close-on-interact-outside="phase !== 'importing'"
+    @update:open="(value: boolean) => (show = value)"
   >
-    <NSpace vertical :size="12">
-      <!-- 模板说明 + 下载 -->
-      <NAlert type="info" :show-icon="true" :bordered="false">
-        <div class="xh-import-tip">
-          <span>{{ t('component.schema_import.tip') }}</span>
-          <NButton size="tiny" quaternary type="primary" @click="importer.downloadTemplate">
-            <template #icon>
-              <NIcon><Icon icon="lucide:file-down" /></NIcon>
+    <XhDialogContent class="xh-import-modal" style="--xh-dialog-max-w: 720px">
+      <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
+      <XhDialogCloseTrigger v-if="phase !== 'importing'" />
+
+      <div class="xh-import-body">
+        <!-- 模板说明 + 下载 -->
+        <XhAlertRoot tone="info">
+          <XhAlertIcon>
+            <Icon icon="lucide:info" width="16" height="16" />
+          </XhAlertIcon>
+          <XhAlertDescription>
+            <div class="xh-import-tip">
+              <span>{{ t('component.schema_import.tip') }}</span>
+              <XhButton size="sm" variant="ghost" @click="importer.downloadTemplate">
+                <Icon icon="lucide:file-down" />
+                {{ t('component.schema_import.download_template') }}
+              </XhButton>
+            </div>
+          </XhAlertDescription>
+        </XhAlertRoot>
+
+        <!-- 选择文件（idle / ready 可重选） -->
+        <XhFileUploadRoot
+          v-if="phase === 'idle' || phase === 'ready'"
+          accept=".csv,text/csv"
+          :max-files="1"
+          @update:files="onFilesChange"
+        >
+          <XhFileUploadDropzone>
+            <div class="xh-import-dragger">
+              <Icon icon="lucide:upload" class="xh-import-dragger__icon" />
+              <span>{{ t('component.schema_import.dragger') }}</span>
+            </div>
+          </XhFileUploadDropzone>
+          <XhFileUploadHiddenInput />
+        </XhFileUploadRoot>
+
+        <!-- 文件级错误 -->
+        <XhAlertRoot v-for="error in fileErrors" :key="error" tone="danger">
+          <XhAlertIcon>
+            <Icon icon="lucide:circle-alert" width="16" height="16" />
+          </XhAlertIcon>
+          <XhAlertDescription>{{ error }}</XhAlertDescription>
+        </XhAlertRoot>
+
+        <!-- 解析结果汇总 -->
+        <div v-if="phase !== 'idle' && rows.length > 0" class="xh-import-summary">
+          <XhBadge variant="subtle" size="sm" tone="neutral">
+            {{ t('component.schema_import.total_rows', { count: rows.length }) }}
+          </XhBadge>
+          <XhBadge variant="subtle" size="sm" tone="success">
+            {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
+          </XhBadge>
+          <XhBadge v-if="errorItems.length > 0" variant="subtle" size="sm" tone="danger">
+            {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
+          </XhBadge>
+        </div>
+
+        <!-- 错误明细 -->
+        <XhTableRoot
+          v-if="errorItems.length > 0"
+          class="xh-import-errors"
+          size="sm"
+          sticky-header
+          :columns="errorColumns"
+          :rows="errorRowDefs"
+        >
+          <XhTableHeader>
+            <XhTableRow>
+              <XhTableColumnHeader v-for="col in errorColumns" :key="col.id" :value="col.id">
+                {{ col.label }}
+              </XhTableColumnHeader>
+            </XhTableRow>
+          </XhTableHeader>
+          <XhTableBody>
+            <XhTableRow v-for="item in errorItems" :key="item.key" :value="item.key">
+              <XhTableCell value="row">
+                {{ item.row }}
+              </XhTableCell>
+              <XhTableCell value="field">
+                {{ item.field }}
+              </XhTableCell>
+              <XhTableCell value="message" :title="item.message">
+                {{ item.message }}
+              </XhTableCell>
+            </XhTableRow>
+          </XhTableBody>
+        </XhTableRoot>
+
+        <!-- 导入进度 -->
+        <XhProgress v-if="phase === 'importing'" :value="importPercent" />
+
+        <!-- 完成汇总 -->
+        <XhAlertRoot
+          v-if="phase === 'done' && summary"
+          :tone="summary.failed === 0 ? 'success' : 'warning'"
+        >
+          <XhAlertIcon>
+            <Icon :icon="summary.failed === 0 ? 'lucide:circle-check' : 'lucide:triangle-alert'" width="16" height="16" />
+          </XhAlertIcon>
+          <XhAlertDescription>
+            {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
+            <template v-if="summary.failed > 0">
+              {{ t('component.schema_import.redownload_hint') }}
             </template>
-            {{ t('component.schema_import.download_template') }}
-          </NButton>
-        </div>
-      </NAlert>
+          </XhAlertDescription>
+        </XhAlertRoot>
 
-      <!-- 选择文件（idle / ready 可重选） -->
-      <NUpload
-        v-if="phase === 'idle' || phase === 'ready'"
-        accept=".csv,text/csv"
-        :show-file-list="false"
-        @before-upload="onBeforeUpload"
-      >
-        <NUploadDragger>
-          <div class="xh-import-dragger">
-            <NIcon :size="32" :depth="3">
-              <Icon icon="lucide:upload" />
-            </NIcon>
-            <span>{{ t('component.schema_import.dragger') }}</span>
+        <!-- 最近导入（当前用户 × 当前页面） -->
+        <div v-if="phase === 'idle' && recentImports.length > 0" class="xh-import-recent">
+          <div class="xh-import-recent__title">
+            {{ t('component.schema_import.recent_title') }}
           </div>
-        </NUploadDragger>
-      </NUpload>
-
-      <!-- 文件级错误 -->
-      <NAlert v-for="error in fileErrors" :key="error" type="error" :bordered="false">
-        {{ error }}
-      </NAlert>
-
-      <!-- 解析结果汇总 -->
-      <NSpace v-if="phase !== 'idle' && rows.length > 0" align="center" :size="8">
-        <NTag size="small" :bordered="false">
-          {{ t('component.schema_import.total_rows', { count: rows.length }) }}
-        </NTag>
-        <NTag size="small" type="success" :bordered="false">
-          {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
-        </NTag>
-        <NTag v-if="errorItems.length > 0" size="small" type="error" :bordered="false">
-          {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
-        </NTag>
-      </NSpace>
-
-      <!-- 错误明细 -->
-      <NDataTable
-        v-if="errorItems.length > 0"
-        size="small"
-        :columns="errorColumns"
-        :data="errorItems"
-        :max-height="220"
-        :bordered="false"
-      />
-
-      <!-- 导入进度 -->
-      <NProgress
-        v-if="phase === 'importing'"
-        type="line"
-        :percentage="importPercent"
-        indicator-placement="inside"
-        processing
-      />
-
-      <!-- 完成汇总 -->
-      <NAlert
-        v-if="phase === 'done' && summary"
-        :type="summary.failed === 0 ? 'success' : 'warning'"
-        :bordered="false"
-      >
-        {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
-        <template v-if="summary.failed > 0">
-          {{ t('component.schema_import.redownload_hint') }}
-        </template>
-      </NAlert>
-
-      <!-- 最近导入（当前用户 × 当前页面） -->
-      <div v-if="phase === 'idle' && recentImports.length > 0" class="xh-import-recent">
-        <div class="xh-import-recent__title">
-          {{ t('component.schema_import.recent_title') }}
-        </div>
-        <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
-          <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
-          <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
-          <NTag size="tiny" type="success" :bordered="false">
-            {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
-          </NTag>
-          <NTag v-if="item.failCount > 0" size="tiny" type="error" :bordered="false">
-            {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
-          </NTag>
+          <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
+            <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
+            <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
+            <XhBadge variant="subtle" size="sm" tone="success">
+              {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
+            </XhBadge>
+            <XhBadge v-if="item.failCount > 0" variant="subtle" size="sm" tone="danger">
+              {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
+            </XhBadge>
+          </div>
         </div>
       </div>
-    </NSpace>
 
-    <template #footer>
-      <NSpace justify="end">
-        <NButton
+      <div class="xh-import-footer">
+        <XhButton
           v-if="errorRows.length > 0"
-          size="small"
+          size="sm"
+          variant="outline"
           @click="importer.downloadErrors"
         >
-          <template #icon>
-            <NIcon><Icon icon="lucide:file-x" /></NIcon>
-          </template>
+          <Icon icon="lucide:file-x" />
           {{ t('component.schema_import.download_errors') }}
-        </NButton>
-        <NButton size="small" :disabled="phase === 'importing'" @click="handleClose">
+        </XhButton>
+        <XhButton size="sm" variant="outline" :disabled="phase === 'importing'" @click="handleClose">
           {{ phase === 'done' ? t('component.schema_import.done_btn') : t('common.actions.cancel') }}
-        </NButton>
-        <NButton
+        </XhButton>
+        <XhButton
           v-if="phase !== 'done'"
-          size="small"
-          type="primary"
+          size="sm"
+          variant="solid"
           :disabled="!canRun"
           :loading="phase === 'importing'"
           @click="handleRun"
         >
           {{ t('component.schema_import.start_import') }}
-        </NButton>
-      </NSpace>
-    </template>
-  </NModal>
+        </XhButton>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style scoped>
+/* 内容纵向堆叠，替掉原先的 NSpace vertical */
+.xh-import-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.xh-import-summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 错误明细表：限高，超出内部滚动 */
+.xh-import-errors {
+  --xh-table-max-h: 220px;
+}
+
+.xh-import-dragger__icon {
+  font-size: 32px;
+}
+
+/* 底部按钮行右对齐，替掉原先的 NSpace justify=end */
+.xh-import-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-block-start: 12px;
+}
+
 .xh-import-tip {
   display: flex;
   gap: 8px;
@@ -294,14 +358,14 @@ function handleClose(): void {
   align-items: center;
   padding: 12px 0;
   font-size: 13px;
-  color: var(--n-text-color-3, rgb(118 124 130));
+  color: var(--xh-fg-muted);
 }
 
 .xh-import-recent__title {
   margin-bottom: 4px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--n-text-color);
+  color: var(--xh-fg-default);
 }
 
 .xh-import-recent__row {
@@ -310,7 +374,7 @@ function handleClose(): void {
   align-items: center;
   padding: 2px 0;
   font-size: 12px;
-  color: var(--n-text-color-3, rgb(118 124 130));
+  color: var(--xh-fg-muted);
 }
 
 .xh-import-recent__file {

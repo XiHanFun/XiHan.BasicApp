@@ -1,9 +1,8 @@
-import type { DataTableColumn } from 'naive-ui'
 import type { VNodeChild } from 'vue'
 import type { ApiId, PageResult, QueryFilter } from '~/types/contracts'
 
 /**
- * 下拉/标签选项（与 business 常量、Naive 选项结构兼容）
+ * 下拉/标签选项（与 business 常量、组件库 collection 结构兼容）
  */
 export interface SchemaSelectOption<TValue extends string | number = string | number> {
   label: string
@@ -88,6 +87,8 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   searchPlaceholder?: string
   /** 自定义单元格渲染（最高优先级，覆盖内置渲染器） */
   render?: (row: TRow) => VNodeChild
+  /** 单元格超宽时省略号截断。缺省对走内置渲染的列开启，写了 render 的列须显式声明 */
+  ellipsis?: boolean
   /** 树形列：该列承载展开/缩进箭头（仅树形模式生效，应有且仅有一个字段标记） */
   treeColumn?: boolean
 }
@@ -253,8 +254,6 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   removePermission?: string
   /** 批量启停所需权限码（声明后多选「批量启用/停用」仅在用户拥有该权限时可用；依赖 resource.updateStatus） */
   statusPermission?: string
-  /** 表格横向滚动宽度 */
-  scrollX?: number
   /** 默认每页数量 */
   pageSize?: number
   /**
@@ -271,6 +270,28 @@ export interface PageSchema<TRow = Record<string, unknown>> {
 }
 
 /**
- * 表格列（Naive UI 原生列 + 框架元信息）
+ * 表格列 —— 由 toColumns 从字段 Schema 派生，SchemaTablePanel 据此铺开表头与单元格。
+ *
+ * 只描述「这一列长什么样」：列号、列宽与排序链归组件库的 columns 契约，
+ * 多选列/序号列/展开列由表格面板按开关自行插入，不出现在这里。
  */
-export type SchemaColumn<TRow> = DataTableColumn<TRow>
+export interface SchemaColumn<TRow = Record<string, unknown>> {
+  /** 列键（同时是字段键与列身份） */
+  key: string
+  /** 列标题（已是可显示文案，非 i18n key） */
+  title: string
+  /** 列宽（px） */
+  width?: number
+  /** 最小列宽（px），拖拽调宽的下限 */
+  minWidth?: number
+  /** 横向吸附方向 */
+  fixed?: 'left' | 'right'
+  /** 可排序（服务端排序，点击列头累加进排序链） */
+  sortable?: boolean
+  /** 承载树形展开箭头与层级缩进的列（树形模式下应有且仅有一列标记） */
+  tree?: boolean
+  /** 单元格超宽时省略号截断（内容包进一层行内块，并挂上全文的原生提示） */
+  ellipsis?: boolean
+  /** 单元格渲染 */
+  render: (row: TRow, rowIndex: number) => VNodeChild
+}

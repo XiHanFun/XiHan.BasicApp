@@ -2,6 +2,7 @@ export { formatFieldText, renderFieldCell } from './renderer'
 export { default as SchemaActionPanel } from './SchemaActionPanel.vue'
 export { default as SchemaImportDialog } from './SchemaImportDialog.vue'
 export { default as SchemaPage } from './SchemaPage.vue'
+export { default as SchemaPagination } from './SchemaPagination.vue'
 export { default as SchemaSearchPanel } from './SchemaSearchPanel.vue'
 export { default as SchemaSearchSettings } from './SchemaSearchSettings.vue'
 export { default as SchemaTablePanel } from './SchemaTablePanel.vue'
@@ -14,9 +15,9 @@ export {
   toImportFields,
   toSearchFields,
 } from './selectors'
-export { resolveStatusTagType } from './status-tag'
+export { resolveStatusTagTone } from './status-tag'
 
-export type { SchemaTagType } from './status-tag'
+export type { SchemaTagTone } from './status-tag'
 
 export type {
   ActionSchema,

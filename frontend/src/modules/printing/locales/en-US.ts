@@ -141,6 +141,7 @@ export default {
       material_barcode: 'Barcode',
       material_qrcode: 'QR Code',
       element_properties: 'Element Properties',
+      properties_empty_title: 'No element selected',
       properties_empty: 'Select a canvas element to edit its properties',
       designer_toolbar: 'Print designer quick toolbar',
       template_operations: 'Template Actions',

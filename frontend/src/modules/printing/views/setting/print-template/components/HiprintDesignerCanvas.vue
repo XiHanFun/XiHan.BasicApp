@@ -13,9 +13,10 @@ import type {
   PrintElementAlignAction,
   PrintElementSpacingDirection,
 } from '~/printing'
-import { NAlert, NEmpty, NIcon, NSpin, useMessage } from 'naive-ui'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { createPrintDesigner, enablePrintFieldDragging } from '~/printing'
 import { PRINT_PAPER_PRESETS } from './models'
@@ -35,7 +36,6 @@ const emit = defineEmits<{
   ready: []
 }>()
 
-const message = useMessage()
 const { t } = useI18n()
 const instanceId = `hiprint-${crypto.randomUUID()}`
 const canvasId = `${instanceId}-canvas`
@@ -162,7 +162,7 @@ function syncToolbarState(): void {
 /** 切换单/多面板设计模式；已有多面板时禁止隐藏面板管理，避免误导用户。 */
 function changeDesignMode(mode: PrintDesignerMode): void {
   if (mode === 'single' && (designer?.getPanelCount() ?? getPanelCount(props.template)) > 1) {
-    message.warning(t('setting.print_template.multi_panel_cannot_switch_single'))
+    toast.warning(t('setting.print_template.multi_panel_cannot_switch_single'))
     return
   }
   designMode.value = mode
@@ -206,7 +206,7 @@ function rotatePaper(): void {
     queueMicrotask(syncToolbarState)
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.rotate_failed'))
+    toast.error((error as Error).message || t('setting.print_template.rotate_failed'))
   }
 }
 
@@ -218,7 +218,7 @@ function alignElements(action: PrintElementAlignAction): void {
   const isDistribution = action === 'distributeHor' || action === 'distributeVer'
   const selectedElementCount = designer.getSelectedElementCount()
   if (selectedElementCount < (isDistribution ? 3 : 2)) {
-    message.warning(t(isDistribution
+    toast.warning(t(isDistribution
       ? 'setting.print_template.distribute_requires_three'
       : 'setting.print_template.align_requires_two'))
     return
@@ -228,7 +228,7 @@ function alignElements(action: PrintElementAlignAction): void {
     designer.alignElements(action)
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.alignment_failed'))
+    toast.error((error as Error).message || t('setting.print_template.alignment_failed'))
   }
 }
 
@@ -237,7 +237,7 @@ function setElementSpacing(direction: PrintElementSpacingDirection, spacing: num
   if (!designer)
     return
   if (designer.getSelectedElementCount() < 2) {
-    message.warning(t('setting.print_template.spacing_requires_two'))
+    toast.warning(t('setting.print_template.spacing_requires_two'))
     return
   }
 
@@ -245,7 +245,7 @@ function setElementSpacing(direction: PrintElementSpacingDirection, spacing: num
     designer.setElementSpacing(spacing, direction)
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.spacing_failed'))
+    toast.error((error as Error).message || t('setting.print_template.spacing_failed'))
   }
 }
 
@@ -279,7 +279,7 @@ function exportCurrentTemplateToTextArea(notifySuccess = true): void {
     jsonEditorText.value = JSON.stringify(getJson(), null, 2)
     jsonEditorError.value = ''
     if (notifySuccess)
-      message.success(t('setting.print_template.json_exported'))
+      toast.success(t('setting.print_template.json_exported'))
   }
   catch (error) {
     jsonEditorError.value = (error as Error).message || t('setting.print_template.json_export_failed')
@@ -331,7 +331,7 @@ async function applyJsonTemplate(): Promise<void> {
     designMode.value = designer.getPanelCount() > 1 ? 'multi' : 'single'
     syncToolbarState()
     jsonEditorText.value = JSON.stringify(designer.getJson(), null, 2)
-    message.success(t('setting.print_template.json_applied'))
+    toast.success(t('setting.print_template.json_applied'))
   }
   catch (error) {
     jsonEditorError.value = (error as Error).message || t('setting.print_template.json_apply_failed')
@@ -356,7 +356,7 @@ function handlePaginationClick(event: MouseEvent): void {
   if (isDeleteAction && currentPanelCount <= 1) {
     event.preventDefault()
     event.stopPropagation()
-    message.warning(t('setting.print_template.keep_one_panel'))
+    toast.warning(t('setting.print_template.keep_one_panel'))
     return
   }
 
@@ -424,7 +424,7 @@ function clear(): void {
   designer?.clear()
   // hiprint 0.0.60 清空画布后不会同步移除旧属性表单；主动清理可避免用户误以为已删除元素仍可编辑。
   document.getElementById(settingId)?.replaceChildren()
-  message.success(t('setting.print_template.canvas_cleared'))
+  toast.success(t('setting.print_template.canvas_cleared'))
 }
 
 defineExpose({ clear, getJson, preview, redo, undo })
@@ -480,10 +480,15 @@ defineExpose({ clear, getJson, preview, redo, undo })
           tabindex="0"
           @keydown="handleCanvasShortcut"
         >
-          <NSpin v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center" :description="t('setting.print_template.designer_loading')" />
-          <NAlert v-if="loadError" class="canvas-error" type="error" :show-icon="true">
-            {{ loadError }}
-          </NAlert>
+          <XhSpinner v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center" />
+          <XhAlertRoot v-if="loadError" tone="danger" class="canvas-error">
+            <XhAlertIcon>
+              <Icon icon="lucide:alert-circle" width="16" />
+            </XhAlertIcon>
+            <XhAlertDescription>
+              {{ loadError }}
+            </XhAlertDescription>
+          </XhAlertRoot>
           <div :id="canvasId" class="hiprint-canvas-host" />
         </main>
         <!-- 多面板导航放在画布底部，避免占用刻度尺上方的连续编辑空间。 -->
@@ -499,14 +504,18 @@ defineExpose({ clear, getJson, preview, redo, undo })
 
       <aside class="property-panel">
         <div class="property-heading">
-          <NIcon :size="18">
-            <Icon icon="tabler:adjustments-horizontal" />
-          </NIcon>
+          <Icon width="18" height="18" icon="tabler:adjustments-horizontal" />
           <span>{{ t('setting.print_template.element_properties') }}</span>
         </div>
         <div :id="settingId" class="property-setting-host" />
         <div class="property-empty">
-          <NEmpty size="small" :description="t('setting.print_template.properties_empty')" />
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="24" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('setting.print_template.properties_empty_title') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('setting.print_template.properties_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
         </div>
       </aside>
     </div>

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import { NEmpty, NInput, NModal, NScrollbar, useMessage } from 'naive-ui'
+import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XInput from '~/components/common/XInput.vue'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useChatStore } from '../store'
 
@@ -17,7 +19,7 @@ const props = defineProps<{
 const show = defineModel<boolean>('show', { default: false })
 
 const { t } = useI18n()
-const message$ = useMessage()
+const message$ = toast
 const chatStore = useChatStore()
 
 const keyword = ref('')
@@ -64,47 +66,52 @@ async function handleForward(conversationId: string) {
 </script>
 
 <template>
-  <NModal
-    v-model:show="show"
-    preset="card"
-    :title="t('chat.forward.title')"
-    style="width: 380px; max-width: calc(100vw - 24px);"
-  >
-    <NInput
-      v-model:value="keyword"
-      size="small"
-      clearable
-      :placeholder="t('chat.list.search_placeholder')"
-    >
-      <template #prefix>
-        <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
-      </template>
-    </NInput>
-
-    <div v-if="!candidates.length" class="py-8">
-      <NEmpty :description="t('chat.list.empty')" size="small" />
-    </div>
-    <NScrollbar v-else class="mt-2" style="max-height: 320px">
-      <button
-        v-for="conv in candidates"
-        :key="conv.conversationId"
-        type="button"
-        class="chat-forward-item"
-        :disabled="sendingTo !== null"
-        @click="handleForward(conv.conversationId)"
+  <XhDialogRoot v-model:open="show">
+    <XhDialogContent style="--xh-dialog-max-w: 380px">
+      <XhDialogTitle>{{ t('chat.forward.title') }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <XInput
+        v-model:value="keyword"
+        size="sm"
+        clearable
+        :placeholder="t('chat.list.search_placeholder')"
       >
-        <XUserAvatar :avatar="conv.avatar" :name="conv.displayName" :size="32" />
-        <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ conv.displayName }}</span>
-        <Icon
-          v-if="sendingTo === conv.conversationId"
-          icon="lucide:loader-circle"
-          width="14"
-          height="14"
-          class="animate-spin text-primary"
-        />
-      </button>
-    </NScrollbar>
-  </NModal>
+        <template #prefix>
+          <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
+        </template>
+      </XInput>
+
+      <div v-if="!candidates.length" class="py-8">
+        <XhEmptyStateRoot size="sm">
+          <XhEmptyStateIcon>
+            <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="24" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.empty') }}</XhEmptyStateTitle>
+          <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
+        </XhEmptyStateRoot>
+      </div>
+      <div v-else class="xh-scroll-area mt-2" style="max-height: 320px">
+        <button
+          v-for="conv in candidates"
+          :key="conv.conversationId"
+          type="button"
+          class="chat-forward-item"
+          :disabled="sendingTo !== null"
+          @click="handleForward(conv.conversationId)"
+        >
+          <XUserAvatar :avatar="conv.avatar" :name="conv.displayName" :size="32" />
+          <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ conv.displayName }}</span>
+          <Icon
+            v-if="sendingTo === conv.conversationId"
+            icon="lucide:loader-circle"
+            width="14"
+            height="14"
+            class="animate-spin text-primary"
+          />
+        </button>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style scoped>

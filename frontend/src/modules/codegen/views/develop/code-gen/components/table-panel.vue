@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { NTag, useDialog, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -17,6 +17,7 @@ import {
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import {
@@ -38,8 +39,6 @@ import TableEditModal from './table-edit-modal.vue'
 defineOptions({ name: 'CodeGenTablePanel' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 
 const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -62,9 +61,9 @@ function genStatusTagType(status: GenStatus) {
     return 'success'
   }
   if (status === GenStatusEnum.Failed) {
-    return 'error'
+    return 'danger'
   }
-  return 'default'
+  return 'neutral'
 }
 
 const fields = computed<ListFieldSchema[]>(() => [
@@ -113,7 +112,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: genStatusTagType(r.genStatus) }, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: genStatusTagType(r.genStatus) }, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus))
     },
   },
   {
@@ -130,7 +129,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 8,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: r.status === EnableStatus.Enabled ? 'success' : 'error' }, () => getOptionLabel(statusEnumOptions.value, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusEnumOptions.value, r.status))
     },
   },
   { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
@@ -140,7 +139,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.codegen.table',
   pageName: t('develop.code_gen.tabs.table'),
   rowKey: 'basicId',
-  scrollX: 1568,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -272,20 +270,20 @@ async function handleGenerate(row: CodeGenTableListItemDto) {
       genType: GenType.Zip,
     })
     if (!result.success) {
-      message.error(result.message || t('develop.code_gen.generate.generate_failed'))
+      toast.error(result.message || t('develop.code_gen.generate.generate_failed'))
       return
     }
     if (result.packageBase64) {
       downloadZip(result.packageBase64, `${row.tableName || 'codegen'}_${Date.now()}.zip`)
-      message.success(t('develop.code_gen.generate.generate_success', { count: result.fileCount }))
+      toast.success(t('develop.code_gen.generate.generate_success', { count: result.fileCount }))
     }
     else {
-      message.warning(t('develop.code_gen.generate.no_package'))
+      toast.warning(t('develop.code_gen.generate.no_package'))
     }
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
   }
   finally {
     generating.value = false
@@ -304,17 +302,17 @@ async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
       genType: GenType.CustomPath,
     })
     if (!result.success) {
-      message.error(result.message || t('develop.code_gen.generate.write_failed'))
+      toast.error(result.message || t('develop.code_gen.generate.write_failed'))
       return
     }
-    message.success(t('develop.code_gen.generate.write_success', {
+    toast.success(t('develop.code_gen.generate.write_success', {
       written: result.writtenCount,
       skipped: result.skippedPaths?.length ?? 0,
     }))
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.generate.write_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.generate.write_failed'))
   }
   finally {
     generating.value = false
@@ -322,15 +320,17 @@ async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
 }
 
 function handleSync(row: CodeGenTableListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('develop.code_gen.table.action_sync'),
     content: t('develop.code_gen.table.sync_confirm'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         const result = await codeGenerationApi.syncSchema(row.basicId)
-        message.success(t('develop.code_gen.table.sync_result', {
+        toast.success(t('develop.code_gen.table.sync_result', {
           added: result.addedCount,
           updated: result.updatedCount,
           removed: result.removedCount,
@@ -338,26 +338,28 @@ function handleSync(row: CodeGenTableListItemDto) {
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('develop.code_gen.table.sync_failed'))
+        toast.error((error as Error)?.message || t('develop.code_gen.table.sync_failed'))
       }
     },
   })
 }
 
 function handleDelete(row: CodeGenTableListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('common.actions.delete'),
     content: t('develop.code_gen.table.confirm_delete'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await codeGenTableApi.delete(row.basicId)
-        message.success(t('common.messages.delete_success'))
+        toast.success(t('common.messages.delete_success'))
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })

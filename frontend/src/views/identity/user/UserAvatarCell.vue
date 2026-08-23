@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NAvatar } from 'naive-ui'
+import { XhAvatarFallback, XhAvatarImage, XhAvatarRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useAvatarUrl } from '~/composables'
 
@@ -24,21 +24,17 @@ const initials = computed(() => (props.name ? props.name.substring(0, 2) : '?'))
 </script>
 
 <template>
-  <!-- 有图：显示图片头像；无图/换取中：显示首字母文字头像（slot 与 src 互斥，避免 slot 覆盖图片） -->
-  <NAvatar
-    v-if="avatarUrl"
-    round
-    :size="size ?? 32"
-    :src="avatarUrl"
-    object-fit="cover"
-  />
-  <NAvatar
-    v-else
-    round
-    :size="size ?? 32"
-    :color="bg"
-    :style="{ color: fg, fontSize: '12px', fontWeight: 600 }"
+  <!-- 有图显示图片，无图/换取中/加载失败都落到首字母文字头像 -->
+  <XhAvatarRoot
+    :style="{
+      '--xh-avatar-size': `${size ?? 32}px`,
+      '--xh-avatar-bg': bg,
+      '--xh-avatar-fg': fg,
+      '--xh-avatar-font-size': '12px',
+      '--xh-avatar-font-weight': '600',
+    }"
   >
-    {{ initials }}
-  </NAvatar>
+    <XhAvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="name" />
+    <XhAvatarFallback>{{ initials }}</XhAvatarFallback>
+  </XhAvatarRoot>
 </template>

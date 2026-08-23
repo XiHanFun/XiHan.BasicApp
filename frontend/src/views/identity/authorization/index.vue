@@ -7,20 +7,8 @@ import type {
   PermissionRequestListItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NDatePicker,
-  NForm,
-  NFormItem,
-  NInput,
-  NRadioButton,
-  NRadioGroup,
-  NSelect,
-  NTabPane,
-  NTabs,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -33,13 +21,17 @@ import {
   userManagementApi,
 } from '@/api'
 import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XDatePicker, XEditModal, XInput, XSegmented, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemAuthorizationPage' })
 
 const { t } = useI18n()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 interface NumericSelectOption {
   label: string
@@ -56,8 +48,6 @@ interface DelegationFormModel {
   roleId: ApiId | null
   targetKind: 'role' | 'permission'
 }
-
-const message = useMessage()
 
 const activeTab = ref('request')
 const requestStatusOptions = useEnumOptions('PermissionRequestStatus', PERMISSION_REQUEST_STATUS_OPTIONS)
@@ -85,18 +75,18 @@ function formatNullableDate(value?: string | null) {
   return value ? formatDate(value) : '—'
 }
 
-const REQUEST_STATUS_TYPE: Record<PermissionRequestStatus, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
+const REQUEST_STATUS_TYPE: Record<PermissionRequestStatus, 'neutral' | 'info' | 'success' | 'warning' | 'danger'> = {
   [PermissionRequestStatus.Pending]: 'warning',
   [PermissionRequestStatus.Approved]: 'success',
-  [PermissionRequestStatus.Rejected]: 'error',
-  [PermissionRequestStatus.Withdrawn]: 'default',
-  [PermissionRequestStatus.Expired]: 'default',
+  [PermissionRequestStatus.Rejected]: 'danger',
+  [PermissionRequestStatus.Withdrawn]: 'neutral',
+  [PermissionRequestStatus.Expired]: 'neutral',
 }
-const DELEGATION_STATUS_TYPE: Record<DelegationStatus, 'default' | 'info' | 'success' | 'warning' | 'error'> = {
+const DELEGATION_STATUS_TYPE: Record<DelegationStatus, 'neutral' | 'info' | 'success' | 'warning' | 'danger'> = {
   [DelegationStatus.Pending]: 'warning',
   [DelegationStatus.Active]: 'success',
-  [DelegationStatus.Expired]: 'default',
-  [DelegationStatus.Revoked]: 'error',
+  [DelegationStatus.Expired]: 'neutral',
+  [DelegationStatus.Revoked]: 'danger',
 }
 
 // ── 候选选项加载（用户 / 角色 / 权限） ──────────────────────────
@@ -131,7 +121,7 @@ async function loadUserOptions(keyword = '') {
     )
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.authorization.msg_load_user_failed'))
+    toast.error((error as Error)?.message || t('identity.authorization.msg_load_user_failed'))
   }
   finally {
     userLoading.value = false
@@ -145,7 +135,7 @@ async function loadRoleOptions(keyword = '') {
     roleOptions.value = mergeOptions(roleOptions.value, roles.map(r => ({ label: `${r.roleName} (${r.roleCode})`, value: r.basicId })))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.authorization.msg_load_role_failed'))
+    toast.error((error as Error)?.message || t('identity.authorization.msg_load_role_failed'))
   }
   finally {
     roleLoading.value = false
@@ -159,7 +149,7 @@ async function loadPermissionOptions(keyword = '') {
     permissionOptions.value = mergeOptions(permissionOptions.value, perms.map(p => ({ label: `${p.permissionName} (${p.permissionCode})`, value: p.basicId })))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.authorization.msg_load_permission_failed'))
+    toast.error((error as Error)?.message || t('identity.authorization.msg_load_permission_failed'))
   }
   finally {
     permissionLoading.value = false
@@ -204,11 +194,7 @@ const requestFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as PermissionRequestListItemDto
-      return h(
-        NTag,
-        { size: 'small', bordered: false, type: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'default', style: { fontSize: '11px' } },
-        () => getOptionLabel(requestStatusOptions.value, r.requestStatus),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'neutral', style: { fontSize: '11px' } }, () => getOptionLabel(requestStatusOptions.value, r.requestStatus))
     },
   },
   {
@@ -234,7 +220,6 @@ const requestSchema = computed<PageSchema>(() => ({
   exportPermission: 'saas:permission-request:export',
   pageName: t('identity.authorization.req_page_name'),
   rowKey: 'basicId',
-  scrollX: 1300,
   fields: requestFields.value,
   resource: {
     page: (params) => {
@@ -263,11 +248,11 @@ async function reviewRequest(row: PermissionRequestListItemDto, approved: boolea
     else {
       await permissionRequestApi.reject({ basicId: row.basicId, remark: t('identity.authorization.req_reject_remark') })
     }
-    message.success(approved ? t('identity.authorization.req_approved') : t('identity.authorization.req_rejected'))
+    toast.success(approved ? t('identity.authorization.req_approved') : t('identity.authorization.req_rejected'))
     reloadRequest()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('common.messages.operation_failed'))
+    toast.error((e as Error)?.message || t('common.messages.operation_failed'))
   }
 }
 
@@ -294,7 +279,7 @@ function onRequestAction(payload: SchemaActionPayload) {
 
 async function handleDeleteRequest(row: PermissionRequestListItemDto) {
   await permissionRequestApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadRequest()
 }
 
@@ -346,11 +331,7 @@ const delegationFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as PermissionDelegationListItemDto
-      return h(
-        NTag,
-        { size: 'small', bordered: false, type: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'default', style: { fontSize: '11px' } },
-        () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'neutral', style: { fontSize: '11px' } }, () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus))
     },
   },
   {
@@ -376,7 +357,6 @@ const delegationSchema = computed<PageSchema>(() => ({
   pageCode: 'system.authorization.delegation',
   pageName: t('identity.authorization.del_page_name'),
   rowKey: 'basicId',
-  scrollX: 1300,
   fields: delegationFields.value,
   resource: {
     page: (params) => {
@@ -447,40 +427,40 @@ async function revokeDelegation(row: PermissionDelegationListItemDto) {
       delegationStatus: DelegationStatus.Revoked,
       remark: t('identity.authorization.del_revoke_remark'),
     })
-    message.success(t('identity.authorization.del_revoked'))
+    toast.success(t('identity.authorization.del_revoked'))
     reloadDelegation()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.authorization.del_revoke_failed'))
+    toast.error((error as Error)?.message || t('identity.authorization.del_revoke_failed'))
   }
 }
 
 async function handleDeleteDelegation(row: PermissionDelegationListItemDto) {
   await permissionDelegationApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadDelegation()
 }
 
 function validateDelegation() {
   const form = delegationForm.value
   if (!form.delegatorUserId) {
-    message.warning(t('identity.authorization.msg_delegator_required'))
+    toast.warning(t('identity.authorization.msg_delegator_required'))
     return false
   }
   if (!form.delegateeUserId) {
-    message.warning(t('identity.authorization.msg_delegatee_required'))
+    toast.warning(t('identity.authorization.msg_delegatee_required'))
     return false
   }
   if (form.targetKind === 'role' && !form.roleId) {
-    message.warning(t('identity.authorization.msg_role_required'))
+    toast.warning(t('identity.authorization.msg_role_required'))
     return false
   }
   if (form.targetKind === 'permission' && !form.permissionId) {
-    message.warning(t('identity.authorization.msg_permission_required'))
+    toast.warning(t('identity.authorization.msg_permission_required'))
     return false
   }
   if (!form.expirationTime) {
-    message.warning(t('identity.authorization.msg_expiration_required'))
+    toast.warning(t('identity.authorization.msg_expiration_required'))
     return false
   }
   return true
@@ -503,12 +483,12 @@ async function submitDelegation() {
       roleId: form.targetKind === 'role' ? form.roleId : null,
     }
     await permissionDelegationApi.create(input)
-    message.success(t('identity.authorization.msg_created'))
+    toast.success(t('identity.authorization.msg_created'))
     delegationModalVisible.value = false
     reloadDelegation()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.authorization.msg_create_failed'))
+    toast.error((error as Error)?.message || t('identity.authorization.msg_create_failed'))
   }
   finally {
     delegationSubmitting.value = false
@@ -518,101 +498,141 @@ async function submitDelegation() {
 
 <template>
   <div class="auth-page">
-    <NTabs v-model:value="activeTab" animated type="line">
-      <NTabPane name="request" :tab="t('identity.authorization.tab_request')">
+    <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+    <XhTabsRoot v-model:value="activeTab" variant="line">
+      <XhTabsList>
+        <XhTabsTrigger value="request">
+          {{ t('identity.authorization.tab_request') }}
+        </XhTabsTrigger>
+        <XhTabsTrigger value="delegation">
+          {{ t('identity.authorization.tab_delegation') }}
+        </XhTabsTrigger>
+      </XhTabsList>
+      <XhTabsContent value="request">
         <SchemaPage ref="requestPageRef" :schema="requestSchema" @action="onRequestAction" />
-      </NTabPane>
-      <NTabPane name="delegation" :tab="t('identity.authorization.tab_delegation')">
+      </XhTabsContent>
+      <XhTabsContent value="delegation">
         <SchemaPage ref="delegationPageRef" :schema="delegationSchema" @action="onDelegationAction">
           <XEditModal
             v-model:show="delegationModalVisible"
             :title="t('identity.authorization.modal_title')"
             :loading="delegationSubmitting"
-            @save="submitDelegation"
+            :form-id="editFormId"
           >
-            <NForm :model="delegationForm" class="xh-edit-form-grid" label-placement="top">
-              <NFormItem :label="t('identity.authorization.label_delegator')" path="delegatorUserId">
-                <NSelect
-                  v-model:value="delegationForm.delegatorUserId"
-                  clearable
-                  filterable
-                  :loading="userLoading"
-                  :options="userOptions"
-                  :placeholder="t('identity.authorization.ph_delegator')"
-                  remote
-                  @focus="loadUserOptions()"
-                  @search="(kw: string) => loadUserOptions(kw)"
-                />
-              </NFormItem>
-              <NFormItem :label="t('identity.authorization.label_delegatee')" path="delegateeUserId">
-                <NSelect
-                  v-model:value="delegationForm.delegateeUserId"
-                  clearable
-                  filterable
-                  :loading="userLoading"
-                  :options="userOptions"
-                  :placeholder="t('identity.authorization.ph_delegatee')"
-                  remote
-                  @focus="loadUserOptions()"
-                  @search="(kw: string) => loadUserOptions(kw)"
-                />
-              </NFormItem>
-              <NFormItem :label="t('identity.authorization.label_target_kind')" path="targetKind">
-                <NRadioGroup v-model:value="delegationForm.targetKind">
-                  <NRadioButton value="role">
-                    {{ t('identity.authorization.kind_role') }}
-                  </NRadioButton>
-                  <NRadioButton value="permission">
-                    {{ t('identity.authorization.kind_permission') }}
-                  </NRadioButton>
-                </NRadioGroup>
-              </NFormItem>
-              <NFormItem v-if="delegationForm.targetKind === 'role'" :label="t('identity.authorization.label_role')" path="roleId">
-                <NSelect
-                  v-model:value="delegationForm.roleId"
-                  clearable
-                  filterable
-                  :loading="roleLoading"
-                  :options="roleOptions"
-                  :placeholder="t('identity.authorization.ph_role')"
-                  remote
-                  @focus="loadRoleOptions()"
-                  @search="(kw: string) => loadRoleOptions(kw)"
-                />
-              </NFormItem>
-              <NFormItem v-else :label="t('identity.authorization.label_permission')" path="permissionId">
-                <NSelect
-                  v-model:value="delegationForm.permissionId"
-                  clearable
-                  filterable
-                  :loading="permissionLoading"
-                  :options="permissionOptions"
-                  :placeholder="t('identity.authorization.ph_permission')"
-                  remote
-                  @focus="loadPermissionOptions()"
-                  @search="(kw: string) => loadPermissionOptions(kw)"
-                />
-              </NFormItem>
-              <NFormItem :label="t('identity.authorization.label_effective_time')" path="effectiveTime">
-                <NDatePicker v-model:value="delegationForm.effectiveTime" clearable type="datetime" />
-              </NFormItem>
-              <NFormItem :label="t('identity.authorization.label_expiration_time')" path="expirationTime">
-                <NDatePicker v-model:value="delegationForm.expirationTime" clearable type="datetime" />
-              </NFormItem>
-              <NFormItem :label="t('identity.authorization.label_reason')" path="delegationReason" class="xh-span-2">
-                <NInput
-                  v-model:value="delegationForm.delegationReason"
-                  clearable
-                  :placeholder="t('identity.authorization.ph_reason')"
-                  :rows="2"
-                  type="textarea"
-                />
-              </NFormItem>
-            </NForm>
+            <XhFormRoot
+              :id="editFormId"
+              v-model:values="delegationForm"
+              validate-on="blur"
+              class="xh-edit-form-grid"
+              @submit="submitDelegation"
+            >
+              <XhFormFieldGroup value="delegatorUserId">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_delegator') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      v-model:value="delegationForm.delegatorUserId"
+                      clearable
+                      :options="userOptions"
+                      :placeholder="t('identity.authorization.ph_delegator')"
+                      @focus="loadUserOptions()"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="delegateeUserId">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_delegatee') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      v-model:value="delegationForm.delegateeUserId"
+                      clearable
+                      :options="userOptions"
+                      :placeholder="t('identity.authorization.ph_delegatee')"
+                      @focus="loadUserOptions()"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="targetKind">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_target_kind') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSegmented v-model:value="delegationForm.targetKind" :options="[{ value: 'role', label: t('identity.authorization.kind_role') }, { value: 'permission', label: t('identity.authorization.kind_permission') }]" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup v-if="delegationForm.targetKind === 'role'" value="roleId">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_role') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      v-model:value="delegationForm.roleId"
+                      clearable
+                      :options="roleOptions"
+                      :placeholder="t('identity.authorization.ph_role')"
+                      @focus="loadRoleOptions()"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup v-else value="permissionId">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_permission') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      v-model:value="delegationForm.permissionId"
+                      clearable
+                      :options="permissionOptions"
+                      :placeholder="t('identity.authorization.ph_permission')"
+                      @focus="loadPermissionOptions()"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="effectiveTime">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_effective_time') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XDatePicker v-model:value="delegationForm.effectiveTime" clearable type="datetime" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="expirationTime">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_expiration_time') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XDatePicker v-model:value="delegationForm.expirationTime" clearable type="datetime" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="delegationReason" class="xh-span-2">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_reason') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      v-model:value="delegationForm.delegationReason"
+                      clearable
+                      :placeholder="t('identity.authorization.ph_reason')"
+                      :rows="2"
+                      type="textarea"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+            </XhFormRoot>
           </XEditModal>
         </SchemaPage>
-      </NTabPane>
-    </NTabs>
+      </XhTabsContent>
+    </XhTabsRoot>
   </div>
 </template>
 
@@ -624,24 +644,23 @@ async function submitDelegation() {
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 定高表格卡片，分页贴底）。
    页面主体被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
    使其与用户管理等根级 SchemaPage 页面布局一致。 */
-.auth-page :deep(.n-tabs) {
+.auth-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 /* 标签条与下方 SchemaPage 内容（p-3 = 12px）左对齐，并留出上方呼吸空间 */
-.auth-page :deep(.n-tabs-nav) {
+.auth-page :deep([data-scope='tabs'][data-part='list']) {
   padding: 8px 12px 0;
 }
 
-.auth-page :deep(.n-tabs-pane-wrapper) {
+.auth-page :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   height: 0;
 }
 
-.auth-page :deep(.n-tab-pane) {
-  height: 100%;
+.auth-page :deep([data-scope='tabs'][data-part='content']) {
   padding: 0;
 }
 </style>

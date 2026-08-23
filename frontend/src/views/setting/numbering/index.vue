@@ -10,23 +10,8 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { EnumOptionItem } from '~/hooks'
-import {
-  NAlert,
-  NButton,
-  NDescriptions,
-  NDescriptionsItem,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NModal,
-  NSpin,
-  NTag,
-  NTooltip,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, onMounted, ref, watch } from 'vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
+import { computed, h, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -38,7 +23,8 @@ import {
   querySortsFromSchema,
   tenantApi,
 } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XTooltip } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
@@ -49,8 +35,9 @@ import NumberingRuleEditor from './components/NumberingRuleEditor.vue'
 defineOptions({ name: 'SettingNumberingPage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const userStore = useUserStore()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 const isPlatform = ref(!userStore.userInfo?.tenantId)
@@ -163,7 +150,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 110,
     order: 8,
     visible: activeScope.value === NumberingScope.Global,
-    render: row => h(NTag, { type: (row as unknown as NumberingRuleListItemDto).allowTenantUse ? 'success' : 'default', size: 'small' }, () => (row as unknown as NumberingRuleListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhBadge, { variant: 'subtle', tone: (row as unknown as NumberingRuleListItemDto).allowTenantUse ? 'success' : 'neutral', size: 'sm' }, () => (row as unknown as NumberingRuleListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no')),
   },
   {
     key: 'status',
@@ -173,7 +160,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     sortable: true,
     order: 9,
     dictionaryCode: 'EnableStatus',
-    render: row => h(NTag, { type: (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', size: 'small' }, () => (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
+    render: row => h(XhBadge, { variant: 'subtle', tone: (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
   },
 ])
 
@@ -181,7 +168,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.numbering',
   pageName: t('setting.numbering.page_name'),
   rowKey: 'basicId',
-  scrollX: 1380,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -277,13 +263,13 @@ async function openDetail(row: NumberingRuleListItemDto): Promise<void> {
   try {
     detail.value = await numberingApi.detail(row.basicId, activeScope.value)
     if (!detail.value) {
-      message.error(t('setting.numbering.not_found'))
+      toast.error(t('setting.numbering.not_found'))
       return
     }
     detailVisible.value = true
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.numbering.not_found'))
+    toast.error((error as Error).message || t('setting.numbering.not_found'))
   }
 }
 
@@ -292,13 +278,13 @@ async function openEditor(row: NumberingRuleListItemDto): Promise<void> {
   try {
     editorDetail.value = await numberingApi.detail(row.basicId, activeScope.value)
     if (!editorDetail.value) {
-      message.error(t('setting.numbering.not_found'))
+      toast.error(t('setting.numbering.not_found'))
       return
     }
     editorVisible.value = true
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.numbering.not_found'))
+    toast.error((error as Error).message || t('setting.numbering.not_found'))
   }
 }
 
@@ -309,11 +295,11 @@ async function toggleStatus(row: NumberingRuleListItemDto): Promise<void> {
   actionLoading.value = true
   try {
     await numberingApi.updateStatus({ basicId: row.basicId, scope: activeScope.value, status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled })
-    message.success(t('setting.numbering.status_success'))
+    toast.success(t('setting.numbering.status_success'))
     void schemaPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.numbering.status_failed'))
+    toast.error((error as Error).message || t('setting.numbering.status_failed'))
   }
   finally {
     actionLoading.value = false
@@ -332,7 +318,7 @@ async function submitReset(): Promise<void> {
   if (!resetTarget.value || actionLoading.value)
     return
   if (!/^\d{1,18}$/.test(resetForm.value.nextValue) || BigInt(resetForm.value.nextValue) < 1n || !resetForm.value.reason.trim()) {
-    message.warning(t('setting.numbering.reset_required'))
+    toast.warning(t('setting.numbering.reset_required'))
     return
   }
   actionLoading.value = true
@@ -344,12 +330,12 @@ async function submitReset(): Promise<void> {
       reason: resetForm.value.reason.trim(),
       confirmRuleCode: resetTarget.value.isGlobal ? resetForm.value.confirmRuleCode.trim() : null,
     })
-    message.success(t('setting.numbering.reset_success'))
+    toast.success(t('setting.numbering.reset_success'))
     resetVisible.value = false
     void schemaPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.numbering.reset_failed'))
+    toast.error((error as Error).message || t('setting.numbering.reset_failed'))
   }
   finally {
     actionLoading.value = false
@@ -358,23 +344,25 @@ async function submitReset(): Promise<void> {
 
 /** 确认删除从未发号的规则。 */
 function remove(row: NumberingRuleListItemDto): void {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('setting.numbering.delete_title'),
     content: t('setting.numbering.delete_confirm', { code: row.ruleCode }),
-    positiveText: t('common.actions.delete'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.delete'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       if (actionLoading.value)
         return false
       actionLoading.value = true
       try {
         await numberingApi.delete(row.basicId, activeScope.value)
-        message.success(t('setting.numbering.delete_success'))
+        toast.success(t('setting.numbering.delete_success'))
         void schemaPageRef.value?.reload()
         return true
       }
       catch (error) {
-        message.error((error as Error).message || t('setting.numbering.delete_failed'))
+        toast.error((error as Error).message || t('setting.numbering.delete_failed'))
         return false
       }
       finally {
@@ -387,7 +375,7 @@ function remove(row: NumberingRuleListItemDto): void {
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3">
-    <NSpin v-if="!contextResolved" class="flex-1 py-12" :description="t('common.statuses.loading')" />
+    <XhSpinner v-if="!contextResolved" class="flex-1 py-12" />
     <template v-else>
       <!--
         SchemaPage 内部表格依赖确定高度；flex-1 + min-h-0 将剩余视口高度正确传递给表格滚动区。
@@ -395,25 +383,19 @@ function remove(row: NumberingRuleListItemDto): void {
       -->
       <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
         <template v-if="!isPlatform" #toolbar>
-          <NTooltip>
-            <template #trigger>
-              <NButton
-                circle
-                quaternary
-                size="small"
-                :aria-label="scopeSwitchLabel"
-                @click="switchScope"
-              >
-                <template #icon>
-                  <!-- 图标表示点击后进入的目标作用域，Tooltip 同时补充当前状态和完整动作语义。 -->
-                  <NIcon>
-                    <Icon :icon="activeScope === NumberingScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" />
-                  </NIcon>
-                </template>
-              </NButton>
-            </template>
-            {{ scopeSwitchLabel }}
-          </NTooltip>
+          <XTooltip :content="scopeSwitchLabel">
+            <XhButton
+
+              data-circle
+              variant="ghost"
+              size="sm"
+              :aria-label="scopeSwitchLabel"
+              @click="switchScope"
+            >
+              <!-- 图标表示点击后进入的目标作用域，Tooltip 同时补充当前状态和完整动作语义。 -->
+              <span><Icon :icon="activeScope === NumberingScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
+            </XhButton>
+          </XTooltip>
         </template>
       </SchemaPage>
     </template>
@@ -428,47 +410,94 @@ function remove(row: NumberingRuleListItemDto): void {
     <NumberingAllocationDrawer v-model:show="allocationVisible" :rule="selectedRule" :scope="activeScope" />
     <NumberingPreviewModal v-model:show="previewVisible" :rule="previewRule" />
 
-    <NModal v-model:show="detailVisible" preset="card" :title="t('setting.numbering.detail_title')" style="width: 680px; max-width: 92vw">
-      <NDescriptions v-if="detail" :column="2" bordered label-placement="left">
-        <NDescriptionsItem :label="t('setting.numbering.rule_code')">
-          {{ detail.ruleCode }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('setting.numbering.rule_name')">
-          {{ detail.ruleName }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('setting.numbering.period')">
-          {{ detail.currentPeriod || '-' }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('setting.numbering.current_value')">
-          {{ detail.currentValue }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('setting.numbering.time_zone')">
-          {{ detail.timeZoneId }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('setting.numbering.has_allocated')">
-          {{ detail.hasAllocated ? t('common.statuses.yes') : t('common.statuses.no') }}
-        </NDescriptionsItem>
-        <NDescriptionsItem :label="t('setting.numbering.remark')" :span="2">
-          {{ detail.remark || '-' }}
-        </NDescriptionsItem>
-      </NDescriptions>
-    </NModal>
+    <XhDialogRoot v-model:open="detailVisible">
+      <XhDialogContent style="--xh-dialog-max-w: 680px">
+        <XhDialogTitle>{{ t('setting.numbering.detail_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <XhDescriptionsRoot v-if="detail" :columns="2" bordered placement="left">
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.ruleCode }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.numbering.rule_name') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.ruleName }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.numbering.period') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.currentPeriod || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.numbering.current_value') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.currentValue }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.numbering.time_zone') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.timeZoneId }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('setting.numbering.has_allocated') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.hasAllocated ? t('common.statuses.yes') : t('common.statuses.no') }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem style="grid-column: span 2">
+            <XhDescriptionsLabel>{{ t('setting.numbering.remark') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detail.remark || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+        </XhDescriptionsRoot>
+      </XhDialogContent>
+    </XhDialogRoot>
 
-    <XEditModal v-model:show="resetVisible" :title="t('setting.numbering.reset_title')" :loading="actionLoading" @save="submitReset">
-      <NAlert class="mb-3" type="warning" :show-icon="true">
-        {{ t('setting.numbering.reset_tip') }}
-      </NAlert>
-      <NForm :model="resetForm" label-placement="top">
-        <NFormItem :label="t('setting.numbering.next_value')">
-          <NInput v-model:value="resetForm.nextValue" maxlength="18" />
-        </NFormItem>
-        <NFormItem :label="t('setting.numbering.reset_reason')">
-          <NInput v-model:value="resetForm.reason" type="textarea" maxlength="500" />
-        </NFormItem>
-        <NFormItem v-if="resetTarget?.isGlobal" :label="t('setting.numbering.confirm_rule_code')">
-          <NInput v-model:value="resetForm.confirmRuleCode" :placeholder="resetTarget.ruleCode" />
-        </NFormItem>
-      </NForm>
+    <XEditModal v-model:show="resetVisible" :title="t('setting.numbering.reset_title')" :loading="actionLoading" :form-id="editFormId">
+      <XhAlertRoot tone="warning" class="mb-3">
+        <XhAlertIcon>
+          <Icon icon="lucide:triangle-alert" width="16" />
+        </XhAlertIcon>
+        <XhAlertDescription>
+          {{ t('setting.numbering.reset_tip') }}
+        </XhAlertDescription>
+      </XhAlertRoot>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="resetForm"
+        validate-on="blur"
+        @submit="submitReset"
+      >
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.numbering.next_value') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="resetForm.nextValue" :max-length="18" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('setting.numbering.reset_reason') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="resetForm.reason" type="textarea" :max-length="500" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot v-if="resetTarget?.isGlobal">
+          <XhFieldLabel>{{ t('setting.numbering.confirm_rule_code') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="resetForm.confirmRuleCode" :placeholder="resetTarget.ruleCode" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+      </XhFormRoot>
     </XEditModal>
   </div>
 </template>

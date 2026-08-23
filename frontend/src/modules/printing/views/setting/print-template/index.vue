@@ -7,7 +7,7 @@ import type { PrintTemplateDetailDto, PrintTemplateListItemDto } from '../../../
 import type PrintTemplateEditor from './components/PrintTemplateEditor.vue'
 import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { NButton, NIcon, NSpin, NTag, NTooltip, useDialog, useMessage } from 'naive-ui'
+import { XhBadge, XhButton, XhSpinner } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave } from 'vue-router'
@@ -17,7 +17,8 @@ import {
   querySortsFromSchema,
   tenantApi,
 } from '@/api'
-import { SchemaPage } from '~/components'
+import { SchemaPage, XTooltip } from '~/components'
+import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import {
   createDefaultPrintSampleData,
@@ -35,8 +36,6 @@ import TemplateEditor from './components/PrintTemplateEditor.vue'
 defineOptions({ name: 'SettingPrintTemplatePage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 const userStore = useUserStore()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 const editorRef = ref<InstanceType<typeof PrintTemplateEditor> | null>(null)
@@ -115,7 +114,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const code = (row as unknown as PrintTemplateListItemDto).dataSourceCode
-      return code || h(NTag, { type: 'default', size: 'small', bordered: false }, () => t('setting.print_template.free_template'))
+      return code || h(XhBadge, { variant: 'subtle', tone: 'neutral', size: 'sm' }, () => t('setting.print_template.free_template'))
     },
   },
   { key: 'engineVersion', title: t('setting.print_template.engine_version'), dataType: 'string', width: 110, order: 4 },
@@ -126,7 +125,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 110,
     order: 5,
     visible: activeScope.value === PrintTemplateScope.Global,
-    render: row => h(NTag, { type: (row as unknown as PrintTemplateListItemDto).allowTenantUse ? 'success' : 'default', size: 'small' }, () => (row as unknown as PrintTemplateListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhBadge, { variant: 'subtle', tone: (row as unknown as PrintTemplateListItemDto).allowTenantUse ? 'success' : 'neutral', size: 'sm' }, () => (row as unknown as PrintTemplateListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no')),
   },
   {
     key: 'status',
@@ -136,7 +135,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     sortable: true,
     order: 6,
     dictionaryCode: 'EnableStatus',
-    render: row => h(NTag, { type: (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'error', size: 'small' }, () => (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
+    render: row => h(XhBadge, { variant: 'subtle', tone: (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
   },
   { key: 'sort', title: t('setting.print_template.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
   { key: 'remark', title: t('setting.print_template.remark'), dataType: 'string', minWidth: 180, order: 8 },
@@ -146,7 +145,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.print-template',
   pageName: t('setting.print_template.page_name'),
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -207,7 +205,7 @@ async function openEditor(row: PrintTemplateListItemDto): Promise<void> {
     editorVisible.value = true
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.not_found'))
+    toast.error((error as Error).message || t('setting.print_template.not_found'))
   }
 }
 
@@ -228,7 +226,7 @@ async function openSamplePreview(row: PrintTemplateListItemDto): Promise<void> {
     samplePreviewVisible.value = true
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.preview_failed'))
+    toast.error((error as Error).message || t('setting.print_template.preview_failed'))
   }
   finally {
     actionLoading.value = false
@@ -245,7 +243,7 @@ async function previewSampleData(sample: Record<string, unknown> | Record<string
     return
   const context = samplePreviewContext.value
   if (!context) {
-    message.error(t('setting.print_template.sample_template_missing'))
+    toast.error(t('setting.print_template.sample_template_missing'))
     return
   }
 
@@ -259,7 +257,7 @@ async function previewSampleData(sample: Record<string, unknown> | Record<string
     samplePreviewVisible.value = false
   }
   catch (error) {
-    message.error(error instanceof PrintTemplateVersionChangedError
+    toast.error(error instanceof PrintTemplateVersionChangedError
       ? t('setting.print_template.sample_version_changed')
       : (error as Error).message || t('setting.print_template.preview_failed'))
   }
@@ -284,10 +282,10 @@ async function direct(row: PrintTemplateListItemDto): Promise<void> {
       detail.dataSourceCode,
     )
     await directPrintByCode(row.templateCode, sample, { scope: activeScope.value, title: row.templateName })
-    message.success(t('setting.print_template.direct_success'))
+    toast.success(t('setting.print_template.direct_success'))
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.direct_failed'))
+    toast.error((error as Error).message || t('setting.print_template.direct_failed'))
   }
   finally {
     actionLoading.value = false
@@ -306,11 +304,11 @@ async function toggleStatus(row: PrintTemplateListItemDto): Promise<void> {
       rowVersion: row.rowVersion,
       status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
     })
-    message.success(t('setting.print_template.status_success'))
+    toast.success(t('setting.print_template.status_success'))
     void schemaPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error).message || t('setting.print_template.status_failed'))
+    toast.error((error as Error).message || t('setting.print_template.status_failed'))
   }
   finally {
     actionLoading.value = false
@@ -319,23 +317,25 @@ async function toggleStatus(row: PrintTemplateListItemDto): Promise<void> {
 
 /** 确认并删除已停用模板。 */
 function remove(row: PrintTemplateListItemDto): void {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('setting.print_template.delete_title'),
     content: t('setting.print_template.delete_confirm', { code: row.templateCode }),
-    positiveText: t('common.actions.delete'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.delete'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       if (actionLoading.value)
         return false
       actionLoading.value = true
       try {
         await printTemplateApi.delete({ basicId: row.basicId, scope: activeScope.value, rowVersion: row.rowVersion })
-        message.success(t('setting.print_template.delete_success'))
+        toast.success(t('setting.print_template.delete_success'))
         void schemaPageRef.value?.reload()
         return true
       }
       catch (error) {
-        message.error((error as Error).message || t('setting.print_template.delete_failed'))
+        toast.error((error as Error).message || t('setting.print_template.delete_failed'))
         return false
       }
       finally {
@@ -370,19 +370,14 @@ function parseTemplateJson(value: string): Record<string, unknown> {
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3">
-    <NSpin v-if="!contextResolved" class="flex-1 py-12" :description="t('common.statuses.loading')" />
+    <XhSpinner v-if="!contextResolved" class="flex-1 py-12" />
     <SchemaPage v-else ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
       <template v-if="!isPlatform" #toolbar>
-        <NTooltip>
-          <template #trigger>
-            <NButton circle quaternary size="small" :aria-label="scopeSwitchLabel" @click="switchScope">
-              <template #icon>
-                <NIcon><Icon :icon="activeScope === PrintTemplateScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></NIcon>
-              </template>
-            </NButton>
-          </template>
-          {{ scopeSwitchLabel }}
-        </NTooltip>
+        <XTooltip :content="scopeSwitchLabel">
+          <XhButton class="xh-icon-btn" variant="ghost" size="sm" :aria-label="scopeSwitchLabel" @click="switchScope">
+            <span><Icon :icon="activeScope === PrintTemplateScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
+          </XhButton>
+        </XTooltip>
       </template>
     </SchemaPage>
 

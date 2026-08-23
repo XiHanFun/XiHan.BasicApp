@@ -1,0 +1,121 @@
+/* 管理页查询区布局（与用户页一致） */
+.xh-query-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: var(--n-card-color);
+  border-radius: var(--n-border-radius);
+}
+
+.xh-query-panel__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * 新增/编辑弹窗统一表单网格（以用户页为基准，配合 XEditModal 使用）：
+ * 两列等宽、行列间距 10px、紧凑标签；跨整行字段（备注/长文本等）加 .xh-span-2。
+ * 加在 NForm 或普通 div 容器上均可。
+ */
+.xh-edit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.xh-edit-form-grid .xh-span-2 {
+  grid-column: span 2;
+}
+
+/* 编辑弹窗表单标签紧凑 */
+.xh-edit-form-grid .n-form-item-label {
+  font-size: 11px;
+  font-weight: 500;
+  padding-bottom: 4px;
+}
+
+/*
+ * 弹窗表单不走 NForm 校验反馈（全仓无 :rules 用法，校验在提交时统一提示）：
+ * 去掉每行下方保留的反馈占位，行距统一为网格间距，等效逐项 :show-feedback="false"
+ */
+.xh-edit-form-grid .n-form-item-feedback-wrapper {
+  display: none;
+}
+
+/* 网格内日期/数字输入默认占满整格，免去逐个设置宽度 */
+.xh-edit-form-grid .n-date-picker,
+.xh-edit-form-grid .n-input-number {
+  width: 100%;
+}
+
+/* 小屏单列 */
+@media (max-width: 560px) {
+  .xh-edit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .xh-edit-form-grid .xh-span-2 {
+    grid-column: auto;
+  }
+}
+
+/* 管理页详情弹窗（与用户页一致） */
+.xh-mgmt-detail-modal .det-hd-entity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.xh-mgmt-detail-modal .det-hd-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--n-primary-color) 14%, var(--n-card-color));
+  color: var(--n-primary-color);
+}
+
+.xh-mgmt-detail-modal .det-hd-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--n-text-color);
+}
+
+.xh-mgmt-detail-modal .det-hd-sub {
+  font-size: 12px;
+  color: var(--n-text-color-3);
+  margin-top: 2px;
+}
+
+.xh-mgmt-detail-modal .modal-loading {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--n-text-color-3);
+  font-size: 13px;
+}
+
+.xh-mgmt-detail-modal .xh-detail-table-wrap {
+  max-height: 280px;
+  overflow: auto;
+}
+
+/*
+ * 抽屉响应式：左右两侧抽屉默认用固定 px 宽度，小屏视口比其窄时会超出视口、内容被裁切。
+ * 用 max-width 约束——大屏不触发（保持设定宽度），小屏自动收窄到视口内，内容完整可滚动。
+ * 全局生效，覆盖所有页面的 NDrawer，无需逐个改成弹窗。
+ */
+.n-drawer.n-drawer--left-placement,
+.n-drawer.n-drawer--right-placement {
+  max-width: calc(100vw - 24px);
+}

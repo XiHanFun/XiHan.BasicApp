@@ -1,7 +1,10 @@
 <script setup lang="ts" generic="T extends PermissionGrantItem">
 import type { PermissionGrantItem } from './permission-grant-panel'
-import { NEmpty, NInput, NSpin, NTag } from 'naive-ui'
+import { XhBadge, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
+import XInput from './XInput.vue'
 
 defineOptions({ name: 'XPermissionGrantPanel' })
 
@@ -16,6 +19,8 @@ const props = defineProps<{
   emptyDescription?: string
   otherGroupLabel?: string
 }>()
+
+const { t } = useI18n()
 
 const keyword = ref('')
 
@@ -91,16 +96,25 @@ const groups = computed(() => {
 <template>
   <div class="xh-perm-panel">
     <div class="xh-perm-panel__toolbar">
-      <NInput v-model:value="keyword" clearable :placeholder="searchPlaceholder" style="width: 240px" />
-      <NTag v-if="grantedCountLabel" :bordered="false" round type="success">
+      <XInput v-model:value="keyword" clearable :placeholder="searchPlaceholder" style="inline-size: 240px" />
+      <XhBadge v-if="grantedCountLabel" variant="subtle" size="sm" tone="success">
         {{ grantedCountLabel }}
-      </NTag>
+      </XhBadge>
       <!-- 额外工具位：如版本权限的「授予」入口 -->
       <slot name="toolbar" />
     </div>
 
-    <NSpin :show="Boolean(loading)">
-      <NEmpty v-if="groups.length === 0 && !loading" class="xh-perm-panel__empty" :description="emptyDescription" />
+    <div class="xh-perm-panel__stage">
+      <div v-if="loading" class="xh-perm-panel__loading">
+        <XhSpinner :label="searchPlaceholder" />
+      </div>
+      <XhEmptyStateRoot v-if="groups.length === 0 && !loading" class="xh-perm-panel__empty">
+        <XhEmptyStateIcon>
+          <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="28" height="28" />
+        </XhEmptyStateIcon>
+        <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.no_data') }}</XhEmptyStateTitle>
+        <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
+      </XhEmptyStateRoot>
       <div v-else class="xh-perm-panel__groups">
         <section v-for="group in groups" :key="group.key" class="xh-perm-panel__group">
           <div class="xh-perm-panel__group-head">
@@ -125,11 +139,27 @@ const groups = computed(() => {
           </div>
         </section>
       </div>
-    </NSpin>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/* 加载态：内容之上叠一层居中的旋转标记 */
+.xh-perm-panel__stage {
+  position: relative;
+}
+
+.xh-perm-panel__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--xh-bg-surface);
+  opacity: 0.7;
+}
+
 .xh-perm-panel__toolbar {
   display: flex;
   align-items: center;
@@ -148,7 +178,7 @@ const groups = computed(() => {
 }
 
 .xh-perm-panel__group {
-  border: 1px solid var(--n-border-color, rgb(239 239 245));
+  border: 1px solid var(--xh-border-default);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -158,7 +188,7 @@ const groups = computed(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: var(--n-color-modal, rgb(250 250 252));
+  background-color: var(--xh-bg-subtle);
   font-size: 13px;
   font-weight: 500;
 }
@@ -179,7 +209,7 @@ const groups = computed(() => {
   justify-content: space-between;
   gap: 10px;
   padding: 8px 12px;
-  border-top: 1px solid var(--n-border-color, rgb(239 239 245));
+  border-top: 1px solid var(--xh-border-default);
   min-width: 0;
 }
 

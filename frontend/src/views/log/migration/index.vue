@@ -2,18 +2,18 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { MigrationHistoryDetailDto, MigrationHistoryListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, versionApi } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { migrationHistoryDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogMigrationPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 
 const detailVisible = ref(false)
 const detailLoading = ref(false)
@@ -38,11 +38,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: successOptions.value,
     width: 110,
     order: 12,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: (row as unknown as MigrationHistoryListItemDto).success ? 'success' : 'error' },
-      () => (row as unknown as MigrationHistoryListItemDto).success ? t('log.migration.success_yes') : t('log.migration.success_no'),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MigrationHistoryListItemDto).success ? 'success' : 'danger' }, () => (row as unknown as MigrationHistoryListItemDto).success ? t('log.migration.success_yes') : t('log.migration.success_no')),
   },
   { key: 'executedTime', title: t('log.migration.executed_time'), dataType: 'datetime', sortable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 13 },
   { key: 'nodeName', title: t('log.migration.node_name'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('log.migration.node_name_placeholder'), minWidth: 150, order: 14 },
@@ -75,7 +71,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'log.migration',
   pageName: t('log.migration.page_name'),
   rowKey: 'basicId',
-  scrollX: 1100,
   fields: fields.value,
   resource: {
     page: params => versionApi.migrationHistoryPage(buildMigrationQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -102,7 +97,7 @@ async function handleDetail(row: MigrationHistoryListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.migration.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.migration.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

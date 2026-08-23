@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
 import type { PageSchema, SchemaQueryParams, SchemaSortRule } from './types'
 import type { ApiId } from '~/types/contracts'
-import { useMessage } from 'naive-ui'
 import { reactive, ref } from 'vue'
+import { toast } from '~/composables'
 import { i18n } from '~/locales'
 import { queryFiltersFromSchema } from './selectors'
 
@@ -26,8 +26,6 @@ export function useSchemaTable<TRow extends object>(
   schema: PageSchema<TRow>,
   options: UseSchemaTableOptions = {},
 ) {
-  const message = useMessage()
-
   const loading = ref(false)
   const rows = ref<TRow[]>([]) as Ref<TRow[]>
   const total = ref(0)
@@ -89,7 +87,7 @@ export function useSchemaTable<TRow extends object>(
       total.value = result.page?.totalCount ?? 0
     }
     catch (error) {
-      message.error((error as Error)?.message || (options.loadErrorText ?? i18n.global.t('component.schema_page.load_failed')))
+      toast.error((error as Error)?.message || (options.loadErrorText ?? i18n.global.t('component.schema_page.load_failed')))
       rows.value = []
       total.value = 0
     }
@@ -137,7 +135,7 @@ export function useSchemaTable<TRow extends object>(
       return
     }
     await schema.resource.remove(id)
-    message.success(options.removeSuccessText ?? i18n.global.t('common.messages.delete_success'))
+    toast.success(options.removeSuccessText ?? i18n.global.t('common.messages.delete_success'))
     void load()
   }
 

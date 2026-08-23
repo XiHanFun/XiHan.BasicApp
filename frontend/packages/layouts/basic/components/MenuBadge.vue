@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { VNodeChild } from 'vue'
-import { NTag } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { h } from 'vue'
 
 /** 菜单标签信息 */
@@ -10,18 +10,18 @@ export interface BadgeInfo {
   dot?: boolean
 }
 
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
+type BadgeTone = 'neutral' | 'danger' | 'info' | 'success' | 'warning'
 
-const BADGE_TYPE_MAP: Record<string, TagType> = {
-  default: 'default',
+const BADGE_TONE_MAP: Record<string, BadgeTone> = {
+  default: 'neutral',
   success: 'success',
   warning: 'warning',
-  error: 'error',
+  error: 'danger',
   info: 'info',
 }
 
-export function resolveBadgeType(type?: string): TagType {
-  return BADGE_TYPE_MAP[type ?? ''] ?? 'default'
+export function resolveBadgeTone(type?: string): BadgeTone {
+  return BADGE_TONE_MAP[type ?? ''] ?? 'neutral'
 }
 
 /**
@@ -42,11 +42,10 @@ export function renderSidebarBadgeLabel(
   return () =>
     h('span', { class: 'menu-badge-wrapper' }, [
       h('span', { class: 'menu-badge-text' }, text),
-      h(NTag, {
-        size: 'tiny',
-        type: resolveBadgeType(badge.type),
-        round: true,
-        bordered: false,
+      h(XhBadge, {
+        size: 'sm',
+        variant: 'subtle',
+        tone: resolveBadgeTone(badge.type),
         class: 'menu-badge-tag',
       }, () => String(badge.text)),
     ])
@@ -70,11 +69,10 @@ export function renderHorizontalBadgeLabel(
   return () =>
     h('span', { class: 'inline-flex items-center gap-1.5' }, [
       text,
-      h(NTag, {
-        size: 'tiny',
-        type: resolveBadgeType(badge.type),
-        round: true,
-        bordered: false,
+      h(XhBadge, {
+        size: 'sm',
+        variant: 'subtle',
+        tone: resolveBadgeTone(badge.type),
       }, () => String(badge.text)),
     ])
 }
@@ -97,7 +95,7 @@ const props = withDefaults(defineProps<{
   mode?: 'sidebar' | 'horizontal'
 }>(), { mode: 'sidebar' })
 
-const tagType = resolveBadgeType(props.badge.type)
+const badgeTone = resolveBadgeTone(props.badge.type)
 </script>
 
 <template>
@@ -105,18 +103,18 @@ const tagType = resolveBadgeType(props.badge.type)
   <span v-if="mode === 'sidebar'" class="menu-badge-wrapper">
     <span class="menu-badge-text">{{ text }}</span>
     <span v-if="badge.dot" class="menu-badge-dot" />
-    <NTag v-else size="tiny" :type="tagType" round :bordered="false" class="menu-badge-tag">
+    <XhBadge v-else size="sm" variant="subtle" :tone="badgeTone" class="menu-badge-tag">
       {{ badge.text }}
-    </NTag>
+    </XhBadge>
   </span>
 
   <!-- 水平模式：行内紧跟 -->
   <span v-else class="inline-flex items-center gap-1.5">
     {{ text }}
     <span v-if="badge.dot" class="menu-badge-dot" style="margin-left: 2px" />
-    <NTag v-else size="tiny" :type="tagType" round :bordered="false">
+    <XhBadge v-else size="sm" variant="subtle" :tone="badgeTone">
       {{ badge.text }}
-    </NTag>
+    </XhBadge>
   </span>
 </template>
 
@@ -154,30 +152,26 @@ const tagType = resolveBadgeType(props.badge.type)
   line-height: 18px !important;
 }
 
-/* ---- 折叠 + 显示标题时：竖向堆叠 ---- */
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-wrapper {
+/* ---- 折叠 + 显示标题时：竖向堆叠（侧栏菜单在这一档挂 .sidebar-menu--collapsed-titled）---- */
+.sidebar-menu--collapsed-titled .menu-badge-wrapper {
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
 }
 
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-text {
+.sidebar-menu--collapsed-titled .menu-badge-text {
   white-space: normal;
   text-align: center;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-dot {
+.sidebar-menu--collapsed-titled .menu-badge-dot {
   margin-left: 0;
 }
 
-.mixed-primary-menu .sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag,
-.sidebar-menu-collapsed-show-title.n-menu.n-menu--collapsed .menu-badge-tag {
+.sidebar-menu--collapsed-titled .menu-badge-tag {
   margin-left: 0;
   font-size: 10px !important;
   padding: 0 4px !important;

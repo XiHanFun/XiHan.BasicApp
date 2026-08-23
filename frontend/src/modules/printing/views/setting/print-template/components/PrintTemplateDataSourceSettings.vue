@@ -4,16 +4,11 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
-import {
-  NButton,
-  NFormItem,
-  NIcon,
-  NPopover,
-  NSelect,
-  useMessage,
-} from 'naive-ui'
+import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XSelect } from '~/components'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { ensureRemotePrintDataSourcesLoaded, extractPrintSampleFormSchema, getPrintDataSource, listPrintDataSources } from '~/printing'
 
@@ -25,7 +20,6 @@ const props = defineProps<{
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
-const message = useMessage()
 
 // 目录版本号：后端目录异步加载完成后递增，驱动下拉与字段目录重算（注册表本身非响应式）
 const catalogVersion = ref(0)
@@ -35,7 +29,7 @@ onMounted(async () => {
   }
   catch (error) {
     // 拉取失败明确提示，避免把网络或权限异常误呈现为「数据源不存在」
-    message.error(t('setting.print_template.data_source_catalog_load_failed'))
+    toast.error(t('setting.print_template.data_source_catalog_load_failed'))
     console.error(error)
   }
   finally {
@@ -84,20 +78,20 @@ function switchToFreeTemplate(): void {
 </script>
 
 <template>
-  <NFormItem :label="`${t('setting.print_template.data_source')} (${t('setting.print_template.optional')})`">
+  <XhFieldRoot>
+    <XhFieldLabel>{{ `${t('setting.print_template.data_source')} (${t('setting.print_template.optional')})` }}</XhFieldLabel>
     <div class="data-source-field">
-      <NSelect
-        v-model:value="model.dataSourceCode"
-        :options="dataSourceOptions"
-        :placeholder="t('setting.print_template.data_source_optional_placeholder')"
-        clearable
-        filterable
-      />
+      <XhFieldControl>
+        <XSelect
+          v-model:value="model.dataSourceCode"
+          :options="dataSourceOptions"
+          :placeholder="t('setting.print_template.data_source_optional_placeholder')"
+          clearable
+        />
+      </XhFieldControl>
 
       <div class="data-source-guidance">
-        <NIcon :size="18" color="#4f7cf7">
-          <Icon icon="tabler:info-circle" />
-        </NIcon>
+        <span color="#4f7cf7" style="display: inline-flex; font-size: 18px"><Icon icon="tabler:info-circle" /></span>
         <div>
           <strong>{{ t('setting.print_template.data_source_guidance_title') }}</strong>
           <p>
@@ -109,49 +103,46 @@ function switchToFreeTemplate(): void {
       </div>
 
       <div v-if="selectedSource" class="data-source-actions">
-        <NButton size="small" secondary type="primary" @click="switchToFreeTemplate">
+        <XhButton size="sm" variant="subtle" tone="brand" @click="switchToFreeTemplate">
           {{ t('setting.print_template.switch_to_free_template') }}
-        </NButton>
-        <NPopover trigger="click" placement="bottom-end" :width="320">
-          <template #trigger>
-            <NButton text type="primary" size="small">
-              {{ t('setting.print_template.view_field_list') }}
-              <template #icon>
-                <NIcon>
-                  <Icon icon="tabler:list-details" />
-                </NIcon>
-              </template>
-            </NButton>
-          </template>
-          <div class="data-source-field-list">
-            <div class="field-list-heading">
-              <strong>{{ selectedSource.name }}</strong>
-              <span>{{ selectedSource.code }}</span>
-            </div>
-            <div v-for="field in selectedSource.fields" :key="field.key" class="field-list-row">
-              <span>{{ field.label }}</span>
-              <code>{{ field.key }}</code>
-            </div>
-          </div>
-        </NPopover>
+        </XhButton>
+        <XhPopoverRoot placement="bottom-end">
+          <XhPopoverTrigger class="xh-linklike-trigger">
+            {{ t('setting.print_template.view_field_list') }}
+            <span><Icon icon="tabler:list-details" /></span>
+          </XhPopoverTrigger>
+          <XhPopoverPositioner>
+            <XhPopoverContent>
+              <div class="data-source-field-list">
+                <div class="field-list-heading">
+                  <strong>{{ selectedSource.name }}</strong>
+                  <span>{{ selectedSource.code }}</span>
+                </div>
+                <div v-for="field in selectedSource.fields" :key="field.key" class="field-list-row">
+                  <span>{{ field.label }}</span>
+                  <code>{{ field.key }}</code>
+                </div>
+              </div>
+            </XhPopoverContent>
+          </XhPopoverPositioner>
+        </XhPopoverRoot>
       </div>
 
-      <NPopover v-if="unmatchedFieldCount > 0" trigger="click" placement="bottom" :width="340">
-        <template #trigger>
-          <button type="button" class="compatibility-warning">
-            <NIcon :size="17">
-              <Icon icon="tabler:alert-triangle" />
-            </NIcon>
-            <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
-            <NIcon :size="16">
-              <Icon icon="tabler:chevron-right" />
-            </NIcon>
-          </button>
-        </template>
-        {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
-      </NPopover>
+      <XhPopoverRoot v-if="unmatchedFieldCount > 0" placement="bottom">
+        <XhPopoverTrigger class="xh-linklike-trigger">
+          <Icon width="17" height="17" icon="tabler:alert-triangle" />
+          <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
+          <Icon width="16" height="16" icon="tabler:chevron-right" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
     </div>
-  </NFormItem>
+    <XhFieldErrorText />
+  </XhFieldRoot>
 </template>
 
 <style scoped>

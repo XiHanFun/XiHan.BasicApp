@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { NNumberAnimation, NTooltip } from 'naive-ui'
+import { XhNumberAnimation } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XTooltip from '~/components/common/XTooltip.vue'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { CHAT_PERMISSIONS } from '../constants'
@@ -19,49 +20,26 @@ const unread = computed(() => chatStore.totalUnread)
 </script>
 
 <template>
-  <NTooltip v-if="visible">
-    <template #trigger>
-      <button
-        type="button"
-        class="chat-header-btn mr-1"
-        @click="chatStore.requestOpenChatDrawer()"
-      >
-        <Icon icon="lucide:messages-square" width="16" height="16" />
-        <span v-if="unread > 0" class="chat-header-btn__badge">
-          <NNumberAnimation :to="Math.min(unread, 99)" :duration="500" :precision="0" />
-          <span v-if="unread > 99">+</span>
-        </span>
-      </button>
-    </template>
-    {{ t('chat.bell') }}
-  </NTooltip>
+  <XTooltip :content="t('chat.bell')">
+    <button
+      v-if="visible"
+      type="button"
+      class="xihan-icon-btn chat-header-btn mr-1"
+      @click="chatStore.requestOpenChatDrawer()"
+    >
+      <Icon icon="lucide:messages-square" width="16" height="16" />
+      <span v-if="unread > 0" class="chat-header-btn__badge">
+        <XhNumberAnimation :to="Math.min(unread, 99)" :duration="500" :precision="0" />
+        <span v-if="unread > 99">+</span>
+      </span>
+    </button>
+  </XTooltip>
 </template>
 
 <style scoped>
-/* 与通知铃铛同款按钮/徽标规格（14px 小圆 + 9px 字） */
+/* 皮肤走全局 .xihan-icon-btn，这里只留徽标需要的定位（14px 小圆 + 9px 字） */
 .chat-header-btn {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--foreground) / 65%);
-  cursor: pointer;
-  outline: none;
-  flex-shrink: 0;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.chat-header-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
 }
 
 .chat-header-btn__badge {

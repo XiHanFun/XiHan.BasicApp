@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { NIcon } from 'naive-ui'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '~/hooks'
@@ -98,9 +97,7 @@ watch(isDark, () => {
             class="flex justify-center items-center w-12 h-12 rounded-xl"
             :class="isDark ? 'bg-[#0b1220]' : 'bg-white'"
           >
-            <NIcon :size="24" :class="isDark ? 'text-white' : 'text-[hsl(var(--primary))]'">
-              <Icon icon="lucide:scan" />
-            </NIcon>
+            <span :class="isDark ? 'text-white' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 24px"><Icon icon="lucide:scan" /></span>
           </div>
         </div>
       </div>

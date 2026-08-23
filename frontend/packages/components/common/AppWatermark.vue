@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NWatermark } from 'naive-ui'
+import { XhWatermarkRoot } from '@xihan-ui/vue'
 import { useAppStore } from '~/stores'
 
 defineOptions({ name: 'AppWatermark' })
@@ -8,21 +8,26 @@ const appStore = useAppStore()
 </script>
 
 <template>
-  <!-- NaiveUI 内置水印组件，自带防篡改能力 -->
-  <NWatermark
+  <!--
+    组件库的水印是「盖住一段内容」的容器；全屏水印在这里靠定位实现：
+    铺满视口、不吃指针、压在业务内容之上但在浮层之下。
+  -->
+  <XhWatermarkRoot
     v-if="appStore.watermarkEnabled"
-    :content="appStore.watermarkText || 'XiHan BasicApp'"
-    cross
-    fullscreen
-    selectable
-    :font-size="16"
-    :line-height="16"
-    :width="480"
-    :height="320"
-    :x-offset="12"
-    :y-offset="60"
+    class="app-watermark"
+    :text="appStore.watermarkText || 'XiHan BasicApp'"
     :rotate="-25"
-    font-color="rgb(128, 128, 128, 0.18)"
-    :z-index="1500"
+    :font-size="16"
+    :gap="160"
+    :opacity="0.18"
   />
 </template>
+
+<style scoped>
+.app-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  pointer-events: none;
+}
+</style>

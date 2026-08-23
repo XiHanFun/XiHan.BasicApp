@@ -1,3 +1,4 @@
+import type { ComponentResolver } from 'unplugin-vue-components'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
@@ -6,14 +7,37 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import AutoImport from 'unplugin-auto-import/vite'
-import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
 
+/**
+ * XiHan.UI 是解剖式组件库：一个组件由 Root / Trigger / Content 等多个部件组成，
+ * 一个页面动辄要引十几个具名导出。此解析器把模板里的 `Xh*` 标签直接映射到 `@xihan-ui/vue`，
+ * 免去逐个手写 import；仍是具名导入，摇树不受影响。
+ */
+function XiHanUiResolver(): ComponentResolver {
+  return {
+    type: 'component',
+    resolve(name: string) {
+      if (name.startsWith('Xh'))
+        return { name, from: '@xihan-ui/vue' }
+      return undefined
+    },
+  }
+}
+
 function createManualChunks(id: string) {
   const normalizedId = id.replace(/\\/g, '/')
+
+  // @xihan-ui/* 经 pnpm overrides 链到同级 XiHan.UI 工作区，路径不含 /node_modules/，
+  // 因此这条判断必须排在下面的 node_modules 早退之前。
+  if (normalizedId.includes('/XiHan.UI/ui/packages/') || normalizedId.includes('/@xihan-ui/')) {
+    if (normalizedId.includes('/features/backgrounds/') || normalizedId.includes('/@xihan-ui/backgrounds/'))
+      return 'vendor-backgrounds'
+    return 'vendor-ui'
+  }
 
   if (!normalizedId.includes('/node_modules/')) {
     return undefined
@@ -41,17 +65,6 @@ function createManualChunks(id: string) {
     || normalizedId.includes('/@vue/')
     || normalizedId.includes('/vue-i18n/')
     || normalizedId.includes('/@intlify/')
-    || normalizedId.includes('/naive-ui/')
-    || normalizedId.includes('/@juggle/resize-observer/')
-    || normalizedId.includes('/async-validator/')
-    || normalizedId.includes('/css-render/')
-    || normalizedId.includes('/@css-render/')
-    || normalizedId.includes('/evtd/')
-    || normalizedId.includes('/seemly/')
-    || normalizedId.includes('/treemate/')
-    || normalizedId.includes('/vdirs/')
-    || normalizedId.includes('/vooks/')
-    || normalizedId.includes('/vueuc/')
   ) {
     return 'vendor-ui'
   }
@@ -181,7 +194,9 @@ export default defineConfig(({ mode }) => {
         dts: 'src/types/auto-imports.d.ts',
       }),
       Components({
-        resolvers: [NaiveUiResolver()],
+        resolvers: [XiHanUiResolver()],
+        // 只解析 XiHan.UI 的部件；应用自有组件一律显式 import，避免隐式全局注册
+        dirs: [],
         dts: 'src/types/components.d.ts',
       }),
     ],
@@ -190,6 +205,9 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         '~': fileURLToPath(new URL('./packages', import.meta.url)),
       },
+      // @xihan-ui/* 是链到同级仓的符号链接，其 peer 依赖会解析到 XiHan.UI 自己的
+      // node_modules。不去重就会出现两份 Vue 运行时，provide/inject 与响应式当场断掉。
+      dedupe: ['vue', 'vue-router', 'pinia', 'vue-i18n', '@vue/runtime-core'],
     },
     css: {
       preprocessorOptions: {},
@@ -199,6 +217,10 @@ export default defineConfig(({ mode }) => {
       port: Number(env.VITE_PORT) || 9000,
       warmup: {
         clientFiles: ['./src/main.ts', './src/App.vue', './packages/layouts/basic/index.vue'],
+      },
+      // 链到仓外的源码不在 Vite 默认允许的文件系统范围内
+      fs: {
+        allow: ['..', '../../XiHan.UI'],
       },
       proxy: {
         [apiPrefix]: {

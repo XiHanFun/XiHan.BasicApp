@@ -2,12 +2,13 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { PageResult, PermissionChangeLogDetailDto, PermissionChangeLogListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { createPageRequest, permissionChangeLogApi, PermissionChangeType, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { permissionChangeLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -16,7 +17,6 @@ import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 defineOptions({ name: 'LogPermissionChangePage' })
 
 const { t } = useI18n()
-const message = useMessage()
 const router = useRouter()
 
 const detailVisible = ref(false)
@@ -41,7 +41,7 @@ function changeTypeTagType(type: PermissionChangeType) {
   switch (type) {
     case PermissionChangeType.UserDenyPermission:
     case PermissionChangeType.RoleDenyPermission:
-      return 'error'
+      return 'danger'
     case PermissionChangeType.RoleRevokePermission:
     case PermissionChangeType.UserRevokePermission:
     case PermissionChangeType.UserRemoveRole:
@@ -67,7 +67,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 10,
     render: (row) => {
       const type = (row as unknown as PermissionChangeLogListItemDto).changeType
-      return h(NTag, { size: 'small', round: true, bordered: false, type: changeTypeTagType(type) }, () => getOptionLabel(changeTypeOptions.value, type))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: changeTypeTagType(type) }, () => getOptionLabel(changeTypeOptions.value, type))
     },
   },
   { key: 'operatorUserName', title: t('log.permission_change.operator_user_name'), dataType: 'string', minWidth: 130, order: 11 },
@@ -114,7 +114,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'log.permission-change',
   pageName: t('log.permission_change.page_name'),
   rowKey: 'basicId',
-  scrollX: 2600,
   fields: decorateTraceFields(fields.value, router, {
     timeField: 'changeTime',
     ipKey: 'operationIp',
@@ -144,7 +143,7 @@ function onAction(payload: SchemaActionPayload) {
   }
   else if (payload.key === 'trace' && row) {
     if (!gotoTrace(router, row, row.changeTime)) {
-      message.warning(t('log.trace.value_required'))
+      toast.warning(t('log.trace.value_required'))
     }
   }
 }
@@ -157,7 +156,7 @@ async function handleDetail(row: PermissionChangeLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.permission_change.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.permission_change.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

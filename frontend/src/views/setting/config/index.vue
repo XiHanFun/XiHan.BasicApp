@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelectOption } from 'naive-ui'
 import type {
   ConfigCreateDto,
   ConfigDetailDto,
@@ -7,24 +6,9 @@ import type {
   ConfigUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NDescriptions,
-  NDescriptionsItem,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace,
-  NSwitch,
-  NTabPane,
-  NTabs,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, ref } from 'vue'
+import type { SelectOption } from '~/types'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   ConfigDataType,
@@ -35,7 +19,8 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -60,7 +45,9 @@ interface ConfigFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 const configTypeOptions = useEnumOptions('ConfigType', CONFIG_TYPE_OPTIONS)
 const dataTypeOptions = useEnumOptions('ConfigDataType', CONFIG_DATA_TYPE_OPTIONS)
@@ -88,7 +75,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'configName', title: t('setting.config.config_name'), dataType: 'string', sortable: true, importable: true, required: true, minWidth: 160, order: 1 },
   { key: 'configKey', title: t('setting.config.config_key'), dataType: 'string', sortable: true, importable: true, required: true, minWidth: 180, order: 2 },
   { key: 'configGroup', title: t('setting.config.config_group'), dataType: 'string', sortable: true, importable: true, minWidth: 100, order: 3 },
-  // enum/boolean + options 由框架自动渲染为 NTag，无需自定义 render
+  // enum/boolean + options 由框架自动渲染为徽标，无需自定义 render
   { key: 'configType', title: t('setting.config.config_type'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigType', options: configTypeOptions.value, searchPlaceholder: t('setting.config.config_type_placeholder'), width: 100, order: 4 },
   { key: 'dataType', title: t('setting.config.data_type'), dataType: 'enum', sortable: true, advancedSearch: true, searchMultiple: true, importable: true, dictionaryCode: 'ConfigDataType', options: dataTypeOptions.value, searchPlaceholder: t('setting.config.data_type_placeholder'), width: 100, order: 5 },
   // 仅导入字段：配置值不在列表 DTO 中，visible:false 不进表格/列设置
@@ -112,7 +99,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:config:delete',
   statusPermission: 'saas:config:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -249,7 +235,7 @@ async function handleEdit(row: ConfigListItemDto) {
     detail = await configManagementApi.detail(row.basicId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.config.load_detail_failed'))
+    toast.error((error as Error)?.message || t('setting.config.load_detail_failed'))
     return
   }
   configForm.value = {
@@ -299,11 +285,11 @@ async function handleView(row: ConfigListItemDto) {
   try {
     currentDetail.value = await configManagementApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.warning(t('setting.config.detail_not_found'))
+      toast.warning(t('setting.config.detail_not_found'))
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('setting.config.load_detail_failed'))
+    toast.error((error as Error)?.message || t('setting.config.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -312,12 +298,12 @@ async function handleView(row: ConfigListItemDto) {
 
 function validateConfigForm() {
   if (!configForm.value.configName.trim()) {
-    message.warning(t('setting.config.validate_config_name'))
+    toast.warning(t('setting.config.validate_config_name'))
     return false
   }
 
   if (!configForm.value.basicId && !configForm.value.configKey.trim()) {
-    message.warning(t('setting.config.validate_config_key'))
+    toast.warning(t('setting.config.validate_config_key'))
     return false
   }
 
@@ -377,12 +363,12 @@ async function handleSubmit() {
       await configManagementApi.create(createInput)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadConfig()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -391,7 +377,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: ConfigListItemDto) {
   await configManagementApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadConfig()
 }
 
@@ -401,7 +387,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('setting.config.frontend_disable_remark') : t('setting.config.frontend_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('common.messages.status_updated'))
+  toast.success(t('common.messages.status_updated'))
   reloadConfig()
 }
 </script>
@@ -412,175 +398,313 @@ async function handleToggleStatus(row: ConfigListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NModal
-      v-model:show="detailVisible"
-      class="xh-mgmt-detail-modal"
-      preset="card"
-      :bordered="false"
-      :mask-closable="true"
-      style="width: 720px; max-width: calc(100vw - 32px);"
-    >
-      <template v-if="currentDetail" #header>
-        <div class="det-hd-entity">
-          <div class="det-hd-ico">
-            <Icon icon="tabler:settings" :size="22" />
-          </div>
-          <div class="min-w-0">
-            <div class="det-hd-name">
-              {{ currentDetail.configName }}
+    <XhDialogRoot v-model:open="detailVisible">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
+        <XhDialogTitle v-if="currentDetail">
+          <div class="det-hd-entity">
+            <div class="det-hd-ico">
+              <Icon icon="tabler:settings" :size="22" />
             </div>
-            <div class="det-hd-sub">
-              {{ currentDetail.configKey }}
+            <div class="min-w-0">
+              <div class="det-hd-name">
+                {{ currentDetail.configName }}
+              </div>
+              <div class="det-hd-sub">
+                {{ currentDetail.configKey }}
+              </div>
             </div>
           </div>
+        </XhDialogTitle>
+        <XhDialogCloseTrigger />
+
+        <div v-if="detailLoading" class="modal-loading">
+          {{ t('common.statuses.loading') }}
         </div>
-      </template>
+        <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+        <XhTabsRoot v-else-if="currentDetail" default-value="overview" variant="line">
+          <XhTabsList>
+            <XhTabsTrigger value="overview">
+              {{ t('setting.config.overview') }}
+            </XhTabsTrigger>
+            <XhTabsTrigger value="values">
+              {{ t('setting.config.values') }}
+            </XhTabsTrigger>
+          </XhTabsList>
+          <XhTabsContent value="overview">
+            <XhDescriptionsRoot :columns="2" bordered size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.config_group') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.configGroup) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.config_type') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(configTypeOptions, currentDetail.configType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.data_type_field') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(dataTypeOptions, currentDetail.dataType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhBadge variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                    {{ getOptionLabel(statusOptions, currentDetail.status) }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.is_global_field') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isGlobal) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.is_builtin_field') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isBuiltIn) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.is_encrypted_field') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatBoolean(currentDetail.isEncrypted) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.sort') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.sort }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.created_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(currentDetail.createdTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.modified_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullableDate(currentDetail.modifiedTime) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.created_by') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.createdBy) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.modified_by') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.modifiedBy) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
+              <XhDescriptionsItem style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('setting.config.description') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatNullable(currentDetail.configDescription) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </XhTabsContent>
+          <XhTabsContent value="values">
+            <XhDescriptionsRoot :columns="1" bordered size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.current_value') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
+                  <pre v-else-if="currentDetail.hasCurrentValue" class="config-value-block">{{ formatConfigValue(currentDetail.configValue) }}</pre>
+                  <XhBadge v-else variant="subtle" size="sm">
+                    {{ t('setting.config.not_configured') }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('setting.config.default_value') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
+                  <pre v-else-if="currentDetail.hasFallbackValue" class="config-value-block">{{ formatConfigValue(currentDetail.defaultValue) }}</pre>
+                  <XhBadge v-else variant="subtle" size="sm">
+                    {{ t('setting.config.value_unset') }}
+                  </XhBadge>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="currentDetail.hasNote">
+                <XhDescriptionsLabel>{{ t('setting.config.note') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ currentDetail.remark }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+          </XhTabsContent>
+        </XhTabsRoot>
 
-      <div v-if="detailLoading" class="modal-loading">
-        {{ t('common.statuses.loading') }}
-      </div>
-      <NTabs v-else-if="currentDetail" type="line" animated size="small">
-        <NTabPane name="overview" :tab="t('setting.config.overview')">
-          <NDescriptions :column="2" bordered size="small">
-            <NDescriptionsItem :label="t('setting.config.config_group')">
-              {{ formatNullable(currentDetail.configGroup) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.config_type')">
-              {{ getOptionLabel(configTypeOptions, currentDetail.configType) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.data_type_field')">
-              {{ getOptionLabel(dataTypeOptions, currentDetail.dataType) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.status')">
-              <NTag size="small" :type="currentDetail.status === EnableStatus.Enabled ? 'success' : 'error'" :bordered="false">
-                {{ getOptionLabel(statusOptions, currentDetail.status) }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.is_global_field')">
-              {{ formatBoolean(currentDetail.isGlobal) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.is_builtin_field')">
-              {{ formatBoolean(currentDetail.isBuiltIn) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.is_encrypted_field')">
-              {{ formatBoolean(currentDetail.isEncrypted) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.sort')">
-              {{ currentDetail.sort }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.description')" :span="2">
-              {{ formatNullable(currentDetail.configDescription) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.created_time')">
-              {{ formatNullableDate(currentDetail.createdTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.modified_time')">
-              {{ formatNullableDate(currentDetail.modifiedTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.created_by')">
-              {{ formatNullable(currentDetail.createdBy) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.modified_by')">
-              {{ formatNullable(currentDetail.modifiedBy) }}
-            </NDescriptionsItem>
-          </NDescriptions>
-        </NTabPane>
-        <NTabPane name="values" :tab="t('setting.config.values')">
-          <NDescriptions :column="1" bordered size="small">
-            <NDescriptionsItem :label="t('setting.config.current_value')">
-              <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:var(--n-text-color-3)">{{ t('setting.config.encrypted_hint') }}</span>
-              <pre v-else-if="currentDetail.hasCurrentValue" class="config-value-block">{{ formatConfigValue(currentDetail.configValue) }}</pre>
-              <NTag v-else size="small" :bordered="false">
-                {{ t('setting.config.not_configured') }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.config.default_value')">
-              <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:var(--n-text-color-3)">{{ t('setting.config.encrypted_hint') }}</span>
-              <pre v-else-if="currentDetail.hasFallbackValue" class="config-value-block">{{ formatConfigValue(currentDetail.defaultValue) }}</pre>
-              <NTag v-else size="small" :bordered="false">
-                {{ t('setting.config.value_unset') }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem v-if="currentDetail.hasNote" :label="t('setting.config.note')">
-              {{ currentDetail.remark }}
-            </NDescriptionsItem>
-          </NDescriptions>
-        </NTabPane>
-      </NTabs>
-
-      <template #footer>
-        <NSpace justify="end">
-          <NButton size="small" @click="detailVisible = false">
-            {{ t('common.actions.close') }}
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <XhFlex justify="end" gap="md">
+            <XhButton size="sm" @click="detailVisible = false">
+              {{ t('common.actions.close') }}
+            </XhButton>
+          </XhFlex>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="configForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('setting.config.config_name')" path="configName">
-          <NInput v-model:value="configForm.configName" clearable :placeholder="t('setting.config.config_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.config_key')" path="configKey">
-          <NInput
-            v-model:value="configForm.configKey"
-            clearable
-            :disabled="Boolean(configForm.basicId)"
-            :placeholder="t('setting.config.config_key_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.config_group')" path="configGroup">
-          <NInput v-model:value="configForm.configGroup" clearable :placeholder="t('setting.config.config_group_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.config_type')" path="configType">
-          <NSelect v-model:value="configForm.configType" :options="(configTypeOptions as SelectOption[])" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.data_type')" path="dataType">
-          <NSelect v-model:value="configForm.dataType" :options="(dataTypeOptions as SelectOption[])" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.config_value')" path="configValue" class="xh-span-2">
-          <NInput
-            v-model:value="configForm.configValue"
-            :rows="5"
-            clearable
-            :placeholder="configForm.isEncrypted && configForm.basicId ? t('setting.config.config_value_encrypted_placeholder') : t('setting.config.config_value_placeholder')"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.default_value')" path="defaultValue" class="xh-span-2">
-          <NInput
-            v-model:value="configForm.defaultValue"
-            :rows="3"
-            clearable
-            :placeholder="t('setting.config.default_value_placeholder')"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.is_global_field')" path="isGlobal">
-          <NSwitch v-model:value="configForm.isGlobal" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.is_builtin_field')" path="isBuiltIn">
-          <NSwitch :value="configForm.isBuiltIn" disabled />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.is_encrypted_field')" path="isEncrypted">
-          <NSwitch v-model:value="configForm.isEncrypted" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.sort')" path="sort">
-          <NInputNumber v-model:value="configForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('setting.config.remark')" path="remark">
-          <NInput v-model:value="configForm.remark" clearable :placeholder="t('setting.config.remark_placeholder')" />
-        </NFormItem>
-        <NFormItem v-if="!configForm.basicId" :label="t('setting.config.status')" path="status">
-          <NSelect v-model:value="configForm.status" :options="(statusOptions as SelectOption[])" />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="configForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="configName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.config_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="configForm.configName" clearable :placeholder="t('setting.config.config_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configKey">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.config_key') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="configForm.configKey"
+                clearable
+                :disabled="Boolean(configForm.basicId)"
+                :placeholder="t('setting.config.config_key_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configGroup">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.config_group') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="configForm.configGroup" clearable :placeholder="t('setting.config.config_group_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.config_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="configForm.configType" :options="(configTypeOptions as SelectOption[])" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="dataType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.data_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="configForm.dataType" :options="(dataTypeOptions as SelectOption[])" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configValue" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.config_value') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="configForm.configValue"
+                :rows="5"
+                clearable
+                :placeholder="configForm.isEncrypted && configForm.basicId ? t('setting.config.config_value_encrypted_placeholder') : t('setting.config.config_value_placeholder')"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="defaultValue" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.default_value') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="configForm.defaultValue"
+                :rows="3"
+                clearable
+                :placeholder="t('setting.config.default_value_placeholder')"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isGlobal">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.is_global_field') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="configForm.isGlobal" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isBuiltIn">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.is_builtin_field') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch :checked="configForm.isBuiltIn" disabled />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isEncrypted">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.is_encrypted_field') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="configForm.isEncrypted" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="configForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="configForm.remark" clearable :placeholder="t('setting.config.remark_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!configForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('setting.config.status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="configForm.status" :options="(statusOptions as SelectOption[])" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>
@@ -596,7 +720,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
   overflow: auto;
   padding: 8px 10px;
   border-radius: 4px;
-  background: var(--n-color-modal, rgba(128, 128, 128, 0.08));
+  background: var(--xh-bg-subtle);
   font-family: var(--font-family-mono, monospace);
   font-size: 12px;
   line-height: 1.5;

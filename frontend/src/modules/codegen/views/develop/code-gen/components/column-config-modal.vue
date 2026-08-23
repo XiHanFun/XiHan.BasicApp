@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   CodeGenTableColumnListItemDto,
   CodeGenTableColumnUpdateDto,
@@ -9,17 +8,12 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import {
-  NCheckbox,
-  NDataTable,
-  NInput,
-  NSelect,
-  NTag,
-  useMessage,
-} from 'naive-ui'
+import type { XDataTableColumn } from '~/components'
+import { XhBadge, XhCheckbox } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XEditModal } from '~/components'
+import { XDataTable, XEditModal, XInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import {
   codeGenTableColumnApi,
   DICT_SELECTOR_TYPE_OPTIONS,
@@ -41,7 +35,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -65,7 +58,7 @@ async function loadColumns() {
     rows.value = await codeGenTableColumnApi.getByTable(props.tableId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.code_gen.column.load_failed'))
+    toast.error((error as Error)?.message || t('develop.code_gen.column.load_failed'))
     rows.value = []
   }
   finally {
@@ -85,7 +78,7 @@ function isLocked(row: CodeGenTableColumnListItemDto) {
 }
 
 function renderCheckbox(row: CodeGenTableColumnListItemDto, field: BooleanColumnField) {
-  return h(NCheckbox, {
+  return h(XhCheckbox, {
     'checked': row[field],
     'disabled': isLocked(row),
     'onUpdate:checked': (value: boolean) => {
@@ -97,34 +90,37 @@ function renderCheckbox(row: CodeGenTableColumnListItemDto, field: BooleanColumn
 /** 字典取值列：按 dictSelectorType 渲染字典码 / 枚举全名 / 常量 JSON（互斥，仅生效项可编辑） */
 function renderDictValue(row: CodeGenTableColumnListItemDto) {
   if (row.dictSelectorType === DictSelectorType.DictSelector) {
-    return h(NInput, {
-      'size': 'small',
+    return h(XInput, {
+      'size': 'sm',
       'disabled': isLocked(row),
       'value': row.dictCode ?? '',
       'placeholder': t('develop.code_gen.column.col_dict_code_placeholder'),
-      'onUpdate:value': (value: string) => {
+      'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+        const value = raw as string
         row.dictCode = value
       },
     })
   }
   if (row.dictSelectorType === DictSelectorType.EnumSelector) {
-    return h(NInput, {
-      'size': 'small',
+    return h(XInput, {
+      'size': 'sm',
       'disabled': isLocked(row),
       'value': row.enumTypeName ?? '',
       'placeholder': t('develop.code_gen.column.col_enum_type_placeholder'),
-      'onUpdate:value': (value: string) => {
+      'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+        const value = raw as string
         row.enumTypeName = value
       },
     })
   }
   if (row.dictSelectorType === DictSelectorType.ConstSelector) {
-    return h(NInput, {
-      'size': 'small',
+    return h(XInput, {
+      'size': 'sm',
       'disabled': isLocked(row),
       'value': row.constValues ?? '',
       'placeholder': t('develop.code_gen.column.col_const_values_placeholder'),
-      'onUpdate:value': (value: string) => {
+      'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+        const value = raw as string
         row.constValues = value
       },
     })
@@ -132,22 +128,18 @@ function renderDictValue(row: CodeGenTableColumnListItemDto) {
   return h('span', { style: 'color: var(--text-secondary)' }, '—')
 }
 
-const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => [
+const columns = computed<XDataTableColumn<CodeGenTableColumnListItemDto>[]>(() => [
   {
     key: 'columnName',
     title: t('develop.code_gen.column.col_column_name'),
     minWidth: 180,
     fixed: 'left',
-    ellipsis: { tooltip: true },
+    ellipsis: true,
     render: (row: CodeGenTableColumnListItemDto) =>
       h('div', { class: 'col-name' }, [
         h('span', null, row.columnName),
         isLocked(row)
-          ? h(
-              NTag,
-              { size: 'tiny', round: true, bordered: false, type: 'default' },
-              () => t('develop.code_gen.column.base_column'),
-            )
+          ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => t('develop.code_gen.column.base_column'))
           : null,
       ]),
   },
@@ -156,26 +148,28 @@ const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => 
     title: t('develop.code_gen.column.col_column_comment'),
     minWidth: 160,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NInput, {
-        'size': 'small',
+      h(XInput, {
+        'size': 'sm',
         'disabled': isLocked(row),
         'value': row.columnComment ?? '',
-        'onUpdate:value': (value: string) => {
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          const value = raw as string
           row.columnComment = value
         },
       }),
   },
-  { key: 'columnType', title: t('develop.code_gen.column.col_column_type'), width: 110, ellipsis: { tooltip: true } },
+  { key: 'columnType', title: t('develop.code_gen.column.col_column_type'), width: 110, ellipsis: true },
   {
     key: 'cSharpType',
     title: t('develop.code_gen.column.col_csharp_type'),
     width: 130,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NInput, {
-        'size': 'small',
+      h(XInput, {
+        'size': 'sm',
         'disabled': isLocked(row),
         'value': row.cSharpType ?? '',
-        'onUpdate:value': (value: string) => {
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          const value = raw as string
           row.cSharpType = value
         },
       }),
@@ -185,11 +179,12 @@ const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => 
     title: t('develop.code_gen.column.col_csharp_property'),
     width: 140,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NInput, {
-        'size': 'small',
+      h(XInput, {
+        'size': 'sm',
         'disabled': isLocked(row),
         'value': row.cSharpProperty ?? '',
-        'onUpdate:value': (value: string) => {
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          const value = raw as string
           row.cSharpProperty = value
         },
       }),
@@ -204,12 +199,13 @@ const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => 
     title: t('develop.code_gen.column.col_query_type'),
     width: 130,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NSelect, {
-        'size': 'small',
+      h(XSelect, {
+        'size': 'sm',
         'disabled': isLocked(row),
         'value': row.queryType,
         'options': QUERY_TYPE_OPTIONS,
-        'onUpdate:value': (value: QueryType) => {
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          const value = raw as QueryType
           row.queryType = value
         },
       }),
@@ -219,12 +215,13 @@ const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => 
     title: t('develop.code_gen.column.col_html_type'),
     width: 150,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NSelect, {
-        'size': 'small',
+      h(XSelect, {
+        'size': 'sm',
         'disabled': isLocked(row),
         'value': row.htmlType,
         'options': HTML_TYPE_OPTIONS,
-        'onUpdate:value': (value: HtmlType) => {
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          const value = raw as HtmlType
           row.htmlType = value
         },
       }),
@@ -234,14 +231,15 @@ const columns = computed<DataTableColumns<CodeGenTableColumnListItemDto>>(() => 
     title: t('develop.code_gen.column.col_dict_selector'),
     width: 120,
     render: (row: CodeGenTableColumnListItemDto) =>
-      h(NSelect, {
-        'size': 'small',
+      h(XSelect, {
+        'size': 'sm',
         'disabled': isLocked(row),
         'value': row.dictSelectorType ?? null,
         'options': DICT_SELECTOR_TYPE_OPTIONS,
         'clearable': true,
         'placeholder': t('develop.code_gen.column.col_dict_selector_placeholder'),
-        'onUpdate:value': (value: DictSelectorType | null) => {
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          const value = raw as DictSelectorType | null
           // 切换选择器类型时清空其它取值，保持三分互斥
           row.dictSelectorType = value
           row.dictCode = null
@@ -288,12 +286,12 @@ async function handleSubmit() {
       status: row.status,
     }))
     await codeGenTableColumnApi.batchSave({ tableId: props.tableId, columns: payload })
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     emit('saved')
     emit('update:show', false)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -310,14 +308,13 @@ async function handleSubmit() {
     @update:show="emit('update:show', $event)"
     @save="handleSubmit"
   >
-    <NDataTable
+    <XDataTable
       :columns="columns"
       :data="rows"
       :loading="loading"
       max-height="60vh"
       :row-key="(row: CodeGenTableColumnListItemDto) => row.basicId"
-      :scroll-x="1770"
-      size="small"
+      size="sm"
     />
   </XEditModal>
 </template>

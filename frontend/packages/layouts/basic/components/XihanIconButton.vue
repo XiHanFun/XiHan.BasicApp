@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/** 顶栏 32px 图标钮。皮肤是全局的 .xihan-icon-btn（packages/design/ui.css），本组件只负责接线 */
 defineOptions({ name: 'XihanIconButton', inheritAttrs: false })
 
 withDefaults(defineProps<{
@@ -16,49 +17,9 @@ withDefaults(defineProps<{
     type="button"
     class="xihan-icon-btn"
     :class="{ 'xihan-icon-btn--active': active }"
-    :title="tooltip"
+    :title="tooltip || undefined"
+    :aria-label="tooltip || undefined"
   >
     <slot />
   </button>
 </template>
-
-<style scoped>
-.xihan-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--foreground) / 65%);
-  cursor: pointer;
-  outline: none;
-  flex-shrink: 0;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.xihan-icon-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
-}
-
-.xihan-icon-btn:active:not(:disabled) {
-  background: hsl(var(--accent) / 80%);
-}
-
-.xihan-icon-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.xihan-icon-btn--active {
-  background: hsl(var(--accent));
-  color: hsl(var(--primary));
-}
-</style>

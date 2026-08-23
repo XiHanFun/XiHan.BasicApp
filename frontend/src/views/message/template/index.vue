@@ -6,20 +6,8 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NDescriptions,
-  NDescriptionsItem,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSwitch,
-  NTag,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -28,14 +16,17 @@ import {
   messageTemplateApi,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XContentEditorField, XEditModal } from '~/components'
+import { SchemaPage, XContentEditorField, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'MessageTemplatePage' })
 
 const { t } = useI18n()
-const message = useMessage()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const userStore = useUserStore()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 
@@ -124,7 +115,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 14,
     render: (row) => {
       const isGlobal = (row as unknown as MessageTemplateListItemDto).isGlobal
-      return h(NTag, { size: 'small', round: true, bordered: false, type: isGlobal ? 'info' : 'default' }, () => isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant'))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: isGlobal ? 'info' : 'neutral' }, () => isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant'))
     },
   },
   {
@@ -149,7 +140,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.template.search_status_placeholder'),
     width: 90,
     order: 17,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'error' }, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled')),
   },
   { key: 'sort', title: t('message.template.col_sort'), dataType: 'number', width: 80, order: 18, sortable: true },
 ])
@@ -164,7 +155,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.template.page_name'),
   statusPermission: 'saas:message-template:status',
   rowKey: 'basicId',
-  scrollX: 1500,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -215,7 +205,7 @@ async function openDetail(row: MessageTemplateListItemDto) {
     detailVisible.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('message.template.msg_load_detail_failed'))
+    toast.error((e as Error)?.message || t('message.template.msg_load_detail_failed'))
   }
 }
 
@@ -223,7 +213,7 @@ async function openEdit(row: MessageTemplateListItemDto) {
   try {
     const detail = await messageTemplateApi.detail(row.basicId)
     if (!detail) {
-      message.error(t('message.template.msg_not_found'))
+      toast.error(t('message.template.msg_not_found'))
       return
     }
     templateForm.value = {
@@ -242,7 +232,7 @@ async function openEdit(row: MessageTemplateListItemDto) {
     modalVisible.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('message.template.msg_load_failed'))
+    toast.error((e as Error)?.message || t('message.template.msg_load_failed'))
   }
 }
 
@@ -252,37 +242,37 @@ async function toggleStatus(row: MessageTemplateListItemDto) {
       basicId: row.basicId,
       status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
     })
-    message.success(t('message.template.msg_status_updated'))
+    toast.success(t('message.template.msg_status_updated'))
     schemaPageRef.value?.reload()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('message.template.msg_status_update_failed'))
+    toast.error((e as Error)?.message || t('message.template.msg_status_update_failed'))
   }
 }
 
 async function removeRow(row: MessageTemplateListItemDto) {
   try {
     await messageTemplateApi.delete(row.basicId)
-    message.success(t('message.template.msg_delete_success'))
+    toast.success(t('message.template.msg_delete_success'))
     schemaPageRef.value?.reload()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('message.template.msg_delete_failed'))
+    toast.error((e as Error)?.message || t('message.template.msg_delete_failed'))
   }
 }
 
 async function handleSubmit() {
   const form = templateForm.value
   if (!form.templateCode.trim() && !form.basicId) {
-    message.warning(t('message.template.msg_code_required'))
+    toast.warning(t('message.template.msg_code_required'))
     return
   }
   if (!form.templateName.trim()) {
-    message.warning(t('message.template.msg_name_required'))
+    toast.warning(t('message.template.msg_name_required'))
     return
   }
   if (!form.content.trim()) {
-    message.warning(t('message.template.msg_content_required'))
+    toast.warning(t('message.template.msg_content_required'))
     return
   }
 
@@ -299,7 +289,7 @@ async function handleSubmit() {
         sort: form.sort,
         remark: toStr(form.remark) ?? null,
       })
-      message.success(t('message.template.msg_update_success'))
+      toast.success(t('message.template.msg_update_success'))
     }
     else {
       await messageTemplateApi.create({
@@ -314,13 +304,13 @@ async function handleSubmit() {
         sort: form.sort,
         remark: toStr(form.remark) ?? null,
       })
-      message.success(t('message.template.msg_create_success'))
+      toast.success(t('message.template.msg_create_success'))
     }
     modalVisible.value = false
     schemaPageRef.value?.reload()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('message.template.msg_save_failed'))
+    toast.error((e as Error)?.message || t('message.template.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -335,101 +325,186 @@ async function handleSubmit() {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="templateForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('message.template.form_template_code')" path="templateCode">
-          <NInput
-            v-model:value="templateForm.templateCode"
-            :disabled="Boolean(templateForm.basicId)"
-            clearable
-            :placeholder="t('message.template.form_template_code_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_channel')" path="channel">
-          <NSelect
-            v-model:value="templateForm.channel"
-            :disabled="Boolean(templateForm.basicId)"
-            :options="channelOptions"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_template_name')" path="templateName">
-          <NInput v-model:value="templateForm.templateName" clearable :placeholder="t('message.template.form_template_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_sort')" path="sort">
-          <NInputNumber v-model:value="templateForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_subject')" path="subject" class="xh-span-2">
-          <NInput v-model:value="templateForm.subject" clearable :placeholder="t('message.template.form_subject_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_content')" path="content" class="xh-span-2">
-          <XContentEditorField
-            v-model="templateForm.content"
-            :title="t('message.template.form_content_drawer_title')"
-            :placeholder="t('message.template.form_content_placeholder')"
-            :edit-text="t('message.template.form_content_edit')"
-            :confirm-text="t('common.actions.confirm')"
-            :cancel-text="t('common.actions.cancel')"
-            :count-label="(count: number) => t('message.template.form_content_count', { count })"
-          >
-            <template #editor="{ value, update }">
-              <NInput
-                :value="value"
-                type="textarea"
-                :placeholder="t('message.template.form_content_placeholder')"
-                @update:value="update"
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="templateForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="templateCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_template_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="templateForm.templateCode"
+                :disabled="Boolean(templateForm.basicId)"
+                clearable
+                :placeholder="t('message.template.form_template_code_placeholder')"
               />
-            </template>
-          </XContentEditorField>
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_is_html')" path="isHtml">
-          <NSwitch v-model:value="templateForm.isHtml" />
-        </NFormItem>
-        <NFormItem v-if="!templateForm.basicId" :label="t('message.template.form_status')" path="status">
-          <NSelect v-model:value="templateForm.status" :options="statusOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_description')" path="description" class="xh-span-2">
-          <NInput v-model:value="templateForm.description" clearable :placeholder="t('message.template.form_description_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.template.form_remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="templateForm.remark" clearable />
-        </NFormItem>
-      </NForm>
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="channel">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_channel') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="templateForm.channel"
+                :disabled="Boolean(templateForm.basicId)"
+                :options="channelOptions"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="templateName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_template_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="templateForm.templateName" clearable :placeholder="t('message.template.form_template_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="templateForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="subject" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_subject') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="templateForm.subject" clearable :placeholder="t('message.template.form_subject_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="content" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_content') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XContentEditorField
+                v-model="templateForm.content"
+                :title="t('message.template.form_content_drawer_title')"
+                :placeholder="t('message.template.form_content_placeholder')"
+                :edit-text="t('message.template.form_content_edit')"
+                :confirm-text="t('common.actions.confirm')"
+                :cancel-text="t('common.actions.cancel')"
+                :count-label="(count: number) => t('message.template.form_content_count', { count })"
+              >
+                <template #editor="{ value, update }">
+                  <XInput
+                    :value="value"
+                    type="textarea"
+                    :placeholder="t('message.template.form_content_placeholder')"
+                    @update:value="update"
+                  />
+                </template>
+              </XContentEditorField>
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isHtml">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_is_html') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="templateForm.isHtml" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!templateForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="templateForm.status" :options="statusOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="description" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="templateForm.description" clearable :placeholder="t('message.template.form_description_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.template.form_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="templateForm.remark" clearable />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
 
     <!-- 详情 -->
-    <NModal
-      v-model:show="detailVisible"
-      preset="card"
-      :title="t('message.template.detail_title')"
-      style="width: 720px"
-    >
-      <template v-if="currentDetail">
-        <NDescriptions :column="2" label-placement="left" bordered size="small">
-          <NDescriptionsItem :label="t('message.template.detail_template_code')">
-            {{ currentDetail.templateCode }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.template.detail_channel')">
-            {{ getOptionLabel(channelOptions, currentDetail.channel) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.template.detail_template_name')">
-            {{ currentDetail.templateName }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.template.detail_scope')">
-            {{ currentDetail.isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant') }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.template.detail_subject')" :span="2">
-            {{ currentDetail.subject || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.template.detail_description')" :span="2">
-            {{ currentDetail.description || '-' }}
-          </NDescriptionsItem>
-        </NDescriptions>
-        <div class="mt-3 text-xs opacity-70">
-          {{ t('message.template.detail_content_title') }}
-        </div>
-        <pre class="mt-1 max-h-80 overflow-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted)/40%)] p-3 text-xs leading-relaxed whitespace-pre-wrap">{{ currentDetail.content }}</pre>
-      </template>
-    </NModal>
+    <XhDialogRoot v-model:open="detailVisible">
+      <XhDialogContent style="--xh-dialog-max-w: 720px">
+        <XhDialogTitle>{{ t('message.template.detail_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <template v-if="currentDetail">
+          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.template.detail_template_code') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.templateCode }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.template.detail_channel') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ getOptionLabel(channelOptions, currentDetail.channel) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.template.detail_template_name') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.templateName }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.template.detail_scope') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant') }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
+          <XhDescriptionsRoot :columns="1" bordered placement="left" size="sm">
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.template.detail_subject') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.subject || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.template.detail_description') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.description || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
+          <div class="mt-3 text-xs opacity-70">
+            {{ t('message.template.detail_content_title') }}
+          </div>
+          <pre class="mt-1 max-h-80 overflow-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted)/40%)] p-3 text-xs leading-relaxed whitespace-pre-wrap">{{ currentDetail.content }}</pre>
+        </template>
+      </XhDialogContent>
+    </XhDialogRoot>
   </SchemaPage>
 </template>

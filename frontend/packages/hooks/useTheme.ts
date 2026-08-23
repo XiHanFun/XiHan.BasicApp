@@ -1,5 +1,4 @@
-import type { GlobalThemeOverrides } from 'naive-ui'
-import { darkTheme, lightTheme, useOsTheme } from 'naive-ui'
+import { usePreferredDark } from '@vueuse/core'
 import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
@@ -134,42 +133,18 @@ function deriveMaterialPalette(hex: string, dark: boolean): Record<string, strin
   }
 }
 
-/**
- * 读取 CSS 变量值并转换为 TinyColor 兼容的逗号格式 hsl()。
- * CSS 变量存储格式为 "H S% L%"（CSS Level 4 空格语法），
- * 而 Naive UI 内部的 TinyColor 只支持老式逗号语法 "hsl(H, S%, L%)"。
- */
-function getCssColorVar(varName: string, fallback = ''): string {
-  if (typeof document === 'undefined')
-    return fallback
-  const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
-  if (!raw)
-    return fallback
-  // "142 71% 45%" → "hsl(142, 71%, 45%)"
-  const parts = raw.split(/\s+/)
-  if (parts.length >= 3) {
-    const [h = '', sRaw = '', lRaw = ''] = parts
-    const s = sRaw.endsWith('%') ? sRaw : `${sRaw}%`
-    const l = lRaw.endsWith('%') ? lRaw : `${lRaw}%`
-    return `hsl(${h}, ${s}, ${l})`
-  }
-  return fallback
-}
-
 export function useTheme() {
   const appStore = useAppStore()
-  const osTheme = useOsTheme()
+  const prefersDark = usePreferredDark()
 
   const isDark = computed(() => {
     if (appStore.themeMode === THEME_AUTO) {
-      return osTheme.value === 'dark'
+      return prefersDark.value
     }
     return appStore.themeMode === 'dark'
   })
 
-  const naiveTheme = computed(() => (isDark.value ? darkTheme : lightTheme))
-
-  /** 计算圆角像素值（供 CSS 变量同步及 Naive UI themeOverrides 共用） */
+  /** 计算圆角像素值（写入 --radius / --radius-card，组件库经令牌桥读它） */
   function calcRadius(r: number) {
     return {
       radius: `${Math.round(4 + r * 12)}px`,
@@ -229,53 +204,10 @@ export function useTheme() {
   )
   watch(() => appStore.fontSize, syncFontSize, { immediate: true })
 
-  const themeOverrides = computed((): GlobalThemeOverrides => {
-    const { radius } = calcRadius(appStore.uiRadius)
-    const scale = generatePrimaryScale(appStore.themeColor)
-    const [h, s, l] = hexToHsl(appStore.themeColor)
-    const primaryActive = `hsla(${h}, ${s}%, ${l}%, 0.15)`
-    return {
-      common: {
-        primaryColor: scale.base,
-        primaryColorHover: scale.hover,
-        primaryColorPressed: scale.active,
-        primaryColorSuppl: scale.suppl,
-        successColor: getCssColorVar('--success', '#18a058'),
-        successColorHover: getCssColorVar('--success', '#18a058'),
-        successColorPressed: getCssColorVar('--success', '#18a058'),
-        successColorSuppl: getCssColorVar('--success', '#18a058'),
-        warningColor: getCssColorVar('--warning', '#f0a020'),
-        warningColorHover: getCssColorVar('--warning', '#f0a020'),
-        warningColorPressed: getCssColorVar('--warning', '#f0a020'),
-        warningColorSuppl: getCssColorVar('--warning', '#f0a020'),
-        errorColor: getCssColorVar('--destructive', '#d03050'),
-        errorColorHover: getCssColorVar('--destructive', '#d03050'),
-        errorColorPressed: getCssColorVar('--destructive', '#d03050'),
-        errorColorSuppl: getCssColorVar('--destructive', '#d03050'),
-        infoColor: getCssColorVar('--info', '#2080f0'),
-        infoColorHover: getCssColorVar('--info', '#2080f0'),
-        infoColorPressed: getCssColorVar('--info', '#2080f0'),
-        infoColorSuppl: getCssColorVar('--info', '#2080f0'),
-        borderRadius: radius,
-      },
-      Menu: {
-        color: 'transparent',
-        colorInverted: 'transparent',
-        itemColorActive: primaryActive,
-        itemColorActiveHover: primaryActive,
-        itemColorActiveCollapsed: primaryActive,
-      },
-    }
-  })
-
-  function toggleTheme() {
-    appStore.toggleTheme()
-  }
-
   /** 解析目标模式切换后「实际呈现的明暗」（auto 取当前系统主题） */
   function resolveEffectiveDark(mode: 'light' | 'dark' | 'auto'): boolean {
     if (mode === THEME_AUTO) {
-      return osTheme.value === 'dark'
+      return prefersDark.value
     }
     return mode === 'dark'
   }
@@ -318,6 +250,10 @@ export function useTheme() {
     })
   }
 
+  function toggleTheme() {
+    appStore.toggleTheme()
+  }
+
   function toggleThemeWithTransition(e?: MouseEvent) {
     animateThemeTransition(isDark.value ? 'light' : 'dark', e)
   }
@@ -332,8 +268,6 @@ export function useTheme() {
 
   return {
     isDark,
-    naiveTheme,
-    themeOverrides,
     toggleTheme,
     toggleThemeWithTransition,
     animateThemeTransition,

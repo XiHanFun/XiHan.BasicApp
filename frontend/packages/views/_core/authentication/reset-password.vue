@@ -1,22 +1,23 @@
 <script lang="ts" setup>
-import type { FormInst, FormItemRule, FormRules } from 'naive-ui'
-import { NButton, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
+import type { FormRules } from '@xihan-ui/headless'
+import { XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppContext } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'ResetPasswordPage' })
 
 const { isDark } = useTheme()
 const route = useRoute()
 const router = useRouter()
-const message = useMessage()
 const { t } = useI18n()
 const { apis } = useAppContext()
-const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 
 // 一次性重置令牌（来自找回密码邮件链接）
@@ -27,37 +28,35 @@ const formData = ref({
   confirmPassword: '',
 })
 
-const rules: FormRules = {
+const rules = computed<FormRules>(() => ({
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 8, max: 128, message: '密码长度需为 8-128 位', trigger: 'blur' },
+    { required: true, message: '请输入新密码' },
+    { min: 8, max: 128, message: '密码长度需为 8-128 位' },
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { required: true, message: '请再次输入新密码' },
     {
-      validator: (_rule: FormItemRule, value: string) => value === formData.value.newPassword,
-      message: '两次输入的密码不一致',
-      trigger: 'blur',
+      validator: (value, values) =>
+        value === values.newPassword ? null : '两次输入的密码不一致',
     },
   ],
-}
+}))
 
-async function handleSubmit() {
+async function onSubmit() {
   if (!token.value) {
-    message.error(t('page.auth.reset_token_invalid'))
+    toast.error(t('page.auth.reset_token_invalid'))
     return
   }
   try {
-    await formRef.value?.validate()
     loading.value = true
     await apis.consumePasswordResetTokenApi(token.value, formData.value.newPassword)
-    message.success(t('page.auth.reset_success'))
+    toast.success(t('page.auth.reset_success'))
     router.push(LOGIN_PATH)
   }
   catch (e: unknown) {
     const msg = (e as Error)?.message
     if (msg)
-      message.error(msg)
+      toast.error(msg)
   }
   finally {
     loading.value = false
@@ -66,8 +65,9 @@ async function handleSubmit() {
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter')
-    handleSubmit()
+    onSubmit()
 }
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -84,46 +84,45 @@ function handleKeydown(e: KeyboardEvent) {
       </p>
     </div>
 
-    <NForm
-      ref="formRef"
-      :model="formData"
+    <XhFormRoot
+      v-model:values="formData"
       :rules="rules"
-      label-placement="top"
-      size="large"
-      :show-label="false"
+      validate-on="blur"
+      @invalid="onAuthInvalid"
       @keydown="handleKeydown"
+      @submit="onSubmit"
     >
-      <NFormItem path="newPassword" class="!mb-4">
-        <NInput
-          v-model:value="formData.newPassword"
-          type="password"
-          show-password-on="click"
-          size="large"
-          :placeholder="t('page.auth.reset_new_password_placeholder')"
-          :input-props="{ autocomplete: 'new-password' }"
-        />
-      </NFormItem>
-      <NFormItem path="confirmPassword" class="!mb-6">
-        <NInput
-          v-model:value="formData.confirmPassword"
-          type="password"
-          show-password-on="click"
-          size="large"
-          :placeholder="t('page.auth.reset_confirm_placeholder')"
-          :input-props="{ autocomplete: 'new-password' }"
-        />
-      </NFormItem>
+      <XhFormFieldGroup value="newPassword" class="!mb-4">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.newPassword"
+              type="password"
+              size="lg"
+              :placeholder="t('page.auth.reset_new_password_placeholder')"
+              autocomplete="new-password"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+      <XhFormFieldGroup value="confirmPassword" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.confirmPassword"
+              type="password"
+              size="lg"
+              :placeholder="t('page.auth.reset_confirm_placeholder')"
+              autocomplete="new-password"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
 
-      <NButton
-        type="primary"
-        block
-        :loading="loading"
-        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
-        @click="handleSubmit"
-      >
+      <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="loading">
         确认重置
-      </NButton>
-    </NForm>
+      </XhFormSubmitTrigger>
+    </XhFormRoot>
 
     <p
       class="mt-6 text-sm text-center"

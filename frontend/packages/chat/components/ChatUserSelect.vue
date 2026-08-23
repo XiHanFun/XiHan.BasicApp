@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { SelectOption } from 'naive-ui'
 import type {
   ChatUserPickerItem,
 } from '../types'
-import { NSelect } from 'naive-ui'
+import type { SelectOption } from '~/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XSelect from '~/components/common/XSelect.vue'
 import { getChatApi } from '../api-contract'
 
 defineOptions({ name: 'ChatUserSelect' })
@@ -62,7 +62,7 @@ async function handleSearch(keyword: string) {
 </script>
 
 <template>
-  <NSelect
+  <XSelect
     v-model:value="model"
     :multiple="props.multiple"
     filterable

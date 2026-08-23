@@ -8,23 +8,13 @@ import type {
   SmsListItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NSpace,
-  NTabPane,
-  NTabs,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EmailStatus, messageCenterApi, querySortsFromSchema, SmsStatus } from '@/api'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -37,11 +27,9 @@ const smsTypeOptions = useEnumOptions('SmsType', SMS_TYPE_OPTIONS)
 const smsStatusOptions = useEnumOptions('SmsStatus', SMS_STATUS_OPTIONS)
 
 type MessageTab = 'email' | 'sms'
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
+type TagType = 'neutral' | 'danger' | 'info' | 'success' | 'warning'
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 
 const activeTab = ref<MessageTab>('email')
 
@@ -72,13 +60,13 @@ function getMessageStatusTagType(status: EmailStatus | SmsStatus): TagType {
     return 'success'
   }
   if (status === EmailStatus.Failed) {
-    return 'error'
+    return 'danger'
   }
   if (status === EmailStatus.Sending) {
     return 'warning'
   }
   if (status === EmailStatus.Cancelled) {
-    return 'default'
+    return 'neutral'
   }
   return 'info'
 }
@@ -127,7 +115,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as EmailListItemDto
-      return h(NTag, { type: getMessageStatusTagType(r.emailStatus), round: true, size: 'small' }, () => getOptionLabel(emailStatusOptions.value, r.emailStatus))
+      return h(XhBadge, { variant: 'subtle', tone: getMessageStatusTagType(r.emailStatus), size: 'sm' }, () => getOptionLabel(emailStatusOptions.value, r.emailStatus))
     },
   },
   {
@@ -138,7 +126,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as EmailListItemDto
-      return h(NTag, { type: r.isHtml ? 'info' : 'default', round: true, size: 'small' }, () => formatFlag(r.isHtml))
+      return h(XhBadge, { variant: 'subtle', tone: r.isHtml ? 'info' : 'neutral', size: 'sm' }, () => formatFlag(r.isHtml))
     },
   },
   { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 5 },
@@ -155,7 +143,6 @@ const emailSchema = computed<PageSchema>(() => ({
   exportPermission: 'saas:message:export',
   pageName: t('message.record.email_page_name'),
   rowKey: 'basicId',
-  scrollX: 1600,
   fields: emailFields.value,
   resource: {
     page: (params) => {
@@ -209,7 +196,7 @@ async function openEmailDetail(row: EmailListItemDto) {
   }
   catch (error) {
     currentEmailDetail.value = null
-    message.error((error as Error)?.message || t('message.record.msg_load_email_detail_failed'))
+    toast.error((error as Error)?.message || t('message.record.msg_load_email_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -219,32 +206,34 @@ async function openEmailDetail(row: EmailListItemDto) {
 async function resendEmail(row: EmailListItemDto) {
   try {
     await messageCenterApi.updateEmailStatus({ basicId: row.basicId, emailStatus: EmailStatus.Pending })
-    message.success(t('message.record.msg_email_requeued'))
+    toast.success(t('message.record.msg_email_requeued'))
     void emailPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('message.record.msg_email_resend_failed'))
+    toast.error((error as Error)?.message || t('message.record.msg_email_resend_failed'))
   }
 }
 
 function confirmDeleteEmail(row: EmailListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('message.record.delete_email_title'),
     content: t('message.record.delete_email_content'),
-    positiveText: t('message.record.confirm'),
-    negativeText: t('message.record.cancel'),
-    onPositiveClick: () => deleteEmail(row),
+    okText: t('message.record.confirm'),
+    cancelText: t('message.record.cancel'),
+    onOk: () => deleteEmail(row),
   })
 }
 
 async function deleteEmail(row: EmailListItemDto) {
   try {
     await messageCenterApi.deleteEmail(row.basicId)
-    message.success(t('message.record.msg_email_deleted'))
+    toast.success(t('message.record.msg_email_deleted'))
     void emailPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('message.record.msg_email_delete_failed'))
+    toast.error((error as Error)?.message || t('message.record.msg_email_delete_failed'))
   }
 }
 
@@ -280,7 +269,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as SmsListItemDto
-      return h(NTag, { type: getMessageStatusTagType(r.smsStatus), round: true, size: 'small' }, () => getOptionLabel(smsStatusOptions.value, r.smsStatus))
+      return h(XhBadge, { variant: 'subtle', tone: getMessageStatusTagType(r.smsStatus), size: 'sm' }, () => getOptionLabel(smsStatusOptions.value, r.smsStatus))
     },
   },
   { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 4 },
@@ -298,7 +287,6 @@ const smsSchema = computed<PageSchema>(() => ({
   exportPermission: 'saas:message:export',
   pageName: t('message.record.sms_page_name'),
   rowKey: 'basicId',
-  scrollX: 1600,
   fields: smsFields.value,
   resource: {
     page: (params) => {
@@ -353,7 +341,7 @@ async function openSmsDetail(row: SmsListItemDto) {
   }
   catch (error) {
     currentSmsDetail.value = null
-    message.error((error as Error)?.message || t('message.record.msg_load_sms_detail_failed'))
+    toast.error((error as Error)?.message || t('message.record.msg_load_sms_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -363,133 +351,215 @@ async function openSmsDetail(row: SmsListItemDto) {
 async function resendSms(row: SmsListItemDto) {
   try {
     await messageCenterApi.updateSmsStatus({ basicId: row.basicId, smsStatus: SmsStatus.Pending })
-    message.success(t('message.record.msg_sms_requeued'))
+    toast.success(t('message.record.msg_sms_requeued'))
     void smsPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('message.record.msg_sms_resend_failed'))
+    toast.error((error as Error)?.message || t('message.record.msg_sms_resend_failed'))
   }
 }
 
 function confirmDeleteSms(row: SmsListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('message.record.delete_sms_title'),
     content: t('message.record.delete_sms_content'),
-    positiveText: t('message.record.confirm'),
-    negativeText: t('message.record.cancel'),
-    onPositiveClick: () => deleteSms(row),
+    okText: t('message.record.confirm'),
+    cancelText: t('message.record.cancel'),
+    onOk: () => deleteSms(row),
   })
 }
 
 async function deleteSms(row: SmsListItemDto) {
   try {
     await messageCenterApi.deleteSms(row.basicId)
-    message.success(t('message.record.msg_sms_deleted'))
+    toast.success(t('message.record.msg_sms_deleted'))
     void smsPageRef.value?.reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('message.record.msg_sms_delete_failed'))
+    toast.error((error as Error)?.message || t('message.record.msg_sms_delete_failed'))
   }
 }
 </script>
 
 <template>
   <div class="message-page">
-    <NTabs v-model:value="activeTab" animated type="line">
-      <NTabPane name="email" :tab="t('message.record.tab_email')" display-directive="show:lazy">
+    <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+    <XhTabsRoot v-model:value="activeTab" variant="line">
+      <XhTabsList>
+        <XhTabsTrigger value="email">
+          {{ t('message.record.tab_email') }}
+        </XhTabsTrigger>
+        <XhTabsTrigger value="sms">
+          {{ t('message.record.tab_sms') }}
+        </XhTabsTrigger>
+      </XhTabsList>
+      <XhTabsContent value="email">
         <SchemaPage ref="emailPageRef" :schema="emailSchema" @action="onEmailAction" />
-      </NTabPane>
-      <NTabPane name="sms" :tab="t('message.record.tab_sms')" display-directive="show:lazy">
+      </XhTabsContent>
+      <XhTabsContent value="sms">
         <SchemaPage ref="smsPageRef" :schema="smsSchema" @action="onSmsAction" />
-      </NTabPane>
-    </NTabs>
+      </XhTabsContent>
+    </XhTabsRoot>
 
-    <NDrawer v-model:show="detailVisible" :width="620">
-      <NDrawerContent closable :title="detailTab === 'email' ? t('message.record.detail_email_title') : t('message.record.detail_sms_title')">
-        <NSpace v-if="detailLoading" justify="center">
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 620px">
+        <XhDrawerTitle>{{ detailTab === 'email' ? t('message.record.detail_email_title') : t('message.record.detail_sms_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <XhFlex v-if="detailLoading" justify="center">
           {{ t('message.record.detail_loading') }}
-        </NSpace>
+        </XhFlex>
 
-        <NDescriptions v-else-if="detailTab === 'email' && currentEmailDetail" :column="1" bordered size="small">
-          <NDescriptionsItem :label="t('message.record.detail_subject')">
-            {{ currentEmailDetail.subject }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_email_type')">
-            {{ getOptionLabel(emailTypeOptions, currentEmailDetail.emailType) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_send_status')">
-            {{ getOptionLabel(emailStatusOptions, currentEmailDetail.emailStatus) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_business_ref')">
-            {{ currentEmailDetail.businessType || '-' }} / {{ currentEmailDetail.businessId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_user_ref')">
-            {{ currentEmailDetail.sendUserId || '-' }} -> {{ currentEmailDetail.receiveUserId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_template_code')">
-            {{ currentEmailDetail.templateCode || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_retry')">
-            {{ formatRetry(currentEmailDetail) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_scheduled_time')">
-            {{ currentEmailDetail.scheduledTime ? formatDate(currentEmailDetail.scheduledTime) : '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_actual_send_time')">
-            {{ currentEmailDetail.sendTime ? formatDate(currentEmailDetail.sendTime) : '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_created_time')">
-            {{ formatDate(currentEmailDetail.createdTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_modified_time')">
-            {{ currentEmailDetail.modifiedTime ? formatDate(currentEmailDetail.modifiedTime) : '-' }}
-          </NDescriptionsItem>
-        </NDescriptions>
+        <XhDescriptionsRoot v-else-if="detailTab === 'email' && currentEmailDetail" :columns="1" bordered size="sm">
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_subject') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.subject }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_email_type') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ getOptionLabel(emailTypeOptions, currentEmailDetail.emailType) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_send_status') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ getOptionLabel(emailStatusOptions, currentEmailDetail.emailStatus) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_business_ref') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.businessType || '-' }} / {{ currentEmailDetail.businessId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_user_ref') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.sendUserId || '-' }} -> {{ currentEmailDetail.receiveUserId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_template_code') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.templateCode || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_retry') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatRetry(currentEmailDetail) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_scheduled_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.scheduledTime ? formatDate(currentEmailDetail.scheduledTime) : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_actual_send_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.sendTime ? formatDate(currentEmailDetail.sendTime) : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_created_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatDate(currentEmailDetail.createdTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_modified_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentEmailDetail.modifiedTime ? formatDate(currentEmailDetail.modifiedTime) : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+        </XhDescriptionsRoot>
 
-        <NDescriptions v-else-if="detailTab === 'sms' && currentSmsDetail" :column="1" bordered size="small">
-          <NDescriptionsItem :label="t('message.record.detail_provider')">
-            {{ currentSmsDetail.provider || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_sms_type')">
-            {{ getOptionLabel(smsTypeOptions, currentSmsDetail.smsType) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_send_status')">
-            {{ getOptionLabel(smsStatusOptions, currentSmsDetail.smsStatus) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_business_ref')">
-            {{ currentSmsDetail.businessType || '-' }} / {{ currentSmsDetail.businessId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_user_ref')">
-            {{ currentSmsDetail.senderId || '-' }} -> {{ currentSmsDetail.receiverId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_template_code')">
-            {{ currentSmsDetail.templateCode || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_cost')">
-            {{ currentSmsDetail.cost ?? '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_retry')">
-            {{ formatRetry(currentSmsDetail) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_scheduled_time')">
-            {{ currentSmsDetail.scheduledTime ? formatDate(currentSmsDetail.scheduledTime) : '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_actual_send_time')">
-            {{ currentSmsDetail.sendTime ? formatDate(currentSmsDetail.sendTime) : '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_created_time')">
-            {{ formatDate(currentSmsDetail.createdTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('message.record.detail_modified_time')">
-            {{ currentSmsDetail.modifiedTime ? formatDate(currentSmsDetail.modifiedTime) : '-' }}
-          </NDescriptionsItem>
-        </NDescriptions>
+        <XhDescriptionsRoot v-else-if="detailTab === 'sms' && currentSmsDetail" :columns="1" bordered size="sm">
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_provider') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.provider || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_sms_type') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ getOptionLabel(smsTypeOptions, currentSmsDetail.smsType) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_send_status') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ getOptionLabel(smsStatusOptions, currentSmsDetail.smsStatus) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_business_ref') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.businessType || '-' }} / {{ currentSmsDetail.businessId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_user_ref') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.senderId || '-' }} -> {{ currentSmsDetail.receiverId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_template_code') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.templateCode || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_cost') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.cost ?? '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_retry') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatRetry(currentSmsDetail) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_scheduled_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.scheduledTime ? formatDate(currentSmsDetail.scheduledTime) : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_actual_send_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.sendTime ? formatDate(currentSmsDetail.sendTime) : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_created_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatDate(currentSmsDetail.createdTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('message.record.detail_modified_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ currentSmsDetail.modifiedTime ? formatDate(currentSmsDetail.modifiedTime) : '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+        </XhDescriptionsRoot>
 
         <div v-else class="py-8 text-center text-gray-400">
           {{ t('message.record.detail_empty') }}
         </div>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </div>
 </template>
 
@@ -501,23 +571,22 @@ async function deleteSms(row: SmsListItemDto) {
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 的表格卡片，分页贴底）。
    被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
    与授权申请等以 NTabs 包裹 SchemaPage 的页面保持一致。 */
-.message-page :deep(.n-tabs) {
+.message-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.message-page :deep(.n-tabs-nav) {
+.message-page :deep([data-scope='tabs'][data-part='list']) {
   padding: 8px 12px 0;
 }
 
-.message-page :deep(.n-tabs-pane-wrapper) {
+.message-page :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   height: 0;
 }
 
-.message-page :deep(.n-tab-pane) {
-  height: 100%;
+.message-page :deep([data-scope='tabs'][data-part='content']) {
   padding: 0;
 }
 </style>

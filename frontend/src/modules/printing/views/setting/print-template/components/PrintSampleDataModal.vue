@@ -4,20 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
-import {
-  NAlert,
-  NButton,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NIcon,
-  NModal,
-  NSpace,
-  NSpin,
-  NTabPane,
-  NTabs,
-  NTag,
-} from 'naive-ui'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -230,147 +217,167 @@ function clearSession(): void {
 </script>
 
 <template>
-  <NModal
-    :show="show"
-    preset="card"
-    :title="t('setting.print_template.sample_data_title')"
-    :mask-closable="false"
-    :closable="!submitting"
-    class="print-sample-data-modal"
-    data-testid="print-sample-data-modal"
-    @update:show="requestVisible"
+  <XhDialogRoot
+    :open="show"
+    :close-on-interact-outside="false"
+    @update:open="requestVisible"
   >
-    <template #header-extra>
-      <NSpace align="center" size="small">
-        <NTag size="small" type="info">
+    <XhDialogContent class="print-sample-data-modal">
+      <XhDialogTitle>{{ t('setting.print_template.sample_data_title') }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <XhFlex align="center" gap="sm" class="sample-data-tags">
+        <XhBadge variant="subtle" size="sm" tone="info">
           {{ dataSourceName || dataSourceCode || t('setting.print_template.free_template') }}
-        </NTag>
-        <NTag v-if="templateCode" size="small">
+        </XhBadge>
+        <XhBadge v-if="templateCode" variant="subtle" size="sm">
           {{ templateCode }}
-        </NTag>
-      </NSpace>
-    </template>
+        </XhBadge>
+      </XhFlex>
 
-    <NSpin :show="loading" :description="t('setting.print_template.sample_loading')">
-      <div class="sample-data-body">
-        <NAlert v-if="loadError" type="error" :show-icon="true">
-          {{ loadError }}
-        </NAlert>
+      <div class="xh-loading-stage">
+        <div v-if="loading" class="xh-loading-stage__veil">
+          <XhSpinner />
+        </div>
+        <div class="sample-data-body">
+          <XhAlertRoot v-if="loadError" tone="danger">
+            <XhAlertIcon>
+              <Icon icon="lucide:circle-alert" width="16" height="16" />
+            </XhAlertIcon>
+            <XhAlertDescription>
+              {{ loadError }}
+            </XhAlertDescription>
+          </XhAlertRoot>
 
-        <template v-else>
-          <div class="sample-data-intro">
-            <div>
-              <strong>{{ templateName || templateCode || t('setting.print_template.sample_current_template') }}</strong>
-              <p>{{ t('setting.print_template.sample_memory_only') }}</p>
+          <template v-else>
+            <div class="sample-data-intro">
+              <div>
+                <strong>{{ templateName || templateCode || t('setting.print_template.sample_current_template') }}</strong>
+                <p>{{ t('setting.print_template.sample_memory_only') }}</p>
+              </div>
+              <XhButton
+                variant="subtle"
+                :disabled="submitting"
+                :loading="loading"
+                @click="resetDefaultSample"
+              >
+                <span><Icon icon="tabler:restore" /></span>
+                {{ t('setting.print_template.sample_reset_default') }}
+              </XhButton>
             </div>
-            <NButton
-              secondary
-              :disabled="submitting"
-              :loading="loading"
-              @click="resetDefaultSample"
+
+            <XhAlertRoot v-for="field in unregisteredFields" :key="field.key" tone="warning">
+              <XhAlertIcon>
+                <Icon icon="lucide:triangle-alert" width="16" height="16" />
+              </XhAlertIcon>
+              <XhAlertDescription>
+                {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
+              </XhAlertDescription>
+            </XhAlertRoot>
+
+            <section v-if="isCollection" class="sample-records">
+              <div class="sample-records-heading">
+                <span>{{ t('setting.print_template.sample_records', { count: records.length }) }}</span>
+                <XhFlex gap="sm">
+                  <XhButton size="sm" variant="subtle" @click="addRecord">
+                    <span><Icon icon="tabler:plus" /></span>
+                    {{ t('setting.print_template.sample_add_record') }}
+                  </XhButton>
+                  <XhButton size="sm" variant="subtle" @click="duplicateRecord">
+                    <span><Icon icon="tabler:copy" /></span>
+                    {{ t('setting.print_template.sample_duplicate_record') }}
+                  </XhButton>
+                  <XhButton size="sm" variant="subtle" tone="danger" :disabled="records.length <= 1" @click="deleteRecord">
+                    <span><Icon icon="tabler:trash" /></span>
+                    {{ t('setting.print_template.sample_delete_record') }}
+                  </XhButton>
+                </XhFlex>
+              </div>
+              <XhTabsRoot
+                v-model:value="activeRecordId"
+                variant="card"
+                size="sm"
+                class="sample-record-tabs"
+              >
+                <XhTabsList>
+                  <XhTabsTrigger
+                    v-for="(record, index) in records"
+                    :key="record.id"
+                    :value="record.id"
+                  >
+                    {{ t('setting.print_template.sample_record_index', { index: index + 1 }) }}
+                  </XhTabsTrigger>
+                </XhTabsList>
+              </XhTabsRoot>
+            </section>
+
+            <XhEmptyStateRoot
+              v-if="schema.fields.length === 0"
+              size="sm"
+              class="sample-fields-empty"
             >
-              <template #icon>
-                <NIcon><Icon icon="tabler:restore" /></NIcon>
-              </template>
-              {{ t('setting.print_template.sample_reset_default') }}
-            </NButton>
-          </div>
-
-          <NAlert v-for="field in unregisteredFields" :key="field.key" type="warning" :show-icon="true">
-            {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
-          </NAlert>
-
-          <section v-if="isCollection" class="sample-records">
-            <div class="sample-records-heading">
-              <span>{{ t('setting.print_template.sample_records', { count: records.length }) }}</span>
-              <NSpace size="small">
-                <NButton size="small" secondary @click="addRecord">
-                  <template #icon>
-                    <NIcon><Icon icon="tabler:plus" /></NIcon>
-                  </template>
-                  {{ t('setting.print_template.sample_add_record') }}
-                </NButton>
-                <NButton size="small" secondary @click="duplicateRecord">
-                  <template #icon>
-                    <NIcon><Icon icon="tabler:copy" /></NIcon>
-                  </template>
-                  {{ t('setting.print_template.sample_duplicate_record') }}
-                </NButton>
-                <NButton size="small" secondary type="error" :disabled="records.length <= 1" @click="deleteRecord">
-                  <template #icon>
-                    <NIcon><Icon icon="tabler:trash" /></NIcon>
-                  </template>
-                  {{ t('setting.print_template.sample_delete_record') }}
-                </NButton>
-              </NSpace>
-            </div>
-            <NTabs v-model:value="activeRecordId" type="card" size="small" class="sample-record-tabs">
-              <NTabPane
-                v-for="(record, index) in records"
-                :key="record.id"
-                :name="record.id"
-                :tab="t('setting.print_template.sample_record_index', { index: index + 1 })"
-              />
-            </NTabs>
-          </section>
-
-          <NEmpty
-            v-if="schema.fields.length === 0"
-            class="sample-fields-empty"
-            :description="t('setting.print_template.sample_no_bound_fields')"
-          />
-          <NForm v-else-if="currentRecord" label-placement="top" class="sample-fields-grid">
-            <NFormItem
-              v-for="field in schema.fields"
-              :key="field.key"
-              :label="field.label"
-              :class="{ 'sample-field--table': field.kind === 'table' }"
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('setting.print_template.sample_no_bound_fields') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <XhFormRoot
+              v-else-if="currentRecord"
+              validate-on="blur"
+              class="sample-fields-grid"
             >
-              <TableEditor
-                v-if="field.kind === 'table'"
-                :field="field"
-                :value="getPrintSampleValue(currentRecord.data, field.key)"
-                class="w-full"
-                @update:value="updateField(field, $event)"
-              />
-              <ValueEditor
-                v-else
-                :field="field"
-                :value="getPrintSampleValue(currentRecord.data, field.key)"
-                class="w-full"
-                @update:value="updateField(field, $event)"
-              />
-            </NFormItem>
-          </NForm>
-        </template>
+              <XhFieldRoot
+                v-for="field in schema.fields"
+                :key="field.key"
+                :class="{ 'sample-field--table': field.kind === 'table' }"
+              >
+                <XhFieldLabel>{{ field.label }}</XhFieldLabel>
+                <XhFieldControl>
+                  <TableEditor
+                    v-if="field.kind === 'table'"
+                    :field="field"
+                    :value="getPrintSampleValue(currentRecord.data, field.key)"
+                    class="w-full"
+                    @update:value="updateField(field, $event)"
+                  />
+                  <ValueEditor
+                    v-else
+                    :field="field"
+                    :value="getPrintSampleValue(currentRecord.data, field.key)"
+                    class="w-full"
+                    @update:value="updateField(field, $event)"
+                  />
+                </XhFieldControl>
+              </XhFieldRoot>
+            </XhFormRoot>
+          </template>
+        </div>
       </div>
-    </NSpin>
 
-    <template #footer>
-      <NSpace justify="space-between" align="center">
-        <span class="sample-data-footer-tip">
-          {{ t('setting.print_template.sample_fields_count', { count: schema.fields.length }) }}
-        </span>
-        <NSpace>
-          <NButton :disabled="submitting" @click="requestVisible(false)">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton
-            data-testid="print-sample-preview-submit"
-            type="primary"
-            :loading="submitting"
-            :disabled="!canPreview"
-            @click="submitPreview"
-          >
-            <template #icon>
-              <NIcon><Icon icon="tabler:eye" /></NIcon>
-            </template>
-            {{ t('setting.print_template.sample_open_preview') }}
-          </NButton>
-        </NSpace>
-      </NSpace>
-    </template>
-  </NModal>
+      <div class="xh-dialog-footer">
+        <XhFlex justify="between" align="center">
+          <span class="sample-data-footer-tip">
+            {{ t('setting.print_template.sample_fields_count', { count: schema.fields.length }) }}
+          </span>
+          <XhFlex>
+            <XhButton :disabled="submitting" @click="requestVisible(false)">
+              {{ t('common.actions.cancel') }}
+            </XhButton>
+            <XhButton
+              data-testid="print-sample-preview-submit"
+              tone="brand"
+              :loading="submitting"
+              :disabled="!canPreview"
+              @click="submitPreview"
+            >
+              <span><Icon icon="tabler:eye" /></span>
+              {{ t('setting.print_template.sample_open_preview') }}
+            </XhButton>
+          </XhFlex>
+        </XhFlex>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>
 
 <style>
@@ -379,7 +386,7 @@ function clearSession(): void {
   max-width: 94vw;
 }
 
-.print-sample-data-modal > .n-card-content {
+.print-sample-data-modal > .xh-loading-stage {
   max-height: 68vh;
   overflow: auto;
 }
@@ -415,10 +422,6 @@ function clearSession(): void {
   margin-bottom: 10px;
   color: #475569;
   font-size: 12px;
-}
-
-.sample-record-tabs .n-tabs-pane-wrapper {
-  display: none;
 }
 
 .sample-fields-grid {

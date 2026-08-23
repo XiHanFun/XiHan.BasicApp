@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { MenuRoute } from '~/types'
 import { useFullscreen } from '@vueuse/core'
-import { NIcon } from 'naive-ui'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -425,18 +424,16 @@ watch(
   <div v-bind="$attrs">
     <div class="hidden sm:block">
       <button type="button" class="search-trigger" @click="layoutBridgeStore.requestOpenGlobalSearch()">
-        <NIcon size="14" class="shrink-0 text-[hsl(var(--muted-foreground))]">
+        <span class="shrink-0 text-[hsl(var(--muted-foreground))]" style="display: inline-flex; font-size: 14px">
           <Icon icon="lucide:search" />
-        </NIcon>
+        </span>
         <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
         <kbd v-if="showShortcut" class="search-kbd">{{ formatShortcut('Ctrl+K') }}</kbd>
       </button>
     </div>
     <div class="sm:hidden">
       <button type="button" class="search-trigger-icon" @click="layoutBridgeStore.requestOpenGlobalSearch()">
-        <NIcon size="16">
-          <Icon icon="lucide:search" />
-        </NIcon>
+        <Icon width="16" height="16" icon="lucide:search" />
       </button>
     </div>
   </div>
@@ -447,9 +444,9 @@ watch(
         <div class="cmdk-panel" role="dialog" aria-modal="true" @click.stop>
           <!-- 输入框 -->
           <div class="cmdk-input">
-            <NIcon size="17" class="cmdk-input__icon">
+            <span class="cmdk-input__icon" style="display: inline-flex; font-size: 17px">
               <Icon icon="lucide:search" />
-            </NIcon>
+            </span>
             <input
               ref="inputRef"
               v-model="keyword"
@@ -479,7 +476,7 @@ watch(
                 @mousemove="setActive(it)"
               >
                 <span class="cmdk-item__icon">
-                  <NIcon size="17"><Icon :icon="it.icon" /></NIcon>
+                  <Icon width="17" height="17" :icon="it.icon" />
                 </span>
                 <span class="cmdk-item__title">
                   <span
@@ -494,9 +491,9 @@ watch(
             </template>
 
             <div v-if="!flat.length" class="cmdk-empty">
-              <NIcon size="22" class="opacity-40">
+              <span class="opacity-40" style="display: inline-flex; font-size: 22px">
                 <Icon icon="lucide:search-x" />
-              </NIcon>
+              </span>
               <span>{{ t('header.search.empty') }}</span>
             </div>
           </div>

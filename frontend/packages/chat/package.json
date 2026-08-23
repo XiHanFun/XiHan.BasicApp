@@ -6,6 +6,8 @@
   "main": "./index.ts",
   "dependencies": {
     "@emoji-mart/data": "catalog:",
+    "@xihan-ui/chat-stream": "catalog:",
+    "@xihan-ui/vue": "catalog:",
     "@xihan/composables": "workspace:*",
     "@xihan/constants": "workspace:*",
     "@xihan/iconify": "workspace:*",

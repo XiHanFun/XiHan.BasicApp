@@ -1,15 +1,13 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
 import type { PermissionInfo } from '~/types'
-import { createDiscreteApi } from 'naive-ui'
-import { isLockedState } from '~/composables/session-lock'
+
+import { isLockedState, loadingBar } from '~/composables'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { hydratePreferencesFromBackend, useAccessStore, useAppStore, useTabbarStore, useUserStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
 import { mapMenuToRoutes } from './dynamic'
 import { filterRoutesByPermission, isStaticRouteMode } from './static'
-
-const { loadingBar } = createDiscreteApi(['loadingBar'])
 
 const WHITE_LIST = [FORBIDDEN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH]
 

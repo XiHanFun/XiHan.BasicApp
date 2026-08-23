@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { NButton, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
+import { XhBadge, XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
+import { toast } from '~/composables'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -14,7 +15,6 @@ import { getOptionLabel } from '~/utils'
 defineOptions({ name: 'ControlCenter' })
 
 const { t } = useI18n()
-const message = useMessage()
 const { apis } = useAppContext()
 const accessStore = useAccessStore()
 const appStore = useAppStore()
@@ -53,7 +53,7 @@ async function loadTenants() {
     loaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('page.control_center.load_failed'))
+    toast.error((e as Error)?.message || t('page.control_center.load_failed'))
   }
   finally {
     loading.value = false
@@ -70,11 +70,11 @@ async function enterTenant(tenant: AppTenantSwitcherItem) {
     const token = await apis.tenantApi.switchTenant({ tenantId: String(tenant.tenantId) })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
-    message.success(t('page.control_center.switched', { name: tenant.tenantName }))
+    toast.success(t('page.control_center.switched', { name: tenant.tenantName }))
     window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('page.control_center.switch_failed'))
+    toast.error((e as Error)?.message || t('page.control_center.switch_failed'))
     switching.value = false
   }
 }
@@ -90,11 +90,11 @@ async function enterPlatform() {
     const token = await apis.tenantApi.switchTenant({ tenantId: null })
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
-    message.success(t('page.control_center.switched_platform'))
+    toast.success(t('page.control_center.switched_platform'))
     window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('page.control_center.switch_failed'))
+    toast.error((e as Error)?.message || t('page.control_center.switch_failed'))
     switching.value = false
   }
 }
@@ -108,9 +108,9 @@ function memberTagType(type: TenantMemberType) {
     return 'warning'
   }
   if (type === TenantMemberType.Admin || type === TenantMemberType.PlatformAdmin) {
-    return 'primary'
+    return 'brand'
   }
-  return 'default'
+  return 'neutral'
 }
 
 onMounted(loadTenants)
@@ -124,12 +124,10 @@ onMounted(loadTenants)
         <span class="cc-brand__title">{{ brandTitle }}</span>
       </div>
       <div class="cc-user">
-        <NButton size="small" quaternary @click="handleLogout">
-          <template #icon>
-            <Icon icon="lucide:log-out" />
-          </template>
+        <XhButton size="sm" variant="ghost" @click="handleLogout">
+          <Icon icon="lucide:log-out" />
           {{ t('header.user.logout') }}
-        </NButton>
+        </XhButton>
       </div>
     </header>
 
@@ -151,14 +149,15 @@ onMounted(loadTenants)
               <Icon icon="lucide:layout-grid" width="16" />
               <span>{{ t('page.control_center.title') }}</span>
             </div>
-            <NButton size="tiny" quaternary :loading="loading" @click="loadTenants">
-              <template #icon>
-                <Icon icon="lucide:refresh-cw" />
-              </template>
+            <XhButton size="sm" variant="ghost" :loading="loading" @click="loadTenants">
+              <Icon icon="lucide:refresh-cw" />
               {{ t('page.control_center.refresh') }}
-            </NButton>
+            </XhButton>
           </div>
-          <NSpin :show="loading">
+          <div class="xh-loading-stage">
+            <div v-if="loading" class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
             <!-- 平台分组：与租户同构的可选中项，选中态表示当前处于平台运维态 -->
             <template v-if="canAccessPlatform">
               <div class="cc-group-label">
@@ -178,9 +177,9 @@ onMounted(loadTenants)
                   <div class="cc-tenant__body">
                     <div class="cc-tenant__name">
                       {{ t('page.control_center.platform_panel') }}
-                      <NTag v-if="platformIsCurrent" type="success" size="tiny" :bordered="false">
+                      <XhBadge v-if="platformIsCurrent" variant="subtle" tone="success" size="sm">
                         {{ t('page.control_center.current') }}
-                      </NTag>
+                      </XhBadge>
                     </div>
                     <div class="cc-tenant__meta">
                       <span class="cc-tenant__code">{{ t('page.control_center.platform_desc') }}</span>
@@ -195,15 +194,16 @@ onMounted(loadTenants)
             <div class="cc-group-label" :class="{ 'cc-group-label--spaced': canAccessPlatform }">
               {{ t('page.control_center.my_tenants') }}
             </div>
-            <NEmpty
-              v-if="tenants.length === 0 && loaded"
-              :description="t('page.control_center.no_tenants')"
-              class="cc-empty"
-            >
-              <template #extra>
+            <XhEmptyStateRoot v-if="tenants.length === 0 && loaded" class="cc-empty">
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('page.control_center.no_tenants') }}</XhEmptyStateDescription>
+              <XhEmptyStateAction>
                 <span class="cc-empty__hint">{{ t('page.control_center.no_tenants_hint') }}</span>
-              </template>
-            </NEmpty>
+              </XhEmptyStateAction>
+            </XhEmptyStateRoot>
             <div v-else class="cc-tenant-grid">
               <button
                 v-for="tenant in tenants"
@@ -225,21 +225,21 @@ onMounted(loadTenants)
                 <div class="cc-tenant__body">
                   <div class="cc-tenant__name">
                     {{ tenant.tenantName }}
-                    <NTag v-if="tenant.isCurrent" type="success" size="tiny" :bordered="false">
+                    <XhBadge v-if="tenant.isCurrent" variant="subtle" tone="success" size="sm">
                       {{ t('page.control_center.current') }}
-                    </NTag>
+                    </XhBadge>
                   </div>
                   <div class="cc-tenant__meta">
-                    <NTag :type="memberTagType(tenant.memberType)" size="tiny" round :bordered="false">
+                    <XhBadge variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
                       {{ memberTypeLabel(tenant.memberType) }}
-                    </NTag>
+                    </XhBadge>
                     <span class="cc-tenant__code">{{ tenant.tenantCode }}</span>
                   </div>
                 </div>
                 <Icon v-if="!tenant.isCurrent" icon="lucide:arrow-right" width="16" class="cc-tenant__arrow" />
               </button>
             </div>
-          </NSpin>
+          </div>
         </section>
       </div>
     </main>

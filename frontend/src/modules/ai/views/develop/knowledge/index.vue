@@ -8,29 +8,16 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSpace,
-  NSwitch,
-  NTabPane,
-  NTabs,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput } from '~/components'
+import { dialog, toast } from '~/composables'
+import { Icon } from '~/iconify'
 import { getOptionLabel } from '~/utils'
 import {
   KNOWLEDGE_INDEX_STATUS_OPTIONS,
@@ -43,8 +30,9 @@ import {
 defineOptions({ name: 'DevelopKnowledgePage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const activeTab = ref<'documents' | 'playground'>('documents')
 
@@ -58,7 +46,7 @@ function statusTagType(status: KnowledgeIndexStatus) {
   if (status === KnowledgeIndexStatus.Indexed) {
     return 'success'
   }
-  return status === KnowledgeIndexStatus.Failed ? 'error' : 'warning'
+  return status === KnowledgeIndexStatus.Failed ? 'danger' : 'warning'
 }
 
 const fields = computed<ListFieldSchema[]>(() => [
@@ -90,7 +78,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as KnowledgeListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: statusTagType(r.status) }, () => getOptionLabel(KNOWLEDGE_INDEX_STATUS_OPTIONS, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTagType(r.status) }, () => getOptionLabel(KNOWLEDGE_INDEX_STATUS_OPTIONS, r.status))
     },
   },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 6 },
@@ -100,7 +88,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'develop.ai.knowledge',
   pageName: t('develop.knowledge.tabs.documents'),
   rowKey: 'basicId',
-  scrollX: 1000,
   batchRemovable: true,
   fields: fields.value,
   resource: {
@@ -143,38 +130,41 @@ function onAction(payload: SchemaActionPayload) {
 }
 
 function handleReindex(row: KnowledgeListItemDto) {
-  dialog.info({
+  void dialog.confirm({
+    badge: 'info',
     title: t('develop.knowledge.action_reindex'),
     content: t('develop.knowledge.confirm_reindex'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await knowledgeApi.reindex(row.basicId)
-        message.success(t('develop.knowledge.reindex_success'))
+        toast.success(t('develop.knowledge.reindex_success'))
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('develop.knowledge.reindex_failed'))
+        toast.error((error as Error)?.message || t('develop.knowledge.reindex_failed'))
       }
     },
   })
 }
 
 function handleDelete(row: KnowledgeListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('common.actions.delete'),
     content: t('develop.knowledge.confirm_delete'),
-    positiveText: t('common.actions.confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await knowledgeApi.delete(row.basicId)
-        message.success(t('common.messages.delete_success'))
+        toast.success(t('common.messages.delete_success'))
         reload()
       }
       catch (error) {
-        message.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -230,7 +220,7 @@ function onFileSelected(event: Event) {
       form.value.title = file.name
     }
   }
-  reader.onerror = () => message.error(t('develop.knowledge.file_read_failed'))
+  reader.onerror = () => toast.error(t('develop.knowledge.file_read_failed'))
   reader.readAsText(file)
   // 允许再次选同一文件
   target.value = ''
@@ -238,11 +228,11 @@ function onFileSelected(event: Event) {
 
 async function handleSubmit() {
   if (!form.value.title.trim()) {
-    message.warning(t('develop.knowledge.validate_title'))
+    toast.warning(t('develop.knowledge.validate_title'))
     return
   }
   if (!form.value.text.trim()) {
-    message.warning(t('develop.knowledge.validate_text'))
+    toast.warning(t('develop.knowledge.validate_text'))
     return
   }
   submitLoading.value = true
@@ -257,16 +247,16 @@ async function handleSubmit() {
     }
     const result = await knowledgeApi.ingest(input)
     if (result.status === KnowledgeIndexStatus.Failed) {
-      message.error(t('develop.knowledge.ingest_index_failed', { msg: result.errorMessage || '' }))
+      toast.error(t('develop.knowledge.ingest_index_failed', { msg: result.errorMessage || '' }))
     }
     else {
-      message.success(t('develop.knowledge.ingest_success', { count: result.chunkCount }))
+      toast.success(t('develop.knowledge.ingest_success', { count: result.chunkCount }))
     }
     modalVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.knowledge.ingest_failed'))
+    toast.error((error as Error)?.message || t('develop.knowledge.ingest_failed'))
   }
   finally {
     submitLoading.value = false
@@ -285,7 +275,7 @@ const hasQueried = ref(false)
 
 async function handleQuery() {
   if (!queryText.value.trim()) {
-    message.warning(t('develop.knowledge.validate_query'))
+    toast.warning(t('develop.knowledge.validate_query'))
     return
   }
   queryLoading.value = true
@@ -301,7 +291,7 @@ async function handleQuery() {
     hasQueried.value = true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('develop.knowledge.query_failed'))
+    toast.error((error as Error)?.message || t('develop.knowledge.query_failed'))
   }
   finally {
     queryLoading.value = false
@@ -311,110 +301,176 @@ async function handleQuery() {
 
 <template>
   <div class="knowledge">
-    <NTabs v-model:value="activeTab" animated class="knowledge__tabs" type="line">
-      <NTabPane name="documents" :tab="t('develop.knowledge.tabs.documents')">
+    <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+    <XhTabsRoot v-model:value="activeTab" variant="line" class="knowledge__tabs">
+      <XhTabsList>
+        <XhTabsTrigger value="documents">
+          {{ t('develop.knowledge.tabs.documents') }}
+        </XhTabsTrigger>
+        <XhTabsTrigger value="playground">
+          {{ t('develop.knowledge.tabs.playground') }}
+        </XhTabsTrigger>
+      </XhTabsList>
+      <XhTabsContent value="documents">
         <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
           <XEditModal
             v-model:show="modalVisible"
             :title="t('develop.knowledge.modal_add_title')"
             :loading="submitLoading"
             :save-text="t('develop.knowledge.ingest')"
-            @save="handleSubmit"
+            :form-id="editFormId"
           >
-            <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-              <NFormItem :label="t('develop.knowledge.form_title')" path="title">
-                <NInput v-model:value="form.title" clearable :placeholder="t('develop.knowledge.form_title_placeholder')" />
-              </NFormItem>
-              <NFormItem :label="t('develop.knowledge.form_provider')" path="embeddingProviderCode">
-                <NInput v-model:value="form.embeddingProviderCode" clearable :placeholder="t('develop.knowledge.form_provider_placeholder')" />
-              </NFormItem>
-              <NFormItem class="xh-span-2" :label="t('develop.knowledge.form_text')" path="text">
-                <div class="knowledge__text">
-                  <NSpace class="knowledge__text-bar" justify="space-between">
-                    <NButton size="small" @click="triggerFilePicker">
-                      {{ t('develop.knowledge.form_pick_file') }}
-                    </NButton>
-                    <span v-if="form.source" class="knowledge__source">{{ form.source }}</span>
-                  </NSpace>
-                  <NInput
-                    v-model:value="form.text"
-                    :placeholder="t('develop.knowledge.form_text_placeholder')"
-                    :rows="12"
-                    type="textarea"
-                  />
-                  <input ref="fileInput" accept=".txt,.md,.markdown,.cs,.ts,.vue,.js,.json,.py,.java,.go,.sql,.yml,.yaml,.html,.css" style="display: none" type="file" @change="onFileSelected">
-                </div>
-              </NFormItem>
-              <NFormItem class="xh-span-2" :label="t('common.fields.remark')" path="remark">
-                <NInput v-model:value="form.remark" clearable :rows="2" type="textarea" />
-              </NFormItem>
-            </NForm>
+            <XhFormRoot
+              :id="editFormId"
+              v-model:values="form"
+              validate-on="blur"
+              class="xh-edit-form-grid"
+              @submit="handleSubmit"
+            >
+              <XhFormFieldGroup value="title">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('develop.knowledge.form_title') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="form.title" clearable :placeholder="t('develop.knowledge.form_title_placeholder')" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="embeddingProviderCode">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('develop.knowledge.form_provider') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="form.embeddingProviderCode" clearable :placeholder="t('develop.knowledge.form_provider_placeholder')" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="text" class="xh-span-2">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('develop.knowledge.form_text') }}</XhFieldLabel>
+                  <div class="knowledge__text">
+                    <XhFlex class="knowledge__text-bar" justify="between">
+                      <XhButton size="sm" @click="triggerFilePicker">
+                        {{ t('develop.knowledge.form_pick_file') }}
+                      </XhButton>
+                      <span v-if="form.source" class="knowledge__source">{{ form.source }}</span>
+                    </XhFlex>
+                    <XhFieldControl>
+                      <XInput
+                        v-model:value="form.text"
+                        :placeholder="t('develop.knowledge.form_text_placeholder')"
+                        :rows="12"
+                        type="textarea"
+                      />
+                    </XhFieldControl>
+                    <input ref="fileInput" accept=".txt,.md,.markdown,.cs,.ts,.vue,.js,.json,.py,.java,.go,.sql,.yml,.yaml,.html,.css" style="display: none" type="file" @change="onFileSelected">
+                  </div>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup value="remark" class="xh-span-2">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('common.fields.remark') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="form.remark" clearable :rows="2" type="textarea" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+            </XhFormRoot>
           </XEditModal>
         </SchemaPage>
-      </NTabPane>
-
-      <NTabPane name="playground" :tab="t('develop.knowledge.tabs.playground')">
+      </XhTabsContent>
+      <XhTabsContent value="playground">
         <div class="playground">
-          <NCard :bordered="false" size="small">
-            <NForm :model="{}" label-placement="top">
-              <NFormItem :label="t('develop.knowledge.query_label')">
-                <NInput
-                  v-model:value="queryText"
-                  :placeholder="t('develop.knowledge.query_placeholder')"
-                  :rows="3"
-                  type="textarea"
-                  @keydown.enter.exact.prevent="handleQuery"
-                />
-              </NFormItem>
-              <NSpace align="center" :wrap="true">
-                <NFormItem :label="t('develop.knowledge.query_topk')" label-placement="left">
-                  <NInputNumber v-model:value="queryTopK" :max="20" :min="1" style="width: 120px" />
-                </NFormItem>
-                <NFormItem :label="t('develop.knowledge.query_provider')" label-placement="left">
-                  <NInput v-model:value="queryProvider" clearable :placeholder="t('develop.knowledge.query_provider_placeholder')" style="width: 200px" />
-                </NFormItem>
-                <NFormItem :label="t('develop.knowledge.query_answer')" label-placement="left">
-                  <NSwitch v-model:value="queryAnswer" />
-                </NFormItem>
-                <NButton :loading="queryLoading" type="primary" @click="handleQuery">
-                  {{ t('develop.knowledge.query_submit') }}
-                </NButton>
-              </NSpace>
-            </NForm>
-          </NCard>
+          <XhCardRoot variant="ghost">
+            <XhCardBody>
+              <XhFormRoot validate-on="blur">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('develop.knowledge.query_label') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      v-model:value="queryText"
+                      :placeholder="t('develop.knowledge.query_placeholder')"
+                      :rows="3"
+                      type="textarea"
+                      @keydown.enter.exact.prevent="handleQuery"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFlex align="center" gap="md" :wrap="true">
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('develop.knowledge.query_topk') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput v-model:value="queryTopK" :max="20" :min="1" style="width: 120px" />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('develop.knowledge.query_provider') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XInput v-model:value="queryProvider" clearable :placeholder="t('develop.knowledge.query_provider_placeholder')" style="width: 200px" />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('develop.knowledge.query_answer') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XhSwitch v-model:checked="queryAnswer" />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhButton :loading="queryLoading" tone="brand" @click="handleQuery">
+                    {{ t('develop.knowledge.query_submit') }}
+                  </XhButton>
+                </XhFlex>
+              </XhFormRoot>
+            </XhCardBody>
+          </XhCardRoot>
 
-          <NCard v-if="answerText" class="playground__answer" :bordered="false" size="small" :title="t('develop.knowledge.answer_title')">
-            <div class="playground__answer-text">
-              {{ answerText }}
-            </div>
-          </NCard>
+          <XhCardRoot v-if="answerText" variant="ghost" class="playground__answer">
+            <XhCardBody>
+              <div class="playground__answer-text">
+                {{ answerText }}
+              </div>
+            </XhCardBody>
+          </XhCardRoot>
 
           <div v-if="citations.length > 0" class="playground__citations">
             <div class="playground__citations-title">
               {{ t('develop.knowledge.citations_title', { count: citations.length }) }}
             </div>
-            <NCard v-for="(citation, idx) in citations" :key="`${citation.documentId}-${citation.index}`" class="playground__citation" :bordered="true" size="small">
-              <template #header>
-                <NSpace align="center" :size="8">
-                  <NTag :bordered="false" round size="small" type="info">
+            <XhCardRoot v-for="(citation, idx) in citations" :key="`${citation.documentId}-${citation.index}`" variant="outline" class="playground__citation">
+              <XhCardHeader>
+                <XhFlex align="center" gap="sm">
+                  <XhBadge variant="subtle" size="sm" tone="info">
                     [{{ idx + 1 }}]
-                  </NTag>
+                  </XhBadge>
                   <span class="playground__citation-title">{{ citation.title || citation.source || citation.documentId }}</span>
-                  <NTag v-if="citation.score != null" :bordered="false" round size="tiny">
+                  <XhBadge v-if="citation.score != null" variant="subtle" size="sm">
                     {{ citation.score.toFixed(3) }}
-                  </NTag>
-                </NSpace>
-              </template>
-              <div class="playground__citation-text">
-                {{ citation.text }}
-              </div>
-            </NCard>
+                  </XhBadge>
+                </XhFlex>
+              </XhCardHeader>
+              <XhCardBody>
+                <div class="playground__citation-text">
+                  {{ citation.text }}
+                </div>
+              </XhCardBody>
+            </XhCardRoot>
           </div>
 
-          <NEmpty v-if="hasQueried && citations.length === 0" class="playground__empty" :description="t('develop.knowledge.no_result')" />
+          <XhEmptyStateRoot v-if="hasQueried && citations.length === 0" class="playground__empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:search-x" width="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('develop.knowledge.no_result_title') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('develop.knowledge.no_result') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
         </div>
-      </NTabPane>
-    </NTabs>
+      </XhTabsContent>
+    </XhTabsRoot>
   </div>
 </template>
 
@@ -433,13 +489,12 @@ async function handleQuery() {
   min-height: 0;
 }
 
-.knowledge__tabs :deep(.n-tabs-pane-wrapper) {
+.knowledge__tabs :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   min-height: 0;
 }
 
-.knowledge__tabs :deep(.n-tab-pane) {
-  height: 100%;
+.knowledge__tabs :deep([data-scope='tabs'][data-part='content']) {
   padding-top: 8px;
   box-sizing: border-box;
 }

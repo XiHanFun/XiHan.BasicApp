@@ -1,6 +1,6 @@
-import { NButton, useNotification } from 'naive-ui'
-import { h, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { dialog } from '~/composables'
 import { useAppStore } from '~/stores'
 
 function isLocalHost(): boolean {
@@ -15,7 +15,6 @@ function isLocalHost(): boolean {
  */
 export function useCheckUpdates() {
   const appStore = useAppStore()
-  const notification = useNotification()
   const { t } = useI18n()
 
   let timer: ReturnType<typeof setInterval> | null = null
@@ -51,26 +50,22 @@ export function useCheckUpdates() {
   }
 
   function showUpdateNotification() {
-    notification.info({
-      title: t('check_updates.title'),
-      content: t('check_updates.description'),
-      action: () =>
-        h(
-          NButton,
-          {
-            type: 'primary',
-            size: 'small',
-            onClick: () => window.location.reload(),
-          },
-          { default: () => t('check_updates.refresh') },
-        ),
-      duration: 0,
-      keepAliveOnHover: true,
-      closable: true,
-      onClose: () => {
-        hasUpdate.value = false
-      },
-    })
+    // 命令式 toast 挂不了操作钮，改用带确认的对话框：确认即刷新，取消即本轮不再提醒
+    void dialog
+      .confirm({
+        title: t('check_updates.title'),
+        content: t('check_updates.description'),
+        badge: 'info',
+        okText: t('check_updates.refresh'),
+        onOk: () => {
+          window.location.reload()
+        },
+      })
+      .then((confirmed) => {
+        if (!confirmed) {
+          hasUpdate.value = false
+        }
+      })
   }
 
   function startTimer() {

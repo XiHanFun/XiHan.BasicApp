@@ -9,16 +9,10 @@ import type {
   PrintPaperType,
 } from './models'
 import type { PrintElementAlignAction, PrintElementSpacingDirection } from '~/printing'
-import {
-  NButton,
-  NButtonGroup,
-  NCollapseTransition,
-  NIcon,
-  NInputNumber,
-  NModal,
-} from 'naive-ui'
+import { XhButton, XhCollapsibleContent, XhCollapsibleRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XNumberInput } from '~/components'
 import { Icon } from '~/iconify'
 import { PRINT_PAPER_PRESETS } from './models'
 
@@ -161,38 +155,34 @@ function toggleAlignmentTools(): void {
         <div class="control-section canvas-settings-section">
           <span class="control-section-label">{{ t('setting.print_template.canvas_settings') }}</span>
           <div class="canvas-settings-controls">
-            <NButtonGroup class="mode-group" role="tablist" :aria-label="t('setting.print_template.panel_mode')">
-              <NButton
-                :type="designMode === 'single' ? 'primary' : 'default'"
-                :secondary="designMode === 'single'"
+            <XhButtonGroup class="mode-group" role="tablist" :aria-label="t('setting.print_template.panel_mode')">
+              <XhButton
+                :tone="designMode === 'single' ? 'brand' : 'neutral'"
+                :variant="designMode === 'single' ? 'subtle' : 'ghost'"
                 :disabled="disabled"
                 role="tab"
                 :aria-selected="designMode === 'single'"
                 @click="emit('modeChange', 'single')"
               >
-                <template #icon>
-                  <NIcon><Icon icon="tabler:file" /></NIcon>
-                </template>
+                <span><Icon icon="tabler:file" /></span>
                 {{ t('setting.print_template.single_panel') }}
-              </NButton>
-              <NButton
-                :type="designMode === 'multi' ? 'primary' : 'default'"
-                :secondary="designMode === 'multi'"
+              </XhButton>
+              <XhButton
+                :tone="designMode === 'multi' ? 'brand' : 'neutral'"
+                :variant="designMode === 'multi' ? 'subtle' : 'ghost'"
                 :disabled="disabled"
                 role="tab"
                 :aria-selected="designMode === 'multi'"
                 @click="emit('modeChange', 'multi')"
               >
-                <template #icon>
-                  <NIcon><Icon icon="tabler:files" /></NIcon>
-                </template>
+                <span><Icon icon="tabler:files" /></span>
                 {{ t('setting.print_template.multi_panel') }}
-              </NButton>
-            </NButtonGroup>
-            <NButton
+              </XhButton>
+            </XhButtonGroup>
+            <XhButton
               class="alignment-toggle-button"
-              :type="alignmentToolsVisible ? 'primary' : 'default'"
-              :secondary="alignmentToolsVisible"
+              :tone="alignmentToolsVisible ? 'brand' : 'neutral'"
+              :variant="alignmentToolsVisible ? 'subtle' : 'ghost'"
               :disabled="disabled"
               :title="t(alignmentToolsVisible
                 ? 'setting.print_template.hide_alignment_tools'
@@ -204,11 +194,9 @@ function toggleAlignmentTools(): void {
               :aria-controls="alignmentToolsId"
               @click="toggleAlignmentTools"
             >
-              <template #icon>
-                <NIcon><Icon icon="tabler:align-box-left-middle" /></NIcon>
-              </template>
+              <span><Icon icon="tabler:align-box-left-middle" /></span>
               {{ t('setting.print_template.alignment_tools') }}
-            </NButton>
+            </XhButton>
           </div>
         </div>
 
@@ -220,187 +208,173 @@ function toggleAlignmentTools(): void {
 
     <div class="control-secondary-row">
       <div class="control-secondary-scroll">
-        <NButtonGroup class="paper-group" :aria-label="t('setting.print_template.paper_size')">
-          <NButton
+        <XhButtonGroup class="paper-group" :aria-label="t('setting.print_template.paper_size')">
+          <XhButton
             v-for="preset in PRINT_PAPER_PRESETS"
             :key="preset"
-            :type="paperType === preset ? 'primary' : 'default'"
+            :tone="paperType === preset ? 'brand' : 'neutral'"
             :disabled="disabled"
             @click="emit('paperPresetChange', preset)"
           >
             {{ preset }}
-          </NButton>
-          <NButton
+          </XhButton>
+          <XhButton
             class="custom-paper-button"
-            :type="paperType === 'CUSTOM' ? 'primary' : 'default'"
+            :tone="paperType === 'CUSTOM' ? 'brand' : 'neutral'"
             :disabled="disabled"
             @click="openCustomPaperModal"
           >
             {{ t('setting.print_template.custom_paper') }}
-          </NButton>
-        </NButtonGroup>
+          </XhButton>
+        </XhButtonGroup>
 
         <div class="canvas-view-tools">
-          <NButtonGroup class="zoom-group" :aria-label="t('setting.print_template.canvas_zoom')">
-            <NButton
+          <XhButtonGroup class="zoom-group" :aria-label="t('setting.print_template.canvas_zoom')">
+            <XhButton
               :disabled="disabled || normalizedZoomPercent <= MIN_ZOOM_PERCENT"
               :title="t('setting.print_template.zoom_out')"
               :aria-label="t('setting.print_template.zoom_out')"
               @click="changeZoom(-ZOOM_STEP_PERCENT)"
             >
-              <template #icon>
-                <NIcon><Icon icon="tabler:zoom-out" /></NIcon>
-              </template>
-            </NButton>
-            <NButton
+              <span><Icon icon="tabler:zoom-out" /></span>
+            </XhButton>
+            <XhButton
               class="zoom-value"
               :disabled="disabled"
               :title="t('setting.print_template.reset_zoom')"
               @click="resetZoom"
             >
               {{ normalizedZoomPercent }}%
-            </NButton>
-            <NButton
+            </XhButton>
+            <XhButton
               :disabled="disabled || normalizedZoomPercent >= MAX_ZOOM_PERCENT"
               :title="t('setting.print_template.zoom_in')"
               :aria-label="t('setting.print_template.zoom_in')"
               @click="changeZoom(ZOOM_STEP_PERCENT)"
             >
-              <template #icon>
-                <NIcon><Icon icon="tabler:zoom-in" /></NIcon>
-              </template>
-            </NButton>
-          </NButtonGroup>
-          <NButtonGroup class="canvas-command-group" :aria-label="t('setting.print_template.canvas_commands')">
-            <NButton
+              <span><Icon icon="tabler:zoom-in" /></span>
+            </XhButton>
+          </XhButtonGroup>
+          <XhButtonGroup class="canvas-command-group" :aria-label="t('setting.print_template.canvas_commands')">
+            <XhButton
               :disabled="disabled"
               :title="t('setting.print_template.rotate_paper')"
               @click="emit('rotate')"
             >
-              <template #icon>
-                <NIcon><Icon icon="tabler:rotate-clockwise" /></NIcon>
-              </template>
+              <span><Icon icon="tabler:rotate-clockwise" /></span>
               {{ t('setting.print_template.rotate') }}
-            </NButton>
-            <NButton
+            </XhButton>
+            <XhButton
               class="json-command-button"
               :disabled="disabled"
               :title="t('setting.print_template.json_editor_title')"
               @click="emit('jsonEditorOpen')"
             >
-              <template #icon>
-                <NIcon><Icon icon="tabler:braces" /></NIcon>
-              </template>
+              <span><Icon icon="tabler:braces" /></span>
               {{ t('setting.print_template.json_template') }}
-            </NButton>
-          </NButtonGroup>
+            </XhButton>
+          </XhButtonGroup>
         </div>
       </div>
     </div>
 
-    <NCollapseTransition :show="alignmentToolsVisible">
-      <div
-        :id="alignmentToolsId"
-        class="control-alignment-row"
-        role="region"
-        :aria-label="t('setting.print_template.alignment_commands')"
-      >
-        <div class="control-alignment-scroll">
-          <span class="element-alignment-label">
-            {{ t('setting.print_template.element_alignment') }}
-          </span>
-          <NButton
-            class="spacing-command-button"
-            type="primary"
-            :disabled="disabled"
-            @click="applyElementSpacing('horizontal')"
-          >
-            {{ t('setting.print_template.horizontal_spacing', { spacing: ELEMENT_SPACING }) }}
-          </NButton>
-          <NButton
-            class="spacing-command-button"
-            type="primary"
-            :disabled="disabled"
-            @click="applyElementSpacing('vertical')"
-          >
-            {{ t('setting.print_template.vertical_spacing', { spacing: ELEMENT_SPACING }) }}
-          </NButton>
-          <NButtonGroup
-            class="alignment-command-group"
-            :aria-label="t('setting.print_template.alignment_commands')"
-          >
-            <NButton
-              v-for="command in ALIGNMENT_COMMANDS"
-              :key="command.action"
-              type="primary"
-              ghost
+    <XhCollapsibleRoot :open="alignmentToolsVisible">
+      <XhCollapsibleContent>
+        <div
+          :id="alignmentToolsId"
+          class="control-alignment-row"
+          role="region"
+          :aria-label="t('setting.print_template.alignment_commands')"
+        >
+          <div class="control-alignment-scroll">
+            <span class="element-alignment-label">
+              {{ t('setting.print_template.element_alignment') }}
+            </span>
+            <XhButton
+              class="spacing-command-button"
+              tone="brand"
               :disabled="disabled"
-              :title="t(command.labelKey)"
-              :aria-label="t(command.labelKey)"
-              @click="emit('elementAlign', command.action)"
+              @click="applyElementSpacing('horizontal')"
             >
-              <template #icon>
-                <NIcon :size="20">
-                  <Icon :icon="command.icon" />
-                </NIcon>
-              </template>
-            </NButton>
-          </NButtonGroup>
+              {{ t('setting.print_template.horizontal_spacing', { spacing: ELEMENT_SPACING }) }}
+            </XhButton>
+            <XhButton
+              class="spacing-command-button"
+              tone="brand"
+              :disabled="disabled"
+              @click="applyElementSpacing('vertical')"
+            >
+              {{ t('setting.print_template.vertical_spacing', { spacing: ELEMENT_SPACING }) }}
+            </XhButton>
+            <XhButtonGroup
+              class="alignment-command-group"
+              :aria-label="t('setting.print_template.alignment_commands')"
+            >
+              <XhButton
+                v-for="command in ALIGNMENT_COMMANDS"
+                :key="command.action"
+                tone="brand"
+                variant="outline"
+                :disabled="disabled"
+                :title="t(command.labelKey)"
+                :aria-label="t(command.labelKey)"
+                @click="emit('elementAlign', command.action)"
+              >
+                <Icon width="20" height="20" :icon="command.icon" />
+              </XhButton>
+            </XhButtonGroup>
+          </div>
         </div>
-      </div>
-    </NCollapseTransition>
+      </XhCollapsibleContent>
+    </XhCollapsibleRoot>
 
-    <NModal
-      v-model:show="customPaperVisible"
-      preset="card"
-      class="custom-paper-modal"
-      :title="t('setting.print_template.custom_paper')"
-      :mask-closable="!customPaperSubmitting"
-      :closable="!customPaperSubmitting"
-      :style="{ width: '420px', maxWidth: 'calc(100vw - 32px)' }"
-    >
-      <div class="paper-size-fields">
-        <label class="paper-size-field">
-          <span>{{ t('setting.print_template.paper_width') }}</span>
-          <NInputNumber
-            v-model:value="customPaperWidth"
-            :min="MIN_PAPER_SIZE_MM"
-            :max="MAX_PAPER_SIZE_MM"
-            :precision="1"
-            :disabled="customPaperSubmitting"
-          >
-            <template #suffix>mm</template>
-          </NInputNumber>
-        </label>
-        <label class="paper-size-field">
-          <span>{{ t('setting.print_template.paper_height') }}</span>
-          <NInputNumber
-            v-model:value="customPaperHeight"
-            :min="MIN_PAPER_SIZE_MM"
-            :max="MAX_PAPER_SIZE_MM"
-            :precision="1"
-            :disabled="customPaperSubmitting"
-          >
-            <template #suffix>mm</template>
-          </NInputNumber>
-        </label>
-      </div>
-      <template #footer>
-        <div class="modal-actions">
-          <NButton :disabled="customPaperSubmitting" @click="customPaperVisible = false">
-            {{ t('common.actions.cancel') }}
-          </NButton>
-          <NButton
-            type="primary"
-            :loading="customPaperSubmitting"
-            :disabled="!canSubmitCustomPaper"
-            @click="submitCustomPaper"
-          >
-            {{ t('setting.print_template.apply_paper') }}
-          </NButton>
+    <XhDialogRoot v-model:open="customPaperVisible">
+      <XhDialogContent class="custom-paper-modal" style="--xh-dialog-max-w: 420px">
+        <XhDialogTitle>{{ t('setting.print_template.custom_paper') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <div class="paper-size-fields">
+          <label class="paper-size-field">
+            <span>{{ t('setting.print_template.paper_width') }}</span>
+            <XNumberInput
+              v-model:value="customPaperWidth"
+              :min="MIN_PAPER_SIZE_MM"
+              :max="MAX_PAPER_SIZE_MM"
+              :precision="1"
+              :disabled="customPaperSubmitting"
+            >
+              <template #suffix>mm</template>
+            </XNumberInput>
+          </label>
+          <label class="paper-size-field">
+            <span>{{ t('setting.print_template.paper_height') }}</span>
+            <XNumberInput
+              v-model:value="customPaperHeight"
+              :min="MIN_PAPER_SIZE_MM"
+              :max="MAX_PAPER_SIZE_MM"
+              :precision="1"
+              :disabled="customPaperSubmitting"
+            >
+              <template #suffix>mm</template>
+            </XNumberInput>
+          </label>
         </div>
-      </template>
-    </NModal>
+        <div class="xh-dialog-footer">
+          <div class="modal-actions">
+            <XhButton :disabled="customPaperSubmitting" @click="customPaperVisible = false">
+              {{ t('common.actions.cancel') }}
+            </XhButton>
+            <XhButton
+              tone="brand"
+              :loading="customPaperSubmitting"
+              :disabled="!canSubmitCustomPaper"
+              @click="submitCustomPaper"
+            >
+              {{ t('setting.print_template.apply_paper') }}
+            </XhButton>
+          </div>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
   </section>
 </template>
 
@@ -518,19 +492,19 @@ function toggleAlignmentTools(): void {
   min-width: 118px;
 }
 
-.alignment-command-group :deep(.n-button) {
+.alignment-command-group :deep([data-scope='button'][data-part='root']) {
   width: 52px;
   min-height: 38px;
 }
 
-.mode-group :deep(.n-button),
-.paper-group :deep(.n-button),
-.zoom-group :deep(.n-button),
-.canvas-command-group :deep(.n-button) {
+.mode-group :deep([data-scope='button'][data-part='root']),
+.paper-group :deep([data-scope='button'][data-part='root']),
+.zoom-group :deep([data-scope='button'][data-part='root']),
+.canvas-command-group :deep([data-scope='button'][data-part='root']) {
   min-height: 38px;
 }
 
-.mode-group :deep(.n-button) {
+.mode-group :deep([data-scope='button'][data-part='root']) {
   min-width: 108px;
 }
 
@@ -538,7 +512,7 @@ function toggleAlignmentTools(): void {
   flex: none;
 }
 
-.paper-group :deep(.n-button) {
+.paper-group :deep([data-scope='button'][data-part='root']) {
   min-width: 52px;
 }
 
@@ -559,7 +533,7 @@ function toggleAlignmentTools(): void {
   gap: 10px;
 }
 
-.canvas-command-group :deep(.n-button:first-child) {
+.canvas-command-group :deep([data-scope='button'][data-part='root']:first-child) {
   min-width: 88px;
 }
 

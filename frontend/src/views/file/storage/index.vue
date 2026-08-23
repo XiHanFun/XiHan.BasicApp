@@ -1,21 +1,12 @@
 <script setup lang="ts">
 import type { StorageConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, storageConfigApi, StorageConfigType } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { dialog, toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'FileStoragePage' })
@@ -37,8 +28,9 @@ interface StorageConfigFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -84,11 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('file.storage.columns.storage_type_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: 'info' },
-      () => getOptionLabel(storageTypeOptions.value, (row as unknown as StorageConfigListItemDto).storageType),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => getOptionLabel(storageTypeOptions.value, (row as unknown as StorageConfigListItemDto).storageType)),
   },
   {
     key: 'bucketName',
@@ -116,7 +104,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as StorageConfigListItemDto).isDefault
       return isDefault
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'warning' }, () => t('file.storage.tag.default'))
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => t('file.storage.tag.default'))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -132,11 +120,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const enabled = (row as unknown as StorageConfigListItemDto).isEnabled
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: enabled ? 'success' : 'error' },
-        () => enabled ? t('file.storage.tag.enabled') : t('file.storage.tag.disabled'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => enabled ? t('file.storage.tag.enabled') : t('file.storage.tag.disabled'))
     },
   },
   { key: 'sort', title: t('file.storage.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 7 },
@@ -149,7 +133,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('file.storage.page_name'),
   statusPermission: 'saas:storage-config:status',
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -260,7 +243,7 @@ async function handleEdit(row: StorageConfigListItemDto) {
   try {
     const detail = await storageConfigApi.detail(row.basicId)
     if (!detail) {
-      message.warning(t('file.storage.message.detail_not_found'))
+      toast.warning(t('file.storage.message.detail_not_found'))
       return
     }
 
@@ -283,34 +266,34 @@ async function handleEdit(row: StorageConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('file.storage.message.load_detail_failed'))
+    toast.error((e as Error).message || t('file.storage.message.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.basicId && !form.value.configCode.trim()) {
-    message.warning(t('file.storage.message.input_config_code'))
+    toast.warning(t('file.storage.message.input_config_code'))
     return false
   }
 
   if (!form.value.configName.trim()) {
-    message.warning(t('file.storage.message.input_config_name'))
+    toast.warning(t('file.storage.message.input_config_name'))
     return false
   }
 
   if (isObjectStorage.value) {
     if (!form.value.bucketName?.trim()) {
-      message.warning(t('file.storage.message.input_bucket_name'))
+      toast.warning(t('file.storage.message.input_bucket_name'))
       return false
     }
 
     if (!form.value.accessKeyId?.trim()) {
-      message.warning(t('file.storage.message.input_access_key_id'))
+      toast.warning(t('file.storage.message.input_access_key_id'))
       return false
     }
 
     if (!form.value.basicId && !form.value.secretAccessKey?.trim()) {
-      message.warning(t('file.storage.message.input_secret_access_key'))
+      toast.warning(t('file.storage.message.input_secret_access_key'))
       return false
     }
   }
@@ -357,12 +340,12 @@ async function handleSubmit() {
       })
     }
 
-    message.success(t('file.storage.message.save_success'))
+    toast.success(t('file.storage.message.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (e) {
-    message.error((e as Error).message || t('file.storage.message.save_failed'))
+    toast.error((e as Error).message || t('file.storage.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -371,59 +354,63 @@ async function handleSubmit() {
 
 function handleToggleStatus(row: StorageConfigListItemDto) {
   const next = !row.isEnabled
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: next ? t('file.storage.message.enable_title') : t('file.storage.message.disable_title'),
     content: next
       ? t('file.storage.message.enable_content', { name: row.configName })
       : t('file.storage.message.disable_content', { name: row.configName }),
-    positiveText: next ? t('file.storage.message.enable') : t('file.storage.message.disable'),
-    negativeText: t('file.storage.form.cancel'),
-    onPositiveClick: async () => {
+    okText: next ? t('file.storage.message.enable') : t('file.storage.message.disable'),
+    cancelText: t('file.storage.form.cancel'),
+    onOk: async () => {
       try {
         await storageConfigApi.updateStatus({ basicId: row.basicId, isEnabled: next })
-        message.success(t('file.storage.message.status_updated'))
+        toast.success(t('file.storage.message.status_updated'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.storage.message.status_update_failed'))
+        toast.error((e as Error).message || t('file.storage.message.status_update_failed'))
       }
     },
   })
 }
 
 function handleSetDefault(row: StorageConfigListItemDto) {
-  dialog.info({
+  void dialog.confirm({
+    badge: 'info',
     title: t('file.storage.message.set_default_title'),
     content: t('file.storage.message.set_default_content', { name: row.configName }),
-    positiveText: t('file.storage.message.set_default'),
-    negativeText: t('file.storage.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('file.storage.message.set_default'),
+    cancelText: t('file.storage.form.cancel'),
+    onOk: async () => {
       try {
         await storageConfigApi.setDefault({ basicId: row.basicId })
-        message.success(t('file.storage.message.set_default_success'))
+        toast.success(t('file.storage.message.set_default_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.storage.message.set_default_failed'))
+        toast.error((e as Error).message || t('file.storage.message.set_default_failed'))
       }
     },
   })
 }
 
 function handleDelete(row: StorageConfigListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('file.storage.message.delete_title'),
     content: t('file.storage.message.delete_content', { name: row.configName }),
-    positiveText: t('file.storage.message.delete'),
-    negativeText: t('file.storage.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('file.storage.message.delete'),
+    cancelText: t('file.storage.form.cancel'),
+    onOk: async () => {
       try {
         await storageConfigApi.delete(row.basicId)
-        message.success(t('file.storage.message.delete_success'))
+        toast.success(t('file.storage.message.delete_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('file.storage.message.delete_failed'))
+        toast.error((e as Error).message || t('file.storage.message.delete_failed'))
       }
     },
   })
@@ -440,69 +427,152 @@ function handleDelete(row: StorageConfigListItemDto) {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('file.storage.form.config_code')" path="configCode">
-          <NInput
-            v-model:value="form.configCode"
-            clearable
-            :disabled="Boolean(form.basicId)"
-            :placeholder="t('file.storage.form.config_code_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('file.storage.form.config_name')" path="configName">
-          <NInput v-model:value="form.configName" clearable :placeholder="t('file.storage.form.config_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('file.storage.form.storage_type')" path="storageType">
-          <NSelect v-model:value="form.storageType" :options="storageTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('file.storage.form.sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="configCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('file.storage.form.config_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.configCode"
+                clearable
+                :disabled="Boolean(form.basicId)"
+                :placeholder="t('file.storage.form.config_code_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('file.storage.form.config_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.configName" clearable :placeholder="t('file.storage.form.config_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="storageType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('file.storage.form.storage_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.storageType" :options="storageTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('file.storage.form.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
 
         <template v-if="isObjectStorage">
-          <NFormItem :label="t('file.storage.form.endpoint')" path="endpoint">
-            <NInput v-model:value="form.endpoint" clearable :placeholder="t('file.storage.form.endpoint_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('file.storage.form.region')" path="region">
-            <NInput v-model:value="form.region" clearable :placeholder="t('file.storage.form.region_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('file.storage.form.bucket_name')" path="bucketName">
-            <NInput v-model:value="form.bucketName" clearable :placeholder="t('file.storage.form.bucket_name_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('file.storage.form.access_key_id')" path="accessKeyId">
-            <NInput v-model:value="form.accessKeyId" clearable placeholder="AccessKeyId" :input-props="{ autocomplete: 'off' }" />
-          </NFormItem>
-          <NFormItem :label="t('file.storage.form.secret_access_key')" path="secretAccessKey" class="xh-span-2">
-            <NInput
-              v-model:value="form.secretAccessKey"
-              type="password"
-              :input-props="{ autocomplete: 'new-password' }"
-              show-password-on="click"
-              :placeholder="secretPlaceholder"
-            />
-          </NFormItem>
+          <XhFormFieldGroup value="endpoint">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.endpoint') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.endpoint" clearable :placeholder="t('file.storage.form.endpoint_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="region">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.region') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.region" clearable :placeholder="t('file.storage.form.region_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="bucketName">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.bucket_name') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.bucketName" clearable :placeholder="t('file.storage.form.bucket_name_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="accessKeyId">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.access_key_id') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.accessKeyId" clearable placeholder="AccessKeyId" autocomplete="off" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="secretAccessKey" class="xh-span-2">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.secret_access_key') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="form.secretAccessKey"
+                  type="password"
+                  autocomplete="new-password"
+                  :placeholder="secretPlaceholder"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
         <template v-else>
-          <NFormItem :label="t('file.storage.form.root_path')" path="bucketName" class="xh-span-2">
-            <NInput v-model:value="form.bucketName" clearable :placeholder="t('file.storage.form.root_path_placeholder')" />
-          </NFormItem>
+          <XhFormFieldGroup value="bucketName" class="xh-span-2">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.root_path') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.bucketName" clearable :placeholder="t('file.storage.form.root_path_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
         <template v-if="!form.basicId">
-          <NFormItem :label="t('file.storage.form.is_enabled')" path="isEnabled">
-            <NSwitch v-model:value="form.isEnabled" />
-          </NFormItem>
-          <NFormItem :label="t('file.storage.form.is_default')" path="isDefault">
-            <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
-          </NFormItem>
+          <XhFormFieldGroup value="isEnabled">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.is_enabled') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="isDefault">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.storage.form.is_default') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isDefault" :disabled="!form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
-        <NFormItem :label="t('file.storage.form.remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="form.remark" clearable :placeholder="t('file.storage.form.remark_placeholder')" />
-        </NFormItem>
-      </NForm>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('file.storage.form.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.remark" clearable :placeholder="t('file.storage.form.remark_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

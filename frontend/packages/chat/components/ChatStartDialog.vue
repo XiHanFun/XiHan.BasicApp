@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import type { SelectOption, TreeSelectOption } from 'naive-ui'
 import type {
   ChatDepartmentPickerNode,
 } from '../types'
-import { NButton, NInput, NModal, NSelect, NTreeSelect, useMessage } from 'naive-ui'
+import type { SelectOption, TreeSelectOption } from '~/types'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XInput from '~/components/common/XInput.vue'
+import XSelect from '~/components/common/XSelect.vue'
+import XTreeSelect from '~/components/common/XTreeSelect.vue'
+import { toast } from '~/composables'
 import { useUserStore } from '~/stores'
 import {
   getChatApi,
@@ -33,7 +37,6 @@ const emit = defineEmits<{
 const show = defineModel<boolean>('show', { default: false })
 
 const { t } = useI18n()
-const message = useMessage()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 
@@ -65,7 +68,7 @@ const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
 function mapDepartment(node: ChatDepartmentPickerNode): TreeSelectOption {
   return {
-    key: node.departmentId,
+    value: node.departmentId,
     label: node.departmentName,
     children: node.children?.length ? node.children.map(mapDepartment) : undefined,
   }
@@ -130,25 +133,25 @@ async function handleConfirm() {
     return
   }
   if (props.mode === 'single' && !singleUserId.value) {
-    message.warning(t('chat.start.user_required'))
+    toast.warning(t('chat.start.user_required'))
     return
   }
   if (props.mode === 'group') {
     if (!groupName.value.trim()) {
-      message.warning(t('chat.start.group_name_required'))
+      toast.warning(t('chat.start.group_name_required'))
       return
     }
     if (!groupMemberIds.value.length) {
-      message.warning(t('chat.start.members_required'))
+      toast.warning(t('chat.start.members_required'))
       return
     }
   }
   if (props.mode === 'department' && !departmentId.value) {
-    message.warning(t('chat.start.department_required'))
+    toast.warning(t('chat.start.department_required'))
     return
   }
   if (props.mode === 'assistant' && !assistantId.value) {
-    message.warning(t('chat.start.assistant_required'))
+    toast.warning(t('chat.start.assistant_required'))
     return
   }
 
@@ -179,69 +182,64 @@ async function handleConfirm() {
 </script>
 
 <template>
-  <NModal
-    v-model:show="show"
-    preset="card"
-    :title="title"
-    style="width: 420px; max-width: calc(100vw - 32px);"
-    :mask-closable="!submitting"
-  >
-    <div class="flex flex-col gap-3">
-      <template v-if="props.mode === 'single'">
-        <ChatUserSelect
-          v-model="singleUserId"
-          :exclude-user-ids="[currentUserId]"
-          :placeholder="t('chat.start.user_placeholder')"
-        />
-      </template>
+  <XhDialogRoot v-model:open="show">
+    <XhDialogContent style="--xh-dialog-max-w: 420px">
+      <XhDialogTitle>{{ title }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <div class="flex flex-col gap-3">
+        <template v-if="props.mode === 'single'">
+          <ChatUserSelect
+            v-model="singleUserId"
+            :exclude-user-ids="[currentUserId]"
+            :placeholder="t('chat.start.user_placeholder')"
+          />
+        </template>
 
-      <template v-else-if="props.mode === 'group'">
-        <NInput
-          v-model:value="groupName"
-          :maxlength="CHAT_MAX_GROUP_NAME_LENGTH"
-          show-count
-          :placeholder="t('chat.start.group_name_placeholder')"
-        />
-        <ChatUserSelect
-          v-model="groupMemberIds"
-          multiple
-          :exclude-user-ids="[currentUserId]"
-          :placeholder="t('chat.start.users_placeholder')"
-        />
-      </template>
+        <template v-else-if="props.mode === 'group'">
+          <XInput
+            v-model:value="groupName"
+            :max-length="CHAT_MAX_GROUP_NAME_LENGTH"
+            show-count
+            :placeholder="t('chat.start.group_name_placeholder')"
+          />
+          <ChatUserSelect
+            v-model="groupMemberIds"
+            multiple
+            :exclude-user-ids="[currentUserId]"
+            :placeholder="t('chat.start.users_placeholder')"
+          />
+        </template>
 
-      <template v-else-if="props.mode === 'assistant'">
-        <NSelect
-          v-model:value="assistantId"
-          :options="assistantOptions"
-          :loading="assistantLoading"
-          filterable
-          clearable
-          :placeholder="t('chat.start.assistant_placeholder')"
-        />
-      </template>
+        <template v-else-if="props.mode === 'assistant'">
+          <XSelect
+            v-model:value="assistantId"
+            :options="assistantOptions"
+            clearable
+            :placeholder="t('chat.start.assistant_placeholder')"
+          />
+        </template>
 
-      <template v-else>
-        <NTreeSelect
-          v-model:value="departmentId"
-          :options="departmentOptions"
-          :loading="departmentLoading"
-          filterable
-          clearable
-          :placeholder="t('chat.start.department_placeholder')"
-        />
-      </template>
-    </div>
-
-    <template #footer>
-      <div class="flex justify-end gap-2">
-        <NButton size="small" :disabled="submitting" @click="show = false">
-          {{ t('chat.start.cancel') }}
-        </NButton>
-        <NButton size="small" type="primary" :loading="submitting" @click="handleConfirm">
-          {{ t('chat.start.confirm') }}
-        </NButton>
+        <template v-else>
+          <XTreeSelect
+            v-model:value="departmentId"
+            :options="departmentOptions"
+            :loading="departmentLoading"
+            clearable
+            :placeholder="t('chat.start.department_placeholder')"
+          />
+        </template>
       </div>
-    </template>
-  </NModal>
+
+      <div class="xh-dialog-footer">
+        <div class="flex justify-end gap-2">
+          <XhButton size="sm" :disabled="submitting" @click="show = false">
+            {{ t('chat.start.cancel') }}
+          </XhButton>
+          <XhButton size="sm" tone="brand" :loading="submitting" @click="handleConfirm">
+            {{ t('chat.start.confirm') }}
+          </XhButton>
+        </div>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>

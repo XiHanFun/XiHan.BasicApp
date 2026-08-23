@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { IslandAction, IslandState, IslandTask } from '~/composables/useDynamicIsland'
 import { useOnline } from '@vueuse/core'
-import { useMessage } from 'naive-ui'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { toast } from '~/composables'
 import { configureDynamicIsland, islandStatus, useDynamicIsland } from '~/composables/useDynamicIsland'
 import { configureNotificationSound } from '~/composables/useNotificationSound'
 import { Icon } from '~/iconify'
@@ -19,19 +19,17 @@ const router = useRouter()
 const appStore = useAppStore()
 const enabled = computed(() => appStore.widgetDynamicIsland)
 
-// 关闭灵动岛时，终态（成功/失败/信息）由 Naive Message 接管；开启时不接管，全程走灵动岛
-const message = useMessage()
-configureDynamicIsland({
+// 关闭灵动岛时，终态（成功/失败/信息）由 Naive Message 接管；开启时不接管，全程走灵动岛configureDynamicIsland({
   isEnabled: () => appStore.widgetDynamicIsland,
   message: (state, content) => {
     if (state === 'success') {
-      message.success(content)
+      toast.success(content)
     }
     else if (state === 'error') {
-      message.error(content)
+      toast.error(content)
     }
     else {
-      message.info(content)
+      toast.info(content)
     }
   },
 })

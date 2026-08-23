@@ -4,10 +4,12 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { NButton, NEmpty, NInput, NPopover, NSpin, NTag, useDialog, useMessage } from 'naive-ui'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XInput from '~/components/common/XInput.vue'
+import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 
 import { useUserStore } from '~/stores'
@@ -42,8 +44,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 
@@ -328,12 +328,14 @@ function handleMemberCtxSelect(key: string) {
       getChatApi().setMemberSilence(convId, userId, false).catch(() => {})
       break
     case 'remove':
-      dialog.warning({
+      void dialog.confirm({
+        badge: 'warning',
+        tone: 'danger',
         title: t('chat.member_menu.remove'),
         content: t('chat.members.remove_confirm', { name: userName }),
-        positiveText: t('chat.start.confirm'),
-        negativeText: t('chat.start.cancel'),
-        onPositiveClick: async () => {
+        okText: t('chat.start.confirm'),
+        cancelText: t('chat.start.cancel'),
+        onOk: async () => {
           try {
             await getChatApi().removeMember(convId, userId)
             chatStore.loadConversations().catch(() => {})
@@ -357,10 +359,10 @@ async function handleCtxSelect(key: string | number) {
     case 'copy':
       try {
         await navigator.clipboard.writeText(target.content ?? '')
-        message.success(t('chat.thread.copied'))
+        toast.success(t('chat.thread.copied'))
       }
       catch (error) {
-        message.error((error as Error)?.message || t('chat.thread.copy_failed'))
+        toast.error((error as Error)?.message || t('chat.thread.copy_failed'))
       }
       break
     case 'reply':
@@ -517,7 +519,7 @@ async function handleRecall(item: ChatLocalMessage) {
     await chatStore.recallMessage(conversationId.value, item.messageId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('chat.thread.recall_failed'))
+    toast.error((error as Error)?.message || t('chat.thread.recall_failed'))
   }
 }
 
@@ -564,11 +566,13 @@ onBeforeUnmount(() => {
 <template>
   <!-- 未选择会话的空态 -->
   <div v-if="!conversation" class="flex h-full items-center justify-center">
-    <NEmpty :description="t('chat.thread.select_conversation')" size="small">
-      <template #icon>
-        <Icon icon="lucide:messages-square" width="36" height="36" class="text-muted-foreground/50" />
-      </template>
-    </NEmpty>
+    <XhEmptyStateRoot size="sm">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:mouse-pointer-click" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('chat.thread.select_conversation_title') }}</XhEmptyStateTitle>
+      <XhEmptyStateDescription>{{ t('chat.thread.select_conversation') }}</XhEmptyStateDescription>
+    </XhEmptyStateRoot>
   </div>
 
   <div v-else class="flex h-full min-h-0 flex-col">
@@ -581,9 +585,9 @@ onBeforeUnmount(() => {
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5">
           <span class="truncate text-sm font-semibold text-foreground">{{ conversation.displayName }}</span>
-          <NTag size="tiny" :bordered="false" round>
+          <XhBadge variant="subtle" size="sm">
             {{ conversationTypeLabel }}
-          </NTag>
+          </XhBadge>
         </div>
         <div v-if="isGroupLike" class="text-[11px] text-muted-foreground">
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
@@ -599,9 +603,9 @@ onBeforeUnmount(() => {
 
     <!-- 会话内搜索面板 -->
     <div v-if="showSearch" class="border-b border-border bg-muted/20 px-3 py-2">
-      <NInput
+      <XInput
         v-model:value="searchKeyword"
-        size="small"
+        size="sm"
         clearable
         :placeholder="t('chat.thread.search_placeholder')"
         @keydown.enter="runSearch(false)"
@@ -610,9 +614,9 @@ onBeforeUnmount(() => {
         <template #prefix>
           <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
         </template>
-      </NInput>
+      </XInput>
       <div v-if="searchLoading" class="flex justify-center py-3">
-        <NSpin size="small" />
+        <XhSpinner />
       </div>
       <div v-else-if="searchResults.length" class="mt-1.5 max-h-56 overflow-y-auto">
         <button
@@ -629,9 +633,9 @@ onBeforeUnmount(() => {
           <span class="block truncate text-left text-xs text-foreground">{{ messageBodyLabel(hit) }}</span>
         </button>
         <div v-if="searchHasMore" class="flex justify-center py-1">
-          <NButton text size="tiny" @click="runSearch(true)">
+          <XhButton text size="sm" @click="runSearch(true)">
             {{ t('chat.thread.load_more') }}
-          </NButton>
+          </XhButton>
         </div>
       </div>
       <div v-else-if="searchKeyword.trim()" class="py-3 text-center text-xs text-muted-foreground">
@@ -641,26 +645,28 @@ onBeforeUnmount(() => {
 
     <!-- 群公告横条（同置顶栏样式，点开看全文，换行经 pre-wrap 正确渲染） -->
     <div v-if="isGroupLike && conversation.announcement" class="border-b border-border bg-amber-500/5">
-      <NPopover trigger="click" placement="bottom" style="width: min(560px, calc(100vw - 48px))" :show-arrow="false">
-        <template #trigger>
-          <button type="button" class="flex w-full items-center gap-2 px-3 py-1.5 text-left">
-            <Icon icon="lucide:megaphone" width="13" height="13" class="shrink-0 text-amber-500" />
-            <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-              {{ announcementFirstLine }}
-            </span>
-            <Icon icon="lucide:chevron-down" width="12" height="12" class="shrink-0 text-muted-foreground/60" />
-          </button>
-        </template>
-        <div class="max-h-64 overflow-y-auto">
-          <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
-            <Icon icon="lucide:megaphone" width="13" height="13" class="text-amber-500" />
-            {{ t('chat.members.announcement_title') }}
-          </div>
-          <div class="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
-            {{ conversation.announcement }}
-          </div>
-        </div>
-      </NPopover>
+      <XhPopoverRoot placement="bottom">
+        <XhPopoverTrigger class="xh-linklike-trigger">
+          <Icon icon="lucide:megaphone" width="13" height="13" class="shrink-0 text-amber-500" />
+          <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+            {{ announcementFirstLine }}
+          </span>
+          <Icon icon="lucide:chevron-down" width="12" height="12" class="shrink-0 text-muted-foreground/60" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            <div class="max-h-64 overflow-y-auto">
+              <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+                <Icon icon="lucide:megaphone" width="13" height="13" class="text-amber-500" />
+                {{ t('chat.members.announcement_title') }}
+              </div>
+              <div class="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                {{ conversation.announcement }}
+              </div>
+            </div>
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
     </div>
 
     <!-- Pin 消息栏 -->
@@ -669,51 +675,59 @@ onBeforeUnmount(() => {
       <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
         {{ pinnedList[0] ? messageBodyLabel(pinnedList[0]) : '' }}
       </span>
-      <NPopover trigger="click" placement="bottom-end" style="max-width: 340px">
-        <template #trigger>
-          <button type="button" class="chat-thread-btn h-6 w-auto gap-0.5 px-1.5 text-[11px]" :title="t('chat.thread.pinned_count', { n: pinnedList.length })">
-            {{ pinnedList.length }}
-            <Icon icon="lucide:chevron-down" width="12" height="12" />
-          </button>
-        </template>
-        <div class="flex max-h-64 flex-col gap-1 overflow-y-auto">
-          <div
-            v-for="pinnedItem in pinnedList"
-            :key="pinnedItem.messageId"
-            class="flex items-start gap-2 border-b border-border/50 py-1.5 last:border-b-0"
-          >
-            <div class="min-w-0 flex-1">
-              <div class="text-[11px] text-muted-foreground">
-                {{ pinnedItem.senderUserName }} · {{ formatMessageTime(pinnedItem.createdTime) }}
-              </div>
-              <div class="truncate text-xs text-foreground">
-                {{ messageBodyLabel(pinnedItem) }}
+      <XhPopoverRoot placement="bottom-end">
+        <XhPopoverTrigger class="xh-linklike-trigger">
+          {{ pinnedList.length }}
+          <Icon icon="lucide:chevron-down" width="12" height="12" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            <div class="flex max-h-64 flex-col gap-1 overflow-y-auto">
+              <div
+                v-for="pinnedItem in pinnedList"
+                :key="pinnedItem.messageId"
+                class="flex items-start gap-2 border-b border-border/50 py-1.5 last:border-b-0"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="text-[11px] text-muted-foreground">
+                    {{ pinnedItem.senderUserName }} · {{ formatMessageTime(pinnedItem.createdTime) }}
+                  </div>
+                  <div class="truncate text-xs text-foreground">
+                    {{ messageBodyLabel(pinnedItem) }}
+                  </div>
+                </div>
+                <button
+                  v-if="canPin"
+                  type="button"
+                  class="chat-meta-unpin shrink-0"
+                  @click="conversationId && chatStore.unpinMessage(conversationId, pinnedItem.messageId).catch(() => {})"
+                >
+                  {{ t('chat.thread.unpin') }}
+                </button>
               </div>
             </div>
-            <button
-              v-if="canPin"
-              type="button"
-              class="chat-meta-unpin shrink-0"
-              @click="conversationId && chatStore.unpinMessage(conversationId, pinnedItem.messageId).catch(() => {})"
-            >
-              {{ t('chat.thread.unpin') }}
-            </button>
-          </div>
-        </div>
-      </NPopover>
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
     </div>
 
     <!-- 消息流 -->
     <div ref="scrollRef" class="min-h-0 flex-1 overflow-y-auto px-3 py-2" @scroll.passive="handleScroll">
       <div v-if="hasMoreOlder || historyLoading" class="flex justify-center py-1.5">
-        <NSpin v-if="historyLoading" size="small" />
-        <NButton v-else text size="tiny" @click="handleLoadOlder">
+        <XhSpinner v-if="historyLoading" size="sm" />
+        <XhButton v-else variant="ghost" size="sm" @click="handleLoadOlder">
           {{ t('chat.thread.load_more') }}
-        </NButton>
+        </XhButton>
       </div>
 
       <div v-if="!chatStore.activeMessages.length && !historyLoading" class="py-12">
-        <NEmpty :description="t('chat.thread.empty')" size="small" />
+        <XhEmptyStateRoot size="sm">
+          <XhEmptyStateIcon>
+            <Icon icon="lucide:inbox" width="28" height="28" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+          <XhEmptyStateDescription>{{ t('chat.thread.empty') }}</XhEmptyStateDescription>
+        </XhEmptyStateRoot>
       </div>
 
       <div
@@ -741,9 +755,9 @@ onBeforeUnmount(() => {
         <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
           <template v-if="assistantStream.error">
             <span class="text-error">{{ assistantStream.error }}</span>
-            <NButton size="tiny" text type="primary" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
+            <XhButton size="sm" text tone="brand" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
               {{ t('chat.thread.assistant_dismiss') }}
-            </NButton>
+            </XhButton>
           </template>
           <template v-else>
             <span>{{ assistantStream.text }}</span>
@@ -777,12 +791,10 @@ onBeforeUnmount(() => {
 
       <!-- 视口分离态：回到最新 -->
       <div v-if="isDetached" class="sticky bottom-1 flex justify-center">
-        <NButton size="tiny" round secondary type="primary" @click="handleBackToLatest">
-          <template #icon>
-            <Icon icon="lucide:arrow-down-to-line" width="13" height="13" />
-          </template>
+        <XhButton size="sm" variant="subtle" tone="brand" @click="handleBackToLatest">
+          <Icon icon="lucide:arrow-down-to-line" width="13" height="13" />
           {{ t('chat.thread.back_to_latest') }}
-        </NButton>
+        </XhButton>
       </div>
     </div>
 

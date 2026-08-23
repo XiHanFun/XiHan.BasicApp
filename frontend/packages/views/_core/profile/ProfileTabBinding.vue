@@ -1,14 +1,9 @@
 <script lang="ts" setup>
 import type { ExternalLoginItem, OAuthProviderItem } from '~/types'
-import {
-  NButton,
-  NEmpty,
-  NPopconfirm,
-  NSpin,
-  useMessage,
-} from 'naive-ui'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTitle, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
@@ -16,7 +11,6 @@ import { formatDate } from '~/utils'
 defineOptions({ name: 'ProfileTabBinding' })
 
 const { apis } = useAppContext()
-const message = useMessage()
 const { t } = useI18n()
 
 // ==================== 第三方账号 ====================
@@ -56,7 +50,7 @@ async function loadData() {
     loaded.value = true
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.binding.err_load_failed'))
+    toast.error((e as Error)?.message || t('component.profile.binding.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -66,11 +60,11 @@ async function loadData() {
 async function handleUnlinkAccount(provider: string) {
   try {
     await apis.unlinkAccountApi(provider)
-    message.success(t('component.profile.binding.msg_unbound'))
+    toast.success(t('component.profile.binding.msg_unbound'))
     await loadData()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.binding.err_operation_failed'))
+    toast.error((e as Error)?.message || t('component.profile.binding.err_operation_failed'))
   }
 }
 
@@ -103,7 +97,7 @@ async function handleStartBind(provider: string) {
     window.location.href = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider)}&bindTicket=${encodeURIComponent(ticket)}`
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.binding.err_bind_start_failed'))
+    toast.error((e as Error)?.message || t('component.profile.binding.err_bind_start_failed'))
   }
 }
 
@@ -126,16 +120,23 @@ onMounted(() => {
           </div>
         </div>
         <div class="pf-section__extra">
-          <NButton size="tiny" quaternary @click="loadData">
-            <template #icon>
-              <Icon icon="lucide:refresh-cw" />
-            </template>
-          </NButton>
+          <XhButton size="sm" variant="ghost" @click="loadData">
+            <Icon icon="lucide:refresh-cw" />
+          </XhButton>
         </div>
       </div>
       <div class="pf-section__body">
-        <NSpin :show="loading">
-          <NEmpty v-if="providers.length === 0 && loaded" :description="t('component.profile.binding.empty')" />
+        <div class="xh-loading-stage">
+          <div v-if="loading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="providers.length === 0 && loaded">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('component.profile.binding.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
           <div v-else class="pf-list">
             <div v-for="provider in providers" :key="provider.name" class="pf-list-item">
               <div class="pf-list-icon" :class="{ 'pf-list-icon--active': provider.linked }">
@@ -165,20 +166,27 @@ onMounted(() => {
                   </template>
                 </div>
               </div>
-              <NPopconfirm v-if="provider.linked" @positive-click="handleUnlinkAccount(provider.name)">
-                <template #trigger>
-                  <NButton size="tiny" type="warning" text>
-                    {{ t('component.profile.binding.btn_unbind') }}
-                  </NButton>
-                </template>
-                {{ t('component.profile.binding.confirm_unbind', { name: provider.displayName }) }}
-              </NPopconfirm>
-              <NButton v-else size="tiny" type="primary" text @click="handleStartBind(provider.name)">
+              <XhPopconfirmRoot v-if="provider.linked" @confirm="handleUnlinkAccount(provider.name)">
+                <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
+                <XhPopconfirmTrigger class="xh-linklike-trigger">
+                  {{ t('component.profile.binding.btn_unbind') }}
+                </XhPopconfirmTrigger>
+                <XhPopconfirmPositioner>
+                  <XhPopconfirmContent>
+                    <XhPopconfirmTitle>
+                      {{ t('component.profile.binding.confirm_unbind', { name: provider.displayName }) }}
+                    </XhPopconfirmTitle>
+                    <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+                    <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+                  </XhPopconfirmContent>
+                </XhPopconfirmPositioner>
+              </XhPopconfirmRoot>
+              <XhButton v-else size="sm" tone="brand" text @click="handleStartBind(provider.name)">
                 {{ t('component.profile.binding.btn_bind') }}
-              </NButton>
+              </XhButton>
             </div>
           </div>
-        </NSpin>
+        </div>
       </div>
     </section>
   </div>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { NIcon } from 'naive-ui'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { STORAGE_PREFIX } from '~/constants'
@@ -173,9 +172,7 @@ const fabStyle = computed(() => ({ left: `${left.value}px`, top: `${top.value}px
     @pointerup="onPointerUp"
     @pointercancel="onPointerUp"
   >
-    <NIcon size="20">
-      <Icon icon="lucide:settings-2" />
-    </NIcon>
+    <Icon icon="lucide:settings-2" :width="20" />
   </button>
 </template>
 

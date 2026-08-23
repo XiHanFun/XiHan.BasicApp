@@ -1,19 +1,9 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import {
-  NButton,
-  NEmpty,
-  NGrid,
-  NGridItem,
-  NInput,
-  NModal,
-  NScrollbar,
-  NSpace,
-  NTabPane,
-  NTabs,
-} from 'naive-ui'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import XInput from '../components/common/XInput.vue'
 import { ICON_SET_META, loadIconNames } from './offline'
 
 defineOptions({ name: 'IconPicker' })
@@ -95,8 +85,10 @@ function handleSelect(name: string) {
   visible.value = false
 }
 
-function handleTabChange(prefix: string) {
-  activePrefix.value = prefix
+function handleTabChange(prefix: string | null) {
+  if (prefix) {
+    activePrefix.value = prefix
+  }
 }
 
 function openPicker() {
@@ -112,70 +104,81 @@ function handleClear() {
 
 <template>
   <div class="icon-picker">
-    <NButton quaternary block class="icon-picker-trigger" @click="openPicker">
+    <XhButton variant="ghost" block class="icon-picker-trigger" @click="openPicker">
       <Icon v-if="currentIconId" :icon="currentIconId" width="20" />
       <span v-else class="icon-picker-placeholder">{{ placeholderText }}</span>
-    </NButton>
+    </XhButton>
 
-    <NModal
-      v-model:show="visible"
-      preset="card"
-      :title="t('component.icon_picker.modal_title')"
-      class="icon-picker-modal"
-      style="width: 560px; max-width: 95vw"
-      :bordered="false"
-      @after-enter="loadIcons"
-    >
-      <div class="icon-picker-body">
-        <NSpace class="mb-3" justify="space-between">
-          <NInput
-            v-model:value="searchKeyword"
-            :placeholder="t('component.icon_picker.search_placeholder')"
-            clearable
-            style="flex: 1"
-          >
-            <template #prefix>
-              <Icon icon="lucide:search" width="16" />
-            </template>
-          </NInput>
-          <NButton v-if="currentIconId" size="small" quaternary @click="handleClear">
-            清除
-          </NButton>
-        </NSpace>
+    <XhDialogRoot v-model:open="visible">
+      <XhDialogContent class="icon-picker-modal" style="--xh-dialog-max-w: 560px">
+        <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <div class="icon-picker-body">
+          <XhFlex class="mb-3" justify="between">
+            <XInput
+              v-model:value="searchKeyword"
+              :placeholder="t('component.icon_picker.search_placeholder')"
+              clearable
+              style="flex: 1"
+            >
+              <template #prefix>
+                <Icon icon="lucide:search" width="16" />
+              </template>
+            </XInput>
+            <XhButton v-if="currentIconId" size="sm" variant="ghost" @click="handleClear">
+              清除
+            </XhButton>
+          </XhFlex>
 
-        <NTabs type="line" :value="activePrefix" @update:value="handleTabChange">
-          <NTabPane
-            v-for="meta in ICON_SET_META"
-            :key="meta.prefix"
-            :name="meta.prefix"
-            :tab="meta.name"
-          >
-            <NScrollbar style="max-height: 320px">
-              <div v-if="loading" class="icon-picker-loading">
-                加载中...
-              </div>
-              <NEmpty v-else-if="!displayIcons.length" description="暂无匹配图标" />
-              <NGrid v-else :cols="6" :x-gap="8" :y-gap="8" class="icon-picker-grid">
-                <NGridItem
-                  v-for="name in displayIcons"
-                  :key="name"
-                  class="icon-picker-item"
-                  :class="{ 'is-selected': currentIconId === `${meta.prefix}:${name}` }"
-                  @click="handleSelect(name)"
-                >
-                  <div class="icon-picker-cell">
-                    <div class="icon-picker-icon">
-                      <Icon :icon="`${meta.prefix}:${name}`" width="22" height="22" />
+          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开 -->
+          <XhTabsRoot :value="activePrefix" variant="line" @update:value="handleTabChange">
+            <XhTabsList>
+              <XhTabsTrigger
+                v-for="meta in ICON_SET_META"
+                :key="meta.prefix"
+                :value="meta.prefix"
+              >
+                {{ meta.name }}
+              </XhTabsTrigger>
+            </XhTabsList>
+            <XhTabsContent
+              v-for="meta in ICON_SET_META"
+              :key="meta.prefix"
+              :value="meta.prefix"
+            >
+              <div class="xh-scroll-area" style="max-height: 320px">
+                <div v-if="loading" class="icon-picker-loading">
+                  {{ t('common.loading') }}
+                </div>
+                <XhEmptyStateRoot v-else-if="!displayIcons.length" size="sm">
+                  <XhEmptyStateIcon>
+                    <Icon icon="lucide:search-x" width="28" height="28" />
+                  </XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.no_result') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('component.icon_picker.empty') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+                <XhGridRoot v-else cols="6" gap="sm">
+                  <XhGridItem
+                    v-for="name in displayIcons"
+                    :key="name"
+                    class="icon-picker-item"
+                    :class="{ 'is-selected': currentIconId === `${meta.prefix}:${name}` }"
+                    @click="handleSelect(name)"
+                  >
+                    <div class="icon-picker-cell">
+                      <div class="icon-picker-icon">
+                        <Icon :icon="`${meta.prefix}:${name}`" width="22" height="22" />
+                      </div>
+                      <span class="icon-picker-name">{{ meta.prefix }}:{{ name }}</span>
                     </div>
-                    <span class="icon-picker-name">{{ meta.prefix }}:{{ name }}</span>
-                  </div>
-                </NGridItem>
-              </NGrid>
-            </NScrollbar>
-          </NTabPane>
-        </NTabs>
-      </div>
-    </NModal>
+                  </XhGridItem>
+                </XhGridRoot>
+              </div>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
   </div>
 </template>
 
@@ -186,7 +189,7 @@ function handleClear() {
 }
 
 .icon-picker-placeholder {
-  color: var(--n-placeholder-color);
+  color: hsl(var(--muted-foreground));
   font-size: 14px;
 }
 
@@ -197,7 +200,7 @@ function handleClear() {
 .icon-picker-loading {
   padding: 40px;
   text-align: center;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
 }
 
 .icon-picker-grid {
@@ -236,7 +239,7 @@ function handleClear() {
 
 .icon-picker-name {
   font-size: 10px;
-  color: var(--n-text-color-3);
+  color: hsl(var(--muted-foreground));
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { HeaderToolbarPropsContract } from '../../contracts'
 import type { NotificationItem } from '~/stores'
-import { NDropdown } from 'naive-ui'
+
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XUserAvatar } from '~/components'
+import { XDropdown, XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { useIsMobile } from '~/composables'
@@ -67,7 +67,7 @@ const { isMobile } = useIsMobile()
       variant="dropdown"
       apply
     >
-      <XihanIconButton class="mr-1 mt-[2px]" :tooltip="t('header.toolbar.switch_timezone')">
+      <XihanIconButton class="mr-1" :tooltip="t('header.toolbar.switch_timezone')">
         <Icon icon="lucide:clock-3" width="16" height="16" />
       </XihanIconButton>
     </TimezoneSwitcher>
@@ -75,7 +75,7 @@ const { isMobile } = useIsMobile()
     <!-- 主题切换 -->
     <XihanIconButton
       v-if="props.appStore.widgetThemeToggle"
-      class="mr-1 mt-[2px]"
+      class="mr-1"
       :tooltip="props.isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
       @mousedown.prevent
       @click="(event: MouseEvent) => emit('themeToggle', event)"
@@ -135,7 +135,7 @@ const { isMobile } = useIsMobile()
     />
 
     <!-- 用户菜单 -->
-    <NDropdown :options="props.userOptions" @select="(key) => emit('userAction', String(key))">
+    <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
       <button
         type="button"
         class="user-btn ml-1 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1"
@@ -150,7 +150,7 @@ const { isMobile } = useIsMobile()
         </span>
         <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
       </button>
-    </NDropdown>
+    </XDropdown>
   </div>
 </template>
 

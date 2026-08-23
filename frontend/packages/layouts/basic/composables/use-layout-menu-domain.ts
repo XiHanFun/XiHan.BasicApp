@@ -1,7 +1,6 @@
-import type { MenuOption } from 'naive-ui'
 import type { VNodeChild } from 'vue'
 import type { LayoutRouteMeta, LayoutRouteRecord } from '../contracts'
-import type { MenuRoute } from '~/types'
+import type { AppMenuOption, MenuRoute } from '~/types'
 import { computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAccessStore } from '~/stores'
@@ -16,7 +15,7 @@ interface BadgeInfo {
 interface BuildMenuOptionsConfig {
   keyBy: 'name' | 'path'
   translate: (title: string, fallback: string) => string
-  iconRenderer?: (icon: string) => MenuOption['icon']
+  iconRenderer?: (icon: string) => AppMenuOption['icon']
   /** 标签渲染器：将菜单文本与标签信息合并为带标签的 label */
   badgeLabelRenderer?: (text: string, badge: BadgeInfo) => string | (() => VNodeChild)
   /** 外链图标渲染器：外链菜单（meta.link）标签末尾追加的小图标 */
@@ -78,8 +77,8 @@ function buildMenuOptionsFromRoutes(
   routeList: LayoutRouteRecord[],
   config: BuildMenuOptionsConfig,
   parentPath = '',
-): MenuOption[] {
-  const options: MenuOption[] = []
+): AppMenuOption[] {
+  const options: AppMenuOption[] = []
 
   for (const item of routeList) {
     const meta = toLayoutMeta(item)
@@ -135,7 +134,7 @@ function buildMenuOptionsFromRoutes(
       label,
       icon,
       children: childOptions?.length ? childOptions : undefined,
-    } as MenuOption)
+    })
   }
 
   return options

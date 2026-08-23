@@ -1,31 +1,13 @@
 <script setup lang="ts">
 import type { ActivityTypeMeta } from './catalog'
-import type { DefinitionMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
+import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import { useDebounceFn } from '@vueuse/core'
-import {
-  NButton,
-  NCheckbox,
-  NDivider,
-  NDropdown,
-  NDynamicInput,
-  NDynamicTags,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NRadioButton,
-  NRadioGroup,
-  NSelect,
-  NSpace,
-  NSwitch,
-  NTag,
-  NTooltip,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhCheckbox, XhContextMenuRoot, XhDynamicInputAddTrigger, XhDynamicInputItem, XhDynamicInputItemAction, XhDynamicInputItemContent, XhDynamicInputItemDeleteTrigger, XhDynamicInputRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '~/components'
+import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
+import { toast } from '~/composables'
 import { registerVueShape, XDiagram } from '~/diagram'
 import ActivityNode from './ActivityNode.vue'
 import { ACTIVITY_CATALOG, ACTIVITY_MAP, CATEGORY_ORDER } from './catalog'
@@ -49,7 +31,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
 
 // 幂等注册工作流活动形状（首次进入设计器时生效）
 registerVueShape({ shape: ACTIVITY_SHAPE, component: ActivityNode, width: 172, height: 64 })
@@ -98,6 +79,21 @@ const showIssues = ref(false)
 const scheduleValidate = useDebounceFn(runValidate, 250)
 const contextMenu = reactive<{ show: boolean, x: number, y: number, targetType: 'node' | 'edge' | null, targetId: string | null }>({ show: false, x: 0, y: 0, targetType: null, targetId: null })
 
+/** 菜单钉在坐标上，坐标经实例命令 openAt 交进去，开合随之走命令而非受控 open */
+const contextMenuRef = ref<{ openAt: (x: number, y: number) => void, setOpen: (open: boolean) => void } | null>(null)
+
+watch(
+  () => [contextMenu.show, contextMenu.x, contextMenu.y] as const,
+  ([show, x, y]) => {
+    if (show) {
+      contextMenuRef.value?.openAt(x, y)
+    }
+    else {
+      contextMenuRef.value?.setOpen(false)
+    }
+  },
+)
+
 function clearSelection() {
   if (api && selectedNodeId.value && nodeForm.value)
     api.updateNodeData(selectedNodeId.value, { ...snapshot(nodeForm.value), __selected: false })
@@ -120,7 +116,7 @@ function loadFromJson(json: string): boolean {
     return true
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workflow.designer.err_parse'))
+    toast.error((error as Error)?.message || t('workflow.designer.err_parse'))
     return false
   }
 }
@@ -390,7 +386,7 @@ watch(activeTab, (tab) => {
 function applyJsonToCanvas() {
   if (loadFromJson(jsonText.value)) {
     activeTab.value = 'design'
-    message.success(t('workflow.designer.msg_json_applied'))
+    toast.success(t('workflow.designer.msg_json_applied'))
   }
 }
 
@@ -409,7 +405,7 @@ function handleSave() {
   issues.value = validateGraph(meta, data)
   const firstError = issues.value.find(issue => issue.level === 'error')
   if (firstError) {
-    message.warning(t(`workflow.designer.validate.${firstError.code}`))
+    toast.warning(t(`workflow.designer.validate.${firstError.code}`))
     showIssues.value = true
     return
   }
@@ -485,7 +481,7 @@ function onArrange(key: string) {
   const selectedCount = api?.getSelectedNodeIds().length ?? 0
   const need = key.startsWith('dist:') ? 3 : 2
   if (selectedCount < need) {
-    message.info(t('workflow.designer.arrange_need_multi'))
+    toast.info(t('workflow.designer.arrange_need_multi'))
     return
   }
   if (key === 'dist:horizontal')
@@ -506,6 +502,9 @@ const contextMenuOptions = computed(() => {
     { key: 'delete', label: t('workflow.designer.ctx_delete'), icon: renderIcon('lucide:trash-2') },
   ]
 })
+
+const contextCollection = computed(() => toDropdownCollection(contextMenuOptions.value))
+const contextByKey = computed(() => indexDropdownOptions(contextMenuOptions.value))
 
 function openContextMenu(targetType: 'node' | 'edge', id: string, x: number, y: number) {
   contextMenu.targetType = targetType
@@ -555,79 +554,52 @@ function onContextSelect(key: string) {
     <!-- 工具栏 -->
     <div class="mb-2 flex items-center gap-1">
       <!-- 设计 / JSON 切换（内联在工具栏最前） -->
-      <NRadioGroup v-model:value="activeTab" size="small">
-        <NRadioButton value="design">
-          {{ t('workflow.designer.tab_design') }}
-        </NRadioButton>
-        <NRadioButton value="json">
-          {{ t('workflow.designer.tab_json') }}
-        </NRadioButton>
-      </NRadioGroup>
-      <NDivider vertical class="!mx-1" />
-      <NTag size="small" bordered>
+      <XSegmented v-model:value="activeTab" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
+      <XhSeparator orientation="vertical" class="!mx-1" />
+      <XhBadge variant="subtle" size="sm">
         {{ meta.code || t('workflow.designer.untitled') }}
-      </NTag>
+      </XhBadge>
       <span class="max-w-40 truncate text-sm text-gray-500">{{ meta.name }}</span>
       <div class="flex-1" />
 
       <!-- 撤销/重做/缩放/导出 -->
       <template v-for="(btn, i) in toolButtons" :key="i">
-        <NDivider v-if="btn.divider" vertical class="!mx-0.5" />
-        <NTooltip v-else>
-          <template #trigger>
-            <NButton size="small" quaternary @click="btn.run">
-              <template #icon>
-                <Icon :icon="btn.icon!" />
-              </template>
-            </NButton>
-          </template>
-          {{ btn.tip }}
-        </NTooltip>
+        <XhSeparator v-if="btn.divider" orientation="vertical" class="!mx-0.5" />
+        <XhButton v-else :title="btn.tip" size="sm" variant="ghost" @click="btn.run">
+          <Icon :icon="btn.icon!" />
+        </XhButton>
       </template>
 
       <!-- 对齐/分布（作用于多选节点） -->
-      <NDropdown trigger="click" :options="arrangeOptions" @select="onArrange">
-        <NTooltip>
-          <template #trigger>
-            <NButton size="small" quaternary>
-              <template #icon>
-                <Icon icon="lucide:align-horizontal-distribute-center" />
-              </template>
-            </NButton>
-          </template>
-          {{ t('workflow.designer.tb_arrange') }}
-        </NTooltip>
-      </NDropdown>
+      <XDropdown :options="arrangeOptions" @select="onArrange">
+        <XhButton :title="t('workflow.designer.tb_arrange')" size="sm" variant="ghost">
+          <Icon icon="lucide:align-horizontal-distribute-center" />
+        </XhButton>
+      </XDropdown>
 
-      <NDivider vertical class="!mx-0.5" />
+      <XhSeparator orientation="vertical" class="!mx-0.5" />
 
       <!-- 校验状态 -->
-      <NButton
-        size="small"
-        quaternary
-        :type="errorCount ? 'error' : (warningCount ? 'warning' : 'default')"
+      <XhButton
+        size="sm"
+        variant="ghost"
+        :tone="errorCount ? 'danger' : (warningCount ? 'warning' : 'neutral')"
         @click="showIssues = !showIssues"
       >
-        <template #icon>
-          <Icon icon="lucide:list-checks" />
-        </template>
+        <Icon icon="lucide:list-checks" />
         {{ issues.length ? issues.length : t('workflow.designer.tb_validate') }}
-      </NButton>
+      </XhButton>
 
-      <NDivider vertical class="!mx-0.5" />
+      <XhSeparator orientation="vertical" class="!mx-0.5" />
 
-      <NButton size="small" @click="handleAutoLayout">
-        <template #icon>
-          <Icon icon="lucide:layout-dashboard" />
-        </template>
+      <XhButton size="sm" @click="handleAutoLayout">
+        <Icon icon="lucide:layout-dashboard" />
         {{ t('workflow.designer.btn_layout') }}
-      </NButton>
-      <NButton size="small" type="primary" :loading="saving" @click="handleSave">
-        <template #icon>
-          <Icon icon="lucide:save" />
-        </template>
+      </XhButton>
+      <XhButton size="sm" tone="brand" :loading="saving" @click="handleSave">
+        <Icon icon="lucide:save" />
         {{ t('workflow.designer.btn_save') }}
-      </NButton>
+      </XhButton>
     </div>
 
     <div class="min-h-0 flex-1 overflow-hidden">
@@ -670,9 +642,9 @@ function onContextSelect(key: string) {
                   <span v-if="errorCount" class="text-red-500">· {{ errorCount }} {{ t('workflow.designer.validate_errors') }}</span>
                   <span v-if="warningCount" class="text-amber-500">· {{ warningCount }} {{ t('workflow.designer.validate_warnings') }}</span>
                 </span>
-                <NButton text size="tiny" @click="showIssues = false">
+                <XhButton text size="sm" @click="showIssues = false">
                   <Icon icon="lucide:x" />
-                </NButton>
+                </XhButton>
               </div>
               <div
                 v-for="(issue, idx) in issues"
@@ -700,52 +672,71 @@ function onContextSelect(key: string) {
               <div class="mb-2 text-xs text-gray-400">
                 {{ edgeForm.source }} → {{ edgeForm.target }}
               </div>
-              <NForm label-placement="top" size="small">
-                <NFormItem :label="t('workflow.designer.edge_condition')">
-                  <NInput
-                    :value="edgeForm.condition ?? ''"
-                    type="textarea"
-                    :autosize="{ minRows: 2, maxRows: 4 }"
-                    :placeholder="t('workflow.designer.edge_condition_placeholder')"
-                    @update:value="(value: string) => { edgeForm!.condition = value || null; commitEdge() }"
-                  />
-                </NFormItem>
+              <XhFormRoot
+                validate-on="blur"
+              >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_condition') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      :value="edgeForm.condition ?? ''"
+                      type="textarea"
+                      :autosize="{ minRows: 2, maxRows: 4 }"
+                      :placeholder="t('workflow.designer.edge_condition_placeholder')"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.condition = value || null; commitEdge() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
                 <div v-if="outcomeHints.length > 0" class="mb-2">
-                  <NSpace :size="4">
-                    <NTag
+                  <XhFlex gap="xs">
+                    <XhBadge
                       v-for="outcome in outcomeHints"
                       :key="outcome"
-                      size="small"
+                      variant="subtle"
+                      size="sm"
                       class="cursor-pointer"
                       @click="applyOutcomeHint(outcome)"
                     >
                       {{ outcome }}
-                    </NTag>
-                  </NSpace>
+                    </XhBadge>
+                  </XhFlex>
                 </div>
-                <NFormItem :label="t('workflow.designer.edge_priority')">
-                  <NInputNumber
-                    :value="edgeForm.priority ?? 0"
-                    class="w-full"
-                    @update:value="(value: number | null) => { edgeForm!.priority = value ?? 0; commitEdge() }"
-                  />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.edge_is_default')">
-                  <NSwitch
-                    :value="edgeForm.isDefault ?? false"
-                    @update:value="(value: boolean) => { edgeForm!.isDefault = value; commitEdge() }"
-                  />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.edge_name')">
-                  <NInput
-                    :value="edgeForm.name ?? ''"
-                    @update:value="(value: string) => { edgeForm!.name = value || null; commitEdge() }"
-                  />
-                </NFormItem>
-              </NForm>
-              <NButton size="small" type="error" secondary block @click="deleteSelectedEdge">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_priority') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XNumberInput
+                      :value="edgeForm.priority ?? 0"
+                      class="w-full"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; edgeForm!.priority = value ?? 0; commitEdge() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_is_default') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XhSwitch
+                      :checked="edgeForm.isDefault ?? false"
+                      @update:checked="(value: boolean) => { edgeForm!.isDefault = value; commitEdge() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_name') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      :value="edgeForm.name ?? ''"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.name = value || null; commitEdge() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormRoot>
+              <XhButton size="sm" tone="danger" variant="subtle" block @click="deleteSelectedEdge">
                 {{ t('workflow.designer.btn_delete_edge') }}
-              </NButton>
+              </XhButton>
             </template>
 
             <!-- 节点属性 -->
@@ -755,123 +746,157 @@ function onContextSelect(key: string) {
                 {{ selectedMeta ? t(`workflow.designer.activity.${selectedMeta.labelKey}`) : nodeForm.activityType }}
                 <span class="text-xs font-normal text-gray-400">{{ selectedNodeId }}</span>
               </div>
-              <NForm label-placement="top" size="small">
-                <NFormItem :label="t('workflow.designer.node_name')">
-                  <NInput
-                    :value="nodeForm.name"
-                    @update:value="(value: string) => { nodeForm!.name = value; commitNode() }"
-                  />
-                </NFormItem>
+              <XhFormRoot
+                validate-on="blur"
+              >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.node_name') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      :value="nodeForm.name"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; nodeForm!.name = value; commitNode() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
 
                 <!-- 活动属性（类型驱动） -->
                 <template v-for="descriptor in selectedMeta?.props ?? []" :key="descriptor.key">
-                  <NFormItem :label="t(`workflow.designer.prop.${descriptor.labelKey}`)">
-                    <NInput
-                      v-if="descriptor.input === 'text'"
-                      :value="(nodeProp<string>(descriptor.key)) ?? ''"
-                      :placeholder="descriptor.placeholder"
-                      @update:value="(value: string) => setNodeProp(descriptor.key, value)"
-                    />
-                    <NInput
-                      v-else-if="descriptor.input === 'textarea'"
-                      :value="(nodeProp<string>(descriptor.key)) ?? ''"
-                      type="textarea"
-                      :autosize="{ minRows: 3, maxRows: 8 }"
-                      class="font-mono"
-                      :placeholder="descriptor.placeholder"
-                      @update:value="(value: string) => setNodeProp(descriptor.key, value)"
-                    />
-                    <NInputNumber
-                      v-else-if="descriptor.input === 'number'"
-                      :value="(nodeProp<number>(descriptor.key)) ?? null"
-                      class="w-full"
-                      @update:value="(value: number | null) => setNodeProp(descriptor.key, value)"
-                    />
-                    <NSwitch
-                      v-else-if="descriptor.input === 'boolean'"
-                      :value="(nodeProp<boolean>(descriptor.key)) ?? false"
-                      @update:value="(value: boolean) => setNodeProp(descriptor.key, value)"
-                    />
-                    <NSelect
-                      v-else-if="descriptor.input === 'select'"
-                      :value="(nodeProp<string>(descriptor.key)) ?? null"
-                      :options="descriptor.options"
-                      clearable
-                      @update:value="(value: string | null) => setNodeProp(descriptor.key, value)"
-                    />
-                    <NDynamicTags
-                      v-else-if="descriptor.input === 'tags'"
-                      :value="(nodeProp<string[]>(descriptor.key)) ?? []"
-                      @update:value="(value: string[]) => setNodeProp(descriptor.key, value.length > 0 ? value : null)"
-                    />
-                    <div v-else-if="descriptor.input === 'json'" class="w-full">
-                      <NInput
-                        v-model:value="jsonBuffers[descriptor.key]"
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t(`workflow.designer.prop.${descriptor.labelKey}`) }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XInput
+                        v-if="descriptor.input === 'text'"
+                        :value="(nodeProp<string>(descriptor.key)) ?? ''"
+                        :placeholder="descriptor.placeholder"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; setNodeProp(descriptor.key, value) }"
+                      />
+                      <XInput
+                        v-else-if="descriptor.input === 'textarea'"
+                        :value="(nodeProp<string>(descriptor.key)) ?? ''"
                         type="textarea"
                         :autosize="{ minRows: 3, maxRows: 8 }"
                         class="font-mono"
-                        :status="jsonErrors[descriptor.key] ? 'error' : undefined"
-                        :placeholder="t('workflow.designer.json_prop_placeholder')"
-                        @blur="applyJsonBuffer(descriptor.key)"
+                        :placeholder="descriptor.placeholder"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; setNodeProp(descriptor.key, value) }"
                       />
-                      <div v-if="jsonErrors[descriptor.key]" class="mt-1 text-xs text-red-500">
-                        {{ t('workflow.designer.err_prop_json') }}
+                      <XNumberInput
+                        v-else-if="descriptor.input === 'number'"
+                        :value="(nodeProp<number>(descriptor.key)) ?? null"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; setNodeProp(descriptor.key, value) }"
+                      />
+                      <XhSwitch
+                        v-else-if="descriptor.input === 'boolean'"
+                        :checked="(nodeProp<boolean>(descriptor.key)) ?? false"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as unknown as boolean; setNodeProp(descriptor.key, value) }"
+                      />
+                      <XSelect
+                        v-else-if="descriptor.input === 'select'"
+                        :value="(nodeProp<string>(descriptor.key)) ?? null"
+                        :options="descriptor.options"
+                        clearable
+                        @update:value="(value: string | number | (string | number)[] | null) => setNodeProp(descriptor.key, value as string | null)"
+                      />
+                      <XTagsInput
+                        v-else-if="descriptor.input === 'tags'"
+                        :value="(nodeProp<string[]>(descriptor.key)) ?? []"
+                        @update:value="(value: string[]) => setNodeProp(descriptor.key, value.length > 0 ? value : null)"
+                      />
+                      <div v-else-if="descriptor.input === 'json'" class="w-full">
+                        <XInput
+                          v-model:value="jsonBuffers[descriptor.key]"
+                          type="textarea"
+                          :autosize="{ minRows: 3, maxRows: 8 }"
+                          class="font-mono"
+                          :invalid="Boolean(jsonErrors[descriptor.key])"
+                          :placeholder="t('workflow.designer.json_prop_placeholder')"
+                          @blur="applyJsonBuffer(descriptor.key)"
+                        />
+                        <div v-if="jsonErrors[descriptor.key]" class="mt-1 text-xs text-red-500">
+                          {{ t('workflow.designer.err_prop_json') }}
+                        </div>
                       </div>
-                    </div>
-                  </NFormItem>
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
                 </template>
 
-                <NDivider style="margin: 8px 0" />
+                <XhSeparator style="margin: 8px 0" />
 
                 <!-- 通用执行策略 -->
-                <NFormItem :label="t('workflow.designer.node_timeout')">
-                  <NInputNumber
-                    :value="nodeForm.timeoutSeconds ?? null"
-                    class="w-full"
-                    :placeholder="t('workflow.designer.node_timeout_placeholder')"
-                    @update:value="(value: number | null) => { nodeForm!.timeoutSeconds = value; commitNode() }"
-                  />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.node_continue_on_error')">
-                  <NSwitch
-                    :value="nodeForm.continueOnError ?? false"
-                    @update:value="(value: boolean) => { nodeForm!.continueOnError = value; commitNode() }"
-                  />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.node_retry')">
-                  <NSwitch v-model:value="retryEnabled" />
-                </NFormItem>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.node_timeout') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XNumberInput
+                      :value="nodeForm.timeoutSeconds ?? null"
+                      class="w-full"
+                      :placeholder="t('workflow.designer.node_timeout_placeholder')"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.timeoutSeconds = value; commitNode() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.node_continue_on_error') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XhSwitch
+                      :checked="nodeForm.continueOnError ?? false"
+                      @update:checked="(value: boolean) => { nodeForm!.continueOnError = value; commitNode() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.node_retry') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XhSwitch v-model:checked="retryEnabled" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
                 <template v-if="nodeForm.retryPolicy">
-                  <NFormItem :label="t('workflow.designer.retry_max_attempts')">
-                    <NInputNumber
-                      :value="nodeForm.retryPolicy.maxAttempts"
-                      :min="1"
-                      class="w-full"
-                      @update:value="(value: number | null) => { nodeForm!.retryPolicy!.maxAttempts = value ?? 1; commitNode() }"
-                    />
-                  </NFormItem>
-                  <NFormItem :label="t('workflow.designer.retry_first_delay')">
-                    <NInputNumber
-                      :value="nodeForm.retryPolicy.firstDelaySeconds"
-                      :min="1"
-                      class="w-full"
-                      @update:value="(value: number | null) => { nodeForm!.retryPolicy!.firstDelaySeconds = value ?? 10; commitNode() }"
-                    />
-                  </NFormItem>
-                  <NFormItem :label="t('workflow.designer.retry_backoff')">
-                    <NInputNumber
-                      :value="nodeForm.retryPolicy.backoffFactor"
-                      :min="1"
-                      :step="0.5"
-                      class="w-full"
-                      @update:value="(value: number | null) => { nodeForm!.retryPolicy!.backoffFactor = value ?? 2; commitNode() }"
-                    />
-                  </NFormItem>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.retry_max_attempts') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="nodeForm.retryPolicy.maxAttempts"
+                        :min="1"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.maxAttempts = value ?? 1; commitNode() }"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.retry_first_delay') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="nodeForm.retryPolicy.firstDelaySeconds"
+                        :min="1"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.firstDelaySeconds = value ?? 10; commitNode() }"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.retry_backoff') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="nodeForm.retryPolicy.backoffFactor"
+                        :min="1"
+                        :step="0.5"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.backoffFactor = value ?? 2; commitNode() }"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
                 </template>
-              </NForm>
-              <NButton size="small" type="error" secondary block @click="deleteSelectedNode">
+              </XhFormRoot>
+              <XhButton size="sm" tone="danger" variant="subtle" block @click="deleteSelectedNode">
                 {{ t('workflow.designer.btn_delete_node') }}
-              </NButton>
+              </XhButton>
             </template>
 
             <!-- 流程设置（未选中时） -->
@@ -879,38 +904,76 @@ function onContextSelect(key: string) {
               <div class="mb-2 text-sm font-medium">
                 {{ t('workflow.designer.flow_panel') }}
               </div>
-              <NForm label-placement="top" size="small">
-                <NFormItem :label="t('workflow.designer.flow_code')">
-                  <NInput v-model:value="meta.code" :placeholder="t('workflow.designer.flow_code_placeholder')" />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.flow_name')">
-                  <NInput v-model:value="meta.name" />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.flow_category')">
-                  <NInput v-model:value="meta.category" />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.flow_description')">
-                  <NInput v-model:value="meta.description" type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.flow_compensation')">
-                  <NSwitch v-model:value="meta.enableCompensation" />
-                </NFormItem>
-                <NFormItem :label="t('workflow.designer.flow_variables')">
-                  <NDynamicInput
-                    v-model:value="meta.variables"
-                    :on-create="() => ({ name: '', required: false, defaultValue: null, description: null })"
-                  >
-                    <template #default="{ value }">
-                      <div class="flex w-full items-center gap-2">
-                        <NInput v-model:value="value.name" size="small" :placeholder="t('workflow.designer.variable_name')" />
-                        <NCheckbox v-model:checked="value.required" size="small">
-                          {{ t('workflow.designer.variable_required') }}
-                        </NCheckbox>
-                      </div>
-                    </template>
-                  </NDynamicInput>
-                </NFormItem>
-              </NForm>
+              <XhFormRoot
+                validate-on="blur"
+              >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_code') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.code" :placeholder="t('workflow.designer.flow_code_placeholder')" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_name') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.name" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_category') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.category" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_description') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.description" type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_compensation') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XhSwitch v-model:checked="meta.enableCompensation" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_variables') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XhDynamicInputRoot
+                      v-slot="{ items }"
+                      v-model:value="meta.variables"
+                      :create-item="() => ({ name: '', required: false, defaultValue: null, description: null })"
+                    >
+                      <XhDynamicInputItem
+                        v-for="(item, index) in items"
+                        :key="index"
+                        :index="index"
+                      >
+                        <XhDynamicInputItemContent>
+                          <div class="flex w-full items-center gap-2">
+                            <XInput v-model:value="(item as unknown as DefinitionVariableMeta).name" size="sm" :placeholder="t('workflow.designer.variable_name')" />
+                            <span class="xh-checkbox-row">
+                              <XhCheckbox v-model:checked="(item as unknown as DefinitionVariableMeta).required" size="sm" />
+                              <span class="xh-checkbox-row__label" @click="(item as unknown as DefinitionVariableMeta).required = !(item as unknown as DefinitionVariableMeta).required">{{ t('workflow.designer.variable_required') }}</span>
+                            </span>
+                          </div>
+                        </XhDynamicInputItemContent>
+                        <XhDynamicInputItemAction>
+                          <XhDynamicInputItemDeleteTrigger>−</XhDynamicInputItemDeleteTrigger>
+                          <XhDynamicInputAddTrigger>＋</XhDynamicInputAddTrigger>
+                        </XhDynamicInputItemAction>
+                      </XhDynamicInputItem>
+                    </XhDynamicInputRoot>
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormRoot>
               <div class="text-xs text-gray-400">
                 {{ t('workflow.designer.flow_tip') }}
               </div>
@@ -922,30 +985,43 @@ function onContextSelect(key: string) {
       <!-- JSON 视图 -->
       <div v-show="activeTab === 'json'" class="h-full">
         <div class="flex h-[68vh] flex-col gap-2">
-          <NInput
+          <XInput
             v-model:value="jsonText"
             type="textarea"
             class="min-h-0 flex-1 font-mono"
             :autosize="{ minRows: 24, maxRows: 24 }"
             :placeholder="t('workflow.designer.json_placeholder')"
           />
-          <NButton size="small" @click="applyJsonToCanvas">
+          <XhButton size="sm" @click="applyJsonToCanvas">
             {{ t('workflow.designer.btn_apply_json') }}
-          </NButton>
+          </XhButton>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 右键上下文菜单 -->
-  <NDropdown
-    trigger="manual"
+  <XhContextMenuRoot
+    ref="contextMenuRef"
+    :collection="contextCollection"
     placement="bottom-start"
-    :show="contextMenu.show"
-    :x="contextMenu.x"
-    :y="contextMenu.y"
-    :options="contextMenuOptions"
-    @select="onContextSelect"
-    @clickoutside="contextMenu.show = false"
-  />
+    @update:open="(open: boolean) => !open && (contextMenu.show = false)"
+    @select="(details: { value: string }) => onContextSelect(details.value)"
+  >
+    <template #trigger>
+      <!-- 触发插槽的占位：菜单钉在 openAt 交进去的坐标上，不靠它定位 -->
+      <span
+        aria-hidden="true"
+        :style="{ position: 'fixed', inset: '0 auto auto 0', inlineSize: '0', blockSize: '0', pointerEvents: 'none' }"
+      />
+    </template>
+    <template #item="node">
+      <span class="inline-flex gap-2 items-center min-w-0">
+        <span v-if="contextByKey.get(node.value)?.icon" class="inline-flex flex-none items-center opacity-80" aria-hidden="true">
+          <VNodeRender :content="contextByKey.get(node.value)!.icon!()" />
+        </span>
+        {{ node.label }}
+      </span>
+    </template>
+  </XhContextMenuRoot>
 </template>

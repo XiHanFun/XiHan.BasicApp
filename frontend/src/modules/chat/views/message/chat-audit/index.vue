@@ -2,7 +2,7 @@
 import type { ChatAuditListItemDto } from '../../../api/chat-audit.types'
 import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaQueryParams } from '~/components'
-import { NTag } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema } from '@/api'
@@ -77,8 +77,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const item = row as unknown as ChatAuditListItemDto
       return item.isRecalled
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'error' }, () => t('chat.audit.recalled_yes'))
-        : h(NTag, { size: 'small', round: true, bordered: false }, () => t('chat.audit.recalled_no'))
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'danger' }, () => t('chat.audit.recalled_yes'))
+        : h(XhBadge, { variant: 'subtle', size: 'sm' }, () => t('chat.audit.recalled_no'))
     },
   },
   { key: 'editedTime', title: t('chat.audit.edited_time'), dataType: 'datetime', minWidth: 170, order: 18 },
@@ -107,7 +107,6 @@ const schema = computed<PageSchema>(() => ({
   pageCode: 'message.chat-audit',
   pageName: t('chat.audit.page_name'),
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: params => chatAuditApi.page(buildAuditQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,

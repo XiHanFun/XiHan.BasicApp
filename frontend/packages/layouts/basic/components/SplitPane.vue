@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { Component } from 'vue'
-import { NEmpty } from 'naive-ui'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { Icon } from '~/iconify'
 import { useSplitViewStore } from '~/stores'
 
 defineOptions({ name: 'SplitPane' })
@@ -59,7 +60,13 @@ defineExpose({ reload })
       v-if="paneComponent"
       :key="`${splitView.rightPath}#${reloadKey}`"
     />
-    <NEmpty v-else :description="t('tabbar.split_load_failed')" class="py-12" />
+    <XhEmptyStateRoot v-else class="py-12">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:circle-alert" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('common.messages.load_failed') }}</XhEmptyStateTitle>
+      <XhEmptyStateDescription>{{ t('tabbar.split_load_failed') }}</XhEmptyStateDescription>
+    </XhEmptyStateRoot>
   </div>
 </template>
 

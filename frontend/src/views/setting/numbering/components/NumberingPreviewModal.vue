@@ -3,34 +3,21 @@
   职责：根据列表规则执行不消耗流水的单个或连续批量预览，限制批量数量为 1～50，并展示周期、规则本地时间和预览区间。
 -->
 <script setup lang="ts">
-import type { DataTableColumns } from 'naive-ui'
 import type {
   NumberingPreviewDto,
   NumberingRuleListItemDto,
 } from '@/api'
-import {
-  NButton,
-  NCard,
-  NDataTable,
-  NDescriptions,
-  NDescriptionsItem,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NRadioButton,
-  NRadioGroup,
-  NSpace,
-  useMessage,
-} from 'naive-ui'
+import type { XDataTableColumn } from '~/components'
+import { XhButton, XhCardBody, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NUMBERING_BATCH_PREVIEW_MAX_COUNT,
   numberingApi,
 } from '@/api'
+import { XDataTable, XInput, XNumberInput, XSegmented } from '~/components'
+import { toast } from '~/composables'
+import { Icon } from '~/iconify'
 
 defineOptions({ name: 'NumberingPreviewModal' })
 
@@ -72,7 +59,6 @@ type PreviewMode = 'single' | 'batch'
 /** 批量模式默认展示十个连续编号，用户可在 1～50 内调整。 */
 const DefaultBatchPreviewCount = 10
 const { t } = useI18n()
-const message = useMessage()
 const mode = ref<PreviewMode>('single')
 const sampleValue = ref('1')
 const batchCount = ref<number | null>(DefaultBatchPreviewCount)
@@ -82,7 +68,7 @@ const metadata = ref<PreviewMetadata | null>(null)
 let requestVersion = 0
 
 const title = computed(() => t('setting.numbering.preview_panel_title', { code: props.rule?.ruleCode ?? '' }))
-const columns = computed<DataTableColumns<PreviewTableRow>>(() => [
+const columns = computed<XDataTableColumn<PreviewTableRow>[]>(() => [
   {
     key: 'sequence',
     title: t('setting.numbering.preview_sequence'),
@@ -96,7 +82,7 @@ const columns = computed<DataTableColumns<PreviewTableRow>>(() => [
     minWidth: 260,
     align: 'center',
     titleAlign: 'center',
-    ellipsis: { tooltip: true },
+    ellipsis: true,
   },
 ])
 
@@ -182,7 +168,7 @@ async function executePreview(): Promise<void> {
 
   const normalizedSampleValue = sampleValue.value.trim()
   if (!isValidSampleValue(normalizedSampleValue)) {
-    message.warning(t('setting.numbering.preview_invalid_start'))
+    toast.warning(t('setting.numbering.preview_invalid_start'))
     return
   }
 
@@ -192,7 +178,7 @@ async function executePreview(): Promise<void> {
       || count === null
       || count < 1
       || count > NUMBERING_BATCH_PREVIEW_MAX_COUNT)) {
-    message.warning(t('setting.numbering.preview_invalid_count', { max: NUMBERING_BATCH_PREVIEW_MAX_COUNT }))
+    toast.warning(t('setting.numbering.preview_invalid_count', { max: NUMBERING_BATCH_PREVIEW_MAX_COUNT }))
     return
   }
 
@@ -231,7 +217,7 @@ async function executePreview(): Promise<void> {
   }
   catch (error) {
     if (version === requestVersion)
-      message.error((error as Error).message || t('setting.numbering.preview_failed'))
+      toast.error((error as Error).message || t('setting.numbering.preview_failed'))
   }
   finally {
     if (version === requestVersion)
@@ -241,92 +227,115 @@ async function executePreview(): Promise<void> {
 </script>
 
 <template>
-  <NModal
-    :show="show"
-    preset="card"
-    :title="title"
-    style="width: 1040px; max-width: 94vw"
-    @update:show="emit('update:show', $event)"
+  <XhDialogRoot
+    :open="show"
+    @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <div class="grid min-h-[480px] grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <NCard :title="t('setting.numbering.preview_conditions')" size="small" embedded>
-        <NSpace vertical :size="16">
-          <NDescriptions v-if="rule" :column="1" bordered label-placement="left" size="small">
-            <NDescriptionsItem :label="t('setting.numbering.rule_code')">
-              {{ rule.ruleCode }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.numbering.time_zone')">
-              {{ rule.timeZoneId }}
-            </NDescriptionsItem>
-          </NDescriptions>
+    <XhDialogContent style="--xh-dialog-max-w: 1040px">
+      <XhDialogTitle>{{ title }}</XhDialogTitle>
+      <XhDialogCloseTrigger />
+      <div class="grid min-h-[480px] grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <XhCardRoot variant="ghost">
+          <XhCardBody>
+            <XhFlex direction="column" gap="lg">
+              <XhDescriptionsRoot v-if="rule" :columns="1" bordered placement="left" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ rule.ruleCode }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.numbering.time_zone') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ rule.timeZoneId }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
 
-          <NForm label-placement="top">
-            <NFormItem :label="t('setting.numbering.preview_mode')">
-              <NRadioGroup v-model:value="mode">
-                <NRadioButton value="single">
-                  {{ t('setting.numbering.preview_single') }}
-                </NRadioButton>
-                <NRadioButton value="batch">
-                  {{ t('setting.numbering.preview_batch') }}
-                </NRadioButton>
-              </NRadioGroup>
-            </NFormItem>
+              <XhFormRoot
+                validate-on="blur"
+              >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('setting.numbering.preview_mode') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSegmented v-model:value="mode" :options="[{ value: 'single', label: t('setting.numbering.preview_single') }, { value: 'batch', label: t('setting.numbering.preview_batch') }]" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
 
-            <NFormItem :label="t('setting.numbering.preview_start_value')">
-              <NInput v-model:value="sampleValue" maxlength="18" :input-props="{ inputmode: 'numeric' }" />
-            </NFormItem>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('setting.numbering.preview_start_value') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="sampleValue" :max-length="18" inputmode="numeric" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
 
-            <NFormItem v-if="mode === 'batch'" :label="t('setting.numbering.preview_count')">
-              <NInputNumber
-                v-model:value="batchCount"
-                class="w-full"
-                :min="1"
-                :max="NUMBERING_BATCH_PREVIEW_MAX_COUNT"
-                :precision="0"
+                <XhFieldRoot v-if="mode === 'batch'">
+                  <XhFieldLabel>{{ t('setting.numbering.preview_count') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XNumberInput
+                      v-model:value="batchCount"
+                      class="w-full"
+                      :min="1"
+                      :max="NUMBERING_BATCH_PREVIEW_MAX_COUNT"
+                      :precision="0"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormRoot>
+
+              <XhButton block tone="brand" :loading="loading" :disabled="!rule" @click="executePreview">
+                {{ t('setting.numbering.preview_execute') }}
+              </XhButton>
+            </XhFlex>
+          </XhCardBody>
+        </XhCardRoot>
+
+        <XhCardRoot variant="ghost">
+          <XhCardBody>
+            <XhFlex v-if="metadata" direction="column" gap="lg">
+              <XhDescriptionsRoot :columns="3" bordered placement="top" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.numbering.preview_period') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ metadata.periodKey }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.numbering.preview_rule_local_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ metadata.ruleLocalTime }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.numbering.preview_serial_range') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ metadata.startValue }} - {{ metadata.endValue }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
+
+              <XDataTable
+                :columns="columns"
+                :data="rows"
+                :row-key="(row: PreviewTableRow) => String(row.sequence)"
               />
-            </NFormItem>
-          </NForm>
-
-          <NButton block type="primary" :loading="loading" :disabled="!rule" @click="executePreview">
-            {{ t('setting.numbering.preview_execute') }}
-          </NButton>
-        </NSpace>
-      </NCard>
-
-      <NCard :title="t('setting.numbering.preview_results')" size="small">
-        <NSpace v-if="metadata" vertical :size="16">
-          <NDescriptions
-            :column="3"
-            bordered
-            label-placement="top"
-            size="small"
-            :label-style="{ textAlign: 'center' }"
-            :content-style="{ textAlign: 'center' }"
-          >
-            <NDescriptionsItem :label="t('setting.numbering.preview_period')">
-              {{ metadata.periodKey }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.numbering.preview_rule_local_time')">
-              {{ metadata.ruleLocalTime }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('setting.numbering.preview_serial_range')">
-              {{ metadata.startValue }} - {{ metadata.endValue }}
-            </NDescriptionsItem>
-          </NDescriptions>
-
-          <NDataTable
-            :columns="columns"
-            :data="rows"
-            :pagination="false"
-            :row-key="(row: PreviewTableRow) => row.sequence"
-            :max-height="400"
-            virtual-scroll
-          />
-        </NSpace>
-        <div v-else class="flex min-h-[400px] items-center justify-center">
-          <NEmpty :description="t('setting.numbering.preview_empty')" />
-        </div>
-      </NCard>
-    </div>
-  </NModal>
+            </XhFlex>
+            <div v-else class="flex min-h-[400px] items-center justify-center">
+              <XhEmptyStateRoot>
+                <XhEmptyStateIcon>
+                  <Icon icon="lucide:inbox" width="28" />
+                </XhEmptyStateIcon>
+                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('setting.numbering.preview_empty') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+            </div>
+          </XhCardBody>
+        </XhCardRoot>
+      </div>
+    </XhDialogContent>
+  </XhDialogRoot>
 </template>

@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import type { LogDetailField } from './log-detail.types'
-import {
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NScrollbar,
-  NSpin,
-} from 'naive-ui'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -110,26 +103,23 @@ function formatValue(field: LogDetailField) {
 </script>
 
 <template>
-  <NDrawer v-model:show="visible" :width="width" placement="right">
-    <NDrawerContent closable :title="title">
-      <NSpin :show="loading">
-        <NScrollbar class="log-detail-scroll">
-          <NDescriptions
-            v-if="record"
-            bordered
-            label-placement="left"
-            :column="2"
-            size="small"
-          >
-            <NDescriptionsItem
-              v-for="field in normalFields"
-              :key="field.key"
-              :label="field.label"
-              :span="field.span ?? 1"
-            >
-              <span class="log-detail-value">{{ formatValue(field) }}</span>
-            </NDescriptionsItem>
-          </NDescriptions>
+  <XhDrawerRoot v-model:open="visible" side="right">
+    <XhDrawerContent :style="{ '--xh-drawer-size': `${width}px` }">
+      <XhDrawerTitle>{{ title }}</XhDrawerTitle>
+      <XhDrawerCloseTrigger />
+      <div class="xh-loading-stage">
+        <div v-if="loading" class="xh-loading-stage__veil">
+          <XhSpinner />
+        </div>
+        <div class="xh-scroll-area log-detail-scroll">
+          <XhDescriptionsRoot v-if="record" :columns="2" bordered placement="left" size="sm">
+            <XhDescriptionsItem v-for="field in normalFields" :key="field.key" :style="{ gridColumn: `span ${field.span ?? 1}` }">
+              <XhDescriptionsLabel>{{ field.label }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <span class="log-detail-value">{{ formatValue(field) }}</span>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
 
           <div v-if="record" class="log-detail-blocks">
             <section v-for="field in codeFields" :key="field.key" class="log-detail-block">
@@ -139,10 +129,10 @@ function formatValue(field: LogDetailField) {
               <pre class="log-detail-pre">{{ formatValue(field) }}</pre>
             </section>
           </div>
-        </NScrollbar>
-      </NSpin>
-    </NDrawerContent>
-  </NDrawer>
+        </div>
+      </div>
+    </XhDrawerContent>
+  </XhDrawerRoot>
 </template>
 
 <style scoped>

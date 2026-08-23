@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { NButton, NCheckbox, NInput } from 'naive-ui'
+import { XhButton, XhCheckbox } from '@xihan-ui/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XInput } from '~/components'
 import { Icon } from '~/iconify'
 import WidgetCard from './WidgetCard.vue'
 
@@ -50,12 +51,12 @@ function clearDone() {
 <template>
   <WidgetCard icon="lucide:check-square" :title="t('workbench.widgets.todo.title')">
     <template #extra>
-      <NButton v-if="hasDone" size="tiny" quaternary @click="clearDone">
+      <XhButton v-if="hasDone" size="sm" variant="ghost" @click="clearDone">
         {{ t('workbench.widgets.todo_clear_done') }}
-      </NButton>
+      </XhButton>
     </template>
     <div class="flex h-full flex-col gap-2">
-      <NInput v-model:value="draft" size="small" clearable :placeholder="t('workbench.widgets.todo_placeholder')" @keyup.enter="add" />
+      <XInput v-model:value="draft" size="sm" clearable :placeholder="t('workbench.widgets.todo_placeholder')" @keyup.enter="add" />
       <div v-if="!todos.length" class="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         {{ t('workbench.widgets.todo_empty') }}
       </div>
@@ -65,7 +66,7 @@ function clearDone() {
           :key="item.id"
           class="group flex items-center gap-2 rounded px-1 py-1 transition-colors hover:bg-muted"
         >
-          <NCheckbox v-model:checked="item.done" />
+          <XhCheckbox v-model:checked="item.done" />
           <span class="min-w-0 flex-1 truncate text-sm" :class="item.done ? 'text-muted-foreground line-through' : 'text-foreground'">{{ item.text }}</span>
           <button type="button" class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100" @click="remove(item.id)">
             <Icon icon="lucide:x" width="14" class="text-muted-foreground hover:text-[hsl(var(--destructive))]" />

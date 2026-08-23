@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { LoginToken } from '~/types'
-import { NIcon, NSpin, useMessage } from 'naive-ui'
+import { XhSpinner } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -17,7 +18,6 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const appContext = useAppContext()
-const message = useMessage()
 
 const loading = ref(true)
 const errorMsg = ref<string | null>(null)
@@ -36,10 +36,10 @@ onMounted(async () => {
   if (bind) {
     loading.value = false
     if (bind === 'success') {
-      message.success(t('page.auth.oauth_bind_success'))
+      toast.success(t('page.auth.oauth_bind_success'))
     }
     else {
-      message.error(BIND_ERROR_TEXT[bind] ?? t('page.auth.oauth_bind_failed'))
+      toast.error(BIND_ERROR_TEXT[bind] ?? t('page.auth.oauth_bind_failed'))
     }
     setTimeout(() => {
       // 个人中心路由由应用注册；未配置时回落到首页，别把用户扔到一个不存在的路径上
@@ -55,7 +55,7 @@ onMounted(async () => {
   if (error) {
     errorMsg.value = decodeURIComponent(error)
     loading.value = false
-    message.error(errorMsg.value)
+    toast.error(errorMsg.value)
     setTimeout(() => {
       void router.push(LOGIN_PATH)
     }, 3000)
@@ -68,7 +68,7 @@ onMounted(async () => {
   if (!accessToken || !refreshToken) {
     errorMsg.value = t('page.auth.oauth_callback_missing_token')
     loading.value = false
-    message.error(errorMsg.value)
+    toast.error(errorMsg.value)
     setTimeout(() => {
       void router.push(LOGIN_PATH)
     }, 3000)
@@ -90,7 +90,7 @@ onMounted(async () => {
   catch (err: unknown) {
     const e = err as { message?: string }
     errorMsg.value = e?.message || t('page.auth.oauth_callback_failed')
-    message.error(errorMsg.value!)
+    toast.error(errorMsg.value!)
     setTimeout(() => {
       void router.push(LOGIN_PATH)
     }, 3000)
@@ -104,7 +104,7 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col justify-center items-center min-h-[300px] py-16">
     <template v-if="loading">
-      <NSpin :size="48" />
+      <XhSpinner />
       <p
         class="mt-6 text-base"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
@@ -118,9 +118,7 @@ onMounted(async () => {
           class="flex justify-center items-center w-16 h-16 rounded-full"
           :class="isDark ? 'bg-red-500/10' : 'bg-red-50'"
         >
-          <NIcon :size="32" class="text-red-500">
-            <Icon icon="lucide:x-circle" />
-          </NIcon>
+          <span class="text-red-500" style="display: inline-flex; font-size: 32px"><Icon icon="lucide:x-circle" /></span>
         </div>
         <p class="text-base font-medium text-red-500">
           {{ errorMsg }}

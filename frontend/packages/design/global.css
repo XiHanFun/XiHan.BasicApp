@@ -4,17 +4,20 @@
  * 本文件仅保留 @apply 规则，依赖入口中已加载的 utilities 与 @theme 颜色。
  * ========================================================================== */
 
-@layer base {
+/* 宿主页面元素的基线。组件库自带的 reset 只作用于 [data-scope] 节点，不碰这些。
+   落在 xihan.reset 层：层序里 base 排在 xihan.components 之后，写在 base 会压掉组件皮肤。 */
+@layer xihan.reset {
   *,
   ::before,
   ::after {
+    /* 只写颜色：宽度与线型由 Tailwind 的 border-* 工具类和组件皮肤各自给全 */
     @apply border-border;
 
     box-sizing: border-box;
-    border-style: solid;
-    border-width: 0;
   }
+}
 
+@layer base {
   html {
     @apply bg-background text-foreground;
 
@@ -29,6 +32,9 @@
   body,
   html {
     @apply size-full;
+
+    /* body 的 UA 默认外边距要清掉：应用占满视口，再多 8px 就会给整页挤出上下左右的滚动条 */
+    margin: 0;
   }
 
   a,
@@ -98,31 +104,6 @@
     @apply transition-shadow duration-200 hover:shadow-md;
   }
 
-  /* 系统编辑/更新表单默认双列 */
-  .xh-edit-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 16px;
-  }
-
-  .xh-edit-form-grid .n-form-item {
-    margin-bottom: 12px;
-  }
-
-  .xh-edit-form-grid .n-form-item-label {
-    padding-bottom: 6px;
-  }
-
-  /* 分组分隔线与显式整行项跨满两列，避免标题落在单列导致布局错位 */
-  .xh-edit-form-grid > .n-divider,
-  .xh-edit-form-grid > .xh-form-full-row {
-    grid-column: 1 / -1;
-  }
-
-  .xh-edit-form-grid > .n-divider {
-    margin: 4px 0 8px;
-  }
-
   .xh-form-actions {
     display: flex;
     justify-content: flex-end;
@@ -163,12 +144,6 @@ html.theme-switching *,
 html.theme-switching *::before,
 html.theme-switching *::after {
   transition: none !important;
-}
-
-@media (max-width: 960px) {
-  .xh-edit-form-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* 磨砂纹理效果 */

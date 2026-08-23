@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import type { UploadCustomRequestOptions } from 'naive-ui'
-import { NButton, NUpload, useMessage } from 'naive-ui'
+import type { FileUploadRequest } from '@xihan-ui/vue'
+import { XhButton, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { fileApi, ResourceAccessLevel } from '@/api'
 import { Icon } from '~/components'
-import { useAvatarUrl } from '~/composables'
+import { toast, useAvatarUrl } from '~/composables'
 
 defineOptions({ name: 'XLogoUpload' })
 
@@ -36,46 +36,38 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const message = useMessage()
 const uploading = ref(false)
 
 /** 引用(fileId)/直链统一经 useAvatarUrl 解析为可展示地址：fileId→预签名(带缓存)，直链→按源解析 */
 const previewUrl = useAvatarUrl(computed(() => props.modelValue))
 const boxStyle = computed(() => ({ width: `${props.previewSize}px`, height: `${props.previewSize}px` }))
+const maxFileSize = computed(() => props.maxSizeMb * 1024 * 1024)
 
-async function handleUpload(options: UploadCustomRequestOptions) {
-  const rawFile = options.file.file
-  if (!rawFile) {
-    options.onError()
-    return
-  }
-
-  if (rawFile.size > props.maxSizeMb * 1024 * 1024) {
-    message.error(t('component.logo_upload.too_large', { size: props.maxSizeMb }))
-    options.onError()
-    return
-  }
-
+async function handleUpload(request: FileUploadRequest) {
   uploading.value = true
   try {
     // 公开访问级别 + 品牌目录：本地存储副本可匿名直链（登录页展示），对象存储由后端读取时按需签名
     const detail = await fileApi.upload({
-      file: rawFile,
+      file: request.file,
       accessLevel: ResourceAccessLevel.Public,
       directory: props.directory,
     })
     // 仅落库文件主键：展示地址由读取侧按需解析，避免持久化会过期的签名地址
     emit('update:modelValue', String(detail.basicId))
-    options.onFinish()
-    message.success(t('component.logo_upload.success'))
+    toast.success(t('component.logo_upload.success'))
   }
   catch (error) {
-    options.onError()
-    message.error((error as Error)?.message || t('component.logo_upload.failed'))
+    toast.error((error as Error)?.message || t('component.logo_upload.failed'))
+    throw error
   }
   finally {
     uploading.value = false
   }
+}
+
+/** 超限由机器判定后回调，这里只负责报出来 */
+function handleReject() {
+  toast.error(t('component.logo_upload.too_large', { size: props.maxSizeMb }))
 }
 
 function clear() {
@@ -92,31 +84,31 @@ function clear() {
       </div>
     </div>
     <div class="x-logo-upload__actions">
-      <NUpload
-        :show-file-list="false"
+      <XhFileUploadRoot
         :accept="accept"
+        :max-file-size="maxFileSize"
         :disabled="disabled || uploading"
-        :custom-request="handleUpload"
+        :upload="handleUpload"
+        @file-reject="handleReject"
       >
-        <NButton size="small" :loading="uploading" :disabled="disabled">
-          <template #icon>
+        <XhFileUploadHiddenInput />
+        <XhFileUploadTrigger as-child>
+          <XhButton size="sm" variant="outline" :loading="uploading" :disabled="disabled">
             <Icon icon="lucide:upload" />
-          </template>
-          {{ previewUrl ? t('component.logo_upload.change') : t('component.logo_upload.select') }}
-        </NButton>
-      </NUpload>
-      <NButton
+            {{ previewUrl ? t('component.logo_upload.change') : t('component.logo_upload.select') }}
+          </XhButton>
+        </XhFileUploadTrigger>
+      </XhFileUploadRoot>
+      <XhButton
         v-if="previewUrl"
-        size="small"
-        quaternary
+        size="sm"
+        variant="ghost"
         :disabled="disabled || uploading"
         @click="clear"
       >
-        <template #icon>
-          <Icon icon="lucide:trash-2" />
-        </template>
+        <Icon icon="lucide:trash-2" />
         {{ t('component.logo_upload.remove') }}
-      </NButton>
+      </XhButton>
       <div class="x-logo-upload__hint">
         {{ t('component.logo_upload.hint', { size: maxSizeMb }) }}
       </div>

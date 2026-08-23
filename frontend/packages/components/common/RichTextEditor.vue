@@ -10,10 +10,11 @@ import { TextStyle } from '@tiptap/extension-text-style'
 import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import { NButton, NButtonGroup, NDivider, NInput, NPopover } from 'naive-ui'
+import { XhButton, XhButtonGroup, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
+import XInput from './XInput.vue'
 
 defineOptions({ name: 'XRichTextEditor' })
 
@@ -119,242 +120,245 @@ const headingLevels = [1, 2, 3, 4] as const
     <!-- 工具栏 -->
     <div v-if="editor && !props.disabled" class="flex flex-wrap gap-1 items-center px-2 py-1.5 bg-gray-50 border-b border-gray-200 dark:border-gray-600 dark:bg-gray-800">
       <!-- 标题 -->
-      <NButtonGroup size="small">
-        <NButton
+      <XhButtonGroup size="sm">
+        <XhButton
           v-for="level in headingLevels"
           :key="level"
-          :type="isActive('heading', { level }) ? 'primary' : 'default'"
-          quaternary
+          :tone="isActive('heading', { level }) ? 'brand' : 'neutral'"
+          variant="ghost"
           @click="editor!.chain().focus().toggleHeading({ level }).run()"
         >
           H{{ level }}
-        </NButton>
-      </NButtonGroup>
+        </XhButton>
+      </XhButtonGroup>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 基本格式 -->
-      <NButtonGroup size="small">
-        <NButton
-          :type="isActive('bold') ? 'primary' : 'default'"
-          quaternary
+      <XhButtonGroup size="sm">
+        <XhButton
+          :tone="isActive('bold') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.bold')"
           @click="editor!.chain().focus().toggleBold().run()"
         >
           <Icon icon="lucide:bold" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive('italic') ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive('italic') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.italic')"
           @click="editor!.chain().focus().toggleItalic().run()"
         >
           <Icon icon="lucide:italic" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive('underline') ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive('underline') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.underline')"
           @click="editor!.chain().focus().toggleUnderline().run()"
         >
           <Icon icon="lucide:underline" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive('strike') ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive('strike') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.strikethrough')"
           @click="editor!.chain().focus().toggleStrike().run()"
         >
           <Icon icon="lucide:strikethrough" :width="16" />
-        </NButton>
-      </NButtonGroup>
+        </XhButton>
+      </XhButtonGroup>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 文本颜色 -->
-      <NPopover trigger="click" placement="bottom" :show-arrow="false">
-        <template #trigger>
-          <NButton size="small" quaternary :title="t('component.rich_text_editor.text_color')">
-            <div class="flex flex-col items-center">
-              <Icon icon="lucide:baseline" :width="16" />
-              <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: textColor }" />
+      <XhPopoverRoot placement="bottom">
+        <XhPopoverTrigger class="x-rte-pop-trigger" :title="t('component.rich_text_editor.text_color')">
+          <div class="flex flex-col items-center">
+            <Icon icon="lucide:baseline" :width="16" />
+            <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: textColor }" />
+          </div>
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            <div class="grid grid-cols-5 gap-1 p-1">
+              <button
+                v-for="c in TEXT_COLORS"
+                :key="c"
+                class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
+                :class="{ 'ring-2 ring-blue-500 ring-offset-1': textColor === c }"
+                :style="{ background: c }"
+                @click="applyTextColor(c)"
+              />
             </div>
-          </NButton>
-        </template>
-        <div class="grid grid-cols-5 gap-1 p-1">
-          <button
-            v-for="c in TEXT_COLORS"
-            :key="c"
-            class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
-            :class="{ 'ring-2 ring-blue-500 ring-offset-1': textColor === c }"
-            :style="{ background: c }"
-            @click="applyTextColor(c)"
-          />
-        </div>
-      </NPopover>
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
 
       <!-- 高亮色 -->
-      <NPopover trigger="click" placement="bottom" :show-arrow="false">
-        <template #trigger>
-          <NButton size="small" quaternary :title="t('component.rich_text_editor.highlight')">
-            <div class="flex flex-col items-center">
-              <Icon icon="lucide:highlighter" :width="16" />
-              <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: highlightColor === 'transparent' ? '#e5e7eb' : highlightColor }" />
+      <XhPopoverRoot placement="bottom">
+        <XhPopoverTrigger class="x-rte-pop-trigger" :title="t('component.rich_text_editor.highlight')">
+          <div class="flex flex-col items-center">
+            <Icon icon="lucide:highlighter" :width="16" />
+            <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: highlightColor === 'transparent' ? '#e5e7eb' : highlightColor }" />
+          </div>
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            <div class="grid grid-cols-5 gap-1 p-1">
+              <button
+                v-for="c in HIGHLIGHT_COLORS"
+                :key="c"
+                class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
+                :class="{ 'ring-2 ring-blue-500 ring-offset-1': highlightColor === c }"
+                :style="{ background: c === 'transparent' ? 'repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50%/8px 8px' : c }"
+                :title="c === 'transparent' ? t('component.rich_text_editor.clear_highlight') : c"
+                @click="applyHighlight(c)"
+              />
             </div>
-          </NButton>
-        </template>
-        <div class="grid grid-cols-5 gap-1 p-1">
-          <button
-            v-for="c in HIGHLIGHT_COLORS"
-            :key="c"
-            class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
-            :class="{ 'ring-2 ring-blue-500 ring-offset-1': highlightColor === c }"
-            :style="{ background: c === 'transparent' ? 'repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50%/8px 8px' : c }"
-            :title="c === 'transparent' ? t('component.rich_text_editor.clear_highlight') : c"
-            @click="applyHighlight(c)"
-          />
-        </div>
-      </NPopover>
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 对齐 -->
-      <NButtonGroup size="small">
-        <NButton
-          :type="isActive({ textAlign: 'left' }) ? 'primary' : 'default'"
-          quaternary
+      <XhButtonGroup size="sm">
+        <XhButton
+          :tone="isActive({ textAlign: 'left' }) ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.align_left')"
           @click="editor!.chain().focus().setTextAlign('left').run()"
         >
           <Icon icon="lucide:align-left" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive({ textAlign: 'center' }) ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive({ textAlign: 'center' }) ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.align_center')"
           @click="editor!.chain().focus().setTextAlign('center').run()"
         >
           <Icon icon="lucide:align-center" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive({ textAlign: 'right' }) ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive({ textAlign: 'right' }) ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.align_right')"
           @click="editor!.chain().focus().setTextAlign('right').run()"
         >
           <Icon icon="lucide:align-right" :width="16" />
-        </NButton>
-      </NButtonGroup>
+        </XhButton>
+      </XhButtonGroup>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 列表 -->
-      <NButtonGroup size="small">
-        <NButton
-          :type="isActive('bulletList') ? 'primary' : 'default'"
-          quaternary
+      <XhButtonGroup size="sm">
+        <XhButton
+          :tone="isActive('bulletList') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.bullet_list')"
           @click="editor!.chain().focus().toggleBulletList().run()"
         >
           <Icon icon="lucide:list" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive('orderedList') ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive('orderedList') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.ordered_list')"
           @click="editor!.chain().focus().toggleOrderedList().run()"
         >
           <Icon icon="lucide:list-ordered" :width="16" />
-        </NButton>
-      </NButtonGroup>
+        </XhButton>
+      </XhButtonGroup>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 引用 / 代码 / 分隔线 -->
-      <NButtonGroup size="small">
-        <NButton
-          :type="isActive('blockquote') ? 'primary' : 'default'"
-          quaternary
+      <XhButtonGroup size="sm">
+        <XhButton
+          :tone="isActive('blockquote') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.blockquote')"
           @click="editor!.chain().focus().toggleBlockquote().run()"
         >
           <Icon icon="lucide:quote" :width="16" />
-        </NButton>
-        <NButton
-          :type="isActive('codeBlock') ? 'primary' : 'default'"
-          quaternary
+        </XhButton>
+        <XhButton
+          :tone="isActive('codeBlock') ? 'brand' : 'neutral'"
+          variant="ghost"
           :title="t('component.rich_text_editor.code_block')"
           @click="editor!.chain().focus().toggleCodeBlock().run()"
         >
           <Icon icon="lucide:code" :width="16" />
-        </NButton>
-        <NButton
-          quaternary
+        </XhButton>
+        <XhButton
+          variant="ghost"
           :title="t('component.rich_text_editor.horizontal_rule')"
           @click="editor!.chain().focus().setHorizontalRule().run()"
         >
           <Icon icon="lucide:minus" :width="16" />
-        </NButton>
-      </NButtonGroup>
+        </XhButton>
+      </XhButtonGroup>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 链接 -->
-      <NPopover trigger="click" placement="bottom">
-        <template #trigger>
-          <NButton
-            size="small"
-            :type="isActive('link') ? 'primary' : 'default'"
-            quaternary
-            :title="t('component.rich_text_editor.link')"
-          >
-            <Icon icon="lucide:link" :width="16" />
-          </NButton>
-        </template>
-        <div class="flex gap-2 items-center">
-          <NInput v-model:value="linkUrl" placeholder="https://" size="small" style="width: 200px" />
-          <NButton size="small" type="primary" @click="setLink">
-            {{ t('common.actions.confirm') }}
-          </NButton>
-        </div>
-      </NPopover>
+      <XhPopoverRoot placement="bottom">
+        <XhPopoverTrigger class="x-rte-pop-trigger" :class="{ 'x-rte-pop-trigger--on': isActive('link') }" :title="t('component.rich_text_editor.link')">
+          <Icon icon="lucide:link" :width="16" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            <div class="flex gap-2 items-center">
+              <XInput v-model:value="linkUrl" placeholder="https://" size="sm" style="inline-size: 200px" />
+              <XhButton size="sm" variant="solid" @click="setLink">
+                {{ t('common.actions.confirm') }}
+              </XhButton>
+            </div>
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
 
       <!-- 图片 -->
-      <NPopover trigger="click" placement="bottom">
-        <template #trigger>
-          <NButton size="small" quaternary :title="t('component.rich_text_editor.image')">
-            <Icon icon="lucide:image" :width="16" />
-          </NButton>
-        </template>
-        <div class="flex gap-2 items-center">
-          <NInput v-model:value="imageUrl" :placeholder="t('component.rich_text_editor.image_url_placeholder')" size="small" style="width: 200px" />
-          <NButton size="small" type="primary" @click="addImage">
-            {{ t('common.actions.confirm') }}
-          </NButton>
-        </div>
-      </NPopover>
+      <XhPopoverRoot placement="bottom">
+        <XhPopoverTrigger class="x-rte-pop-trigger" :title="t('component.rich_text_editor.image')">
+          <Icon icon="lucide:image" :width="16" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent>
+            <div class="flex gap-2 items-center">
+              <XInput v-model:value="imageUrl" :placeholder="t('component.rich_text_editor.image_url_placeholder')" size="sm" style="inline-size: 200px" />
+              <XhButton size="sm" variant="solid" @click="addImage">
+                {{ t('common.actions.confirm') }}
+              </XhButton>
+            </div>
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
 
-      <NDivider vertical />
+      <XhSeparator orientation="vertical" decorative />
 
       <!-- 撤销 / 重做 -->
-      <NButtonGroup size="small">
-        <NButton
-          quaternary
+      <XhButtonGroup size="sm">
+        <XhButton
+          variant="ghost"
           :disabled="!editor!.can().undo()"
           :title="t('component.rich_text_editor.undo')"
           @click="editor!.chain().focus().undo().run()"
         >
           <Icon icon="lucide:undo-2" :width="16" />
-        </NButton>
-        <NButton
-          quaternary
+        </XhButton>
+        <XhButton
+          variant="ghost"
           :disabled="!editor!.can().redo()"
           :title="t('component.rich_text_editor.redo')"
           @click="editor!.chain().focus().redo().run()"
         >
           <Icon icon="lucide:redo-2" :width="16" />
-        </NButton>
-      </NButtonGroup>
+        </XhButton>
+      </XhButtonGroup>
     </div>
 
     <!-- 编辑区 -->
@@ -363,6 +367,29 @@ const headingLevels = [1, 2, 3, 4] as const
 </template>
 
 <style scoped>
+/* 浮层触发器：与工具栏其它图标钮同款；激活态套品牌淡底 */
+.x-rte-pop-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  block-size: var(--xh-control-h-sm);
+  padding-inline: var(--xh-control-px-sm);
+  border: 0;
+  border-radius: var(--xh-shape-control);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.x-rte-pop-trigger:hover {
+  background: var(--xh-bg-subtle-hover);
+}
+
+.x-rte-pop-trigger--on {
+  background: var(--xh-bg-brand-subtle);
+  color: var(--xh-fg-brand);
+}
+
 .x-rte-content :deep(.tiptap) {
   padding: 12px 16px;
   outline: none;

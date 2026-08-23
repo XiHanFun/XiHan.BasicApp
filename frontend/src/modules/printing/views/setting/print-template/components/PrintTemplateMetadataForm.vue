@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
-import { NCollapseTransition, NIcon } from 'naive-ui'
+import { XhCollapsibleContent, XhCollapsibleRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -61,9 +61,7 @@ function switchTab(tab: 'advanced' | 'basic'): void {
         {{ t('setting.print_template.advanced_settings') }}
       </button>
       <span class="required-progress" :class="{ complete: completedRequiredCount === 2 }">
-        <NIcon :size="15">
-          <Icon :icon="completedRequiredCount === 2 ? 'tabler:circle-check' : 'tabler:circle-dashed'" />
-        </NIcon>
+        <Icon width="15" height="15" :icon="completedRequiredCount === 2 ? 'tabler:circle-check' : 'tabler:circle-dashed'" />
         {{ t('setting.print_template.required_progress', { completed: completedRequiredCount, total: 2 }) }}
       </span>
     </div>
@@ -74,19 +72,17 @@ function switchTab(tab: 'advanced' | 'basic'): void {
       :aria-expanded="securityExpanded"
       @click="securityExpanded = !securityExpanded"
     >
-      <NIcon :size="18">
-        <Icon icon="tabler:shield-lock" />
-      </NIcon>
+      <Icon width="18" height="18" icon="tabler:shield-lock" />
       <span>{{ t('setting.print_template.security_notice_compact') }}</span>
-      <NIcon class="security-chevron" :class="{ expanded: securityExpanded }" :size="17">
-        <Icon icon="tabler:chevron-right" />
-      </NIcon>
+      <span class="security-chevron" :class="{ expanded: securityExpanded }" style="display: inline-flex; font-size: 17px"><Icon icon="tabler:chevron-right" /></span>
     </button>
-    <NCollapseTransition :show="securityExpanded">
-      <p class="security-detail">
-        {{ t('setting.print_template.trusted_editor_warning') }}
-      </p>
-    </NCollapseTransition>
+    <XhCollapsibleRoot :open="securityExpanded">
+      <XhCollapsibleContent>
+        <p class="security-detail">
+          {{ t('setting.print_template.trusted_editor_warning') }}
+        </p>
+      </XhCollapsibleContent>
+    </XhCollapsibleRoot>
 
     <BasicSettings
       v-if="activeTab === 'basic'"

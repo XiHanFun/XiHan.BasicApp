@@ -52,12 +52,14 @@ export default {
   },
   // Common messages
   messages: {
+    validate_failed: 'Please check the form',
     save_success: 'Saved successfully',
     save_failed: 'Save failed',
     delete_success: 'Deleted successfully',
     delete_failed: 'Delete failed',
     status_updated: 'Status updated',
     status_failed: 'Status update failed',
+    load_failed: 'Load failed',
     operation_failed: 'Operation failed',
     batch_delete_failed: 'Batch delete failed',
     batch_action_failed: 'Batch operation failed',
@@ -69,4 +71,7 @@ export default {
     female: 'Female',
   },
   no_data: 'No Data',
+  empty: 'No data',
+  no_result: 'No matching results',
+  loading: 'Loading…',
 }

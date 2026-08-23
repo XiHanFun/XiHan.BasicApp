@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { OnlineUserListItemDto, OnlineUserSummaryDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { NTag, useDialog, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, DeviceType, onlineUserApi, querySortsFromSchema, userSessionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
+import { dialog, toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'IdentityOnlineUserPage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
 
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 
@@ -94,11 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const online = (row as unknown as OnlineUserListItemDto).isRealtimeOnline
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: online ? 'success' : 'default' },
-        () => online ? t('identity.online_user.realtime_online') : t('identity.online_user.realtime_logged'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: online ? 'success' : 'neutral' }, () => online ? t('identity.online_user.realtime_online') : t('identity.online_user.realtime_logged'))
     },
   },
   {
@@ -113,11 +108,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.online_user.device_type_placeholder'),
     width: 100,
     order: 12,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: 'info' },
-      () => getOptionLabel(deviceTypeOptions.value, (row as unknown as OnlineUserListItemDto).deviceType),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => getOptionLabel(deviceTypeOptions.value, (row as unknown as OnlineUserListItemDto).deviceType)),
   },
   { key: 'deviceName', title: t('identity.online_user.col_device_name'), dataType: 'string', sortable: true, minWidth: 120, order: 13 },
   { key: 'operatingSystem', title: t('identity.online_user.col_os'), dataType: 'string', sortable: true, minWidth: 110, order: 14 },
@@ -147,7 +138,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:user-session:export',
   pageName: t('identity.online_user.page_name'),
   rowKey: 'basicId',
-  scrollX: 1700,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -178,20 +168,22 @@ function onAction(payload: SchemaActionPayload) {
 
 function confirmRevoke(row: OnlineUserListItemDto) {
   const name = row.nickName || row.userName || `#${row.userId}`
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('identity.online_user.revoke_title'),
     content: t('identity.online_user.revoke_content', { name }),
-    positiveText: t('identity.online_user.revoke_confirm'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('identity.online_user.revoke_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await userSessionApi.revokeSession({ basicId: row.basicId, reason: t('identity.online_user.revoke_reason') })
-        message.success(t('identity.online_user.revoke_done'))
+        toast.success(t('identity.online_user.revoke_done'))
         void loadSummary()
         void schemaPageRef.value?.reload()
       }
       catch (e) {
-        message.error((e as Error).message || t('identity.online_user.revoke_failed'))
+        toast.error((e as Error).message || t('identity.online_user.revoke_failed'))
       }
     },
   })
@@ -264,9 +256,9 @@ function confirmRevoke(row: OnlineUserListItemDto) {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid var(--n-border-color, hsl(var(--border)));
+  border: 1px solid var(--xh-border-default);
   border-radius: 10px;
-  background: var(--n-color, hsl(var(--card)));
+  background: var(--xh-bg-surface);
 }
 
 .ou-card__icon {

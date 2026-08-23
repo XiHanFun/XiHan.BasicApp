@@ -1,22 +1,24 @@
 <script lang="ts" setup>
-import type { FormInst, FormRules } from 'naive-ui'
-import { NButton, NCheckbox, NForm, NFormItem, NIcon, NInput, useMessage } from 'naive-ui'
+import type { FormRules } from '@xihan-ui/headless'
+import { XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
+
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'RegisterPage' })
 
 const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
-const message = useMessage()
 const { apis } = useAppContext()
-const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -61,55 +63,51 @@ const strengthColor = computed(() => {
   return colors[passwordStrength.value] || '#e53e3e'
 })
 
-const rules: FormRules = {
+const rules = computed<FormRules>(() => ({
   username: [
-    { required: true, message: () => t('page.auth.username_placeholder'), trigger: 'blur' },
-    { min: 3, message: () => t('page.auth.username_min_length'), trigger: 'blur' },
+    { required: true, message: t('page.auth.username_placeholder') },
+    { min: 3, message: t('page.auth.username_min_length') },
   ],
   email: [
-    { required: true, message: () => t('page.auth.email_placeholder'), trigger: 'blur' },
-    { type: 'email', message: () => t('page.auth.email_invalid'), trigger: 'blur' },
+    { required: true, message: t('page.auth.email_placeholder') },
+    { type: 'email', message: t('page.auth.email_invalid') },
   ],
   password: [
-    { required: true, message: () => t('page.login.password_placeholder'), trigger: 'blur' },
+    { required: true, message: t('page.login.password_placeholder') },
     {
-      trigger: 'blur',
-      validator: (_rule, value: string) => {
-        if (!value)
-          return true
-        if (value.length < 8)
-          return new Error('密码长度至少需要 8 个字符')
-        if (!/[a-z]/.test(value))
-          return new Error('密码需包含小写字母')
-        if (!/[A-Z]/.test(value))
-          return new Error('密码需包含大写字母')
-        if (!/\d/.test(value))
-          return new Error('密码需包含数字')
-        if (!/[^a-z0-9]/i.test(value))
-          return new Error('密码需包含特殊字符')
-        return true
+      // 返回文案即失败，返回空即通过；空值交给上面那条 required 管
+      validator: (value) => {
+        const password = String(value ?? '')
+        if (!password)
+          return null
+        if (password.length < 8)
+          return t('page.auth.password_rule_length')
+        if (!/[a-z]/.test(password))
+          return t('page.auth.password_rule_lower')
+        if (!/[A-Z]/.test(password))
+          return t('page.auth.password_rule_upper')
+        if (!/\d/.test(password))
+          return t('page.auth.password_rule_digit')
+        if (!/[^a-z0-9]/i.test(password))
+          return t('page.auth.password_rule_special')
+        return null
       },
     },
   ],
   confirmPassword: [
-    { required: true, message: () => t('page.auth.confirm_password_placeholder'), trigger: 'blur' },
+    { required: true, message: t('page.auth.confirm_password_placeholder') },
     {
-      validator: (_rule, value) => {
-        if (value !== formData.value.password) {
-          return new Error(t('page.auth.password_mismatch'))
-        }
-        return true
-      },
-      trigger: 'blur',
+      // 第二参是整表值，跨字段规则从它读，不必回头取 formData
+      validator: (value, values) =>
+        value === values.password ? null : t('page.auth.password_mismatch'),
     },
   ],
-}
+}))
 
-async function handleRegister() {
+async function onSubmit() {
   try {
-    await formRef.value?.validate()
     if (!agreePolicy.value) {
-      message.warning(t('page.auth.agree_required'))
+      toast.warning(t('page.auth.agree_required'))
       return
     }
     loading.value = true
@@ -119,13 +117,13 @@ async function handleRegister() {
       password: formData.value.password,
       nickName: formData.value.username,
     })
-    message.success(t('page.auth.register_success'))
+    toast.success(t('page.auth.register_success'))
     router.push(LOGIN_PATH)
   }
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
-      message.error(error.message)
+      toast.error(error.message)
     }
   }
   finally {
@@ -135,8 +133,9 @@ async function handleRegister() {
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter')
-    handleRegister()
+    onSubmit()
 }
+const onAuthInvalid = useAuthFormInvalid()
 </script>
 
 <template>
@@ -153,50 +152,59 @@ function handleKeydown(e: KeyboardEvent) {
       </p>
     </div>
 
-    <NForm
-      ref="formRef"
-      :model="formData"
+    <XhFormRoot
+      v-model:values="formData"
       :rules="rules"
-      label-placement="top"
-      size="large"
-      :show-label="false"
+      validate-on="blur"
+      @invalid="onAuthInvalid"
       @keydown="handleKeydown"
+      @submit="onSubmit"
     >
-      <NFormItem path="username" :show-feedback="false" class="!mb-6">
-        <NInput
-          v-model:value="formData.username"
-          size="large"
-          :placeholder="t('page.auth.username_placeholder')"
-          :input-props="{ autocomplete: 'username' }"
-        />
-      </NFormItem>
-      <NFormItem path="email" :show-feedback="false" class="!mb-6">
-        <NInput
-          v-model:value="formData.email"
-          size="large"
-          :placeholder="`${t('page.auth.email_placeholder')}（${t('page.auth.register_email_tip')}）`"
-          :input-props="{ autocomplete: 'email', type: 'email' }"
-        />
-      </NFormItem>
-      <NFormItem path="password" :show-feedback="false" class="!mb-3">
-        <NInput
-          v-model:value="formData.password"
-          :type="showPassword ? 'text' : 'password'"
-          size="large"
-          :placeholder="t('page.login.password_placeholder')"
-          :input-props="{ autocomplete: 'new-password' }"
-        >
-          <template #suffix>
-            <NIcon
-              class="cursor-pointer"
-              :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-              @click="showPassword = !showPassword"
+      <XhFormFieldGroup value="username" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.username"
+              size="lg"
+              :placeholder="t('page.auth.username_placeholder')"
+              autocomplete="username"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+      <XhFormFieldGroup value="email" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.email"
+              size="lg"
+              :placeholder="`${t('page.auth.email_placeholder')}（${t('page.auth.register_email_tip')}）`"
+              autocomplete="email"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
+      <XhFormFieldGroup value="password" class="!mb-3">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.password"
+              :type="showPassword ? 'text' : 'password'"
+              size="lg"
+              :placeholder="t('page.login.password_placeholder')"
+              autocomplete="new-password"
             >
-              <Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" />
-            </NIcon>
-          </template>
-        </NInput>
-      </NFormItem>
+              <template #suffix>
+                <span
+                  class="cursor-pointer"
+                  :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
+                  @click="showPassword = !showPassword"
+                ><Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" /></span>
+              </template>
+            </XInput>
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
 
       <!-- Password strength -->
       <div v-if="formData.password" class="flex gap-2 items-center mb-6">
@@ -215,51 +223,45 @@ function handleKeydown(e: KeyboardEvent) {
       </div>
       <div v-else class="mb-3" />
 
-      <NFormItem path="confirmPassword" :show-feedback="false" class="!mb-6">
-        <NInput
-          v-model:value="formData.confirmPassword"
-          :type="showConfirmPassword ? 'text' : 'password'"
-          size="large"
-          :placeholder="t('page.auth.confirm_password_placeholder')"
-          :input-props="{ autocomplete: 'new-password' }"
-        >
-          <template #suffix>
-            <NIcon
-              class="cursor-pointer"
-              :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
-              @click="showConfirmPassword = !showConfirmPassword"
+      <XhFormFieldGroup value="confirmPassword" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.confirmPassword"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              size="lg"
+              :placeholder="t('page.auth.confirm_password_placeholder')"
+              autocomplete="new-password"
             >
-              <Icon :icon="showConfirmPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" />
-            </NIcon>
-          </template>
-        </NInput>
-      </NFormItem>
+              <template #suffix>
+                <span
+                  class="cursor-pointer"
+                  :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
+                  @click="showConfirmPassword = !showConfirmPassword"
+                ><Icon :icon="showConfirmPassword ? 'lucide:eye-off' : 'lucide:eye'" width="16" /></span>
+              </template>
+            </XInput>
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
 
+      <!-- 复选框只是那个方框，没有标签插槽：文案是并排的一段，不能塞进它里面 -->
       <div class="mb-6">
-        <NCheckbox v-model:checked="agreePolicy">
-          <span class="text-sm">
+        <span class="xh-checkbox-row">
+          <XhCheckbox v-model:checked="agreePolicy" size="sm" />
+          <span class="xh-checkbox-row__label text-sm">
             {{ t('page.auth.agree_text') }}
-            <a class="link-primary" href="#">
-              {{ t('page.auth.privacy_policy') }}
-            </a>
+            <a class="link-primary" href="#">{{ t('page.auth.privacy_policy') }}</a>
             {{ t('page.auth.and') }}
-            <a class="link-primary" href="#">
-              {{ t('page.auth.terms_of_service') }}
-            </a>
+            <a class="link-primary" href="#">{{ t('page.auth.terms_of_service') }}</a>
           </span>
-        </NCheckbox>
+        </span>
       </div>
 
-      <NButton
-        type="primary"
-        block
-        :loading="loading"
-        class="!h-12 !rounded-xl !text-[15px] !font-semibold"
-        @click="handleRegister"
-      >
+      <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="loading">
         {{ t('page.auth.register_btn') }}
-      </NButton>
-    </NForm>
+      </XhFormSubmitTrigger>
+    </XhFormRoot>
 
     <p
       class="mt-6 text-sm text-center"

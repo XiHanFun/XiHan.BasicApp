@@ -4,16 +4,10 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
-import {
-  NButton,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NTag,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XInput } from '~/components'
 import { Icon } from '~/iconify'
 import PrintTemplateDataSourceSettings from './PrintTemplateDataSourceSettings.vue'
 
@@ -40,37 +34,46 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
 
 <template>
   <section class="basic-settings-panel" aria-labelledby="print-template-basic-tab">
-    <NForm :model="model" label-placement="top">
-      <NFormItem required :label="t('setting.print_template.template_name')">
-        <NInput
-          v-model:value="model.templateName"
-          maxlength="100"
-          :placeholder="t('setting.print_template.template_name_placeholder')"
-        />
-      </NFormItem>
+    <XhFormRoot
+      v-model:values="(model as unknown as Record<string, unknown>)"
+      validate-on="blur"
+    >
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.print_template.template_name') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput
+            v-model:value="model.templateName"
+            :max-length="100"
+            :placeholder="t('setting.print_template.template_name_placeholder')"
+          />
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
 
-      <NFormItem required :label="t('setting.print_template.template_code')">
-        <NInput
-          v-model:value="model.templateCode"
-          :disabled="editing"
-          maxlength="100"
-          :placeholder="t('setting.print_template.template_code_placeholder')"
-        >
-          <template v-if="editing" #suffix>
-            <NTag size="small" :bordered="false">
-              {{ t('setting.print_template.template_code_immutable') }}
-            </NTag>
-          </template>
-        </NInput>
-      </NFormItem>
+      <XhFieldRoot>
+        <XhFieldLabel>{{ t('setting.print_template.template_code') }}</XhFieldLabel>
+        <XhFieldControl>
+          <XInput
+            v-model:value="model.templateCode"
+            :disabled="editing"
+            :max-length="100"
+            :placeholder="t('setting.print_template.template_code_placeholder')"
+          >
+            <template v-if="editing" #suffix>
+              <XhBadge variant="subtle" size="sm">
+                {{ t('setting.print_template.template_code_immutable') }}
+              </XhBadge>
+            </template>
+          </XInput>
+        </XhFieldControl>
+        <XhFieldErrorText />
+      </XhFieldRoot>
 
       <PrintTemplateDataSourceSettings v-model="model" :template="props.template" />
-    </NForm>
+    </XhFormRoot>
 
     <div class="basic-completion" :class="{ 'is-complete': basicComplete }">
-      <NIcon :size="22">
-        <Icon :icon="basicComplete ? 'tabler:circle-check-filled' : 'tabler:alert-circle-filled'" />
-      </NIcon>
+      <Icon width="22" height="22" :icon="basicComplete ? 'tabler:circle-check-filled' : 'tabler:alert-circle-filled'" />
       <div class="completion-copy">
         <strong>
           {{ basicComplete
@@ -83,14 +86,10 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
             : t('setting.print_template.basic_incomplete_help', { count: 2 - completedRequiredCount }) }}
         </span>
       </div>
-      <NButton v-if="basicComplete" secondary type="primary" size="small" @click="emit('next')">
+      <XhButton v-if="basicComplete" variant="subtle" tone="brand" size="sm" @click="emit('next')">
         {{ t('setting.print_template.continue_advanced') }}
-        <template #icon>
-          <NIcon>
-            <Icon icon="tabler:arrow-right" />
-          </NIcon>
-        </template>
-      </NButton>
+        <span><Icon icon="tabler:arrow-right" /></span>
+      </XhButton>
     </div>
   </section>
 </template>

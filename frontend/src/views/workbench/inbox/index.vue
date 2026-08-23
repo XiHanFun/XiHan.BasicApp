@@ -1,30 +1,20 @@
 <script setup lang="ts">
+import type { Tone } from '@xihan-ui/kernel'
 import type { UserInboxItemDto } from '@/api'
-import {
-  NButton,
-  NEmpty,
-  NIcon,
-  NSelect,
-  NSkeleton,
-  NSpace,
-  NTag,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { NotificationStatus, NotificationType, workbenchApi } from '@/api'
-import { NotificationContent } from '~/components'
+import { NotificationContent, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useNotificationStore } from '~/stores'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'WorkbenchInboxPage' })
 
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
-
 const router = useRouter()
-const message = useMessage()
 const notificationStore = useNotificationStore()
 const { t } = useI18n()
 
@@ -34,7 +24,7 @@ const typeFilter = ref<NotificationType | undefined>(undefined)
 const items = ref<UserInboxItemDto[]>([])
 
 const notificationTypeOptions = computed(() => [
-  { label: t('workbench.inbox.type_all'), value: undefined },
+  { label: t('workbench.inbox.type_all'), value: '' },
   { label: t('workbench.inbox.type_system'), value: NotificationType.System },
   { label: t('workbench.inbox.type_security'), value: NotificationType.Security },
   { label: t('workbench.inbox.type_business'), value: NotificationType.Business },
@@ -89,10 +79,10 @@ function notificationTypeLabel(type: NotificationType) {
   }
 }
 
-function notificationTypeTag(type: NotificationType): TagType {
+function notificationTypeTag(type: NotificationType): Tone {
   switch (type) {
     case NotificationType.Emergency:
-      return 'error'
+      return 'danger'
     case NotificationType.Security:
       return 'warning'
     case NotificationType.System:
@@ -100,7 +90,7 @@ function notificationTypeTag(type: NotificationType): TagType {
     case NotificationType.Business:
       return 'success'
     default:
-      return 'default'
+      return 'neutral'
   }
 }
 
@@ -144,7 +134,7 @@ async function loadNotifications() {
     syncHeaderStore(list)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workbench.inbox.load_failed'))
+    toast.error((error as Error)?.message || t('workbench.inbox.load_failed'))
   }
   finally {
     loading.value = false
@@ -163,7 +153,7 @@ async function handleMarkRead(item: UserInboxItemDto) {
     notificationStore.markItemRead(item.basicId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workbench.inbox.mark_read_failed'))
+    toast.error((error as Error)?.message || t('workbench.inbox.mark_read_failed'))
   }
 }
 
@@ -177,7 +167,7 @@ async function handleConfirm(item: UserInboxItemDto) {
     notificationStore.markItemConfirmed(item.basicId)
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workbench.inbox.confirm_failed'))
+    toast.error((error as Error)?.message || t('workbench.inbox.confirm_failed'))
   }
 }
 
@@ -198,7 +188,7 @@ async function handleMarkAllRead() {
     notificationStore.markAllRead()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('workbench.inbox.mark_all_read_failed'))
+    toast.error((error as Error)?.message || t('workbench.inbox.mark_all_read_failed'))
   }
 }
 
@@ -222,62 +212,64 @@ onMounted(loadNotifications)
   <div class="inbox-page">
     <div class="inbox-toolbar">
       <div class="inbox-toolbar-left">
-        <NSelect
+        <XSelect
           v-model:value="typeFilter"
           :options="notificationTypeOptions"
           clearable
           :placeholder="t('workbench.inbox.type_placeholder')"
-          size="small"
+          size="sm"
           style="width: 120px"
         />
-        <NSelect
+        <XSelect
           :value="unreadOnly ? 'pending' : 'all'"
           :options="scopeOptions"
-          size="small"
+          size="sm"
           style="width: 96px"
-          @update:value="changeScope"
+          @update:value="(value: string | number | (string | number)[] | null) => changeScope(value as string | number)"
         />
       </div>
 
       <div class="inbox-toolbar-right">
-        <NTag round size="small">
+        <XhBadge variant="subtle" size="sm">
           {{ t('workbench.inbox.unread_count', { n: unreadCount }) }}
-        </NTag>
-        <NTag round size="small" :type="confirmCount > 0 ? 'warning' : 'default'">
+        </XhBadge>
+        <XhBadge variant="subtle" size="sm" :tone="confirmCount > 0 ? 'warning' : 'neutral'">
           {{ t('workbench.inbox.confirm_count', { n: confirmCount }) }}
-        </NTag>
-        <NButton
+        </XhBadge>
+        <XhButton
           :disabled="unreadCount === 0"
           :loading="loading"
-          size="small"
-          secondary
-          type="primary"
+          size="sm"
+          variant="subtle"
+          tone="brand"
           @click="handleMarkAllRead"
         >
-          <template #icon>
-            <NIcon><Icon icon="lucide:check-check" /></NIcon>
-          </template>
+          <span><Icon icon="lucide:check-check" /></span>
           {{ t('workbench.inbox.mark_all_read') }}
-        </NButton>
-        <NButton :aria-label="t('workbench.inbox.refresh')" circle :loading="loading" size="small" @click="loadNotifications">
-          <template #icon>
-            <NIcon><Icon icon="lucide:refresh-cw" /></NIcon>
-          </template>
-        </NButton>
+        </XhButton>
+        <XhButton class="xh-icon-btn" :aria-label="t('workbench.inbox.refresh')" :loading="loading" size="sm" @click="loadNotifications">
+          <span><Icon icon="lucide:refresh-cw" /></span>
+        </XhButton>
       </div>
     </div>
 
     <div v-if="loading && items.length === 0" class="inbox-skeleton">
       <div v-for="index in 5" :key="index" class="inbox-skeleton-row">
-        <NSkeleton circle :height="38" :width="38" />
+        <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 38px; block-size: 38px" />
         <div class="inbox-skeleton-body">
-          <NSkeleton text style="width: 35%" />
-          <NSkeleton text :repeat="2" />
+          <span class="xh-skeleton-bone" />
+          <span class="xh-skeleton-bone" />
         </div>
       </div>
     </div>
 
-    <NEmpty v-else-if="visibleItems.length === 0" class="inbox-empty" :description="t('workbench.inbox.empty')" />
+    <XhEmptyStateRoot v-else-if="visibleItems.length === 0" class="inbox-empty">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:inbox" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+      <XhEmptyStateDescription>{{ t('workbench.inbox.empty') }}</XhEmptyStateDescription>
+    </XhEmptyStateRoot>
 
     <div v-else class="inbox-list">
       <article
@@ -296,15 +288,15 @@ onMounted(loadNotifications)
               {{ item.title }}
             </div>
             <div class="inbox-item-tags">
-              <NTag :type="notificationTypeTag(item.notificationType)" round size="small">
+              <XhBadge variant="subtle" :tone="notificationTypeTag(item.notificationType)" size="sm">
                 {{ notificationTypeLabel(item.notificationType) }}
-              </NTag>
-              <NTag v-if="item.notificationStatus === NotificationStatus.Unread" round size="small" type="warning">
+              </XhBadge>
+              <XhBadge v-if="item.notificationStatus === NotificationStatus.Unread" variant="subtle" size="sm" tone="warning">
                 {{ t('workbench.inbox.unread') }}
-              </NTag>
-              <NTag v-if="item.needConfirm && !item.confirmTime" round size="small" type="error">
+              </XhBadge>
+              <XhBadge v-if="item.needConfirm && !item.confirmTime" variant="subtle" size="sm" tone="danger">
                 {{ t('workbench.inbox.pending_confirm') }}
-              </NTag>
+              </XhBadge>
             </div>
           </div>
 
@@ -325,46 +317,40 @@ onMounted(loadNotifications)
           </div>
         </div>
 
-        <NSpace class="inbox-item-actions" :size="4">
-          <NButton
+        <XhFlex class="inbox-item-actions" gap="xs">
+          <XhButton
             v-if="item.notificationStatus === NotificationStatus.Unread"
             :aria-label="t('workbench.inbox.mark_read')"
-            circle
-            quaternary
-            size="small"
-            type="primary"
+            data-circle
+            variant="ghost"
+            size="sm"
+            tone="brand"
             @click="handleMarkRead(item)"
           >
-            <template #icon>
-              <NIcon><Icon icon="lucide:check" /></NIcon>
-            </template>
-          </NButton>
-          <NButton
+            <span><Icon icon="lucide:check" /></span>
+          </XhButton>
+          <XhButton
             v-if="item.needConfirm && !item.confirmTime"
             :aria-label="t('workbench.inbox.confirm')"
-            circle
-            quaternary
-            size="small"
-            type="warning"
+            data-circle
+            variant="ghost"
+            size="sm"
+            tone="warning"
             @click="handleConfirm(item)"
           >
-            <template #icon>
-              <NIcon><Icon icon="lucide:badge-check" /></NIcon>
-            </template>
-          </NButton>
-          <NButton
+            <span><Icon icon="lucide:badge-check" /></span>
+          </XhButton>
+          <XhButton
             v-if="item.link"
             :aria-label="t('workbench.inbox.open_link')"
-            circle
-            quaternary
-            size="small"
+            data-circle
+            variant="ghost"
+            size="sm"
             @click="handleOpenLink(item)"
           >
-            <template #icon>
-              <NIcon><Icon icon="lucide:external-link" /></NIcon>
-            </template>
-          </NButton>
-        </NSpace>
+            <span><Icon icon="lucide:external-link" /></span>
+          </XhButton>
+        </XhFlex>
       </article>
     </div>
   </div>

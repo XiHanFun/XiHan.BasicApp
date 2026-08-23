@@ -3,7 +3,7 @@ import type { DragEndEvent } from '@dnd-kit/vue'
 import type { TabItem } from '~/types'
 import { DragDropProvider } from '@dnd-kit/vue'
 import { useDebounceFn } from '@vueuse/core'
-import { NButton, NIcon } from 'naive-ui'
+import { XhButton } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -466,20 +466,15 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
     :class="appStore.tabbarStyle === 'chrome' ? 'h-10 pt-[4px] pb-0' : 'h-[38px] py-0'"
   >
     <!-- 左侧滚动箭头 -->
-    <NButton
+    <XhButton
       v-show="showScrollBtn"
-      quaternary
-      size="tiny"
-      :focusable="false"
+      variant="ghost"
+      size="sm"
       :disabled="scrollAtLeft"
       @click="scrollDirection('left')"
     >
-      <template #icon>
-        <NIcon>
-          <Icon icon="lucide:chevrons-left" width="14" />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon icon="lucide:chevrons-left" width="14" />
+    </XhButton>
     <span v-show="showScrollBtn" class="tab-divider" />
 
     <!-- 标签列表（无滚动条，通过箭头控制） -->
@@ -534,20 +529,15 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
 
     <!-- 右侧滚动箭头 -->
     <span v-show="showScrollBtn" class="tab-divider" />
-    <NButton
+    <XhButton
       v-show="showScrollBtn"
-      quaternary
-      size="tiny"
-      :focusable="false"
+      variant="ghost"
+      size="sm"
       :disabled="scrollAtRight"
       @click="scrollDirection('right')"
     >
-      <template #icon>
-        <NIcon>
-          <Icon icon="lucide:chevrons-right" width="14" />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon icon="lucide:chevrons-right" width="14" />
+    </XhButton>
 
     <TabbarContextMenu
       :show="contextMenuVisible"
@@ -558,64 +548,48 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       @select="handleDropdownSelect"
     />
     <span class="tab-divider" />
-    <NButton
+    <XhButton
       v-if="tabbarPreferences.tabbarShowMore.value"
-      quaternary
-      size="tiny"
+      variant="ghost"
+      size="sm"
       @click="openActiveTabMenu"
     >
-      <template #icon>
-        <NIcon>
-          <Icon icon="lucide:layout-grid" width="14" />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon icon="lucide:layout-grid" width="14" />
+    </XhButton>
     <span v-if="tabbarPreferences.tabbarShowOverview.value" class="tab-divider" />
-    <NButton
+    <XhButton
       v-if="tabbarPreferences.tabbarShowOverview.value"
-      quaternary
-      size="tiny"
+      variant="ghost"
+      size="sm"
       :title="`${t('tabbar.overview')} (${formatShortcut('Alt+B')})`"
       @click="layoutBridgeStore.requestOpenTabOverview()"
     >
-      <template #icon>
-        <NIcon>
-          <Icon icon="lucide:layers" width="14" />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon icon="lucide:layers" width="14" />
+    </XhButton>
     <span
       v-if="tabbarPreferences.tabbarShowMore.value && (appStore.widgetRefresh || tabbarPreferences.tabbarShowMaximize.value)"
       class="tab-divider"
     />
-    <NButton
+    <XhButton
       v-if="appStore.widgetRefresh"
-      quaternary
-      size="tiny"
+      variant="ghost"
+      size="sm"
       @click="refreshCurrentTab"
     >
-      <template #icon>
-        <NIcon>
-          <Icon icon="lucide:rotate-cw" width="14" />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon icon="lucide:rotate-cw" width="14" />
+    </XhButton>
     <span v-if="appStore.widgetRefresh && tabbarPreferences.tabbarShowMaximize.value" class="tab-divider" />
-    <NButton
+    <XhButton
       v-if="tabbarPreferences.tabbarShowMaximize.value"
-      quaternary
-      size="tiny"
+      variant="ghost"
+      size="sm"
       @click="toggleMaximize"
     >
-      <template #icon>
-        <NIcon>
-          <Icon
-            :icon="isContentMaximized ? 'lucide:minimize' : 'lucide:maximize'"
-            width="14"
-          />
-        </NIcon>
-      </template>
-    </NButton>
+      <Icon
+        :icon="isContentMaximized ? 'lucide:minimize' : 'lucide:maximize'"
+        width="14"
+      />
+    </XhButton>
   </div>
 </template>
 

@@ -1,20 +1,12 @@
 <script setup lang="ts">
 import type { TelegramBotListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, telegramBotApi } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput } from '~/components'
+import { dialog, toast } from '~/composables'
 
 defineOptions({ name: 'SettingTelegramBotPage' })
 
@@ -32,8 +24,9 @@ interface TelegramBotFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -63,11 +56,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const hasToken = (row as unknown as TelegramBotListItemDto).hasToken
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: hasToken ? 'success' : 'warning' },
-        () => hasToken ? t('message.telegram_bot.tag.token_configured') : t('message.telegram_bot.tag.token_missing'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: hasToken ? 'success' : 'warning' }, () => hasToken ? t('message.telegram_bot.tag.token_configured') : t('message.telegram_bot.tag.token_missing'))
     },
   },
   {
@@ -80,7 +69,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const enabled = (row as unknown as TelegramBotListItemDto).enableFallbackReply
       return enabled
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'info' }, () => t('message.telegram_bot.tag.fallback_on'))
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('message.telegram_bot.tag.fallback_on'))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -96,11 +85,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const enabled = (row as unknown as TelegramBotListItemDto).isEnabled
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: enabled ? 'success' : 'error' },
-        () => enabled ? t('message.telegram_bot.tag.enabled') : t('message.telegram_bot.tag.disabled'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => enabled ? t('message.telegram_bot.tag.enabled') : t('message.telegram_bot.tag.disabled'))
     },
   },
   { key: 'sort', title: t('message.telegram_bot.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 5 },
@@ -113,7 +98,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.telegram_bot.page_name'),
   statusPermission: 'saas:telegram-bot:status',
   rowKey: 'basicId',
-  scrollX: 1000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -197,7 +181,7 @@ async function handleEdit(row: TelegramBotListItemDto) {
   try {
     const detail = await telegramBotApi.detail(row.basicId)
     if (!detail) {
-      message.warning(t('message.telegram_bot.message.detail_not_found'))
+      toast.warning(t('message.telegram_bot.message.detail_not_found'))
       return
     }
 
@@ -217,7 +201,7 @@ async function handleEdit(row: TelegramBotListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('message.telegram_bot.message.load_detail_failed'))
+    toast.error((e as Error).message || t('message.telegram_bot.message.load_detail_failed'))
   }
 }
 
@@ -230,22 +214,22 @@ function validateIdList(value: string | null): boolean {
 
 function validateForm() {
   if (!form.value.botName.trim()) {
-    message.warning(t('message.telegram_bot.message.input_bot_name'))
+    toast.warning(t('message.telegram_bot.message.input_bot_name'))
     return false
   }
 
   if (!form.value.basicId && !form.value.token?.trim()) {
-    message.warning(t('message.telegram_bot.message.input_token'))
+    toast.warning(t('message.telegram_bot.message.input_token'))
     return false
   }
 
   if (!validateIdList(form.value.adminUsers)) {
-    message.warning(t('message.telegram_bot.message.admin_users_invalid'))
+    toast.warning(t('message.telegram_bot.message.admin_users_invalid'))
     return false
   }
 
   if (!validateIdList(form.value.allowedGroupChatIds)) {
-    message.warning(t('message.telegram_bot.message.group_chat_ids_invalid'))
+    toast.warning(t('message.telegram_bot.message.group_chat_ids_invalid'))
     return false
   }
 
@@ -287,12 +271,12 @@ async function handleSubmit() {
       })
     }
 
-    message.success(t('message.telegram_bot.message.save_success'))
+    toast.success(t('message.telegram_bot.message.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (e) {
-    message.error((e as Error).message || t('message.telegram_bot.message.save_failed'))
+    toast.error((e as Error).message || t('message.telegram_bot.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -301,40 +285,43 @@ async function handleSubmit() {
 
 function handleToggleStatus(row: TelegramBotListItemDto) {
   const next = !row.isEnabled
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: next ? t('message.telegram_bot.message.enable_title') : t('message.telegram_bot.message.disable_title'),
     content: next
       ? t('message.telegram_bot.message.enable_content', { name: row.botName })
       : t('message.telegram_bot.message.disable_content', { name: row.botName }),
-    positiveText: next ? t('message.telegram_bot.message.enable') : t('message.telegram_bot.message.disable'),
-    negativeText: t('message.telegram_bot.form.cancel'),
-    onPositiveClick: async () => {
+    okText: next ? t('message.telegram_bot.message.enable') : t('message.telegram_bot.message.disable'),
+    cancelText: t('message.telegram_bot.form.cancel'),
+    onOk: async () => {
       try {
         await telegramBotApi.updateStatus({ basicId: row.basicId, isEnabled: next })
-        message.success(t('message.telegram_bot.message.status_updated'))
+        toast.success(t('message.telegram_bot.message.status_updated'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.telegram_bot.message.status_update_failed'))
+        toast.error((e as Error).message || t('message.telegram_bot.message.status_update_failed'))
       }
     },
   })
 }
 
 function handleDelete(row: TelegramBotListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('message.telegram_bot.message.delete_title'),
     content: t('message.telegram_bot.message.delete_content', { name: row.botName }),
-    positiveText: t('message.telegram_bot.message.delete'),
-    negativeText: t('message.telegram_bot.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('message.telegram_bot.message.delete'),
+    cancelText: t('message.telegram_bot.form.cancel'),
+    onOk: async () => {
       try {
         await telegramBotApi.delete(row.basicId)
-        message.success(t('message.telegram_bot.message.delete_success'))
+        toast.success(t('message.telegram_bot.message.delete_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.telegram_bot.message.delete_failed'))
+        toast.error((e as Error).message || t('message.telegram_bot.message.delete_failed'))
       }
     },
   })
@@ -351,47 +338,106 @@ function handleDelete(row: TelegramBotListItemDto) {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('message.telegram_bot.form.bot_name')" path="botName">
-          <NInput v-model:value="form.botName" clearable :placeholder="t('message.telegram_bot.form.bot_name_placeholder')" :input-props="{ autocomplete: 'off' }" />
-        </NFormItem>
-        <NFormItem :label="t('message.telegram_bot.form.token')" path="token">
-          <NInput
-            v-model:value="form.token"
-            type="password"
-            :input-props="{ autocomplete: 'new-password' }"
-            show-password-on="click"
-            :placeholder="tokenPlaceholder"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.telegram_bot.form.admin_users')" path="adminUsers" class="xh-span-2">
-          <NInput v-model:value="form.adminUsers" clearable :placeholder="t('message.telegram_bot.form.admin_users_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.telegram_bot.form.allowed_group_chat_ids')" path="allowedGroupChatIds" class="xh-span-2">
-          <NInput v-model:value="form.allowedGroupChatIds" clearable :placeholder="t('message.telegram_bot.form.allowed_group_chat_ids_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.telegram_bot.form.allowed_commands')" path="allowedCommands" class="xh-span-2">
-          <NInput v-model:value="form.allowedCommands" clearable :placeholder="t('message.telegram_bot.form.allowed_commands_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.telegram_bot.form.enable_fallback_reply')" path="enableFallbackReply">
-          <NSwitch v-model:value="form.enableFallbackReply" />
-        </NFormItem>
-        <NFormItem :label="t('message.telegram_bot.form.sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="botName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.bot_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.botName" clearable :placeholder="t('message.telegram_bot.form.bot_name_placeholder')" autocomplete="off" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="token">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.token') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.token"
+                type="password"
+                autocomplete="new-password"
+                :placeholder="tokenPlaceholder"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="adminUsers" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.admin_users') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.adminUsers" clearable :placeholder="t('message.telegram_bot.form.admin_users_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="allowedGroupChatIds" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.allowed_group_chat_ids') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.allowedGroupChatIds" clearable :placeholder="t('message.telegram_bot.form.allowed_group_chat_ids_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="allowedCommands" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.allowed_commands') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.allowedCommands" clearable :placeholder="t('message.telegram_bot.form.allowed_commands_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="enableFallbackReply">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.enable_fallback_reply') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="form.enableFallbackReply" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
 
         <template v-if="!form.basicId">
-          <NFormItem :label="t('message.telegram_bot.form.is_enabled')" path="isEnabled">
-            <NSwitch v-model:value="form.isEnabled" />
-          </NFormItem>
+          <XhFormFieldGroup value="isEnabled">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.telegram_bot.form.is_enabled') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
-        <NFormItem :label="t('message.telegram_bot.form.remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="form.remark" clearable :placeholder="t('message.telegram_bot.form.remark_placeholder')" />
-        </NFormItem>
-      </NForm>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.telegram_bot.form.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.remark" clearable :placeholder="t('message.telegram_bot.form.remark_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>

@@ -1,8 +1,7 @@
-import type { DropdownOption, MenuOption } from 'naive-ui'
 import type { RouteRecordRaw } from 'vue-router'
 import type { LayoutEventName } from '~/constants'
 import type { useAppStore, useUserStore } from '~/stores'
-import type { MenuMeta, MenuRoute } from '~/types'
+import type { AppDropdownOption, AppMenuOption, MenuMeta, MenuRoute } from '~/types'
 
 export type LayoutMode
   = | 'side'
@@ -19,7 +18,7 @@ export interface LayoutBreadcrumbItem {
   title: string
   path: string
   icon?: string
-  siblings: DropdownOption[]
+  siblings: AppDropdownOption[]
 }
 
 export interface HeaderNavPropsContract {
@@ -37,7 +36,7 @@ export interface HeaderToolbarPropsContract {
   isDark: boolean
   isFullscreen: boolean
   showPreferencesInHeader?: boolean
-  userOptions: DropdownOption[]
+  userOptions: AppDropdownOption[]
 }
 
 export interface AppSidebarPropsContract {
@@ -54,7 +53,7 @@ export interface SidebarMenuPropsContract {
   collapsedWidth?: number
   sidebarCollapsedShowTitle?: boolean
   noTopPadding?: boolean
-  menuOptions: MenuOption[]
+  menuOptions: AppMenuOption[]
   navigationStyle: 'rounded' | 'plain'
   accordion?: boolean
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NSwitch } from 'naive-ui'
+import { XhSwitch } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { usePlatform } from '~/composables/usePlatform'
 import PrefTip from './PrefTip.vue'
@@ -15,7 +15,7 @@ const { formatShortcut: keys } = usePlatform()
 </script>
 
 <template>
-  <NCard size="small" :bordered="false">
+  <section class="pref-card">
     <div class="section-title">
       {{ t('preference.shortcut.global') }}
     </div>
@@ -24,7 +24,7 @@ const { formatShortcut: keys } = usePlatform()
         <span>{{ t('preference.shortcut.enabled') }}</span>
         <PrefTip :content="t('preference.shortcut.enabled_tip')" />
       </div>
-      <NSwitch v-model:value="appStore.shortcutEnable" />
+      <XhSwitch v-model:checked="appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <div class="flex items-center gap-1.5">
@@ -32,7 +32,7 @@ const { formatShortcut: keys } = usePlatform()
         <kbd class="kbd">{{ keys('Ctrl+K') }}</kbd>
         <PrefTip :content="t('preference.shortcut.search_tip')" />
       </div>
-      <NSwitch v-model:value="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
+      <XhSwitch v-model:checked="appStore.shortcutSearch" :disabled="!appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <div class="flex items-center gap-1.5">
@@ -40,7 +40,7 @@ const { formatShortcut: keys } = usePlatform()
         <kbd class="kbd">{{ keys('Alt+B') }}</kbd>
         <PrefTip :content="t('preference.shortcut.tab_overview_tip')" />
       </div>
-      <NSwitch v-model:value="appStore.shortcutTabOverview" :disabled="!appStore.shortcutEnable" />
+      <XhSwitch v-model:checked="appStore.shortcutTabOverview" :disabled="!appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <div class="flex items-center gap-1.5">
@@ -48,7 +48,7 @@ const { formatShortcut: keys } = usePlatform()
         <kbd class="kbd">{{ keys('Alt+L') }}</kbd>
         <PrefTip :content="t('preference.shortcut.lock_tip')" />
       </div>
-      <NSwitch v-model:value="appStore.shortcutLock" :disabled="!appStore.shortcutEnable" />
+      <XhSwitch v-model:checked="appStore.shortcutLock" :disabled="!appStore.shortcutEnable" />
     </div>
     <div class="pref-row" :class="{ 'opacity-50': !appStore.shortcutEnable }">
       <div class="flex items-center gap-1.5">
@@ -56,7 +56,7 @@ const { formatShortcut: keys } = usePlatform()
         <kbd class="kbd">{{ keys('Alt+Q') }}</kbd>
         <PrefTip :content="t('preference.shortcut.logout_tip')" />
       </div>
-      <NSwitch v-model:value="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
+      <XhSwitch v-model:checked="appStore.shortcutLogout" :disabled="!appStore.shortcutEnable" />
     </div>
-  </NCard>
+  </section>
 </template>

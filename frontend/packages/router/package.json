@@ -4,6 +4,7 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
+    "@xihan-ui/vue": "catalog:",
     "@xihan/constants": "workspace:*",
     "@xihan/stores": "workspace:*",
     "@xihan/utils": "workspace:*"

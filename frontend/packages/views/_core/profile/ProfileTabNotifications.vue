@@ -1,15 +1,15 @@
 <script lang="ts" setup>
 import type { NotificationPreference } from '~/types'
-import { NButton, NSpin, NSwitch, NTag, useMessage } from 'naive-ui'
+import { XhBadge, XhButton, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 
 defineOptions({ name: 'ProfileTabNotifications' })
 
 const { apis } = useAppContext()
-const message = useMessage()
 const { t } = useI18n()
 
 const loading = ref(false)
@@ -57,7 +57,7 @@ async function loadPreference() {
     pref.value = await apis.getNotificationPreferenceApi()
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.notifications.err_load_failed'))
+    toast.error((e as Error)?.message || t('component.profile.notifications.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -68,10 +68,10 @@ async function savePreference() {
   saving.value = true
   try {
     pref.value = await apis.updateNotificationPreferenceApi(pref.value)
-    message.success(t('component.profile.notifications.msg_saved'))
+    toast.success(t('component.profile.notifications.msg_saved'))
   }
   catch (e: unknown) {
-    message.error((e as Error)?.message || t('component.profile.notifications.err_save_failed'))
+    toast.error((e as Error)?.message || t('component.profile.notifications.err_save_failed'))
   }
   finally {
     saving.value = false
@@ -83,7 +83,10 @@ onMounted(loadPreference)
 
 <template>
   <div class="pf-tab-body">
-    <NSpin :show="loading">
+    <div class="xh-loading-stage">
+      <div v-if="loading" class="xh-loading-stage__veil">
+        <XhSpinner />
+      </div>
       <section class="pf-section">
         <div class="pf-section__head">
           <div class="pf-section__heading">
@@ -109,7 +112,7 @@ onMounted(loadPreference)
                   {{ ch.desc }}
                 </div>
               </div>
-              <NSwitch v-model:value="pref[ch.key]" />
+              <XhSwitch v-model:checked="pref[ch.key]" />
             </div>
           </div>
         </div>
@@ -135,31 +138,29 @@ onMounted(loadPreference)
               <div class="pf-list-body">
                 <div class="pf-list-title">
                   {{ item.label }}
-                  <NTag v-if="item.marketing" size="tiny" :bordered="false">
+                  <XhBadge v-if="item.marketing" variant="subtle" size="sm">
                     {{ t('component.profile.notifications.tag_marketing') }}
-                  </NTag>
+                  </XhBadge>
                 </div>
                 <div class="pf-list-desc">
                   {{ item.desc }}
                 </div>
               </div>
-              <NSwitch v-model:value="pref[item.key]" />
+              <XhSwitch v-model:checked="pref[item.key]" />
             </div>
           </div>
         </div>
         <div class="pf-section__actions">
-          <NButton @click="loadPreference">
+          <XhButton @click="loadPreference">
             {{ t('common.actions.reset') }}
-          </NButton>
-          <NButton type="primary" :loading="saving" @click="savePreference">
-            <template #icon>
-              <Icon icon="lucide:save" width="16" />
-            </template>
+          </XhButton>
+          <XhButton tone="brand" :loading="saving" @click="savePreference">
+            <Icon icon="lucide:save" width="16" />
             {{ t('component.profile.notifications.btn_save_preference') }}
-          </NButton>
+          </XhButton>
         </div>
       </section>
-    </NSpin>
+    </div>
   </div>
 </template>
 

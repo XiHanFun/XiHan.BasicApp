@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { NIcon, NInput } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useLockScreen } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import UserAvatar from './UserAvatar.vue'
+import XInput from './XInput.vue'
 
 defineOptions({ name: 'LockScreen' })
 
@@ -61,39 +61,35 @@ const {
             {{ t('component.lock_screen.setup_password_hint') }}
           </div>
           <form class="lock-screen-input-wrap" @submit.prevent="confirmLock">
-            <NInput
+            <XInput
               v-model:value="lockPwdNew"
               type="password"
-              show-password-on="click"
               :placeholder="t('component.lock_screen.new_password_placeholder')"
-              size="large"
+              size="lg"
               autocomplete="new-password"
             >
               <template #prefix>
-                <NIcon><Icon icon="lucide:key-round" width="16" /></NIcon>
+                <Icon icon="lucide:key-round" width="16" />
               </template>
-            </NInput>
-            <NInput
+            </XInput>
+            <XInput
               v-model:value="lockPwdConfirm"
               type="password"
-              show-password-on="click"
               :placeholder="t('component.lock_screen.confirm_password_placeholder')"
-              size="large"
+              size="lg"
               style="margin-top: 8px"
-              :status="lockPwdError ? 'error' : undefined"
+              :invalid="Boolean(lockPwdError)"
               autocomplete="new-password"
             >
               <template #prefix>
-                <NIcon><Icon icon="lucide:lock" width="16" /></NIcon>
+                <Icon icon="lucide:lock" width="16" />
               </template>
-            </NInput>
+            </XInput>
             <div v-if="lockPwdError" class="lock-screen-error">
               {{ lockPwdError }}
             </div>
             <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="lockLoading">
-              <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
-                <Icon icon="lucide:lock" />
-              </NIcon>
+              <Icon icon="lucide:lock" />
               {{ t('component.lock_screen.confirm_lock_btn') }}
             </button>
             <!-- 此刻还没真正锁上，允许直接退出这个设置框，免得误点锁屏后无路可走 -->
@@ -109,26 +105,23 @@ const {
             {{ t('component.lock_screen.input_password_hint') }}
           </div>
           <form class="lock-screen-input-wrap" @submit.prevent="doUnlock">
-            <NInput
+            <XInput
               v-model:value="unlockPwd"
               type="password"
-              show-password-on="click"
               :placeholder="t('component.lock_screen.password_placeholder')"
-              size="large"
-              :status="unlockError ? 'error' : undefined"
+              size="lg"
+              :invalid="Boolean(unlockError)"
               autocomplete="current-password"
             >
               <template #prefix>
-                <NIcon><Icon icon="lucide:key-round" width="16" /></NIcon>
+                <Icon icon="lucide:key-round" width="16" />
               </template>
-            </NInput>
+            </XInput>
             <div v-if="unlockError" class="lock-screen-error">
               {{ unlockError }}
             </div>
             <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="unlockLoading">
-              <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
-                <Icon icon="lucide:lock-open" />
-              </NIcon>
+              <Icon icon="lucide:lock-open" />
               {{ t('component.lock_screen.unlock_btn') }}
             </button>
             <!-- 忘了锁屏口令时的出口：结束会话回登录页，而不是把用户永远困在遮罩里 -->
@@ -138,9 +131,7 @@ const {
               :disabled="logoutLoading"
               @click="logoutAndRelogin"
             >
-              <NIcon size="14" style="vertical-align: -2px; margin-right: 4px">
-                <Icon icon="lucide:log-out" />
-              </NIcon>
+              <Icon icon="lucide:log-out" />
               {{ t('component.lock_screen.logout_btn') }}
             </button>
           </form>
@@ -152,53 +143,48 @@ const {
             {{ t('component.lock_screen.change_password_hint') }}
           </div>
           <form class="lock-screen-input-wrap" @submit.prevent="doChangePassword">
-            <NInput
+            <XInput
               v-model:value="changePwdOld"
               type="password"
-              show-password-on="click"
               :placeholder="t('component.lock_screen.change_old_password_placeholder')"
-              size="large"
+              size="lg"
               autocomplete="current-password"
             >
               <template #prefix>
-                <NIcon><Icon icon="lucide:key-round" width="16" /></NIcon>
+                <Icon icon="lucide:key-round" width="16" />
               </template>
-            </NInput>
-            <NInput
+            </XInput>
+            <XInput
               v-model:value="changePwdNew"
               type="password"
-              show-password-on="click"
               :placeholder="t('component.lock_screen.change_new_password_placeholder')"
-              size="large"
+              size="lg"
               style="margin-top: 8px"
-              :status="changePwdError ? 'error' : undefined"
+              :invalid="Boolean(changePwdError)"
               autocomplete="new-password"
             >
               <template #prefix>
-                <NIcon><Icon icon="lucide:shield-check" width="16" /></NIcon>
+                <Icon icon="lucide:shield-check" width="16" />
               </template>
-            </NInput>
-            <NInput
+            </XInput>
+            <XInput
               v-model:value="changePwdConfirm"
               type="password"
-              show-password-on="click"
               :placeholder="t('component.lock_screen.confirm_password_placeholder')"
-              size="large"
+              size="lg"
               style="margin-top: 8px"
-              :status="changePwdError ? 'error' : undefined"
+              :invalid="Boolean(changePwdError)"
               autocomplete="new-password"
             >
               <template #prefix>
-                <NIcon><Icon icon="lucide:shield-check" width="16" /></NIcon>
+                <Icon icon="lucide:shield-check" width="16" />
               </template>
-            </NInput>
+            </XInput>
             <div v-if="changePwdError" class="lock-screen-error">
               {{ changePwdError }}
             </div>
             <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="changePwdLoading">
-              <NIcon size="15" style="vertical-align: -2px; margin-right: 5px">
-                <Icon icon="lucide:shield-check" />
-              </NIcon>
+              <Icon icon="lucide:shield-check" />
               {{ t('component.lock_screen.change_password_btn') }}
             </button>
             <!-- 不想改密的出口：结束会话回登录页（下次登录仍会被锁定，直到改密为止） -->
@@ -208,9 +194,7 @@ const {
               :disabled="logoutLoading"
               @click="logoutAndRelogin"
             >
-              <NIcon size="14" style="vertical-align: -2px; margin-right: 4px">
-                <Icon icon="lucide:log-out" />
-              </NIcon>
+              <Icon icon="lucide:log-out" />
               {{ t('component.lock_screen.logout_btn') }}
             </button>
           </form>

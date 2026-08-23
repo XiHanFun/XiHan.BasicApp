@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DataTableColumns, SelectOption } from 'naive-ui'
 import type {
   ApiId,
   DateTimeString,
@@ -9,32 +8,10 @@ import type {
   NotificationUnreadUserDto,
   PageResult,
 } from '@/api'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NCheckbox,
-  NCheckboxGroup,
-  NDataTable,
-  NDatePicker,
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NDynamicTags,
-  NForm,
-  NFormItem,
-  NInput,
-  NPagination,
-  NPopconfirm,
-  NProgress,
-  NSelect,
-  NStatistic,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
+import type { SelectOption } from '~/types'
+import { XhBadge, XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhCheckboxGroupTrigger, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -48,18 +25,20 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { IconPicker, NotificationContent, SchemaPage, XContentEditorField, XEditModal, XMdEditor } from '~/components'
+import { Icon, IconPicker, NotificationContent, SchemaPage, SchemaPagination, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XSelect, XTagsInput } from '~/components'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'MessageNotificationPage' })
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
+type TagType = 'neutral' | 'danger' | 'info' | 'success' | 'warning'
 
 // ── 选项 ─────────────────────────────────────────────────────────
 const notificationTypeOptions = computed(() => [
@@ -74,8 +53,8 @@ const NOTIFICATION_TYPE_TAG: Record<string, TagType> = {
   [NotificationType.System]: 'info',
   [NotificationType.Security]: 'warning',
   [NotificationType.Business]: 'success',
-  [NotificationType.Todo]: 'default',
-  [NotificationType.Emergency]: 'error',
+  [NotificationType.Todo]: 'neutral',
+  [NotificationType.Emergency]: 'danger',
 }
 
 /** 展示用全集（历史数据可能含角色/部门） */
@@ -163,7 +142,7 @@ async function loadTargetOptions() {
     targetOptionsLoaded.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
   }
 }
 
@@ -251,11 +230,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const r = row as unknown as NotificationListItemDto
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'default' },
-        () => getOptionLabel(notificationTypeOptions.value, r.notificationType),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'neutral' }, () => getOptionLabel(notificationTypeOptions.value, r.notificationType))
     },
   },
   {
@@ -280,11 +255,7 @@ const fields = computed<ListFieldSchema[]>(() => [
         'div',
         { style: 'display:flex;flex-wrap:wrap;gap:4px' },
         channelsToArray(mask).map(bit =>
-          h(
-            NTag,
-            { key: bit, size: 'small', round: true, bordered: false, type: bit === MessageChannel.SiteNotification ? 'default' : 'info' },
-            () => getOptionLabel(deliveryChannelOptions.value, bit),
-          )),
+          h(XhBadge, { variant: 'subtle', key: bit, size: 'sm', tone: bit === MessageChannel.SiteNotification ? 'neutral' : 'info' }, () => getOptionLabel(deliveryChannelOptions.value, bit))),
       )
     },
   },
@@ -300,11 +271,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 14,
     render: (row) => {
       const published = (row as unknown as NotificationListItemDto).isPublished
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: published ? 'success' : 'default' },
-        () => published ? t('message.notification.published') : t('message.notification.unpublished'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: published ? 'success' : 'neutral' }, () => published ? t('message.notification.published') : t('message.notification.unpublished'))
     },
   },
   { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
@@ -321,7 +288,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:notification:export',
   pageName: t('message.notification.page_name'),
   rowKey: 'basicId',
-  scrollX: 1470,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -385,13 +351,13 @@ async function openDetail(row: NotificationListItemDto) {
   try {
     currentDetail.value = await notificationApi.detail(row.basicId)
     if (!currentDetail.value) {
-      message.error(t('message.notification.msg_not_found'))
+      toast.error(t('message.notification.msg_not_found'))
       return
     }
     detailVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_load_detail_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_load_detail_failed'))
   }
 }
 
@@ -400,11 +366,11 @@ async function openEdit(row: NotificationListItemDto) {
   try {
     const detail = await notificationApi.detail(row.basicId)
     if (!detail) {
-      message.error(t('message.notification.msg_not_found'))
+      toast.error(t('message.notification.msg_not_found'))
       return
     }
     if (detail.isPublished) {
-      message.warning(t('message.notification.msg_published_cannot_edit'))
+      toast.warning(t('message.notification.msg_published_cannot_edit'))
       return
     }
     notificationForm.value = {
@@ -433,7 +399,7 @@ async function openEdit(row: NotificationListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
   }
 }
 
@@ -442,19 +408,20 @@ function confirmPublish(row: NotificationListItemDto) {
   const targetText = row.targetType === NotificationTargetType.All
     ? t('message.notification.publish_target_all')
     : t('message.notification.publish_target_user')
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: t('message.notification.publish_dialog_title'),
     content: t('message.notification.publish_confirm_content', { title: row.title, target: targetText }),
-    positiveText: t('message.notification.publish_positive'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('message.notification.publish_positive'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         const result = await notificationApi.publish({ basicId: row.basicId })
-        message.success(t('message.notification.msg_publish_success', { count: result.recipientCount }))
+        toast.success(t('message.notification.msg_publish_success', { count: result.recipientCount }))
         void schemaPageRef.value?.reload()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.notification.msg_publish_failed'))
+        toast.error((e as Error).message || t('message.notification.msg_publish_failed'))
       }
     },
   })
@@ -464,11 +431,11 @@ function confirmPublish(row: NotificationListItemDto) {
 async function removeRow(row: NotificationListItemDto) {
   try {
     await notificationApi.delete(row.basicId)
-    message.success(t('message.notification.msg_delete_success'))
+    toast.success(t('message.notification.msg_delete_success'))
     void schemaPageRef.value?.reload()
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_delete_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_delete_failed'))
   }
 }
 
@@ -494,7 +461,7 @@ const readRate = computed(() => {
   return Math.round((stats.readCount / stats.recipientCount) * 100)
 })
 
-const unreadColumns = computed<DataTableColumns<NotificationUnreadUserDto>>(() => [
+const unreadColumns = computed<XDataTableColumn<NotificationUnreadUserDto>[]>(() => [
   { key: 'userName', title: t('message.notification.col_user_name'), minWidth: 140 },
   { key: 'realName', title: t('message.notification.col_real_name'), minWidth: 120, render: row => row.realName || '-' },
   { key: 'receivedTime', title: t('message.notification.col_received_time'), minWidth: 170, render: row => formatDate(row.receivedTime) },
@@ -525,7 +492,7 @@ async function openStats(row: NotificationListItemDto) {
     readStats.value = stats
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
   }
   finally {
     statsLoading.value = false
@@ -542,7 +509,7 @@ async function handleUnreadPageChange(page: number) {
     await loadUnreadUsers(statsRow.value.id, page)
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
   }
   finally {
     statsLoading.value = false
@@ -557,11 +524,11 @@ async function confirmRemind() {
   remindLoading.value = true
   try {
     const result = await notificationApi.remind(row.id)
-    message.success(t('message.notification.stats_remind_success', { count: result.recipientCount }))
+    toast.success(t('message.notification.stats_remind_success', { count: result.recipientCount }))
     readStats.value = await notificationApi.readStats(row.id)
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_publish_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_publish_failed'))
   }
   finally {
     remindLoading.value = false
@@ -584,7 +551,7 @@ async function exportUnread() {
       notificationId: row.id,
     })
     if (result.page.totalCount > STATS_EXPORT_LIMIT) {
-      message.warning(t('message.notification.stats_export_truncated'))
+      toast.warning(t('message.notification.stats_export_truncated'))
     }
     const header = [
       t('message.notification.col_user_name'),
@@ -599,7 +566,7 @@ async function exportUnread() {
     downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `unread-users-${row.id}.csv`)
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
   }
   finally {
     exportLoading.value = false
@@ -609,7 +576,7 @@ async function exportUnread() {
 // ── 新增/编辑提交 ────────────────────────────────────────────────
 function validateForm(form: NotificationFormModel): boolean {
   if (!form.title.trim()) {
-    message.warning(t('message.notification.msg_title_required'))
+    toast.warning(t('message.notification.msg_title_required'))
     return false
   }
   const needTarget = form.targetType === NotificationTargetType.User
@@ -617,13 +584,13 @@ function validateForm(form: NotificationFormModel): boolean {
     || form.targetType === NotificationTargetType.Department
   if (needTarget) {
     if (form.userIds.length === 0) {
-      message.warning(t('message.notification.msg_user_required'))
+      toast.warning(t('message.notification.msg_user_required'))
       return false
     }
     // 手填用户 ID 才校验正整数；角色/部门为选择来的 ID，非空即可
     if (form.targetType === NotificationTargetType.User
       && form.userIds.some(id => !/^[1-9]\d*$/.test(id.trim()))) {
-      message.warning(t('message.notification.msg_user_id_invalid'))
+      toast.warning(t('message.notification.msg_user_id_invalid'))
       return false
     }
   }
@@ -675,7 +642,7 @@ async function handleSubmit() {
         businessId: form.businessId,
         remark: form.remark,
       })
-      message.success(t('message.notification.msg_update_success'))
+      toast.success(t('message.notification.msg_update_success'))
     }
     else {
       await notificationApi.create({
@@ -703,13 +670,13 @@ async function handleSubmit() {
         businessId: null,
         remark: null,
       })
-      message.success(t('message.notification.msg_create_success'))
+      toast.success(t('message.notification.msg_create_success'))
     }
     modalVisible.value = false
     void schemaPageRef.value?.reload()
   }
   catch (e) {
-    message.error((e as Error).message || t('message.notification.msg_save_failed'))
+    toast.error((e as Error).message || t('message.notification.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -724,248 +691,452 @@ async function handleSubmit() {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="notificationForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('message.notification.form_title')" path="title" class="xh-span-2">
-          <NInput v-model:value="notificationForm.title" clearable :maxlength="200" :placeholder="t('message.notification.form_title_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_priority')" path="priority">
-          <NSelect v-model:value="notificationForm.priority" :options="priorityOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_content_format')" path="contentFormat">
-          <NSelect v-model:value="notificationForm.contentFormat" :options="contentFormatOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_content')" path="content" class="xh-span-2">
-          <XContentEditorField
-            v-model="contentText"
-            :title="t('message.notification.form_content_drawer_title')"
-            :placeholder="t('message.notification.form_content_placeholder')"
-            :edit-text="t('message.notification.form_content_edit')"
-            :confirm-text="t('common.actions.confirm')"
-            :cancel-text="t('common.actions.cancel')"
-            :count-label="(count: number) => t('message.notification.form_content_count', { count })"
-          >
-            <template #editor="{ value, update }">
-              <XMdEditor
-                v-if="isMarkdownContent"
-                :model-value="value"
-                @update:model-value="update"
-              />
-              <NInput
-                v-else
-                :value="value"
-                type="textarea"
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="notificationForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="title" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_title') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="notificationForm.title" clearable :max-length="200" :placeholder="t('message.notification.form_title_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="priority">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_priority') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="notificationForm.priority" :options="priorityOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="contentFormat">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_content_format') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="notificationForm.contentFormat" :options="contentFormatOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="content" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_content') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XContentEditorField
+                v-model="contentText"
+                :title="t('message.notification.form_content_drawer_title')"
                 :placeholder="t('message.notification.form_content_placeholder')"
-                @update:value="update"
-              />
-            </template>
-          </XContentEditorField>
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_type')" path="notificationType">
-          <NSelect v-model:value="notificationForm.notificationType" :options="notificationTypeOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_target_type')" path="targetType">
-          <NSelect v-model:value="notificationForm.targetType" :options="targetTypeFormOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_delivery_channels')" path="deliveryChannels" class="xh-span-2">
-          <div>
-            <NCheckboxGroup v-model:value="notificationForm.deliveryChannels">
-              <NCheckbox
-                v-for="option in deliveryChannelOptions"
-                :key="option.value"
-                :value="option.value"
-                :disabled="option.disabled"
+                :edit-text="t('message.notification.form_content_edit')"
+                :confirm-text="t('common.actions.confirm')"
+                :cancel-text="t('common.actions.cancel')"
+                :count-label="(count: number) => t('message.notification.form_content_count', { count })"
               >
-                {{ option.label }}
-              </NCheckbox>
-            </NCheckboxGroup>
-            <p class="channel-hint">
-              {{ t('message.notification.form_delivery_channels_hint') }}
-            </p>
-          </div>
-        </NFormItem>
-        <NFormItem v-if="isUserTarget" :label="t('message.notification.form_user_ids')" path="userIds" class="xh-span-2">
-          <NDynamicTags v-model:value="notificationForm.userIds" />
-        </NFormItem>
-        <NFormItem v-else-if="isRoleTarget" :label="t('message.notification.form_role_ids')" path="userIds" class="xh-span-2">
-          <NSelect v-model:value="notificationForm.userIds" multiple :options="roleOptions" />
-        </NFormItem>
-        <NFormItem v-else-if="isDepartmentTarget" :label="t('message.notification.form_department_ids')" path="userIds" class="xh-span-2">
-          <NSelect v-model:value="notificationForm.userIds" multiple :options="departmentOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_icon')" path="icon">
-          <IconPicker v-model="notificationForm.icon" :placeholder="t('message.notification.form_icon_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_link')" path="link">
-          <NInput v-model:value="notificationForm.link" clearable :maxlength="500" :placeholder="t('message.notification.form_link_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_start_time')" path="startTime">
-          <NDatePicker
-            v-model:value="notificationForm.startTime"
-            type="datetime"
-            clearable
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_expiration_time')" path="expirationTime">
-          <NDatePicker
-            v-model:value="notificationForm.expirationTime"
-            type="datetime"
-            clearable
-            :placeholder="t('message.notification.form_expiration_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_need_confirm')" path="needConfirm">
-          <NSwitch v-model:value="notificationForm.needConfirm" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_mandatory')" path="isMandatory">
-          <NSwitch v-model:value="notificationForm.isMandatory" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_banner')" path="isBanner">
-          <NSwitch v-model:value="notificationForm.isBanner" />
-        </NFormItem>
-        <NFormItem :label="t('message.notification.form_popup')" path="isPopup">
-          <NSwitch v-model:value="notificationForm.isPopup" />
-        </NFormItem>
+                <template #editor="{ value, update }">
+                  <XMdEditor
+                    v-if="isMarkdownContent"
+                    :model-value="value"
+                    @update:model-value="update"
+                  />
+                  <XInput
+                    v-else
+                    :value="value"
+                    type="textarea"
+                    :placeholder="t('message.notification.form_content_placeholder')"
+                    @update:value="update"
+                  />
+                </template>
+              </XContentEditorField>
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="notificationType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="notificationForm.notificationType" :options="notificationTypeOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="targetType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_target_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="notificationForm.targetType" :options="targetTypeFormOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="deliveryChannels" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_delivery_channels') }}</XhFieldLabel>
+            <div>
+              <XhFieldControl>
+                <XhCheckboxGroupRoot
+                  :value="notificationForm.deliveryChannels.map(String)"
+                  @update:value="(value: string[]) => (notificationForm.deliveryChannels = value as unknown as MessageChannel[])"
+                >
+                  <XhCheckboxGroupItem
+                    v-for="option in deliveryChannelOptions"
+                    :key="option.value"
+                    :value="String(option.value)"
+                  >
+                    <XhCheckboxGroupTrigger>
+                      <XhCheckboxGroupIndicator>
+                        <Icon icon="lucide:check" width="12" height="12" />
+                      </XhCheckboxGroupIndicator>
+                    </XhCheckboxGroupTrigger>
+                    <XhCheckboxGroupItemText>
+                      {{ option.label }}
+                    </XhCheckboxGroupItemText>
+                  </XhCheckboxGroupItem>
+                </XhCheckboxGroupRoot>
+              </XhFieldControl>
+              <p class="channel-hint">
+                {{ t('message.notification.form_delivery_channels_hint') }}
+              </p>
+            </div>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="isUserTarget" value="userIds" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_user_ids') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XTagsInput v-model:value="notificationForm.userIds" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-else-if="isRoleTarget" value="userIds" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_role_ids') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="notificationForm.userIds" multiple :options="roleOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-else-if="isDepartmentTarget" value="userIds" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_department_ids') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="notificationForm.userIds" multiple :options="departmentOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="icon">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_icon') }}</XhFieldLabel>
+            <XhFieldControl>
+              <IconPicker v-model="notificationForm.icon" :placeholder="t('message.notification.form_icon_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="link">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_link') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="notificationForm.link" clearable :max-length="500" :placeholder="t('message.notification.form_link_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="startTime">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_start_time') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XDatePicker
+                v-model:value="notificationForm.startTime"
+                type="datetime"
+                clearable
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="expirationTime">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_expiration_time') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XDatePicker
+                v-model:value="notificationForm.expirationTime"
+                type="datetime"
+                clearable
+                :placeholder="t('message.notification.form_expiration_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="needConfirm">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_need_confirm') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="notificationForm.needConfirm" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isMandatory">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_mandatory') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="notificationForm.isMandatory" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isBanner">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_banner') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="notificationForm.isBanner" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isPopup">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.notification.form_popup') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="notificationForm.isPopup" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
         <p v-if="isUserTarget && notificationForm.basicId" class="form-hint xh-span-2">
           {{ t('message.notification.edit_user_hint') }}
         </p>
-      </NForm>
+      </XhFormRoot>
     </XEditModal>
 
     <!-- 详情（抽屉） -->
-    <NDrawer v-model:show="detailVisible" :width="560">
-      <NDrawerContent :title="t('message.notification.detail_title')" closable>
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 560px">
+        <XhDrawerTitle>{{ t('message.notification.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <template v-if="currentDetail">
-          <NDescriptions :column="2" label-placement="left" bordered size="small">
-            <NDescriptionsItem :label="t('message.notification.detail.label.title')" :span="2">
-              {{ currentDetail.title }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.type')">
-              {{ getOptionLabel(notificationTypeOptions, currentDetail.notificationType) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.target_type')">
-              {{ getOptionLabel(targetTypeOptions, currentDetail.targetType) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.delivery_channels')">
-              {{ formatChannels(currentDetail.deliveryChannels ?? MessageChannel.SiteNotification) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.is_published')">
-              <NTag size="small" round :bordered="false" :type="currentDetail.isPublished ? 'success' : 'default'">
-                {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
-              </NTag>
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.priority')">
-              {{ getOptionLabel(priorityOptions, currentDetail.priority) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.need_confirm')">
-              {{ currentDetail.needConfirm ? t('common.statuses.yes') : t('common.statuses.no') }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.mandatory')">
-              {{ currentDetail.isMandatory ? t('common.statuses.yes') : t('common.statuses.no') }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.banner')">
-              {{ currentDetail.isBanner ? t('common.statuses.yes') : t('common.statuses.no') }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.popup')">
-              {{ currentDetail.isPopup ? t('common.statuses.yes') : t('common.statuses.no') }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.start_time')">
-              {{ currentDetail.startTime ? formatDate(currentDetail.startTime) : '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.send_time')">
-              {{ formatDate(currentDetail.sendTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.expiration_time')">
-              {{ currentDetail.expirationTime ? formatDate(currentDetail.expirationTime) : t('message.notification.never_expire') }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.icon')">
-              {{ currentDetail.icon || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.link')">
-              {{ currentDetail.link || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.business_type')">
-              {{ currentDetail.businessType || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.business_id')">
-              {{ currentDetail.businessId || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.creator')">
-              {{ currentDetail.createdBy || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.created_time')">
-              {{ formatDate(currentDetail.createdTime) }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.remark')" :span="2">
-              {{ currentDetail.remark || '-' }}
-            </NDescriptionsItem>
-            <NDescriptionsItem :label="t('message.notification.detail.label.content')" :span="2">
-              <NotificationContent
-                v-if="currentDetail.content"
-                :content="currentDetail.content"
-                :format="currentDetail.contentFormat"
-              />
-              <span v-else>{{ t('message.notification.detail_no_content') }}</span>
-            </NDescriptionsItem>
-          </NDescriptions>
+          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+            <XhDescriptionsItem style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.title') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.title }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.type') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ getOptionLabel(notificationTypeOptions, currentDetail.notificationType) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.target_type') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ getOptionLabel(targetTypeOptions, currentDetail.targetType) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.delivery_channels') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ formatChannels(currentDetail.deliveryChannels ?? MessageChannel.SiteNotification) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.is_published') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <XhBadge variant="subtle" size="sm" :tone="currentDetail.isPublished ? 'success' : 'neutral'">
+                  {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
+                </XhBadge>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.priority') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ getOptionLabel(priorityOptions, currentDetail.priority) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.need_confirm') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.needConfirm ? t('common.statuses.yes') : t('common.statuses.no') }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.mandatory') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.isMandatory ? t('common.statuses.yes') : t('common.statuses.no') }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.banner') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.isBanner ? t('common.statuses.yes') : t('common.statuses.no') }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.popup') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.isPopup ? t('common.statuses.yes') : t('common.statuses.no') }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.start_time') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.startTime ? formatDate(currentDetail.startTime) : '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.send_time') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ formatDate(currentDetail.sendTime) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.expiration_time') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.expirationTime ? formatDate(currentDetail.expirationTime) : t('message.notification.never_expire') }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.icon') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.icon || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.link') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.link || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.business_type') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.businessType || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.business_id') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.businessId || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.creator') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.createdBy || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.created_time') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ formatDate(currentDetail.createdTime) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.remark') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.remark || '-' }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('message.notification.detail.label.content') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <NotificationContent
+                  v-if="currentDetail.content"
+                  :content="currentDetail.content"
+                  :format="currentDetail.contentFormat"
+                />
+                <span v-else>{{ t('message.notification.detail_no_content') }}</span>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
         </template>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
     <!-- 运营数据（抽屉） -->
-    <NDrawer v-model:show="statsVisible" :width="640">
-      <NDrawerContent :title="statsRow ? `${t('message.notification.stats_title')} · ${statsRow.title}` : t('message.notification.stats_title')" closable>
+    <XhDrawerRoot v-model:open="statsVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 640px">
+        <XhDrawerTitle>{{ statsRow ? `${t('message.notification.stats_title')} · ${statsRow.title}` : t('message.notification.stats_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <div v-if="readStats" class="stats">
           <!-- 统计区 -->
           <div class="stats__cards">
-            <NStatistic :label="t('message.notification.stats_recipient')" :value="readStats.recipientCount" />
-            <NStatistic :label="t('message.notification.stats_read')" :value="readStats.readCount" />
-            <NStatistic :label="t('message.notification.stats_unread')" :value="readStats.unreadCount" />
-            <NStatistic v-if="readStats.needConfirm" :label="t('message.notification.stats_confirm')" :value="readStats.confirmCount" />
+            <XhStatisticRoot>
+              <XhStatisticLabel>{{ t('message.notification.stats_recipient') }}</XhStatisticLabel>
+              <XhStatisticValue>{{ readStats.recipientCount }}</XhStatisticValue>
+            </XhStatisticRoot>
+            <XhStatisticRoot>
+              <XhStatisticLabel>{{ t('message.notification.stats_read') }}</XhStatisticLabel>
+              <XhStatisticValue>{{ readStats.readCount }}</XhStatisticValue>
+            </XhStatisticRoot>
+            <XhStatisticRoot>
+              <XhStatisticLabel>{{ t('message.notification.stats_unread') }}</XhStatisticLabel>
+              <XhStatisticValue>{{ readStats.unreadCount }}</XhStatisticValue>
+            </XhStatisticRoot>
+            <XhStatisticRoot v-if="readStats.needConfirm">
+              <XhStatisticLabel>{{ t('message.notification.stats_confirm') }}</XhStatisticLabel>
+              <XhStatisticValue>{{ readStats.confirmCount }}</XhStatisticValue>
+            </XhStatisticRoot>
           </div>
           <div class="stats__rate">
             <span class="stats__rate-label">{{ t('message.notification.stats_read_rate') }}</span>
-            <NProgress type="line" :percentage="readRate" :height="12" />
+            <XhProgress variant="line" :value="readRate" :stroke-width="12" />
           </div>
           <!-- 操作区 -->
           <div class="stats__ops">
-            <NPopconfirm @positive-click="confirmRemind">
-              <template #trigger>
-                <NButton size="small" type="primary" :loading="remindLoading">
-                  {{ t('message.notification.stats_remind') }}
-                </NButton>
-              </template>
-              {{ t('message.notification.stats_remind_confirm', { count: readStats.unreadCount }) }}
-            </NPopconfirm>
-            <NButton size="small" :loading="exportLoading" @click="exportUnread">
+            <XhPopconfirmRoot @confirm="confirmRemind">
+              <XhPopconfirmTrigger class="xh-linklike-trigger">
+                {{ t('message.notification.stats_remind') }}
+              </XhPopconfirmTrigger>
+              <XhPopconfirmPositioner>
+                <XhPopconfirmContent>
+                  <XhPopconfirmDescription>{{ t('message.notification.stats_remind_confirm', { count: readStats.unreadCount }) }}</XhPopconfirmDescription>
+                  <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+                  <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+                </XhPopconfirmContent>
+              </XhPopconfirmPositioner>
+            </XhPopconfirmRoot>
+            <XhButton size="sm" :loading="exportLoading" @click="exportUnread">
               {{ t('message.notification.stats_export') }}
-            </NButton>
+            </XhButton>
           </div>
           <!-- 未读人员区 -->
           <div class="stats__section-title">
             {{ t('message.notification.stats_unread_users') }}
           </div>
-          <NDataTable
+          <XDataTable
             :columns="unreadColumns"
             :data="unreadUsers"
             :loading="statsLoading"
             :row-key="(row: NotificationUnreadUserDto) => String(row.userId)"
-            size="small"
+            size="sm"
           />
           <div class="stats__pager">
-            <NPagination
+            <SchemaPagination
               :page="unreadPage"
-              :item-count="unreadTotal"
-              :page-size="STATS_PAGE_SIZE"
-              :page-slot="5"
-              size="small"
+              :total="unreadTotal"
+              :page-size="STATS_PAGE_SIZE" compact
               @update:page="handleUnreadPageChange"
             />
           </div>
         </div>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>
 

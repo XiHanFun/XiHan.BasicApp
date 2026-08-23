@@ -2,12 +2,13 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { LoginLogDetailDto, LoginLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { createPageRequest, LoginResult, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { loginLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -16,7 +17,6 @@ import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 defineOptions({ name: 'LogLoginPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 const router = useRouter()
 
 const detailVisible = ref(false)
@@ -54,7 +54,7 @@ function loginResultType(result: LoginResult) {
     case LoginResult.TenantSwitched: return 'info'
     case LoginResult.InvalidCredentials:
     case LoginResult.TwoFactorFailed:
-    case LoginResult.Failed: return 'error'
+    case LoginResult.Failed: return 'danger'
     case LoginResult.AccountLocked:
     case LoginResult.AccountDisabled:
     case LoginResult.RequiresTwoFactor:
@@ -63,7 +63,7 @@ function loginResultType(result: LoginResult) {
     case LoginResult.MfaBound:
     case LoginResult.MfaUnbound:
     case LoginResult.SessionRevoked: return 'warning'
-    default: return 'default'
+    default: return 'neutral'
   }
 }
 
@@ -90,7 +90,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: riskOptions.value,
     width: 120,
     order: 20,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'error' : 'info' }, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'danger' : 'info' }, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? t('common.statuses.yes') : t('common.statuses.no')),
   },
   {
     key: 'loginResult',
@@ -103,7 +103,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.login.login_result_placeholder'),
     width: 120,
     order: 21,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult)),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult)),
   },
   { key: 'message', title: t('log.login.message'), dataType: 'string', minWidth: 220, order: 22 },
   { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 23 },
@@ -140,7 +140,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:login-log:export',
   pageName: t('log.login.page_name'),
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: decorateTraceFields(fields.value, router, { timeField: 'loginTime', ipKey: 'loginIp' }),
   resource: {
     page: params => logManagementApi.login.page(buildLoginQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -161,7 +160,7 @@ function onAction(payload: SchemaActionPayload) {
   }
   else if (payload.key === 'trace' && row) {
     if (!gotoTrace(router, row, row.loginTime)) {
-      message.warning(t('log.trace.value_required'))
+      toast.warning(t('log.trace.value_required'))
     }
   }
 }
@@ -174,7 +173,7 @@ async function handleDetail(row: LoginLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.login.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.login.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

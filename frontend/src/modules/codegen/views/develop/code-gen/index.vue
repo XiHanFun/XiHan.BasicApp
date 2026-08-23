@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NTabPane, NTabs } from 'naive-ui'
+import { XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DatasourcePanel from './components/datasource-panel.vue'
@@ -16,20 +16,35 @@ const activeTab = ref<'table' | 'datasource' | 'template' | 'history'>('table')
 
 <template>
   <div class="code-gen">
-    <NTabs v-model:value="activeTab" animated class="code-gen__tabs" type="line">
-      <NTabPane name="table" :tab="t('develop.code_gen.tabs.table')">
+    <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+    <XhTabsRoot v-model:value="activeTab" variant="line" class="code-gen__tabs">
+      <XhTabsList>
+        <XhTabsTrigger value="table">
+          {{ t('develop.code_gen.tabs.table') }}
+        </XhTabsTrigger>
+        <XhTabsTrigger value="datasource">
+          {{ t('develop.code_gen.tabs.datasource') }}
+        </XhTabsTrigger>
+        <XhTabsTrigger value="template">
+          {{ t('develop.code_gen.tabs.template') }}
+        </XhTabsTrigger>
+        <XhTabsTrigger value="history">
+          {{ t('develop.code_gen.tabs.history') }}
+        </XhTabsTrigger>
+      </XhTabsList>
+      <XhTabsContent value="table">
         <TablePanel />
-      </NTabPane>
-      <NTabPane name="datasource" :tab="t('develop.code_gen.tabs.datasource')">
+      </XhTabsContent>
+      <XhTabsContent value="datasource">
         <DatasourcePanel />
-      </NTabPane>
-      <NTabPane name="template" :tab="t('develop.code_gen.tabs.template')">
+      </XhTabsContent>
+      <XhTabsContent value="template">
         <TemplatePanel />
-      </NTabPane>
-      <NTabPane name="history" :tab="t('develop.code_gen.tabs.history')">
+      </XhTabsContent>
+      <XhTabsContent value="history">
         <HistoryPanel />
-      </NTabPane>
-    </NTabs>
+      </XhTabsContent>
+    </XhTabsRoot>
   </div>
 </template>
 
@@ -48,13 +63,12 @@ const activeTab = ref<'table' | 'datasource' | 'template' | 'history'>('table')
   min-height: 0;
 }
 
-.code-gen__tabs :deep(.n-tabs-pane-wrapper) {
+.code-gen__tabs :deep([data-scope='tabs'][data-part='content']) {
   flex: 1;
   min-height: 0;
 }
 
-.code-gen__tabs :deep(.n-tab-pane) {
-  height: 100%;
+.code-gen__tabs :deep([data-scope='tabs'][data-part='content']) {
   padding-top: 8px;
   box-sizing: border-box;
 }

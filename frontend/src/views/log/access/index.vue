@@ -2,12 +2,13 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { AccessLogDetailDto, AccessLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { AccessResult, createPageRequest, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { accessLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -16,7 +17,6 @@ import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 defineOptions({ name: 'LogAccessPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 const router = useRouter()
 
 const detailVisible = ref(false)
@@ -43,10 +43,10 @@ const methodOptions = computed(() => [
 function accessResultType(result: AccessResult) {
   switch (result) {
     case AccessResult.Success: return 'success'
-    case AccessResult.Failed: return 'error'
+    case AccessResult.Failed: return 'danger'
     case AccessResult.Forbidden:
     case AccessResult.Unauthorized: return 'warning'
-    default: return 'default'
+    default: return 'neutral'
   }
 }
 
@@ -89,7 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 18,
     render: (row) => {
       const r = row as unknown as AccessLogListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions.value, r.accessResult))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions.value, r.accessResult))
     },
   },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 19 },
@@ -142,7 +142,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:access-log:export',
   pageName: t('log.access.page_name'),
   rowKey: 'basicId',
-  scrollX: 2200,
   fields: decorateTraceFields(fields.value, router, { timeField: 'accessTime', ipKey: 'accessIp' }),
   resource: {
     page: params => logManagementApi.access.page(buildAccessQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -163,7 +162,7 @@ function onAction(payload: SchemaActionPayload) {
   }
   else if (payload.key === 'trace' && row) {
     if (!gotoTrace(router, row, row.accessTime)) {
-      message.warning(t('log.trace.value_required'))
+      toast.warning(t('log.trace.value_required'))
     }
   }
 }
@@ -176,7 +175,7 @@ async function handleDetail(row: AccessLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.access.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.access.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

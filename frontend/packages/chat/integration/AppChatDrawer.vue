@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NDrawer, NTooltip } from 'naive-ui'
+import { XhDrawerContent, XhDrawerRoot } from '@xihan-ui/vue'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -32,34 +32,39 @@ function handleOpenFullPage() {
 </script>
 
 <template>
-  <NDrawer
-    v-model:show="show"
-    :width="isMobile ? '100%' : 440"
-    style="max-width: 100vw;"
-    placement="right"
-  >
-    <div class="flex h-full min-h-0 flex-col">
-      <div class="flex items-center justify-between border-b border-border px-4 py-3">
-        <span class="text-sm font-semibold text-foreground">{{ t('chat.drawer.title') }}</span>
-        <div class="flex items-center gap-1">
-          <NTooltip>
-            <template #trigger>
-              <button type="button" class="chat-drawer-btn" @click="handleOpenFullPage">
-                <Icon icon="lucide:expand" width="15" height="15" />
-              </button>
-            </template>
-            {{ t('chat.drawer.open_page') }}
-          </NTooltip>
-          <button type="button" class="chat-drawer-btn" @click="show = false">
-            <Icon icon="lucide:x" width="15" height="15" />
-          </button>
+  <XhDrawerRoot v-model:open="show" side="right">
+    <XhDrawerContent :style="{ '--xh-drawer-size': isMobile ? '100%' : '440px' }">
+      <div class="flex h-full min-h-0 flex-col">
+        <div class="flex items-center justify-between border-b border-border px-4 py-3">
+          <span class="text-sm font-semibold text-foreground">{{ t('chat.drawer.title') }}</span>
+          <div class="flex items-center gap-1">
+            <!-- 说明走原生 title：这颗是抽屉里第一个可聚焦元素，挂库的提示会在抽屉一打开时自动弹出 -->
+            <button
+              type="button"
+              class="chat-drawer-btn"
+              :aria-label="t('chat.drawer.open_page')"
+              :title="t('chat.drawer.open_page')"
+              @click="handleOpenFullPage"
+            >
+              <Icon icon="lucide:expand" width="15" height="15" />
+            </button>
+            <button
+              type="button"
+              class="chat-drawer-btn"
+              :aria-label="t('common.actions.close')"
+              :title="t('common.actions.close')"
+              @click="show = false"
+            >
+              <Icon icon="lucide:x" width="15" height="15" />
+            </button>
+          </div>
+        </div>
+        <div class="min-h-0 flex-1 p-2">
+          <ChatPanel mode="drawer" />
         </div>
       </div>
-      <div class="min-h-0 flex-1 p-2">
-        <ChatPanel mode="drawer" />
-      </div>
-    </div>
-  </NDrawer>
+    </XhDrawerContent>
+  </XhDrawerRoot>
 </template>
 
 <style scoped>

@@ -30,3 +30,18 @@ export interface FrontendRequestLog {
   message?: string
   traceId?: string
 }
+
+/** 下拉选项 */
+export interface SelectOption {
+  label: string
+  value: string | number
+  disabled?: boolean
+}
+
+/** 树形下拉选项 */
+export interface TreeSelectOption {
+  label: string
+  value: string | number
+  disabled?: boolean
+  children?: TreeSelectOption[]
+}

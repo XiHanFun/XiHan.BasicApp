@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { DropdownOption, DropdownProps } from 'naive-ui'
-import { NDropdown, NSelect, useMessage } from 'naive-ui'
-import { computed, h, onMounted } from 'vue'
+import type { MenuNode } from '@xihan-ui/headless'
+import type { Placement, Size } from '@xihan-ui/kernel'
+import { XhComboboxRoot, XhMenuRoot } from '@xihan-ui/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTimezoneOptions } from '~/composables'
+import { toast, useTimezoneOptions } from '~/composables'
 import { useAppStore } from '~/stores'
 
 /**
  * 时区切换组件（统一封装：选项 + 切换逻辑）。
- * - variant=select：行内下拉框（个人中心）。
+ * - variant=select：行内可搜索下拉（个人中心）。四百多条目录必须能筛，故用 combobox 而非 select。
  * - variant=dropdown：触发器 + 菜单（顶栏），触发器经默认插槽传入。
  * 选项取自 useTimezoneOptions 的共享目录（顶栏 / 个人中心 / 编号规则同一份），不在此另行硬编码。
  * - apply=true：即时切换并同步应用时区（appStore.appTimezone，随请求头 X-Timezone 上行）并提示；否则受控，仅 emit（如个人中心的资料字段）。
@@ -22,16 +23,16 @@ const props = withDefaults(defineProps<{
   value?: string
   /** 为 true 时即时切换应用时区；否则受控仅 emit */
   apply?: boolean
-  /** NSelect 尺寸 */
-  size?: 'tiny' | 'small' | 'medium' | 'large'
-  /** NSelect 宽度（数字按 px 处理） */
+  /** 下拉框尺寸 */
+  size?: Size
+  /** 下拉框宽度（数字按 px 处理） */
   selectWidth?: number | string
-  /** NDropdown 弹出位置 */
-  placement?: DropdownProps['placement']
+  /** 菜单弹出位置 */
+  placement?: Placement
 }>(), {
   variant: 'select',
   apply: false,
-  size: 'medium',
+  size: 'md',
 })
 
 const emit = defineEmits<{
@@ -40,7 +41,6 @@ const emit = defineEmits<{
 }>()
 
 const appStore = useAppStore()
-const message = useMessage()
 const { t } = useI18n()
 
 const { commonOptions, loading, ensureLoaded, withCurrent } = useTimezoneOptions()
@@ -55,28 +55,31 @@ const current = computed(() => (props.apply ? appStore.appTimezone : (props.valu
 // select 形态给完整目录（可搜索，供编号规则等需要任意时区的场景）；
 // dropdown 形态是顶栏点开即选，只给常用几条，四百多条没法用
 const selectOptions = computed(() => withCurrent(current.value).map(zone => ({ value: zone.value, label: zone.label })))
-const dropdownOptions = computed<DropdownOption[]>(() =>
-  commonOptions.value.map((zone) => {
-    const active = zone.value === current.value
-    return {
-      key: zone.value,
-      // 当前选中项高亮：主色 + 加粗（内联样式，确保 teleport 弹层生效）
-      label: () => h('span', {
-        style: active ? { color: 'hsl(var(--primary))', fontWeight: 600 } : undefined,
-      }, zone.label),
-    }
-  }))
+const dropdownOptions = computed<MenuNode[]>(() =>
+  commonOptions.value.map(zone => ({ value: zone.value, label: zone.label })),
+)
+
+/** 筛选串由本组件持有：combobox 只负责显示，筛哪些条目归调用方 */
+const query = ref('')
+const filteredOptions = computed(() => {
+  const keyword = query.value.trim().toLowerCase()
+  return keyword === ''
+    ? selectOptions.value
+    : selectOptions.value.filter(zone => zone.label.toLowerCase().includes(keyword))
+})
+
+const selected = computed(() => (current.value ? [current.value] : []))
 
 const selectStyle = computed(() =>
   props.selectWidth == null
     ? undefined
-    : { width: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
+    : { inlineSize: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
 
 function choose(timezone: string) {
   if (props.apply) {
     // 落库并跨端同步；请求拦截器据此发送 X-Timezone，后端按该时区换算返回时间
     appStore.setAppTimezone(timezone)
-    message.success(t('header.timezone.switch_success', { timezone }))
+    toast.success(t('header.timezone.switch_success', { timezone }))
   }
   else {
     emit('update:value', timezone)
@@ -86,22 +89,37 @@ function choose(timezone: string) {
 </script>
 
 <template>
-  <NSelect
+  <XhComboboxRoot
     v-if="variant === 'select'"
-    :value="current || null"
-    :options="selectOptions"
-    :loading="loading"
-    filterable
+    v-model:input-value="query"
+    :collection="filteredOptions"
+    :value="selected"
+    :disabled="loading"
     :size="size"
     :style="selectStyle"
-    @update:value="(v) => choose(String(v))"
+    open-on-click
+    @update:value="(v: string[]) => v[0] && choose(v[0])"
   />
-  <NDropdown
+  <XhMenuRoot
     v-else
-    :options="dropdownOptions"
+    trigger-as-child
+    :collection="dropdownOptions"
     :placement="placement"
-    @select="(key) => choose(String(key))"
+    @select="(details: { value: string }) => choose(details.value)"
   >
-    <slot />
-  </NDropdown>
+    <template #trigger>
+      <slot />
+    </template>
+    <template #item="node">
+      <span :class="{ 'timezone-item--active': node.value === current }">{{ node.label }}</span>
+    </template>
+  </XhMenuRoot>
 </template>
+
+<style scoped>
+/* 当前项高亮：主色 + 加粗 */
+.timezone-item--active {
+  color: var(--xh-fg-brand);
+  font-weight: 600;
+}
+</style>

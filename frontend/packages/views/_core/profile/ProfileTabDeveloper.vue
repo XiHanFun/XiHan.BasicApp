@@ -1,30 +1,15 @@
 <script lang="ts" setup>
 import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
-import {
-  NAlert,
-  NButton,
-  NEmpty,
-  NIcon,
-  NInput,
-  NInputGroup,
-  NModal,
-  NSelect,
-  NSpin,
-  NSwitch,
-  NTag,
-  NTooltip,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
+import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 
 const { apis } = useAppContext()
-const message = useMessage()
-const dialog = useDialog()
 const { t } = useI18n()
 
 // ── API 凭证 ─────────────────────────────────────────────────────
@@ -43,7 +28,7 @@ async function loadCredentials() {
     credentials.value = await apis.getApiCredentialsApi()
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.developer.err_load_failed'))
+    toast.error((e as Error).message || t('component.profile.developer.err_load_failed'))
   }
   finally {
     credentialsLoading.value = false
@@ -60,11 +45,11 @@ async function handleCreateCredential() {
   try {
     newSecret.value = await apis.createApiCredentialApi(createName.value.trim() || undefined)
     createModalVisible.value = false
-    message.success(t('component.profile.developer.msg_credential_created'))
+    toast.success(t('component.profile.developer.msg_credential_created'))
     await loadCredentials()
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.developer.err_create_failed'))
+    toast.error((e as Error).message || t('component.profile.developer.err_create_failed'))
   }
   finally {
     createSubmitting.value = false
@@ -72,19 +57,20 @@ async function handleCreateCredential() {
 }
 
 function handleRotateSecret(cred: ApiCredentialItem) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: t('component.profile.developer.rotate_title'),
     content: t('component.profile.developer.rotate_content', { name: cred.credentialName }),
-    positiveText: t('component.profile.developer.confirm_rotate'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('component.profile.developer.confirm_rotate'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         newSecret.value = await apis.rotateApiCredentialSecretApi(cred.basicId)
-        message.success(t('component.profile.developer.msg_secret_rotated'))
+        toast.success(t('component.profile.developer.msg_secret_rotated'))
         await loadCredentials()
       }
       catch (e) {
-        message.error((e as Error).message || t('component.profile.developer.err_rotate_failed'))
+        toast.error((e as Error).message || t('component.profile.developer.err_rotate_failed'))
       }
     },
   })
@@ -93,39 +79,41 @@ function handleRotateSecret(cred: ApiCredentialItem) {
 async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
   try {
     await apis.updateApiCredentialStatusApi(cred.basicId, enabled ? 'Enabled' : 'Disabled')
-    message.success(enabled ? t('component.profile.developer.msg_credential_enabled') : t('component.profile.developer.msg_credential_disabled'))
+    toast.success(enabled ? t('component.profile.developer.msg_credential_enabled') : t('component.profile.developer.msg_credential_disabled'))
     await loadCredentials()
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.developer.err_update_status_failed'))
+    toast.error((e as Error).message || t('component.profile.developer.err_update_status_failed'))
     await loadCredentials()
   }
 }
 
 function handleDeleteCredential(cred: ApiCredentialItem) {
-  dialog.error({
+  void dialog.confirm({
+    badge: 'error',
+    tone: 'danger',
     title: t('component.profile.developer.delete_title'),
     content: t('component.profile.developer.delete_content', { name: cred.credentialName, key: cred.appKey }),
-    positiveText: t('component.profile.developer.confirm_delete'),
-    negativeText: t('common.actions.cancel'),
-    onPositiveClick: async () => {
+    okText: t('component.profile.developer.confirm_delete'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
       try {
         await apis.deleteApiCredentialApi(cred.basicId)
         if (newSecret.value?.basicId === cred.basicId) {
           newSecret.value = null
         }
-        message.success(t('component.profile.developer.msg_credential_deleted'))
+        toast.success(t('component.profile.developer.msg_credential_deleted'))
         await loadCredentials()
       }
       catch (e) {
-        message.error((e as Error).message || t('component.profile.developer.err_delete_failed'))
+        toast.error((e as Error).message || t('component.profile.developer.err_delete_failed'))
       }
     },
   })
 }
 
 function copyText(text: string) {
-  void copyToClipboard(text).then(() => message.success(t('component.profile.developer.msg_copied')))
+  void copyToClipboard(text).then(() => toast.success(t('component.profile.developer.msg_copied')))
 }
 
 // ── 调用安全设置（签名算法 + IP 白名单，按 用户 × 设置键 持久化） ──
@@ -165,7 +153,7 @@ async function handleSaveOpenApiSettings() {
     .filter(Boolean)
     .find(line => !/^\d{1,3}(?:\.\d{1,3}){3}(?:\/\d{1,2})?$/.test(line))
   if (invalid) {
-    message.error(t('component.profile.developer.err_ip_whitelist_invalid', { value: invalid }))
+    toast.error(t('component.profile.developer.err_ip_whitelist_invalid', { value: invalid }))
     return
   }
 
@@ -177,10 +165,10 @@ async function handleSaveOpenApiSettings() {
       settingKey: OPENAPI_SETTING_KEY,
       settingValue: JSON.stringify(payload),
     })
-    message.success(t('component.profile.developer.msg_settings_saved'))
+    toast.success(t('component.profile.developer.msg_settings_saved'))
   }
   catch (e) {
-    message.error((e as Error).message || t('component.profile.developer.err_save_failed'))
+    toast.error((e as Error).message || t('component.profile.developer.err_save_failed'))
   }
   finally {
     settingsSaving.value = false
@@ -207,57 +195,65 @@ onMounted(() => {
           </div>
         </div>
         <div class="pf-section__extra">
-          <NButton size="small" type="primary" @click="openCreateModal">
-            <template #icon>
-              <NIcon><Icon icon="lucide:plus" /></NIcon>
-            </template>{{ t('component.profile.developer.btn_create_credential') }}
-          </NButton>
+          <XhButton size="sm" tone="brand" @click="openCreateModal">
+            <span><Icon icon="lucide:plus" /></span>
+            {{ t('component.profile.developer.btn_create_credential') }}
+          </XhButton>
         </div>
       </div>
       <div class="pf-section__body">
-        <NAlert v-if="newSecret" type="warning" :title="t('component.profile.developer.secret_alert_title')" :bordered="false" class="pf-secret-alert">
-          <div class="pf-secret-row">
-            <span class="pf-secret-label">AppKey</span>
-            <NInputGroup>
-              <NInput :value="newSecret.appKey" readonly size="small" />
-              <NButton size="small" @click="copyText(newSecret.appKey)">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:copy" /></NIcon>
-                </template>
-              </NButton>
-            </NInputGroup>
-          </div>
-          <div class="pf-secret-row">
-            <span class="pf-secret-label">Secret</span>
-            <NInputGroup>
-              <NInput :value="newSecret.appSecret" readonly size="small" type="password" show-password-on="click" />
-              <NButton size="small" @click="copyText(newSecret.appSecret)">
-                <template #icon>
-                  <NIcon><Icon icon="lucide:copy" /></NIcon>
-                </template>
-              </NButton>
-            </NInputGroup>
-          </div>
-        </NAlert>
+        <XhAlertRoot v-if="newSecret" tone="warning" class="pf-secret-alert">
+          <XhAlertIcon>
+            <Icon icon="lucide:triangle-alert" width="16" height="16" />
+          </XhAlertIcon>
+          <XhAlertTitle>{{ t('component.profile.developer.secret_alert_title') }}</XhAlertTitle>
+          <XhAlertDescription>
+            <div class="pf-secret-row">
+              <span class="pf-secret-label">AppKey</span>
+              <div class="xh-input-group">
+                <XInput :value="newSecret.appKey" readonly size="sm" />
+                <XhButton size="sm" @click="copyText(newSecret.appKey)">
+                  <span><Icon icon="lucide:copy" /></span>
+                </XhButton>
+              </div>
+            </div>
+            <div class="pf-secret-row">
+              <span class="pf-secret-label">Secret</span>
+              <div class="xh-input-group">
+                <XInput :value="newSecret.appSecret" readonly size="sm" type="password" />
+                <XhButton size="sm" @click="copyText(newSecret.appSecret)">
+                  <span><Icon icon="lucide:copy" /></span>
+                </XhButton>
+              </div>
+            </div>
+          </XhAlertDescription>
+        </XhAlertRoot>
 
-        <NSpin :show="credentialsLoading">
-          <NEmpty v-if="credentials.length === 0 && !credentialsLoading" class="pf-empty" :description="t('component.profile.developer.empty_credentials')" />
+        <div class="xh-loading-stage">
+          <div v-if="credentialsLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="credentials.length === 0 && !credentialsLoading" class="pf-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('component.profile.developer.empty_credentials') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
           <div v-else class="pf-list">
             <div v-for="cred in credentials" :key="String(cred.basicId)" class="pf-list-item pf-credential">
               <div class="pf-list-body">
                 <div class="pf-list-title pf-credential__name">
                   <span>{{ cred.credentialName }}</span>
-                  <NTag size="small" round :bordered="false" :type="cred.status === 'Enabled' ? 'success' : 'default'">
+                  <XhBadge variant="subtle" size="sm" :tone="cred.status === 'Enabled' ? 'success' : 'neutral'">
                     {{ cred.status === 'Enabled' ? t('component.profile.developer.tag_enabled') : t('component.profile.developer.tag_disabled') }}
-                  </NTag>
+                  </XhBadge>
                 </div>
                 <div class="pf-credential__key">
                   <code>{{ cred.appKey }}</code>
-                  <NButton size="tiny" quaternary @click="copyText(cred.appKey)">
-                    <template #icon>
-                      <NIcon><Icon icon="lucide:copy" /></NIcon>
-                    </template>
-                  </NButton>
+                  <XhButton size="sm" variant="ghost" @click="copyText(cred.appKey)">
+                    <span><Icon icon="lucide:copy" /></span>
+                  </XhButton>
                 </div>
                 <div class="pf-list-desc">
                   {{ t('component.profile.developer.created_at', { time: formatDate(cred.createdTime) }) }}
@@ -270,37 +266,26 @@ onMounted(() => {
                 </div>
               </div>
               <div class="pf-credential__actions">
-                <NTooltip>
-                  <template #trigger>
-                    <NSwitch
-                      size="small"
-                      :value="cred.status === 'Enabled'"
-                      @update:value="(v: boolean) => handleToggleStatus(cred, v)"
-                    />
-                  </template>{{ t('component.profile.developer.tooltip_toggle_status') }}
-                </NTooltip>
-                <NTooltip>
-                  <template #trigger>
-                    <NButton size="tiny" quaternary @click="handleRotateSecret(cred)">
-                      <template #icon>
-                        <NIcon><Icon icon="lucide:rotate-ccw" /></NIcon>
-                      </template>
-                    </NButton>
-                  </template>{{ t('component.profile.developer.tooltip_rotate') }}
-                </NTooltip>
-                <NTooltip>
-                  <template #trigger>
-                    <NButton size="tiny" quaternary type="error" @click="handleDeleteCredential(cred)">
-                      <template #icon>
-                        <NIcon><Icon icon="lucide:trash-2" /></NIcon>
-                      </template>
-                    </NButton>
-                  </template>{{ t('component.profile.developer.tooltip_delete') }}
-                </NTooltip>
+                <XhSwitch
+                  :title="t('component.profile.developer.tooltip_toggle_status')"
+                  size="sm"
+                  :checked="cred.status === 'Enabled'"
+                  @update:checked="(v: boolean) => handleToggleStatus(cred, v)"
+                />
+                <XTooltip :content="t('component.profile.developer.tooltip_rotate')">
+                  <XhButton size="sm" variant="ghost" @click="handleRotateSecret(cred)">
+                    <span><Icon icon="lucide:rotate-ccw" /></span>
+                  </XhButton>
+                </XTooltip>
+                <XTooltip :content="t('component.profile.developer.tooltip_delete')">
+                  <XhButton size="sm" variant="ghost" tone="danger" @click="handleDeleteCredential(cred)">
+                    <span><Icon icon="lucide:trash-2" /></span>
+                  </XhButton>
+                </XTooltip>
               </div>
             </div>
           </div>
-        </NSpin>
+        </div>
       </div>
     </section>
 
@@ -328,7 +313,7 @@ onMounted(() => {
               </div>
             </div>
             <div class="pf-setting-row__control">
-              <NSelect v-model:value="signAlgorithm" :options="signAlgorithmOptions" class="pf-field" size="small" />
+              <XSelect v-model:value="signAlgorithm" :options="signAlgorithmOptions" class="pf-field" size="sm" />
             </div>
           </div>
           <div class="pf-setting-row pf-setting-row--block">
@@ -340,7 +325,7 @@ onMounted(() => {
                 {{ t('component.profile.developer.field_ip_whitelist_desc') }}
               </div>
             </div>
-            <NInput
+            <XInput
               v-model:value="ipWhitelist"
               type="textarea"
               placeholder="192.168.1.1&#10;10.0.0.0/24"
@@ -350,28 +335,26 @@ onMounted(() => {
         </div>
       </div>
       <div class="pf-section__actions">
-        <NButton type="primary" size="small" :loading="settingsSaving" @click="handleSaveOpenApiSettings">
+        <XhButton tone="brand" size="sm" :loading="settingsSaving" @click="handleSaveOpenApiSettings">
           {{ t('component.profile.developer.btn_save_settings') }}
-        </NButton>
+        </XhButton>
       </div>
     </section>
 
-    <NModal
+    <XEditModal
       v-model:show="createModalVisible"
-      preset="dialog"
       :title="t('component.profile.developer.create_modal_title')"
-      :positive-text="t('component.profile.developer.btn_create')"
-      :negative-text="t('common.actions.cancel')"
+      :save-text="t('component.profile.developer.btn_create')"
       :loading="createSubmitting"
-      @positive-click="handleCreateCredential"
+      @save="handleCreateCredential"
     >
       <div class="pf-create-form">
         <div class="pf-create-form__tip">
           {{ t('component.profile.developer.create_form_tip') }}
         </div>
-        <NInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" maxlength="100" show-count @keydown.enter="handleCreateCredential" />
+        <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" :max-length="100" show-count @keydown.enter="handleCreateCredential" />
       </div>
-    </NModal>
+    </XEditModal>
   </div>
 </template>
 

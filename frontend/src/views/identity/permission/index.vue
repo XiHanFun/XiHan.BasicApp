@@ -13,26 +13,8 @@ import type {
   ValidityStatus,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NDescriptions,
-  NDescriptionsItem,
-  NDrawer,
-  NDrawerContent,
-  NEmpty,
-  NForm,
-  NFormItem,
-  NIcon,
-  NInput,
-  NInputNumber,
-  NScrollbar,
-  NSelect,
-  NSpin,
-  NSwitch,
-  NTabPane,
-  NTabs,
-  useMessage,
-} from 'naive-ui'
-import { computed, ref, watch } from 'vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -43,13 +25,17 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal } from '~/components'
+import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
 
 const { t } = useI18n()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 interface PermissionFormModel extends PermissionCreateDto {
   basicId?: ApiId
@@ -59,8 +45,6 @@ interface NumericSelectOption {
   label: string
   value: ApiId
 }
-
-const message = useMessage()
 
 const submitLoading = ref(false)
 const resourceLoading = ref(false)
@@ -252,7 +236,6 @@ const schema = computed<PageSchema>(() => ({
   removePermission: 'saas:permission:delete',
   statusPermission: 'saas:permission:status',
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -357,11 +340,11 @@ async function handleView(row: PermissionListItemDto) {
   try {
     currentDetail.value = await permissionCenterApi.detailView(row.basicId)
     if (!currentDetail.value) {
-      message.warning(t('identity.permission.msg_detail_not_found'))
+      toast.warning(t('identity.permission.msg_detail_not_found'))
     }
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.permission.msg_load_detail_failed'))
+    toast.error((error as Error)?.message || t('identity.permission.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -378,7 +361,7 @@ async function loadResourceOptions(keyword = '') {
     resourceOptions.value = mergeOptions(resourceOptions.value, items.map(toResourceOption))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.permission.msg_load_resource_failed'))
+    toast.error((error as Error)?.message || t('identity.permission.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -395,7 +378,7 @@ async function loadOperationOptions(keyword = '') {
     operationOptions.value = mergeOptions(operationOptions.value, items.map(toOperationOption))
   }
   catch (error) {
-    message.error((error as Error)?.message || t('identity.permission.msg_load_operation_failed'))
+    toast.error((error as Error)?.message || t('identity.permission.msg_load_operation_failed'))
   }
   finally {
     operationLoading.value = false
@@ -473,12 +456,12 @@ function normalizeTagsInput(value?: string | null) {
   try {
     const parsed: unknown = JSON.parse(normalized)
     if (!Array.isArray(parsed)) {
-      message.warning(t('identity.permission.msg_tags_must_json_array'))
+      toast.warning(t('identity.permission.msg_tags_must_json_array'))
       return undefined
     }
   }
   catch {
-    message.warning(t('identity.permission.msg_tags_invalid_json'))
+    toast.warning(t('identity.permission.msg_tags_invalid_json'))
     return undefined
   }
 
@@ -488,17 +471,17 @@ function normalizeTagsInput(value?: string | null) {
 function validateForm() {
   const form = permissionForm.value
   if (!form.permissionName.trim()) {
-    message.warning(t('identity.permission.msg_permission_name_required'))
+    toast.warning(t('identity.permission.msg_permission_name_required'))
     return false
   }
 
   if (!form.basicId && !form.permissionCode.trim()) {
-    message.warning(t('identity.permission.msg_permission_code_required'))
+    toast.warning(t('identity.permission.msg_permission_code_required'))
     return false
   }
 
   if (!form.basicId && form.permissionType === PermissionType.ResourceBased && (!form.resourceId || !form.operationId)) {
-    message.warning(t('identity.permission.msg_resource_operation_required'))
+    toast.warning(t('identity.permission.msg_resource_operation_required'))
     return false
   }
 
@@ -551,12 +534,12 @@ async function handleSubmit() {
       await permissionCenterApi.create(createInput)
     }
 
-    message.success(t('common.messages.save_success'))
+    toast.success(t('common.messages.save_success'))
     modalVisible.value = false
     reloadPermission()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.error((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -565,7 +548,7 @@ async function handleSubmit() {
 
 async function handleDelete(row: PermissionListItemDto) {
   await permissionCenterApi.delete(row.basicId)
-  message.success(t('common.messages.delete_success'))
+  toast.success(t('common.messages.delete_success'))
   reloadPermission()
 }
 
@@ -575,7 +558,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     remark: row.status === EnableStatus.Enabled ? t('identity.permission.front_disable_remark') : t('identity.permission.front_enable_remark'),
     status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
   })
-  message.success(t('common.messages.status_updated'))
+  toast.success(t('common.messages.status_updated'))
   reloadPermission()
 }
 </script>
@@ -586,88 +569,179 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     :schema="schema"
     @action="onAction"
   >
-    <NDrawer v-model:show="detailVisible" :width="980">
-      <NDrawerContent closable :title="t('identity.permission.detail_title')">
-        <NSpin :show="detailLoading">
-          <NEmpty v-if="!detailLoading && !currentDetail" class="xh-detail-empty" :description="t('identity.permission.detail_empty')">
-            <template #icon>
-              <NIcon><Icon icon="lucide:inbox" /></NIcon>
-            </template>
-          </NEmpty>
-          <NScrollbar v-else-if="currentDetail" style="max-height: calc(100vh - 120px)">
-            <NTabs animated type="line">
-              <NTabPane name="overview" :tab="t('identity.permission.tab_overview')">
-                <NDescriptions :column="2" bordered size="small">
-                  <NDescriptionsItem :label="t('identity.permission.label_permission_name')">
-                    {{ currentDetail.permission.permissionName }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_permission_code')">
-                    {{ currentDetail.permission.permissionCode }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_module')">
-                    {{ formatNullable(currentDetail.permission.moduleCode) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_permission_type')">
-                    {{ getOptionLabel(permissionTypeOptions, currentDetail.permission.permissionType) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_is_global')">
-                    {{ formatBoolean(currentDetail.permission.isGlobal) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_need_audit')">
-                    {{ formatBoolean(currentDetail.permission.isRequireAudit) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_priority')">
-                    {{ currentDetail.permission.priority }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_status')">
-                    {{ formatStatus(currentDetail.permission.status) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_resource')">
-                    {{ formatNullable(currentDetail.resource?.resourceName || currentDetail.permission.resourceName) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_resource_code')">
-                    {{ formatNullable(currentDetail.resource?.resourceCode || currentDetail.permission.resourceCode) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_resource_type')">
-                    {{ getOptionLabel(resourceTypeOptions, currentDetail.resource?.resourceType) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_access_level')">
-                    {{ getOptionLabel(resourceAccessLevelOptions, currentDetail.resource?.accessLevel) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_operation')">
-                    {{ formatNullable(currentDetail.operation?.operationName || currentDetail.permission.operationName) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_operation_code')">
-                    {{ formatNullable(currentDetail.operation?.operationCode || currentDetail.permission.operationCode) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_http_method')">
-                    {{ getOptionLabel(httpMethodOptions, currentDetail.operation?.httpMethod) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_operation_category')">
-                    {{ getOptionLabel(operationCategoryOptions, currentDetail.operation?.category) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_operation_type')">
-                    {{ getOptionLabel(operationTypeOptions, currentDetail.operation?.operationTypeCode) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_dangerous')">
-                    {{ formatBoolean(currentDetail.operation?.isDangerous) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_permission_description')">
-                    {{ formatNullable(currentDetail.permission.permissionDescription) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_tags')">
-                    {{ formatNullable(currentDetail.permission.tags) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_create_time')">
-                    {{ formatNullableDate(currentDetail.permission.createdTime) }}
-                  </NDescriptionsItem>
-                  <NDescriptionsItem :label="t('identity.permission.label_generated_time')">
-                    {{ formatNullableDate(currentDetail.generatedTime) }}
-                  </NDescriptionsItem>
-                </NDescriptions>
-              </NTabPane>
-
-              <NTabPane name="conditions" :tab="t('identity.permission.tab_conditions', { count: currentDetail.conditions.length })">
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 980px">
+        <XhDrawerTitle>{{ t('identity.permission.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage">
+          <div v-if="detailLoading" class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
+            <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('identity.permission.detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+            <XhTabsRoot default-value="overview" variant="line">
+              <XhTabsList>
+                <XhTabsTrigger value="overview">
+                  {{ t('identity.permission.tab_overview') }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="conditions">
+                  {{ t('identity.permission.tab_conditions', { count: currentDetail.conditions.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="delegations">
+                  {{ t('identity.permission.tab_delegations', { count: currentDetail.delegations.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="requests">
+                  {{ t('identity.permission.tab_requests', { count: currentDetail.requests.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="fieldSecurities">
+                  {{ t('identity.permission.tab_field_securities', { count: currentDetail.fieldSecurities.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="changeLogs">
+                  {{ t('identity.permission.tab_change_logs', { count: currentDetail.changeLogs.length }) }}
+                </XhTabsTrigger>
+              </XhTabsList>
+              <XhTabsContent value="overview">
+                <XhDescriptionsRoot :columns="2" bordered size="sm">
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_permission_name') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.permission.permissionName }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_permission_code') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.permission.permissionCode }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_module') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.permission.moduleCode) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_permission_type') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(permissionTypeOptions, currentDetail.permission.permissionType) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_is_global') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatBoolean(currentDetail.permission.isGlobal) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_need_audit') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatBoolean(currentDetail.permission.isRequireAudit) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_priority') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ currentDetail.permission.priority }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_status') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatStatus(currentDetail.permission.status) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_resource') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.resource?.resourceName || currentDetail.permission.resourceName) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_resource_code') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.resource?.resourceCode || currentDetail.permission.resourceCode) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_resource_type') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(resourceTypeOptions, currentDetail.resource?.resourceType) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_access_level') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(resourceAccessLevelOptions, currentDetail.resource?.accessLevel) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_operation') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.operation?.operationName || currentDetail.permission.operationName) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_operation_code') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.operation?.operationCode || currentDetail.permission.operationCode) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_http_method') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(httpMethodOptions, currentDetail.operation?.httpMethod) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_operation_category') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(operationCategoryOptions, currentDetail.operation?.category) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_operation_type') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(operationTypeOptions, currentDetail.operation?.operationTypeCode) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_dangerous') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatBoolean(currentDetail.operation?.isDangerous) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_permission_description') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.permission.permissionDescription) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_tags') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullable(currentDetail.permission.tags) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_create_time') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullableDate(currentDetail.permission.createdTime) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_generated_time') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ formatNullableDate(currentDetail.generatedTime) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                </XhDescriptionsRoot>
+              </XhTabsContent>
+              <XhTabsContent value="conditions">
                 <table v-if="currentDetail.conditions.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -690,10 +764,13 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.permission.empty_conditions')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="delegations" :tab="t('identity.permission.tab_delegations', { count: currentDetail.delegations.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.permission.empty_conditions') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="delegations">
                 <table v-if="currentDetail.delegations.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -716,10 +793,13 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.permission.empty_delegations')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="requests" :tab="t('identity.permission.tab_requests', { count: currentDetail.requests.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.permission.empty_delegations') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="requests">
                 <table v-if="currentDetail.requests.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -742,10 +822,13 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.permission.empty_requests')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="fieldSecurities" :tab="t('identity.permission.tab_field_securities', { count: currentDetail.fieldSecurities.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.permission.empty_requests') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="fieldSecurities">
                 <table v-if="currentDetail.fieldSecurities.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -770,10 +853,13 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.permission.empty_field_securities')" style="padding: 40px 0" />
-              </NTabPane>
-
-              <NTabPane name="changeLogs" :tab="t('identity.permission.tab_change_logs', { count: currentDetail.changeLogs.length })">
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.permission.empty_field_securities') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="changeLogs">
                 <table v-if="currentDetail.changeLogs.length" class="xh-detail-table">
                   <thead>
                     <tr>
@@ -798,109 +884,191 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     </tr>
                   </tbody>
                 </table>
-                <NEmpty v-else :description="t('identity.permission.empty_change_logs')" style="padding: 40px 0" />
-              </NTabPane>
-            </NTabs>
-          </NScrollbar>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.permission.empty_change_logs') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+            </XhTabsRoot>
+          </div>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="permissionForm" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('identity.permission.label_form_permission_name')" path="permissionName">
-          <NInput v-model:value="permissionForm.permissionName" clearable :placeholder="t('identity.permission.ph_permission_name')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_permission_code')" path="permissionCode">
-          <NInput
-            v-model:value="permissionForm.permissionCode"
-            :disabled="Boolean(permissionForm.basicId)"
-            clearable
-            :placeholder="t('identity.permission.ph_permission_code')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_module_code')" path="moduleCode">
-          <NInput
-            v-model:value="permissionForm.moduleCode"
-            :disabled="Boolean(permissionForm.basicId)"
-            clearable
-            :placeholder="t('identity.permission.ph_module_code')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_permission_type')" path="permissionType">
-          <NSelect
-            v-model:value="permissionForm.permissionType"
-            :disabled="Boolean(permissionForm.basicId)"
-            :options="permissionTypeOptions"
-          />
-        </NFormItem>
-        <NFormItem v-if="isResourceBasedForm" :label="t('identity.permission.label_form_resource')" path="resourceId">
-          <NSelect
-            v-model:value="permissionForm.resourceId"
-            :disabled="Boolean(permissionForm.basicId)"
-            :loading="resourceLoading"
-            :options="resourceOptions"
-            clearable
-            filterable
-            :placeholder="t('identity.permission.ph_resource')"
-            remote
-            @focus="loadResourceOptions()"
-            @search="handleResourceSearch"
-          />
-        </NFormItem>
-        <NFormItem v-if="isResourceBasedForm" :label="t('identity.permission.label_form_operation')" path="operationId">
-          <NSelect
-            v-model:value="permissionForm.operationId"
-            :disabled="Boolean(permissionForm.basicId)"
-            :loading="operationLoading"
-            :options="operationOptions"
-            clearable
-            filterable
-            :placeholder="t('identity.permission.ph_operation')"
-            remote
-            @focus="loadOperationOptions()"
-            @search="handleOperationSearch"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_need_audit')" path="isRequireAudit">
-          <NSwitch v-model:value="permissionForm.isRequireAudit" />
-        </NFormItem>
-        <NFormItem v-if="!permissionForm.basicId" :label="t('identity.permission.label_form_status')" path="status">
-          <NSelect v-model:value="permissionForm.status" :options="statusOptions" />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_priority')" path="priority">
-          <NInputNumber v-model:value="permissionForm.priority" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_sort')" path="sort">
-          <NInputNumber v-model:value="permissionForm.sort" :min="0" />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_tags_json')" path="tags" class="xh-span-2">
-          <NInput
-            v-model:value="permissionForm.tags"
-            clearable
-            placeholder="[&quot;admin&quot;]"
-            :rows="3"
-            type="textarea"
-          />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_remark')" path="remark">
-          <NInput v-model:value="permissionForm.remark" clearable :placeholder="t('identity.permission.ph_remark')" />
-        </NFormItem>
-        <NFormItem :label="t('identity.permission.label_form_description')" path="permissionDescription" class="xh-span-2">
-          <NInput
-            v-model:value="permissionForm.permissionDescription"
-            clearable
-            :placeholder="t('identity.permission.ph_description')"
-            :rows="3"
-            type="textarea"
-          />
-        </NFormItem>
-      </NForm>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="permissionForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="permissionName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_permission_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="permissionForm.permissionName" clearable :placeholder="t('identity.permission.ph_permission_name')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="permissionCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_permission_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="permissionForm.permissionCode"
+                :disabled="Boolean(permissionForm.basicId)"
+                clearable
+                :placeholder="t('identity.permission.ph_permission_code')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="moduleCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_module_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="permissionForm.moduleCode"
+                :disabled="Boolean(permissionForm.basicId)"
+                clearable
+                :placeholder="t('identity.permission.ph_module_code')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="permissionType">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_permission_type') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="permissionForm.permissionType"
+                :disabled="Boolean(permissionForm.basicId)"
+                :options="permissionTypeOptions"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="isResourceBasedForm" value="resourceId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_resource') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="permissionForm.resourceId"
+                :disabled="Boolean(permissionForm.basicId)"
+                :options="resourceOptions"
+                clearable
+                :placeholder="t('identity.permission.ph_resource')"
+                @focus="loadResourceOptions()"
+                @search="handleResourceSearch"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="isResourceBasedForm" value="operationId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_operation') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="permissionForm.operationId"
+                :disabled="Boolean(permissionForm.basicId)"
+                :options="operationOptions"
+                clearable
+                :placeholder="t('identity.permission.ph_operation')"
+                @focus="loadOperationOptions()"
+                @search="handleOperationSearch"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="isRequireAudit">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_need_audit') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XhSwitch v-model:checked="permissionForm.isRequireAudit" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup v-if="!permissionForm.basicId" value="status">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_status') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="permissionForm.status" :options="statusOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="priority">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_priority') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="permissionForm.priority" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="permissionForm.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="tags" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_tags_json') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="permissionForm.tags"
+                clearable
+                placeholder="[&quot;admin&quot;]"
+                :rows="3"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="remark">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="permissionForm.remark" clearable :placeholder="t('identity.permission.ph_remark')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="permissionDescription" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_description') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="permissionForm.permissionDescription"
+                clearable
+                :placeholder="t('identity.permission.ph_description')"
+                :rows="3"
+                type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>
@@ -919,13 +1087,13 @@ async function handleToggleStatus(row: PermissionListItemDto) {
 .xh-detail-table th,
 .xh-detail-table td {
   padding: 9px 10px;
-  border: 1px solid var(--n-border-color);
+  border: 1px solid hsl(var(--border));
   text-align: left;
   vertical-align: top;
 }
 
 .xh-detail-table th {
-  background: var(--n-merged-th-color);
+  background: hsl(var(--muted));
   font-weight: 500;
 }
 </style>

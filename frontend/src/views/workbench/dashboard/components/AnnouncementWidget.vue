@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NotificationListItemDto } from '@/api'
-import { NCarousel, NEmpty, NIcon } from 'naive-ui'
+import { XhCarouselIndicator, XhCarouselIndicatorGroup, XhCarouselItem, XhCarouselItemGroup, XhCarouselNextTrigger, XhCarouselPrevTrigger, XhCarouselRoot, XhCarouselViewport, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -72,67 +72,70 @@ onMounted(async () => {
 </script>
 
 <template>
-  <NCarousel
+  <XhCarouselRoot
     v-if="announcements.length"
-    autoplay
-    show-arrow
-    :interval="5000"
+    v-slot="{ page, totalPages, setPage }"
+    :autoplay="5000"
+    loop
     class="announce-carousel"
   >
-    <div
-      v-for="item in announcements"
-      :key="item.basicId"
-      class="carousel-slide"
-      :style="slideStyle(item)"
-      @click="openAnnouncement(item)"
-    >
-      <NIcon class="slide-deco" :size="150" :style="{ color: metaOf(item.notificationType).from }">
-        <Icon icon="lucide:megaphone" />
-      </NIcon>
-      <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
-      <div class="slide-title">
-        {{ item.title || t('workbench.dashboard.system_notice') }}
-      </div>
-      <div v-if="item.content" class="slide-content">
-        {{ item.content }}
-      </div>
-      <div class="slide-time">
-        <NIcon size="13">
-          <Icon icon="lucide:clock" />
-        </NIcon>
-        {{ item.sendTime ? formatDate(item.sendTime, 'YYYY-MM-DD HH:mm') : '' }}
-      </div>
+    <XhCarouselViewport>
+      <XhCarouselItemGroup>
+        <XhCarouselItem
+          v-for="(item, slideIndex) in announcements"
+          :key="item.basicId"
+          :index="slideIndex"
+        >
+          <div
+            class="carousel-slide"
+            :style="slideStyle(item)"
+            @click="openAnnouncement(item)"
+          >
+            <span class="slide-deco" :style="{ color: metaOf(item.notificationType).from }" style="display: inline-flex; font-size: 150px"><Icon icon="lucide:megaphone" /></span>
+            <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
+            <div class="slide-title">
+              {{ item.title || t('workbench.dashboard.system_notice') }}
+            </div>
+            <div v-if="item.content" class="slide-content">
+              {{ item.content }}
+            </div>
+            <div class="slide-time">
+              <Icon width="13" height="13" icon="lucide:clock" />
+              {{ item.sendTime ? formatDate(item.sendTime, 'YYYY-MM-DD HH:mm') : '' }}
+            </div>
+          </div>
+        </XhCarouselItem>
+      </XhCarouselItemGroup>
+    </XhCarouselViewport>
+
+    <div class="carousel-arrows">
+      <XhCarouselPrevTrigger class="carousel-arrow">
+        <Icon width="18" height="18" icon="lucide:arrow-left" />
+      </XhCarouselPrevTrigger>
+      <XhCarouselNextTrigger class="carousel-arrow">
+        <Icon width="18" height="18" icon="lucide:arrow-right" />
+      </XhCarouselNextTrigger>
     </div>
 
-    <template #arrow="{ prev, next }">
-      <div class="carousel-arrows">
-        <button class="carousel-arrow" type="button" @click.stop="prev">
-          <NIcon size="18">
-            <Icon icon="lucide:arrow-left" />
-          </NIcon>
-        </button>
-        <button class="carousel-arrow" type="button" @click.stop="next">
-          <NIcon size="18">
-            <Icon icon="lucide:arrow-right" />
-          </NIcon>
-        </button>
-      </div>
-    </template>
-
-    <template #dots="{ total, currentIndex, to }">
-      <ul class="carousel-dots">
-        <li
-          v-for="index of total"
-          :key="index"
-          class="carousel-dot"
-          :class="{ 'is-active': currentIndex === index - 1 }"
-          @click="to(index - 1)"
-        />
-      </ul>
-    </template>
-  </NCarousel>
+    <XhCarouselIndicatorGroup class="carousel-dots">
+      <XhCarouselIndicator
+        v-for="index of totalPages"
+        :key="index"
+        :index="index - 1"
+        class="carousel-dot"
+        :class="{ 'is-active': page === index - 1 }"
+        @click="setPage(index - 1)"
+      />
+    </XhCarouselIndicatorGroup>
+  </XhCarouselRoot>
   <div v-else class="announce-empty">
-    <NEmpty :description="t('workbench.widgets.announcement.empty')" />
+    <XhEmptyStateRoot size="sm">
+      <XhEmptyStateIcon>
+        <Icon icon="lucide:inbox" width="28" height="28" />
+      </XhEmptyStateIcon>
+      <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+      <XhEmptyStateDescription>{{ t('workbench.widgets.announcement.empty') }}</XhEmptyStateDescription>
+    </XhEmptyStateRoot>
   </div>
 </template>
 
@@ -157,7 +160,7 @@ onMounted(async () => {
 
 /* 只铺满高度；宽度交给 NCarousel 自身按像素计算
    （强行设 width:100% 会让 flex 轨道挤窄当前页、露出相邻幻灯片缝隙） */
-.announce-carousel :deep(.n-carousel__slide) {
+.announce-carousel :deep([data-scope='carousel'][data-part='item']) {
   height: 100%;
 }
 

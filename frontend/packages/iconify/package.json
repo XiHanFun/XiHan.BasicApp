@@ -12,6 +12,7 @@
     "@iconify-json/mdi": "catalog:",
     "@iconify-json/simple-icons": "catalog:",
     "@iconify-json/tabler": "catalog:",
-    "@iconify/vue": "catalog:"
+    "@iconify/vue": "catalog:",
+    "@xihan-ui/vue": "catalog:"
   }
 }

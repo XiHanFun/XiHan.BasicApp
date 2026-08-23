@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { useAppStore } from '~/stores'
-import { NCard, NColorPicker, NIcon, NInput, NInputNumber, NRadioGroup, NSlider, NSwitch } from 'naive-ui'
+import { XhSwitch } from '@xihan-ui/vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XColorPicker, XInput, XNumberInput, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
 import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
@@ -100,37 +101,32 @@ const loaderItems = computed(() =>
 <template>
   <div class="space-y-4">
     <!-- 模式 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.mode.title') }}
       </div>
-      <NRadioGroup
-        :value="props.themeMode"
-        class="w-full"
-        @update:value="(value) => emit('themeModeChange', value as 'light' | 'dark' | 'auto')"
-      >
+      <div role="radiogroup" class="w-full">
         <div class="grid grid-cols-3 gap-2">
           <label v-for="mode in localizedModes" :key="mode.value" class="mode-item">
             <input
               type="radio"
+              name="appearance-theme-mode"
               :value="mode.value"
               class="sr-only"
               :checked="props.themeMode === mode.value"
               @change="(e: Event) => handleModeChange(mode.value, e)"
             >
             <div class="theme-mode-card" :class="{ 'is-active': props.themeMode === mode.value }">
-              <NIcon size="20">
-                <Icon :icon="mode.icon" />
-              </NIcon>
+              <Icon :icon="mode.icon" />
             </div>
             <span class="mode-label">{{ mode.label }}</span>
           </label>
         </div>
-      </NRadioGroup>
-    </NCard>
+      </div>
+    </section>
 
     <!-- 颜色 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.color.title') }}
       </div>
@@ -159,13 +155,11 @@ const loaderItems = computed(() =>
                 :class="{ 'is-active': !allPresetColors.includes(appStore.themeColor) }"
               >
                 <div class="theme-color-dot custom-dot">
-                  <NIcon size="16">
-                    <Icon icon="lucide:pipette" />
-                  </NIcon>
+                  <Icon icon="lucide:pipette" />
                 </div>
                 <!-- 包裹 div 承载定位 class：NColorPicker 根为 VBinder(teleport)，class 无法直接挂载 -->
                 <div class="custom-color-overlay">
-                  <NColorPicker
+                  <XColorPicker
                     :value="appStore.themeColor"
                     :modes="['hex']"
                     :show-alpha="false"
@@ -175,7 +169,7 @@ const loaderItems = computed(() =>
                     <template #label>
                       <span />
                     </template>
-                  </NColorPicker>
+                  </XColorPicker>
                 </div>
               </div>
               <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
@@ -207,12 +201,12 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.appearance.color.dynamic') }}</span>
           <PrefTip :content="t('preference.appearance.color.dynamic_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.themeDynamicColor" />
+        <XhSwitch v-model:checked="appStore.themeDynamicColor" />
       </div>
-    </NCard>
+    </section>
 
     <!-- 圆角 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.radius.title') }}
       </div>
@@ -228,10 +222,10 @@ const loaderItems = computed(() =>
           {{ r }}
         </button>
       </div>
-    </NCard>
+    </section>
 
     <!-- 导航 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.navigation.title') }}
       </div>
@@ -242,7 +236,7 @@ const loaderItems = computed(() =>
           </span>
           <PrefTip :content="t('preference.appearance.navigation.sidebar_dark_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.sidebarDark" :disabled="sidebarDarkDisabled" />
+        <XhSwitch v-model:checked="appStore.sidebarDark" :disabled="sidebarDarkDisabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
@@ -251,7 +245,7 @@ const loaderItems = computed(() =>
           </span>
           <PrefTip :content="t('preference.appearance.navigation.sidebar_sub_dark_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.sidebarSubDark" :disabled="sidebarSubDarkDisabled" />
+        <XhSwitch v-model:checked="appStore.sidebarSubDark" :disabled="sidebarSubDarkDisabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
@@ -260,36 +254,36 @@ const loaderItems = computed(() =>
           </span>
           <PrefTip :content="t('preference.appearance.navigation.header_dark_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.headerDark" :disabled="headerDarkDisabled" />
+        <XhSwitch v-model:checked="appStore.headerDark" :disabled="headerDarkDisabled" />
       </div>
-    </NCard>
+    </section>
 
     <!-- 字体 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.font.title') }}
       </div>
       <div class="pref-row">
         <span>{{ t('preference.appearance.font.size') }}</span>
         <div class="flex gap-1.5 items-center">
-          <NInputNumber
+          <XNumberInput
             :value="appStore.fontSize"
             :min="12"
             :max="20"
             :step="1"
-            size="small"
+            size="sm"
             button-placement="both"
-            :input-props="{ style: 'text-align: center' }"
+            class="pref-num pref-num--center"
             style="width: 130px"
             @update:value="(value) => value !== null && appStore.setFontSize(value)"
           />
           <span class="unit-label">px</span>
         </div>
       </div>
-    </NCard>
+    </section>
 
     <!-- 动画 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.general.animation.title') }}
       </div>
@@ -298,14 +292,14 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.general.animation.transition_progress') }}</span>
           <PrefTip :content="t('preference.general.animation.transition_progress_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.transitionProgress" />
+        <XhSwitch v-model:checked="appStore.transitionProgress" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.animation.transition_loading') }}</span>
           <PrefTip :content="t('preference.general.animation.transition_loading_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.transitionLoading" />
+        <XhSwitch v-model:checked="appStore.transitionLoading" />
       </div>
       <div
         class="transition-grid"
@@ -329,8 +323,8 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.general.animation.loading_fixed_color') }}</span>
           <PrefTip :content="t('preference.general.animation.loading_fixed_color_tip')" />
         </div>
-        <NSwitch
-          v-model:value="appStore.loadingFixedColor"
+        <XhSwitch
+          v-model:checked="appStore.loadingFixedColor"
           :disabled="!appStore.transitionLoading"
         />
       </div>
@@ -339,14 +333,14 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.general.animation.theme_animation') }}</span>
           <PrefTip :content="t('preference.general.animation.theme_animation_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.themeAnimationEnabled" />
+        <XhSwitch v-model:checked="appStore.themeAnimationEnabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.animation.transition_enable') }}</span>
           <PrefTip :content="t('preference.general.animation.transition_enable_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.transitionEnable" />
+        <XhSwitch v-model:checked="appStore.transitionEnable" />
       </div>
       <div
         class="transition-grid"
@@ -365,10 +359,10 @@ const loaderItems = computed(() =>
           <span class="item-label">{{ item.label }}</span>
         </div>
       </div>
-    </NCard>
+    </section>
 
     <!-- 交互 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.interaction.title') }}
       </div>
@@ -377,26 +371,26 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.general.dynamic_island') }}</span>
           <PrefTip :content="t('preference.general.dynamic_island_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.widgetDynamicIsland" />
+        <XhSwitch v-model:checked="appStore.widgetDynamicIsland" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.notify_sound') }}</span>
           <PrefTip :content="t('preference.general.notify_sound_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.notifySound" />
+        <XhSwitch v-model:checked="appStore.notifySound" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.table_row_peek') }}</span>
           <PrefTip :content="t('preference.general.table_row_peek_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.tableRowPeek" />
+        <XhSwitch v-model:checked="appStore.tableRowPeek" />
       </div>
-    </NCard>
+    </section>
 
     <!-- 效果 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.effects.title') }}
       </div>
@@ -405,11 +399,11 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.general.frosted_glass') }}</span>
           <PrefTip :content="t('preference.general.frosted_glass_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.frostedGlassEnabled" />
+        <XhSwitch v-model:checked="appStore.frostedGlassEnabled" />
       </div>
       <div v-if="appStore.frostedGlassEnabled" class="pref-row">
         <span>{{ t('preference.general.frosted_glass_intensity') }}</span>
-        <NSlider
+        <XSlider
           v-model:value="appStore.frostedGlassIntensity"
           :min="1"
           :max="100"
@@ -423,21 +417,21 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.general.watermark') }}</span>
           <PrefTip :content="t('preference.general.watermark_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.watermarkEnabled" />
+        <XhSwitch v-model:checked="appStore.watermarkEnabled" />
       </div>
       <div v-if="appStore.watermarkEnabled" class="mb-2 pref-row">
         <span>{{ t('preference.general.watermark_content') }}</span>
-        <NInput
+        <XInput
           v-model:value="appStore.watermarkText"
-          size="small"
+          size="sm"
           style="width: 150px"
           :placeholder="t('preference.general.watermark_text')"
         />
       </div>
-    </NCard>
+    </section>
 
     <!-- 其它 -->
-    <NCard size="small" :bordered="false">
+    <section class="pref-card">
       <div class="section-title">
         {{ t('preference.appearance.other.title') }}
       </div>
@@ -446,16 +440,16 @@ const loaderItems = computed(() =>
           <span>{{ t('preference.appearance.other.color_weakness') }}</span>
           <PrefTip :content="t('preference.appearance.other.color_weakness_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.colorWeaknessEnabled" />
+        <XhSwitch v-model:checked="appStore.colorWeaknessEnabled" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.appearance.other.grayscale') }}</span>
           <PrefTip :content="t('preference.appearance.other.grayscale_tip')" />
         </div>
-        <NSwitch v-model:value="appStore.grayscaleEnabled" />
+        <XhSwitch v-model:checked="appStore.grayscaleEnabled" />
       </div>
-    </NCard>
+    </section>
   </div>
 </template>
 
@@ -629,8 +623,8 @@ const loaderItems = computed(() =>
 }
 
 /* 内部 NColorPicker 触发块充满整层，确保任意位置点击都能弹出取色器 */
-.custom-color-overlay :deep(.n-color-picker),
-.custom-color-overlay :deep(.n-color-picker__fill) {
+.custom-color-overlay :deep([data-scope='color-picker'][data-part='root']),
+.custom-color-overlay :deep([data-scope='color-picker'][data-part='trigger']) {
   width: 100%;
   height: 100%;
 }
@@ -683,7 +677,11 @@ const loaderItems = computed(() =>
   border-radius: var(--radius);
   border: 2px solid hsl(var(--border));
   background: hsl(var(--muted));
-  overflow: visible;
+  /* clip-path 只在视觉上裁，元素照样算进祖先的可滚动区：预览块滑到 115% 时看不见，
+     却把抽屉撑出一条横向滚动条。overflow: clip 才真正把它移出滚动区，
+     clip-margin 与 clip-path 的 -7px 外扩对齐，观感不变 */
+  overflow: clip;
+  overflow-clip-margin: 7px;
   clip-path: inset(-7px round calc(var(--radius) + 5px));
   position: relative;
   /* 居中容器内的加载器（绝对定位的 .preview-block 不受影响） */
@@ -931,5 +929,14 @@ const loaderItems = computed(() =>
 }
 .anim-skew-slide {
   animation: anim-skew-slide 2.2s ease-in-out infinite;
+}
+
+/* 数字输入框里的文字对齐：input 由组件库渲染，只能经 :deep 够到 */
+.pref-num--center :deep([data-scope='number-field'][data-part='input']) {
+  text-align: center;
+}
+
+.pref-num--right :deep([data-scope='number-field'][data-part='input']) {
+  text-align: right;
 }
 </style>

@@ -2,12 +2,13 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { ExceptionLogDetailDto, ExceptionLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { NTag, useMessage } from 'naive-ui'
+import { XhBadge } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { createPageRequest, DeviceType, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
+import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { exceptionLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -16,7 +17,6 @@ import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 defineOptions({ name: 'LogExceptionPage' })
 
 const { t } = useI18n()
-const message = useMessage()
 const router = useRouter()
 
 const detailVisible = ref(false)
@@ -55,8 +55,8 @@ function severityType(level: number) {
     case 2: return 'warning'
     case 3:
     case 4:
-    case 5: return 'error'
-    default: return 'default'
+    case 5: return 'danger'
+    default: return 'neutral'
   }
 }
 
@@ -84,7 +84,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.exception.severity_level_placeholder'),
     width: 90,
     order: 19,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel)),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel)),
   },
   { key: 'requestPath', title: t('log.exception.request_path'), dataType: 'string', advancedSearch: true, minWidth: 200, order: 20 },
   { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, sortable: true, width: 90, order: 21 },
@@ -125,7 +125,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.exception.is_handled_placeholder'),
     width: 100,
     order: 37,
-    render: row => h(NTag, { size: 'small', round: true, bordered: false, type: (row as unknown as ExceptionLogListItemDto).isHandled ? 'success' : 'warning' }, () => (row as unknown as ExceptionLogListItemDto).isHandled ? t('log.exception.handled') : t('log.exception.unhandled')),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as ExceptionLogListItemDto).isHandled ? 'success' : 'warning' }, () => (row as unknown as ExceptionLogListItemDto).isHandled ? t('log.exception.handled') : t('log.exception.unhandled')),
   },
   { key: 'handledTime', title: t('log.exception.handled_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 38 },
   { key: 'errorCode', title: t('log.exception.error_code'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 39 },
@@ -179,7 +179,6 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'saas:exception-log:export',
   pageName: t('log.exception.page_name'),
   rowKey: 'basicId',
-  scrollX: 2800,
   fields: decorateTraceFields(fields.value, router, { timeField: 'exceptionTime', ipKey: 'operationIp' }),
   resource: {
     page: params => logManagementApi.exception.page(buildExceptionQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
@@ -200,7 +199,7 @@ function onAction(payload: SchemaActionPayload) {
   }
   else if (payload.key === 'trace' && row) {
     if (!gotoTrace(router, row, row.exceptionTime)) {
-      message.warning(t('log.trace.value_required'))
+      toast.warning(t('log.trace.value_required'))
     }
   }
 }
@@ -213,7 +212,7 @@ async function handleDetail(row: ExceptionLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    message.error((error as Error)?.message || t('log.exception.detail_load_failed'))
+    toast.error((error as Error)?.message || t('log.exception.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

@@ -1,11 +1,10 @@
 import type { ServerTaskProgressPayload } from '~/composables'
 import type { UserSettingChangedPayload } from '~/constants'
 import type { NotificationContentFormat } from '~/types/enums'
-import { useDialog, useNotification } from 'naive-ui'
-import { h, onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { applyRemotePageSetting, NotificationContent } from '~/components'
-import { applyServerTaskProgress, islandStatus, playNotificationSound, useSignalR } from '~/composables'
+import { applyRemotePageSetting } from '~/components'
+import { applyServerTaskProgress, dialog, islandStatus, playNotificationSound, toast, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 
@@ -40,8 +39,6 @@ export function useSignalRIntegration() {
   const { t } = useI18n()
   const accessStore = useAccessStore()
   const authStore = useAuthStore()
-  const notification = useNotification()
-  const dialog = useDialog()
   const signalR = useSignalR()
 
   let isHandlingForceLogout = false
@@ -65,20 +62,20 @@ export function useSignalRIntegration() {
     signalR.stop()
     accessStore.$reset()
 
-    dialog.warning({
-      title: t('page.signalr.force_logout_title'),
-      content: payload?.reason || t('page.signalr.force_logout_reason'),
-      positiveText: t('page.signalr.force_logout_confirm'),
-      closable: false,
-      maskClosable: false,
-      onPositiveClick: async () => {
+    // 被强制登出没有第二条路：只有一颗确认钮，关掉也当确认处理
+    void dialog
+      .info({
+        title: t('page.signalr.force_logout_title'),
+        content: payload?.reason || t('page.signalr.force_logout_reason'),
+        okText: t('page.signalr.force_logout_confirm'),
+        onOk: async () => {
+          isHandlingForceLogout = false
+          await authStore.logout()
+        },
+      })
+      .finally(() => {
         isHandlingForceLogout = false
-        await authStore.logout()
-      },
-      onAfterLeave: () => {
-        isHandlingForceLogout = false
-      },
-    })
+      })
   }
 
   // 载荷形态由后端 NotificationRealtimePayload 统一投影：枚举一律发名称，与 REST 接口一致
@@ -96,14 +93,13 @@ export function useSignalRIntegration() {
     }
     const nType = typeMap[payload?.type ?? 'Info'] ?? 'info'
 
-    notification[nType]({
+    // 弹条只出纯文本：命令式 toast 的 title/description 都是 string，承不了富文本组件。
+    // 完整正文（markdown/html）仍在消息中心里按原格式渲染。
+    toast.create({
+      type: nType,
       title: payload?.title || t('page.signalr.new_notification'),
-      content: () => h('div', { style: 'max-height:160px;overflow:auto' }, [
-        h(NotificationContent, {
-          content: payload?.content ?? '',
-          format: payload?.contentFormat,
-        }),
-      ]),
+      description: payload?.content ?? '',
+      placement: 'bottom-end',
       duration: 5000,
       closable: false,
     })

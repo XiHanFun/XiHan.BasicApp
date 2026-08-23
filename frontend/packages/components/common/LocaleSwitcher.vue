@@ -1,7 +1,20 @@
 <script setup lang="ts">
-import type { DropdownOption, DropdownProps, SelectGroupOption, SelectOption } from 'naive-ui'
-import { NDropdown, NSelect } from 'naive-ui'
-import { computed, h } from 'vue'
+import type { MenuNode } from '@xihan-ui/headless'
+import type { Placement, Size } from '@xihan-ui/kernel'
+import {
+  XhMenuRoot,
+  XhSelectContent,
+  XhSelectControl,
+  XhSelectIndicator,
+  XhSelectItem,
+  XhSelectItemIndicator,
+  XhSelectItemText,
+  XhSelectList,
+  XhSelectPositioner,
+  XhSelectRoot,
+  XhSelectTrigger,
+} from '@xihan-ui/vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale } from '~/hooks'
 import { useAppStore } from '~/stores'
@@ -12,6 +25,8 @@ import LocaleFlag from './LocaleFlag.vue'
  * - variant=select：行内下拉框（偏好设置、个人中心）。
  * - variant=dropdown：触发器 + 菜单（顶栏、登录页），触发器经默认插槽传入。
  * - apply=true：直接切换并同步应用语言（appStore.locale）；否则受控，仅 emit（如个人中心的资料字段）。
+ *
+ * 选项里要带国旗，所以这里不走 XSelect，直接摆部件：条目与选中态各自出一面旗。
  */
 defineOptions({ name: 'LocaleSwitcher' })
 
@@ -22,16 +37,16 @@ const props = withDefaults(defineProps<{
   value?: string
   /** 为 true 时即时切换应用语言；否则受控仅 emit */
   apply?: boolean
-  /** NSelect 尺寸 */
-  size?: 'tiny' | 'small' | 'medium' | 'large'
-  /** NSelect 宽度（数字按 px 处理） */
+  /** 下拉框尺寸 */
+  size?: Size
+  /** 下拉框宽度（数字按 px 处理） */
   selectWidth?: number | string
-  /** NDropdown 弹出位置 */
-  placement?: DropdownProps['placement']
+  /** 菜单弹出位置 */
+  placement?: Placement
 }>(), {
   variant: 'select',
   apply: false,
-  size: 'medium',
+  size: 'md',
 })
 
 const emit = defineEmits<{
@@ -51,24 +66,15 @@ const LOCALES = [
 /** 当前选中：apply 取应用语言，否则取受控值（兜底应用语言） */
 const current = computed(() => (props.apply ? appStore.locale : (props.value ?? appStore.locale)))
 
-const selectOptions = computed(() => LOCALES.map(l => ({ value: l.value, label: t(l.labelKey) })))
-const dropdownOptions = computed<DropdownOption[]>(() =>
-  LOCALES.map((l) => {
-    const active = l.value === current.value
-    return {
-      key: l.value,
-      icon: () => h(LocaleFlag, { locale: l.value }),
-      // 当前选中项高亮：主色 + 加粗（内联样式，确保 teleport 弹层生效）
-      label: () => h('span', {
-        style: active ? { color: 'hsl(var(--primary))', fontWeight: 600 } : undefined,
-      }, t(l.labelKey)),
-    }
-  }))
+const options = computed<MenuNode[]>(() => LOCALES.map(l => ({ value: l.value, label: t(l.labelKey) })))
+
+/** 选中值：组件库的选中值恒为数组，单选也是长度 1 */
+const selected = computed(() => [current.value])
 
 const selectStyle = computed(() =>
   props.selectWidth == null
     ? undefined
-    : { width: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
+    : { inlineSize: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
 
 function choose(key: string) {
   if (props.apply)
@@ -77,40 +83,73 @@ function choose(key: string) {
     emit('update:value', key)
   emit('change', key)
 }
-
-/** 下拉项：国旗 + 文案 */
-function renderLabel(option: SelectOption | SelectGroupOption) {
-  return h('div', { class: 'flex items-center gap-2' }, [
-    h(LocaleFlag, { locale: String((option as SelectOption).value ?? '') }),
-    h('span', String(option.label ?? '')),
-  ])
-}
-/** 选中态：国旗 + 文案 */
-function renderTag({ option }: { option: SelectOption, handleClose: () => void }) {
-  return h('div', { class: 'flex items-center gap-1.5' }, [
-    h(LocaleFlag, { locale: String(option.value ?? ''), size: 16 }),
-    h('span', String(option.label ?? '')),
-  ])
-}
 </script>
 
 <template>
-  <NSelect
+  <XhSelectRoot
     v-if="variant === 'select'"
-    :value="current"
-    :options="selectOptions"
-    :render-label="renderLabel"
-    :render-tag="renderTag"
+    :collection="options"
+    :value="selected"
     :size="size"
     :style="selectStyle"
-    @update:value="(v) => choose(String(v))"
-  />
-  <NDropdown
-    v-else
-    :options="dropdownOptions"
-    :placement="placement"
-    @select="(key) => choose(String(key))"
+    @update:value="(v: string[]) => v[0] && choose(v[0])"
   >
-    <slot />
-  </NDropdown>
+    <XhSelectControl>
+      <XhSelectTrigger>
+        <!-- 选中态自绘：旗 + 文案；不用 ValueText，它只出纯文本 -->
+        <span class="locale-item">
+          <LocaleFlag :locale="current" :size="16" />
+          <span>{{ options.find(o => o.value === current)?.label }}</span>
+        </span>
+        <XhSelectIndicator />
+      </XhSelectTrigger>
+    </XhSelectControl>
+    <XhSelectPositioner>
+      <XhSelectContent>
+        <XhSelectList>
+          <XhSelectItem v-for="node in options" :key="node.value" :value="node.value">
+            <XhSelectItemText>
+              <span class="locale-item">
+                <LocaleFlag :locale="node.value" />
+                <span>{{ node.label }}</span>
+              </span>
+            </XhSelectItemText>
+            <XhSelectItemIndicator />
+          </XhSelectItem>
+        </XhSelectList>
+      </XhSelectContent>
+    </XhSelectPositioner>
+  </XhSelectRoot>
+
+  <XhMenuRoot
+    v-else
+    trigger-as-child
+    :collection="options"
+    :placement="placement"
+    @select="(details: { value: string }) => choose(details.value)"
+  >
+    <template #trigger>
+      <slot />
+    </template>
+    <template #item="node">
+      <span class="locale-item" :class="{ 'locale-item--active': node.value === current }">
+        <LocaleFlag :locale="node.value" />
+        <span>{{ node.label }}</span>
+      </span>
+    </template>
+  </XhMenuRoot>
 </template>
+
+<style scoped>
+.locale-item {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 当前项高亮：主色 + 加粗 */
+.locale-item--active {
+  color: var(--xh-fg-brand);
+  font-weight: 600;
+}
+</style>

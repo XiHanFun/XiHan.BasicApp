@@ -390,6 +390,11 @@ export default {
       section_trend: 'Operation Trend',
       section_trend_desc: 'Daily operation activity over the past year. Darker colors mean more operations that day.',
       heat_foot: '{ops} operations over the past year · {days} active day(s)',
+      heat_grid_label: 'Operation heatmap',
+      heat_cell_label: '{date}: {count} operation(s)',
+      heat_legend_label: 'Colour scale',
+      heat_legend_low: 'Less',
+      heat_legend_high: 'More',
       section_activity: 'Activity Summary',
       section_activity_desc: 'Today / this week activity and recent activity times.',
       stat_login: 'Logins',
@@ -544,6 +549,11 @@ export default {
     total_suffix: 'items',
     page_sep: ', page',
     page_of: '/ {pageCount}',
+    empty: 'No data',
+    loading: 'Loading…',
+  },
+  pagination: {
+    per_page: '{size} / page',
   },
   schema_import: {
     title: 'Import Data',
@@ -626,6 +636,7 @@ export default {
     select_placeholder: 'Select icon',
     modal_title: 'Select Icon',
     search_placeholder: 'Search icon name...',
+    empty: 'No icons found',
   },
   search_settings: {
     title: 'Search Settings',
@@ -643,6 +654,9 @@ export default {
     reset: 'Reset',
     hide_conditions: 'Hide conditions',
     advanced_search: 'Advanced search',
+  },
+  date_picker: {
+    label: 'Select date',
   },
   search_date_range: {
     start: 'Start',

@@ -1,34 +1,20 @@
 <script setup lang="ts">
+import type { Tone } from '@xihan-ui/kernel'
 import type { PageResult, ReviewDetailDto, ReviewListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NButton,
-  NDescriptions,
-  NDescriptionsItem,
-  NDivider,
-  NDrawer,
-  NDrawerContent,
-  NIcon,
-  NInput,
-  NPopconfirm,
-  NSpace,
-  NTag,
-  useMessage,
-} from 'naive-ui'
+import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage } from '~/components'
+import { Icon, SchemaPage, XInput } from '~/components'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformApprovalPage' })
 
-type TagType = 'default' | 'error' | 'info' | 'success' | 'warning'
-
 const { t } = useI18n()
-const message = useMessage()
 const statusOptions = STATUS_OPTIONS
 const enableStatusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
@@ -51,36 +37,36 @@ const reviewResultOptions = computed(() => [
   { label: t('approval.review.result_return'), value: AuditResult.Return },
 ])
 
-function reviewStatusTag(status: AuditStatus): TagType {
+function reviewStatusTag(status: AuditStatus): Tone {
   switch (status) {
     case AuditStatus.Approved:
       return 'success'
     case AuditStatus.Rejected:
-      return 'error'
+      return 'danger'
     case AuditStatus.InProgress:
       return 'warning'
     case AuditStatus.Withdrawn:
-      return 'default'
+      return 'neutral'
     default:
       return 'info'
   }
 }
 
-function reviewResultTag(result?: AuditResult | null): TagType {
+function reviewResultTag(result?: AuditResult | null): Tone {
   switch (result) {
     case AuditResult.Pass:
       return 'success'
     case AuditResult.Reject:
-      return 'error'
+      return 'danger'
     case AuditResult.Return:
       return 'warning'
     default:
-      return 'default'
+      return 'neutral'
   }
 }
 
-function statusTag(status: EnableStatus): TagType {
-  return status === EnableStatus.Enabled ? 'success' : 'error'
+function statusTag(status: EnableStatus): Tone {
+  return status === EnableStatus.Enabled ? 'success' : 'danger'
 }
 
 function formatNullableDate(value?: string | null) {
@@ -111,7 +97,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewStatusTag(r.reviewStatus) }, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: reviewStatusTag(r.reviewStatus) }, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus))
     },
   },
   {
@@ -128,7 +114,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: reviewResultTag(r.reviewResult) }, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult)))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: reviewResultTag(r.reviewResult) }, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult)))
     },
   },
   {
@@ -145,7 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(NTag, { size: 'small', round: true, bordered: false, type: statusTag(r.status) }, () => getOptionLabel(enableStatusOptions.value, r.status))
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => getOptionLabel(enableStatusOptions.value, r.status))
     },
   },
   // 仅列（不搜索）
@@ -169,7 +155,6 @@ const schema = computed<PageSchema>(() => ({
   batchRemovable: true,
   removePermission: 'saas:review:delete',
   rowKey: 'basicId',
-  scrollX: 2000,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -230,7 +215,7 @@ async function handleDetail(row: ReviewListItemDto) {
     detailData.value = await approvalManagementApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    message.error((error as Error)?.message || t('approval.review.err_load_detail'))
+    toast.error((error as Error)?.message || t('approval.review.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -260,13 +245,13 @@ async function handleAudit() {
       reviewResult: auditResult.value,
       reviewComment: auditComment.value.trim() || undefined,
     })
-    message.success(auditResult.value === AuditResult.Pass ? t('approval.review.msg_passed') : auditResult.value === AuditResult.Reject ? t('approval.review.msg_rejected') : t('approval.review.msg_returned'))
+    toast.success(auditResult.value === AuditResult.Pass ? t('approval.review.msg_passed') : auditResult.value === AuditResult.Reject ? t('approval.review.msg_rejected') : t('approval.review.msg_returned'))
     approveVisible.value = false
     detailVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('approval.review.err_audit'))
+    toast.error((error as Error)?.message || t('approval.review.err_audit'))
   }
   finally {
     actionLoading.value = false
@@ -279,12 +264,12 @@ async function handleWithdraw() {
   actionLoading.value = true
   try {
     await approvalManagementApi.withdraw({ basicId: detailData.value.basicId })
-    message.success(t('approval.review.msg_withdrawn'))
+    toast.success(t('approval.review.msg_withdrawn'))
     detailVisible.value = false
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('approval.review.err_withdraw'))
+    toast.error((error as Error)?.message || t('approval.review.err_withdraw'))
   }
   finally {
     actionLoading.value = false
@@ -295,22 +280,22 @@ async function handleToggleStatus(row: ReviewListItemDto) {
   const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
   try {
     await approvalManagementApi.updateStatus({ basicId: row.basicId, status: newStatus })
-    message.success(newStatus === EnableStatus.Enabled ? t('approval.review.msg_enabled') : t('approval.review.msg_disabled'))
+    toast.success(newStatus === EnableStatus.Enabled ? t('approval.review.msg_enabled') : t('approval.review.msg_disabled'))
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('approval.review.err_update_status'))
+    toast.error((error as Error)?.message || t('approval.review.err_update_status'))
   }
 }
 
 async function handleDelete(row: ReviewListItemDto) {
   try {
     await approvalManagementApi.delete(row.basicId)
-    message.success(t('approval.review.msg_deleted'))
+    toast.success(t('approval.review.msg_deleted'))
     reload()
   }
   catch (error) {
-    message.error((error as Error)?.message || t('approval.review.err_delete'))
+    toast.error((error as Error)?.message || t('approval.review.err_delete'))
   }
 }
 
@@ -343,152 +328,221 @@ function onAction(payload: SchemaActionPayload) {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <NDrawer v-model:show="detailVisible" :width="660">
-      <NDrawerContent closable :title="t('approval.review.detail_title')">
+    <XhDrawerRoot v-model:open="detailVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 660px">
+        <XhDrawerTitle>{{ t('approval.review.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
           {{ t('approval.review.loading') }}
         </div>
-        <NDescriptions v-else-if="detailData" :column="1" bordered label-placement="left" size="small">
-          <NDescriptionsItem :label="t('approval.review.review_title')">
-            {{ detailData.reviewTitle }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_code')">
-            {{ detailData.reviewCode }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_type')">
-            {{ detailData.reviewType }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.entity_type')">
-            {{ detailData.entityType || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.entity_id')">
-            {{ detailData.entityId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_status')">
-            <NTag :type="reviewStatusTag(detailData.reviewStatus)" round size="small">
-              {{ getOptionLabel(reviewStatusOptions, detailData.reviewStatus) }}
-            </NTag>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_result')">
-            <NTag v-if="detailData.reviewResult !== null && detailData.reviewResult !== undefined" :type="reviewResultTag(detailData.reviewResult)" round size="small">
-              {{ getOptionLabel(reviewResultOptions, detailData.reviewResult) }}
-            </NTag>
-            <span v-else>{{ t('approval.review.no_result') }}</span>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.enable_status')">
-            <NTag :type="statusTag(detailData.status)" round size="small">
-              {{ getOptionLabel(enableStatusOptions, detailData.status) }}
-            </NTag>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_level')">
-            {{ t('approval.review.level_unit', { current: detailData.currentLevel, total: detailData.reviewLevel }) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.priority')">
-            {{ detailData.priority }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.submit_user')">
-            {{ detailData.submitUserId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.current_review_user')">
-            {{ detailData.currentReviewUserId || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_user_ids')">
-            {{ detailData.reviewUserIds || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.submit_time')">
-            {{ formatDate(detailData.submitTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_start_time')">
-            {{ formatNullableDate(detailData.reviewStartTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_end_time')">
-            {{ formatNullableDate(detailData.reviewEndTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_description')">
-            {{ detailData.reviewDescription || '-' }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.review_content')">
-            <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.reviewContent || '-' }}</pre>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.business_data')">
-            <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.businessData || '-' }}</pre>
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.created_time')">
-            {{ formatNullableDate(detailData.createdTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.modified_time')">
-            {{ formatNullableDate(detailData.modifiedTime) }}
-          </NDescriptionsItem>
-          <NDescriptionsItem :label="t('approval.review.remark')">
-            {{ detailData.remark || '-' }}
-          </NDescriptionsItem>
-        </NDescriptions>
+        <XhDescriptionsRoot v-else-if="detailData" :columns="1" bordered placement="left" size="sm">
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_title') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.reviewTitle }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_code') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.reviewCode }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_type') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.reviewType }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.entity_type') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.entityType || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.entity_id') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.entityId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_status') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <XhBadge variant="subtle" :tone="reviewStatusTag(detailData.reviewStatus)" size="sm">
+                {{ getOptionLabel(reviewStatusOptions, detailData.reviewStatus) }}
+              </XhBadge>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_result') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <XhBadge v-if="detailData.reviewResult !== null && detailData.reviewResult !== undefined" variant="subtle" :tone="reviewResultTag(detailData.reviewResult)" size="sm">
+                {{ getOptionLabel(reviewResultOptions, detailData.reviewResult) }}
+              </XhBadge>
+              <span v-else>{{ t('approval.review.no_result') }}</span>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.enable_status') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <XhBadge variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                {{ getOptionLabel(enableStatusOptions, detailData.status) }}
+              </XhBadge>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_level') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ t('approval.review.level_unit', { current: detailData.currentLevel, total: detailData.reviewLevel }) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.priority') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.priority }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.submit_user') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.submitUserId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.current_review_user') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.currentReviewUserId || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_user_ids') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.reviewUserIds || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.submit_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatDate(detailData.submitTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_start_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(detailData.reviewStartTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_end_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(detailData.reviewEndTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_description') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.reviewDescription || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.review_content') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.reviewContent || '-' }}</pre>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.business_data') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.businessData || '-' }}</pre>
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.created_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(detailData.createdTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.modified_time') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ formatNullableDate(detailData.modifiedTime) }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+          <XhDescriptionsItem>
+            <XhDescriptionsLabel>{{ t('approval.review.remark') }}</XhDescriptionsLabel>
+            <XhDescriptionsValue>
+              {{ detailData.remark || '-' }}
+            </XhDescriptionsValue>
+          </XhDescriptionsItem>
+        </XhDescriptionsRoot>
         <div v-else class="py-8 text-center text-gray-400">
           {{ t('approval.review.empty_detail') }}
         </div>
 
-        <template v-if="detailData && !detailLoading" #footer>
-          <NDivider style="margin: 12px 0" />
+        <!-- 审批操作条排在详情之后，抽屉内容区的末尾 -->
+        <template v-if="detailData && !detailLoading">
+          <XhSeparator style="margin: 12px 0" />
           <div class="text-sm font-medium mb-2">
             {{ t('approval.review.review_operation') }}
           </div>
-          <NSpace justify="start" :size="8">
-            <NButton type="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:check" /></NIcon>
-              </template>
+          <XhFlex justify="start" gap="sm">
+            <XhButton tone="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
+              <span><Icon icon="lucide:check" /></span>
               {{ t('approval.review.btn_pass') }}
-            </NButton>
-            <NButton type="error" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:x" /></NIcon>
-              </template>
+            </XhButton>
+            <XhButton tone="danger" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
+              <span><Icon icon="lucide:x" /></span>
               {{ t('approval.review.btn_reject') }}
-            </NButton>
-            <NButton type="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
-              <template #icon>
-                <NIcon><Icon icon="lucide:corner-down-left" /></NIcon>
-              </template>
+            </XhButton>
+            <XhButton tone="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
+              <span><Icon icon="lucide:corner-down-left" /></span>
               {{ t('approval.review.btn_return') }}
-            </NButton>
-            <NPopconfirm @positive-click="handleWithdraw">
-              <template #trigger>
-                <NButton type="default" :disabled="!canWithdraw()" :loading="actionLoading">
-                  <template #icon>
-                    <NIcon><Icon icon="lucide:undo-2" /></NIcon>
-                  </template>
-                  {{ t('approval.review.btn_withdraw') }}
-                </NButton>
-              </template>
-              {{ t('approval.review.withdraw_confirm') }}
-            </NPopconfirm>
-          </NSpace>
+            </XhButton>
+            <XhPopconfirmRoot @confirm="handleWithdraw">
+              <XhPopconfirmTrigger
+                class="xh-linklike-trigger"
+                :disabled="!canWithdraw()"
+                :data-loading="actionLoading || undefined"
+              >
+                <span><Icon icon="lucide:undo-2" /></span>
+                {{ t('approval.review.btn_withdraw') }}
+              </XhPopconfirmTrigger>
+              <XhPopconfirmPositioner>
+                <XhPopconfirmContent>
+                  <XhPopconfirmDescription>{{ t('approval.review.withdraw_confirm') }}</XhPopconfirmDescription>
+                  <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+                  <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+                </XhPopconfirmContent>
+              </XhPopconfirmPositioner>
+            </XhPopconfirmRoot>
+          </XhFlex>
         </template>
-      </NDrawerContent>
-    </NDrawer>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
-    <NDrawer v-model:show="approveVisible" :width="420">
-      <NDrawerContent closable :title="auditResult === AuditResult.Pass ? t('approval.review.approve_dialog_pass') : auditResult === AuditResult.Reject ? t('approval.review.approve_dialog_reject') : t('approval.review.approve_dialog_return')">
-        <NSpace vertical>
-          <NInput
+    <XhDrawerRoot v-model:open="approveVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 420px">
+        <XhDrawerTitle>{{ auditResult === AuditResult.Pass ? t('approval.review.approve_dialog_pass') : auditResult === AuditResult.Reject ? t('approval.review.approve_dialog_reject') : t('approval.review.approve_dialog_return') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <XhFlex direction="column" gap="md">
+          <XInput
             v-model:value="auditComment"
             :placeholder="t('approval.review.comment_placeholder')"
             type="textarea"
             :autosize="{ minRows: 2, maxRows: 6 }"
           />
-          <NButton
+          <XhButton
             block
-            :type="auditResult === AuditResult.Pass ? 'success' : auditResult === AuditResult.Reject ? 'error' : 'warning'"
+            :tone="auditResult === AuditResult.Pass ? 'success' : auditResult === AuditResult.Reject ? 'danger' : 'warning'"
             :loading="actionLoading"
             @click="handleAudit"
           >
-            <template #icon>
-              <NIcon><Icon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" /></NIcon>
-            </template>
+            <span><Icon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" /></span>
             {{ auditResult === AuditResult.Pass ? t('approval.review.confirm_pass') : auditResult === AuditResult.Reject ? t('approval.review.confirm_reject') : t('approval.review.confirm_return') }}
-          </NButton>
-        </NSpace>
-      </NDrawerContent>
-    </NDrawer>
+          </XhButton>
+        </XhFlex>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>

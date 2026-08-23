@@ -1,21 +1,12 @@
 <script setup lang="ts">
 import type { SmsConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import {
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSwitch,
-  NTag,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, smsConfigApi, SmsProviderType } from '@/api'
-import { SchemaPage, XEditModal } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { dialog, toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SettingSmsConfigPage' })
@@ -38,8 +29,9 @@ interface SmsConfigFormModel {
 }
 
 const { t } = useI18n()
-const message = useMessage()
-const dialog = useDialog()
+
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 
 const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
@@ -82,11 +74,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.sms_config.columns.provider_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(
-      NTag,
-      { size: 'small', round: true, bordered: false, type: 'info' },
-      () => getOptionLabel(providerOptions.value, (row as unknown as SmsConfigListItemDto).provider),
-    ),
+    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => getOptionLabel(providerOptions.value, (row as unknown as SmsConfigListItemDto).provider)),
   },
   { key: 'signName', title: t('message.sms_config.columns.sign_name'), dataType: 'string', sortable: true, minWidth: 120, order: 4 },
   {
@@ -102,7 +90,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as SmsConfigListItemDto).isDefault
       return isDefault
-        ? h(NTag, { size: 'small', round: true, bordered: false, type: 'warning' }, () => t('message.sms_config.tag.default'))
+        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => t('message.sms_config.tag.default'))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -118,11 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const enabled = (row as unknown as SmsConfigListItemDto).isEnabled
-      return h(
-        NTag,
-        { size: 'small', round: true, bordered: false, type: enabled ? 'success' : 'error' },
-        () => enabled ? t('message.sms_config.tag.enabled') : t('message.sms_config.tag.disabled'),
-      )
+      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => enabled ? t('message.sms_config.tag.enabled') : t('message.sms_config.tag.disabled'))
     },
   },
   { key: 'sort', title: t('message.sms_config.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 7 },
@@ -135,7 +119,6 @@ const schema = computed<PageSchema>(() => ({
   pageName: t('message.sms_config.page_name'),
   statusPermission: 'saas:sms-config:status',
   rowKey: 'basicId',
-  scrollX: 1200,
   fields: fields.value,
   resource: {
     page: (params) => {
@@ -247,7 +230,7 @@ async function handleEdit(row: SmsConfigListItemDto) {
   try {
     const detail = await smsConfigApi.detail(row.basicId)
     if (!detail) {
-      message.warning(t('message.sms_config.message.detail_not_found'))
+      toast.warning(t('message.sms_config.message.detail_not_found'))
       return
     }
 
@@ -271,44 +254,44 @@ async function handleEdit(row: SmsConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    message.error((e as Error).message || t('message.sms_config.message.load_detail_failed'))
+    toast.error((e as Error).message || t('message.sms_config.message.load_detail_failed'))
   }
 }
 
 function validateForm() {
   if (!form.value.basicId && !form.value.configCode.trim()) {
-    message.warning(t('message.sms_config.message.input_config_code'))
+    toast.warning(t('message.sms_config.message.input_config_code'))
     return false
   }
 
   if (!form.value.configName.trim()) {
-    message.warning(t('message.sms_config.message.input_config_name'))
+    toast.warning(t('message.sms_config.message.input_config_name'))
     return false
   }
 
   if (!form.value.accessKeyId.trim()) {
-    message.warning(t('message.sms_config.message.input_access_key_id'))
+    toast.warning(t('message.sms_config.message.input_access_key_id'))
     return false
   }
 
   if (!form.value.basicId && !form.value.accessKeySecret?.trim()) {
-    message.warning(t('message.sms_config.message.input_access_key_secret'))
+    toast.warning(t('message.sms_config.message.input_access_key_secret'))
     return false
   }
 
   if (!form.value.signName.trim()) {
-    message.warning(t('message.sms_config.message.input_sign_name'))
+    toast.warning(t('message.sms_config.message.input_sign_name'))
     return false
   }
 
   if (isTencentCloud.value) {
     if (!form.value.sdkAppId?.trim()) {
-      message.warning(t('message.sms_config.message.input_sdk_app_id'))
+      toast.warning(t('message.sms_config.message.input_sdk_app_id'))
       return false
     }
 
     if (!form.value.region?.trim()) {
-      message.warning(t('message.sms_config.message.input_region'))
+      toast.warning(t('message.sms_config.message.input_region'))
       return false
     }
   }
@@ -318,12 +301,12 @@ function validateForm() {
     try {
       const parsed: unknown = JSON.parse(templateMap)
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        message.warning(t('message.sms_config.message.template_map_invalid'))
+        toast.warning(t('message.sms_config.message.template_map_invalid'))
         return false
       }
     }
     catch {
-      message.warning(t('message.sms_config.message.template_map_invalid'))
+      toast.warning(t('message.sms_config.message.template_map_invalid'))
       return false
     }
   }
@@ -372,12 +355,12 @@ async function handleSubmit() {
       })
     }
 
-    message.success(t('message.sms_config.message.save_success'))
+    toast.success(t('message.sms_config.message.save_success'))
     modalVisible.value = false
     reloadList()
   }
   catch (e) {
-    message.error((e as Error).message || t('message.sms_config.message.save_failed'))
+    toast.error((e as Error).message || t('message.sms_config.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -386,59 +369,63 @@ async function handleSubmit() {
 
 function handleToggleStatus(row: SmsConfigListItemDto) {
   const next = !row.isEnabled
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
     title: next ? t('message.sms_config.message.enable_title') : t('message.sms_config.message.disable_title'),
     content: next
       ? t('message.sms_config.message.enable_content', { name: row.configName })
       : t('message.sms_config.message.disable_content', { name: row.configName }),
-    positiveText: next ? t('message.sms_config.message.enable') : t('message.sms_config.message.disable'),
-    negativeText: t('message.sms_config.form.cancel'),
-    onPositiveClick: async () => {
+    okText: next ? t('message.sms_config.message.enable') : t('message.sms_config.message.disable'),
+    cancelText: t('message.sms_config.form.cancel'),
+    onOk: async () => {
       try {
         await smsConfigApi.updateStatus({ basicId: row.basicId, isEnabled: next })
-        message.success(t('message.sms_config.message.status_updated'))
+        toast.success(t('message.sms_config.message.status_updated'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.sms_config.message.status_update_failed'))
+        toast.error((e as Error).message || t('message.sms_config.message.status_update_failed'))
       }
     },
   })
 }
 
 function handleSetDefault(row: SmsConfigListItemDto) {
-  dialog.info({
+  void dialog.confirm({
+    badge: 'info',
     title: t('message.sms_config.message.set_default_title'),
     content: t('message.sms_config.message.set_default_content', { name: row.configName }),
-    positiveText: t('message.sms_config.message.set_default'),
-    negativeText: t('message.sms_config.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('message.sms_config.message.set_default'),
+    cancelText: t('message.sms_config.form.cancel'),
+    onOk: async () => {
       try {
         await smsConfigApi.setDefault({ basicId: row.basicId })
-        message.success(t('message.sms_config.message.set_default_success'))
+        toast.success(t('message.sms_config.message.set_default_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.sms_config.message.set_default_failed'))
+        toast.error((e as Error).message || t('message.sms_config.message.set_default_failed'))
       }
     },
   })
 }
 
 function handleDelete(row: SmsConfigListItemDto) {
-  dialog.warning({
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'danger',
     title: t('message.sms_config.message.delete_title'),
     content: t('message.sms_config.message.delete_content', { name: row.configName }),
-    positiveText: t('message.sms_config.message.delete'),
-    negativeText: t('message.sms_config.form.cancel'),
-    onPositiveClick: async () => {
+    okText: t('message.sms_config.message.delete'),
+    cancelText: t('message.sms_config.form.cancel'),
+    onOk: async () => {
       try {
         await smsConfigApi.delete(row.basicId)
-        message.success(t('message.sms_config.message.delete_success'))
+        toast.success(t('message.sms_config.message.delete_success'))
         reloadList()
       }
       catch (e) {
-        message.error((e as Error).message || t('message.sms_config.message.delete_failed'))
+        toast.error((e as Error).message || t('message.sms_config.message.delete_failed'))
       }
     },
   })
@@ -455,73 +442,156 @@ function handleDelete(row: SmsConfigListItemDto) {
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
-        <NFormItem :label="t('message.sms_config.form.config_code')" path="configCode">
-          <NInput
-            v-model:value="form.configCode"
-            clearable
-            :disabled="Boolean(form.basicId)"
-            :placeholder="t('message.sms_config.form.config_code_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.sms_config.form.config_name')" path="configName">
-          <NInput v-model:value="form.configName" clearable :placeholder="t('message.sms_config.form.config_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.sms_config.form.provider')" path="provider">
-          <NSelect v-model:value="form.provider" :options="providerOptions" />
-        </NFormItem>
-        <NFormItem :label="t('message.sms_config.form.sign_name')" path="signName">
-          <NInput v-model:value="form.signName" clearable :placeholder="t('message.sms_config.form.sign_name_placeholder')" />
-        </NFormItem>
-        <NFormItem :label="t('message.sms_config.form.access_key_id')" path="accessKeyId">
-          <NInput v-model:value="form.accessKeyId" clearable :placeholder="t('message.sms_config.form.access_key_id_placeholder')" :input-props="{ autocomplete: 'off' }" />
-        </NFormItem>
-        <NFormItem :label="t('message.sms_config.form.access_key_secret')" path="accessKeySecret">
-          <NInput
-            v-model:value="form.accessKeySecret"
-            type="password"
-            :input-props="{ autocomplete: 'new-password' }"
-            show-password-on="click"
-            :placeholder="secretPlaceholder"
-          />
-        </NFormItem>
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
+        <XhFormFieldGroup value="configCode">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.config_code') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.configCode"
+                clearable
+                :disabled="Boolean(form.basicId)"
+                :placeholder="t('message.sms_config.form.config_code_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="configName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.config_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.configName" clearable :placeholder="t('message.sms_config.form.config_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="provider">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.provider') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect v-model:value="form.provider" :options="providerOptions" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="signName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.sign_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.signName" clearable :placeholder="t('message.sms_config.form.sign_name_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="accessKeyId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.access_key_id') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.accessKeyId" clearable :placeholder="t('message.sms_config.form.access_key_id_placeholder')" autocomplete="off" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="accessKeySecret">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.access_key_secret') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.accessKeySecret"
+                type="password"
+                autocomplete="new-password"
+                :placeholder="secretPlaceholder"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
 
         <template v-if="isTencentCloud">
-          <NFormItem :label="t('message.sms_config.form.sdk_app_id')" path="sdkAppId">
-            <NInput v-model:value="form.sdkAppId" clearable :placeholder="t('message.sms_config.form.sdk_app_id_placeholder')" />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.region')" path="region">
-            <NInput v-model:value="form.region" clearable :placeholder="t('message.sms_config.form.region_placeholder')" />
-          </NFormItem>
+          <XhFormFieldGroup value="sdkAppId">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.sms_config.form.sdk_app_id') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.sdkAppId" clearable :placeholder="t('message.sms_config.form.sdk_app_id_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="region">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.sms_config.form.region') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="form.region" clearable :placeholder="t('message.sms_config.form.region_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
-        <NFormItem :label="t('message.sms_config.form.template_map')" path="templateMap" class="xh-span-2">
-          <NInput
-            v-model:value="form.templateMap"
-            type="textarea"
-            :rows="4"
-            :placeholder="t('message.sms_config.form.template_map_placeholder')"
-          />
-        </NFormItem>
-        <NFormItem :label="t('message.sms_config.form.sort')" path="sort">
-          <NInputNumber v-model:value="form.sort" :min="0" />
-        </NFormItem>
+        <XhFormFieldGroup value="templateMap" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.template_map') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="form.templateMap"
+                type="textarea"
+                :rows="4"
+                :placeholder="t('message.sms_config.form.template_map_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="sort">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.sort') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput v-model:value="form.sort" :min="0" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
 
         <template v-if="!form.basicId">
-          <NFormItem :label="t('message.sms_config.form.is_enabled')" path="isEnabled">
-            <NSwitch v-model:value="form.isEnabled" />
-          </NFormItem>
-          <NFormItem :label="t('message.sms_config.form.is_default')" path="isDefault">
-            <NSwitch v-model:value="form.isDefault" :disabled="!form.isEnabled" />
-          </NFormItem>
+          <XhFormFieldGroup value="isEnabled">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.sms_config.form.is_enabled') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup value="isDefault">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('message.sms_config.form.is_default') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="form.isDefault" :disabled="!form.isEnabled" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
         </template>
 
-        <NFormItem :label="t('message.sms_config.form.remark')" path="remark" class="xh-span-2">
-          <NInput v-model:value="form.remark" clearable :placeholder="t('message.sms_config.form.remark_placeholder')" />
-        </NFormItem>
-      </NForm>
+        <XhFormFieldGroup value="remark" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('message.sms_config.form.remark') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="form.remark" clearable :placeholder="t('message.sms_config.form.remark_placeholder')" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
     </XEditModal>
   </SchemaPage>
 </template>
