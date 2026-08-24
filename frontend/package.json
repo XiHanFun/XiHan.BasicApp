@@ -58,12 +58,9 @@
   },
   "dependencies": {
     "@vueuse/core": "catalog:",
-    "@xihan-ui/animations": "catalog:",
     "@xihan-ui/code-highlight": "catalog:",
     "@xihan-ui/headless": "catalog:",
-    "@xihan-ui/icons": "catalog:",
     "@xihan-ui/kernel": "catalog:",
-    "@xihan-ui/motion": "catalog:",
     "@xihan-ui/styles": "catalog:",
     "@xihan-ui/tokens": "catalog:",
     "@xihan-ui/vue": "catalog:",

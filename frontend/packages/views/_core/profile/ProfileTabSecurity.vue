@@ -11,6 +11,7 @@ import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppContext, useUserStore } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
+import CodeCountdown from '../shared/CodeCountdown.vue'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ updated: [] }>()
@@ -110,28 +111,12 @@ const tfDisableCode = ref<string[]>([])
 const tfDisableCodeStr = computed(() => tfDisableCode.value.join(''))
 
 // 倒计时
-const tfCodeCountdown = ref(0)
-let tfCountdownTimer: ReturnType<typeof setInterval> | null = null
+/** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
+const tfResendSeconds = ref(0)
 
-function startTfCountdown(seconds: number) {
-  tfCodeCountdown.value = seconds
-  if (tfCountdownTimer)
-    clearInterval(tfCountdownTimer)
-  tfCountdownTimer = setInterval(() => {
-    tfCodeCountdown.value--
-    if (tfCodeCountdown.value <= 0) {
-      clearInterval(tfCountdownTimer!)
-      tfCountdownTimer = null
-    }
-  }, 1000)
-}
-
+/** 停掉倒计时，重发按钮立刻可按 */
 function clearCountdown() {
-  if (tfCountdownTimer) {
-    clearInterval(tfCountdownTimer)
-    tfCountdownTimer = null
-  }
-  tfCodeCountdown.value = 0
+  tfResendSeconds.value = 0
 }
 
 // -- TOTP 启用流程 --
@@ -188,7 +173,7 @@ async function sendSetupCode(method: number) {
   try {
     const res = await apis.send2FASetupCodeApi(method)
     toast.success(method === TF_EMAIL ? t('component.profile.security.msg_code_sent_email') : t('component.profile.security.msg_code_sent_phone'))
-    startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+    tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
     toast.error((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
@@ -284,7 +269,7 @@ async function sendDisableCode(method: number) {
   try {
     const res = await apis.send2FASetupCodeApi(method)
     toast.success(t('component.profile.security.msg_code_sent'))
-    startTfCountdown(res.expiresInSeconds > 60 ? 60 : res.expiresInSeconds)
+    tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
     toast.error((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
@@ -655,10 +640,13 @@ function handleDeleteAccount() {
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
-                  :disabled="tfCodeCountdown > 0"
+                  :disabled="tfResendSeconds > 0"
                   @click="sendSetupCode(TF_EMAIL)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
+                  <CodeCountdown v-if="tfResendSeconds > 0" :seconds="tfResendSeconds" @finish="clearCountdown" />
+                  <template v-else>
+                    {{ t('common.actions.resend') }}
+                  </template>
                 </XhButton>
                 <XhButton size="sm" variant="ghost" @click="cancelEmailSetup">
                   {{ t('common.actions.cancel') }}
@@ -695,10 +683,13 @@ function handleDeleteAccount() {
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
-                  :disabled="tfCodeCountdown > 0"
+                  :disabled="tfResendSeconds > 0"
                   @click="sendDisableCode(TF_EMAIL)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
+                  <CodeCountdown v-if="tfResendSeconds > 0" :seconds="tfResendSeconds" @finish="clearCountdown" />
+                  <template v-else>
+                    {{ t('common.actions.resend') }}
+                  </template>
                 </XhButton>
                 <XhButton size="sm" variant="ghost" @click="cancelDisable">
                   {{ t('common.actions.cancel') }}
@@ -757,10 +748,13 @@ function handleDeleteAccount() {
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
-                  :disabled="tfCodeCountdown > 0"
+                  :disabled="tfResendSeconds > 0"
                   @click="sendSetupCode(TF_PHONE)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
+                  <CodeCountdown v-if="tfResendSeconds > 0" :seconds="tfResendSeconds" @finish="clearCountdown" />
+                  <template v-else>
+                    {{ t('common.actions.resend') }}
+                  </template>
                 </XhButton>
                 <XhButton size="sm" variant="ghost" @click="cancelPhoneSetup">
                   {{ t('common.actions.cancel') }}
@@ -797,10 +791,13 @@ function handleDeleteAccount() {
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
-                  :disabled="tfCodeCountdown > 0"
+                  :disabled="tfResendSeconds > 0"
                   @click="sendDisableCode(TF_PHONE)"
                 >
-                  {{ tfCodeCountdown > 0 ? `${tfCodeCountdown}s` : t('common.actions.resend') }}
+                  <CodeCountdown v-if="tfResendSeconds > 0" :seconds="tfResendSeconds" @finish="clearCountdown" />
+                  <template v-else>
+                    {{ t('common.actions.resend') }}
+                  </template>
                 </XhButton>
                 <XhButton size="sm" variant="ghost" @click="cancelDisable">
                   {{ t('common.actions.cancel') }}

@@ -1096,7 +1096,7 @@ async function handleSubmit() {
         <XhFormFieldGroup value="cronExpression" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.cron_expression') }}</XhFieldLabel>
-            <XhFieldControl>
+            <XhFieldControl :as-child="false">
               <CronExpression v-model:value="jobForm.cronExpression" />
             </XhFieldControl>
             <XhFieldErrorText />

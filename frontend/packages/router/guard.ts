@@ -222,9 +222,8 @@ export function setupRouterGuard(router: Router) {
   router.afterEach((to) => {
     const appStore = useAppStore()
 
-    if (appStore.transitionProgress) {
-      loadingBar.finish()
-    }
+    // 重定向链上 beforeEach 会连开好几笔而 afterEach 只走一次，一次清干净
+    loadingBar.finishAll()
     if (appStore.transitionLoading) {
       appStore.setPageLoading(false)
     }
@@ -242,9 +241,7 @@ export function setupRouterGuard(router: Router) {
 
   router.onError(() => {
     const appStore = useAppStore()
-    if (appStore.transitionProgress) {
-      loadingBar.error()
-    }
+    loadingBar.error()
     if (appStore.transitionLoading) {
       appStore.setPageLoading(false)
     }

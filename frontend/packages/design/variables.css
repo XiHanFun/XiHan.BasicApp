@@ -79,6 +79,8 @@
   --layout-content-padding: 16px;
   --z-sidebar: 100;
   --z-header: 200;
+  /* 页内浮层：压住表格粘性表头，仍在模态与消息之下 */
+  --z-page-overlay: 300;
   --z-modal: 1000;
   --z-message: 2000;
   --z-loading: 3000;

@@ -1,16 +1,17 @@
 import type { Tone } from '@xihan-ui/kernel'
-import type { AlertOptions, ConfirmOptions, DialogService, ToastMessageOptions, ToastService, XhTranslationOverrides } from '@xihan-ui/vue'
+import type { AlertOptions, ConfirmOptions, DialogService, ToastMessageOptions, ToastService } from '@xihan-ui/vue'
 import { createDialogService, createToastService } from '@xihan-ui/vue'
 import { reactive } from 'vue'
-import { $t, i18n } from '~/locales'
-import { xhTranslations } from '~/locales/xihan-ui'
+import { $t } from '~/locales'
+import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
 
 /**
- * 命令式 UI 服务：轻提示、确认框、顶部进度条。
+ * 命令式 UI 服务：轻提示与确认框，外加顶部进度条的开关。
  *
  * 三者都要能在组件树之外调用——请求拦截器、pinia store、路由守卫都会用到，
- * 那些地方拿不到组件实例。XiHan.UI 的 toast / dialog 服务本身就是为此设计的：
- * 各自挂一个独立的宿主应用到 body，与业务应用的组件树无关。
+ * 那些地方拿不到组件实例。XiHan.UI 的三个服务本身就是为此设计的：
+ * 轻提示与确认框各自挂一个独立的宿主应用到 body，与业务应用的组件树无关；
+ * 进度条的部件留在 App 根组件里（组件库的进度条服务在自建宿主里接不上自己的上下文）。
  *
  * 服务实例懒建：createXxxService 需要 document，模块被 node 侧的测试引到时不能当场炸。
  */
@@ -18,31 +19,38 @@ import { xhTranslations } from '~/locales/xihan-ui'
 let toastInstance: ToastService | null = null
 let dialogInstance: DialogService | null = null
 
-/**
- * 两个服务各自挂一个独立宿主应用，拿不到 provideXhConfig 的注入，
- * 内建文案要在创建时单独喂一份。服务是懒建的，此刻 i18n 已就绪。
- */
-function currentXhTranslations(): XhTranslationOverrides {
-  return xhTranslations[i18n.global.locale.value] ?? xhTranslations['zh-CN']!
-}
-
 function toastService(): ToastService {
-  const t = currentXhTranslations()
   // 顶部居中：与旧版轻提示的落位一致。右下角那几条通知在调用点单独传 placement
   toastInstance ??= createToastService({
     placement: 'top',
     max: 5,
-    translations: t.toaster,
-    toastTranslations: t.toast,
+    config: xhConfigValue,
+    translations: () => xhTranslationsOfCurrentLocale().toaster ?? {},
+    toastTranslations: () => xhTranslationsOfCurrentLocale().toast ?? {},
   })
   return toastInstance
 }
 
-function dialogService(): DialogService {
-  // 确定/取消的兜底文案在每次调用时按当前语言取，这里给的只是服务档缺省值
-  dialogInstance ??= createDialogService()
+/** 确认框服务；确定/取消的兜底文案按当前语言取，调用点显式给了就以调用点为准。 */
+export function dialogService(): DialogService {
+  dialogInstance ??= createDialogService({
+    config: xhConfigValue,
+    okText: () => $t('common.actions.confirm'),
+    cancelText: () => $t('common.actions.cancel'),
+  })
   return dialogInstance
 }
+
+/**
+ * 顶部进度条的状态。条子本身由 App 根组件挂在业务组件树里，这里只留开关。
+ *
+ * 在途计数而不是布尔开关：路由守卫的重定向链会连开好几笔，
+ * 布尔开关下第一笔收尾就把条子收了。
+ */
+export const loadingBarState = reactive({
+  pending: 0,
+  tone: 'brand' as Tone,
+})
 
 /**
  * 轻提示。用法与位置同旧版：`toast.success('保存成功')`。
@@ -71,15 +79,6 @@ export const toast = {
   },
 }
 
-/** 补上当前语言的确定/取消文案；调用点显式给了就以调用点为准。 */
-function withLocaleText<T extends { okText?: string, cancelText?: string }>(options: T): T {
-  return {
-    ...options,
-    okText: options.okText ?? $t('common.actions.confirm'),
-    cancelText: options.cancelText ?? $t('common.actions.cancel'),
-  }
-}
-
 /**
  * 确认框与告知框。
  *
@@ -88,11 +87,11 @@ function withLocaleText<T extends { okText?: string, cancelText?: string }>(opti
  * 删除这类不可逆操作传 `tone: 'danger'`，确认钮即转危险色。
  */
 export const dialog = {
-  confirm: (options: ConfirmOptions) => dialogService().confirm(withLocaleText(options)),
-  info: (options: AlertOptions) => dialogService().info(withLocaleText(options)),
-  success: (options: AlertOptions) => dialogService().success(withLocaleText(options)),
-  warning: (options: AlertOptions) => dialogService().warning(withLocaleText(options)),
-  error: (options: AlertOptions) => dialogService().error(withLocaleText(options)),
+  confirm: (options: ConfirmOptions) => dialogService().confirm(options),
+  info: (options: AlertOptions) => dialogService().info(options),
+  success: (options: AlertOptions) => dialogService().success(options),
+  warning: (options: AlertOptions) => dialogService().warning(options),
+  error: (options: AlertOptions) => dialogService().error(options),
 }
 
 /** 危险操作确认：带警示徽记与危险色确认钮的两按钮确认框。 */
@@ -100,24 +99,24 @@ export function confirmDanger(options: Omit<ConfirmOptions, 'tone' | 'badge'>): 
   return dialog.confirm({ ...options, tone: 'danger', badge: 'warning' })
 }
 
-/** 顶部进度条状态。App.vue 把它绑到 XhLoadingBarRoot，路由守卫与请求层只管翻这几个开关。 */
-export const loadingBarState = reactive({
-  loading: false,
-  tone: 'brand' as Tone,
-})
-
+/** 顶部进度条开关。调用点只翻状态，条子的落位与动效归 App 根组件里的部件。 */
 export const loadingBar = {
-  start(): void {
+  start() {
     loadingBarState.tone = 'brand'
-    loadingBarState.loading = true
+    loadingBarState.pending += 1
   },
-  finish(): void {
-    loadingBarState.loading = false
+  finish() {
+    loadingBarState.pending = Math.max(0, loadingBarState.pending - 1)
+  },
+  /** 不管还剩几笔在途一律收掉。 */
+  finishAll() {
+    loadingBarState.tone = 'brand'
+    loadingBarState.pending = 0
   },
   /** 出错收尾：条子转危险色再收，与正常收尾区分开。 */
-  error(): void {
+  error() {
     loadingBarState.tone = 'danger'
-    loadingBarState.loading = false
+    loadingBarState.pending = 0
   },
 }
 

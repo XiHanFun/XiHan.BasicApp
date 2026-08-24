@@ -25,7 +25,7 @@ onMounted(() => {
 <template>
   <div class="h-full">
     <!-- 顶部进度条：路由守卫与请求层只翻 loadingBarState 的开关，落位与动效归组件 -->
-    <XhLoadingBarRoot :loading="loadingBarState.loading" :tone="loadingBarState.tone">
+    <XhLoadingBarRoot :loading="loadingBarState.pending > 0" :tone="loadingBarState.tone">
       <XhLoadingBarTrack>
         <XhLoadingBarRange />
       </XhLoadingBarTrack>

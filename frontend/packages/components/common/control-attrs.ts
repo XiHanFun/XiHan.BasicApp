@@ -1,18 +1,19 @@
+import { useFieldControl } from '@xihan-ui/vue'
 import { computed, useAttrs } from 'vue'
 
 /**
- * 薄封装把落在自己标签上的属性转交给里面真正的控件。
+ * 薄封装把落在自己标签上的属性、以及字段的控件接线属性，一并转交给里面真正的控件。
  *
- * `XhFieldControl` 不渲染自己的节点，它把 id、aria-* 与角色标记合并到唯一的子节点上。
- * 子节点若是这些薄封装，那组属性就会落到封装的根上：id 与 aria-* 落在根上时 label 的 `for`
- * 指不到可聚焦元素，而 `data-scope` / `data-part` 会盖掉部件自己的角色标记，皮肤整条选不中——
- * 输入框、下拉、开关都会退回没有描边与高度的裸元素。
+ * 接线属性（id 与 aria-*）直接从字段上下文取，不经封装根节点中转：
+ * 标签的 `for` 只对可标注元素生效，落在封装的根 div 上什么也不会发生，且不报错。
+ * 不在字段里时这一份为空，封装照常工作。
  *
  * 用法：组件声明 `inheritAttrs: false`，根上写 `:class="[..., attrs.class]" :style="attrs.style"`，
  * 可聚焦的那个部件上写 `v-bind="controlAttrs"`。
  */
 export function useControlAttrs() {
   const attrs = useAttrs()
+  const fieldControl = useFieldControl()
 
   const controlAttrs = computed(() => {
     const rest: Record<string, unknown> = {}
@@ -21,7 +22,7 @@ export function useControlAttrs() {
         continue
       rest[key] = value
     }
-    return rest
+    return { ...rest, ...fieldControl.value }
   })
 
   return { attrs, controlAttrs }

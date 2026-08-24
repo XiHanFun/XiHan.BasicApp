@@ -4,12 +4,12 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner } from '@xihan-ui/vue'
+import { useThread, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XInput from '~/components/common/XInput.vue'
-import { dialog, toast } from '~/composables'
+import { dialog, toast, xhTranslationsOfCurrentLocale } from '~/composables'
 import { Icon } from '~/iconify'
 
 import { useUserStore } from '~/stores'
@@ -47,7 +47,14 @@ const { t } = useI18n()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 
-const scrollRef = ref<HTMLDivElement>()
+// 消息区的滚动机器：新消息来了跟到底，用户上翻就松手，往上补历史时按锚元素补偿滚动位置
+const { api: thread, viewportRef, contentRef } = useThread({
+  // 距底 80px 内算在底，沿用旧判定的阈值
+  threshold: 80,
+  get translations() {
+    return xhTranslationsOfCurrentLocale().thread
+  },
+})
 
 // 会话内搜索
 const showSearch = ref(false)
@@ -469,43 +476,24 @@ function toggleSearch() {
 }
 
 function isNearBottom(): boolean {
-  const el = scrollRef.value
-  if (!el) {
-    return true
-  }
-  return el.scrollHeight - el.scrollTop - el.clientHeight < 80
+  return thread.value.atBottom
 }
 
 function scrollToBottom() {
-  void nextTick(() => {
-    const el = scrollRef.value
-    if (el) {
-      el.scrollTop = el.scrollHeight
-    }
-  })
+  void nextTick(() => thread.value.scrollToBottom())
 }
 
 async function handleLoadOlder() {
   const id = conversationId.value
-  const el = scrollRef.value
-  if (!id || !el) {
+  if (!id) {
     return
   }
-  const prevHeight = el.scrollHeight
-  const prevTop = el.scrollTop
-  try {
-    await chatStore.loadOlder(id)
-  }
-  catch {
-    return
-  }
-  // 保持视口停留在原消息处（prepend 不跳动）
-  await nextTick()
-  el.scrollTop = el.scrollHeight - prevHeight + prevTop
+  // 往上补历史后视口停在原消息处：粘底句柄按锚元素补偿，这里不再手算 scrollTop
+  await chatStore.loadOlder(id).catch(() => undefined)
 }
 
 function handleScroll() {
-  const el = scrollRef.value
+  const el = viewportRef.value
   if (el && el.scrollTop < 40 && hasMoreOlder.value && !historyLoading.value) {
     void handleLoadOlder()
   }
@@ -712,89 +700,99 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 消息流 -->
-    <div ref="scrollRef" class="min-h-0 flex-1 overflow-y-auto px-3 py-2" @scroll.passive="handleScroll">
-      <div v-if="hasMoreOlder || historyLoading" class="flex justify-center py-1.5">
-        <XhSpinner v-if="historyLoading" size="sm" />
-        <XhButton v-else variant="ghost" size="sm" @click="handleLoadOlder">
-          {{ t('chat.thread.load_more') }}
-        </XhButton>
-      </div>
-
-      <div v-if="!chatStore.activeMessages.length && !historyLoading" class="py-12">
-        <XhEmptyStateRoot size="sm">
-          <XhEmptyStateIcon>
-            <Icon icon="lucide:inbox" width="28" height="28" />
-          </XhEmptyStateIcon>
-          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-          <XhEmptyStateDescription>{{ t('chat.thread.empty') }}</XhEmptyStateDescription>
-        </XhEmptyStateRoot>
-      </div>
-
+    <div v-bind="thread.getRootProps()" class="min-h-0 flex-1">
       <div
-        v-for="item in chatStore.activeMessages"
-        :id="`chat-msg-${item.messageId}`"
-        :key="item.messageId"
-        @contextmenu="openContextMenu($event, item)"
+        v-bind="thread.getViewportProps()"
+        :ref="(el) => (viewportRef = el as HTMLElement | null)"
+        class="px-3 py-2"
+        @scroll.passive="handleScroll"
       >
-        <ChatMessageItemView
-          :message="item"
-          :is-self="item.senderUserId === currentUserId"
-          :show-sender-name="isGroupLike"
-          :conversation-type="conversation.conversationType"
-          :read-count="readCountOf(item)"
-          :highlighted="chatStore.highlightMessageId === item.messageId"
-          @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
-          @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
-          @react="emoji => handleReact(item, emoji)"
-          @avatar-contextmenu="event => openMemberMenu(event, item)"
-        />
-      </div>
-
-      <!-- 助手回复流：生成期间的临时气泡，落库消息到达后由 store 丢弃 -->
-      <div v-if="assistantStream" class="flex justify-start px-2 py-1">
-        <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
-          <template v-if="assistantStream.error">
-            <span class="text-error">{{ assistantStream.error }}</span>
-            <XhButton size="sm" text tone="brand" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
-              {{ t('chat.thread.assistant_dismiss') }}
+        <!-- 消息之间的间距各自带着，这一层不再叠加 -->
+        <div v-bind="thread.getContentProps()" :ref="(el) => (contentRef = el as HTMLElement | null)" style="--xh-thread-content-gap: 0; --xh-thread-content-py: 0">
+          <div v-if="hasMoreOlder || historyLoading" class="flex justify-center py-1.5">
+            <XhSpinner v-if="historyLoading" size="sm" />
+            <XhButton v-else variant="ghost" size="sm" @click="handleLoadOlder">
+              {{ t('chat.thread.load_more') }}
             </XhButton>
-          </template>
-          <template v-else>
-            <span>{{ assistantStream.text }}</span>
-            <span v-if="assistantStream.streaming" class="ml-1 text-muted-foreground">{{ t('chat.thread.assistant_thinking') }}</span>
-          </template>
+          </div>
+
+          <div v-if="!chatStore.activeMessages.length && !historyLoading" class="py-12">
+            <XhEmptyStateRoot size="sm">
+              <XhEmptyStateIcon>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('chat.thread.empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+          </div>
+
+          <div
+            v-for="item in chatStore.activeMessages"
+            :id="`chat-msg-${item.messageId}`"
+            :key="item.messageId"
+            @contextmenu="openContextMenu($event, item)"
+          >
+            <ChatMessageItemView
+              :message="item"
+              :is-self="item.senderUserId === currentUserId"
+              :show-sender-name="isGroupLike"
+              :conversation-type="conversation.conversationType"
+              :read-count="readCountOf(item)"
+              :highlighted="chatStore.highlightMessageId === item.messageId"
+              @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
+              @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
+              @react="emoji => handleReact(item, emoji)"
+              @avatar-contextmenu="event => openMemberMenu(event, item)"
+            />
+          </div>
+
+          <!-- 助手回复流：生成期间的临时气泡，落库消息到达后由 store 丢弃 -->
+          <div v-if="assistantStream" class="flex justify-start px-2 py-1">
+            <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+              <template v-if="assistantStream.error">
+                <span class="text-error">{{ assistantStream.error }}</span>
+                <XhButton size="sm" text tone="brand" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
+                  {{ t('chat.thread.assistant_dismiss') }}
+                </XhButton>
+              </template>
+              <template v-else>
+                <span>{{ assistantStream.text }}</span>
+                <span v-if="assistantStream.streaming" class="ml-1 text-muted-foreground">{{ t('chat.thread.assistant_thinking') }}</span>
+              </template>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- 消息右键菜单（QQ 式：分离的表情条 + 菜单卡） -->
-      <ChatContextMenu
-        v-model:show="ctxShow"
-        :x="ctxX"
-        :y="ctxY"
-        :items="ctxItems"
-        :reactions="QUICK_REACTIONS"
-        @select="key => handleCtxSelect(key)"
-        @react="handleCtxReact"
-      />
+        <!-- 消息右键菜单（QQ 式：分离的表情条 + 菜单卡） -->
+        <ChatContextMenu
+          v-model:show="ctxShow"
+          :x="ctxX"
+          :y="ctxY"
+          :items="ctxItems"
+          :reactions="QUICK_REACTIONS"
+          @select="key => handleCtxSelect(key)"
+          @react="handleCtxReact"
+        />
 
-      <!-- 头像右键成员菜单（QQ 式） -->
-      <ChatContextMenu
-        v-model:show="memberCtxShow"
-        :x="memberCtxX"
-        :y="memberCtxY"
-        :items="memberCtxItems"
-        @select="handleMemberCtxSelect"
-      />
+        <!-- 头像右键成员菜单（QQ 式） -->
+        <ChatContextMenu
+          v-model:show="memberCtxShow"
+          :x="memberCtxX"
+          :y="memberCtxY"
+          :items="memberCtxItems"
+          @select="handleMemberCtxSelect"
+        />
 
-      <!-- 转发目标选择 -->
-      <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
+        <!-- 转发目标选择 -->
+        <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
 
-      <!-- 视口分离态：回到最新 -->
-      <div v-if="isDetached" class="sticky bottom-1 flex justify-center">
-        <XhButton size="sm" variant="subtle" tone="brand" @click="handleBackToLatest">
-          <Icon icon="lucide:arrow-down-to-line" width="13" height="13" />
-          {{ t('chat.thread.back_to_latest') }}
-        </XhButton>
+        <!-- 视口分离态：回到最新 -->
+        <div v-if="isDetached" class="sticky bottom-1 flex justify-center">
+          <XhButton size="sm" variant="subtle" tone="brand" @click="handleBackToLatest">
+            <Icon icon="lucide:arrow-down-to-line" width="13" height="13" />
+            {{ t('chat.thread.back_to_latest') }}
+          </XhButton>
+        </div>
       </div>
     </div>
 

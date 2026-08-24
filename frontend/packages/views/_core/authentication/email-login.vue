@@ -8,12 +8,13 @@ import {
   XhFormRoot,
   XhFormSubmitTrigger,
 } from '@xihan-ui/vue'
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput } from '~/components'
 import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
+import CodeCountdown from '../shared/CodeCountdown.vue'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'EmailLoginPage' })
@@ -23,8 +24,8 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const { apis } = useAppContext()
 const loading = ref(false)
-const countdown = ref(0)
-let timer: ReturnType<typeof setInterval> | null = null
+/** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
+const resendSeconds = ref(0)
 
 const formData = ref({
   email: '',
@@ -59,14 +60,7 @@ function handleSendCode() {
   void (async () => {
     try {
       const response = await apis.sendEmailLoginCodeApi(formData.value.email)
-      countdown.value = 60
-      timer = setInterval(() => {
-        countdown.value--
-        if (countdown.value <= 0) {
-          clearInterval(timer!)
-          timer = null
-        }
-      }, 1000)
+      resendSeconds.value = 60
       if (response.debugCode) {
         formData.value.code = response.debugCode
       }
@@ -99,11 +93,6 @@ async function onSubmit() {
   }
 }
 
-onBeforeUnmount(() => {
-  if (timer) {
-    clearInterval(timer)
-  }
-})
 const onAuthInvalid = useAuthFormInvalid()
 </script>
 
@@ -154,12 +143,15 @@ const onAuthInvalid = useAuthFormInvalid()
             <XhButton
               tone="brand"
               variant="outline"
-              :disabled="countdown > 0"
+              :disabled="resendSeconds > 0"
               size="lg"
               style="min-width: 132px"
               @click="handleSendCode"
             >
-              {{ countdown > 0 ? `${countdown}s` : t('page.auth.send_code') }}
+              <CodeCountdown v-if="resendSeconds > 0" :seconds="resendSeconds" @finish="resendSeconds = 0" />
+              <template v-else>
+                {{ t('page.auth.send_code') }}
+              </template>
             </XhButton>
           </div>
         </XhFieldRoot>

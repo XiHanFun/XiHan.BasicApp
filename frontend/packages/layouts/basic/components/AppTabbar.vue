@@ -3,11 +3,13 @@ import type { DragEndEvent } from '@dnd-kit/vue'
 import type { TabItem } from '~/types'
 import { DragDropProvider } from '@dnd-kit/vue'
 import { useDebounceFn } from '@vueuse/core'
+import { resolveMotionPreference } from '@xihan-ui/motion'
 import { XhButton } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
+import { GLOBAL_HOTKEYS } from '~/composables/useGlobalShortcuts'
 import { usePlatform } from '~/composables/usePlatform'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -33,6 +35,8 @@ const favoritesStore = useFavoritesStore()
 const splitViewStore = useSplitViewStore()
 const layoutBridgeStore = useLayoutBridgeStore()
 const { formatShortcut } = usePlatform()
+// 标签总览按钮 title 里的键位提示，键位取自全局快捷键声明。
+const tabOverviewShortcut = formatShortcut(GLOBAL_HOTKEYS.tabOverview.join('+'))
 
 // 隐藏被合并到右侧分屏的标签（视为已并入分屏锚定标签）
 const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStore.isMergedTab(tab.path)))
@@ -363,12 +367,17 @@ const debouncedCalc = useDebounceFn(() => {
 
 const debouncedEdge = useDebounceFn(updateScrollEdge, 80)
 
+/** 减少动效时改为瞬时滚动。 */
+function scrollBehavior(): ScrollBehavior {
+  return resolveMotionPreference() === 'reduce' ? 'instant' : 'smooth'
+}
+
 function scrollDirection(dir: 'left' | 'right', distance = 150) {
   const vp = scrollViewportRef.value
   if (!vp)
     return
   vp.scrollBy({
-    behavior: 'smooth',
+    behavior: scrollBehavior(),
     left: dir === 'left' ? -(vp.clientWidth - distance) : +(vp.clientWidth - distance),
   })
 }
@@ -382,7 +391,7 @@ async function scrollToActive() {
     return
   requestAnimationFrame(() => {
     const activeEl = vp.querySelector('.is-active') as HTMLElement | null
-    activeEl?.scrollIntoView({ behavior: 'smooth', inline: 'nearest' })
+    activeEl?.scrollIntoView({ behavior: scrollBehavior(), inline: 'nearest' })
   })
 }
 
@@ -561,7 +570,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-if="tabbarPreferences.tabbarShowOverview.value"
       variant="ghost"
       size="sm"
-      :title="`${t('tabbar.overview')} (${formatShortcut('Alt+B')})`"
+      :title="`${t('tabbar.overview')} (${tabOverviewShortcut})`"
       @click="layoutBridgeStore.requestOpenTabOverview()"
     >
       <Icon icon="lucide:layers" width="14" />

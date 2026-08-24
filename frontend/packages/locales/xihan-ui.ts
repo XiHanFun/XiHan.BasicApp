@@ -48,6 +48,8 @@ const zhCN: XhTranslationOverrides = {
     clearTrigger: '清空已选文件',
   },
   'float-button': { trigger: '悬浮操作' },
+  // 只覆盖整组的读法；每一枚键的名字随平台变（Mac 念 Command/Option），交回组件库
+  'hotkeys': { hotkey: names => `快捷键 ${names.join(' 加 ')}` },
   'image-viewer': {
     content: '图片预览',
     close: '关闭',
@@ -62,6 +64,12 @@ const zhCN: XhTranslationOverrides = {
     next: '下一张',
     counter: (index, count) => `第 ${index} / ${count} 张`,
   },
+  'json-viewer': {
+    tree: 'JSON 视图',
+    root: '根',
+    collapsedBranchLabel: (name, count) => `${name}，${count} 项`,
+    moreItems: count => `… 其余 ${count} 项`,
+  },
   'loading-bar': { root: '加载进度' },
   'log': { log: '日志' },
   'mention': { content: '提及候选', input: '输入以提及' },
@@ -71,6 +79,11 @@ const zhCN: XhTranslationOverrides = {
     prevTrigger: '上一页',
     nextTrigger: '下一页',
     item: page => `第 ${page} 页`,
+  },
+  'password-input': {
+    visibilityTriggerShow: '显示密码',
+    visibilityTriggerHide: '隐藏密码',
+    capsLockOn: '大写锁定已开启',
   },
   'pin-input': { input: (index, length) => `第 ${index} 位，共 ${length} 位` },
   'popover': { close: '关闭' },

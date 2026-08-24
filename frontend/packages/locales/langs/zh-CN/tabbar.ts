@@ -13,6 +13,7 @@ export default {
   split_open_left: '左侧页面新窗口打开',
   split_open_right: '右侧页面新窗口打开',
   split_load_failed: '无法加载该页面',
+  split_divider: '分屏分隔条',
   overview: '标签总览',
   overview_search: '搜索已打开的标签…',
   overview_empty: '没有匹配的标签',

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { SplitterPanelProps, SplitterSizesChangeDetails } from '@xihan-ui/headless'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -72,40 +73,24 @@ watch(() => route.fullPath, (path) => {
   }
 })
 
-// 分屏分隔条拖拽：拖拽期间用全屏遮罩接管指针（防 iframe 吞事件→卡顿），rAF 合帧更丝滑
 const splitRowRef = ref<HTMLElement | null>(null)
-const draggingDivider = ref(false)
-function onDividerDown() {
-  const el = splitRowRef.value
-  if (!el) {
-    return
-  }
-  const rect = el.getBoundingClientRect()
-  draggingDivider.value = true
-  document.body.style.userSelect = 'none'
-  let raf = 0
-  let pendingX = 0
-  const move = (ev: PointerEvent) => {
-    pendingX = ev.clientX
-    if (raf) {
-      return
-    }
-    raf = requestAnimationFrame(() => {
-      raf = 0
-      splitView.setRatio((pendingX - rect.left) / rect.width)
-    })
-  }
-  const up = () => {
-    draggingDivider.value = false
-    document.body.style.userSelect = ''
-    if (raf) {
-      cancelAnimationFrame(raf)
-    }
-    window.removeEventListener('pointermove', move)
-    window.removeEventListener('pointerup', up)
-  }
-  window.addEventListener('pointermove', move)
-  window.addEventListener('pointerup', up)
+
+/** 两栏各自的百分比区间，与 store 对视觉左侧占比 [0.2, 0.8] 的夹取一致 */
+const splitPanels: SplitterPanelProps[] = [
+  { id: 'anchor', min: 20, max: 80 },
+  { id: 'secondary', min: 20, max: 80 },
+]
+
+/** 受控布局：DOM 顺序恒为「锚定块、分隔条、副块」，reversed 时锚定块的占比取视觉右侧那一份 */
+const splitSizes = computed(() => {
+  const anchor = (splitView.reversed ? 1 - splitView.ratio : splitView.ratio) * 100
+  return [anchor, 100 - anchor]
+})
+
+/** 分隔条推动（拖拽或方向键）后回写视觉左侧占比 */
+function onSplitSizesChange(details: SplitterSizesChangeDetails): void {
+  const anchor = (details.sizes[0] ?? 50) / 100
+  splitView.setRatio(splitView.reversed ? 1 - anchor : anchor)
 }
 
 // ── 分割线悬浮工具组（左右页面各自的替换/刷新/新窗口，分组显示）────
@@ -380,68 +365,86 @@ const sidebarEnableState = computed(
           class="relative flex min-h-0 w-full flex-1 overflow-hidden"
           :class="{ 'split-collapsed': swapPhase === 'shrink' || swapPhase === 'fly' }"
         >
-          <div
-            :ref="shell.setContentScrollEl"
-            class="split-anchor h-full min-w-0 overflow-auto"
-            :style="{
-              flexBasis: `calc((100% - 6px) * ${splitView.reversed ? 1 - splitView.ratio : splitView.ratio})`,
-              order: splitView.reversed ? 3 : 1,
-            }"
+          <!-- reversed 时用 dir 让指针位移与方向键跟着视觉顺序一起翻转 -->
+          <XhSplitterRoot
+            class="split-row relative h-full min-w-0 flex-1"
+            :sizes="splitSizes"
+            :panels="splitPanels"
+            :dir="splitView.reversed ? 'rtl' : 'ltr'"
+            @sizes-change="onSplitSizesChange"
           >
-            <LayoutContentRenderer :transition-name="shell.transitionName.value" />
-          </div>
-          <div
-            class="split-divider"
-            :class="{ 'is-dragging': draggingDivider }"
-            style="order: 2"
-            @pointerdown="onDividerDown"
-          >
-            <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作 -->
-            <div class="split-tools" @pointerdown.stop>
-              <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
-              <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('left', key)">
-                <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')">
-                  <Icon icon="lucide:replace" width="16" height="16" />
-                </button>
-              </XDropdown>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @click="onSideReload('left')">
-                <Icon icon="lucide:rotate-cw" width="16" height="16" />
-              </button>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_left')" @click="onSideOpen('left')">
-                <Icon icon="lucide:external-link" width="16" height="16" />
-              </button>
+            <template #default="{ dragging }">
+              <XhSplitterPanel
+                :index="0"
+                class="split-anchor h-full"
+                :style="{ order: splitView.reversed ? 3 : 1 }"
+              >
+                <div :ref="shell.setContentScrollEl" class="h-full w-full overflow-auto">
+                  <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+                </div>
+              </XhSplitterPanel>
 
-              <span class="split-tools__sep" />
-              <span class="split-tools__grip" @pointerdown="onDividerDown">
-                <Icon icon="lucide:grip-vertical" width="16" height="16" />
-              </span>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @click="swapSplitPanes">
-                <Icon icon="lucide:arrow-left-right" width="16" height="16" />
-              </button>
-              <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @click="splitView.close()">
-                <Icon icon="lucide:x" width="17" height="17" />
-              </button>
-              <span class="split-tools__sep" />
+              <XhSplitterResizeTrigger
+                :index="0"
+                class="split-divider"
+                :aria-label="t('tabbar.split_divider')"
+                :style="{ order: 2 }"
+              >
+                <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作。
+                     按键不外泄，免得工具组里的方向键被分隔条当成推动 -->
+                <div class="split-tools" @keydown.stop>
+                  <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
+                  <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('left', key)">
+                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')" @pointerdown.stop>
+                      <Icon icon="lucide:replace" width="16" height="16" />
+                    </button>
+                  </XDropdown>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @pointerdown.stop @click="onSideReload('left')">
+                    <Icon icon="lucide:rotate-cw" width="16" height="16" />
+                  </button>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_left')" @pointerdown.stop @click="onSideOpen('left')">
+                    <Icon icon="lucide:external-link" width="16" height="16" />
+                  </button>
 
-              <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
-              <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('right', key)">
-                <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')">
-                  <Icon icon="lucide:replace" width="16" height="16" />
-                </button>
-              </XDropdown>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @click="onSideReload('right')">
-                <Icon icon="lucide:rotate-cw" width="16" height="16" />
-              </button>
-              <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_right')" @click="onSideOpen('right')">
-                <Icon icon="lucide:external-link" width="16" height="16" />
-              </button>
-            </div>
-          </div>
-          <div class="split-secondary h-full min-w-0 flex-1" :style="{ order: splitView.reversed ? 1 : 3 }">
-            <SplitPane ref="splitPaneRef" />
-          </div>
-          <!-- 拖拽遮罩：拖拽期间接管指针，拖动丝滑 -->
-          <div v-if="draggingDivider" class="split-drag-overlay" />
+                  <span class="split-tools__sep" />
+                  <span class="split-tools__grip">
+                    <Icon icon="lucide:grip-vertical" width="16" height="16" />
+                  </span>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @pointerdown.stop @click="swapSplitPanes">
+                    <Icon icon="lucide:arrow-left-right" width="16" height="16" />
+                  </button>
+                  <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @pointerdown.stop @click="splitView.close()">
+                    <Icon icon="lucide:x" width="17" height="17" />
+                  </button>
+                  <span class="split-tools__sep" />
+
+                  <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
+                  <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('right', key)">
+                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')" @pointerdown.stop>
+                      <Icon icon="lucide:replace" width="16" height="16" />
+                    </button>
+                  </XDropdown>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @pointerdown.stop @click="onSideReload('right')">
+                    <Icon icon="lucide:rotate-cw" width="16" height="16" />
+                  </button>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_right')" @pointerdown.stop @click="onSideOpen('right')">
+                    <Icon icon="lucide:external-link" width="16" height="16" />
+                  </button>
+                </div>
+              </XhSplitterResizeTrigger>
+
+              <XhSplitterPanel
+                :index="1"
+                class="split-secondary h-full"
+                :style="{ order: splitView.reversed ? 1 : 3 }"
+              >
+                <SplitPane ref="splitPaneRef" />
+              </XhSplitterPanel>
+
+              <!-- 拖拽遮罩：拖拽期间接管指针，拖动丝滑 -->
+              <div v-if="dragging" class="split-drag-overlay" />
+            </template>
+          </XhSplitterRoot>
 
           <!-- 互换动画：两枚页面大图标（收缩时弹出 → 交叉飞行 → 展开时消散） -->
           <template v-if="swapPhase !== 'idle'">
@@ -518,7 +521,7 @@ const sidebarEnableState = computed(
     <!-- 壳层扩展浮层（可选模块注册的抽屉/全局对话框） -->
     <component :is="overlay" v-for="(overlay, index) in shellOverlays" :key="index" />
     <AppTabOverview />
-    <XihanBackTop :scroll-y="shell.scrollY.value" @to-top="shell.scrollContentToTop" />
+    <XihanBackTop :scroll-y="shell.scrollY.value" />
 
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
@@ -534,22 +537,23 @@ const sidebarEnableState = computed(
 </template>
 
 <style scoped>
-/* 分屏分隔条 */
-.split-divider {
-  position: relative;
-  flex: 0 0 6px;
-  cursor: col-resize;
-  background: hsl(var(--border));
-  transition: background 0.15s ease;
+/* 分屏容器：与内容区齐平，四角不圆 */
+.split-row {
+  --xh-splitter-radius: 0;
 }
 
-.split-divider:hover,
-.split-divider.is-dragging {
-  background: hsl(var(--primary) / 50%);
+/* 分屏分隔条：粗细与配色经组件库皮肤的自定义属性接入本站主题色；position 供工具组定位 */
+.split-divider {
+  --xh-splitter-trigger-thickness: 6px;
+  --xh-splitter-trigger-bg: hsl(var(--border));
+  --xh-splitter-trigger-bg-hover: hsl(var(--primary) / 50%);
+  --xh-splitter-trigger-bg-dragging: hsl(var(--primary) / 50%);
+
+  position: relative;
 }
 
 /* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间。
-   默认隐藏，悬停分割线（含工具组自身）或拖拽中才显示 */
+   默认隐藏，悬停分割线（含工具组自身）、分隔条获得焦点或拖拽中才显示 */
 .split-tools {
   position: absolute;
   top: 50%;
@@ -565,14 +569,15 @@ const sidebarEnableState = computed(
   border: 1px solid hsl(var(--border));
   box-shadow: 0 6px 22px hsl(var(--foreground) / 12%);
   transform: translate(-50%, -50%);
-  cursor: default;
+  cursor: col-resize;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease;
 }
 
 .split-divider:hover .split-tools,
-.split-divider.is-dragging .split-tools {
+.split-divider:focus-within .split-tools,
+.split-divider[data-dragging] .split-tools {
   opacity: 1;
   pointer-events: auto;
 }
@@ -594,7 +599,7 @@ const sidebarEnableState = computed(
   background: hsl(var(--border));
 }
 
-/* 拖拽手柄：工具组里也能拖（事件不 stop，转给分隔条逻辑） */
+/* 拖拽手柄：按下的事件冒泡到分隔条，工具组里也能拖 */
 .split-tools__grip {
   display: inline-flex;
   padding: 2px 0;

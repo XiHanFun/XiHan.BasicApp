@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
-import { useLockScreen } from '~/composables'
+import { useLockScreen, usePageScrollLock } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import UserAvatar from './UserAvatar.vue'
@@ -31,6 +31,9 @@ const {
   doChangePassword,
   logoutAndRelogin,
 } = useLockScreen()
+
+// 锁屏期间背后的内容不该还能滚
+usePageScrollLock(() => lockMode.value !== 'off')
 </script>
 
 <template>

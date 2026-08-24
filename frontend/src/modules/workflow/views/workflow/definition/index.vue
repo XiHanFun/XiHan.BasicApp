@@ -15,7 +15,7 @@ import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XInput, XNumberInput } from '~/components'
+import { SchemaPage, XInput, XJsonBlock, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 import {
@@ -367,7 +367,9 @@ function onAction(payload: SchemaActionPayload) {
           <div class="h-[440px] overflow-hidden rounded border border-gray-200 dark:border-gray-700">
             <WorkflowGraphView :definition-json="detailData.definitionJson" />
           </div>
-          <pre v-if="showDetailJson" class="m-0 mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-all rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">{{ detailData.definitionJson }}</pre>
+          <template v-if="showDetailJson">
+            <XJsonBlock class="mt-2" :raw="detailData.definitionJson" :default-expanded-depth="2" max-height="24rem" />
+          </template>
         </template>
       </XhDrawerContent>
     </XhDrawerRoot>

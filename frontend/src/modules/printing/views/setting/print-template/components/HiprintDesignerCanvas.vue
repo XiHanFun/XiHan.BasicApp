@@ -13,7 +13,7 @@ import type {
   PrintElementAlignAction,
   PrintElementSpacingDirection,
 } from '~/printing'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { useHotkeys, XhAlertDescription, XhAlertIcon, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
@@ -45,6 +45,7 @@ const DEFAULT_PAPER_WIDTH_MM = 210
 const DEFAULT_PAPER_HEIGHT_MM = 297
 const DEFAULT_ZOOM_PERCENT = 100
 const materialsRef = ref<HTMLElement | null>(null)
+const canvasStageRef = ref<HTMLElement | null>(null)
 const paginationRef = ref<HTMLElement | null>(null)
 const loading = ref(true)
 const loadError = ref('')
@@ -249,16 +250,21 @@ function setElementSpacing(direction: PrintElementSpacingDirection, spacing: num
   }
 }
 
-/** 在画布焦点范围内支持 Ctrl/Cmd+A 全选，避免拦截属性输入框和可编辑文本的原生全选。 */
-function handleCanvasShortcut(event: KeyboardEvent): void {
-  const target = event.target as Element | null
-  const isEditableTarget = Boolean(target?.closest('input, textarea, [contenteditable="true"]'))
-  if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'a' || isEditableTarget)
-    return
+// 在画布焦点范围内支持 Ctrl/Cmd+A 全选，避免拦截属性输入框和可编辑文本的原生全选。
+useHotkeys({
+  keys: ['Mod', 'A'],
+  // 拦不拦默认动作交由回调按按键落点决定。
+  preventDefault: false,
+  target: () => canvasStageRef.value,
+  onHotKey: ({ event }) => {
+    const target = event.target as Element | null
+    if (target?.closest('input, textarea, [contenteditable="true"]'))
+      return
 
-  event.preventDefault()
-  designer?.selectAllElements()
-}
+    event.preventDefault()
+    designer?.selectAllElements()
+  },
+})
 
 /** 打开 JSON 模板编辑器，并以当前画布快照初始化 TextArea。 */
 function openJsonEditor(): void {
@@ -475,10 +481,10 @@ defineExpose({ clear, getJson, preview, redo, undo })
 
       <section class="canvas-column">
         <main
+          ref="canvasStageRef"
           class="canvas-stage"
           data-testid="print-designer-canvas-stage"
           tabindex="0"
-          @keydown="handleCanvasShortcut"
         >
           <XhSpinner v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center" />
           <XhAlertRoot v-if="loadError" tone="danger" class="canvas-error">

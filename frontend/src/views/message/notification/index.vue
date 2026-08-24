@@ -730,7 +730,7 @@ async function handleSubmit() {
         <XhFormFieldGroup value="content" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_content') }}</XhFieldLabel>
-            <XhFieldControl>
+            <XhFieldControl :as-child="false">
               <XContentEditorField
                 v-model="contentText"
                 :title="t('message.notification.form_content_drawer_title')"
@@ -839,7 +839,7 @@ async function handleSubmit() {
         <XhFormFieldGroup value="icon">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_icon') }}</XhFieldLabel>
-            <XhFieldControl>
+            <XhFieldControl :as-child="false">
               <IconPicker v-model="notificationForm.icon" :placeholder="t('message.notification.form_icon_placeholder')" />
             </XhFieldControl>
             <XhFieldErrorText />

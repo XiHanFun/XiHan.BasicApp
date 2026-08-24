@@ -1,27 +1,24 @@
-import { readonly, ref } from 'vue'
+import type { RuntimeConfig } from '@xihan-ui/kernel'
+import type { MaybeRefOrGetter } from 'vue'
+import { createRuntimeConfig } from '@xihan-ui/kernel'
+import { useScrollLock } from '@xihan-ui/vue/behavior'
+import { getScrollRoot } from './useScrollRoot'
 
 /**
- * 锁定/解锁 body 滚动（常用于模态框、抽屉等场景）。
- * 通过保存并恢复 overflow 样式，避免出现滚动条跳动。
+ * 自建全屏浮层期间锁住页面滚动。
+ *
+ * 锁计数按文档维护，与组件库自己那些浮层（对话框、抽屉）共用同一份，
+ * 两边同时开着时后收的那个才真正解锁。锁哪个元素由 scrollRoot 决定：
+ * 本应用把滚动搬进了内容容器，body 自己不滚。
  */
-export function useScrollLock() {
-  const isLocked = ref(false)
-  let savedOverflow = ''
 
-  function lock() {
-    if (isLocked.value)
-      return
-    savedOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    isLocked.value = true
-  }
+let runtimeConfig: RuntimeConfig | null = null
 
-  function unlock() {
-    if (!isLocked.value)
-      return
-    document.body.style.overflow = savedOverflow
-    isLocked.value = false
-  }
+function scrollLockConfig(): RuntimeConfig {
+  runtimeConfig ??= createRuntimeConfig({ scrollRoot: getScrollRoot })
+  return runtimeConfig
+}
 
-  return { isLocked: readonly(isLocked), lock, unlock }
+export function usePageScrollLock(active: MaybeRefOrGetter<boolean>): void {
+  useScrollLock(active, scrollLockConfig)
 }
