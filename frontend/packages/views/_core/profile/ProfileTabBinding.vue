@@ -68,7 +68,8 @@ async function handleUnlinkAccount(provider: string) {
   }
 }
 
-// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底。
+// 企业微信、飞书在这四个集里没有品牌 logo，用语义相近的通用图标占位（与登录页保持一致）。
 function providerIcon(name: string) {
   const map: Record<string, string> = {
     github: 'mdi:github',
@@ -78,6 +79,9 @@ function providerIcon(name: string) {
     qq: 'mdi:qqchat',
     wechat: 'mdi:wechat',
     weibo: 'mdi:sina-weibo',
+    dingtalk: 'tabler:brand-dingtalk',
+    wecom: 'mdi:briefcase-account',
+    feishu: 'lucide:send',
   }
   return map[name.toLowerCase()] || 'lucide:link-2'
 }

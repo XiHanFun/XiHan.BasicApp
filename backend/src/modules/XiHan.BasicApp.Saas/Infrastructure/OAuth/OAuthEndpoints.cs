@@ -65,7 +65,7 @@ public static class OAuthEndpoints
         var provider = httpContext.Request.Query["provider"].ToString();
         if (string.IsNullOrWhiteSpace(provider))
         {
-            httpContext.Response.Redirect(AppendQuery(frontendCallback, "error", "invalid_provider"));
+            httpContext.Response.Redirect(AppendParameter(frontendCallback, "error", "invalid_provider"));
             return;
         }
 
@@ -87,7 +87,7 @@ public static class OAuthEndpoints
             if (string.IsNullOrWhiteSpace(value) || !long.TryParse(value, out var parsedUserId))
             {
                 logger.LogWarning("OAuth: 绑定票据无效或已过期");
-                httpContext.Response.Redirect(AppendQuery(frontendCallback, "bind", "ticket_invalid"));
+                httpContext.Response.Redirect(AppendParameter(frontendCallback, "bind", "ticket_invalid"));
                 return;
             }
             bindUserId = parsedUserId;
@@ -111,7 +111,7 @@ public static class OAuthEndpoints
         {
             // 发起跳转若抛异常，不把用户卡在转圈页，统一跳回前端并带错误码，异常落日志便于排查
             logger.LogError(ex, "OAuth: 发起 Challenge 失败 provider={Provider}", provider);
-            httpContext.Response.Redirect(AppendQuery(frontendCallback, bindUserId is null ? "error" : "bind", "challenge_failed"));
+            httpContext.Response.Redirect(AppendParameter(frontendCallback, bindUserId is null ? "error" : "bind", "challenge_failed"));
         }
     }
 
@@ -133,7 +133,7 @@ public static class OAuthEndpoints
 
         if (!authResult.Succeeded || authResult.Principal is null)
         {
-            httpContext.Response.Redirect(AppendQuery(frontendCallback, "error", "external_auth_failed"));
+            httpContext.Response.Redirect(AppendParameter(frontendCallback, "error", "external_auth_failed"));
             return;
         }
 
@@ -151,7 +151,7 @@ public static class OAuthEndpoints
 
         if (string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(providerKey))
         {
-            httpContext.Response.Redirect(AppendQuery(frontendCallback, isBind ? "bind" : "error", "external_profile_invalid"));
+            httpContext.Response.Redirect(AppendParameter(frontendCallback, isBind ? "bind" : "error", "external_profile_invalid"));
             return;
         }
 
@@ -176,28 +176,28 @@ public static class OAuthEndpoints
             if (isBind)
             {
                 var bindRedirect = result.Success
-                    ? AppendQuery(AppendQuery(frontendCallback, "bind", "success"), "provider", provider!)
-                    : AppendQuery(frontendCallback, "bind", result.ErrorCode ?? "failed");
+                    ? AppendParameter(AppendParameter(frontendCallback, "bind", "success"), "provider", provider!)
+                    : AppendParameter(frontendCallback, "bind", result.ErrorCode ?? "failed");
                 httpContext.Response.Redirect(bindRedirect);
                 return;
             }
 
             if (result is { Success: true, Token: { } token })
             {
-                var loginRedirect = AppendQuery(frontendCallback, "accessToken", token.AccessToken);
-                loginRedirect = AppendQuery(loginRedirect, "refreshToken", token.RefreshToken);
-                loginRedirect = AppendQuery(loginRedirect, "expiresIn", token.ExpiresIn.ToString());
+                var loginRedirect = AppendParameter(frontendCallback, "accessToken", token.AccessToken);
+                loginRedirect = AppendParameter(loginRedirect, "refreshToken", token.RefreshToken);
+                loginRedirect = AppendParameter(loginRedirect, "expiresIn", token.ExpiresIn.ToString());
                 httpContext.Response.Redirect(loginRedirect);
                 return;
             }
 
-            httpContext.Response.Redirect(AppendQuery(frontendCallback, "error", result.ErrorCode ?? "login_failed"));
+            httpContext.Response.Redirect(AppendParameter(frontendCallback, "error", result.ErrorCode ?? "login_failed"));
         }
         catch (Exception ex)
         {
             // 兜底：编排异常不再把用户卡在跳转中，统一跳回前端并带错误码；异常落日志便于排查
             logger.LogError(ex, "第三方登录回调编排失败，provider={Provider}, isBind={IsBind}", provider, isBind);
-            httpContext.Response.Redirect(AppendQuery(frontendCallback, isBind ? "bind" : "error", "server_error"));
+            httpContext.Response.Redirect(AppendParameter(frontendCallback, isBind ? "bind" : "error", "server_error"));
         }
     }
 
@@ -207,9 +207,41 @@ public static class OAuthEndpoints
             ?? "http://localhost:7777/#/auth/oauth-callback";
     }
 
-    private static string AppendQuery(string url, string key, string value)
+    /// <summary>
+    /// 把回跳参数拼到前端回调地址上，参数一律落在 URL 片段（# 之后）里。
+    /// </summary>
+    /// <remarks>
+    /// 登录成功回跳会带上访问令牌与刷新令牌。落在查询串上的参数会进 Web 服务器访问日志、
+    /// 留在浏览器历史里，并随回调页上任何指向外部域的资源作为 Referer 外发；落在片段里则都不会——
+    /// 浏览器根本不把片段发给服务端。
+    ///
+    /// 之前的实现只看 <c>?</c> 不看 <c>#</c>，默认值恰好是哈希路由（<c>/#/auth/oauth-callback</c>）
+    /// 才让参数落进了片段；一旦回调地址配成 history 模式的真实路由，同一段代码就会把令牌拼成真查询串。
+    /// </remarks>
+    private static string AppendParameter(string url, string key, string value)
     {
-        var separator = url.Contains('?') ? '&' : '?';
-        return $"{url}{separator}{key}={Uri.EscapeDataString(value)}";
+        var parameter = $"{key}={Uri.EscapeDataString(value)}";
+        var hashIndex = url.IndexOf('#', StringComparison.Ordinal);
+
+        // 没有片段：开一个，把参数关进去
+        if (hashIndex < 0)
+        {
+            return $"{url}#{parameter}";
+        }
+
+        var fragment = url[(hashIndex + 1)..];
+        var separator = fragment switch
+        {
+            // 形如 https://host/# ，片段是空的，直接接
+            "" => string.Empty,
+            // 哈希路由已带参数，或片段本身就是参数串，续接
+            _ when fragment.Contains('?', StringComparison.Ordinal) => "&",
+            // 哈希路由形如 #/auth/oauth-callback ，参数按查询串接在片段内部
+            _ when fragment.StartsWith('/') => "?",
+            // 片段是参数串形如 #accessToken=xxx ，续接
+            _ => "&"
+        };
+
+        return $"{url}{separator}{parameter}";
     }
 }
