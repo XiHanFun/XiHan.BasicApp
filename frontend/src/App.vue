@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { provideXhConfig, XhLoadingBarRange, XhLoadingBarRoot, XhLoadingBarTrack } from '@xihan-ui/vue'
+import { provideXhConfig } from '@xihan-ui/vue'
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import AppWatermark from '~/components/common/AppWatermark.vue'
 import DynamicIsland from '~/components/common/DynamicIsland.vue'
 import LockScreen from '~/components/common/LockScreen.vue'
-import { loadingBarState, useGlobalShortcuts, useHtmlStyle } from '~/composables'
+import { useGlobalShortcuts, useHtmlStyle } from '~/composables'
 import { useXhUiConfig } from '~/hooks'
 
 defineOptions({ name: 'App' })
@@ -24,13 +24,6 @@ onMounted(() => {
 
 <template>
   <div class="h-full">
-    <!-- 顶部进度条：路由守卫与请求层只翻 loadingBarState 的开关，落位与动效归组件 -->
-    <XhLoadingBarRoot :loading="loadingBarState.pending > 0" :tone="loadingBarState.tone">
-      <XhLoadingBarTrack>
-        <XhLoadingBarRange />
-      </XhLoadingBarTrack>
-    </XhLoadingBarRoot>
-
     <RouterView />
     <LockScreen />
     <AppWatermark />

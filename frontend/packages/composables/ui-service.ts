@@ -1,7 +1,5 @@
-import type { Tone } from '@xihan-ui/kernel'
-import type { AlertOptions, ConfirmOptions, DialogService, ToastMessageOptions, ToastService } from '@xihan-ui/vue'
-import { createDialogService, createToastService } from '@xihan-ui/vue'
-import { reactive } from 'vue'
+import type { AlertOptions, ConfirmOptions, DialogService, LoadingBarService, ToastMessageOptions, ToastService } from '@xihan-ui/vue'
+import { createDialogService, createLoadingBarService, createToastService } from '@xihan-ui/vue'
 import { $t } from '~/locales'
 import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
 
@@ -10,14 +8,15 @@ import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
  *
  * 三者都要能在组件树之外调用——请求拦截器、pinia store、路由守卫都会用到，
  * 那些地方拿不到组件实例。XiHan.UI 的三个服务本身就是为此设计的：
- * 轻提示与确认框各自挂一个独立的宿主应用到 body，与业务应用的组件树无关；
- * 进度条的部件留在 App 根组件里（组件库的进度条服务在自建宿主里接不上自己的上下文）。
+ * 各自挂一个独立的宿主应用到 body，与业务应用的组件树无关，
+ * 语言与内建文案由 options.config 喂同一份取值函数，切语言时跟着重渲。
  *
  * 服务实例懒建：createXxxService 需要 document，模块被 node 侧的测试引到时不能当场炸。
  */
 
 let toastInstance: ToastService | null = null
 let dialogInstance: DialogService | null = null
+let loadingBarInstance: LoadingBarService | null = null
 
 function toastService(): ToastService {
   // 顶部居中：与旧版轻提示的落位一致。右下角那几条通知在调用点单独传 placement
@@ -42,15 +41,15 @@ export function dialogService(): DialogService {
 }
 
 /**
- * 顶部进度条的状态。条子本身由 App 根组件挂在业务组件树里，这里只留开关。
+ * 顶部进度条服务。条子自带宿主应用挂到 body，位置是 fixed，与业务组件树无关。
  *
- * 在途计数而不是布尔开关：路由守卫的重定向链会连开好几笔，
+ * 在途计数由服务自己管：路由守卫的重定向链会连开好几笔，
  * 布尔开关下第一笔收尾就把条子收了。
  */
-export const loadingBarState = reactive({
-  pending: 0,
-  tone: 'brand' as Tone,
-})
+function loadingBarService(): LoadingBarService {
+  loadingBarInstance ??= createLoadingBarService({ config: xhConfigValue })
+  return loadingBarInstance
+}
 
 /**
  * 轻提示。用法与位置同旧版：`toast.success('保存成功')`。
@@ -99,31 +98,24 @@ export function confirmDanger(options: Omit<ConfirmOptions, 'tone' | 'badge'>): 
   return dialog.confirm({ ...options, tone: 'danger', badge: 'warning' })
 }
 
-/** 顶部进度条开关。调用点只翻状态，条子的落位与动效归 App 根组件里的部件。 */
+/** 顶部进度条开关。落位、爬升与收尾的动效都归服务。 */
 export const loadingBar = {
-  start() {
-    loadingBarState.tone = 'brand'
-    loadingBarState.pending += 1
-  },
-  finish() {
-    loadingBarState.pending = Math.max(0, loadingBarState.pending - 1)
-  },
+  /** 在途计数 +1，从 0 起跳即开始爬升。 */
+  start: () => loadingBarService().start(),
+  /** 在途计数 -1，归零才收。 */
+  finish: () => loadingBarService().finish(),
   /** 不管还剩几笔在途一律收掉。 */
-  finishAll() {
-    loadingBarState.tone = 'brand'
-    loadingBarState.pending = 0
-  },
+  finishAll: () => loadingBarService().finishAll(),
   /** 出错收尾：条子转危险色再收，与正常收尾区分开。 */
-  error() {
-    loadingBarState.tone = 'danger'
-    loadingBarState.pending = 0
-  },
+  error: () => loadingBarService().error(),
 }
 
-/** 应用卸载时释放两个宿主应用（热更新与测试用）。 */
+/** 应用卸载时释放三个宿主应用（热更新与测试用）。 */
 export function disposeUiServices(): void {
   toastInstance?.dispose()
   toastInstance = null
   dialogInstance?.dispose()
   dialogInstance = null
+  loadingBarInstance?.dispose()
+  loadingBarInstance = null
 }
