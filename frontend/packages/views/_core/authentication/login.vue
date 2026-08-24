@@ -111,12 +111,18 @@ const redirect = computed(() => {
   return (route.query.redirect as string) || undefined
 })
 
-// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）。
+// 企业微信、飞书在这四个集里都没有品牌 logo，先用语义相近的通用图标占位以便彼此区分；
+// 要换成真 logo 需另行预载含该品牌的图标集，或把 SVG 注册成自定义图标集。
 const oauthProviderIcons: Record<string, string> = {
   github: 'mdi:github',
   gitee: 'simple-icons:gitee',
   google: 'mdi:google',
   qq: 'mdi:qqchat',
+  wechat: 'mdi:wechat',
+  dingtalk: 'tabler:brand-dingtalk',
+  wecom: 'mdi:briefcase-account',
+  feishu: 'lucide:send',
 }
 
 const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])

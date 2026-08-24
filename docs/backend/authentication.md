@@ -89,7 +89,15 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 ### 第三方登录（OAuth2）
 
-内建支持 **GitHub / Google / Gitee / QQ**，由框架 `XiHan.Framework.Authentication.OAuth` 提供，配置节 `XiHan:Authentication:OAuth`（`OAuthOptions`：`Enabled`/`FrontendCallbackUrl`/`Providers[]`）。前端登录页展示哪些提供商由运行时配置 `saas.auth.oauth.providers`（存库）决定。
+内建支持 **GitHub / Google / Gitee / QQ / 微信 / 企业微信 / 飞书 / 钉钉**，由框架 `XiHan.Framework.Authentication.OAuth` 提供（八家处理器均为框架自研，不依赖第三方 provider 包），配置节 `XiHan:Authentication:OAuth`（`OAuthOptions`：`Enabled`/`FrontendCallbackUrl`/`Providers[]`）。
+
+::: warning 两份清单必须对齐
+**能不能登**由 `XiHan:Authentication:OAuth:Providers` 决定（它注册出 AuthenticationScheme）；
+**登录页画几个按钮**由运行时配置 `saas.auth.oauth.providers`（存库）决定。
+两边的 `Name` / `name` 对不上就会点出一个不存在的方案，回跳 `error=challenge_failed`。
+:::
+
+微信、企业微信、飞书、钉钉各支持两种登录方式，由 `Mode` 选择（`QrCode` 默认 / `Account`）；同一家要同时开两种，就写两条配置：`Name` 不同、`Provider` 相同。仓库内 `appsettings.Development.json` 给的是四家的扫码配置，账号授权的写法见其中注释。几个易漏项：企业微信必须填 `AgentId`；钉钉的 `CorpId` 要配合 `Scopes` 里的 `corpid` 才拿得到用户选定的组织；飞书两种方式的授权、令牌、用户信息三个接口成套不同，只改 `AuthorizationEndpoint` 换不过去。
 
 OAuth 走**独立的 Web 端点**（不是动态 API），落在 `Infrastructure/OAuth/OAuthEndpoints.cs`：
 
@@ -104,6 +112,8 @@ OAuth 走**独立的 Web 端点**（不是动态 API），落在 `Infrastructure
       → 调 IAuthAppService.ExternalLoginAsync(...)   （见下方"注意"）
       → 302 回 FrontendCallbackUrl，成功时带 accessToken/refreshToken/expiresIn
 ```
+
+回跳参数**一律拼在 URL 片段（`#` 之后）**，不进查询串：片段不会被浏览器发给服务端，因此不进 Web 服务器访问日志，也不随回调页上任何外部资源作为 Referer 外发——令牌走这条路回传才不会泄露。前端 `oauth-callback.vue` 先读 `route.query`（哈希路由下 vue-router 已解析），取不到再从 `location.hash` 解析（history 路由下参数就在那儿）。
 
 `ExternalLoginAsync` 被标 `[DynamicApi(IsEnabled = false)]`（不对外暴露），只由回调端点内部调用；且调用时用 `ProxyHelper.UnProxy` 取真实目标实例——因为匿名端点没有 UoW 中间件，走 Castle 代理会让拦截器急切开事务而死锁。
 
