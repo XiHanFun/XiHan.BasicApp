@@ -834,7 +834,7 @@ async function handleSubmit() {
             </XhDescriptionsRoot>
           </div>
         </div>
-        <template v-if="detailData" #footer>
+        <div v-if="detailData" class="xh-dialog-footer">
           <XhFlex justify="end" gap="md">
             <XhButton @click="handleLogs(detailData); detailVisible = false">
               <span><Icon icon="lucide:history" /></span>
@@ -857,7 +857,7 @@ async function handleSubmit() {
               {{ detailData.status === EnableStatus.Enabled ? t('common.actions.disable') : t('common.actions.enable') }}
             </XhButton>
           </XhFlex>
-        </template>
+        </div>
       </XhDrawerContent>
     </XhDrawerRoot>
 

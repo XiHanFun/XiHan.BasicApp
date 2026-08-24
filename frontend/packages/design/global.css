@@ -15,6 +15,16 @@
 
     box-sizing: border-box;
   }
+
+  /* 应用自己写的 <button>：组件库的 reset 只认 [data-scope] 部件，Tailwind 的 preflight 又没引，
+     不清掉就会露出浏览器默认的描边与灰底。留着 padding 不动，免得已按 UA 内距排版的按钮塌掉 */
+  button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
 }
 
 @layer base {

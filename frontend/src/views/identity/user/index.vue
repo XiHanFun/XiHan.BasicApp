@@ -1491,14 +1491,14 @@ async function confirmDelete() {
           </XhTabsRoot>
         </div>
         <!-- 角色页签逐项即时生效，仅权限直授需要提交 -->
-        <template v-if="grantTab === 'perm'" #footer>
+        <div v-if="grantTab === 'perm'" class="xh-dialog-footer">
           <XhButton @click="grantVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton tone="brand" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
             {{ t('identity.user.grant_perm_save') }}
           </XhButton>
-        </template>
+        </div>
       </XhDrawerContent>
     </XhDrawerRoot>
   </SchemaPage>
@@ -1579,7 +1579,7 @@ async function confirmDelete() {
 }
 
 .pick-chip.on :deep(svg) {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .session-ico {
@@ -1699,11 +1699,20 @@ async function confirmDelete() {
 .pick-chip.on {
   background: hsl(var(--primary));
   border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
+/* 数字框的控件自带 12rem 最小宽，只收外层会被它顶破、把弹窗撑出横向滚动条，
+   要连同组件库给的钩子一起收 */
 .max-dev-input {
-  width: 70px;
+  --xh-number-field-control-min-w: 0;
+
+  flex: none;
+  inline-size: 76px;
+}
+
+.max-dev-input :deep([data-scope='number-field'][data-part='control']) {
+  inline-size: 100%;
 }
 
 /* 详情 */
