@@ -139,21 +139,6 @@
   flex-shrink: 0;
 }
 
-/* 键盘快捷键徽章 */
-.kbd {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 6px;
-  font-size: 11px;
-  font-family: ui-monospace, 'SFMono-Regular', monospace;
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted));
-  border: 1px solid hsl(var(--border));
-  border-radius: 4px;
-  line-height: 1.6;
-  white-space: nowrap;
-}
-
 /* 设置行：等高等间距 + hover 背景 */
 .pref-row {
   display: flex;
@@ -241,23 +226,14 @@
   --xh-button-radius: var(--radius);
 }
 
-/* 命令式取值弹窗（prompt）：字段竖排，按钮行右对齐 */
-.x-prompt {
-  inline-size: 420px;
-  max-inline-size: calc(100vw - 32px);
-}
-
+/* 命令式取值弹窗（prompt）的正文：字段竖排，撑到弹窗的取值宽度 */
 .x-prompt__fields {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-block: 12px;
-}
-
-.x-prompt__actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  inline-size: 380px;
+  max-inline-size: 100%;
 }
 
 /* 长得像文字链的浮层触发器（气泡确认那几处：触发器本身就是按钮，去掉按钮相） */
@@ -372,6 +348,18 @@
 .xh-icon-btn:hover:not(:disabled) {
   background: var(--xh-bg-subtle-hover);
   color: var(--xh-fg-default);
+}
+
+/* 查询钮是搜索行的主操作：填品牌色，与旁边两颗次要图标钮拉开层级。
+   与 .xh-icon-btn 连写提高优先级，压住上面的常态与悬停 */
+.xh-icon-btn.xh-search__submit {
+  background: var(--xh-bg-brand);
+  color: var(--xh-fg-on-brand);
+}
+
+.xh-icon-btn.xh-search__submit:hover:not(:disabled) {
+  background: var(--xh-bg-brand-hover);
+  color: var(--xh-fg-on-brand);
 }
 
 .xh-icon-btn:disabled {

@@ -13,6 +13,7 @@ export default {
   split_open_left: 'Open Left in New Window',
   split_open_right: 'Open Right in New Window',
   split_load_failed: 'Unable to load this page',
+  split_divider: 'Split View Divider',
   overview: 'Tab Overview',
   overview_search: 'Search open tabs…',
   overview_empty: 'No matching tabs',

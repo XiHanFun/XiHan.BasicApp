@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
@@ -16,6 +16,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+// 字段接线落在真正可聚焦的触发钮上，标签的 for 才指得到
+const fieldControl = useFieldControl()
 
 interface Props {
   modelValue?: string | null
@@ -104,7 +107,7 @@ function handleClear() {
 
 <template>
   <div class="icon-picker">
-    <XhButton variant="ghost" block class="icon-picker-trigger" @click="openPicker">
+    <XhButton v-bind="fieldControl" variant="ghost" block class="icon-picker-trigger" @click="openPicker">
       <Icon v-if="currentIconId" :icon="currentIconId" width="20" />
       <span v-else class="icon-picker-placeholder">{{ placeholderText }}</span>
     </XhButton>

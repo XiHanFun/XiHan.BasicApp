@@ -52,15 +52,20 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   <div class="xh-search">
     <!-- 常用条件 + 操作按钮：同一 flex-wrap 流，按钮组随条件自适应流动并在所在行靠右 -->
     <div class="xh-search__bar">
-      <div
+      <!-- 字段部件把条件名与控件接成一组：标签的 for 与控件的 id、aria-* 由它生成 -->
+      <XhFieldRoot
         v-for="field in effectiveCommonFields"
         :key="field.key"
         class="xh-search__item"
         :class="{ 'xh-search__item--wide': isWide(field) }"
       >
-        <span class="xh-search__label">{{ field.title }}</span>
-        <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
-      </div>
+        <XhFieldLabel class="xh-search__label">
+          {{ field.title }}
+        </XhFieldLabel>
+        <XhFieldControl>
+          <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
+        </XhFieldControl>
+      </XhFieldRoot>
 
       <!-- 操作按钮：纯图标 + 提示，作为流的最后一项，margin-left:auto 推到所在行右侧 -->
       <div class="xh-search__actions">
@@ -89,32 +94,25 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
     <!-- 高级条件：上层浮层滑入，不占文档流（不推动下方按钮/列表） -->
     <Transition name="xh-search-expand">
       <div v-if="expanded && hasAdvanced" class="xh-search__advanced">
-        <div
+        <XhFieldRoot
           v-for="field in effectiveAdvancedFields"
           :key="field.key"
           class="xh-search__item"
           :class="{ 'xh-search__item--wide': isWide(field) }"
         >
-          <span class="xh-search__label">{{ field.title }}</span>
-          <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
-        </div>
+          <XhFieldLabel class="xh-search__label">
+            {{ field.title }}
+          </XhFieldLabel>
+          <XhFieldControl>
+            <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
+          </XhFieldControl>
+        </XhFieldRoot>
       </div>
     </Transition>
   </div>
 </template>
 
 <style scoped>
-/* 查询钮是这一行的主操作：填品牌色，与旁边两颗次要图标钮拉开层级 */
-.xh-search__submit {
-  background: var(--xh-bg-brand);
-  color: var(--xh-fg-on-brand);
-}
-
-.xh-search__submit:hover:not(:disabled) {
-  background: var(--xh-bg-brand-hover);
-  color: var(--xh-fg-on-brand);
-}
-
 /* 搜索区作为高级浮层的定位上下文（外层卡片提供容器与内边距） */
 .xh-search {
   position: relative;
@@ -141,9 +139,10 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   width: 300px;
 }
 
-/* 搜索标题：小字号、紧靠控件 */
+/* 搜索标题：小字号、常规字重、紧靠控件 */
 .xh-search__label {
   font-size: 12px;
+  font-weight: 400;
   line-height: 1.4;
   color: var(--xh-fg-subtle);
 }
@@ -164,7 +163,7 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   top: 100%;
   right: -16px;
   left: -16px;
-  z-index: 20;
+  z-index: var(--z-page-overlay);
   display: flex;
   flex-wrap: wrap;
   gap: 10px 12px;

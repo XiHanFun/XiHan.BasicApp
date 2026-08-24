@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import type { Size } from '@xihan-ui/kernel'
-import { XhTextFieldClearTrigger, XhTextFieldInput, XhTextFieldRoot } from '@xihan-ui/vue'
+import {
+  XhPasswordInputCapsLockIndicator,
+  XhPasswordInputControl,
+  XhPasswordInputInput,
+  XhPasswordInputRoot,
+  XhPasswordInputVisibilityTrigger,
+  XhTextFieldClearTrigger,
+  XhTextFieldInput,
+  XhTextFieldRoot,
+} from '@xihan-ui/vue'
 import { computed, ref, useSlots } from 'vue'
-import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
 
 /**
@@ -11,8 +19,10 @@ import { useControlAttrs } from './control-attrs'
  * 把「根 + 输入 + 清除钮」三个部件收成一个标签——清除钮在组件库里是要自己摆的部件，
  * 不是一个开关，全站几百处输入框没必要各摆一遍。回车提交也收在这里。
  *
- * 前缀图标与密码显隐同理：描边与底色画在 input 上而不是根节点上，图标要叠在输入框内，
- * 因而需要一层定位容器 + 给 input 让出内边距。这段布局收在这里，调用方只给插槽。
+ * 前缀图标叠在输入框内：描边与底色画在 input 上而不是根节点上，因而需要一层定位容器 +
+ * 给 input 让出内边距。这段布局收在这里，调用方只给插槽。
+ *
+ * 密码档由组件库的 password-input 拼出：显隐钮、大写锁定提示与切换明暗后的光标复位都归它。
  *
  * 落在这个标签上的属性转交给里面那个 input：放在 XhFieldControl 里时，字段把 id 与 aria-*
  * 挂到唯一子节点上，那组属性要落在真正的控件上 label 的 for 才接得住。只有 data-scope /
@@ -57,20 +67,28 @@ const emit = defineEmits<{
 const slots = useSlots()
 const { attrs, controlAttrs } = useControlAttrs()
 
-const revealed = ref(false)
 const isMultiline = computed(() => props.type === 'textarea')
-const inputType = computed(() => (props.type === 'password' && !revealed.value ? 'password' : 'text'))
 const hasPrefix = computed(() => !!slots.prefix)
 
 const boxRef = ref<HTMLElement | null>(null)
+const controlRef = ref<InstanceType<typeof XhPasswordInputControl> | null>(null)
+
+/** 装着输入框的那层盒子：文本档是自绘的容器，密码档是组件库的 control 部件 */
+const hostEl = computed<HTMLElement | null>(() => boxRef.value ?? (controlRef.value?.$el as HTMLElement | null) ?? null)
 
 /** 底层的 input/textarea 元素：读光标位置、程序化聚焦这类事要用到 */
 const el = computed<HTMLInputElement | HTMLTextAreaElement | null>(
-  () => boxRef.value?.querySelector('input, textarea') ?? null,
+  () => hostEl.value?.querySelector('input, textarea') ?? null,
 )
 
 function focus() {
   el.value?.focus()
+}
+
+/** 密码档没有清除钮部件，Escape 清空这条自己补，与文本档一致 */
+function clearOnEscape() {
+  if (props.clearable && !props.disabled && !props.readOnly && (props.value ?? '') !== '')
+    emit('update:value', '')
 }
 
 function blur() {
@@ -81,9 +99,39 @@ defineExpose({ el, focus, blur })
 </script>
 
 <template>
-  <XhTextFieldRoot
+  <XhPasswordInputRoot
+    v-if="type === 'password'"
     class="x-input"
-    :class="[{ 'x-input--has-prefix': hasPrefix, 'x-input--has-reveal': type === 'password' }, attrs.class]"
+    :class="attrs.class"
+    :style="attrs.style"
+    :value="value ?? ''"
+    :placeholder="placeholder"
+    :disabled="disabled"
+    :read-only="readOnly"
+    :invalid="invalid"
+    :size="size"
+    :auto-complete="autocomplete"
+    @update:value="(next: string) => emit('update:value', next)"
+  >
+    <!-- 盒里除输入框外还排着提示与显隐钮，点在空处时把焦点交回输入框 -->
+    <XhPasswordInputControl ref="controlRef" class="x-input__control" @mousedown.self.prevent="focus">
+      <span v-if="hasPrefix" class="x-input__control-prefix" aria-hidden="true">
+        <slot name="prefix" />
+      </span>
+      <XhPasswordInputInput
+        :maxlength="maxLength"
+        v-bind="controlAttrs"
+        @keyup.enter="emit('enter')"
+        @keydown.esc="clearOnEscape"
+      />
+      <XhPasswordInputCapsLockIndicator />
+      <XhPasswordInputVisibilityTrigger />
+    </XhPasswordInputControl>
+  </XhPasswordInputRoot>
+  <XhTextFieldRoot
+    v-else
+    class="x-input"
+    :class="[{ 'x-input--has-prefix': hasPrefix }, attrs.class]"
     :style="attrs.style"
     :value="value ?? ''"
     :placeholder="placeholder"
@@ -107,21 +155,12 @@ defineExpose({ el, focus, blur })
       />
       <XhTextFieldInput
         v-else
-        :type="inputType"
+        type="text"
         :autocomplete="autocomplete"
         v-bind="controlAttrs"
         @keyup.enter="emit('enter')"
       />
-      <button
-        v-if="type === 'password'"
-        type="button"
-        class="x-input__reveal"
-        :aria-pressed="revealed"
-        @click="revealed = !revealed"
-      >
-        <Icon :icon="revealed ? 'lucide:eye-off' : 'lucide:eye'" width="15" />
-      </button>
-      <XhTextFieldClearTrigger v-else-if="clearable" />
+      <XhTextFieldClearTrigger v-if="clearable" />
     </div>
   </XhTextFieldRoot>
 </template>
@@ -148,9 +187,18 @@ defineExpose({ el, focus, blur })
   padding-inline-start: 30px;
 }
 
-/* 密码档的显隐钮压在输入框右侧，文字要提前收住，否则长密文钻到图标底下 */
-.x-input--has-reveal .x-input__box :deep([data-scope='text-field'][data-part='input']) {
-  padding-inline-end: 30px;
+/* 密码档的视觉盒由组件库的 control 部件承担，这里只把它铺满整行 */
+.x-input__control {
+  inline-size: 100%;
+}
+
+/* 密码档的前缀图标排在盒内，与输入框、显隐钮同为一行上的分段 */
+.x-input__control-prefix {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--xh-fg-muted);
+  pointer-events: none;
 }
 
 .x-input__prefix {
@@ -160,21 +208,5 @@ defineExpose({ el, focus, blur })
   align-items: center;
   color: var(--xh-fg-muted);
   pointer-events: none;
-}
-
-.x-input__reveal {
-  position: absolute;
-  inset-inline-end: 6px;
-  display: inline-flex;
-  align-items: center;
-  padding: 2px;
-  border: 0;
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-}
-
-.x-input__reveal:hover {
-  color: var(--xh-fg-default);
 }
 </style>

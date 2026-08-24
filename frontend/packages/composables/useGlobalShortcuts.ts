@@ -1,9 +1,21 @@
+import { useHotkeys } from '@xihan-ui/vue'
 import { onMounted, onUnmounted } from 'vue'
 import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 
 /**
- * 注册全局快捷键（搜索 / 退出 / 锁屏）及锁屏自定义事件监听。
+ * 全局快捷键的键位声明。注册端与偏好设置里的键帽读同一份。
+ * `Mod` 在 Mac 上解析成 ⌘、其余平台解析成 Ctrl。
+ */
+export const GLOBAL_HOTKEYS = {
+  search: ['Mod', 'K'],
+  tabOverview: ['Alt', 'B'],
+  lock: ['Alt', 'L'],
+  logout: ['Alt', 'Q'],
+} as const
+
+/**
+ * 注册全局快捷键（搜索 / 标签总览 / 锁屏 / 退出）及锁屏自定义事件监听。
  * 在 App 根组件中调用一次即可。
  */
 export function useGlobalShortcuts() {
@@ -11,52 +23,41 @@ export function useGlobalShortcuts() {
   const authStore = useAuthStore()
   const layoutBridgeStore = useLayoutBridgeStore()
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (!appStore.shortcutEnable)
-      return
+  useHotkeys(() => ({
+    keys: [...GLOBAL_HOTKEYS.search],
+    enabled: appStore.shortcutEnable && appStore.shortcutSearch,
+    onHotKey: () => layoutBridgeStore.requestOpenGlobalSearch(),
+  }))
 
-    // 用物理键 e.code 判定字母，兼容 Mac：Option(Alt) 会改变 e.key 字符（如 ⌥L→¬）
-    // Ctrl/Cmd + K：全局搜索
-    if (appStore.shortcutSearch && (e.ctrlKey || e.metaKey) && (e.code === 'KeyK' || e.key.toLowerCase() === 'k')) {
-      e.preventDefault()
-      layoutBridgeStore.requestOpenGlobalSearch()
-      return
-    }
+  useHotkeys(() => ({
+    keys: [...GLOBAL_HOTKEYS.tabOverview],
+    enabled: appStore.shortcutEnable && appStore.shortcutTabOverview,
+    onHotKey: () => layoutBridgeStore.requestOpenTabOverview(),
+  }))
 
-    // Alt/Option + Q：退出登录
-    if (appStore.shortcutLogout && e.altKey && (e.code === 'KeyQ' || e.key.toLowerCase() === 'q')) {
-      e.preventDefault()
+  useHotkeys(() => ({
+    keys: [...GLOBAL_HOTKEYS.lock],
+    enabled: appStore.shortcutEnable && appStore.shortcutLock && appStore.widgetLockScreen,
+    onHotKey: () => layoutBridgeStore.requestLockScreen(),
+  }))
+
+  useHotkeys(() => ({
+    keys: [...GLOBAL_HOTKEYS.logout],
+    enabled: appStore.shortcutEnable && appStore.shortcutLogout,
+    onHotKey: () => {
       void authStore.logout()
-      return
-    }
-
-    // Alt/Option + L：锁屏
-    if (appStore.shortcutLock && e.altKey && (e.code === 'KeyL' || e.key.toLowerCase() === 'l')) {
-      e.preventDefault()
-      if (appStore.widgetLockScreen) {
-        layoutBridgeStore.requestLockScreen()
-      }
-      return
-    }
-
-    // Alt/Option + B：标签卡片总览（避开 Alt+W 等浏览器内置快捷键）
-    if (appStore.shortcutTabOverview && e.altKey && (e.code === 'KeyB' || e.key.toLowerCase() === 'b')) {
-      e.preventDefault()
-      layoutBridgeStore.requestOpenTabOverview()
-    }
-  }
+    },
+  }))
 
   function handleLockScreenRequest() {
     layoutBridgeStore.requestLockScreen()
   }
 
   onMounted(() => {
-    window.addEventListener('keydown', handleKeydown)
     window.addEventListener(LAYOUT_EVENT_LOCK_SCREEN, handleLockScreenRequest)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
     window.removeEventListener(LAYOUT_EVENT_LOCK_SCREEN, handleLockScreenRequest)
   })
 }

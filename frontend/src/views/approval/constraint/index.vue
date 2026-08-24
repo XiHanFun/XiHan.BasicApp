@@ -24,7 +24,7 @@ import {
   ViolationAction,
 } from '@/api'
 import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XJsonBlock, XNumberInput, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -325,18 +325,8 @@ const detailVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<ConstraintRuleDetailDto | null>(null)
 
-const parametersPretty = computed(() => {
-  const parameters = currentDetail.value?.parameters
-  if (!parameters) {
-    return null
-  }
-  try {
-    return JSON.stringify(JSON.parse(parameters), null, 2)
-  }
-  catch {
-    return parameters
-  }
-})
+/** 规则参数原文，既决定参数区是否出现，也是解析失败时的兜底文本。 */
+const parametersText = computed(() => currentDetail.value?.parameters || null)
 
 function formatItemGroup(item: ConstraintRuleItemDto) {
   if (currentDetail.value?.constraintType !== ConstraintType.Prerequisite) {
@@ -755,11 +745,11 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
               </XhDescriptionsItem>
             </XhDescriptionsRoot>
 
-            <template v-if="parametersPretty">
+            <template v-if="parametersText">
               <h4 class="rule-detail-subtitle">
                 {{ t('approval.constraint.parameters') }}
               </h4>
-              <pre class="rule-params">{{ parametersPretty }}</pre>
+              <XJsonBlock :raw="parametersText" :default-expanded-depth="2" />
             </template>
 
             <h4 class="rule-detail-subtitle">

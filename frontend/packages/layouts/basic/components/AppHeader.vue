@@ -187,7 +187,7 @@ const userOptions = computed<AppDropdownOption[]>(() => [
         },
       ]
     : []),
-  { key: 'divider', divider: true },
+  { key: 'divider', type: 'divider' },
   {
     label: () =>
       h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [

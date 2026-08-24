@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhButton } from '@xihan-ui/vue'
+import { useFieldControl, XhButton } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { Icon } from '../../iconify'
 import XEditModal from './EditModal.vue'
@@ -29,6 +29,9 @@ const props = withDefaults(defineProps<{
 })
 
 const model = defineModel<string>({ default: '' })
+
+// 字段接线落在真正可聚焦的摘要钮上，标签的 for 才指得到
+const fieldControl = useFieldControl()
 
 const visible = ref(false)
 /** 弹窗内编辑副本：确定才回写，取消丢弃 */
@@ -69,7 +72,7 @@ function updateDraft(value: null | string) {
 
 <template>
   <div class="xh-content-field">
-    <button type="button" class="xh-content-field__summary" :disabled="disabled" @click="open">
+    <button v-bind="fieldControl" type="button" class="xh-content-field__summary" :disabled="disabled" @click="open">
       <span v-if="summary" class="xh-content-field__text">{{ summary }}</span>
       <span v-else class="xh-content-field__placeholder">{{ placeholder }}</span>
     </button>

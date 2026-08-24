@@ -1,87 +1,40 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { onMounted, ref, shallowRef, watch } from 'vue'
+import { getScrollRoot } from '~/composables/useScrollRoot'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'XihanBackTop' })
 
 const props = withDefaults(defineProps<XihanBackTopProps>(), {
-  threshold: 200,
   scrollY: 0,
 })
 
-const emit = defineEmits<{ toTop: [] }>()
-
 interface XihanBackTopProps {
+  /** 布局报来的滚动量，用作重新认领滚动容器的信号 */
   scrollY?: number
-  threshold?: number
 }
 
-const { t } = useI18n()
+// 真正在滚的那个容器由布局登记，交给组件库当滚动源
+const target = shallowRef<HTMLElement | null>(getScrollRoot())
+// 组件库的滚动观察在挂载那一刻认定容器，容器换人就换 key 让它重挂
+const trackKey = ref(0)
 
-const visible = computed(() => props.scrollY > props.threshold)
-
-function scrollToTop() {
-  emit('toTop')
+function claimScrollRoot() {
+  const next = getScrollRoot()
+  if (next === target.value)
+    return
+  target.value = next
+  trackKey.value += 1
 }
+
+onMounted(claimScrollRoot)
+watch(() => props.scrollY, claimScrollRoot)
 </script>
 
 <template>
-  <Transition name="xihan-back-top">
-    <button
-      v-if="visible"
-      class="xihan-back-top"
-      :aria-label="t('header.toolbar.back_top')"
-      @click="scrollToTop"
-    >
+  <XhBackTopRoot :key="trackKey" :target="target">
+    <XhBackTopTrigger>
       <Icon icon="lucide:chevron-up" width="18" height="18" />
-    </button>
-  </Transition>
+    </XhBackTopTrigger>
+  </XhBackTopRoot>
 </template>
-
-<style scoped>
-.xihan-back-top {
-  position: fixed;
-  right: 24px;
-  bottom: 32px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
-  box-shadow: 0 4px 16px hsl(var(--foreground) / 10%);
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
-}
-
-.xihan-back-top:hover {
-  background: hsl(var(--accent));
-  box-shadow: 0 6px 20px hsl(var(--foreground) / 15%);
-  transform: translateY(-2px);
-}
-
-.xihan-back-top:active {
-  transform: translateY(0);
-}
-
-.xihan-back-top-enter-active,
-.xihan-back-top-leave-active {
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
-}
-
-.xihan-back-top-enter-from,
-.xihan-back-top-leave-to {
-  opacity: 0;
-  transform: translateY(12px) scale(0.85);
-}
-</style>

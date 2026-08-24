@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@xihan-ui/headless": "catalog:",
+    "@xihan-ui/vue": "catalog:",
     "@xihan/constants": "workspace:*",
     "@xihan/locales": "workspace:*",
     "@xihan/stores": "workspace:*",

@@ -16,7 +16,7 @@ import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XInput } from '~/components'
+import { SchemaPage, XInput, XJsonBlock } from '~/components'
 import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 import {
@@ -430,7 +430,7 @@ function onAction(payload: SchemaActionPayload) {
           <div class="flex items-center gap-3 my-3">
             <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.variables_label') }}</span><XhSeparator class="flex-1" />
           </div>
-          <pre class="m-0 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-gray-50 p-3 text-xs dark:bg-gray-800">{{ detailData.variablesJson }}</pre>
+          <XJsonBlock :raw="detailData.variablesJson" :default-expanded-depth="2" max-height="12rem" />
 
           <div class="flex items-center gap-3 my-3">
             <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.history_label') }}</span><XhSeparator class="flex-1" />

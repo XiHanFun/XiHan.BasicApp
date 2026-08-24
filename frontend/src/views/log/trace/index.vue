@@ -274,14 +274,14 @@ function minuteKey(value: string): string {
   return formatDate(value).slice(0, 16)
 }
 
-/** 分钟分组：外层时间线按分钟连接，分钟内为卡片子时间线 */
+/** 分钟分组：外层时间线按分钟连接，分钟内为卡片；datetime 为 <time> 的机读值 */
 const groups = computed(() => {
-  const out: { key: string, minute: string, items: TraceTimelineItemDto[] }[] = []
+  const out: { key: string, datetime: string, minute: string, items: TraceTimelineItemDto[] }[] = []
   let prev = ''
   for (const item of items.value) {
     const key = minuteKey(item.time)
     if (key !== prev) {
-      out.push({ key, minute: timeText(item.time).slice(0, 5), items: [] })
+      out.push({ key, datetime: key.replace(' ', 'T'), minute: timeText(item.time).slice(0, 5), items: [] })
       prev = key
     }
     out[out.length - 1]!.items.push(item)
@@ -449,50 +449,55 @@ watch(tracePreset, (preset) => {
               </div>
             </div>
 
-            <div v-if="groups.length" class="trace-panel__list">
-              <div v-for="grp in groups" :key="grp.key" class="trace-grp">
-                <div class="trace-grp__minute">
-                  <span class="trace-grp__node" />
-                  <span class="trace-grp__label">{{ grp.minute }}</span>
-                  <span class="trace-grp__count">{{ grp.items.length }}</span>
-                </div>
-                <div class="trace-grp__cards">
-                  <div
-                    v-for="item in grp.items"
-                    :key="`${item.logType}-${item.basicId}`"
-                    class="trace-card"
-                    :class="`is-${statusKind(item)}`"
-                    @click="openDetail(item)"
-                  >
-                    <div class="trace-card__head">
-                      <span class="trace-card__time">{{ timeText(item.time) }}</span>
-                      <span class="trace-card__chip" :class="logTypeClass(item)">{{ logTypeLabel(item.logType) }}</span>
-                      <span v-if="item.method" class="trace-card__chip" :class="methodClass(item)">{{ item.method }}</span>
-                      <span class="trace-card__grow" />
-                      <span class="trace-card__status">{{ statusText(item) }}</span>
-                    </div>
-                    <div class="trace-card__path">
-                      {{ pathOf(item) }}
-                    </div>
-                    <div v-if="item.summary" class="trace-card__summary">
-                      {{ item.summary }}
-                    </div>
-                    <div v-if="hasDuration(item)" class="trace-card__dur" :class="`dur-${durationLevel(item)}`">
-                      <span class="trace-card__bar">
-                        <span class="trace-card__barfill" :style="{ width: barWidth(item) }" />
-                      </span>
-                      <span class="trace-card__durlabel">{{ item.executionTime }}ms</span>
-                    </div>
-                    <div v-if="metaParts(item).length" class="trace-card__meta">
-                      <div v-for="p in metaParts(item)" :key="p.key" class="trace-card__metarow">
-                        <span class="trace-card__metak">{{ p.label }}</span>
-                        <span class="trace-card__metav">{{ p.value }}</span>
+            <XhTimelineRoot v-if="groups.length" class="trace-panel__list">
+              <XhTimelineItem v-for="grp in groups" :key="grp.key" tone="brand">
+                <XhTimelineIndicator />
+                <XhTimelineConnector />
+                <XhTimelineContent>
+                  <XhTimelineTitle class="trace-grp__minute">
+                    <XhTimelineTime :datetime="grp.datetime">
+                      {{ grp.minute }}
+                    </XhTimelineTime>
+                    <span class="trace-grp__count">{{ grp.items.length }}</span>
+                  </XhTimelineTitle>
+                  <div class="trace-grp__cards">
+                    <div
+                      v-for="item in grp.items"
+                      :key="`${item.logType}-${item.basicId}`"
+                      class="trace-card"
+                      :class="`is-${statusKind(item)}`"
+                      @click="openDetail(item)"
+                    >
+                      <div class="trace-card__head">
+                        <span class="trace-card__time">{{ timeText(item.time) }}</span>
+                        <span class="trace-card__chip" :class="logTypeClass(item)">{{ logTypeLabel(item.logType) }}</span>
+                        <span v-if="item.method" class="trace-card__chip" :class="methodClass(item)">{{ item.method }}</span>
+                        <span class="trace-card__grow" />
+                        <span class="trace-card__status">{{ statusText(item) }}</span>
+                      </div>
+                      <div class="trace-card__path">
+                        {{ pathOf(item) }}
+                      </div>
+                      <div v-if="item.summary" class="trace-card__summary">
+                        {{ item.summary }}
+                      </div>
+                      <div v-if="hasDuration(item)" class="trace-card__dur" :class="`dur-${durationLevel(item)}`">
+                        <span class="trace-card__bar">
+                          <span class="trace-card__barfill" :style="{ width: barWidth(item) }" />
+                        </span>
+                        <span class="trace-card__durlabel">{{ item.executionTime }}ms</span>
+                      </div>
+                      <div v-if="metaParts(item).length" class="trace-card__meta">
+                        <div v-for="p in metaParts(item)" :key="p.key" class="trace-card__metarow">
+                          <span class="trace-card__metak">{{ p.label }}</span>
+                          <span class="trace-card__metav">{{ p.value }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
+                </XhTimelineContent>
+              </XhTimelineItem>
+            </XhTimelineRoot>
 
             <XhEmptyStateRoot v-else class="trace-empty">
               <XhEmptyStateIcon>
@@ -640,63 +645,24 @@ watch(tracePreset, (preset) => {
   background: var(--xh-color-warning-600);
 }
 
+/* ── 外层时间线（组件库 timeline）：圆点、连线、间距由皮肤负责，这里只改令牌 ── */
 .trace-panel__list {
-  padding: 6px 20px 16px;
+  --xh-timeline-connector-bg: var(--xh-border-subtle);
+  --xh-timeline-title-font-size: 12px;
+  --xh-timeline-time-font-size: 12px;
+  --xh-timeline-time-fg: var(--xh-fg-default);
+
+  padding: 12px 20px 16px;
 }
 
-/* ── 外层时间线：按分钟连接 ── */
-.trace-grp {
-  position: relative;
-}
-
-/* 贯穿分钟节点的竖直主线（相邻分组无间距 → 连续） */
-.trace-grp::before {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--xh-border-subtle);
-}
-
-.trace-grp:first-child::before {
-  top: 22px;
-}
-
-.trace-grp:last-child::before {
-  bottom: auto;
-  height: 24px;
-}
-
-/* 分钟节点 */
+/* 分钟标题行：时刻 + 该分钟内条数 */
 .trace-grp__minute {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 20px;
-  padding: 12px 0 10px 26px;
-}
-
-.trace-grp__node {
-  position: absolute;
-  left: 1px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--xh-color-brand-600);
-  box-shadow: 0 0 0 3px var(--xh-bg-surface);
-}
-
-.trace-grp__label {
   font-family: var(--trace-mono);
-  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--xh-fg-default);
 }
 
 .trace-grp__count {
@@ -706,13 +672,14 @@ watch(tracePreset, (preset) => {
   color: var(--xh-fg-subtle);
   font-family: var(--trace-mono);
   font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: normal;
   line-height: 1.5;
 }
 
 /* ── 分钟内：卡片横向排列（自适应换行），信息竖向堆叠完整展示 ── */
 .trace-grp__cards {
-  margin-left: 27px;
-  padding-bottom: 16px;
+  margin-top: 4px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 10px;

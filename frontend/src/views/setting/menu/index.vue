@@ -924,7 +924,7 @@ onMounted(() => {
         <XhFormFieldGroup value="icon">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.icon') }}</XhFieldLabel>
-            <XhFieldControl>
+            <XhFieldControl :as-child="false">
               <IconPicker v-model="menuForm.icon" :placeholder="t('setting.menu.icon_placeholder')" />
             </XhFieldControl>
             <XhFieldErrorText />

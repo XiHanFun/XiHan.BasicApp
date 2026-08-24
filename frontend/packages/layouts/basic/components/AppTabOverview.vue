@@ -8,6 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { resolveSortMove } from '~/components/common/sortable'
 import SortableItem from '~/components/common/SortableItem.vue'
 import { ensurePinyin, getPinyinIndex, usePinyinReady } from '~/composables/usePinyin'
+import { usePageScrollLock } from '~/composables/useScrollLock'
 import { Icon } from '~/iconify'
 import { useLayoutBridgeStore, useSplitViewStore, useTabbarStore } from '~/stores'
 
@@ -26,6 +27,9 @@ const keyword = ref('')
 const activeIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 const gridRef = ref<HTMLElement | null>(null)
+
+// 总览铺满视口期间背后的内容不该还能滚
+usePageScrollLock(visible)
 
 function tr(title: string): string {
   return te(title) ? t(title) : title

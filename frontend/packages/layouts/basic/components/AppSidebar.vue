@@ -3,6 +3,7 @@ import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import type { AppMenuOption } from '~/types'
 
+import { useHoverIntent } from '@xihan-ui/vue/behavior'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
@@ -49,7 +50,7 @@ const emit = defineEmits<{
   'update:expandOnHovering': [value: boolean]
   'update:extraVisible': [value: boolean]
   'update:extraCollapse': [value: boolean]
-  'sidebarMouseEnter': [event: MouseEvent]
+  'sidebarMouseEnter': []
   'sidebarMouseLeave': []
 }>()
 
@@ -417,6 +418,36 @@ function handleAsideMouseLeave() {
   }
 }
 
+const asideRef = ref<HTMLElement | null>(null)
+
+// 触摸设备没有真正的悬停：轻点也会走 pointerenter/pointerleave，交给悬停意图会一抬指就收起
+const hoverCapable = typeof window !== 'undefined' && (window.matchMedia?.('(hover: hover)').matches ?? true)
+
+// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素
+onMounted(() => {
+  if (!hoverCapable)
+    return
+  useHoverIntent({
+    getTriggerEl: () => asideRef.value,
+    getContentEl: () => null,
+    openDelay: 100,
+    closeDelay: 0,
+    onOpenIntent: () => emit('sidebarMouseEnter'),
+    onCloseIntent: handleAsideMouseLeave,
+  })
+})
+
+// 悬停意图接管的设备上这两条不再重复触发
+function onAsideMouseEnter() {
+  if (!hoverCapable)
+    emit('sidebarMouseEnter')
+}
+
+function onAsideMouseLeave() {
+  if (!hoverCapable)
+    handleAsideMouseLeave()
+}
+
 function syncExtraVisibility() {
   if (!props.isDualColumn)
     return
@@ -483,10 +514,11 @@ watch(
 
     <!-- Fixed sidebar aside -->
     <aside
+      ref="asideRef"
       :style="asideStyle"
       class="fixed left-0 top-0 h-full transition-all duration-150"
-      @mouseenter="(e: MouseEvent) => emit('sidebarMouseEnter', e)"
-      @mouseleave="handleAsideMouseLeave"
+      @mouseenter="onAsideMouseEnter"
+      @mouseleave="onAsideMouseLeave"
     >
       <!-- Primary sidebar panel -->
       <div

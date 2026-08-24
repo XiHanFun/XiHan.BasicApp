@@ -19,7 +19,7 @@ import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
-import { getOptionLabel } from '~/utils'
+import { downloadBlob, getOptionLabel } from '~/utils'
 import {
   codeGenerationApi,
   codeGenTableApi,
@@ -248,14 +248,7 @@ function downloadZip(base64: string, fileName: string) {
   for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i)
   }
-  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }))
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = fileName
-  document.body.appendChild(anchor)
-  anchor.click()
-  document.body.removeChild(anchor)
-  URL.revokeObjectURL(url)
+  downloadBlob(new Blob([bytes], { type: 'application/zip' }), fileName)
 }
 
 /** 生成并下载：不再经预览弹窗中转，预览是独立动作 */

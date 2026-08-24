@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
 import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex } from '@xihan-ui/vue'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, prompt, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
+import CodeCountdown from '../shared/CodeCountdown.vue'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
@@ -243,8 +244,8 @@ type ContactTarget = 'email' | 'phone'
 const verifyLoading = ref(false)
 const verifyTarget = ref<ContactTarget | null>(null)
 const verifyCode = ref('')
-const verifyCountdown = ref(0)
-let verifyTimer: ReturnType<typeof setInterval> | null = null
+/** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
+const verifyResendSeconds = ref(0)
 
 // 换绑新地址
 const changeTarget = ref<ContactTarget | null>(null)
@@ -253,24 +254,8 @@ const changePassword = ref('')
 const changeLoading = ref(false)
 const changeCodeSent = ref(false)
 const changeCode = ref('')
-const changeCountdown = ref(0)
-let changeTimer: ReturnType<typeof setInterval> | null = null
-
-function startTimer(
-  countdownRef: { value: number },
-  timerSetter: (t: ReturnType<typeof setInterval> | null) => void,
-  seconds: number,
-) {
-  countdownRef.value = seconds
-  const t = setInterval(() => {
-    countdownRef.value--
-    if (countdownRef.value <= 0) {
-      clearInterval(t)
-      timerSetter(null)
-    }
-  }, 1000)
-  timerSetter(t)
-}
+/** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
+const changeResendSeconds = ref(0)
 
 // ==================== 验证当前邮箱/手机 ====================
 
@@ -283,11 +268,10 @@ async function sendVerifyCode(type: ContactTarget) {
     toast.success(type === 'email' ? t('component.profile.info.msg_code_sent_email') : t('component.profile.info.msg_code_sent_phone'))
     verifyTarget.value = type
     verifyCode.value = ''
-    startTimer(
-      verifyCountdown,
-      t => (verifyTimer = t),
-      Math.min(res.expiresInSeconds, 60),
-    )
+    // 先归零再赋值：这个入口在计时期间仍可点，值不变的话倒计时不会重新起跑
+    verifyResendSeconds.value = 0
+    await nextTick()
+    verifyResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
     toast.error((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
@@ -323,11 +307,7 @@ async function confirmVerify() {
 function cancelVerify() {
   verifyTarget.value = null
   verifyCode.value = ''
-  verifyCountdown.value = 0
-  if (verifyTimer) {
-    clearInterval(verifyTimer)
-    verifyTimer = null
-  }
+  verifyResendSeconds.value = 0
 }
 
 // ==================== 换绑邮箱/手机 ====================
@@ -338,11 +318,7 @@ function openChangeDialog(type: ContactTarget) {
   changePassword.value = ''
   changeCodeSent.value = false
   changeCode.value = ''
-  changeCountdown.value = 0
-  if (changeTimer) {
-    clearInterval(changeTimer)
-    changeTimer = null
-  }
+  changeResendSeconds.value = 0
 }
 
 async function sendChangeCode() {
@@ -368,11 +344,7 @@ async function sendChangeCode() {
     toast.success(t('component.profile.info.msg_code_sent'))
     changeCodeSent.value = true
     changeCode.value = ''
-    startTimer(
-      changeCountdown,
-      t => (changeTimer = t),
-      Math.min(res.expiresInSeconds, 60),
-    )
+    changeResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
     toast.error((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
@@ -411,11 +383,7 @@ function cancelChange() {
   changePassword.value = ''
   changeCodeSent.value = false
   changeCode.value = ''
-  changeCountdown.value = 0
-  if (changeTimer) {
-    clearInterval(changeTimer)
-    changeTimer = null
-  }
+  changeResendSeconds.value = 0
 }
 </script>
 
@@ -569,8 +537,11 @@ function cancelChange() {
                   <XhButton tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('email')">
-                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : t('common.actions.resend') }}
+                  <XhButton :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('email')">
+                    <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
+                    <template v-else>
+                      {{ t('common.actions.resend') }}
+                    </template>
                   </XhButton>
                   <XhButton variant="ghost" @click="cancelVerify">
                     {{ t('common.actions.cancel') }}
@@ -612,8 +583,11 @@ function cancelChange() {
                   <XhButton tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton :disabled="verifyCountdown > 0" quaternary @click="sendVerifyCode('phone')">
-                    {{ verifyCountdown > 0 ? `${verifyCountdown}s` : t('common.actions.resend') }}
+                  <XhButton :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('phone')">
+                    <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
+                    <template v-else>
+                      {{ t('common.actions.resend') }}
+                    </template>
                   </XhButton>
                   <XhButton variant="ghost" @click="cancelVerify">
                     {{ t('common.actions.cancel') }}
@@ -724,8 +698,18 @@ function cancelChange() {
                   <XhButton tone="brand" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton :disabled="changeCountdown > 0" quaternary @click="sendChangeCode">
-                    {{ changeCountdown > 0 ? t('component.profile.info.resend_after', { seconds: changeCountdown }) : t('component.profile.info.resend_now') }}
+                  <XhButton :disabled="changeResendSeconds > 0" quaternary @click="sendChangeCode">
+                    <CodeCountdown
+                      v-if="changeResendSeconds > 0"
+                      v-slot="{ seconds }"
+                      :seconds="changeResendSeconds"
+                      @finish="changeResendSeconds = 0"
+                    >
+                      {{ t('component.profile.info.resend_after', { seconds }) }}
+                    </CodeCountdown>
+                    <template v-else>
+                      {{ t('component.profile.info.resend_now') }}
+                    </template>
                   </XhButton>
                 </XhFlex>
               </template>

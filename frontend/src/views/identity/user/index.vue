@@ -14,7 +14,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge, XhButton, XhCheckbox, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhBadge, XhButton, XhCheckbox, XhClipboardControl, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhClipboardTrigger, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -34,7 +34,7 @@ import {
 } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
-import { dialog, prompt, toast } from '~/composables'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
@@ -850,18 +850,22 @@ function resetPassword(row: UserListItemDto) {
           newPassword: tempPassword,
           remark: t('identity.user.reset_password_reason'),
         })
-        // 新密码要能被选中复制，正文得放一个只读输入框——命令式确认框的正文只收 string，
-        // 因此这一步走取值弹窗：字段只读，确认即复制
-        void prompt({
+        // 结果框：正文摆一个只读的新密码与复制钮，复制态由剪贴板部件自己反馈
+        void dialog.success({
           title: t('identity.user.reset_password_done_title'),
-          description: t('identity.user.reset_password_done_content', { name: displayName(row) }),
-          okText: t('identity.user.reset_password_copy'),
-          cancelText: t('common.actions.close'),
-          fields: [{ key: 'password', value: tempPassword }],
-          onOk: () => {
-            void navigator.clipboard?.writeText(tempPassword)
-            toast.success(t('identity.user.reset_password_copied'))
-          },
+          okText: t('common.actions.close'),
+          content: () => [
+            h(XhClipboardRoot, { value: tempPassword }, () => [
+              h(XhClipboardLabel, () => t('identity.user.reset_password_done_content', { name: displayName(row) })),
+              h(XhClipboardControl, null, () => [
+                h(XhClipboardInput),
+                h(XhClipboardTrigger, { 'aria-label': t('identity.user.reset_password_copy') }, () => [
+                  h(XhClipboardIndicator),
+                  h(XhClipboardIndicator, { copied: true }),
+                ]),
+              ]),
+            ]),
+          ],
         })
       }
       catch (error) {

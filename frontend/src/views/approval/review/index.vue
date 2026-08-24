@@ -7,7 +7,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XInput } from '~/components'
+import { Icon, SchemaPage, XInput, XJsonBlock } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -454,7 +454,7 @@ function onAction(payload: SchemaActionPayload) {
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('approval.review.business_data') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
-              <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.businessData || '-' }}</pre>
+              <XJsonBlock :raw="detailData.businessData" :default-expanded-depth="2" max-height="18rem" />
             </XhDescriptionsValue>
           </XhDescriptionsItem>
           <XhDescriptionsItem>

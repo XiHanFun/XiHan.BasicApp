@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { MenuRoute } from '~/types'
 import { useFullscreen } from '@vueuse/core'
+import { XhHotkeys } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { GLOBAL_HOTKEYS } from '~/composables/useGlobalShortcuts'
 import { ensurePinyin, getPinyinIndex, usePinyinReady } from '~/composables/usePinyin'
-import { usePlatform } from '~/composables/usePlatform'
 import { useRecentRoutes } from '~/composables/useRecentRoutes'
 import { AUTH_PATH, LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
@@ -26,7 +27,6 @@ const { isDark, toggleThemeWithTransition } = useTheme()
 const { refresh: refreshCurrentTab } = useRefresh()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 const { recent, recordRecent } = useRecentRoutes()
-const { formatShortcut } = usePlatform()
 const pinyinReady = usePinyinReady()
 
 // 仅在快捷键启用时展示触发按钮上的 ⌘K/Ctrl+K 徽标
@@ -428,7 +428,7 @@ watch(
           <Icon icon="lucide:search" />
         </span>
         <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
-        <kbd v-if="showShortcut" class="search-kbd">{{ formatShortcut('Ctrl+K') }}</kbd>
+        <XhHotkeys v-if="showShortcut" class="search-kbd" :keys="[...GLOBAL_HOTKEYS.search]" :prevent-default="false" />
       </button>
     </div>
     <div class="sm:hidden">
@@ -539,18 +539,8 @@ watch(
   user-select: none;
 }
 
+/* 键帽画在触发按钮里，点它等于点按钮 */
 .search-kbd {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 6px;
-  font-size: 11px;
-  font-family: ui-monospace, 'SFMono-Regular', monospace;
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  border-radius: 4px;
-  line-height: 1.6;
-  white-space: nowrap;
   pointer-events: none;
 }
 

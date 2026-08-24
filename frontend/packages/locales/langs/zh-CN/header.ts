@@ -59,7 +59,6 @@ export default {
     fullscreen_exit: '退出全屏',
     preferences: '偏好设置',
     refresh_page: '刷新页面',
-    back_top: '回到顶部',
     nav_back: '后退',
     nav_forward: '前进',
     sidebar_collapse: '折叠侧栏',

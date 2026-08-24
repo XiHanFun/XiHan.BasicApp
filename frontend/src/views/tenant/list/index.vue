@@ -1326,7 +1326,7 @@ async function handleSubmit() {
         <XhFormFieldGroup value="logo">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.logo') }}</XhFieldLabel>
-            <XhFieldControl>
+            <XhFieldControl :as-child="false">
               <XLogoUpload v-model="tenantForm.logo" directory="tenant-logo" />
             </XhFieldControl>
             <XhFieldErrorText />

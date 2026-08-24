@@ -341,9 +341,7 @@ export function useLayoutShellAdapter() {
   }
 
   // --- Event handlers ---
-  function handleSidebarMouseEnter(e: MouseEvent) {
-    if (e?.offsetX < 10)
-      return
+  function handleSidebarMouseEnter() {
     if (appStore.sidebarExpandOnHover)
       return
     if (!sidebarExpandOnHovering.value) {
@@ -410,10 +408,6 @@ export function useLayoutShellAdapter() {
     // 组件库的滚动锁默认探 body，本应用的滚动在容器里，得把它指过去
     setScrollRoot(next)
     handleScroll()
-  }
-
-  function scrollContentToTop() {
-    contentScrollEl.value?.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function handleMouseMove(e: MouseEvent) {
@@ -513,7 +507,6 @@ export function useLayoutShellAdapter() {
     headerIsHidden,
     scrollY,
     setContentScrollEl,
-    scrollContentToTop,
 
     headerHeight,
     tabbarHeight,

@@ -6,7 +6,9 @@
   "dependencies": {
     "@dnd-kit/geometry": "catalog:",
     "@dnd-kit/vue": "catalog:",
+    "@xihan-ui/headless": "catalog:",
     "@xihan-ui/kernel": "catalog:",
+    "@xihan-ui/motion": "catalog:",
     "@xihan-ui/vue": "catalog:",
     "@xihan/components": "workspace:*",
     "@xihan/composables": "workspace:*",

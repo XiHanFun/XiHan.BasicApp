@@ -59,7 +59,6 @@ export default {
     fullscreen_exit: 'Exit fullscreen',
     preferences: 'Preferences',
     refresh_page: 'Refresh page',
-    back_top: 'Back to top',
     nav_back: 'Back',
     nav_forward: 'Forward',
     sidebar_collapse: 'Collapse sidebar',

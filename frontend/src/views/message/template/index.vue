@@ -391,7 +391,7 @@ async function handleSubmit() {
         <XhFormFieldGroup value="content" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_content') }}</XhFieldLabel>
-            <XhFieldControl>
+            <XhFieldControl :as-child="false">
               <XContentEditorField
                 v-model="templateForm.content"
                 :title="t('message.template.form_content_drawer_title')"

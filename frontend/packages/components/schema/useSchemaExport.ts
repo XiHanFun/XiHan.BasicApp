@@ -2,6 +2,7 @@ import type { ListFieldSchema } from './types'
 import { ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { i18n } from '~/locales'
+import { downloadBlob } from '~/utils'
 import { formatFieldText } from './renderer'
 
 /** CSV 单元格转义：含逗号/引号/换行时包裹双引号并转义内部引号 */
@@ -22,15 +23,7 @@ export function toCsv<TRow extends object>(fields: ListFieldSchema<TRow>[], rows
 
 /** 触发浏览器下载文本文件 */
 export function downloadText(filename: string, content: string, mime = 'text/csv;charset=utf-8'): void {
-  const blob = new Blob([content], { type: mime })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  URL.revokeObjectURL(url)
+  downloadBlob(new Blob([content], { type: mime }), filename)
 }
 
 /**

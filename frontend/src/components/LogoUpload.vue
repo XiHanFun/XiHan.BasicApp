@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FileUploadRequest } from '@xihan-ui/vue'
-import { XhButton, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { fileApi, ResourceAccessLevel } from '@/api'
@@ -34,6 +34,9 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: null | string]
 }>()
+
+// 字段接线落在真正可聚焦的上传钮上，标签的 for 才指得到
+const fieldControl = useFieldControl()
 
 const { t } = useI18n()
 const uploading = ref(false)
@@ -93,7 +96,7 @@ function clear() {
       >
         <XhFileUploadHiddenInput />
         <XhFileUploadTrigger as-child>
-          <XhButton size="sm" variant="outline" :loading="uploading" :disabled="disabled">
+          <XhButton v-bind="fieldControl" size="sm" variant="outline" :loading="uploading" :disabled="disabled">
             <Icon icon="lucide:upload" />
             {{ previewUrl ? t('component.logo_upload.change') : t('component.logo_upload.select') }}
           </XhButton>
