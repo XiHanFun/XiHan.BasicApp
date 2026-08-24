@@ -431,31 +431,6 @@ function deriveMenuChecked() {
   menuCheckedKeys.value = checked
 }
 
-/** 收集指定菜单节点（含自身）子树内所有节点 ID（目录勾选时级联其下全部子节点） */
-function collectSubtreeMenuIds(menuKey: string): ApiId[] {
-  const ids: ApiId[] = []
-  function collect(node: MenuNode) {
-    ids.push(node.basicId)
-    for (const child of node.children ?? []) {
-      collect(child)
-    }
-  }
-  function locate(nodes: MenuNode[]): boolean {
-    for (const node of nodes) {
-      if (String(node.basicId) === menuKey) {
-        collect(node)
-        return true
-      }
-      if (locate(node.children ?? [])) {
-        return true
-      }
-    }
-    return false
-  }
-  locate(menuTreeData.value)
-  return ids
-}
-
 function buildMenuTree(flat: MenuListItemDto[]): MenuNode[] {
   const byId = new Map<ApiId, MenuNode>()
   const roots: MenuNode[] = []
@@ -519,32 +494,13 @@ async function openMenuDrawer(row: RoleListItemDto) {
   }
 }
 
-/** 勾选变更仅更新本地状态（目录级联其整个子树），点「保存授权」后统一提交差异 */
+/** 勾选变更仅更新本地状态，点「保存授权」后统一提交差异。
+    父子联动由树自己做（cascade），回传的已是收敛后的整份勾中集 */
 function onMenuCheck(keys: Array<string | number>) {
   if (menuLoading.value) {
     return
   }
-  const nextKeys = keys.map(String)
-  const prevKeys = menuCheckedKeys.value.map(String)
-  const added = nextKeys.filter(key => !prevKeys.includes(key))
-  const removed = prevKeys.filter(key => !nextKeys.includes(key))
-  const changedKey = added[0] ?? removed[0]
-  if (changedKey == null) {
-    return
-  }
-  const subtreeIds = collectSubtreeMenuIds(changedKey).map(String)
-  const set = new Set(prevKeys)
-  if (added.length > 0) {
-    for (const id of subtreeIds) {
-      set.add(id)
-    }
-  }
-  else {
-    for (const id of subtreeIds) {
-      set.delete(id)
-    }
-  }
-  menuCheckedKeys.value = [...set]
+  menuCheckedKeys.value = keys.map(String)
   menuDirty.value = true
 }
 
@@ -1256,14 +1212,14 @@ async function handleToggleStatus(row: RoleListItemDto) {
             />
           </template>
         </XPermissionGrantPanel>
-        <template #footer>
+        <div class="xh-dialog-footer">
           <XhButton @click="permissionVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
             {{ t('identity.role.perm_save') }}
           </XhButton>
-        </template>
+        </div>
       </XhDrawerContent>
     </XhDrawerRoot>
 
@@ -1271,7 +1227,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 520px">
         <XhDrawerTitle>{{ t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
+        <div class="xh-loading-stage menu-tree-stage">
           <div v-if="menuLoading" class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
@@ -1286,6 +1242,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
             v-else
             :data="menuTreeOptions"
             selection-mode="multiple"
+            cascade
+            checked-strategy="all"
             :selected-keys="menuCheckedKeys.map(String)"
             @update:selected-keys="onMenuCheck"
           />
@@ -1293,14 +1251,14 @@ async function handleToggleStatus(row: RoleListItemDto) {
         <p class="perm-tip">
           {{ t('identity.role.menu_tip') }}
         </p>
-        <template #footer>
+        <div class="xh-dialog-footer">
           <XhButton @click="menuVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton tone="brand" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
             {{ t('identity.role.menu_save') }}
           </XhButton>
-        </template>
+        </div>
       </XhDrawerContent>
     </XhDrawerRoot>
 
@@ -1413,5 +1371,24 @@ async function handleToggleStatus(row: RoleListItemDto) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 菜单树撑满抽屉剩余高度：树自带 24rem 的最大高，不放开就是一块矮框加大片空白 */
+.menu-tree-stage {
+  --xh-tree-max-h: 100%;
+
+  display: flex;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.menu-tree-stage :deep(.x-tree) {
+  flex: 1;
+  min-block-size: 0;
+}
+
+.menu-tree-stage :deep([data-scope='tree'][data-part='tree']) {
+  flex: 1;
+  min-block-size: 0;
 }
 </style>

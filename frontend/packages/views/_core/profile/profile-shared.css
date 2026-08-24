@@ -7,6 +7,14 @@
   gap: 28px;
 }
 
+/* 读数罩层的包裹层：分区被它套进去后就不再是 pf-tab-body 的直接子元素，
+   分区之间的间距要在这一层再给一次 */
+.pf-tab-body > .xh-loading-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
 /* 分区：无背景、无圆角，靠标题下分隔线划分（GitHub 式） */
 .pf-section {
   background: transparent;

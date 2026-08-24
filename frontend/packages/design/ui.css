@@ -153,6 +153,21 @@
   transition: background-color 0.15s ease;
 }
 
+/* 偏好行右侧的取值列只有百来像素，而组件库的输入类控件自带 12rem 最小宽。
+   放开各族的最小宽钩子，并让视觉盒按调用点给的宽度铺满，否则会顶破这一行 */
+.pref-row {
+  --xh-number-field-control-min-w: 0;
+  --xh-select-control-min-w: 0;
+  --xh-text-field-control-min-w: 0;
+  --xh-text-field-input-min-w: 0;
+}
+
+.pref-row [data-scope='number-field'][data-part='control'],
+.pref-row [data-scope='select'][data-part='control'],
+.pref-row [data-scope='text-field'][data-part='control'] {
+  inline-size: 100%;
+}
+
 .pref-row:hover {
   background-color: hsl(var(--accent));
 }

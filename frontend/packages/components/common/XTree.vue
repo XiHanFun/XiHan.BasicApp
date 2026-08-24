@@ -17,10 +17,16 @@ const props = withDefaults(defineProps<{
   renderLabel?: (node: Record<string, unknown>) => VNodeChild
   /** 点分支文字即展开，不必点把手 */
   expandOnClick?: boolean
+  /** 多选档的父子联动：勾目录连带整枝，子项勾一部分时目录呈半选 */
+  cascade?: boolean
+  /** 联动下回传哪些键：all 全部勾中节点、parent 只收最高整枝、child 只留叶，缺省 child */
+  checkedStrategy?: 'all' | 'parent' | 'child'
 }>(), {
   selectionMode: 'single',
   renderLabel: undefined,
   expandOnClick: true,
+  cascade: false,
+  checkedStrategy: undefined,
 })
 
 const selectedKeys = defineModel<string[]>('selectedKeys', { default: () => [] })
@@ -47,14 +53,16 @@ const collection = computed(() => toNodes(props.data))
     class="x-tree"
     :collection="collection"
     :selection-mode="selectionMode"
-    :selected-value="selectedKeys"
+    :selection="selectedKeys"
     :expanded-value="expandedKeys"
     :expand-on-click="expandOnClick"
-    @update:selected-value="(value: string[]) => (selectedKeys = value)"
+    :cascade="cascade"
+    :checked-strategy="checkedStrategy"
+    @update:selection="(value: string[]) => (selectedKeys = value)"
     @update:expanded-value="(value: string[]) => (expandedKeys = value)"
   >
     <XhTreeTree>
-      <XTreeNodes :nodes="collection" :render-label="renderLabel" />
+      <XTreeNodes :nodes="collection" :checkable="selectionMode === 'multiple'" :render-label="renderLabel" />
     </XhTreeTree>
   </XhTreeRoot>
 </template>
