@@ -2,8 +2,8 @@ import { createRequire } from "node:module";
 import { DefaultTheme, HeadConfig, defineConfig } from "vitepress";
 const require = createRequire(import.meta.url);
 
-// 导航末项显示的版本号取自本站 package.json，发版时只改那一处
-const { version } = require("../frontend/package.json");
+// 导航末项显示的版本号取自应用包 package.json，发版时只改那一处。
+const { version } = require("../../frontend/package.json");
 
 const title: string = "曦寒基础应用文档";
 const description: string = "基于曦寒开发框架的企业级中后台应用";
