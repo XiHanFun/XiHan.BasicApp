@@ -8,6 +8,10 @@ import {
   XhEmptyStateIcon,
   XhEmptyStateRoot,
   XhEmptyStateTitle,
+  XhPopoverContent,
+  XhPopoverPositioner,
+  XhPopoverRoot,
+  XhPopoverTrigger,
   XhSpinner,
   XhTabsContent,
   XhTabsList,
@@ -21,7 +25,7 @@ import {
   XhTooltipRoot,
   XhTooltipTrigger,
 } from '@xihan-ui/vue'
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
 import { NOTIFICATION_TYPE_OPTIONS } from '~/constants'
@@ -55,36 +59,6 @@ const notificationTypeOptions = useEnumOptions('NotificationType', NOTIFICATION_
 
 const showPopover = ref(false)
 const activeTab = ref('inbox')
-const triggerRef = ref<HTMLButtonElement>()
-const dropdownPos = reactive({ top: '0px', right: '0px' })
-
-function updateDropdownPosition() {
-  if (!triggerRef.value)
-    return
-  const rect = triggerRef.value.getBoundingClientRect()
-  dropdownPos.top = `${rect.bottom + 8}px`
-  dropdownPos.right = `${Math.max(document.documentElement.clientWidth - rect.right - 40, 8)}px`
-}
-
-watch(showPopover, (val) => {
-  if (val) {
-    nextTick(updateDropdownPosition)
-    window.addEventListener('resize', updateDropdownPosition)
-    window.addEventListener('scroll', updateDropdownPosition, true)
-  }
-  else {
-    window.removeEventListener('resize', updateDropdownPosition)
-    window.removeEventListener('scroll', updateDropdownPosition, true)
-  }
-})
-
-onMounted(() => {
-  // 组件卸载时兜底清理
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateDropdownPosition)
-  window.removeEventListener('scroll', updateDropdownPosition, true)
-})
 
 function getTypeTag(type: NotificationType): Tone {
   switch (type) {
@@ -159,52 +133,40 @@ function handleItemClick(item: NotificationItem) {
     emit('markRead', item.basicId)
   }
 }
-
-function handleClickOutside() {
-  showPopover.value = false
-}
 </script>
 
 <template>
   <div class="notification-popover-wrapper" @click.stop>
-    <!-- 铃铛触发按钮 -->
-    <XhTooltipRoot>
-      <XhTooltipTrigger
-        ref="triggerRef"
-        class="xihan-icon-btn notification-btn mr-1"
-        @click="showPopover = !showPopover"
-      >
-        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
-        <XhBadge
-          size="sm"
-          tone="danger"
-          :count="props.unreadCount"
-          :label="t('header.notification.unread_label', { n: props.unreadCount })"
-        >
-          <Icon icon="lucide:bell" width="16" height="16" />
-        </XhBadge>
-      </XhTooltipTrigger>
-      <XhTooltipPositioner>
-        <XhTooltipContent>
-          {{ t('header.notification.bell') }}
-          <XhTooltipArrow />
-        </XhTooltipContent>
-      </XhTooltipPositioner>
-    </XhTooltipRoot>
+    <!-- 定位、消解层、焦点归还、贴边收起全归组件库；这里只出内容 -->
+    <XhPopoverRoot v-model:open="showPopover" placement="bottom-end" :offset="8">
+      <!-- 铃铛：气泡属性合到浮层触发器那颗按钮上，不再多套一层 -->
+      <XhTooltipRoot>
+        <XhTooltipTrigger as-child>
+          <XhPopoverTrigger class="xihan-icon-btn notification-btn mr-1">
+            <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
+            <XhBadge
+              size="sm"
+              tone="danger"
+              :count="props.unreadCount"
+              :label="t('header.notification.unread_label', { n: props.unreadCount })"
+            >
+              <Icon icon="lucide:bell" width="16" height="16" />
+            </XhBadge>
+          </XhPopoverTrigger>
+        </XhTooltipTrigger>
+        <XhTooltipPositioner>
+          <XhTooltipContent>
+            {{ t('header.notification.bell') }}
+            <XhTooltipArrow />
+          </XhTooltipContent>
+        </XhTooltipPositioner>
+      </XhTooltipRoot>
 
-    <!-- 遮罩 + 下拉弹窗 Teleport 到 body，脱离 header 层叠上下文 -->
-    <Teleport to="body">
-      <div v-if="showPopover" class="notification-overlay" @click="handleClickOutside" />
-      <Transition name="notification-slide">
-        <div
-          v-if="showPopover"
-          class="notification-dropdown"
-          :style="{ top: dropdownPos.top, right: dropdownPos.right }"
-          @click.stop
-        >
-          <div class="notification-dropdown-header">
-            <span class="notification-dropdown-title">{{ t('header.notification.title') }}</span>
-            <div class="notification-dropdown-actions">
+      <XhPopoverPositioner>
+        <XhPopoverContent class="notification-panel">
+          <div class="notification-panel-header">
+            <span class="notification-panel-title">{{ t('header.notification.title') }}</span>
+            <div class="notification-panel-actions">
               <XhTooltipRoot>
                 <XhTooltipTrigger class="notification-header-btn" @click="emit('refresh')">
                   <Icon icon="lucide:refresh-cw" width="14" height="14" />
@@ -339,14 +301,14 @@ function handleClickOutside() {
             </XhTabsRoot>
           </div>
 
-          <div class="notification-dropdown-footer">
+          <div class="notification-panel-footer">
             <XhButton variant="ghost" tone="brand" size="sm" @click="emit('viewAll'); showPopover = false">
               {{ t('header.notification.view_all') }}
             </XhButton>
           </div>
-        </div>
-      </Transition>
-    </Teleport>
+        </XhPopoverContent>
+      </XhPopoverPositioner>
+    </XhPopoverRoot>
   </div>
 </template>
 
@@ -379,40 +341,36 @@ function handleClickOutside() {
   align-items: center;
 }
 
-.notification-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1999;
-}
+/*
+ * 浮层的面、描边、圆角、投影、层级与进出场都由 popover 皮肤给，这里只调它开放的几个令牌：
+ * 内缩归零（头、尾、列表各自带内缩），限高交给内部那块滚动区，
+ * 面板本身不滚——滚的话头尾会跟着走。
+ */
+.notification-panel {
+  --xh-popover-px: 0;
+  --xh-popover-py: 0;
+  --xh-popover-gap: 0;
+  --xh-popover-max-w: none;
+  --xh-popover-max-h: none;
 
-.notification-dropdown {
-  position: fixed;
-  /* 与组件库的浮层同层：写死 2000 会被库里 2300 的 popover / tooltip 盖住 */
-  z-index: var(--xh-layer-popover);
-  width: min(420px, calc(100vw - 24px));
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: 12px;
-  box-shadow:
-    0 8px 30px hsl(var(--foreground) / 8%),
-    0 2px 8px hsl(var(--foreground) / 4%);
+  inline-size: min(420px, calc(100vw - 24px));
   overflow: hidden;
 }
 
-.notification-dropdown-header {
+.notification-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px 6px;
 }
 
-.notification-dropdown-title {
+.notification-panel-title {
   font-size: 14px;
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
-.notification-dropdown-actions {
+.notification-panel-actions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -537,31 +495,12 @@ function handleClickOutside() {
   color: hsl(var(--muted-foreground) / 70%);
 }
 
-.notification-dropdown-footer {
+.notification-panel-footer {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8px;
   background: hsl(var(--muted) / 25%);
   border-top: 1px solid hsl(var(--border));
-}
-
-/* 进出场动画 */
-.notification-slide-enter-active {
-  transition: all 0.2s ease-out;
-}
-
-.notification-slide-leave-active {
-  transition: all 0.15s ease-in;
-}
-
-.notification-slide-enter-from {
-  opacity: 0;
-  transform: translateY(-6px) scale(0.98);
-}
-
-.notification-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-4px) scale(0.99);
 }
 </style>

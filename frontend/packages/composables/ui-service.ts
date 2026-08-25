@@ -37,7 +37,6 @@ function notificationService(): NotificationService {
     max: 5,
     config: xhConfigValue,
     translations: () => xhTranslationsOfCurrentLocale().notification ?? {},
-    itemTranslations: () => xhTranslationsOfCurrentLocale().toast ?? {},
   })
   return notificationInstance
 }
