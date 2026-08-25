@@ -82,7 +82,8 @@
 
     /* —— 滚动条：与应用自绘那套同源 —— */
     --xh-bg-scrollbar-track: hsl(var(--muted));
-    --xh-fg-scrollbar-thumb: hsl(var(--border));
+    /* 滑块取 45% 的次要前景：--border 那一档压在画布上只有 1.27，几乎看不见 */
+    --xh-fg-scrollbar-thumb: hsl(var(--muted-foreground) / 45%);
 
     /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
     --xh-shape-control: var(--radius);
