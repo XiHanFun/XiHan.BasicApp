@@ -4,7 +4,7 @@ import type { NotificationContentFormat } from '~/types/enums'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { applyRemotePageSetting } from '~/components'
-import { applyServerTaskProgress, dialog, islandStatus, playNotificationSound, toast, useSignalR } from '~/composables'
+import { applyServerTaskProgress, dialog, islandStatus, notification, playNotificationSound, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 
@@ -93,9 +93,9 @@ export function useSignalRIntegration() {
     }
     const nType = typeMap[payload?.type ?? 'Info'] ?? 'info'
 
-    // 弹条只出纯文本：命令式 toast 的 title/description 都是 string，承不了富文本组件。
+    // 弹条只出纯文本：命令式通知的 title/description 都是 string，承不了富文本组件。
     // 完整正文（markdown/html）仍在消息中心里按原格式渲染。
-    toast.create({
+    notification.create({
       type: nType,
       title: payload?.title || t('page.signalr.new_notification'),
       description: payload?.content ?? '',

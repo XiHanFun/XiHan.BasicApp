@@ -1,5 +1,5 @@
-import type { AlertOptions, ConfirmOptions, DialogService, LoadingBarService, ToastMessageOptions, ToastService } from '@xihan-ui/vue'
-import { createDialogService, createLoadingBarService, createToastService } from '@xihan-ui/vue'
+import type { AlertOptions, ConfirmOptions, DialogService, LoadingBarService, NotificationMessageOptions, NotificationService, ToastMessageOptions, ToastService } from '@xihan-ui/vue'
+import { createDialogService, createLoadingBarService, createNotificationService, createToastService } from '@xihan-ui/vue'
 import { $t } from '~/locales'
 import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
 
@@ -15,19 +15,31 @@ import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
  */
 
 let toastInstance: ToastService | null = null
+let notificationInstance: NotificationService | null = null
 let dialogInstance: DialogService | null = null
 let loadingBarInstance: LoadingBarService | null = null
 
 function toastService(): ToastService {
-  // 顶部居中：与旧版轻提示的落位一致。右下角那几条通知在调用点单独传 placement
+  // 顶部居中：与旧版轻提示的落位一致。落位是整个服务的口径，不逐条各去一处
   toastInstance ??= createToastService({
     placement: 'top',
     max: 5,
     config: xhConfigValue,
-    translations: () => xhTranslationsOfCurrentLocale().toaster ?? {},
     toastTranslations: () => xhTranslationsOfCurrentLocale().toast ?? {},
   })
   return toastInstance
+}
+
+/** 通知服务：主动推来的消息落右下角，标题加正文两层。 */
+function notificationService(): NotificationService {
+  notificationInstance ??= createNotificationService({
+    placement: 'bottom-end',
+    max: 5,
+    config: xhConfigValue,
+    translations: () => xhTranslationsOfCurrentLocale().notification ?? {},
+    itemTranslations: () => xhTranslationsOfCurrentLocale().toast ?? {},
+  })
+  return notificationInstance
 }
 
 /** 确认框服务；确定/取消的兜底文案按当前语言取，调用点显式给了就以调用点为准。 */
@@ -76,6 +88,22 @@ export const toast = {
       update: (patch: Parameters<ToastService['update']>[1]) => toastService().update(id, patch),
     }
   },
+}
+
+/**
+ * 通知：系统或他人主动推来的一条消息，标题加正文两层，可以常驻不消失。
+ *
+ * 与轻提示的分工是「谁发起的」——用户刚点了一下、只要一句结果反馈的走 toast。
+ */
+export const notification = {
+  create: (options?: Parameters<NotificationService['create']>[0]) => notificationService().create(options),
+  update: (id: string, options: Parameters<NotificationService['update']>[1]) => notificationService().update(id, options),
+  dismiss: (id: string) => notificationService().dismiss(id),
+  dismissAll: () => notificationService().dismissAll(),
+  info: (title: string, options?: NotificationMessageOptions) => notificationService().info(title, options),
+  success: (title: string, options?: NotificationMessageOptions) => notificationService().success(title, options),
+  warning: (title: string, options?: NotificationMessageOptions) => notificationService().warning(title, options),
+  error: (title: string, options?: NotificationMessageOptions) => notificationService().error(title, options),
 }
 
 /**

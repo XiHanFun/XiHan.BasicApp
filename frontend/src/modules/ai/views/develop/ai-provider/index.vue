@@ -18,7 +18,7 @@ import {
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
-import { dialog, toast } from '~/composables'
+import { dialog, notification, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import {
@@ -208,8 +208,8 @@ async function handleTest(row: AiProviderListItemDto) {
       ? describeProbe(t('develop.ai_provider.probe_embedding'), result.embedding)
       : t('develop.ai_provider.probe_embedding_absent'))
 
-    // 探测结果逐行罗列；描述里的换行由轻提示描述部件的 pre-line 保留
-    toast[result.success ? 'success' : 'error'](
+    // 探测结果逐行罗列，一句话说不完：走通知的标题加正文两层
+    notification[result.success ? 'success' : 'error'](
       t(result.success ? 'develop.ai_provider.test_success' : 'develop.ai_provider.test_failed'),
       { description: lines.join('\n'), duration: result.success ? 5000 : 0 },
     )
