@@ -74,6 +74,7 @@ const zhCN: XhTranslationOverrides = {
   'log': { log: '日志' },
   'mention': { content: '提及候选', input: '输入以提及' },
   'navigation-menu': { root: '主导航' },
+  'notification': { region: '通知' },
   'pagination': {
     root: '分页',
     prevTrigger: '上一页',
@@ -98,7 +99,6 @@ const zhCN: XhTranslationOverrides = {
   'text-field': { clearTrigger: '清空' },
   'thread': { scrollToBottom: '滚到底部', log: '消息列表' },
   'toast': { close: '关闭' },
-  'toaster': { region: '通知' },
   'tour': { close: '结束引导', progress: (step, count) => `第 ${step} 步，共 ${count} 步` },
   'tree-select': { tree: '树形选项', clearTrigger: '清空' },
 }
