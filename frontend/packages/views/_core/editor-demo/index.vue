@@ -31,7 +31,7 @@ const greeting = (name: string) => {
 const jsonData = ref<Record<string, unknown>>({
   name: 'XiHan BasicApp',
   version: '1.2.0',
-  features: ['Vue 3', 'Naive UI', 'TypeScript', 'Tailwind CSS'],
+  features: ['Vue 3', '曦寒视图组件', 'TypeScript', 'Tailwind CSS'],
   config: {
     theme: 'light',
     language: 'zh-CN',

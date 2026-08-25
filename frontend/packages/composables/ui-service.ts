@@ -138,10 +138,12 @@ export const loadingBar = {
   error: () => loadingBarService().error(),
 }
 
-/** 应用卸载时释放三个宿主应用（热更新与测试用）。 */
+/** 应用卸载时释放四个宿主应用（热更新与测试用）。 */
 export function disposeUiServices(): void {
   toastInstance?.dispose()
   toastInstance = null
+  notificationInstance?.dispose()
+  notificationInstance = null
   dialogInstance?.dispose()
   dialogInstance = null
   loadingBarInstance?.dispose()

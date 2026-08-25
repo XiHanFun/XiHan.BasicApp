@@ -38,7 +38,7 @@ const tableLoading = ref(false)
 const submitLoading = ref(false)
 
 const queryKeyword = ref('')
-/** 数据源：空串表示本系统主库（Naive UI 选项值不接受 null，故用空串作哨兵） */
+/** 数据源：空串表示本系统主库（选项值不接受 null，故用空串作哨兵） */
 const dataSourceId = ref<ApiId>('')
 const dataSourceOptions = ref<{ label: string, value: ApiId }[]>([])
 const databaseType = ref<DatabaseType>(DatabaseTypeEnum.MySql)

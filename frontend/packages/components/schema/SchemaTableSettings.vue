@@ -53,7 +53,7 @@ const densityOptions = computed<Array<{ label: string, value: TableDensity }>>((
 const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, invert?: boolean }>>(() => [
   { label: t('component.schema_table_settings.striped'), key: 'striped' },
   { label: t('component.schema_table_settings.bordered'), key: 'bordered' },
-  // Naive single-line=true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
+  // 存的是 single-line：true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
   { label: t('component.schema_table_settings.single_line'), key: 'singleLine', invert: true },
 ])
 
@@ -389,8 +389,9 @@ function onDragEnd(event: DragEndEvent) {
   border-radius: 6px;
 }
 
-/* 复选框标题钉死 14px，与搜索设置行标题字号一致；超长列名单行省略（不换行、不撑高），完整名见悬停 title */
-.xh-set-row :deep([data-scope='checkbox'][data-part='text']) {
+/* 列名钉死 14px，与搜索设置行标题字号一致；超长列名单行省略（不换行、不撑高），完整名见悬停 title。
+   选本组件自己的类名——复选框没写默认插槽时只渲染一颗裸 button，没有 text 那个部件 */
+.xh-set-row__name {
   font-size: 14px;
   overflow: hidden;
   white-space: nowrap;

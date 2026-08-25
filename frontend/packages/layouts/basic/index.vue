@@ -323,7 +323,7 @@ const sidebarEnableState = computed(
           </div>
         </header>
 
-        <!-- Tabbar：随「深色顶栏」一起暗化（与 header 同款：本地 dark class + Naive 暗色） -->
+        <!-- Tabbar：随「深色顶栏」一起暗化（与 header 同款：本地 dark class + 组件库暗色） -->
         <div
           v-if="shell.appStore.tabbarEnabled && !shell.isFullContent.value"
           :class="headerTheme"

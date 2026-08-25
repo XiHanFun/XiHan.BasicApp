@@ -71,7 +71,7 @@ function onSizeChange(value: string[]): void {
         <XhPaginationItem v-if="item !== 'ellipsis'" :value="item">
           {{ item }}
         </XhPaginationItem>
-        <XhPaginationEllipsis v-else>
+        <XhPaginationEllipsis v-else :side="index < pages.length / 2 ? 'start' : 'end'">
           …
         </XhPaginationEllipsis>
       </template>

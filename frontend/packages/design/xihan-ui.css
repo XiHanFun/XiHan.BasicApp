@@ -92,8 +92,7 @@
        组件库里 tag 默认取 shape-control，本站几百枚状态标记因此需要这一条 */
     --xh-tag-radius: var(--xh-shape-pill);
 
-    /* —— 层级：整族抬到应用旧有的 --popup-z-index(2000) 之上，
-           避免遗留的 .z-popup 元素盖住组件库的模态与浮层 —— */
+    /* —— 层级：整族抬到本仓手写浮层（通知下拉那类）之上 —— */
     --xh-z-sticky: var(--z-sidebar);
     --xh-z-modal: 2200;
     --xh-z-popover: 2300;

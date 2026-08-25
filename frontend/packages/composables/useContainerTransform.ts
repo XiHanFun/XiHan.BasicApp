@@ -8,7 +8,7 @@
  *   视觉上点击的行/按钮「长大」成了弹窗；
  * - 弹窗卸载时反向播放：幽灵从弹窗矩形收回点击源位置。
  *
- * 弹窗在 Naive 进场缩放动画中测量会失真：用 offsetWidth/offsetHeight（布局尺寸，
+ * 弹窗在 弹窗的进场缩放动画中测量会失真：用 offsetWidth/offsetHeight（布局尺寸，
  * 不受 transform 影响）+ 按计算样式的 transform 矩阵与 transform-origin 反解出布局位置。
  */
 
